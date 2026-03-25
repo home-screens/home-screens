@@ -6,10 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/Container';
 import { DisplayFrame } from '@/components/DisplayFrame';
 import { Github } from 'lucide-react';
+import { useLatestVersion } from '@/hooks/useLatestVersion';
 
 const techStack = ['Next.js', 'React', 'Tailwind CSS', 'Raspberry Pi'];
 
 export function Hero() {
+  const version = useLatestVersion();
+
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
       {/* Background: dot grid */}
@@ -34,7 +37,7 @@ export function Hero() {
             transition={{ duration: 0.5 }}
           >
             <Badge color="cyan" className="mb-6">
-              <span className="font-mono">v0.18.0</span>
+              <span className="font-mono">{version}</span>
               <span className="mx-1.5 text-cyan-500/40">|</span>
               Open Source
             </Badge>
@@ -48,7 +51,7 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-neutral-400">
-              A self-hosted smart display that runs on a Raspberry Pi. 35 modules, a
+              A self-hosted smart display that runs on a Raspberry Pi. 34 modules, a
               visual drag-and-drop editor, and zero cloud dependency.
             </p>
 

@@ -6,8 +6,10 @@ import { Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/Container';
+import { useLatestVersion } from '@/hooks/useLatestVersion';
 
 export function OpenSourceCTA() {
+  const version = useLatestVersion();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
@@ -34,7 +36,7 @@ export function OpenSourceCTA() {
           <div className="mt-6 flex items-center justify-center gap-3">
             <Badge color="green">MIT License</Badge>
             <Badge color="cyan">
-              <span className="font-mono">v0.18.0</span>
+              <span className="font-mono">{version}</span>
             </Badge>
           </div>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
