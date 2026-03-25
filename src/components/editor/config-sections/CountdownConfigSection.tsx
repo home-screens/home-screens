@@ -115,12 +115,31 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
               <button onClick={() => removeEvent(ev.id)} className="text-red-400 text-xs px-1">x</button>
             </div>
             {!isHoliday && (
-              <input
-                type="datetime-local"
-                value={ev.date.includes('T') ? ev.date.slice(0, 16) : ev.date + 'T00:00'}
-                onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
-                className={NESTED_INPUT_CLASS}
-              />
+              <>
+                <input
+                  type="datetime-local"
+                  value={ev.date.includes('T') ? ev.date.slice(0, 16) : ev.date + 'T00:00'}
+                  onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
+                  className={NESTED_INPUT_CLASS}
+                />
+                <label className="flex items-center gap-1.5 text-[11px] text-neutral-400 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={ev.recurring === 'yearly'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        updateEvent(ev.id, { recurring: 'yearly' });
+                      } else {
+                        // Remove recurring key entirely instead of setting to undefined
+                        const { recurring: _, ...rest } = ev;
+                        set({ events: events.map((item) => (item.id === ev.id ? rest : item)) });
+                      }
+                    }}
+                    className="accent-blue-500"
+                  />
+                  Repeat yearly
+                </label>
+              </>
             )}
             {isHoliday && (
               <p className="text-[10px] text-neutral-500">
