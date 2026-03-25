@@ -6,7 +6,7 @@ nextjs:
     description: Home Screens documentation — an open-source smart display system for Raspberry Pi.
 ---
 
-An open-source smart display system for Raspberry Pi. 35 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
+An open-source smart display system for Raspberry Pi. 34 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
 
 {% quick-links %}
 
@@ -28,7 +28,7 @@ Home Screens is a custom smart display system that replaces services like Dakboa
 
 ### Key features
 
-- **35 modules** — clock, weather, calendar, news, stocks, sports, and more
+- **34 modules** — clock, weather, calendar, news, stocks, sports, and more
 - **Visual editor** — drag-and-drop interface to design your screens
 - **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo
 - **Google Calendar** — OAuth device flow, works on headless displays
@@ -39,8 +39,20 @@ Home Screens is a custom smart display system that replaces services like Dakboa
 
 Home Screens is built with Next.js 16, React 19, and Tailwind CSS. Configuration is stored as a single JSON file — no database required.
 
+### Quick start
+
+**Raspberry Pi** (recommended) — run the install script on a fresh Raspberry Pi OS:
+
 ```bash
-# Quick start
+git clone https://github.com/home-screens/home-screens.git
+~/home-screens/scripts/install.sh
+```
+
+After reboot, the display starts automatically. Configure at `http://<pi-ip>:3000/editor` from another device.
+
+**Local development** — run on your own machine for development or testing:
+
+```bash
 git clone https://github.com/home-screens/home-screens.git
 cd home-screens
 npm install
@@ -48,6 +60,8 @@ npm run dev
 ```
 
 Then visit `http://localhost:3000/editor` to start building your display.
+
+See the [Installation guide](/docs/getting-started) for full details.
 
 ---
 

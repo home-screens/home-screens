@@ -214,7 +214,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles 
 
 ### ModuleType
 
-There are 35 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are 34 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -251,7 +251,6 @@ type BuiltinModuleType =
   | 'date'
   | 'meal-planner'
   | 'iframe'
-  | 'flag-status'
   | 'chore-chart';
 
 type PluginModuleType = `plugin:${string}`;
@@ -741,17 +740,6 @@ Embeds an external web page. Supports configurable refresh and sandboxing.
   sandboxEnabled: boolean
   sandbox: string
   title: string
-}
-```
-
-### FlagStatusConfig
-
-Displays whether the US flag should be at half-staff or full-staff.
-
-```typescript
-{
-  showReason: boolean
-  refreshIntervalMs: number
 }
 ```
 

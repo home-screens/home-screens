@@ -199,31 +199,6 @@ The `date` field must be in `YYYY-MM-DD` format.
 
 ---
 
-## Flag Status
-
-### GET /api/flag-status
-
-Returns the current US flag half-staff status from the [FlagWatch API](https://flagwatch.net). Results are cached for 30 minutes. No API key required.
-
-**Response (half-staff):**
-```json
-{
-  "status": "half-staff",
-  "reason": "In honor of...",
-  "orderFrom": "Presidential Proclamation",
-  "url": "https://..."
-}
-```
-
-**Response (full-staff):**
-```json
-{
-  "status": "full-staff"
-}
-```
-
----
-
 ## Authentication
 
 ### GET /api/auth/status

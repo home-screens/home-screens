@@ -4,6 +4,7 @@ export const navigation = [
     links: [
       { title: 'Getting started', href: '/docs' },
       { title: 'Installation', href: '/docs/getting-started' },
+      { title: 'Raspberry Pi', href: '/docs/raspberry-pi' },
     ],
   },
   {
@@ -14,7 +15,7 @@ export const navigation = [
       { title: 'Backgrounds', href: '/docs/backgrounds' },
       { title: 'Profiles & Scheduling', href: '/docs/profiles' },
       { title: 'Configuration', href: '/docs/configuration' },
-      { title: 'Raspberry Pi', href: '/docs/raspberry-pi' },
+      { title: 'Remote Control', href: '/docs/remote-control' },
       { title: 'Networking', href: '/docs/networking' },
       { title: 'Troubleshooting', href: '/docs/troubleshooting' },
     ],

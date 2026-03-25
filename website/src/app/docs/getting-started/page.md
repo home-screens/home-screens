@@ -6,18 +6,70 @@ nextjs:
     description: How to install and set up Home Screens.
 ---
 
-## Prerequisites
+## Choose your install method
+
+Home Screens can be deployed as a dedicated kiosk display on a Raspberry Pi, or run locally on your own machine for development and testing.
+
+---
+
+## Raspberry Pi {% .lead %}
+
+The recommended way to run Home Screens. The install script sets up everything on a fresh Raspberry Pi OS — Node.js, the pre-built app, Chromium in kiosk mode, and a systemd service.
+
+### Requirements
+
+- Raspberry Pi 4 or 5 (2 GB+ RAM recommended); RPI5 has significant performance improvements over RPI4 when it comes to larger displays and animations.
+- [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) recommended (Desktop also supported)
+- A display connected via HDMI
+- Network connection (Ethernet or Wi-Fi)
+
+### Install
+
+```bash
+git clone https://github.com/home-screens/home-screens.git
+~/home-screens/scripts/install.sh
+```
+
+After installation, reboot. The display starts automatically and you can configure it at `http://<pi-ip>:3000/editor` from another device on your network.
+
+For display orientation, installer flags, service management, upgrading, and troubleshooting, see the full [Raspberry Pi guide](/docs/raspberry-pi).
+
+---
+
+## Local development {% .lead %}
+
+Run Home Screens on your own machine for development or testing. This requires building from source.
+
+### Prerequisites
 
 - Node.js 22+
 - npm
 
-## Installation
+### Install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/home-screens/home-screens.git
 cd home-screens
 npm install
 ```
+
+### Running
+
+```bash
+# Development
+npm run dev
+
+# Production
+npm run build
+npm run start
+```
+
+Then visit:
+
+- **Editor** -- `http://localhost:3000/editor` to configure your screens
+- **Display** -- `http://localhost:3000/display` for the fullscreen kiosk view
+
+---
 
 ## Configuration
 
@@ -36,22 +88,6 @@ The following integrations can be configured through the editor:
 | Open-Meteo | Free weather data (global coverage, no API key needed) | Optional (one of five weather providers) |
 | Google Maps | Google Routes API key for traffic module | For traffic module |
 | TomTom | TomTom Routing API key (traffic fallback) | For traffic module |
-
-## Running
-
-```bash
-# Development
-npm run dev
-
-# Production
-npm run build
-npm run start
-```
-
-Then visit:
-
-- **Editor** -- `http://localhost:3000/editor` to configure your screens
-- **Display** -- `http://localhost:3000/display` for the fullscreen kiosk view
 
 ## Password Protection
 
@@ -95,6 +131,6 @@ You can switch to the **Dev** channel in **Settings > System** to get pre-releas
 
 ## Next Steps
 
+- [Raspberry Pi guide](/docs/raspberry-pi) -- full deployment details, orientation, troubleshooting
 - [Editor Guide](/docs/editor) -- learn how to build your screens
-- [Modules Reference](/docs/modules) -- see all 33 available modules
-- [Raspberry Pi Deployment](/docs/raspberry-pi) -- set up a dedicated kiosk display
+- [Modules Reference](/docs/modules) -- see all 34 available modules

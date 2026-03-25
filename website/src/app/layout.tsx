@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     default: 'Home Screens — Smart Display for Your Home',
   },
   description:
-    'An open-source smart display system for Raspberry Pi. 35 modules, visual editor, 5 weather providers. Free forever.',
+    'An open-source smart display system for Raspberry Pi. 34 modules, visual editor, 5 weather providers. Free forever.',
   openGraph: {
     title: 'Home Screens — Smart Display for Your Home',
     description:
-      'An open-source smart display system for Raspberry Pi. 35 modules, visual editor, 5 weather providers.',
+      'An open-source smart display system for Raspberry Pi. 34 modules, visual editor, 5 weather providers.',
     type: 'website',
   },
 }
