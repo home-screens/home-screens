@@ -18,6 +18,7 @@ import {
   Layers,
   Activity,
   Bell,
+  BookOpen,
 } from 'lucide-react';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
@@ -34,6 +35,7 @@ import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
 import AlertSection from '@/components/editor/settings/AlertSection';
 import DataSection from '@/components/editor/settings/DataSection';
+import DocsSection from '@/components/editor/settings/DocsSection';
 import OrientationChangeModal from '@/components/editor/settings/OrientationChangeModal';
 import UpgradeModal from '@/components/editor/UpgradeModal';
 import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
@@ -53,6 +55,7 @@ const TABS = [
   { id: 'data', label: 'Data', icon: Database },
   { id: 'stats', label: 'Stats', icon: Activity },
   { id: 'system', label: 'System', icon: Server },
+  { id: 'docs', label: 'Docs', icon: BookOpen },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -357,7 +360,7 @@ export default function SettingsPage() {
     );
   }
 
-  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'stats']);
+  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'stats', 'docs']);
   const showSaveButton = !SELF_SAVING_TABS.has(activeTab);
 
   return (
@@ -507,6 +510,10 @@ export default function SettingsPage() {
                 onUpgrade={(tag) => setUpgradeTarget(tag)}
                 onRollback={(tag) => setRollbackTarget(tag)}
               />
+            )}
+
+            {activeTab === 'docs' && (
+              <DocsSection />
             )}
           </div>
         </div>
