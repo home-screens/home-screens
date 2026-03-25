@@ -14,6 +14,7 @@ import {
   GitBranch,
   HelpCircle,
   ExternalLink,
+  Smartphone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -48,6 +49,12 @@ const DOCS: DocSection[] = [
         href: '/docs/getting-started',
         description: 'Set up on Raspberry Pi or run locally',
         icon: Download,
+      },
+      {
+        title: 'Raspberry Pi',
+        href: '/docs/raspberry-pi',
+        description: 'Kiosk deployment, service management, SD card tips',
+        icon: Cpu,
       },
     ],
   },
@@ -85,10 +92,10 @@ const DOCS: DocSection[] = [
         icon: FileJson,
       },
       {
-        title: 'Raspberry Pi',
-        href: '/docs/raspberry-pi',
-        description: 'Kiosk deployment, service management, SD card tips',
-        icon: Cpu,
+        title: 'Remote Control',
+        href: '/docs/remote-control',
+        description: 'Control your display from a phone or another device',
+        icon: Smartphone,
       },
       {
         title: 'Networking',

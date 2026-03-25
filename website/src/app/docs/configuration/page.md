@@ -8,6 +8,8 @@ nextjs:
 
 Home Screens uses a single JSON file for all configuration: `data/config.json`. There is no database — the file is read and written directly by the API.
 
+**In general you should never have to interact with the raw configuration file unless you are a power user.  All settings can be managed in the web editor and get written automatically.**
+
 ## File Location
 
 ```
@@ -33,6 +35,8 @@ Supported secret keys:
 | `tomtom_key` | Traffic module (TomTom) |
 | `google_client_id` | Google Calendar OAuth |
 | `google_client_secret` | Google Calendar OAuth |
+| `nasa_api_key` | Background rotation (NASA APOD) |
+| `github_token` | GitHub API rate limit for version checks |
 
 ## Schema
 

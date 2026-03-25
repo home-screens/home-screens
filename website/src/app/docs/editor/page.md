@@ -121,15 +121,19 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 ## Global Settings
 
-Open the **Settings Panel** to configure system-wide options. Settings are organized into twelve tabs:
+Open the **Settings Panel** to configure system-wide options. Settings are organized into thirteen tabs:
 
-**Display** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System**
+**Display** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
 
 ### Display
 
-- **Resolution Preset** — choose from standard resolutions (1080p portrait, 4K, landscape, etc.)
-- **Display Transform** — rotate the output (for physically rotated screens)
-- **Cursor Auto-Hide** — cursor hides after a configurable idle period (default 3 seconds); move the mouse to restore it
+- **Orientation** — toggle between portrait and landscape mode (swaps width and height)
+- **Resolution Preset** — choose from standard resolutions (720p, 1080p, 1440p, 4K) or set a custom resolution (320–7680px)
+- **Flip Display** — rotate the output 180° for physically inverted mounts
+- **Screen Rotation** — how long each screen is shown before cycling (5–120 seconds, default 30)
+- **Transition Effect** — animation when cycling between screens (see [Screen Transitions](#screen-transitions) above for the full list)
+- **Transition Duration** — how long the transition takes (0.3–2 seconds, default 0.6)
+- **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
 
 ### Profiles
 
@@ -137,72 +141,106 @@ Profiles let you define named groups of screens that activate based on a schedul
 
 ### Sleep
 
-- **Dim Schedule** — automatically dim the display during set hours
-- **Dim Brightness** — how much to dim (0–100%)
-- **Sleep Schedule** — fully blank the screen during set hours
-- **Screensaver** — show a minimal clock during sleep
+- **Enable/Disable** — master toggle for display sleep
+- **Dim After** — minutes of inactivity before dimming (1–60, default 10)
+- **Sleep After Dimming** — minutes after dimming before fully blanking (0–120, 0 = never)
+- **Dim Brightness** — how much to dim (5–80%, default 20%)
+- **Screensaver** — what to show during the dimmed state: drifting clock, blank, or off (skip to sleep)
+- **Dim Schedule** — automatically dim during set hours (supports overnight spans like 23:00–06:00)
+- **Sleep Schedule** — fully blank the screen during set hours (ignores activity, supports overnight spans)
 
 ### Alerts
 
 - **Enable/Disable** — toggle the alert notification overlay
 - **Position** — display alerts at the top or bottom of the screen
-- **Max Visible** — limit how many alerts show simultaneously
-- **Default Duration** — how long alerts remain visible before auto-dismissing
+- **Max Visible** — limit how many alerts show simultaneously (1–10, default 3)
+- **Default Duration** — how long alerts remain visible before auto-dismissing (0 = per-type defaults)
 
 ### Location
 
-- **Latitude / Longitude** — set coordinates for weather, sunrise/sunset, and other location-aware modules
-- **Location Lookup** — search by city name to auto-fill coordinates
-- **Timezone** — set the timezone for all time-aware modules (clock, calendar, sunrise/sunset, etc.)
+- **Location Lookup** — search by zip code or city name to auto-fill coordinates
+- **Detect** — auto-detect location via browser geolocation or IP-based fallback
+- **Manual Coordinates** — expandable section for editing latitude/longitude directly
+- **Timezone** — override the server's OS timezone for time-based modules (all IANA timezones available)
+- **Time Comparison** — displays browser time and server time side-by-side to verify timezone settings
 
 ### Weather
 
-- **Provider** — choose OpenWeatherMap, WeatherAPI, Pirate Weather, or NOAA (free, US only)
-- **Units** — metric or imperial
+- **Provider** — choose from five weather providers:
+  - **Open-Meteo** — free, no API key required, global coverage (default)
+  - **WeatherAPI** — free tier, no credit card required
+  - **OpenWeatherMap** — requires One Call 3.0 subscription
+  - **Pirate Weather** — free Dark Sky replacement
+  - **NOAA / NWS** — free, no API key required, US only
+- **API Key** — manage the API key for the selected provider (not needed for Open-Meteo or NOAA)
+- **Units** — metric (°C, km/h) or imperial (°F, mph)
+- **Test Connection** — verify your weather setup with a live API call
 
 ### Calendar
 
-- **Sign In** — initiate the OAuth device flow for Google Calendar
-- **Calendar Selection** — choose which calendars to display
-- **Max Events** — limit the number of events shown
-- **Days Ahead** — how far ahead to look for events
+- **Google Calendar** — OAuth device flow sign-in; requires OAuth credentials configured in Integrations first
+- **Calendar Selection** — choose which Google calendars to display (multi-select with color indicators)
+- **iCal / ICS Feeds** — add external calendar feeds by URL (works with any iCal-compatible service)
+- **Public Holidays** — select a country to show public holidays on calendar widgets (data from Nager.Date)
+- **Max Events** — limit the number of events shown (1–100, default 10)
+- **Days Ahead** — how far ahead to look for events (1–90, default 7)
 
 ### Integrations
 
-The **Integrations** tab is where you configure all API keys and external service connections. Keys are stored in the config file — no `.env.local` needed.
+The **Integrations** tab is where you configure all API keys and external service connections. Keys are stored separately in `data/secrets.json` — no `.env.local` needed. Each key shows a status indicator (configured/not configured) and can be saved or removed individually.
 
-- **OpenWeatherMap** — API key for weather, air quality, and UV data
-- **WeatherAPI** — alternative weather provider API key
-- **Pirate Weather** — Dark Sky replacement API key
-- **Unsplash** — access key for background photo browsing
-- **Todoist** — API token for task integration
-- **TomTom** — API key for traffic data
-- **Google Calendar** — OAuth device flow sign-in
+- **Google OAuth Client ID** — required for Google Calendar (create at Google Cloud Console, type: TVs and Limited Input devices)
+- **Google OAuth Client Secret** — the client secret from the same OAuth credential
+- **Google Maps API Key** — optional, for the traffic/commute widget (requires Routes API)
+- **Unsplash Access Key** — enables browsing HD photos in the background picker (free at unsplash.com/developers)
+- **NASA API Key** — enables Astronomy Picture of the Day browsing and rotation (free at api.nasa.gov)
+- **Todoist API Token** — for the Todoist task integration
+- **TomTom API Key** — alternative to Google Maps for traffic data (free at developer.tomtom.com)
+- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour
 
 ### Security
 
-The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor requires entering the password. The display view remains publicly accessible.
+The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor and all write operations requires entering the password. The display view remains publicly accessible.
+
+- **Set Password** — enable authentication with a new password (minimum 8 characters)
+- **Change Password** — update the password (invalidates all other sessions)
+- **Disable Authentication** — remove the password (requires current password)
+- **Log Out** — end the current session
+- **Password Reset** — if you forget your password, delete `data/auth.json` on the device to reset
 
 ### Data
 
 - **Share Layout** — export your screen layout (screens, modules, visual settings) without personal data; safe to share with others
+- **Import Layout** — import a previously exported layout file
 - **Templates** — start from a pre-built template while preserving your existing settings
 - **Full Backup** — export or restore the entire configuration including all settings, location, calendars, and device preferences
 
 ### Stats
 
-View system and application statistics including disk usage, memory, OS info, module counts by type, and configured integrations.
+The Stats tab provides a live dashboard of system health and application state:
+
+- **Display Status** — connection state (active, dimmed, sleeping), current screen, and active profile
+- **Data Cache** — cache entries, hit rate, fresh/stale counts, and a detail table showing individual cached API responses
+- **Disk Usage** — filesystem usage and a breakdown of Home Screens data (backgrounds, backups, config)
+- **Configuration** — screen count, module count, profiles, and a breakdown of module types in use
+- **Integrations** — which API keys are configured at a glance
+- **Server** — hostname, platform, Node.js version, uptime, and memory usage
+- **Anonymous Telemetry** — opt-in toggle for anonymous usage statistics; expandable "What we collect" section
 
 ### System
 
-- **Version** — current app version
-- **Changelog** — recent release notes
-- **Update Channel** — switch between Stable and Dev (pre-release) channels for updates
-- **Upgrade** — download and install the latest version
-- **Rollback** — revert to a previous version
-- **Backup/Restore** — export and import your configuration
-- **Logs** — view application logs
-- **Power** — restart or shut down the Raspberry Pi from the UI
+- **Version** — current app version with commit hash and installation method (git or release)
+- **Update Channel** — switch between Stable and Pre-release (dev) channels
+- **Check for Updates** — query GitHub for new releases
+- **Upgrade** — download and install a newer version (with confirmation dialog)
+- **Changelog** — expandable view of recent release notes
+- **Version History** — list of installed versions with rollback option for each
+- **Config Backups** — auto-created before each upgrade, with download and restore options
+- **Power** — restart the Home Screens service, or reboot the entire Raspberry Pi
+
+### Docs
+
+Links to the full documentation at [homescreens.dev/docs](https://homescreens.dev/docs), organized by section (Introduction, Guides, Reference). Each link opens in a new tab.
 
 ## Profiles
 
@@ -244,7 +282,4 @@ Changes are saved automatically when you modify settings. The editor fetches and
 
 ## Import & Export
 
-- **Export** — download your current configuration as a JSON file
-- **Import** — upload a previously exported JSON file to restore a configuration
-
-This is useful for backing up before making major changes or transferring configurations between devices.
+See [Data](#data) in Global Settings for export/import options including layout sharing, templates, and full backup/restore.
