@@ -14,6 +14,7 @@ type UpgradeStep =
   | 'preflight'
   | 'backup'
   | 'download'
+  | 'migrate-remote'
   | 'fetch'
   | 'stash'
   | 'checkout'
@@ -523,6 +524,14 @@ async function runGitUpgrade(targetTag: string): Promise<void> {
       isDirty = result.dirty as boolean;
     }),
     backupStep(10),
+    {
+      step: 'migrate-remote',
+      progress: 15,
+      message: 'Checking repository remote...',
+      run: async () => {
+        await runUpgradeScript('migrate-remote', [], streamTo('migrate-remote'));
+      },
+    },
     {
       step: 'fetch',
       progress: 20,

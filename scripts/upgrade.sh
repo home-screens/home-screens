@@ -223,6 +223,18 @@ case "${action}" in
     echo '{"ok":true}'
     ;;
 
+  migrate-remote)
+    # One-time migration: update git remote from old repo to new org
+    current_url=$(git remote get-url origin 2>/dev/null || true)
+    if [[ "$current_url" == *"agent462/home-screens"* ]]; then
+      new_url="${current_url//agent462\/home-screens/home-screens\/home-screens}"
+      git remote set-url origin "$new_url" 2>&1
+      echo "{\"ok\":true,\"migrated\":true,\"from\":\"${current_url}\",\"to\":\"${new_url}\"}"
+    else
+      echo "{\"ok\":true,\"migrated\":false}"
+    fi
+    ;;
+
   fetch)
     git fetch --tags --force origin 2>&1
     echo "{\"ok\":true}"
