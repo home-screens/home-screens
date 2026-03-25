@@ -94,7 +94,7 @@ describe('writeConfig', () => {
 
   it('round-trips: write then read returns same data', async () => {
     const config = {
-      version: 1,
+      version: 2,
       settings: {
         rotationIntervalMs: 15000,
         displayWidth: 1080,

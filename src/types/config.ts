@@ -32,7 +32,6 @@ export type BuiltinModuleType =
   | 'date'
   | 'meal-planner'
   | 'iframe'
-  | 'flag-status'
   | 'chore-chart';
 
 type PluginModuleType = `plugin:${string}`;
@@ -652,12 +651,6 @@ export interface IframeConfig {
   sandboxEnabled: boolean;
   sandbox: string;
   title: string;
-}
-
-// Flag status module config
-export interface FlagStatusConfig {
-  showReason: boolean;
-  refreshIntervalMs: number;
 }
 
 // Date module config

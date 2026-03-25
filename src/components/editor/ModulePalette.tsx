@@ -6,9 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ChevronRight, Puzzle } from 'lucide-react';
 import { getModulesByCategory } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
-import { useEditorStore } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
-import { isUSTimezone } from '@/lib/timezone-us';
 
 function PaletteItem({ definition }: { definition: ModuleDefinition }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -90,22 +88,14 @@ function CategoryGroup({
 export default function ModulePalette() {
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const configTimezone = useEditorStore((s) => s.config?.settings.timezone);
-  const isUS = isUSTimezone(configTimezone);
   // Subscribe to plugin store size so the palette re-renders when plugins load/unload
   const pluginCount = usePluginStore((s) => s.plugins.size);
   const grouped = useMemo(() => {
     // pluginCount is used as a dependency to invalidate this memo when plugins
     // load/unload, since getModulesByCategory() reads from the mutable registry.
     void pluginCount;
-    const all = getModulesByCategory();
-    if (isUS) return all;
-    // Filter out US-only modules when not in a US timezone
-    for (const [cat, modules] of all) {
-      all.set(cat, modules.filter((m) => m.type !== 'flag-status'));
-    }
-    return all;
-  }, [isUS, pluginCount]);
+    return getModulesByCategory();
+  }, [pluginCount]);
 
   const query = search.toLowerCase().trim();
 

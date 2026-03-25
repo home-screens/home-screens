@@ -69,10 +69,6 @@ export function photoSlideshowUrl(config: AnyConfig): string {
   return dir ? `/api/backgrounds?directory=${encodeURIComponent(dir)}` : '/api/backgrounds';
 }
 
-export function flagStatusUrl(): string {
-  return '/api/flag-status';
-}
-
 /** Registry of URL builders + TTLs for prefetching.
  *  TTLs are aligned with the corresponding server-side cache durations
  *  so the client doesn't consider data fresh when the server has newer data,
@@ -95,7 +91,6 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   quote:          { buildUrl: quoteUrl, ttlMs: 3_600_000 },        // server: 1hr
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
-  'flag-status':     { buildUrl: flagStatusUrl, ttlMs: 1_800_000 },   // server: 30min
 };
 
 /** Allow plugins to register their own fetch key entries for prefetching. */

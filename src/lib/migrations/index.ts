@@ -17,6 +17,53 @@ const migrations: Migration[] = [
     up: (config) => ({ ...config, version: 1 }),
     down: (config) => ({ ...config, version: 1 }),
   },
+  // Migration 002: flag-status moved from built-in to plugin
+  {
+    version: 2,
+    description: 'Migrate flag-status module to plugin:flag-status',
+    up(config) {
+      return {
+        ...config,
+        version: 2,
+        screens: config.screens.map((screen) => ({
+          ...screen,
+          modules: screen.modules.map((mod) => {
+            if ((mod.type as string) !== 'flag-status') return mod;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cfg = mod.config as any;
+            const refreshMs = cfg?.refreshIntervalMs;
+            const newConfig = { ...cfg };
+            if (refreshMs != null) {
+              delete newConfig.refreshIntervalMs;
+              newConfig.refreshIntervalMin = Math.round(refreshMs / 60_000);
+            }
+            return { ...mod, type: 'plugin:flag-status' as ScreenConfiguration['screens'][number]['modules'][number]['type'], config: newConfig };
+          }),
+        })),
+      };
+    },
+    down(config) {
+      return {
+        ...config,
+        version: 1,
+        screens: config.screens.map((screen) => ({
+          ...screen,
+          modules: screen.modules.map((mod) => {
+            if (mod.type !== ('plugin:flag-status' as string)) return mod;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cfg = mod.config as any;
+            const refreshMin = cfg?.refreshIntervalMin;
+            const newConfig = { ...cfg };
+            if (refreshMin != null) {
+              delete newConfig.refreshIntervalMin;
+              newConfig.refreshIntervalMs = refreshMin * 60_000;
+            }
+            return { ...mod, type: 'flag-status' as ScreenConfiguration['screens'][number]['modules'][number]['type'], config: newConfig };
+          }),
+        })),
+      };
+    },
+  },
 ];
 
 /** @internal Get all migrations sorted by version */

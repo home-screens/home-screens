@@ -76,6 +76,5 @@ export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
   date: { w: 400, h: 200 },
   'meal-planner': { w: 500, h: 600 },
   iframe: { w: 500, h: 400 },
-  'flag-status': { w: 300, h: 400 },
   'chore-chart': { w: 500, h: 650 },
 };

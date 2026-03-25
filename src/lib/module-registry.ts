@@ -6,7 +6,7 @@ import {
   Newspaper, TrendingUp, Bitcoin, BookOpen, History,
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
-  Calendar, Globe, UtensilsCrossed, Flag, ClipboardList,
+  Calendar, Globe, UtensilsCrossed, ClipboardList,
 } from 'lucide-react';
 import { DEFAULT_MODULE_SIZES } from './constants';
 import { resolveLucideIcon } from './lucide-resolver';
@@ -617,18 +617,6 @@ registerModule({
     accentColor: '#f59e0b',
   },
   defaultSize: DEFAULT_MODULE_SIZES['meal-planner'],
-});
-
-registerModule({
-  type: 'flag-status',
-  label: 'US Flag Status',
-  icon: Flag,
-  category: 'Knowledge & Fun',
-  defaultConfig: {
-    showReason: true,
-    refreshIntervalMs: 1_800_000,
-  },
-  defaultSize: DEFAULT_MODULE_SIZES['flag-status'],
 });
 
 registerModule({

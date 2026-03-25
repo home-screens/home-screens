@@ -29,5 +29,4 @@ export { AffirmationsConfigSection } from './AffirmationsConfigSection';
 export { DateConfigSection } from './DateConfigSection';
 export { MealPlannerConfigSection } from './MealPlannerConfigSection';
 export { IframeConfigSection } from './IframeConfigSection';
-export { FlagStatusConfigSection } from './FlagStatusConfigSection';
 export { ChoreChartConfigSection } from './ChoreChartConfigSection';

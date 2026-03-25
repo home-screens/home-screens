@@ -126,7 +126,7 @@ describe('FETCH_KEY_REGISTRY', () => {
     const expectedTypes = [
       'stock-ticker', 'crypto', 'news', 'air-quality', 'sports',
       'standings', 'traffic', 'todoist', 'rain-map', 'history',
-      'quote', 'dad-joke', 'photo-slideshow', 'flag-status',
+      'quote', 'dad-joke', 'photo-slideshow',
     ];
     for (const type of expectedTypes) {
       expect(FETCH_KEY_REGISTRY).toHaveProperty(type);
