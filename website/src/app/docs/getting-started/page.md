@@ -1,4 +1,10 @@
-# Getting Started
+---
+title: Installation
+nextjs:
+  metadata:
+    title: Installation
+    description: How to install and set up Home Screens.
+---
 
 ## Prerequisites
 
@@ -22,6 +28,7 @@ The following integrations can be configured through the editor:
 | Integration | Description | Required |
 |---|---|---|
 | Google Calendar | OAuth client ID and secret for calendar sync | For calendar module |
+| iCal feeds | Subscribe to any iCal/ICS URL (Outlook, Apple, etc.) | For calendar module |
 | OpenWeatherMap | Weather data provider | Optional (one of five weather providers) |
 | WeatherAPI | Weather data provider | Optional (one of five weather providers) |
 | Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of five weather providers) |
@@ -54,7 +61,11 @@ The editor supports optional password protection. Set a password in **Settings >
 
 The editor includes a system management panel under **Settings > System** for upgrade, rollback, backups, and power control -- particularly useful when running on a Raspberry Pi.
 
-## Google Calendar Setup
+## Calendar Setup
+
+The calendar module supports two types of sources: **Google Calendar** (via OAuth) and **iCal feeds** (any standard ICS URL).
+
+### Google Calendar
 
 Google Calendar uses **OAuth 2.0 Device Flow**, which means you can authorize from any device on your network -- no redirect URI or public domain required. This is ideal for headless displays.
 
@@ -67,6 +78,15 @@ Google Calendar uses **OAuth 2.0 Device Flow**, which means you can authorize fr
 7. In the editor, go to **Settings > Google Calendar > Sign in with Google**
 8. You'll see a code and a link to `google.com/device` -- enter the code on your phone or computer and grant access
 
+### iCal Feeds
+
+You can subscribe to any calendar that provides an iCal/ICS URL -- including Outlook, Apple iCloud, Fastmail, or any other calendar service that publishes a `.ics` feed.
+
+1. In the editor, go to **Settings > Calendar > iCal Feeds**
+2. Add a feed by pasting the ICS URL
+3. Give it a name and choose a color
+4. Events from all configured iCal feeds appear alongside Google Calendar events in the calendar module
+
 ## Update Channel
 
 By default, Home Screens uses the **Stable** channel for updates, which only includes tested releases.
@@ -75,6 +95,6 @@ You can switch to the **Dev** channel in **Settings > System** to get pre-releas
 
 ## Next Steps
 
-- [Editor Guide](editor.md) -- learn how to build your screens
-- [Modules Reference](modules.md) -- see all 33 available modules
-- [Raspberry Pi Deployment](raspberry-pi.md) -- set up a dedicated kiosk display
+- [Editor Guide](/docs/editor) -- learn how to build your screens
+- [Modules Reference](/docs/modules) -- see all 33 available modules
+- [Raspberry Pi Deployment](/docs/raspberry-pi) -- set up a dedicated kiosk display

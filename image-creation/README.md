@@ -253,4 +253,4 @@ cat /etc/systemd/system/getty@tty1.service.d/autologin.conf
 - [upgrade.sh setup-system](../scripts/upgrade.sh) — System configuration (services, kiosk, Plymouth)
 - [PiShrink-macOS](https://github.com/lisanet/PiShrink-macOS) — Native macOS image shrinking (no VM needed)
 - [PiShrink](https://github.com/Drewsif/PiShrink) — Original PiShrink (Linux, used via Podman container)
-- [Raspberry Pi docs](../docs/raspberry-pi.md) — Kiosk deployment guide
+- [Raspberry Pi docs](https://homescreens.dev/docs/raspberry-pi) — Kiosk deployment guide

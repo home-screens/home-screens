@@ -1,4 +1,9 @@
 @import 'tailwindcss';
+@import '../styles/prism.css';
+
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --text-*: initial;
@@ -19,23 +24,35 @@
   --text-4xl: 2.5rem;
   --text-4xl--line-height: 3rem;
   --text-5xl: 3rem;
-  --text-5xl--line-height: 1;
+  --text-5xl--line-height: 3.5rem;
   --text-6xl: 3.75rem;
   --text-6xl--line-height: 1;
   --text-7xl: 4.5rem;
   --text-7xl--line-height: 1;
+  --text-8xl: 6rem;
+  --text-8xl--line-height: 1;
+  --text-9xl: 8rem;
+  --text-9xl--line-height: 1;
 
+  /* Marketing theme colors */
   --color-surface: #0a0a0a;
   --color-surface-raised: #161616;
   --color-border-subtle: #222;
   --color-border-hover: #67E8F9;
 
+  /* Animations */
   --animate-fade-in: fade-in 0.5s ease-out forwards;
   --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
   --animate-spin-slow: spin 4s linear infinite;
 
+  /* Fonts */
   --font-sans: var(--font-inter);
+  --font-display: var(--font-lexend);
+  --font-display--font-feature-settings: 'ss01';
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Container */
+  --container-8xl: 88rem;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -52,11 +69,6 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
 }
 
 /* Scrollbar styling */
@@ -79,4 +91,10 @@ body {
 }
 .snap-start {
   scroll-snap-align: start;
+}
+
+@layer base {
+  [inert] ::-webkit-scrollbar {
+    display: none;
+  }
 }

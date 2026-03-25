@@ -18,7 +18,7 @@ const navLinks = [
   { label: 'Features', href: '#features' },
   { label: 'Modules', href: '#modules' },
   { label: 'Templates', href: '#templates' },
-  { label: 'Docs', href: 'https://github.com/home-screens/home-screens#readme' },
+  { label: 'Docs', href: '/docs' },
 ];
 
 function MobileNavLink({
@@ -78,7 +78,7 @@ export function Header() {
               <Github className="h-5 w-5" />
             </Link>
             <Button
-              href="https://github.com/home-screens/home-screens#quick-start"
+              href="/docs/getting-started"
               className="hidden lg:inline-flex"
             >
               Get Started
@@ -136,7 +136,7 @@ export function Header() {
                               <Github className="h-4 w-4" />
                               GitHub
                             </Button>
-                            <Button href="https://github.com/home-screens/home-screens#quick-start">
+                            <Button href="/docs/getting-started">
                               Get Started
                             </Button>
                           </div>

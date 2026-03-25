@@ -1,21 +1,35 @@
-# Modules Reference
+---
+title: Modules Reference
+nextjs:
+  metadata:
+    title: Modules Reference
+    description: All 35 built-in modules available in Home Screens.
+---
 
-Home Screens includes 33 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 35 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Time & Date
 
 ### Clock
 
-Displays the current time with optional date information.
+Displays the current time with optional date information. Supports 18 visual styles.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| `view` | string | `"classic"` | Display style: `classic`, `digital`, `analog`, `minimal`, `flip`, `word`, `binary`, `vertical`, `split`, `progress`, `fuzzy`, `world`, `dot-matrix`, `radial`, `arc`, `neon`, `bar`, or `elapsed` |
 | `format24h` | boolean | `false` | Use 24-hour time format |
 | `showSeconds` | boolean | `true` | Display seconds |
 | `showDate` | boolean | `true` | Show date below time |
 | `dateFormat` | string | `"EEEE, MMMM d"` | Date format string (date-fns) |
 | `showWeekNumber` | boolean | `false` | Display current week number |
 | `showDayOfYear` | boolean | `false` | Display day of year (e.g. "Day 67 of 365") |
+| `showNumerals` | boolean | `false` | Show hour numbers on the analog clock face |
+| `animateFlip` | boolean | `true` | Show flip animation on digit change (flip view) |
+| `accentColor` | string | `"#22d3ee"` | Accent color used by several views |
+| `worldZones` | array | `[]` | Additional timezones for the world view (max 3), each with `label` and `timezone` |
+| `referenceTime` | string | `""` | ISO timestamp or time string for elapsed view |
+| `referenceLabel` | string | `""` | Label for elapsed view (e.g. "market open", "shift start") |
+| `countUp` | boolean | `true` | Count up (true) or down (false) from reference time (elapsed view) |
 
 ### Calendar
 
@@ -38,9 +52,11 @@ Counts down to one or more future events with visual progress rings.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `events` | array | `[]` | List of events, each with `label` and `date` |
+| `view` | string | `"all"` | Display mode: `all` (show all events) or `next` (show only the next upcoming event) |
+| `events` | array | `[]` | List of events, each with `id`, `name`, `date`, optional `recurring` (`"yearly"`), and optional `source` (`"custom"` or `"holiday"`) |
 | `showPastEvents` | boolean | `false` | Continue showing events after they pass |
 | `scale` | number | `1` | Visual scale factor (0.5–4) |
+| `holidayCountry` | string | — | ISO country code to auto-populate holiday countdowns (e.g. `"US"`) |
 
 ### Year Progress
 
@@ -79,7 +95,7 @@ A dedicated date display widget with multiple visual layouts and optional metada
 | `showYear` | boolean | `false` | Show year |
 | `showWeekNumber` | boolean | `false` | Show week number (e.g. "Week 12") |
 | `showDayOfYear` | boolean | `false` | Show day of year (e.g. "Day 75") |
-| `accentColor` | string | `"#ffffff"` | Accent color for day number and dividers |
+| `accentColor` | string | `"#22d3ee"` | Accent color for day number and dividers |
 
 **View details:**
 
@@ -95,7 +111,7 @@ A dedicated date display widget with multiple visual layouts and optional metada
 
 ### Weather
 
-Unified weather module with 8 views and 4 provider options.
+Unified weather module with 8 views and 5 provider options.
 
 **Views:** `current`, `hourly`, `daily`, `combined`, `compact`, `table`, `precipitation`, `alerts`
 
@@ -112,6 +128,10 @@ Unified weather module with 8 views and 4 provider options.
 | `showPrecipAmount` | boolean | `false` | Show precipitation amount |
 | `showHumidity` | boolean | `false` | Show humidity percentage |
 | `showWind` | boolean | `false` | Show wind speed |
+| `showPressure` | boolean | `false` | Show barometric pressure |
+| `showVisibility` | boolean | `false` | Show visibility distance |
+| `showDewPoint` | boolean | `false` | Show dew point temperature |
+| `hideWhenNoAlerts` | boolean | `false` | Hide the alerts view when there are no active alerts |
 
 **View details:**
 
@@ -141,6 +161,7 @@ Today's sunrise and sunset times with visual arc.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| `view` | string | `"default"` | Display style: `default` or `arc` |
 | `showDayLength` | boolean | `true` | Show total daylight hours |
 | `showGoldenHour` | boolean | `false` | Show golden hour times |
 
@@ -273,13 +294,7 @@ Daily inspirational quote from ZenQuotes.
 
 ### Word of the Day
 
-Displays a vocabulary word with definition and usage.
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `refreshIntervalMs` | number | `86400000` | Refresh interval (24 hours) |
-
-Rotates through a built-in word list.
+Displays a vocabulary word with definition and usage. The word is computed from a built-in list based on the current date -- no configuration options.
 
 ### This Day in History
 
@@ -289,6 +304,15 @@ Historical events that happened on today's date.
 |---|---|---|---|
 | `refreshIntervalMs` | number | `3600000` | Data refresh interval (1 hour) |
 | `rotationIntervalMs` | number | `10000` | How often to rotate between events (10 sec) |
+
+### Flag Status
+
+Shows whether the US federal flag is at half-staff, including the reason.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `showReason` | boolean | `true` | Show the reason for half-staff status |
+| `refreshIntervalMs` | number | `1800000` | How often to check for updates (30 min) |
 
 ---
 
@@ -380,11 +404,11 @@ Displays rotating positive affirmations with multiple visual styles. Time-aware 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"elegant"` | Display style: `elegant`, `card`, `minimal`, or `typewriter` |
-| `categories` | array | `["affirmations"]` | Categories to include: `affirmations`, `compliments`, `motivational`, `gratitude`, `mindfulness` |
-| `rotationIntervalMs` | number | `30000` | How often to rotate to the next affirmation (30 sec) |
+| `categories` | array | `["affirmations", "compliments", "motivational"]` | Categories to include: `affirmations`, `compliments`, `motivational`, `gratitude`, `mindfulness` |
+| `rotationIntervalMs` | number | `15000` | How often to rotate to the next affirmation (15 sec) |
 | `showCategoryLabel` | boolean | `false` | Show the category label below the affirmation |
 | `timeAware` | boolean | `true` | Select affirmations based on time of day, day of week, and season |
-| `customEntries` | array | `[]` | Custom affirmations, each with `id`, `text`, and optional `category` |
+| `customEntries` | array | `[]` | Custom affirmations, each with `id`, `text`, and optional `attribution` |
 | `accentColor` | string | `"#a78bfa"` | Accent color for card/typewriter views |
 
 **View details:**
@@ -400,13 +424,13 @@ A meal planning widget for organizing daily meals across configurable slots (bre
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"today"` | Display style: `week`, `today`, `next-meal`, `compact`, or `list` |
-| `slots` | array | `["breakfast", "lunch", "dinner", "snack"]` | Enabled meal slots |
-| `weekStartDay` | string | `"sunday"` | First day of week: `sunday` or `monday` |
+| `view` | string | `"week"` | Display style: `week`, `today`, `next-meal`, `compact`, or `list` |
+| `slots` | array | `["breakfast", "lunch", "dinner"]` | Enabled meal slots (options: `breakfast`, `lunch`, `dinner`, `snack`) |
+| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `showEmoji` | boolean | `true` | Show meal emoji |
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
-| `accentColor` | string | `"#a78bfa"` | Accent color for highlights |
+| `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
 | `savedMeals` | array | `[]` | Meal definitions with name, emoji, tags, prep time, and notes |
 | `plan` | array | `[]` | Weekly schedule mapping day + slot to a saved meal |
 
@@ -419,6 +443,30 @@ Meals are configured in the editor with emoji, prep time, tags (quick, healthy, 
 - **next-meal** — Large display of the next upcoming meal with context label (Now/Coming Up/Tomorrow).
 - **compact** — Two-column layout showing Today and Tomorrow side-by-side.
 - **list** — Full week listed vertically with day headers, showing only days with meals.
+
+### Chore Chart
+
+A chore tracking widget for families or housemates. Assign chores to members with points, streaks, rotation schedules, and multiple visual layouts.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"board"` | Display style: `board`, `star-chart`, `today`, `progress`, or `compact` |
+| `members` | array | `[]` | Household members, each with `id`, `name`, `emoji`, and `color` |
+| `chores` | array | `[]` | Chore definitions with `id`, `name`, `emoji`, `points`, `frequency`, `daysOfWeek`, `timeOfDay`, `assigneeIds`, and `rotation` |
+| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
+| `showPoints` | boolean | `true` | Show point values for chores |
+| `showStreaks` | boolean | `true` | Show completion streaks |
+| `showTimeOfDay` | boolean | `true` | Show time-of-day labels (morning, afternoon, evening) |
+| `allowDisplayComplete` | boolean | `true` | Allow marking chores complete from the display view |
+| `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+
+**View details:**
+
+- **board** — Kanban-style board grouping chores by status or member.
+- **star-chart** — Kid-friendly star chart showing earned points per member.
+- **today** — Today's chores only, grouped by time of day.
+- **progress** — Progress bars showing completion rates per member.
+- **compact** — Condensed view for small widget sizes.
 
 ---
 
@@ -433,7 +481,7 @@ Rich text block with multiple display modes, effects, and styling options.
 | `content` | string | `""` | Text content (supports markdown when enabled) |
 | `alignment` | string | `"center"` | Text alignment: `left`, `center`, or `right` |
 | `orientation` | string | `"horizontal"` | Text direction: `horizontal`, `vertical`, or `sideways` |
-| `verticalAlign` | string | `"top"` | Vertical alignment: `top`, `center`, or `bottom` |
+| `verticalAlign` | string | `"center"` | Vertical alignment: `top`, `center`, or `bottom` |
 | `markdown` | boolean | `false` | Enable markdown rendering |
 | `autoFit` | boolean | `false` | Auto-fit text size to fill the container |
 | `effect` | string | `"none"` | Text effect: `none`, `typewriter`, `fade-in`, `gradient-sweep`, or `glow` |
@@ -441,8 +489,8 @@ Rich text block with multiple display modes, effects, and styling options.
 | `rotationIntervalMs` | number | `5000` | Rotation interval in milliseconds |
 | `rotationSeparator` | string | `"---"` | Separator string for splitting content into rotation items |
 | `gradientEnabled` | boolean | `false` | Enable gradient text coloring |
-| `gradientFrom` | string | `"#ff6b6b"` | Gradient start color |
-| `gradientTo` | string | `"#4ecdc4"` | Gradient end color |
+| `gradientFrom` | string | `"#a78bfa"` | Gradient start color |
+| `gradientTo` | string | `"#22d3ee"` | Gradient end color |
 | `gradientAngle` | number | `90` | Gradient angle in degrees |
 | `textTransform` | string | `"none"` | Text transform: `none`, `uppercase`, `lowercase`, or `capitalize` |
 | `letterSpacing` | number | `0` | Letter spacing in pixels |
@@ -486,12 +534,19 @@ Rotates through images from a directory.
 
 ### QR Code
 
-Generates a QR code from any text or URL.
+Generates a QR code from any text, URL, or WiFi network credentials.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `data` | string | `""` | Content to encode |
-| `label` | string | `""` | Label text below the code |
+| `mode` | string | `"custom"` | QR code mode: `custom` (arbitrary data) or `wifi` (WiFi network) |
+| `data` | string | `""` | Content to encode (custom mode) |
+| `label` | string | `""` | Label text below the code (custom mode) |
+| `ssid` | string | `""` | WiFi network name (wifi mode) |
+| `password` | string | `""` | WiFi password (wifi mode) |
+| `authType` | string | `"WPA"` | WiFi authentication type: `WPA`, `WEP`, or `nopass` (wifi mode) |
+| `hiddenNetwork` | boolean | `false` | Whether the WiFi network is hidden (wifi mode) |
+| `showPassword` | boolean | `true` | Show the password below the QR code (wifi mode) |
+| `showNetworkName` | boolean | `true` | Show the network name below the QR code (wifi mode) |
 | `fgColor` | string | `"#ffffff"` | Foreground color |
 | `bgColor` | string | `"transparent"` | Background color |
 

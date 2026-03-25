@@ -28,7 +28,7 @@ export function OpenSourceCTA() {
             Free. Open Source. Forever.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-neutral-400">
-            No subscriptions, no cloud lock-in, no data harvesting. Just a
+            No subscriptions, no cloud lock-in, no personal data harvesting. Just a
             display that works for you.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">

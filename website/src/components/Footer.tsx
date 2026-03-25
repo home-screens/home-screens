@@ -13,8 +13,8 @@ const columns = [
   {
     title: 'Resources',
     links: [
-      { label: 'Documentation', href: 'https://github.com/home-screens/home-screens#readme' },
-      { label: 'Quick Start', href: 'https://github.com/home-screens/home-screens#quick-start' },
+      { label: 'Documentation', href: '/docs' },
+      { label: 'Quick Start', href: '/docs/getting-started' },
       { label: 'Releases', href: 'https://github.com/home-screens/home-screens/releases' },
     ],
   },

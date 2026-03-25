@@ -1,7 +1,5 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import withMarkdoc from '@markdoc/next.js'
+import withSearch from './src/markdoc/search.mjs'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,9 +7,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  turbopack: {
-    root: __dirname,
-  },
-};
+  pageExtensions: ['js', 'jsx', 'md', 'ts', 'tsx'],
+}
 
-export default nextConfig;
+export default withSearch(
+  withMarkdoc({ schemaPath: './src/markdoc' })(nextConfig),
+)

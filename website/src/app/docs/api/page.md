@@ -1,4 +1,10 @@
-# API Reference
+---
+title: API Reference
+nextjs:
+  metadata:
+    title: API Reference
+    description: Complete API reference for Home Screens endpoints.
+---
 
 All API routes are served under `/api/`. They act as server-side proxies to protect API keys and avoid CORS issues. API keys and credentials are managed through the editor UI (Settings > Integrations) and stored server-side; no `.env.local` file is needed.
 
@@ -24,15 +30,15 @@ sequenceDiagram
 
 Returns the current screen configuration.
 
-**Response:** `ScreenConfiguration` object (see [Configuration](configuration.md))
+**Response:** `ScreenConfiguration` object (see [Configuration](/docs/configuration))
 
 ### PUT /api/config
 
-Saves the screen configuration. Performs an atomic write (temp file + rename) to prevent corruption.
+Saves the screen configuration. Performs an atomic write (temp file + rename) to prevent corruption. Also syncs kiosk.conf for the kiosk launcher and applies display settings (rotation/resolution) immediately via wlr-randr when they change.
 
 **Body:** `ScreenConfiguration` object
 
-**Response:** `{ success: true }`
+**Response:** The full `ScreenConfiguration` object as saved.
 
 ---
 
@@ -103,6 +109,117 @@ Lists the authenticated user's Google Calendars.
 [
   { "id": "primary", "summary": "My Calendar", "backgroundColor": "#4285f4" }
 ]
+```
+
+---
+
+## Holidays
+
+### GET /api/holidays
+
+Fetches public holidays for a country using the [Nager.Date API](https://date.nager.at/). Results are cached for 30 days. No API key required.
+
+#### List available countries
+
+Pass the `countries` query parameter (no value needed) to get the list of supported countries.
+
+**Example:** `GET /api/holidays?countries`
+
+**Response:**
+```json
+[
+  { "countryCode": "US", "name": "United States" },
+  { "countryCode": "DE", "name": "Germany" }
+]
+```
+
+#### Get holidays for a country
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `country` | string | required | Two-letter country code (e.g. `US`, `DE`, `GB`) |
+| `year` | number | current year | Year to fetch holidays for |
+
+**Example:** `GET /api/holidays?country=US&year=2026`
+
+**Response:** Array of `CalendarEvent` objects (only public holidays, not observances).
+```json
+[
+  {
+    "id": "holiday-US-2026-01-01",
+    "title": "New Year's Day",
+    "start": "2026-01-01",
+    "end": "2026-01-02",
+    "allDay": true,
+    "sourceId": "holidays",
+    "sourceName": "Public Holidays",
+    "calendarColor": "#10b981"
+  }
+]
+```
+
+---
+
+## Chores
+
+### GET /api/chores
+
+Returns chore completion records. Automatically purges entries older than 30 days.
+
+**Response:**
+```json
+{
+  "completions": [
+    {
+      "choreId": "chore-1",
+      "memberId": "member-1",
+      "date": "2026-03-08",
+      "completedAt": "2026-03-08T14:30:00.000Z"
+    }
+  ]
+}
+```
+
+### POST /api/chores
+
+Toggles a chore completion. If the completion already exists for the given choreId + memberId + date, it is removed; otherwise it is added. Requires a valid session.
+
+**Body:**
+```json
+{
+  "choreId": "chore-1",
+  "memberId": "member-1",
+  "date": "2026-03-08"
+}
+```
+
+The `date` field must be in `YYYY-MM-DD` format.
+
+**Response:** `{ "completions": [...] }` (the full updated completions list)
+
+---
+
+## Flag Status
+
+### GET /api/flag-status
+
+Returns the current US flag half-staff status from the [FlagWatch API](https://flagwatch.net). Results are cached for 30 minutes. No API key required.
+
+**Response (half-staff):**
+```json
+{
+  "status": "half-staff",
+  "reason": "In honor of...",
+  "orderFrom": "Presidential Proclamation",
+  "url": "https://..."
+}
+```
+
+**Response (full-staff):**
+```json
+{
+  "status": "full-staff"
+}
 ```
 
 ---
@@ -399,15 +516,32 @@ Fetches live scores from ESPN. Results are cached for 1 minute.
 {
   "games": [
     {
-      "league": "nba",
-      "status": "in_progress",
-      "homeTeam": "Lakers", "homeScore": 98,
-      "awayTeam": "Celtics", "awayScore": 102,
-      "period": "4th", "clock": "3:42"
+      "id": "401584701",
+      "league": "NBA",
+      "status": "In Progress",
+      "detail": "4th Quarter",
+      "shortDetail": "4th - 3:42",
+      "state": "in",
+      "startTime": "2026-03-08T00:00:00Z",
+      "homeTeam": "Lakers",
+      "homeTeamAbbr": "LAL",
+      "homeTeamLogo": "https://a.espncdn.com/...",
+      "homeTeamColor": "552583",
+      "homeScore": 98,
+      "homeRecord": "38-22",
+      "awayTeam": "Celtics",
+      "awayTeamAbbr": "BOS",
+      "awayTeamLogo": "https://a.espncdn.com/...",
+      "awayTeamColor": "007A33",
+      "awayScore": 102,
+      "awayRecord": "42-18",
+      "broadcast": "ESPN"
     }
   ]
 }
 ```
+
+The `state` field indicates game state: `pre` (not started), `in` (in progress), or `post` (final).
 
 ### GET /api/standings
 
@@ -583,6 +717,39 @@ Returns a rotating background image (Unsplash integration).
 |---|---|---|
 | `screenId` | string | Screen ID for per-screen rotation |
 
+### GET /api/backgrounds/directories
+
+Lists all subdirectories in the backgrounds folder, including image counts per directory. Scans up to 2 levels deep. Requires a valid session.
+
+**Response:**
+```json
+{
+  "directories": [
+    { "name": "All Photos", "path": "", "imageCount": 12 },
+    { "name": "Nature", "path": "Nature", "imageCount": 5 },
+    { "name": "Landscapes", "path": "Nature/Landscapes", "imageCount": 3 }
+  ]
+}
+```
+
+### POST /api/backgrounds/directories
+
+Creates a new subdirectory in the backgrounds folder. Directory names are sanitized (only alphanumeric, `.`, `-`, `_` allowed). Maximum nesting depth is 2. Requires a valid session.
+
+**Body:** `{ "name": "Nature", "parent": "" }`
+
+The `parent` field is optional; omit it or pass `""` to create a top-level directory.
+
+**Response (201):** `{ "path": "Nature" }`
+
+### DELETE /api/backgrounds/directories
+
+Deletes an empty subdirectory. Refuses to delete directories that still contain files. Requires a valid session.
+
+**Body:** `{ "path": "Nature/Landscapes" }`
+
+**Response:** `{ "deleted": "Nature/Landscapes" }`
+
 ---
 
 ## Unsplash
@@ -594,6 +761,265 @@ Search or list Unsplash photos. Requires an Unsplash access key in settings.
 ### GET /api/unsplash/random
 
 Returns a random Unsplash photo with optional query filter.
+
+---
+
+## NASA
+
+### GET /api/nasa
+
+Fetches NASA images. Supports two modes: Image Library search and Astronomy Picture of the Day (APOD). Requires a valid session.
+
+#### Image Library search (no API key needed)
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `type` | string | `"search"` | Set to `"search"` |
+| `query` | string | `"nebula"` | Search query |
+| `page` | number | `1` | Page number |
+
+**Response:**
+```json
+{
+  "photos": [
+    {
+      "id": "PIA12345",
+      "title": "Nebula Image",
+      "description": "A beautiful nebula...",
+      "date": "2026-03-08T00:00:00Z",
+      "thumb": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~thumb.jpg",
+      "nasaId": "PIA12345"
+    }
+  ],
+  "totalPages": 42,
+  "total": 500
+}
+```
+
+#### Astronomy Picture of the Day (requires NASA API key)
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `type` | string | | Set to `"apod"` |
+| `count` | number | `12` | Number of random APOD images to return |
+
+**Response:**
+```json
+{
+  "photos": [
+    {
+      "id": "2026-03-08",
+      "title": "The Horsehead Nebula",
+      "description": "One of the most identifiable nebulae...",
+      "date": "2026-03-08",
+      "url": "https://apod.nasa.gov/apod/image/2603/horsehead.jpg",
+      "hdurl": "https://apod.nasa.gov/apod/image/2603/horsehead_full.jpg",
+      "thumb": "https://apod.nasa.gov/apod/image/2603/horsehead.jpg"
+    }
+  ]
+}
+```
+
+### POST /api/nasa
+
+Downloads a NASA image and saves it as a background. Requires a valid session.
+
+**Body:** `{ "imageUrl": "https://...", "filename": "nasa-horsehead" }`
+
+**Response (201):** `{ "filename": "nasa-horsehead.jpg", "path": "..." }`
+
+### GET /api/nasa/asset
+
+Resolves a NASA Image Library asset ID to the best available image URL. Picks the highest-resolution variant available (orig > large > medium). Requires a valid session.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `nasaId` | string | NASA Image Library asset ID (e.g. `PIA12345`) |
+
+**Response:**
+```json
+{ "imageUrl": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~orig.jpg" }
+```
+
+Returns `{ "imageUrl": null }` if no image files are found for the asset.
+
+---
+
+## Plugins
+
+The plugin system allows third-party modules to be installed from a central registry. Plugins are distributed as tarballs containing a manifest, a JavaScript bundle, and optional assets.
+
+### GET /api/plugins/registry
+
+Fetches the plugin registry listing all available plugins and their versions.
+
+**Response:**
+```json
+{
+  "schemaVersion": 1,
+  "lastUpdated": "2026-03-08T00:00:00Z",
+  "plugins": [
+    {
+      "id": "example-plugin",
+      "name": "Example Plugin",
+      "description": "An example widget plugin",
+      "author": "Author Name",
+      "repo": "https://github.com/...",
+      "license": "MIT",
+      "category": "data",
+      "tags": ["example"],
+      "icon": "puzzle",
+      "verified": true,
+      "permissions": ["network", "secrets"],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "minAppVersion": "0.18.0",
+          "releaseDate": "2026-03-08",
+          "downloadUrl": "https://...",
+          "sha256": "abc123...",
+          "changelog": "Initial release"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### GET /api/plugins/installed
+
+Returns the list of installed plugins and a hash for cache invalidation.
+
+**Response:**
+```json
+{
+  "schemaVersion": 1,
+  "plugins": [
+    {
+      "id": "example-plugin",
+      "version": "1.0.0",
+      "installedAt": "2026-03-08T12:00:00.000Z",
+      "enabled": true,
+      "moduleType": "example-widget"
+    }
+  ],
+  "pluginHash": "a1b2c3d4"
+}
+```
+
+### POST /api/plugins/install
+
+Installs a plugin from the registry. Downloads the tarball, verifies its SHA-256 checksum, and extracts it. Requires a valid session.
+
+**Body:** `{ "pluginId": "example-plugin", "version": "1.0.0" }`
+
+**Response:** `{ "success": true }`
+
+### DELETE /api/plugins/install
+
+Uninstalls a plugin. Requires a valid session.
+
+**Body:** `{ "pluginId": "example-plugin" }`
+
+**Response:** `{ "success": true }`
+
+### PATCH /api/plugins/install
+
+Updates a plugin's state (enable/disable or clear previous version after config migration). Requires a valid session.
+
+**Body:**
+```json
+{
+  "pluginId": "example-plugin",
+  "enabled": true,
+  "clearPrevVersion": false
+}
+```
+
+Both `enabled` and `clearPrevVersion` are optional.
+
+**Response:** `{ "success": true }`
+
+### GET /api/plugins/manifest/:pluginId
+
+Returns the full manifest for an installed plugin.
+
+**Response:** `PluginManifest` object (includes `id`, `name`, `version`, `description`, `author`, `license`, `moduleType`, `category`, `icon`, `defaultConfig`, `defaultSize`, `configSchema`, `exports`, `secrets`, `allowedDomains`, `permissions`, etc.)
+
+### GET /api/plugins/bundle/:pluginId
+
+Serves the plugin's JavaScript bundle.
+
+**Response:** `application/javascript` content.
+
+### POST /api/plugins/proxy/:pluginId
+
+Server-side proxy for plugin API requests. Handles domain validation (only requests to the plugin's declared `allowedDomains` are allowed), secret injection (replaces `{{secret_key}}` placeholders with stored values), rate limiting (60 requests/minute per plugin), and response caching. Maximum response size is 5 MB.
+
+**Body:**
+```json
+{
+  "url": "https://api.example.com/data",
+  "method": "GET",
+  "headers": {},
+  "payload": "",
+  "secretInjections": {
+    "header": { "Authorization": "Bearer {{api_key}}" },
+    "query": { "appid": "{{api_key}}" }
+  },
+  "cacheTtlMs": 60000
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `url` | string | required | Upstream URL (must match plugin's `allowedDomains`) |
+| `method` | string | `"GET"` | HTTP method (`GET`, `POST`, `PUT`, or `PATCH`) |
+| `headers` | object | `{}` | Additional request headers |
+| `payload` | string | | Request body for POST/PUT/PATCH |
+| `secretInjections.header` | object | | Headers with `{{key}}` placeholders replaced by stored secrets |
+| `secretInjections.query` | object | | Query params with `{{key}}` placeholders replaced by stored secrets |
+| `cacheTtlMs` | number | `60000` | Cache TTL in ms (0 to disable, max 1 hour) |
+
+**Response:** The upstream response body with its original `Content-Type`.
+
+### GET /api/plugins/secrets/:pluginId
+
+Returns which secrets are configured for a plugin (booleans, never raw values). Requires a valid session.
+
+**Response:**
+```json
+{
+  "keys": {
+    "api_key": true,
+    "client_secret": false
+  }
+}
+```
+
+### PUT /api/plugins/secrets/:pluginId
+
+Saves a secret value for a plugin. Requires a valid session.
+
+**Body:** `{ "key": "api_key", "value": "abc123..." }`
+
+**Response:** `{ "success": true }`
+
+### DELETE /api/plugins/secrets/:pluginId
+
+Deletes a secret for a plugin. Requires a valid session.
+
+**Body:** `{ "key": "api_key" }`
+
+**Response:** `{ "success": true }`
+
+### POST /api/plugins/dev
+
+Registers a development plugin on the server. Called automatically by the client-side dev plugin loader. Validates the manifest before accepting.
+
+**Body:** `{ "manifest": { ... } }` (full `PluginManifest` object)
+
+**Response:** `{ "success": true }`
 
 ---
 
@@ -677,6 +1103,52 @@ Performs a system reboot or service restart. Requires a valid session.
 
 The `restart-service` action requires the app to be managed by systemd (as the `home-screens` service).
 
+### GET /api/system/stats
+
+Returns system statistics including disk usage, OS info, memory usage, app configuration summary, and telemetry status. Requires a valid session.
+
+**Response:**
+```json
+{
+  "disk": {
+    "total": 31268536320,
+    "used": 15634268160,
+    "free": 15634268160,
+    "dataDir": {
+      "config": 4096,
+      "backups": 24576,
+      "backgrounds": 10485760,
+      "total": 10514432
+    }
+  },
+  "os": {
+    "hostname": "raspberrypi",
+    "platform": "linux",
+    "arch": "arm64",
+    "uptime": 86400,
+    "nodeVersion": "v22.0.0"
+  },
+  "memory": {
+    "total": 4294967296,
+    "free": 2147483648,
+    "used": 2147483648
+  },
+  "app": {
+    "screens": 3,
+    "modules": 12,
+    "moduleTypes": { "clock": 2, "weather": 3, "calendar": 1 },
+    "profiles": 2,
+    "configuredSecrets": ["openweathermap_key", "google_client_id"],
+    "configSize": 4096
+  },
+  "telemetry": {
+    "installId": "a1b2c3d4...",
+    "lastBeaconAt": "2026-03-08T00:00:00Z",
+    "enabled": true
+  }
+}
+```
+
 ### GET /api/system/backups
 
 Lists available configuration backups. Requires a valid session.
@@ -737,7 +1209,7 @@ Returns the last-known display status as reported by the display client.
 
 ### GET /api/display/:command
 
-Simple commands via GET — bookmarkable from a phone or browser. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`.
+Simple commands via GET -- bookmarkable from a phone or browser. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`, `clear-alerts`.
 
 **Response:** `{ "ok": true, "command": "wake" }`
 
@@ -745,13 +1217,13 @@ Simple commands via GET — bookmarkable from a phone or browser. Supported comm
 
 Sets the display brightness.
 
-**Body:** `{ "value": 50 }` (0–100)
+**Body:** `{ "value": 50 }` (0-100)
 
 **Response:** `{ "ok": true, "command": "brightness", "value": 50 }`
 
 ### POST /api/display/profile
 
-Switches the active profile. Requires a valid session.
+Switches the active profile. Persists the selection to the config file. Requires a valid session.
 
 **Body:** `{ "profile": "profile-id" }`
 
@@ -767,9 +1239,13 @@ Shows an alert overlay on the display.
   "type": "info",
   "title": "Alert Title",
   "message": "Alert message body",
-  "duration": 10000
+  "duration": 10000,
+  "icon": "bell",
+  "dismissible": true
 }
 ```
+
+The `type` field accepts `info`, `warning`, or `urgent`. The `icon`, `duration`, and `dismissible` fields are optional.
 
 **Response:** `{ "ok": true, "command": "alert" }`
 
@@ -786,6 +1262,8 @@ Reports the current display state. Called by the display client every 30 seconds
   "timestamp": 1709913600000
 }
 ```
+
+Required fields: `currentScreen` (object with `id` string), `displayState` (string), and `timestamp` (number).
 
 **Response:** `{ "ok": true }`
 

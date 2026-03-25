@@ -1,4 +1,10 @@
-# Development Guide
+---
+title: Development Guide
+nextjs:
+  metadata:
+    title: Development Guide
+    description: How to develop and contribute to Home Screens.
+---
 
 ## Project Structure
 
@@ -55,16 +61,26 @@ The module system follows a registry pattern. Each module is a self-contained un
 4. **Registration** — an entry in `src/lib/module-registry.ts` (label, icon, category, defaults)
 5. **Dynamic import** — lazy loading in `src/lib/module-components.ts`
 
+Each module requires up to 8 pieces, connected in sequence:
+
 ```mermaid
-flowchart TD
-    A["1. React Component\nsrc/components/modules/MyModule.tsx"] --> B["2. ModuleType union\nsrc/types/config.ts"]
-    B --> C["3. Config interface\nsrc/types/config.ts"]
-    C --> D["4. Default size\nsrc/lib/constants.ts"]
-    D --> E["5. Registry entry\nsrc/lib/module-registry.ts"]
-    E --> F["6. Dynamic import\nsrc/lib/module-components.ts"]
-    F --> G["7. Editor controls\nsrc/components/editor/PropertyPanel.tsx"]
-    G -.->|optional| H["8. API route\nsrc/app/api/*/route.ts"]
+flowchart LR
+    Component["React Component\nsrc/components/modules/"] --> Types["Type + Config\nsrc/types/config.ts"]
+    Types --> Defaults["Default Size\nsrc/lib/constants.ts"]
+    Defaults --> Registry["Module Registry\nsrc/lib/module-registry.ts"]
+    Registry --> DynImport["Dynamic Import\nsrc/lib/module-components.ts"]
+    DynImport --> PropPanel["Editor Config\nPropertyPanel.tsx"]
+    PropPanel --> Render["Module rendered\non canvas / display"]
 ```
+
+1. React Component (`src/components/modules/MyModule.tsx`)
+2. ModuleType union (`src/types/config.ts`)
+3. Config interface (`src/types/config.ts`)
+4. Default size (`src/lib/constants.ts`)
+5. Registry entry (`src/lib/module-registry.ts`)
+6. Dynamic import (`src/lib/module-components.ts`)
+7. Editor controls (`src/components/editor/PropertyPanel.tsx`)
+8. (Optional) API route (`src/app/api/*/route.ts`)
 
 ### State Management
 
@@ -73,96 +89,66 @@ flowchart TD
 
 ### Data Flow
 
+```mermaid
+graph TB
+    subgraph Clients
+        Editor["Editor (browser)"]
+        Display["Display (kiosk)"]
+    end
+
+    subgraph "Next.js Server"
+        API["API Routes"]
+        ConfigAPI["/api/config"]
+        SecretsAPI["/api/secrets"]
+    end
+
+    subgraph "Local Storage"
+        Config["data/config.json"]
+        Secrets["data/secrets.json"]
+    end
+
+    subgraph "External Services"
+        Weather["Weather Providers"]
+        ESPN["ESPN"]
+        Google["Google"]
+        Other["RSS, CoinGecko, etc."]
+    end
+
+    Editor -- "Zustand store\nPUT /api/config" --> ConfigAPI
+    ConfigAPI -- "read / write" --> Config
+    Display -- "GET /api/config\n(poll every 3s)" --> ConfigAPI
+    API -- "read keys" --> Secrets
+    API --> Weather
+    API --> ESPN
+    API --> Google
+    API --> Other
+```
+
 #### Editor Flow
 
-```mermaid
-flowchart LR
-    User -->|interact| EditorCanvas
-    EditorCanvas -->|dispatch actions| ZustandStore["Zustand Store"]
-    ZustandStore -->|PUT /api/config| ConfigAPI["/api/config"]
-    ConfigAPI -->|write| ConfigJSON["data/config.json"]
-```
+User interactions flow through the editor canvas, which dispatches actions to the Zustand store. The store saves changes via `PUT /api/config`, which writes to `data/config.json`.
 
 #### Display Flow
 
-```mermaid
-flowchart LR
-    ConfigJSON["data/config.json"] -->|GET /api/config\nevery 3s| ScreenRotator
-    ScreenRotator -->|active screen| ScreenRenderer
-    ScreenRenderer -->|wraps each| ModuleWrapper
-    ModuleWrapper -->|renders| Modules["Individual Modules"]
-```
+The display reads `data/config.json` via `GET /api/config` (polling every 3 seconds). The `ScreenRotator` selects the active screen, the `ScreenRenderer` lays out modules, and each `ModuleWrapper` renders its individual module component.
 
 #### API Data Flow
 
-```mermaid
-flowchart LR
-    Modules["Module Components"] -->|useFetchData hook| APIRoutes["API Routes\n/api/weather, /api/calendar, etc."]
-    APIRoutes -->|fetch| External["External Services\nOpenWeatherMap, Google, ESPN, etc."]
-```
-
-The display polls `config.json` every 3 seconds, so changes made in the editor appear on the display within a few seconds.
+Module components use the `useFetchData` hook to call API routes (e.g., `/api/weather`, `/api/calendar`), which in turn fetch data from external services (OpenWeatherMap, Google, ESPN, etc.).
 
 ### Weather Provider Abstraction
 
-Weather data comes from a pluggable provider system in `src/lib/weather.ts`:
+Weather data comes from a pluggable provider system in `src/lib/weather.ts`.
 
-```mermaid
-classDiagram
-    class WeatherProvider {
-        <<interface>>
-        +getHourly(lat, lon, units) Promise~HourlyWeather[]~
-        +getForecast(lat, lon, units) Promise~ForecastDay[]~
-        +getMinutely(lat, lon, units)? Promise~MinutelyPrecip[]~
-        +getAlerts(lat, lon, units)? Promise~WeatherAlert[]~
-    }
+The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. Five implementations exist:
 
-    class OpenWeatherMapProvider {
-        -apiKey: string
-        +getHourly()
-        +getForecast()
-    }
+- **OpenWeatherMapProvider** — requires API key; provides hourly and forecast data
+- **WeatherAPIProvider** — requires API key; provides hourly and forecast data
+- **PirateWeatherProvider** — requires API key; provides hourly, forecast, minutely precipitation, and alerts
+- **NOAAProvider** — free, no API key, US only; provides hourly, forecast, and alerts
+- **OpenMeteoProvider** — free, no API key, global coverage; provides hourly and forecast data
 
-    class WeatherAPIProvider {
-        -apiKey: string
-        +getHourly()
-        +getForecast()
-    }
-
-    class PirateWeatherProvider {
-        -apiKey: string
-        +getHourly()
-        +getForecast()
-        +getMinutely()
-        +getAlerts()
-    }
-
-    class NOAAProvider {
-        +getHourly()
-        +getForecast()
-        +getAlerts()
-    }
-
-    class OpenMeteoProvider {
-        +getHourly()
-        +getForecast()
-    }
-
-    WeatherProvider <|.. OpenWeatherMapProvider
-    WeatherProvider <|.. WeatherAPIProvider
-    WeatherProvider <|.. PirateWeatherProvider
-    WeatherProvider <|.. NOAAProvider
-    WeatherProvider <|.. OpenMeteoProvider
-
-    class createWeatherProvider {
-        <<function>>
-        +createWeatherProvider(provider, apiKey) WeatherProvider
-    }
-
-    createWeatherProvider ..> WeatherProvider : creates
-```
-
-Five implementations exist: `OpenWeatherMapProvider`, `WeatherAPIProvider`, `PirateWeatherProvider`, `NOAAProvider`, and `OpenMeteoProvider`. The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. Pirate Weather (a Dark Sky replacement) additionally supports minutely precipitation data and weather alerts. NOAA uses the National Weather Service API — it's free and requires no API key, but is limited to US locations. Open-Meteo is free, requires no API key, and provides global coverage.
+The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. Pirate Weather (a Dark Sky replacement) additionally supports minutely precipitation data and weather alerts. NOAA uses the National Weather Service API — it's free and requires no API key, but is limited to US locations. Open-Meteo is free, requires no API key, and provides global coverage.
 
 ### API Routes
 
@@ -183,81 +169,27 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 
 Remote control uses a command queue pattern where the editor (or any HTTP client) pushes commands and the display polls to execute them.
 
-```mermaid
-sequenceDiagram
-    participant Client as Editor / HTTP Client
-    participant API as /api/display/[action]
-    participant Queue as Command Queue (in-memory)
-    participant Display as Display (ScreenRotator)
+**Command flow:** The client sends a POST request (e.g., `POST /api/display/wake`), which enqueues the command in memory. The display polls `GET /api/display/commands`, which drains the queue and returns pending commands. The display then executes each command locally.
 
-    Note over Client,Display: Command Flow
-    Client->>API: POST /api/display/wake
-    API->>Queue: enqueueCommand("wake")
-    Display->>API: GET /api/display/commands (polls)
-    API->>Queue: drainCommands()
-    Queue-->>API: [{type: "wake"}]
-    API-->>Display: {commands: [{type: "wake"}]}
-    Display->>Display: Execute command
-
-    Note over Client,Display: Status Reporting
-    Display->>API: POST /api/display/status
-    API->>API: setDisplayStatus(status)
-    Client->>API: GET /api/display/status
-    API-->>Client: {screenIndex, screenName, displayState, ...}
-```
+**Status reporting:** The display periodically sends `POST /api/display/status` with its current state (screen index, screen name, display state, etc.). The editor can then read the display status via `GET /api/display/status`.
 
 ### Auth System
 
 An authentication layer (`src/lib/auth.ts`) protects the editor and API routes. Google OAuth device flow is used for Google Calendar integration via `auth/google`.
 
-```mermaid
-sequenceDiagram
-    participant Browser
-    participant API as API Routes
-    participant Google as google.com/device
+**Password auth:** The browser sends `POST /api/auth/login` with a password, and the API responds with a session cookie.
 
-    Note over Browser,Google: Password Auth
-    Browser->>API: POST /api/auth/login {password}
-    API-->>Browser: Set session cookie
-
-    Note over Browser,Google: Google OAuth Device Flow
-    Browser->>API: POST /api/auth/google/device
-    API-->>Browser: {user_code, verification_url}
-    Browser->>Browser: Display code to user
-    Browser->>Google: User enters code at google.com/device
-    loop Poll until authorized
-        Browser->>API: PUT /api/auth/google/device {device_code}
-        API-->>Browser: {status: "pending"} or {status: "ok"}
-    end
-    API->>API: Store tokens on disk
-```
+**Google OAuth device flow:** The browser requests a device code via `POST /api/auth/google/device`, which returns a `user_code` and `verification_url`. The user enters the code at `google.com/device`. The browser polls `PUT /api/auth/google/device` until the authorization is complete, at which point tokens are stored on disk.
 
 ### Profile & Schedule System
 
 Profiles group screens together and can activate on a schedule. Individual modules also support per-module scheduling to show/hide by day and time.
 
-```mermaid
-flowchart TD
-    subgraph Profile
-        PID["id, name"]
-        SIDs["screenIds[]"]
-        PSched["schedule?\n(daysOfWeek, startTime, endTime, invert)"]
-    end
+**Profile structure:** Each profile has an `id`, `name`, a list of `screenIds`, and an optional `schedule` (with `daysOfWeek`, `startTime`, `endTime`, and `invert` fields).
 
-    subgraph ModuleSchedule
-        Days["daysOfWeek: number[]\n0=Sun ... 6=Sat"]
-        Start["startTime: string\ne.g. '06:00'"]
-        End["endTime: string\ne.g. '09:00'"]
-        Invert["invert: boolean\nhide during window if true"]
-    end
+**Module schedule:** Each module can define a schedule with `daysOfWeek` (0=Sun through 6=Sat), `startTime`, `endTime`, and an `invert` flag (hide during the window if true).
 
-    subgraph ScreenRotator Resolution
-        A{"activeProfile\noverride set?"} -->|yes| B["Use override profile screens"]
-        A -->|no| C{"Scheduled profile\nmatches now?"}
-        C -->|yes| D["Use first matching\nprofile's screens"]
-        C -->|no| E["Use all screens"]
-    end
-```
+**Screen resolution order:** If an active profile override is set, those screens are used. Otherwise, if a scheduled profile matches the current time, the first matching profile's screens are used. If no profile matches, all screens are shown.
 
 ## Adding a New Module
 

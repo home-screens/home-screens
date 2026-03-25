@@ -1,4 +1,10 @@
-# Raspberry Pi Deployment
+---
+title: Raspberry Pi
+nextjs:
+  metadata:
+    title: Raspberry Pi Deployment
+    description: Deploy Home Screens as a kiosk display on Raspberry Pi.
+---
 
 Home Screens is designed to run as a dedicated kiosk display on a Raspberry Pi. The install script handles the full setup from a fresh Raspberry Pi OS installation.
 
@@ -28,6 +34,14 @@ If you're running the full Desktop image, pass the `--desktop` flag:
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh --desktop
 ```
+
+### Installer Flags
+
+| Flag | Description |
+|---|---|
+| `--desktop` | Use Desktop mode instead of Lite (configures kiosk via autostart instead of cage on TTY1) |
+| `--version v1.2.0` | Install a specific release instead of the latest |
+| `--port 8080` | Run the server on a custom port instead of the default 3000 |
 
 ### What the installer does
 
@@ -61,9 +75,19 @@ API keys are configured through the editor UI, not environment files. Open the e
 
 ## Display Orientation
 
-The install script auto-detects the connected display resolution and configures it in the settings, so the display should match your screen's native resolution out of the box.
+During installation, the script prompts you to choose your display orientation:
 
-If your screen is mounted in portrait mode, you may need to rotate the display output. Use the display transform setting in the editor (Settings > Display), or run:
+```
+How is your display oriented?
+1) Portrait (default, rotated 90° clockwise)
+2) Portrait (rotated 90° counter-clockwise)
+3) Landscape (no rotation)
+4) Inverted (rotated 180°)
+```
+
+It also asks for your display resolution, or auto-detects the native resolution from the connected display if you leave it blank. These choices are saved to `config.json` and `data/kiosk.conf` so that the kiosk launches with the correct orientation and resolution from first boot.
+
+To change the orientation after installation, use the display transform setting in the editor (**Settings > Display**), or run:
 
 ```bash
 bash scripts/rotate-display.sh

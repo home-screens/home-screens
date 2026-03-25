@@ -1,4 +1,10 @@
-# Editor Guide
+---
+title: Editor Guide
+nextjs:
+  metadata:
+    title: Editor Guide
+    description: How to use the Home Screens visual editor.
+---
 
 The editor is the main interface for designing your display screens. Access it at `/editor`.
 
@@ -41,7 +47,7 @@ Each module type has its own configuration options. For example:
 - **News** — set the RSS feed URL
 - **Stock Ticker** — enter comma-separated stock symbols
 
-See the [Modules Reference](modules.md) for all available options.
+See the [Modules Reference](/docs/modules) for all available options.
 
 ### Style Settings
 
@@ -115,7 +121,51 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 ## Global Settings
 
-Open the **Settings Panel** to configure system-wide options:
+Open the **Settings Panel** to configure system-wide options. Settings are organized into twelve tabs:
+
+**Display** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System**
+
+### Display
+
+- **Resolution Preset** — choose from standard resolutions (1080p portrait, 4K, landscape, etc.)
+- **Display Transform** — rotate the output (for physically rotated screens)
+- **Cursor Auto-Hide** — cursor hides after a configurable idle period (default 3 seconds); move the mouse to restore it
+
+### Profiles
+
+Profiles let you define named groups of screens that activate based on a schedule or manually. See the [Profiles](#profiles-1) section below for details.
+
+### Sleep
+
+- **Dim Schedule** — automatically dim the display during set hours
+- **Dim Brightness** — how much to dim (0–100%)
+- **Sleep Schedule** — fully blank the screen during set hours
+- **Screensaver** — show a minimal clock during sleep
+
+### Alerts
+
+- **Enable/Disable** — toggle the alert notification overlay
+- **Position** — display alerts at the top or bottom of the screen
+- **Max Visible** — limit how many alerts show simultaneously
+- **Default Duration** — how long alerts remain visible before auto-dismissing
+
+### Location
+
+- **Latitude / Longitude** — set coordinates for weather, sunrise/sunset, and other location-aware modules
+- **Location Lookup** — search by city name to auto-fill coordinates
+- **Timezone** — set the timezone for all time-aware modules (clock, calendar, sunrise/sunset, etc.)
+
+### Weather
+
+- **Provider** — choose OpenWeatherMap, WeatherAPI, Pirate Weather, or NOAA (free, US only)
+- **Units** — metric or imperial
+
+### Calendar
+
+- **Sign In** — initiate the OAuth device flow for Google Calendar
+- **Calendar Selection** — choose which calendars to display
+- **Max Events** — limit the number of events shown
+- **Days Ahead** — how far ahead to look for events
 
 ### Integrations
 
@@ -129,35 +179,30 @@ The **Integrations** tab is where you configure all API keys and external servic
 - **TomTom** — API key for traffic data
 - **Google Calendar** — OAuth device flow sign-in
 
-### Weather
+### Security
 
-- **Provider** — choose OpenWeatherMap, WeatherAPI, Pirate Weather, or NOAA (free, US only)
-- **Location** — set latitude/longitude for weather data
-- **Units** — metric or imperial
+The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor requires entering the password. The display view remains publicly accessible.
 
-### Google Calendar
+### Data
 
-- **Sign In** — initiate the OAuth device flow
-- **Calendar Selection** — choose which calendars to display
-- **Max Events** — limit the number of events shown
-- **Days Ahead** — how far ahead to look for events
+- **Share Layout** — export your screen layout (screens, modules, visual settings) without personal data; safe to share with others
+- **Templates** — start from a pre-built template while preserving your existing settings
+- **Full Backup** — export or restore the entire configuration including all settings, location, calendars, and device preferences
 
-### Display
+### Stats
 
-- **Resolution Preset** — choose from standard resolutions (1080p portrait, 4K, landscape, etc.)
-- **Display Transform** — rotate the output (for physically rotated screens)
-- **Cursor Auto-Hide** — cursor hides after a configurable idle period (default 3 seconds); move the mouse to restore it
+View system and application statistics including disk usage, memory, OS info, module counts by type, and configured integrations.
 
-### Sleep & Screensaver
+### System
 
-- **Dim Schedule** — automatically dim the display during set hours
-- **Dim Brightness** — how much to dim (0–100%)
-- **Sleep Schedule** — fully blank the screen during set hours
-- **Screensaver** — show a minimal clock during sleep
-
-### Timezone
-
-Set the timezone for all time-aware modules (clock, calendar, sunrise/sunset, etc.).
+- **Version** — current app version
+- **Changelog** — recent release notes
+- **Update Channel** — switch between Stable and Dev (pre-release) channels for updates
+- **Upgrade** — download and install the latest version
+- **Rollback** — revert to a previous version
+- **Backup/Restore** — export and import your configuration
+- **Logs** — view application logs
+- **Power** — restart or shut down the Raspberry Pi from the UI
 
 ## Profiles
 
@@ -192,23 +237,6 @@ Individual modules can be shown or hidden based on a schedule:
 4. Optionally toggle **Invert** to hide the module during the window instead of showing it
 
 This is useful for showing a commute widget only on weekday mornings or a sports scores widget only on game days.
-
-## Password Protection
-
-The editor can be protected with a password to prevent unauthorized access. Set a password in **Settings > Security**. Once enabled, accessing the editor requires entering the password. The display view remains publicly accessible.
-
-## System Panel
-
-The **System Panel** provides maintenance and system management features:
-
-- **Version** — current app version
-- **Changelog** — recent release notes
-- **Update Channel** — switch between Stable and Dev (pre-release) channels for updates
-- **Upgrade** — download and install the latest version
-- **Rollback** — revert to a previous version
-- **Backup/Restore** — export and import your configuration
-- **Logs** — view application logs
-- **Power** — restart or shut down the Raspberry Pi from the UI
 
 ## Saving
 

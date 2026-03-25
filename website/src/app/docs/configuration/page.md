@@ -1,4 +1,10 @@
-# Configuration
+---
+title: Configuration
+nextjs:
+  metadata:
+    title: Configuration
+    description: Complete configuration reference for Home Screens.
+---
 
 Home Screens uses a single JSON file for all configuration: `data/config.json`. There is no database — the file is read and written directly by the API.
 
@@ -30,55 +36,12 @@ Supported secret keys:
 
 ## Schema
 
-```mermaid
-erDiagram
-    ScreenConfiguration {
-        number version
-    }
-    GlobalSettings {
-        number rotationIntervalMs
-        number displayWidth
-        number displayHeight
-        string timezone
-    }
-    Screen {
-        string id
-        string name
-        string backgroundImage
-    }
-    Profile {
-        string id
-        string name
-        string[] screenIds
-    }
-    ModuleInstance {
-        string id
-        ModuleType type
-        object position
-        object size
-        number zIndex
-    }
-    ModuleStyle {
-        number opacity
-        number borderRadius
-        string backgroundColor
-        string textColor
-    }
-    ModuleSchedule {
-        number[] daysOfWeek
-        string startTime
-        string endTime
-        boolean invert
-    }
-    ScreenConfiguration ||--|| GlobalSettings : "settings"
-    ScreenConfiguration ||--o{ Screen : "screens"
-    ScreenConfiguration ||--o{ Profile : "profiles"
-    Screen ||--o{ ModuleInstance : "modules"
-    ModuleInstance ||--|| ModuleStyle : "style"
-    ModuleInstance ||--o| ModuleSchedule : "schedule"
-    ModuleInstance ||--|| object : "config"
-    Profile ||--o| ModuleSchedule : "schedule"
-```
+The configuration has the following structure:
+
+- **ScreenConfiguration** contains a `version` number, a single **GlobalSettings** object, zero or more **Screen** objects, and zero or more **Profile** objects.
+- Each **Screen** contains zero or more **ModuleInstance** objects.
+- Each **ModuleInstance** has a **ModuleStyle** object, an optional **ModuleSchedule**, and a module-specific config object.
+- Each **Profile** has an optional **ModuleSchedule** for auto-activation.
 
 ### Top Level
 
@@ -98,53 +61,86 @@ erDiagram
   rotationIntervalMs: number    // Screen rotation interval (default: 30000)
   displayWidth: number          // Canvas width in pixels (default: 1080)
   displayHeight: number         // Canvas height in pixels (default: 1920)
-  displayTransform: string      // Screen rotation: "normal", "90", "180", "270"
+  displayTransform?: 'normal' | '90' | '180' | '270'  // Screen rotation
 
   latitude: number              // Global location latitude
   longitude: number             // Global location longitude
-  locationName: string          // Human-readable location name
-  timezone: string              // IANA timezone (e.g. "America/Chicago")
+  locationName?: string         // Human-readable location name
+  timezone?: string             // IANA timezone (e.g. "America/Chicago")
 
-  weather: {
-    provider: string            // "openweathermap", "weatherapi", "pirateweather", "noaa", or "open-meteo"
-    latitude: number            // Weather-specific latitude (overrides global)
-    longitude: number           // Weather-specific longitude (overrides global)
-    units: string               // "metric" or "imperial"
-  }
+  weather: WeatherSettings      // See WeatherSettings below
+  calendar: CalendarSettings    // See CalendarSettings below
 
-  calendar: {
-    googleCalendarId: string         // Primary calendar ID (legacy)
-    googleCalendarIds: string[]      // Multiple calendar IDs
-    maxEvents: number                // Max events to display
-    daysAhead: number                // Days to look ahead
-  }
-
-  sleep: {
+  sleep?: {
     enabled: boolean
     dimAfterMinutes: number     // Auto-dim after inactivity
     sleepAfterMinutes: number   // Auto-sleep after inactivity
     dimBrightness: number       // Dim level (0-100)
-    dimSchedule: {              // Scheduled dimming
+    dimSchedule?: {             // Scheduled dimming
       startTime: string         // "HH:mm" format
       endTime: string           // "HH:mm" format
     }
-    schedule: {                 // Scheduled sleep
+    schedule?: {                // Scheduled sleep
       startTime: string         // "HH:mm" format
       endTime: string           // "HH:mm" format
     }
   }
 
-  screensaver: {
+  screensaver?: {
     mode: string                // "clock", "blank", or "off"
   }
 
-  activeProfile: string         // Currently active profile ID (optional)
-
   cursorHideSeconds?: number      // Seconds of idle before cursor hides (default: 3)
+  activeProfile?: string          // Currently active profile ID
   transitionEffect?: TransitionEffect  // Screen transition effect
   transitionDuration?: number     // Transition duration in seconds (default: 0.6)
   updateChannel?: 'stable' | 'dev'    // Update channel for system upgrades
-  piVariant?: 'desktop' | 'lite'      // Detected Raspberry Pi OS variant
+
+  alerts?: {                      // Display alert overlay settings
+    enabled: boolean
+    position: 'top' | 'bottom'
+    maxVisible: number
+    defaultDuration: number       // ms — 0 means use per-type defaults
+  }
+
+  telemetryEnabled?: boolean      // Enable anonymous usage telemetry
+}
+```
+
+### WeatherSettings
+
+```typescript
+{
+  provider: 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo'
+  latitude: number            // Weather-specific latitude (overrides global)
+  longitude: number           // Weather-specific longitude (overrides global)
+  units: 'metric' | 'imperial'
+}
+```
+
+### CalendarSettings
+
+```typescript
+{
+  googleCalendarId: string         // Primary calendar ID (legacy)
+  googleCalendarIds: string[]      // Multiple calendar IDs
+  icalSources: ICalSource[]        // iCal/ICS feed sources
+  maxEvents: number                // Max events to display
+  daysAhead: number                // Days to look ahead
+  holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
+}
+```
+
+### ICalSource
+
+```typescript
+{
+  id: string
+  type: 'ical'
+  name: string
+  url: string
+  color: string
+  enabled: boolean
 }
 ```
 
@@ -163,8 +159,9 @@ type TransitionEffect =
   id: string                    // Unique ID (UUID)
   name: string                  // Display name (shown in editor tabs)
   backgroundImage: string       // Path to background image
-  backgroundRotation: {         // Optional Unsplash background rotation
+  backgroundRotation?: {        // Optional background rotation
     enabled: boolean
+    source?: 'unsplash' | 'nasa-apod'  // Image source
     query: string
     intervalMinutes: number
   }
@@ -217,10 +214,10 @@ Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles 
 
 ### ModuleType
 
-There are 33 module types:
+There are 35 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
-type ModuleType =
+type BuiltinModuleType =
   | 'clock'
   | 'calendar'
   | 'weather'
@@ -253,7 +250,13 @@ type ModuleType =
   | 'affirmations'
   | 'date'
   | 'meal-planner'
-  | 'iframe';
+  | 'iframe'
+  | 'flag-status'
+  | 'chore-chart';
+
+type PluginModuleType = `plugin:${string}`;
+
+type ModuleType = BuiltinModuleType | PluginModuleType;
 ```
 
 ### ModuleStyle
@@ -316,6 +319,10 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
   showPrecipitation: boolean
   showHumidity: boolean
   showWind: boolean
+  showPressure: boolean
+  showVisibility: boolean
+  showDewPoint: boolean
+  hideWhenNoAlerts: boolean    // For alerts view: hide module when no active alerts
 }
 ```
 
@@ -323,9 +330,24 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 
 ```typescript
 {
-  events: { id: string; name: string; date: string }[]
+  events: CountdownEvent[]
   showPastEvents: boolean
   scale: number               // 0.5 – 4, default 1
+  view: 'all' | 'next'
+  holidayCountry?: string
+}
+```
+
+### CountdownEvent
+
+```typescript
+{
+  id: string
+  name: string
+  date: string                // ISO date string
+  recurring?: 'yearly'
+  source?: 'custom' | 'holiday'
+  backgroundImage?: string
 }
 ```
 
@@ -652,7 +674,7 @@ Rotating positive affirmations with 4 visual styles and 5 categories. Supports t
   rotationIntervalMs: number
   showCategoryLabel: boolean
   timeAware: boolean           // Adjust messages based on time of day, day of week, season
-  customEntries: { id: string; text: string; category?: string }[]
+  customEntries: { id: string; text: string; attribution?: string }[]
   accentColor: string          // Accent color for card/typewriter views
 }
 ```
@@ -670,6 +692,94 @@ Displays league standings from ESPN. Supports 12 leagues with team colors. Three
   showPlayoffLine: boolean
   rotationIntervalMs: number
   refreshIntervalMs: number
+}
+```
+
+### DateConfig
+
+Date display module with 5 visual styles.
+
+```typescript
+{
+  view: 'full' | 'minimal' | 'stacked' | 'editorial' | 'banner'
+  dateFormat: string
+  showDayName: boolean
+  showYear: boolean
+  showWeekNumber: boolean
+  showDayOfYear: boolean
+  accentColor: string
+}
+```
+
+### MealPlannerConfig
+
+Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal.
+
+```typescript
+{
+  view: 'week' | 'today' | 'next-meal' | 'compact' | 'list'
+  savedMeals: { id: string; name: string; emoji?: string; tags?: string[]; prepTime?: number; notes?: string }[]
+  plan: { day: number; slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'; mealId: string }[]
+  slots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
+  weekStartDay: 'sunday' | 'monday'
+  showEmoji: boolean
+  showPrepTime: boolean
+  showTags: boolean
+  accentColor: string
+}
+```
+
+### IframeConfig
+
+Embeds an external web page. Supports configurable refresh and sandboxing.
+
+```typescript
+{
+  url: string
+  refreshIntervalMs: number
+  scrollable: boolean
+  sandboxEnabled: boolean
+  sandbox: string
+  title: string
+}
+```
+
+### FlagStatusConfig
+
+Displays whether the US flag should be at half-staff or full-staff.
+
+```typescript
+{
+  showReason: boolean
+  refreshIntervalMs: number
+}
+```
+
+### ChoreChartConfig
+
+Family chore tracking with 5 views, point system, and rotation support.
+
+```typescript
+{
+  view: 'board' | 'star-chart' | 'today' | 'progress' | 'compact'
+  members: { id: string; name: string; emoji: string; color: string }[]
+  chores: {
+    id: string
+    name: string
+    emoji: string
+    points: number
+    frequency: 'daily' | 'weekly' | 'biweekly'
+    daysOfWeek: number[]
+    timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
+    assigneeIds: string[]
+    rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly'
+  }[]
+  weekStartDay: 'sunday' | 'monday'
+  showPoints: boolean
+  showStreaks: boolean
+  showTimeOfDay: boolean
+  allowDisplayComplete: boolean
+  accentColor: string
 }
 ```
 
