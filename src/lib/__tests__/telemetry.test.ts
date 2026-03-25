@@ -42,7 +42,7 @@ function makeConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfigu
       latitude: 0,
       longitude: 0,
       weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-      calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
       ...overrides.settings,
     },
     screens: overrides.screens ?? [
@@ -56,7 +56,7 @@ function makeConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfigu
       },
     ],
     profiles: overrides.profiles ?? [],
-  } as ScreenConfiguration;
+  } as unknown as ScreenConfiguration;
 }
 
 /* ─── Tests ──────────────────────────────────── */
@@ -167,6 +167,7 @@ describe('buildBeaconPayload', () => {
         {
           id: 's1',
           name: 'A',
+          backgroundImage: '',
           modules: [
             { id: 'm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} },
           ],
@@ -174,12 +175,13 @@ describe('buildBeaconPayload', () => {
         {
           id: 's2',
           name: 'B',
+          backgroundImage: '',
           modules: [
             { id: 'm2', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} },
             { id: 'm3', type: 'calendar', x: 0, y: 100, w: 100, h: 100, config: {} },
           ],
         },
-      ] as ScreenConfiguration['screens'],
+      ] as unknown as ScreenConfiguration['screens'],
     });
     const telemetryData = { installId: 'x', firstSeenAt: '', lastBeaconAt: null };
 
@@ -196,13 +198,14 @@ describe('buildBeaconPayload', () => {
         {
           id: 's1',
           name: 'A',
+          backgroundImage: '',
           modules: [
             { id: 'm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} },
             { id: 'm2', type: 'plugin:spotify-now-playing', x: 0, y: 100, w: 100, h: 100, config: {} },
             { id: 'm3', type: 'plugin:custom-widget', x: 0, y: 200, w: 100, h: 100, config: {} },
           ],
         },
-      ] as ScreenConfiguration['screens'],
+      ] as unknown as ScreenConfiguration['screens'],
     });
     const telemetryData = { installId: 'plugin-test', firstSeenAt: '', lastBeaconAt: null };
 
@@ -226,9 +229,9 @@ describe('buildBeaconPayload', () => {
         locationName: 'New York',
         timezone: 'America/New_York',
         weather: { provider: 'openweathermap', latitude: 40.7128, longitude: -74.006, units: 'imperial' },
-        calendar: { googleCalendarIds: ['cal-id-1'], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        calendar: { googleCalendarId: '', googleCalendarIds: ['cal-id-1'], icalSources: [], maxEvents: 10, daysAhead: 7 },
       },
-    } as Partial<ScreenConfiguration>);
+    } as unknown as Partial<ScreenConfiguration>);
     const telemetryData = { installId: 'pii-test', firstSeenAt: '', lastBeaconAt: null };
 
     const payload = await buildBeaconPayload(config, telemetryData);
@@ -260,11 +263,12 @@ describe('buildBeaconPayload', () => {
         calendar: {
           googleCalendarIds: [],
           icalSources: [{ url: 'https://example.com/cal.ics', name: 'Work', color: '#fff', enabled: true }],
+          googleCalendarId: '',
           maxEvents: 10,
           daysAhead: 7,
         },
       },
-    } as Partial<ScreenConfiguration>);
+    } as unknown as Partial<ScreenConfiguration>);
     const telemetryData = { installId: 'ical-test', firstSeenAt: '', lastBeaconAt: null };
 
     const payload = await buildBeaconPayload(config, telemetryData);
@@ -288,10 +292,10 @@ describe('maybeSendBeacon', () => {
         latitude: 0,
         longitude: 0,
         weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         telemetryEnabled: false,
       },
-    } as Partial<ScreenConfiguration>);
+    } as unknown as Partial<ScreenConfiguration>);
 
     await maybeSendBeacon(config);
     expect(fetchSpy).not.toHaveBeenCalled();
