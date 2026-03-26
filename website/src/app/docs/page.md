@@ -12,7 +12,7 @@ An open-source smart display system for Raspberry Pi. 34 modules, visual editor,
 
 {% quick-link title="Installation" icon="installation" href="/docs/getting-started" description="Step-by-step guide to getting Home Screens up and running on your machine." /%}
 
-{% quick-link title="Modules" icon="presets" href="/docs/modules" description="Explore all 35 built-in modules — from clocks and weather to calendars and sports." /%}
+{% quick-link title="Modules" icon="presets" href="/docs/modules" description="Explore all 34 built-in modules — from clocks and weather to calendars and sports." /%}
 
 {% quick-link title="Editor Guide" icon="plugins" href="/docs/editor" description="Learn how to design your screens with the drag-and-drop visual editor." /%}
 
