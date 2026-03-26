@@ -8,6 +8,7 @@ interface AlertValues {
   alertsPosition: string;
   alertsMaxVisible: number;
   alertsDefaultDuration: number;
+  alertsScale: number;
 }
 
 interface Props {
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export default function AlertSection({ values, onChange }: Props) {
-  const { alertsEnabled, alertsPosition, alertsMaxVisible, alertsDefaultDuration } = values;
+  const { alertsEnabled, alertsPosition, alertsMaxVisible, alertsDefaultDuration, alertsScale } = values;
   const [clearing, setClearing] = useState(false);
   const [clearMessage, setClearMessage] = useState<string | null>(null);
 
@@ -89,6 +90,16 @@ export default function AlertSection({ values, onChange }: Props) {
                 Info: 10s, Warning: 30s, Urgent: persistent until dismissed.
               </p>
             )}
+
+            <Slider
+              label="Alert size"
+              value={alertsScale * 100}
+              min={75}
+              max={200}
+              step={25}
+              displayValue={`${alertsScale * 100}%`}
+              onChange={(v) => onChange({ alertsScale: v / 100 })}
+            />
 
             <div className="mt-4 pt-4 border-t border-neutral-700">
               <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">Active Alerts</h4>

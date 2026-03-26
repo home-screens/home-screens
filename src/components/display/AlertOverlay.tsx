@@ -35,44 +35,45 @@ const TYPE_ICONS: Record<DisplayAlert['type'], typeof Info> = {
   urgent: AlertCircle,
 };
 
-function AlertItem({ alert, onDismiss }: { alert: DisplayAlert; onDismiss: (id: string) => void }) {
+function AlertItem({ alert, onDismiss, alertScale = 1 }: { alert: DisplayAlert; onDismiss: (id: string) => void; alertScale?: number }) {
   const colors = TYPE_COLORS[alert.type] ?? TYPE_COLORS.info;
   const Icon = TYPE_ICONS[alert.type] ?? TYPE_ICONS.info;
+  const s = alertScale;
 
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'flex-start',
-        gap: 12,
-        padding: '12px 16px',
-        borderRadius: 12,
+        gap: 12 * s,
+        padding: `${12 * s}px ${16 * s}px`,
+        borderRadius: 12 * s,
         backgroundColor: colors.bg,
         border: `1px solid ${colors.border}`,
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         color: '#fff',
-        maxWidth: 480,
+        maxWidth: 480 * s,
         width: '100%',
         animation: 'alert-slide-in 0.3s ease-out',
         pointerEvents: 'auto',
       }}
     >
       <Icon
-        style={{ width: 20, height: 20, color: colors.icon, flexShrink: 0, marginTop: 2 }}
+        style={{ width: 20 * s, height: 20 * s, color: colors.icon, flexShrink: 0, marginTop: 2 * s }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         {alert.title && (
-          <div style={{ fontWeight: 600, fontSize: 14, lineHeight: '20px' }}>
+          <div style={{ fontWeight: 600, fontSize: 14 * s, lineHeight: `${20 * s}px` }}>
             {alert.icon ? `${alert.icon} ` : ''}{alert.title}
           </div>
         )}
         {alert.message && (
           <div style={{
-            fontSize: 13,
-            lineHeight: '18px',
+            fontSize: 13 * s,
+            lineHeight: `${18 * s}px`,
             opacity: 0.85,
-            marginTop: alert.title ? 2 : 0,
+            marginTop: alert.title ? 2 * s : 0,
           }}>
             {alert.message}
           </div>
@@ -86,12 +87,12 @@ function AlertItem({ alert, onDismiss }: { alert: DisplayAlert; onDismiss: (id: 
             border: 'none',
             color: 'rgba(255,255,255,0.5)',
             cursor: 'pointer',
-            padding: 2,
+            padding: 2 * s,
             flexShrink: 0,
-            marginTop: 1,
+            marginTop: 1 * s,
           }}
         >
-          <X style={{ width: 16, height: 16 }} />
+          <X style={{ width: 16 * s, height: 16 * s }} />
         </button>
       )}
     </div>
@@ -102,6 +103,7 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
   const { alerts, maxVisible, position, enabled, configure, dismissAlert } = useAlertStore();
 
   // Sync store config whenever settings change
+  // Note: scale is read directly at render time, not stored in alert-store
   useEffect(() => {
     configure({
       enabled: alertSettings?.enabled ?? true,
@@ -117,6 +119,8 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
     configure,
   ]);
 
+  const alertScale = alertSettings?.scale ?? 1;
+
   if (!enabled || alerts.length === 0 || displayState !== 'active') return null;
 
   const visible = alerts.slice(-maxVisible);
@@ -125,12 +129,13 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
     <>
       <style>{`
         @keyframes alert-slide-in {
-          from { opacity: 0; transform: translateY(${position === 'top' ? '-12px' : '12px'}); }
+          from { opacity: 0; transform: translateY(var(--alert-slide-offset)); }
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
       <div
         style={{
+          '--alert-slide-offset': position === 'top' ? `-${12 * alertScale}px` : `${12 * alertScale}px`,
           position: 'fixed',
           left: 0,
           right: 0,
@@ -139,15 +144,15 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 8,
-          padding: '16px 24px',
+          gap: 8 * alertScale,
+          padding: `${16 * alertScale}px ${24 * alertScale}px`,
           pointerEvents: 'none',
           transform: scale !== 1 ? `scale(${scale})` : undefined,
           transformOrigin: position === 'top' ? 'top center' : 'bottom center',
-        }}
+        } as React.CSSProperties}
       >
         {visible.map((alert) => (
-          <AlertItem key={alert.id} alert={alert} onDismiss={dismissAlert} />
+          <AlertItem key={alert.id} alert={alert} onDismiss={dismissAlert} alertScale={alertScale} />
         ))}
       </div>
     </>

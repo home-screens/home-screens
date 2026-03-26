@@ -162,6 +162,7 @@ export interface AlertSettings {
   position: 'top' | 'bottom';
   maxVisible: number;
   defaultDuration: number; // ms — 0 means use per-type defaults
+  scale?: number; // 0.75–2.0, default 1.0
 }
 
 export interface GlobalSettings {

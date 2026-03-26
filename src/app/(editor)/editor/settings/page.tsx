@@ -111,6 +111,7 @@ interface AlertState {
   alertsPosition: string;
   alertsMaxVisible: number;
   alertsDefaultDuration: number;
+  alertsScale: number;
 }
 
 interface SettingsState {
@@ -170,6 +171,7 @@ function initSettings(settings: GlobalSettings | undefined): SettingsState {
       alertsPosition: settings?.alerts?.position ?? 'top',
       alertsMaxVisible: settings?.alerts?.maxVisible ?? 3,
       alertsDefaultDuration: (settings?.alerts?.defaultDuration ?? 0) / 1000,
+      alertsScale: settings?.alerts?.scale ?? 1,
     },
   };
 }
@@ -317,6 +319,7 @@ export default function SettingsPage() {
           position: alerts.alertsPosition as 'top' | 'bottom',
           maxVisible: alerts.alertsMaxVisible,
           defaultDuration: alerts.alertsDefaultDuration * 1000,
+          scale: alerts.alertsScale,
         },
       });
       await saveConfig();
