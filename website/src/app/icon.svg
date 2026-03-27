@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="url(#tile)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" stroke="#0891B2" stroke-opacity="0.45" stroke-width="1.5"/>
+  <path
+    d="M15 30.5L32 18L49 30.5"
+    stroke="#A5F3FC"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <rect x="18" y="29" width="28" height="18" rx="5" fill="#082F49" stroke="#67E8F9" stroke-width="2.5"/>
+  <rect x="24" y="34" width="16" height="3" rx="1.5" fill="#A5F3FC" fill-opacity="0.95"/>
+  <rect x="24" y="39" width="10" height="3" rx="1.5" fill="#CFFAFE" fill-opacity="0.85"/>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.5" stop-color="#10253D"/>
+      <stop offset="1" stop-color="#143A58"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -3,14 +3,14 @@ title: FAQ
 nextjs:
   metadata:
     title: Frequently Asked Questions
-    description: Common questions about Home Screens — hardware, setup, customization, and more.
+    description: Common questions about Home Screens — hardware requirements, Raspberry Pi setup, customization, MagicMirror comparison, and more.
 ---
 
 ## General
 
 ### What is Home Screens?
 
-Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, 33 widget modules, and a fullscreen kiosk mode.
+Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, 34 widget modules, and a fullscreen kiosk mode.
 
 ### Is it free?
 

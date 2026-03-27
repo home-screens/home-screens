@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0A0E14;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 70% at 50% 50%, rgba(8, 145, 178, 0.07) 0%, transparent 70%),
+      linear-gradient(160deg, #0A0E14 0%, #0F1720 50%, #0A1628 100%);
+  }
+
+  .grid-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(103, 232, 249, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(103, 232, 249, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 64px;
+    padding: 0 56px;
+  }
+
+  /* Left: text, vertically centered */
+  .text-side {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 440px;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .logo-tile {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0F172A, #10253D, #143A58);
+    border: 1.5px solid rgba(8, 145, 178, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .logo-text .home {
+    font-size: 16px;
+    font-weight: 700;
+    color: #67E8F9;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .logo-text .screens {
+    font-size: 18px;
+    font-weight: 700;
+    color: #F5F5F5;
+    letter-spacing: 0.04em;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+  }
+
+  h1 .line1 { color: #F1F5F9; display: block; }
+
+  h1 .line2 {
+    background: linear-gradient(135deg, #67E8F9 0%, #22D3EE 40%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #94A3B8;
+    margin-bottom: 28px;
+    max-width: 400px;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: rgba(103, 232, 249, 0.06);
+    border: 1px solid rgba(103, 232, 249, 0.15);
+    font-size: 13px;
+    font-weight: 500;
+    color: #A5F3FC;
+  }
+
+  .pill .num {
+    font-weight: 700;
+    color: #67E8F9;
+  }
+
+  .domain {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(103, 232, 249, 0.5);
+    letter-spacing: 0.02em;
+  }
+
+  /* Right: display centered */
+  .display-side {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .display-frame {
+    width: 225px;
+    height: 450px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid rgba(103, 232, 249, 0.2);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.4),
+      0 30px 80px -10px rgba(0,0,0,0.7),
+      0 0 120px -30px rgba(8, 145, 178, 0.18);
+  }
+
+  .display-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="layout">
+    <div class="text-side">
+      <div class="logo-area">
+        <div class="logo-tile">
+          <svg width="26" height="26" viewBox="0 0 48 48" fill="none">
+            <path d="M9 21.5L24 10L39 21.5" stroke="#A5F3FC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="11.5" y="20.5" width="25" height="16" rx="5" fill="#082F49" stroke="#67E8F9" stroke-width="2.5"/>
+            <rect x="17" y="25" width="14" height="2.5" rx="1.25" fill="#A5F3FC" fill-opacity="0.95"/>
+            <rect x="17" y="29.5" width="9" height="2.5" rx="1.25" fill="#CFFAFE" fill-opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="home">HOME</span>
+          <span class="screens">Screens</span>
+        </div>
+      </div>
+
+      <h1>
+        <span class="line1">Your home.</span>
+        <span class="line2">Your display.</span>
+      </h1>
+
+      <p class="subtitle">
+        Open-source smart display for Raspberry Pi. Drag-and-drop editor, plugin system, no subscription. Free forever.
+      </p>
+
+      <div class="pills">
+        <span class="pill"><span class="num">35</span> modules</span>
+        <span class="pill">Visual editor</span>
+        <span class="pill">Self-hosted</span>
+        <span class="pill">Plugin system</span>
+      </div>
+
+      <span class="domain">homescreens.dev</span>
+    </div>
+
+    <div class="display-side">
+      <div class="display-frame">
+        <img src="file:///Users/bryan/Github/home-screens/website/public/images/display-1.jpg" alt="Display">
+      </div>
+    </div>
+  </div>
+</body>
+</html>

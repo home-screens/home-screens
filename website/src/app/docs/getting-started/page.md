@@ -3,7 +3,7 @@ title: Installation
 nextjs:
   metadata:
     title: Installation
-    description: How to install and set up Home Screens.
+    description: Install Home Screens on Raspberry Pi or any Linux machine. Free, self-hosted smart display with drag-and-drop editor.
 ---
 
 ## Choose your install method

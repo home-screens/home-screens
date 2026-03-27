@@ -3,10 +3,10 @@ title: Modules Reference
 nextjs:
   metadata:
     title: Modules Reference
-    description: All 34 built-in modules available in Home Screens.
+    description: All 35 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
 ---
 
-Home Screens includes 34 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 35 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Time & Date
 

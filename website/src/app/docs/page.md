@@ -3,10 +3,10 @@ title: Getting started
 nextjs:
   metadata:
     title: Documentation
-    description: Home Screens documentation — an open-source smart display system for Raspberry Pi.
+    description: Documentation for Home Screens — a free, open-source smart display for Raspberry Pi. A self-hosted alternative to MagicMirror and Dakboard with a visual editor.
 ---
 
-An open-source smart display system for Raspberry Pi. 34 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
+An open-source smart display system for Raspberry Pi. 35 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
 
 {% quick-links %}
 
