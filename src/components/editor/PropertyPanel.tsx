@@ -115,7 +115,10 @@ function StyleSection({ mod, screenId }: { mod: ModuleInstance; screenId: string
       <Slider label="Padding" value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
       <Slider label="Font Size" value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
       <Slider label="Backdrop Blur" value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
+      <Slider label="Border Width" value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
+      <Slider label="Shadow Size" value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
       <ColorPicker label="Background" value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
+      <ColorPicker label="Border Color" value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
       <ColorPicker label="Text Color" value={s.textColor} onChange={(v) => set({ textColor: v })} />
       <label className="flex flex-col gap-0.5">
         <span className="text-xs text-neutral-400">Font Family</span>

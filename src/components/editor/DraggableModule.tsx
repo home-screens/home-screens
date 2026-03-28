@@ -11,6 +11,7 @@ import { isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { resolveProvider } from '@/components/display/ScreenRenderer';
 import type { ModuleInstance } from '@/types/config';
+import { buildModuleShadow } from '@/lib/module-style';
 import type { PreviewData } from './usePreviewData';
 
 export interface PreviewSettings {
@@ -151,6 +152,10 @@ export default function DraggableModule({
         width: mod.size.w * scale,
         height: mod.size.h * scale,
         zIndex: mod.zIndex,
+        borderRadius: mod.style.borderRadius * scale,
+        boxShadow: (mod.style.shadowSize ?? 0) > 0
+          ? buildModuleShadow(mod.style.shadowSize ?? 0, scale)
+          : undefined,
       }}
     >
       {/* Live preview: render module at native size, scale down with CSS */}
@@ -159,7 +164,9 @@ export default function DraggableModule({
         className={`w-full h-full overflow-hidden transition-shadow cursor-grab ${
           isSelected ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-transparent' : ''
         }`}
-        style={{ borderRadius: mod.style.borderRadius * scale }}
+        style={{
+          borderRadius: mod.style.borderRadius * scale,
+        }}
       >
         <div
           style={{

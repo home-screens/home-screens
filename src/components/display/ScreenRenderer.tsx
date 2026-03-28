@@ -178,7 +178,6 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
               width: mod.size.w,
               height: mod.size.h,
               zIndex: mod.zIndex,
-              overflow: 'hidden',
             }}
           >
             <Component config={mod.config} style={mod.style} {...extraProps} />

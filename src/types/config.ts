@@ -47,6 +47,9 @@ export interface ModuleStyle {
   fontFamily: string;
   fontSize: number;
   backdropBlur: number;
+  borderWidth: number;
+  borderColor: string;
+  shadowSize: number;
 }
 
 export interface ModulePosition {
@@ -211,6 +214,9 @@ export const DEFAULT_MODULE_STYLE: ModuleStyle = {
   fontFamily: 'Inter, system-ui, sans-serif',
   fontSize: 16,
   backdropBlur: 12,
+  borderWidth: 1,
+  borderColor: 'rgba(255, 255, 255, 0.15)',
+  shadowSize: 8,
 };
 
 // Clock module config
