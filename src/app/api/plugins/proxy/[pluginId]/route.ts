@@ -5,6 +5,7 @@ import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { audit } from '@/lib/audit';
+import { isBlockedHost } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ function checkRateLimit(pluginId: string): boolean {
 // --- Domain validation ---
 
 function matchesDomain(hostname: string, pattern: string): boolean {
-  if (pattern === '*') return !isBlockedHost(hostname);
+  if (pattern === '*') return true; // caller already checked isBlockedHost
   if (pattern.startsWith('*.')) {
     const suffix = pattern.slice(2);
     return hostname === suffix || hostname.endsWith('.' + suffix);
@@ -42,25 +43,11 @@ function matchesDomain(hostname: string, pattern: string): boolean {
   return hostname === pattern;
 }
 
-/** Block internal/metadata hosts when using wildcard domains to prevent SSRF */
-function isBlockedHost(hostname: string): boolean {
-  if (hostname === 'localhost' || hostname === '0.0.0.0') return true;
-  if (hostname === '169.254.169.254') return true; // cloud metadata
-  if (hostname.startsWith('[')) return true; // block all IPv6 (incl. [::1], [::ffff:127.0.0.1])
-  // Block private IPv4 ranges
-  const parts = hostname.split('.').map(Number);
-  if (parts.length === 4 && parts.every((n) => !isNaN(n))) {
-    if (parts[0] === 10) return true;
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
-    if (parts[0] === 192 && parts[1] === 168) return true;
-    if (parts[0] === 127) return true;
-  }
-  return false;
-}
-
 function isAllowedDomain(url: string, allowedDomains: string[]): boolean {
   try {
     const { hostname } = new URL(url);
+    // Block internal/metadata hosts unconditionally — no manifest can override this
+    if (isBlockedHost(hostname)) return false;
     return allowedDomains.some((pattern) => matchesDomain(hostname, pattern));
   } catch {
     return false;

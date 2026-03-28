@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NASA_APOD_API, NASA_IMAGE_API, getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { downloadAndSaveBackground } from '@/lib/background-download';
+import { isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,34 +22,6 @@ export const GET = withAuth(async (request: NextRequest) => {
   }
   return handleSearch(searchParams);
 }, 'Failed to fetch NASA images');
-
-/**
- * Reject URLs that point at private/internal networks (SSRF prevention).
- * APOD images come from many CDNs (apod.nasa.gov, stsci-opo.org,
- * cdn.spacetelescope.org, jpl.nasa.gov, etc.) so a host allowlist
- * is impractical. Instead we block the actual risk: internal network access.
- */
-function isSafeExternalUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
-    const host = parsed.hostname;
-    // Block private/reserved IPs and localhost
-    if (
-      host === 'localhost' ||
-      host === '127.0.0.1' ||
-      host === '[::1]' ||
-      host.startsWith('10.') ||
-      host.startsWith('192.168.') ||
-      host.startsWith('169.254.') ||
-      host.startsWith('0.') ||
-      /^172\.(1[6-9]|2\d|3[01])\./.test(host)
-    ) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export const POST = withAuth(async (request: NextRequest) => {
   const body = await request.json();

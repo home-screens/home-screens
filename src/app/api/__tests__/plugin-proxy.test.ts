@@ -959,10 +959,8 @@ describe('POST /api/plugins/proxy/[pluginId] — error handling', () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 describe('POST /api/plugins/proxy/[pluginId] — SSRF prevention via domain allowlist', () => {
-  it('domain allowlist is the SSRF defense — localhost passes only if listed', async () => {
-    // The route relies on manifest review at install time.
-    // If a manifest somehow declares "localhost", the domain match succeeds.
-    // This test documents that SSRF prevention depends on the allowlist.
+  it('blocks internal hosts even if explicitly listed in allowedDomains', async () => {
+    // isBlockedHost is checked unconditionally — no manifest can whitelist internal hosts.
     setupPlugin({ allowedDomains: ['localhost'] });
     mockUpstreamFetch('{"ok":true}');
 
@@ -971,8 +969,7 @@ describe('POST /api/plugins/proxy/[pluginId] — SSRF prevention via domain allo
     });
     const res = await POST(req, ctx);
 
-    // Passes because localhost is in allowedDomains
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 
   it('blocks requests to domains not in the allowlist (SSRF via DNS rebinding)', async () => {

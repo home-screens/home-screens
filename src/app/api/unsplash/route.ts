@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { downloadAndSaveBackground } from '@/lib/background-download';
+import { isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +74,12 @@ export const POST = withAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 });
   }
 
-  if (downloadUrl && accessKey) {
+  if (!isSafeExternalUrl(imageUrl)) {
+    return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+  }
+
+  // Only track downloads against the real Unsplash API to prevent credential leakage
+  if (downloadUrl && accessKey && downloadUrl.startsWith(UNSPLASH_API + '/')) {
     trackDownload(downloadUrl, accessKey);
   }
 
