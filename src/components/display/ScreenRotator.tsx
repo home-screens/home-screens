@@ -257,9 +257,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             <button
               key={s.id}
               onClick={() => goToScreen(i)}
+              aria-label={`Go to screen ${i + 1}${s.name ? `: ${s.name}` : ''}`}
+              aria-current={i === safeIndex ? 'true' : undefined}
               style={{
-                width: 20,
-                height: 20,
+                width: 44,
+                height: 44,
                 padding: 0,
                 border: 'none',
                 background: 'none',
@@ -271,8 +273,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             >
               <span
                 style={{
-                  width: 8,
-                  height: 8,
+                  width: 10,
+                  height: 10,
                   borderRadius: '50%',
                   backgroundColor: i === safeIndex ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
                   transition: 'background-color 0.3s',

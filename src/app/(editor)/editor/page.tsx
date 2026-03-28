@@ -28,6 +28,8 @@ import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import PluginStorePanel from '@/components/editor/PluginStorePanel';
 import Button from '@/components/ui/Button';
 
+const MIN_EDITOR_WIDTH = 768;
+
 export default function EditorPage() {
   const {
     config,
@@ -42,6 +44,14 @@ export default function EditorPage() {
 
   const [activePaletteType, setActivePaletteType] = useState<string | null>(null);
   const [showPluginStore, setShowPluginStore] = useState(false);
+  const [tooNarrow, setTooNarrow] = useState(false);
+
+  useEffect(() => {
+    function check() { setTooNarrow(window.innerWidth < MIN_EDITOR_WIDTH); }
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const router = useRouter();
   const canvasScaleRef = useRef(0.4);
   const canvasElRef = useRef<HTMLDivElement | null>(null);
@@ -116,6 +126,20 @@ export default function EditorPage() {
     return (
       <div className="h-screen flex items-center justify-center text-neutral-500">
         Loading...
+      </div>
+    );
+  }
+
+  if (tooNarrow) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-3 px-6 text-center bg-neutral-950">
+        <HomeScreensLogo />
+        <p className="text-neutral-300 text-sm">
+          The editor requires a screen at least {MIN_EDITOR_WIDTH}px wide.
+        </p>
+        <p className="text-neutral-500 text-xs">
+          Please use a desktop browser or widen your window.
+        </p>
       </div>
     );
   }
