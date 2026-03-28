@@ -73,6 +73,8 @@ export default function EditorPage() {
       if (!selectedScreenId || !over) return;
 
       const data = active.data.current;
+      const snap = useEditorStore.getState().snapEnabled;
+      const align = snap ? snapToGrid : Math.round;
 
       const displayW = config?.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
       const displayH = config?.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
@@ -89,8 +91,8 @@ export default function EditorPage() {
         const canvasRect = canvasElRef.current?.getBoundingClientRect() ?? over.rect;
         const rawX = (pointerX - canvasRect.left) / scale - defaultSize.w / 2;
         const rawY = (pointerY - canvasRect.top) / scale - defaultSize.h / 2;
-        const dropX = snapToGrid(Math.max(0, Math.min(displayW - defaultSize.w, rawX)));
-        const dropY = snapToGrid(Math.max(0, Math.min(displayH - defaultSize.h, rawY)));
+        const dropX = align(Math.max(0, Math.min(displayW - defaultSize.w, rawX)));
+        const dropY = align(Math.max(0, Math.min(displayH - defaultSize.h, rawY)));
         addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
       } else if (data?.source === 'canvas') {
         const moduleId = data.moduleId as string;
@@ -102,8 +104,8 @@ export default function EditorPage() {
 
         const rawX = mod.position.x + delta.x / scale;
         const rawY = mod.position.y + delta.y / scale;
-        const newX = snapToGrid(Math.max(0, Math.min(displayW - mod.size.w, rawX)));
-        const newY = snapToGrid(Math.max(0, Math.min(displayH - mod.size.h, rawY)));
+        const newX = align(Math.max(0, Math.min(displayW - mod.size.w, rawX)));
+        const newY = align(Math.max(0, Math.min(displayH - mod.size.h, rawY)));
         moveModule(selectedScreenId, moduleId, { x: newX, y: newY });
       }
     },

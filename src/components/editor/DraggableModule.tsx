@@ -4,6 +4,7 @@ import { useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Clock } from 'lucide-react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
+import { useEditorStore } from '@/stores/editor-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import { isModuleVisible } from '@/lib/schedule';
@@ -115,9 +116,11 @@ export default function DraggableModule({
         if (!resizeRef.current) return;
         const dx = (ev.clientX - resizeRef.current.startX) / scale;
         const dy = (ev.clientY - resizeRef.current.startY) / scale;
+        const snap = useEditorStore.getState().snapEnabled;
+        const align = snap ? snapToGrid : Math.round;
         onResize({
-          w: Math.max(GRID_SIZE * 2, snapToGrid(Math.round(resizeRef.current.startW + dx))),
-          h: Math.max(GRID_SIZE * 2, snapToGrid(Math.round(resizeRef.current.startH + dy))),
+          w: Math.max(GRID_SIZE * 2, align(resizeRef.current.startW + dx)),
+          h: Math.max(GRID_SIZE * 2, align(resizeRef.current.startH + dy)),
         });
       };
 

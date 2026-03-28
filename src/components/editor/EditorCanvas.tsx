@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useDroppable, useDndMonitor } from '@dnd-kit/core';
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3 } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -44,6 +44,7 @@ function DragGhost({
   deltaY,
   displayWidth,
   displayHeight,
+  snap,
 }: {
   mod: ModuleInstance;
   scale: number;
@@ -51,11 +52,14 @@ function DragGhost({
   deltaY: number;
   displayWidth: number;
   displayHeight: number;
+  snap: boolean;
 }) {
   const rawX = mod.position.x + deltaX / scale;
   const rawY = mod.position.y + deltaY / scale;
-  const snappedX = snapToGrid(Math.max(0, Math.min(displayWidth - mod.size.w, rawX)));
-  const snappedY = snapToGrid(Math.max(0, Math.min(displayHeight - mod.size.h, rawY)));
+  const clampedX = Math.max(0, Math.min(displayWidth - mod.size.w, rawX));
+  const clampedY = Math.max(0, Math.min(displayHeight - mod.size.h, rawY));
+  const snappedX = snap ? snapToGrid(clampedX) : Math.round(clampedX);
+  const snappedY = snap ? snapToGrid(clampedY) : Math.round(clampedY);
 
   return (
     <div
@@ -204,6 +208,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     }
   }, [selectedScreenId, resetZoom]);
 
+  const snapEnabled = useEditorStore((s) => s.snapEnabled);
   const canUndo = useEditorStore((s) => s._past.length > 0);
   const canRedo = useEditorStore((s) => s._future.length > 0);
 
@@ -249,7 +254,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               <CanvasBackground
                 screenBackground={activeBackground || currentScreen.backgroundImage}
               />
-              <GridOverlay scale={effectiveScale} />
+              {snapEnabled && <GridOverlay scale={effectiveScale} />}
               {currentScreen.modules.map((mod) => (
                 <DraggableModule
                   key={mod.id}
@@ -273,6 +278,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                     deltaY={dragState.deltaY}
                     displayWidth={displayWidth}
                     displayHeight={displayHeight}
+                    snap={snapEnabled}
                   />
                 ) : null;
               })()}
@@ -299,6 +305,21 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           title="Redo (Cmd+Shift+Z)"
         >
           <Redo2 className="h-3.5 w-3.5" />
+        </button>
+
+        <div className="mx-0.5 h-4 w-px bg-neutral-700" />
+
+        {/* Snap toggle */}
+        <button
+          onClick={() => useEditorStore.getState().toggleSnap()}
+          className={`rounded p-1.5 transition-colors ${
+            snapEnabled
+              ? 'text-blue-400 hover:bg-neutral-800 hover:text-blue-300'
+              : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'
+          }`}
+          title={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
+        >
+          <Grid3x3 className="h-3.5 w-3.5" />
         </button>
 
         <div className="mx-0.5 h-4 w-px bg-neutral-700" />

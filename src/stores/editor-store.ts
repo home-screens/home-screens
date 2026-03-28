@@ -37,6 +37,7 @@ interface EditorState {
   isDirty: boolean;
   isSaving: boolean;
   saveError: string | null;
+  snapEnabled: boolean;
   _past: HistoryEntry[];
   _future: HistoryEntry[];
   _lastHistoryTime: number;
@@ -66,6 +67,7 @@ interface EditorState {
   exportLayout: (options?: { screenIds?: string[]; name?: string; description?: string }) => void;
   importLayoutAction: (layout: LayoutExport, options: { mode: 'add' | 'replace'; applyVisual?: boolean }) => void;
   scaleAllModules: (oldWidth: number, oldHeight: number, newWidth: number, newHeight: number) => void;
+  toggleSnap: () => void;
   undo: () => void;
   redo: () => void;
 }
@@ -124,6 +126,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
   isDirty: false,
   isSaving: false,
   saveError: null,
+  snapEnabled: true,
   _past: [],
   _future: [],
   _lastHistoryTime: 0,
@@ -438,6 +441,8 @@ export const useEditorStore = create<EditorState>((set, get) => {
       },
     }));
   },
+
+  toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
 
   undo: () => {
     const state = get();

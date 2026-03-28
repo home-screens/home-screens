@@ -773,6 +773,27 @@ describe('editor store', () => {
     });
   });
 
+  describe('toggleSnap', () => {
+    it('defaults to true', () => {
+      expect(useEditorStore.getState().snapEnabled).toBe(true);
+    });
+
+    it('toggles snapEnabled off and on', () => {
+      const store = useEditorStore;
+      store.getState().toggleSnap();
+      expect(store.getState().snapEnabled).toBe(false);
+      store.getState().toggleSnap();
+      expect(store.getState().snapEnabled).toBe(true);
+    });
+
+    it('does not set isDirty', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+      store.getState().toggleSnap();
+      expect(store.getState().isDirty).toBe(false);
+    });
+  });
+
   describe('undo/redo', () => {
     it('undo restores previous config and selection', () => {
       const store = useEditorStore;
