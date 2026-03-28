@@ -45,6 +45,7 @@ export default function EditorPage() {
   const router = useRouter();
   const canvasScaleRef = useRef(0.4);
   const canvasElRef = useRef<HTMLDivElement | null>(null);
+  const handleScaleChange = useCallback((s: number) => { canvasScaleRef.current = s; }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -173,7 +174,7 @@ export default function EditorPage() {
         {/* Main area */}
         <div className="flex flex-1 overflow-hidden">
           <ModulePalette />
-          <EditorCanvas onScaleChange={(s) => { canvasScaleRef.current = s; }} canvasRef={canvasElRef} />
+          <EditorCanvas onScaleChange={handleScaleChange} canvasRef={canvasElRef} />
           <PropertyPanel />
         </div>
       </div>
