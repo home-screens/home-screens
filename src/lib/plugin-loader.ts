@@ -195,11 +195,42 @@ export function deepMergeConfig(
   return result;
 }
 
+/** Apply version-stepped migrations (renames/defaults) then deep-merge with defaultConfig. */
+export function applyMigrationToModule(
+  config: Record<string, unknown>,
+  manifest: PluginManifest,
+  oldVersion: string,
+): Record<string, unknown> {
+  const result = { ...config };
+
+  if (manifest.configMigrations) {
+    const versions = Object.keys(manifest.configMigrations)
+      .filter((v) => compareSemver(v, oldVersion) > 0 && compareSemver(v, manifest.version) < 0)
+      .sort(compareSemver);
+
+    for (const ver of versions) {
+      const migration = manifest.configMigrations[ver];
+      if (migration.renames) {
+        for (const [oldKey, newKey] of Object.entries(migration.renames)) {
+          if (oldKey in result && !(newKey in result)) {
+            result[newKey] = result[oldKey];
+            delete result[oldKey];
+          }
+        }
+      }
+      if (migration.defaults) {
+        for (const [key, value] of Object.entries(migration.defaults)) {
+          if (!(key in result)) result[key] = value;
+        }
+      }
+    }
+  }
+
+  return deepMergeConfig(result, manifest.defaultConfig);
+}
+
 /**
  * Migrate module configs when a plugin version changes.
- * Applies configMigrations (renames/defaults) then deep-merges with defaultConfig.
- */
-/**
  * Returns true if migration succeeded (or no migration was needed),
  * false if it failed and should be retried on next load.
  */
@@ -210,55 +241,18 @@ async function migratePluginConfigs(
   const moduleType = `plugin:${manifest.moduleType}`;
 
   try {
-    // Fetch current config
     const res = await fetch('/api/config');
     if (!res.ok) return false;
     const config = await res.json();
 
     let changed = false;
-
     for (const screen of config.screens ?? []) {
       for (const mod of screen.modules ?? []) {
         if (mod.type !== moduleType) continue;
-
-        // Snapshot original for change detection
         const originalJson = JSON.stringify(mod.config);
-        const modConfig = { ...mod.config } as Record<string, unknown>;
-
-        // Apply explicit migrations for intermediate versions (sorted ascending)
-        if (manifest.configMigrations) {
-          const sortedVersions = Object.keys(manifest.configMigrations)
-            .filter((v) => compareSemver(v, oldVersion) > 0 && compareSemver(v, manifest.version) < 0)
-            .sort(compareSemver);
-
-          for (const fromVer of sortedVersions) {
-            const migration = manifest.configMigrations[fromVer];
-            // Apply renames
-            if (migration.renames) {
-              for (const [oldKey, newKey] of Object.entries(migration.renames)) {
-                if (oldKey in modConfig && !(newKey in modConfig)) {
-                  modConfig[newKey] = modConfig[oldKey];
-                  delete modConfig[oldKey];
-                }
-              }
-            }
-            // Apply explicit defaults
-            if (migration.defaults) {
-              for (const [key, value] of Object.entries(migration.defaults)) {
-                if (!(key in modConfig)) {
-                  modConfig[key] = value;
-                }
-              }
-            }
-          }
-        }
-
-        // Deep-merge with new defaultConfig (adds missing keys)
-        const merged = deepMergeConfig(modConfig, manifest.defaultConfig);
-
-        // Always write back — compare against original to detect any change
-        mod.config = merged;
-        if (JSON.stringify(merged) !== originalJson) {
+        const migrated = applyMigrationToModule(mod.config, manifest, oldVersion);
+        if (JSON.stringify(migrated) !== originalJson) {
+          mod.config = migrated;
           changed = true;
         }
       }

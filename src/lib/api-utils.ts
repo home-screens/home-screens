@@ -256,6 +256,9 @@ function isCustomConfig<T>(config: CachedProxyRouteOptions<T> | CachedProxyRoute
   return 'execute' in config;
 }
 
+export function cachedProxyRoute<T>(config: CachedProxyRouteOptions<T>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
+export function cachedProxyRoute<T>(config: CachedProxyRouteCustomOptions<T>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
+export function cachedProxyRoute<T, P>(config: CachedProxyRoutePreparedOptions<T, P>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
 export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T, P>) {
   const cache = createTTLCache<T>(config.ttlMs);
 

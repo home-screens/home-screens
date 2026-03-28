@@ -250,58 +250,47 @@ function parseEntry(
   return result;
 }
 
-function parseStandings(data: Record<string, unknown>, league: string): ParsedGroup[] {
-  const groups: ParsedGroup[] = [];
-  const leagueUpper = league.toUpperCase();
+/** A node from the ESPN standings tree with its entries and optional conference parent. */
+interface TreeNode {
+  name: string;
+  confName: string | null;
+  entries: Record<string, unknown>[];
+}
 
+/** Walk the ESPN standings hierarchy (flat / conference / conference+division) and yield nodes. */
+function walkStandingsTree(data: Record<string, unknown>, league: string): TreeNode[] {
   const children = data.children as Record<string, unknown>[] | undefined;
-  if (!children || children.length === 0) {
-    // Flat structure — single group
-    const standings = data.standings as Record<string, unknown> | undefined;
-    const entries = (standings?.entries as Record<string, unknown>[]) ?? [];
-    if (entries.length > 0) {
-      const sorted = sortStandingsEntries(entries);
-      groups.push({
-        name: (data.name as string) ?? leagueUpper,
-        league: leagueUpper,
-        entries: sorted.map((e, i) => parseEntry(e, i + 1, league)),
-      });
-    }
-    return groups;
+  if (!children?.length) {
+    const entries = ((data.standings as Record<string, unknown> | undefined)?.entries as Record<string, unknown>[]) ?? [];
+    return entries.length ? [{ name: (data.name as string) ?? league.toUpperCase(), confName: null, entries }] : [];
   }
 
-  // Hierarchical: conferences with optional division children
+  const nodes: TreeNode[] = [];
   for (const conf of children) {
     const confName = (conf.name as string) ?? 'Conference';
     const confChildren = conf.children as Record<string, unknown>[] | undefined;
 
-    if (confChildren && confChildren.length > 0) {
-      // Has divisions
+    if (confChildren?.length) {
       for (const div of confChildren) {
-        const divName = (div.name as string) ?? 'Division';
-        const standings = div.standings as Record<string, unknown> | undefined;
-        const entries = (standings?.entries as Record<string, unknown>[]) ?? [];
-        const sorted = sortStandingsEntries(entries);
-        groups.push({
-          name: divName,
-          league: leagueUpper,
-          entries: sorted.map((e, i) => parseEntry(e, i + 1, league)),
-        });
+        const entries = ((div.standings as Record<string, unknown> | undefined)?.entries as Record<string, unknown>[]) ?? [];
+        nodes.push({ name: (div.name as string) ?? 'Division', confName, entries });
       }
     } else {
-      // Conference level only
-      const standings = conf.standings as Record<string, unknown> | undefined;
-      const entries = (standings?.entries as Record<string, unknown>[]) ?? [];
-      const sorted = sortStandingsEntries(entries);
-      groups.push({
-        name: confName,
-        league: leagueUpper,
-        entries: sorted.map((e, i) => parseEntry(e, i + 1, league)),
-      });
+      const entries = ((conf.standings as Record<string, unknown> | undefined)?.entries as Record<string, unknown>[]) ?? [];
+      nodes.push({ name: confName, confName, entries });
     }
   }
+  return nodes;
+}
 
-  return groups;
+function parseStandings(data: Record<string, unknown>, league: string): ParsedGroup[] {
+  const leagueUpper = league.toUpperCase();
+  return walkStandingsTree(data, league)
+    .map((node) => {
+      const sorted = sortStandingsEntries(node.entries);
+      return { name: node.name, league: leagueUpper, entries: sorted.map((e, i) => parseEntry(e, i + 1, league)) };
+    })
+    .filter((g) => g.entries.length > 0);
 }
 
 async function fetchTeamColors(path: string, league: string): Promise<Map<string, string>> {
@@ -334,36 +323,31 @@ function groupByConference(
   data: Record<string, unknown>,
   league: string,
 ): ParsedGroup[] {
-  const confMap = new Map<string, ParsedGroup>();
-  const children = data.children as Record<string, unknown>[] | undefined;
+  const nodes = walkStandingsTree(data, league);
+  if (!nodes.length || nodes[0].confName === null) return groups;
 
-  if (children && children.length > 0) {
-    for (const conf of children) {
-      const confName = (conf.name as string) ?? 'Conference';
-      const confChildren = conf.children as Record<string, unknown>[] | undefined;
-
-      if (confChildren && confChildren.length > 0) {
-        // Has divisions — merge them into one conference group
-        const allEntries: ParsedEntry[] = [];
-        for (const div of confChildren) {
-          const standings = div.standings as Record<string, unknown> | undefined;
-          const entries = (standings?.entries as Record<string, unknown>[]) ?? [];
-          allEntries.push(...entries.map((e, i) => parseEntry(e, i + 1, league)));
-        }
-        // Re-sort and re-rank
-        sortAndRank(allEntries);
-        confMap.set(confName, { name: confName, league: league.toUpperCase(), entries: allEntries });
-      } else {
-        // Already conference level
-        const existing = groups.find((g) => g.name === confName);
-        if (existing) confMap.set(confName, existing);
-      }
-    }
-    return Array.from(confMap.values());
+  // Group tree nodes by conference
+  const byConf = new Map<string, TreeNode[]>();
+  for (const node of nodes) {
+    const arr = byConf.get(node.confName!) ?? [];
+    arr.push(node);
+    byConf.set(node.confName!, arr);
   }
 
-  // If no children structure, groups stay as-is
-  return groups;
+  const result: ParsedGroup[] = [];
+  for (const [confName, confNodes] of byConf) {
+    if (confNodes.length === 1 && confNodes[0].name === confName) {
+      // Conference-only (no divisions) — reuse already-parsed group to preserve original sort
+      const existing = groups.find((g) => g.name === confName);
+      if (existing) result.push(existing);
+    } else {
+      // Has divisions — merge and re-sort into one conference group
+      const entries = confNodes.flatMap((n) => n.entries.map((e, i) => parseEntry(e, i + 1, league)));
+      sortAndRank(entries);
+      result.push({ name: confName, league: league.toUpperCase(), entries });
+    }
+  }
+  return result;
 }
 
 /** Merge everything into one flat list */

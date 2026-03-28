@@ -123,55 +123,140 @@ interface SettingsState {
   alerts: AlertState;
 }
 
-function initSettings(settings: GlobalSettings | undefined): SettingsState {
+/* ─── Form ↔ Config transforms ───────────────────
+ * toFormState and toConfigSettings are intentional mirrors.
+ * When adding a new setting, update both (and FORM_DEFAULTS).
+ */
+
+const FORM_DEFAULTS: SettingsState = {
+  display: {
+    rotationInterval: 30,
+    displayWidth: 1080,
+    displayHeight: 1920,
+    displayTransform: '90',
+    cursorHideSeconds: 3,
+    transitionEffect: 'fade',
+    transitionDuration: 0.6,
+  },
+  location: { lat: '', lon: '', locationName: null, timezone: '' },
+  weather: { provider: 'weatherapi', units: 'imperial' },
+  calendar: { selectedCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '' },
+  sleep: {
+    sleepEnabled: false,
+    dimAfterMinutes: 10,
+    sleepAfterMinutes: 0,
+    dimBrightness: 20,
+    dimScheduleEnabled: false,
+    dimStartTime: '23:00',
+    dimEndTime: '06:00',
+    sleepScheduleEnabled: false,
+    sleepStartTime: '23:00',
+    sleepEndTime: '06:00',
+    screensaverMode: 'clock',
+  },
+  alerts: { alertsEnabled: true, alertsPosition: 'top', alertsMaxVisible: 3, alertsDefaultDuration: 0, alertsScale: 1 },
+};
+
+function toFormState(s: GlobalSettings | undefined): SettingsState {
+  if (!s) return FORM_DEFAULTS;
   return {
     display: {
-      rotationInterval: (settings?.rotationIntervalMs ?? 30000) / 1000,
-      displayWidth: settings?.displayWidth ?? 1080,
-      displayHeight: settings?.displayHeight ?? 1920,
-      displayTransform: settings?.displayTransform ?? '90',
-      cursorHideSeconds: settings?.cursorHideSeconds ?? 3,
-      transitionEffect: settings?.transitionEffect ?? 'fade',
-      transitionDuration: settings?.transitionDuration ?? 0.6,
+      rotationInterval: s.rotationIntervalMs / 1000,
+      displayWidth: s.displayWidth,
+      displayHeight: s.displayHeight,
+      displayTransform: s.displayTransform ?? FORM_DEFAULTS.display.displayTransform,
+      cursorHideSeconds: s.cursorHideSeconds ?? FORM_DEFAULTS.display.cursorHideSeconds,
+      transitionEffect: s.transitionEffect ?? FORM_DEFAULTS.display.transitionEffect,
+      transitionDuration: s.transitionDuration ?? FORM_DEFAULTS.display.transitionDuration,
     },
     location: {
-      lat: (settings?.latitude ?? settings?.weather.latitude)?.toString() ?? '',
-      lon: (settings?.longitude ?? settings?.weather.longitude)?.toString() ?? '',
-      locationName: settings?.locationName ?? null,
-      timezone: settings?.timezone ?? '',
+      lat: (s.latitude ?? s.weather.latitude)?.toString() ?? '',
+      lon: (s.longitude ?? s.weather.longitude)?.toString() ?? '',
+      locationName: s.locationName ?? null,
+      timezone: s.timezone ?? '',
     },
     weather: {
-      provider: settings?.weather.provider ?? 'weatherapi',
-      units: settings?.weather.units ?? 'imperial',
+      provider: s.weather.provider,
+      units: s.weather.units,
     },
     calendar: {
-      selectedCalendarIds:
-        settings?.calendar.googleCalendarIds ??
-        (settings?.calendar.googleCalendarId ? [settings.calendar.googleCalendarId] : []),
-      icalSources: settings?.calendar.icalSources ?? [],
-      maxEvents: settings?.calendar.maxEvents ?? 10,
-      daysAhead: settings?.calendar.daysAhead ?? 7,
-      holidayCountry: settings?.calendar.holidayCountry ?? '',
+      selectedCalendarIds: s.calendar.googleCalendarIds ?? (s.calendar.googleCalendarId ? [s.calendar.googleCalendarId] : []),
+      icalSources: s.calendar.icalSources ?? [],
+      maxEvents: s.calendar.maxEvents ?? FORM_DEFAULTS.calendar.maxEvents,
+      daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
+      holidayCountry: s.calendar.holidayCountry ?? '',
     },
     sleep: {
-      sleepEnabled: settings?.sleep?.enabled ?? false,
-      dimAfterMinutes: settings?.sleep?.dimAfterMinutes ?? 10,
-      sleepAfterMinutes: settings?.sleep?.sleepAfterMinutes ?? 0,
-      dimBrightness: settings?.sleep?.dimBrightness ?? 20,
-      dimScheduleEnabled: !!settings?.sleep?.dimSchedule,
-      dimStartTime: settings?.sleep?.dimSchedule?.startTime ?? '23:00',
-      dimEndTime: settings?.sleep?.dimSchedule?.endTime ?? '06:00',
-      sleepScheduleEnabled: !!settings?.sleep?.schedule,
-      sleepStartTime: settings?.sleep?.schedule?.startTime ?? '23:00',
-      sleepEndTime: settings?.sleep?.schedule?.endTime ?? '06:00',
-      screensaverMode: settings?.screensaver?.mode ?? 'clock',
+      sleepEnabled: s.sleep?.enabled ?? false,
+      dimAfterMinutes: s.sleep?.dimAfterMinutes ?? FORM_DEFAULTS.sleep.dimAfterMinutes,
+      sleepAfterMinutes: s.sleep?.sleepAfterMinutes ?? FORM_DEFAULTS.sleep.sleepAfterMinutes,
+      dimBrightness: s.sleep?.dimBrightness ?? FORM_DEFAULTS.sleep.dimBrightness,
+      dimScheduleEnabled: !!s.sleep?.dimSchedule,
+      dimStartTime: s.sleep?.dimSchedule?.startTime ?? FORM_DEFAULTS.sleep.dimStartTime,
+      dimEndTime: s.sleep?.dimSchedule?.endTime ?? FORM_DEFAULTS.sleep.dimEndTime,
+      sleepScheduleEnabled: !!s.sleep?.schedule,
+      sleepStartTime: s.sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
+      sleepEndTime: s.sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
+      screensaverMode: s.screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
     },
     alerts: {
-      alertsEnabled: settings?.alerts?.enabled ?? true,
-      alertsPosition: settings?.alerts?.position ?? 'top',
-      alertsMaxVisible: settings?.alerts?.maxVisible ?? 3,
-      alertsDefaultDuration: (settings?.alerts?.defaultDuration ?? 0) / 1000,
-      alertsScale: settings?.alerts?.scale ?? 1,
+      alertsEnabled: s.alerts?.enabled ?? FORM_DEFAULTS.alerts.alertsEnabled,
+      alertsPosition: s.alerts?.position ?? FORM_DEFAULTS.alerts.alertsPosition,
+      alertsMaxVisible: s.alerts?.maxVisible ?? FORM_DEFAULTS.alerts.alertsMaxVisible,
+      alertsDefaultDuration: (s.alerts?.defaultDuration ?? 0) / 1000,
+      alertsScale: s.alerts?.scale ?? FORM_DEFAULTS.alerts.alertsScale,
+    },
+  };
+}
+
+function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
+  const { display, location, weather, calendar, sleep, alerts } = state;
+  const parsedLat = parseFloat(location.lat) || 0;
+  const parsedLon = parseFloat(location.lon) || 0;
+
+  return {
+    rotationIntervalMs: display.rotationInterval * 1000,
+    displayWidth: display.displayWidth,
+    displayHeight: display.displayHeight,
+    displayTransform: display.displayTransform as 'normal' | '90' | '180' | '270',
+    cursorHideSeconds: display.cursorHideSeconds,
+    transitionEffect: display.transitionEffect as GlobalSettings['transitionEffect'],
+    transitionDuration: display.transitionDuration,
+    latitude: parsedLat,
+    longitude: parsedLon,
+    locationName: location.locationName ?? undefined,
+    timezone: location.timezone || undefined,
+    weather: {
+      provider: weather.provider as GlobalSettings['weather']['provider'],
+      latitude: parsedLat,
+      longitude: parsedLon,
+      units: weather.units as 'metric' | 'imperial',
+    },
+    calendar: {
+      googleCalendarId: calendar.selectedCalendarIds[0] ?? '',
+      googleCalendarIds: calendar.selectedCalendarIds,
+      icalSources: calendar.icalSources,
+      maxEvents: calendar.maxEvents,
+      daysAhead: calendar.daysAhead,
+      ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
+    },
+    sleep: {
+      enabled: sleep.sleepEnabled,
+      dimAfterMinutes: sleep.dimAfterMinutes,
+      sleepAfterMinutes: sleep.sleepAfterMinutes,
+      dimBrightness: sleep.dimBrightness,
+      ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
+      ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
+    },
+    screensaver: {
+      mode: sleep.screensaverMode as 'clock' | 'blank' | 'off',
+    },
+    alerts: {
+      enabled: alerts.alertsEnabled,
+      position: alerts.alertsPosition as 'top' | 'bottom',
+      maxVisible: alerts.alertsMaxVisible,
+      defaultDuration: alerts.alertsDefaultDuration * 1000,
+      scale: alerts.alertsScale,
     },
   };
 }
@@ -193,7 +278,7 @@ export default function SettingsPage() {
   const settings = config?.settings;
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-  const [state, setState] = useState<SettingsState>(() => initSettings(settings));
+  const [state, setState] = useState<SettingsState>(() => toFormState(settings));
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -209,7 +294,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (settings && !settingsInitRef.current) {
       settingsInitRef.current = true;
-      setState(initSettings(settings));
+      setState(toFormState(settings));
     }
   }, [settings]);
 
@@ -274,54 +359,7 @@ export default function SettingsPage() {
     setSaving(true);
     setSaveMessage(null);
     try {
-      const { display, location, weather, calendar, sleep, alerts } = state;
-      const parsedLat = parseFloat(location.lat) || 0;
-      const parsedLon = parseFloat(location.lon) || 0;
-      updateSettings({
-        rotationIntervalMs: display.rotationInterval * 1000,
-        displayWidth: display.displayWidth,
-        displayHeight: display.displayHeight,
-        displayTransform: display.displayTransform as 'normal' | '90' | '180' | '270',
-        latitude: parsedLat,
-        longitude: parsedLon,
-        locationName: location.locationName ?? undefined,
-        timezone: location.timezone || undefined,
-        weather: {
-          provider: weather.provider as 'openweathermap' | 'weatherapi',
-          latitude: parsedLat,
-          longitude: parsedLon,
-          units: weather.units as 'metric' | 'imperial',
-        },
-        calendar: {
-          googleCalendarId: calendar.selectedCalendarIds[0] ?? '',
-          googleCalendarIds: calendar.selectedCalendarIds,
-          icalSources: calendar.icalSources,
-          maxEvents: calendar.maxEvents,
-          daysAhead: calendar.daysAhead,
-          ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
-        },
-        sleep: {
-          enabled: sleep.sleepEnabled,
-          dimAfterMinutes: sleep.dimAfterMinutes,
-          sleepAfterMinutes: sleep.sleepAfterMinutes,
-          dimBrightness: sleep.dimBrightness,
-          ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
-          ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
-        },
-        screensaver: {
-          mode: sleep.screensaverMode as 'clock' | 'blank' | 'off',
-        },
-        cursorHideSeconds: display.cursorHideSeconds,
-        transitionEffect: display.transitionEffect as GlobalSettings['transitionEffect'],
-        transitionDuration: display.transitionDuration,
-        alerts: {
-          enabled: alerts.alertsEnabled,
-          position: alerts.alertsPosition as 'top' | 'bottom',
-          maxVisible: alerts.alertsMaxVisible,
-          defaultDuration: alerts.alertsDefaultDuration * 1000,
-          scale: alerts.alertsScale,
-        },
-      });
+      updateSettings(toConfigSettings(state));
       await saveConfig();
       setSaveMessage('Saved');
       setTimeout(() => setSaveMessage(null), 2000);
@@ -499,7 +537,7 @@ export default function SettingsPage() {
               <DataSection
                 onSettingsImported={() => {
                   const imported = useEditorStore.getState().config?.settings;
-                  setState(initSettings(imported));
+                  setState(toFormState(imported));
                 }}
               />
             )}

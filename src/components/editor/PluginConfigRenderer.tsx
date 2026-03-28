@@ -98,6 +98,158 @@ function ConditionalField({
   return <>{children}</>;
 }
 
+// ── Widget components ───────────────────────────────────────────────
+
+interface WidgetProps {
+  label: string;
+  value: unknown;
+  prop: PluginConfigProperty;
+  onChange: (v: unknown) => void;
+  description?: string;
+  placeholder?: string;
+}
+
+function Desc({ text }: { text?: string }) {
+  return text ? <span className="text-[10px] text-neutral-500">{text}</span> : null;
+}
+
+function ToggleWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <label className="flex items-center justify-between gap-2">
+        <span className="text-xs text-neutral-400">{label}</span>
+        <input type="checkbox" checked={Boolean(value ?? prop.default)} onChange={(e) => onChange(e.target.checked)} className="accent-blue-500" />
+      </label>
+      <Desc text={description} />
+    </div>
+  );
+}
+
+function SliderWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <Slider label={label} value={Number(value ?? prop.default ?? prop.minimum ?? 0)} min={prop.minimum ?? 0} max={prop.maximum ?? 100} step={prop['ui:step'] ?? 1} onChange={onChange} />
+      <Desc text={description} />
+    </div>
+  );
+}
+
+function NumberWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <input type="number" value={Number(value ?? prop.default ?? 0)} min={prop.minimum} max={prop.maximum} step={prop['ui:step']} onChange={(e) => onChange(Number(e.target.value))} className={INPUT_CLASS} placeholder={placeholder} />
+      <Desc text={description} />
+    </label>
+  );
+}
+
+function SelectWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <select value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(prop.type === 'number' ? Number(e.target.value) : e.target.value)} className={INPUT_CLASS}>
+        {(prop.enum ?? []).map((opt, i) => (
+          <option key={String(opt)} value={String(opt)}>{prop.enumLabels?.[i] ?? String(opt)}</option>
+        ))}
+      </select>
+      <Desc text={description} />
+    </label>
+  );
+}
+
+function ColorWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <ColorPicker label={label} value={String(value ?? prop.default ?? '#000000')} onChange={onChange} />
+      <Desc text={description} />
+    </div>
+  );
+}
+
+function TextareaWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <textarea rows={4} value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS + ' resize-y'} placeholder={placeholder} />
+      <Desc text={description} />
+    </label>
+  );
+}
+
+function MultiselectWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  const resolved = Array.isArray(value) ? value : Array.isArray(prop.default) ? prop.default as (string | number)[] : [];
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <div className="grid grid-cols-2 gap-1">
+        {(prop.enum ?? []).map((opt, i) => {
+          const selected = resolved.includes(opt);
+          return (
+            <label key={String(opt)} className="flex items-center gap-1.5 text-xs text-neutral-300">
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={(e) => {
+                  const current = [...resolved];
+                  if (e.target.checked) current.push(opt);
+                  else { const idx = current.indexOf(opt); if (idx >= 0) current.splice(idx, 1); }
+                  onChange(current);
+                }}
+                className="accent-blue-500"
+              />
+              {prop.enumLabels?.[i] ?? String(opt)}
+            </label>
+          );
+        })}
+      </div>
+      <Desc text={description} />
+    </div>
+  );
+}
+
+function TimeWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <input type="time" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} />
+      <Desc text={description} />
+    </label>
+  );
+}
+
+function ArrayWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return <ArrayEditor label={label} description={description} prop={prop} value={value} onChange={onChange} />;
+}
+
+function ObjectWidget({ label, value, prop, onChange, description }: WidgetProps) {
+  return <ObjectEditor label={label} description={description} prop={prop} value={value} onChange={onChange} />;
+}
+
+function TextWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <input type="text" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} placeholder={placeholder} />
+      <Desc text={description} />
+    </label>
+  );
+}
+
+const WIDGET_MAP: Record<string, React.FC<WidgetProps>> = {
+  toggle: ToggleWidget,
+  slider: SliderWidget,
+  number: NumberWidget,
+  select: SelectWidget,
+  color: ColorWidget,
+  textarea: TextareaWidget,
+  multiselect: MultiselectWidget,
+  time: TimeWidget,
+  array: ArrayWidget,
+  object: ObjectWidget,
+  text: TextWidget,
+};
+
 function ConfigField({
   fieldKey,
   prop,
@@ -109,198 +261,18 @@ function ConfigField({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
-  const label = prop.title ?? fieldKey;
   const widget = prop['ui:widget'] ?? inferWidget(prop);
-  const description = prop.description;
-  const placeholder = prop['ui:placeholder'];
-
-  const descriptionEl = description ? (
-    <span className="text-[10px] text-neutral-500">{description}</span>
-  ) : null;
-
-  switch (widget) {
-    case 'toggle':
-      return (
-        <div className="flex flex-col gap-0.5">
-          <label className="flex items-center justify-between gap-2">
-            <span className="text-xs text-neutral-400">{label}</span>
-            <input
-              type="checkbox"
-              checked={Boolean(value ?? prop.default)}
-              onChange={(e) => onChange(e.target.checked)}
-              className="accent-blue-500"
-            />
-          </label>
-          {descriptionEl}
-        </div>
-      );
-
-    case 'slider':
-      return (
-        <div className="flex flex-col gap-0.5">
-          <Slider
-            label={label}
-            value={Number(value ?? prop.default ?? prop.minimum ?? 0)}
-            min={prop.minimum ?? 0}
-            max={prop.maximum ?? 100}
-            step={prop['ui:step'] ?? 1}
-            onChange={onChange}
-          />
-          {descriptionEl}
-        </div>
-      );
-
-    case 'number':
-      return (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <input
-            type="number"
-            value={Number(value ?? prop.default ?? 0)}
-            min={prop.minimum}
-            max={prop.maximum}
-            step={prop['ui:step']}
-            onChange={(e) => onChange(Number(e.target.value))}
-            className={INPUT_CLASS}
-            placeholder={placeholder}
-          />
-          {descriptionEl}
-        </label>
-      );
-
-    case 'select':
-      return (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <select
-            value={String(value ?? prop.default ?? '')}
-            onChange={(e) => onChange(prop.type === 'number' ? Number(e.target.value) : e.target.value)}
-            className={INPUT_CLASS}
-          >
-            {(prop.enum ?? []).map((opt, i) => (
-              <option key={String(opt)} value={String(opt)}>
-                {prop.enumLabels?.[i] ?? String(opt)}
-              </option>
-            ))}
-          </select>
-          {descriptionEl}
-        </label>
-      );
-
-    case 'color':
-      return (
-        <div className="flex flex-col gap-0.5">
-          <ColorPicker
-            label={label}
-            value={String(value ?? prop.default ?? '#000000')}
-            onChange={onChange}
-          />
-          {descriptionEl}
-        </div>
-      );
-
-    case 'textarea':
-      return (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <textarea
-            rows={4}
-            value={String(value ?? prop.default ?? '')}
-            onChange={(e) => onChange(e.target.value)}
-            className={INPUT_CLASS + ' resize-y'}
-            placeholder={placeholder}
-          />
-          {descriptionEl}
-        </label>
-      );
-
-    case 'multiselect': {
-      const resolved = Array.isArray(value) ? value : Array.isArray(prop.default) ? prop.default as (string | number)[] : [];
-      return (
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <div className="grid grid-cols-2 gap-1">
-            {(prop.enum ?? []).map((opt, i) => {
-              const selected = resolved.includes(opt);
-              return (
-                <label key={String(opt)} className="flex items-center gap-1.5 text-xs text-neutral-300">
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={(e) => {
-                      const current = [...resolved];
-                      if (e.target.checked) {
-                        current.push(opt);
-                      } else {
-                        const idx = current.indexOf(opt);
-                        if (idx >= 0) current.splice(idx, 1);
-                      }
-                      onChange(current);
-                    }}
-                    className="accent-blue-500"
-                  />
-                  {prop.enumLabels?.[i] ?? String(opt)}
-                </label>
-              );
-            })}
-          </div>
-          {descriptionEl}
-        </div>
-      );
-    }
-
-    case 'time':
-      return (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <input
-            type="time"
-            value={String(value ?? prop.default ?? '')}
-            onChange={(e) => onChange(e.target.value)}
-            className={INPUT_CLASS}
-          />
-          {descriptionEl}
-        </label>
-      );
-
-    case 'array':
-      return (
-        <ArrayEditor
-          label={label}
-          description={description}
-          prop={prop}
-          value={value}
-          onChange={onChange}
-        />
-      );
-
-    case 'object':
-      return (
-        <ObjectEditor
-          label={label}
-          description={description}
-          prop={prop}
-          value={value}
-          onChange={onChange}
-        />
-      );
-
-    case 'text':
-    default:
-      return (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">{label}</span>
-          <input
-            type="text"
-            value={String(value ?? prop.default ?? '')}
-            onChange={(e) => onChange(e.target.value)}
-            className={INPUT_CLASS}
-            placeholder={placeholder}
-          />
-          {descriptionEl}
-        </label>
-      );
-  }
+  const Widget = WIDGET_MAP[widget] ?? TextWidget;
+  return (
+    <Widget
+      label={prop.title ?? fieldKey}
+      value={value}
+      prop={prop}
+      onChange={onChange}
+      description={prop.description}
+      placeholder={prop['ui:placeholder']}
+    />
+  );
 }
 
 const MAX_ARRAY_ITEMS = 50;

@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { deepMergeConfig, compareSemver } from '../plugin-loader';
+import { deepMergeConfig, compareSemver, applyMigrationToModule } from '../plugin-loader';
+import type { PluginManifest } from '@/types/plugins';
+
+/** Build a minimal manifest stub for testing migrations. */
+function stubManifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
+  return {
+    id: 'test-plugin',
+    name: 'Test',
+    version: '2.0.0',
+    moduleType: 'test',
+    icon: 'box',
+    defaultConfig: {},
+    defaultSize: { w: 200, h: 200 },
+    exports: { component: 'default' },
+    ...overrides,
+  } as PluginManifest;
+}
 
 describe('compareSemver', () => {
   it('returns 0 for equal versions', () => {
@@ -116,5 +132,110 @@ describe('deepMergeConfig', () => {
     // Shallow copy means the nested ref is shared — that's fine for read-only defaults
     expect(source).toEqual({ a: { nested: 1 } });
     expect(result).toEqual({ a: { nested: 1 } });
+  });
+});
+
+describe('applyMigrationToModule', () => {
+  it('deep-merges with defaultConfig when no migrations exist', () => {
+    const manifest = stubManifest({ defaultConfig: { color: 'red', size: 10 } });
+    const result = applyMigrationToModule({ color: 'blue' }, manifest, '1.0.0');
+    expect(result).toEqual({ color: 'blue', size: 10 });
+  });
+
+  it('applies rename migration', () => {
+    const manifest = stubManifest({
+      version: '2.0.0',
+      defaultConfig: { newKey: 'default' },
+      configMigrations: {
+        '1.1.0': { renames: { oldKey: 'newKey' } },
+      },
+    });
+    const result = applyMigrationToModule({ oldKey: 'value' }, manifest, '1.0.0');
+    expect(result.newKey).toBe('value');
+    expect(result.oldKey).toBeUndefined();
+  });
+
+  it('skips rename when new key already exists', () => {
+    const manifest = stubManifest({
+      version: '2.0.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { renames: { oldKey: 'newKey' } },
+      },
+    });
+    const result = applyMigrationToModule({ oldKey: 'old', newKey: 'existing' }, manifest, '1.0.0');
+    expect(result.newKey).toBe('existing');
+    expect(result.oldKey).toBe('old');
+  });
+
+  it('applies default migration for missing keys', () => {
+    const manifest = stubManifest({
+      version: '2.0.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { defaults: { theme: 'dark' } },
+      },
+    });
+    const result = applyMigrationToModule({}, manifest, '1.0.0');
+    expect(result.theme).toBe('dark');
+  });
+
+  it('skips default when key already exists', () => {
+    const manifest = stubManifest({
+      version: '2.0.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { defaults: { theme: 'dark' } },
+      },
+    });
+    const result = applyMigrationToModule({ theme: 'light' }, manifest, '1.0.0');
+    expect(result.theme).toBe('light');
+  });
+
+  it('only applies migrations in the (oldVersion, manifest.version) range', () => {
+    const manifest = stubManifest({
+      version: '3.0.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.0.0': { defaults: { tooOld: true } },   // at oldVersion boundary — excluded
+        '1.5.0': { defaults: { inRange: true } },   // in range — included
+        '3.0.0': { defaults: { atTarget: true } },  // at manifest.version boundary — excluded
+        '4.0.0': { defaults: { tooNew: true } },    // above manifest.version — excluded
+      },
+    });
+    const result = applyMigrationToModule({}, manifest, '1.0.0');
+    expect(result.tooOld).toBeUndefined();
+    expect(result.inRange).toBe(true);
+    expect(result.atTarget).toBeUndefined();
+    expect(result.tooNew).toBeUndefined();
+  });
+
+  it('applies multiple migrations in version order', () => {
+    const manifest = stubManifest({
+      version: '3.0.0',
+      defaultConfig: {},
+      configMigrations: {
+        '2.0.0': { renames: { temp: 'final' } },
+        '1.5.0': { renames: { original: 'temp' } },
+      },
+    });
+    // Should apply 1.5.0 first (original→temp), then 2.0.0 (temp→final)
+    const result = applyMigrationToModule({ original: 'value' }, manifest, '1.0.0');
+    expect(result.final).toBe('value');
+    expect(result.temp).toBeUndefined();
+    expect(result.original).toBeUndefined();
+  });
+
+  it('does not mutate the original config', () => {
+    const manifest = stubManifest({
+      version: '2.0.0',
+      defaultConfig: { added: true },
+      configMigrations: {
+        '1.1.0': { renames: { a: 'b' } },
+      },
+    });
+    const original = { a: 1 };
+    applyMigrationToModule(original, manifest, '1.0.0');
+    expect(original).toEqual({ a: 1 });
   });
 });

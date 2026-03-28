@@ -551,6 +551,29 @@ interface NOAAAlertFeature {
   };
 }
 
+/** Enrich an hourly entry with real station observations (pressure, visibility, dewpoint, feels-like). */
+function enrichWithObservation(result: HourlyWeather, obs: NOAAObservation, isMetric: boolean): void {
+  const toUnit = (c: number) => isMetric ? Math.round(c) : Math.round(c * 9 / 5 + 32);
+
+  if (obs.barometricPressure?.value != null) {
+    result.pressure = Math.round(obs.barometricPressure.value / 100); // Pa → hPa
+  }
+  if (obs.visibility?.value != null) {
+    result.visibility = isMetric
+      ? Math.round(obs.visibility.value / 1000 * 10) / 10    // m → km
+      : Math.round(obs.visibility.value / 1609.34 * 10) / 10; // m → miles
+  }
+  if (obs.dewpoint?.value != null) {
+    result.dewPoint = toUnit(obs.dewpoint.value);
+  }
+  // Prefer observed feels-like (wind chill or heat index)
+  if (obs.windChill?.value != null) {
+    result.feelsLike = toUnit(obs.windChill.value);
+  } else if (obs.heatIndex?.value != null) {
+    result.feelsLike = toUnit(obs.heatIndex.value);
+  }
+}
+
 // ── NOAA/NWS provider ────────────────────────────────────────────────
 
 class NOAAProvider implements WeatherProvider {
@@ -636,31 +659,8 @@ class NOAAProvider implements WeatherProvider {
           dewPoint: dewPoint != null ? Math.round(dewPoint) : undefined,
         };
 
-        // Enrich the first hour with real station observations
         if (i === 0 && observation) {
-          if (observation.barometricPressure?.value != null) {
-            result.pressure = Math.round(observation.barometricPressure.value / 100); // Pa → hPa
-          }
-          if (observation.visibility?.value != null) {
-            result.visibility = isMetric
-              ? Math.round(observation.visibility.value / 1000 * 10) / 10   // m → km
-              : Math.round(observation.visibility.value / 1609.34 * 10) / 10; // m → miles
-          }
-          if (observation.dewpoint?.value != null) {
-            result.dewPoint = isMetric
-              ? Math.round(observation.dewpoint.value)
-              : Math.round(observation.dewpoint.value * 9 / 5 + 32);
-          }
-          // Prefer observed feels-like (wind chill or heat index)
-          if (observation.windChill?.value != null) {
-            result.feelsLike = isMetric
-              ? Math.round(observation.windChill.value)
-              : Math.round(observation.windChill.value * 9 / 5 + 32);
-          } else if (observation.heatIndex?.value != null) {
-            result.feelsLike = isMetric
-              ? Math.round(observation.heatIndex.value)
-              : Math.round(observation.heatIndex.value * 9 / 5 + 32);
-          }
+          enrichWithObservation(result, observation, isMetric);
         }
 
         return result;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Screen, GlobalSettings } from '@/types/config';
+import type { Screen, GlobalSettings, ModuleType } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { isModuleVisible } from '@/lib/schedule';
@@ -36,6 +36,52 @@ export function resolveProvider(mod: { type: string; config: Record<string, unkn
   return globalProvider;
 }
 
+const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
+  openweathermap: 'owmData',
+  weatherapi: 'wapiData',
+  pirateweather: 'pirateData',
+  noaa: 'noaaData',
+  'open-meteo': 'openMeteoData',
+};
+
+function buildModuleProps(
+  mod: { type: ModuleType; config: Record<string, unknown> },
+  settings: GlobalSettings,
+  sharedData: SharedDisplayData,
+  locationMissing: boolean,
+): Record<string, unknown> {
+  const props: Record<string, unknown> = { timezone: settings.timezone };
+
+  const def = getModuleDefinition(mod.type);
+  if (def?.dataRequirements?.includes('location')) {
+    props.latitude = settings.latitude ?? settings.weather.latitude;
+    props.longitude = settings.longitude ?? settings.weather.longitude;
+  }
+
+  const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
+  if (needsCalendar && sharedData.calendarData) {
+    props.events = Array.isArray(sharedData.calendarData)
+      ? sharedData.calendarData
+      : (sharedData.calendarData as Record<string, unknown>).events ?? [];
+  }
+
+  const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
+  if (needsWeather) {
+    if (locationMissing) props.locationMissing = true;
+    const provider = resolveProvider(mod, settings.weather.provider);
+    const weatherData = sharedData[PROVIDER_KEY[provider]] as Record<string, unknown> | null;
+    if (weatherData) {
+      props.hourly = weatherData.hourly ?? [];
+      props.forecast = weatherData.forecast ?? [];
+      props.minutely = weatherData.minutely;
+      props.alerts = weatherData.alerts;
+    }
+    props.units = settings.weather.units;
+  }
+
+  return props;
+}
+
 export default function ScreenRenderer(props: ScreenRendererProps) {
   return (
     <PageBackgroundProvider>
@@ -45,7 +91,6 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
 }
 
 function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale }: ScreenRendererProps) {
-  const globalProvider = settings.weather.provider;
   const { overrideBackground } = usePageBackground();
 
   // Minute-resolution timezone-aware clock for module scheduling
@@ -64,16 +109,6 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   const lat = settings.latitude ?? settings.weather.latitude;
   const lon = settings.longitude ?? settings.weather.longitude;
   const locationMissing = lat == null || lon == null || (lat === 0 && lon === 0);
-
-  function getWeatherData(mod: { type: string; config: Record<string, unknown> }): Record<string, unknown> | null {
-    const p = resolveProvider(mod, globalProvider);
-    if (p === 'openweathermap') return sharedData.owmData as Record<string, unknown> | null;
-    if (p === 'weatherapi') return sharedData.wapiData as Record<string, unknown> | null;
-    if (p === 'pirateweather') return sharedData.pirateData as Record<string, unknown> | null;
-    if (p === 'noaa') return sharedData.noaaData as Record<string, unknown> | null;
-    if (p === 'open-meteo') return sharedData.openMeteoData as Record<string, unknown> | null;
-    return null;
-  }
 
   return (
     <div
@@ -127,39 +162,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
           return null;
         }
 
-        const extraProps: Record<string, unknown> = {};
-        extraProps.timezone = settings.timezone;
-
-        // Inject location for modules that declare the requirement (built-in or plugin)
-        const def = getModuleDefinition(mod.type);
-        const needsLocation = def?.dataRequirements?.includes('location') ?? false;
-        if (needsLocation) {
-          extraProps.latitude = settings.latitude ?? settings.weather.latitude;
-          extraProps.longitude = settings.longitude ?? settings.weather.longitude;
-        }
-
-        const weatherData = getWeatherData(mod);
-
-        // Inject calendar data for calendar module or plugins declaring the requirement
-        const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
-        if (needsCalendar && sharedData.calendarData) {
-          extraProps.events = Array.isArray(sharedData.calendarData) ? sharedData.calendarData : (sharedData.calendarData as Record<string, unknown>).events ?? [];
-        }
-
-        // Inject weather data for weather module or plugins declaring the requirement
-        const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
-        if (needsWeather) {
-          if (locationMissing) {
-            extraProps.locationMissing = true;
-          }
-          if (weatherData) {
-            extraProps.hourly = weatherData.hourly ?? [];
-            extraProps.forecast = weatherData.forecast ?? [];
-            extraProps.minutely = weatherData.minutely;
-            extraProps.alerts = weatherData.alerts;
-          }
-          extraProps.units = settings.weather.units;
-        }
+        const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
 
         return (
           <div
