@@ -1,14 +1,10 @@
 'use client';
 
-import { format } from 'date-fns';
-import { getDateInfoValues } from '@/lib/date-info';
+import { getDateInfoValues, parseDateParts } from '@/lib/date-info';
 import type { DateViewProps } from './types';
 
 export default function DateBannerView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
-  const dayName = format(now, 'EEEE');
-  const monthName = format(now, 'MMMM');
-  const dayNumber = format(now, 'd');
-  const year = format(now, 'yyyy');
+  const { dayNumber, monthName, dayName, year } = parseDateParts(now);
 
   const parts: string[] = [];
   if (config.showDayName) parts.push(dayName.toUpperCase());

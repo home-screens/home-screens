@@ -414,8 +414,9 @@ const { GET, cache } = cachedProxyRoute<{ groups: ParsedGroup[] }>({
     const url = `https://site.api.espn.com/apis/v2/sports/${path}/standings`;
     const res = await fetchWithTimeout(url);
     if (!res.ok) {
+      console.error(`[standings] ESPN API error for ${league}: ${res.status}`);
       return NextResponse.json(
-        { error: `Failed to fetch ${league} standings: ${res.status}` },
+        { error: `Failed to fetch ${league} standings` },
         { status: 502 },
       );
     }

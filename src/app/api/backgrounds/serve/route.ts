@@ -4,6 +4,8 @@ import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withDisplayAuth } from '@/lib/api-utils';
 
+export const dynamic = 'force-dynamic';
+
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 
 const MIME_TYPES: Record<string, string> = {

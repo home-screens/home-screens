@@ -1,14 +1,10 @@
 'use client';
 
-import { format } from 'date-fns';
-import { buildInfoParts } from '@/lib/date-info';
+import { buildInfoParts, parseDateParts } from '@/lib/date-info';
 import type { DateViewProps } from './types';
 
 export default function DateEditorialView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
-  const dayNumber = format(now, 'd');
-  const monthName = format(now, 'MMMM');
-  const dayName = format(now, 'EEEE');
-  const year = format(now, 'yyyy');
+  const { dayNumber, monthName, dayName, year } = parseDateParts(now);
 
   const infoParts = buildInfoParts(config, now);
 

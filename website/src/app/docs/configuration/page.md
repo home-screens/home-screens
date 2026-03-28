@@ -579,7 +579,6 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 {
   showAQI: boolean
   showPollutants: boolean
-  showUV: boolean
   refreshIntervalMs: number
 }
 ```

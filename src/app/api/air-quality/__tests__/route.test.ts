@@ -54,15 +54,9 @@ function makeAirPollutionResponse(
   };
 }
 
-function makeUvResponse(value: number) {
-  return { value };
-}
-
 function mockFetchResponses(
   airBody: unknown,
   airOk: boolean,
-  uvBody: unknown,
-  uvOk: boolean,
   airStatus = 200,
 ) {
   global.fetch = vi.fn().mockImplementation((url: string) => {
@@ -71,13 +65,7 @@ function mockFetchResponses(
         ok: airOk,
         status: airStatus,
         json: async () => airBody,
-      });
-    }
-    if (url.includes('uvi')) {
-      return Promise.resolve({
-        ok: uvOk,
-        status: uvOk ? 200 : 500,
-        json: async () => uvBody,
+        text: async () => JSON.stringify(airBody),
       });
     }
     return Promise.reject(new Error(`Unexpected fetch URL: ${url}`));
@@ -117,7 +105,7 @@ describe('GET /api/air-quality', () => {
   it('returns successful response with correct shape', async () => {
     mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
     mockGetSecret.mockResolvedValue('test-key');
-    mockFetchResponses(makeAirPollutionResponse(3), true, makeUvResponse(5.2), true);
+    mockFetchResponses(makeAirPollutionResponse(3), true);
 
     const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
@@ -129,45 +117,41 @@ describe('GET /api/air-quality', () => {
       pm10: 20,
       o3: 45,
       no2: 10,
-      uv: 5.2,
     });
   });
 
-  it('uses correct API URLs with lat/lon/apiKey', async () => {
+  it('uses correct API URL with lat/lon/apiKey', async () => {
     mockGetLocation.mockResolvedValue({ lat: '51.5', lon: '-0.12' });
     mockGetSecret.mockResolvedValue('MY_KEY');
-    mockFetchResponses(makeAirPollutionResponse(2), true, makeUvResponse(3), true);
+    mockFetchResponses(makeAirPollutionResponse(2), true);
 
     await GET(new NextRequest('http://localhost/api/air-quality'));
 
     const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(1);
 
-    const urls = calls.map((c: unknown[]) => c[0] as string);
-    expect(urls).toContainEqual(
+    const url = calls[0][0] as string;
+    expect(url).toBe(
       'https://api.openweathermap.org/data/2.5/air_pollution?lat=51.5&lon=-0.12&appid=MY_KEY',
-    );
-    expect(urls).toContainEqual(
-      'https://api.openweathermap.org/data/2.5/uvi?lat=51.5&lon=-0.12&appid=MY_KEY',
     );
   });
 
   it('returns 502 when air pollution API returns non-ok status', async () => {
     mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
     mockGetSecret.mockResolvedValue('test-key');
-    mockFetchResponses({}, false, makeUvResponse(0), true, 503);
+    mockFetchResponses({}, false, 503);
 
     const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(502);
-    expect(json.error).toContain('Air pollution API returned 503');
+    expect(json.error).toBe('Failed to fetch air quality data');
   });
 
   it('returns 502 when air pollution data has no list entries', async () => {
     mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
     mockGetSecret.mockResolvedValue('test-key');
-    mockFetchResponses({ list: [] }, true, makeUvResponse(0), true);
+    mockFetchResponses({ list: [] }, true);
 
     const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
@@ -176,54 +160,16 @@ describe('GET /api/air-quality', () => {
     expect(json.error).toBe('No air pollution data returned');
   });
 
-  it('gracefully degrades UV to 0 when UV endpoint fails', async () => {
+  it('does not include UV in response', async () => {
     mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
     mockGetSecret.mockResolvedValue('test-key');
-    mockFetchResponses(makeAirPollutionResponse(1), true, {}, false);
+    mockFetchResponses(makeAirPollutionResponse(1), true);
 
     const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.uv).toBe(0);
-  });
-
-  it('gracefully degrades UV to 0 when UV fetch rejects (timeout/network error)', async () => {
-    mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
-    mockGetSecret.mockResolvedValue('test-key');
-
-    // Air pollution succeeds, UV fetch rejects entirely (e.g., timeout)
-    global.fetch = vi.fn().mockImplementation((url: string) => {
-      if (url.includes('air_pollution')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => makeAirPollutionResponse(2),
-        });
-      }
-      if (url.includes('uvi')) {
-        return Promise.reject(new Error('AbortError: signal timed out'));
-      }
-      return Promise.reject(new Error(`Unexpected fetch URL: ${url}`));
-    });
-
-    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
-    const json = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(json.uv).toBe(0);
-    expect(json.aqi).toBe(2);
-  });
-
-  it('extracts UV value when UV endpoint succeeds', async () => {
-    mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
-    mockGetSecret.mockResolvedValue('test-key');
-    mockFetchResponses(makeAirPollutionResponse(2), true, makeUvResponse(8.7), true);
-
-    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
-    const json = await res.json();
-
-    expect(json.uv).toBe(8.7);
+    expect(json.uv).toBeUndefined();
   });
 
   it('defaults component values to 0 when they are undefined', async () => {
@@ -240,7 +186,7 @@ describe('GET /api/air-quality', () => {
         },
       ],
     };
-    mockFetchResponses(airData, true, makeUvResponse(0), true);
+    mockFetchResponses(airData, true);
 
     const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();

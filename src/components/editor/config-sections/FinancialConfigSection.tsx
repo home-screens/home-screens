@@ -1,6 +1,7 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
@@ -40,18 +41,11 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           className={INPUT_CLASS}
         />
       </label>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={view}
-          onChange={(e) => set({ view: e.target.value as FinancialView })}
-          className={INPUT_CLASS}
-        >
-          {FINANCIAL_VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <ViewSelect
+        value={view}
+        onChange={(v) => set({ view: v })}
+        options={FINANCIAL_VIEWS}
+      />
       {view !== 'ticker' && (
         <Slider
           label="Scale"

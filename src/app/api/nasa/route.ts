@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NASA_APOD_API, NASA_IMAGE_API, getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
-import { downloadAndSaveBackground } from '@/lib/background-download';
-import { isSafeExternalUrl } from '@/lib/url-safety';
+import { createImageDownloadHandler } from '@/lib/route-factories';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,26 +22,11 @@ export const GET = withAuth(async (request: NextRequest) => {
   return handleSearch(searchParams);
 }, 'Failed to fetch NASA images');
 
-export const POST = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { imageUrl, filename } = body as { imageUrl?: string; filename?: string };
-
-  if (!imageUrl) {
-    return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 });
-  }
-
-  if (!isSafeExternalUrl(imageUrl)) {
-    return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
-  }
-
-  const result = await downloadAndSaveBackground(
-    imageUrl,
-    filename || `nasa-${Date.now()}`,
-    { convertNonWeb: true, validateImage: true },
-  );
-
-  return NextResponse.json(result, { status: 201 });
-}, 'Failed to download NASA image');
+export const POST = createImageDownloadHandler({
+  defaultPrefix: 'nasa',
+  downloadOptions: { convertNonWeb: true, validateImage: true },
+  errorMsg: 'Failed to download NASA image',
+});
 
 async function handleApod(params: URLSearchParams) {
   const apiKey = await getNasaApiKey();
@@ -57,9 +41,9 @@ async function handleApod(params: URLSearchParams) {
   const url = `${NASA_APOD_API}?api_key=${apiKey}&count=${count}&thumbs=true`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
-    const body = await res.text();
+    console.error(`[nasa] APOD API error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
-      { error: `NASA APOD API error ${res.status}: ${body}` },
+      { error: 'Failed to fetch NASA Astronomy Picture of the Day' },
       { status: 502 },
     );
   }
@@ -89,9 +73,9 @@ async function handleSearch(params: URLSearchParams) {
   const url = `${NASA_IMAGE_API}/search?q=${encodeURIComponent(query)}&media_type=image&page=${page}&page_size=12`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
-    const body = await res.text();
+    console.error(`[nasa] Image Library error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
-      { error: `NASA Image Library error ${res.status}: ${body}` },
+      { error: 'Failed to search NASA Image Library' },
       { status: 502 },
     );
   }

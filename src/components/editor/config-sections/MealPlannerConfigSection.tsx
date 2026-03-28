@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/MealPlannerModal';
@@ -59,18 +60,11 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
   return (
     <>
       {/* View Mode */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={c.view ?? 'week'}
-          onChange={(e) => set({ view: e.target.value as MealPlannerView })}
-          className={INPUT_CLASS}
-        >
-          {VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <ViewSelect
+        value={c.view ?? 'week'}
+        onChange={(v) => set({ view: v })}
+        options={VIEWS}
+      />
 
       {/* Meal Slots */}
       <div className="flex flex-col gap-1">

@@ -1,5 +1,6 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
@@ -73,15 +74,7 @@ function Arc({ radius, strokeWidth, progress, color, trackColor, size }: ArcProp
 }
 
 export default function ClockRadialView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h);
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
-  const ampm = config.format24h ? '' : hours >= 12 ? 'PM' : 'AM';
+  const { hours, minutes, seconds, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
 
   const hoursProgress = (hours % 12) / 12;
   const minutesProgress = minutes / 60;
@@ -160,13 +153,13 @@ export default function ClockRadialView({ config, now, scaledFontSize, container
           >
             {timeStr}
           </span>
-          {ampm && (
+          {period && (
             <span
               className="uppercase tracking-widest opacity-50 font-light"
               style={{ fontSize: ampmFontSize, marginTop: 2 }}
               suppressHydrationWarning
             >
-              {ampm}
+              {period.trim()}
             </span>
           )}
         </div>

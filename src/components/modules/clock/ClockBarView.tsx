@@ -1,5 +1,6 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 interface BarRowProps {
@@ -63,21 +64,13 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
 }
 
 export default function ClockBarView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
+  const { hours, minutes, seconds, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
   const h12 = hours % 12;
-  const h = config.format24h ? hours : h12 || 12;
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h);
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
-  const ampm = config.format24h ? '' : hours >= 12 ? ' PM' : ' AM';
   const hoursMax = config.format24h ? 24 : 12;
 
   const timeStr = config.showSeconds
-    ? `${hStr}:${mStr}:${sStr}${ampm}`
-    : `${hStr}:${mStr}${ampm}`;
+    ? `${hStr}:${mStr}:${sStr}${period}`
+    : `${hStr}:${mStr}${period}`;
 
   const accentColor = config.accentColor || '#ffffff';
   const barFontSize = Math.max(12, scaledFontSize);

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET } from '@/app/api/geocode/route';
+
+vi.mock('@/lib/auth', () => ({
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
+const { GET } = await import('@/app/api/geocode/route');
 
 function makeNominatimResult(overrides: {
   lat?: string;

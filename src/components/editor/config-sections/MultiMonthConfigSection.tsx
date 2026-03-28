@@ -2,6 +2,7 @@
 
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance } from '@/types/config';
@@ -11,17 +12,15 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Layout</span>
-        <select
-          value={c.view ?? 'vertical'}
-          onChange={(e) => set({ view: e.target.value })}
-          className={INPUT_CLASS}
-        >
-          <option value="vertical">Vertical (stacked)</option>
-          <option value="horizontal">Horizontal (side by side)</option>
-        </select>
-      </label>
+      <ViewSelect
+        label="Layout"
+        value={c.view ?? 'vertical'}
+        onChange={(v) => set({ view: v })}
+        options={[
+          { value: 'vertical', label: 'Vertical (stacked)' },
+          { value: 'horizontal', label: 'Horizontal (side by side)' },
+        ]}
+      />
       <Slider label="Months to Show" value={c.monthCount ?? 3} min={1} max={6} step={1} onChange={(v) => set({ monthCount: v })} />
       <label className="flex flex-col gap-0.5">
         <span className="text-xs text-neutral-400">Week Starts On</span>

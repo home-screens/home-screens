@@ -1,5 +1,6 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import { createTZDate } from '@/lib/timezone';
 import type { ClockViewProps } from './types';
 
@@ -8,15 +9,7 @@ import type { ClockViewProps } from './types';
  * with compact timezone rows below showing up to 3 additional zones.
  */
 export default function ClockWorldView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h);
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
-  const ampm = config.format24h ? '' : hours >= 12 ? 'PM' : 'AM';
+  const { hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
 
   const primaryTime = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`
@@ -77,13 +70,13 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
         >
           {primaryTime}
         </div>
-        {ampm && (
+        {period && (
           <div
             className="uppercase tracking-widest opacity-40 font-light"
             style={{ fontSize: scaledFontSize * 0.65, marginTop: 3 }}
             suppressHydrationWarning
           >
-            {ampm}
+            {period.trim()}
           </div>
         )}
       </div>

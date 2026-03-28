@@ -17,7 +17,6 @@ interface AirQualityData {
   pm10: number;
   o3: number;
   no2: number;
-  uv: number;
 }
 
 const AQI_LABELS: Record<number, string> = {
@@ -35,22 +34,6 @@ const AQI_COLORS: Record<number, string> = {
   4: 'bg-red-600',
   5: 'bg-purple-600',
 };
-
-function getUVLabel(uv: number): string {
-  if (uv <= 2) return 'Low';
-  if (uv <= 5) return 'Moderate';
-  if (uv <= 7) return 'High';
-  if (uv <= 10) return 'Very High';
-  return 'Extreme';
-}
-
-function getUVColor(uv: number): string {
-  if (uv <= 2) return 'text-green-400';
-  if (uv <= 5) return 'text-yellow-400';
-  if (uv <= 7) return 'text-orange-400';
-  if (uv <= 10) return 'text-red-400';
-  return 'text-purple-400';
-}
 
 export default function AirQualityModule({ config, style }: AirQualityModuleProps) {
   const [data, error] = useFetchData<AirQualityData>(
@@ -85,14 +68,6 @@ export default function AirQualityModule({ config, style }: AirQualityModuleProp
           </div>
         )}
 
-        {config.showUV !== false && (
-          <div className="flex items-center gap-2" style={{ fontSize: '0.875em' }}>
-            <span className="opacity-70">UV Index:</span>
-            <span className={`font-semibold ${getUVColor(data.uv)}`}>
-              {data.uv.toFixed(1)} &mdash; {getUVLabel(data.uv)}
-            </span>
-          </div>
-        )}
       </div>
     </ModuleWrapper>
   );

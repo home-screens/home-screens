@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 const FLIP_DURATION = 500; // ms
@@ -148,14 +149,9 @@ function FlipColon({ size, accentColor }: { size: number; accentColor: string })
 }
 
 export default function ClockFlipView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
+  const { h, mStr, sStr } = parseClockTime(config.format24h, now);
+  // Flip cards always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
 
   const accent = config.accentColor || 'rgba(255, 255, 255, 0.5)';
   const cardSize = scaledFontSize * 3.5;

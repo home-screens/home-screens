@@ -142,11 +142,10 @@ describe('getModuleDefinition', () => {
       expect(Array.isArray(config.routes)).toBe(true);
     });
 
-    it('air-quality has showAQI, showPollutants, showUV, refreshIntervalMs', () => {
+    it('air-quality has showAQI, showPollutants, refreshIntervalMs', () => {
       const config = getModuleDefinition('air-quality')!.defaultConfig;
       expect(config).toHaveProperty('showAQI');
       expect(config).toHaveProperty('showPollutants');
-      expect(config).toHaveProperty('showUV');
       expect(config).toHaveProperty('refreshIntervalMs');
     });
   });
@@ -356,11 +355,10 @@ describe('Data correctness spot checks', () => {
     expect(config.showWind).toBe(false);
   });
 
-  it('air-quality defaultConfig: AQI and UV on, pollutants off, 15min refresh', () => {
+  it('air-quality defaultConfig: AQI on, pollutants off, 15min refresh', () => {
     const config = getModuleDefinition('air-quality')!.defaultConfig;
     expect(config.showAQI).toBe(true);
     expect(config.showPollutants).toBe(false);
-    expect(config.showUV).toBe(true);
     expect(config.refreshIntervalMs).toBe(900000);
   });
 });

@@ -5,6 +5,7 @@ import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, CountdownEvent, CountdownView, CountdownConfig } from '@/types/config';
 import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
@@ -51,18 +52,12 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
   return (
     <div className="space-y-2">
       {/* View selector */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={view}
-          onChange={(e) => set({ view: e.target.value as CountdownView })}
-          className={NESTED_INPUT_CLASS}
-        >
-          {VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <ViewSelect
+        value={view}
+        onChange={(v) => set({ view: v })}
+        options={VIEWS}
+        className={NESTED_INPUT_CLASS}
+      />
 
       {/* Show Past Events — only relevant for "all" view */}
       {view === 'all' && (

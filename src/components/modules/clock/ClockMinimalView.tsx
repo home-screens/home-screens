@@ -1,14 +1,10 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 export default function ClockMinimalView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h);
-  const mStr = String(minutes).padStart(2, '0');
+  const { hStr, mStr } = parseClockTime(config.format24h, now);
 
   return (
     <div

@@ -2,8 +2,8 @@
 
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, SportsView } from '@/types/config';
 
 const SPORTS_VIEWS: { value: SportsView; label: string }[] = [
@@ -27,20 +27,11 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
 
   return (
     <>
-      <div className="space-y-1">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={view}
-          onChange={(e) => set({ view: e.target.value as SportsView })}
-          className={INPUT_CLASS}
-        >
-          {SPORTS_VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>
-              {v.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ViewSelect
+        value={view}
+        onChange={(v) => set({ view: v })}
+        options={SPORTS_VIEWS}
+      />
       <div className="space-y-1">
         <span className="text-xs text-neutral-400">Leagues</span>
         {leagueOptions.map((league) => (

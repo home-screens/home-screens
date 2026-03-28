@@ -5,6 +5,7 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import type {
@@ -44,18 +45,11 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   return (
     <>
       {/* View Mode */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={c.view ?? 'board'}
-          onChange={(e) => set({ view: e.target.value as ChoreChartView })}
-          className={INPUT_CLASS}
-        >
-          {VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <ViewSelect
+        value={c.view ?? 'board'}
+        onChange={(v) => set({ view: v })}
+        options={VIEWS}
+      />
 
       {/* Week Start */}
       <label className="flex flex-col gap-0.5">

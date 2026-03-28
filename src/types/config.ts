@@ -524,7 +524,6 @@ export interface TodoistConfig {
 export interface AirQualityConfig {
   showAQI: boolean;
   showPollutants: boolean;
-  showUV: boolean;
   refreshIntervalMs: number;
 }
 

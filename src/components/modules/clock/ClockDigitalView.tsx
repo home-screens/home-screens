@@ -1,5 +1,6 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 // Seven-segment digit map: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
@@ -111,14 +112,9 @@ function Colon({ size, color }: { size: number; color: string }) {
 }
 
 export default function ClockDigitalView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
+  const { h, mStr, sStr } = parseClockTime(config.format24h, now);
+  // Seven-segment display always needs 2-digit hours
   const hStr = String(h).padStart(2, '0');
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
 
   const color = config.accentColor || '#22d3ee';
   const digitSize = scaledFontSize * 3.2;

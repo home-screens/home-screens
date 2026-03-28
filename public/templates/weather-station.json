@@ -153,7 +153,6 @@
           "config": {
             "showAQI": true,
             "showPollutants": true,
-            "showUV": true,
             "refreshIntervalMs": 600000
           },
           "style": {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
@@ -108,18 +109,11 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={view}
-          onChange={(e) => set({ view: e.target.value as WeatherView })}
-          className={INPUT_CLASS}
-        >
-          {availableViews.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <ViewSelect
+        value={view}
+        onChange={(v) => set({ view: v })}
+        options={availableViews}
+      />
       {view === 'alerts' && caps.alerts && (
         <Toggle label="Hide When No Alerts" checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
       )}

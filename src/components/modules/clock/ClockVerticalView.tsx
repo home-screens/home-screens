@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 /**
@@ -11,14 +12,9 @@ import type { ClockViewProps } from './types';
  * since the content is inherently vertical and needs to fill available height.
  */
 export default function ClockVerticalView({ config, now, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
+  const { h, mStr, sStr, period } = parseClockTime(config.format24h, now);
+  // Vertical digits always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
 
   const showSeconds = config.showSeconds ?? true;
   const digitCount = showSeconds ? 6 : 4;
@@ -99,7 +95,7 @@ export default function ClockVerticalView({ config, now, containerRef }: ClockVi
         ))}
       </div>
 
-      {!config.format24h && (
+      {period && (
         <div
           className="uppercase tracking-widest opacity-30 font-light"
           style={{
@@ -108,7 +104,7 @@ export default function ClockVerticalView({ config, now, containerRef }: ClockVi
           }}
           suppressHydrationWarning
         >
-          {hours >= 12 ? 'PM' : 'AM'}
+          {period.trim()}
         </div>
       )}
     </div>

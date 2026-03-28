@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
-import { downloadAndSaveBackground } from '@/lib/background-download';
-import { isSafeExternalUrl } from '@/lib/url-safety';
+import { createImageDownloadHandler } from '@/lib/route-factories';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,9 +26,9 @@ export const GET = withAuth(async (request: NextRequest) => {
   });
 
   if (!res.ok) {
-    const body = await res.text();
+    console.error(`[unsplash] API error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
-      { error: `Unsplash API error ${res.status}: ${body}` },
+      { error: 'Failed to search Unsplash' },
       { status: 502 },
     );
   }
@@ -60,33 +59,15 @@ export const GET = withAuth(async (request: NextRequest) => {
   });
 }, 'Failed to search Unsplash');
 
-export const POST = withAuth(async (request: NextRequest) => {
-  const accessKey = await getUnsplashAccessKey();
-
-  const body = await request.json();
-  const { imageUrl, downloadUrl, filename } = body as {
-    imageUrl?: string;
-    downloadUrl?: string;
-    filename?: string;
-  };
-
-  if (!imageUrl) {
-    return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 });
-  }
-
-  if (!isSafeExternalUrl(imageUrl)) {
-    return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
-  }
-
-  // Only track downloads against the real Unsplash API to prevent credential leakage
-  if (downloadUrl && accessKey && downloadUrl.startsWith(UNSPLASH_API + '/')) {
-    trackDownload(downloadUrl, accessKey);
-  }
-
-  const result = await downloadAndSaveBackground(
-    imageUrl,
-    filename || `unsplash-${Date.now()}`,
-  );
-
-  return NextResponse.json(result, { status: 201 });
-}, 'Failed to download image');
+export const POST = createImageDownloadHandler({
+  defaultPrefix: 'unsplash',
+  beforeDownload: async (body) => {
+    const accessKey = await getUnsplashAccessKey();
+    const downloadUrl = body.downloadUrl as string | undefined;
+    // Only track downloads against the real Unsplash API to prevent credential leakage
+    if (downloadUrl && accessKey && downloadUrl.startsWith(UNSPLASH_API + '/')) {
+      trackDownload(downloadUrl, accessKey);
+    }
+  },
+  errorMsg: 'Failed to download image',
+});

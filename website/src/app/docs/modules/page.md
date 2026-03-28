@@ -173,7 +173,6 @@ Air quality index, pollutant levels, and UV index.
 |---|---|---|---|
 | `showAQI` | boolean | `true` | Show air quality index |
 | `showPollutants` | boolean | `false` | Show individual pollutant levels (PM2.5, PM10, O3, NO2) |
-| `showUV` | boolean | `true` | Show UV index |
 | `refreshIntervalMs` | number | `900000` | Refresh interval (15 min default) |
 
 Requires an OpenWeatherMap API key.

@@ -7,11 +7,6 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-const mockCache = {
-  get: vi.fn(() => null),
-  set: vi.fn(),
-};
-
 vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
 }));
@@ -32,7 +27,6 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
       const { NextResponse } = require('next/server');
       return NextResponse.json({ error: msg }, { status });
     }),
-    createTTLCache: vi.fn(() => mockCache),
     getLocationFromConfig: vi.fn(),
   };
 });
@@ -47,7 +41,7 @@ const mockReadConfig = vi.mocked(readConfig);
 const mockCreateWeatherProvider = vi.mocked(createWeatherProvider);
 const mockGetLocation = vi.mocked(getLocationFromConfig);
 
-const { GET } = await import('@/app/api/weather/route');
+const { GET, cache } = await import('@/app/api/weather/route');
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -99,8 +93,7 @@ function setupDefaults(location: { lat: string; lon: string } | null = { lat: '4
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  mockCache.get.mockReturnValue(null);
-  mockCache.set.mockClear();
+  cache.clear();
 });
 
 describe('GET /api/weather', () => {

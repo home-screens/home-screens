@@ -454,7 +454,6 @@ registerModule({
   defaultConfig: {
     showAQI: true,
     showPollutants: false,
-    showUV: true,
     refreshIntervalMs: 900000,
   },
   defaultSize: DEFAULT_MODULE_SIZES['air-quality'],

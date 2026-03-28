@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam } from '@/lib/api-utils';
 
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
@@ -749,6 +749,99 @@ describe('cachedProxyRoute', () => {
     expect(mockRequireSession).not.toHaveBeenCalled();
     expect(mockRequireDisplayAuth).not.toHaveBeenCalled();
   });
+
+  it('supports async cacheKey functions', async () => {
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
+    const transform = vi.fn().mockReturnValue({ result: 'ok' });
+
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      url: 'https://api.example.com/data',
+      transform,
+      cacheKey: async (req) => {
+        // Simulate async work (e.g. reading config)
+        await Promise.resolve();
+        return req.nextUrl.searchParams.get('key') ?? '_';
+      },
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test?key=async-key');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(json).toEqual({ result: 'ok' });
+
+    // Second call should use cache
+    const response2 = await GET(request);
+    expect(await response2.json()).toEqual({ result: 'ok' });
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('runs prepare once and passes result to cacheKey and execute', async () => {
+    const prepare = vi.fn().mockResolvedValue({ computedKey: 'abc', extra: 42 });
+    const execute = vi.fn().mockResolvedValue({ answer: 42 });
+
+    const { GET } = cachedProxyRoute<{ answer: number }, { computedKey: string; extra: number }>({
+      ttlMs: 60_000,
+      prepare,
+      cacheKey: (prepared) => prepared.computedKey,
+      execute,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(prepare).toHaveBeenCalledWith(request);
+    expect(execute).toHaveBeenCalledWith({ computedKey: 'abc', extra: 42 }, request);
+    expect(json).toEqual({ answer: 42 });
+  });
+
+  it('caches results in prepare mode', async () => {
+    const prepare = vi.fn().mockResolvedValue({ key: 'same' });
+    const execute = vi.fn().mockResolvedValue({ value: 1 });
+
+    const { GET } = cachedProxyRoute<{ value: number }, { key: string }>({
+      ttlMs: 60_000,
+      prepare,
+      cacheKey: (p) => p.key,
+      execute,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    await GET(request);
+    const response2 = await GET(request);
+    const json = await response2.json();
+
+    expect(json).toEqual({ value: 1 });
+    expect(prepare).toHaveBeenCalledTimes(2); // prepare runs every time
+    expect(execute).toHaveBeenCalledOnce(); // but execute only once (cached)
+  });
+
+  it('does not cache NextResponse results in prepare mode', async () => {
+    const errorResp = NextResponse.json({ error: 'bad' }, { status: 400 });
+    const prepare = vi.fn().mockResolvedValue({ key: 'k' });
+    const execute = vi.fn().mockResolvedValue(errorResp);
+
+    const { GET } = cachedProxyRoute<string, { key: string }>({
+      ttlMs: 60_000,
+      prepare,
+      cacheKey: (p) => p.key,
+      execute,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await GET(request);
+    expect(response).toBe(errorResp);
+
+    // Second call should re-execute since error was not cached
+    await GET(request);
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('withDisplayAuth', () => {
@@ -811,5 +904,65 @@ describe('withDisplayAuth', () => {
     await wrapped(request, ctx);
 
     expect(handler).toHaveBeenCalledWith(request, ctx);
+  });
+});
+
+describe('parseTagParam', () => {
+  it('returns the tag for a valid semver tag', async () => {
+    const body = JSON.stringify({ tag: '1.2.3' });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBe('1.2.3');
+  });
+
+  it('accepts tags with v prefix', async () => {
+    const body = JSON.stringify({ tag: 'v2.0.0' });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBe('v2.0.0');
+  });
+
+  it('accepts tags with pre-release suffix', async () => {
+    const body = JSON.stringify({ tag: '1.0.0-beta.1' });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBe('1.0.0-beta.1');
+  });
+
+  it('returns 400 for invalid JSON body', async () => {
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body: 'not json' });
+    const result = await parseTagParam(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('Invalid JSON body');
+  });
+
+  it('returns 400 when tag is missing', async () => {
+    const body = JSON.stringify({ other: 'value' });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('Missing "tag" in request body');
+  });
+
+  it('returns 400 when tag is not a string', async () => {
+    const body = JSON.stringify({ tag: 123 });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 400 for invalid tag format', async () => {
+    const body = JSON.stringify({ tag: 'not-a-version' });
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body });
+    const result = await parseTagParam(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('Invalid tag format');
   });
 });

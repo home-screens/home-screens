@@ -1,5 +1,6 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 /**
@@ -57,11 +58,7 @@ function DotColumn({ bits, accentColor, dotSize, gap, maxBits }: DotColumnProps)
 }
 
 export default function ClockBinaryView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const h = config.format24h ? hours : hours % 12 || 12;
+  const { minutes, seconds, h } = parseClockTime(config.format24h, now);
 
   const dotSize = Math.max(12, scaledFontSize * 0.85);
   const gap = dotSize * 0.45;

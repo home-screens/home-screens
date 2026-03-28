@@ -7,6 +7,8 @@ import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 
+export const dynamic = 'force-dynamic';
+
 const CACHE_FILE = path.join(process.cwd(), 'data', 'background-cache.json');
 
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);

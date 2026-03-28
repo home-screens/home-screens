@@ -2,6 +2,7 @@
 
 import { useId, useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 export default function ClockArcView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
@@ -10,9 +11,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
   const sunGlowId = `sun-glow-${id}`;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
+  const { hours, minutes, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
 
   const totalMinutes = hours * 60 + minutes;
   const dayStart = 6 * 60;  // 6:00 AM
@@ -23,15 +22,9 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
   const isDaytime = rawProgress >= 0 && rawProgress <= 1;
   const progress = Math.max(0, Math.min(1, rawProgress));
 
-  const h = config.format24h ? hours : hours % 12 || 12;
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h);
-  const mStr = String(minutes).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
-  const ampm = config.format24h ? '' : hours >= 12 ? ' PM' : ' AM';
-
   const timeStr = config.showSeconds
-    ? `${hStr}:${mStr}:${sStr}${ampm}`
-    : `${hStr}:${mStr}${ampm}`;
+    ? `${hStr}:${mStr}:${sStr}${period}`
+    : `${hStr}:${mStr}${period}`;
 
   const dateStr = config.showDate ? format(now, config.dateFormat || 'EEEE, MMMM d') : null;
 

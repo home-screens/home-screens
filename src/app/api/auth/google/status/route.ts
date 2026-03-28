@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { isAuthenticated, disconnect, hasGoogleCredentials } from '@/lib/google-auth';
 import { withAuth } from '@/lib/api-utils';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async () => {
   const [connected, credentialsConfigured] = await Promise.all([
     isAuthenticated(),

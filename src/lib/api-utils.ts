@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { requireSession, requireDisplayAuth } from '@/lib/auth';
 import { getSecret, type SecretKey } from '@/lib/secrets';
-
 /**
  * Standardized error response for API routes.
  * Always returns the generic fallbackMessage to clients to avoid leaking
@@ -216,42 +215,74 @@ export function withDisplayAuth<C = any>(
 
 interface CachedProxyRouteBase {
   ttlMs: number;
-  cacheKey?: (request: NextRequest) => string;
   errorMessage: string;
   /** Auth tier for this route. 'display' accepts session or display token; 'session' requires session only. */
   auth?: 'display' | 'session';
 }
 
 interface CachedProxyRouteOptions<T> extends CachedProxyRouteBase {
+  cacheKey?: (request: NextRequest) => string | Promise<string>;
   url: string | ((request: NextRequest) => string);
   fetchInit?: RequestInit;
   transform: (data: unknown, request: NextRequest) => T;
 }
 
 interface CachedProxyRouteCustomOptions<T> extends CachedProxyRouteBase {
+  cacheKey?: (request: NextRequest) => string | Promise<string>;
   execute: (request: NextRequest) => Promise<T | NextResponse>;
 }
 
-type CachedProxyRouteConfig<T> = CachedProxyRouteOptions<T> | CachedProxyRouteCustomOptions<T>;
+/**
+ * Custom config with a `prepare` step that runs once per request.
+ * The prepared data is passed to both `cacheKey` and `execute`,
+ * avoiding redundant work like double `readConfig()` calls.
+ */
+interface CachedProxyRoutePreparedOptions<T, P> extends CachedProxyRouteBase {
+  prepare: (request: NextRequest) => Promise<P>;
+  cacheKey: (prepared: P) => string;
+  execute: (prepared: P, request: NextRequest) => Promise<T | NextResponse>;
+}
 
-function isCustomConfig<T>(config: CachedProxyRouteConfig<T>): config is CachedProxyRouteCustomOptions<T> {
+type CachedProxyRouteConfig<T, P = never> =
+  | CachedProxyRouteOptions<T>
+  | CachedProxyRouteCustomOptions<T>
+  | CachedProxyRoutePreparedOptions<T, P>;
+
+function isPreparedConfig<T, P>(config: CachedProxyRouteConfig<T, P>): config is CachedProxyRoutePreparedOptions<T, P> {
+  return 'prepare' in config;
+}
+
+function isCustomConfig<T>(config: CachedProxyRouteOptions<T> | CachedProxyRouteCustomOptions<T>): config is CachedProxyRouteCustomOptions<T> {
   return 'execute' in config;
 }
 
-export function cachedProxyRoute<T>(config: CachedProxyRouteConfig<T>) {
+export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T, P>) {
   const cache = createTTLCache<T>(config.ttlMs);
-  const keyFn = config.cacheKey ?? (() => '_');
 
   const GET = async (request: NextRequest) => {
     try {
       if (config.auth === 'display') await requireDisplayAuth(request);
       else if (config.auth === 'session') await requireSession(request);
 
-      const key = keyFn(request);
+      let result: T | NextResponse;
+
+      if (isPreparedConfig(config)) {
+        const prepared = await config.prepare(request);
+        const key = config.cacheKey(prepared);
+        const cached = cache.get(key);
+        if (cached) return NextResponse.json(cached);
+
+        result = await config.execute(prepared, request);
+        if (result instanceof NextResponse) return result;
+        cache.set(key, result);
+        return NextResponse.json(result);
+      }
+
+      const keyFn = config.cacheKey ?? (() => '_');
+      const key = await keyFn(request);
       const cached = cache.get(key);
       if (cached) return NextResponse.json(cached);
 
-      let result: T | NextResponse;
       if (isCustomConfig(config)) {
         result = await config.execute(request);
       } else {
@@ -322,3 +353,4 @@ export async function parseTagParam(
   }
   return tag;
 }
+

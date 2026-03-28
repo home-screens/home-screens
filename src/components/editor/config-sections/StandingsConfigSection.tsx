@@ -2,6 +2,7 @@
 
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StandingsView, StandingsGrouping } from '@/types/config';
@@ -46,18 +47,11 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
 
   return (
     <>
-      <div className="space-y-1">
-        <span className="text-xs text-neutral-400">View</span>
-        <select
-          value={c.view ?? 'table'}
-          onChange={(e) => set({ view: e.target.value as StandingsView })}
-          className={INPUT_CLASS}
-        >
-          {STANDINGS_VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </div>
+      <ViewSelect
+        value={c.view ?? 'table'}
+        onChange={(v) => set({ view: v })}
+        options={STANDINGS_VIEWS}
+      />
       <div className="space-y-1">
         <span className="text-xs text-neutral-400">League</span>
         <select

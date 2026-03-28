@@ -1,11 +1,10 @@
 'use client';
 
+import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
 
 export default function ClockAnalogView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
+  const { hours, minutes, seconds } = parseClockTime(config.format24h, now);
 
   const hourAngle = ((hours % 12) + minutes / 60) * 30;
   const minuteAngle = (minutes + seconds / 60) * 6;

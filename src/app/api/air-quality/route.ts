@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createTTLCache, getLocationFromConfig, fetchWithTimeout, errorResponse, requireSecret, withDisplayAuth } from '@/lib/api-utils';
+import { cachedProxyRoute, getLocationFromConfig, fetchWithTimeout, requireSecret } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-/** @internal */
-export const cache = createTTLCache<Record<string, unknown>>(5 * 60 * 1000); // 5 minutes
+interface AirQualityParams {
+  location: { lat: string; lon: string } | null;
+}
 
-export const GET = withDisplayAuth(async () => {
-  try {
+const { GET, cache } = cachedProxyRoute<Record<string, unknown>, AirQualityParams>({
+  auth: 'display',
+  ttlMs: 5 * 60 * 1000,
+  prepare: async () => {
     const location = await getLocationFromConfig();
+    return { location };
+  },
+  cacheKey: ({ location }) => location ? `${location.lat}:${location.lon}` : '_',
+  execute: async ({ location }) => {
     if (!location) {
       return NextResponse.json(
         { error: 'Missing latitude/longitude in weather settings' },
@@ -20,25 +27,13 @@ export const GET = withDisplayAuth(async () => {
     if (apiKey instanceof NextResponse) return apiKey;
 
     const { lat, lon } = location;
-
-    const cacheKey = `${lat}:${lon}`;
-    const cached = cache.get(cacheKey);
-    if (cached) return NextResponse.json(cached);
-
-    const [airRes, uvRes] = await Promise.all([
-      fetchWithTimeout(
-        `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`,
-      ),
-      // NOTE: /data/2.5/uvi is deprecated; may not work on newer API keys.
-      // If UV returns 0, consider migrating to One Call API 3.0.
-      // Caught separately so a UV failure doesn't reject the entire Promise.all.
-      fetchWithTimeout(
-        `https://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`,
-      ).catch(() => null),
-    ]);
+    const airRes = await fetchWithTimeout(
+      `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`,
+    );
 
     if (!airRes.ok) {
-      return NextResponse.json({ error: `Air pollution API returned ${airRes.status}` }, { status: 502 });
+      console.error(`[air-quality] Air pollution API returned ${airRes.status}`);
+      return NextResponse.json({ error: 'Failed to fetch air quality data' }, { status: 502 });
     }
 
     const airData = await airRes.json();
@@ -50,32 +45,16 @@ export const GET = withDisplayAuth(async () => {
     const aqi = entry.main.aqi;
     const components = entry.components;
 
-    let uv = 0;
-    if (uvRes?.ok) {
-      const uvData = await uvRes.json();
-      uv = uvData.value ?? 0;
-    }
-
-    if (!uvRes?.ok || uv === 0) {
-      console.warn(
-        '[air-quality] UV index returned %s — the /data/2.5/uvi endpoint is deprecated by OpenWeatherMap. ' +
-        'UV data may be unavailable for newer API keys. Consider migrating to One Call API 3.0.',
-        uvRes?.ok ? '0' : `HTTP ${uvRes?.status ?? 'error'}`,
-      );
-    }
-
-    const result = {
+    return {
       aqi,
       pm25: components.pm2_5 ?? 0,
       pm10: components.pm10 ?? 0,
       o3: components.o3 ?? 0,
       no2: components.no2 ?? 0,
-      uv,
     };
+  },
+  errorMessage: 'Failed to fetch air quality data',
+});
 
-    cache.set(cacheKey, result);
-    return NextResponse.json(result);
-  } catch (error) {
-    return errorResponse(error, 'Failed to fetch air quality data');
-  }
-}, 'Failed to fetch air quality data');
+/** @internal */
+export { GET, cache };

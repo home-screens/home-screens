@@ -1,63 +1,67 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { getSecret } from '@/lib/secrets';
-import { errorResponse, createTTLCache, getLocationFromConfig, withDisplayAuth } from '@/lib/api-utils';
+import { cachedProxyRoute, getLocationFromConfig } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-/** @internal */
-export const cache = createTTLCache<unknown>(5 * 60 * 1000); // 5 minutes
+const secretKeyMap: Record<string, 'openweathermap_key' | 'weatherapi_key' | 'pirateweather_key'> = {
+  openweathermap: 'openweathermap_key',
+  weatherapi: 'weatherapi_key',
+  pirateweather: 'pirateweather_key',
+};
 
-export const GET = withDisplayAuth(async (request: NextRequest) => {
-  const { searchParams } = request.nextUrl;
-  const type = searchParams.get('type') ?? 'both';
+interface WeatherParams {
+  type: string;
+  provider: string;
+  location: { lat: string; lon: string } | null;
+  units: string;
+}
 
-  // Read settings from config for defaults
-  let config;
-  try {
-    config = await readConfig();
-  } catch {
-    // config not available
-  }
-  const ws = config?.settings?.weather;
+const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
+  auth: 'display',
+  ttlMs: 5 * 60 * 1000,
+  prepare: async (request) => {
+    const { searchParams } = request.nextUrl;
+    const type = searchParams.get('type') ?? 'both';
 
-  const provider = searchParams.get('provider') ?? ws?.provider ?? 'openweathermap';
-  const location = await getLocationFromConfig(searchParams, config);
-  const units = searchParams.get('units') ?? ws?.units ?? 'imperial';
+    let config;
+    try { config = await readConfig(); } catch { /* config not available */ }
+    const ws = config?.settings?.weather;
 
-  if (!location) {
-    return NextResponse.json(
-      { error: 'Missing required query params: lat, lon' },
-      { status: 400 },
-    );
-  }
+    const provider = searchParams.get('provider') ?? ws?.provider ?? 'openweathermap';
+    const location = await getLocationFromConfig(searchParams, config);
+    const units = searchParams.get('units') ?? ws?.units ?? 'imperial';
 
-  const { lat, lon } = location;
+    return { type, provider, location, units };
+  },
+  cacheKey: ({ provider, location, units, type }) => {
+    const lat = location?.lat ?? '_';
+    const lon = location?.lon ?? '_';
+    return `${provider}:${lat}:${lon}:${units}:${type}`;
+  },
+  execute: async ({ type, provider, location, units }) => {
+    if (!location) {
+      return NextResponse.json(
+        { error: 'Missing required query params: lat, lon' },
+        { status: 400 },
+      );
+    }
 
-  const secretKeyMap: Record<string, 'openweathermap_key' | 'weatherapi_key' | 'pirateweather_key'> = {
-    openweathermap: 'openweathermap_key',
-    weatherapi: 'weatherapi_key',
-    pirateweather: 'pirateweather_key',
-  };
-  // NOAA and Open-Meteo require no API key — skip the secret lookup
-  const secretKey = secretKeyMap[provider];
-  const apiKey = secretKey
-    ? (await getSecret(secretKey) ?? undefined)
-    : undefined;
+    const { lat, lon } = location;
 
-  if (secretKey && !apiKey) {
-    return NextResponse.json(
-      { error: `No API key configured for ${provider}. Add it in Settings → Integrations.` },
-      { status: 400 },
-    );
-  }
+    // NOAA and Open-Meteo require no API key — skip the secret lookup
+    const secretKey = secretKeyMap[provider];
+    const apiKey = secretKey
+      ? (await getSecret(secretKey) ?? undefined)
+      : undefined;
 
-  try {
-    const cacheKey = `${provider}:${lat}:${lon}:${units}:${type}`;
-    const cached = cache.get(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached);
+    if (secretKey && !apiKey) {
+      return NextResponse.json(
+        { error: `No API key configured for ${provider}. Add it in Settings → Integrations.` },
+        { status: 400 },
+      );
     }
 
     const weatherProvider = createWeatherProvider(provider, apiKey);
@@ -85,9 +89,10 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       result.alerts = await weatherProvider.getAlerts(Number(lat), Number(lon), units);
     }
 
-    cache.set(cacheKey, result);
-    return NextResponse.json(result);
-  } catch (error) {
-    return errorResponse(error, 'Failed to fetch weather');
-  }
-}, 'Failed to fetch weather');
+    return result;
+  },
+  errorMessage: 'Failed to fetch weather',
+});
+
+/** @internal */
+export { GET, cache };

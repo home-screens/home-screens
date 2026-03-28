@@ -860,7 +860,6 @@ describe('GET /api/standings', () => {
       expect(res.status).toBe(502);
       expect(json.error).toContain('Failed to fetch');
       expect(json.error).toContain('nfl');
-      expect(json.error).toContain('503');
     });
 
     it('returns 500 on network error', async () => {

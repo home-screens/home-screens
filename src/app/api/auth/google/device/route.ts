@@ -3,6 +3,8 @@ import { requestDeviceCode, pollDeviceToken } from '@/lib/google-auth';
 import { requireSession } from '@/lib/auth';
 import { withAuth } from '@/lib/api-utils';
 
+export const dynamic = 'force-dynamic';
+
 /** POST — start device flow, returns user_code + verification_url */
 export async function POST(request: NextRequest) {
   try {
