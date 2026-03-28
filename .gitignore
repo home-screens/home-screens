@@ -58,6 +58,9 @@ public/backgrounds/*
 infrastructure/telemetry-worker/node_modules
 infrastructure/telemetry-worker/.wrangler
 
+# emulate-install VM artifacts
+.emulate/
+
 # vercel
 .vercel
 

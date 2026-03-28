@@ -9,6 +9,7 @@ set -euo pipefail
 #   ~/home-screens/scripts/install.sh                        # Pi OS Lite (default)
 #   ~/home-screens/scripts/install.sh --desktop              # Pi OS with Desktop
 #   ~/home-screens/scripts/install.sh --version v1.2.0       # Install a specific release
+#   ~/home-screens/scripts/install.sh --non-interactive      # Skip display prompts (use defaults)
 
 INSTALL_BASE="/opt/home-screens"
 APP_DIR="${INSTALL_BASE}/current"
@@ -35,6 +36,7 @@ while [[ $# -gt 0 ]]; do
       if [ -z "${2:-}" ]; then error "--port requires a number (e.g. --port 8080)"; fi
       if ! [[ "${2}" =~ ^[0-9]+$ ]]; then error "--port must be a number (e.g. --port 8080)"; fi
       REQUESTED_PORT="$2"; shift 2 ;;
+    --non-interactive) NON_INTERACTIVE="true"; shift ;;
     *)      error "Unknown option: $1" ;;
   esac
 done
@@ -123,39 +125,52 @@ if [ -n "${REQUESTED_PORT}" ]; then
 fi
 
 # --- Step 5: Display configuration ---
-echo ""
-echo "  How is your display oriented?"
-echo "  1) Portrait (default, rotated 90° clockwise)"
-echo "  2) Portrait (rotated 90° counter-clockwise)"
-echo "  3) Landscape (no rotation)"
-echo "  4) Inverted (rotated 180°)"
-echo ""
-read -rp "  Display orientation [1]: " ORIENT_CHOICE
-ORIENT_CHOICE="${ORIENT_CHOICE:-1}"
-
-case "${ORIENT_CHOICE}" in
-  2) WLR_TRANSFORM="270" ;;
-  3) WLR_TRANSFORM=""     ;;
-  4) WLR_TRANSFORM="180" ;;
-  *) WLR_TRANSFORM="90"  ;;
-esac
-
-echo ""
-echo "  Enter display resolution (e.g. 1920x1080, 2560x1440)"
-echo "  Leave blank to use the display's preferred resolution."
-echo ""
-read -rp "  Resolution [auto]: " DISPLAY_RES
-
-DISPLAY_MODE=""
-if [ -n "${DISPLAY_RES}" ]; then
-  DISPLAY_MODE="${DISPLAY_RES}"
-  info "Display resolution set to ${DISPLAY_MODE}."
-else
-  # Auto-detect native resolution from kernel DRM/EDID (first mode = preferred)
+if [ "${NON_INTERACTIVE}" = "true" ]; then
+  # Defaults: portrait 90° rotation, auto-detect resolution
+  WLR_TRANSFORM="90"
+  DISPLAY_MODE=""
   NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
   if [ -n "${NATIVE_RES}" ]; then
     DISPLAY_MODE="${NATIVE_RES}"
     info "Auto-detected display resolution: ${DISPLAY_MODE}"
+  else
+    info "Using default display config (portrait 90°, 1080×1920)."
+  fi
+else
+  echo ""
+  echo "  How is your display oriented?"
+  echo "  1) Portrait (default, rotated 90° clockwise)"
+  echo "  2) Portrait (rotated 90° counter-clockwise)"
+  echo "  3) Landscape (no rotation)"
+  echo "  4) Inverted (rotated 180°)"
+  echo ""
+  read -rp "  Display orientation [1]: " ORIENT_CHOICE
+  ORIENT_CHOICE="${ORIENT_CHOICE:-1}"
+
+  case "${ORIENT_CHOICE}" in
+    2) WLR_TRANSFORM="270" ;;
+    3) WLR_TRANSFORM=""     ;;
+    4) WLR_TRANSFORM="180" ;;
+    *) WLR_TRANSFORM="90"  ;;
+  esac
+
+  echo ""
+  echo "  Enter display resolution (e.g. 1920x1080, 2560x1440)"
+  echo "  Leave blank to use the display's preferred resolution."
+  echo ""
+  read -rp "  Resolution [auto]: " DISPLAY_RES
+
+  DISPLAY_MODE=""
+  if [ -n "${DISPLAY_RES}" ]; then
+    DISPLAY_MODE="${DISPLAY_RES}"
+    info "Display resolution set to ${DISPLAY_MODE}."
+  else
+    # Auto-detect native resolution from kernel DRM/EDID (first mode = preferred)
+    NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
+    if [ -n "${NATIVE_RES}" ]; then
+      DISPLAY_MODE="${NATIVE_RES}"
+      info "Auto-detected display resolution: ${DISPLAY_MODE}"
+    fi
   fi
 fi
 

@@ -10,7 +10,7 @@ set -euo pipefail
 #   ./scripts/deploy.sh --skip-install            # skip npm install
 #   ./scripts/deploy.sh --restart-only            # just restart the service
 
-DEFAULT_HOST="signal@192.168.86.143"
+DEFAULT_HOST="signal@192.168.86.175"
 REMOTE_DIR="/opt/home-screens/current"
 SKIP_INSTALL=false
 RESTART_ONLY=false
@@ -58,7 +58,7 @@ fi
 step "Syncing files..."
 rsync -azP --delete \
   --exclude 'node_modules' \
-  --exclude '.next/cache' \
+  --exclude '.next' \
   --exclude '.git' \
   --exclude '*.tsbuildinfo' \
   --exclude '.env.local' \
@@ -75,6 +75,8 @@ rsync -azP --delete \
   --exclude 'public/backgrounds/*.jpeg' \
   --exclude 'public/backgrounds/*.png' \
   --exclude 'public/backgrounds/*.webp' \
+  --exclude '.emulate' \
+  --exclude 'scripts/emulate-install.sh' \
   "$PROJECT_DIR/" "$HOST:$REMOTE_DIR/"
 
 # --- Build locally ---
@@ -85,6 +87,7 @@ cd "$PROJECT_DIR" && npm run build
 step "Syncing build output..."
 rsync -azP --delete \
   --exclude 'cache' \
+  --exclude 'standalone' \
   --exclude '/node_modules' \
   "$PROJECT_DIR/.next/" "$HOST:$REMOTE_DIR/.next/"
 

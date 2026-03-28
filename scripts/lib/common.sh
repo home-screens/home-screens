@@ -3,6 +3,9 @@
 # Source this file; do not execute directly.
 [[ -n "${_COMMON_SH_LOADED:-}" ]] && return 0; _COMMON_SH_LOADED=1
 
+# --- Non-interactive mode ---
+NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
+
 # --- Colors ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -68,6 +71,9 @@ check_not_root() {
 ensure_tty() {
   # Reattach stdin to the terminal for interactive prompts
   # (needed when piped or redirected).
+  if [ "${NON_INTERACTIVE}" = "true" ]; then
+    return 0
+  fi
   if [ ! -t 0 ]; then
     exec < /dev/tty
   fi
