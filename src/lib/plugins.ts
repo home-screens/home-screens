@@ -93,24 +93,54 @@ export async function installPlugin(
       throw new Error(`SHA-256 mismatch: expected ${expectedSha256}, got ${hash}`);
     }
 
-    // Extract tarball to plugin directory (async, no shell, sanitized paths)
-    const dir = pluginDir(registryEntry.id);
-    await fs.mkdir(dir, { recursive: true });
-
     const safeId = sanitizePluginId(registryEntry.id);
     const tmpTarPath = path.join(pluginsDir(), `${safeId}.tar.gz`);
     await fs.writeFile(tmpTarPath, downloadBuffer);
+
     try {
-      await execFileAsync('tar', ['-xzf', tmpTarPath, '-C', dir, '--strip-components=1']);
+      // Pre-flight: reject tarballs containing path traversal entries
+      const { stdout } = await execFileAsync('tar', ['-tzf', tmpTarPath]);
+      if (stdout.split('\n').some((entry) => entry.split('/').includes('..'))) {
+        throw new Error('Tarball contains path traversal entries');
+      }
+
+      // Extract to temp directory first — only promote after validation
+      const tmpDir = path.join(pluginsDir(), `.tmp-${safeId}`);
+      await fs.rm(tmpDir, { recursive: true, force: true });
+      await fs.mkdir(tmpDir, { recursive: true });
+
+      try {
+        await execFileAsync('tar', ['-xzf', tmpTarPath, '-C', tmpDir, '--strip-components=1']);
+
+        // Validate manifest in temp directory before promoting
+        const manifestPath = path.join(tmpDir, 'manifest.json');
+        let manifest: PluginManifest;
+        try {
+          const raw = await fs.readFile(manifestPath, 'utf-8');
+          manifest = JSON.parse(raw);
+        } catch {
+          throw new Error('Plugin manifest is missing or unreadable');
+        }
+        if (!validateManifest(manifest)) {
+          throw new Error('Plugin manifest is invalid');
+        }
+
+        // Validation passed — atomically promote to final location
+        const dir = pluginDir(registryEntry.id);
+        await fs.rm(dir, { recursive: true, force: true });
+        await fs.rename(tmpDir, dir);
+      } catch (err) {
+        await fs.rm(tmpDir, { recursive: true, force: true });
+        throw err;
+      }
     } finally {
       await fs.unlink(tmpTarPath).catch(() => {});
     }
 
-    // Validate manifest after extraction — require a valid manifest
+    // Re-read manifest from final location for installed.json entry
     const manifest = await getPluginManifest(registryEntry.id);
-    if (!manifest || !validateManifest(manifest)) {
-      await fs.rm(dir, { recursive: true, force: true });
-      throw new Error('Plugin manifest is missing or invalid');
+    if (!manifest) {
+      throw new Error('Plugin manifest missing after install');
     }
 
     // Update installed.json (serialized to prevent TOCTOU races)

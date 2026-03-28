@@ -9,14 +9,23 @@ import {
   buildClearCookie,
   clearAuthCache,
 } from '@/lib/auth';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, createRateLimiter, getClientIP } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
 const MIN_PASSWORD_LENGTH = 8;
+const limiter = createRateLimiter(5, 15 * 60 * 1000); // 5 attempts / 15 min
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request);
+    if (limiter.isLimited(ip)) {
+      return NextResponse.json(
+        { error: 'Too many failed attempts. Try again later.' },
+        { status: 429 },
+      );
+    }
+
     const authEnabled = await isAuthEnabled();
 
     // If auth is already enabled, require a valid session
@@ -37,8 +46,10 @@ export async function POST(request: NextRequest) {
       }
       const valid = await verifyPassword(currentPassword);
       if (!valid) {
+        limiter.recordFailure(ip);
         return NextResponse.json({ error: 'Invalid current password' }, { status: 401 });
       }
+      limiter.clear(ip);
       await clearPassword();
       clearAuthCache();
       const cookie = buildClearCookie(request);
@@ -65,8 +76,10 @@ export async function POST(request: NextRequest) {
       }
       const valid = await verifyPassword(currentPassword);
       if (!valid) {
+        limiter.recordFailure(ip);
         return NextResponse.json({ error: 'Invalid current password' }, { status: 401 });
       }
+      limiter.clear(ip);
     }
 
     const token = await setPassword(newPassword);

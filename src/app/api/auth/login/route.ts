@@ -5,53 +5,18 @@ import {
   createSessionCookie,
   buildSessionCookie,
 } from '@/lib/auth';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, createRateLimiter, getClientIP } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-/* ─── In-memory rate limiting ────────────────── */
-
-const failedAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
-function getClientIP(request: NextRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
-}
-
-function isRateLimited(ip: string): boolean {
-  const entry = failedAttempts.get(ip);
-  if (!entry) return false;
-  if (Date.now() > entry.resetAt) {
-    failedAttempts.delete(ip);
-    return false;
-  }
-  return entry.count >= MAX_ATTEMPTS;
-}
-
-function recordFailure(ip: string): void {
-  const entry = failedAttempts.get(ip);
-  if (!entry || Date.now() > entry.resetAt) {
-    failedAttempts.set(ip, { count: 1, resetAt: Date.now() + WINDOW_MS });
-  } else {
-    entry.count++;
-  }
-}
-
-function clearFailures(ip: string): void {
-  failedAttempts.delete(ip);
-}
+const limiter = createRateLimiter(5, 15 * 60 * 1000); // 5 attempts / 15 min
 
 /* ─── POST /api/auth/login ───────────────────── */
 
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIP(request);
-    if (isRateLimited(ip)) {
+    if (limiter.isLimited(ip)) {
       return NextResponse.json(
         { error: 'Too many failed attempts. Try again later.' },
         { status: 429 },
@@ -67,11 +32,11 @@ export async function POST(request: NextRequest) {
 
     const valid = await verifyPassword(password);
     if (!valid) {
-      recordFailure(ip);
+      limiter.recordFailure(ip);
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
     }
 
-    clearFailures(ip);
+    limiter.clear(ip);
 
     const state = await readAuthState();
     if (!state.cookieSecret) {

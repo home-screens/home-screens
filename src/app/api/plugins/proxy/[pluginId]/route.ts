@@ -177,6 +177,11 @@ export async function POST(
       return NextResponse.json({ error: 'url is required' }, { status: 400 });
     }
 
+    // Enforce request payload size limit (1MB)
+    if (body.payload && body.payload.length > 1_048_576) {
+      return NextResponse.json({ error: 'Payload too large (max 1MB)' }, { status: 413 });
+    }
+
     // Validate HTTP method
     const method = (body.method ?? 'GET').toUpperCase();
     if (!ALLOWED_METHODS.has(method)) {

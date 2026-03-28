@@ -116,6 +116,48 @@ export async function validateTodoistToken(
   return { valid: true };
 }
 
+/* ─── Rate limiting ──────────────────────────── */
+
+/**
+ * Creates an in-memory per-IP rate limiter.
+ * After `maxAttempts` failures within `windowMs`, subsequent calls to
+ * `isLimited()` return true until the window expires.
+ */
+export function createRateLimiter(maxAttempts: number, windowMs: number) {
+  const attempts = new Map<string, { count: number; resetAt: number }>();
+  return {
+    isLimited(ip: string): boolean {
+      const entry = attempts.get(ip);
+      if (!entry) return false;
+      if (Date.now() > entry.resetAt) {
+        attempts.delete(ip);
+        return false;
+      }
+      return entry.count >= maxAttempts;
+    },
+    recordFailure(ip: string): void {
+      const entry = attempts.get(ip);
+      if (!entry || Date.now() > entry.resetAt) {
+        attempts.set(ip, { count: 1, resetAt: Date.now() + windowMs });
+      } else {
+        entry.count++;
+      }
+    },
+    clear(ip: string): void {
+      attempts.delete(ip);
+    },
+  };
+}
+
+/** Extract the client IP from standard proxy headers. */
+export function getClientIP(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
 /**
  * Wraps an authenticated API route handler with the standard
  * requireSession + error-handling boilerplate.

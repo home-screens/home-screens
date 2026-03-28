@@ -17,11 +17,15 @@ vi.mock('@/lib/auth', () => ({
   clearAuthCache: vi.fn(),
 }));
 
-vi.mock('@/lib/api-utils', () => ({
-  errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
-    return Response.json({ error: msg }, { status });
-  }),
-}));
+vi.mock('@/lib/api-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api-utils')>();
+  return {
+    ...actual,
+    errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
+      return Response.json({ error: msg }, { status });
+    }),
+  };
+});
 
 import {
   verifyPassword,
