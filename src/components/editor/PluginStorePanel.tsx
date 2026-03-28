@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Shield, Code2, Loader2 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { editorFetch } from '@/lib/editor-fetch';
 import { usePluginStore } from '@/stores/plugin-store';
 import Button from '@/components/ui/Button';
@@ -111,13 +112,15 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
     return latest && latest.version !== inst.version;
   });
 
+  const trapRef = useFocusTrap<HTMLDivElement>();
+
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Plugins">
+      <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3.5">
           <h2 className="text-lg font-semibold text-neutral-100">Plugins</h2>
-          <button type="button" onClick={onClose} className="p-1 rounded hover:bg-neutral-700">
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 rounded hover:bg-neutral-700">
             <X className="w-5 h-5 text-neutral-400" />
           </button>
         </div>
@@ -149,7 +152,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         {actionError && (
           <div className="mx-5 mt-2 px-3 py-2 text-xs text-red-300 bg-red-900/30 border border-red-800 rounded-lg flex items-center justify-between">
             <span>{actionError}</span>
-            <button type="button" onClick={() => setActionError(null)} className="text-red-400 hover:text-red-200 ml-2">
+            <button type="button" onClick={() => setActionError(null)} aria-label="Dismiss error" className="text-red-400 hover:text-red-200 ml-2">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -250,8 +253,8 @@ function BrowseTab({
                 </div>
                 <p className="text-xs text-neutral-400 mt-0.5">{plugin.description}</p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-[10px] text-neutral-500">{plugin.author}</span>
-                  <span className="text-[10px] text-neutral-600">{plugin.category}</span>
+                  <span className="text-[10px] text-neutral-400">{plugin.author}</span>
+                  <span className="text-[10px] text-neutral-500">{plugin.category}</span>
                 </div>
               </div>
               <div className="shrink-0">
@@ -306,7 +309,7 @@ function InstalledTab({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-neutral-100">{plugin.id}</span>
-                <span className="text-xs text-neutral-500">v{plugin.version}</span>
+                <span className="text-xs text-neutral-400">v{plugin.version}</span>
               </div>
               {error && (
                 <div className="flex items-center gap-1 mt-1">
@@ -321,6 +324,7 @@ function InstalledTab({
               disabled={actionInProgress === plugin.id}
               className="p-1 text-neutral-400 hover:text-neutral-200"
               title={plugin.enabled ? 'Disable' : 'Enable'}
+              aria-label={plugin.enabled ? `Disable ${plugin.id}` : `Enable ${plugin.id}`}
             >
               {plugin.enabled ? (
                 <ToggleRight className="w-5 h-5 text-green-400" />
@@ -334,6 +338,7 @@ function InstalledTab({
               disabled={actionInProgress === plugin.id}
               className="p-1 text-neutral-400 hover:text-red-400"
               title="Uninstall"
+              aria-label={`Uninstall ${plugin.id}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -451,7 +456,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
     <div className="space-y-4">
       <div>
         <label className="block text-xs font-medium text-neutral-300 mb-1.5">Load from URL</label>
-        <p className="text-[11px] text-neutral-500 mb-2">
+        <p className="text-[11px] text-neutral-400 mb-2">
           Enter your dev server URL (e.g. http://localhost:5173). The plugin will auto-reload on changes.
         </p>
         <div className="flex gap-2">
@@ -494,6 +499,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
                   onClick={() => handleUnload(id)}
                   className="p-1 text-neutral-400 hover:text-red-400"
                   title="Unload"
+                  aria-label={`Unload ${dev.manifest.name}`}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -505,7 +511,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
 
       <div className="border-t border-neutral-800 pt-3">
         <h3 className="text-xs font-medium text-neutral-300 mb-1">Tips</h3>
-        <ul className="text-[11px] text-neutral-500 space-y-1 list-disc list-inside">
+        <ul className="text-[11px] text-neutral-400 space-y-1 list-disc list-inside">
           <li>Dev plugins are stored in localStorage only — they won&apos;t persist across browsers</li>
           <li>The plugin auto-reloads when the bundle changes (polled every 2s)</li>
           <li>Source maps are supported — add <code className="text-neutral-400">sourcemap: true</code> to your Vite config</li>
@@ -572,7 +578,7 @@ function InstallConfirmModal({
           <div className="p-3 rounded-lg bg-neutral-800/50 border border-neutral-700">
             <div className="text-sm font-medium text-neutral-100">{plugin.name}</div>
             <p className="text-xs text-neutral-400 mt-0.5">{plugin.description}</p>
-            <div className="flex items-center gap-3 mt-2 text-[11px] text-neutral-500">
+            <div className="flex items-center gap-3 mt-2 text-[11px] text-neutral-400">
               <span>{plugin.author}</span>
               <span>v{latest?.version}</span>
               <span>{plugin.license}</span>

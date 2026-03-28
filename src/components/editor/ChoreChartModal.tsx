@@ -54,6 +54,7 @@ function IconPicker({
             type="button"
             onClick={() => onChange('')}
             className="text-[10px] text-neutral-500 hover:text-neutral-300 ml-auto"
+            aria-label={`Clear ${label.toLowerCase()}`}
           >
             Clear
           </button>
@@ -486,7 +487,7 @@ function WeeklyPreview({
             <div key={m.id} className="flex items-center gap-1.5 text-[11px] py-0.5 pl-2">
               {m.emoji && <ChoreIcon value={m.emoji} size={11} color="currentColor" />}
               <span className="text-neutral-300">{m.name}:</span>
-              <span className="text-neutral-500">
+              <span className="text-neutral-400">
                 {t?.chores ?? 0} chores, {t?.points ?? 0} pts
               </span>
             </div>
@@ -614,6 +615,7 @@ export default function ChoreChartModal({
                           setShowAddMember(false);
                         }}
                         className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                        aria-label={`Edit ${member.name}`}
                       >
                         &#9998;
                       </button>
@@ -621,6 +623,7 @@ export default function ChoreChartModal({
                         type="button"
                         onClick={() => deleteMember(member.id)}
                         className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                        aria-label={`Delete ${member.name}`}
                       >
                         &times;
                       </button>
@@ -699,12 +702,12 @@ export default function ChoreChartModal({
                       <div className="text-sm font-medium text-neutral-200 truncate">
                         {chore.name}
                       </div>
-                      <div className="text-[11px] text-neutral-500 mt-0.5">
+                      <div className="text-[11px] text-neutral-400 mt-0.5">
                         {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
                         &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
                         &middot; {chore.points}pt{chore.points !== 1 ? 's' : ''}
                       </div>
-                      <div className="text-[11px] text-neutral-500 mt-0.5">
+                      <div className="text-[11px] text-neutral-400 mt-0.5">
                         &rarr;{' '}
                         {chore.assigneeIds
                           .map((id) => members.find((m) => m.id === id)?.name ?? '?')
@@ -724,6 +727,7 @@ export default function ChoreChartModal({
                           setShowAddChore(false);
                         }}
                         className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                        aria-label={`Edit ${chore.name}`}
                       >
                         &#9998;
                       </button>
@@ -731,6 +735,7 @@ export default function ChoreChartModal({
                         type="button"
                         onClick={() => deleteChore(chore.id)}
                         className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                        aria-label={`Delete ${chore.name}`}
                       >
                         &times;
                       </button>

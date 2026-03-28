@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from './Button';
 
@@ -21,13 +22,15 @@ export default function ConfirmModal() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const trapRef = useFocusTrap<HTMLDivElement>();
+
   if (!open) return null;
 
   const variant = options.variant ?? 'danger';
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-sm shadow-2xl">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={options.title ?? 'Confirm'}>
+      <div ref={trapRef} className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-sm shadow-2xl">
         {options.title && (
           <div className="px-5 pt-4 pb-0">
             <h3 className="text-sm font-semibold text-neutral-100">{options.title}</h3>

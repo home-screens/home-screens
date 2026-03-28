@@ -152,15 +152,15 @@ export default function EditorPage() {
             >
               Preview
             </Button>
-            <div className="min-w-24 flex items-center justify-end gap-1.5">
+            <div className="min-w-24 flex items-center justify-end gap-1.5" aria-live="polite">
               {saveError ? (
-                <>
+                <span role="alert" className="flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 text-red-400" />
                   <span className="text-xs text-red-400">Save failed</span>
                   <Button variant="secondary" size="sm" onClick={saveConfig}>
                     Retry
                   </Button>
-                </>
+                </span>
               ) : isSaving ? (
                 <span className="text-xs text-neutral-500">Saving...</span>
               ) : !isDirty ? (

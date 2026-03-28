@@ -295,6 +295,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           disabled={!canUndo}
           className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
           title="Undo (Cmd+Z)"
+          aria-label="Undo"
         >
           <Undo2 className="h-3.5 w-3.5" />
         </button>
@@ -303,6 +304,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           disabled={!canRedo}
           className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
           title="Redo (Cmd+Shift+Z)"
+          aria-label="Redo"
         >
           <Redo2 className="h-3.5 w-3.5" />
         </button>
@@ -318,6 +320,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'
           }`}
           title={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
+          aria-label={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
+          aria-pressed={snapEnabled}
         >
           <Grid3x3 className="h-3.5 w-3.5" />
         </button>
@@ -330,6 +334,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           disabled={userZoom <= 0.25}
           className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
           title="Zoom out (Cmd+-)"
+          aria-label="Zoom out"
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </button>
@@ -341,6 +346,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           disabled={userZoom >= 3.0}
           className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
           title="Zoom in (Cmd+=)"
+          aria-label="Zoom in"
         >
           <ZoomIn className="h-3.5 w-3.5" />
         </button>
@@ -352,6 +358,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               onClick={resetZoom}
               className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
               title="Fit to screen (Cmd+0)"
+              aria-label="Fit to screen"
             >
               <Maximize className="h-3.5 w-3.5" />
             </button>

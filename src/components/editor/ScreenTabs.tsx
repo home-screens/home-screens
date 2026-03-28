@@ -170,6 +170,7 @@ export default function ScreenTabs() {
                         }}
                         className="ml-1 text-xs text-neutral-500 hover:text-neutral-200"
                         title="Rename screen"
+                        aria-label={`Rename ${screen.name}`}
                       >
                         &#9998;
                       </button>
@@ -185,6 +186,7 @@ export default function ScreenTabs() {
                       }
                     }}
                     className="ml-1 text-xs text-neutral-500 hover:text-red-400"
+                    aria-label={`Delete ${screen.name}`}
                   >
                     x
                   </button>
@@ -236,6 +238,7 @@ export default function ScreenTabs() {
         <div className="shrink-0">
           <button
             ref={addBtnRef}
+            aria-label="Add screen"
             className="flex items-center gap-0.5 rounded-md bg-neutral-700 px-2 py-1 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-600"
             onClick={(e) => {
               e.stopPropagation();

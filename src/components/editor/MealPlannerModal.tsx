@@ -195,7 +195,7 @@ function MealCard({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-neutral-200 truncate">{meal.name}</span>
           {meal.prepTime && (
-            <span className="text-[11px] text-neutral-500 shrink-0">
+            <span className="text-[11px] text-neutral-400 shrink-0">
               &#9201; {meal.prepTime}m
             </span>
           )}
@@ -213,7 +213,7 @@ function MealCard({
           </div>
         )}
         {meal.notes && (
-          <p className="text-[11px] text-neutral-500 mt-1 line-clamp-1">{meal.notes}</p>
+          <p className="text-[11px] text-neutral-400 mt-1 line-clamp-1">{meal.notes}</p>
         )}
       </div>
 
@@ -224,6 +224,7 @@ function MealCard({
           onClick={onEdit}
           className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
           title="Edit"
+          aria-label={`Edit ${meal.name}`}
         >
           &#9998;
         </button>
@@ -232,6 +233,7 @@ function MealCard({
           onClick={onDelete}
           className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
           title="Delete"
+          aria-label={`Delete ${meal.name}`}
         >
           &times;
         </button>
@@ -438,6 +440,7 @@ export default function MealPlannerModal({
                     type="button"
                     onClick={() => setSearch('')}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 text-xs"
+                    aria-label="Clear search"
                   >
                     &times;
                   </button>

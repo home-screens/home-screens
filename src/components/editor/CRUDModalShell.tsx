@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import Button from '@/components/ui/Button';
 
 interface CRUDModalShellProps {
@@ -23,6 +24,8 @@ export default function CRUDModalShell({
   onClose,
   children,
 }: CRUDModalShellProps) {
+  const trapRef = useFocusTrap<HTMLDivElement>();
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -32,21 +35,22 @@ export default function CRUDModalShell({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      <div className={`relative bg-neutral-900 border border-neutral-700 rounded-xl w-full ${maxWidth} h-[85vh] flex flex-col`}>
+      <div ref={trapRef} className={`relative bg-neutral-900 border border-neutral-700 rounded-xl w-full ${maxWidth} h-[85vh] flex flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-700">
           <div className="flex items-center gap-3">
             {icon}
             <h2 className="text-sm font-semibold text-neutral-100">{title}</h2>
             {subtitle && (
-              <span className="text-xs text-neutral-500">{subtitle}</span>
+              <span className="text-xs text-neutral-400">{subtitle}</span>
             )}
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-neutral-400 hover:text-neutral-200 text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-800 transition-colors"
           >
             &times;

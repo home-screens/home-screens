@@ -189,11 +189,13 @@ export default function LocationSection({ values, onChange }: Props) {
               Detect
             </Button>
           </div>
-          {locationStatus && (
-            <p className={`text-xs ${locationStatus.startsWith('Error') || locationStatus.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}>
-              {locationStatus}
-            </p>
-          )}
+          <p
+            className={`text-xs ${!locationStatus ? 'sr-only' : locationStatus.startsWith('Error') || locationStatus.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}
+            aria-live="polite"
+            role={locationStatus?.startsWith('Error') || locationStatus?.startsWith('Failed') ? 'alert' : undefined}
+          >
+            {locationStatus ?? ''}
+          </p>
           {(lat && lon) && (
             <p className="text-xs text-neutral-500">
               {locationName ? `${locationName} — ` : ''}
