@@ -8,6 +8,7 @@ import { isModuleVisible } from '@/lib/schedule';
 import { useTZClock } from '@/hooks/useTZClock';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
+import { useAuthImage } from './useAuthImage';
 
 export interface SharedDisplayData {
   owmData: unknown;
@@ -104,7 +105,10 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   const rotation = screen.backgroundRotation;
   const screenBackground = rotation?.enabled ? (rotatingBackground || screen.backgroundImage) : screen.backgroundImage;
   // Module-requested override takes priority over screen background
-  const backgroundImage = overrideBackground || screenBackground;
+  const rawBackground = overrideBackground || screenBackground;
+  // Fetch API-served images through displayFetch so the Bearer token is used
+  // (plain <img> tags don't carry Authorization headers)
+  const backgroundImage = useAuthImage(rawBackground || undefined) || '';
 
   const lat = settings.latitude ?? settings.weather.latitude;
   const lon = settings.longitude ?? settings.weather.longitude;
