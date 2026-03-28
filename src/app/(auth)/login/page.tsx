@@ -10,6 +10,7 @@ function LoginForm() {
   const from = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/editor';
 
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -45,7 +46,7 @@ function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, rememberMe }),
       });
 
       if (res.ok) {
@@ -91,6 +92,16 @@ function LoginForm() {
               className="w-full rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-100 px-4 py-3 text-sm focus:outline-none focus:border-blue-500 placeholder:text-neutral-600"
             />
           </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="accent-blue-500 rounded"
+            />
+            <span className="text-sm text-neutral-400">Remember me for 90 days</span>
+          </label>
 
           {error && (
             <p className="text-sm text-red-400 text-center">{error}</p>

@@ -18,6 +18,8 @@ import {
   buildSessionCookie,
   buildClearCookie,
   clearAuthCache,
+  getSessionMaxAge,
+  revokeAllSessions,
 } from '../auth';
 
 const AUTH_PATH = path.join(process.cwd(), 'data', 'auth.json');
@@ -455,5 +457,142 @@ describe('requireDisplayAuth', () => {
       expect(err).toBeInstanceOf(Response);
       expect((err as Response).status).toBe(401);
     }
+  });
+});
+
+describe('remember me sessions', () => {
+  it('getSessionMaxAge returns 30 days by default', () => {
+    expect(getSessionMaxAge()).toBe(30 * 24 * 60 * 60);
+    expect(getSessionMaxAge(false)).toBe(30 * 24 * 60 * 60);
+  });
+
+  it('getSessionMaxAge returns 90 days for rememberMe', () => {
+    expect(getSessionMaxAge(true)).toBe(90 * 24 * 60 * 60);
+  });
+
+  it('createSessionCookie creates a 30-day session by default', () => {
+    const secret = 'a'.repeat(64);
+    const token = createSessionCookie(secret);
+    const result = verifySession(token, secret);
+    expect(result).not.toBeNull();
+    expect(result!.exp - result!.iat).toBe(30 * 24 * 60 * 60);
+  });
+
+  it('createSessionCookie creates a 90-day session with rememberMe', () => {
+    const secret = 'a'.repeat(64);
+    const token = createSessionCookie(secret, true);
+    const result = verifySession(token, secret);
+    expect(result).not.toBeNull();
+    expect(result!.exp - result!.iat).toBe(90 * 24 * 60 * 60);
+  });
+
+  it('buildSessionCookie uses correct Max-Age for rememberMe', () => {
+    const request = new Request('http://localhost/api/test');
+    const cookie = buildSessionCookie('token', request, getSessionMaxAge(true));
+    expect(cookie).toContain(`Max-Age=${90 * 24 * 60 * 60}`);
+  });
+});
+
+describe('session epoch revocation', () => {
+  it('sessions without epoch pass when no epoch is set', async () => {
+    const secret = 'a'.repeat(64);
+    const token = createSessionCookie(secret);
+    const result = verifySession(token, secret);
+    expect(result).not.toBeNull();
+  });
+
+  it('sessions with matching epoch pass', () => {
+    const secret = 'a'.repeat(64);
+    const epoch = Math.floor(Date.now() / 1000);
+    const token = createSessionCookie(secret, false, epoch);
+    const result = verifySession(token, secret, epoch);
+    expect(result).not.toBeNull();
+  });
+
+  it('sessions with epoch newer than required pass', () => {
+    const secret = 'a'.repeat(64);
+    const oldEpoch = Math.floor(Date.now() / 1000) - 1000;
+    const newEpoch = Math.floor(Date.now() / 1000);
+    const token = createSessionCookie(secret, false, newEpoch);
+    const result = verifySession(token, secret, oldEpoch);
+    expect(result).not.toBeNull();
+  });
+
+  it('rejects sessions with epoch older than required', () => {
+    const secret = 'a'.repeat(64);
+    const oldEpoch = Math.floor(Date.now() / 1000) - 1000;
+    const newEpoch = Math.floor(Date.now() / 1000);
+    const token = createSessionCookie(secret, false, oldEpoch);
+    const result = verifySession(token, secret, newEpoch);
+    expect(result).toBeNull();
+  });
+
+  it('rejects sessions without epoch when epoch is required', () => {
+    const secret = 'a'.repeat(64);
+    const epoch = Math.floor(Date.now() / 1000);
+    const token = createSessionCookie(secret); // no epoch
+    const result = verifySession(token, secret, epoch);
+    expect(result).toBeNull();
+  });
+
+  it('revokeAllSessions bumps the epoch in auth state', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+
+    const stateBefore = await readAuthState();
+    expect(stateBefore.sessionEpoch).toBeUndefined();
+
+    await revokeAllSessions();
+    clearAuthCache();
+
+    const stateAfter = await readAuthState();
+    expect(stateAfter.sessionEpoch).toBeDefined();
+    expect(stateAfter.sessionEpoch).toBeGreaterThan(0);
+    // Other state should be preserved
+    expect(stateAfter.passwordHash).toBe(stateBefore.passwordHash);
+    expect(stateAfter.cookieSecret).toBe(stateBefore.cookieSecret);
+    expect(stateAfter.displayToken).toBe(stateBefore.displayToken);
+  });
+
+  it('revokeAllSessions invalidates existing sessions via requireSession', async () => {
+    const sessionToken = await setPassword('testpassword123');
+    clearAuthCache();
+
+    // Session should work before revocation
+    const request1 = new Request('http://localhost/api/test', {
+      headers: { cookie: `hs-session=${sessionToken}` },
+    });
+    await expect(requireSession(request1)).resolves.toBeUndefined();
+
+    // Revoke all sessions
+    await revokeAllSessions();
+    clearAuthCache();
+
+    // Same session should now be rejected
+    const request2 = new Request('http://localhost/api/test', {
+      headers: { cookie: `hs-session=${sessionToken}` },
+    });
+    try {
+      await requireSession(request2);
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Response);
+      expect((err as Response).status).toBe(401);
+    }
+  });
+
+  it('setPassword preserves sessionEpoch', async () => {
+    await setPassword('password1');
+    await revokeAllSessions();
+    clearAuthCache();
+
+    const epochBefore = (await readAuthState()).sessionEpoch;
+    expect(epochBefore).toBeDefined();
+
+    await setPassword('password2');
+    clearAuthCache();
+
+    const epochAfter = (await readAuthState()).sessionEpoch;
+    expect(epochAfter).toBe(epochBefore);
   });
 });

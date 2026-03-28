@@ -10,6 +10,7 @@ import {
   clearAuthCache,
 } from '@/lib/auth';
 import { errorResponse, createRateLimiter, getClientIP } from '@/lib/api-utils';
+import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       limiter.clear(ip);
       await clearPassword();
       clearAuthCache();
+      audit({ action: 'password_disable', ip });
       const cookie = buildClearCookie(request);
       return NextResponse.json({ success: true, authEnabled: false }, {
         headers: { 'Set-Cookie': cookie },
@@ -84,6 +86,7 @@ export async function POST(request: NextRequest) {
 
     const token = await setPassword(newPassword);
     clearAuthCache();
+    audit({ action: 'password_change', ip });
     const cookie = buildSessionCookie(token, request);
 
     return NextResponse.json({ success: true, authEnabled: true }, {

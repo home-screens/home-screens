@@ -31,6 +31,11 @@ export default function SecuritySection() {
   const [tokenConfirmRegen, setTokenConfirmRegen] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
+  // Session revocation state
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [revokeMessage, setRevokeMessage] = useState<string | null>(null);
+
   useEffect(() => {
     async function check() {
       try {
@@ -202,6 +207,25 @@ export default function SecuritySection() {
     }
   }
 
+  async function handleRevokeAll() {
+    setRevoking(true);
+    setRevokeMessage(null);
+    try {
+      const res = await editorFetch('/api/auth/revoke-sessions', { method: 'POST' });
+      if (res.ok) {
+        setRevokeConfirm(false);
+        setRevokeMessage('All sessions revoked. Redirecting to login...');
+        setTimeout(() => { window.location.href = '/login'; }, 1500);
+      } else {
+        setRevokeMessage('Failed to revoke sessions');
+      }
+    } catch {
+      setRevokeMessage('Network error');
+    } finally {
+      setRevoking(false);
+    }
+  }
+
   async function handleLogout() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -253,7 +277,7 @@ export default function SecuritySection() {
 
         {status?.authEnabled && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button variant="secondary" size="sm" onClick={() => setModal('change')}>
                 Change Password
               </Button>
@@ -263,6 +287,41 @@ export default function SecuritySection() {
               <Button variant="secondary" size="sm" onClick={handleLogout}>
                 Log Out
               </Button>
+            </div>
+
+            {/* Session revocation */}
+            <div>
+              {!revokeConfirm ? (
+                <Button variant="secondary" size="sm" onClick={() => setRevokeConfirm(true)}>
+                  Revoke All Sessions
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-amber-400">
+                    All sessions will be invalidated, including this one.
+                  </span>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleRevokeAll}
+                    disabled={revoking}
+                  >
+                    {revoking ? 'Revoking...' : 'Confirm'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setRevokeConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+              {revokeMessage && (
+                <p className={`text-xs mt-1 ${revoking ? 'text-neutral-400' : revokeMessage.startsWith('All sessions') ? 'text-green-400' : 'text-red-400'}`}>
+                  {revokeMessage}
+                </p>
+              )}
             </div>
 
             {/* Display Token */}

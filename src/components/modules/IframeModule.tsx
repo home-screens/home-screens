@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
 import type { IframeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
@@ -21,11 +22,28 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
     return () => clearInterval(id);
   }, [config.refreshIntervalMs, reload]);
 
-  if (!config.url) {
+  // Runtime URL validation — block dangerous protocols
+  const urlError = useMemo(() => validateIframeUrl(config.url), [config.url]);
+
+  // Runtime sandbox validation — strip dangerous combinations
+  const safeSandbox = useMemo(() => {
+    if (!config.sandboxEnabled) return undefined;
+    const result = validateSandbox(config.sandbox || '');
+    if (result.dangerousCombination) {
+      // Strip allow-same-origin to defuse the combination
+      return result.sanitized
+        .split(' ')
+        .filter((t) => t !== 'allow-same-origin')
+        .join(' ');
+    }
+    return result.sanitized;
+  }, [config.sandboxEnabled, config.sandbox]);
+
+  if (!config.url || urlError) {
     return (
       <ModuleWrapper style={style}>
         <div className="flex items-center justify-center h-full opacity-50" style={{ fontSize: '0.875em' }}>
-          No URL set
+          {urlError ?? 'No URL set'}
         </div>
       </ModuleWrapper>
     );
@@ -58,7 +76,7 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
         loading="lazy"
         allow="fullscreen"
         referrerPolicy="strict-origin-when-cross-origin"
-        {...(config.sandboxEnabled ? { sandbox: config.sandbox } : {})}
+        {...(safeSandbox !== undefined ? { sandbox: safeSandbox } : {})}
       />
     </ModuleWrapper>
   );

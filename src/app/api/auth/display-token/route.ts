@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDisplayToken, regenerateDisplayToken, isAuthEnabled } from '@/lib/auth';
 import { withAuth } from '@/lib/api-utils';
+import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,5 +22,6 @@ export const POST = withAuth(async () => {
     return NextResponse.json({ error: 'Auth is not enabled' }, { status: 400 });
   }
   const token = await regenerateDisplayToken();
+  audit({ action: 'display_token_regenerate' });
   return NextResponse.json({ displayToken: token });
 }, 'Failed to regenerate display token');

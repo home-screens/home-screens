@@ -1,11 +1,20 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
 import type { ModuleInstance, IframeConfig } from '@/types/config';
 
 export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<IframeConfig>(mod, screenId);
+
+  const urlError = useMemo(() => validateIframeUrl(c.url), [c.url]);
+
+  const sandboxResult = useMemo(
+    () => (c.sandboxEnabled ? validateSandbox(c.sandbox || '') : null),
+    [c.sandboxEnabled, c.sandbox],
+  );
 
   return (
     <>
@@ -18,6 +27,9 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           className={INPUT_CLASS}
           placeholder="https://example.com"
         />
+        {urlError && (
+          <span className="text-[10px] text-red-400 mt-0.5">{urlError}</span>
+        )}
       </label>
 
       <label className="flex flex-col gap-0.5">
@@ -72,6 +84,16 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             className={INPUT_CLASS}
             placeholder="allow-scripts allow-forms"
           />
+          {sandboxResult?.dangerousCombination && (
+            <span className="text-[10px] text-red-400 mt-0.5">
+              Combining allow-same-origin and allow-scripts effectively disables the sandbox.
+            </span>
+          )}
+          {sandboxResult && sandboxResult.unknownTokens.length > 0 && (
+            <span className="text-[10px] text-amber-400 mt-0.5">
+              Unknown token{sandboxResult.unknownTokens.length > 1 ? 's' : ''}: {sandboxResult.unknownTokens.join(', ')}
+            </span>
+          )}
           <span className="text-[10px] text-neutral-500 mt-0.5">
             Space-separated tokens. Leave empty for maximum restriction.
           </span>

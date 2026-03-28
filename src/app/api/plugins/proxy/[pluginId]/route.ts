@@ -4,6 +4,7 @@ import { errorResponse, fetchWithTimeout, withDisplayAuth } from '@/lib/api-util
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
+import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -274,6 +275,9 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
         setCached(cacheKey, new TextDecoder().decode(rawBuffer), contentType, cacheTtl);
       }
     }
+
+    const domain = new URL(body.url).hostname;
+    audit({ action: 'plugin_proxy', pluginId: safeId, domain, method, status: upstreamRes.status });
 
     return new NextResponse(rawBuffer, {
       status: upstreamRes.status,

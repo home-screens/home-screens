@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { installPlugin, uninstallPlugin, setPluginEnabled, clearPreviousVersion, fetchRegistry } from '@/lib/plugins';
 import { errorResponse, withAuth } from '@/lib/api-utils';
+import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     const buffer = Buffer.from(await res.arrayBuffer());
 
     await installPlugin(entry, version, buffer, versionEntry.sha256);
+    audit({ action: 'plugin_install', pluginId, version });
     return NextResponse.json({ success: true });
   } catch (error) {
     return errorResponse(error, 'Failed to install plugin');
@@ -48,6 +50,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
 
   try {
     await uninstallPlugin(pluginId);
+    audit({ action: 'plugin_uninstall', pluginId });
     return NextResponse.json({ success: true });
   } catch (error) {
     return errorResponse(error, 'Failed to uninstall plugin');

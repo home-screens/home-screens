@@ -18,6 +18,12 @@ vi.mock('@/lib/auth', () => ({
   clearAuthCache: vi.fn(),
   getDisplayToken: vi.fn().mockResolvedValue(null),
   regenerateDisplayToken: vi.fn(),
+  revokeAllSessions: vi.fn(),
+  getSessionMaxAge: vi.fn().mockReturnValue(30 * 24 * 60 * 60),
+}));
+
+vi.mock('@/lib/audit', () => ({
+  audit: vi.fn(),
 }));
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
@@ -114,7 +120,7 @@ describe('POST /api/auth/login', () => {
     expect(json.success).toBe(true);
     expect(res.headers.get('Set-Cookie')).toContain('hs-session=signed.token');
     expect(verifyPassword).toHaveBeenCalledWith('correctpassword');
-    expect(createSessionCookie).toHaveBeenCalledWith('secret123');
+    expect(createSessionCookie).toHaveBeenCalledWith('secret123', false, undefined);
   });
 
   it('returns 401 for invalid password', async () => {
@@ -609,7 +615,7 @@ describe('GET /api/auth/status', () => {
     expect(res.status).toBe(200);
     expect(json.authEnabled).toBe(true);
     expect(json.authenticated).toBe(true);
-    expect(verifySession).toHaveBeenCalledWith('valid.token', 'secret');
+    expect(verifySession).toHaveBeenCalledWith('valid.token', 'secret', undefined);
   });
 
   it('returns authenticated: false with invalid session cookie', async () => {
@@ -729,7 +735,7 @@ describe('GET /api/auth/status', () => {
     const json = await res.json();
 
     expect(json.authenticated).toBe(true);
-    expect(verifySession).toHaveBeenCalledWith('good.token', 'secret');
+    expect(verifySession).toHaveBeenCalledWith('good.token', 'secret', undefined);
   });
 });
 

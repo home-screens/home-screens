@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     if (token) {
       const state = await readAuthState();
       if (state.cookieSecret) {
-        authenticated = verifySession(token, state.cookieSecret) !== null;
+        authenticated = verifySession(token, state.cookieSecret, state.sessionEpoch) !== null;
       }
     }
   }

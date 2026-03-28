@@ -9,17 +9,22 @@ interface AuthState {
   salt: string | null;
   cookieSecret: string | null;
   displayToken?: string | null;
+  /** Epoch timestamp (seconds). Sessions issued before this are rejected. */
+  sessionEpoch?: number;
 }
 
 interface SessionPayload {
   iat: number;
   exp: number;
+  /** Session epoch at time of issue. Must match or exceed current AuthState.sessionEpoch. */
+  epoch?: number;
 }
 
 /* ─── Constants ──────────────────────────────── */
 
 const AUTH_FILE = 'data/auth.json';
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
+const SESSION_REMEMBER_ME_AGE = 90 * 24 * 60 * 60; // 90 days in seconds
 const SCRYPT_KEYLEN = 64;
 
 function getAuthPath(): string {
@@ -117,7 +122,7 @@ export function signSession(payload: SessionPayload, cookieSecret: string): stri
   return `${payloadStr}.${base64url(sig)}`;
 }
 
-export function verifySession(cookie: string, cookieSecret: string): SessionPayload | null {
+export function verifySession(cookie: string, cookieSecret: string, sessionEpoch?: number): SessionPayload | null {
   const parts = cookie.split('.');
   if (parts.length !== 2) return null;
   const [payloadStr, sigStr] = parts;
@@ -145,6 +150,9 @@ export function verifySession(cookie: string, cookieSecret: string): SessionPayl
   // Check expiry
   if (!payload.exp || Date.now() > payload.exp * 1000) return null;
 
+  // Check session epoch — reject sessions issued before the current epoch
+  if (sessionEpoch != null && (payload.epoch == null || payload.epoch < sessionEpoch)) return null;
+
   return payload;
 }
 
@@ -155,10 +163,17 @@ export async function isAuthEnabled(): Promise<boolean> {
   return state.passwordHash !== null;
 }
 
-export function createSessionCookie(cookieSecret: string): string {
+export function createSessionCookie(cookieSecret: string, rememberMe = false, sessionEpoch?: number): string {
   const now = Math.floor(Date.now() / 1000);
-  const payload: SessionPayload = { iat: now, exp: now + SESSION_MAX_AGE };
+  const maxAge = rememberMe ? SESSION_REMEMBER_ME_AGE : SESSION_MAX_AGE;
+  const payload: SessionPayload = { iat: now, exp: now + maxAge };
+  if (sessionEpoch != null) payload.epoch = sessionEpoch;
   return signSession(payload, cookieSecret);
+}
+
+/** Returns the appropriate cookie Max-Age for the given rememberMe flag. */
+export function getSessionMaxAge(rememberMe = false): number {
+  return rememberMe ? SESSION_REMEMBER_ME_AGE : SESSION_MAX_AGE;
 }
 
 export async function setPassword(newPassword: string): Promise<string> {
@@ -168,8 +183,9 @@ export async function setPassword(newPassword: string): Promise<string> {
   const cookieSecret = crypto.randomBytes(32).toString('hex');
   // Preserve existing display token, or auto-generate one on first password set
   const displayToken = existing.displayToken ?? generateDisplayToken();
-  await writeAuthState({ passwordHash: hash, salt, cookieSecret, displayToken });
-  return createSessionCookie(cookieSecret);
+  const sessionEpoch = existing.sessionEpoch; // preserve epoch across password changes
+  await writeAuthState({ passwordHash: hash, salt, cookieSecret, displayToken, sessionEpoch });
+  return createSessionCookie(cookieSecret, false, sessionEpoch);
 }
 
 export async function clearPassword(): Promise<void> {
@@ -197,6 +213,18 @@ export async function regenerateDisplayToken(): Promise<string> {
   return token;
 }
 
+/* ─── Session Revocation ───────────────────── */
+
+/**
+ * Revoke all active sessions by bumping the session epoch.
+ * Any session issued before the new epoch will be rejected.
+ */
+export async function revokeAllSessions(): Promise<void> {
+  const state = await readAuthState();
+  const epoch = Math.floor(Date.now() / 1000);
+  await writeAuthState({ ...state, sessionEpoch: epoch });
+}
+
 /**
  * Validates the session cookie from a request.
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
@@ -219,7 +247,7 @@ export async function requireSession(request: Request): Promise<void> {
   const match = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/);
   const token = match?.[1];
 
-  if (!token || !verifySession(token, state.cookieSecret)) {
+  if (!token || !verifySession(token, state.cookieSecret, state.sessionEpoch)) {
     throw new Response(JSON.stringify({ error: 'Authentication required' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
@@ -283,7 +311,7 @@ export async function requireDisplayAuth(request: Request): Promise<void> {
   const cookieMatch = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/);
   const sessionToken = cookieMatch?.[1];
 
-  if (sessionToken && verifySession(sessionToken, state.cookieSecret)) {
+  if (sessionToken && verifySession(sessionToken, state.cookieSecret, state.sessionEpoch)) {
     return; // valid session
   }
 

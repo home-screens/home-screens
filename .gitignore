@@ -45,6 +45,8 @@ data/background-cache.json
 data/todoist-token.txt
 data/secrets.json
 data/auth.json
+data/audit.log
+data/audit.log.1
 data/kiosk.conf
 data/telemetry.json
 data/plugins/
