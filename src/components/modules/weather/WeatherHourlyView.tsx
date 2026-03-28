@@ -1,5 +1,5 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
-import { getWeatherIcon } from '@/lib/weather-icons';
+import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import type { WeatherViewProps } from './types';
 
@@ -17,7 +17,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
           <div className="flex flex-col items-center justify-center shrink-0">
             <div className="flex items-center gap-2">
               <span className="font-light" style={{ fontSize: '3em' }}>{Math.round(hours[0].temp)}&deg;</span>
-              {(() => { const Icon = getWeatherIcon(hours[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} />; })()}
+              {(() => { const Icon = getWeatherIcon(hours[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getWeatherIconLabel(hours[0].icon)} role="img" />; })()}
             </div>
             <div className="flex flex-col items-center gap-0.5">
               {forecast[0] && (
@@ -51,7 +51,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
                       ...(timezone ? { timeZone: timezone } : {}),
                     })}
                   </span>
-                  <Icon size="1.8em" strokeWidth={1.5} />
+                  <Icon size="1.8em" strokeWidth={1.5} aria-label={getWeatherIconLabel(hour.icon)} role="img" />
                   <WeatherStat icon={CloudRain} value={hour.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   <span className="font-medium" style={{ fontSize: '0.875em' }}>{Math.round(hour.temp)}&deg;</span>
                   <WeatherStat icon={Droplets} value={hour.humidity} unit="%" visible={config.showHumidity} />

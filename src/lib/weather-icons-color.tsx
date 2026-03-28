@@ -6,13 +6,15 @@ interface IconProps {
   size?: string | number;
   className?: string;
   strokeWidth?: number;
+  'aria-label'?: string;
+  role?: string;
 }
 
 function createColorIcon(
   displayName: string,
   render: (uid: string) => React.ReactNode,
 ) {
-  const Component = forwardRef<SVGSVGElement, IconProps>(({ size, className }, ref) => {
+  const Component = forwardRef<SVGSVGElement, IconProps>(({ size, className, 'aria-label': ariaLabel, role }, ref) => {
     const uid = useId();
     return (
       <svg
@@ -24,6 +26,8 @@ function createColorIcon(
         fill="none"
         className={className}
         style={{ display: 'inline-block', verticalAlign: 'middle' }}
+        aria-label={ariaLabel}
+        role={ariaLabel ? 'img' : role}
       >
         {render(uid)}
       </svg>

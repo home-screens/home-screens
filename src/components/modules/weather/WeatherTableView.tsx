@@ -1,5 +1,5 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
-import { getWeatherIcon } from '@/lib/weather-icons';
+import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import type { WeatherViewProps } from './types';
@@ -32,7 +32,7 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
             return (
               <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
                 <span className="opacity-60 w-[3.5em]" style={{ fontSize: '0.9em' }}>{dayLabel(day.date)}</span>
-                <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" />
+                <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getWeatherIconLabel(day.icon)} role="img" />
                 {showHighLow && (
                   <div className="flex gap-1 w-[5em] justify-center">
                     <span className="font-medium">{Math.round(day.high)}&deg;</span>

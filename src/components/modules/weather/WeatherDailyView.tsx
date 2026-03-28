@@ -1,5 +1,5 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
-import { getWeatherIcon } from '@/lib/weather-icons';
+import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import type { WeatherViewProps } from './types';
@@ -21,7 +21,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
             <div className="flex flex-col items-center shrink-0">
               <span className="opacity-60 font-medium" style={{ fontSize: '0.85em' }}>{dayLabel(days[0].date)}</span>
               <div className="flex items-center gap-2">
-                {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} />; })()}
+                {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getWeatherIconLabel(days[0].icon)} role="img" />; })()}
                 {showHighLow && (
                   <div className="flex flex-col">
                     <span className="font-light" style={{ fontSize: '2em' }}>{Math.round(days[0].high)}&deg;</span>
@@ -48,7 +48,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
                     <span className="opacity-60" style={{ fontSize: '0.75em' }}>
                       {dayLabel(day.date)}
                     </span>
-                    <Icon size="1.8em" strokeWidth={1.5} />
+                    <Icon size="1.8em" strokeWidth={1.5} aria-label={getWeatherIconLabel(day.icon)} role="img" />
                     <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                     {config.showPrecipAmount && day.precipAmount != null && day.precipAmount > 0 && (
                       <span className="opacity-50" style={{ fontSize: '0.7em' }}>{day.precipAmount.toFixed(1)}&quot;</span>

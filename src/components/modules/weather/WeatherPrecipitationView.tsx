@@ -32,7 +32,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
-        <CloudRain size="1.5em" className="opacity-60" />
+        <CloudRain size="1.5em" className="opacity-60" aria-hidden="true" />
         <span className="font-medium" style={{ fontSize: '1em' }}>Next 60 Minutes</span>
       </div>
 

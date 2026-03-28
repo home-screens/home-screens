@@ -10,7 +10,7 @@ export function WeatherStat({ icon: Icon, value, unit, visible, fontSize = '0.7e
   if (!visible || value == null) return null;
   return (
     <span className="opacity-50 flex items-center gap-0.5" style={{ fontSize }}>
-      <Icon size="1em" />{Math.round(value)}{unit}
+      <Icon size="1em" aria-hidden="true" />{Math.round(value)}{unit}
     </span>
   );
 }

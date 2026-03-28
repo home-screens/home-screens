@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Shield, Code2, Loader2 } from 'lucide-react';
+import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Shield, Code2, Loader2, PackageSearch } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { editorFetch } from '@/lib/editor-fetch';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -234,9 +234,12 @@ function BrowseTab({
         className="w-full px-3 py-2 text-sm bg-neutral-800 border border-neutral-600 rounded-lg text-neutral-200 placeholder:text-neutral-500"
       />
       {plugins.length === 0 ? (
-        <p className="text-sm text-neutral-500 text-center py-8">
-          {search ? 'No plugins match your search' : 'No plugins available in the registry'}
-        </p>
+        <div className="flex flex-col items-center gap-3 py-10 text-neutral-500">
+          <PackageSearch size={32} strokeWidth={1.5} className="opacity-30" />
+          <p className="text-sm text-center">
+            {search ? 'No plugins match your search' : 'No plugins available in the registry'}
+          </p>
+        </div>
       ) : (
         plugins.map((plugin) => {
           const latest = plugin.versions[0];

@@ -12,6 +12,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import PluginSecretsSection from './PluginSecretsSection';
+import { MousePointerClick } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 
 import {
@@ -179,7 +180,10 @@ export default function PropertyPanel() {
   if (!selectedModule || !selectedScreenId) {
     return (
       <div className="w-72 flex-shrink-0 bg-neutral-900 border-l border-neutral-700 p-4 overflow-y-auto">
-        <p className="text-sm text-neutral-500 mb-5">Select a module to edit</p>
+        <div className="flex flex-col items-center gap-2 py-6 text-neutral-500 mb-5">
+          <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
+          <p className="text-sm">Select a module to edit</p>
+        </div>
         <BackgroundPicker />
       </div>
     );

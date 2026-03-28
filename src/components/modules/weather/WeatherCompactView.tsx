@@ -1,4 +1,4 @@
-import { getWeatherIcon } from '@/lib/weather-icons';
+import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { CurrentWeatherStats } from './CurrentWeatherStats';
 import type { WeatherViewProps } from './types';
 
@@ -19,7 +19,7 @@ export default function WeatherCompactView({ config, hourly, forecast, units, sc
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col justify-center gap-1" style={{ fontSize: `${scaledFontSize}px` }}>
       <div className="flex items-center gap-3">
-        <Icon size="1.8em" strokeWidth={1.5} />
+        <Icon size="1.8em" strokeWidth={1.5} aria-label={getWeatherIconLabel(current.icon)} role="img" />
         <span className="font-light" style={{ fontSize: '2em' }}>{Math.round(current.temp)}&deg;</span>
         {today && config.showHighLow !== false && (
           <span className="opacity-50" style={{ fontSize: '0.85em' }}>

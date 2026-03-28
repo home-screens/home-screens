@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useDroppable, useDndMonitor } from '@dnd-kit/core';
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3 } from 'lucide-react';
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3, LayoutDashboard } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -214,8 +214,9 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   if (!currentScreen) {
     return (
-      <div className="flex-1 flex items-center justify-center text-neutral-500">
-        No screen selected
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-neutral-500">
+        <LayoutDashboard size={40} strokeWidth={1.5} className="opacity-30" />
+        <p className="text-sm">No screen selected</p>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import { CloudRain, Droplets, Wind, Gauge, Eye, Thermometer } from 'lucide-react';
-import { getWeatherIcon } from '@/lib/weather-icons';
+import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import type { WeatherViewProps } from './types';
@@ -15,7 +15,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
       {/* Current conditions — 25% */}
       {current && (
         <div className="flex items-center gap-4" style={{ flex: '0 0 25%' }}>
-          {(() => { const Icon = getWeatherIcon(current.icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} />; })()}
+          {(() => { const Icon = getWeatherIcon(current.icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getWeatherIconLabel(current.icon)} role="img" />; })()}
           <span className="font-light" style={{ fontSize: '3em' }}>{Math.round(current.temp)}&deg;</span>
           <div className="flex flex-col gap-0.5">
             {forecast[0] && (
@@ -56,7 +56,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
                       ...(timezone ? { timeZone: timezone } : {}),
                     })}
                   </span>
-                  <Icon size="1.4em" strokeWidth={1.5} />
+                  <Icon size="1.4em" strokeWidth={1.5} aria-label={getWeatherIconLabel(hour.icon)} role="img" />
                   <span className="font-medium" style={{ fontSize: '0.75em' }}>{Math.round(hour.temp)}&deg;</span>
                   <WeatherStat icon={CloudRain} value={hour.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                 </div>
@@ -76,7 +76,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
               return (
                 <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
                   <span className="opacity-60 w-[3.5em] text-right" style={{ fontSize: '0.85em' }}>{dayLabel(day.date)}</span>
-                  <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" />
+                  <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getWeatherIconLabel(day.icon)} role="img" />
                   <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   {config.showHighLow !== false && (
                     <div className="flex gap-1 ml-auto">

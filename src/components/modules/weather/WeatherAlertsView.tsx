@@ -18,7 +18,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
-        <AlertTriangle size="1.5em" className="opacity-60" />
+        <AlertTriangle size="1.5em" className="opacity-60" aria-hidden="true" />
         <span className="font-medium" style={{ fontSize: '1em' }}>Weather Alerts</span>
         {active.length > 0 && (
           <span className="opacity-50" style={{ fontSize: '0.75em' }}>({active.length})</span>
@@ -27,7 +27,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
 
       {active.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          <ShieldCheck size="2.5em" className="opacity-30" />
+          <ShieldCheck size="2.5em" className="opacity-30" aria-hidden="true" />
           <p className="opacity-40" style={{ fontSize: '0.85em' }}>
             {alerts !== undefined ? 'No active alerts' : 'Alert data requires Pirate Weather or NOAA'}
           </p>
@@ -56,7 +56,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
                 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle size="1em" className={style.icon} />
+                  <AlertTriangle size="1em" className={style.icon} aria-hidden="true" />
                   <span className="font-semibold capitalize" style={{ fontSize: '0.85em' }}>
                     {alert.title}
                   </span>
