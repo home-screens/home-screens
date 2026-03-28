@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
+import { writeSecureFile } from '@/lib/secure-file';
 import path from 'path';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
@@ -69,7 +70,7 @@ export async function pollDeviceToken(
     if (data.expires_in && !data.expiry_date) {
       data.expiry_date = Date.now() + data.expires_in * 1000;
     }
-    await writeFile(TOKENS_PATH, JSON.stringify(data, null, 2));
+    await writeSecureFile(TOKENS_PATH, JSON.stringify(data, null, 2));
     if (!data.refresh_token) {
       return {
         status: 'success',
@@ -163,7 +164,7 @@ export async function getAuthenticatedClient(): Promise<import('googleapis').Com
       const { credentials } = await client.refreshAccessToken();
       // Preserve the refresh token (Google doesn't always return it on refresh)
       const updated = { ...credentials, refresh_token: tokens.refresh_token };
-      await writeFile(TOKENS_PATH, JSON.stringify(updated, null, 2));
+      await writeSecureFile(TOKENS_PATH, JSON.stringify(updated, null, 2));
       client.setCredentials(updated);
     } catch (err) {
       console.error('[google-auth] Token refresh failed:', err instanceof Error ? err.message : err);
@@ -197,7 +198,7 @@ export async function disconnect() {
     // Best effort revocation
   }
   try {
-    await writeFile(TOKENS_PATH, JSON.stringify({}));
+    await writeSecureFile(TOKENS_PATH, JSON.stringify({}));
   } catch {
     // Best effort cleanup
   }

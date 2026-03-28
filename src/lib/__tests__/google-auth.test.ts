@@ -5,9 +5,14 @@ vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
 }));
 
+const mockWriteFile = vi.fn();
 vi.mock('fs/promises', () => ({
   readFile: vi.fn(),
-  writeFile: vi.fn(),
+  writeFile: mockWriteFile,
+}));
+
+vi.mock('@/lib/secure-file', () => ({
+  writeSecureFile: (...args: unknown[]) => mockWriteFile(...args),
 }));
 
 const mockRefreshAccessToken = vi.fn();

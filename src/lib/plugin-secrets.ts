@@ -35,6 +35,7 @@ async function writePluginSecrets(pluginId: string, store: PluginSecretsStore): 
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   const tmp = filePath + '.tmp';
   await fs.writeFile(tmp, JSON.stringify(store, null, 2), 'utf-8');
+  await fs.chmod(tmp, 0o600);
   await fs.rename(tmp, filePath);
 }
 

@@ -53,6 +53,7 @@ export async function writeSecrets(store: SecretsStore): Promise<void> {
   await fs.mkdir(path.dirname(secretsPath), { recursive: true });
   const tmp = secretsPath + '.tmp';
   await fs.writeFile(tmp, JSON.stringify(store, null, 2), 'utf-8');
+  await fs.chmod(tmp, 0o600);
   await fs.rename(tmp, secretsPath);
 }
 

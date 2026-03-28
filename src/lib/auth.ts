@@ -54,6 +54,7 @@ async function writeAuthState(state: AuthState): Promise<void> {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     const tmp = filePath + '.tmp';
     await fs.writeFile(tmp, JSON.stringify(state, null, 2), 'utf-8');
+    await fs.chmod(tmp, 0o600);
     await fs.rename(tmp, filePath);
     // Clear cache so next read picks up new state
     cachedState = null;
