@@ -7,6 +7,30 @@ import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
+import { useAuthImage } from '@/components/display/useAuthImage';
+
+/** Renders a single slide layer, fetching API-served images through displayFetch for auth.
+ *  The <img> stays mounted while the blob loads so the CSS opacity transition fires on
+ *  a style change rather than on mount (which would cause a hard pop instead of a fade). */
+function SlideLayer({ src, active, objectFit, isFade }: {
+  src: string; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
+}) {
+  const authSrc = useAuthImage(src);
+  return (
+    <img
+      src={authSrc ?? ''}
+      alt=""
+      className="absolute inset-0 w-full h-full"
+      style={{
+        objectFit,
+        opacity: active && authSrc ? 1 : 0,
+        ...(isFade ? { transition: 'opacity 800ms ease-in-out' } : {}),
+        zIndex: active ? 1 : 0,
+        visibility: authSrc ? 'visible' : 'hidden',
+      }}
+    />
+  );
+}
 
 interface PhotoSlideshowModuleProps {
   config: PhotoSlideshowConfig;
@@ -60,31 +84,11 @@ export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowMo
       <div className="relative w-full h-full" style={{ borderRadius: `${style.borderRadius}px`, overflow: 'hidden' }}>
         {/* Layer 0 */}
         {sources[0] && (
-          <img
-            src={sources[0]}
-            alt=""
-            className="absolute inset-0 w-full h-full"
-            style={{
-              objectFit: config.objectFit,
-              opacity: activeLayer === 0 ? 1 : 0,
-              ...(isFade ? { transition: 'opacity 800ms ease-in-out' } : {}),
-              zIndex: activeLayer === 0 ? 1 : 0,
-            }}
-          />
+          <SlideLayer src={sources[0]} active={activeLayer === 0} objectFit={config.objectFit} isFade={isFade} />
         )}
         {/* Layer 1 */}
         {sources[1] && (
-          <img
-            src={sources[1]}
-            alt=""
-            className="absolute inset-0 w-full h-full"
-            style={{
-              objectFit: config.objectFit,
-              opacity: activeLayer === 1 ? 1 : 0,
-              ...(isFade ? { transition: 'opacity 800ms ease-in-out' } : {}),
-              zIndex: activeLayer === 1 ? 1 : 0,
-            }}
-          />
+          <SlideLayer src={sources[1]} active={activeLayer === 1} objectFit={config.objectFit} isFade={isFade} />
         )}
       </div>
     </ModuleWrapper>

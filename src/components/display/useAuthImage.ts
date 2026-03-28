@@ -11,7 +11,11 @@ import { displayFetch } from '@/lib/display-fetch';
  * is returned directly since those don't require authentication.
  */
 export function useAuthImage(src: string | undefined): string | undefined {
-  const [blobUrl, setBlobUrl] = useState<string | undefined>(undefined);
+  // Lazy initializer: static (non-API) paths can be returned on the very first
+  // render, avoiding a one-frame blank flash while the effect fires.
+  const [blobUrl, setBlobUrl] = useState<string | undefined>(
+    () => (src && !src.startsWith('/api/')) ? src : undefined,
+  );
   const prevBlobRef = useRef<string | null>(null);
 
   function revokePrev() {
