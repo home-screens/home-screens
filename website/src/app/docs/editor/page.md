@@ -17,12 +17,47 @@ The editor has four main areas:
 - **Property Panel** (right sidebar) — configure the selected module's settings and appearance
 - **Screen Tabs** (top) — manage multiple screens
 
+## Canvas Controls
+
+The editor canvas includes a floating toolbar with controls for zoom, undo/redo, and snap-to-grid.
+
+### Zoom & Pan
+
+The canvas supports zooming from 25% to 300%:
+
+- **Trackpad pinch** or **Ctrl+Scroll** — zoom in/out centered on the cursor
+- **Zoom buttons** — use the **+** and **−** buttons in the floating toolbar
+- **Fit to screen** — click the fit button to reset zoom so the entire canvas is visible
+- The current zoom percentage is displayed in the toolbar
+
+When zoomed in beyond the viewport, the canvas becomes scrollable.
+
+### Undo & Redo
+
+All canvas changes (moving, resizing, adding, deleting, and configuring modules) are tracked with a 50-step history:
+
+- **Undo** — `Cmd+Z` (macOS) or `Ctrl+Z` (Windows/Linux), or click the undo button in the toolbar
+- **Redo** — `Cmd+Shift+Z` / `Ctrl+Y`, or click the redo button in the toolbar
+
+Rapid edits of the same type (e.g., dragging a module) are coalesced into a single history entry so undo steps feel natural.
+
+### Snap to Grid
+
+A toggle button in the floating toolbar controls grid snapping:
+
+- **Enabled** (default) — modules snap to a 20px grid when dragging and resizing; a dot grid overlay is shown on the canvas
+- **Disabled** — modules snap to pixel-level precision; the grid overlay is hidden
+
+### Minimum Width
+
+The editor requires a minimum viewport width of 768px. On smaller screens, a message prompts you to use a wider window or device.
+
 ## Adding Modules
 
 1. Open the **Module Palette** on the left
 2. Browse by category or use the search bar to find a module
 3. Click and drag a module onto the canvas
-4. Drop it where you want it — modules snap to a 20px grid
+4. Drop it where you want it — modules snap to a 20px grid (when snap is enabled)
 
 Categories in the palette are collapsible. Click a category header to expand or collapse it.
 
@@ -155,6 +190,7 @@ Profiles let you define named groups of screens that activate based on a schedul
 - **Position** — display alerts at the top or bottom of the screen
 - **Max Visible** — limit how many alerts show simultaneously (1–10, default 3)
 - **Default Duration** — how long alerts remain visible before auto-dismissing (0 = per-type defaults)
+- **Alert Size** — scale alert dimensions from 75% to 200% (default 100%); affects text, padding, border radius, and icons proportionally
 
 ### Location
 
@@ -200,11 +236,14 @@ The **Integrations** tab is where you configure all API keys and external servic
 
 ### Security
 
-The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor and all write operations requires entering the password. The display view remains publicly accessible.
+The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor and all write operations requires entering the password. The display view authenticates separately using a display token.
 
 - **Set Password** — enable authentication with a new password (minimum 8 characters)
 - **Change Password** — update the password (invalidates all other sessions)
 - **Disable Authentication** — remove the password (requires current password)
+- **Remember Me** — check this box on the login page for a 90-day session (default is 30 days)
+- **Display Token** — auto-generated Bearer token used by the display and remote to authenticate API requests; can be revealed, copied to clipboard, or regenerated (regenerating requires the display to reload)
+- **Revoke All Sessions** — invalidate all active sessions immediately (useful if a device is lost or compromised)
 - **Log Out** — end the current session
 - **Password Reset** — if you forget your password, delete `data/auth.json` on the device to reset
 

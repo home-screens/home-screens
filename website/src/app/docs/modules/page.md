@@ -3,10 +3,10 @@ title: Modules Reference
 nextjs:
   metadata:
     title: Modules Reference
-    description: All 35 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
+    description: All 34 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
 ---
 
-Home Screens includes 35 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 34 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Time & Date
 
@@ -167,7 +167,7 @@ Today's sunrise and sunset times with visual arc.
 
 ### Air Quality
 
-Air quality index, pollutant levels, and UV index.
+Air quality index and pollutant levels.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -303,15 +303,6 @@ Historical events that happened on today's date.
 |---|---|---|---|
 | `refreshIntervalMs` | number | `3600000` | Data refresh interval (1 hour) |
 | `rotationIntervalMs` | number | `10000` | How often to rotate between events (10 sec) |
-
-### Flag Status
-
-Shows whether the US federal flag is at half-staff, including the reason.
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `showReason` | boolean | `true` | Show the reason for half-staff status |
-| `refreshIntervalMs` | number | `1800000` | How often to check for updates (30 min) |
 
 ---
 
@@ -595,3 +586,6 @@ Every module supports these style properties, configurable in the Property Panel
 | `fontFamily` | string | `"Inter, system-ui, sans-serif"` | Font family |
 | `fontSize` | number | `16` | Base font size in pixels |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
+| `borderWidth` | number | `0` | Border width in pixels |
+| `borderColor` | string | `"#ffffff"` | Border color |
+| `shadowSize` | number | `0` | Box shadow size in pixels |

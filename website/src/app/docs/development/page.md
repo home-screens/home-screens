@@ -15,7 +15,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 33 module components + ModuleWrapper
+    modules/                 # All 34 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -41,7 +41,7 @@ The app uses Next.js route groups to separate concerns:
 
 ### Module System
 
-There are currently **33 modules** organized into 7 categories:
+There are currently **34 modules** organized into 7 categories:
 
 | Category | Modules |
 |---|---|
@@ -49,7 +49,7 @@ There are currently **33 modules** organized into 7 categories:
 | **Weather & Environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
-| **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner |
+| **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart |
 | **Media & Display** | text, image, photo-slideshow, qr-code, iframe |
 | **Travel** | traffic |
 
@@ -156,7 +156,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 
 | Category | Routes | Purpose |
 |---|---|---|
-| **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/google` | Authentication and session management |
+| **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/display-token`, `auth/revoke-sessions`, `auth/google` | Authentication, session management, display token |
 | **System** | `system/status`, `system/version`, `system/build-id`, `system/changelog`, `system/power`, `system/upgrade`, `system/rollback`, `system/backups` | Server management and deployment |
 | **Config** | `config`, `secrets` | Read/write config and manage API keys |
 | **Weather** | `weather`, `rain-map` | Weather data (5 providers) and rain radar tiles |
@@ -307,6 +307,10 @@ const [data] = useFetchData('/api/my-data?param=value', 60000)
 | `useTZClock(timezone)` | Provides a live-updating `Date` for a given timezone |
 | `useIdleCursor(seconds)` | Hides cursor after idle period, restores on mousemove |
 | `useLiveConfig(screens, settings, profiles)` | Polls for config changes on the display |
+| `useCanvasZoom()` | Manages editor canvas zoom/pan state with trackpad and keyboard support |
+| `useUndoRedoShortcuts()` | Keyboard shortcuts for undo/redo (Cmd+Z, Cmd+Shift+Z) |
+| `useAuthImage(src)` | Converts API-served image URLs to authenticated blob URLs |
+| `useFocusTrap(ref)` | Traps keyboard focus within a modal or dialog |
 
 ## Testing
 

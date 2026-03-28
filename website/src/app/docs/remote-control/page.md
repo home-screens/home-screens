@@ -137,7 +137,9 @@ The remote uses a mixed authentication model. When a password is set (Settings >
 
 Controls that don't require a password work immediately, even if you're not logged in. Controls that require a password show a "Sign in" link that redirects to the login page.
 
-After logging in, you'll be redirected back to the remote. Your session lasts 30 days, so you won't need to log in again for a while.
+After logging in, you'll be redirected back to the remote. Your session lasts 30 days by default (or 90 days if you check **Remember Me** on the login page), so you won't need to log in again for a while.
+
+You can also append `?token=TOKEN` to bookmarked command URLs (e.g., wake/sleep) for direct authentication without a session cookie. Find your display token in **Settings > Security** in the editor.
 
 ---
 

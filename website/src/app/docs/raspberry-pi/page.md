@@ -42,6 +42,7 @@ git clone https://github.com/home-screens/home-screens.git
 | `--desktop` | Use Desktop mode instead of Lite (configures kiosk via autostart instead of cage on TTY1) |
 | `--version v1.2.0` | Install a specific release instead of the latest |
 | `--port 8080` | Run the server on a custom port instead of the default 3000 |
+| `--non-interactive` | Skip all prompts and use defaults (portrait 90° rotation, auto-detected resolution). Useful for automated or headless deployments. |
 
 ### What the installer does
 

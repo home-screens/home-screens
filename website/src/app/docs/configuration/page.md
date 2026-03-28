@@ -105,6 +105,7 @@ The configuration has the following structure:
     position: 'top' | 'bottom'
     maxVisible: number
     defaultDuration: number       // ms — 0 means use per-type defaults
+    scale?: number                // 0.75–2.0, default 1.0 — scales alert dimensions
   }
 
   telemetryEnabled?: boolean      // Enable anonymous usage telemetry
@@ -274,6 +275,9 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   fontFamily: string            // CSS font-family
   fontSize: number              // Base font size in pixels
   backdropBlur: number          // Backdrop blur in pixels
+  borderWidth: number           // Border width in pixels
+  borderColor: string           // CSS color for border
+  shadowSize: number            // Box shadow size in pixels
 }
 ```
 

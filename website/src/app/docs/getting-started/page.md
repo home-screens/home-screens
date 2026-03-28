@@ -91,7 +91,7 @@ The following integrations can be configured through the editor:
 
 ## Password Protection
 
-The editor supports optional password protection. Set a password in **Settings > General** to require authentication before accessing the editor.
+The editor supports optional password protection. Set a password in **Settings > Security** to require authentication before accessing the editor. The display authenticates separately using an auto-generated display token.
 
 ## System Management
 

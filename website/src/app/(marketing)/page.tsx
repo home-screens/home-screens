@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Home Screens — Smart Display for Your Home',
     description:
-      'An open-source smart display system for Raspberry Pi. 35 built-in modules, drag-and-drop editor, plugin system. Free forever.',
+      'An open-source smart display system for Raspberry Pi. 34 built-in modules, drag-and-drop editor, plugin system. Free forever.',
     url: 'https://homescreens.dev',
   },
   twitter: {
     title: 'Home Screens — Smart Display for Your Home',
     description:
-      'An open-source smart display for Raspberry Pi. 35 modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.',
+      'An open-source smart display for Raspberry Pi. 34 modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.',
   },
   alternates: {
     canonical: 'https://homescreens.dev',

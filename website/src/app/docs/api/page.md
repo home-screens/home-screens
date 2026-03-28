@@ -212,11 +212,16 @@ Returns whether password authentication is enabled and whether the current sessi
 
 ### POST /api/auth/login
 
-Authenticates with a password. Sets a session cookie on success. Rate-limited to 5 failed attempts per 15-minute window.
+Authenticates with a password. Sets a session cookie on success. Rate-limited to 5 failed attempts per 15-minute window (shared with the password endpoint).
 
-**Body:** `{ "password": "..." }`
+**Body:** `{ "password": "...", "rememberMe": false }`
 
-**Response:** `{ "success": true }` (with `Set-Cookie` header)
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `password` | string | required | The authentication password |
+| `rememberMe` | boolean | `false` | If `true`, session lasts 90 days instead of 30 |
+
+**Response:** `{ "ok": true }` (with `Set-Cookie` header)
 
 ### POST /api/auth/logout
 
@@ -235,6 +240,32 @@ Sets, changes, or disables the password. Requires a valid session if auth is alr
 **Constraints:** Password must be at least 8 characters.
 
 **Response:** `{ "success": true, "authEnabled": true }`
+
+### GET /api/auth/display-token
+
+Returns the current display token used by the kiosk view and remote to authenticate API requests. Requires a valid session.
+
+**Response:**
+```json
+{ "displayToken": "hs_abc123..." }
+```
+
+Returns `{ "displayToken": null }` if authentication is not enabled.
+
+### POST /api/auth/display-token
+
+Regenerates the display token. The previous token is immediately invalidated — the display must reload to pick up the new token. Requires a valid session.
+
+**Response:**
+```json
+{ "displayToken": "hs_xyz789..." }
+```
+
+### POST /api/auth/revoke-sessions
+
+Revokes all active sessions by bumping the session epoch. All users (including the caller) will need to log in again. Requires a valid session.
+
+**Response:** `{ "ok": true }`
 
 ---
 
