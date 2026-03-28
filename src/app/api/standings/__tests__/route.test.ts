@@ -5,6 +5,12 @@ import { NextRequest } from 'next/server';
 // Mocks — must be declared before importing the route handler
 // ---------------------------------------------------------------------------
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();
   return {

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
 }));

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthEnabled, readAuthState, verifySession } from '@/lib/auth';
+import { isAuthEnabled, readAuthState, verifySession, getDisplayToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,5 +19,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ authEnabled, authenticated });
+  const hasDisplayToken = authEnabled ? !!(await getDisplayToken()) : false;
+  return NextResponse.json({ authEnabled, authenticated, hasDisplayToken });
 }

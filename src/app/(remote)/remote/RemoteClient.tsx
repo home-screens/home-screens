@@ -109,43 +109,12 @@ function useRemoteStatus(pollMs = 5000) {
   return { status, isConnected, lastUpdated, nudge };
 }
 
-function useAuthStatus() {
-  const [authEnabled, setAuthEnabled] = useState(false);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [checking, setChecking] = useState(true);
-
-  const check = useCallback(async () => {
-    try {
-      const res = await fetch('/api/auth/status');
-      if (res.ok) {
-        const data = await res.json();
-        setAuthEnabled(data.authEnabled);
-        setAuthenticated(data.authenticated);
-      }
-    } catch {
-      // If we can't reach auth, assume not authenticated
-    } finally {
-      setChecking(false);
-    }
-  }, []);
-
-  useEffect(() => { check(); }, [check]);
-
-  const markUnauthenticated = useCallback(() => {
-    setAuthenticated(false);
-  }, []);
-
-  return { authEnabled, authenticated, checking, markUnauthenticated, recheckAuth: check };
-}
-
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
 
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
   const { status, isConnected, lastUpdated, nudge } = useRemoteStatus();
-  const auth = useAuthStatus();
-  const needsAuth = auth.authEnabled && !auth.authenticated;
 
   // Optimistic overrides — applied on top of polled status for instant feedback
   const [optimistic, setOptimistic] = useState<{
@@ -213,21 +182,14 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           <ProfileSwitcher
             profiles={initialData.profiles}
             activeProfile={status?.activeProfile ?? initialData.activeProfile ?? null}
-            needsAuth={needsAuth}
-            onAuthFailure={auth.markUnauthenticated}
           />
         )}
 
         <AlertSender />
 
-        <SystemInfo
-          needsAuth={needsAuth}
-        />
+        <SystemInfo />
 
-        <PowerControls
-          needsAuth={needsAuth}
-          onAuthFailure={auth.markUnauthenticated}
-        />
+        <PowerControls />
       </main>
     </div>
   );

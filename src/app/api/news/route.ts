@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 const DEFAULT_FEED = 'https://feeds.bbci.co.uk/news/rss.xml';
 
 const { GET, cache } = cachedProxyRoute<{ items: unknown[] }>({
+  auth: 'display',
   ttlMs: 5 * 60 * 1000, // 5 minutes
   cacheKey: (req) => req.nextUrl.searchParams.get('feed') || DEFAULT_FEED,
   execute: async (req) => {

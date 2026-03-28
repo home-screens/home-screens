@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
+import { withDisplayAuth } from '@/lib/api-utils';
 
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 
@@ -28,7 +29,7 @@ function safePath(relativePath: string): string | null {
  * Serves background images directly from the filesystem, bypassing
  * Next.js static file caching (which doesn't pick up files added at runtime).
  */
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const filename = request.nextUrl.searchParams.get('file');
   if (!filename) {
     return NextResponse.json({ error: 'file parameter required' }, { status: 400 });
@@ -54,4 +55,4 @@ export async function GET(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-}
+}, 'Failed to serve background');

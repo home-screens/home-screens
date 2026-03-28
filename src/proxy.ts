@@ -84,8 +84,8 @@ const PROTECTED_GET_ROUTES = [
 ];
 
 function isProtectedRoute(pathname: string, method: string): boolean {
-  // Editor pages — always protected
-  if (pathname.startsWith('/editor')) return true;
+  // Editor and remote pages — always protected
+  if (pathname.startsWith('/editor') || pathname.startsWith('/remote')) return true;
 
   // API write operations — protected (except public auth routes and display-accessible POSTs)
   if (pathname.startsWith('/api/') && ['PUT', 'POST', 'DELETE'].includes(method)) {
@@ -121,9 +121,14 @@ export function proxy(request: NextRequest) {
 
   if (!isProtectedRoute(pathname, method)) return NextResponse.next();
 
-  // Cheap cookie-presence check (no signature validation here)
+  // Cheap credential-presence check (no signature validation here — real
+  // validation happens in requireSession / requireDisplayAuth in route handlers).
+  // Accept session cookie, Bearer token, or ?token= query param.
   const session = request.cookies.get('hs-session');
   if (session?.value) return NextResponse.next();
+  const authHeader = request.headers.get('authorization') ?? '';
+  if (authHeader.startsWith('Bearer ')) return NextResponse.next();
+  if (request.nextUrl.searchParams.has('token')) return NextResponse.next();
 
   // No cookie on protected route
   if (pathname.startsWith('/api/')) {
@@ -139,8 +144,9 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match editor pages and all API routes (skip static assets, display, login)
+    // Match editor, remote, and all API routes (skip static assets, display, login)
     '/editor/:path*',
+    '/remote/:path*',
     '/api/:path*',
   ],
 };

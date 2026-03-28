@@ -38,7 +38,8 @@ function makeScreen(modules: Array<{ type: string; config?: Record<string, unkno
 }
 
 function mockFetchOk(data: unknown = {}) {
-  const mock = vi.fn(() =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mock = vi.fn((..._args: any[]) =>
     Promise.resolve({ ok: true, json: () => Promise.resolve(data) }),
   );
   vi.stubGlobal('fetch', mock);
@@ -57,8 +58,8 @@ describe('prefetchScreen', () => {
     await prefetchScreen(screen, new Date());
 
     expect(mock).toHaveBeenCalledTimes(2);
-    expect(mock).toHaveBeenCalledWith('/api/quote');
-    expect(mock).toHaveBeenCalledWith('/api/jokes');
+    expect(mock.mock.calls.map((c) => c[0])).toContain('/api/quote');
+    expect(mock.mock.calls.map((c) => c[0])).toContain('/api/jokes');
   });
 
   it('skips modules not in the fetch registry', async () => {
@@ -74,7 +75,7 @@ describe('prefetchScreen', () => {
 
     // Only quote is in the registry; clock and text are not
     expect(mock).toHaveBeenCalledTimes(1);
-    expect(mock).toHaveBeenCalledWith('/api/quote');
+    expect(mock.mock.calls[0][0]).toBe('/api/quote');
   });
 
   it('skips modules that are not visible per schedule', async () => {
@@ -114,7 +115,7 @@ describe('prefetchScreen', () => {
 
     // Only quote should be fetched, stocks should be skipped
     expect(mock).toHaveBeenCalledTimes(1);
-    expect(mock).toHaveBeenCalledWith('/api/quote');
+    expect(mock.mock.calls[0][0]).toBe('/api/quote');
   });
 
   it('handles empty screens gracefully', async () => {

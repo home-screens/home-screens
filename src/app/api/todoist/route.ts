@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { errorResponse, withAuth, createTTLCache, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
+import { errorResponse, withAuth, withDisplayAuth, createTTLCache, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -111,7 +111,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
 /** @internal exported for test cleanup */
 export const cache = createTTLCache<unknown>(60 * 1000); // 1 minute
 
-export async function GET() {
+export const GET = withDisplayAuth(async () => {
   try {
     const token = await requireSecret('todoist_token', 'Todoist');
     if (token instanceof NextResponse) return token;
@@ -194,4 +194,4 @@ export async function GET() {
   } catch (error) {
     return errorResponse(error, 'Failed to fetch Todoist data');
   }
-}
+}, 'Failed to fetch Todoist data');

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, fetchWithTimeout } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ function imageResponse(data: ArrayBuffer, contentType: string) {
   });
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const url = request.nextUrl.searchParams.get('url');
   if (!url) return NextResponse.json({ error: 'Missing url' }, { status: 400 });
 
@@ -48,4 +48,4 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return errorResponse(error, 'Fetch error');
   }
-}
+}, 'Failed to proxy image');

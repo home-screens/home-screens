@@ -5,7 +5,7 @@ import { readConfig } from '@/lib/config';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
-import { fetchWithTimeout } from '@/lib/api-utils';
+import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 
 const CACHE_FILE = path.join(process.cwd(), 'data', 'background-cache.json');
 
@@ -105,7 +105,7 @@ async function fetchAndSaveApod(): Promise<string | null> {
  *
  * Response: { path: string, fresh: boolean } or { path: null }
  */
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const screenId = request.nextUrl.searchParams.get('screenId');
   if (!screenId) {
     return NextResponse.json({ error: 'screenId required' }, { status: 400 });
@@ -170,4 +170,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ path: entry?.path || screen.backgroundImage || null });
-}
+}, 'Failed to rotate background');

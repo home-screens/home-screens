@@ -4,9 +4,11 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Mock requireSession to be a no-op for all tests
+// Mock auth to be a no-op for all tests
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
+  requireDisplayAuth: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
 let tmpDir: string;

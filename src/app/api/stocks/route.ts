@@ -32,6 +32,7 @@ async function fetchStock(symbol: string): Promise<StockResult> {
 }
 
 const { GET, cache } = cachedProxyRoute<Record<string, unknown>>({
+  auth: 'display',
   ttlMs: 30 * 1000,
   cacheKey: (req) => {
     const symbolsParam = req.nextUrl.searchParams.get('symbols') || 'AAPL';

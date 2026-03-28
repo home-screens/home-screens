@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAvailableCountries, fetchHolidayEvents } from '@/lib/holidays';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const { searchParams } = request.nextUrl;
 
   // Return available countries list
@@ -36,4 +36,4 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return errorResponse(error, 'Failed to fetch holidays');
   }
-}
+}, 'Failed to fetch holidays');

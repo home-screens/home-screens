@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Screen, GlobalSettings, ScreenConfiguration, Profile } from '@/types/config';
 import { displayCache } from '@/lib/display-cache';
+import { displayFetch } from '@/lib/display-fetch';
 import { usePluginStore } from '@/stores/plugin-store';
 
 /** How often the display polls for config changes (ms) */
@@ -26,7 +27,7 @@ export function useLiveConfig(initialScreens: Screen[], initialSettings: GlobalS
     async function poll() {
       try {
         // Check for new build — reload the page if the server was redeployed
-        const buildRes = await fetch('/api/system/build-id');
+        const buildRes = await displayFetch('/api/system/build-id');
         if (buildRes.ok && mounted) {
           const newBuildId = await buildRes.text();
           if (buildIdRef.current && newBuildId !== buildIdRef.current) {
@@ -36,7 +37,7 @@ export function useLiveConfig(initialScreens: Screen[], initialSettings: GlobalS
           buildIdRef.current = newBuildId;
         }
 
-        const res = await fetch('/api/config');
+        const res = await displayFetch('/api/config');
         if (!res.ok || !mounted) return;
         const text = await res.text();
         // Only update state when the JSON actually changed
@@ -52,7 +53,7 @@ export function useLiveConfig(initialScreens: Screen[], initialSettings: GlobalS
         }
         // Check for plugin changes
         try {
-          const pluginRes = await fetch('/api/plugins/installed');
+          const pluginRes = await displayFetch('/api/plugins/installed');
           if (pluginRes.ok && mounted) {
             const pluginData = await pluginRes.json();
             const newHash = pluginData.pluginHash ?? '';

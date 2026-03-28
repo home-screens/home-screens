@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 import { GET, cache } from '@/app/api/jokes/route';
 
 const dummyRequest = new NextRequest('http://localhost/api/jokes');

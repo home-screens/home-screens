@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { displayCache } from '@/lib/display-cache';
+import { displayFetch } from '@/lib/display-fetch';
 
 export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null] {
   const [data, setData] = useState<T | null>(null);
@@ -13,7 +14,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
 
     async function fetchAndCache() {
       try {
-        const res = await fetch(url, { signal: controller.signal });
+        const res = await displayFetch(url, { signal: controller.signal });
         if (controller.signal.aborted) return;
         if (res.ok) {
           const json = await res.json();

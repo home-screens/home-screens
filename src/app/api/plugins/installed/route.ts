@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getInstalledPlugins, getPluginHash } from '@/lib/plugins';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export const GET = withDisplayAuth(async () => {
   try {
     const installed = await getInstalledPlugins();
     const pluginHash = await getPluginHash();
@@ -12,4 +12,4 @@ export async function GET() {
   } catch (error) {
     return errorResponse(error, 'Failed to read installed plugins');
   }
-}
+}, 'Failed to read installed plugins');

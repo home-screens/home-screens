@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
-import { errorResponse, withAuth } from '@/lib/api-utils';
+import { errorResponse, withAuth, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +21,7 @@ function serveUrl(filename: string, directory?: string) {
   return `/api/backgrounds/serve?file=${encodeURIComponent(filePath)}`;
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   try {
     const directory = request.nextUrl.searchParams.get('directory') || '';
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return errorResponse(error, 'Failed to list backgrounds');
   }
-}
+}, 'Failed to list backgrounds');
 
 export const POST = withAuth(async (request: NextRequest) => {
   const formData = await request.formData();

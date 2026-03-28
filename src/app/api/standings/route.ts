@@ -395,6 +395,7 @@ function groupByDivision(groups: ParsedGroup[], league: string): ParsedGroup[] {
 }
 
 const { GET, cache } = cachedProxyRoute<{ groups: ParsedGroup[] }>({
+  auth: 'display',
   ttlMs: 5 * 60 * 1000, // 5 minutes
   cacheKey: (req) => {
     const league = req.nextUrl.searchParams.get('league') || 'nfl';

@@ -5,6 +5,12 @@ import type { CalendarEvent, ScreenConfiguration } from '@/types/config';
 // ---------------------------------------------------------------------------
 // Mocks — set up before importing the route module
 // ---------------------------------------------------------------------------
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('@/lib/google-calendar', () => ({
   fetchCalendarEvents: vi.fn(),
 }));

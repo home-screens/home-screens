@@ -1,19 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 const mockCache = {
   get: vi.fn(() => null) as ReturnType<typeof vi.fn>,
   set: vi.fn(),
 };
 
-vi.mock('@/lib/api-utils', () => ({
-  errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
-    const { NextResponse } = require('next/server');
-    return NextResponse.json({ error: msg }, { status });
-  }),
-  createTTLCache: vi.fn(() => mockCache),
-  fetchWithTimeout: vi.fn((...args: unknown[]) => (globalThis.fetch as (...a: unknown[]) => unknown)(...args)),
-}));
+vi.mock('@/lib/api-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api-utils')>();
+  return {
+    ...actual,
+    errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
+      const { NextResponse } = require('next/server');
+      return NextResponse.json({ error: msg }, { status });
+    }),
+    createTTLCache: vi.fn(() => mockCache),
+    fetchWithTimeout: vi.fn((...args: unknown[]) => (globalThis.fetch as (...a: unknown[]) => unknown)(...args)),
+  };
+});
 
 const { GET } = await import('@/app/api/image-proxy/route');
 

@@ -26,6 +26,8 @@ vi.mock('@/lib/config', () => ({
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
+  requireDisplayAuth: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
 import { GET, POST } from '@/app/api/display/[action]/route';

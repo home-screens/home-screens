@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, cachedProxyRoute } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute } from '@/lib/api-utils';
 
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
@@ -8,13 +8,15 @@ vi.mock('@/lib/config', () => ({
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
+  requireDisplayAuth: vi.fn(),
 }));
 
 import { readConfig } from '@/lib/config';
 const mockReadConfig = vi.mocked(readConfig);
 
-import { requireSession } from '@/lib/auth';
+import { requireSession, requireDisplayAuth } from '@/lib/auth';
 const mockRequireSession = vi.mocked(requireSession);
+const mockRequireDisplayAuth = vi.mocked(requireDisplayAuth);
 
 describe('errorResponse', () => {
   beforeEach(() => {
@@ -496,6 +498,8 @@ describe('cachedProxyRoute', () => {
     vi.stubGlobal('fetch', fetchSpy);
     vi.useFakeTimers();
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockRequireSession.mockReset();
+    mockRequireDisplayAuth.mockReset();
   });
 
   afterEach(() => {
@@ -669,5 +673,143 @@ describe('cachedProxyRoute', () => {
 
     expect(response.status).toBe(500);
     expect(json).toEqual({ error: 'Something went wrong' });
+  });
+
+  it('calls requireDisplayAuth when auth is "display"', async () => {
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      auth: 'display',
+      url: 'https://api.example.com/data',
+      transform: (d) => d,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    await GET(request);
+
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(mockRequireSession).not.toHaveBeenCalled();
+  });
+
+  it('calls requireSession when auth is "session"', async () => {
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      auth: 'session',
+      url: 'https://api.example.com/data',
+      transform: (d) => d,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    await GET(request);
+
+    expect(mockRequireSession).toHaveBeenCalledWith(request);
+    expect(mockRequireDisplayAuth).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 when display auth rejects', async () => {
+    const authError = new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockRequireDisplayAuth.mockRejectedValue(authError);
+
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      auth: 'display',
+      url: 'https://api.example.com/data',
+      transform: (d) => d,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await GET(request);
+
+    expect(response.status).toBe(401);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('skips auth when auth option is not set', async () => {
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      url: 'https://api.example.com/data',
+      transform: (d) => d,
+      errorMessage: 'Failed',
+    });
+
+    const request = new NextRequest('http://localhost/api/test');
+    await GET(request);
+
+    expect(mockRequireSession).not.toHaveBeenCalled();
+    expect(mockRequireDisplayAuth).not.toHaveBeenCalled();
+  });
+});
+
+describe('withDisplayAuth', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockRequireDisplayAuth.mockReset();
+  });
+
+  it('calls handler when auth passes', async () => {
+    const handler = vi.fn().mockResolvedValue(NextResponse.json({ ok: true }));
+    const wrapped = withDisplayAuth(handler, 'Failed');
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await wrapped(request);
+    const json = await response.json();
+
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined);
+    expect(json).toEqual({ ok: true });
+  });
+
+  it('returns 401 when auth rejects', async () => {
+    const authError = new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockRequireDisplayAuth.mockRejectedValue(authError);
+
+    const handler = vi.fn();
+    const wrapped = withDisplayAuth(handler, 'Failed');
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await wrapped(request);
+
+    expect(response.status).toBe(401);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('returns error response for non-Response errors', async () => {
+    mockRequireDisplayAuth.mockRejectedValue(new Error('disk I/O'));
+
+    const handler = vi.fn();
+    const wrapped = withDisplayAuth(handler, 'Something broke');
+
+    const request = new NextRequest('http://localhost/api/test');
+    const response = await wrapped(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(json).toEqual({ error: 'Something broke' });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('passes context to handler', async () => {
+    const handler = vi.fn().mockResolvedValue(NextResponse.json({ ok: true }));
+    const wrapped = withDisplayAuth<{ params: Promise<{ id: string }> }>(handler, 'Failed');
+
+    const request = new NextRequest('http://localhost/api/test');
+    const ctx = { params: Promise.resolve({ id: '123' }) };
+    await wrapped(request, ctx);
+
+    expect(handler).toHaveBeenCalledWith(request, ctx);
   });
 });

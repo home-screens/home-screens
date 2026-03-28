@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-interface PowerControlsProps {
-  needsAuth: boolean;
-  onAuthFailure: () => void;
-}
-
 function ConfirmButton({
   label,
   confirmLabel,
@@ -54,15 +49,14 @@ function ConfirmButton({
   );
 }
 
-export default function PowerControls({ needsAuth, onAuthFailure }: PowerControlsProps) {
+export default function PowerControls() {
   const sendPower = async (action: 'restart-service' | 'reboot') => {
     try {
-      const res = await fetch('/api/system/power', {
+      await fetch('/api/system/power', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
-      if (res.status === 401) onAuthFailure();
     } catch {
       // Best-effort — the server may already be restarting
     }
@@ -74,29 +68,20 @@ export default function PowerControls({ needsAuth, onAuthFailure }: PowerControl
         Power
       </h2>
 
-      {needsAuth ? (
-        <a
-          href="/login?from=/remote"
-          className="block text-sm text-blue-400 bg-neutral-900 rounded-lg p-3 text-center"
-        >
-          Sign in to manage power
-        </a>
-      ) : (
-        <div className="flex gap-3">
-          <ConfirmButton
-            label="Restart Service"
-            confirmLabel="Tap again to restart"
-            onConfirm={() => sendPower('restart-service')}
-            disabled={needsAuth}
-          />
-          <ConfirmButton
-            label="Reboot"
-            confirmLabel="Tap again to reboot"
-            onConfirm={() => sendPower('reboot')}
-            disabled={needsAuth}
-          />
-        </div>
-      )}
+      <div className="flex gap-3">
+        <ConfirmButton
+          label="Restart Service"
+          confirmLabel="Tap again to restart"
+          onConfirm={() => sendPower('restart-service')}
+          disabled={false}
+        />
+        <ConfirmButton
+          label="Reboot"
+          confirmLabel="Tap again to reboot"
+          onConfirm={() => sendPower('reboot')}
+          disabled={false}
+        />
+      </div>
     </section>
   );
 }

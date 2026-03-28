@@ -8,6 +8,7 @@ interface AuthState {
   passwordHash: string | null;
   salt: string | null;
   cookieSecret: string | null;
+  displayToken?: string | null;
 }
 
 interface SessionPayload {
@@ -27,7 +28,7 @@ function getAuthPath(): string {
 
 /* ─── Auth State (fail-closed reads) ─────────── */
 
-const DISABLED_STATE: AuthState = { passwordHash: null, salt: null, cookieSecret: null };
+const DISABLED_STATE: AuthState = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
 export async function readAuthState(): Promise<AuthState> {
   const filePath = getAuthPath();
@@ -43,14 +44,22 @@ export async function readAuthState(): Promise<AuthState> {
   }
 }
 
+// Serialize all read-modify-write operations on auth.json to prevent races
+// between concurrent setPassword() and regenerateDisplayToken() calls.
+let writeQueue: Promise<void> = Promise.resolve();
+
 async function writeAuthState(state: AuthState): Promise<void> {
-  const filePath = getAuthPath();
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const tmp = filePath + '.tmp';
-  await fs.writeFile(tmp, JSON.stringify(state, null, 2), 'utf-8');
-  await fs.rename(tmp, filePath);
-  // Clear cache so next read picks up new state
-  cachedState = null;
+  const op = writeQueue.then(async () => {
+    const filePath = getAuthPath();
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    const tmp = filePath + '.tmp';
+    await fs.writeFile(tmp, JSON.stringify(state, null, 2), 'utf-8');
+    await fs.rename(tmp, filePath);
+    // Clear cache so next read picks up new state
+    cachedState = null;
+  });
+  writeQueue = op.catch(() => {});
+  return op;
 }
 
 /* ─── Cached reads (short TTL for requireSession hot path) ── */
@@ -152,15 +161,39 @@ export function createSessionCookie(cookieSecret: string): string {
 }
 
 export async function setPassword(newPassword: string): Promise<string> {
+  const existing = await readAuthState();
   const salt = crypto.randomBytes(32).toString('hex');
   const hash = await scryptHash(newPassword, salt);
   const cookieSecret = crypto.randomBytes(32).toString('hex');
-  await writeAuthState({ passwordHash: hash, salt, cookieSecret });
+  // Preserve existing display token, or auto-generate one on first password set
+  const displayToken = existing.displayToken ?? generateDisplayToken();
+  await writeAuthState({ passwordHash: hash, salt, cookieSecret, displayToken });
   return createSessionCookie(cookieSecret);
 }
 
 export async function clearPassword(): Promise<void> {
   await writeAuthState(DISABLED_STATE);
+}
+
+/* ─── Display Token ─────────────────────────── */
+
+function generateDisplayToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export async function getDisplayToken(): Promise<string | null> {
+  const state = await readAuthState();
+  if (!state.passwordHash) return null; // auth disabled
+  if (state.displayToken) return state.displayToken;
+  // Auto-generate for installations that enabled auth before the display token feature
+  return regenerateDisplayToken();
+}
+
+export async function regenerateDisplayToken(): Promise<string> {
+  const state = await readAuthState();
+  const token = generateDisplayToken();
+  await writeAuthState({ ...state, displayToken: token });
+  return token;
 }
 
 /**
@@ -191,6 +224,72 @@ export async function requireSession(request: Request): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+}
+
+/**
+ * Validates either a session cookie OR a display Bearer token.
+ * No-op when auth is disabled. Throws a 401 Response when auth is enabled
+ * and neither credential is valid.
+ */
+export async function requireDisplayAuth(request: Request): Promise<void> {
+  let state = await getCachedAuthState();
+  if (!state.passwordHash) return; // auth disabled
+
+  // Auto-migrate: generate display token for existing installations that
+  // enabled auth before the display token feature was added.
+  if (!state.displayToken) {
+    await regenerateDisplayToken();
+    state = await readAuthState();
+    cachedState = { state, at: Date.now() };
+  }
+
+  function tokenMatches(candidate: string): boolean {
+    if (!state.displayToken) return false;
+    const a = Buffer.from(candidate);
+    const b = Buffer.from(state.displayToken);
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  }
+
+  // Try display token first (Authorization: Bearer <token>)
+  const authHeader = request.headers.get('authorization') ?? '';
+  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/);
+  if (bearerMatch && tokenMatches(bearerMatch[1])) {
+    return; // valid display token
+  }
+
+  // Try query param token — restricted to /api/display/* for phone bookmarks only.
+  // Bearer header is the primary auth method; query tokens are a convenience for
+  // bookmarkable GET commands (wake/sleep/reload) and are limited in scope to avoid
+  // credential leakage through browser history, logs, and referrer headers.
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/display/')) {
+    const queryToken = url.searchParams.get('token');
+    if (queryToken && tokenMatches(queryToken)) {
+      return; // valid display token via query param
+    }
+  }
+
+  // Fall back to session cookie
+  if (!state.cookieSecret) {
+    throw new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const cookieMatch = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/);
+  const sessionToken = cookieMatch?.[1];
+
+  if (sessionToken && verifySession(sessionToken, state.cookieSecret)) {
+    return; // valid session
+  }
+
+  throw new Response(JSON.stringify({ error: 'Authentication required' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 /**

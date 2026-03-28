@@ -20,6 +20,12 @@ vi.mock('@/lib/plugin-secrets', () => ({
   getPluginSecret: vi.fn(),
 }));
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();
   return {
@@ -1020,10 +1026,13 @@ describe('POST /api/plugins/proxy/[pluginId] — SSRF prevention via domain allo
 describe('POST /api/plugins/proxy/[pluginId] — plugin ID sanitization', () => {
   it('rejects plugin IDs that sanitize to empty string', async () => {
     // sanitizePluginId throws for IDs that become empty after stripping unsafe chars.
-    // The call is outside the try/catch so the error propagates as an unhandled exception.
+    // withDisplayAuth catches the error and returns an error response.
     const [req, ctx] = makeProxyRequest('...', { url: uniqueUrl() });
 
-    await expect(POST(req, ctx)).rejects.toThrow('Invalid plugin ID');
+    const res = await POST(req, ctx);
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.error).toBe('Plugin proxy request failed');
   });
 
   it('rejects directory traversal attempts in plugin ID', async () => {

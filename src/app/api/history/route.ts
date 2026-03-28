@@ -3,6 +3,7 @@ import { cachedProxyRoute } from '@/lib/api-utils';
 export const dynamic = 'force-dynamic';
 
 const { GET, cache } = cachedProxyRoute<{ events: Array<{ year: string; text: string }> }>({
+  auth: 'display',
   ttlMs: 24 * 60 * 60 * 1000,
   cacheKey: () => new Date().toISOString().slice(0, 10),
   url: 'https://history.muffinlabs.com/date',

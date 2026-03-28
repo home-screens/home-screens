@@ -11,10 +11,13 @@ vi.mock('@/lib/auth', () => ({
   buildClearCookie: vi.fn(),
   isAuthEnabled: vi.fn(),
   requireSession: vi.fn(),
+  requireDisplayAuth: vi.fn(),
   setPassword: vi.fn(),
   clearPassword: vi.fn(),
   verifySession: vi.fn(),
   clearAuthCache: vi.fn(),
+  getDisplayToken: vi.fn().mockResolvedValue(null),
+  regenerateDisplayToken: vi.fn(),
 }));
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
@@ -39,6 +42,8 @@ import {
   clearPassword,
   verifySession,
   clearAuthCache,
+  getDisplayToken,
+  regenerateDisplayToken,
 } from '@/lib/auth';
 
 /* ─── Import routes (after mocks) ───────────── */
@@ -47,6 +52,7 @@ const loginRoute = await import('@/app/api/auth/login/route');
 const passwordRoute = await import('@/app/api/auth/password/route');
 const statusRoute = await import('@/app/api/auth/status/route');
 const logoutRoute = await import('@/app/api/auth/logout/route');
+const displayTokenRoute = await import('@/app/api/auth/display-token/route');
 
 /* ─── Helpers ────────────────────────────────── */
 
@@ -761,5 +767,62 @@ describe('POST /api/auth/logout', () => {
     );
 
     expect(res.status).toBe(200);
+  });
+});
+
+/* ─── /api/auth/display-token ─────────────────── */
+
+describe('GET /api/auth/display-token', () => {
+  it('returns null when auth is disabled', async () => {
+    vi.mocked(isAuthEnabled).mockResolvedValue(false);
+
+    const res = await displayTokenRoute.GET(
+      makeGetRequest('/api/auth/display-token'),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.displayToken).toBeNull();
+  });
+
+  it('returns display token when auth is enabled', async () => {
+    vi.mocked(isAuthEnabled).mockResolvedValue(true);
+    vi.mocked(getDisplayToken).mockResolvedValue('abc123');
+
+    const res = await displayTokenRoute.GET(
+      makeGetRequest('/api/auth/display-token'),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.displayToken).toBe('abc123');
+  });
+});
+
+describe('POST /api/auth/display-token', () => {
+  it('returns error when auth is disabled', async () => {
+    vi.mocked(isAuthEnabled).mockResolvedValue(false);
+
+    const res = await displayTokenRoute.POST(
+      makePostRequest('/api/auth/display-token'),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toBeTruthy();
+  });
+
+  it('regenerates and returns new token when auth is enabled', async () => {
+    vi.mocked(isAuthEnabled).mockResolvedValue(true);
+    vi.mocked(regenerateDisplayToken).mockResolvedValue('newtoken456');
+
+    const res = await displayTokenRoute.POST(
+      makePostRequest('/api/auth/display-token'),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.displayToken).toBe('newtoken456');
+    expect(regenerateDisplayToken).toHaveBeenCalled();
   });
 });

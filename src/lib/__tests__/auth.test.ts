@@ -11,6 +11,9 @@ import {
   setPassword,
   clearPassword,
   requireSession,
+  requireDisplayAuth,
+  getDisplayToken,
+  regenerateDisplayToken,
   createSessionCookie,
   buildSessionCookie,
   buildClearCookie,
@@ -48,7 +51,7 @@ afterEach(async () => {
 describe('readAuthState', () => {
   it('returns disabled state when file does not exist', async () => {
     const state = await readAuthState();
-    expect(state).toEqual({ passwordHash: null, salt: null, cookieSecret: null });
+    expect(state).toEqual({ passwordHash: null, salt: null, cookieSecret: null, displayToken: null });
   });
 
   it('reads valid auth state', async () => {
@@ -173,13 +176,14 @@ describe('setPassword / clearPassword', () => {
     expect(result).not.toBeNull();
   });
 
-  it('clearPassword wipes all auth state', async () => {
+  it('clearPassword wipes all auth state including display token', async () => {
     await setPassword('mypassword8');
     await clearPassword();
     const state = await readAuthState();
     expect(state.passwordHash).toBeNull();
     expect(state.salt).toBeNull();
     expect(state.cookieSecret).toBeNull();
+    expect(state.displayToken).toBeNull();
   });
 
   it('changing password invalidates old sessions', async () => {
@@ -273,5 +277,183 @@ describe('cookie helpers', () => {
     const result = verifySession(token, secret);
     expect(result).not.toBeNull();
     expect(result!.exp - result!.iat).toBe(30 * 24 * 60 * 60);
+  });
+});
+
+describe('display token', () => {
+  it('setPassword auto-generates a display token', async () => {
+    await setPassword('testpassword123');
+    const state = await readAuthState();
+    expect(state.displayToken).toBeTruthy();
+    expect(state.displayToken!.length).toBe(64); // 32 bytes hex
+  });
+
+  it('setPassword preserves existing display token on password change', async () => {
+    await setPassword('password1');
+    const firstToken = (await readAuthState()).displayToken;
+
+    await setPassword('password2');
+    const secondToken = (await readAuthState()).displayToken;
+
+    expect(secondToken).toBe(firstToken);
+  });
+
+  it('getDisplayToken returns the token when set', async () => {
+    await setPassword('testpassword123');
+    const token = await getDisplayToken();
+    expect(token).toBeTruthy();
+    expect(token!.length).toBe(64);
+  });
+
+  it('getDisplayToken returns null when auth is disabled', async () => {
+    const token = await getDisplayToken();
+    expect(token).toBeNull();
+  });
+
+  it('regenerateDisplayToken creates a new token', async () => {
+    await setPassword('testpassword123');
+    const originalToken = await getDisplayToken();
+
+    const newToken = await regenerateDisplayToken();
+    expect(newToken).not.toBe(originalToken);
+    expect(newToken.length).toBe(64);
+
+    // The new token should be persisted
+    const stored = await getDisplayToken();
+    expect(stored).toBe(newToken);
+  });
+
+  it('regenerateDisplayToken preserves other auth state', async () => {
+    await setPassword('testpassword123');
+    const stateBefore = await readAuthState();
+
+    await regenerateDisplayToken();
+    const stateAfter = await readAuthState();
+
+    expect(stateAfter.passwordHash).toBe(stateBefore.passwordHash);
+    expect(stateAfter.salt).toBe(stateBefore.salt);
+    expect(stateAfter.cookieSecret).toBe(stateBefore.cookieSecret);
+  });
+
+  it('getDisplayToken auto-generates token for pre-display-token auth.json (upgrade path)', async () => {
+    // Simulate an auth.json from before the display token feature was added
+    await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
+    await fs.writeFile(AUTH_PATH, JSON.stringify({
+      passwordHash: 'abc',
+      salt: 'def',
+      cookieSecret: 'ghi',
+      // no displayToken field — this is the upgrade scenario
+    }));
+    clearAuthCache();
+
+    const token = await getDisplayToken();
+    expect(token).toBeTruthy();
+    expect(token!.length).toBe(64);
+
+    // Token should now be persisted in auth.json
+    const state = await readAuthState();
+    expect(state.displayToken).toBe(token);
+    // Other auth state should be preserved
+    expect(state.passwordHash).toBe('abc');
+    expect(state.salt).toBe('def');
+    expect(state.cookieSecret).toBe('ghi');
+  });
+});
+
+describe('requireDisplayAuth', () => {
+  it('is a no-op when auth is disabled', async () => {
+    const request = new Request('http://localhost/api/test');
+    await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
+  });
+
+  it('accepts a valid Bearer token', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+    const token = await getDisplayToken();
+
+    const request = new Request('http://localhost/api/test', {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
+  });
+
+  it('accepts a valid query param token', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+    const token = await getDisplayToken();
+
+    // Query param token is only accepted on /api/display/* paths
+    const request = new Request(`http://localhost/api/display/wake?token=${token}`);
+    await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
+  });
+
+  it('rejects a valid query param token on a non-display path', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+    const token = await getDisplayToken();
+
+    // Valid token, but path is not /api/display/* — should be rejected
+    const request = new Request(`http://localhost/api/weather?token=${token}`);
+    try {
+      await requireDisplayAuth(request);
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Response);
+      expect((err as Response).status).toBe(401);
+    }
+  });
+
+  it('accepts a valid session cookie', async () => {
+    const sessionToken = await setPassword('testpassword123');
+    clearAuthCache();
+
+    const request = new Request('http://localhost/api/test', {
+      headers: { cookie: `hs-session=${sessionToken}` },
+    });
+    await expect(requireDisplayAuth(request)).resolves.toBeUndefined();
+  });
+
+  it('throws 401 when auth is enabled and no credentials provided', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+
+    const request = new Request('http://localhost/api/test');
+    try {
+      await requireDisplayAuth(request);
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Response);
+      expect((err as Response).status).toBe(401);
+    }
+  });
+
+  it('throws 401 for an invalid Bearer token', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+
+    const request = new Request('http://localhost/api/test', {
+      headers: { authorization: 'Bearer invalidtoken' },
+    });
+    try {
+      await requireDisplayAuth(request);
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Response);
+      expect((err as Response).status).toBe(401);
+    }
+  });
+
+  it('throws 401 for an invalid query param token', async () => {
+    await setPassword('testpassword123');
+    clearAuthCache();
+
+    const request = new Request('http://localhost/api/test?token=wrongtoken');
+    try {
+      await requireDisplayAuth(request);
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Response);
+      expect((err as Response).status).toBe(401);
+    }
   });
 });

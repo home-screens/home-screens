@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
+import { displayFetch } from '@/lib/display-fetch';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -25,7 +26,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     async function pollBackgrounds() {
       for (const screen of screensWithRotation) {
         try {
-          const res = await fetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`);
+          const res = await displayFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`);
           if (res.ok) {
             const data = await res.json();
             if (data.path) {

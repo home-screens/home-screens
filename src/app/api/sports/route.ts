@@ -86,6 +86,7 @@ async function fetchLeague(league: string): Promise<GameResult[]> {
 }
 
 const { GET, cache } = cachedProxyRoute<{ games: GameResult[] }>({
+  auth: 'display',
   ttlMs: 60 * 1000, // 1 minute
   cacheKey: (req) => {
     const leaguesParam = req.nextUrl.searchParams.get('leagues') || 'nfl,nba';

@@ -15,6 +15,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { displayCache } from '@/lib/display-cache';
 import { getHostSettings } from '@/lib/plugin-host-settings';
 import { pluginEventBus } from '@/lib/plugin-events';
+import { displayFetch } from '@/lib/display-fetch';
 
 /**
  * Simple loading/error state component for plugins.
@@ -100,7 +101,7 @@ export default function PluginGlobals() {
           cacheTtlMs?: number;
         },
       ): Promise<Response> => {
-        return fetch(`/api/plugins/proxy/${encodeURIComponent(pluginId)}`, {
+        return displayFetch(`/api/plugins/proxy/${encodeURIComponent(pluginId)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(options),

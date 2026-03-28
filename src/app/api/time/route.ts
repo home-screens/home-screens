@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export const GET = withDisplayAuth(async () => {
   try {
     const now = new Date();
     return NextResponse.json({
@@ -19,4 +19,4 @@ export async function GET() {
   } catch (error) {
     return errorResponse(error, 'Failed to get server time');
   }
-}
+}, 'Failed to get server time');

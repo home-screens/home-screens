@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
+
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
 
 vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
@@ -89,7 +96,7 @@ describe('GET /api/air-quality', () => {
     mockGetLocation.mockResolvedValue(null);
     mockGetSecret.mockResolvedValue('test-key');
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -100,7 +107,7 @@ describe('GET /api/air-quality', () => {
     mockGetLocation.mockResolvedValue({ lat: '40.7', lon: '-74.0' });
     mockGetSecret.mockResolvedValue(null);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -112,7 +119,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     mockFetchResponses(makeAirPollutionResponse(3), true, makeUvResponse(5.2), true);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -131,7 +138,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('MY_KEY');
     mockFetchResponses(makeAirPollutionResponse(2), true, makeUvResponse(3), true);
 
-    await GET();
+    await GET(new NextRequest('http://localhost/api/air-quality'));
 
     const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
     expect(calls).toHaveLength(2);
@@ -150,7 +157,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     mockFetchResponses({}, false, makeUvResponse(0), true, 503);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(502);
@@ -162,7 +169,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     mockFetchResponses({ list: [] }, true, makeUvResponse(0), true);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(502);
@@ -174,7 +181,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     mockFetchResponses(makeAirPollutionResponse(1), true, {}, false);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -200,7 +207,7 @@ describe('GET /api/air-quality', () => {
       return Promise.reject(new Error(`Unexpected fetch URL: ${url}`));
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -213,7 +220,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     mockFetchResponses(makeAirPollutionResponse(2), true, makeUvResponse(8.7), true);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(json.uv).toBe(8.7);
@@ -235,7 +242,7 @@ describe('GET /api/air-quality', () => {
     };
     mockFetchResponses(airData, true, makeUvResponse(0), true);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -250,7 +257,7 @@ describe('GET /api/air-quality', () => {
     mockGetSecret.mockResolvedValue('test-key');
     global.fetch = vi.fn().mockRejectedValue(new Error('DNS resolution failed'));
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/air-quality'));
     const json = await res.json();
 
     expect(res.status).toBe(500);

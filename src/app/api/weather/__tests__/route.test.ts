@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 const mockCache = {
   get: vi.fn(() => null),
   set: vi.fn(),
@@ -18,14 +24,18 @@ vi.mock('@/lib/weather', () => ({
   createWeatherProvider: vi.fn(),
 }));
 
-vi.mock('@/lib/api-utils', () => ({
-  errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
-    const { NextResponse } = require('next/server');
-    return NextResponse.json({ error: msg }, { status });
-  }),
-  createTTLCache: vi.fn(() => mockCache),
-  getLocationFromConfig: vi.fn(),
-}));
+vi.mock('@/lib/api-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api-utils')>();
+  return {
+    ...actual,
+    errorResponse: vi.fn((_err: unknown, msg: string, status = 500) => {
+      const { NextResponse } = require('next/server');
+      return NextResponse.json({ error: msg }, { status });
+    }),
+    createTTLCache: vi.fn(() => mockCache),
+    getLocationFromConfig: vi.fn(),
+  };
+});
 
 import { getSecret } from '@/lib/secrets';
 import { readConfig } from '@/lib/config';

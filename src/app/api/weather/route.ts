@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { getSecret } from '@/lib/secrets';
-import { errorResponse, createTTLCache, getLocationFromConfig } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
 /** @internal */
 export const cache = createTTLCache<unknown>(5 * 60 * 1000); // 5 minutes
 
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const { searchParams } = request.nextUrl;
   const type = searchParams.get('type') ?? 'both';
 
@@ -90,4 +90,4 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return errorResponse(error, 'Failed to fetch weather');
   }
-}
+}, 'Failed to fetch weather');

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
-import { requireSession } from '@/lib/auth';
+import { requireSession, requireDisplayAuth } from '@/lib/auth';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 
 /**
@@ -194,20 +194,42 @@ export function withAuth<C = any>(
   };
 }
 
-interface CachedProxyRouteOptions<T> {
+/**
+ * Like `withAuth`, but accepts either a session cookie OR a display Bearer token.
+ * Use this for endpoints the display polls (config, weather, commands, etc.).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function withDisplayAuth<C = any>(
+  handler: (request: NextRequest, context: C) => Promise<Response>,
+  errorMsg: string,
+) {
+  return async (request: NextRequest, context?: C): Promise<Response> => {
+    try {
+      await requireDisplayAuth(request);
+      return await handler(request, context as C);
+    } catch (error) {
+      if (error instanceof Response) return error;
+      return errorResponse(error, errorMsg);
+    }
+  };
+}
+
+interface CachedProxyRouteBase {
   ttlMs: number;
   cacheKey?: (request: NextRequest) => string;
+  errorMessage: string;
+  /** Auth tier for this route. 'display' accepts session or display token; 'session' requires session only. */
+  auth?: 'display' | 'session';
+}
+
+interface CachedProxyRouteOptions<T> extends CachedProxyRouteBase {
   url: string | ((request: NextRequest) => string);
   fetchInit?: RequestInit;
   transform: (data: unknown, request: NextRequest) => T;
-  errorMessage: string;
 }
 
-interface CachedProxyRouteCustomOptions<T> {
-  ttlMs: number;
-  cacheKey?: (request: NextRequest) => string;
+interface CachedProxyRouteCustomOptions<T> extends CachedProxyRouteBase {
   execute: (request: NextRequest) => Promise<T | NextResponse>;
-  errorMessage: string;
 }
 
 type CachedProxyRouteConfig<T> = CachedProxyRouteOptions<T> | CachedProxyRouteCustomOptions<T>;
@@ -222,6 +244,9 @@ export function cachedProxyRoute<T>(config: CachedProxyRouteConfig<T>) {
 
   const GET = async (request: NextRequest) => {
     try {
+      if (config.auth === 'display') await requireDisplayAuth(request);
+      else if (config.auth === 'session') await requireSession(request);
+
       const key = keyFn(request);
       const cached = cache.get(key);
       if (cached) return NextResponse.json(cached);
@@ -243,6 +268,7 @@ export function cachedProxyRoute<T>(config: CachedProxyRouteConfig<T>) {
       cache.set(key, result);
       return NextResponse.json(result);
     } catch (error) {
+      if (error instanceof Response) return error;
       return errorResponse(error, config.errorMessage);
     }
   };

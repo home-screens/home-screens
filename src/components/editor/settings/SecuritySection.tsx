@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 interface AuthStatus {
   authEnabled: boolean;
   authenticated: boolean;
+  hasDisplayToken: boolean;
 }
 
 export default function SecuritySection() {
@@ -22,11 +23,30 @@ export default function SecuritySection() {
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Display token state
+  const [displayToken, setDisplayToken] = useState<string | null>(null);
+  const [tokenRevealed, setTokenRevealed] = useState(false);
+  const [tokenCopied, setTokenCopied] = useState(false);
+  const [tokenRegenerating, setTokenRegenerating] = useState(false);
+  const [tokenConfirmRegen, setTokenConfirmRegen] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+
   useEffect(() => {
     async function check() {
       try {
         const res = await fetch('/api/auth/status');
-        if (res.ok) setStatus(await res.json());
+        if (res.ok) {
+          const data = await res.json();
+          setStatus(data);
+          // Fetch display token if auth is enabled and user is authenticated
+          if (data.authEnabled && data.authenticated) {
+            const tokenRes = await editorFetch('/api/auth/display-token');
+            if (tokenRes.ok) {
+              const { displayToken: token } = await tokenRes.json();
+              setDisplayToken(token);
+            }
+          }
+        }
       } catch {
         // ignore
       } finally {
@@ -63,7 +83,13 @@ export default function SecuritySection() {
         setError(data.error || 'Failed to set password');
         return;
       }
-      setStatus({ authEnabled: true, authenticated: true });
+      setStatus({ authEnabled: true, authenticated: true, hasDisplayToken: true });
+      // Fetch the auto-generated display token so the UI shows it immediately
+      const tokenRes = await editorFetch('/api/auth/display-token');
+      if (tokenRes.ok) {
+        const { displayToken: tok } = await tokenRes.json();
+        setDisplayToken(tok);
+      }
       setSuccess('Password set! Authentication is now enabled.');
       setTimeout(resetModal, 2000);
     } catch {
@@ -114,13 +140,65 @@ export default function SecuritySection() {
         setError(data.error || 'Failed to disable authentication');
         return;
       }
-      setStatus({ authEnabled: false, authenticated: false });
+      setStatus({ authEnabled: false, authenticated: false, hasDisplayToken: false });
+      // Clear stale token state so re-enabling doesn't show the old token
+      setDisplayToken(null);
+      setTokenRevealed(false);
+      setTokenCopied(false);
+      setTokenConfirmRegen(false);
+      setTokenError(null);
       setSuccess('Authentication disabled.');
       setTimeout(resetModal, 2000);
     } catch {
       setError('Network error');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleCopyToken() {
+    if (!displayToken) return;
+    try {
+      await navigator.clipboard.writeText(displayToken);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 2000);
+    } catch {
+      // Fallback for insecure contexts (HTTP)
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = displayToken;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (!ok) { setTokenError('Copy failed — select and copy manually'); return; }
+        setTokenCopied(true);
+        setTimeout(() => setTokenCopied(false), 2000);
+      } catch {
+        setTokenError('Copy failed — select and copy manually');
+      }
+    }
+  }
+
+  async function handleRegenerateToken() {
+    setTokenRegenerating(true);
+    setTokenError(null);
+    try {
+      const res = await editorFetch('/api/auth/display-token', { method: 'POST' });
+      if (res.ok) {
+        const { displayToken: token } = await res.json();
+        setDisplayToken(token);
+        setTokenConfirmRegen(false);
+        setTokenRevealed(true);
+      } else {
+        setTokenError('Failed to regenerate token');
+      }
+    } catch {
+      setTokenError('Network error');
+    } finally {
+      setTokenRegenerating(false);
     }
   }
 
@@ -164,8 +242,8 @@ export default function SecuritySection() {
         {!status?.authEnabled && (
           <div className="space-y-3">
             <p className="text-xs text-neutral-500">
-              Set a password to protect the editor and all write operations.
-              The display view will remain accessible without a password.
+              Set a password to protect the editor and API endpoints.
+              A display token will be auto-generated so the display can authenticate seamlessly.
             </p>
             <Button variant="primary" size="sm" onClick={() => setModal('set')}>
               Set Password
@@ -186,6 +264,69 @@ export default function SecuritySection() {
                 Log Out
               </Button>
             </div>
+
+            {/* Display Token */}
+            {displayToken && (
+              <div className="mt-4 pt-4 border-t border-neutral-800">
+                <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+                  Display Token
+                </h4>
+                <p className="text-xs text-neutral-500 mb-2">
+                  The display uses this token to authenticate API requests. It was auto-generated when you set a password.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-neutral-800 border border-neutral-700 rounded px-2 py-1.5 text-neutral-300 font-mono truncate select-all">
+                    {tokenRevealed ? displayToken : displayToken.slice(0, 8) + '\u2022'.repeat(16)}
+                  </code>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setTokenRevealed(!tokenRevealed)}
+                  >
+                    {tokenRevealed ? 'Hide' : 'Reveal'}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={handleCopyToken}>
+                    {tokenCopied ? 'Copied!' : 'Copy'}
+                  </Button>
+                </div>
+                <div className="mt-2">
+                  {!tokenConfirmRegen ? (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => setTokenConfirmRegen(true)}
+                    >
+                      Regenerate Token
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-amber-400">
+                        The display will need to reload to pick up the new token.
+                      </span>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={handleRegenerateToken}
+                        disabled={tokenRegenerating}
+                      >
+                        {tokenRegenerating ? 'Regenerating...' : 'Confirm'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setTokenConfirmRegen(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  {tokenError && <p className="text-xs text-red-400 mt-1">{tokenError}</p>}
+                </div>
+                <p className="text-xs text-neutral-600 mt-2">
+                  For phone bookmarks, append <code className="text-neutral-500">?token=TOKEN</code> to command URLs.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

@@ -22,6 +22,7 @@ interface RainViewerResponse {
 }
 
 const { GET, cache } = cachedProxyRoute<RainViewerResponse>({
+  auth: 'display',
   ttlMs: 5 * 60 * 1000,
   execute: async () => {
     const res = await fetchWithTimeout('https://api.rainviewer.com/public/weather-maps.json');

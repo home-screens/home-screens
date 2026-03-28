@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createTTLCache, getLocationFromConfig, fetchWithTimeout, errorResponse, requireSecret } from '@/lib/api-utils';
+import { createTTLCache, getLocationFromConfig, fetchWithTimeout, errorResponse, requireSecret, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
 /** @internal */
 export const cache = createTTLCache<Record<string, unknown>>(5 * 60 * 1000); // 5 minutes
 
-export async function GET() {
+export const GET = withDisplayAuth(async () => {
   try {
     const location = await getLocationFromConfig();
     if (!location) {
@@ -78,4 +78,4 @@ export async function GET() {
   } catch (error) {
     return errorResponse(error, 'Failed to fetch air quality data');
   }
-}
+}, 'Failed to fetch air quality data');

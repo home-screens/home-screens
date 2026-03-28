@@ -19,12 +19,14 @@ import { useIdleCursor } from '@/hooks/useIdleCursor';
 import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
+import { setDisplayToken } from '@/lib/display-fetch';
 import type { TransitionEffect } from '@/types/config';
 
 interface ScreenRotatorProps {
   screens: Screen[];
   settings: GlobalSettings;
   profiles?: Profile[];
+  displayToken?: string | null;
 }
 
 // ---- View Transitions API integration ----
@@ -76,7 +78,10 @@ function startScreenTransition(
 
 // ---- Main component ----
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken }: ScreenRotatorProps) {
+  // Set display token before any fetches fire — useLayoutEffect runs before useEffect
+  useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
+
   const { screens: allScreens, settings, profiles } = useLiveConfig(initialScreens, initialSettings, initialProfiles);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading

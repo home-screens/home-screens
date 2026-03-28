@@ -9,10 +9,6 @@ interface SystemStats {
   app: { screens: number; modules: number; profiles: number };
 }
 
-interface SystemInfoProps {
-  needsAuth: boolean;
-}
-
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
@@ -48,7 +44,7 @@ function UsageBar({ used, total, label }: { used: number; total: number; label: 
   );
 }
 
-export default function SystemInfo({ needsAuth }: SystemInfoProps) {
+export default function SystemInfo() {
   const [expanded, setExpanded] = useState(false);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,14 +90,7 @@ export default function SystemInfo({ needsAuth }: SystemInfoProps) {
 
       {expanded && (
         <div className="mt-2 bg-neutral-900 rounded-lg p-3 space-y-3">
-          {needsAuth ? (
-            <a
-              href="/login?from=/remote"
-              className="block text-sm text-blue-400 text-center"
-            >
-              Sign in to view system info
-            </a>
-          ) : loading ? (
+          {loading ? (
             <p className="text-sm text-neutral-500 text-center">Loading&hellip;</p>
           ) : error ? (
             <p className="text-sm text-red-400 text-center">{error}</p>

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { ChoreCompletion } from '@/types/config';
-import { errorResponse, withAuth } from '@/lib/api-utils';
+import { errorResponse, withAuth, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +56,7 @@ function purgeOld(completions: ChoreCompletion[]): ChoreCompletion[] {
   return completions.filter((c) => c.date >= cutoffStr);
 }
 
-export async function GET() {
+export const GET = withDisplayAuth(async () => {
   try {
     const data = await readCompletions();
     const cleaned = purgeOld(data.completions);
@@ -72,7 +72,7 @@ export async function GET() {
   } catch (error) {
     return errorResponse(error, 'Failed to read chore completions');
   }
-}
+}, 'Failed to read chore completions');
 
 export const POST = withAuth(async (request: NextRequest) => {
   const body = await request.json();

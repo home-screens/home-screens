@@ -7,6 +7,7 @@ function parseIds(request: { nextUrl: { searchParams: URLSearchParams } }) {
 }
 
 const { GET, cache } = cachedProxyRoute({
+  auth: 'display',
   ttlMs: 30 * 1000,
   cacheKey: (req) => parseIds(req),
   url: (req) => {

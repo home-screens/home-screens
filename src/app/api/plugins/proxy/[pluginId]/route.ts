@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { errorResponse, fetchWithTimeout } from '@/lib/api-utils';
+import { errorResponse, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
@@ -141,11 +141,10 @@ interface ProxyRequestBody {
   cacheTtlMs?: number;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ pluginId: string }> },
-) {
-  const { pluginId } = await params;
+type RouteContext = { params: Promise<{ pluginId: string }> };
+
+export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
+  const { pluginId } = await ctx.params;
   // sanitizePluginId validates and strips unsafe chars (throws on empty)
   const safeId = sanitizePluginId(pluginId);
 
@@ -283,4 +282,4 @@ export async function POST(
   } catch (error) {
     return errorResponse(error, 'Plugin proxy request failed');
   }
-}
+}, 'Plugin proxy request failed');

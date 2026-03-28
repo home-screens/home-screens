@@ -128,6 +128,7 @@ function mockData(routes: RouteInput[]) {
 }
 
 const { GET, cache } = cachedProxyRoute<Record<string, unknown>>({
+  auth: 'display',
   ttlMs: 5 * 60 * 1000, // 5 minutes
   cacheKey: (req) => req.nextUrl.searchParams.get('routes') || '',
   execute: async (req) => {

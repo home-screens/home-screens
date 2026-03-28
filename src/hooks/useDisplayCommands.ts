@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { DisplayCommand } from '@/lib/display-commands';
 import { displayCache } from '@/lib/display-cache';
+import { displayFetch } from '@/lib/display-fetch';
 import { useAlertStore } from '@/stores/alert-store';
 import type { AlertType } from '@/types/config';
 
@@ -32,7 +33,7 @@ export function useDisplayCommands(handlers: CommandHandlers) {
 
     async function poll() {
       try {
-        const res = await fetch('/api/display/commands');
+        const res = await displayFetch('/api/display/commands');
         if (!res.ok || !mounted) return;
         const { commands } = (await res.json()) as {
           commands: DisplayCommand[];
@@ -151,7 +152,7 @@ function reportStatus(s: {
   activeProfile: string | undefined | null;
   displayState: string;
 }) {
-  fetch('/api/display/status', {
+  displayFetch('/api/display/status', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

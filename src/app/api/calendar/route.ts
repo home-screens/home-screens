@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
-import { errorResponse, createTTLCache } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, withDisplayAuth } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import type { CalendarEvent } from '@/types/config';
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 /** @internal exported for test cleanup */
 export const cache = createTTLCache<unknown>(2 * 60 * 1000); // 2 minutes
 
-export async function GET(request: NextRequest) {
+export const GET = withDisplayAuth(async (request: NextRequest) => {
   const { searchParams } = request.nextUrl;
   let config;
   try {
@@ -104,4 +104,4 @@ export async function GET(request: NextRequest) {
 
   cache.set(cacheKey, allEvents);
   return NextResponse.json(allEvents);
-}
+}, 'Failed to fetch calendar events');

@@ -7,7 +7,9 @@ vi.mock('@/lib/secrets', () => ({
 }));
 
 vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
   requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
@@ -125,7 +127,7 @@ describe('GET /api/todoist', () => {
   it('returns 400 when no todoist_token is configured', async () => {
     vi.mocked(getSecret).mockResolvedValue(null);
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -141,7 +143,7 @@ describe('GET /api/todoist', () => {
       labels: [makeTodoistLabel()],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -163,7 +165,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks[0].projectColor).toBe('#b8255f');
@@ -178,7 +180,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks[0].projectColor).toBe('#ff00ff');
@@ -193,7 +195,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     // Project color should default when color is falsy
@@ -213,7 +215,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks[0].due).toEqual({
@@ -232,7 +234,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks[0].due).toBeNull();
@@ -250,7 +252,7 @@ describe('GET /api/todoist', () => {
       ],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks[0].labelColors).toEqual({
@@ -268,7 +270,7 @@ describe('GET /api/todoist', () => {
       labels: [makeTodoistLabel({ name: 'urgent', color: 'red' })],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     // 'unknown-label' is not in the label list, so should default
@@ -285,7 +287,7 @@ describe('GET /api/todoist', () => {
       labels: [makeTodoistLabel()],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -326,7 +328,7 @@ describe('GET /api/todoist', () => {
       return Promise.resolve({ ok: false, status: 404, text: async () => '' });
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -368,7 +370,7 @@ describe('GET /api/todoist', () => {
       return Promise.resolve({ ok: false, status: 404, text: async () => '' });
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -392,7 +394,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.tasks).toHaveLength(3);
@@ -425,7 +427,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     const task = json.tasks[0];
@@ -440,7 +442,7 @@ describe('GET /api/todoist', () => {
     vi.mocked(getSecret).mockResolvedValue('test-token');
     global.fetch = vi.fn().mockRejectedValue(new Error('Connection refused'));
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(res.status).toBe(500);
@@ -459,7 +461,7 @@ describe('GET /api/todoist', () => {
       labels: [],
     });
 
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
     expect(json.projects).toHaveLength(2);

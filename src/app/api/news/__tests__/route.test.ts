@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { parseItems } from '@/lib/rss';
 
+vi.mock('@/lib/auth', () => ({
+  requireDisplayAuth: vi.fn(),
+  requireSession: vi.fn(),
+  isAuthEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('@/lib/rss', () => ({
   parseItems: vi.fn(() => [
     { title: 'Test Article', link: 'https://test.com/article', pubDate: '2026-03-08', description: '' },

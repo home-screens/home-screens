@@ -8,7 +8,7 @@ import {
 } from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
-import { errorResponse } from '@/lib/api-utils';
+import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +30,7 @@ type RouteContext = { params: Promise<{ action: string }> };
  * - /api/display/status    → read last-known display status
  * - /api/display/wake (etc) → simple commands via GET (bookmarkable from phones)
  */
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+export const GET = withDisplayAuth<RouteContext>(async (_request, { params }) => {
   const { action } = await params;
 
   switch (action) {
@@ -53,13 +53,13 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       }
       return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 404 });
   }
-}
+}, 'Display command failed');
 
 /**
  * POST handler — used for all command types.
  * Simple commands need no body; brightness/profile/alert require JSON payloads.
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+export const POST = withDisplayAuth<RouteContext>(async (request, { params }) => {
   const { action } = await params;
 
   // Simple commands (no body needed)
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 404 },
       );
   }
-}
+}, 'Display command failed');
 
 async function safeJson(
   request: NextRequest,

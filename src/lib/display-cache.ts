@@ -5,6 +5,8 @@
  * Bounded at MAX_ENTRIES with LRU eviction to stay safe on Pi.
  */
 
+import { displayFetch } from '@/lib/display-fetch';
+
 interface CacheEntry {
   data: unknown;
   fetchedAt: number;
@@ -133,7 +135,7 @@ class DisplayDataCache {
   private async doFetch(url: string, ttlMs: number): Promise<void> {
     const gen = this.generation;
     try {
-      const res = await fetch(url);
+      const res = await displayFetch(url);
       if (res.ok && gen === this.generation) {
         const data = await res.json();
         this.set(url, data, ttlMs);
