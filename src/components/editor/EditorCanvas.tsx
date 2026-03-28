@@ -171,8 +171,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           const data = await res.json();
           if (data.path) setActiveBackground(data.path);
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to fetch active background:', err);
       }
     }
 

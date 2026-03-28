@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Button from '@/components/ui/Button';
+import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import {
   SLOT_META,
@@ -21,9 +22,6 @@ const EMOJI_PICKS = [
   '🥑', '🥦', '🌽', '🍠', '🫘', '🧀',
   '🍰', '🧁', '🍪', '🍎', '🫐', '🥤',
 ];
-
-const INPUT =
-  'w-full px-2.5 py-1.5 text-sm bg-neutral-800 border border-neutral-600 rounded-md text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors';
 
 // ── Props ────────────────────────────────────────────────────────────
 
@@ -369,15 +367,6 @@ export default function MealPlannerModal({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Escape to close
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   // Filtered meals
   const filteredMeals = useMemo(() => {
     if (!search.trim()) return savedMeals;
@@ -422,31 +411,13 @@ export default function MealPlannerModal({
   const plannedCount = plan.length;
 
   return (
-    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-4xl h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-700">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">&#127869;</span>
-            <h2 className="text-sm font-semibold text-neutral-100">Meal Planner</h2>
-            <span className="text-xs text-neutral-500">
-              {savedMeals.length} meals &middot; {plannedCount} planned
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-200 text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-800 transition-colors"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Body — two panels */}
-        <div className="flex flex-1 min-h-0">
+    <CRUDModalShell
+      title="Meal Planner"
+      icon={<span className="text-lg">&#127869;</span>}
+      subtitle={`${savedMeals.length} meals \u00b7 ${plannedCount} planned`}
+      onClose={onClose}
+    >
+      <div className="flex flex-1 min-h-0">
           {/* ── Left: Meal Library ────────────────────────── */}
           <div className="w-[320px] border-r border-neutral-700 flex flex-col">
             {/* Search */}
@@ -588,14 +559,6 @@ export default function MealPlannerModal({
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end px-5 py-3 border-t border-neutral-700">
-          <Button size="sm" variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        </div>
-      </div>
-    </div>
+    </CRUDModalShell>
   );
 }

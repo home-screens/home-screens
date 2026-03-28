@@ -28,8 +28,8 @@ export default function AlertSection({ values, onChange }: Props) {
       const res = await fetch('/api/display/clear-alerts', { method: 'POST' });
       setClearMessage(res.ok ? 'Cleared' : 'Failed');
       setTimeout(() => setClearMessage(null), 2000);
-    } catch {
-      // silent
+    } catch (err) {
+      console.debug('Failed to clear alerts:', err);
     } finally {
       setClearing(false);
     }

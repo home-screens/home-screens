@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { pluginEventBus, type PluginEvent } from '../plugin-events';
+import { pluginEventBus } from '../plugin-events';
+
+type PluginEvent = Parameters<typeof pluginEventBus.emit>[0];
 
 describe('pluginEventBus', () => {
   let unsubs: (() => void)[];

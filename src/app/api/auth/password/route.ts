@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       clearAuthCache();
       audit({ action: 'password_disable', ip });
       const cookie = buildClearCookie(request);
-      return NextResponse.json({ success: true, authEnabled: false }, {
+      return NextResponse.json({ ok: true, authEnabled: false }, {
         headers: { 'Set-Cookie': cookie },
       });
     }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     audit({ action: 'password_change', ip });
     const cookie = buildSessionCookie(token, request);
 
-    return NextResponse.json({ success: true, authEnabled: true }, {
+    return NextResponse.json({ ok: true, authEnabled: true }, {
       headers: { 'Set-Cookie': cookie },
     });
   } catch (error) {

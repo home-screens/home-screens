@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requestDeviceCode, pollDeviceToken } from '@/lib/google-auth';
-import { requireSession } from '@/lib/auth';
 import { withAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
 /** POST — start device flow, returns user_code + verification_url */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async () => {
   try {
-    await requireSession(request);
     const data = await requestDeviceCode();
     return NextResponse.json(data);
   } catch (error) {
-    if (error instanceof Response) return error;
     // Surface the actual error so the user knows what to fix.
     // Include masked client ID so they can verify the right one is configured.
     const message = error instanceof Error ? error.message : 'Failed to start device flow';
@@ -24,7 +21,7 @@ export async function POST(request: NextRequest) {
     } catch { /* ignore */ }
     return NextResponse.json({ error: message, clientIdHint }, { status: 500 });
   }
-}
+}, 'Failed to start device flow');
 
 /** PUT — poll for token completion. Body: { device_code } */
 export const PUT = withAuth(async (request: NextRequest) => {

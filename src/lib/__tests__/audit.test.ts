@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { audit, readAuditLog, writeQueue } from '../audit';
+import { audit, writeQueue } from '../audit';
 
 const AUDIT_PATH = path.join(process.cwd(), 'data', 'audit.log');
 const ROTATED_PATH = AUDIT_PATH + '.1';
@@ -82,34 +82,3 @@ describe('audit', () => {
   });
 });
 
-describe('readAuditLog', () => {
-  it('returns empty array when no log exists', async () => {
-    const entries = await readAuditLog();
-    expect(entries).toEqual([]);
-  });
-
-  it('returns entries in most-recent-first order', async () => {
-    audit({ action: 'login_success', ip: '1.1.1.1' });
-    audit({ action: 'login_failure', ip: '2.2.2.2' });
-    audit({ action: 'password_change', ip: '3.3.3.3' });
-    await flush();
-
-    const entries = await readAuditLog();
-    expect(entries).toHaveLength(3);
-    expect(entries[0].action).toBe('password_change');
-    expect(entries[1].action).toBe('login_failure');
-    expect(entries[2].action).toBe('login_success');
-  });
-
-  it('respects the limit parameter', async () => {
-    audit({ action: 'login_success', ip: '1.1.1.1' });
-    audit({ action: 'login_failure', ip: '2.2.2.2' });
-    audit({ action: 'password_change', ip: '3.3.3.3' });
-    await flush();
-
-    const entries = await readAuditLog(2);
-    expect(entries).toHaveLength(2);
-    expect(entries[0].action).toBe('password_change');
-    expect(entries[1].action).toBe('login_failure');
-  });
-});

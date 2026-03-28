@@ -48,8 +48,8 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         const data = await instRes.json();
         setInstalled(data.plugins ?? []);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch plugin data:', err);
     } finally {
       setLoading(false);
     }

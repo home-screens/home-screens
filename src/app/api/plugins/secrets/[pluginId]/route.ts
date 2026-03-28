@@ -42,7 +42,7 @@ export const PUT = withAuth<RouteContext>(async (request, ctx) => {
     }
 
     await setPluginSecret(pluginId, key, value);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, 'Failed to set plugin secret');
   }
@@ -64,7 +64,7 @@ export const DELETE = withAuth<RouteContext>(async (request, ctx) => {
     }
 
     await deletePluginSecret(pluginId, key);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, 'Failed to delete plugin secret');
   }

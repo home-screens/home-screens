@@ -15,7 +15,7 @@ export const LEAGUE_MAP: Record<string, string> = {
 };
 
 /** Common ESPN team fields extracted from the raw API response */
-export interface ESPNTeamInfo {
+interface ESPNTeamInfo {
   name: string;
   shortName: string;
   abbr: string;

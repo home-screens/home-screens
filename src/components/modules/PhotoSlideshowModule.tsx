@@ -42,7 +42,7 @@ export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowMo
       // Initial load — set both layers to the same image
       setSources([src, src]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- layer crossfade uses refs (prevIndexRef, activeLayer) that shouldn't trigger re-runs
   }, [index, files]);
 
   if (data === null) {

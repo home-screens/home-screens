@@ -8,7 +8,7 @@
  * back to plugins. This keeps the security boundary simple.
  */
 
-export type PluginEvent =
+type PluginEvent =
   | { type: 'navigate'; direction: 'next' | 'prev' | 'screen'; screenIndex?: number }
   | { type: 'refresh' }
   | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string };

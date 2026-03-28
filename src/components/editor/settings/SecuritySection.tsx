@@ -52,8 +52,8 @@ export default function SecuritySection() {
             }
           }
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to check auth status:', err);
       } finally {
         setLoading(false);
       }
@@ -230,8 +230,8 @@ export default function SecuritySection() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       window.location.href = '/login';
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Logout request failed:', err);
     }
   }
 

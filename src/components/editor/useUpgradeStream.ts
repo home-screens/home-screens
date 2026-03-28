@@ -271,7 +271,7 @@ export function useUpgradeStream(
     return () => {
       es.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time SSE connection on mount; deps are stable refs
   }, []);
 
   return { progress, started, done, failed, activeStep, visitedSteps, stepLogs };

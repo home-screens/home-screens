@@ -26,8 +26,8 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         const res = await editorFetch('/api/backgrounds');
         const data = await res.json();
         if (Array.isArray(data)) setLocalBackgrounds(data);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to fetch backgrounds:', err);
       }
     }
     fetchBackgrounds();
@@ -81,8 +81,8 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
           updateScreen(selectedScreenId, { backgroundImage: '' });
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to delete background:', err);
     }
     setDeleting(null);
   };

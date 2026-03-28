@@ -72,8 +72,8 @@ function SecretField({
         body: JSON.stringify({ key: secretKey }),
       });
       if (res.ok) onSaved();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to delete secret:', err);
     }
   }
 
@@ -132,8 +132,8 @@ export default function IntegrationsSection() {
         const data: SecretStatus = await res.json();
         setStatus(data);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch secret status:', err);
     } finally {
       setLoading(false);
     }

@@ -321,18 +321,40 @@ export class WeatherAPIProvider implements WeatherProvider {
     }));
   }
 
+  private static readonly CONDITION_ICON: Record<number, string> = {
+    // Clear
+    1000: 'clear',
+    // Partly cloudy
+    1003: 'partly-cloudy',
+    // Cloudy / Overcast
+    1006: 'cloud', 1009: 'cloud',
+    // Mist / Fog / Freezing fog
+    1030: 'cloud-fog', 1117: 'cloud-fog', 1135: 'cloud-fog', 1147: 'cloud-fog',
+    // Drizzle / Light rain
+    1063: 'cloud-drizzle', 1150: 'cloud-drizzle', 1153: 'cloud-drizzle',
+    1180: 'cloud-drizzle', 1183: 'cloud-drizzle',
+    // Rain
+    1186: 'cloud-rain', 1189: 'cloud-rain', 1192: 'cloud-rain', 1195: 'cloud-rain',
+    1240: 'cloud-rain', 1243: 'cloud-rain', 1246: 'cloud-rain',
+    // Snow
+    1066: 'snowflake', 1114: 'snowflake', 1210: 'snowflake', 1213: 'snowflake',
+    1216: 'snowflake', 1219: 'snowflake', 1222: 'snowflake', 1225: 'snowflake',
+    1255: 'snowflake', 1258: 'snowflake',
+    // Sleet / Hail / Freezing rain
+    1069: 'cloud-hail', 1072: 'cloud-hail', 1168: 'cloud-hail', 1171: 'cloud-hail',
+    1198: 'cloud-hail', 1201: 'cloud-hail', 1204: 'cloud-hail', 1207: 'cloud-hail',
+    1237: 'cloud-hail', 1249: 'cloud-hail', 1252: 'cloud-hail',
+    // Thunder
+    1087: 'cloud-lightning', 1273: 'cloud-lightning', 1276: 'cloud-lightning',
+    1279: 'cloud-lightning', 1282: 'cloud-lightning',
+  };
+
   private mapConditionToIcon(code: number, isDay: boolean): string {
-    if (code === 1000) return isDay ? 'sun' : 'moon';
-    if (code === 1003) return isDay ? 'cloud-sun' : 'cloud-moon';
-    if ([1006, 1009].includes(code)) return 'cloud';
-    if (code === 1030) return 'cloud-fog';
-    if ([1063, 1150, 1153, 1180, 1183].includes(code)) return 'cloud-drizzle';
-    if ([1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code)) return 'cloud-rain';
-    if ([1066, 1114, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code)) return 'snowflake';
-    if ([1069, 1072, 1168, 1171, 1198, 1201, 1204, 1207, 1237, 1249, 1252].includes(code)) return 'cloud-hail';
-    if ([1087, 1273, 1276, 1279, 1282].includes(code)) return 'cloud-lightning';
-    if ([1117, 1135, 1147].includes(code)) return 'cloud-fog';
-    return 'thermometer';
+    const icon = WeatherAPIProvider.CONDITION_ICON[code];
+    if (!icon) return 'thermometer';
+    if (icon === 'clear') return isDay ? 'sun' : 'moon';
+    if (icon === 'partly-cloudy') return isDay ? 'cloud-sun' : 'cloud-moon';
+    return icon;
   }
 }
 

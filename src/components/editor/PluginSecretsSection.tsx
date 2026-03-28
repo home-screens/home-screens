@@ -55,8 +55,8 @@ function PluginSecretField({
         body: JSON.stringify({ key: decl.key }),
       });
       if (res.ok) onSaved();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to delete plugin secret:', err);
     }
   }
 
@@ -126,8 +126,8 @@ export default function PluginSecretsSection({
         const data = await res.json();
         setStatus(data.keys ?? {});
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch plugin secret status:', err);
     } finally {
       setLoading(false);
     }

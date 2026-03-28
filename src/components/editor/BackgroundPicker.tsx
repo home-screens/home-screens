@@ -26,8 +26,8 @@ export default function BackgroundPicker() {
           setHasUnsplashKey(!!data.unsplash_access_key);
           setHasNasaKey(!!data.nasa_api_key);
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to check API key status:', err);
       }
     }
     checkKeys();

@@ -26,5 +26,5 @@ export const POST = withAuth(async (request) => {
   }
 
   await registerDevPlugin(manifest);
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ ok: true });
 }, 'Failed to register dev plugin');

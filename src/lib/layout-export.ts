@@ -238,13 +238,3 @@ export function validateLayoutExport(data: unknown): ValidationResult {
   return { valid: errors.length === 0, errors };
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────
-
-/** @internal Check if a parsed JSON object is a layout export (vs a full config backup) */
-export function isLayoutExport(data: unknown): data is LayoutExport {
-  return (
-    !!data &&
-    typeof data === 'object' &&
-    (data as Record<string, unknown>)._type === 'home-screens-layout'
-  );
-}

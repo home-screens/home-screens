@@ -34,7 +34,7 @@ export const POST = withAuth(async (request: NextRequest) => {
 
     await installPlugin(entry, version, buffer, versionEntry.sha256);
     audit({ action: 'plugin_install', pluginId, version });
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, 'Failed to install plugin');
   }
@@ -51,7 +51,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   try {
     await uninstallPlugin(pluginId);
     audit({ action: 'plugin_uninstall', pluginId });
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, 'Failed to uninstall plugin');
   }
@@ -76,7 +76,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
     if (clearPrevVersion) {
       await clearPreviousVersion(pluginId);
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error, 'Failed to update plugin');
   }

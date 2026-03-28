@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Button from '@/components/ui/Button';
+import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type {
   ChoreMember,
   ChoreDefinition,
@@ -25,11 +26,6 @@ import ChoreIcon, {
   getIconDef,
   toLucideValue,
 } from '@/components/modules/chore-chart/ChoreIcon';
-
-// ── Shared styles ─────────────────────────────────────────────────
-
-const INPUT =
-  'w-full px-2.5 py-1.5 text-sm bg-neutral-800 border border-neutral-600 rounded-md text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors';
 
 // ── Icon Picker ───────────────────────────────────────────────────
 
@@ -525,15 +521,6 @@ export default function ChoreChartModal({
     onUpdate({ members, chores });
   }, [members, chores, onUpdate]);
 
-  // Escape to close
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   // ── Member CRUD ──
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
     setMembers((prev) => [...prev, { ...data, id: crypto.randomUUID() }]);
@@ -573,28 +560,13 @@ export default function ChoreChartModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-6xl h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-700">
-          <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-neutral-100">Chore Chart</h2>
-            <span className="text-xs text-neutral-500">
-              {members.length} members &middot; {chores.length} chores
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-200 text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-800 transition-colors"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Body — three panels */}
-        <div className="flex flex-1 min-h-0">
+    <CRUDModalShell
+      title="Chore Chart"
+      subtitle={`${members.length} members \u00b7 ${chores.length} chores`}
+      maxWidth="max-w-6xl"
+      onClose={onClose}
+    >
+      <div className="flex flex-1 min-h-0">
           {/* ── Left: Members ──────────────────────────── */}
           <div className="w-[260px] border-r border-neutral-700 flex flex-col">
             <div className="px-3 py-2 border-b border-neutral-700/50">
@@ -821,13 +793,6 @@ export default function ChoreChartModal({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end px-5 py-3 border-t border-neutral-700">
-          <Button size="sm" variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        </div>
-      </div>
-    </div>
+    </CRUDModalShell>
   );
 }

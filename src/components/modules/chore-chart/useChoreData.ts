@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ChoreChartConfig, ChoreCompletion } from '@/types/config';
+import { useFetchData } from '@/hooks/useFetchData';
 import {
   type ResolvedAssignment,
   type MemberStats,
@@ -15,6 +16,10 @@ import {
   completionKey,
 } from './types';
 
+interface ChoresResponse {
+  completions: ChoreCompletion[];
+}
+
 interface ChoreDataState {
   todayAssignments: ResolvedAssignment[];
   completionSet: Set<string>;
@@ -26,32 +31,18 @@ interface ChoreDataState {
 }
 
 export function useChoreData(config: ChoreChartConfig): ChoreDataState {
+  const [fetched, fetchError] = useFetchData<ChoresResponse>('/api/chores', 30_000);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const configRef = useRef(config);
   configRef.current = config;
 
-  // Fetch completions from API
-  const fetchCompletions = useCallback(async () => {
-    try {
-      const res = await fetch('/api/chores');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setCompletions(data.completions ?? []);
-      setError(null);
-    } catch {
-      setError('Could not load chore data');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Sync fetched data → local state (polls and initial load)
   useEffect(() => {
-    fetchCompletions();
-    const interval = setInterval(fetchCompletions, 30_000);
-    return () => clearInterval(interval);
-  }, [fetchCompletions]);
+    if (fetched) setCompletions(fetched.completions ?? []);
+  }, [fetched]);
+
+  const isLoading = !fetched && !fetchError;
+  const error = fetchError;
 
   // Build completion set for fast lookup
   const completionSet = useMemo(() => {
@@ -208,9 +199,11 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
   // Toggle completion
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
     const today = todayStr();
+    let snapshot: ChoreCompletion[] = [];
 
-    // Optimistic update
+    // Optimistic update — capture snapshot inside updater to avoid dep on completions
     setCompletions((prev) => {
+      snapshot = prev;
       const existing = prev.findIndex(
         (c) => c.choreId === choreId && c.memberId === memberId && c.date === today,
       );
@@ -230,10 +223,10 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
       const data = await res.json();
       setCompletions(data.completions ?? []);
     } catch {
-      // Revert on error
-      fetchCompletions();
+      // Revert optimistic update on error
+      setCompletions(snapshot);
     }
-  }, [fetchCompletions]);
+  }, []);
 
   return {
     todayAssignments,

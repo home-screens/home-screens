@@ -155,7 +155,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       () => { setCurrentIndex((prev) => (prev + 1) % screens.length); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effectRef/durationMsRef/easingRef are stable refs, not deps
   }, [screens.length, screenKey]);
 
   const prevScreen = useCallback(() => {
@@ -164,7 +164,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       () => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effectRef/durationMsRef/easingRef are stable refs, not deps
   }, [screens.length, screenKey]);
 
   const resetRotation = useCallback(() => {

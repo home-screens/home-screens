@@ -172,6 +172,10 @@ function stopAllDevPolling(): void {
 // Config migration — deep-merge on version change
 // ---------------------------------------------------------------------------
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 /** Deep-merge source into target: new keys get source values, existing keys kept */
 export function deepMergeConfig(
   target: Record<string, unknown>,
@@ -181,10 +185,7 @@ export function deepMergeConfig(
   for (const key of Object.keys(source)) {
     if (!(key in result)) {
       result[key] = source[key];
-    } else if (
-      typeof result[key] === 'object' && result[key] !== null && !Array.isArray(result[key]) &&
-      typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])
-    ) {
+    } else if (isPlainObject(result[key]) && isPlainObject(source[key])) {
       result[key] = deepMergeConfig(
         result[key] as Record<string, unknown>,
         source[key] as Record<string, unknown>,

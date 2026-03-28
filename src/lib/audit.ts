@@ -27,7 +27,7 @@ function getRotatedPath(): string {
 
 /* ─── Event types ────────────────────────────── */
 
-export type AuditEvent =
+type AuditEvent =
   | { action: 'login_success'; ip: string }
   | { action: 'login_failure'; ip: string }
   | { action: 'password_change'; ip: string }
@@ -80,28 +80,3 @@ async function appendAndRotate(line: string): Promise<void> {
   }
 }
 
-/* ─── Read helpers (for admin/debugging) ─────── */
-
-/**
- * Read recent audit entries (most recent first).
- * Returns up to `limit` entries from the current log file.
- */
-export async function readAuditLog(limit = 100): Promise<AuditEntry[]> {
-  const filePath = getAuditPath();
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    const lines = content.trim().split('\n').filter(Boolean);
-    const entries: AuditEntry[] = [];
-    // Parse from the end for most-recent-first
-    for (let i = lines.length - 1; i >= 0 && entries.length < limit; i--) {
-      try {
-        entries.push(JSON.parse(lines[i]));
-      } catch {
-        // skip malformed lines
-      }
-    }
-    return entries;
-  } catch {
-    return [];
-  }
-}

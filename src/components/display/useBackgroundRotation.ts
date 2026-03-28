@@ -45,7 +45,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     pollBackgrounds();
     const id = setInterval(pollBackgrounds, BG_POLL_MS);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on rotationKey change; other deps are stable or intentionally excluded
   }, [rotationKey]);
 
   return backgrounds;

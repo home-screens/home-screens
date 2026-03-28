@@ -82,8 +82,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         const data = await bRes.json();
         setBackups(data.backups ?? []);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch system info:', err);
     } finally {
       setLoading(false);
       setChecking(false);
@@ -98,8 +98,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         const data = await res.json();
         setReleases(data.releases ?? []);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch changelog:', err);
     }
   }, [channel]);
 
@@ -209,8 +209,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           if (res.ok) {
             fetchAll();
           }
-        } catch {
-          // ignore
+        } catch (err) {
+          console.debug('Failed to cancel upgrade:', err);
         }
       },
     );

@@ -117,7 +117,7 @@ describe('POST /api/auth/login', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.success).toBe(true);
+    expect(json.ok).toBe(true);
     expect(res.headers.get('Set-Cookie')).toContain('hs-session=signed.token');
     expect(verifyPassword).toHaveBeenCalledWith('correctpassword');
     expect(createSessionCookie).toHaveBeenCalledWith('secret123', false, undefined);
@@ -333,7 +333,7 @@ describe('POST /api/auth/password', () => {
       const json = await res.json();
 
       expect(res.status).toBe(200);
-      expect(json.success).toBe(true);
+      expect(json.ok).toBe(true);
       expect(json.authEnabled).toBe(true);
       expect(res.headers.get('Set-Cookie')).toContain('hs-session=');
       expect(setPassword).toHaveBeenCalledWith('mypassword123');
@@ -474,7 +474,7 @@ describe('POST /api/auth/password', () => {
       const json = await res.json();
 
       expect(res.status).toBe(200);
-      expect(json.success).toBe(true);
+      expect(json.ok).toBe(true);
       expect(json.authEnabled).toBe(true);
       expect(setPassword).toHaveBeenCalledWith('newpassword1');
       expect(clearAuthCache).toHaveBeenCalled();
@@ -523,7 +523,7 @@ describe('POST /api/auth/password', () => {
       const json = await res.json();
 
       expect(res.status).toBe(200);
-      expect(json.success).toBe(true);
+      expect(json.ok).toBe(true);
       expect(json.authEnabled).toBe(false);
       expect(clearPassword).toHaveBeenCalled();
       expect(clearAuthCache).toHaveBeenCalled();
@@ -755,7 +755,7 @@ describe('POST /api/auth/logout', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.success).toBe(true);
+    expect(json.ok).toBe(true);
     expect(buildClearCookie).toHaveBeenCalled();
     const setCookie = res.headers.get('Set-Cookie');
     expect(setCookie).toContain('Max-Age=0');

@@ -53,8 +53,8 @@ export default function WeatherSection({ values, onChange }: Props) {
         const data: Partial<Record<string, boolean>> = await res.json();
         setKeyConfigured(!!data[key]);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to fetch API key status:', err);
     } finally {
       setKeyLoading(false);
     }
@@ -101,8 +101,8 @@ export default function WeatherSection({ values, onChange }: Props) {
         body: JSON.stringify({ key: providerSecretKey(provider) }),
       });
       if (res.ok) await fetchKeyStatus();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('Failed to delete API key:', err);
     }
   }
 

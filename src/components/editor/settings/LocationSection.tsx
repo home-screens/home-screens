@@ -37,8 +37,8 @@ export default function LocationSection({ values, onChange }: Props) {
         const data = await res.json();
         const serverMs = new Date(data.iso).getTime();
         setServerInfo({ offsetMs: serverMs - fetchedAt, timezone: data.timezone });
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to fetch server time:', err);
       }
     }
     fetchServerTime();

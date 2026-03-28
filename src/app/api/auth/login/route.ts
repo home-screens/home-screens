@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const token = createSessionCookie(state.cookieSecret, remember, state.sessionEpoch);
     const cookie = buildSessionCookie(token, request, getSessionMaxAge(remember));
 
-    return NextResponse.json({ success: true }, {
+    return NextResponse.json({ ok: true }, {
       headers: { 'Set-Cookie': cookie },
     });
   } catch (error) {

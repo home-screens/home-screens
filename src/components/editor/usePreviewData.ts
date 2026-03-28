@@ -70,8 +70,8 @@ export function usePreviewData(): PreviewData {
           const events = Array.isArray(calData.events) ? calData.events : Array.isArray(calData) ? calData : [];
           setPreviewData((prev) => ({ ...prev, calendarEvents: events }));
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to fetch calendar preview:', err);
       }
     }
     fetchPreviewData();

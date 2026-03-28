@@ -19,8 +19,8 @@ function TodoistTokenStatus() {
           const data: Record<string, boolean> = await res.json();
           setConfigured(!!data.todoist_token);
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('Failed to check Todoist token status:', err);
       }
     }
     check();

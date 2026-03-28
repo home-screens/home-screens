@@ -13,5 +13,5 @@ export const POST = withAuth(async () => {
   }
   await revokeAllSessions();
   audit({ action: 'session_revoke_all' });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ ok: true });
 }, 'Failed to revoke sessions');

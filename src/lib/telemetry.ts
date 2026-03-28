@@ -13,7 +13,6 @@ const BEACON_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const BEACON_TIMEOUT_MS = 5_000;
 const BEACON_VERSION = 1;
 
-// Placeholder until the Cloudflare Worker is deployed
 const TELEMETRY_ENDPOINT = 'https://home-screens-telemetry.agent462.workers.dev/beacon';
 
 /* ─── Types ──────────────────────────────────── */
@@ -24,7 +23,7 @@ export interface TelemetryData {
   lastBeaconAt: string | null;
 }
 
-export interface TelemetryBeacon {
+interface TelemetryBeacon {
   installId: string;
   appVersion: string;
   platform: string;

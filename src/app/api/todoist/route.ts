@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { errorResponse, withAuth, withDisplayAuth, createTTLCache, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, createTTLCache, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -112,86 +112,82 @@ export const PUT = withAuth(async (request: NextRequest) => {
 export const cache = createTTLCache<unknown>(60 * 1000); // 1 minute
 
 export const GET = withDisplayAuth(async () => {
-  try {
-    const token = await requireSecret('todoist_token', 'Todoist');
-    if (token instanceof NextResponse) return token;
+  const token = await requireSecret('todoist_token', 'Todoist');
+  if (token instanceof NextResponse) return token;
 
-    const cached = cache.get('todoist');
-    if (cached) return NextResponse.json(cached);
+  const cached = cache.get('todoist');
+  if (cached) return NextResponse.json(cached);
 
-    const [rawTasks, rawProjects, rawSections, rawLabels] = await Promise.all([
-      fetchTodoistList('/tasks', token),
-      fetchTodoistList('/projects', token),
-      fetchTodoistList('/sections', token),
-      fetchTodoistList('/labels', token),
-    ]);
+  const [rawTasks, rawProjects, rawSections, rawLabels] = await Promise.all([
+    fetchTodoistList('/tasks', token),
+    fetchTodoistList('/projects', token),
+    fetchTodoistList('/sections', token),
+    fetchTodoistList('/labels', token),
+  ]);
 
-    const projectMap = new Map<string, { name: string; color: string }>();
-    for (const p of rawProjects) {
-      const id = str(p, 'id');
-      projectMap.set(id, {
-        name: str(p, 'name'),
-        color: resolveColor(str(p, 'color')),
-      });
-    }
-
-    const sectionMap = new Map<string, string>();
-    for (const s of rawSections) {
-      sectionMap.set(str(s, 'id'), str(s, 'name'));
-    }
-
-    const labelColorMap = new Map<string, string>();
-    for (const l of rawLabels) {
-      labelColorMap.set(str(l, 'name'), resolveColor(str(l, 'color')));
-    }
-
-    const enrichedTasks = rawTasks.map((t) => {
-      const projectId = str(t, 'project_id', 'projectId');
-      const sectionId = str(t, 'section_id', 'sectionId');
-      const project = projectMap.get(projectId);
-      const labels = arr(t, 'labels');
-
-      const rawDue = t.due as Record<string, unknown> | null | undefined;
-      const due = rawDue
-        ? {
-            date: str(rawDue, 'date'),
-            datetime: strOrNull(rawDue, 'datetime'),
-            isRecurring: bool(rawDue, 'is_recurring', 'isRecurring'),
-          }
-        : null;
-
-      return {
-        id: str(t, 'id'),
-        content: str(t, 'content'),
-        description: str(t, 'description'),
-        priority: num(t, 'priority'),
-        due,
-        labels,
-        labelColors: Object.fromEntries(
-          labels.map((l) => [l, labelColorMap.get(l) ?? '#808080']),
-        ),
-        projectId,
-        projectName: project?.name ?? 'Unknown',
-        projectColor: project?.color ?? '#808080',
-        sectionId,
-        sectionName: sectionMap.get(sectionId) ?? '',
-        parentId: strOrNull(t, 'parent_id', 'parentId'),
-        order: num(t, 'child_order', 'childOrder', 'order'),
-        commentCount: num(t, 'note_count', 'noteCount', 'comment_count', 'commentCount'),
-      };
-    });
-
-    const enrichedProjects = rawProjects.map((p) => ({
-      id: str(p, 'id'),
+  const projectMap = new Map<string, { name: string; color: string }>();
+  for (const p of rawProjects) {
+    const id = str(p, 'id');
+    projectMap.set(id, {
       name: str(p, 'name'),
       color: resolveColor(str(p, 'color')),
-      order: num(p, 'child_order', 'childOrder', 'order'),
-    }));
-
-    const result = { tasks: enrichedTasks, projects: enrichedProjects };
-    cache.set('todoist', result);
-    return NextResponse.json(result);
-  } catch (error) {
-    return errorResponse(error, 'Failed to fetch Todoist data');
+    });
   }
+
+  const sectionMap = new Map<string, string>();
+  for (const s of rawSections) {
+    sectionMap.set(str(s, 'id'), str(s, 'name'));
+  }
+
+  const labelColorMap = new Map<string, string>();
+  for (const l of rawLabels) {
+    labelColorMap.set(str(l, 'name'), resolveColor(str(l, 'color')));
+  }
+
+  const enrichedTasks = rawTasks.map((t) => {
+    const projectId = str(t, 'project_id', 'projectId');
+    const sectionId = str(t, 'section_id', 'sectionId');
+    const project = projectMap.get(projectId);
+    const labels = arr(t, 'labels');
+
+    const rawDue = t.due as Record<string, unknown> | null | undefined;
+    const due = rawDue
+      ? {
+          date: str(rawDue, 'date'),
+          datetime: strOrNull(rawDue, 'datetime'),
+          isRecurring: bool(rawDue, 'is_recurring', 'isRecurring'),
+        }
+      : null;
+
+    return {
+      id: str(t, 'id'),
+      content: str(t, 'content'),
+      description: str(t, 'description'),
+      priority: num(t, 'priority'),
+      due,
+      labels,
+      labelColors: Object.fromEntries(
+        labels.map((l) => [l, labelColorMap.get(l) ?? '#808080']),
+      ),
+      projectId,
+      projectName: project?.name ?? 'Unknown',
+      projectColor: project?.color ?? '#808080',
+      sectionId,
+      sectionName: sectionMap.get(sectionId) ?? '',
+      parentId: strOrNull(t, 'parent_id', 'parentId'),
+      order: num(t, 'child_order', 'childOrder', 'order'),
+      commentCount: num(t, 'note_count', 'noteCount', 'comment_count', 'commentCount'),
+    };
+  });
+
+  const enrichedProjects = rawProjects.map((p) => ({
+    id: str(p, 'id'),
+    name: str(p, 'name'),
+    color: resolveColor(str(p, 'color')),
+    order: num(p, 'child_order', 'childOrder', 'order'),
+  }));
+
+  const result = { tasks: enrichedTasks, projects: enrichedProjects };
+  cache.set('todoist', result);
+  return NextResponse.json(result);
 }, 'Failed to fetch Todoist data');

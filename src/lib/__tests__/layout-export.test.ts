@@ -3,7 +3,6 @@ import {
   createLayoutExport,
   importLayout,
   validateLayoutExport,
-  isLayoutExport,
 } from '../layout-export';
 import type { ScreenConfiguration, Screen, Profile } from '@/types/config';
 import type { LayoutExport } from '@/types/layout-export';
@@ -425,19 +424,3 @@ describe('validateLayoutExport', () => {
   });
 });
 
-// ── isLayoutExport ──────────────────────────────────────────────────
-
-describe('isLayoutExport', () => {
-  it('returns true for layout exports', () => {
-    expect(isLayoutExport({ _type: 'home-screens-layout' })).toBe(true);
-  });
-
-  it('returns false for regular configs', () => {
-    expect(isLayoutExport({ version: 1, screens: [] })).toBe(false);
-  });
-
-  it('returns false for non-objects', () => {
-    expect(isLayoutExport(null)).toBe(false);
-    expect(isLayoutExport(undefined)).toBe(false);
-  });
-});
