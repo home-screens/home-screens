@@ -18,7 +18,7 @@ function SlideLayer({ src, active, objectFit, isFade }: {
   const authSrc = useAuthImage(src);
   return (
     <img
-      src={authSrc ?? ''}
+      src={authSrc || undefined}
       alt=""
       className="absolute inset-0 w-full h-full"
       style={{
