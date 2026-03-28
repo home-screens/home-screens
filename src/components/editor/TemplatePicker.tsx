@@ -43,7 +43,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3.5">

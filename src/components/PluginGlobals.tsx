@@ -10,6 +10,9 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import Toggle from '@/components/ui/Toggle';
 import SectionHeading from '@/components/ui/SectionHeading';
 
+// Input class constants
+import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
+
 // Hooks & Utilities
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayCache } from '@/lib/display-cache';
@@ -60,8 +63,8 @@ export default function PluginGlobals() {
     win.ReactDOM = ReactDOM;
     win.__HS_SDK__ = {
       // CSS class strings for consistent editor form styling
-      INPUT_CLASS: 'w-full px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-200',
-      NESTED_INPUT_CLASS: 'w-full px-2 py-0.5 text-xs bg-neutral-700 border border-neutral-600 rounded text-neutral-200',
+      INPUT_CLASS,
+      NESTED_INPUT_CLASS,
 
       // UI Components — same ones used by built-in modules
       Slider,

@@ -115,7 +115,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const trapRef = useFocusTrap<HTMLDivElement>();
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Plugins">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Plugins">
       <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3.5">
@@ -564,7 +564,7 @@ function InstallConfirmModal({
   const isWorking = actionInProgress === plugin.id;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-nested flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <h3 className="text-base font-semibold text-neutral-100">Install Plugin</h3>

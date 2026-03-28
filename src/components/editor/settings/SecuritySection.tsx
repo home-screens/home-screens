@@ -248,7 +248,7 @@ export default function SecuritySection() {
       <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
         Authentication
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Status */}
         <div className="flex items-center gap-2">
           <span

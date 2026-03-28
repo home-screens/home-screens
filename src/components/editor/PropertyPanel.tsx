@@ -50,9 +50,9 @@ import {
   ChoreChartConfigSection,
 } from '@/components/editor/config-sections';
 
-// Shared constants — exported for use by config section components
-export const INPUT_CLASS = 'w-full px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-200';
-export const NESTED_INPUT_CLASS = 'w-full px-2 py-0.5 text-xs bg-neutral-700 border border-neutral-600 rounded text-neutral-200';
+// Shared input classes — single source of truth lives in ui/input-classes.ts
+import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
+export { INPUT_CLASS, NESTED_INPUT_CLASS };
 
 function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { moveModule, resizeModule } = useEditorStore();

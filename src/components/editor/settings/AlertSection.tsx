@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Slider from '@/components/ui/Slider';
+import Button from '@/components/ui/Button';
 
 interface AlertValues {
   alertsEnabled: boolean;
@@ -104,13 +105,9 @@ export default function AlertSection({ values, onChange }: Props) {
             <div className="mt-4 pt-4 border-t border-neutral-700">
               <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">Active Alerts</h4>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={handleClearAlerts}
-                  disabled={clearing}
-                  className="px-3 py-1.5 text-sm rounded-md bg-neutral-700 hover:bg-neutral-600 text-neutral-200 transition-colors disabled:opacity-50"
-                >
+                <Button onClick={handleClearAlerts} disabled={clearing}>
                   {clearing ? 'Clearing...' : 'Clear All Alerts'}
-                </button>
+                </Button>
                 {clearMessage && (
                   <span className="text-xs text-green-400">{clearMessage}</span>
                 )}

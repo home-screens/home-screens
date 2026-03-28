@@ -70,7 +70,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Share Layout */}
         <section>
           <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">

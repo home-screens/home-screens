@@ -13,8 +13,8 @@ interface CRUDModalShellProps {
   children: ReactNode;
 }
 
-export const INPUT =
-  'w-full px-2.5 py-1.5 text-sm bg-neutral-800 border border-neutral-600 rounded-md text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors';
+// Re-export the modal-sized input class under the legacy name for existing consumers
+export { MODAL_INPUT_CLASS as INPUT } from '@/components/ui/input-classes';
 
 export default function CRUDModalShell({
   title,
@@ -35,7 +35,7 @@ export default function CRUDModalShell({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       <div ref={trapRef} className={`relative bg-neutral-900 border border-neutral-700 rounded-xl w-full ${maxWidth} h-[85vh] flex flex-col`}>

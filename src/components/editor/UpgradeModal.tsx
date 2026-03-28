@@ -112,7 +112,7 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
   }, [stepLogs, activeStep]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/70">
       <div className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="px-5 py-4 border-b border-neutral-700 flex-shrink-0">

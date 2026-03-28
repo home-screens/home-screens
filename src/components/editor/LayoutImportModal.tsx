@@ -39,7 +39,7 @@ export default function LayoutImportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-neutral-100 mb-1">Import Layout</h2>
         {metadata.description && (
