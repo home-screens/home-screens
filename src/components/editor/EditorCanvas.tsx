@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useDroppable, useDndMonitor } from '@dnd-kit/core';
+import { Undo2, Redo2 } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -154,6 +155,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when screen ID or rotation toggle changes
   }, [currentScreen?.id, currentScreen?.backgroundRotation?.enabled]);
 
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+
   useEffect(() => {
     const updateScale = () => {
       if (!containerRef.current) return;
@@ -162,6 +165,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       const scaleY = (clientHeight - 32) / displayHeight;
       const newScale = Math.min(scaleX, scaleY, 1);
       setScale(newScale);
+      setContainerSize({ w: clientWidth, h: clientHeight });
       onScaleChange?.(newScale);
     };
     updateScale();
@@ -170,6 +174,28 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     if (el) ro.observe(el);
     return () => ro.disconnect();
   }, [displayWidth, displayHeight, onScaleChange]);
+
+  const canUndo = useEditorStore((s) => s._past.length > 0);
+  const canRedo = useEditorStore((s) => s._future.length > 0);
+
+  // Position the undo/redo box: below canvas, to its left, or overlaid on the canvas bottom-left
+  const scaledH = displayHeight * scale;
+  const scaledW = displayWidth * scale;
+  const bottomGap = (containerSize.h - scaledH) / 2;
+  const canvasLeftEdge = (containerSize.w - scaledW) / 2;
+  const canvasBottomEdge = (containerSize.h + scaledH) / 2;
+  const boxWidth = 80; // approximate width of the undo/redo box
+  let undoBoxStyle: React.CSSProperties;
+  if (bottomGap >= 48) {
+    // Room below: center under the canvas
+    undoBoxStyle = { left: '50%', bottom: 12, transform: 'translateX(-50%)' };
+  } else if (canvasLeftEdge > boxWidth + 16) {
+    // Room to the left: anchor to canvas left edge, aligned to bottom
+    undoBoxStyle = { left: canvasLeftEdge - 8, top: canvasBottomEdge - 44, transform: 'translateX(-100%)' };
+  } else {
+    // No room outside: overlay on the canvas bottom-left corner
+    undoBoxStyle = { left: canvasLeftEdge + 8, top: canvasBottomEdge - 44 };
+  }
 
   if (!currentScreen) {
     return (
@@ -180,7 +206,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   }
 
   return (
-    <div ref={containerRef} className="flex-1 flex items-center justify-center bg-neutral-950 overflow-hidden p-4">
+    <div ref={containerRef} className="relative flex-1 flex items-center justify-center bg-neutral-950 overflow-hidden p-4">
       <div
         ref={(node) => { setNodeRef(node); if (canvasRef) (canvasRef as React.MutableRefObject<HTMLDivElement | null>).current = node; }}
         className="relative bg-neutral-900 border border-neutral-700 overflow-hidden"
@@ -223,6 +249,29 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
             ) : null;
           })()}
         </PageBackgroundProvider>
+      </div>
+      {/* Undo / Redo controls */}
+      <div
+        className="absolute z-50 flex items-center gap-0.5 rounded-lg border border-neutral-700 bg-neutral-900/90 px-1 py-0.5 backdrop-blur-sm"
+        style={undoBoxStyle}
+      >
+        <button
+          onClick={() => useEditorStore.getState().undo()}
+          disabled={!canUndo}
+          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          title="Undo (Cmd+Z)"
+        >
+          <Undo2 className="h-3.5 w-3.5" />
+        </button>
+        <div className="h-4 w-px bg-neutral-700" />
+        <button
+          onClick={() => useEditorStore.getState().redo()}
+          disabled={!canRedo}
+          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          title="Redo (Cmd+Shift+Z)"
+        >
+          <Redo2 className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );

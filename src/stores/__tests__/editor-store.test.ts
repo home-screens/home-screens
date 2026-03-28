@@ -772,4 +772,243 @@ describe('editor store', () => {
       expect(store.getState().isDirty).toBe(true);
     });
   });
+
+  describe('undo/redo', () => {
+    it('undo restores previous config and selection', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false, selectedModuleId: null });
+
+      store.getState().addModule('screen-1', 'clock');
+      expect(store.getState().config!.screens[0].modules).toHaveLength(1);
+      const addedModuleId = store.getState().selectedModuleId;
+      expect(addedModuleId).not.toBeNull();
+
+      store.getState().undo();
+
+      expect(store.getState().config!.screens[0].modules).toHaveLength(0);
+      expect(store.getState().selectedModuleId).toBeNull();
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('redo restores undone state', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      const moduleId = store.getState().config!.screens[0].modules[0].id;
+
+      store.getState().undo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(0);
+
+      store.getState().redo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(1);
+      expect(store.getState().config!.screens[0].modules[0].id).toBe(moduleId);
+      expect(store.getState().selectedModuleId).toBe(moduleId);
+    });
+
+    it('new mutation clears redo stack', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      store.getState().undo();
+      expect(store.getState()._future.length).toBeGreaterThan(0);
+
+      // New mutation should clear future
+      store.getState().addModule('screen-1', 'text');
+      expect(store.getState()._future).toHaveLength(0);
+    });
+
+    it('enforces max history of 50 entries', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      for (let i = 0; i < 55; i++) {
+        store.getState().addModule('screen-1', 'clock');
+      }
+
+      expect(store.getState()._past.length).toBeLessThanOrEqual(50);
+    });
+
+    it('loadConfig clears history', async () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      store.getState().addModule('screen-1', 'text');
+      expect(store.getState()._past.length).toBeGreaterThan(0);
+
+      // Mock fetch for loadConfig
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(makeConfig()),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      await store.getState().loadConfig();
+
+      expect(store.getState()._past).toHaveLength(0);
+      expect(store.getState()._future).toHaveLength(0);
+    });
+
+    it('importConfig records history before replacement', () => {
+      const store = useEditorStore;
+      const originalConfig = makeConfig();
+      store.setState({ config: originalConfig, isDirty: false, selectedScreenId: 'screen-1' });
+
+      const imported = makeConfig({
+        screens: [{ id: 'new-screen', name: 'New', backgroundImage: '', modules: [] }],
+      });
+      store.getState().importConfig(JSON.stringify(imported));
+
+      expect(store.getState().config!.screens[0].id).toBe('new-screen');
+      expect(store.getState()._past).toHaveLength(1);
+
+      // Undo should restore original
+      store.getState().undo();
+      expect(store.getState().config!.screens[0].id).toBe('screen-1');
+    });
+
+    it('coalescing merges rapid updates into single entry', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config, isDirty: false });
+
+      // Rapid updateModuleStyle calls (coalesce: true) with no time gap
+      store.getState().updateModuleStyle('screen-1', 'mod-1', { opacity: 0.5 });
+      store.getState().updateModuleStyle('screen-1', 'mod-1', { opacity: 0.3 });
+      store.getState().updateModuleStyle('screen-1', 'mod-1', { opacity: 0.1 });
+
+      // Should coalesce into a single history entry
+      expect(store.getState()._past).toHaveLength(1);
+
+      // Undo should go back to original opacity
+      store.getState().undo();
+      expect(store.getState().config!.screens[0].modules[0].style.opacity).toBe(DEFAULT_MODULE_STYLE.opacity);
+    });
+
+    it('discrete actions (addModule) do not coalesce', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      store.getState().addModule('screen-1', 'text');
+
+      // Each addModule should be a separate history entry
+      expect(store.getState()._past).toHaveLength(2);
+    });
+
+    it('different action keys do not coalesce even within time window', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-2', type: 'text', position: { x: 100, y: 100 }, size: { w: 400, h: 150 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      store.setState({ config, isDirty: false });
+
+      // Move module A then style module B within same tick — different action keys
+      store.getState().moveModule('screen-1', 'mod-1', { x: 50, y: 50 });
+      store.getState().updateModuleStyle('screen-1', 'mod-2', { opacity: 0.5 });
+
+      // Should be two separate history entries
+      expect(store.getState()._past).toHaveLength(2);
+    });
+
+    it('future stack is capped at MAX_HISTORY', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      // Create 55 history entries
+      for (let i = 0; i < 55; i++) {
+        store.getState().addModule('screen-1', 'clock');
+      }
+
+      // Undo all of them — future stack should be capped
+      for (let i = 0; i < 55; i++) {
+        store.getState().undo();
+      }
+
+      expect(store.getState()._future.length).toBeLessThanOrEqual(50);
+    });
+
+    it('undo is a no-op when past is empty', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      store.setState({ config, isDirty: false });
+
+      store.getState().undo();
+
+      // State should be unchanged
+      expect(store.getState().config).toBe(config);
+      expect(store.getState().isDirty).toBe(false);
+    });
+
+    it('redo is a no-op when future is empty', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      store.setState({ config, isDirty: false });
+
+      store.getState().redo();
+
+      expect(store.getState().config).toBe(config);
+      expect(store.getState().isDirty).toBe(false);
+    });
+
+    it('undo sets isDirty to true', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      // Simulate that auto-save cleared isDirty
+      store.setState({ isDirty: false });
+
+      store.getState().undo();
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('undo after screen removal restores the screen', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'Screen 1', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'Screen 2', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config, selectedScreenId: 's2' });
+
+      store.getState().removeScreen('s2');
+      expect(store.getState().config!.screens).toHaveLength(1);
+
+      store.getState().undo();
+      expect(store.getState().config!.screens).toHaveLength(2);
+      expect(store.getState().selectedScreenId).toBe('s2');
+    });
+
+    it('multiple undo/redo cycles work correctly', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addModule('screen-1', 'clock');
+      store.getState().addModule('screen-1', 'text');
+
+      expect(store.getState().config!.screens[0].modules).toHaveLength(2);
+
+      store.getState().undo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(1);
+
+      store.getState().undo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(0);
+
+      store.getState().redo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(1);
+
+      store.getState().redo();
+      expect(store.getState().config!.screens[0].modules).toHaveLength(2);
+    });
+  });
 });

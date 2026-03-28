@@ -21,6 +21,15 @@ import {
 } from '@/lib/layout-export';
 import { scaleModulesToFit } from '@/lib/module-utils';
 
+interface HistoryEntry {
+  config: ScreenConfiguration;
+  selectedScreenId: string | null;
+  selectedModuleId: string | null;
+}
+
+const MAX_HISTORY = 50;
+const COALESCE_WINDOW_MS = 500;
+
 interface EditorState {
   config: ScreenConfiguration | null;
   selectedScreenId: string | null;
@@ -28,6 +37,10 @@ interface EditorState {
   isDirty: boolean;
   isSaving: boolean;
   saveError: string | null;
+  _past: HistoryEntry[];
+  _future: HistoryEntry[];
+  _lastHistoryTime: number;
+  _lastHistoryActionKey: string;
 
   loadConfig: () => Promise<void>;
   saveConfig: () => Promise<void>;
@@ -53,6 +66,8 @@ interface EditorState {
   exportLayout: (options?: { screenIds?: string[]; name?: string; description?: string }) => void;
   importLayoutAction: (layout: LayoutExport, options: { mode: 'add' | 'replace'; applyVisual?: boolean }) => void;
   scaleAllModules: (oldWidth: number, oldHeight: number, newWidth: number, newHeight: number) => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 function updateModuleInConfig(
@@ -72,10 +87,34 @@ function updateModuleInConfig(
 }
 
 export const useEditorStore = create<EditorState>((set, get) => {
-  const mutateConfig = (fn: (config: ScreenConfiguration) => Partial<EditorState>) => {
-    const { config } = get();
+  const mutateConfig = (
+    fn: (config: ScreenConfiguration) => Partial<EditorState>,
+    options?: { coalesce?: string },
+  ) => {
+    const state = get();
+    const { config } = state;
     if (!config) return;
-    set({ isDirty: true, saveError: null, ...fn(config) });
+
+    const now = Date.now();
+    const actionKey = options?.coalesce ?? '';
+
+    let newPast: HistoryEntry[];
+    if (actionKey && actionKey === state._lastHistoryActionKey && state._past.length > 0 && (now - state._lastHistoryTime) < COALESCE_WINDOW_MS) {
+      newPast = state._past;
+    } else {
+      newPast = [...state._past, {
+        config: structuredClone(config),
+        selectedScreenId: state.selectedScreenId,
+        selectedModuleId: state.selectedModuleId,
+      }];
+      if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
+    }
+
+    set({
+      isDirty: true, saveError: null,
+      _past: newPast, _future: [], _lastHistoryTime: now, _lastHistoryActionKey: actionKey,
+      ...fn(config),
+    });
   };
 
   return {
@@ -85,6 +124,10 @@ export const useEditorStore = create<EditorState>((set, get) => {
   isDirty: false,
   isSaving: false,
   saveError: null,
+  _past: [],
+  _future: [],
+  _lastHistoryTime: 0,
+  _lastHistoryActionKey: '',
 
   loadConfig: async () => {
     try {
@@ -101,6 +144,10 @@ export const useEditorStore = create<EditorState>((set, get) => {
         selectedScreenId: restoredScreen ? restoredScreen.id : config.screens[0]?.id ?? null,
         selectedModuleId: null,
         isDirty: false,
+        _past: [],
+        _future: [],
+        _lastHistoryTime: 0,
+        _lastHistoryActionKey: '',
       });
     } catch (err) {
       console.error('Failed to load config:', err);
@@ -177,7 +224,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
   updateModule: (screenId, moduleId, updates) => {
     mutateConfig((config) => ({
       config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, ...updates })),
-    }));
+    }), { coalesce: `updateModule:${moduleId}` });
   },
 
   updateModuleStyle: (screenId, moduleId, style) => {
@@ -186,19 +233,19 @@ export const useEditorStore = create<EditorState>((set, get) => {
         ...m,
         style: { ...m.style, ...style },
       })),
-    }));
+    }), { coalesce: `style:${moduleId}` });
   },
 
   moveModule: (screenId, moduleId, position) => {
     mutateConfig((config) => ({
       config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, position })),
-    }));
+    }), { coalesce: `move:${moduleId}` });
   },
 
   resizeModule: (screenId, moduleId, size) => {
     mutateConfig((config) => ({
       config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, size })),
-    }));
+    }), { coalesce: `resize:${moduleId}` });
   },
 
   addScreen: () => {
@@ -245,13 +292,13 @@ export const useEditorStore = create<EditorState>((set, get) => {
         ...config,
         screens: config.screens.map((s) => (s.id === id ? { ...s, ...updates } : s)),
       },
-    }));
+    }), { coalesce: `screen:${id}` });
   },
 
   updateSettings: (settings) => {
     mutateConfig((config) => ({
       config: { ...config, settings: { ...config.settings, ...settings } },
-    }));
+    }), { coalesce: 'settings' });
   },
 
   addProfile: (name: string) => {
@@ -285,7 +332,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
           p.id === id ? { ...p, ...updates } : p,
         ),
       },
-    }));
+    }), { coalesce: `profile:${id}` });
   },
 
   reorderProfiles: (fromIndex: number, toIndex: number) => {
@@ -294,13 +341,13 @@ export const useEditorStore = create<EditorState>((set, get) => {
     const profiles = [...config.profiles];
     const [moved] = profiles.splice(fromIndex, 1);
     profiles.splice(toIndex, 0, moved);
-    mutateConfig(() => ({ config: { ...config, profiles } }));
+    mutateConfig(() => ({ config: { ...config, profiles } }), { coalesce: 'reorderProfiles' });
   },
 
   setActiveProfile: (id: string | undefined) => {
     mutateConfig((config) => ({
       config: { ...config, settings: { ...config.settings, activeProfile: id } },
-    }));
+    }), { coalesce: 'activeProfile' });
   },
 
   exportConfig: () => {
@@ -320,12 +367,24 @@ export const useEditorStore = create<EditorState>((set, get) => {
     if (!parsed.screens || !Array.isArray(parsed.screens) || !parsed.settings) {
       throw new Error('Invalid config file: missing screens or settings');
     }
+    const state = get();
+    let newPast = state._past;
+    if (state.config) {
+      const snapshot: HistoryEntry = {
+        config: structuredClone(state.config),
+        selectedScreenId: state.selectedScreenId,
+        selectedModuleId: state.selectedModuleId,
+      };
+      newPast = [...state._past, snapshot];
+      if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
+    }
     const firstId = parsed.screens[0]?.id ?? null;
     set({
       config: parsed,
       selectedScreenId: firstId,
       selectedModuleId: null,
       isDirty: true, saveError: null,
+      _past: newPast, _future: [], _lastHistoryTime: 0, _lastHistoryActionKey: '',
     });
     if (firstId) {
       const url = new URL(window.location.href);
@@ -378,5 +437,79 @@ export const useEditorStore = create<EditorState>((set, get) => {
         screens: scaleModulesToFit(config.screens, oldWidth, oldHeight, newWidth, newHeight),
       },
     }));
+  },
+
+  undo: () => {
+    const state = get();
+    if (state._past.length === 0 || !state.config) return;
+
+    const newPast = state._past.slice(0, -1);
+    const entry = state._past[state._past.length - 1];
+
+    const currentSnapshot: HistoryEntry = {
+      config: structuredClone(state.config),
+      selectedScreenId: state.selectedScreenId,
+      selectedModuleId: state.selectedModuleId,
+    };
+
+    const newFuture = [...state._future, currentSnapshot];
+    set({
+      config: entry.config,
+      selectedScreenId: entry.selectedScreenId,
+      selectedModuleId: entry.selectedModuleId,
+      isDirty: true,
+      saveError: null,
+      _past: newPast,
+      _future: newFuture.length > MAX_HISTORY ? newFuture.slice(newFuture.length - MAX_HISTORY) : newFuture,
+      _lastHistoryTime: 0,
+      _lastHistoryActionKey: '',
+    });
+
+    if (entry.selectedScreenId !== state.selectedScreenId) {
+      const url = new URL(window.location.href);
+      if (entry.selectedScreenId) {
+        url.searchParams.set('screen', entry.selectedScreenId);
+      } else {
+        url.searchParams.delete('screen');
+      }
+      window.history.replaceState(null, '', url.toString());
+    }
+  },
+
+  redo: () => {
+    const state = get();
+    if (state._future.length === 0 || !state.config) return;
+
+    const newFuture = state._future.slice(0, -1);
+    const entry = state._future[state._future.length - 1];
+
+    const currentSnapshot: HistoryEntry = {
+      config: structuredClone(state.config),
+      selectedScreenId: state.selectedScreenId,
+      selectedModuleId: state.selectedModuleId,
+    };
+
+    const newPast = [...state._past, currentSnapshot];
+    set({
+      config: entry.config,
+      selectedScreenId: entry.selectedScreenId,
+      selectedModuleId: entry.selectedModuleId,
+      isDirty: true,
+      saveError: null,
+      _past: newPast.length > MAX_HISTORY ? newPast.slice(newPast.length - MAX_HISTORY) : newPast,
+      _future: newFuture,
+      _lastHistoryTime: 0,
+      _lastHistoryActionKey: '',
+    });
+
+    if (entry.selectedScreenId !== state.selectedScreenId) {
+      const url = new URL(window.location.href);
+      if (entry.selectedScreenId) {
+        url.searchParams.set('screen', entry.selectedScreenId);
+      } else {
+        url.searchParams.delete('screen');
+      }
+      window.history.replaceState(null, '', url.toString());
+    }
   },
 }});

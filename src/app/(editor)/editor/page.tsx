@@ -15,6 +15,7 @@ import { Check, AlertCircle } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, DEFAULT_MODULE_SIZES, snapToGrid } from '@/lib/constants';
 import { getModuleDefinition } from '@/lib/module-registry';
 import type { ModuleType } from '@/types/config';
@@ -37,6 +38,7 @@ export default function EditorPage() {
   } = useEditorStore();
 
   const { isDirty, isSaving, saveError, saveConfig } = useAutoSave();
+  useUndoRedoShortcuts();
 
   const [activePaletteType, setActivePaletteType] = useState<string | null>(null);
   const [showPluginStore, setShowPluginStore] = useState(false);
