@@ -28,6 +28,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const index = useRotatingIndex(events.length, rotationMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
   const accentColor = config.accentColor ?? '#000000';
+  const hasAccent = accentColor !== '#000000';
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading history…" error={error} />;
@@ -43,12 +44,12 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
         className="flex flex-col items-center justify-center h-full gap-2 relative overflow-hidden"
         style={{
           fontSize: `${scaledFontSize}px`,
-          background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)`,
+          ...(hasAccent && { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }),
         }}
       >
         <SectionHeader>On This Day</SectionHeader>
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
+          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
         )}
 
         {events.length > 0 && event ? (
@@ -64,8 +65,8 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
                 className="inline-block mt-2 px-2 py-0.5 rounded-full"
                 style={{
                   fontSize: '0.7em',
-                  backgroundColor: `${accentColor}20`,
-                  color: accentColor,
+                  backgroundColor: hasAccent ? `${accentColor}20` : 'rgba(255,255,255,0.08)',
+                  color: hasAccent ? accentColor : 'rgba(255,255,255,0.7)',
                 }}
               >
                 {yearsAgo} years ago

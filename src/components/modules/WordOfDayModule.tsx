@@ -49,6 +49,7 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
   const entry = WORDS[dayOfYear % WORDS.length];
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const accentColor = config.accentColor ?? '#000000';
+  const hasAccent = accentColor !== '#000000';
 
   return (
     <ModuleWrapper style={style}>
@@ -57,20 +58,20 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
         className="flex flex-col items-center justify-center h-full gap-2"
         style={{
           fontSize: `${scaledFontSize}px`,
-          background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)`,
+          ...(hasAccent && { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }),
         }}
       >
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
+          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
         )}
         <p className="font-extralight" style={{ fontSize: '2.8em', lineHeight: 1.1 }}>{entry.word}</p>
-        <div className="w-16 h-px" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.tertiary }} />
+        <div className="w-16 h-px" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.tertiary }} />
         <p className="italic" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>{entry.pos}</p>
         <p className="text-center italic leading-relaxed" style={{ fontSize: '0.95em', opacity: TEXT_OPACITY.secondary }}>
           {entry.definition}
         </p>
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
+          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
         )}
       </div>
     </ModuleWrapper>
