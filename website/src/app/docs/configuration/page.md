@@ -219,7 +219,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles 
 
 ### ModuleType
 
-There are 34 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are 35 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -256,7 +256,8 @@ type BuiltinModuleType =
   | 'date'
   | 'meal-planner'
   | 'iframe'
-  | 'chore-chart';
+  | 'chore-chart'
+  | 'fullscreen-calendar';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -306,6 +307,47 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   showLocation: boolean
   maxEvents: number
   showWeekNumbers: boolean
+  accentColor?: string         // Event indicator bar and today highlights (default '#3b82f6')
+}
+```
+
+### FullscreenCalendarConfig
+
+Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to auto-size to display dimensions.
+
+```typescript
+{
+  view: 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
+  density: 'cozy' | 'snug'
+  typographySize: 'small' | 'medium' | 'large'
+  accentColor: string
+  dimPastEvents: boolean
+  shadeWeekends: boolean
+  showWeather: boolean
+  showNowLine: boolean
+  sourceFilter?: string[]        // Calendar source IDs (empty = all)
+  darkMode: boolean
+
+  // Schedule view
+  scheduleDaysToShow: number     // 1-7, 0 = auto
+  scheduleHourStart: number      // 0-23
+  scheduleHourEnd: number        // 1-24
+
+  // Week list view
+  weekCollapsePastDays: boolean
+
+  // Month grid view
+  monthShowWeekNumbers: boolean
+  monthMaxEventsPerCell: number  // 0 = auto
+
+  // Day timeline view
+  dayHourStart: number
+  dayHourEnd: number
+  dayShowLocation: boolean
+
+  // Agenda view
+  agendaDaysAhead: number        // 7-30
+  agendaHideEmptyDays: boolean
 }
 ```
 
@@ -363,6 +405,8 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 ```typescript
 {
   refreshIntervalMs: number
+  accentColor?: string         // Accent color for background tint and decorative elements
+  showDividers?: boolean       // Show decorative dividers (default true)
 }
 ```
 
@@ -409,6 +453,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 ```typescript
 {
   refreshIntervalMs: number
+  accentColor?: string         // Accent color for decorative elements and borders
 }
 ```
 
@@ -418,6 +463,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 {
   title: string
   items: { id: string; text: string; completed: boolean }[]
+  accentColor?: string         // Accent color for checkboxes and progress indicator
 }
 ```
 
@@ -435,6 +481,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 ```typescript
 {
   name: string
+  accentColor?: string         // Accent color for the greeting text
 }
 ```
 
@@ -450,6 +497,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
   showTimestamp: boolean
   showDescription: boolean
   tickerSpeed: number
+  accentColor?: string         // List bullet color (optional)
 }
 ```
 
@@ -481,7 +529,8 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 
 ```typescript
 {
-  refreshIntervalMs: number
+  accentColor?: string         // Accent color for underline and part-of-speech tag
+  showDividers?: boolean       // Show decorative dividers (default true)
 }
 ```
 
@@ -491,6 +540,8 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 {
   refreshIntervalMs: number
   rotationIntervalMs: number
+  accentColor?: string         // Accent color for years-ago badge and dividers
+  showDividers?: boolean       // Show decorative dividers (default true)
 }
 ```
 
@@ -554,6 +605,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
   showWeek: boolean
   showDay: boolean
   showPercentage: boolean
+  accentColor?: string         // Accent color for progress bars and glow effects
 }
 ```
 

@@ -53,9 +53,11 @@ Profiles are managed in the editor under **Settings > Profiles**.
 2. Click **Add Profile** -- a new profile is created with all screens selected
 3. Give it a descriptive name (e.g. "Morning", "Weekend", "Office Hours")
 
-### Selecting screens
+### Selecting and ordering screens
 
-Expand a profile card to see the screen checklist. Toggle screens on or off to control which ones are included. A profile with no screens selected falls back to showing all screens.
+Expand a profile card to see the sortable screen list. Toggle screens on or off to control which ones are included, and drag them to set the order they rotate in on the display. A profile with no screens selected falls back to showing all screens.
+
+The screen order within a profile determines the rotation sequence — the display cycles through screens in the order you arrange them, not the order they appear in the editor tabs.
 
 ### Renaming and deleting
 

@@ -3,10 +3,10 @@ title: Modules Reference
 nextjs:
   metadata:
     title: Modules Reference
-    description: All 34 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
+    description: All 35 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
 ---
 
-Home Screens includes 34 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 35 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Time & Date
 
@@ -43,8 +43,47 @@ Shows upcoming events from Google Calendar with multiple view modes.
 | `showLocation` | boolean | `false` | Show event locations |
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/month views |
+| `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 
 Requires Google Calendar to be configured in Settings. Supports multiple calendars with color-coding.
+
+### Full-Screen Calendar
+
+A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Requires Google Calendar to be configured in Settings.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
+| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, or `large` |
+| `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
+| `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
+| `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
+| `showWeather` | boolean | `true` | Show weather data alongside calendar events |
+| `showNowLine` | boolean | `true` | Show a line indicating the current time |
+| `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
+| `darkMode` | boolean | `false` | Use dark color scheme |
+| `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
+| `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
+| `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
+| `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
+| `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
+| `monthMaxEventsPerCell` | number | `0` | Max events per cell in month grid (0 = auto) |
+| `dayHourStart` | number | `6` | Day timeline view start hour |
+| `dayHourEnd` | number | `22` | Day timeline view end hour |
+| `dayShowLocation` | boolean | `true` | Show event locations in day timeline view |
+| `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
+| `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
+
+**View details:**
+
+- **schedule** — Multi-day time grid with events positioned by start/end time. Shows a "now" line and supports configurable hour range.
+- **week-list** — Day-by-day vertical list of the current week's events with collapsible past days.
+- **month-grid** — Traditional month calendar grid with event dots/names in each cell and today highlighted.
+- **day-timeline** — Single-day vertical timeline with event blocks, location details, and hour markers.
+- **agenda** — Scrollable list of upcoming events across multiple days, grouped by date.
+
+This module uses the `fillsCanvas` flag — it automatically occupies the full display area. Position, size, and style controls are hidden in the editor since the module always fills the screen.
 
 ### Countdown
 
@@ -69,6 +108,7 @@ Visual progress bars showing how far through the current time periods you are.
 | `showWeek` | boolean | `true` | Show week progress |
 | `showDay` | boolean | `true` | Show day progress |
 | `showPercentage` | boolean | `true` | Show percentage labels |
+| `accentColor` | string | `"#000000"` | Accent color for progress bars and glow effects |
 
 ### Multi-Month Calendar
 
@@ -215,6 +255,7 @@ Rotating RSS feed headlines with multiple view modes.
 | `showTimestamp` | boolean | `false` | Show article timestamps |
 | `showDescription` | boolean | `false` | Show article descriptions |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
+| `accentColor` | string | — | Accent color for list bullet indicators (optional) |
 
 ### Stock Ticker
 
@@ -282,6 +323,8 @@ Displays a random dad joke that refreshes periodically.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `refreshIntervalMs` | number | `60000` | How often to fetch a new joke (1 min) |
+| `accentColor` | string | `"#000000"` | Accent color for background tint and decorative elements |
+| `showDividers` | boolean | `true` | Show decorative dividers |
 
 ### Quote
 
@@ -290,10 +333,16 @@ Daily inspirational quote from ZenQuotes.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `refreshIntervalMs` | number | `300000` | Refresh interval (5 min) |
+| `accentColor` | string | `"#000000"` | Accent color for decorative quotation mark, left border, and attribution divider |
 
 ### Word of the Day
 
-Displays a vocabulary word with definition and usage. The word is computed from a built-in list based on the current date -- no configuration options.
+Displays a vocabulary word with definition and usage. The word is computed from a built-in list based on the current date.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `accentColor` | string | `"#000000"` | Accent color for underline and part-of-speech tag |
+| `showDividers` | boolean | `true` | Show decorative dividers between sections |
 
 ### This Day in History
 
@@ -303,6 +352,8 @@ Historical events that happened on today's date.
 |---|---|---|---|
 | `refreshIntervalMs` | number | `3600000` | Data refresh interval (1 hour) |
 | `rotationIntervalMs` | number | `10000` | How often to rotate between events (10 sec) |
+| `accentColor` | string | `"#000000"` | Accent color for years-ago badge and dividers |
+| `showDividers` | boolean | `true` | Show decorative dividers |
 
 ---
 
@@ -316,6 +367,7 @@ A checklist with completable items.
 |---|---|---|---|
 | `title` | string | `"To Do"` | List title |
 | `items` | array | `[]` | Items with `id`, `text`, and `completed` fields |
+| `accentColor` | string | `"#000000"` | Accent color for checkboxes, strikethrough, and progress indicator |
 
 Items can be added, edited, and checked off in the editor.
 
@@ -363,6 +415,7 @@ Displays a time-aware greeting (Good morning/afternoon/evening).
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `name` | string | `"Friend"` | Name to greet (e.g. "Good morning, Bryan") |
+| `accentColor` | string | `"#000000"` | Accent color for the greeting text |
 
 ### Garbage Day
 

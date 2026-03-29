@@ -109,6 +109,10 @@ Click the **+** button in the Screen Tabs to create a new screen. Each screen ha
 
 Double-click a screen tab to rename it.
 
+### Reordering Screens
+
+Drag screen tabs left or right to reorder them. You can also right-click a tab and choose **Move Left** or **Move Right** from the context menu. Screen order determines the rotation sequence on the display.
+
 ### Removing a Screen
 
 Click the **x** button on a screen tab. You must have at least one screen.
@@ -289,7 +293,7 @@ Profiles let you define named groups of screens that activate based on a schedul
 
 1. Open **Settings > Profiles**
 2. Click **Add Profile** and give it a name (e.g. "Morning", "Evening")
-3. Select which screens to include in this profile
+3. Select which screens to include and drag to set their display order
 
 ### Schedule-Based Activation
 

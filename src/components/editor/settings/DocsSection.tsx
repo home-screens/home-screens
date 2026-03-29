@@ -70,7 +70,7 @@ const DOCS: DocSection[] = [
       {
         title: 'Modules',
         href: '/docs/modules',
-        description: 'All 34 modules and their configuration options',
+        description: 'All 35 modules and their configuration options',
         icon: Blocks,
       },
       {

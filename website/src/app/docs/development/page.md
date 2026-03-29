@@ -15,7 +15,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 34 module components + ModuleWrapper
+    modules/                 # All 35 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -41,11 +41,11 @@ The app uses Next.js route groups to separate concerns:
 
 ### Module System
 
-There are currently **34 modules** organized into 7 categories:
+There are currently **35 modules** organized into 7 categories:
 
 | Category | Modules |
 |---|---|
-| **Time & Date** | clock, calendar, countdown, year-progress, multi-month, date |
+| **Time & Date** | clock, calendar, fullscreen-calendar, countdown, year-progress, multi-month, date |
 | **Weather & Environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |

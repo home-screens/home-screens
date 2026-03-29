@@ -6,7 +6,7 @@ nextjs:
     description: Documentation for Home Screens — a free, open-source smart display for Raspberry Pi. A self-hosted alternative to MagicMirror and Dakboard with a visual editor.
 ---
 
-An open-source smart display system for Raspberry Pi. 34 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
+An open-source smart display system for Raspberry Pi. 35 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
 
 {% quick-links %}
 
@@ -28,7 +28,7 @@ Home Screens is a custom smart display system that replaces services like Dakboa
 
 ### Key features
 
-- **34 modules** — clock, weather, calendar, news, stocks, sports, and more
+- **35 modules** — clock, weather, calendar, news, stocks, sports, and more
 - **Visual editor** — drag-and-drop interface to design your screens
 - **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo
 - **Google Calendar** — OAuth device flow, works on headless displays
