@@ -5,6 +5,7 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl } from '@/lib/fetch-keys';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 interface AirQualityModuleProps {
   config: AirQualityConfig;
@@ -56,12 +57,12 @@ export default function AirQualityModule({ config, style }: AirQualityModuleProp
             <span className={`${aqiColor} text-white font-bold px-3 py-1 rounded-full`} style={{ fontSize: '0.875em' }}>
               AQI {data.aqi}
             </span>
-            <span className="opacity-80" style={{ fontSize: '0.875em' }}>{aqiLabel}</span>
+            <span style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.secondary }}>{aqiLabel}</span>
           </div>
         )}
 
         {config.showPollutants && (
-          <div className="flex flex-wrap gap-x-4 gap-y-1 opacity-70" style={{ fontSize: '0.875em' }}>
+          <div className="flex flex-wrap gap-x-4 gap-y-1" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.secondary }}>
             <span>PM2.5: {data.pm25.toFixed(1)} &mu;g/m&sup3;</span>
             <span>PM10: {data.pm10.toFixed(1)} &mu;g/m&sup3;</span>
             <span>O₃: {data.o3.toFixed(1)} &mu;g/m&sup3;</span>

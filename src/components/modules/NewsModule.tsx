@@ -7,6 +7,10 @@ import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { newsUrl } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
+import { TEXT_OPACITY } from '@/lib/constants';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { SectionHeader } from './shared/SectionHeader';
+import { MetadataText } from './shared/MetadataText';
 
 interface NewsModuleProps {
   config: NewsConfig;
@@ -41,7 +45,7 @@ function HeadlineView({ items, rotateMs }: { items: NewsItem[]; rotateMs: number
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2">
-      <span className="uppercase tracking-widest opacity-50" style={{ fontSize: '0.75em' }}>News</span>
+      <SectionHeader>News</SectionHeader>
       <p className="text-center leading-relaxed">
         {item?.title ?? 'Loading news...'}
       </p>
@@ -50,31 +54,34 @@ function HeadlineView({ items, rotateMs }: { items: NewsItem[]; rotateMs: number
 }
 
 /** List view — vertical scrollable list with optional timestamps and descriptions */
-function ListView({ items, showTimestamp, showDescription }: {
+function ListView({ items, showTimestamp, showDescription, accentColor }: {
   items: NewsItem[];
   showTimestamp: boolean;
   showDescription: boolean;
+  accentColor?: string;
 }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <span className="uppercase tracking-widest opacity-50 shrink-0 mb-2" style={{ fontSize: '0.7em' }}>
-        News
-      </span>
+      <SectionHeader className="shrink-0 mb-2">News</SectionHeader>
       <div className="flex flex-col gap-2.5 overflow-y-auto min-h-0 pr-1">
         {items.map((item, i) => (
           <div key={i} className="flex gap-2" style={{ fontSize: '0.9em' }}>
-            <span className="opacity-30 shrink-0 mt-0.5 leading-snug">•</span>
+            {accentColor ? (
+              <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ backgroundColor: accentColor }} />
+            ) : (
+              <span className="shrink-0 mt-0.5 leading-snug" style={{ opacity: TEXT_OPACITY.tertiary }}>•</span>
+            )}
             <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="leading-snug">{item.title}</span>
+              <span className="leading-snug line-clamp-2">{item.title}</span>
               {showDescription && item.description && (
-                <span className="opacity-50 leading-snug line-clamp-2" style={{ fontSize: '0.85em' }}>
+                <span className="leading-snug line-clamp-2" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
                   {item.description}
                 </span>
               )}
               {showTimestamp && item.pubDate && (
-                <span className="opacity-40" style={{ fontSize: '0.75em' }}>
+                <MetadataText>
                   {formatTime(item.pubDate)}
-                </span>
+                </MetadataText>
               )}
             </div>
           </div>
@@ -90,7 +97,7 @@ function TickerView({ items, speed }: { items: NewsItem[]; speed: number }) {
     <TickerMarquee itemCount={items.length} speed={speed} gap={8}>
       {items.map((item, i) => (
         <span key={i} className="inline-flex items-center gap-3 whitespace-nowrap" style={{ fontSize: '0.9em' }}>
-          <span className="opacity-30">•</span>
+          <span style={{ opacity: TEXT_OPACITY.tertiary }}>•</span>
           <span>{item.title}</span>
         </span>
       ))}
@@ -106,13 +113,13 @@ function CompactView({ items, showTimestamp }: { items: NewsItem[]; showTimestam
         <div
           key={i}
           className="flex items-baseline justify-between gap-2"
-          style={{ fontSize: '0.8em' }}
+          style={{ fontSize: '0.85em' }}
         >
           <span className="truncate leading-snug">{item.title}</span>
           {showTimestamp && item.pubDate && (
-            <span className="opacity-40 shrink-0 tabular-nums" style={{ fontSize: '0.85em' }}>
+            <MetadataText className="shrink-0 tabular-nums">
               {formatTime(item.pubDate)}
-            </span>
+            </MetadataText>
           )}
         </div>
       ))}
@@ -129,6 +136,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   const view = config.view ?? 'headline';
   const maxItems = config.maxItems ?? 10;
   const items = view === 'headline' ? allItems : allItems.slice(0, maxItems);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading news…" error={error} />;
@@ -140,6 +148,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
 
   return (
     <ModuleWrapper style={style}>
+      <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
       {view === 'headline' && (
         <HeadlineView items={allItems} rotateMs={config.rotateIntervalMs ?? 10000} />
       )}
@@ -148,6 +157,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
           items={items}
           showTimestamp={config.showTimestamp ?? false}
           showDescription={config.showDescription ?? false}
+          accentColor={config.accentColor}
         />
       )}
       {view === 'ticker' && (
@@ -156,6 +166,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
       {view === 'compact' && (
         <CompactView items={items} showTimestamp={config.showTimestamp ?? false} />
       )}
+      </div>
     </ModuleWrapper>
   );
 }

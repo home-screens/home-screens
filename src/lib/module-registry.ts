@@ -145,6 +145,7 @@ registerModule({
     showLocation: false,
     maxEvents: 20,
     showWeekNumbers: false,
+    accentColor: '#3b82f6',
   },
   defaultSize: DEFAULT_MODULE_SIZES.calendar,
 });
@@ -339,6 +340,7 @@ registerModule({
     showTimestamp: false,
     showDescription: false,
     tickerSpeed: 5,
+    accentColor: undefined,
   },
   defaultSize: DEFAULT_MODULE_SIZES.news,
 });

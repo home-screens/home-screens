@@ -6,6 +6,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 interface MoonPhaseModuleProps {
   config: MoonPhaseConfig;
@@ -103,12 +104,12 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
           {phaseName}
         </p>
         {config.showIllumination && (
-          <p className="text-center opacity-70" style={{ fontSize: '0.85em' }}>
+          <p className="text-center" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
             {illuminationPct}% illuminated
           </p>
         )}
         {config.showMoonTimes && moonTimes && (
-          <div className="text-center opacity-70" style={{ fontSize: '0.8em' }}>
+          <div className="text-center" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.secondary }}>
             {moonTimes.rise && <p>Rise: {formatTimeInTZ(moonTimes.rise, timezone)}</p>}
             {moonTimes.set && <p>Set: {formatTimeInTZ(moonTimes.set, timezone)}</p>}
           </div>

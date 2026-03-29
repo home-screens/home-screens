@@ -5,6 +5,10 @@ import { createTZDate } from '@/lib/timezone';
 import { parseEventDate, isEventOnDay, compareEventStarts } from '@/lib/calendar-utils';
 import type { CalendarConfig, CalendarViewMode, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { TEXT_OPACITY } from '@/lib/constants';
+import { SectionHeader } from './shared/SectionHeader';
+import { MetadataText } from './shared/MetadataText';
+import { ContentCard } from './shared/ContentCard';
 
 interface CalendarEvent {
   id: string;
@@ -43,12 +47,13 @@ function formatRelativeDay(date: Date, today: Date): string {
 
 // ─── Event Card (shared across views) ───
 
-function EventCard({ event, textColor, showTime, showLocation, compact }: {
+function EventCard({ event, textColor, showTime, showLocation, compact, accentColor }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
   showLocation: boolean;
   compact?: boolean;
+  accentColor: string;
 }) {
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
@@ -56,50 +61,48 @@ function EventCard({ event, textColor, showTime, showLocation, compact }: {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
+      <div className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
         <div
           className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ backgroundColor: event.calendarColor ?? '#3b82f6' }}
+          style={{ backgroundColor: event.calendarColor ?? accentColor }}
         />
-        <span className="truncate" style={{ fontSize: '0.65em' }}>{event.title}</span>
+        <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>
       </div>
     );
   }
 
   return (
-    <div
-      className="flex gap-2 rounded-lg px-2.5 py-1.5"
-      style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
-    >
+    <ContentCard className="flex gap-2" style={{ padding: '6px 10px' }}>
       <div
         className="w-0.5 rounded-full shrink-0 self-stretch"
-        style={{ backgroundColor: event.calendarColor ?? '#3b82f6' }}
+        style={{ backgroundColor: event.calendarColor ?? accentColor }}
       />
       <div className="min-w-0 flex-1">
         {showTime && (
-          <p className="opacity-60" style={{ fontSize: '0.7em', color: textColor }}>
+          <MetadataText size="sm">
             {isAllDay ? 'All day' : (
               <>
                 {format(start, 'h:mm a')} · {formatDuration(start, end)}
               </>
             )}
-          </p>
+          </MetadataText>
         )}
-        <p className="font-medium leading-tight" style={{ fontSize: '0.8em' }}>{event.title}</p>
+        <p className="font-medium leading-tight line-clamp-2" style={{ fontSize: '0.85em' }}>{event.title}</p>
         {showLocation && event.location && (
-          <p className="opacity-40 leading-tight" style={{ fontSize: '0.65em', color: textColor }}>
+          <MetadataText size="xs" className="leading-tight">
             {event.location}
-          </p>
+          </MetadataText>
         )}
       </div>
-    </div>
+    </ContentCard>
   );
 }
 
 // ─── Daily View (original) ───
 
-function DailyView({ events, config, style, today }: {
+function DailyView({ events, config, style, today, accentColor }: {
   events: CalendarEvent[];
+  accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -121,19 +124,16 @@ function DailyView({ events, config, style, today }: {
         return (
           <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0">
             <div className="text-center mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <p
-                className="uppercase tracking-wider font-semibold"
-                style={{ fontSize: '0.7em', opacity: isToday ? 1 : 0.5 }}
-              >
+              <SectionHeader active={isToday}>
                 {isToday ? 'Today' : format(date, 'EEE')}
-              </p>
+              </SectionHeader>
               <p
                 className="font-bold"
-                style={{ fontSize: '1.3em', opacity: isToday ? 1 : 0.6 }}
+                style={{ fontSize: '1.3em', opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}
               >
                 {format(date, 'd')}
               </p>
-              <p className="opacity-40" style={{ fontSize: '0.65em' }}>
+              <p style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
                 {format(date, 'MMM')}
               </p>
             </div>
@@ -141,13 +141,13 @@ function DailyView({ events, config, style, today }: {
               {dayEvents.length === 0 ? (
                 <div
                   className="flex items-center justify-center rounded-lg px-2.5 py-3"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
                 >
-                  <p className="opacity-30" style={{ fontSize: '0.75em' }}>No events</p>
+                  <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>No events</p>
                 </div>
               ) : (
                 dayEvents.map((ev) => (
-                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} />
+                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} accentColor={accentColor} />
                 ))
               )}
             </div>
@@ -160,8 +160,9 @@ function DailyView({ events, config, style, today }: {
 
 // ─── Agenda View ───
 
-function AgendaView({ events, config, style, today }: {
+function AgendaView({ events, config, style, today, accentColor }: {
   events: CalendarEvent[];
+  accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -190,7 +191,7 @@ function AgendaView({ events, config, style, today }: {
   if (groups.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="opacity-30" style={{ fontSize: '0.85em' }}>No upcoming events</p>
+        <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>No upcoming events</p>
       </div>
     );
   }
@@ -200,20 +201,14 @@ function AgendaView({ events, config, style, today }: {
       {groups.map(({ date, events: dayEvents }) => (
         <div key={date.toISOString()}>
           <div className="flex items-center gap-2 mb-1.5">
-            <p
-              className="font-semibold uppercase tracking-wider shrink-0"
-              style={{
-                fontSize: '0.7em',
-                opacity: isSameDay(date, today) ? 1 : 0.6,
-              }}
-            >
+            <SectionHeader className="shrink-0" active={isSameDay(date, today)}>
               {formatRelativeDay(date, today)}
-            </p>
+            </SectionHeader>
             <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
           </div>
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => (
-              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} />
+              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} accentColor={accentColor} />
             ))}
           </div>
         </div>
@@ -224,8 +219,9 @@ function AgendaView({ events, config, style, today }: {
 
 // ─── Week Grid View ───
 
-function WeekView({ events, config, style, today }: {
+function WeekView({ events, config, style, today, accentColor }: {
   events: CalendarEvent[];
+  accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -242,14 +238,14 @@ function WeekView({ events, config, style, today }: {
       }}>
         {showWeekNumbers && (
           <div className="flex items-center justify-center px-1">
-            <span className="opacity-30" style={{ fontSize: '0.6em' }}>Wk</span>
+            <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>Wk</span>
           </div>
         )}
         {daysInWeek.map((date) => {
           const isToday = isSameDay(date, today);
           return (
             <div key={date.toISOString()} className="text-center py-1">
-              <p className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: isToday ? 0.9 : 0.4 }}>
+              <p className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
                 {format(date, 'EEE')}
               </p>
               <div
@@ -259,8 +255,8 @@ function WeekView({ events, config, style, today }: {
                   height: '1.8em',
                   fontSize: '0.85em',
                   fontWeight: isToday ? 700 : 500,
-                  backgroundColor: isToday ? 'rgba(59, 130, 246, 0.8)' : 'transparent',
-                  opacity: isToday ? 1 : 0.7,
+                  backgroundColor: isToday ? `${accentColor}cc` : 'transparent',
+                  opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                 }}
               >
                 {format(date, 'd')}
@@ -276,7 +272,7 @@ function WeekView({ events, config, style, today }: {
       }}>
         {showWeekNumbers && (
           <div className="flex items-start justify-center pt-1 px-1">
-            <span className="opacity-30" style={{ fontSize: '0.6em' }}>{getWeek(weekStart)}</span>
+            <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(weekStart)}</span>
           </div>
         )}
         {daysInWeek.map((date) => {
@@ -288,10 +284,10 @@ function WeekView({ events, config, style, today }: {
               style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
             >
               {dayEvents.slice(0, 5).map((ev) => (
-                <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact />
+                <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} />
               ))}
               {dayEvents.length > 5 && (
-                <span className="opacity-40 text-center" style={{ fontSize: '0.55em' }}>
+                <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
                   +{dayEvents.length - 5} more
                 </span>
               )}
@@ -305,8 +301,9 @@ function WeekView({ events, config, style, today }: {
 
 // ─── Month Grid View ───
 
-function MonthView({ events, config, style, today }: {
+function MonthView({ events, config, style, today, accentColor }: {
   events: CalendarEvent[];
+  accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -347,7 +344,7 @@ function MonthView({ events, config, style, today }: {
         {showWeekNumbers && <div />}
         {dayNames.map((d) => (
           <div key={d} className="text-center py-0.5">
-            <span className="uppercase tracking-wider opacity-40" style={{ fontSize: '0.55em' }}>{d}</span>
+            <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{d}</span>
           </div>
         ))}
       </div>
@@ -360,7 +357,7 @@ function MonthView({ events, config, style, today }: {
           }}>
             {showWeekNumbers && (
               <div className="flex items-start justify-center pt-0.5 px-1">
-                <span className="opacity-25" style={{ fontSize: '0.55em' }}>{getWeek(week[0])}</span>
+                <span style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(week[0])}</span>
               </div>
             )}
             {week.map((date) => {
@@ -373,8 +370,8 @@ function MonthView({ events, config, style, today }: {
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
                   style={{
-                    backgroundColor: isToday ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255,255,255,0.02)',
-                    opacity: inMonth ? 1 : 0.35,
+                    backgroundColor: isToday ? `${accentColor}1f` : 'rgba(255,255,255,0.02)',
+                    opacity: inMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary,
                   }}
                 >
                   <span
@@ -382,17 +379,17 @@ function MonthView({ events, config, style, today }: {
                     style={{
                       fontSize: '0.65em',
                       fontWeight: isToday ? 700 : 400,
-                      color: isToday ? '#60a5fa' : style.textColor,
+                      color: isToday ? accentColor : style.textColor,
                     }}
                   >
                     {format(date, 'd')}
                   </span>
                   <div className="flex flex-col gap-px overflow-hidden">
                     {dayEvents.slice(0, 3).map((ev) => (
-                      <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact />
+                      <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} />
                     ))}
                     {dayEvents.length > 3 && (
-                      <span className="opacity-40 text-center" style={{ fontSize: '0.5em' }}>
+                      <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
                         +{dayEvents.length - 3}
                       </span>
                     )}
@@ -414,6 +411,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  accentColor: string;
 }>> = {
   daily: DailyView,
   agenda: AgendaView,
@@ -430,10 +428,11 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
   const today = startOfDay(createTZDate(timezone));
   const viewMode = config.viewMode ?? 'daily';
   const ViewComponent = VIEW_COMPONENTS[viewMode];
+  const accentColor = config.accentColor ?? '#3b82f6';
 
   return (
     <ModuleWrapper style={style}>
-      <ViewComponent events={allEvents} config={config} style={style} today={today} />
+      <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} />
     </ModuleWrapper>
   );
 }

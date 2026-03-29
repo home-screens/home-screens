@@ -2,6 +2,7 @@
 import type { WordOfDayConfig, ModuleStyle } from '@/types/config';
 import { getDayOfYear } from 'date-fns';
 import ModuleWrapper from './ModuleWrapper';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
 interface WordOfDayModuleProps {
   config: WordOfDayConfig;
@@ -44,10 +45,11 @@ const WORDS = [
 export default function WordOfDayModule({ config: _config, style }: WordOfDayModuleProps) {
   const dayOfYear = getDayOfYear(new Date());
   const entry = WORDS[dayOfYear % WORDS.length];
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
 
   return (
     <ModuleWrapper style={style}>
-      <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2" style={{ fontSize: `${scaledFontSize}px` }}>
         <p className="font-bold" style={{ fontSize: '1.5em' }}>{entry.word}</p>
         <p className="text-center italic">{entry.definition}</p>
       </div>

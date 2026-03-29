@@ -79,3 +79,10 @@ export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
   'chore-chart': { w: 500, h: 650 },
   'fullscreen-calendar': { w: 1080, h: 1920 },
 };
+
+// Semantic text opacity tiers for consistent visual hierarchy across modules
+export const TEXT_OPACITY = {
+  primary: 1,
+  secondary: 0.6,
+  tertiary: 0.35,
+} as const;

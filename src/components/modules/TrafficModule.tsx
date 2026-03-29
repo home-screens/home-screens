@@ -5,6 +5,9 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { trafficUrl } from '@/lib/fetch-keys';
+import { TEXT_OPACITY } from '@/lib/constants';
+import { SectionHeader } from './shared/SectionHeader';
+import { MetadataText } from './shared/MetadataText';
 
 interface TrafficModuleProps {
   config: TrafficConfig;
@@ -44,9 +47,7 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full gap-2">
-        <span className="uppercase tracking-widest opacity-50 text-center" style={{ fontSize: '0.75em' }}>
-          Traffic
-        </span>
+        <SectionHeader className="text-center">Traffic</SectionHeader>
 
         {data && (
           <div className="flex flex-col gap-2">
@@ -58,14 +59,14 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
                 />
                 <div className="flex flex-col min-w-0">
                   <span className="font-medium truncate" style={{ fontSize: '0.875em' }}>{route.label}</span>
-                  <span className="opacity-50" style={{ fontSize: '0.75em' }}>
+                  <MetadataText>
                     {route.durationInTrafficMinutes} min
                     {route.delayMinutes > 0 && (
                       <span style={{ color: delayColor(route.delayMinutes) }}>
                         {' '}(+{route.delayMinutes} min)
                       </span>
                     )}
-                  </span>
+                  </MetadataText>
                 </div>
               </div>
             ))}

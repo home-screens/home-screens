@@ -7,6 +7,8 @@ import type { AffirmationsConfig, AffirmationsCategory, AffirmationsView, Module
 import { useTZClock } from '@/hooks/useTZClock';
 import ModuleWrapper from './ModuleWrapper';
 import { BUILT_IN, type AffirmationEntry as Entry } from './affirmations-data';
+import { TEXT_OPACITY } from '@/lib/constants';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
 interface AffirmationsModuleProps {
   config: AffirmationsConfig;
@@ -138,9 +140,9 @@ function useAffirmationRotation(
 function ElegantView({ entry, accentColor, showCategory }: { entry: Entry; accentColor: string; showCategory: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-      <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: 0.6 }} />
+      <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
       {showCategory && (
-        <span className="uppercase tracking-[0.2em] opacity-40" style={{ fontSize: '0.55em' }}>
+        <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
           {CATEGORY_LABELS[entry.category]}
         </span>
       )}
@@ -148,11 +150,11 @@ function ElegantView({ entry, accentColor, showCategory }: { entry: Entry; accen
         {entry.text}
       </p>
       {entry.attribution && (
-        <p className="opacity-50 font-light" style={{ fontSize: '0.75em' }}>
+        <p className="font-light" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
           &mdash; {entry.attribution}
         </p>
       )}
-      <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: 0.6 }} />
+      <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
     </div>
   );
 }
@@ -167,7 +169,7 @@ function CardView({ entry, accentColor, showCategory }: { entry: Entry; accentCo
       }}
     >
       {showCategory && (
-        <span className="uppercase tracking-[0.15em] opacity-40" style={{ fontSize: '0.55em' }}>
+        <span className="uppercase tracking-[0.15em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
           {CATEGORY_LABELS[entry.category]}
         </span>
       )}
@@ -175,7 +177,7 @@ function CardView({ entry, accentColor, showCategory }: { entry: Entry; accentCo
         {entry.text}
       </p>
       {entry.attribution && (
-        <p className="opacity-50" style={{ fontSize: '0.75em' }}>
+        <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
           &mdash; {entry.attribution}
         </p>
       )}
@@ -187,7 +189,7 @@ function MinimalView({ entry, showCategory }: { entry: Entry; accentColor?: stri
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2 px-4">
       {showCategory && (
-        <span className="uppercase tracking-[0.2em] opacity-30" style={{ fontSize: '0.55em' }}>
+        <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
           {CATEGORY_LABELS[entry.category]}
         </span>
       )}
@@ -195,7 +197,7 @@ function MinimalView({ entry, showCategory }: { entry: Entry; accentColor?: stri
         {entry.text}
       </p>
       {entry.attribution && (
-        <p className="opacity-40 font-light" style={{ fontSize: '0.7em' }}>
+        <p className="font-light" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>
           &mdash; {entry.attribution}
         </p>
       )}
@@ -209,7 +211,7 @@ function TypewriterView({ entry, accentColor, showCategory }: { entry: Entry; ac
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2 px-4">
       {showCategory && (
-        <span className="uppercase tracking-[0.2em] opacity-40" style={{ fontSize: '0.55em' }}>
+        <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
           {CATEGORY_LABELS[entry.category]}
         </span>
       )}
@@ -279,6 +281,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   }, [config.categories, config.customEntries]);
 
   const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
 
   if (!result) {
     return (
@@ -295,6 +298,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
 
   return (
     <ModuleWrapper style={style}>
+      <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
       <AnimatePresence mode="wait">
         <motion.div
           key={`${key}-${entry.text}`}
@@ -307,6 +311,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
           <ViewComponent entry={entry} accentColor={accentColor} showCategory={showCategory} />
         </motion.div>
       </AnimatePresence>
+      </div>
     </ModuleWrapper>
   );
 }

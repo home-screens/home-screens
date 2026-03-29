@@ -3,6 +3,7 @@
 import { useTZClock } from '@/hooks/useTZClock';
 import type { GreetingConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
 interface GreetingModuleProps {
   config: GreetingConfig;
@@ -19,13 +20,14 @@ function getGreeting(hour: number): string {
 
 export default function GreetingModule({ config, style, timezone }: GreetingModuleProps) {
   const now = useTZClock(timezone);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.12);
 
   const name = config.name ?? 'Friend';
   const greeting = getGreeting(now.getHours());
 
   return (
     <ModuleWrapper style={style}>
-      <div className="flex items-center justify-center h-full">
+      <div ref={containerRef} className="flex items-center justify-center h-full" style={{ fontSize: `${scaledFontSize}px` }}>
         <p className="text-center font-light" style={{ fontSize: '2em' }}>
           {greeting}, {name}
         </p>

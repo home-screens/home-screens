@@ -2,6 +2,7 @@
 
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import ColorPicker from '@/components/ui/ColorPicker';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
@@ -31,6 +32,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   const { config: c, set } = useModuleConfig<{
     feedUrl?: string; view?: NewsView; refreshIntervalMs?: number; rotateIntervalMs?: number;
     maxItems?: number; showTimestamp?: boolean; showDescription?: boolean; tickerSpeed?: number;
+    accentColor?: string;
   }>(mod, screenId);
 
   const feedUrl = (c.feedUrl as string) || '';
@@ -111,6 +113,13 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           label="Show Description"
           checked={c.showDescription ?? false}
           onChange={(v) => set({ showDescription: v })}
+        />
+      )}
+      {view === 'list' && (
+        <ColorPicker
+          label="Bullet Color"
+          value={c.accentColor ?? ''}
+          onChange={(v) => set({ accentColor: v || undefined })}
         />
       )}
       <Slider

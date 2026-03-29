@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
+import ColorPicker from '@/components/ui/ColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -30,6 +31,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     maxEvents?: number;
     showWeekNumbers?: boolean;
     sourceFilter?: string[];
+    accentColor?: string;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -197,6 +199,11 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       {(viewMode === 'week' || viewMode === 'month') && (
         <Toggle label="Show Week Numbers" checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
       )}
+      <ColorPicker
+        label="Accent Color"
+        value={c.accentColor ?? '#3b82f6'}
+        onChange={(v) => set({ accentColor: v })}
+      />
     </>
   );
 }

@@ -3,7 +3,9 @@
 import { useState, useEffect, useId, type ComponentType } from 'react';
 import type { CountdownConfig, CountdownView, ModuleStyle } from '@/types/config';
 import { usePageBackground } from '@/contexts/PageBackgroundContext';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import ModuleWrapper from '../ModuleWrapper';
+import { ModuleEmptyState } from '../ModuleStates';
 import { processEvents } from './countdown-utils';
 import CountdownAllView from './CountdownAllView';
 import CountdownNextView from './CountdownNextView';
@@ -50,10 +52,15 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   }, [moduleId, activeBackground, register]);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? CountdownAllView;
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
+
+  if (events.length === 0) {
+    return <ModuleEmptyState style={style} message="No countdowns set" />;
+  }
 
   return (
     <ModuleWrapper style={style}>
-      <div className="flex flex-col h-full overflow-hidden" style={{ gap: `${1.2 * scale}em` }}>
+      <div ref={containerRef} className="flex flex-col h-full overflow-hidden" style={{ fontSize: `${scaledFontSize}px`, gap: `${1.2 * scale}em` }}>
         <ViewComponent events={events} config={config} scale={scale} basePx={basePx} />
       </div>
     </ModuleWrapper>

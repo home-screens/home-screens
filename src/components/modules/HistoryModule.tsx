@@ -6,6 +6,9 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { historyUrl } from '@/lib/fetch-keys';
+import { TEXT_OPACITY } from '@/lib/constants';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { SectionHeader } from './shared/SectionHeader';
 
 interface HistoryModuleProps {
   config: HistoryConfig;
@@ -23,6 +26,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
 
   const rotationMs = config.rotationIntervalMs ?? 10000;
   const index = useRotatingIndex(events.length, rotationMs);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading history…" error={error} />;
@@ -30,8 +34,8 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
 
   return (
     <ModuleWrapper style={style}>
-      <div className="flex flex-col items-center justify-center h-full gap-2">
-        <span className="uppercase tracking-widest opacity-50" style={{ fontSize: '0.65em' }}>On This Day</span>
+      <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2" style={{ fontSize: `${scaledFontSize}px` }}>
+        <SectionHeader>On This Day</SectionHeader>
         {events.length > 0 ? (
           <p className="text-center leading-relaxed">
             <span className="font-bold">{events[index % events.length].year}</span>
@@ -39,7 +43,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
             {events[index % events.length].text}
           </p>
         ) : (
-          <p className="text-center opacity-50">No events found</p>
+          <p className="text-center" style={{ opacity: TEXT_OPACITY.tertiary }}>No events found</p>
         )}
       </div>
     </ModuleWrapper>

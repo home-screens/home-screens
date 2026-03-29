@@ -150,7 +150,7 @@ export function FinancialCompactView({ rows, scale, labelWidth = 'w-20' }: Finan
         <div
           key={row.key}
           className="flex items-center justify-between"
-          style={{ fontSize: `${0.8 * scale}em` }}
+          style={{ fontSize: `${0.85 * scale}em` }}
         >
           <span className={`font-semibold opacity-80 ${labelWidth}`}>{row.label}</span>
           <span className="font-bold tabular-nums">{row.price}</span>

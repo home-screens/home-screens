@@ -38,7 +38,7 @@ export function TaskRow({
         style={{
           backgroundColor: isOverdue
             ? 'rgba(239, 68, 68, 0.08)'
-            : 'rgba(255,255,255,0.04)',
+            : 'rgba(255,255,255,0.06)',
           marginLeft: depth * 20,
         }}
       >

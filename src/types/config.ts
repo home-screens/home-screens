@@ -300,6 +300,7 @@ export interface CalendarConfig {
   maxEvents: number;
   showWeekNumbers: boolean;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
+  accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
 }
 
 // Unified weather module config
@@ -436,6 +437,7 @@ export interface NewsConfig {
   showTimestamp: boolean;
   showDescription: boolean;
   tickerSpeed?: number;
+  accentColor?: string;     // List bullet color; default undefined (text-based bullet)
 }
 
 // Stock ticker module config
