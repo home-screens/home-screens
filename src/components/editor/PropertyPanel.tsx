@@ -205,6 +205,7 @@ export default function PropertyPanel() {
   const pluginConfigSection = !BuiltinConfigSection ? loadedPlugin?.configSection : undefined;
   const hasSchemaFallback = !BuiltinConfigSection && !pluginConfigSection && isPlugin && pluginDef?.configSchema;
 
+  const moduleDef = getModuleDefinition(selectedModule.type);
   const moduleLabel = pluginDef?.label
     ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1));
 
@@ -220,12 +221,16 @@ export default function PropertyPanel() {
           )}
         </div>
 
-        <AccordionSection title="Position & Size">
-          <PositionSection mod={selectedModule} screenId={selectedScreenId} />
-        </AccordionSection>
-        <AccordionSection title="Style" defaultOpen={false}>
-          <StyleSection mod={selectedModule} screenId={selectedScreenId} />
-        </AccordionSection>
+        {!moduleDef?.fillsCanvas && (
+          <AccordionSection title="Position & Size">
+            <PositionSection mod={selectedModule} screenId={selectedScreenId} />
+          </AccordionSection>
+        )}
+        {!moduleDef?.fillsCanvas && (
+          <AccordionSection title="Style" defaultOpen={false}>
+            <StyleSection mod={selectedModule} screenId={selectedScreenId} />
+          </AccordionSection>
+        )}
 
         {BuiltinConfigSection && (
           <AccordionSection title="Config">
