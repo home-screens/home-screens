@@ -50,6 +50,7 @@ import {
   IframeConfigSection,
   ChoreChartConfigSection,
   FullscreenCalendarConfigSection,
+  WordOfDayConfigSection,
 } from '@/components/editor/config-sections';
 
 // Shared input classes — single source of truth lives in ui/input-classes.ts
@@ -162,6 +163,7 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
   traffic: TrafficConfigSection,
   sports: SportsConfigSection,
   'air-quality': AirQualityConfigSection,
+  'word-of-day': WordOfDayConfigSection,
   todoist: TodoistConfigSection,
   'rain-map': RainMapConfigSection,
   'multi-month': MultiMonthConfigSection,

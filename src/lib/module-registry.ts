@@ -243,6 +243,8 @@ registerModule({
   category: 'Knowledge & Fun',
   defaultConfig: {
     refreshIntervalMs: 60000,
+    accentColor: '#000000',
+    showDividers: true,
   },
   defaultSize: DEFAULT_MODULE_SIZES['dad-joke'],
 });
@@ -287,6 +289,7 @@ registerModule({
   category: 'Knowledge & Fun',
   defaultConfig: {
     refreshIntervalMs: 300000,
+    accentColor: '#000000',
   },
   defaultSize: DEFAULT_MODULE_SIZES.quote,
 });
@@ -299,6 +302,7 @@ registerModule({
   defaultConfig: {
     title: 'To Do',
     items: [],
+    accentColor: '#000000',
   },
   defaultSize: DEFAULT_MODULE_SIZES.todo,
 });
@@ -322,6 +326,7 @@ registerModule({
   category: 'Personal',
   defaultConfig: {
     name: 'Friend',
+    accentColor: '#000000',
   },
   defaultSize: DEFAULT_MODULE_SIZES.greeting,
 });
@@ -378,7 +383,10 @@ registerModule({
   label: 'Word of the Day',
   icon: BookOpen,
   category: 'Knowledge & Fun',
-  defaultConfig: {},
+  defaultConfig: {
+    accentColor: '#000000',
+    showDividers: true,
+  },
   defaultSize: DEFAULT_MODULE_SIZES['word-of-day'],
 });
 
@@ -390,6 +398,8 @@ registerModule({
   defaultConfig: {
     refreshIntervalMs: 3600000,
     rotationIntervalMs: 10000,
+    accentColor: '#000000',
+    showDividers: true,
   },
   defaultSize: DEFAULT_MODULE_SIZES.history,
 });
@@ -468,6 +478,7 @@ registerModule({
     showWeek: true,
     showDay: true,
     showPercentage: true,
+    accentColor: '#000000',
   },
   defaultSize: DEFAULT_MODULE_SIZES['year-progress'],
 });

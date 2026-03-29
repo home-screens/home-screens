@@ -35,7 +35,12 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => {
             if (HEX_RE.test(draft)) {
-              onChange(draft);
+              // Normalize 3-digit hex to 6-digit so ${color}XX opacity suffixes work
+              const normalized = draft.length === 4
+                ? `#${draft[1]}${draft[1]}${draft[2]}${draft[2]}${draft[3]}${draft[3]}`
+                : draft;
+              onChange(normalized);
+              setDraft(normalized);
             } else {
               setDraft(value);
             }

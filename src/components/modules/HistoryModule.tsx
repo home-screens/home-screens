@@ -27,21 +27,51 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const rotationMs = config.rotationIntervalMs ?? 10000;
   const index = useRotatingIndex(events.length, rotationMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
+  const accentColor = config.accentColor ?? '#000000';
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading history…" error={error} />;
   }
 
+  const event = events[index % events.length];
+  const yearsAgo = event ? new Date().getFullYear() - parseInt(event.year, 10) : 0;
+
   return (
     <ModuleWrapper style={style}>
-      <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2" style={{ fontSize: `${scaledFontSize}px` }}>
+      <div
+        ref={containerRef}
+        className="flex flex-col items-center justify-center h-full gap-2 relative overflow-hidden"
+        style={{
+          fontSize: `${scaledFontSize}px`,
+          background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)`,
+        }}
+      >
         <SectionHeader>On This Day</SectionHeader>
-        {events.length > 0 ? (
-          <p className="text-center leading-relaxed">
-            <span className="font-bold">{events[index % events.length].year}</span>
-            {' — '}
-            {events[index % events.length].text}
-          </p>
+        {config.showDividers !== false && (
+          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
+        )}
+
+        {events.length > 0 && event ? (
+          <div className="text-center px-4">
+            <p className="leading-relaxed">
+              <span className="font-bold">{event.year}</span>
+              {' — '}
+              {event.text}
+            </p>
+
+            {yearsAgo > 0 && (
+              <span
+                className="inline-block mt-2 px-2 py-0.5 rounded-full"
+                style={{
+                  fontSize: '0.7em',
+                  backgroundColor: `${accentColor}20`,
+                  color: accentColor,
+                }}
+              >
+                {yearsAgo} years ago
+              </span>
+            )}
+          </div>
         ) : (
           <p className="text-center" style={{ opacity: TEXT_OPACITY.tertiary }}>No events found</p>
         )}

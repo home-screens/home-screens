@@ -1,13 +1,14 @@
 'use client';
 
 import Button from '@/components/ui/Button';
+import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, TodoItem } from '@/types/config';
 
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ title?: string; items?: TodoItem[] }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ title?: string; items?: TodoItem[]; accentColor?: string }>(mod, screenId);
   const items = c.items ?? [];
 
   const { add: addItem, remove: removeItem, update: updateItem } = useListEditor<TodoItem>(
@@ -49,6 +50,10 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           <button onClick={() => removeItem(it.id)} className="text-red-400 text-xs px-1">x</button>
         </div>
       ))}
+      <AccentColorPicker
+        value={c.accentColor ?? '#000000'}
+        onChange={(v) => set({ accentColor: v })}
+      />
     </div>
   );
 }

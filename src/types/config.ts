@@ -351,6 +351,8 @@ export interface CountdownConfig {
 // Dad joke config
 export interface DadJokeConfig {
   refreshIntervalMs: number;
+  accentColor?: string;
+  showDividers?: boolean;
 }
 
 // Text module config
@@ -400,6 +402,7 @@ export interface ImageConfig {
 // Quote module config
 export interface QuoteConfig {
   refreshIntervalMs: number;
+  accentColor?: string;
 }
 
 // Todo module config
@@ -412,6 +415,7 @@ export interface TodoItem {
 export interface TodoConfig {
   title: string;
   items: TodoItem[];
+  accentColor?: string;
 }
 
 // Sticky note module config
@@ -423,6 +427,7 @@ export interface StickyNoteConfig {
 // Greeting module config
 export interface GreetingConfig {
   name: string;
+  accentColor?: string;
 }
 
 // News module config
@@ -462,13 +467,18 @@ export interface CryptoConfig {
   tickerSpeed?: number;
 }
 
-// Word of the day module config (no fields — word is computed from a hardcoded list based on the date)
-export type WordOfDayConfig = Record<string, never>;
+// Word of the day module config
+export interface WordOfDayConfig {
+  accentColor?: string;
+  showDividers?: boolean;
+}
 
 // This day in history module config
 export interface HistoryConfig {
   refreshIntervalMs: number;
   rotationIntervalMs: number;
+  accentColor?: string;
+  showDividers?: boolean;
 }
 
 // Moon phase module config
@@ -523,6 +533,7 @@ export interface YearProgressConfig {
   showWeek: boolean;
   showDay: boolean;
   showPercentage: boolean;
+  accentColor?: string;
 }
 
 // Traffic / Commute module config

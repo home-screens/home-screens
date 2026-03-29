@@ -7,7 +7,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { trafficUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
-import { MetadataText } from './shared/MetadataText';
+import { ContentCard } from './shared/ContentCard';
 
 interface TrafficModuleProps {
   config: TrafficConfig;
@@ -27,9 +27,9 @@ interface TrafficData {
 }
 
 function delayColor(delayMinutes: number): string {
-  if (delayMinutes <= 2) return '#22c55e'; // green
-  if (delayMinutes <= 10) return '#eab308'; // yellow
-  return '#ef4444'; // red
+  if (delayMinutes <= 2) return '#22c55e';
+  if (delayMinutes <= 10) return '#eab308';
+  return '#ef4444';
 }
 
 export default function TrafficModule({ config, style }: TrafficModuleProps) {
@@ -51,25 +51,36 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
 
         {data && (
           <div className="flex flex-col gap-2">
-            {data.routes.map((route, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: delayColor(route.delayMinutes) }}
-                />
-                <div className="flex flex-col min-w-0">
-                  <span className="font-medium truncate" style={{ fontSize: '0.875em' }}>{route.label}</span>
-                  <MetadataText>
-                    {route.durationInTrafficMinutes} min
-                    {route.delayMinutes > 0 && (
-                      <span style={{ color: delayColor(route.delayMinutes) }}>
-                        {' '}(+{route.delayMinutes} min)
+            {data.routes.map((route, i) => {
+              const color = delayColor(route.delayMinutes);
+              return (
+                <ContentCard key={i} style={{ borderLeft: `3px solid ${color}`, paddingLeft: '12px' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium truncate" style={{ fontSize: '0.875em' }}>{route.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-bold tabular-nums" style={{ fontSize: '1.5em', lineHeight: 1 }}>
+                        {route.durationInTrafficMinutes}
                       </span>
-                    )}
-                  </MetadataText>
-                </div>
-              </div>
-            ))}
+                      <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>min</span>
+                      {route.delayMinutes > 0 && (
+                        <span
+                          className="px-1.5 py-0.5 rounded-full font-medium tabular-nums"
+                          style={{
+                            fontSize: '0.7em',
+                            backgroundColor: `${color}20`,
+                            color: color,
+                          }}
+                        >
+                          +{route.delayMinutes}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </ContentCard>
+              );
+            })}
             {data.mock && (
               <p className="text-center opacity-40 italic" style={{ fontSize: '0.65em', marginTop: '0.25em' }}>
                 Sample data — add a traffic API key in Settings

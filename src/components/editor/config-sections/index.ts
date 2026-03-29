@@ -31,3 +31,4 @@ export { MealPlannerConfigSection } from './MealPlannerConfigSection';
 export { IframeConfigSection } from './IframeConfigSection';
 export { ChoreChartConfigSection } from './ChoreChartConfigSection';
 export { FullscreenCalendarConfigSection } from './FullscreenCalendarConfigSection';
+export { WordOfDayConfigSection } from './WordOfDayConfigSection';

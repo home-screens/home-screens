@@ -28,54 +28,46 @@ function getPhaseName(phase: number): string {
   return 'New Moon';
 }
 
-
-
 function MoonVisual({ phase }: { phase: number }) {
-  // phase: 0 = new moon, 0.5 = full moon, 1 = new moon again
-  // We render a circle with an SVG overlay to simulate the shadow.
-  const size = 64;
+  const size = 140;
   const r = size / 2;
-
-  // Determine the illuminated side and sweep of the terminator.
-  // phase 0..0.5: right side lit (waxing), 0.5..1: left side lit (waning)
   const isWaxing = phase < 0.5;
-
-  // Map phase to how much is illuminated (0=none, 0.5=full, 1=none)
   const illumination = phase <= 0.5 ? phase * 2 : (1 - phase) * 2;
-
-  // The terminator is an ellipse whose x-radius varies.
-  // When illumination=0, the shadow covers everything.
-  // When illumination=1, no shadow.
-  // The terminator x-radius: cos of illumination mapped to angle
   const terminatorX = Math.abs(illumination * 2 - 1) * r;
 
-  // Build the shadow path: a half-circle + elliptical arc for the terminator
-  // Shadow covers one half and extends/retracts via the terminator curve.
   let shadowPath: string;
 
   if (isWaxing) {
-    // Shadow is on the left side, shrinking as phase grows
     if (illumination <= 0.5) {
-      // Shadow covers more than half: left half-circle + right bulge
       shadowPath = `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${size} A ${terminatorX} ${r} 0 0 0 ${r} 0`;
     } else {
-      // Shadow covers less than half: left half-circle + left indent
       shadowPath = `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${size} A ${terminatorX} ${r} 0 0 1 ${r} 0`;
     }
   } else {
-    // Shadow is on the right side, growing as phase goes from 0.5 to 1
     if (illumination <= 0.5) {
-      // Shadow covers more than half: right half-circle + left bulge
       shadowPath = `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${size} A ${terminatorX} ${r} 0 0 1 ${r} 0`;
     } else {
-      // Shadow covers less than half: right half-circle + right indent
       shadowPath = `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${size} A ${terminatorX} ${r} 0 0 0 ${r} 0`;
     }
   }
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={r} cy={r} r={r} fill="#e5e7eb" />
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{
+        filter: 'drop-shadow(0 0 18px rgba(255,255,255,0.15)) drop-shadow(0 0 6px rgba(200,220,255,0.10))',
+      }}
+    >
+      <defs>
+        <radialGradient id="moonLit" cx="40%" cy="35%" r="60%">
+          <stop offset="0%" stopColor="#f5f5f0" />
+          <stop offset="60%" stopColor="#e5e7eb" />
+          <stop offset="100%" stopColor="#c0c4cc" />
+        </radialGradient>
+      </defs>
+      <circle cx={r} cy={r} r={r} fill="url(#moonLit)" />
       <path d={shadowPath} fill="rgba(0,0,0,0.85)" />
     </svg>
   );
@@ -98,7 +90,10 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
 
   return (
     <ModuleWrapper style={style}>
-      <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div
+        className="flex flex-col items-center justify-center h-full gap-3"
+        style={{ background: 'radial-gradient(ellipse at center, rgba(100,150,255,0.04), transparent 70%)' }}
+      >
         <MoonVisual phase={illumination.phase} />
         <p className="text-center font-medium" style={{ fontSize: '1.1em' }}>
           {phaseName}
