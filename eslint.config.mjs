@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Website build artifacts (separate Next.js app)
+    "website/.next/**",
+    "website/out/**",
     // Installed plugin build artifacts (minified bundles, not source)
     "data/plugins/**",
   ]),
