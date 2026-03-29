@@ -372,6 +372,43 @@ describe('editor store', () => {
     });
   });
 
+  describe('reorderScreens', () => {
+    it('moves a screen from one index to another', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+          { id: 's3', name: 'C', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config, isDirty: false });
+
+      store.getState().reorderScreens(0, 2);
+
+      const ids = store.getState().config!.screens.map((s) => s.id);
+      expect(ids).toEqual(['s2', 's3', 's1']);
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('moves last screen to first position', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+          { id: 's3', name: 'C', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config, isDirty: false });
+
+      store.getState().reorderScreens(2, 0);
+
+      const ids = store.getState().config!.screens.map((s) => s.id);
+      expect(ids).toEqual(['s3', 's1', 's2']);
+    });
+  });
+
   describe('reorderProfiles', () => {
     it('moves a profile from one index to another', () => {
       const store = useEditorStore;

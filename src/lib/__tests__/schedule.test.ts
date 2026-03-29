@@ -245,11 +245,11 @@ describe('resolveProfileScreens', () => {
     expect(result).toEqual([screenA]);
   });
 
-  it('preserves screen order from allScreens', () => {
+  it('respects profile screenIds order', () => {
     const profiles: Profile[] = [{ id: 'p1', name: 'Reversed', screenIds: ['c', 'a'] }];
     const result = resolveProfileScreens(allScreens, profiles, 'p1', new Date());
-    // Order follows allScreens (a, c), not profile's screenIds (c, a)
-    expect(result).toEqual([screenA, screenC]);
+    // Order follows profile's screenIds (c, a), not allScreens (a, c)
+    expect(result).toEqual([screenC, screenA]);
   });
 
   it('ignores profiles without schedule for auto-activation', () => {

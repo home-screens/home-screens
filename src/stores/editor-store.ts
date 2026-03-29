@@ -55,6 +55,7 @@ interface EditorState {
   resizeModule: (screenId: string, moduleId: string, size: ModuleSize) => void;
   addScreen: () => void;
   removeScreen: (id: string) => void;
+  reorderScreens: (fromIndex: number, toIndex: number) => void;
   updateScreen: (id: string, updates: Partial<Screen>) => void;
   updateSettings: (settings: Partial<GlobalSettings>) => void;
   addProfile: (name: string) => void;
@@ -287,6 +288,15 @@ export const useEditorStore = create<EditorState>((set, get) => {
       url.searchParams.set('screen', newSelectedId);
       window.history.replaceState(null, '', url.toString());
     }
+  },
+
+  reorderScreens: (fromIndex: number, toIndex: number) => {
+    mutateConfig((config) => {
+      const screens = [...config.screens];
+      const [moved] = screens.splice(fromIndex, 1);
+      screens.splice(toIndex, 0, moved);
+      return { config: { ...config, screens } };
+    });
   },
 
   updateScreen: (id, updates) => {

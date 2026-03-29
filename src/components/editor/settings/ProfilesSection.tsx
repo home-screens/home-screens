@@ -26,10 +26,60 @@ import type { ModuleSchedule, Profile } from '@/types/config';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const SELECT_CLASS =
-  'block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500';
 const TIME_CLASS =
   'mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500';
+
+/* ─── Sortable screen row (inside profile) ──── */
+
+interface SortableScreenRowProps {
+  screenId: string;
+  screenName: string;
+  onRemove: () => void;
+}
+
+function SortableScreenRow({ screenId, screenName, onRemove }: SortableScreenRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: screenId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 rounded-md bg-neutral-800/60 px-2 py-1.5"
+    >
+      <button
+        type="button"
+        className="cursor-grab touch-none text-neutral-600 hover:text-neutral-400 transition-colors"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </button>
+      <span className="flex-1 text-sm text-neutral-300 truncate">{screenName}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="text-neutral-600 hover:text-red-400 transition-colors"
+        title="Remove from profile"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
 
 /* ─── Sortable profile card ──────────────────── */
 
@@ -61,10 +111,25 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
     opacity: isDragging ? 0.5 : undefined,
   };
 
+  // DnD sensors for the nested screen reorder list
+  const screenSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   if (!config) return null;
 
   const screens = config.screens;
   const activeProfileId = config.settings.activeProfile;
+
+  // Screens included in this profile (in profile order)
+  const includedScreens = profile.screenIds
+    .map((id) => screens.find((s) => s.id === id))
+    .filter((s): s is typeof screens[number] => !!s);
+
+  // Screens not in this profile (available to add)
+  const includedSet = new Set(profile.screenIds);
+  const availableScreens = screens.filter((s) => !includedSet.has(s.id));
 
   const commitRename = () => {
     const trimmed = renameValue.trim();
@@ -72,11 +137,25 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
     setRenamingId(null);
   };
 
-  const toggleScreen = (screenId: string) => {
-    const has = profile.screenIds.includes(screenId);
-    const next = has
-      ? profile.screenIds.filter((id) => id !== screenId)
-      : [...profile.screenIds, screenId];
+  const addScreen = (screenId: string) => {
+    updateProfile(profile.id, { screenIds: [...profile.screenIds, screenId] });
+  };
+
+  const removeScreen = (screenId: string) => {
+    updateProfile(profile.id, { screenIds: profile.screenIds.filter((id) => id !== screenId) });
+  };
+
+  const validScreenIds = includedScreens.map((s) => s.id);
+
+  const handleScreenDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fromIndex = validScreenIds.indexOf(active.id as string);
+    const toIndex = validScreenIds.indexOf(over.id as string);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const next = [...validScreenIds];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
     updateProfile(profile.id, { screenIds: next });
   };
 
@@ -191,25 +270,57 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
       {/* Expanded body */}
       {isExpanded && (
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-neutral-700/60">
-          {/* Screen selection */}
+          {/* Screen selection — sortable included list + available list */}
           <div>
             <span className="text-xs text-neutral-400 mb-1.5 block">Screens</span>
-            <div className="space-y-1">
-              {screens.map((screen) => (
-                <label key={screen.id} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={profile.screenIds.includes(screen.id)}
-                    onChange={() => toggleScreen(screen.id)}
-                    className="rounded border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-neutral-300">{screen.name}</span>
-                </label>
-              ))}
-            </div>
-            {profile.screenIds.length === 0 && (
+
+            {/* Included screens — draggable to reorder */}
+            {includedScreens.length > 0 && (
+              <DndContext sensors={screenSensors} collisionDetection={closestCenter} onDragEnd={handleScreenDragEnd}>
+                <SortableContext items={validScreenIds} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1 mb-2">
+                    {includedScreens.map((screen) => (
+                      <SortableScreenRow
+                        key={screen.id}
+                        screenId={screen.id}
+                        screenName={screen.name}
+                        onRemove={() => removeScreen(screen.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
+
+            {/* Available screens — click to add */}
+            {availableScreens.length > 0 && (
+              <div className="space-y-1">
+                {includedScreens.length > 0 && (
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-wider">Available</span>
+                )}
+                {availableScreens.map((screen) => (
+                  <button
+                    key={screen.id}
+                    type="button"
+                    onClick={() => addScreen(screen.id)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-800/60 hover:text-neutral-300 transition-colors"
+                  >
+                    <span className="text-xs">+</span>
+                    <span className="truncate">{screen.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {includedScreens.length === 0 && (
               <p className="text-xs text-amber-400 mt-1">
                 No screens selected — all screens will be shown as fallback.
+              </p>
+            )}
+
+            {includedScreens.length > 1 && (
+              <p className="text-[10px] text-neutral-500 mt-2">
+                Drag to set rotation order within this profile.
               </p>
             )}
           </div>
@@ -330,8 +441,8 @@ export default function ProfilesSection() {
         Profiles
       </h3>
       <p className="text-xs text-neutral-500 mb-4">
-        Profiles control which screens are shown on the display. Create different layouts for morning, evening, weekends, etc.
-        When no profile is active, all screens are shown.
+        Profiles control which screens are shown on the display and in what order. Create different layouts for morning, evening, weekends, etc.
+        When no profile is active, all screens rotate in the default tab order.
       </p>
 
       {/* Active profile selector */}
@@ -341,7 +452,7 @@ export default function ProfilesSection() {
           <select
             value={activeProfileId ?? ''}
             onChange={(e) => setActiveProfile(e.target.value || undefined)}
-            className={SELECT_CLASS + ' mt-1'}
+            className="block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 mt-1"
           >
             <option value="">None (show all screens)</option>
             {profiles.map((p) => (

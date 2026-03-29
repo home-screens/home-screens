@@ -83,6 +83,6 @@ export function resolveProfileScreens(
 }
 
 function filterScreens(allScreens: Screen[], screenIds: string[]): Screen[] {
-  const idSet = new Set(screenIds);
-  return allScreens.filter((s) => idSet.has(s.id));
+  const screenMap = new Map(allScreens.map((s) => [s.id, s]));
+  return screenIds.map((id) => screenMap.get(id)).filter((s): s is Screen => !!s);
 }
