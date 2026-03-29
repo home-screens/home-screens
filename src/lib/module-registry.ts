@@ -38,6 +38,8 @@ export interface ModuleDefinition {
   defaultConfig: Record<string, unknown>;
   defaultSize: { w: number; h: number };
   defaultStyle?: Partial<import('@/types/config').ModuleStyle>;
+  /** When true, the module snaps to full canvas size (position 0,0) on add. */
+  fillsCanvas?: boolean;
   // Plugin-specific fields
   configSchema?: import('@/types/plugins').PluginConfigSchema;
   dataRequirements?: import('@/types/plugins').PluginDataRequirement[];
@@ -179,6 +181,7 @@ registerModule({
   },
   defaultSize: DEFAULT_MODULE_SIZES['fullscreen-calendar'],
   defaultStyle: { padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0 },
+  fillsCanvas: true,
   dataRequirements: ['calendar', 'weather'],
 });
 

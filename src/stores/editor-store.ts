@@ -13,6 +13,7 @@ import type {
 } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { LayoutExport } from '@/types/layout-export';
 import {
@@ -192,11 +193,15 @@ export const useEditorStore = create<EditorState>((set, get) => {
   addModule: (screenId, type, position) => {
     const def = getModuleDefinition(type);
     if (!def) return;
+    const cfg = get().config;
+    const fillsCanvas = def.fillsCanvas && cfg;
     const newModule: ModuleInstance = {
       id: uuidv4(),
       type,
-      position: position ?? { x: 100, y: 100 },
-      size: { ...def.defaultSize },
+      position: fillsCanvas ? { x: 0, y: 0 } : (position ?? { x: 100, y: 100 }),
+      size: fillsCanvas
+        ? { w: cfg.settings.displayWidth || DEFAULT_DISPLAY_WIDTH, h: cfg.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT }
+        : { ...def.defaultSize },
       zIndex: 1,
       config: { ...def.defaultConfig },
       style: { ...defaultStyle, ...def.defaultStyle },
