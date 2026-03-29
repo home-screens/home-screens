@@ -32,7 +32,8 @@ export type BuiltinModuleType =
   | 'date'
   | 'meal-planner'
   | 'iframe'
-  | 'chore-chart';
+  | 'chore-chart'
+  | 'fullscreen-calendar';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -247,6 +248,45 @@ export interface ClockConfig {
   referenceTime: string;        // elapsed: ISO timestamp or time string
   referenceLabel: string;       // elapsed: label ("market open", "shift start")
   countUp: boolean;             // elapsed: count up (true) or down (false)
+}
+
+// Fullscreen calendar module config (Skylight-inspired ambient display)
+export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda';
+export type CalendarDensity = 'cozy' | 'snug';
+export type CalendarTypographySize = 'small' | 'medium' | 'large';
+
+export interface FullscreenCalendarConfig {
+  view: FullscreenCalendarView;
+  density: CalendarDensity;
+  typographySize: CalendarTypographySize;
+  accentColor: string;
+  dimPastEvents: boolean;
+  shadeWeekends: boolean;
+  showWeather: boolean;
+  showNowLine: boolean;
+  sourceFilter?: string[];
+  darkMode: boolean;
+
+  // Schedule view
+  scheduleDaysToShow: number;       // 1-7, 0 = auto
+  scheduleHourStart: number;        // 0-23
+  scheduleHourEnd: number;          // 1-24
+
+  // Week list view
+  weekCollapsePastDays: boolean;
+
+  // Month grid view
+  monthShowWeekNumbers: boolean;
+  monthMaxEventsPerCell: number;    // 0 = auto
+
+  // Day timeline view
+  dayHourStart: number;
+  dayHourEnd: number;
+  dayShowLocation: boolean;
+
+  // Agenda view
+  agendaDaysAhead: number;          // 7-30
+  agendaHideEmptyDays: boolean;
 }
 
 // Calendar module config

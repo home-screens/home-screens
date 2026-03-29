@@ -86,7 +86,7 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
         size: { w: 300, h: 400 },
         zIndex: 1,
         config: { showReason: true, refreshIntervalMs: 1_800_000 },
-        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0 },
+        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 },
       },
     ];
 
@@ -111,7 +111,7 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
         size: { w: 300, h: 400 },
         zIndex: 1,
         config: { showReason: false },
-        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0 },
+        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 },
       },
     ];
 
@@ -133,7 +133,7 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
         size: { w: 400, h: 200 },
         zIndex: 1,
         config: { view: 'digital' },
-        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0 },
+        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 },
       },
     ];
 
@@ -151,7 +151,7 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
         size: { w: 300, h: 400 },
         zIndex: 1,
         config: { showReason: true, refreshIntervalMs: 3_600_000 },
-        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0 },
+        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 },
       },
     ];
 

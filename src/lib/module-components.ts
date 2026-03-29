@@ -41,6 +41,7 @@ const builtinComponents = {
   'meal-planner': dynamic(() => import('@/components/modules/meal-planner/MealPlannerModule')),
   iframe: dynamic(() => import('@/components/modules/IframeModule')),
   'chore-chart': dynamic(() => import('@/components/modules/chore-chart/ChoreChartModule')),
+  'fullscreen-calendar': dynamic(() => import('@/components/modules/fullscreen-calendar/FullscreenCalendarModule')),
 } as unknown as Record<BuiltinModuleType, ComponentType<Record<string, unknown>>>;
 
 /** Resolve a module type to its React component. Checks built-in first, then plugins. */

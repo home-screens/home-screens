@@ -16,6 +16,7 @@ const ALL_MODULE_TYPES: ModuleType[] = [
   'sports', 'air-quality', 'todoist', 'rain-map',
   'multi-month', 'garbage-day', 'standings', 'affirmations',
   'date', 'meal-planner', 'iframe', 'chore-chart',
+  'fullscreen-calendar',
 ];
 
 describe('MODULE_CATEGORIES', () => {
@@ -33,7 +34,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 34 module types', () => {
+  it('registers all 35 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -152,8 +153,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 34', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(34);
+  it('returns an array of length 35', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(35);
   });
 
   it('all items have required fields', () => {
@@ -200,13 +201,14 @@ describe('getModulesByCategory', () => {
     }
   });
 
-  it('Time & Date contains clock, calendar, countdown, year-progress', () => {
+  it('Time & Date contains clock, calendar, countdown, year-progress, fullscreen-calendar', () => {
     const grouped = getModulesByCategory();
     const types = grouped.get('Time & Date')!.map((d) => d.type);
     expect(types).toContain('clock');
     expect(types).toContain('calendar');
     expect(types).toContain('countdown');
     expect(types).toContain('year-progress');
+    expect(types).toContain('fullscreen-calendar');
   });
 
   it('Weather & Environment contains weather, moon-phase, sunrise-sunset, air-quality', () => {
@@ -261,7 +263,7 @@ describe('getModulesByCategory', () => {
     expect(types).toHaveLength(1);
   });
 
-  it('total modules across all categories equals 34 (no duplicates, no missing)', () => {
+  it('total modules across all categories equals 35 (no duplicates, no missing)', () => {
     const grouped = getModulesByCategory();
     let total = 0;
     const allTypes = new Set<string>();
@@ -271,8 +273,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(34);
-    expect(allTypes.size).toBe(34);
+    expect(total).toBe(35);
+    expect(allTypes.size).toBe(35);
   });
 });
 

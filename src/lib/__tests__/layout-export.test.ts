@@ -30,6 +30,9 @@ function makeScreen(id: string, name: string, moduleCount = 1): Screen {
         fontFamily: 'Inter',
         fontSize: 16,
         backdropBlur: 12,
+        borderWidth: 0,
+        borderColor: '',
+        shadowSize: 0,
       },
     })),
   };

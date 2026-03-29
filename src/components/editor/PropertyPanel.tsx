@@ -49,6 +49,7 @@ import {
   MealPlannerConfigSection,
   IframeConfigSection,
   ChoreChartConfigSection,
+  FullscreenCalendarConfigSection,
 } from '@/components/editor/config-sections';
 
 // Shared input classes — single source of truth lives in ui/input-classes.ts
@@ -171,6 +172,7 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
   'meal-planner': MealPlannerConfigSection,
   iframe: IframeConfigSection,
   'chore-chart': ChoreChartConfigSection,
+  'fullscreen-calendar': FullscreenCalendarConfigSection,
 };
 
 export default function PropertyPanel() {

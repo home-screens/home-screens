@@ -6,7 +6,7 @@ import {
   Newspaper, TrendingUp, Bitcoin, BookOpen, History,
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
-  Calendar, Globe, UtensilsCrossed, ClipboardList,
+  Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3,
 } from 'lucide-react';
 import { DEFAULT_MODULE_SIZES } from './constants';
 import { resolveLucideIcon } from './lucide-resolver';
@@ -147,6 +147,55 @@ registerModule({
     showWeekNumbers: false,
   },
   defaultSize: DEFAULT_MODULE_SIZES.calendar,
+});
+
+registerModule({
+  type: 'fullscreen-calendar',
+  label: 'Full-Screen Calendar',
+  icon: Columns3,
+  category: 'Time & Date',
+  defaultConfig: {
+    view: 'schedule',
+    density: 'cozy',
+    typographySize: 'medium',
+    accentColor: '#EA580C',
+    dimPastEvents: true,
+    shadeWeekends: true,
+    showWeather: true,
+    showNowLine: true,
+    darkMode: false,
+    scheduleDaysToShow: 0,
+    scheduleHourStart: 6,
+    scheduleHourEnd: 22,
+    weekCollapsePastDays: true,
+    monthShowWeekNumbers: false,
+    monthMaxEventsPerCell: 0,
+    dayHourStart: 6,
+    dayHourEnd: 22,
+    dayShowLocation: true,
+    agendaDaysAhead: 14,
+    agendaHideEmptyDays: false,
+  },
+  defaultSize: DEFAULT_MODULE_SIZES['fullscreen-calendar'],
+  defaultStyle: { padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0 },
+  dataRequirements: ['calendar', 'weather'],
+});
+
+registerModule({
+  type: 'multi-month',
+  label: 'Multi-Month Calendar',
+  icon: CalendarRange,
+  category: 'Time & Date',
+  defaultConfig: {
+    view: 'vertical',
+    monthCount: 3,
+    startDay: 'sunday',
+    showWeekNumbers: false,
+    highlightWeekends: true,
+    showAdjacentDays: true,
+  },
+  defaultSize: DEFAULT_MODULE_SIZES['multi-month'],
+  defaultStyle: { fontSize: 26 },
 });
 
 registerModule({
@@ -531,23 +580,6 @@ registerModule({
 });
 
 registerModule({
-  type: 'multi-month',
-  label: 'Multi-Month Calendar',
-  icon: CalendarRange,
-  category: 'Time & Date',
-  defaultConfig: {
-    view: 'vertical',
-    monthCount: 3,
-    startDay: 'sunday',
-    showWeekNumbers: false,
-    highlightWeekends: true,
-    showAdjacentDays: true,
-  },
-  defaultSize: DEFAULT_MODULE_SIZES['multi-month'],
-  defaultStyle: { fontSize: 26 },
-});
-
-registerModule({
   type: 'standings',
   label: 'Sports Standings',
   icon: Medal,
@@ -654,3 +686,4 @@ registerModule({
   defaultSize: DEFAULT_MODULE_SIZES.iframe,
   defaultStyle: { padding: 0 },
 });
+

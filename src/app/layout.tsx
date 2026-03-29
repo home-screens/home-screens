@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, DM_Serif_Display } from 'next/font/google';
 // Alternative font: softer geometry, pairs well with smart-home dashboard aesthetic.
 // To test, uncomment Plus_Jakarta_Sans, swap `inter` for `jakarta` in <body>, and
 // update --font-sans in globals.css to var(--font-jakarta).
@@ -10,6 +10,12 @@ import './globals.css';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+});
+const dmSerif = DM_Serif_Display({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-dm-serif',
+  display: 'swap',
 });
 // const jakarta = Plus_Jakarta_Sans({
 //   subsets: ['latin'],
@@ -24,7 +30,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} ${dmSerif.variable} antialiased`}>
         <PluginGlobals />
         {children}
       </body>

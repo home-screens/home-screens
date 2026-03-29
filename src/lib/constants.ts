@@ -77,4 +77,5 @@ export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
   'meal-planner': { w: 500, h: 600 },
   iframe: { w: 500, h: 400 },
   'chore-chart': { w: 500, h: 650 },
+  'fullscreen-calendar': { w: 1080, h: 1920 },
 };
