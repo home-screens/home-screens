@@ -113,11 +113,17 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     ? Math.min(viewportSize.w / displayW, viewportSize.h / displayH)
     : 0; // Start at 0 (invisible) until measured, preventing unscaled flash
 
+  // Exclude disabled screens before profile resolution
+  const enabledScreens = useMemo(
+    () => allScreens.filter((s) => s.enabled !== false),
+    [allScreens],
+  );
+
   // Re-evaluate profile schedule every minute (timezone-aware)
   const now = useTZClock(settings.timezone, 60_000);
   const screens = useMemo(
-    () => resolveProfileScreens(allScreens, profiles, settings.activeProfile, now),
-    [allScreens, profiles, settings.activeProfile, now],
+    () => resolveProfileScreens(enabledScreens, profiles, settings.activeProfile, now),
+    [enabledScreens, profiles, settings.activeProfile, now],
   );
 
   // Only poll background rotation for screens visible under the active profile

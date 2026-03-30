@@ -92,6 +92,7 @@ export interface BackgroundRotation {
 export interface Screen {
   id: string;
   name: string;
+  enabled?: boolean;
   backgroundImage: string;
   backgroundRotation?: BackgroundRotation;
   modules: ModuleInstance[];

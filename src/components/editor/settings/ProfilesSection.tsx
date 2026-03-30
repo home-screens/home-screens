@@ -34,10 +34,11 @@ const TIME_CLASS =
 interface SortableScreenRowProps {
   screenId: string;
   screenName: string;
+  screenEnabled?: boolean;
   onRemove: () => void;
 }
 
-function SortableScreenRow({ screenId, screenName, onRemove }: SortableScreenRowProps) {
+function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove }: SortableScreenRowProps) {
   const {
     attributes,
     listeners,
@@ -68,7 +69,10 @@ function SortableScreenRow({ screenId, screenName, onRemove }: SortableScreenRow
       >
         <GripVertical className="w-3.5 h-3.5" />
       </button>
-      <span className="flex-1 text-sm text-neutral-300 truncate">{screenName}</span>
+      <span className="flex-1 text-sm text-neutral-300 truncate">
+        {screenName}
+        {screenEnabled === false && <span className="ml-1 text-[10px] text-amber-500/70">(disabled)</span>}
+      </span>
       <button
         type="button"
         onClick={onRemove}
@@ -284,6 +288,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                         key={screen.id}
                         screenId={screen.id}
                         screenName={screen.name}
+                        screenEnabled={screen.enabled}
                         onRemove={() => removeScreen(screen.id)}
                       />
                     ))}
@@ -306,7 +311,10 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                     className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-800/60 hover:text-neutral-300 transition-colors"
                   >
                     <span className="text-xs">+</span>
-                    <span className="truncate">{screen.name}</span>
+                    <span className="truncate">
+                      {screen.name}
+                      {screen.enabled === false && <span className="ml-1 text-[10px] text-amber-500/70">(disabled)</span>}
+                    </span>
                   </button>
                 ))}
               </div>

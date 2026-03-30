@@ -73,11 +73,13 @@ function SortableTab({
   // and preserve original size (scaleX/Y: 1 prevents resizing to match target slot)
   const clampedTransform = transform ? { ...transform, y: 0, scaleX: 1, scaleY: 1 } : null;
 
+  const isDisabled = screen.enabled === false;
+
   const style = {
     transform: CSS.Transform.toString(clampedTransform),
     transition,
     zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.5 : undefined,
+    opacity: isDragging ? 0.5 : (isDisabled && !isSelected ? 0.45 : undefined),
   };
 
   useEffect(() => {
@@ -92,7 +94,7 @@ function SortableTab({
       ref={setNodeRef}
       style={style}
       data-active={isSelected}
-      title={screen.name}
+      title={isDisabled ? `${screen.name} (disabled — not shown on display)` : screen.name}
       className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
         isSelected
           ? 'bg-neutral-800 text-white'
@@ -121,15 +123,16 @@ function SortableTab({
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
+          {isDisabled && <span className="ml-0.5 text-[10px] text-neutral-500">⊘</span>}
           {isSelected && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onStartEditing();
+                onContextMenu(e);
               }}
               className="ml-1 text-xs text-neutral-500 hover:text-neutral-200"
-              title="Rename screen"
-              aria-label={`Rename ${screen.name}`}
+              title="Screen options"
+              aria-label={`Options for ${screen.name}`}
             >
               &#9998;
             </button>
@@ -440,6 +443,23 @@ export default function ScreenTabs() {
           >
             Export This Screen
           </button>
+          <button
+            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            onClick={() => {
+              const screen = config.screens.find((s) => s.id === contextMenu.screenId);
+              if (screen) {
+                updateScreen(contextMenu.screenId, {
+                  enabled: screen.enabled === false ? undefined : false,
+                });
+              }
+              setContextMenu(null);
+            }}
+          >
+            {config.screens.find((s) => s.id === contextMenu.screenId)?.enabled === false
+              ? 'Enable'
+              : 'Disable'}
+          </button>
+          <div className="my-1 border-t border-neutral-700/60" />
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
             onClick={() => {
