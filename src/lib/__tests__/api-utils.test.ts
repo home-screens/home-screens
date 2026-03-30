@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam } from '@/lib/api-utils';
+import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
@@ -19,9 +20,7 @@ const mockRequireSession = vi.mocked(requireSession);
 const mockRequireDisplayAuth = vi.mocked(requireDisplayAuth);
 
 describe('errorResponse', () => {
-  beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
+  silenceConsole();
 
   it('always returns the fallback message, even for Error instances', async () => {
     const response = errorResponse(new Error('something broke'), 'fallback');
@@ -419,9 +418,10 @@ describe('getLocationFromConfig', () => {
 });
 
 describe('withAuth', () => {
+  silenceConsole();
+
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('calls requireSession and returns handler result on success', async () => {
@@ -493,11 +493,12 @@ describe('withAuth', () => {
 describe('cachedProxyRoute', () => {
   let fetchSpy: ReturnType<typeof vi.fn>;
 
+  silenceConsole();
+
   beforeEach(() => {
     fetchSpy = vi.fn();
     vi.stubGlobal('fetch', fetchSpy);
     vi.useFakeTimers();
-    vi.spyOn(console, 'error').mockImplementation(() => {});
     mockRequireSession.mockReset();
     mockRequireDisplayAuth.mockReset();
   });
@@ -845,8 +846,9 @@ describe('cachedProxyRoute', () => {
 });
 
 describe('withDisplayAuth', () => {
+  silenceConsole();
+
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
     mockRequireDisplayAuth.mockReset();
   });
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockFetch, mockFetchError } from '@/test-utils';
 import {
   getDisplayOrientation,
   loadTemplate,
@@ -59,10 +60,7 @@ describe('loadTemplate', () => {
   });
 
   it('selects portrait filename when orientation is portrait', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(fakeLayoutExport),
-    });
+    mockFetch(fakeLayoutExport);
 
     await loadTemplate(template, 'portrait');
 
@@ -70,10 +68,7 @@ describe('loadTemplate', () => {
   });
 
   it('selects landscape filename when orientation is landscape', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(fakeLayoutExport),
-    });
+    mockFetch(fakeLayoutExport);
 
     await loadTemplate(template, 'landscape');
 
@@ -81,10 +76,7 @@ describe('loadTemplate', () => {
   });
 
   it('returns parsed JSON on success', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(fakeLayoutExport),
-    });
+    mockFetch(fakeLayoutExport);
 
     const result = await loadTemplate(template, 'portrait');
 
@@ -92,10 +84,7 @@ describe('loadTemplate', () => {
   });
 
   it('throws on fetch failure with status code in message', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-    });
+    mockFetchError(404);
 
     await expect(loadTemplate(template, 'portrait')).rejects.toThrow(
       'Failed to load template: 404',
@@ -103,10 +92,7 @@ describe('loadTemplate', () => {
   });
 
   it('throws on fetch failure with 500 status', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-    });
+    mockFetchError(500);
 
     await expect(loadTemplate(template, 'landscape')).rejects.toThrow(
       'Failed to load template: 500',

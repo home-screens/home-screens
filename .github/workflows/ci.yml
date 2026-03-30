@@ -41,10 +41,25 @@ jobs:
 
       - run: npm test
 
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx tsc --noEmit
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, typecheck]
     steps:
       - uses: actions/checkout@v4
 

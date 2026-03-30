@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ICalSource } from '@/types/config';
+import { silenceConsole } from '@/test-utils';
 
 // Mock fetchWithTimeout
 vi.mock('@/lib/api-utils', () => ({
@@ -98,10 +99,10 @@ const EMPTY_ICS = `BEGIN:VCALENDAR
 VERSION:2.0
 END:VCALENDAR`;
 
+silenceConsole(['error', 'warn']);
+
 beforeEach(() => {
   vi.restoreAllMocks();
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {

@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   MODULE_CATEGORIES,
   getModuleDefinition,
   getAllModuleDefinitions,
   getModulesByCategory,
 } from '@/lib/module-registry';
-import type { ModuleType } from '@/types/config';
+import { DEFAULT_MODULE_SIZES } from '@/lib/constants';
+import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
 const ALL_MODULE_TYPES: ModuleType[] = [
   'clock', 'calendar', 'weather',
@@ -362,5 +365,91 @@ describe('Data correctness spot checks', () => {
     expect(config.showAQI).toBe(true);
     expect(config.showPollutants).toBe(false);
     expect(config.refreshIntervalMs).toBe(900000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cross-wiring contract tests
+//
+// These verify that the 4 places a module must be registered stay in sync:
+//   1. module-registry.ts  (the source of truth)
+//   2. module-components.ts (dynamic import map)
+//   3. constants.ts         (DEFAULT_MODULE_SIZES)
+//   4. PropertyPanel.tsx    (CONFIG_SECTIONS)
+// ---------------------------------------------------------------------------
+
+/** Extract keys from a `const NAME ... = { key: ..., 'key': ... }` object in source. */
+function extractKeysFromSource(filePath: string, anchor: string): string[] {
+  const src = fs.readFileSync(filePath, 'utf-8');
+  const idx = src.indexOf(anchor);
+  if (idx === -1) return [];
+  // Find the `= {` assignment after the anchor (skip type annotations, params, etc.)
+  const assignIdx = src.indexOf('= {', idx);
+  if (assignIdx === -1) return [];
+  const braceStart = assignIdx + 2; // the `{`
+  // Walk forward counting braces to find the matching close
+  let depth = 0;
+  let blockEnd = braceStart;
+  for (let i = braceStart; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    if (src[i] === '}') depth--;
+    if (depth === 0) { blockEnd = i; break; }
+  }
+  const block = src.slice(braceStart, blockEnd + 1);
+  const keys: string[] = [];
+  // Match both 'key-name': and key: patterns at the top level
+  for (const match of block.matchAll(/(?:'([^']+)'|"([^"]+)"|(\w[\w-]*))\s*:/g)) {
+    keys.push(match[1] ?? match[2] ?? match[3]);
+  }
+  return keys;
+}
+
+const srcRoot = path.resolve(__dirname, '../..');
+
+describe('Cross-wiring contract: every registered module is wired in all 4 places', () => {
+  const builtinTypes = getAllModuleDefinitions()
+    .map((d) => d.type)
+    .filter((t) => !t.startsWith('plugin:')) as BuiltinModuleType[];
+
+  const componentKeys = extractKeysFromSource(
+    path.join(srcRoot, 'lib/module-components.ts'),
+    'builtinComponents',
+  );
+
+  const configSectionKeys = extractKeysFromSource(
+    path.join(srcRoot, 'components/editor/PropertyPanel.tsx'),
+    'CONFIG_SECTIONS',
+  );
+
+  it('every built-in module has a dynamic import in module-components.ts', () => {
+    for (const type of builtinTypes) {
+      expect(componentKeys, `${type} missing from builtinComponents`).toContain(type);
+    }
+  });
+
+  it('module-components.ts has no extra entries beyond registered modules', () => {
+    const registeredSet = new Set(builtinTypes);
+    for (const key of componentKeys) {
+      expect(registeredSet.has(key as BuiltinModuleType), `builtinComponents has unregistered key: ${key}`).toBe(true);
+    }
+  });
+
+  it('every built-in module has a default size in constants.ts', () => {
+    for (const type of builtinTypes) {
+      expect(DEFAULT_MODULE_SIZES[type], `${type} missing from DEFAULT_MODULE_SIZES`).toBeDefined();
+    }
+  });
+
+  it('every built-in module has a CONFIG_SECTIONS entry in PropertyPanel.tsx', () => {
+    for (const type of builtinTypes) {
+      expect(configSectionKeys, `${type} missing from CONFIG_SECTIONS`).toContain(type);
+    }
+  });
+
+  it('CONFIG_SECTIONS has no extra entries beyond registered modules', () => {
+    const registeredSet = new Set(builtinTypes);
+    for (const key of configSectionKeys) {
+      expect(registeredSet.has(key as BuiltinModuleType), `CONFIG_SECTIONS has unregistered key: ${key}`).toBe(true);
+    }
   });
 });

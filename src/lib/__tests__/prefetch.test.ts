@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockFetch } from '@/test-utils';
 import { prefetchScreen } from '@/lib/prefetch';
 import { displayCache } from '@/lib/display-cache';
 import type { Screen } from '@/types/config';
@@ -38,12 +39,7 @@ function makeScreen(modules: Array<{ type: string; config?: Record<string, unkno
 }
 
 function mockFetchOk(data: unknown = {}) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mock = vi.fn((..._args: any[]) =>
-    Promise.resolve({ ok: true, json: () => Promise.resolve(data) }),
-  );
-  vi.stubGlobal('fetch', mock);
-  return mock;
+  return mockFetch(data);
 }
 
 describe('prefetchScreen', () => {

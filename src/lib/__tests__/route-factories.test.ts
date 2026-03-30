@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { createImageDownloadHandler, createTagActionRoute } from '@/lib/route-factories';
+import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
@@ -21,9 +22,10 @@ import { isSafeExternalUrl } from '@/lib/url-safety';
 const mockDownload = vi.mocked(downloadAndSaveBackground);
 const mockIsSafe = vi.mocked(isSafeExternalUrl);
 
+silenceConsole();
+
 beforeEach(() => {
   vi.restoreAllMocks();
-  vi.spyOn(console, 'error').mockImplementation(() => {});
   mockIsSafe.mockReturnValue(true);
   mockDownload.mockResolvedValue({ path: '/backgrounds/test.jpg' });
 });

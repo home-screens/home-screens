@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { mockFetch, mockFetchError, silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
@@ -9,17 +10,15 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, cache } from '@/app/api/crypto/route';
 
+silenceConsole();
+
 beforeEach(() => {
   vi.restoreAllMocks();
-  vi.spyOn(console, 'error').mockImplementation(() => {});
   cache.clear();
 });
 
 function mockCoinGeckoResponse(data: Record<string, unknown>) {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => data,
-  });
+  mockFetch(data);
 }
 
 describe('GET /api/crypto', () => {
@@ -155,7 +154,7 @@ describe('GET /api/crypto', () => {
   });
 
   it('returns 502 when CoinGecko returns a non-ok response', async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+    mockFetchError(429);
 
     const req = new NextRequest('http://localhost/api/crypto');
     const res = await GET(req);
@@ -166,7 +165,7 @@ describe('GET /api/crypto', () => {
   });
 
   it('returns 500 via errorResponse when fetch throws', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('DNS resolution failed'));
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('DNS resolution failed')));
 
     const req = new NextRequest('http://localhost/api/crypto');
     const res = await GET(req);

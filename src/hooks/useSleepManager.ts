@@ -8,9 +8,13 @@ export type DisplayState = 'active' | 'dimmed' | 'asleep';
 /**
  * Checks whether the current time falls within a schedule window.
  * Handles overnight windows (e.g., 23:00–06:00) correctly.
+ *
+ * Accepts an optional `now` parameter for testing; defaults to `new Date()`.
  */
-function isInScheduleWindow(schedule: { startTime: string; endTime: string }): boolean {
-  const now = new Date();
+export function isInScheduleWindow(
+  schedule: { startTime: string; endTime: string },
+  now: Date = new Date(),
+): boolean {
   const [startH, startM] = schedule.startTime.split(':').map(Number);
   const [endH, endM] = schedule.endTime.split(':').map(Number);
 

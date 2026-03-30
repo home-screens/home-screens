@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockFetch as stubFetch } from '@/test-utils';
 
 // We can't import the singleton directly for isolated tests, so we
 // import the module and test the exported singleton, clearing between tests.
@@ -212,9 +213,7 @@ describe('displayCache', () => {
 
   describe('prefetch', () => {
     it('fetches and caches data for a missing URL', async () => {
-      vi.stubGlobal('fetch', vi.fn(() =>
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ joke: 'ha' }) }),
-      ));
+      stubFetch({ joke: 'ha' });
 
       await displayCache.prefetch('/api/jokes', 60_000);
 
@@ -237,9 +236,7 @@ describe('displayCache', () => {
       displayCache.set('/api/jokes', { joke: 'old' }, 1000);
       vi.advanceTimersByTime(1001);
 
-      vi.stubGlobal('fetch', vi.fn(() =>
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ joke: 'new' }) }),
-      ));
+      stubFetch({ joke: 'new' });
 
       await displayCache.prefetch('/api/jokes', 1000);
 
@@ -320,9 +317,7 @@ describe('displayCache', () => {
     });
 
     it('allows new fetches after clear()', async () => {
-      vi.stubGlobal('fetch', vi.fn(() =>
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ fresh: true }) }),
-      ));
+      stubFetch({ fresh: true });
 
       displayCache.clear();
       await displayCache.prefetch('/api/test', 60_000);

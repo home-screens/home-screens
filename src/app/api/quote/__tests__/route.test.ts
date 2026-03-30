@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { mockFetch, mockFetchError, silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
@@ -9,6 +10,8 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, cache } from '@/app/api/quote/route';
 
+silenceConsole();
+
 const dummyRequest = new NextRequest('http://localhost/api/quote');
 
 function makeZenQuotesResponse(quote: string, author: string) {
@@ -16,28 +19,11 @@ function makeZenQuotesResponse(quote: string, author: string) {
 }
 
 function mockFetchSuccess(quote: string, author: string) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(makeZenQuotesResponse(quote, author)),
-      }),
-    ),
-  );
+  mockFetch(makeZenQuotesResponse(quote, author));
 }
 
 function mockFetchUpstreamFailure(status: number) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() =>
-      Promise.resolve({
-        ok: false,
-        status,
-        json: () => Promise.resolve({}),
-      }),
-    ),
-  );
+  mockFetchError(status);
 }
 
 function mockFetchNetworkError(message: string) {
@@ -50,7 +36,6 @@ function mockFetchNetworkError(message: string) {
 describe('GET /api/quote', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(console, 'error').mockImplementation(() => {});
     cache.clear();
   });
 

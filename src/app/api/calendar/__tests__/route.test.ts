@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import type { CalendarEvent, ScreenConfiguration } from '@/types/config';
+import { silenceConsole } from '@/test-utils';
 
 // ---------------------------------------------------------------------------
 // Mocks — set up before importing the route module
@@ -81,14 +82,14 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
+silenceConsole();
+
 beforeEach(() => {
   vi.restoreAllMocks();
   mockFetchGoogle.mockReset();
   mockFetchICal.mockReset();
   mockReadConfig.mockReset();
   cache.clear();
-  // Suppress console.error from the route's error handling
-  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 // ---------------------------------------------------------------------------
