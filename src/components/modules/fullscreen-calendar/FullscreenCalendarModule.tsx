@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { format, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -287,7 +287,7 @@ export default function FullscreenCalendarModule({
 
   // Updates every 60s — drives now-line movement and midnight rollover
   const now = useTZClock(timezone);
-  const today = now;
+  const today = startOfDay(now);
 
   const events = useMemo(
     () => filterEvents(rawEvents, config.sourceFilter),
