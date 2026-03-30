@@ -51,7 +51,7 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-neutral-400">
-              A self-hosted smart display that runs on a Raspberry Pi. 35 modules, a
+              A self-hosted smart display that runs on a Raspberry Pi. 36 modules, a
               visual drag-and-drop editor, and zero cloud dependency.
             </p>
 

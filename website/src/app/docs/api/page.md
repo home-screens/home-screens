@@ -197,6 +197,48 @@ The `date` field must be in `YYYY-MM-DD` format.
 
 **Response:** `{ "completions": [...] }` (the full updated completions list)
 
+### GET /api/chores/data
+
+Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart widget, fullscreen chore chart module, and the remote Chores tab.
+
+**Response:**
+```json
+{
+  "members": [
+    { "id": "member-1", "name": "Alice", "emoji": "🦊", "color": "#f59e0b" }
+  ],
+  "chores": [
+    {
+      "id": "chore-1",
+      "name": "Make bed",
+      "emoji": "🛏️",
+      "points": 2,
+      "frequency": "daily",
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "timeOfDay": "morning",
+      "assigneeIds": ["member-1"],
+      "rotation": "fixed"
+    }
+  ]
+}
+```
+
+### PUT /api/chores/data
+
+Updates the shared chore member and definition data. Requires a valid session.
+
+**Body:**
+```json
+{
+  "members": [ ... ],
+  "chores": [ ... ]
+}
+```
+
+Both `members` and `chores` must be arrays. The full set replaces the existing data.
+
+**Response:** The saved `{ members, chores }` object.
+
 ---
 
 ## Authentication

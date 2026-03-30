@@ -3,10 +3,10 @@ title: Modules Reference
 nextjs:
   metadata:
     title: Modules Reference
-    description: All 35 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
+    description: All 36 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
 ---
 
-Home Screens includes 35 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 36 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Time & Date
 
@@ -510,6 +510,28 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 - **today** — Today's chores only, grouped by time of day.
 - **progress** — Progress bars showing completion rates per member.
 - **compact** — Condensed view for small widget sizes.
+
+### Full-Screen Chore Chart
+
+A fullscreen ambient chore chart display designed to fill the entire screen. Reads members and chores from shared data (`data/chores.json`) so the fullscreen display, widget views, and remote Chores tab all share the same source of truth. Automatically sizes to the display dimensions and pins to position (0,0).
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
+| `showPoints` | boolean | `true` | Show point values for chores |
+| `showStreaks` | boolean | `true` | Show completion streaks |
+| `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
+| `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
+| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
+| `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
+
+**Layout details:**
+
+- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking.
+- **Landscape** — Top bar with date and member chips, three-column layout for morning/afternoon/evening, and a horizontal star chart in the footer.
+
+This module uses the `fillsCanvas` flag — it automatically occupies the full display area. Position, size, and style controls are hidden in the editor since the module always fills the screen.
 
 ---
 

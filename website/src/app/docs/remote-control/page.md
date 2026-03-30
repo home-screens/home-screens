@@ -6,7 +6,9 @@ nextjs:
     description: Control your display from a phone with the built-in mobile remote.
 ---
 
-Control your display from any phone or tablet on the same network. The remote control is a mobile-friendly page that lets you navigate screens, adjust brightness, switch profiles, send alerts, and manage the system -- all from your pocket. {% .lead %}
+Control your display from any phone or tablet on the same network. The remote control is a mobile-friendly page that lets you navigate screens, adjust brightness, switch profiles, send alerts, manage chores, and manage the system -- all from your pocket. {% .lead %}
+
+The remote has two tabs: **Control** (display management) and **Chores** (chore tracking). A segmented control at the top of the page lets you switch between them.
 
 ---
 
@@ -140,6 +142,28 @@ Controls that don't require a password work immediately, even if you're not logg
 After logging in, you'll be redirected back to the remote. Your session lasts 30 days by default (or 90 days if you check **Remember Me** on the login page), so you won't need to log in again for a while.
 
 You can also append `?token=TOKEN` to bookmarked command URLs (e.g., wake/sleep) for direct authentication without a session cookie. Find your display token in **Settings > Security** in the editor.
+
+---
+
+## Chores tab
+
+The **Chores** tab provides a mobile interface for tracking household chores. It uses the same shared data as the chore chart widget and fullscreen chore chart module.
+
+### Member selection
+
+Colored pill buttons across the top show each family member (with emoji avatar). Tap a member to see their assigned chores for today. A progress bar shows the member's completion percentage.
+
+### Today's chores
+
+Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, point value, and a toggle button to mark it complete.
+
+Tapping a chore toggles its completion with an optimistic update -- the UI updates immediately without waiting for the server response. The data is polled every 15 seconds for live updates across devices.
+
+### Completion tracking
+
+- A progress bar at the top shows how many of the selected member's chores are done
+- When all assigned chores are complete, a "All done!" message appears
+- The view automatically refreshes at midnight to show the new day's chores
 
 ---
 

@@ -105,9 +105,19 @@ The display can rotate through multiple screens automatically.
 
 Click the **+** button in the Screen Tabs to create a new screen. Each screen has its own set of modules and background.
 
+### Enabling and Disabling a Screen
+
+Right-click a screen tab to open the context menu and choose **Disable** or **Enable**. Disabled screens remain fully configurable in the editor but are excluded from display rotation -- the display skips them entirely.
+
+- Disabled tabs appear dimmed with a **⊘** icon next to the name
+- Profile screen lists show an amber "(disabled)" label for disabled screens
+- Setting a screen to disabled is non-destructive -- all modules and settings are preserved and the screen can be re-enabled at any time
+
+This is useful for temporarily hiding a screen (e.g., a seasonal or holiday screen) without deleting it.
+
 ### Renaming a Screen
 
-Double-click a screen tab to rename it.
+Right-click a screen tab to open the context menu and choose **Rename**, or double-click the tab name.
 
 ### Reordering Screens
 
@@ -115,7 +125,7 @@ Drag screen tabs left or right to reorder them. You can also right-click a tab a
 
 ### Removing a Screen
 
-Click the **x** button on a screen tab. You must have at least one screen.
+Right-click a screen tab and choose **Delete** from the context menu. You must have at least one screen.
 
 ### Screen Rotation
 

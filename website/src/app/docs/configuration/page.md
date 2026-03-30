@@ -163,6 +163,7 @@ type TransitionEffect =
 {
   id: string                    // Unique ID (UUID)
   name: string                  // Display name (shown in editor tabs)
+  enabled?: boolean             // Whether the screen is shown on display (default: true)
   backgroundImage: string       // Path to background image
   backgroundRotation?: {        // Optional background rotation
     enabled: boolean
@@ -219,7 +220,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles 
 
 ### ModuleType
 
-There are 35 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are 36 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -257,7 +258,8 @@ type BuiltinModuleType =
   | 'meal-planner'
   | 'iframe'
   | 'chore-chart'
-  | 'fullscreen-calendar';
+  | 'fullscreen-calendar'
+  | 'fullscreen-chore-chart';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -826,6 +828,23 @@ Family chore tracking with 5 views, point system, and rotation support.
   showStreaks: boolean
   showTimeOfDay: boolean
   allowDisplayComplete: boolean
+  accentColor: string
+}
+```
+
+### FullscreenChoreChartConfig
+
+Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size to display dimensions. Reads members and chores from shared `data/chores.json` rather than per-module config.
+
+```typescript
+{
+  weekStartDay: 'sunday' | 'monday'
+  showPoints: boolean
+  showStreaks: boolean
+  showTimeOfDay: boolean
+  darkMode: boolean
+  density: 'cozy' | 'snug'
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large'
   accentColor: string
 }
 ```

@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import {
   Puzzle, Monitor, CalendarClock, Layers, Shield,
-  Paintbrush, CloudOff, Wifi, ArrowUpCircle, Image,
+  Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Image,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
@@ -61,8 +61,8 @@ const featuresRight: Feature[] = [
     description: 'Runs entirely on your network. No accounts, no telemetry, no phoning home.',
   },
   {
-    icon: Wifi,
-    title: '5 Weather Providers',
+    icon: CloudSun,
+    title: 'Weather Providers',
     stat: '5',
     description: 'OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, or Open-Meteo.',
   },

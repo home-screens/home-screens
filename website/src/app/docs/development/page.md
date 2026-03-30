@@ -15,7 +15,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 35 module components + ModuleWrapper
+    modules/                 # All 36 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -38,10 +38,12 @@ The app uses Next.js route groups to separate concerns:
 
 - `(display)` — no layout chrome, just the fullscreen display
 - `(editor)` — includes toolbar, sidebars, and editor controls
+- `(auth)` — login and authentication pages
+- `(remote)` — mobile remote control and chore tracking
 
 ### Module System
 
-There are currently **35 modules** organized into 7 categories:
+There are currently **36 modules** organized into 7 categories:
 
 | Category | Modules |
 |---|---|
@@ -49,7 +51,7 @@ There are currently **35 modules** organized into 7 categories:
 | **Weather & Environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
-| **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart |
+| **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart, fullscreen-chore-chart |
 | **Media & Display** | text, image, photo-slideshow, qr-code, iframe |
 | **Travel** | traffic |
 
