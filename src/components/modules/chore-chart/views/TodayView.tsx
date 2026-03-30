@@ -1,6 +1,6 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreTimeOfDay } from '@/types/config';
+import type { ChoreChartConfig, ChoreTimeOfDay, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
 import ChoreIcon from '../ChoreIcon';
@@ -8,6 +8,7 @@ import ChoreIcon from '../ChoreIcon';
 interface TodayViewProps {
   config: ChoreChartConfig;
   data: {
+    members: ChoreMember[];
     todayAssignments: ResolvedAssignment[];
     memberStats: Map<string, MemberStats>;
     toggleComplete: (choreId: string, memberId: string) => Promise<void>;
@@ -17,8 +18,7 @@ interface TodayViewProps {
 const TIME_SECTIONS: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
 export function TodayView({ config, data }: TodayViewProps) {
-  const { todayAssignments, toggleComplete } = data;
-  const members = config.members ?? [];
+  const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
   const accentColor = config.accentColor ?? '#f59e0b';
   const currentTime = getCurrentTimeOfDay(new Date().getHours());

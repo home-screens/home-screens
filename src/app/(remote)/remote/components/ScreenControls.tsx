@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { DisplayStatus } from '@/lib/display-commands';
 import Slider from '@/components/ui/Slider';
-import { useCommand } from '../RemoteClient';
+import { useCommand } from '../hooks';
 
 interface ScreenControlsProps {
   status: DisplayStatus | null;

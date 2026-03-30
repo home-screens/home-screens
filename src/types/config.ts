@@ -33,7 +33,8 @@ export type BuiltinModuleType =
   | 'meal-planner'
   | 'iframe'
   | 'chore-chart'
-  | 'fullscreen-calendar';
+  | 'fullscreen-calendar'
+  | 'fullscreen-chore-chart';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -766,6 +767,17 @@ export interface ChoreChartConfig {
   showStreaks: boolean;
   showTimeOfDay: boolean;
   allowDisplayComplete: boolean;
+  accentColor: string;
+}
+
+export interface FullscreenChoreChartConfig {
+  weekStartDay: 'sunday' | 'monday';
+  showPoints: boolean;
+  showStreaks: boolean;
+  showTimeOfDay: boolean;
+  darkMode: boolean;
+  density: 'cozy' | 'snug';
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large';
   accentColor: string;
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ChoreChartConfig } from '@/types/config';
+import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
 import ChoreIcon from '../ChoreIcon';
@@ -8,6 +8,7 @@ import ChoreIcon from '../ChoreIcon';
 interface BoardViewProps {
   config: ChoreChartConfig;
   data: {
+    members: ChoreMember[];
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
@@ -16,8 +17,7 @@ interface BoardViewProps {
 }
 
 export function BoardView({ config, data }: BoardViewProps) {
-  const { todayAssignments, memberStats, toggleComplete } = data;
-  const members = config.members ?? [];
+  const { todayAssignments, members, memberStats, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
 
   return (

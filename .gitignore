@@ -38,6 +38,8 @@ yarn-error.log*
 
 # runtime config
 data/config.json
+data/chores.json
+data/chore-completions.json
 data/google-tokens.json
 data/client*
 data/backups/

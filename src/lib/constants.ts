@@ -78,6 +78,7 @@ export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
   iframe: { w: 500, h: 400 },
   'chore-chart': { w: 500, h: 650 },
   'fullscreen-calendar': { w: 1080, h: 1920 },
+  'fullscreen-chore-chart': { w: 1080, h: 1920 },
 };
 
 // Semantic text opacity tiers for consistent visual hierarchy across modules

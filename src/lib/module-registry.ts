@@ -673,8 +673,6 @@ registerModule({
   category: 'Personal',
   defaultConfig: {
     view: 'board',
-    members: [],
-    chores: [],
     weekStartDay: 'monday',
     showPoints: true,
     showStreaks: true,
@@ -684,6 +682,26 @@ registerModule({
   },
   defaultSize: DEFAULT_MODULE_SIZES['chore-chart'],
   defaultStyle: { fontSize: 24 },
+});
+
+registerModule({
+  type: 'fullscreen-chore-chart',
+  label: 'Full-Screen Chore Chart',
+  icon: ClipboardList,
+  category: 'Personal',
+  defaultConfig: {
+    weekStartDay: 'monday',
+    showPoints: true,
+    showStreaks: true,
+    showTimeOfDay: true,
+    darkMode: true,
+    density: 'cozy',
+    typographySize: 'medium',
+    accentColor: '#f59e0b',
+  },
+  defaultSize: DEFAULT_MODULE_SIZES['fullscreen-chore-chart'],
+  defaultStyle: { padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0 },
+  fillsCanvas: true,
 });
 
 registerModule({

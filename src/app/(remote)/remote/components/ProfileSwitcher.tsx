@@ -1,6 +1,6 @@
 'use client';
 
-import { useCommand } from '../RemoteClient';
+import { useCommand } from '../hooks';
 
 interface ProfileSwitcherProps {
   profiles: Array<{ id: string; name: string }>;
@@ -44,7 +44,7 @@ export default function ProfileSwitcher({
                   : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
               }`}
             >
-              {isActive && <span className="mr-1">&check;</span>}
+              {isActive && <span className="mr-1">✓</span>}
               {p.name}
             </button>
           );

@@ -1,20 +1,20 @@
 'use client';
 
-import type { ChoreChartConfig } from '@/types/config';
+import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats, WeekDayData } from '../types';
 import ChoreIcon from '../ChoreIcon';
 
 interface StarChartViewProps {
   config: ChoreChartConfig;
   data: {
+    members: ChoreMember[];
     memberStats: Map<string, MemberStats>;
     weekData: WeekDayData[];
   };
 }
 
 export function StarChartView({ config, data }: StarChartViewProps) {
-  const { memberStats, weekData } = data;
-  const members = config.members ?? [];
+  const { members, memberStats, weekData } = data;
   const accentColor = config.accentColor ?? '#f59e0b';
   const showStreaks = config.showStreaks;
 

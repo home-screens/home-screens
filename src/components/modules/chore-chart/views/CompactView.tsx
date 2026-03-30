@@ -1,6 +1,6 @@
 'use client';
 
-import type { ChoreChartConfig } from '@/types/config';
+import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
 import ChoreIcon from '../ChoreIcon';
@@ -8,6 +8,8 @@ import ChoreIcon from '../ChoreIcon';
 interface CompactViewProps {
   config: ChoreChartConfig;
   data: {
+    members: ChoreMember[];
+    chores: ChoreDefinition[];
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
@@ -16,9 +18,7 @@ interface CompactViewProps {
 }
 
 export function CompactView({ config, data }: CompactViewProps) {
-  const { completionSet, memberStats, toggleComplete } = data;
-  const members = config.members ?? [];
-  const chores = config.chores ?? [];
+  const { members, chores, completionSet, memberStats, toggleComplete } = data;
   const today = todayStr();
   const dayOfWeek = new Date().getDay();
   const allowTouch = config.allowDisplayComplete;

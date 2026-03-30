@@ -50,6 +50,7 @@ import {
   IframeConfigSection,
   ChoreChartConfigSection,
   FullscreenCalendarConfigSection,
+  FullscreenChoreChartConfigSection,
   WordOfDayConfigSection,
 } from '@/components/editor/config-sections';
 
@@ -175,6 +176,7 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
   iframe: IframeConfigSection,
   'chore-chart': ChoreChartConfigSection,
   'fullscreen-calendar': FullscreenCalendarConfigSection,
+  'fullscreen-chore-chart': FullscreenChoreChartConfigSection,
 };
 
 export default function PropertyPanel() {

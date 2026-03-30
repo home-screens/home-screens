@@ -5,33 +5,16 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import ViewSelect from '@/components/editor/ViewSelect';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import type {
   ModuleInstance,
-  ChoreChartView,
+  FullscreenChoreChartConfig,
 } from '@/types/config';
 
-type Config = {
-  view?: ChoreChartView;
-  weekStartDay?: 'sunday' | 'monday';
-  showPoints?: boolean;
-  showStreaks?: boolean;
-  showTimeOfDay?: boolean;
-  allowDisplayComplete?: boolean;
-  accentColor?: string;
-};
+type Config = Partial<FullscreenChoreChartConfig>;
 
-const VIEWS: { value: ChoreChartView; label: string }[] = [
-  { value: 'board', label: 'Board (Column per Member)' },
-  { value: 'star-chart', label: 'Star Chart (Weekly Grid)' },
-  { value: 'today', label: "Today (Time of Day)" },
-  { value: 'progress', label: 'Progress (Rings)' },
-  { value: 'compact', label: 'Compact (Dense Grid)' },
-];
-
-export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
   const [counts, setCounts] = useState({ members: 0, chores: 0 });
@@ -45,12 +28,40 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
   return (
     <>
-      {/* View Mode */}
-      <ViewSelect
-        value={c.view ?? 'board'}
-        onChange={(v) => set({ view: v })}
-        options={VIEWS}
+      {/* Dark Mode */}
+      <Toggle
+        label="Dark Mode"
+        checked={c.darkMode ?? true}
+        onChange={(v) => set({ darkMode: v })}
       />
+
+      {/* Density */}
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-neutral-400">Density</span>
+        <select
+          value={c.density ?? 'cozy'}
+          onChange={(e) => set({ density: e.target.value as 'cozy' | 'snug' })}
+          className={INPUT_CLASS}
+        >
+          <option value="cozy">Cozy</option>
+          <option value="snug">Snug</option>
+        </select>
+      </label>
+
+      {/* Typography Size */}
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-neutral-400">Typography Size</span>
+        <select
+          value={c.typographySize ?? 'medium'}
+          onChange={(e) => set({ typographySize: e.target.value as 'small' | 'medium' | 'large' | 'extra-large' })}
+          className={INPUT_CLASS}
+        >
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+          <option value="extra-large">Extra Large</option>
+        </select>
+      </label>
 
       {/* Week Start */}
       <label className="flex flex-col gap-0.5">
@@ -80,11 +91,6 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
         label="Show Time of Day"
         checked={c.showTimeOfDay ?? true}
         onChange={(v) => set({ showTimeOfDay: v })}
-      />
-      <Toggle
-        label="Tap to Complete (Display)"
-        checked={c.allowDisplayComplete ?? true}
-        onChange={(v) => set({ allowDisplayComplete: v })}
       />
 
       {/* Accent Color */}

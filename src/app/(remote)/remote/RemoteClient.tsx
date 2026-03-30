@@ -1,120 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { DisplayStatus } from '@/lib/display-commands';
+import type { ChoreChartConfig } from '@/types/config';
+import { useRemoteStatus } from './hooks';
 import StatusBar from './components/StatusBar';
-import ScreenControls from './components/ScreenControls';
-import ProfileSwitcher from './components/ProfileSwitcher';
-import AlertSender from './components/AlertSender';
-import SystemInfo from './components/SystemInfo';
-import PowerControls from './components/PowerControls';
 import ConnectionBanner from './components/ConnectionBanner';
+import SegmentedControl from './components/SegmentedControl';
+import ControlTab from './components/ControlTab';
+import ChoresTab from './components/ChoresTab';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
   profiles: Array<{ id: string; name: string }>;
   activeProfile: string | undefined;
+  choreConfig: ChoreChartConfig | null;
 }
-
-// ---------------------------------------------------------------------------
-// Hooks
-// ---------------------------------------------------------------------------
-
-type CommandState = 'idle' | 'pending' | 'success' | 'error';
-
-export function useCommand() {
-  const [state, setState] = useState<CommandState>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const execute = useCallback(async (fn: () => Promise<Response | null>) => {
-    clearTimeout(timeoutRef.current);
-    setState('pending');
-    setError(null);
-    try {
-      const res = await fn();
-      if (!res) throw new Error('No response');
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `HTTP ${res.status}`);
-      }
-      setState('success');
-      timeoutRef.current = setTimeout(() => setState('idle'), 1000);
-      return res;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed';
-      setError(msg);
-      setState('error');
-      timeoutRef.current = setTimeout(() => setState('idle'), 3000);
-      return null;
-    }
-  }, []);
-
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  return { state, error, execute };
-}
-
-function useRemoteStatus(pollMs = 5000) {
-  const [status, setStatus] = useState<DisplayStatus | null>(null);
-  const [isConnected, setIsConnected] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const failuresRef = useRef(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const burstTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const poll = useCallback(async () => {
-    try {
-      const res = await fetch('/api/display/status');
-      if (res.ok) {
-        const data: DisplayStatus = await res.json();
-        setStatus(data);
-        setLastUpdated(new Date());
-        failuresRef.current = 0;
-        setIsConnected(true);
-      } else if (res.status === 404) {
-        failuresRef.current = 0;
-        setIsConnected(true);
-        setStatus(null);
-      }
-    } catch {
-      failuresRef.current++;
-      if (failuresRef.current >= 3) setIsConnected(false);
-    }
-  }, []);
-
-  // Start the normal polling interval
-  useEffect(() => {
-    poll();
-    intervalRef.current = setInterval(poll, pollMs);
-    return () => {
-      clearInterval(intervalRef.current);
-      clearTimeout(burstTimerRef.current);
-    };
-  }, [poll, pollMs]);
-
-  // Nudge: switch to fast 1s polling for 10s after a command, then revert
-  const nudge = useCallback(() => {
-    clearInterval(intervalRef.current);
-    clearTimeout(burstTimerRef.current);
-    // Immediate poll + fast interval
-    poll();
-    intervalRef.current = setInterval(poll, 1000);
-    burstTimerRef.current = setTimeout(() => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(poll, pollMs);
-    }, 10_000);
-  }, [poll, pollMs]);
-
-  return { status, isConnected, lastUpdated, nudge };
-}
-
-// ---------------------------------------------------------------------------
-// Main Component
-// ---------------------------------------------------------------------------
 
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
   const { status, isConnected, lastUpdated, nudge } = useRemoteStatus();
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string>('control');
+  const hasChores = initialData.choreConfig !== null;
 
   // Optimistic overrides — applied on top of polled status for instant feedback
   const [optimistic, setOptimistic] = useState<{
@@ -163,33 +71,36 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     setOptimistic((prev) => ({ ...prev, displayState: asleep ? 'active' : 'asleep' }));
   }, [nudge]);
 
+  const tabs = [
+    { id: 'control', label: 'Control' },
+    ...(hasChores ? [{ id: 'chores', label: 'Chores' }] : []),
+  ];
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-200">
       {!isConnected && <ConnectionBanner />}
 
-      <header className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-4 py-3">
-        <StatusBar status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} />
+      <header className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800">
+        <div className="px-4 py-3">
+          <StatusBar status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} />
+        </div>
+        {hasChores && (
+          <SegmentedControl tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        )}
       </header>
 
-      <main className="px-4 pb-8 space-y-6 pt-4">
-        <ScreenControls
-          status={effectiveStatus}
-          onNav={handleNav}
-          onSleepWake={handleSleepWake}
-        />
-
-        {initialData.profiles.length > 0 && (
-          <ProfileSwitcher
+      <main className="px-4 pb-8 pt-4">
+        {activeTab === 'control' ? (
+          <ControlTab
+            status={effectiveStatus}
             profiles={initialData.profiles}
             activeProfile={status?.activeProfile ?? initialData.activeProfile ?? null}
+            onNav={handleNav}
+            onSleepWake={handleSleepWake}
           />
+        ) : (
+          <ChoresTab config={initialData.choreConfig!} />
         )}
-
-        <AlertSender />
-
-        <SystemInfo />
-
-        <PowerControls />
       </main>
     </div>
   );

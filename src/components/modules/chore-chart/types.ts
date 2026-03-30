@@ -17,6 +17,7 @@ export interface MemberStats {
   percentage: number;
   streak: number;
   weeklyPoints: number;
+  weeklyPointsTotal: number;
 }
 
 export interface WeekDayData {

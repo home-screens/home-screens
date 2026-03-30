@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import type { ChoreChartConfig, ChoreCompletion } from '@/types/config';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ChoreMember, ChoreDefinition, ChoreCompletion } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import {
   type ResolvedAssignment,
@@ -10,17 +10,33 @@ import {
   DAY_NAMES_SHORT,
   localDateStr,
   todayStr,
-  dateNDaysAgo,
   resolveAssignee,
   choreAppliesToday,
   completionKey,
 } from './types';
 
+/** Display-only settings accepted by useChoreData — no members/chores,
+ *  those are fetched from the shared /api/chores/data endpoint. */
+export interface ChoreDataConfig {
+  weekStartDay: 'sunday' | 'monday';
+  showPoints: boolean;
+  showStreaks: boolean;
+  showTimeOfDay: boolean;
+  accentColor: string;
+}
+
 interface ChoresResponse {
   completions: ChoreCompletion[];
 }
 
+interface ChoreDataResponse {
+  members: ChoreMember[];
+  chores: ChoreDefinition[];
+}
+
 interface ChoreDataState {
+  members: ChoreMember[];
+  chores: ChoreDefinition[];
   todayAssignments: ResolvedAssignment[];
   completionSet: Set<string>;
   memberStats: Map<string, MemberStats>;
@@ -30,19 +46,43 @@ interface ChoreDataState {
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
 }
 
-export function useChoreData(config: ChoreChartConfig): ChoreDataState {
-  const [fetched, fetchError] = useFetchData<ChoresResponse>('/api/chores', 30_000);
+/** Return the 7 dates (as YYYY-MM-DD) for the current week, starting from
+ *  the configured week start day. If today is before the week start day
+ *  has rolled around, the week includes future dates up to the end of the week. */
+function getWeekDates(weekStartDay: 'sunday' | 'monday'): string[] {
+  const startDow = weekStartDay === 'monday' ? 1 : 0;
+  const now = new Date();
+  const todayDow = now.getDay();
+  // How many days back to the start of this week?
+  const daysBack = (todayDow - startDow + 7) % 7;
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - daysBack);
+
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    dates.push(localDateStr(d));
+  }
+  return dates;
+}
+
+export function useChoreData(config: ChoreDataConfig): ChoreDataState {
+  const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>('/api/chores', 30_000);
+  const [fetchedChoreData] = useFetchData<ChoreDataResponse>('/api/chores/data', 60_000);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
-  const configRef = useRef(config);
-  configRef.current = config;
+
+  // Members and chores from shared data file
+  const members = useMemo(() => fetchedChoreData?.members ?? [], [fetchedChoreData]);
+  const chores = useMemo(() => fetchedChoreData?.chores ?? [], [fetchedChoreData]);
 
   // Sync fetched data → local state (polls and initial load)
   useEffect(() => {
-    if (fetched) setCompletions(fetched.completions ?? []);
-  }, [fetched]);
+    if (fetchedCompletions) setCompletions(fetchedCompletions.completions ?? []);
+  }, [fetchedCompletions]);
 
-  const isLoading = !fetched && !fetchError;
-  const error = fetchError;
+  const isLoading = (!fetchedCompletions && !completionsError) || !fetchedChoreData;
+  const error = completionsError;
 
   // Build completion set for fast lookup
   const completionSet = useMemo(() => {
@@ -59,11 +99,11 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
     const dayOfWeek = new Date().getDay();
     const assignments: ResolvedAssignment[] = [];
 
-    for (const chore of config.chores) {
+    for (const chore of chores) {
       if (!choreAppliesToday(chore, dayOfWeek, today)) continue;
       const assignees = resolveAssignee(chore, today);
       for (const memberId of assignees) {
-        if (!config.members.some((m) => m.id === memberId)) continue;
+        if (!members.some((m) => m.id === memberId)) continue;
         assignments.push({
           chore,
           memberId,
@@ -73,28 +113,29 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
     }
 
     return assignments;
-  }, [config.chores, config.members, completionSet]);
+  }, [chores, members, completionSet]);
 
   // Per-member stats (streaks computed client-side with config context)
   const memberStats = useMemo(() => {
     const stats = new Map<string, MemberStats>();
     const today = todayStr();
 
-    for (const member of config.members) {
+    for (const member of members) {
       const myAssignments = todayAssignments.filter((a) => a.memberId === member.id);
       const completed = myAssignments.filter((a) => a.isCompleted).length;
       const total = myAssignments.length;
 
-      // Weekly points — only count chores actually assigned to this member
+      // Weekly points — aligned to configured week start day
+      const weekDates = getWeekDates(config.weekStartDay);
       let weeklyPoints = 0;
-      for (let i = 0; i < 7; i++) {
-        const date = dateNDaysAgo(i);
-        const d = new Date();
-        d.setDate(d.getDate() - i);
+      let weeklyPointsTotal = 0;
+      for (const date of weekDates) {
+        const d = new Date(date + 'T00:00:00');
         const dayOfWeek = d.getDay();
-        for (const chore of config.chores) {
+        for (const chore of chores) {
           if (!choreAppliesToday(chore, dayOfWeek, date)) continue;
           if (!resolveAssignee(chore, date).includes(member.id)) continue;
+          weeklyPointsTotal += chore.points;
           if (completionSet.has(completionKey(chore.id, member.id, date))) {
             weeklyPoints += chore.points;
           }
@@ -108,7 +149,7 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
       for (let i = 0; i < 30; i++) {
         const date = localDateStr(sd);
         const dayOfWeek = sd.getDay();
-        const assignedChores = config.chores.filter((c) => {
+        const assignedChores = chores.filter((c) => {
           if (!choreAppliesToday(c, dayOfWeek, date)) return false;
           return resolveAssignee(c, date).includes(member.id);
         });
@@ -133,7 +174,7 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
 
       // Include today if all today's chores are done
       const todayDayOfWeek = new Date().getDay();
-      const todayAssigned = config.chores.filter((c) => {
+      const todayAssigned = chores.filter((c) => {
         if (!choreAppliesToday(c, todayDayOfWeek, today)) return false;
         return resolveAssignee(c, today).includes(member.id);
       });
@@ -149,27 +190,28 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
         percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
         streak,
         weeklyPoints,
+        weeklyPointsTotal,
       });
     }
 
     return stats;
-  }, [config.members, config.chores, todayAssignments, completionSet]);
+  }, [members, chores, todayAssignments, completionSet, config.weekStartDay]);
 
-  // Week data for star chart
+  // Week data for star chart — aligned to configured week start day
   const weekData = useMemo(() => {
     const days: WeekDayData[] = [];
     const today = todayStr();
+    const weekDates = getWeekDates(config.weekStartDay);
 
-    for (let i = 6; i >= 0; i--) {
-      const date = dateNDaysAgo(i);
+    for (const date of weekDates) {
       const d = new Date(date + 'T00:00:00');
       const dayOfWeek = d.getDay();
 
       const memberStars: Record<string, boolean> = {};
 
-      for (const member of config.members) {
+      for (const member of members) {
         // A star is earned when ALL assigned chores for that day are completed
-        const dayChores = config.chores.filter((c) => choreAppliesToday(c, dayOfWeek, date));
+        const dayChores = chores.filter((c) => choreAppliesToday(c, dayOfWeek, date));
         const assignedChores = dayChores.filter((c) => {
           const assignees = resolveAssignee(c, date);
           return assignees.includes(member.id);
@@ -194,7 +236,7 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
     }
 
     return days;
-  }, [config.members, config.chores, completionSet]);
+  }, [members, chores, completionSet, config.weekStartDay]);
 
   // Toggle completion
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
@@ -229,6 +271,8 @@ export function useChoreData(config: ChoreChartConfig): ChoreDataState {
   }, []);
 
   return {
+    members,
+    chores,
     todayAssignments,
     completionSet,
     memberStats,

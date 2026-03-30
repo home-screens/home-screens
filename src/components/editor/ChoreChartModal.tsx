@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Button from '@/components/ui/Button';
 import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type {
@@ -99,11 +99,8 @@ function IconPicker({
 // ── Props ─────────────────────────────────────────────────────────
 
 interface ChoreChartModalProps {
-  members: ChoreMember[];
-  chores: ChoreDefinition[];
   weekStartDay: 'sunday' | 'monday';
   accentColor: string;
-  onUpdate: (updates: Record<string, unknown>) => void;
   onClose: () => void;
 }
 
@@ -501,26 +498,56 @@ function WeeklyPreview({
 // ── Main Modal ────────────────────────────────────────────────────
 
 export default function ChoreChartModal({
-  members: initialMembers,
-  chores: initialChores,
   weekStartDay,
   accentColor,
-  onUpdate,
   onClose,
 }: ChoreChartModalProps) {
-  const [members, setMembers] = useState(initialMembers);
-  const [chores, setChores] = useState(initialChores);
+  const [members, setMembers] = useState<ChoreMember[]>([]);
+  const [chores, setChores] = useState<ChoreDefinition[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
 
-  // Sync changes to parent (skip initial mount to avoid unnecessary write-back)
-  const isFirstRender = useRef(true);
+  // Fetch shared chore data on mount
   useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    onUpdate({ members, chores });
-  }, [members, chores, onUpdate]);
+    fetch('/api/chores/data')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setMembers(data.members ?? []);
+        setChores(data.chores ?? []);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  // Persist changes to shared file (debounced, skip until initial load completes)
+  const isFirstChange = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const membersRef = useRef(members);
+  const choresRef = useRef(chores);
+  useEffect(() => { membersRef.current = members; }, [members]);
+  useEffect(() => { choresRef.current = chores; }, [chores]);
+
+  const flushSave = useCallback(() => {
+    clearTimeout(saveTimerRef.current);
+    fetch('/api/chores/data', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ members: membersRef.current, chores: choresRef.current }),
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (isFirstChange.current) { isFirstChange.current = false; return; }
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(flushSave, 400);
+  }, [members, chores, loaded, flushSave]);
 
   // ── Member CRUD ──
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
@@ -565,7 +592,7 @@ export default function ChoreChartModal({
       title="Chore Chart"
       subtitle={`${members.length} members \u00b7 ${chores.length} chores`}
       maxWidth="max-w-6xl"
-      onClose={onClose}
+      onClose={() => { flushSave(); onClose(); }}
     >
       <div className="flex flex-1 min-h-0">
           {/* ── Left: Members ──────────────────────────── */}

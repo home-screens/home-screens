@@ -1,12 +1,13 @@
 'use client';
 
-import type { ChoreChartConfig } from '@/types/config';
+import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats } from '../types';
 import ChoreIcon from '../ChoreIcon';
 
 interface ProgressViewProps {
   config: ChoreChartConfig;
   data: {
+    members: ChoreMember[];
     memberStats: Map<string, MemberStats>;
   };
 }
@@ -54,8 +55,7 @@ function ProgressRing({
 }
 
 export function ProgressView({ config, data }: ProgressViewProps) {
-  const { memberStats } = data;
-  const members = config.members ?? [];
+  const { members, memberStats } = data;
   const showStreaks = config.showStreaks;
   const showPoints = config.showPoints;
 

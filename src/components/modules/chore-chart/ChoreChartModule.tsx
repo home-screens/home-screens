@@ -19,7 +19,7 @@ export default function ChoreChartModule({ config, style }: ChoreChartModuleProp
   const data = useChoreData(config);
 
   // Empty state — no members
-  if ((config.members?.length ?? 0) === 0) {
+  if (data.members.length === 0) {
     return (
       <ModuleWrapper style={style}>
         <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">
@@ -34,7 +34,7 @@ export default function ChoreChartModule({ config, style }: ChoreChartModuleProp
   }
 
   // Empty state — no chores
-  if ((config.chores?.length ?? 0) === 0) {
+  if (data.chores.length === 0) {
     return (
       <ModuleWrapper style={style}>
         <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">

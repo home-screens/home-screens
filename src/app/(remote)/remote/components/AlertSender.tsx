@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCommand } from '../RemoteClient';
+import { useCommand } from '../hooks';
 
 const ALERT_TYPES = [
   { value: 'info', label: 'Info', style: 'bg-blue-600/20 text-blue-400 border-blue-500/40' },
@@ -18,6 +18,7 @@ const DURATIONS = [
 ];
 
 export default function AlertSender() {
+  const [open, setOpen] = useState(false);
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -47,11 +48,20 @@ export default function AlertSender() {
 
   return (
     <section>
-      <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-        Send Alert
-      </h2>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 w-full text-left"
+      >
+        <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+          Send Alert
+        </span>
+        <span className={`text-neutral-600 text-xs transition-transform ${open ? 'rotate-90' : ''}`}>
+          &#x25B6;
+        </span>
+      </button>
 
-      <div className="bg-neutral-900 rounded-lg p-3 space-y-3">
+      {open && <div className="mt-2 bg-neutral-900 rounded-lg p-3 space-y-3">
         {/* Type selector */}
         <div className="flex gap-2">
           {ALERT_TYPES.map((t) => (
@@ -114,7 +124,7 @@ export default function AlertSender() {
         >
           {state === 'pending' ? 'Sending\u2026' : state === 'success' ? 'Sent!' : 'Send Alert'}
         </button>
-      </div>
+      </div>}
     </section>
   );
 }
