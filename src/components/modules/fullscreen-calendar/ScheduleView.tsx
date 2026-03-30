@@ -54,11 +54,10 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
     return () => ro.disconnect();
   }, []);
 
-  // Proportional sizing — expand hourHeight to fill when container is taller than grid
+  // Fit grid exactly to container — no scrolling on kiosk display
   const gutterWidth = scale.bu * 4.5;
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 5.5 : 4.5);
-  const minHourHeight = containerH > 0 ? containerH / totalHours : 0;
-  const hourHeight = Math.max(baseHourHeight, minHourHeight);
+  const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;
   const gridHeight = totalHours * hourHeight;
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
 
@@ -66,14 +65,6 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowInRange = nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
-
-  // Auto-scroll to current time on mount
-  useEffect(() => {
-    if (scrollRef.current && nowInRange) {
-      const scrollTo = Math.max(0, nowY - scale.height * 0.3);
-      scrollRef.current.scrollTop = scrollTo;
-    }
-  }, [nowY, nowInRange, scale.height]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -135,7 +126,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
       <AllDayRow events={events} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} />
 
       {/* Time grid */}
-      <div ref={scrollRef} role="grid" aria-label="Schedule time grid" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+      <div ref={scrollRef} role="grid" aria-label="Schedule time grid" style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         <div style={{ display: 'flex', height: gridHeight, position: 'relative' }}>
           {/* Time gutter */}
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>

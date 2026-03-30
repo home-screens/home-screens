@@ -549,4 +549,14 @@ const cssTokens = `
   overflow: hidden;
 }
 
+/* Hide scrollbars — kiosk display, no manual scroll */
+.fsc-root,
+.fsc-root * {
+  scrollbar-width: none;
+}
+.fsc-root::-webkit-scrollbar,
+.fsc-root *::-webkit-scrollbar {
+  display: none;
+}
+
 `;

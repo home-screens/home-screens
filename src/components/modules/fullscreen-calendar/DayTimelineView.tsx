@@ -41,9 +41,9 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
     return () => ro.disconnect();
   }, []);
 
+  // Fit grid exactly to container — no scrolling on kiosk display
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 6.5 : 5.5);
-  const minHourHeight = containerH > 0 ? containerH / totalHours : 0;
-  const hourHeight = Math.max(baseHourHeight, minHourHeight);
+  const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;
   const gridHeight = totalHours * hourHeight;
 
   const dayEvents = events.filter(ev => isEventOnDay(ev, today));
@@ -70,12 +70,6 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
   }));
   const overlapLayout = computeOverlapColumns(layoutInput);
 
-  // Auto-scroll to now
-  useEffect(() => {
-    if (scrollRef.current && nowInRange) {
-      scrollRef.current.scrollTop = Math.max(0, nowY - scale.height * 0.3);
-    }
-  }, [nowY, nowInRange, scale.height]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -117,7 +111,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
       )}
 
       {/* Timeline */}
-      <div ref={scrollRef} aria-label="Day timeline" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+      <div ref={scrollRef} aria-label="Day timeline" style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         <div style={{ display: 'flex', height: gridHeight, position: 'relative' }}>
           {/* Time gutter */}
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>

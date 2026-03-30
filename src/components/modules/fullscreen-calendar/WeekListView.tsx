@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, compareEventStarts } from '@/lib/calendar-utils';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
@@ -15,8 +15,6 @@ interface WeekListViewProps {
 }
 
 export function WeekListView({ events, config, scale, today, now: _now }: WeekListViewProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const todayRef = useRef<HTMLDivElement>(null);
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
 
@@ -26,15 +24,6 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [weekStart.toDateString()],
   );
-
-  // Auto-scroll to today on mount
-  useEffect(() => {
-    if (todayRef.current && scrollRef.current) {
-      const containerTop = scrollRef.current.getBoundingClientRect().top;
-      const todayTop = todayRef.current.getBoundingClientRect().top;
-      scrollRef.current.scrollTop = todayTop - containerTop - scale.bu * 2;
-    }
-  }, [scale.bu]);
 
   // Landscape: split Mon-Thu and Fri-Sun
   const leftDays = isLandscape ? days.slice(0, 4) : days;
@@ -54,7 +43,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
     return (
       <div
         key={day.toISOString()}
-        ref={isToday ? todayRef : undefined}
+
         style={{
           marginBottom: scale.bu * 0.4,
           opacity: isPast && config.dimPastEvents ? 0.5 : 1,
@@ -129,14 +118,14 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
         gap: 0,
       }}>
         <div style={{
-          overflowY: 'auto',
+          overflow: 'hidden',
           padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
         }}>
           {leftDays.map(renderDay)}
         </div>
         <div style={{ background: 'var(--cal-border)' }} />
         <div style={{
-          overflowY: 'auto',
+          overflow: 'hidden',
           padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
         }}>
           {rightDays.map(renderDay)}
@@ -147,10 +136,9 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
 
   return (
     <div
-      ref={scrollRef}
       style={{
         height: '100%',
-        overflowY: 'auto',
+        overflow: 'hidden',
         padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
       }}
     >

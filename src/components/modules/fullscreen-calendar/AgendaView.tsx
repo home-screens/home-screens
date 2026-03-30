@@ -224,13 +224,13 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
         gap: scale.bu * 0.5,
       }}>
         <div style={{
-          overflowY: 'auto',
+          overflow: 'hidden',
           padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
         }}>
           {leftGroups.map(renderDayGroup)}
         </div>
         <div style={{
-          overflowY: 'auto',
+          overflow: 'hidden',
           padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
         }}>
           {rightGroups.map(renderDayGroup)}
@@ -242,7 +242,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
   return (
     <div style={{
       height: '100%',
-      overflowY: 'auto',
+      overflow: 'hidden',
       padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
     }}>
       {dayGroups.map(renderDayGroup)}
