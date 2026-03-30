@@ -10,7 +10,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   const includePrerelease = request.nextUrl.searchParams.get('channel') === 'dev';
 
   const [info, tags] = await Promise.all([
-    getVersionInfo({ includePrerelease }),
+    getVersionInfo({ force: forceCheck, includePrerelease }),
     getVersionTags({ force: forceCheck, includePrerelease }),
   ]);
 

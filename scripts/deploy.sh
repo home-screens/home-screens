@@ -69,6 +69,8 @@ rsync -azP --delete \
   --exclude 'data/auth.json' \
   --exclude 'data/backups' \
   --exclude 'data/background-cache.json' \
+  --exclude 'data/chores.json' \
+  --exclude 'data/chore-completions.json' \
   --exclude 'data/kiosk.conf' \
   --exclude 'data/port.conf' \
   --exclude 'public/backgrounds/*.jpg' \

@@ -297,9 +297,10 @@ export function buildVersionInfo(
 
 /** Get full version info */
 export async function getVersionInfo(options?: {
+  force?: boolean;
   includePrerelease?: boolean;
 }): Promise<VersionInfo> {
-  const { includePrerelease = false } = options ?? {};
+  const { force = false, includePrerelease = false } = options ?? {};
   const [current, commit, installedVia] = await Promise.all([
     getPackageVersion(),
     getCurrentCommit(),
@@ -308,7 +309,7 @@ export async function getVersionInfo(options?: {
 
   // Try GitHub API first
   try {
-    const releases = await fetchGitHubReleases({ includePrerelease });
+    const releases = await fetchGitHubReleases({ force, includePrerelease });
     if (releases.length > 0) {
       const tags = releasesToTags(releases);
       const branch = installedVia === 'git' ? await getCurrentBranch() : 'release';
