@@ -15,6 +15,12 @@ import {
   Recycle, TowelRack, Bone,
   HandPlatter, Lamp, Wrench, Scissors, Package,
   Home, Key, Lightbulb, Wifi,
+  // New chore icons
+  Toilet, SoapDispenserDroplet, PawPrint, Footprints,
+  Shovel, PaintRoller, Hammer, ChefHat,
+  Microwave, Refrigerator, Apple, Coffee, Egg, Pill,
+  ToyBrick, Backpack, Dumbbell, AlarmClock, Timer,
+  Fence, Bike, Blinds,
 } from 'lucide-react';
 
 // ── Icon registry ─────────────────────────────────────────────────
@@ -87,6 +93,35 @@ const ICON_MAP: Record<string, IconDef> = {
   key:               { component: Key,               label: 'Key',        defaultColor: '#fbbf24' },
   lightbulb:         { component: Lightbulb,         label: 'Light',      defaultColor: '#fbbf24' },
   wifi:              { component: Wifi,              label: 'WiFi',       defaultColor: '#22d3ee' },
+  // Chores — bathroom
+  toilet:            { component: Toilet,            label: 'Toilet',     defaultColor: '#38bdf8' },
+  soap:              { component: SoapDispenserDroplet, label: 'Soap',    defaultColor: '#22d3ee' },
+  // Chores — pets
+  'paw-print':       { component: PawPrint,          label: 'Pet Care',   defaultColor: '#fb923c' },
+  footprints:        { component: Footprints,        label: 'Walk',       defaultColor: '#a78bfa' },
+  // Chores — outdoor / maintenance
+  shovel:            { component: Shovel,            label: 'Shovel',     defaultColor: '#6b7280' },
+  'paint-roller':    { component: PaintRoller,       label: 'Paint',      defaultColor: '#f472b6' },
+  hammer:            { component: Hammer,            label: 'Repair',     defaultColor: '#6b7280' },
+  fence:             { component: Fence,             label: 'Yard',       defaultColor: '#a78bfa' },
+  bike:              { component: Bike,              label: 'Bike',       defaultColor: '#4ade80' },
+  // Chores — kitchen
+  'chef-hat':        { component: ChefHat,           label: 'Chef',       defaultColor: '#fbbf24' },
+  microwave:         { component: Microwave,         label: 'Microwave',  defaultColor: '#6b7280' },
+  refrigerator:      { component: Refrigerator,      label: 'Fridge',     defaultColor: '#38bdf8' },
+  apple:             { component: Apple,             label: 'Snack',      defaultColor: '#f87171' },
+  coffee:            { component: Coffee,            label: 'Coffee',     defaultColor: '#a78bfa' },
+  egg:               { component: Egg,               label: 'Breakfast',  defaultColor: '#fbbf24' },
+  // Chores — health / routine
+  pill:              { component: Pill,              label: 'Medicine',   defaultColor: '#f472b6' },
+  'alarm-clock':     { component: AlarmClock,        label: 'Wake Up',    defaultColor: '#fbbf24' },
+  timer:             { component: Timer,             label: 'Timer',      defaultColor: '#fb923c' },
+  dumbbell:          { component: Dumbbell,          label: 'Exercise',   defaultColor: '#4ade80' },
+  // Chores — kids
+  'toy-brick':       { component: ToyBrick,          label: 'Toys',       defaultColor: '#f87171' },
+  backpack:          { component: Backpack,          label: 'School',     defaultColor: '#60a5fa' },
+  // Chores — windows
+  blinds:            { component: Blinds,            label: 'Blinds',     defaultColor: '#6b7280' },
 };
 
 export function getIconDef(name: string): IconDef | undefined {
@@ -104,9 +139,15 @@ export const CHORE_ICONS = [
   'bed', 'bed-double', 'sparkles', 'brush-cleaning', 'spray-can',
   'trash', 'utensils', 'utensils-crossed', 'cooking-pot', 'hand-platter',
   'shirt', 'washing-machine', 'towel-rack', 'droplets', 'bath', 'shower-head',
-  'bone', 'flower', 'leaf', 'tree', 'recycle',
+  'toilet', 'soap',
+  'bone', 'paw-print', 'footprints',
+  'flower', 'leaf', 'tree', 'recycle', 'shovel', 'fence',
+  'paint-roller', 'hammer', 'blinds',
+  'chef-hat', 'microwave', 'refrigerator', 'apple', 'coffee', 'egg',
   'book-open', 'notebook', 'music', 'glass-water',
-  'mail', 'mailbox', 'shopping-cart', 'shopping-bag', 'car',
+  'pill', 'alarm-clock', 'timer', 'dumbbell',
+  'toy-brick', 'backpack',
+  'mail', 'mailbox', 'shopping-cart', 'shopping-bag', 'car', 'bike',
   'lamp', 'wrench', 'scissors', 'package', 'home', 'key', 'lightbulb', 'wifi',
 ];
 
