@@ -33,7 +33,7 @@ describe('readChoreData', () => {
 
   it('reads existing chore data', async () => {
     const choreData = {
-      members: [{ id: 'alice', name: 'Alice', color: '#f00' }],
+      members: [{ id: 'alice', name: 'Alice', emoji: '', color: '#f00' }],
       chores: [
         {
           id: 'chore-1',
@@ -72,7 +72,7 @@ describe('readChoreData', () => {
 describe('writeChoreData', () => {
   it('writes data to data/chores.json', async () => {
     const choreData = {
-      members: [{ id: 'bob', name: 'Bob', color: '#00f' }],
+      members: [{ id: 'bob', name: 'Bob', emoji: '', color: '#00f' }],
       chores: [],
     };
 
@@ -90,10 +90,10 @@ describe('writeChoreData', () => {
   });
 
   it('creates a backup before overwriting', async () => {
-    const original = { members: [{ id: '1', name: 'Original', color: '#000' }], chores: [] };
+    const original = { members: [{ id: '1', name: 'Original', emoji: '', color: '#000' }], chores: [] };
     await writeChoreData(original);
 
-    const updated = { members: [{ id: '2', name: 'Updated', color: '#111' }], chores: [] };
+    const updated = { members: [{ id: '2', name: 'Updated', emoji: '', color: '#111' }], chores: [] };
     await writeChoreData(updated);
 
     const bakRaw = await fs.readFile(path.join(tmpDir, 'data', 'chores.json.bak'), 'utf-8');
@@ -107,8 +107,8 @@ describe('writeChoreData', () => {
 
   it('serializes writes to avoid race conditions', async () => {
     // Write two values concurrently — the second should win
-    const data1 = { members: [{ id: '1', name: 'First', color: '#000' }], chores: [] };
-    const data2 = { members: [{ id: '2', name: 'Second', color: '#111' }], chores: [] };
+    const data1 = { members: [{ id: '1', name: 'First', emoji: '', color: '#000' }], chores: [] };
+    const data2 = { members: [{ id: '2', name: 'Second', emoji: '', color: '#111' }], chores: [] };
 
     const p1 = writeChoreData(data1);
     const p2 = writeChoreData(data2);
