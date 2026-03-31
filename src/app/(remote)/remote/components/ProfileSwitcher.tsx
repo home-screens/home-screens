@@ -7,10 +7,7 @@ interface ProfileSwitcherProps {
   activeProfile: string | null;
 }
 
-export default function ProfileSwitcher({
-  profiles,
-  activeProfile,
-}: ProfileSwitcherProps) {
+export default function ProfileSwitcher({ profiles, activeProfile }: ProfileSwitcherProps) {
   const { state, execute } = useCommand();
 
   const switchProfile = async (profileId: string) => {
@@ -25,12 +22,12 @@ export default function ProfileSwitcher({
   };
 
   return (
-    <section>
-      <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+    <section className="mt-7 mx-5">
+      <h2 className="text-[13px] font-semibold text-neutral-500 uppercase tracking-wider mb-3">
         Profiles
       </h2>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
         {profiles.map((p) => {
           const isActive = p.id === activeProfile;
           return (
@@ -38,13 +35,13 @@ export default function ProfileSwitcher({
               key={p.id}
               onClick={() => switchProfile(p.id)}
               disabled={state === 'pending'}
-              className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium transition-all active:scale-[0.98] ${
+              className={`shrink-0 px-[18px] py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
                 isActive
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40'
-                  : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
+                  ? 'bg-blue-500/[0.12] text-blue-400 border-blue-500/25'
+                  : 'bg-white/[0.03] text-neutral-400 border-white/[0.06]'
               }`}
             >
-              {isActive && <span className="mr-1">✓</span>}
+              {isActive && <span className="mr-1">&#10003;</span>}
               {p.name}
             </button>
           );

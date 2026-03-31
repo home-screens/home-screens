@@ -306,7 +306,7 @@ function FormOverlay({
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
           padding: '20px 16px',
-          paddingBottom: 'max(40px, env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {children}

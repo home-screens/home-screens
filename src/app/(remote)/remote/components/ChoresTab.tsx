@@ -388,7 +388,7 @@ export default function ChoresTab({ config }: ChoresTabProps) {
           </div>
 
           {/* Chore list */}
-          <div style={{ paddingBottom: 32 }}>
+          <div style={{ paddingBottom: 80 }}>
             {myAssignments.length === 0 && (
               <div style={{ textAlign: 'center', padding: '48px 0' }}>
                 <p style={{ fontSize: 14, color: '#525252' }}>No chores today!</p>

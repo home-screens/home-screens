@@ -8,7 +8,9 @@ export const dynamic = 'force-dynamic';
 export default async function RemotePage() {
   const config = await readConfig();
 
-  const screens = config.screens.map((s) => ({ id: s.id, name: s.name }));
+  const screens = config.screens
+    .filter((s) => s.enabled !== false)
+    .map((s) => ({ id: s.id, name: s.name }));
   const profiles = (config.profiles ?? []).map((p) => ({ id: p.id, name: p.name }));
   const activeProfile = config.settings.activeProfile;
 
