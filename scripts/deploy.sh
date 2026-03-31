@@ -62,17 +62,10 @@ rsync -azP --delete \
   --exclude '.git' \
   --exclude '*.tsbuildinfo' \
   --exclude '.env.local' \
-  --exclude 'data/config.json' \
-  --exclude 'data/google-tokens.json' \
-  --exclude 'data/client*' \
-  --exclude 'data/secrets.json' \
-  --exclude 'data/auth.json' \
-  --exclude 'data/backups' \
-  --exclude 'data/background-cache.json' \
-  --exclude 'data/chores.json' \
-  --exclude 'data/chore-completions.json' \
-  --exclude 'data/kiosk.conf' \
-  --exclude 'data/port.conf' \
+  --include 'data/plugins/' \
+  --include 'data/plugins/**' \
+  --include 'data/secrets.example.json' \
+  --exclude 'data/*' \
   --exclude 'public/backgrounds/*.jpg' \
   --exclude 'public/backgrounds/*.jpeg' \
   --exclude 'public/backgrounds/*.png' \

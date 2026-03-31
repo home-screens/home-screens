@@ -37,22 +37,9 @@ yarn-error.log*
 .env*
 !.env.local.example
 
-# runtime config
-data/config.json
-data/chores.json
-data/chore-completions.json
-data/google-tokens.json
-data/client*
-data/backups/
-data/background-cache.json
-data/todoist-token.txt
-data/secrets.json
-data/auth.json
-data/audit.log
-data/audit.log.1
-data/kiosk.conf
-data/telemetry.json
-data/plugins/
+# runtime data (deny-all, allow tracked files)
+data/*
+!data/secrets.example.json
 
 # user-uploaded backgrounds
 public/backgrounds/*
