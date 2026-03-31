@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { uuid } from '@/lib/uuid';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
@@ -52,7 +53,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
   const addCustom = () => {
     if (!newText.trim()) return;
     const entry: CustomAffirmation = {
-      id: crypto.randomUUID(),
+      id: uuid(),
       text: newText.trim(),
       attribution: newAttribution.trim() || undefined,
     };

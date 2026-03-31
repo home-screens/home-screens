@@ -15,6 +15,7 @@ import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 
 interface ChoreScale {
   bu: number;
+  width: number;
   orientation: 'portrait' | 'landscape';
   densityMul: number;
   typoMul: number;
@@ -127,6 +128,7 @@ export default function FullscreenChoreChartModule({
 
   const scale: ChoreScale = useMemo(() => ({
     bu: Math.min(dims.w, dims.h) / 100,
+    width: dims.w,
     orientation: getOrientation(dims.w, dims.h),
     densityMul: getDensityMultiplier(config.density),
     typoMul: getTypoMultiplier(config.typographySize),
@@ -301,6 +303,39 @@ export default function FullscreenChoreChartModule({
     );
   }
 
+  function renderMemberStrip(chipHeight: number, gap: number, containerStyle?: React.CSSProperties) {
+    // Calculate how many chips fit per row: each chip needs at least chipHeight * 2.2 width for name + avatar
+    const minChipWidth = chipHeight * 2.6;
+    // Estimate available width (landscape: members strip gets ~65%, portrait: full width minus padding)
+    const availableWidth = scale.orientation === 'landscape'
+      ? scale.width * 0.65
+      : scale.width - pad * 2;
+    const perRow = Math.max(1, Math.floor((availableWidth + gap) / (minChipWidth + gap)));
+    const rows: string[][] = [];
+    for (let i = 0; i < members.length; i += perRow) {
+      rows.push(members.slice(i, i + perRow).map((m) => m.id));
+    }
+    // Evenly distribute: if last row has fewer items, re-balance across rows
+    const rowCount = rows.length;
+    let balanced = rows;
+    if (rowCount > 1) {
+      const itemsPerRow = Math.ceil(members.length / rowCount);
+      balanced = [];
+      for (let i = 0; i < members.length; i += itemsPerRow) {
+        balanced.push(members.slice(i, i + itemsPerRow).map((m) => m.id));
+      }
+    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap, ...containerStyle }}>
+        {balanced.map((row, ri) => (
+          <div key={ri} style={{ display: 'flex', gap }}>
+            {row.map((id) => renderMemberChip(id, chipHeight))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   function renderMemberChip(memberId: string, chipHeight: number) {
     const member = memberMap.get(memberId);
     if (!member) return null;
@@ -471,8 +506,8 @@ export default function FullscreenChoreChartModule({
             </div>
           </div>
           {/* Members strip */}
-          <div style={{ display: 'flex', gap: s * 0.7, flex: 1, alignItems: 'center' }}>
-            {members.map((m) => renderMemberChip(m.id, s * 4))}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+            {renderMemberStrip(s * 4, s * 0.7)}
           </div>
         </div>
       ) : (
@@ -502,8 +537,8 @@ export default function FullscreenChoreChartModule({
               <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: s * 0.2, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: s * 0.7, padding: `${s * 0.8}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-subtle)' }}>
-            {members.map((m) => renderMemberChip(m.id, s * 5.5))}
+          <div style={{ padding: `${s * 0.8}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-subtle)' }}>
+            {renderMemberStrip(s * 5.5, s * 0.7)}
           </div>
         </>
       )}

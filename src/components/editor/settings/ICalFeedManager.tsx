@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { uuid } from '@/lib/uuid';
 import type { ICalSource } from '@/types/config';
 import Button from '@/components/ui/Button';
 
@@ -27,7 +28,7 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
   function addICalSource() {
     if (!newFeedName.trim() || !newFeedUrl.trim()) return;
     const newSource: ICalSource = {
-      id: crypto.randomUUID(),
+      id: uuid(),
       type: 'ical',
       name: newFeedName.trim(),
       url: newFeedUrl.trim(),

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { ChoreCompletion } from '@/types/config';
-import { withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +70,7 @@ export const GET = withDisplayAuth(async () => {
   return NextResponse.json({ completions: cleaned });
 }, 'Failed to read chore completions');
 
-export const POST = withAuth(async (request: NextRequest) => {
+export const POST = withDisplayAuth(async (request: NextRequest) => {
   const body = await request.json();
   const { choreId, memberId, date } = body as {
     choreId: string;

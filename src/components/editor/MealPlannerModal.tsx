@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { uuid } from '@/lib/uuid';
 import Button from '@/components/ui/Button';
 import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
@@ -382,7 +383,7 @@ export default function MealPlannerModal({
   }, [savedMeals, search]);
 
   const addMeal = (data: Omit<SavedMeal, 'id'>) => {
-    const newMeal: SavedMeal = { ...data, id: crypto.randomUUID() };
+    const newMeal: SavedMeal = { ...data, id: uuid() };
     onUpdate({ savedMeals: [...savedMeals, newMeal] });
     setShowAddForm(false);
   };

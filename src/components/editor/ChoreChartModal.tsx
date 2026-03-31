@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { uuid } from '@/lib/uuid';
 import Button from '@/components/ui/Button';
 import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type {
@@ -528,12 +529,15 @@ export default function ChoreChartModal({
   // Persist changes to shared file (debounced, skip until initial load completes)
   const isFirstChange = useRef(true);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const loadedRef = useRef(false);
   const membersRef = useRef(members);
   const choresRef = useRef(chores);
+  useEffect(() => { loadedRef.current = loaded; }, [loaded]);
   useEffect(() => { membersRef.current = members; }, [members]);
   useEffect(() => { choresRef.current = chores; }, [chores]);
 
   const flushSave = useCallback(() => {
+    if (!loadedRef.current) return;
     clearTimeout(saveTimerRef.current);
     fetch('/api/chores/data', {
       method: 'PUT',
@@ -551,7 +555,7 @@ export default function ChoreChartModal({
 
   // ── Member CRUD ──
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
-    setMembers((prev) => [...prev, { ...data, id: crypto.randomUUID() }]);
+    setMembers((prev) => [...prev, { ...data, id: uuid() }]);
     setShowAddMember(false);
   };
 
@@ -574,7 +578,7 @@ export default function ChoreChartModal({
 
   // ── Chore CRUD ──
   const addChore = (data: Omit<ChoreDefinition, 'id'>) => {
-    setChores((prev) => [...prev, { ...data, id: crypto.randomUUID() }]);
+    setChores((prev) => [...prev, { ...data, id: uuid() }]);
     setShowAddChore(false);
   };
 
