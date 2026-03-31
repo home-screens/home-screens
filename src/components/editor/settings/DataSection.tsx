@@ -15,13 +15,14 @@ interface DataSectionProps {
 }
 
 export default function DataSection({ onSettingsImported }: DataSectionProps) {
-  const { exportConfig, importConfig } = useEditorStore();
+  const { importConfig } = useEditorStore();
 
   const layoutInputRef = useRef<HTMLInputElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [importLayout, setImportLayout] = useState<LayoutExport | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
 
   const handleLayoutImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,17 +47,68 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     e.target.value = '';
   }, []);
 
+  const handleBackupExport = useCallback(async () => {
+    setBackupBusy(true);
+    try {
+      const res = await fetch('/api/backup');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const bundle = await res.json();
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      useConfirmStore.getState().alert('Failed to export backup.');
+    } finally {
+      setBackupBusy(false);
+    }
+  }, []);
+
   const handleBackupRestore = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
-        JSON.parse(reader.result as string);
+        const data = JSON.parse(reader.result as string);
+
+        // New bundle format — restore via API
+        if (data._type === 'home-screens-backup') {
+          setBackupBusy(true);
+          try {
+            const res = await fetch('/api/backup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: reader.result as string,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            // Reload the config into the editor store
+            const configRes = await fetch('/api/config');
+            if (configRes.ok) {
+              const config = await configRes.json();
+              importConfig(JSON.stringify(config));
+            }
+            onSettingsImported();
+          } finally {
+            setBackupBusy(false);
+          }
+          return;
+        }
+
+        // Legacy format: raw config object
+        const res = await fetch('/api/backup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: reader.result as string,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         importConfig(reader.result as string);
         onSettingsImported();
       } catch {
-        useConfirmStore.getState().alert('Invalid JSON file.');
+        useConfirmStore.getState().alert('Invalid backup file.');
       }
     };
     reader.readAsText(file);
@@ -108,14 +160,14 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             Full Backup
           </h3>
           <p className="text-xs text-neutral-500 mb-3">
-            Export or restore the entire configuration including all settings, location, calendars, and device preferences. For backup and device migration.
+            Export or restore the entire configuration including all settings, chore data, and completion history. For backup and device migration. Does not include API keys.
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={exportConfig}>
-              Backup Config
+            <Button variant="secondary" onClick={handleBackupExport} disabled={backupBusy}>
+              {backupBusy ? 'Working\u2026' : 'Backup All Data'}
             </Button>
-            <Button variant="secondary" onClick={() => backupInputRef.current?.click()}>
-              Restore Config
+            <Button variant="secondary" onClick={() => backupInputRef.current?.click()} disabled={backupBusy}>
+              Restore Backup
             </Button>
           </div>
         </section>

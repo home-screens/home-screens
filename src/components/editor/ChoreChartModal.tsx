@@ -532,6 +532,7 @@ export default function ChoreChartModal({
   const [members, setMembers] = useState<ChoreMember[]>([]);
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [showAddChore, setShowAddChore] = useState(false);
@@ -550,7 +551,7 @@ export default function ChoreChartModal({
         setChores(data.chores ?? []);
         setLoaded(true);
       })
-      .catch(() => setLoaded(true));
+      .catch(() => setLoadError(true));
   }, []);
 
   // Persist changes to shared file (debounced, skip until initial load completes)
@@ -625,6 +626,11 @@ export default function ChoreChartModal({
       maxWidth="max-w-6xl"
       onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
+      {loadError && (
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-red-900/40 border border-red-700/50 text-red-300 text-xs">
+          Failed to load chore data — changes won&apos;t be saved.
+        </div>
+      )}
       <div className="flex flex-1 min-h-0">
           {/* ── Left: Members ──────────────────────────── */}
           <div className="w-[260px] border-r border-neutral-700 flex flex-col">

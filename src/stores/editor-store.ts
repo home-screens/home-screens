@@ -64,7 +64,6 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
-  exportConfig: () => void;
   importConfig: (json: string) => void;
   exportLayout: (options?: { screenIds?: string[]; name?: string; description?: string }) => void;
   importLayoutAction: (layout: LayoutExport, options: { mode: 'add' | 'replace'; applyVisual?: boolean }) => void;
@@ -366,18 +365,6 @@ export const useEditorStore = create<EditorState>((set, get) => {
     mutateConfig((config) => ({
       config: { ...config, settings: { ...config.settings, activeProfile: id } },
     }), { coalesce: 'activeProfile' });
-  },
-
-  exportConfig: () => {
-    const { config } = get();
-    if (!config) return;
-    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'home-screen-config.json';
-    a.click();
-    URL.revokeObjectURL(url);
   },
 
   importConfig: (json: string) => {
