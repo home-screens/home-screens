@@ -48,6 +48,38 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 
 const TOD_ORDER: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
+/** Compute shortest unique initial for each member. Uses first letter when
+ *  unique; extends to 2–3 characters only where collisions exist. */
+function getUniqueInitials(memberList: { id: string; name: string }[]): Map<string, string> {
+  const result = new Map<string, string>();
+  let remaining = [...memberList];
+
+  for (let len = 1; len <= 3 && remaining.length > 0; len++) {
+    const groups = new Map<string, typeof remaining>();
+    for (const m of remaining) {
+      const prefix = m.name.slice(0, len);
+      const group = groups.get(prefix) ?? [];
+      group.push(m);
+      groups.set(prefix, group);
+    }
+
+    const next: typeof remaining = [];
+    for (const [prefix, group] of groups) {
+      if (group.length === 1) {
+        result.set(group[0].id, prefix);
+      } else {
+        next.push(...group);
+      }
+    }
+    remaining = next;
+  }
+  // Any still-colliding names get a 3-char prefix
+  for (const m of remaining) {
+    result.set(m.id, m.name.slice(0, 3));
+  }
+  return result;
+}
+
 function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay | null {
   if (hour < 12) return 'morning';
   if (hour < 17) return 'afternoon';
@@ -158,6 +190,9 @@ export default function FullscreenChoreChartModule({
     return map;
   }, [members]);
 
+  // Disambiguated initials (fallback when member has no emoji)
+  const initialsMap = useMemo(() => getUniqueInitials(members), [members]);
+
   const themeClass = scale.isDark ? 'fcc-dark' : 'fcc-light';
   const isLandscape = scale.orientation === 'landscape';
   const s = scale.bu * scale.typoMul;
@@ -209,6 +244,7 @@ export default function FullscreenChoreChartModule({
         </div>
       );
     }
+    const initial = initialsMap.get(assignee.memberId) ?? member.name[0];
     return (
       <div
         key={assignee.memberId}
@@ -222,11 +258,11 @@ export default function FullscreenChoreChartModule({
           alignItems: 'center',
           justifyContent: 'center',
           color: member.color,
-          fontSize: dotSize * 0.4,
+          fontSize: dotSize * (initial.length > 1 ? 0.32 : 0.4),
           fontWeight: 700,
         }}
       >
-        {member.name[0]}
+        {initial}
       </div>
     );
   }
@@ -243,6 +279,11 @@ export default function FullscreenChoreChartModule({
           borderTop: isFirst ? 'none' : '1px solid var(--fcc-border-subtle)',
         }}
       >
+        {row.choreEmoji && (
+          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            <ChoreIcon value={row.choreEmoji} size={fontSize * 1.15} color="var(--fcc-text-muted)" />
+          </span>
+        )}
         <span
           style={{
             flex: 1,
