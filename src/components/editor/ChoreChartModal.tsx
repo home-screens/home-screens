@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { uuid } from '@/lib/uuid';
+import { displayCache } from '@/lib/display-cache';
 import Button from '@/components/ui/Button';
 import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
 import type {
@@ -41,6 +42,18 @@ function IconPicker({
   icons: string[];
   label: string;
 }) {
+  const [search, setSearch] = useState('');
+  const showSearch = icons.length > 20;
+
+  const filtered = search
+    ? icons.filter((name) => {
+        const def = getIconDef(name);
+        if (!def) return false;
+        const q = search.toLowerCase();
+        return name.toLowerCase().includes(q) || def.label.toLowerCase().includes(q);
+      })
+    : icons;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -62,8 +75,18 @@ function IconPicker({
         )}
       </div>
 
+      {showSearch && (
+        <input
+          type="text"
+          placeholder="Filter icons..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className={INPUT}
+        />
+      )}
+
       <div className="flex flex-wrap gap-1.5">
-        {icons.map((name) => {
+        {filtered.map((name) => {
           const def = getIconDef(name);
           if (!def) return null;
           const lucideVal = toLucideValue(name);
@@ -92,6 +115,9 @@ function IconPicker({
             </button>
           );
         })}
+        {search && filtered.length === 0 && (
+          <span className="text-xs text-neutral-500 py-2">No matching icons</span>
+        )}
       </div>
     </div>
   );
@@ -510,6 +536,7 @@ export default function ChoreChartModal({
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
+  const [choreSearch, setChoreSearch] = useState('');
 
   // Fetch shared chore data on mount
   useEffect(() => {
@@ -596,7 +623,7 @@ export default function ChoreChartModal({
       title="Chore Chart"
       subtitle={`${members.length} members \u00b7 ${chores.length} chores`}
       maxWidth="max-w-6xl"
-      onClose={() => { flushSave(); onClose(); }}
+      onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
       <div className="flex flex-1 min-h-0">
           {/* ── Left: Members ──────────────────────────── */}
@@ -695,7 +722,31 @@ export default function ChoreChartModal({
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                 Chores
               </span>
+              {members.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddChore(true);
+                    setEditingChoreId(null);
+                  }}
+                  className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-700 text-neutral-200 hover:bg-neutral-600 transition-colors"
+                >
+                  + Add Chore
+                </button>
+              )}
             </div>
+
+            {chores.length > 5 && (
+              <div className="px-3 pt-2">
+                <input
+                  type="text"
+                  placeholder="Search chores..."
+                  value={choreSearch}
+                  onChange={(e) => setChoreSearch(e.target.value)}
+                  className={INPUT}
+                />
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
               {chores.length === 0 && !showAddChore && (
@@ -707,20 +758,16 @@ export default function ChoreChartModal({
                 </div>
               )}
 
-              {chores.map((chore) =>
-                editingChoreId === chore.id ? (
-                  <ChoreForm
-                    key={chore.id}
-                    initial={chore}
-                    members={members}
-                    submitLabel="Save"
-                    onSubmit={(data) => updateChore(chore.id, data)}
-                    onCancel={() => setEditingChoreId(null)}
-                  />
-                ) : (
+              {chores
+                .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
+                .map((chore) => (
                   <div
                     key={chore.id}
-                    className="group flex items-start gap-2.5 bg-neutral-800/40 hover:bg-neutral-800/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-neutral-700/50"
+                    className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
+                      editingChoreId === chore.id
+                        ? 'bg-neutral-700/50 border-neutral-600'
+                        : 'bg-neutral-800/40 hover:bg-neutral-800/70 border-transparent hover:border-neutral-700/50'
+                    }`}
                   >
                     <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-neutral-300">
                       {chore.emoji ? (
@@ -774,44 +821,35 @@ export default function ChoreChartModal({
                   </div>
                 ),
               )}
+            </div>
+          </div>
 
-              {showAddChore && (
+          {/* ── Right: Weekly Preview / Chore Form ────── */}
+          <div className={`${showAddChore || editingChoreId ? 'w-[450px]' : 'w-[280px]'} flex flex-col transition-all duration-200`}>
+            <div className="px-3 py-2 border-b border-neutral-700/50">
+              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                {showAddChore ? 'New Chore' : editingChoreId ? 'Edit Chore' : "This Week\u2019s Schedule"}
+              </span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3" style={{ scrollbarWidth: 'thin' }}>
+              {showAddChore ? (
                 <ChoreForm
                   members={members}
                   submitLabel="Add Chore"
                   onSubmit={addChore}
                   onCancel={() => setShowAddChore(false)}
                 />
-              )}
-            </div>
-
-            {!showAddChore && members.length > 0 && (
-              <div className="p-3 border-t border-neutral-700/50">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    setShowAddChore(true);
-                    setEditingChoreId(null);
-                  }}
-                >
-                  + Add Chore
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* ── Right: Weekly Preview ──────────────────── */}
-          <div className="w-[280px] flex flex-col">
-            <div className="px-3 py-2 border-b border-neutral-700/50">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                This Week&apos;s Schedule
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3" style={{ scrollbarWidth: 'thin' }}>
-              {chores.length === 0 || members.length === 0 ? (
+              ) : editingChoreId ? (
+                <ChoreForm
+                  key={editingChoreId}
+                  initial={chores.find((c) => c.id === editingChoreId)}
+                  members={members}
+                  submitLabel="Save"
+                  onSubmit={(data) => updateChore(editingChoreId, data)}
+                  onCancel={() => setEditingChoreId(null)}
+                />
+              ) : chores.length === 0 || members.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-2">
                   <p className="text-xs text-neutral-500 text-center">
                     Add members and chores to see the weekly schedule

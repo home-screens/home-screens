@@ -38,6 +38,12 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
       }
     }
 
+    // Re-fetch immediately when this URL's cache is invalidated
+    function onInvalidate(e: Event) {
+      if ((e as CustomEvent).detail === url) fetchAndCache();
+    }
+    window.addEventListener('displaycache:invalidate', onInvalidate);
+
     // Check cache INSIDE the effect (not at render time) to avoid stale closures
     const cached = displayCache.get<T>(url);
     if (cached) {
@@ -46,7 +52,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
       if (!cached.stale) {
         // Fresh cache — skip initial fetch, just set up polling
         const interval = setInterval(fetchAndCache, refreshMs);
-        return () => { controller.abort(); clearInterval(interval); };
+        return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
       }
       // Stale cache — show stale data, revalidate in background
     }
@@ -54,7 +60,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
     // Cold start or stale: fetch now
     fetchAndCache();
     const interval = setInterval(fetchAndCache, refreshMs);
-    return () => { controller.abort(); clearInterval(interval); };
+    return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
   }, [url, refreshMs]);
 
   return [data, error];

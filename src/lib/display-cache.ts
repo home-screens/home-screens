@@ -87,6 +87,14 @@ class DisplayDataCache {
     return p;
   }
 
+  /** Invalidate a single URL so subscribers re-fetch immediately. */
+  invalidate(url: string): void {
+    this.cache.delete(url);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('displaycache:invalidate', { detail: url }));
+    }
+  }
+
   /** Clear all entries and reset stats (call on config change) */
   clear(): void {
     this.generation++;
