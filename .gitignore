@@ -25,6 +25,7 @@
 *.pem
 .c*
 tailwind/*
+mockups/*
 
 # debug
 npm-debug.log*

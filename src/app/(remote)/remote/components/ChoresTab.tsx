@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Sunrise, Sun, Sunset, Clock, Check } from 'lucide-react';
-import type { ChoreChartConfig, ChoreCompletion, ChoreTimeOfDay } from '@/types/config';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Sunrise, Sun, Sunset, Clock, Check, Settings } from 'lucide-react';
+import type { ChoreChartConfig, ChoreMember, ChoreDefinition, ChoreCompletion, ChoreTimeOfDay } from '@/types/config';
 import {
   resolveAssignee,
   choreAppliesToday,
@@ -12,6 +12,7 @@ import {
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import ChoresManageView from './ChoresManageView';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -25,13 +26,68 @@ interface ChoresTabProps {
 }
 
 export default function ChoresTab({ config }: ChoresTabProps) {
-  const members = useMemo(() => config.members ?? [], [config.members]);
-  const chores = useMemo(() => config.chores ?? [], [config.chores]);
+  // ── Lifted state (shared between Today + Manage views) ──
+  const [members, setMembers] = useState<ChoreMember[]>(config.members ?? []);
+  const [chores, setChores] = useState<ChoreDefinition[]>(config.chores ?? []);
+  const [subView, setSubView] = useState<'today' | 'manage'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
+  // ── Debounced auto-save ──
+  // Only saves if the user actually made changes (dirty flag prevents
+  // unconditional writes on unmount from overwriting server data).
+  const isDirtyRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const membersRef = useRef(members);
+  const choresRef = useRef(chores);
+  useEffect(() => { membersRef.current = members; }, [members]);
+  useEffect(() => { choresRef.current = chores; }, [chores]);
+
+  const flushSave = useCallback(() => {
+    clearTimeout(saveTimerRef.current);
+    if (!isDirtyRef.current) return;
+    const m = membersRef.current;
+    const c = choresRef.current;
+    fetch('/api/chores/data', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        members: m,
+        chores: c,
+        force: m.length === 0 && c.length === 0,
+      }),
+    }).catch(() => {});
+  }, []);
+
+  // Wrap setters to mark dirty
+  const handleMembersChange = useCallback((next: ChoreMember[]) => {
+    isDirtyRef.current = true;
+    setMembers(next);
+  }, []);
+  const handleChoresChange = useCallback((next: ChoreDefinition[]) => {
+    isDirtyRef.current = true;
+    setChores(next);
+  }, []);
+
+  useEffect(() => {
+    if (!isDirtyRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(flushSave, 400);
+  }, [members, chores, flushSave]);
+
+  // Flush pending save on unmount (no-op if not dirty)
+  useEffect(() => () => { flushSave(); }, [flushSave]);
+
+  // ── Today view state ──
   const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
+
+  // Keep selectedMemberId valid when members change
+  useEffect(() => {
+    if (members.length > 0 && !members.find((m) => m.id === selectedMemberId)) {
+      setSelectedMemberId(members[0].id);
+    }
+  }, [members, selectedMemberId]);
 
   // Fetch completions
   const fetchCompletions = useCallback(async () => {
@@ -181,198 +237,287 @@ export default function ChoresTab({ config }: ChoresTabProps) {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa' }}>Chores</h2>
       </div>
 
-      {/* Member pills */}
-      <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
-        {members.map((member) => {
-          const isActive = member.id === selectedMemberId;
-          const tabStats = memberTabStats[member.id];
-          const allDone = (tabStats?.total ?? 0) > 0 && tabStats?.done === tabStats?.total;
-
-          return (
-            <button
-              key={member.id}
-              onClick={() => setSelectedMemberId(member.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 14px',
-                minHeight: 44,
-                borderRadius: 999,
-                border: `2px solid ${isActive ? member.color : 'transparent'}`,
-                background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
-                color: isActive ? member.color : 'rgba(255,255,255,0.6)',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                flexShrink: 0,
-                whiteSpace: 'nowrap' as const,
-                transition: 'all 0.15s',
-              }}
-            >
-              {member.emoji ? (
-                <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'rgba(255,255,255,0.6)'} />
-              ) : (
-                <span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>
-              )}
-              <span>{member.name}</span>
-              {allDone && <span style={{ fontSize: 12, marginLeft: -2 }}>&#10003;</span>}
-            </button>
-          );
-        })}
+      {/* Sub-nav: Today / Manage */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 2,
+          padding: 3,
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: 10,
+          marginTop: 12,
+          marginBottom: 16,
+        }}
+      >
+        <button
+          onClick={() => setSubView('today')}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            minHeight: 40,
+            fontSize: 13,
+            fontWeight: 600,
+            borderRadius: 8,
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            background: subView === 'today' ? 'rgba(255,255,255,0.08)' : 'transparent',
+            color: subView === 'today' ? '#e5e5e5' : '#525252',
+          }}
+        >
+          Today
+        </button>
+        <button
+          onClick={() => setSubView('manage')}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            minHeight: 40,
+            fontSize: 13,
+            fontWeight: 600,
+            borderRadius: 8,
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            background: subView === 'manage' ? 'rgba(255,255,255,0.08)' : 'transparent',
+            color: subView === 'manage' ? '#e5e5e5' : '#525252',
+          }}
+        >
+          Manage
+        </button>
       </div>
 
-      {/* Progress */}
-      <div style={{ padding: '0 0 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, color: '#737373' }}>
-            {totalDone}/{totalCount} complete
-          </span>
-          {totalCount > 0 && totalDone === totalCount && (
-            <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 500 }}>All done!</span>
-          )}
-        </div>
-        <div style={{ height: 8, background: '#262626', borderRadius: 4, overflow: 'hidden' }}>
-          <div
+      {subView === 'manage' ? (
+        <ChoresManageView
+          members={members}
+          chores={chores}
+          onMembersChange={handleMembersChange}
+          onChoresChange={handleChoresChange}
+        />
+      ) : members.length === 0 || chores.length === 0 ? (
+        /* Empty state */
+        <div style={{ textAlign: 'center', padding: '48px 16px' }}>
+          <Settings size={40} color="#333" style={{ marginBottom: 16 }} />
+          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>No chores set up yet</p>
+          <p style={{ fontSize: 13, color: '#525252', marginBottom: 20 }}>
+            Switch to Manage to add family members and chores.
+          </p>
+          <button
+            onClick={() => setSubView('manage')}
             style={{
-              height: '100%',
-              borderRadius: 4,
-              width: totalCount > 0 ? `${(totalDone / totalCount) * 100}%` : '0%',
-              backgroundColor: selectedMember?.color ?? accentColor,
-              transition: 'width 0.3s ease',
+              padding: '10px 24px',
+              minHeight: 44,
+              borderRadius: 10,
+              border: 'none',
+              cursor: 'pointer',
+              background: accentColor,
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 600,
             }}
-          />
+          >
+            Set Up Chores
+          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Member pills */}
+          <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+            {members.map((member) => {
+              const isActive = member.id === selectedMemberId;
+              const tabStats = memberTabStats[member.id];
+              const allDone = (tabStats?.total ?? 0) > 0 && tabStats?.done === tabStats?.total;
 
-      {/* Chore list */}
-      <div style={{ paddingBottom: 32 }}>
-        {myAssignments.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <p style={{ fontSize: 14, color: '#525252' }}>No chores today!</p>
-          </div>
-        )}
-
-        {(['morning', 'afternoon', 'evening', 'anytime'] as ChoreTimeOfDay[]).map((section) => {
-          const items = grouped.get(section);
-          if (!items?.length) return null;
-
-          const meta = TIME_OF_DAY_META[section];
-          const TodIcon = TOD_ICONS[section];
-          const isCurrent = section === currentTimeOfDay;
-          const sectionAllDone = items.every((a) => a.isCompleted);
-
-          return (
-            <div key={section} style={{ marginBottom: 16 }}>
-              {/* Section header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-                <TodIcon size={16} color={isCurrent ? accentColor : '#525252'} strokeWidth={2} />
-                <span
+              return (
+                <button
+                  key={member.id}
+                  className="press-scale"
+                  onClick={() => setSelectedMemberId(member.id)}
+                  aria-label={`${member.name}${allDone ? ' (all done)' : ''}`}
                   style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    textTransform: 'uppercase' as const,
-                    letterSpacing: '0.08em',
-                    color: isCurrent ? accentColor : '#525252',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    minHeight: 44,
+                    borderRadius: 999,
+                    border: `2px solid ${isActive ? member.color : 'transparent'}`,
+                    background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
+                    color: isActive ? member.color : 'rgba(255,255,255,0.6)',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap' as const,
+                    transition: 'all 0.15s',
                   }}
                 >
-                  {meta.label}
-                </span>
-                {sectionAllDone && (
-                  <span style={{ marginLeft: 'auto', fontSize: 12, color: '#22c55e' }}>&#10003;</span>
-                )}
+                  {member.emoji ? (
+                    <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'rgba(255,255,255,0.6)'} />
+                  ) : (
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>
+                  )}
+                  <span>{member.name}</span>
+                  {allDone && <span style={{ fontSize: 12, marginLeft: -2 }}>&#10003;</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Progress */}
+          <div style={{ padding: '0 0 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#737373' }}>
+                {totalDone}/{totalCount} complete
+              </span>
+              {totalCount > 0 && totalDone === totalCount && (
+                <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 500 }}>All done!</span>
+              )}
+            </div>
+            <div style={{ height: 8, background: '#262626', borderRadius: 4, overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  borderRadius: 4,
+                  width: totalCount > 0 ? `${(totalDone / totalCount) * 100}%` : '0%',
+                  backgroundColor: selectedMember?.color ?? accentColor,
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Chore list */}
+          <div style={{ paddingBottom: 32 }}>
+            {myAssignments.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                <p style={{ fontSize: 14, color: '#525252' }}>No chores today!</p>
               </div>
+            )}
 
-              {/* Chore cards */}
-              {items.map((assignment) => {
-                const key = completionKey(assignment.choreId, selectedMemberId, dateKey);
-                const isToggling = toggling.has(key);
-                const done = assignment.isCompleted;
+            {(['morning', 'afternoon', 'evening', 'anytime'] as ChoreTimeOfDay[]).map((section) => {
+              const items = grouped.get(section);
+              if (!items?.length) return null;
 
-                return (
-                  <button
-                    key={assignment.choreId}
-                    onClick={() => toggle(assignment.choreId)}
-                    disabled={isToggling}
-                    aria-label={`${done ? 'Completed' : 'Mark complete'}: ${assignment.choreName}`}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '14px 16px',
-                      background: done ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
-                      borderRadius: 12,
-                      marginBottom: 6,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      border: 'none',
-                      color: 'inherit',
-                      textAlign: 'left' as const,
-                      opacity: isToggling ? 0.6 : 1,
-                    }}
-                  >
-                    {/* Checkbox */}
-                    <div
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        transition: 'all 0.15s',
-                        background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
-                        border: done ? 'none' : '2px solid rgba(255,255,255,0.2)',
-                      }}
-                    >
-                      {done && <Check size={16} color="white" strokeWidth={2.5} />}
-                    </div>
+              const meta = TIME_OF_DAY_META[section];
+              const TodIcon = TOD_ICONS[section];
+              const isCurrent = section === currentTimeOfDay;
+              const sectionAllDone = items.every((a) => a.isCompleted);
 
-                    {/* Icon */}
-                    {assignment.choreEmoji && (
-                      <span style={{ flexShrink: 0 }}>
-                        <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? '#525252' : '#a3a3a3'} />
-                      </span>
-                    )}
-
-                    {/* Name */}
+              return (
+                <div key={section} style={{ marginBottom: 16 }}>
+                  {/* Section header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
+                    <TodIcon size={16} color={isCurrent ? accentColor : '#525252'} strokeWidth={2} />
                     <span
                       style={{
-                        flex: 1,
-                        fontSize: 15,
-                        fontWeight: 500,
-                        textDecoration: done ? 'line-through' : 'none',
-                        color: done ? '#525252' : '#e5e5e5',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        textTransform: 'uppercase' as const,
+                        letterSpacing: '0.08em',
+                        color: isCurrent ? accentColor : '#525252',
                       }}
                     >
-                      {assignment.choreName}
+                      {meta.label}
                     </span>
+                    {sectionAllDone && (
+                      <span style={{ marginLeft: 'auto', fontSize: 12, color: '#22c55e' }}>&#10003;</span>
+                    )}
+                  </div>
 
-                    {/* Points */}
-                    {config.showPoints && assignment.points > 1 && (
-                      <span
+                  {/* Chore cards */}
+                  {items.map((assignment) => {
+                    const key = completionKey(assignment.choreId, selectedMemberId, dateKey);
+                    const isToggling = toggling.has(key);
+                    const done = assignment.isCompleted;
+
+                    return (
+                      <button
+                        key={assignment.choreId}
+                        className="press-scale"
+                        onClick={() => toggle(assignment.choreId)}
+                        disabled={isToggling}
+                        aria-label={`${done ? 'Completed' : 'Mark complete'}: ${assignment.choreName}`}
                         style={{
-                          fontSize: 11,
-                          flexShrink: 0,
-                          padding: '2px 8px',
-                          borderRadius: 999,
-                          background: 'rgba(255,255,255,0.08)',
-                          color: '#525252',
-                          opacity: done ? 0.3 : 1,
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          padding: '14px 16px',
+                          background: done ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+                          borderRadius: 12,
+                          marginBottom: 6,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                          border: 'none',
+                          color: 'inherit',
+                          textAlign: 'left' as const,
+                          opacity: isToggling ? 0.6 : 1,
                         }}
                       >
-                        {assignment.points}pt
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
+                        {/* Checkbox */}
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            transition: 'all 0.15s',
+                            background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
+                            border: done ? 'none' : '2px solid rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          {done && <Check size={16} color="white" strokeWidth={2.5} />}
+                        </div>
+
+                        {/* Icon */}
+                        {assignment.choreEmoji && (
+                          <span style={{ flexShrink: 0 }}>
+                            <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? '#525252' : '#a3a3a3'} />
+                          </span>
+                        )}
+
+                        {/* Name */}
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: 15,
+                            fontWeight: 500,
+                            textDecoration: done ? 'line-through' : 'none',
+                            color: done ? '#525252' : '#e5e5e5',
+                          }}
+                        >
+                          {assignment.choreName}
+                        </span>
+
+                        {/* Points */}
+                        {config.showPoints && assignment.points > 1 && (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              flexShrink: 0,
+                              padding: '2px 8px',
+                              borderRadius: 999,
+                              background: 'rgba(255,255,255,0.08)',
+                              color: '#525252',
+                              opacity: done ? 0.3 : 1,
+                            }}
+                          >
+                            {assignment.points}pt
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

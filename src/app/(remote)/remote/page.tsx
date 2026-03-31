@@ -25,9 +25,11 @@ export default async function RemotePage() {
   }
 
   // Read shared chore data; assemble a ChoreChartConfig-compatible object
+  // Show chores tab whenever a chore module exists (even with empty data) so
+  // users can manage members/chores from mobile
   const choreData = await readChoreData();
   const choreConfig: ChoreChartConfig | null =
-    choreData.members.length > 0 && choreData.chores.length > 0
+    modConfig !== null
       ? {
           ...choreData,
           weekStartDay: (modConfig?.weekStartDay as 'sunday' | 'monday') ?? 'monday',

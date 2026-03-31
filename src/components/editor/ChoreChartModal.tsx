@@ -21,6 +21,7 @@ import {
   resolveAssignee,
   choreAppliesToday,
   localDateStr,
+  cascadeDeleteMember,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon, {
   MEMBER_ICONS,
@@ -593,15 +594,9 @@ export default function ChoreChartModal({
   };
 
   const deleteMember = (id: string) => {
-    setMembers((prev) => prev.filter((m) => m.id !== id));
-    setChores((prev) =>
-      prev
-        .map((c) => ({
-          ...c,
-          assigneeIds: c.assigneeIds.filter((a) => a !== id),
-        }))
-        .filter((c) => c.assigneeIds.length > 0),
-    );
+    const result = cascadeDeleteMember(members, chores, id);
+    setMembers(result.members);
+    setChores(result.chores);
   };
 
   // ── Chore CRUD ──

@@ -20,9 +20,11 @@ export default async function ChoresPage() {
     if (modConfig) break;
   }
 
+  // Show chores page whenever a chore module exists (even with empty data)
+  // so users can manage members/chores from mobile
   const choreData = await readChoreData();
   const choreConfig: ChoreChartConfig | null =
-    choreData.members.length > 0 && choreData.chores.length > 0
+    modConfig !== null
       ? {
           ...choreData,
           weekStartDay: (modConfig?.weekStartDay as 'sunday' | 'monday') ?? 'monday',
@@ -38,7 +40,7 @@ export default async function ChoresPage() {
   if (!choreConfig) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-500 text-sm p-6 text-center">
-        No chores configured. Add a Chore Chart module in the editor and set up members and chores.
+        No chores configured. Add a Chore Chart module in the editor to get started.
       </div>
     );
   }

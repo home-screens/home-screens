@@ -81,3 +81,25 @@ body {
   z-index: 9997;
 }
 
+/* ============================================================================
+   Mobile tap feedback — inline styles can't express :active, so these utility
+   classes provide press-state transforms matching the remote-chores mockup.
+   ============================================================================ */
+
+.press-scale:active {
+  transform: scale(0.98);
+}
+
+.press-scale-sm:active {
+  transform: scale(0.95);
+}
+
+.press-scale-xs:active {
+  transform: scale(0.9);
+}
+
+.press-btn:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+

@@ -9,9 +9,10 @@ import {
   completionKey,
   todayStr,
   dateNDaysAgo,
+  cascadeDeleteMember,
   type ResolvedAssignment,
 } from '../types';
-import type { ChoreDefinition } from '@/types/config';
+import type { ChoreDefinition, ChoreMember } from '@/types/config';
 
 function makeChore(overrides: Partial<ChoreDefinition> = {}): ChoreDefinition {
   return {
@@ -250,5 +251,58 @@ describe('getCurrentTimeOfDay', () => {
 describe('completionKey', () => {
   it('builds a hyphen-separated key', () => {
     expect(completionKey('chore-1', 'alice', '2026-03-15')).toBe('chore-1-alice-2026-03-15');
+  });
+});
+
+describe('cascadeDeleteMember', () => {
+  const makeMember = (id: string, name: string): ChoreMember => ({
+    id,
+    name,
+    emoji: '',
+    color: '#fff',
+  });
+
+  it('removes the member from the members list', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
+    const chores = [makeChore({ id: 'c1', assigneeIds: ['a'] })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.members).toEqual([makeMember('b', 'Bob')]);
+  });
+
+  it('removes the member from all chore assigneeIds', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
+    const chores = [makeChore({ id: 'c1', assigneeIds: ['a', 'b'] })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.chores[0].assigneeIds).toEqual(['b']);
+  });
+
+  it('deletes chores with no remaining assignees', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
+    const chores = [
+      makeChore({ id: 'c1', assigneeIds: ['a'] }),
+      makeChore({ id: 'c2', assigneeIds: ['a', 'b'] }),
+    ];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.chores).toHaveLength(1);
+    expect(result.chores[0].id).toBe('c2');
+    expect(result.chores[0].assigneeIds).toEqual(['b']);
+  });
+
+  it('returns empty chores when deleting the last member', () => {
+    const members = [makeMember('a', 'Alice')];
+    const chores = [
+      makeChore({ id: 'c1', assigneeIds: ['a'] }),
+      makeChore({ id: 'c2', assigneeIds: ['a'] }),
+    ];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.members).toEqual([]);
+    expect(result.chores).toEqual([]);
+  });
+
+  it('leaves unrelated chores untouched', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
+    const chores = [makeChore({ id: 'c1', assigneeIds: ['b'] })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.chores).toEqual(chores);
   });
 });

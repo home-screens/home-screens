@@ -1,4 +1,5 @@
 import type {
+  ChoreMember,
   ChoreDefinition,
   ChoreTimeOfDay,
 } from '@/types/config';
@@ -145,4 +146,21 @@ export function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay {
 /** Build a completion lookup key */
 export function completionKey(choreId: string, memberId: string, date: string): string {
   return `${choreId}-${memberId}-${date}`;
+}
+
+/**
+ * Remove a member and cascade: strip them from all chore assigneeIds,
+ * then delete any chores left with no assignees.
+ */
+export function cascadeDeleteMember(
+  members: ChoreMember[],
+  chores: ChoreDefinition[],
+  memberId: string,
+): { members: ChoreMember[]; chores: ChoreDefinition[] } {
+  return {
+    members: members.filter((m) => m.id !== memberId),
+    chores: chores
+      .map((c) => ({ ...c, assigneeIds: c.assigneeIds.filter((a) => a !== memberId) }))
+      .filter((c) => c.assigneeIds.length > 0),
+  };
 }
