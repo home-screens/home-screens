@@ -26,6 +26,7 @@ The recommended way to run Home Screens. The install script sets up everything o
 ### Install
 
 ```bash
+sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh
 ```

@@ -39,6 +39,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 Built for [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/). Desktop also works.
 
 ```bash
+sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 
 # Raspberry Pi OS Lite (default)

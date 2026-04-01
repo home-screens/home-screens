@@ -44,6 +44,7 @@ Home Screens is built with Next.js 16, React 19, and Tailwind CSS. Configuration
 **Raspberry Pi** (recommended) — run the install script on a fresh Raspberry Pi OS:
 
 ```bash
+sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh
 ```
