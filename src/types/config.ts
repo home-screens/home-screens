@@ -799,6 +799,7 @@ export interface FullscreenChoreChartConfig {
   showPoints: boolean;
   showStreaks: boolean;
   showTimeOfDay: boolean;
+  allowDisplayComplete: boolean;
   darkMode: boolean;
   density: 'cozy' | 'snug';
   typographySize: 'small' | 'medium' | 'large' | 'extra-large';

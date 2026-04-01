@@ -103,3 +103,8 @@ body {
   opacity: 0.8;
 }
 
+.press-dot:active {
+  transform: scale(0.88);
+  opacity: 0.7;
+}
+

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ChoreMember, ChoreDefinition, ChoreCompletion } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
+import { displayFetch } from '@/lib/display-fetch';
 import {
   type ResolvedAssignment,
   type MemberStats,
@@ -256,7 +257,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     });
 
     try {
-      const res = await fetch('/api/chores', {
+      const res = await displayFetch('/api/chores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ choreId, memberId, date: today }),

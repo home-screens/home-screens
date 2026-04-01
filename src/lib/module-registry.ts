@@ -696,6 +696,7 @@ registerModule({
     showPoints: true,
     showStreaks: true,
     showTimeOfDay: true,
+    allowDisplayComplete: true,
     darkMode: true,
     density: 'cozy',
     typographySize: 'medium',

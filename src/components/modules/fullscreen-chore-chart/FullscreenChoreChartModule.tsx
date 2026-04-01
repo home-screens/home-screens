@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { Sunrise, Sun, Sunset, Clock, Flame, Star, Check } from 'lucide-react';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
@@ -11,6 +11,7 @@ import {
   TIME_OF_DAY_META,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import ChoreToast, { type ToastItem } from './ChoreToast';
 
 // ─── Types ───
 
@@ -173,8 +174,31 @@ export default function FullscreenChoreChartModule({
     isDark: theme.isDark,
   }), [dims, config.density, config.typographySize, theme.isDark]);
 
-  const { todayAssignments, memberStats, weekData, members } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, toggleComplete } = useChoreData(config);
+  const allowTouch = config.allowDisplayComplete ?? true;
   const currentTod = getCurrentTimeOfDay(new Date().getHours());
+
+  // Toast state for completion feedback
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastIdRef = useRef(0);
+  const toastsRef = useRef(toasts);
+  toastsRef.current = toasts;
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const handleToggle = useCallback((choreId: string, memberId: string, choreName: string, memberName: string, memberColor: string, wasCompleted: boolean) => {
+    toggleComplete(choreId, memberId);
+    const id = String(++toastIdRef.current);
+    setToasts((prev) => [...prev.slice(-2), { id, choreId, memberId, choreName, memberName, memberColor, wasCompleted: !wasCompleted }]);
+  }, [toggleComplete]);
+
+  const handleUndo = useCallback((toastId: string) => {
+    const toast = toastsRef.current.find((t) => t.id === toastId);
+    if (toast) toggleComplete(toast.choreId, toast.memberId);
+    setToasts((prev) => prev.filter((t) => t.id !== toastId));
+  }, [toggleComplete]);
 
   // Build chore rows grouped by time-of-day
   const choreGroups = useMemo(() => buildChoreRows(todayAssignments), [todayAssignments]);
@@ -227,14 +251,23 @@ export default function FullscreenChoreChartModule({
   function renderAssigneeDot(
     assignee: { memberId: string; isCompleted: boolean },
     dotSize: number,
+    choreId: string,
+    choreName: string,
   ) {
     const member = memberMap.get(assignee.memberId);
     if (!member) return null;
     const iconSz = dotSize * 0.55;
+    const initial = initialsMap.get(assignee.memberId) ?? member.name[0];
+
     if (assignee.isCompleted) {
       return (
         <div
           key={assignee.memberId}
+          className={allowTouch ? 'press-dot' : undefined}
+          role={allowTouch ? 'button' : undefined}
+          tabIndex={allowTouch ? 0 : undefined}
+          onClick={allowTouch ? () => handleToggle(choreId, assignee.memberId, choreName, member.name, member.color, assignee.isCompleted) : undefined}
+          aria-label={allowTouch ? `Undo ${choreName} for ${member.name}` : undefined}
           style={{
             width: dotSize,
             height: dotSize,
@@ -243,16 +276,21 @@ export default function FullscreenChoreChartModule({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            cursor: allowTouch ? 'pointer' : 'default',
           }}
         >
           <Check size={iconSz} color="white" strokeWidth={3} />
         </div>
       );
     }
-    const initial = initialsMap.get(assignee.memberId) ?? member.name[0];
     return (
       <div
         key={assignee.memberId}
+        className={allowTouch ? 'press-dot' : undefined}
+        role={allowTouch ? 'button' : undefined}
+        tabIndex={allowTouch ? 0 : undefined}
+        onClick={allowTouch ? () => handleToggle(choreId, assignee.memberId, choreName, member.name, member.color, assignee.isCompleted) : undefined}
+        aria-label={allowTouch ? `Complete ${choreName} for ${member.name}` : undefined}
         style={{
           width: dotSize,
           height: dotSize,
@@ -265,6 +303,7 @@ export default function FullscreenChoreChartModule({
           color: member.color,
           fontSize: dotSize * (initial.length > 1 ? 0.32 : 0.4),
           fontWeight: 700,
+          cursor: allowTouch ? 'pointer' : 'default',
         }}
       >
         {initial}
@@ -305,8 +344,8 @@ export default function FullscreenChoreChartModule({
             </span>
           )}
         </span>
-        <div style={{ display: 'flex', gap: dotSize * 0.2, flexShrink: 0 }}>
-          {row.assignees.map((a) => renderAssigneeDot(a, dotSize))}
+        <div style={{ display: 'flex', gap: Math.max(dotSize * 0.2, 8), flexShrink: 0 }}>
+          {row.assignees.map((a) => renderAssigneeDot(a, dotSize, row.choreId, row.choreName))}
         </div>
       </div>
     );
@@ -624,7 +663,7 @@ export default function FullscreenChoreChartModule({
                   </div>
                 )}
                 {/* Column body */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: `${fontSize * 0.3}px ${fontSize * 0.5}px`, scrollbarWidth: 'none' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: `${fontSize * 0.3}px ${fontSize * 0.5}px`, scrollbarWidth: 'none', touchAction: 'manipulation' }}>
                   {rows.map((row, i) => renderChoreRow(row, fontSize, dotSize, i === 0))}
                 </div>
               </div>
@@ -633,7 +672,7 @@ export default function FullscreenChoreChartModule({
         </div>
       ) : (
         /* Portrait: stacked time-of-day bands */
-        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${pad}px`, scrollbarWidth: 'none', minHeight: 0 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${pad}px`, scrollbarWidth: 'none', minHeight: 0, touchAction: 'manipulation' }}>
           {displayTods.map((tod) => {
             const rows = displayGroups.get(tod) ?? [];
             const fontSize = s * 1.2;
@@ -693,6 +732,9 @@ export default function FullscreenChoreChartModule({
           )}
         </div>
       </div>
+
+      {/* Touch completion toasts */}
+      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} />}
     </div>
   );
 }

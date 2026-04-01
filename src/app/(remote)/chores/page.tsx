@@ -31,7 +31,7 @@ export default async function ChoresPage() {
           showPoints: (modConfig?.showPoints as boolean) ?? true,
           showStreaks: (modConfig?.showStreaks as boolean) ?? true,
           showTimeOfDay: (modConfig?.showTimeOfDay as boolean) ?? true,
-          allowDisplayComplete: (modConfig?.allowDisplayComplete as boolean) ?? true,
+          allowDisplayComplete: true, // always allow on phone — display toggle is kiosk-only
           accentColor: (modConfig?.accentColor as string) ?? '#f59e0b',
           view: 'board',
         }

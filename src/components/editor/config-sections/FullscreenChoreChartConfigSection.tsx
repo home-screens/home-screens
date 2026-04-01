@@ -101,6 +101,11 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         checked={c.showTimeOfDay ?? true}
         onChange={(v) => set({ showTimeOfDay: v })}
       />
+      <Toggle
+        label="Tap to Complete (Display)"
+        checked={c.allowDisplayComplete ?? true}
+        onChange={(v) => set({ allowDisplayComplete: v })}
+      />
 
       {/* Accent Color */}
       <ColorPicker
@@ -127,7 +132,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
       {/* Mobile hint */}
       <p className="text-[11px] text-neutral-600 leading-relaxed">
-        Family members can check off chores from their phone via the Chores tab at{' '}
+        Family members can check off chores on the touchscreen or from their phone via the Chores tab at{' '}
         <span className="text-neutral-400">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 

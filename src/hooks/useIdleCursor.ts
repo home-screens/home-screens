@@ -28,9 +28,11 @@ export function useIdleCursor(idleSeconds = 3) {
     hide();
 
     el.addEventListener('mousemove', show);
+    el.addEventListener('touchstart', show, { passive: true });
     return () => {
       clearTimeout(timer);
       el.removeEventListener('mousemove', show);
+      el.removeEventListener('touchstart', show);
       el.classList.remove('cursor-idle');
     };
   }, [idleSeconds]);
