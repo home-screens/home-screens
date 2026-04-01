@@ -51,7 +51,7 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-neutral-400">
-              A self-hosted smart display that runs on a Raspberry Pi. 36 modules, a
+              A self-hosted smart display that runs on a Raspberry Pi. 38 modules, a
               visual drag-and-drop editor, and zero cloud dependency.
             </p>
 
@@ -94,6 +94,9 @@ export function Hero() {
                 { src: '/images/display-1.jpg', alt: 'Family dashboard with clock, calendar, weather, and garbage schedule' },
                 { src: '/images/display-2.jpg', alt: 'Easter countdown with forecast and affirmations' },
                 { src: '/images/display-3.jpg', alt: 'Finance display with stocks, NHL standings, and word of the day' },
+                { src: '/images/display-4.jpg', alt: 'Fullscreen chore chart with family members, time-of-day bands, and star chart' },
+                { src: '/images/display-5.jpg', alt: 'Fullscreen meal planner showing weekly meal schedule' },
+                { src: '/images/display-6.jpg', alt: 'Fullscreen calendar with weekly schedule view and color-coded events' },
               ]}
               interval={6000}
             />

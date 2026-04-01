@@ -3,10 +3,111 @@ title: Modules Reference
 nextjs:
   metadata:
     title: Modules Reference
-    description: All 36 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
+    description: All 38 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
 ---
 
-Home Screens includes 36 built-in modules organized into 7 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes 38 built-in modules organized into 8 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+
+## Full Screen
+
+These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag — position, size, and style controls are hidden in the editor since the module always occupies the full display area.
+
+### Full-Screen Calendar
+
+A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Requires Google Calendar to be configured in Settings.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
+| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, or `large` |
+| `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
+| `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
+| `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
+| `showWeather` | boolean | `true` | Show weather data alongside calendar events |
+| `showNowLine` | boolean | `true` | Show a line indicating the current time |
+| `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
+| `darkMode` | boolean | `false` | Use dark color scheme |
+| `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
+| `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
+| `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
+| `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
+| `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
+| `monthMaxEventsPerCell` | number | `0` | Max events per cell in month grid (0 = auto) |
+| `dayHourStart` | number | `6` | Day timeline view start hour |
+| `dayHourEnd` | number | `22` | Day timeline view end hour |
+| `dayShowLocation` | boolean | `true` | Show event locations in day timeline view |
+| `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
+| `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
+
+**View details:**
+
+- **schedule** — Multi-day time grid with events positioned by start/end time. Shows a "now" line and supports configurable hour range.
+- **week-list** — Day-by-day vertical list of the current week's events with collapsible past days.
+- **month-grid** — Traditional month calendar grid with event dots/names in each cell and today highlighted.
+- **day-timeline** — Single-day vertical timeline with event blocks, location details, and hour markers.
+- **agenda** — Scrollable list of upcoming events across multiple days, grouped by date.
+
+### Full-Screen Chore Chart
+
+A fullscreen ambient chore chart display designed to fill the entire screen. Reads members and chores from shared data (`data/chores.json`) so the fullscreen display, widget views, and remote Chores tab all share the same source of truth. Automatically sizes to the display dimensions and pins to position (0,0).
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
+| `showPoints` | boolean | `true` | Show point values for chores |
+| `showStreaks` | boolean | `true` | Show completion streaks |
+| `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
+| `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
+| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
+| `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
+
+**Layout details:**
+
+- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking.
+- **Landscape** — Top bar with date and member chips, three-column layout for morning/afternoon/evening, and a horizontal star chart in the footer.
+
+### Full-Screen Meal Planner
+
+A fullscreen ambient meal planner display that shows the weekly meal schedule at a glance. Reads from the same meal data as the standard meal planner widget. Supports light/dark themes with multiple color palettes.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"week"` | Display style: `week`, `today`, `menu-board`, or `next-meal` |
+| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
+| `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
+| `slots` | array | `["breakfast", "lunch", "dinner"]` | Enabled meal slots (options: `breakfast`, `lunch`, `dinner`, `snack`) |
+| `showPrepTime` | boolean | `true` | Show prep time in minutes |
+| `showTags` | boolean | `true` | Show meal tags |
+| `showEmoji` | boolean | `true` | Show meal emoji |
+| `showDifficulty` | boolean | `true` | Show difficulty indicator |
+| `theme` | string | — | Color theme preset |
+
+**View details:**
+
+- **week** — Full 7-day grid with meal cards organized by slot, today highlighted.
+- **today** — Focused view of today's meals with large cards and details.
+- **menu-board** — Restaurant-style board layout for displaying the week's menu.
+- **next-meal** — Large display of the next upcoming meal with context label.
+
+### Full-Screen Photo Viewer
+
+A fullscreen digital photo frame that cycles through photos from a local directory. Supports transitions, shuffle, and an optional clock overlay.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `directory` | string | `""` | Path to local photo directory |
+| `intervalMs` | number | `30000` | Time between photos in milliseconds |
+| `transition` | string | `"fade"` | Transition effect: `fade`, `slide`, `zoom`, or `none` |
+| `objectFit` | string | `"cover"` | Image fit mode: `cover`, `contain`, or `fill` |
+| `shuffle` | boolean | `false` | Randomize photo order |
+| `showClock` | boolean | `true` | Show clock overlay on photos |
+| `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
+
+---
 
 ## Time & Date
 
@@ -46,44 +147,6 @@ Shows upcoming events from Google Calendar with multiple view modes.
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 
 Requires Google Calendar to be configured in Settings. Supports multiple calendars with color-coding.
-
-### Full-Screen Calendar
-
-A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Requires Google Calendar to be configured in Settings.
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
-| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, or `large` |
-| `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
-| `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
-| `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
-| `showWeather` | boolean | `true` | Show weather data alongside calendar events |
-| `showNowLine` | boolean | `true` | Show a line indicating the current time |
-| `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
-| `darkMode` | boolean | `false` | Use dark color scheme |
-| `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
-| `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
-| `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
-| `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
-| `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
-| `monthMaxEventsPerCell` | number | `0` | Max events per cell in month grid (0 = auto) |
-| `dayHourStart` | number | `6` | Day timeline view start hour |
-| `dayHourEnd` | number | `22` | Day timeline view end hour |
-| `dayShowLocation` | boolean | `true` | Show event locations in day timeline view |
-| `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
-| `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
-
-**View details:**
-
-- **schedule** — Multi-day time grid with events positioned by start/end time. Shows a "now" line and supports configurable hour range.
-- **week-list** — Day-by-day vertical list of the current week's events with collapsible past days.
-- **month-grid** — Traditional month calendar grid with event dots/names in each cell and today highlighted.
-- **day-timeline** — Single-day vertical timeline with event blocks, location details, and hour markers.
-- **agenda** — Scrollable list of upcoming events across multiple days, grouped by date.
-
-This module uses the `fillsCanvas` flag — it automatically occupies the full display area. Position, size, and style controls are hidden in the editor since the module always fills the screen.
 
 ### Countdown
 
@@ -510,28 +573,6 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 - **today** — Today's chores only, grouped by time of day.
 - **progress** — Progress bars showing completion rates per member.
 - **compact** — Condensed view for small widget sizes.
-
-### Full-Screen Chore Chart
-
-A fullscreen ambient chore chart display designed to fill the entire screen. Reads members and chores from shared data (`data/chores.json`) so the fullscreen display, widget views, and remote Chores tab all share the same source of truth. Automatically sizes to the display dimensions and pins to position (0,0).
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
-| `showPoints` | boolean | `true` | Show point values for chores |
-| `showStreaks` | boolean | `true` | Show completion streaks |
-| `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
-| `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
-| `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
-| `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
-
-**Layout details:**
-
-- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking.
-- **Landscape** — Top bar with date and member chips, three-column layout for morning/afternoon/evening, and a horizontal star chart in the footer.
-
-This module uses the `fillsCanvas` flag — it automatically occupies the full display area. Position, size, and style controls are hidden in the editor since the module always fills the screen.
 
 ---
 

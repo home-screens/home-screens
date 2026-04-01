@@ -4,6 +4,7 @@ import { Hero } from '@/components/Hero';
 import { FeaturesBento } from '@/components/FeaturesBento';
 import { ModuleShowcase } from '@/components/ModuleShowcase';
 import { EditorExperience } from '@/components/EditorExperience';
+import { RemoteShowcase } from '@/components/RemoteShowcase';
 import { TemplatesGallery } from '@/components/TemplatesGallery';
 import { HowItWorks } from '@/components/HowItWorks';
 import { OpenSourceCTA } from '@/components/OpenSourceCTA';
@@ -13,13 +14,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Home Screens — Smart Display for Your Home',
     description:
-      'An open-source smart display system for Raspberry Pi. 36 built-in modules, drag-and-drop editor, plugin system. Free forever.',
+      'An open-source smart display system for Raspberry Pi. 38 built-in modules, drag-and-drop editor, plugin system. Free forever.',
     url: 'https://homescreens.dev',
   },
   twitter: {
     title: 'Home Screens — Smart Display for Your Home',
     description:
-      'An open-source smart display for Raspberry Pi. 36 modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.',
+      'An open-source smart display for Raspberry Pi. 38 modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.',
   },
   alternates: {
     canonical: 'https://homescreens.dev',
@@ -35,6 +36,7 @@ export default function Home() {
         <FeaturesBento />
         <ModuleShowcase />
         <EditorExperience />
+        <RemoteShowcase />
         <TemplatesGallery />
         <HowItWorks />
         <OpenSourceCTA />

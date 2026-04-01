@@ -16,7 +16,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Features
 
-- **35 built-in modules** — clock (18 views), calendar, fullscreen calendar (5 views), weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), meal planner (5 views), chore chart (5 views), and iframe
+- **38 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), meal planner (5 views), chore chart (5 views), iframe, and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
 - **Drag-and-drop editor** — visually arrange modules on a configurable canvas
 - **Multi-screen rotation** — cycle through screens with 8 transition effects
 - **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free), and Open-Meteo (free)
@@ -172,7 +172,7 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 
 - [Getting Started](https://homescreens.dev/docs/getting-started) — installation and setup
 - [Editor Guide](https://homescreens.dev/docs/editor) — visual editor walkthrough
-- [Modules](https://homescreens.dev/docs/modules) — all 35 modules and their options
+- [Modules](https://homescreens.dev/docs/modules) — all 38 modules and their options
 - [Backgrounds](https://homescreens.dev/docs/backgrounds) — uploads, Unsplash, NASA APOD, rotation
 - [Profiles & Scheduling](https://homescreens.dev/docs/profiles) — automation and time-based layouts
 - [Configuration](https://homescreens.dev/docs/configuration) — JSON schema reference

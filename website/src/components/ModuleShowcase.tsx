@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Clock, CalendarDays, Hourglass, Calendar, BarChart3, CalendarRange,
+  Clock, CalendarDays, Hourglass, Calendar, BarChart3, CalendarRange, Columns3,
   CloudSun, Moon, Sunrise, Wind, CloudRain,
   Newspaper, TrendingUp, Bitcoin, Trophy, Medal,
-  Laugh, Quote, BookOpen, History, Flag,
+  Laugh, Quote, BookOpen, History,
   ListTodo, StickyNote, HandMetal, ListChecks, Trash2, Sparkles, UtensilsCrossed, ClipboardList,
   Type, ImageIcon, Image, QrCode, Globe,
   Car,
@@ -20,6 +20,12 @@ interface ModuleItem {
 }
 
 const categories: Record<string, ModuleItem[]> = {
+  'Full Screen': [
+    { icon: Columns3, label: 'Calendar' },
+    { icon: ClipboardList, label: 'Chore Chart' },
+    { icon: UtensilsCrossed, label: 'Meal Planner' },
+    { icon: Image, label: 'Photo Viewer' },
+  ],
   'Time & Date': [
     { icon: Clock, label: 'Clock' },
     { icon: CalendarDays, label: 'Calendar' },
@@ -28,7 +34,7 @@ const categories: Record<string, ModuleItem[]> = {
     { icon: BarChart3, label: 'Year Progress' },
     { icon: CalendarRange, label: 'Multi-Month' },
   ],
-  'Weather': [
+  'Weather & Environment': [
     { icon: CloudSun, label: 'Weather' },
     { icon: Moon, label: 'Moon Phase' },
     { icon: Sunrise, label: 'Sunrise / Sunset' },
@@ -42,12 +48,11 @@ const categories: Record<string, ModuleItem[]> = {
     { icon: Trophy, label: 'Sports Scores' },
     { icon: Medal, label: 'Standings' },
   ],
-  'Knowledge': [
+  'Knowledge & Fun': [
     { icon: Laugh, label: 'Dad Joke' },
     { icon: Quote, label: 'Quote' },
     { icon: BookOpen, label: 'Word of the Day' },
     { icon: History, label: 'This Day in History' },
-    { icon: Flag, label: 'US Flag Status' },
   ],
   'Personal': [
     { icon: ListTodo, label: 'To-Do List' },
@@ -59,7 +64,7 @@ const categories: Record<string, ModuleItem[]> = {
     { icon: UtensilsCrossed, label: 'Meal Planner' },
     { icon: ClipboardList, label: 'Chore Chart' },
   ],
-  'Media': [
+  'Media & Display': [
     { icon: Type, label: 'Text' },
     { icon: ImageIcon, label: 'Image' },
     { icon: Image, label: 'Photo Slideshow' },
@@ -83,7 +88,7 @@ export function ModuleShowcase() {
       <Container>
         <div className="mb-12">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            <span className="font-mono text-cyan-400">35</span> modules and counting
+            <span className="font-mono text-cyan-400">38</span> modules and counting
           </h2>
           <p className="mt-3 max-w-2xl text-neutral-400">
             Everything from clocks and calendars to stocks, sports scores, and meal

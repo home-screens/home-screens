@@ -76,7 +76,7 @@ Excluded from view transitions (stays stable during screen animation).
 
 ## Module Categories on Display
 
-35 module types across categories: time, weather, calendar, information, media, lifestyle, productivity, sports, system. Each renders independently within its positioned container.
+38 module types across 8 categories: Full Screen, Time & Date, Weather & Environment, News & Finance, Knowledge & Fun, Personal, Media & Display, Travel. Each renders independently within its positioned container.
 
 Font sizes trend larger than editor UI. Typical module heading: 18–32px. Body: 14–20px. Module-specific.
 

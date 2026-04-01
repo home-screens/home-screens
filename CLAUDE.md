@@ -36,7 +36,7 @@ npx vitest run src/lib/__tests__/config.test.ts  # Run a single test file
 - `(remote)` — remote control + chores at `/remote`
 
 ### Module System
-The codebase uses a **module registry pattern**. There are 36 built-in module types. Each requires:
+The codebase uses a **module registry pattern**. There are 38 built-in module types. Each requires:
 1. A React component in `src/components/modules/`
 2. A type in the `ModuleType` union (`src/types/config.ts`)
 3. A config interface in `src/types/config.ts`

@@ -134,4 +134,4 @@ You can switch to the **Dev** channel in **Settings > System** to get pre-releas
 
 - [Raspberry Pi guide](/docs/raspberry-pi) -- full deployment details, orientation, troubleshooting
 - [Editor Guide](/docs/editor) -- learn how to build your screens
-- [Modules Reference](/docs/modules) -- see all 34 available modules
+- [Modules Reference](/docs/modules) -- see all 38 available modules

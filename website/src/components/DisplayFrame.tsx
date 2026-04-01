@@ -93,6 +93,25 @@ export function DisplayFrame({
           <div className="h-[3px] w-[3px] rounded-full bg-cyan-400/40 shadow-[0_0_4px_rgba(6,182,212,0.3)]" />
         </div>
       </div>
+
+      {/* Carousel indicator dots */}
+      {screens.length > 1 && (
+        <div className="mt-4 flex justify-center gap-1.5">
+          {screens.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Show screen ${i + 1}`}
+              className={clsx(
+                'h-1.5 rounded-full transition-all duration-300',
+                i === index
+                  ? 'w-4 bg-cyan-400/70'
+                  : 'w-1.5 bg-neutral-600 hover:bg-neutral-500'
+              )}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

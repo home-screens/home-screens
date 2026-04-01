@@ -220,7 +220,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles 
 
 ### ModuleType
 
-There are 36 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are 38 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -259,7 +259,9 @@ type BuiltinModuleType =
   | 'iframe'
   | 'chore-chart'
   | 'fullscreen-calendar'
-  | 'fullscreen-chore-chart';
+  | 'fullscreen-chore-chart'
+  | 'fullscreen-meal-planner'
+  | 'fullscreen-photo';
 
 type PluginModuleType = `plugin:${string}`;
 

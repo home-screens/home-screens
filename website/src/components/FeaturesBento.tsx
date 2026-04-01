@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import {
   Puzzle, Monitor, CalendarClock, Layers, Shield,
-  Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Image,
+  Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Maximize,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
@@ -38,9 +38,9 @@ const featuresLeft: Feature[] = [
     description: 'Multiple layouts that auto-switch on a schedule or on demand.',
   },
   {
-    icon: Image,
-    title: 'Custom Backgrounds',
-    description: 'Per-screen backgrounds. Upload your own or use a solid color.',
+    icon: Maximize,
+    title: 'Fullscreen Modes',
+    description: 'Ambient calendar, chore chart, meal planner, and photo frame that fill the entire display.',
   },
 ];
 
