@@ -24,8 +24,9 @@ const ALL_MODULE_TYPES: ModuleType[] = [
 ];
 
 describe('MODULE_CATEGORIES', () => {
-  it('contains exactly the 7 expected categories in order', () => {
+  it('contains exactly the 8 expected categories in order', () => {
     expect(MODULE_CATEGORIES).toEqual([
+      'Full Screen',
       'Time & Date',
       'Weather & Environment',
       'News & Finance',
@@ -57,7 +58,7 @@ describe('Registry completeness', () => {
     }
   });
 
-  it('every built-in module has a category that is one of the 7 valid categories', () => {
+  it('every built-in module has a category that is one of the 8 valid categories', () => {
     const validCategories = new Set<string>(MODULE_CATEGORIES);
     for (const def of getAllModuleDefinitions()) {
       if (def.type.startsWith('plugin:')) continue; // plugins may use custom categories
@@ -187,9 +188,9 @@ describe('getAllModuleDefinitions', () => {
 });
 
 describe('getModulesByCategory', () => {
-  it('returns a Map with exactly 7 categories', () => {
+  it('returns a Map with exactly 8 categories', () => {
     const grouped = getModulesByCategory();
-    expect(grouped.size).toBe(7);
+    expect(grouped.size).toBe(8);
   });
 
   it('the Map keys match MODULE_CATEGORIES exactly', () => {
@@ -205,14 +206,23 @@ describe('getModulesByCategory', () => {
     }
   });
 
-  it('Time & Date contains clock, calendar, countdown, year-progress, fullscreen-calendar', () => {
+  it('Full Screen contains fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-photo', () => {
+    const grouped = getModulesByCategory();
+    const types = grouped.get('Full Screen')!.map((d) => d.type);
+    expect(types).toContain('fullscreen-calendar');
+    expect(types).toContain('fullscreen-chore-chart');
+    expect(types).toContain('fullscreen-meal-planner');
+    expect(types).toContain('fullscreen-photo');
+    expect(types).toHaveLength(4);
+  });
+
+  it('Time & Date contains clock, calendar, countdown, year-progress', () => {
     const grouped = getModulesByCategory();
     const types = grouped.get('Time & Date')!.map((d) => d.type);
     expect(types).toContain('clock');
     expect(types).toContain('calendar');
     expect(types).toContain('countdown');
     expect(types).toContain('year-progress');
-    expect(types).toContain('fullscreen-calendar');
   });
 
   it('Weather & Environment contains weather, moon-phase, sunrise-sunset, air-quality', () => {

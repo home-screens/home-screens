@@ -12,6 +12,7 @@ import { DEFAULT_MODULE_SIZES } from './constants';
 import { resolveLucideIcon } from './lucide-resolver';
 
 type ModuleCategory =
+  | 'Full Screen'
   | 'Time & Date'
   | 'Weather & Environment'
   | 'News & Finance'
@@ -21,6 +22,7 @@ type ModuleCategory =
   | 'Travel';
 
 export const MODULE_CATEGORIES: ModuleCategory[] = [
+  'Full Screen',
   'Time & Date',
   'Weather & Environment',
   'News & Finance',
@@ -156,7 +158,7 @@ registerModule({
   type: 'fullscreen-calendar',
   label: 'Full-Screen Calendar',
   icon: Columns3,
-  category: 'Time & Date',
+  category: 'Full Screen',
   defaultConfig: {
     view: 'schedule',
     density: 'cozy',
@@ -688,7 +690,7 @@ registerModule({
   type: 'fullscreen-chore-chart',
   label: 'Full-Screen Chore Chart',
   icon: ClipboardList,
-  category: 'Personal',
+  category: 'Full Screen',
   defaultConfig: {
     weekStartDay: 'monday',
     showPoints: true,
@@ -708,7 +710,7 @@ registerModule({
   type: 'fullscreen-meal-planner',
   label: 'Full-Screen Meal Planner',
   icon: UtensilsCrossed,
-  category: 'Personal',
+  category: 'Full Screen',
   defaultConfig: {
     view: 'week',
     density: 'cozy',
@@ -730,7 +732,7 @@ registerModule({
   type: 'fullscreen-photo',
   label: 'Full-Screen Photo Viewer',
   icon: Image,
-  category: 'Media & Display',
+  category: 'Full Screen',
   defaultConfig: {
     directory: '',
     intervalMs: 30000,
