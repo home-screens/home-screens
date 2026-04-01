@@ -243,7 +243,20 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   }
 
   return (
-    <div ref={cursorRef} style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div ref={cursorRef} style={{
+      position: 'relative',
+      width: '100vw',
+      height: '100vh',
+      overflow: 'hidden',
+      backgroundColor: '#000',
+      // Center the scaled renderer using padding — flex centering doesn't work
+      // because the ScreenRenderer's layout box (1920x1080) is larger than the
+      // viewport, and overflow: hidden clips the layout box before transform.
+      // With transformOrigin: top left on the renderer, we position it manually.
+      paddingTop: viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
+      paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
+      boxSizing: 'border-box',
+    }}>
       <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} />
 
       {screens.length > 1 && (
@@ -283,6 +296,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
                   height: 10,
                   borderRadius: '50%',
                   backgroundColor: i === safeIndex ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
+                  boxShadow: '0 0 0 1px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)',
                   transition: 'background-color 0.3s',
                   display: 'block',
                 }}

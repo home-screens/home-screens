@@ -126,6 +126,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         overflow: 'hidden',
         backgroundColor: '#000',
         transform: `scale(${scale})`,
+        transformOrigin: 'top left',
       }}
     >
       {backgroundImage && (
