@@ -13,7 +13,7 @@ export const GET = withDisplayAuth(async () => {
 /** PUT /api/meals/data — update saved meals + plan (+ optionally groceryChecked) */
 export const PUT = withAuth(async (req: NextRequest) => {
   const body = await req.json();
-  const { savedMeals, plan, groceryChecked, force } = body;
+  const { savedMeals, plan, previousPlan, groceryChecked, force } = body;
 
   if (!Array.isArray(savedMeals) || !Array.isArray(plan)) {
     return NextResponse.json(
@@ -37,10 +37,12 @@ export const PUT = withAuth(async (req: NextRequest) => {
     }
   }
 
+  const existing = await readMealData().catch(() => ({ previousPlan: [], groceryChecked: [] as string[] }));
   const data = {
     savedMeals,
     plan,
-    groceryChecked: Array.isArray(groceryChecked) ? groceryChecked : (await readMealData().catch(() => ({ groceryChecked: [] }))).groceryChecked,
+    previousPlan: Array.isArray(previousPlan) ? previousPlan : existing.previousPlan,
+    groceryChecked: Array.isArray(groceryChecked) ? groceryChecked : existing.groceryChecked,
   };
 
   await writeMealData(data);

@@ -7,6 +7,7 @@ import type { SavedMeal, PlannedMeal } from '@/types/config';
 export interface MealData {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
+  previousPlan: PlannedMeal[];
   groceryChecked: string[]; // ingredient names that have been checked off
 }
 
@@ -14,7 +15,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'meals.json');
 const BACKUP_FILE = DATA_FILE + '.bak';
 
-const EMPTY: MealData = { savedMeals: [], plan: [], groceryChecked: [] };
+const EMPTY: MealData = { savedMeals: [], plan: [], previousPlan: [], groceryChecked: [] };
 
 // ── Read ──────────────────────────────────────
 
@@ -25,6 +26,7 @@ export async function readMealData(): Promise<MealData> {
     return {
       savedMeals: Array.isArray(parsed.savedMeals) ? parsed.savedMeals : [],
       plan: Array.isArray(parsed.plan) ? parsed.plan : [],
+      previousPlan: Array.isArray(parsed.previousPlan) ? parsed.previousPlan : [],
       groceryChecked: Array.isArray(parsed.groceryChecked) ? parsed.groceryChecked : [],
     };
   } catch (err: unknown) {

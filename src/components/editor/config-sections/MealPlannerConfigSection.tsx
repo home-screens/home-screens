@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import MealPlannerModal from '@/components/editor/MealPlannerModal';
+import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import type {
   ModuleInstance,
   MealPlannerView,
@@ -20,6 +20,7 @@ type Config = {
   view?: MealPlannerView;
   savedMeals?: SavedMeal[];
   plan?: PlannedMeal[];
+  previousPlan?: PlannedMeal[];
   slots?: MealSlotType[];
   weekStartDay?: 'sunday' | 'monday';
   showEmoji?: boolean;
@@ -137,6 +138,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         <MealPlannerModal
           savedMeals={savedMeals}
           plan={plan}
+          previousPlan={c.previousPlan ?? []}
           slots={slots}
           weekStartDay={c.weekStartDay ?? 'monday'}
           accentColor={c.accentColor ?? '#f59e0b'}

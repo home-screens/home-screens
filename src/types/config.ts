@@ -718,6 +718,7 @@ export interface MealPlannerConfig {
   view: MealPlannerView;
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
+  previousPlan?: PlannedMeal[];
   slots: MealSlotType[];
   weekStartDay: 'sunday' | 'monday';
   showEmoji: boolean;

@@ -9,6 +9,8 @@ interface CRUDModalShellProps {
   icon?: ReactNode;
   subtitle?: string;
   maxWidth?: string;
+  headerActions?: ReactNode;
+  hideFooter?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -21,6 +23,8 @@ export default function CRUDModalShell({
   icon,
   subtitle,
   maxWidth = 'max-w-4xl',
+  headerActions,
+  hideFooter,
   onClose,
   children,
 }: CRUDModalShellProps) {
@@ -48,24 +52,28 @@ export default function CRUDModalShell({
               <span className="text-xs text-neutral-400">{subtitle}</span>
             )}
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="text-neutral-400 hover:text-neutral-200 text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-800 transition-colors"
-          >
-            &times;
-          </button>
+          {headerActions ?? (
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="text-neutral-400 hover:text-neutral-200 text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-800 transition-colors"
+            >
+              &times;
+            </button>
+          )}
         </div>
 
         {/* Body */}
         {children}
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-5 py-3 border-t border-neutral-700">
-          <Button size="sm" variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        </div>
+        {!hideFooter && (
+          <div className="flex items-center justify-end px-5 py-3 border-t border-neutral-700">
+            <Button size="sm" variant="primary" onClick={onClose}>
+              Done
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

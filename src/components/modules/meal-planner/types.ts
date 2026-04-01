@@ -80,8 +80,28 @@ export function getNextMealSlot(
   return { slot: activeOrder[0], dayOffset: 1, label: 'Tomorrow' };
 }
 
-/** Common tag presets */
+/** Slot tags — meals tagged with these only appear in the matching slot during shuffle */
+export const SLOT_TAGS = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
+
+/** Common tag presets (slot tags first, then dietary/style) */
 export const MEAL_TAGS = [
+  ...SLOT_TAGS,
   'quick', 'healthy', 'vegetarian', 'vegan', 'comfort',
   'spicy', 'kid-friendly', 'meal-prep', 'gluten-free', 'dairy-free',
 ] as const;
+
+/** Emoji picker grid for meal detail form (8-column layout) */
+export const FOOD_EMOJIS = [
+  '🍳', '🥞', '🧇', '🥣', '🥗', '🥪', '🌮', '🌯',
+  '🍕', '🍔', '🍝', '🍜', '🍲', '🥘', '🍛', '🍣',
+  '🍱', '🥩', '🍗', '🐟', '🥦', '🥕', '🌽', '🥑',
+  '🍅', '🫑', '🧀', '🥚', '🍞', '🥐', '🍰', '🧁',
+  '🍪', '🍩', '🍫', '🥤', '☕', '🍵', '🧃', '🥛',
+  '🥧', '🍿', '🥜', '🫘', '🍓', '🍌', '🍎', '🥝',
+] as const;
+
+/** Library sidebar filter categories */
+export const LIBRARY_FILTERS = [
+  'all', 'favorites', 'quick', 'healthy', 'comfort', 'kid-friendly',
+] as const;
+export type LibraryFilter = (typeof LIBRARY_FILTERS)[number];

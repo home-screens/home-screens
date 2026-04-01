@@ -6,7 +6,7 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import MealPlannerModal from '@/components/editor/MealPlannerModal';
+import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { displayCache } from '@/lib/display-cache';
 import type {
@@ -31,7 +31,7 @@ const ALL_SLOTS: MealSlotType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[] }>({ savedMeals: [], plan: [] });
+  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[]; previousPlan: PlannedMeal[] }>({ savedMeals: [], plan: [], previousPlan: [] });
 
   const fetchMealData = useCallback(() => {
     fetch('/api/meals/data')
@@ -39,6 +39,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
         plan: d.plan ?? [],
+        previousPlan: d.previousPlan ?? [],
       }))
       .catch(() => {});
   }, []);
@@ -49,6 +50,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     const optimistic = {
       savedMeals: (updates.savedMeals as SavedMeal[]) ?? mealData.savedMeals,
       plan: (updates.plan as PlannedMeal[]) ?? mealData.plan,
+      previousPlan: (updates.previousPlan as PlannedMeal[]) ?? mealData.previousPlan,
     };
     // Update local state immediately so the modal reflects changes without waiting for the server
     setMealData(optimistic);
@@ -60,7 +62,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       });
       if (res.ok) {
         const data = await res.json();
-        setMealData({ savedMeals: data.savedMeals, plan: data.plan });
+        setMealData({ savedMeals: data.savedMeals, plan: data.plan, previousPlan: data.previousPlan ?? [] });
       }
       // Notify the canvas preview to refetch via displayCache invalidation
       displayCache.invalidate('/api/meals/data');
@@ -204,6 +206,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         <MealPlannerModal
           savedMeals={mealData.savedMeals}
           plan={mealData.plan}
+          previousPlan={mealData.previousPlan}
           slots={activeSlots}
           weekStartDay={c.weekStartDay ?? 'monday'}
           accentColor={c.accentColor ?? '#f59e0b'}
