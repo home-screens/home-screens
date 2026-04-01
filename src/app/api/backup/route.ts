@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { readConfig, writeConfig } from '@/lib/config';
 import { readChoreData, writeChoreData } from '@/lib/chore-data';
+import { readMealData, writeMealData } from '@/lib/meal-data';
 import { withAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
@@ -32,10 +33,11 @@ async function writeCompletions(data: CompletionsData): Promise<void> {
 
 // GET — export a full backup bundle
 export const GET = withAuth(async () => {
-  const [config, chores, completions] = await Promise.all([
+  const [config, chores, completions, meals] = await Promise.all([
     readConfig(),
     readChoreData(),
     readCompletions(),
+    readMealData(),
   ]);
 
   const bundle = {
@@ -45,6 +47,7 @@ export const GET = withAuth(async () => {
     config,
     chores,
     choreCompletions: completions,
+    meals,
   };
 
   return NextResponse.json(bundle);
@@ -67,6 +70,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     if (body.choreCompletions) {
       promises.push(writeCompletions(body.choreCompletions));
     }
+    if (body.meals) {
+      promises.push(writeMealData(body.meals));
+    }
 
     await Promise.all(promises);
 
@@ -75,6 +81,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         config: !!body.config,
         chores: !!body.chores,
         choreCompletions: !!body.choreCompletions,
+        meals: !!body.meals,
       },
     });
   }

@@ -19,7 +19,8 @@ const ALL_MODULE_TYPES: ModuleType[] = [
   'sports', 'air-quality', 'todoist', 'rain-map',
   'multi-month', 'garbage-day', 'standings', 'affirmations',
   'date', 'meal-planner', 'iframe', 'chore-chart',
-  'fullscreen-calendar', 'fullscreen-chore-chart',
+  'fullscreen-calendar', 'fullscreen-chore-chart', 'fullscreen-meal-planner',
+  'fullscreen-photo',
 ];
 
 describe('MODULE_CATEGORIES', () => {
@@ -37,7 +38,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 36 module types', () => {
+  it('registers all 38 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -156,8 +157,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 36', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(36);
+  it('returns an array of length 38', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(38);
   });
 
   it('all items have required fields', () => {
@@ -266,7 +267,7 @@ describe('getModulesByCategory', () => {
     expect(types).toHaveLength(1);
   });
 
-  it('total modules across all categories equals 36 (no duplicates, no missing)', () => {
+  it('total modules across all categories equals 38 (no duplicates, no missing)', () => {
     const grouped = getModulesByCategory();
     let total = 0;
     const allTypes = new Set<string>();
@@ -276,8 +277,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(36);
-    expect(allTypes.size).toBe(36);
+    expect(total).toBe(38);
+    expect(allTypes.size).toBe(38);
   });
 });
 
