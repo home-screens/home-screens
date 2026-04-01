@@ -8,6 +8,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/MealPlannerModal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
@@ -45,20 +46,24 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
 
   const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
-    const body = {
-      savedMeals: updates.savedMeals ?? mealData.savedMeals,
-      plan: updates.plan ?? mealData.plan,
+    const optimistic = {
+      savedMeals: (updates.savedMeals as SavedMeal[]) ?? mealData.savedMeals,
+      plan: (updates.plan as PlannedMeal[]) ?? mealData.plan,
     };
+    // Update local state immediately so the modal reflects changes without waiting for the server
+    setMealData(optimistic);
     try {
       const res = await fetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify(optimistic),
       });
       if (res.ok) {
         const data = await res.json();
         setMealData({ savedMeals: data.savedMeals, plan: data.plan });
       }
+      // Notify the canvas preview to refetch via displayCache invalidation
+      displayCache.invalidate('/api/meals/data');
     } catch {}
   }, [mealData]);
 

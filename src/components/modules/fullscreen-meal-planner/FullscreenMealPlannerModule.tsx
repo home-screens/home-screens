@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { useFetchData } from '@/hooks/useFetchData';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
+
+interface MealDataResponse {
+  savedMeals: SavedMeal[];
+  plan: PlannedMeal[];
+  groceryChecked: string[];
+}
 
 // ─── Types ───
 
@@ -129,26 +136,9 @@ export default function FullscreenMealPlannerModule({
   fullscreenTheme,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
-  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
-  const [plan, setPlan] = useState<PlannedMeal[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/api/meals/data');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) {
-          setSavedMeals(data.savedMeals ?? []);
-          setPlan(data.plan ?? []);
-        }
-      } catch { /* silent */ }
-    };
-    fetchData();
-    const interval = setInterval(fetchData, 60_000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, []);
+  const [mealData] = useFetchData<MealDataResponse>('/api/meals/data', 60_000);
+  const savedMeals = mealData?.savedMeals ?? [];
+  const plan = mealData?.plan ?? [];
 
   // ── Scale system ──
   const containerRef = useRef<HTMLDivElement>(null);

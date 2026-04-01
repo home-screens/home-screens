@@ -572,6 +572,8 @@ export default function ChoreChartModal({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ members: membersRef.current, chores: choresRef.current }),
+    }).then(() => {
+      displayCache.invalidate('/api/chores/data');
     }).catch(() => {});
   }, []);
 
