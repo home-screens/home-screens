@@ -252,7 +252,8 @@ export default function DisplaySection({ values, onChange }: Props) {
         Fullscreen Theme
       </h3>
       <p className="text-xs text-neutral-500 mb-3">
-        Applies to all fullscreen modules (Calendar, Chores, Meals) so they look seamless when rotating.
+        Applies to all fullscreen modules (Calendar, Chores, Meals) so they look seamless when rotating. You can change this per
+        module in the editor.
       </p>
       <div className="grid grid-cols-3 gap-2">
         {FULLSCREEN_THEMES.map((t) => (
