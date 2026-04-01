@@ -91,6 +91,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   quote:          { buildUrl: quoteUrl, ttlMs: 3_600_000 },        // server: 1hr
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
+  'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
 };
 
 /** Allow plugins to register their own fetch key entries for prefetching. */

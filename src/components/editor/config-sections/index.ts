@@ -32,4 +32,6 @@ export { IframeConfigSection } from './IframeConfigSection';
 export { ChoreChartConfigSection } from './ChoreChartConfigSection';
 export { FullscreenCalendarConfigSection } from './FullscreenCalendarConfigSection';
 export { FullscreenChoreChartConfigSection } from './FullscreenChoreChartConfigSection';
+export { FullscreenMealPlannerConfigSection } from './FullscreenMealPlannerConfigSection';
+export { FullscreenPhotoConfigSection } from './FullscreenPhotoConfigSection';
 export { WordOfDayConfigSection } from './WordOfDayConfigSection';

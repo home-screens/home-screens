@@ -51,6 +51,8 @@ import {
   ChoreChartConfigSection,
   FullscreenCalendarConfigSection,
   FullscreenChoreChartConfigSection,
+  FullscreenMealPlannerConfigSection,
+  FullscreenPhotoConfigSection,
   WordOfDayConfigSection,
 } from '@/components/editor/config-sections';
 
@@ -177,6 +179,8 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
   'chore-chart': ChoreChartConfigSection,
   'fullscreen-calendar': FullscreenCalendarConfigSection,
   'fullscreen-chore-chart': FullscreenChoreChartConfigSection,
+  'fullscreen-meal-planner': FullscreenMealPlannerConfigSection,
+  'fullscreen-photo': FullscreenPhotoConfigSection,
 };
 
 export default function PropertyPanel() {

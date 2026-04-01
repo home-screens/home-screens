@@ -705,6 +705,47 @@ registerModule({
 });
 
 registerModule({
+  type: 'fullscreen-meal-planner',
+  label: 'Full-Screen Meal Planner',
+  icon: UtensilsCrossed,
+  category: 'Personal',
+  defaultConfig: {
+    view: 'week',
+    density: 'cozy',
+    typographySize: 'medium',
+    accentColor: '#f59e0b',
+    weekStartDay: 'monday',
+    slots: ['breakfast', 'lunch', 'dinner'],
+    showPrepTime: true,
+    showTags: true,
+    showEmoji: true,
+    showDifficulty: false,
+  },
+  defaultSize: DEFAULT_MODULE_SIZES['fullscreen-meal-planner'],
+  defaultStyle: { padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0 },
+  fillsCanvas: true,
+});
+
+registerModule({
+  type: 'fullscreen-photo',
+  label: 'Full-Screen Photo Viewer',
+  icon: Image,
+  category: 'Media & Display',
+  defaultConfig: {
+    directory: '',
+    intervalMs: 30000,
+    transition: 'fade',
+    objectFit: 'cover',
+    shuffle: false,
+    showClock: true,
+    kenBurns: false,
+  },
+  defaultSize: DEFAULT_MODULE_SIZES['fullscreen-photo'],
+  defaultStyle: { padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0 },
+  fillsCanvas: true,
+});
+
+registerModule({
   type: 'iframe',
   label: 'Web Embed',
   icon: Globe,

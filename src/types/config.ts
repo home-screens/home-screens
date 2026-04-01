@@ -34,7 +34,9 @@ export type BuiltinModuleType =
   | 'iframe'
   | 'chore-chart'
   | 'fullscreen-calendar'
-  | 'fullscreen-chore-chart';
+  | 'fullscreen-chore-chart'
+  | 'fullscreen-meal-planner'
+  | 'fullscreen-photo';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -191,6 +193,7 @@ export interface GlobalSettings {
   updateChannel?: 'stable' | 'dev';
   alerts?: AlertSettings;
   telemetryEnabled?: boolean;
+  fullscreenTheme?: string;
 }
 
 export interface Profile {
@@ -268,6 +271,7 @@ export interface FullscreenCalendarConfig {
   showNowLine: boolean;
   sourceFilter?: string[];
   darkMode: boolean;
+  theme?: string;
 
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto
@@ -677,19 +681,37 @@ export interface AffirmationsConfig {
 export type MealPlannerView = 'week' | 'today' | 'next-meal' | 'compact' | 'list';
 export type MealSlotType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
+export type GroceryCategory = 'produce' | 'dairy' | 'meat' | 'seafood' | 'bakery' | 'pantry' | 'frozen' | 'beverages' | 'other';
+
+export interface MealIngredient {
+  name: string;
+  amount?: string;
+  category?: GroceryCategory;
+}
+
 export interface SavedMeal {
   id: string;
   name: string;
   emoji?: string;
+  category?: 'main' | 'side' | 'dessert' | 'drink' | 'snack';
   tags?: string[];
   prepTime?: number;      // minutes
+  cookTime?: number;      // minutes
+  difficulty?: 'easy' | 'medium' | 'hard';
+  servings?: number;
+  ingredients?: MealIngredient[];
+  recipeUrl?: string;
   notes?: string;
+  rating?: number;        // 1-5
+  isFavorite?: boolean;
 }
 
 export interface PlannedMeal {
   day: number;            // 0=Sun...6=Sat
   slot: MealSlotType;
-  mealId: string;         // references SavedMeal.id
+  mealId?: string;        // references SavedMeal.id
+  customText?: string;    // "Eating out", "Leftovers"
+  notes?: string;
 }
 
 export interface MealPlannerConfig {
@@ -780,5 +802,37 @@ export interface FullscreenChoreChartConfig {
   density: 'cozy' | 'snug';
   typographySize: 'small' | 'medium' | 'large' | 'extra-large';
   accentColor: string;
+  theme?: string;
+}
+
+// Fullscreen meal planner module config
+export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-meal';
+
+export interface FullscreenMealPlannerConfig {
+  view: FullscreenMealPlannerView;
+  density: 'cozy' | 'snug';
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large';
+  accentColor: string;
+  weekStartDay: 'sunday' | 'monday';
+  slots: MealSlotType[];
+  showPrepTime: boolean;
+  showTags: boolean;
+  showEmoji: boolean;
+  showDifficulty: boolean;
+  theme?: string;
+}
+
+// Fullscreen photo viewer module config
+export type FullscreenPhotoTransition = 'fade' | 'slide' | 'zoom' | 'none';
+
+export interface FullscreenPhotoConfig {
+  directory: string;
+  intervalMs: number;
+  transition: FullscreenPhotoTransition;
+  objectFit: 'cover' | 'contain' | 'fill';
+  shuffle: boolean;
+  showClock: boolean;
+  kenBurns: boolean;
+  theme?: string;
 }
 

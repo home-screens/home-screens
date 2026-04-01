@@ -15,12 +15,17 @@ import AlertSender from './components/AlertSender';
 import SettingsSheet from './components/SettingsSheet';
 import BottomTabBar from './components/BottomTabBar';
 import ChoresTab from './components/ChoresTab';
+import MealsTab from './components/MealsTab';
+import PhotosTab from './components/PhotosTab';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
   profiles: Array<{ id: string; name: string }>;
   activeProfile: string | undefined;
   choreConfig: ChoreChartConfig | null;
+  hasMeals: boolean;
+  hasPhotos: boolean;
+  photoDirectory: string;
 }
 
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
@@ -30,6 +35,8 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const hasChores = initialData.choreConfig !== null;
+  const hasMeals = initialData.hasMeals;
+  const hasPhotos = initialData.hasPhotos;
 
   // Close sheets when switching tabs
   useEffect(() => {
@@ -108,23 +115,36 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           )}
 
           {/* Bottom spacer for fixed tab bar */}
-          {hasChores && <div className="h-20" />}
+          {(hasChores || hasMeals || hasPhotos) && <div className="h-20" />}
 
           <AlertSender open={alertOpen} onClose={() => setAlertOpen(false)} />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </>
-      ) : (
+      ) : activeTab === 'chores' ? (
         <>
           <div className="px-4 pb-8 pt-4">
             <ChoresTab config={initialData.choreConfig!} />
           </div>
-          {/* Bottom spacer for fixed tab bar */}
           <div className="h-20" />
         </>
-      )}
+      ) : activeTab === 'meals' ? (
+        <>
+          <div className="px-4 pb-8 pt-4">
+            <MealsTab />
+          </div>
+          <div className="h-20" />
+        </>
+      ) : activeTab === 'photos' ? (
+        <>
+          <div className="px-4 pb-8 pt-4">
+            <PhotosTab directory={initialData.photoDirectory} />
+          </div>
+          <div className="h-20" />
+        </>
+      ) : null}
 
-      {hasChores && (
-        <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
+      {(hasChores || hasMeals || hasPhotos) && (
+        <BottomTabBar activeTab={activeTab} onChange={setActiveTab} hasChores={hasChores} hasMeals={hasMeals} hasPhotos={hasPhotos} />
       )}
     </div>
   );

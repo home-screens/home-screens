@@ -3,6 +3,9 @@ import { readChoreData } from '@/lib/chore-data';
 import type { ChoreChartConfig } from '@/types/config';
 import RemoteClient from './RemoteClient';
 
+const MEAL_MODULE_TYPES = ['meal-planner', 'fullscreen-meal-planner'];
+const PHOTO_MODULE_TYPES = ['fullscreen-photo'];
+
 export const dynamic = 'force-dynamic';
 
 export default async function RemotePage() {
@@ -44,9 +47,28 @@ export default async function RemotePage() {
         }
       : null;
 
+  // Detect if any meal planner module exists
+  const hasMeals = config.screens.some((s) =>
+    s.modules.some((m) => MEAL_MODULE_TYPES.includes(m.type)),
+  );
+
+  // Detect photo modules and extract directory config from the first match
+  let photoDirectory = '';
+  let hasPhotos = false;
+  for (const screen of config.screens) {
+    for (const mod of screen.modules) {
+      if (PHOTO_MODULE_TYPES.includes(mod.type)) {
+        photoDirectory = (mod.config.directory as string) ?? '';
+        hasPhotos = true;
+        break;
+      }
+    }
+    if (hasPhotos) break;
+  }
+
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory }}
     />
   );
 }
