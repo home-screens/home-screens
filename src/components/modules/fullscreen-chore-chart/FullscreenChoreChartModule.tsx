@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { Sunrise, Sun, Sunset, Clock, Flame, Star, Check } from 'lucide-react';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
-import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import {
   type ResolvedAssignment,
@@ -30,16 +30,6 @@ function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
   return h > w ? 'portrait' : 'landscape';
 }
 
-function getDensityMultiplier(density: string): number {
-  return density === 'cozy' ? 1.2 : 1.0;
-}
-
-function getTypoMultiplier(size: string): number {
-  if (size === 'small') return 0.85;
-  if (size === 'large') return 1.15;
-  if (size === 'extra-large') return 1.35;
-  return 1.0;
-}
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,

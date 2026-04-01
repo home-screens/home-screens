@@ -20,7 +20,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 |---|---|---|---|
 | `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, or `large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
 | `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
 | `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
 | `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
@@ -60,7 +60,7 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
 | `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
 
 **Layout details:**
@@ -76,7 +76,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 |---|---|---|---|
 | `view` | string | `"week"` | Display style: `week`, `today`, `menu-board`, or `next-meal` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, or `extra-large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `slots` | array | `["breakfast", "lunch", "dinner"]` | Enabled meal slots (options: `breakfast`, `lunch`, `dinner`, `snack`) |

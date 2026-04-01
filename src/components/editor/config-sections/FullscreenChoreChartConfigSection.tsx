@@ -8,6 +8,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import type { FullscreenTypographySize } from '@/types/config';
 import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
@@ -62,13 +63,15 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         <span className="text-xs text-neutral-400">Typography Size</span>
         <select
           value={c.typographySize ?? 'medium'}
-          onChange={(e) => set({ typographySize: e.target.value as 'small' | 'medium' | 'large' | 'extra-large' })}
+          onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })}
           className={INPUT_CLASS}
         >
           <option value="small">Small</option>
           <option value="medium">Medium</option>
           <option value="large">Large</option>
           <option value="extra-large">Extra Large</option>
+          <option value="2x-large">2X Large</option>
+          <option value="3x-large">3X Large</option>
         </select>
       </label>
 

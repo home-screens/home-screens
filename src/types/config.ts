@@ -258,7 +258,10 @@ export interface ClockConfig {
 // Fullscreen calendar module config (Skylight-inspired ambient display)
 export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda';
 export type CalendarDensity = 'cozy' | 'snug';
-export type CalendarTypographySize = 'small' | 'medium' | 'large';
+export type FullscreenTypographySize =
+  | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large';
+/** @deprecated Use FullscreenTypographySize instead */
+export type CalendarTypographySize = FullscreenTypographySize;
 
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
@@ -802,7 +805,7 @@ export interface FullscreenChoreChartConfig {
   allowDisplayComplete: boolean;
   darkMode: boolean;
   density: 'cozy' | 'snug';
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large';
+  typographySize: FullscreenTypographySize;
   accentColor: string;
   theme?: string;
 }
@@ -813,7 +816,7 @@ export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-
 export interface FullscreenMealPlannerConfig {
   view: FullscreenMealPlannerView;
   density: 'cozy' | 'snug';
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large';
+  typographySize: FullscreenTypographySize;
   accentColor: string;
   weekStartDay: 'sunday' | 'monday';
   slots: MealSlotType[];

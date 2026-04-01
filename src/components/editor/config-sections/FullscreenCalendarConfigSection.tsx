@@ -8,6 +8,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import type { FullscreenTypographySize } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 interface CalendarSource {
@@ -105,10 +106,13 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* Typography Size */}
       <label className="flex flex-col gap-0.5">
         <span className="text-xs text-neutral-400">Typography Size</span>
-        <select value={c.typographySize ?? 'medium'} onChange={(e) => set({ typographySize: e.target.value })} className={INPUT_CLASS}>
-          <option value="small">Small (1440p+, close viewing)</option>
-          <option value="medium">Medium (default)</option>
-          <option value="large">Large (720p, distance viewing)</option>
+        <select value={c.typographySize ?? 'medium'} onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })} className={INPUT_CLASS}>
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+          <option value="extra-large">Extra Large</option>
+          <option value="2x-large">2X Large</option>
+          <option value="3x-large">3X Large</option>
         </select>
       </label>
 

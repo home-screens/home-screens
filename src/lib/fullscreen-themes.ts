@@ -6,6 +6,8 @@
  * identity — these tokens cover only the structural palette.
  */
 
+import type { FullscreenTypographySize } from '@/types/config';
+
 export interface FullscreenThemeTokens {
   bg: string;
   surface: string;
@@ -158,6 +160,25 @@ const SLATE: FullscreenTheme = {
     isDark: true,
   },
 };
+
+// ── Typography & Density ─────────────────────
+
+const TYPO_MULTIPLIERS: Record<FullscreenTypographySize, number> = {
+  'small': 0.85,
+  'medium': 1.0,
+  'large': 1.15,
+  'extra-large': 1.35,
+  '2x-large': 1.6,
+  '3x-large': 1.85,
+};
+
+export function getTypoMultiplier(size: FullscreenTypographySize | string): number {
+  return TYPO_MULTIPLIERS[size as FullscreenTypographySize] ?? 1.0;
+}
+
+export function getDensityMultiplier(density: string): number {
+  return density === 'cozy' ? 1.2 : 1.0;
+}
 
 // ── Exports ───────────────────────────────────
 

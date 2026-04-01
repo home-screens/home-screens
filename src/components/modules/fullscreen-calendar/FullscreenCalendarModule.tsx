@@ -7,7 +7,7 @@ import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText }
 import { useTZClock } from '@/hooks/useTZClock';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent } from '@/types/config';
-import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
@@ -39,15 +39,6 @@ function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
   return ratio < 1.2 && h > w ? 'portrait' : 'landscape';
 }
 
-function getDensityMultiplier(density: string): number {
-  return density === 'cozy' ? 1.2 : 1.0;
-}
-
-function getTypoMultiplier(size: string): number {
-  if (size === 'small') return 0.85;
-  if (size === 'large') return 1.15;
-  return 1.0;
-}
 
 export function autoScheduleDays(width: number, density: string): number {
   const minColWidth = density === 'cozy' ? 200 : 150;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
@@ -42,16 +42,6 @@ const SLOT_WINDOWS: Record<MealSlotType, { start: number; end: number }> = {
 
 // ─── Helpers ───
 
-function getDensityMultiplier(density: string): number {
-  return density === 'cozy' ? 1.2 : 1.0;
-}
-
-function getTypoMultiplier(size: string): number {
-  if (size === 'small') return 0.85;
-  if (size === 'large') return 1.15;
-  if (size === 'extra-large') return 1.35;
-  return 1.0;
-}
 
 function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {
   if (weekStartDay === 'monday') return [1, 2, 3, 4, 5, 6, 0];
