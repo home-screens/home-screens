@@ -546,6 +546,11 @@ function ChoreFormOverlay({
   };
 
   const canSave = name.trim().length > 0 && assigneeIds.length > 0;
+  const validationHint = !name.trim()
+    ? 'Enter a chore name'
+    : assigneeIds.length === 0
+      ? 'Select at least one person'
+      : null;
   const isEdit = !!initial;
 
   const handleSubmit = () => {
@@ -749,6 +754,13 @@ function ChoreFormOverlay({
               <option value="rotate-weekly">Rotate Weekly</option>
             </select>
           </div>
+        )}
+
+        {/* Validation hint */}
+        {validationHint && (
+          <p style={{ fontSize: 13, color: '#fbbf24', textAlign: 'center', margin: '0 0 8px' }}>
+            {validationHint}
+          </p>
         )}
 
         {/* Save */}

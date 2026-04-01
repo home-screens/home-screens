@@ -250,8 +250,15 @@ function ChoreForm({
     setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  const canSave = name.trim().length > 0 && assigneeIds.length > 0;
+  const validationHint = !name.trim()
+    ? 'Enter a chore name'
+    : assigneeIds.length === 0
+      ? 'Select at least one person'
+      : null;
+
   const submit = () => {
-    if (!name.trim() || assigneeIds.length === 0) return;
+    if (!canSave) return;
     onSubmit({
       name: name.trim(),
       emoji,
@@ -382,8 +389,11 @@ function ChoreForm({
         </label>
       )}
 
+      {validationHint && (
+        <p className="text-xs text-amber-400/80">{validationHint}</p>
+      )}
       <div className="flex gap-2 pt-1">
-        <Button variant="primary" size="sm" onClick={submit} className="flex-1">
+        <Button variant="primary" size="sm" onClick={submit} className="flex-1" disabled={!canSave}>
           {submitLabel}
         </Button>
         <Button size="sm" onClick={onCancel}>
