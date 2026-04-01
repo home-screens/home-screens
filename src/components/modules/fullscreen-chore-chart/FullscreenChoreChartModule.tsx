@@ -182,7 +182,7 @@ export default function FullscreenChoreChartModule({
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastIdRef = useRef(0);
   const toastsRef = useRef(toasts);
-  toastsRef.current = toasts;
+  useEffect(() => { toastsRef.current = toasts; }, [toasts]);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

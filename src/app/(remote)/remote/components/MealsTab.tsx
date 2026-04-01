@@ -30,7 +30,6 @@ import { generateRandomPlan } from '@/lib/meal-shuffle';
 // ── Day helpers ──
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getWeekDates(): { day: number; date: Date; label: string; shortDate: string }[] {
   const now = new Date();

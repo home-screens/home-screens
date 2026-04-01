@@ -47,7 +47,7 @@ function formatRelativeDay(date: Date, today: Date): string {
 
 // ─── Event Card (shared across views) ───
 
-function EventCard({ event, textColor, showTime, showLocation, compact, accentColor }: {
+function EventCard({ event, textColor: _textColor, showTime, showLocation, compact, accentColor }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;

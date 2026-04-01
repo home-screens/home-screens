@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { errorResponse, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { getInstalledPlugins } from '@/lib/plugins';

@@ -160,9 +160,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
     }
   }, [newFolderName, selectedDir, fetchDirectories, showSuccess]);
 
-  const rootCount = directories.find((d) => d.path === '')?.imageCount
-    ?? images.length;
-
   return (
     <div className="space-y-4">
       {/* Header */}

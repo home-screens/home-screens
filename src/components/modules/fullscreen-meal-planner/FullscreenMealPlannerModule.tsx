@@ -132,13 +132,13 @@ function countPlanned(
 export default function FullscreenMealPlannerModule({
   config,
   style: _style,
-  timezone,
+  timezone: _timezone,
   fullscreenTheme,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
   const [mealData] = useFetchData<MealDataResponse>('/api/meals/data', 60_000);
-  const savedMeals = mealData?.savedMeals ?? [];
-  const plan = mealData?.plan ?? [];
+  const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
+  const plan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
 
   // ── Scale system ──
   const containerRef = useRef<HTMLDivElement>(null);
@@ -174,9 +174,8 @@ export default function FullscreenMealPlannerModule({
     return () => clearInterval(tick);
   }, []);
 
-  const today = now.getDay();
   const currentHour = now.getHours();
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = useMemo(() => config.slots ?? ['breakfast', 'lunch', 'dinner'], [config.slots]);
   const activeSlot = getActiveSlot(currentHour, slots);
   const view = config.view ?? 'week';
   const showEmoji = config.showEmoji ?? true;
@@ -392,7 +391,7 @@ export default function FullscreenMealPlannerModule({
         </div>
       </div>
     );
-  }, [config.weekStartDay, now, plan, savedMeals, slots, activeSlot, bu, s, d, pad, showEmoji, showPrepTime]);
+  }, [config.weekStartDay, now, plan, savedMeals, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime]);
 
   const renderTodayView = useCallback(() => {
     const todayDow = now.getDay();
@@ -567,7 +566,7 @@ export default function FullscreenMealPlannerModule({
         )}
       </div>
     );
-  }, [now, plan, savedMeals, slots, activeSlot, currentHour, bu, s, d, pad, showEmoji, showPrepTime, showTags, showDifficulty]);
+  }, [now, plan, savedMeals, slots, activeSlot, currentHour, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty]);
 
   const renderMenuBoardView = useCallback(() => {
     const todayDow = now.getDay();
@@ -702,7 +701,7 @@ export default function FullscreenMealPlannerModule({
         </div>
       </div>
     );
-  }, [now, plan, savedMeals, slots, bu, s, d, pad, showEmoji, showPrepTime, showDifficulty]);
+  }, [now, plan, savedMeals, slots, s, pad, showEmoji, showPrepTime, showDifficulty]);
 
   const renderNextMealView = useCallback(() => {
     const next = getNextMeal(now, plan, savedMeals, slots);
@@ -834,7 +833,7 @@ export default function FullscreenMealPlannerModule({
         )}
       </div>
     );
-  }, [now, plan, savedMeals, slots, bu, s, d, pad, showEmoji, showPrepTime, showTags, showDifficulty]);
+  }, [now, plan, savedMeals, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty]);
 
   // ── Main render ──
 

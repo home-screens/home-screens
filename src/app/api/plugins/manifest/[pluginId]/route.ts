@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPluginManifest } from '@/lib/plugins';
 import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 

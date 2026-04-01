@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import { getPluginBundlePath } from '@/lib/plugins';
 import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
