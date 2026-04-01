@@ -7,6 +7,7 @@ import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText }
 import { useTZClock } from '@/hooks/useTZClock';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent } from '@/types/config';
+import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
@@ -256,6 +257,7 @@ interface FullscreenCalendarModuleProps {
   hourly?: Array<{ temp: number; icon?: string; description?: string }>;
   units?: string;
   loading?: boolean;
+  fullscreenTheme?: string;
 }
 
 export default function FullscreenCalendarModule({
@@ -266,6 +268,7 @@ export default function FullscreenCalendarModule({
   hourly,
   units,
   loading,
+  fullscreenTheme,
 }: FullscreenCalendarModuleProps) {
   const rawEvents = useMemo(() => rawEventsRaw ?? [], [rawEventsRaw]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -294,6 +297,9 @@ export default function FullscreenCalendarModule({
     [rawEvents, config.sourceFilter],
   );
 
+  const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
+  const theme = getThemeTokens(themeId);
+
   const scale: CalendarScale = useMemo(() => ({
     bu: Math.min(dims.w, dims.h) / 100,
     width: dims.w,
@@ -301,10 +307,8 @@ export default function FullscreenCalendarModule({
     orientation: getOrientation(dims.w, dims.h),
     densityMul: getDensityMultiplier(config.density),
     typoMul: getTypoMultiplier(config.typographySize),
-    isDark: !!config.darkMode,
-  }), [dims, config.density, config.typographySize, config.darkMode]);
-
-  const themeClass = config.darkMode ? 'fsc-dark' : 'fsc-light';
+    isDark: theme.isDark,
+  }), [dims, config.density, config.typographySize, theme.isDark]);
   // For schedule view, compute effective days count for the header title
   const scheduleDays = config.view === 'schedule'
     ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
@@ -329,16 +333,31 @@ export default function FullscreenCalendarModule({
   return (
     <div
       ref={containerRef}
-      className={`fsc-root ${themeClass}`}
+      className="fsc-root"
       style={{
         width: '100%',
         height: '100%',
         fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
         overflow: 'hidden',
         position: 'relative',
+        '--cal-bg': theme.bg,
+        '--cal-surface': theme.surface,
+        '--cal-surface-hover': theme.surfaceHover,
+        '--cal-border': theme.border,
+        '--cal-border-subtle': theme.borderSubtle,
+        '--cal-text-primary': theme.text,
+        '--cal-text-secondary': theme.textSecondary,
+        '--cal-text-tertiary': theme.textMuted,
+        '--cal-header-bg': theme.headerBg,
+        '--cal-card-shadow': theme.cardShadow,
+        '--cal-past-opacity': String(theme.pastOpacity),
+        '--cal-weekend-shade': theme.surfaceAlt,
+        '--cal-header-blur': theme.isDark ? '16px' : '12px',
         '--cal-accent': config.accentColor
-          ? (config.darkMode ? brightenForDark(config.accentColor) : config.accentColor)
-          : undefined,
+          ? (theme.isDark ? brightenForDark(config.accentColor) : config.accentColor)
+          : (theme.isDark ? '#F97316' : '#EA580C'),
+        '--cal-accent-bg': theme.isDark ? '#431407' : '#FFF7ED',
+        '--cal-accent-surface': theme.isDark ? '#7C2D12' : '#FFEDD5',
       } as React.CSSProperties}
     >
       <style>{cssTokens}</style>
@@ -409,51 +428,6 @@ const cssTokens = `
   --cal-transition-fast: 150ms ease-out;
   --cal-transition-normal: 250ms ease-out;
   --cal-transition-slow: 400ms ease-out;
-}
-
-/* Light theme (Warm Linen) */
-.fsc-light {
-  --cal-bg: #FAF5F2;
-  --cal-surface: #FFFFFF;
-  --cal-surface-hover: #FFF8F3;
-  --cal-border: #E7E1DC;
-  --cal-border-subtle: rgba(167,155,147,0.25);
-  --cal-text-primary: #1C1917;
-  --cal-text-secondary: #78716C;
-  --cal-text-tertiary: #A8A29E;
-  --cal-accent-bg: #FFF7ED;
-  --cal-accent-surface: #FFEDD5;
-  --cal-weekend-shade: #F7F4F2;
-  --cal-past-opacity: 0.40;
-  --cal-header-bg: rgba(250,245,242,0.85);
-  --cal-header-blur: 12px;
-  --cal-card-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-/* Dark theme (Warm Charcoal) */
-.fsc-dark {
-  --cal-bg: #1C1917;
-  --cal-surface: #292524;
-  --cal-surface-hover: #2E2926;
-  --cal-border: #44403C;
-  --cal-border-subtle: rgba(120,113,108,0.20);
-  --cal-text-primary: #FAFAF9;
-  --cal-text-secondary: #A8A29E;
-  --cal-text-tertiary: #78716C;
-  --cal-accent-bg: #431407;
-  --cal-accent-surface: #7C2D12;
-  --cal-weekend-shade: #211F1D;
-  --cal-past-opacity: 0.35;
-  --cal-header-bg: rgba(28,25,23,0.80);
-  --cal-header-blur: 16px;
-  --cal-card-shadow: none;
-}
-
-/* Fallback accent when not overridden via inline style */
-.fsc-light { --cal-accent: #EA580C; }
-.fsc-dark  { --cal-accent: #F97316; }
-
-.fsc-root {
   background: var(--cal-bg);
   color: var(--cal-text-primary);
 }

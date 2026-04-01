@@ -151,6 +151,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     timezone: config.settings.timezone,
     globalProvider: config.settings.weather.provider,
     units: config.settings.weather.units,
+    fullscreenTheme: config.settings.fullscreenTheme,
   } : null;
   const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
 

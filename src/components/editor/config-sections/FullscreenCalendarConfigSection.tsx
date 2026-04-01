@@ -7,6 +7,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 interface CalendarSource {
@@ -111,11 +112,25 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         </select>
       </label>
 
+      {/* Theme Override */}
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-neutral-400">Theme</span>
+        <select
+          value={c.theme ?? ''}
+          onChange={(e) => set({ theme: e.target.value || undefined })}
+          className={INPUT_CLASS}
+        >
+          <option value="">Default (from Settings)</option>
+          {FULLSCREEN_THEMES.map((t) => (
+            <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
+          ))}
+        </select>
+      </label>
+
       {/* Accent Color */}
       <ColorPicker label="Accent Color" value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
 
       {/* Toggles */}
-      <Toggle label="Dark Mode" checked={!!c.darkMode} onChange={(v) => set({ darkMode: v })} />
       <Toggle label="Dim Past Events" checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
       <Toggle label="Shade Weekends" checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
       <Toggle label="Show Weather" checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />

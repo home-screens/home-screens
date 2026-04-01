@@ -6,6 +6,7 @@ import {
   RESOLUTION_PRESETS,
   deriveDisplayTransform,
 } from '@/lib/constants';
+import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 
 const TRANSITION_OPTIONS = [
   { value: 'fade', label: 'Fade' },
@@ -26,6 +27,7 @@ interface DisplaySettings {
   cursorHideSeconds: number;
   transitionEffect: string;
   transitionDuration: number;
+  fullscreenTheme: string;
 }
 
 interface Props {
@@ -40,7 +42,7 @@ function resolvePreset(width: number, height: number) {
 }
 
 export default function DisplaySection({ values, onChange }: Props) {
-  const { displayWidth, displayHeight, displayTransform, rotationInterval, cursorHideSeconds, transitionEffect, transitionDuration } = values;
+  const { displayWidth, displayHeight, displayTransform, rotationInterval, cursorHideSeconds, transitionEffect, transitionDuration, fullscreenTheme } = values;
 
   // Derive orientation from the actual dimensions (source of truth for the canvas),
   // not from displayTransform which may be out of sync from the old UI.
@@ -243,6 +245,43 @@ export default function DisplaySection({ values, onChange }: Props) {
         <p className="text-xs text-neutral-500 mt-1">
           The mouse cursor is hidden after this many seconds of inactivity. Move the mouse to show it again.
         </p>
+      </div>
+
+      <hr className="my-6 border-neutral-700" />
+      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        Fullscreen Theme
+      </h3>
+      <p className="text-xs text-neutral-500 mb-3">
+        Applies to all fullscreen modules (Calendar, Chores, Meals) so they look seamless when rotating.
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {FULLSCREEN_THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onChange({ fullscreenTheme: t.id })}
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
+              fullscreenTheme === t.id
+                ? 'border-blue-500 bg-blue-500/10'
+                : 'border-neutral-600 bg-neutral-800 hover:bg-neutral-750 hover:border-neutral-500'
+            }`}
+          >
+            {/* Two-tone swatch */}
+            <div
+              className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-neutral-600"
+              style={{ background: t.tokens.bg }}
+            >
+              <div style={{ height: '60%', background: t.tokens.bg }} />
+              <div style={{ height: '40%', background: t.tokens.border }} />
+            </div>
+            <div>
+              <div className={`text-xs font-semibold ${fullscreenTheme === t.id ? 'text-blue-400' : 'text-neutral-200'}`}>
+                {t.name}
+              </div>
+              <div className="text-[10px] text-neutral-500 capitalize">{t.group}</div>
+            </div>
+          </button>
+        ))}
       </div>
     </section>
   );

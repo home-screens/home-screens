@@ -51,7 +51,10 @@ function buildModuleProps(
   sharedData: SharedDisplayData,
   locationMissing: boolean,
 ): Record<string, unknown> {
-  const props: Record<string, unknown> = { timezone: settings.timezone };
+  const props: Record<string, unknown> = {
+    timezone: settings.timezone,
+    fullscreenTheme: settings.fullscreenTheme,
+  };
 
   const def = getModuleDefinition(mod.type);
   if (def?.dataRequirements?.includes('location')) {

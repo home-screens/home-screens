@@ -20,6 +20,7 @@ export interface PreviewSettings {
   timezone: string | undefined;
   globalProvider: string;
   units: 'metric' | 'imperial';
+  fullscreenTheme: string | undefined;
 }
 
 function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
@@ -33,9 +34,12 @@ function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; pr
 
   const extraProps: Record<string, unknown> = {};
 
-  // Pass timezone to all modules
+  // Pass timezone and fullscreen theme to all modules
   if (settings?.timezone) {
     extraProps.timezone = settings.timezone;
+  }
+  if (settings?.fullscreenTheme) {
+    extraProps.fullscreenTheme = settings.fullscreenTheme;
   }
 
   // Pass global location to location-aware modules (registry-driven)

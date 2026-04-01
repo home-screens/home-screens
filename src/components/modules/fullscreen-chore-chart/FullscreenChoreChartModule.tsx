@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Sunrise, Sun, Sunset, Clock, Flame, Star, Check } from 'lucide-react';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
+import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import {
   type ResolvedAssignment,
@@ -133,6 +134,7 @@ function buildChoreRows(assignments: ResolvedAssignment[]): Map<ChoreTimeOfDay, 
 interface FullscreenChoreChartModuleProps {
   config: FullscreenChoreChartConfig;
   style: ModuleStyle;
+  fullscreenTheme?: string;
 }
 
 // ─── Component ───
@@ -140,6 +142,7 @@ interface FullscreenChoreChartModuleProps {
 export default function FullscreenChoreChartModule({
   config,
   style: _style,
+  fullscreenTheme,
 }: FullscreenChoreChartModuleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 1080, h: 1920 });
@@ -158,14 +161,17 @@ export default function FullscreenChoreChartModule({
     return () => ro.disconnect();
   }, []);
 
+  const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
+  const theme = getThemeTokens(themeId);
+
   const scale: ChoreScale = useMemo(() => ({
     bu: Math.min(dims.w, dims.h) / 100,
     width: dims.w,
     orientation: getOrientation(dims.w, dims.h),
     densityMul: getDensityMultiplier(config.density),
     typoMul: getTypoMultiplier(config.typographySize),
-    isDark: config.darkMode !== false,
-  }), [dims, config.density, config.typographySize, config.darkMode]);
+    isDark: theme.isDark,
+  }), [dims, config.density, config.typographySize, theme.isDark]);
 
   const { todayAssignments, memberStats, weekData, members } = useChoreData(config);
   const currentTod = getCurrentTimeOfDay(new Date().getHours());
@@ -193,7 +199,6 @@ export default function FullscreenChoreChartModule({
   // Disambiguated initials (fallback when member has no emoji)
   const initialsMap = useMemo(() => getUniqueInitials(members), [members]);
 
-  const themeClass = scale.isDark ? 'fcc-dark' : 'fcc-light';
   const isLandscape = scale.orientation === 'landscape';
   const s = scale.bu * scale.typoMul;
   const d = scale.densityMul; // spacing multiplier: cozy=1.2, snug=1.0
@@ -486,7 +491,7 @@ export default function FullscreenChoreChartModule({
   return (
     <div
       ref={containerRef}
-      className={`fcc-root ${themeClass}`}
+      className="fcc-root"
       style={{
         width: '100%',
         height: '100%',
@@ -495,30 +500,18 @@ export default function FullscreenChoreChartModule({
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
+        '--fcc-bg': theme.bg,
+        '--fcc-surface': theme.surface,
+        '--fcc-text': theme.text,
+        '--fcc-text-muted': theme.textSecondary,
+        '--fcc-text-faint': theme.textMuted,
+        '--fcc-border': theme.border,
+        '--fcc-border-subtle': theme.borderSubtle,
         '--fcc-accent': config.accentColor ?? '#f59e0b',
+        colorScheme: theme.isDark ? 'dark' : 'light',
       } as React.CSSProperties}
     >
       <style>{`
-        .fcc-dark {
-          --fcc-bg: #0a0a0a;
-          --fcc-surface: #141414;
-          --fcc-text: #e5e5e5;
-          --fcc-text-muted: #525252;
-          --fcc-text-faint: #333333;
-          --fcc-border: #262626;
-          --fcc-border-subtle: #171717;
-          color-scheme: dark;
-        }
-        .fcc-light {
-          --fcc-bg: #fafafa;
-          --fcc-surface: #f0f0f0;
-          --fcc-text: #1a1a1a;
-          --fcc-text-muted: #737373;
-          --fcc-text-faint: #a3a3a3;
-          --fcc-border: #e5e5e5;
-          --fcc-border-subtle: #f0f0f0;
-          color-scheme: light;
-        }
         .fcc-root {
           background: var(--fcc-bg);
           color: var(--fcc-text);

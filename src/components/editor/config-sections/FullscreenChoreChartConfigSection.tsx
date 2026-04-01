@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
+import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
@@ -28,12 +29,20 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
   return (
     <>
-      {/* Dark Mode */}
-      <Toggle
-        label="Dark Mode"
-        checked={c.darkMode ?? true}
-        onChange={(v) => set({ darkMode: v })}
-      />
+      {/* Theme Override */}
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-neutral-400">Theme</span>
+        <select
+          value={c.theme ?? ''}
+          onChange={(e) => set({ theme: e.target.value || undefined })}
+          className={INPUT_CLASS}
+        >
+          <option value="">Default (from Settings)</option>
+          {FULLSCREEN_THEMES.map((t) => (
+            <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
+          ))}
+        </select>
+      </label>
 
       {/* Density */}
       <label className="flex flex-col gap-0.5">
