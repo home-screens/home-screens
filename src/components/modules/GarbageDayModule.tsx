@@ -3,6 +3,8 @@
 import { useTZClock } from '@/hooks/useTZClock';
 import type { GarbageDayConfig, GarbageFrequency, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { SectionHeader } from './shared/SectionHeader';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 interface GarbageDayModuleProps {
   config: GarbageDayConfig;
@@ -102,7 +104,7 @@ function getNextCollectionText(
 // Trash can icon
 function TrashIcon({ active, color }: { active: boolean; color: string }) {
   return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.45 }}>
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
       <path d="M3 6h18" />
       <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
       <rect x="5" y="6" width="14" height="15" rx="2" />
@@ -115,7 +117,7 @@ function TrashIcon({ active, color }: { active: boolean; color: string }) {
 // Recycling icon (Tabler Icons "recycle" – three chasing arrows)
 function RecyclingIcon({ active, color }: { active: boolean; color: string }) {
   return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.45 }}>
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
       <path d="M12 17l-2 2 2 2" />
       <path d="M10 19h9a2 2 0 0 0 1.75-2.75l-.55-1" />
       <path d="M8.536 11l-.732-2.732-2.732.732" />
@@ -129,7 +131,7 @@ function RecyclingIcon({ active, color }: { active: boolean; color: string }) {
 // Custom / compost / yard waste icon (leaf)
 function CustomIcon({ active, color }: { active: boolean; color: string }) {
   return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.45 }}>
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
       <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75" />
     </svg>
   );
@@ -156,18 +158,18 @@ function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequen
 
   return (
     <div
-      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all"
+      className="flex items-center gap-3 rounded-lg px-3 py-2.5"
       style={{
         background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-        border: active ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
+        border: active ? `1px solid rgba(255,255,255,0.15)` : '1px solid transparent',
       }}
     >
       {icon}
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate" style={{ fontSize: '0.95em', opacity: active ? 1 : 0.6 }}>
+        <p className="font-medium truncate" style={{ fontSize: '0.95em', opacity: active ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}>
           {label}
         </p>
-        <p style={{ fontSize: '0.75em', opacity: active ? 0.9 : 0.4 }}>
+        <p style={{ fontSize: '0.75em', opacity: active ? TEXT_OPACITY.secondary : TEXT_OPACITY.tertiary }}>
           {frequencyLabel}{DAYS[scheduleDay]}
         </p>
       </div>
@@ -183,7 +185,7 @@ function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequen
           {status}
         </span>
       ) : nextCollection ? (
-        <span className="shrink-0" style={{ fontSize: '0.7em', opacity: 0.4 }}>
+        <span className="shrink-0" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>
           {nextCollection}
         </span>
       ) : null}
@@ -204,17 +206,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 mb-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <span style={{ fontSize: '0.8em', opacity: 0.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Collection Schedule
-          </span>
-        </div>
+        <SectionHeader className="mb-2">Collection Schedule</SectionHeader>
 
         <div className="flex flex-col gap-1 flex-1 justify-center">
           <WasteRow
@@ -250,7 +242,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
         </div>
 
         {trashDay < 0 && recyclingDay < 0 && customDay < 0 && (
-          <p className="text-center opacity-40" style={{ fontSize: '0.85em' }}>
+          <p className="text-center" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
             Set collection days in module settings
           </p>
         )}
