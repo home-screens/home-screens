@@ -2,6 +2,7 @@ import { CloudRain, Droplets, Wind, Gauge, Eye, Thermometer } from 'lucide-react
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
+import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, scaledFontSize, containerRef }: WeatherViewProps) {
@@ -95,7 +96,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
 
       {!current && days.length === 0 && (
         <div className="flex-1 flex items-center justify-center">
-          <p className="opacity-50" style={{ fontSize: '0.875em' }}>No weather data</p>
+          <WeatherEmptyState />
         </div>
       )}
     </div>

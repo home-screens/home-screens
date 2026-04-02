@@ -4,7 +4,8 @@ import type { WordOfDayConfig, ModuleStyle } from '@/types/config';
 import { getDayOfYear } from 'date-fns';
 import ModuleWrapper from './ModuleWrapper';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
+import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
+import { AccentDivider } from './shared/AccentDivider';
 
 interface WordOfDayModuleProps {
   config: WordOfDayConfig;
@@ -48,21 +49,17 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
   const dayOfYear = getDayOfYear(new Date());
   const entry = WORDS[dayOfYear % WORDS.length];
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
-  const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = hasAccentColor(accentColor);
+  const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   return (
     <ModuleWrapper style={style}>
       <div
         ref={containerRef}
         className="flex flex-col items-center justify-center h-full gap-2"
-        style={{
-          fontSize: `${scaledFontSize}px`,
-          ...(hasAccent && { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }),
-        }}
+        style={{ fontSize: `${scaledFontSize}px`, ...gradientStyle }}
       >
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
+          <AccentDivider accentColor={accentColor} hasAccent={hasAccent} />
         )}
         <p className="font-extralight" style={{ fontSize: '2.8em', lineHeight: 1.1 }}>{entry.word}</p>
         <div className="w-16 h-px" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.tertiary }} />
@@ -71,7 +68,7 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
           {entry.definition}
         </p>
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
+          <AccentDivider accentColor={accentColor} hasAccent={hasAccent} />
         )}
       </div>
     </ModuleWrapper>

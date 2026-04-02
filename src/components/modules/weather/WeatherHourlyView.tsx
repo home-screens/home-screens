@@ -1,6 +1,7 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
+import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherHourlyView({ config, hourly, forecast, timezone, scaledFontSize, containerRef }: WeatherViewProps) {
@@ -10,7 +11,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       <h2 className="font-semibold mb-3 opacity-80 shrink-0" style={{ fontSize: '1.125em' }}>Hourly Forecast</h2>
       {hours.length === 0 ? (
-        <p className="opacity-50" style={{ fontSize: '0.875em' }}>No weather data</p>
+        <WeatherEmptyState />
       ) : (
         <div className="flex items-center gap-5 flex-1 min-h-0">
           {/* Current weather - large */}

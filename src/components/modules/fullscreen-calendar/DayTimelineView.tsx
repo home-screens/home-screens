@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay } from '@/lib/calendar-utils';
 import { computeOverlapColumns, MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
+import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
 interface DayTimelineViewProps {
   events: CalendarEvent[];
@@ -15,31 +15,13 @@ interface DayTimelineViewProps {
   now: Date;
 }
 
-function parseTimeToHours(dateStr: string): number {
-  const d = parseEventDate(dateStr);
-  return d.getHours() + d.getMinutes() / 60;
-}
-
 export function DayTimelineView({ events, config, scale, today, now }: DayTimelineViewProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [containerH, setContainerH] = useState(0);
+  const { scrollRef, containerH } = useContainerHeight();
   const hourStart = config.dayHourStart ?? 6;
   const hourEnd = config.dayHourEnd ?? 22;
   const totalHours = hourEnd - hourStart;
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const gutterWidth = scale.bu * 5.5;
-
-  // Measure scroll container so hourHeight fills available space
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setContainerH(el.clientHeight);
-    const ro = new ResizeObserver((entries) => {
-      setContainerH(entries[0]?.contentRect.height ?? 0);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   // Fit grid exactly to container — no scrolling on kiosk display
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 6.5 : 5.5);
@@ -117,7 +99,6 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>
             {Array.from({ length: totalHours + 1 }, (_, i) => {
               const h = hourStart + i;
-              const label = h === 0 ? '12 AM' : h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`;
               return (
                 <div key={h} style={{
                   position: 'absolute',
@@ -131,29 +112,13 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                   whiteSpace: 'nowrap',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
-                  {label}
+                  {formatHourLabel(h)}
                 </div>
               );
             })}
             {/* Now badge */}
             {config.showNowLine && nowInRange && (
-              <div style={{
-                position: 'absolute',
-                top: nowY,
-                left: scale.bu * 0.5,
-                transform: 'translateY(-50%)',
-                fontSize: fontSize * 0.7,
-                fontWeight: 600,
-                color: '#fff',
-                background: 'var(--cal-accent)',
-                borderRadius: 999,
-                padding: `${scale.bu * 0.15}px ${scale.bu * 0.5}px`,
-                whiteSpace: 'nowrap',
-                zIndex: 11,
-                lineHeight: 1.3,
-              }}>
-                {format(now, 'h:mm a')}
-              </div>
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timeFormat="h:mm a" />
             )}
           </div>
 
@@ -250,28 +215,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             )}
 
             {/* Hour lines */}
-            {Array.from({ length: totalHours + 1 }, (_, i) => (
-              <div key={`h-${i}`}>
-                <div style={{
-                  position: 'absolute',
-                  top: i * hourHeight,
-                  left: 0,
-                  right: 0,
-                  height: 1,
-                  background: 'var(--cal-border)',
-                }} />
-                {i < totalHours && (
-                  <div style={{
-                    position: 'absolute',
-                    top: i * hourHeight + hourHeight / 2,
-                    left: 0,
-                    right: 0,
-                    height: 1,
-                    borderTop: '1px dashed var(--cal-border-subtle)',
-                  }} />
-                )}
-              </div>
-            ))}
+            <HourLines totalHours={totalHours} hourHeight={hourHeight} hourStart={hourStart} />
 
             {/* Events with overlap layout */}
             {timedEvs.map(ev => {
@@ -342,33 +286,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             })}
 
             {/* Now line */}
-            {config.showNowLine && nowInRange && (
-              <div
-                aria-label={`Current time: ${format(now, 'h:mm a')}`}
-                style={{
-                  position: 'absolute',
-                  top: nowY,
-                  left: 0,
-                  right: 0,
-                  height: 2,
-                  color: 'var(--cal-accent)',
-                  background: 'var(--cal-accent)',
-                  zIndex: 10,
-                  pointerEvents: 'none',
-                  filter: 'drop-shadow(0 0 4px currentColor)',
-                }}
-              >
-                <div style={{
-                  position: 'absolute',
-                  left: -4,
-                  top: -3,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: 'var(--cal-accent)',
-                }} />
-              </div>
-            )}
+            {config.showNowLine && nowInRange && <NowLine nowY={nowY} now={now} />}
           </div>
         </div>
       </div>

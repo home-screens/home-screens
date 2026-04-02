@@ -5,7 +5,7 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { quoteUrl } from '@/lib/fetch-keys';
-import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
+import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
 interface QuoteModuleProps {
@@ -16,8 +16,7 @@ interface QuoteModuleProps {
 export default function QuoteModule({ config, style }: QuoteModuleProps) {
   const [data, error] = useFetchData<{ quote: string; author: string }>(quoteUrl(), config.refreshIntervalMs ?? 300000);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
-  const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = hasAccentColor(accentColor);
+  const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading quote…" error={error} />;
@@ -28,10 +27,7 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
       <div
         ref={containerRef}
         className="flex items-center justify-center h-full relative overflow-hidden"
-        style={{
-          fontSize: `${scaledFontSize}px`,
-          background: hasAccent ? `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` : undefined,
-        }}
+        style={{ fontSize: `${scaledFontSize}px`, ...gradientStyle }}
       >
         {/* Large decorative quotation mark */}
         <span

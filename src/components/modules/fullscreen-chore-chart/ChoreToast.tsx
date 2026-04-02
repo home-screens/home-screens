@@ -74,7 +74,7 @@ function ToastEntry({
         >
           {toast.memberName}
         </span>
-        <span style={{ fontSize: 14, color: 'var(--fcc-text-muted)', marginLeft: 4 }}>
+        <span style={{ fontSize: 14, color: 'var(--fcc-text-2)', marginLeft: 4 }}>
           {toast.wasCompleted ? 'completed' : 'uncompleted'}
         </span>
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fcc-text)', marginLeft: 4 }}>

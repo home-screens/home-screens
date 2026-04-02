@@ -6,9 +6,10 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { historyUrl } from '@/lib/fetch-keys';
-import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
+import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
+import { AccentDivider } from './shared/AccentDivider';
 
 interface HistoryModuleProps {
   config: HistoryConfig;
@@ -27,8 +28,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const rotationMs = config.rotationIntervalMs ?? 10000;
   const index = useRotatingIndex(events.length, rotationMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
-  const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = hasAccentColor(accentColor);
+  const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading history…" error={error} />;
@@ -42,14 +42,11 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
       <div
         ref={containerRef}
         className="flex flex-col items-center justify-center h-full gap-2 relative overflow-hidden"
-        style={{
-          fontSize: `${scaledFontSize}px`,
-          ...(hasAccent && { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }),
-        }}
+        style={{ fontSize: `${scaledFontSize}px`, ...gradientStyle }}
       >
         <SectionHeader>On This Day</SectionHeader>
         {config.showDividers !== false && (
-          <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: TEXT_OPACITY.secondary }} />
+          <AccentDivider accentColor={accentColor} hasAccent={hasAccent} />
         )}
 
         {events.length > 0 && event ? (

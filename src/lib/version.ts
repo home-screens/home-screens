@@ -332,6 +332,3 @@ export async function getVersionInfo(options?: {
 
   return buildVersionInfo([], current, commit, installedVia, 'unknown');
 }
-
-// Re-export from @/lib/semver for backward compatibility
-export { compareSemver, isPrerelease } from '@/lib/semver';

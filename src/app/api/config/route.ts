@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readConfig, writeConfig } from '@/lib/config';
 import { syncKioskConf, applyDisplaySettings } from '@/lib/kiosk';
-import { errorResponse, withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import type { ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withDisplayAuth(async () => {
-  try {
-    const config = await readConfig();
-    maybeSendBeacon(config).catch(() => {}); // fire-and-forget daily telemetry
-    return NextResponse.json(config);
-  } catch (error) {
-    return errorResponse(error, 'Failed to read config');
-  }
+  const config = await readConfig();
+  maybeSendBeacon(config).catch(() => {}); // fire-and-forget daily telemetry
+  return NextResponse.json(config);
 }, 'Failed to read config');
 
 export const PUT = withAuth(async (request: NextRequest) => {

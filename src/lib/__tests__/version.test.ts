@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { compareSemver, parseVersionTags, isPrerelease, releasesToTags, buildVersionInfo } from '../version';
+import { compareSemver, isPrerelease } from '../semver';
+import { parseVersionTags, releasesToTags, buildVersionInfo } from '../version';
 
 describe('compareSemver', () => {
   it('returns 0 for equal versions', () => {

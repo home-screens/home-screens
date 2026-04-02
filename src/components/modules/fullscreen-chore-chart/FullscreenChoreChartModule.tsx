@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { Sunrise, Sun, Sunset, Clock, Flame, Star, Check } from 'lucide-react';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import {
   type ResolvedAssignment,
@@ -135,22 +136,7 @@ export default function FullscreenChoreChartModule({
   style: _style,
   fullscreenTheme,
 }: FullscreenChoreChartModuleProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 1080, h: 1920 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
-      }
-    });
-    ro.observe(el);
-    setDims({ w: el.clientWidth, h: el.clientHeight });
-    return () => ro.disconnect();
-  }, []);
+  const { containerRef, dims } = useFullscreenDims();
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
   const theme = getThemeTokens(themeId);
@@ -310,12 +296,12 @@ export default function FullscreenChoreChartModule({
           alignItems: 'center',
           padding: `${fontSize * 0.4}px ${fontSize * 0.3}px`,
           gap: fontSize * 0.6,
-          borderTop: isFirst ? 'none' : '1px solid var(--fcc-border-subtle)',
+          borderTop: isFirst ? 'none' : '1px solid var(--fcc-border-sub)',
         }}
       >
         {row.choreEmoji && (
           <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-            <ChoreIcon value={row.choreEmoji} size={fontSize * 1.15} color="var(--fcc-text-muted)" />
+            <ChoreIcon value={row.choreEmoji} size={fontSize * 1.15} color="var(--fcc-text-2)" />
           </span>
         )}
         <span
@@ -329,7 +315,7 @@ export default function FullscreenChoreChartModule({
         >
           {row.choreName}
           {config.showPoints && row.points > 1 && (
-            <span style={{ fontSize: fontSize * 0.7, color: 'var(--fcc-text-muted)', fontWeight: 600, marginLeft: fontSize * 0.3 }}>
+            <span style={{ fontSize: fontSize * 0.7, color: 'var(--fcc-text-2)', fontWeight: 600, marginLeft: fontSize * 0.3 }}>
               {row.points}pt
             </span>
           )}
@@ -346,7 +332,7 @@ export default function FullscreenChoreChartModule({
     const isCurrent = tod === currentTod;
     const meta = TIME_OF_DAY_META[tod];
     const iconSize = fontSize * 1.1;
-    const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-faint)';
+    const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-3)';
 
     return (
       <div key={tod}>
@@ -451,11 +437,11 @@ export default function FullscreenChoreChartModule({
           <div style={{ fontSize: nameFontSize, fontWeight: 600, color: 'var(--fcc-text)' }}>
             {member.name}
           </div>
-          <div style={{ fontSize: statFontSize, color: 'var(--fcc-text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 3 }}>
+          <div style={{ fontSize: statFontSize, color: 'var(--fcc-text-2)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 3 }}>
             {config.showStreaks && stats && stats.streak > 0 && (
               <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
                 <Flame size={statFontSize} /> {stats.streak}
-                <span style={{ color: 'var(--fcc-text-muted)', margin: '0 2px' }}>&middot;</span>
+                <span style={{ color: 'var(--fcc-text-2)', margin: '0 2px' }}>&middot;</span>
               </span>
             )}
             {stats?.completed ?? 0}/{stats?.total ?? 0}
@@ -476,21 +462,21 @@ export default function FullscreenChoreChartModule({
 
     return (
       <div style={{ padding: `${chartHeight * 0.1}px 0` }}>
-        <div style={{ fontSize: labelSize, fontWeight: 700, color: 'var(--fcc-text-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: chartHeight * 0.08 }}>
+        <div style={{ fontSize: labelSize, fontWeight: 700, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: chartHeight * 0.08 }}>
           This Week
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: `${nameWidth}px repeat(7, 1fr)`, gap: 1, alignItems: 'center' }}>
           {/* Day headers */}
           <div />
           {weekData.map((day) => (
-            <div key={day.date} style={{ fontSize: labelSize * 0.9, fontWeight: 600, color: day.isToday ? 'var(--fcc-accent)' : 'var(--fcc-text-faint)', textAlign: 'center' }}>
+            <div key={day.date} style={{ fontSize: labelSize * 0.9, fontWeight: 600, color: day.isToday ? 'var(--fcc-accent)' : 'var(--fcc-text-3)', textAlign: 'center' }}>
               {day.dayName}
             </div>
           ))}
           {/* Member rows */}
           {members.map((member) => (
             <React.Fragment key={member.id}>
-              <div style={{ fontSize: labelSize, fontWeight: 500, color: 'var(--fcc-text-muted)' }}>
+              <div style={{ fontSize: labelSize, fontWeight: 500, color: 'var(--fcc-text-2)' }}>
                 {member.name}
               </div>
               {weekData.map((day) => {
@@ -499,7 +485,7 @@ export default function FullscreenChoreChartModule({
                   <div key={day.date} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: starSize * 1.5 }}>
                     <Star
                       size={starSize}
-                      color={earned ? member.color : 'var(--fcc-border-subtle)'}
+                      color={earned ? member.color : 'var(--fcc-border-sub)'}
                       fill={earned ? member.color : 'none'}
                       strokeWidth={earned ? 0 : 1.5}
                     />
@@ -529,13 +515,7 @@ export default function FullscreenChoreChartModule({
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        '--fcc-bg': theme.bg,
-        '--fcc-surface': theme.surface,
-        '--fcc-text': theme.text,
-        '--fcc-text-muted': theme.textSecondary,
-        '--fcc-text-faint': theme.textMuted,
-        '--fcc-border': theme.border,
-        '--fcc-border-subtle': theme.borderSubtle,
+        ...buildThemeCSSVars('fcc', theme),
         '--fcc-accent': config.accentColor ?? '#f59e0b',
         colorScheme: theme.isDark ? 'dark' : 'light',
       } as React.CSSProperties}
@@ -550,17 +530,17 @@ export default function FullscreenChoreChartModule({
       {/* ── Header + Members ── */}
       {isLandscape ? (
         /* Landscape: single top bar with date block | member chips */
-        <div style={{ display: 'flex', alignItems: 'stretch', padding: `${s * 1}px ${pad}px`, gap: s * 1.4, borderBottom: '1px solid var(--fcc-border-subtle)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', padding: `${s * 1}px ${pad}px`, gap: s * 1.4, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }}>
           {/* Date block */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: s * 1.4, borderRight: '1px solid var(--fcc-border-subtle)', minWidth: s * 12 }}>
-            <div style={{ fontSize: s * 0.9, fontWeight: 600, color: 'var(--fcc-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: s * 1.4, borderRight: '1px solid var(--fcc-border-sub)', minWidth: s * 12 }}>
+            <div style={{ fontSize: s * 0.9, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               {dayName}
             </div>
             <div style={{ fontSize: s * 1.5, fontWeight: 700, color: 'var(--fcc-text)', marginTop: s * 0.1 }}>
               {dateStr}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: s * 0.5, marginTop: s * 0.5 }}>
-              <div style={{ flex: 1, height: s * 0.25, background: 'var(--fcc-border-subtle)', borderRadius: s * 0.15, overflow: 'hidden' }}>
+              <div style={{ flex: 1, height: s * 0.25, background: 'var(--fcc-border-sub)', borderRadius: s * 0.15, overflow: 'hidden' }}>
                 <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: s * 0.15, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
               </div>
               <div style={{ fontSize: s * 1.1, fontWeight: 800, color: 'var(--fcc-accent)', flexShrink: 0 }}>
@@ -579,7 +559,7 @@ export default function FullscreenChoreChartModule({
           <div style={{ padding: `${pad}px ${pad}px ${pad * 0.6}px`, flexShrink: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: s * 1.2 }}>
               <div>
-                <div style={{ fontSize: s * 1.1, fontWeight: 600, color: 'var(--fcc-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ fontSize: s * 1.1, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {dayName}
                 </div>
                 <div style={{ fontSize: s * 2, fontWeight: 700, color: 'var(--fcc-text)', marginTop: s * 0.15 }}>
@@ -588,19 +568,19 @@ export default function FullscreenChoreChartModule({
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: s * 2.5, fontWeight: 800, color: 'var(--fcc-accent)', lineHeight: 1 }}>
-                  {overallPct}<span style={{ fontSize: s * 1.2, color: 'var(--fcc-text-muted)' }}>%</span>
+                  {overallPct}<span style={{ fontSize: s * 1.2, color: 'var(--fcc-text-2)' }}>%</span>
                 </div>
-                <div style={{ fontSize: s * 0.85, fontWeight: 500, color: 'var(--fcc-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <div style={{ fontSize: s * 0.85, fontWeight: 500, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Complete
                 </div>
               </div>
             </div>
             {/* Overall progress bar */}
-            <div style={{ height: s * 0.35, background: 'var(--fcc-border-subtle)', borderRadius: s * 0.2, overflow: 'hidden' }}>
+            <div style={{ height: s * 0.35, background: 'var(--fcc-border-sub)', borderRadius: s * 0.2, overflow: 'hidden' }}>
               <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: s * 0.2, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
             </div>
           </div>
-          <div style={{ padding: `${s * 0.8}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-subtle)' }}>
+          <div style={{ padding: `${s * 0.8}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
             {renderMemberStrip(s * 5.5, s * 0.7)}
           </div>
         </>
@@ -612,7 +592,7 @@ export default function FullscreenChoreChartModule({
         <div style={{ flex: 1, display: 'flex', gap: 1, background: 'var(--fcc-surface)', minHeight: 0, overflow: 'hidden' }}>
           {displayTods.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--fcc-bg)' }}>
-              <div style={{ textAlign: 'center', color: 'var(--fcc-text-muted)', fontSize: s * 1.5 }}>
+              <div style={{ textAlign: 'center', color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>
                 No chores today
               </div>
             </div>
@@ -620,7 +600,7 @@ export default function FullscreenChoreChartModule({
             const rows = displayGroups.get(tod) ?? [];
             const TodIcon = TOD_ICONS[tod];
             const isCurrent = tod === currentTod;
-            const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-faint)';
+            const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-3)';
             const fontSize = s * 1.15;
             const dotSize = s * 2.2;
             const iconSize = fontSize * 1.1;
@@ -643,7 +623,7 @@ export default function FullscreenChoreChartModule({
                     alignItems: 'center',
                     gap: fontSize * 0.4,
                     padding: `${fontSize * 0.6}px ${fontSize * 0.8}px`,
-                    borderBottom: '1px solid var(--fcc-border-subtle)',
+                    borderBottom: '1px solid var(--fcc-border-sub)',
                     flexShrink: 0,
                   }}>
                     <TodIcon size={iconSize} color={headerColor} strokeWidth={2} />
@@ -670,7 +650,7 @@ export default function FullscreenChoreChartModule({
             return renderTimeBand(tod, rows, fontSize, dotSize, config.showTimeOfDay);
           })}
           {displayTods.length === 0 && (
-            <div style={{ textAlign: 'center', padding: `${s * 8}px 0`, color: 'var(--fcc-text-muted)', fontSize: s * 1.5 }}>
+            <div style={{ textAlign: 'center', padding: `${s * 8}px 0`, color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>
               No chores today
             </div>
           )}
@@ -681,7 +661,7 @@ export default function FullscreenChoreChartModule({
       <div style={{
         flexShrink: 0,
         padding: `${s * 0.8}px ${pad}px ${s * 1.2}px`,
-        borderTop: '1px solid var(--fcc-border-subtle)',
+        borderTop: '1px solid var(--fcc-border-sub)',
         display: isLandscape ? 'flex' : 'block',
         alignItems: 'center',
         gap: pad,
@@ -695,20 +675,20 @@ export default function FullscreenChoreChartModule({
           flexDirection: isLandscape ? 'column' : 'row',
           gap: s * 0.3,
           paddingTop: isLandscape ? 0 : s * 0.5,
-          borderLeft: isLandscape ? '1px solid var(--fcc-border-subtle)' : 'none',
+          borderLeft: isLandscape ? '1px solid var(--fcc-border-sub)' : 'none',
           paddingLeft: isLandscape ? pad : 0,
           flexShrink: 0,
         }}>
           {config.showPoints && (
-            <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-faint)', fontWeight: 500 }}>
-              Weekly points: <span style={{ color: 'var(--fcc-text-muted)', fontWeight: 600 }}>
+            <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-3)', fontWeight: 500 }}>
+              Weekly points: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
                 {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0)} / {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPointsTotal, 0)}
               </span>
             </div>
           )}
           {config.showStreaks && (
-            <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-faint)', fontWeight: 500 }}>
-              Best streak: <span style={{ color: 'var(--fcc-text-muted)', fontWeight: 600 }}>
+            <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-3)', fontWeight: 500 }}>
+              Best streak: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
                 {(() => {
                   let best = { name: '', streak: 0 };
                   for (const m of members) {

@@ -97,3 +97,20 @@ export const DIVIDER_COLOR = 'rgba(255,255,255,0.08)';
 export function hasAccentColor(color: string | undefined): color is string {
   return !!color && color !== '#000000';
 }
+
+/**
+ * Resolve accent color from a module config, returning the color, whether it's
+ * active, and a pre-built gradient background style for the common 135° pattern.
+ */
+export function resolveAccent(config: { accentColor?: string }): {
+  accentColor: string;
+  hasAccent: boolean;
+  gradientStyle: React.CSSProperties;
+} {
+  const accentColor = config.accentColor ?? '#000000';
+  const hasAccent = hasAccentColor(accentColor);
+  const gradientStyle: React.CSSProperties = hasAccent
+    ? { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }
+    : {};
+  return { accentColor, hasAccent, gradientStyle };
+}

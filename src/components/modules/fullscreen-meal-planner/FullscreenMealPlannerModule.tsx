@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFullscreenDims } from '@/hooks/useFullscreenDims';
+import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
@@ -131,22 +132,7 @@ export default function FullscreenMealPlannerModule({
   const plan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
 
   // ── Scale system ──
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 1080, h: 1920 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
-      }
-    });
-    ro.observe(el);
-    setDims({ w: el.clientWidth, h: el.clientHeight });
-    return () => ro.disconnect();
-  }, []);
+  const { containerRef, dims } = useFullscreenDims();
 
   // ── Theme ──
   const theme = getThemeTokens(config.theme ?? fullscreenTheme);
@@ -179,16 +165,8 @@ export default function FullscreenMealPlannerModule({
 
   // ── CSS custom properties ──
   const cssVars = {
-    '--fmp-bg': theme.bg,
-    '--fmp-surface': theme.surface,
-    '--fmp-text': theme.text,
-    '--fmp-text-2': theme.textSecondary,
-    '--fmp-text-3': theme.textMuted,
-    '--fmp-border': theme.border,
-    '--fmp-border-sub': theme.borderSubtle,
+    ...buildThemeCSSVars('fmp', theme),
     '--fmp-accent': config.accentColor ?? '#f59e0b',
-    '--fmp-card-shadow': theme.cardShadow,
-    '--fmp-past-op': String(theme.pastOpacity),
   } as React.CSSProperties;
 
   // ── Render views ──

@@ -260,13 +260,10 @@ export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | '
 export type CalendarDensity = 'cozy' | 'snug';
 export type FullscreenTypographySize =
   | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large';
-/** @deprecated Use FullscreenTypographySize instead */
-export type CalendarTypographySize = FullscreenTypographySize;
-
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
-  typographySize: CalendarTypographySize;
+  typographySize: FullscreenTypographySize;
   accentColor: string;
   dimPastEvents: boolean;
   shadeWeekends: boolean;

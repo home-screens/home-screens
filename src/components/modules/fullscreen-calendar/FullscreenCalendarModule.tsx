@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { format, startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
+import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent } from '@/types/config';
@@ -262,22 +263,7 @@ export default function FullscreenCalendarModule({
   fullscreenTheme,
 }: FullscreenCalendarModuleProps) {
   const rawEvents = useMemo(() => rawEventsRaw ?? [], [rawEventsRaw]);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 1080, h: 1920 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
-      }
-    });
-    ro.observe(el);
-    setDims({ w: el.clientWidth, h: el.clientHeight });
-    return () => ro.disconnect();
-  }, []);
+  const { containerRef, dims } = useFullscreenDims();
 
   // Updates every 60s — drives now-line movement and midnight rollover
   const now = useTZClock(timezone);

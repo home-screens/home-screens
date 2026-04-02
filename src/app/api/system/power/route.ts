@@ -30,7 +30,7 @@ function restartService(): NextResponse {
     const result = isSystemdService();
     if (!result) {
       return NextResponse.json(
-        { ok: false, error: 'Service not managed by systemd. Restart manually.' },
+        { error: 'Service not managed by systemd. Restart manually.' },
         { status: 400 },
       );
     }

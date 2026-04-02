@@ -202,3 +202,25 @@ export function getThemeTokens(themeId: string | undefined): FullscreenThemeToke
 export function migrateFromDarkMode(darkMode: boolean | undefined): string {
   return darkMode ? 'charcoal' : 'linen';
 }
+
+/**
+ * Build CSS custom properties from theme tokens with a module-specific prefix.
+ * Returns a mapping like `{ '--prefix-bg': theme.bg, ... }` for the common
+ * structural tokens. Modules can spread in extra properties alongside these.
+ */
+export function buildThemeCSSVars(
+  prefix: string,
+  theme: FullscreenThemeTokens,
+): Record<string, string> {
+  return {
+    [`--${prefix}-bg`]: theme.bg,
+    [`--${prefix}-surface`]: theme.surface,
+    [`--${prefix}-text`]: theme.text,
+    [`--${prefix}-text-2`]: theme.textSecondary,
+    [`--${prefix}-text-3`]: theme.textMuted,
+    [`--${prefix}-border`]: theme.border,
+    [`--${prefix}-border-sub`]: theme.borderSubtle,
+    [`--${prefix}-card-shadow`]: theme.cardShadow,
+    [`--${prefix}-past-op`]: String(theme.pastOpacity),
+  };
+}

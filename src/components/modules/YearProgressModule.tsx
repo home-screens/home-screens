@@ -3,7 +3,7 @@
 import { useTZClock } from '@/hooks/useTZClock';
 import type { YearProgressConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
+import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 
 interface YearProgressModuleProps {
   config: YearProgressConfig;
@@ -39,14 +39,14 @@ function getProgress(now: Date) {
   return { yearPercent, monthPercent, weekPercent, dayPercent, year };
 }
 
-function ProgressBar({ label, percent, showPercentage, accentColor }: {
+function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }: {
   label: string;
   percent: number;
   showPercentage: boolean;
   accentColor: string;
+  hasAccent: boolean;
 }) {
   const clamped = Math.min(100, Math.max(0, percent));
-  const hasAccent = hasAccentColor(accentColor);
 
   return (
     <div className="flex flex-col" style={{ gap: '0.3em' }}>
@@ -98,7 +98,7 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
   const showWeek = config.showWeek ?? true;
   const showDay = config.showDay ?? true;
   const showPercentage = config.showPercentage ?? true;
-  const accentColor = config.accentColor ?? '#000000';
+  const { accentColor, hasAccent } = resolveAccent(config);
 
   const { yearPercent, monthPercent, weekPercent, dayPercent, year } = getProgress(now);
 
@@ -111,16 +111,16 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
     <ModuleWrapper style={style}>
       <div className="flex flex-col justify-center h-full" style={{ gap: '1.1em' }}>
         {showYear && (
-          <ProgressBar label={String(year)} percent={yearPercent} showPercentage={showPercentage} accentColor={accentColor} />
+          <ProgressBar label={String(year)} percent={yearPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
         {showMonth && (
-          <ProgressBar label={monthName} percent={monthPercent} showPercentage={showPercentage} accentColor={accentColor} />
+          <ProgressBar label={monthName} percent={monthPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
         {showWeek && (
-          <ProgressBar label="Week" percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} />
+          <ProgressBar label="Week" percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
         {showDay && (
-          <ProgressBar label={dayName} percent={dayPercent} showPercentage={showPercentage} accentColor={accentColor} />
+          <ProgressBar label={dayName} percent={dayPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
       </div>
     </ModuleWrapper>

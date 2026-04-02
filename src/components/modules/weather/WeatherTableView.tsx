@@ -2,6 +2,7 @@ import { CloudRain, Droplets, Wind } from 'lucide-react';
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
+import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherTableView({ config, forecast, units, scaledFontSize, containerRef }: WeatherViewProps) {
@@ -13,7 +14,7 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       <h2 className="font-semibold mb-3 opacity-80 shrink-0" style={{ fontSize: '1.125em' }}>Forecast</h2>
       {days.length === 0 ? (
-        <p className="opacity-50" style={{ fontSize: '0.875em' }}>No forecast data</p>
+        <WeatherEmptyState message="No forecast data" />
       ) : (
         <div className="flex flex-col flex-1 min-h-0 justify-around">
           {/* Header row */}

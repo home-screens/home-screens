@@ -1,5 +1,6 @@
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
 import { CurrentWeatherStats } from './CurrentWeatherStats';
+import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherCompactView({ config, hourly, forecast, units, scaledFontSize, containerRef }: WeatherViewProps) {
@@ -9,7 +10,7 @@ export default function WeatherCompactView({ config, hourly, forecast, units, sc
   if (!current) {
     return (
       <div ref={containerRef} className="w-full h-full flex items-center justify-center">
-        <p className="opacity-50" style={{ fontSize: `${scaledFontSize}px` }}>No weather data</p>
+        <WeatherEmptyState />
       </div>
     );
   }
