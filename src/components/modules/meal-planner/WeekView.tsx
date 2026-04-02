@@ -1,6 +1,7 @@
 'use client';
 
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from './types';
 
 interface WeekViewProps {
@@ -36,7 +37,7 @@ export function WeekView({ config, today }: WeekViewProps) {
           <div
             key={s}
             className="text-center font-semibold uppercase tracking-wider pb-1"
-            style={{ fontSize: '0.55em', color: SLOT_META[s].color, opacity: 0.8 }}
+            style={{ fontSize: '0.55em', color: SLOT_META[s].color, opacity: TEXT_OPACITY.heading }}
           >
             {slotLabel(s)}
           </div>
@@ -61,7 +62,7 @@ export function WeekView({ config, today }: WeekViewProps) {
                 className="font-medium pl-1 truncate"
                 style={{
                   fontSize: '0.65em',
-                  opacity: isToday ? 1 : 0.5,
+                  opacity: isToday ? 1 : TEXT_OPACITY.dim,
                   color: isToday ? config.accentColor : undefined,
                 }}
               >
@@ -87,7 +88,7 @@ export function WeekView({ config, today }: WeekViewProps) {
                         )}
                         <span
                           className="truncate font-medium"
-                          style={{ fontSize: '0.65em', opacity: 0.9 }}
+                          style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}
                         >
                           {meal.name}
                         </span>

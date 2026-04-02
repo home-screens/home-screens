@@ -1,6 +1,7 @@
 'use client';
 
 import { parseDateInTZ } from '@/lib/timezone';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 function formatElapsed(diffMs: number): string {
@@ -37,8 +38,8 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
         className="w-full h-full flex flex-col items-center justify-center"
       >
         <div
-          className="opacity-30 tracking-wide"
-          style={{ fontSize: scaledFontSize * 1.1 }}
+          className="tracking-wide"
+          style={{ fontSize: scaledFontSize * 1.1, opacity: TEXT_OPACITY.tertiary }}
         >
           Set a reference time
         </div>
@@ -85,10 +86,11 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
       {/* Label */}
       {label && (
         <div
-          className="mt-3 tracking-wide opacity-45 font-light"
+          className="mt-3 tracking-wide font-light"
           style={{
             fontSize: scaledFontSize * 1,
             color: accentColor,
+            opacity: TEXT_OPACITY.dim,
           }}
           suppressHydrationWarning
         >
@@ -99,10 +101,11 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
       {/* Inverted state indicator */}
       {!isExpected && (
         <div
-          className="mt-2 uppercase tracking-widest opacity-25"
+          className="mt-2 uppercase tracking-widest"
           style={{
             fontSize: scaledFontSize * 0.65,
             color: accentColor,
+            opacity: TEXT_OPACITY.tertiary,
           }}
           suppressHydrationWarning
         >

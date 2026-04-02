@@ -1,4 +1,5 @@
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { CurrentWeatherStats } from './CurrentWeatherStats';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
@@ -23,15 +24,15 @@ export default function WeatherCompactView({ config, hourly, forecast, units, sc
         <Icon size="1.8em" strokeWidth={1.5} aria-label={getWeatherIconLabel(current.icon)} role="img" />
         <span className="font-light" style={{ fontSize: '2em' }}>{Math.round(current.temp)}&deg;</span>
         {today && config.showHighLow !== false && (
-          <span className="opacity-50" style={{ fontSize: '0.85em' }}>
+          <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.dim }}>
             H:{Math.round(today.high)}&deg; L:{Math.round(today.low)}&deg;
           </span>
         )}
-        <span className="opacity-50 capitalize truncate" style={{ fontSize: '0.8em' }}>{current.description}</span>
+        <span className="capitalize truncate" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>{current.description}</span>
       </div>
       <div className="flex items-center gap-3">
         {config.showFeelsLike !== false && current.feelsLike != null && (
-          <span className="opacity-40" style={{ fontSize: '0.7em' }}>
+          <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>
             Feels {Math.round(current.feelsLike)}&deg;
           </span>
         )}

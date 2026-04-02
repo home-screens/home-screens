@@ -5,7 +5,7 @@ import type { TodoistConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { todoistUrl } from '@/lib/fetch-keys';
 import type { TodoistData } from './todoist/todoist-utils';
@@ -57,7 +57,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
         {/* Subtle divider under header */}
         {viewMode !== 'focus' && (
           <div className="mb-3">
-            <div className="w-full h-px" style={{ backgroundColor: DIVIDER_COLOR }} />
+            <div className="w-full h-px" style={{ backgroundColor: DIVIDER.default }} />
           </div>
         )}
 

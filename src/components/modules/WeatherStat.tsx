@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 export function WeatherStat({ icon: Icon, value, unit, visible, fontSize = '0.7em' }: {
   icon: LucideIcon;
@@ -9,7 +10,7 @@ export function WeatherStat({ icon: Icon, value, unit, visible, fontSize = '0.7e
 }) {
   if (!visible || value == null) return null;
   return (
-    <span className="opacity-50 flex items-center gap-0.5" style={{ fontSize }}>
+    <span className="flex items-center gap-0.5" style={{ fontSize, opacity: TEXT_OPACITY.dim }}>
       <Icon size="1em" aria-hidden="true" />{Math.round(value)}{unit}
     </span>
   );

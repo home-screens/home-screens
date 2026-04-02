@@ -1,3 +1,4 @@
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
@@ -20,7 +21,7 @@ export function ModuleLoadingState({ style, message, error }: { style: ModuleSty
         ) : (
           <div className="flex flex-col items-center gap-3 w-full">
             <SkeletonBars />
-            <p className="text-center opacity-30 text-xs" aria-live="polite">{message}</p>
+            <p className="text-center text-xs" style={{ opacity: TEXT_OPACITY.tertiary }} aria-live="polite">{message}</p>
           </div>
         )}
       </div>
@@ -32,7 +33,7 @@ export function ModuleEmptyState({ style, message }: { style: ModuleStyle; messa
   return (
     <ModuleWrapper style={style}>
       <div className="flex items-center justify-center h-full">
-        <p className="text-center opacity-50">{message}</p>
+        <p className="text-center" style={{ opacity: TEXT_OPACITY.dim }}>{message}</p>
       </div>
     </ModuleWrapper>
   );

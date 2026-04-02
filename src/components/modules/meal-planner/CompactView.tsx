@@ -1,6 +1,7 @@
 'use client';
 
 import type { MealPlannerConfig } from '@/types/config';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_SHORT, resolveMeal } from './types';
 
 interface CompactViewProps {
@@ -28,7 +29,7 @@ export function CompactView({ config, today }: CompactViewProps) {
               style={{
                 fontSize: '0.55em',
                 color: label === 'Today' ? config.accentColor : undefined,
-                opacity: label === 'Today' ? 0.9 : 0.4,
+                opacity: label === 'Today' ? TEXT_OPACITY.heading : TEXT_OPACITY.tertiary,
               }}
             >
               {label}
@@ -62,7 +63,7 @@ export function CompactView({ config, today }: CompactViewProps) {
                       {showEmoji && meal.emoji && (
                         <span className="shrink-0" style={{ fontSize: '0.7em' }}>{meal.emoji}</span>
                       )}
-                      <span className="truncate" style={{ fontSize: '0.65em', opacity: 0.85 }}>
+                      <span className="truncate" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
                         {meal.name}
                       </span>
                     </div>

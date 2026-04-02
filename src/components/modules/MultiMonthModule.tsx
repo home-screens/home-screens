@@ -1,6 +1,7 @@
 'use client';
 
 import { useTZClock } from '@/hooks/useTZClock';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import type { MultiMonthConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
@@ -97,16 +98,16 @@ function MonthGrid({
     <div className="flex flex-col min-h-0 flex-1">
       {/* Month header */}
       <div className="shrink-0" style={{ paddingBottom: '0.3em' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.85em', opacity: isCurrentMonth ? 1 : 0.7 }}>
+        <span style={{ fontWeight: 600, fontSize: '0.85em', opacity: isCurrentMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}>
           {monthName}
         </span>
-        <span style={{ fontWeight: 400, fontSize: '0.7em', opacity: 0.4, marginLeft: '0.4em' }}>
+        <span style={{ fontWeight: 400, fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary, marginLeft: '0.4em' }}>
           {year}
         </span>
       </div>
 
       {/* Thin separator line */}
-      <div className="shrink-0" style={{ height: '1px', background: 'currentColor', opacity: 0.1, marginBottom: '0.35em' }} />
+      <div className="shrink-0" style={{ height: '1px', background: DIVIDER.visible, marginBottom: '0.35em' }} />
 
       {/* Day-of-week headers */}
       <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1px' }} className="shrink-0">
@@ -120,7 +121,7 @@ function MonthGrid({
               style={{
                 fontSize: '0.55em',
                 lineHeight: '2',
-                opacity: highlightWeekends && isWeekend ? 0.25 : 0.4,
+                opacity: highlightWeekends && isWeekend ? 0.25 : TEXT_OPACITY.tertiary,
                 fontWeight: 500,
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
@@ -167,7 +168,7 @@ function MonthGrid({
                   style={{
                     fontSize: '0.65em',
                     fontVariantNumeric: 'tabular-nums',
-                    opacity: !visible ? 0 : !cell.current ? 0.15 : highlightWeekends && isWeekend ? 0.45 : 0.85,
+                    opacity: !visible ? 0 : !cell.current ? 0.15 : highlightWeekends && isWeekend ? TEXT_OPACITY.dim : TEXT_OPACITY.heading,
                     fontWeight: isToday ? 700 : 400,
                     background: isToday ? 'rgba(59,130,246,0.85)' : 'transparent',
                     color: isToday ? '#fff' : 'inherit',
@@ -227,9 +228,9 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
             className="flex min-h-0 min-w-0"
             style={{
               flex: 1,
-              borderLeft: isHorizontal && idx > 0 ? '1px solid rgba(255,255,255,0.15)' : undefined,
+              borderLeft: isHorizontal && idx > 0 ? `1px solid ${DIVIDER.strong}` : undefined,
               paddingLeft: isHorizontal && idx > 0 ? '1.2em' : undefined,
-              borderTop: !isHorizontal && idx > 0 ? '1px solid rgba(255,255,255,0.08)' : undefined,
+              borderTop: !isHorizontal && idx > 0 ? `1px solid ${DIVIDER.default}` : undefined,
               paddingTop: !isHorizontal && idx > 0 ? '0.6em' : undefined,
             }}
           >

@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { buildInfoParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateMinimalView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
@@ -30,8 +31,8 @@ export default function DateMinimalView({ config, now, scaledFontSize, container
 
       {infoParts.length > 0 && (
         <div
-          className="opacity-40 mt-2 tracking-wider uppercase"
-          style={{ fontSize: scaledFontSize * 0.8 }}
+          className="mt-2 tracking-wider uppercase"
+          style={{ fontSize: scaledFontSize * 0.8, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoParts.join(' \u00b7 ')}

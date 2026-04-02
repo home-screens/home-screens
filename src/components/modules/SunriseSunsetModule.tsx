@@ -4,6 +4,7 @@ import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
 import { useTZClock } from '@/hooks/useTZClock';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { SunriseSunsetConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
@@ -63,7 +64,7 @@ function SunArcView({
   if (isNaN(sunrise.getTime()) || isNaN(sunset.getTime())) {
     const isPolarDay = isNaN(sunrise.getTime()) && isNaN(sunset.getTime());
     return (
-      <div className="flex flex-col items-center justify-center h-full opacity-50" style={{ fontSize: '0.85em', gap: '0.3em' }}>
+      <div className="flex flex-col items-center justify-center h-full" style={{ fontSize: '0.85em', gap: '0.3em', opacity: TEXT_OPACITY.dim }}>
         <span>{isPolarDay ? 'Midnight sun' : isNaN(sunrise.getTime()) ? 'No sunrise today' : formatTimeInTZ(sunrise, timezone)}</span>
         <span>{isPolarDay ? 'Sun does not set' : isNaN(sunset.getTime()) ? 'No sunset today' : formatTimeInTZ(sunset, timezone)}</span>
         {showDayLength && <span>{getDayLength(sunrise, sunset)}</span>}
@@ -158,7 +159,7 @@ function SunArcView({
                 y={gp.y - 8}
                 textAnchor="middle"
                 fill="currentColor"
-                fillOpacity="0.5"
+                fillOpacity={TEXT_OPACITY.dim}
                 style={{ fontSize: '8px' }}
               >
                 {formatTimeInTZ(times.goldenHour, timezone)}
@@ -182,7 +183,7 @@ function SunArcView({
           y={noonPos.y - 8}
           textAnchor="middle"
           fill="currentColor"
-          fillOpacity="0.4"
+          fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '8px' }}
         >
           noon
@@ -208,7 +209,7 @@ function SunArcView({
           y={horizonY + 14}
           textAnchor="middle"
           fill="currentColor"
-          fillOpacity="0.6"
+          fillOpacity={TEXT_OPACITY.secondary}
           style={{ fontSize: '9px' }}
         >
           {formatTimeInTZ(sunrise, timezone)}
@@ -218,7 +219,7 @@ function SunArcView({
           y={horizonY + 24}
           textAnchor="middle"
           fill="currentColor"
-          fillOpacity="0.35"
+          fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '7px' }}
         >
           ↑ rise
@@ -230,7 +231,7 @@ function SunArcView({
           y={horizonY + 14}
           textAnchor="middle"
           fill="currentColor"
-          fillOpacity="0.6"
+          fillOpacity={TEXT_OPACITY.secondary}
           style={{ fontSize: '9px' }}
         >
           {formatTimeInTZ(sunset, timezone)}
@@ -240,7 +241,7 @@ function SunArcView({
           y={horizonY + 24}
           textAnchor="middle"
           fill="currentColor"
-          fillOpacity="0.35"
+          fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '7px' }}
         >
           set ↓
@@ -249,7 +250,7 @@ function SunArcView({
 
       {/* Day length below the SVG */}
       {showDayLength && (
-        <span className="opacity-50" style={{ fontSize: '0.8em' }}>
+        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
           {getDayLength(sunrise, sunset)}
         </span>
       )}
@@ -274,7 +275,7 @@ function DefaultView({
         {/* Sunrise */}
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↑</span>
-          <span className="opacity-50 uppercase tracking-widest" style={{ fontSize: '0.55em' }}>
+          <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
             Sunrise
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
@@ -285,7 +286,7 @@ function DefaultView({
         {/* Sunset */}
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↓</span>
-          <span className="opacity-50 uppercase tracking-widest" style={{ fontSize: '0.55em' }}>
+          <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
             Sunset
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
@@ -295,13 +296,13 @@ function DefaultView({
       </div>
 
       {showDayLength && (
-        <span className="opacity-50" style={{ fontSize: '0.8em' }}>
+        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
           Day length: {getDayLength(times.sunrise, times.sunset)}
         </span>
       )}
 
       {showGoldenHour && (
-        <span className="opacity-50" style={{ fontSize: '0.8em' }}>
+        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
           Golden hour: {formatTimeInTZ(times.goldenHour, timezone)}
         </span>
       )}

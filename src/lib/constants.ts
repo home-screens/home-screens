@@ -83,15 +83,32 @@ export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
   'fullscreen-photo': { w: 1080, h: 1920 },
 };
 
-// Semantic text opacity tiers for consistent visual hierarchy across modules
+// Semantic text opacity tiers for consistent visual hierarchy across modules.
+// 5-tier system: primary → heading → secondary → dim → tertiary
+//   primary   (1.0)  — main content, large values, active elements
+//   heading   (0.8)  — section headings (restrained, not harsh white)
+//   secondary (0.6)  — labels, day names, descriptions
+//   dim       (0.45) — supplementary data (low temps, feels-like, percentages)
+//   tertiary  (0.35) — muted metadata, timestamps, decorative text
 export const TEXT_OPACITY = {
   primary: 1,
+  heading: 0.8,
   secondary: 0.6,
+  dim: 0.45,
   tertiary: 0.35,
 } as const;
 
-// Standard divider color for consistent borders/separators across modules
-export const DIVIDER_COLOR = 'rgba(255,255,255,0.08)';
+// Divider/separator color tiers for consistent structural elements across modules.
+//   subtle  (0.05) — faint list grouping, barely-there separators
+//   default (0.08) — standard dividers and borders
+//   visible (0.10) — section separators within modules
+//   strong  (0.15) — emphasized borders, prominent separators
+export const DIVIDER = {
+  subtle: 'rgba(255,255,255,0.05)',
+  default: 'rgba(255,255,255,0.08)',
+  visible: 'rgba(255,255,255,0.10)',
+  strong: 'rgba(255,255,255,0.15)',
+} as const;
 
 /** Check whether a user-configured accent color is actually set (not the default black). */
 export function hasAccentColor(color: string | undefined): color is string {

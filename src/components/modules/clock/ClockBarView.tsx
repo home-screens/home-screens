@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 interface BarRowProps {
@@ -19,12 +20,13 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
   return (
     <div className="w-full flex items-center" style={{ gap: fontSize * 0.6 }}>
       <span
-        className="uppercase tracking-widest opacity-40 font-light shrink-0"
+        className="uppercase tracking-widest font-light shrink-0"
         style={{
           fontSize: fontSize * 0.75,
           width: fontSize * 1.2,
           textAlign: 'right',
           color: accentColor,
+          opacity: TEXT_OPACITY.tertiary,
         }}
       >
         {label}
@@ -48,12 +50,13 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
       </div>
 
       <span
-        className="tabular-nums font-light opacity-60 shrink-0"
+        className="tabular-nums font-light shrink-0"
         style={{
           fontSize: fontSize * 0.8,
           width: fontSize * 1.4,
           textAlign: 'left',
           color: accentColor,
+          opacity: TEXT_OPACITY.secondary,
         }}
         suppressHydrationWarning
       >
@@ -87,7 +90,7 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
         style={{
           fontSize: scaledFontSize * 2,
           lineHeight: 1.1,
-          opacity: 0.7,
+          opacity: TEXT_OPACITY.secondary,
         }}
         suppressHydrationWarning
       >

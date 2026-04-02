@@ -1,3 +1,5 @@
+import { TEXT_OPACITY } from '@/lib/constants';
+
 export function FlipCard({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-center" style={{ gap: '0.2em' }}>
@@ -19,7 +21,7 @@ export function FlipCard({ value, label }: { value: string; label: string }) {
           {value}
         </span>
       </div>
-      <span className="uppercase tracking-widest opacity-40 leading-none" style={{ fontSize: '0.3em' }}>
+      <span className="uppercase tracking-widest leading-none" style={{ fontSize: '0.3em', opacity: TEXT_OPACITY.tertiary }}>
         {label}
       </span>
     </div>

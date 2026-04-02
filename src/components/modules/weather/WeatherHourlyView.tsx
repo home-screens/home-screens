@@ -1,5 +1,6 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { WeatherStat } from '../WeatherStat';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
@@ -9,7 +10,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 opacity-80 shrink-0" style={{ fontSize: '1.125em' }}>Hourly Forecast</h2>
+      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>Hourly Forecast</h2>
       {hours.length === 0 ? (
         <WeatherEmptyState />
       ) : (
@@ -22,12 +23,12 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
             </div>
             <div className="flex flex-col items-center gap-0.5">
               {forecast[0] && (
-                <span className="opacity-60" style={{ fontSize: '0.85em' }}>
+                <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
                   H:{Math.round(forecast[0].high)}&deg; L:{Math.round(forecast[0].low)}&deg;
                 </span>
               )}
               {config.showFeelsLike !== false && hours[0].feelsLike != null && (
-                <span className="opacity-60" style={{ fontSize: '0.85em' }}>
+                <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
                   Feels like {Math.round(hours[0].feelsLike)}&deg;
                 </span>
               )}
@@ -45,7 +46,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
               const Icon = getWeatherIcon(hour.icon, config.iconSet);
               return (
                 <div key={i} className="flex flex-col items-center justify-evenly min-h-0">
-                  <span className="opacity-60" style={{ fontSize: '0.75em' }}>
+                  <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
                     {new Date(hour.time).toLocaleTimeString('en-US', {
                       hour: 'numeric',
                       hour12: true,

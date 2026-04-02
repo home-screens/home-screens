@@ -1,5 +1,6 @@
 'use client';
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { MealPlannerConfig, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import ModuleWrapper from '../ModuleWrapper';
@@ -26,10 +27,10 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
   if (!hasMeals && view !== 'week') {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">
-          <span style={{ fontSize: '2em' }}>&#127869;</span>
-          <p style={{ fontSize: '0.75em' }}>No meals planned yet</p>
-          <p style={{ fontSize: '0.55em', opacity: 0.6 }}>
+        <div className="flex flex-col items-center justify-center h-full gap-2">
+          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#127869;</span>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>No meals planned yet</p>
+          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
             Add meals in the editor
           </p>
         </div>

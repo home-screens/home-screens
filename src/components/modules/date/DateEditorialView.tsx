@@ -1,6 +1,7 @@
 'use client';
 
 import { buildInfoParts, parseDateParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateEditorialView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
@@ -40,8 +41,8 @@ export default function DateEditorialView({ config, now, scaledFontSize, contain
           </div>
           {config.showDayName && (
             <div
-              className="opacity-50 leading-tight"
-              style={{ fontSize: scaledFontSize * 0.85 }}
+              className="leading-tight"
+              style={{ fontSize: scaledFontSize * 0.85, opacity: TEXT_OPACITY.dim }}
               suppressHydrationWarning
             >
               {dayName}
@@ -49,8 +50,8 @@ export default function DateEditorialView({ config, now, scaledFontSize, contain
           )}
           {config.showYear && (
             <div
-              className="opacity-40 leading-tight"
-              style={{ fontSize: scaledFontSize * 0.8 }}
+              className="leading-tight"
+              style={{ fontSize: scaledFontSize * 0.8, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
               {year}
@@ -58,8 +59,8 @@ export default function DateEditorialView({ config, now, scaledFontSize, contain
           )}
           {infoParts.length > 0 && (
             <div
-              className="opacity-35 tracking-wider uppercase leading-tight mt-0.5"
-              style={{ fontSize: scaledFontSize * 0.65 }}
+              className="tracking-wider uppercase leading-tight mt-0.5"
+              style={{ fontSize: scaledFontSize * 0.65, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
               {infoParts.join(' \u00b7 ')}

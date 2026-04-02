@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -48,8 +49,8 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
           </div>
           {ampm && (
             <div
-              className="uppercase tracking-widest opacity-40 font-light"
-              style={{ fontSize: scaledFontSize * 0.7, marginTop: 2 }}
+              className="uppercase tracking-widest font-light"
+              style={{ fontSize: scaledFontSize * 0.7, marginTop: 2, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
               {ampm}
@@ -71,8 +72,8 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
         <div className="flex flex-col justify-center" style={{ gap: scaledFontSize * 0.35 }}>
           {dateStr && (
             <div
-              className="opacity-70 font-light"
-              style={{ fontSize: dateFontSize, lineHeight: 1.3 }}
+              className="font-light"
+              style={{ fontSize: dateFontSize, lineHeight: 1.3, opacity: TEXT_OPACITY.secondary }}
               suppressHydrationWarning
             >
               {dateStr}
@@ -84,8 +85,8 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
               {infoParts.map((part) => (
                 <div
                   key={part.label}
-                  className="tabular-nums opacity-40 font-light tracking-wide uppercase"
-                  style={{ fontSize: infoFontSize, lineHeight: 1.3 }}
+                  className="tabular-nums font-light tracking-wide uppercase"
+                  style={{ fontSize: infoFontSize, lineHeight: 1.3, opacity: TEXT_OPACITY.tertiary }}
                   suppressHydrationWarning
                 >
                   {part.label} {part.value}

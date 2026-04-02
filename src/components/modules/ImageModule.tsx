@@ -1,5 +1,6 @@
 'use client';
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ImageConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { useAuthImage } from '@/components/display/useAuthImage';
@@ -27,7 +28,7 @@ export default function ImageModule({ config, style }: ImageModuleProps) {
           />
         ) : null
       ) : (
-        <div className="flex items-center justify-center h-full opacity-50" style={{ fontSize: '0.875em' }}>
+        <div className="flex items-center justify-center h-full" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
           No image set
         </div>
       )}

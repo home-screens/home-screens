@@ -1,6 +1,7 @@
 'use client';
 
 import { getDateInfoValues, parseDateParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateBannerView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
@@ -38,8 +39,8 @@ export default function DateBannerView({ config, now, scaledFontSize, containerR
 
       {infoParts.length > 0 && (
         <div
-          className="opacity-40 mt-1.5 tracking-[0.2em] uppercase"
-          style={{ fontSize: scaledFontSize * 0.7 }}
+          className="mt-1.5 tracking-[0.2em] uppercase"
+          style={{ fontSize: scaledFontSize * 0.7, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoParts.join('  \u00b7  ')}

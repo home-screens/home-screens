@@ -1,4 +1,5 @@
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { WeatherViewProps } from './types';
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
@@ -18,17 +19,17 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
-        <AlertTriangle size="1.5em" className="opacity-60" aria-hidden="true" />
+        <AlertTriangle size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />
         <span className="font-medium" style={{ fontSize: '1em' }}>Weather Alerts</span>
         {active.length > 0 && (
-          <span className="opacity-50" style={{ fontSize: '0.75em' }}>({active.length})</span>
+          <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>({active.length})</span>
         )}
       </div>
 
       {active.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          <ShieldCheck size="2.5em" className="opacity-30" aria-hidden="true" />
-          <p className="opacity-40" style={{ fontSize: '0.85em' }}>
+          <ShieldCheck size="2.5em" style={{ opacity: TEXT_OPACITY.tertiary }} aria-hidden="true" />
+          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
             {alerts !== undefined ? 'No active alerts' : 'Alert data requires Pirate Weather or NOAA'}
           </p>
         </div>
@@ -61,10 +62,10 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
                     {alert.title}
                   </span>
                 </div>
-                <div className="opacity-60 mb-1" style={{ fontSize: '0.65em' }}>
+                <div className="mb-1" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.secondary }}>
                   {alert.severity} · Expires {expiresStr}
                 </div>
-                <p className="opacity-70 line-clamp-3" style={{ fontSize: '0.7em' }}>
+                <p className="line-clamp-3" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                   {alert.description}
                 </p>
               </div>

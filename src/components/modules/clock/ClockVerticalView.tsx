@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -97,10 +98,11 @@ export default function ClockVerticalView({ config, now, containerRef }: ClockVi
 
       {period && (
         <div
-          className="uppercase tracking-widest opacity-30 font-light"
+          className="uppercase tracking-widest font-light"
           style={{
             fontSize: digitSize * 0.22,
             marginTop: digitSize * 0.15,
+            opacity: TEXT_OPACITY.tertiary,
           }}
           suppressHydrationWarning
         >

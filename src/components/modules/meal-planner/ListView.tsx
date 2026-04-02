@@ -1,6 +1,7 @@
 'use client';
 
 import type { MealPlannerConfig } from '@/types/config';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal } from './types';
 
 interface ListViewProps {
@@ -34,7 +35,7 @@ export function ListView({ config, today }: ListViewProps) {
                 style={{
                   fontSize: '0.7em',
                   color: isToday ? config.accentColor : undefined,
-                  opacity: isToday ? 1 : 0.6,
+                  opacity: isToday ? 1 : TEXT_OPACITY.secondary,
                 }}
               >
                 {isToday ? 'Today' : DAY_NAMES_FULL[day]}
@@ -46,7 +47,7 @@ export function ListView({ config, today }: ListViewProps) {
               )}
               <div
                 className="h-px flex-1"
-                style={{ backgroundColor: isToday ? `${config.accentColor}30` : 'rgba(255,255,255,0.06)' }}
+                style={{ backgroundColor: isToday ? `${config.accentColor}30` : DIVIDER.subtle }}
               />
             </div>
 
@@ -74,7 +75,7 @@ export function ListView({ config, today }: ListViewProps) {
                         {showEmoji && meal.emoji && (
                           <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal.emoji}</span>
                         )}
-                        <span className="truncate" style={{ fontSize: '0.7em', opacity: 0.85 }}>
+                        <span className="truncate" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                           {meal.name}
                         </span>
                       </div>
@@ -82,13 +83,13 @@ export function ListView({ config, today }: ListViewProps) {
                       {/* Meta */}
                       <div className="flex items-center gap-1.5 shrink-0" style={{ fontSize: '0.45em' }}>
                         {showPrepTime && meal.prepTime && (
-                          <span className="opacity-35">&#9201; {meal.prepTime}m</span>
+                          <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {meal.prepTime}m</span>
                         )}
                         {showTags && meal.tags?.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full px-1 py-px opacity-30"
-                            style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                            className="rounded-full px-1 py-px"
+                            style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.tertiary }}
                           >
                             {tag}
                           </span>

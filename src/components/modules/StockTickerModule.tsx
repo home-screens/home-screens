@@ -1,5 +1,6 @@
 'use client';
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { StockTickerConfig, ModuleStyle } from '@/types/config';
 import {
   formatUSD,
@@ -60,7 +61,7 @@ function toCompactRows(stocks: StockData[]): CompactRow[] {
 const stockTableColumns: TableColumn<StockData>[] = [
   {
     header: 'Symbol',
-    render: (stock) => <span className="font-semibold opacity-80">{stock.symbol}</span>,
+    render: (stock) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{stock.symbol}</span>,
   },
   {
     header: 'Price',

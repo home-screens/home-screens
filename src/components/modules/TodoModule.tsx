@@ -3,7 +3,7 @@
 import type { TodoConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
-import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
@@ -56,7 +56,7 @@ export default function TodoModule({ config, style }: TodoModuleProps) {
               key={item.id}
               className="flex items-start gap-2 py-1.5"
               style={{
-                borderBottom: i < config.items.length - 1 ? `1px solid ${DIVIDER_COLOR}` : 'none',
+                borderBottom: i < config.items.length - 1 ? `1px solid ${DIVIDER.default}` : 'none',
                 opacity: item.completed ? TEXT_OPACITY.tertiary : TEXT_OPACITY.primary,
               }}
             >

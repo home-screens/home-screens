@@ -1,4 +1,5 @@
 import { CloudRain } from 'lucide-react';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherPrecipitationView({ minutely, scaledFontSize, containerRef }: WeatherViewProps) {
@@ -32,17 +33,17 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
-        <CloudRain size="1.5em" className="opacity-60" aria-hidden="true" />
+        <CloudRain size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />
         <span className="font-medium" style={{ fontSize: '1em' }}>Next 60 Minutes</span>
       </div>
 
       {/* Summary */}
-      <div className="opacity-70 mb-3" style={{ fontSize: '0.85em' }}>{summary}</div>
+      <div className="mb-3" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.heading }}>{summary}</div>
 
       {/* Bar chart or empty state */}
       {minutely === undefined ? (
         <div className="flex-1 flex items-center justify-center">
-          <p className="opacity-40" style={{ fontSize: '0.85em' }}>
+          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
             Minutely data requires Pirate Weather
           </p>
         </div>
@@ -70,7 +71,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
           </div>
 
           {/* Time axis */}
-          <div className="flex justify-between mt-1 opacity-40" style={{ fontSize: '0.65em' }}>
+          <div className="flex justify-between mt-1" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
             <span>Now</span>
             <span>15m</span>
             <span>30m</span>
@@ -80,7 +81,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <p className="opacity-40" style={{ fontSize: '0.85em' }}>
+          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
             {summary}
           </p>
         </div>

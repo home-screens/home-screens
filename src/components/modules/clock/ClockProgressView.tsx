@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -84,19 +85,20 @@ export default function ClockProgressView({ config, now, scaledFontSize, contain
           </div>
           {period && (
             <div
-              className="uppercase tracking-widest opacity-40 font-light"
-              style={{ fontSize: scaledFontSize * 0.55, marginTop: 2 }}
+              className="uppercase tracking-widest font-light"
+              style={{ fontSize: scaledFontSize * 0.55, marginTop: 2, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
               {period.trim()}
             </div>
           )}
           <div
-            className="tabular-nums font-light opacity-50"
+            className="tabular-nums font-light"
             style={{
               fontSize: percentFontSize,
               marginTop: scaledFontSize * 0.3,
               color: accentColor,
+              opacity: TEXT_OPACITY.dim,
             }}
             suppressHydrationWarning
           >

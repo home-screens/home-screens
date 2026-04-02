@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { parseClockTime, buildInfoParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockClassicView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
@@ -39,22 +40,22 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
             {mStr}
             <span className="clock-colon-pulse">:</span>
             {sStr}
-            {ampm && <span className="opacity-50" style={{ fontSize: '0.4em', marginLeft: '0.15em' }}>{ampm}</span>}
+            {ampm && <span style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}>{ampm}</span>}
           </>
         ) : (
           <>
             {hStr}
             <span className="clock-colon-pulse">:</span>
             {mStr}
-            {ampm && <span className="opacity-50" style={{ fontSize: '0.4em', marginLeft: '0.15em' }}>{ampm}</span>}
+            {ampm && <span style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}>{ampm}</span>}
           </>
         )}
       </div>
 
       {dateStr && (
         <div
-          className="opacity-60 mt-2 tracking-wide"
-          style={{ fontSize: scaledFontSize * 1.125 }}
+          className="mt-2 tracking-wide"
+          style={{ fontSize: scaledFontSize * 1.125, opacity: TEXT_OPACITY.secondary }}
           suppressHydrationWarning
         >
           {dateStr}
@@ -63,8 +64,8 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
 
       {infoStr && (
         <div
-          className="opacity-40 mt-1 tracking-wider uppercase"
-          style={{ fontSize: scaledFontSize * 0.85 }}
+          className="mt-1 tracking-wider uppercase"
+          style={{ fontSize: scaledFontSize * 0.85, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoStr}

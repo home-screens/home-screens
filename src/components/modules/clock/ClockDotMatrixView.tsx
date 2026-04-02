@@ -4,6 +4,7 @@ import { memo } from 'react';
 import { format } from 'date-fns';
 import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
 import { parseClockTime, buildInfoParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 const DotCharacter = memo(function DotCharacter({
@@ -99,8 +100,8 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
 
       {dateStr && (
         <div
-          className="opacity-50 tracking-wide mt-4"
-          style={{ fontSize: scaledFontSize * 0.9, color: accentColor }}
+          className="tracking-wide mt-4"
+          style={{ fontSize: scaledFontSize * 0.9, color: accentColor, opacity: TEXT_OPACITY.dim }}
           suppressHydrationWarning
         >
           {dateStr}
@@ -109,8 +110,8 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
 
       {infoStr && (
         <div
-          className="opacity-30 tracking-wider uppercase mt-1"
-          style={{ fontSize: scaledFontSize * 0.7, color: accentColor }}
+          className="tracking-wider uppercase mt-1"
+          style={{ fontSize: scaledFontSize * 0.7, color: accentColor, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoStr}

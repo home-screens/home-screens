@@ -1,5 +1,6 @@
 import { CloudRain, Droplets, Wind } from 'lucide-react';
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
@@ -12,13 +13,13 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 opacity-80 shrink-0" style={{ fontSize: '1.125em' }}>Forecast</h2>
+      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>Forecast</h2>
       {days.length === 0 ? (
         <WeatherEmptyState message="No forecast data" />
       ) : (
         <div className="flex flex-col flex-1 min-h-0 justify-around">
           {/* Header row */}
-          <div className="flex items-center gap-3 opacity-40 pb-1 border-b border-current/10" style={{ fontSize: '0.7em' }}>
+          <div className="flex items-center gap-3 pb-1" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary, borderBottom: `1px solid ${DIVIDER.visible}` }}>
             <span className="w-[4em]">Day</span>
             <span className="w-[2em]" />
             {showHighLow && <span className="w-[5em] text-center">Temp</span>}
@@ -32,17 +33,17 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
             const Icon = getWeatherIcon(day.icon, config.iconSet);
             return (
               <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                <span className="opacity-60 w-[3.5em]" style={{ fontSize: '0.9em' }}>{dayLabel(day.date)}</span>
+                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date)}</span>
                 <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getWeatherIconLabel(day.icon)} role="img" />
                 {showHighLow && (
                   <div className="flex gap-1 w-[5em] justify-center">
                     <span className="font-medium">{Math.round(day.high)}&deg;</span>
-                    <span className="opacity-50">{Math.round(day.low)}&deg;</span>
+                    <span style={{ opacity: TEXT_OPACITY.dim }}>{Math.round(day.low)}&deg;</span>
                   </div>
                 )}
                 <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                 {config.showPrecipAmount && day.precipAmount != null && day.precipAmount > 0 && (
-                  <span className="opacity-40" style={{ fontSize: '0.7em' }}>{day.precipAmount.toFixed(1)}&quot;</span>
+                  <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>{day.precipAmount.toFixed(1)}&quot;</span>
                 )}
                 <WeatherStat icon={Droplets} value={day.humidity} unit="%" visible={config.showHumidity} />
                 <WeatherStat icon={Wind} value={day.windSpeed} unit={` ${windUnit}`} visible={config.showWind} />

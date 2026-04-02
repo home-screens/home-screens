@@ -1,6 +1,7 @@
 'use client';
 
 import { QRCodeSVG } from 'qrcode.react';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { QRCodeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { buildWifiString } from '@/lib/wifi-qr';
@@ -35,29 +36,29 @@ export default function QRCodeModule({ config, style }: QRCodeModuleProps) {
             {mode === 'wifi' ? (
               <div className="flex flex-col items-center gap-0.5">
                 {(config.showNetworkName ?? true) && config.ssid && (
-                  <span className="opacity-80 text-center" style={{ fontSize: '0.875em' }}>
+                  <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>
                     <WifiIcon /> {config.ssid}
                   </span>
                 )}
                 {(config.showPassword ?? true) && config.password && config.authType !== 'nopass' && (
-                  <span className="opacity-50 text-center font-mono" style={{ fontSize: '0.75em' }}>
+                  <span className="text-center font-mono" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
                     {config.password}
                   </span>
                 )}
                 {!(config.showNetworkName ?? true) && !(config.showPassword ?? true) && (
-                  <span className="opacity-50 text-center" style={{ fontSize: '0.75em' }}>
+                  <span className="text-center" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
                     Scan to connect
                   </span>
                 )}
               </div>
             ) : (
               config.label && (
-                <span className="opacity-80 text-center" style={{ fontSize: '0.875em' }}>{config.label}</span>
+                <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>{config.label}</span>
               )
             )}
           </>
         ) : (
-          <span className="opacity-50" style={{ fontSize: '0.875em' }}>
+          <span style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
             {mode === 'wifi' ? 'Configure WiFi network' : 'Configure QR data'}
           </span>
         )}

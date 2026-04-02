@@ -1,10 +1,11 @@
+import { TEXT_OPACITY } from '@/lib/constants';
 import { FlipCard, FlipSeparator } from './FlipCard';
 import { pad } from './countdown-utils';
 import type { CountdownViewProps } from './types';
 
 export default function CountdownAllView({ events, scale, basePx }: CountdownViewProps) {
   if (events.length === 0) {
-    return <p className="opacity-50" style={{ fontSize: '0.875em' }}>No upcoming events</p>;
+    return <p style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>No upcoming events</p>;
   }
 
   return (
@@ -12,11 +13,11 @@ export default function CountdownAllView({ events, scale, basePx }: CountdownVie
       {events.map((event) => (
         <div key={event.id} className="flex flex-col items-center" style={{ gap: `${0.3 * scale}em` }}>
           <p
-            className="font-medium truncate w-full text-center opacity-70"
-            style={{ fontSize: `${Math.max(12, 14 * scale)}px` }}
+            className="font-medium truncate w-full text-center"
+            style={{ fontSize: `${Math.max(12, 14 * scale)}px`, opacity: TEXT_OPACITY.secondary }}
           >
             {event.name}
-            {event.time.past && <span className="opacity-50 ml-1 font-normal">(ago)</span>}
+            {event.time.past && <span className="ml-1 font-normal">(ago)</span>}
           </p>
           <div className="flex items-start justify-center" style={{ fontSize: `${basePx}px`, gap: '0.15em' }}>
             {event.time.days > 0 && (

@@ -2,6 +2,7 @@
 
 import type { WeatherConfig, WeatherView, ModuleStyle } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import ModuleWrapper from '../ModuleWrapper';
 import WeatherCurrentView from './WeatherCurrentView';
@@ -56,8 +57,8 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
     return (
       <ModuleWrapper style={style}>
         <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center gap-1">
-          <p className="opacity-60" style={{ fontSize: `${scaledFontSize}px` }}>Location not set</p>
-          <p className="opacity-40" style={{ fontSize: `${scaledFontSize * 0.7}px` }}>Set your location in Settings</p>
+          <p style={{ fontSize: `${scaledFontSize}px`, opacity: TEXT_OPACITY.secondary }}>Location not set</p>
+          <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>Set your location in Settings</p>
         </div>
       </ModuleWrapper>
     );

@@ -3,6 +3,7 @@
 import { useId, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockArcView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
@@ -187,8 +188,8 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
 
         {dateStr && (
           <div
-            className="text-center opacity-50 mt-1 tracking-wide"
-            style={{ fontSize: scaledFontSize * 0.9 }}
+            className="text-center mt-1 tracking-wide"
+            style={{ fontSize: scaledFontSize * 0.9, opacity: TEXT_OPACITY.dim }}
             suppressHydrationWarning
           >
             {dateStr}

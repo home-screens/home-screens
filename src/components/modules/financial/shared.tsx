@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { TEXT_OPACITY } from '@/lib/constants';
 import FinancialCard from '../FinancialCard';
 import TickerMarquee from '../TickerMarquee';
 
@@ -60,7 +61,7 @@ export function FinancialTickerView({ items, speed }: { items: FinancialItem[]; 
     <TickerMarquee itemCount={items.length} speed={speed}>
       {items.map((item) => (
         <span key={item.key} className="inline-flex items-center gap-2" style={{ fontSize: '0.875em' }}>
-          <span className="font-semibold opacity-80">{item.label}</span>
+          <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{item.label}</span>
           <span className="font-bold">
             {formatUSD(item.price)}
           </span>
@@ -97,7 +98,7 @@ export function FinancialTableView<T>({ items, columns, scale, itemKey }: Financ
         style={{ fontSize: `${0.875 * scale}em` }}
       >
         <thead>
-          <tr className="opacity-50 text-left" style={{ fontSize: `${0.8 * scale}em` }}>
+          <tr className="text-left" style={{ fontSize: `${0.8 * scale}em`, opacity: TEXT_OPACITY.dim }}>
             {columns.map((col, ci) => (
               <th
                 key={ci}
@@ -152,7 +153,7 @@ export function FinancialCompactView({ rows, scale, labelWidth = 'w-20' }: Finan
           className="flex items-center justify-between"
           style={{ fontSize: `${0.85 * scale}em` }}
         >
-          <span className={`font-semibold opacity-80 ${labelWidth}`}>{row.label}</span>
+          <span className={`font-semibold ${labelWidth}`} style={{ opacity: TEXT_OPACITY.heading }}>{row.label}</span>
           <span className="font-bold tabular-nums">{row.price}</span>
           {row.change}
         </div>

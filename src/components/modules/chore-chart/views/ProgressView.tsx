@@ -2,6 +2,7 @@
 
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats } from '../types';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import ChoreIcon from '../ChoreIcon';
 
 interface ProgressViewProps {
@@ -34,7 +35,7 @@ function ProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="rgba(255,255,255,0.08)"
+        stroke={DIVIDER.default}
         strokeWidth={strokeWidth}
       />
       {/* Progress circle */}
@@ -85,7 +86,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
   return (
     <div className="flex flex-col h-full items-center" style={{ fontSize: 'inherit' }}>
       {/* Title */}
-      <div className="text-center mb-3" style={{ fontSize: '0.85em', fontWeight: 600, opacity: 0.7 }}>
+      <div className="text-center mb-3" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
         &#128202; Family Progress
       </div>
 
@@ -112,7 +113,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
               <div style={{ fontSize: '0.65em', fontWeight: 600, color: member.color }}>
                 {member.name}
               </div>
-              <div style={{ fontSize: '0.55em', opacity: 0.5 }}>
+              <div style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
                 {stats?.completed ?? 0}/{stats?.total ?? 0} done
               </div>
               {showStreaks && (stats?.streak ?? 0) >= 2 && (
@@ -131,7 +132,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
           className="text-center mb-1.5"
           style={{
             fontSize: '0.6em',
-            opacity: 0.4,
+            opacity: TEXT_OPACITY.tertiary,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
           }}
@@ -143,18 +144,18 @@ export function ProgressView({ config, data }: ProgressViewProps) {
           style={{ backgroundColor: 'rgba(255,255,255,0.04)', fontSize: '0.65em' }}
         >
           {showPoints && (
-            <div className="flex items-center justify-between" style={{ opacity: 0.6 }}>
+            <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
               <span>&#11088; Total points</span>
               <span style={{ fontWeight: 600 }}>{totalWeeklyPoints}</span>
             </div>
           )}
           {showStreaks && bestStreak.streak > 0 && (
-            <div className="flex items-center justify-between" style={{ opacity: 0.6 }}>
+            <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
               <span>&#127942; Best streak</span>
               <span style={{ fontWeight: 600 }}>{bestStreak.name} ({bestStreak.streak} days)</span>
             </div>
           )}
-          <div className="flex items-center justify-between" style={{ opacity: 0.6 }}>
+          <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
             <span>&#128200; Today&apos;s completion</span>
             <span style={{ fontWeight: 600 }}>{overallPct}%</span>
           </div>

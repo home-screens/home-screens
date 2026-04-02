@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { parseClockTime, buildInfoParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockNeonView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
@@ -57,7 +58,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
               fontSize: '0.35em',
               marginLeft: '0.2em',
               verticalAlign: 'top',
-              opacity: 0.7,
+              opacity: TEXT_OPACITY.secondary,
             }}
           >
             {ampm}
@@ -72,7 +73,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
             fontSize: scaledFontSize * 1,
             color: neonColor,
             textShadow: neonDateShadow,
-            opacity: 0.8,
+            opacity: TEXT_OPACITY.heading,
             letterSpacing: '0.05em',
           }}
           suppressHydrationWarning
@@ -88,7 +89,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
             fontSize: scaledFontSize * 0.75,
             color: neonColor,
             textShadow: `0 0 6px ${neonColor}`,
-            opacity: 0.45,
+            opacity: TEXT_OPACITY.dim,
           }}
           suppressHydrationWarning
         >

@@ -1,5 +1,6 @@
 'use client';
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
 import { useChoreData } from './useChoreData';
@@ -22,10 +23,10 @@ export default function ChoreChartModule({ config, style }: ChoreChartModuleProp
   if (data.members.length === 0) {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">
-          <span style={{ fontSize: '2em' }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em' }}>Add family members to get started</p>
-          <p style={{ fontSize: '0.55em', opacity: 0.6 }}>
+        <div className="flex flex-col items-center justify-center h-full gap-2">
+          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>Add family members to get started</p>
+          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
             Open the editor to set up your chore chart
           </p>
         </div>
@@ -37,10 +38,10 @@ export default function ChoreChartModule({ config, style }: ChoreChartModuleProp
   if (data.chores.length === 0) {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">
-          <span style={{ fontSize: '2em' }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em' }}>No chores configured</p>
-          <p style={{ fontSize: '0.55em', opacity: 0.6 }}>
+        <div className="flex flex-col items-center justify-center h-full gap-2">
+          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>No chores configured</p>
+          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
             Add some chores in the editor
           </p>
         </div>

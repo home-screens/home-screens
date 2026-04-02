@@ -1,4 +1,5 @@
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { CurrentWeatherStats } from './CurrentWeatherStats';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
@@ -23,14 +24,14 @@ export default function WeatherCurrentView({ config, forecast, hourly, units, sc
         <Icon size="3em" strokeWidth={1.5} aria-label={getWeatherIconLabel(current.icon)} role="img" />
         <span className="font-light" style={{ fontSize: '4em' }}>{Math.round(current.temp)}&deg;</span>
       </div>
-      <p className="opacity-60 capitalize" style={{ fontSize: '1em' }}>{current.description}</p>
+      <p className="capitalize" style={{ fontSize: '1em', opacity: TEXT_OPACITY.secondary }}>{current.description}</p>
       {today && (
-        <span className="opacity-50" style={{ fontSize: '0.9em' }}>
+        <span style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.dim }}>
           H:{Math.round(today.high)}&deg; L:{Math.round(today.low)}&deg;
         </span>
       )}
       {config.showFeelsLike !== false && current.feelsLike != null && (
-        <span className="opacity-50" style={{ fontSize: '0.85em' }}>
+        <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.dim }}>
           Feels like {Math.round(current.feelsLike)}&deg;
         </span>
       )}

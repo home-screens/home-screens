@@ -10,7 +10,7 @@ import {
   groupTasks,
   buildTaskTree,
 } from './todoist-utils';
-import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 
 // ─── Task Row ───
 
@@ -199,7 +199,7 @@ export default function ListView({
                 </span>
                 <div
                   className="flex-1 h-px"
-                  style={{ backgroundColor: DIVIDER_COLOR }}
+                  style={{ backgroundColor: DIVIDER.default }}
                 />
               </div>
             )}

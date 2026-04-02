@@ -1,8 +1,10 @@
+import { TEXT_OPACITY } from '@/lib/constants';
+
 interface WeatherEmptyStateProps {
   message?: string;
 }
 
 /** Placeholder shown when weather/forecast data is unavailable. */
 export function WeatherEmptyState({ message = 'No weather data' }: WeatherEmptyStateProps) {
-  return <p className="opacity-50" style={{ fontSize: '0.875em' }}>{message}</p>;
+  return <p style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>{message}</p>;
 }

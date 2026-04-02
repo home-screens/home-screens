@@ -82,7 +82,7 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
               );
             })}
             {data.mock && (
-              <p className="text-center opacity-40 italic" style={{ fontSize: '0.65em', marginTop: '0.25em' }}>
+              <p className="text-center italic" style={{ fontSize: '0.65em', marginTop: '0.25em', opacity: TEXT_OPACITY.tertiary }}>
                 Sample data — add a traffic API key in Settings
               </p>
             )}

@@ -3,6 +3,7 @@
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import ChoreIcon from '../ChoreIcon';
 
 interface BoardViewProps {
@@ -23,7 +24,7 @@ export function BoardView({ config, data }: BoardViewProps) {
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Title */}
-      <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: 0.7 }}>
+      <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
         Family Chores
       </div>
 
@@ -50,7 +51,7 @@ export function BoardView({ config, data }: BoardViewProps) {
                     {member.name}
                   </div>
                 </div>
-                <div className="flex-1 flex items-center justify-center" style={{ fontSize: '0.65em', opacity: 0.4 }}>
+                <div className="flex-1 flex items-center justify-center" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
                   Day off! &#127796;
                 </div>
               </div>
@@ -106,7 +107,7 @@ export function BoardView({ config, data }: BoardViewProps) {
               <div className="mt-1.5">
                 <div
                   className="rounded-full overflow-hidden"
-                  style={{ height: '0.35em', backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  style={{ height: '0.35em', backgroundColor: DIVIDER.default }}
                 >
                   <div
                     className="h-full rounded-full transition-all"
@@ -116,7 +117,7 @@ export function BoardView({ config, data }: BoardViewProps) {
                     }}
                   />
                 </div>
-                <div className="text-center mt-0.5" style={{ fontSize: '0.6em', opacity: 0.5 }}>
+                <div className="text-center mt-0.5" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.dim }}>
                   {stats?.completed ?? 0}/{stats?.total ?? 0}
                 </div>
               </div>
@@ -127,7 +128,7 @@ export function BoardView({ config, data }: BoardViewProps) {
 
       {/* All complete celebration */}
       {members.length > 0 && todayAssignments.length > 0 && todayAssignments.every((a) => a.isCompleted) && (
-        <div className="text-center mt-2" style={{ fontSize: '0.75em', opacity: 0.7 }}>
+        <div className="text-center mt-2" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
           All done! &#127881;
         </div>
       )}

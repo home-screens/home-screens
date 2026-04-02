@@ -286,7 +286,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   if (!result) {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full opacity-50">
+        <div className="flex items-center justify-center h-full" style={{ opacity: TEXT_OPACITY.dim }}>
           <p style={{ fontSize: '0.9em' }}>No affirmations configured</p>
         </div>
       </ModuleWrapper>

@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -117,11 +118,12 @@ export default function ClockBinaryView({ config, now, scaledFontSize, container
               ))}
             </div>
             <span
-              className="uppercase tracking-widest opacity-40 font-light"
+              className="uppercase tracking-widest font-light"
               style={{
                 fontSize: labelSize,
                 marginTop: gap * 1.5,
                 color: accentColor,
+                opacity: TEXT_OPACITY.tertiary,
               }}
               suppressHydrationWarning
             >

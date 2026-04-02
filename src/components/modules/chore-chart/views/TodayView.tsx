@@ -3,6 +3,7 @@
 import type { ChoreChartConfig, ChoreTimeOfDay, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import ChoreIcon from '../ChoreIcon';
 
 interface TodayViewProps {
@@ -41,7 +42,7 @@ export function TodayView({ config, data }: TodayViewProps) {
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
       <div className="text-center mb-2">
-        <div style={{ fontSize: '0.7em', opacity: 0.5 }}>&#128203; Today</div>
+        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; Today</div>
         <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{dayName}</div>
       </div>
 
@@ -64,7 +65,7 @@ export function TodayView({ config, data }: TodayViewProps) {
                 style={{
                   fontSize: '0.85em',
                   fontWeight: isCurrent ? 700 : 500,
-                  opacity: isPast && sectionDone ? 0.4 : isCurrent ? 1 : 0.6,
+                  opacity: isPast && sectionDone ? TEXT_OPACITY.tertiary : isCurrent ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                   color: isCurrent ? accentColor : undefined,
                 }}
               >
@@ -96,7 +97,7 @@ export function TodayView({ config, data }: TodayViewProps) {
                         cursor: allowTouch ? 'pointer' : 'default',
                         background: 'none',
                         border: 'none',
-                        borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                        borderTop: i > 0 ? `1px solid ${DIVIDER.subtle}` : 'none',
                         color: 'inherit',
                         textAlign: 'left',
                       }}
@@ -127,12 +128,12 @@ export function TodayView({ config, data }: TodayViewProps) {
 
       {/* Progress bar */}
       <div className="mt-2">
-        <div className="flex items-center gap-2" style={{ fontSize: '0.65em', opacity: 0.5 }}>
+        <div className="flex items-center gap-2" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.dim }}>
           <span>Progress:</span>
           <div className="flex-1">
             <div
               className="rounded-full overflow-hidden"
-              style={{ height: '0.4em', backgroundColor: 'rgba(255,255,255,0.08)' }}
+              style={{ height: '0.4em', backgroundColor: DIVIDER.default }}
             >
               <div
                 className="h-full rounded-full transition-all"

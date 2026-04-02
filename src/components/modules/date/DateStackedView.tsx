@@ -1,6 +1,7 @@
 'use client';
 
 import { buildInfoParts, parseDateParts } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateStackedView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
@@ -15,8 +16,8 @@ export default function DateStackedView({ config, now, scaledFontSize, container
     >
       {config.showDayName && (
         <div
-          className="uppercase tracking-[0.25em] opacity-50 font-light"
-          style={{ fontSize: scaledFontSize * 0.85 }}
+          className="uppercase tracking-[0.25em] font-light"
+          style={{ fontSize: scaledFontSize * 0.85, opacity: TEXT_OPACITY.dim }}
           suppressHydrationWarning
         >
           {dayName}
@@ -38,8 +39,8 @@ export default function DateStackedView({ config, now, scaledFontSize, container
         style={{ borderColor: config.accentColor }}
       />
       <div
-        className="uppercase tracking-[0.2em] opacity-60"
-        style={{ fontSize: scaledFontSize * 0.9 }}
+        className="uppercase tracking-[0.2em]"
+        style={{ fontSize: scaledFontSize * 0.9, opacity: TEXT_OPACITY.secondary }}
         suppressHydrationWarning
       >
         {monthName}{config.showYear ? ` ${year}` : ''}
@@ -47,8 +48,8 @@ export default function DateStackedView({ config, now, scaledFontSize, container
 
       {infoParts.length > 0 && (
         <div
-          className="opacity-40 mt-1 tracking-wider uppercase"
-          style={{ fontSize: scaledFontSize * 0.7 }}
+          className="mt-1 tracking-wider uppercase"
+          style={{ fontSize: scaledFontSize * 0.7, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoParts.join(' \u00b7 ')}

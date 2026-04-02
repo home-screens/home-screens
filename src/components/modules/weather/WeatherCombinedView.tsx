@@ -1,5 +1,6 @@
 import { CloudRain, Droplets, Wind, Gauge, Eye, Thermometer } from 'lucide-react';
 import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
@@ -20,12 +21,12 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
           <span className="font-light" style={{ fontSize: '3em' }}>{Math.round(current.temp)}&deg;</span>
           <div className="flex flex-col gap-0.5">
             {forecast[0] && (
-              <span className="opacity-60" style={{ fontSize: '0.8em' }}>
+              <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.secondary }}>
                 H:{Math.round(forecast[0].high)}&deg; L:{Math.round(forecast[0].low)}&deg;
               </span>
             )}
             {config.showFeelsLike !== false && current.feelsLike != null && (
-              <span className="opacity-50" style={{ fontSize: '0.75em' }}>
+              <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
                 Feels like {Math.round(current.feelsLike)}&deg;
               </span>
             )}
@@ -50,7 +51,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
               const Icon = getWeatherIcon(hour.icon, config.iconSet);
               return (
                 <div key={i} className="flex flex-col items-center gap-0.5">
-                  <span className="opacity-50" style={{ fontSize: '0.65em' }}>
+                  <span style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.dim }}>
                     {new Date(hour.time).toLocaleTimeString('en-US', {
                       hour: 'numeric',
                       hour12: true,
@@ -76,13 +77,13 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
               const Icon = getWeatherIcon(day.icon, config.iconSet);
               return (
                 <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                  <span className="opacity-60 w-[3.5em] text-right" style={{ fontSize: '0.85em' }}>{dayLabel(day.date)}</span>
+                  <span className="w-[3.5em] text-right" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date)}</span>
                   <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getWeatherIconLabel(day.icon)} role="img" />
                   <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   {config.showHighLow !== false && (
                     <div className="flex gap-1 ml-auto">
                       <span className="font-medium">{Math.round(day.high)}&deg;</span>
-                      <span className="opacity-50">{Math.round(day.low)}&deg;</span>
+                      <span style={{ opacity: TEXT_OPACITY.dim }}>{Math.round(day.low)}&deg;</span>
                     </div>
                   )}
                   <WeatherStat icon={Droplets} value={day.humidity} unit="%" visible={config.showHumidity} />

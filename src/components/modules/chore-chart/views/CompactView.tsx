@@ -3,6 +3,7 @@
 import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import ChoreIcon from '../ChoreIcon';
 
 interface CompactViewProps {
@@ -31,7 +32,7 @@ export function CompactView({ config, data }: CompactViewProps) {
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
-      <div className="flex items-center gap-2 mb-2" style={{ opacity: 0.6 }}>
+      <div className="flex items-center gap-2 mb-2" style={{ opacity: TEXT_OPACITY.secondary }}>
         <span style={{ fontSize: '0.8em', fontWeight: 600 }}>Chores</span>
         <div className="flex-1" />
         {members.map((m) => (
@@ -42,7 +43,7 @@ export function CompactView({ config, data }: CompactViewProps) {
       </div>
 
       {/* Divider */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '0.3em' }} />
+      <div style={{ borderBottom: `1px solid ${DIVIDER.visible}`, marginBottom: '0.3em' }} />
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
@@ -53,7 +54,7 @@ export function CompactView({ config, data }: CompactViewProps) {
             style={{ padding: '0.25em 0', fontSize: '1em' }}
           >
             {chore.emoji && <span className="shrink-0"><ChoreIcon value={chore.emoji} size={16} color="currentColor" /></span>}
-            <span className="flex-1 truncate" style={{ opacity: 0.8 }}>
+            <span className="flex-1 truncate" style={{ opacity: TEXT_OPACITY.heading }}>
               {chore.name}
             </span>
             {members.map((member) => {
@@ -83,8 +84,8 @@ export function CompactView({ config, data }: CompactViewProps) {
       </div>
 
       {/* Summary row */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '0.3em', paddingTop: '0.3em' }}>
-        <div className="flex items-center gap-2" style={{ fontSize: '0.7em', opacity: 0.5 }}>
+      <div style={{ borderTop: `1px solid ${DIVIDER.visible}`, marginTop: '0.3em', paddingTop: '0.3em' }}>
+        <div className="flex items-center gap-2" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>
           <span>Done:</span>
           <div className="flex-1" />
           {members.map((m) => {

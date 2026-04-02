@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlannerConfig } from '@/types/config';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, resolveMeal, getNextMealSlot } from './types';
 
 interface NextMealViewProps {
@@ -25,7 +26,7 @@ export function NextMealView({ config, today, currentHour }: NextMealViewProps) 
       {/* Context label */}
       <span
         className="uppercase tracking-[0.25em] font-semibold"
-        style={{ fontSize: '0.5em', opacity: 0.35 }}
+        style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
       >
         {label}
       </span>
@@ -67,8 +68,8 @@ export function NextMealView({ config, today, currentHour }: NextMealViewProps) 
                 {meal.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full px-2 py-0.5 opacity-50"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                    className="rounded-full px-2 py-0.5"
+                    style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
                   >
                     {tag}
                   </span>
@@ -78,7 +79,7 @@ export function NextMealView({ config, today, currentHour }: NextMealViewProps) 
 
             {/* Prep time */}
             {showPrepTime && meal.prepTime && (
-              <span className="opacity-40 flex items-center gap-1" style={{ fontSize: '0.6em' }}>
+              <span className="flex items-center gap-1" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
                 <span>&#9201;</span> {meal.prepTime} min
               </span>
             )}
@@ -86,8 +87,8 @@ export function NextMealView({ config, today, currentHour }: NextMealViewProps) 
             {/* Notes */}
             {meal.notes && (
               <p
-                className="text-center opacity-35 italic max-w-[80%] leading-snug mt-1"
-                style={{ fontSize: '0.6em' }}
+                className="text-center italic max-w-[80%] leading-snug mt-1"
+                style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}
               >
                 {meal.notes}
               </p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { IframeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
@@ -42,7 +43,7 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
   if (!config.url || urlError) {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full opacity-50" style={{ fontSize: '0.875em' }}>
+        <div className="flex items-center justify-center h-full" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
           {urlError ?? 'No URL set'}
         </div>
       </ModuleWrapper>

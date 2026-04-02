@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import { parseClockTime } from '@/lib/date-info';
 import { timeToFuzzy } from './word-time';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -41,12 +42,13 @@ export default function ClockFuzzyView({ config, now, scaledFontSize, containerR
 
       {dateStr && (
         <div
-          className="text-center opacity-40 font-light tracking-wide"
+          className="text-center font-light tracking-wide"
           style={{
             fontSize: scaledFontSize * 0.9,
             fontFamily: 'inherit',
             fontStyle: 'normal',
             marginTop: scaledFontSize * 0.8,
+            opacity: TEXT_OPACITY.tertiary,
           }}
           suppressHydrationWarning
         >

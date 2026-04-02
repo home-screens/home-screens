@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
@@ -155,8 +156,8 @@ export default function ClockRadialView({ config, now, scaledFontSize, container
           </span>
           {period && (
             <span
-              className="uppercase tracking-widest opacity-50 font-light"
-              style={{ fontSize: ampmFontSize, marginTop: 2 }}
+              className="uppercase tracking-widest font-light"
+              style={{ fontSize: ampmFontSize, marginTop: 2, opacity: TEXT_OPACITY.dim }}
               suppressHydrationWarning
             >
               {period.trim()}

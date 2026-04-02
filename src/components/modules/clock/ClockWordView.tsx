@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { timeToWords } from './word-time';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockWordView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
@@ -32,12 +33,13 @@ export default function ClockWordView({ config, now, scaledFontSize, containerRe
 
       {dateStr && (
         <div
-          className="text-center mt-4 opacity-40"
+          className="text-center mt-4"
           style={{
             fontFamily: 'Georgia, "Times New Roman", serif',
             fontSize: scaledFontSize * 0.9,
             lineHeight: 1.6,
             letterSpacing: '0.02em',
+            opacity: TEXT_OPACITY.tertiary,
           }}
           suppressHydrationWarning
         >

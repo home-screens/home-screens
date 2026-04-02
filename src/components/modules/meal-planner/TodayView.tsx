@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
+import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, resolveMeal, getActiveSlot } from './types';
 
 interface TodayViewProps {
@@ -39,7 +40,7 @@ function SlotCard({
       {/* Slot label */}
       <div
         className="px-3 pt-2 pb-0.5 uppercase tracking-[0.15em] font-semibold flex items-center gap-2"
-        style={{ fontSize: '0.5em', color: meta.color, opacity: isActive ? 1 : 0.6 }}
+        style={{ fontSize: '0.5em', color: meta.color, opacity: isActive ? 1 : TEXT_OPACITY.secondary }}
       >
         {meta.label}
         {isActive && (
@@ -66,15 +67,15 @@ function SlotCard({
               {(showPrepTime || showTags) && (
                 <div className="flex flex-wrap items-center gap-1.5 mt-1" style={{ fontSize: '0.55em' }}>
                   {showPrepTime && meal.prepTime && (
-                    <span className="opacity-50 flex items-center gap-0.5">
+                    <span className="flex items-center gap-0.5" style={{ opacity: TEXT_OPACITY.dim }}>
                       <span>&#9201;</span> {meal.prepTime} min
                     </span>
                   )}
                   {showTags && meal.tags?.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full px-1.5 py-px opacity-50"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                      className="rounded-full px-1.5 py-px"
+                      style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
                     >
                       {tag}
                     </span>
@@ -107,7 +108,7 @@ export function TodayView({ config, today, currentHour }: TodayViewProps) {
         />
         <span
           className="uppercase tracking-[0.2em] font-semibold shrink-0"
-          style={{ fontSize: '0.5em', opacity: 0.4 }}
+          style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
         >
           Today&apos;s Meals
         </span>

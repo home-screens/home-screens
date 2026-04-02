@@ -2,6 +2,7 @@
 
 import { parseClockTime } from '@/lib/date-info';
 import { createTZDate } from '@/lib/timezone';
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -72,8 +73,8 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
         </div>
         {period && (
           <div
-            className="uppercase tracking-widest opacity-40 font-light"
-            style={{ fontSize: scaledFontSize * 0.65, marginTop: 3 }}
+            className="uppercase tracking-widest font-light"
+            style={{ fontSize: scaledFontSize * 0.65, marginTop: 3, opacity: TEXT_OPACITY.tertiary }}
             suppressHydrationWarning
           >
             {period.trim()}
@@ -105,10 +106,11 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
               <div className="flex items-center justify-between px-2">
                 {/* Label */}
                 <span
-                  className="uppercase tracking-wider opacity-50 font-light truncate"
+                  className="uppercase tracking-wider font-light truncate"
                   style={{
                     fontSize: labelFontSize,
                     maxWidth: '40%',
+                    opacity: TEXT_OPACITY.dim,
                   }}
                 >
                   {zone.label}
@@ -117,16 +119,16 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
                 {/* Time + optional day badge */}
                 <div className="flex items-center" style={{ gap: scaledFontSize * 0.3 }}>
                   <span
-                    className="tabular-nums font-light opacity-80"
-                    style={{ fontSize: zoneFontSize }}
+                    className="tabular-nums font-light"
+                    style={{ fontSize: zoneFontSize, opacity: TEXT_OPACITY.heading }}
                     suppressHydrationWarning
                   >
                     {zone.time}
                   </span>
                   {zone.ampm && (
                     <span
-                      className="uppercase opacity-35 font-light"
-                      style={{ fontSize: badgeFontSize }}
+                      className="uppercase font-light"
+                      style={{ fontSize: badgeFontSize, opacity: TEXT_OPACITY.tertiary }}
                       suppressHydrationWarning
                     >
                       {zone.ampm}

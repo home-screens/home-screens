@@ -1,5 +1,6 @@
 'use client';
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import type { CryptoConfig, ModuleStyle } from '@/types/config';
 import {
   formatUSD,
@@ -47,7 +48,7 @@ function toCompactRows(coins: CryptoData[]): CompactRow[] {
 const cryptoTableColumns: TableColumn<CryptoData>[] = [
   {
     header: 'Coin',
-    render: (coin) => <span className="font-semibold opacity-80">{coin.name}</span>,
+    render: (coin) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{coin.name}</span>,
   },
   {
     header: 'Price',
