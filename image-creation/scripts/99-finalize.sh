@@ -388,19 +388,45 @@ if [ -d /var/lib/cloud ]; then
     rm -rf /var/lib/cloud
 fi
 
+# Strip builder's SSH authorized keys and enable password auth in user-data
+if [ -f /boot/firmware/user-data ]; then
+    sed -i '/^  ssh_authorized_keys:/,/^  [^ ]/{ /^  ssh_authorized_keys:/d; /^    - /d; }' /boot/firmware/user-data
+    sed -i 's/^ssh_pwauth: false/ssh_pwauth: true/' /boot/firmware/user-data
+    log_info "Removed SSH authorized keys and enabled password auth in user-data"
+fi
+
 # ============================================================================
 # Clear WiFi credentials — LAST STEP before shutdown
 # (Placed last because this will disconnect SSH-over-WiFi sessions)
 # ============================================================================
-log_info "Removing WiFi credentials (disabled)"
+log_info "Removing WiFi credentials"
+
+# Netplan WiFi configs (Trixie — cloud-init generates these from network-config)
+rm -f /etc/netplan/*wifi* /etc/netplan/*wlan* /etc/netplan/*wireless* 2>/dev/null || true
+# Remove any netplan config containing a wifis: stanza (catch non-obvious filenames)
+grep -rl '^  wifis:' /etc/netplan/ 2>/dev/null | xargs rm -f 2>/dev/null || true
+
+# cloud-init network seed on the boot partition — strip WiFi, keep ethernet
+if [ -f /boot/firmware/network-config ]; then
+    cat > /boot/firmware/network-config << 'NETEOF'
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp6: true
+      optional: true
+NETEOF
+    log_info "  Reset /boot/firmware/network-config (WiFi removed)"
+fi
 
 # NetworkManager connection profiles (Bookworm+)
-#rm -f /etc/NetworkManager/system-connections/*.nmconnection 2>/dev/null || true
+rm -f /etc/NetworkManager/system-connections/*.nmconnection 2>/dev/null || true
 
 # Legacy wpa_supplicant (pre-Bookworm or manual config)
-#for f in /etc/wpa_supplicant/wpa_supplicant*.conf; do
-#    [ -f "$f" ] && : > "$f"
-#done
+for f in /etc/wpa_supplicant/wpa_supplicant*.conf; do
+    [ -f "$f" ] && : > "$f"
+done
 
 # ============================================================================
 # Done — shut down for imaging
