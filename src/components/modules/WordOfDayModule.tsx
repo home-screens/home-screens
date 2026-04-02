@@ -4,7 +4,7 @@ import type { WordOfDayConfig, ModuleStyle } from '@/types/config';
 import { getDayOfYear } from 'date-fns';
 import ModuleWrapper from './ModuleWrapper';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
 
 interface WordOfDayModuleProps {
   config: WordOfDayConfig;
@@ -49,7 +49,7 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
   const entry = WORDS[dayOfYear % WORDS.length];
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = accentColor !== '#000000';
+  const hasAccent = hasAccentColor(accentColor);
 
   return (
     <ModuleWrapper style={style}>

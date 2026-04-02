@@ -6,7 +6,7 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { historyUrl } from '@/lib/fetch-keys';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
 
@@ -28,7 +28,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const index = useRotatingIndex(events.length, rotationMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
   const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = accentColor !== '#000000';
+  const hasAccent = hasAccentColor(accentColor);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading history…" error={error} />;

@@ -4,6 +4,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import type { GreetingConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { hasAccentColor } from '@/lib/constants';
 
 interface GreetingModuleProps {
   config: GreetingConfig;
@@ -19,7 +20,7 @@ function getGreeting(hour: number): string {
 }
 
 function getTimeAccent(hour: number, accentColor?: string): string {
-  if (accentColor && accentColor !== '#000000') return accentColor;
+  if (hasAccentColor(accentColor)) return accentColor;
   if (hour >= 5 && hour < 12) return '#fbbf24';
   if (hour >= 12 && hour < 17) return '#f9fafb';
   if (hour >= 17 && hour < 21) return '#f97316';

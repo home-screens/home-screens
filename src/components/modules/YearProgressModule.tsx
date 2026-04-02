@@ -3,7 +3,7 @@
 import { useTZClock } from '@/hooks/useTZClock';
 import type { YearProgressConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
 
 interface YearProgressModuleProps {
   config: YearProgressConfig;
@@ -46,7 +46,7 @@ function ProgressBar({ label, percent, showPercentage, accentColor }: {
   accentColor: string;
 }) {
   const clamped = Math.min(100, Math.max(0, percent));
-  const hasAccent = accentColor !== '#000000';
+  const hasAccent = hasAccentColor(accentColor);
 
   return (
     <div className="flex flex-col" style={{ gap: '0.3em' }}>

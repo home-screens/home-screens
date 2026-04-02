@@ -6,7 +6,7 @@ import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { dadJokeUrl } from '@/lib/fetch-keys';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, hasAccentColor } from '@/lib/constants';
 
 interface DadJokeModuleProps {
   config: DadJokeConfig;
@@ -17,7 +17,7 @@ export default function DadJokeModule({ config, style }: DadJokeModuleProps) {
   const [data, error] = useFetchData<{ joke: string }>(dadJokeUrl(), config.refreshIntervalMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const accentColor = config.accentColor ?? '#000000';
-  const hasAccent = accentColor !== '#000000';
+  const hasAccent = hasAccentColor(accentColor);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading joke…" error={error} />;
