@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow } from '../module-style';
+import { buildModuleShadow, colorWithAlpha } from '../module-style';
 
 describe('buildModuleShadow', () => {
   it('returns "none" when shadowSize is 0', () => {
@@ -50,5 +50,31 @@ describe('buildModuleShadow', () => {
     // ambient = round(3.5) = 4
     expect(result).toContain('4px 7px');
     expect(result).toContain('0 0 4px');
+  });
+});
+
+describe('colorWithAlpha', () => {
+  it('converts 6-digit hex to rgba', () => {
+    expect(colorWithAlpha('#3f3f3f', 0.7)).toBe('rgba(63, 63, 63, 0.7)');
+  });
+
+  it('converts 3-digit hex to rgba', () => {
+    expect(colorWithAlpha('#fff', 0.5)).toBe('rgba(255, 255, 255, 0.5)');
+  });
+
+  it('multiplies existing rgba alpha', () => {
+    expect(colorWithAlpha('rgba(0, 0, 0, 0.4)', 0.5)).toBe('rgba(0, 0, 0, 0.2)');
+  });
+
+  it('preserves rgba alpha when opacity is 1', () => {
+    expect(colorWithAlpha('rgba(0, 0, 0, 0.4)', 1)).toBe('rgba(0, 0, 0, 0.4)');
+  });
+
+  it('converts rgb to rgba', () => {
+    expect(colorWithAlpha('rgb(100, 200, 50)', 0.8)).toBe('rgba(100, 200, 50, 0.8)');
+  });
+
+  it('returns unrecognized colors unchanged', () => {
+    expect(colorWithAlpha('red', 0.5)).toBe('red');
   });
 });

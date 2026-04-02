@@ -125,8 +125,10 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         position: 'relative',
         overflow: 'hidden',
         backgroundColor: '#000',
-        transform: `scale(${scale})`,
-        transformOrigin: 'top left',
+        // Use zoom instead of transform: scale() so that backdrop-filter
+        // works in Firefox. transform creates an isolated compositing layer
+        // that blocks backdrop-filter from sampling pixels behind it (FF Bug 1782876).
+        zoom: scale,
       }}
     >
       {backgroundImage && (

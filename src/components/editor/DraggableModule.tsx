@@ -176,8 +176,9 @@ export default function DraggableModule({
           style={{
             width: mod.size.w,
             height: mod.size.h,
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
+            // Use zoom instead of transform: scale() so that backdrop-filter
+            // works in Firefox (FF Bug 1782876).
+            zoom: scale,
             pointerEvents: 'none',
           }}
         >
