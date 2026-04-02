@@ -10,6 +10,7 @@ import {
   groupTasks,
   buildTaskTree,
 } from './todoist-utils';
+import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
 
 // ─── Task Row ───
 
@@ -59,15 +60,15 @@ export function TaskRow({
               style={{ fontSize: '0.85em' }}
             >
               {depth > 0 && (
-                <span className="opacity-30 mr-1" style={{ fontSize: '0.8em' }}>
+                <span className="mr-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
                   ↳
                 </span>
               )}
               {t.content}
               {t.due?.isRecurring && (
                 <span
-                  className="opacity-40 ml-1.5 inline-block"
-                  style={{ fontSize: '0.75em' }}
+                  className="ml-1.5 inline-block"
+                  style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}
                   title="Recurring"
                 >
                   ↻
@@ -93,8 +94,8 @@ export function TaskRow({
           {/* Description */}
           {config.showDescription && t.description && (
             <p
-              className="opacity-40 leading-snug mt-0.5 line-clamp-2"
-              style={{ fontSize: '0.7em' }}
+              className="leading-snug mt-0.5 line-clamp-2"
+              style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}
             >
               {t.description}
             </p>
@@ -105,8 +106,8 @@ export function TaskRow({
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {config.showProject && (
                 <span
-                  className="flex items-center gap-1 opacity-50"
-                  style={{ fontSize: '0.65em' }}
+                  className="flex items-center gap-1"
+                  style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}
                 >
                   <span
                     className="w-1.5 h-1.5 rounded-full inline-block shrink-0"
@@ -184,7 +185,7 @@ export default function ListView({
                   className="font-semibold uppercase tracking-wider shrink-0"
                   style={{
                     fontSize: '0.65em',
-                    opacity: group.key === 'Overdue' ? 1 : 0.6,
+                    opacity: group.key === 'Overdue' ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                     color:
                       group.key === 'Overdue' ? '#ef4444' : undefined,
                   }}
@@ -192,14 +193,13 @@ export default function ListView({
                   {group.label}
                 </span>
                 <span
-                  className="opacity-30"
-                  style={{ fontSize: '0.6em' }}
+                  style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}
                 >
                   {group.tasks.length}
                 </span>
                 <div
                   className="flex-1 h-px"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  style={{ backgroundColor: DIVIDER_COLOR }}
                 />
               </div>
             )}

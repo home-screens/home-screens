@@ -3,7 +3,8 @@
 import type { TodoConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
+import { MetadataText } from './shared/MetadataText';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 
 interface TodoModuleProps {
@@ -45,9 +46,9 @@ export default function TodoModule({ config, style }: TodoModuleProps) {
           <h2 className="font-semibold" style={{ fontSize: '1.25em' }}>
             {title}
           </h2>
-          <span className="tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
+          <MetadataText className="tabular-nums">
             {doneCount}/{totalCount}
-          </span>
+          </MetadataText>
         </div>
         <ul className="flex flex-col">
           {config.items.map((item, i) => (
@@ -55,7 +56,7 @@ export default function TodoModule({ config, style }: TodoModuleProps) {
               key={item.id}
               className="flex items-start gap-2 py-1.5"
               style={{
-                borderBottom: i < config.items.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                borderBottom: i < config.items.length - 1 ? `1px solid ${DIVIDER_COLOR}` : 'none',
                 opacity: item.completed ? TEXT_OPACITY.tertiary : TEXT_OPACITY.primary,
               }}
             >

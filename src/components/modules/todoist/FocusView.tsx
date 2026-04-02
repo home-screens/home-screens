@@ -5,6 +5,7 @@ import type { TodoistConfig } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import { daysBetween, buildTaskTree } from './todoist-utils';
 import { TaskRow } from './ListView';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 export default function FocusView({
   allTasks,
@@ -49,7 +50,7 @@ export default function FocusView({
           <span className="font-bold block" style={{ fontSize: '2em', opacity: totalToday === 0 ? 0.3 : 0.9 }}>
             {totalToday}
           </span>
-          <span className="opacity-50" style={{ fontSize: '0.7em' }}>
+          <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.secondary }}>
             {totalToday === 0
               ? 'All clear for today!'
               : `task${totalToday !== 1 ? 's' : ''} remaining`}
@@ -60,10 +61,10 @@ export default function FocusView({
       {totalToday === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <span className="block opacity-20" style={{ fontSize: '2em' }}>
+            <span className="block" style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>
               ✓
             </span>
-            <p className="opacity-30 mt-1" style={{ fontSize: '0.8em' }}>
+            <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
               You&apos;re all caught up!
             </p>
           </div>
@@ -80,7 +81,7 @@ export default function FocusView({
                 >
                   Overdue
                 </span>
-                <span className="opacity-30" style={{ fontSize: '0.6em' }}>
+                <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
                   {overdue.length}
                 </span>
                 <div
@@ -113,7 +114,7 @@ export default function FocusView({
                 >
                   Today
                 </span>
-                <span className="opacity-30" style={{ fontSize: '0.6em' }}>
+                <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
                   {today.length}
                 </span>
                 <div

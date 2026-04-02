@@ -9,6 +9,7 @@ import {
   formatDueDate,
   groupTasks,
 } from './todoist-utils';
+import { TEXT_OPACITY } from '@/lib/constants';
 
 export default function BoardView({
   tasks,
@@ -55,8 +56,8 @@ export default function BoardView({
               {group.label}
             </span>
             <span
-              className="opacity-30 shrink-0"
-              style={{ fontSize: '0.65em' }}
+              className="shrink-0"
+              style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}
             >
               {group.tasks.length}
             </span>
@@ -98,10 +99,11 @@ export default function BoardView({
                     </p>
                     {dueInfo.text && (
                       <span
-                        className="opacity-70 mt-0.5 block"
+                        className="mt-0.5 block"
                         style={{
                           fontSize: '0.6em',
                           color: dueInfo.color,
+                          opacity: TEXT_OPACITY.secondary,
                         }}
                       >
                         {dueInfo.text}

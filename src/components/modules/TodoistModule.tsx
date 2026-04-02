@@ -5,6 +5,8 @@ import type { TodoistConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
+import { TEXT_OPACITY, DIVIDER_COLOR } from '@/lib/constants';
+import { MetadataText } from './shared/MetadataText';
 import { todoistUrl } from '@/lib/fetch-keys';
 import type { TodoistData } from './todoist/todoist-utils';
 import { filterTasks, sortTasks } from './todoist/todoist-utils';
@@ -47,15 +49,15 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
           <h2 className="font-semibold" style={{ fontSize: '1.1em' }}>
             {title}
           </h2>
-          <span className="opacity-40" style={{ fontSize: '0.7em' }}>
+          <MetadataText size="xs">
             {totalCount} task{totalCount !== 1 ? 's' : ''}
-          </span>
+          </MetadataText>
         </div>
 
         {/* Subtle divider under header */}
         {viewMode !== 'focus' && (
           <div className="mb-3">
-            <div className="w-full h-px" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+            <div className="w-full h-px" style={{ backgroundColor: DIVIDER_COLOR }} />
           </div>
         )}
 
@@ -63,10 +65,10 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
         {tasks.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="block opacity-20" style={{ fontSize: '2em' }}>
+              <span className="block" style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>
                 ✓
               </span>
-              <p className="opacity-30 mt-1" style={{ fontSize: '0.8em' }}>
+              <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
                 No tasks to show
               </p>
             </div>
