@@ -7,9 +7,6 @@ import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlu
 import { deleteAllPluginSecrets } from '@/lib/plugin-secrets';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest } from '@/lib/plugin-utils';
 
-// Re-export for backward compatibility — many files import these from '@/lib/plugins'
-export { sanitizePluginId, getPluginManifest };
-
 const execFileAsync = promisify(execFile);
 
 const INSTALLED_FILE = 'data/plugins/installed.json';

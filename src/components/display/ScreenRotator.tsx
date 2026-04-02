@@ -52,8 +52,7 @@ function startScreenTransition(
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vt = (document as any).startViewTransition(() => {
+  const vt = document.startViewTransition(() => {
     flushSync(updateFn);
   });
 

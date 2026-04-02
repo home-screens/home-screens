@@ -13,6 +13,9 @@ import {
   quoteUrl,
   dadJokeUrl,
   photoSlideshowUrl,
+  choresUrl,
+  choresDataUrl,
+  mealsDataUrl,
   FETCH_KEY_REGISTRY,
   registerFetchKey,
 } from '@/lib/fetch-keys';
@@ -117,6 +120,9 @@ describe('static URL builders', () => {
   it('historyUrl', () => expect(historyUrl()).toBe('/api/history'));
   it('quoteUrl', () => expect(quoteUrl()).toBe('/api/quote'));
   it('dadJokeUrl', () => expect(dadJokeUrl()).toBe('/api/jokes'));
+  it('choresUrl', () => expect(choresUrl()).toBe('/api/chores'));
+  it('choresDataUrl', () => expect(choresDataUrl()).toBe('/api/chores/data'));
+  it('mealsDataUrl', () => expect(mealsDataUrl()).toBe('/api/meals/data'));
 });
 
 // ── FETCH_KEY_REGISTRY ──────────────────────────────────────────
@@ -126,7 +132,8 @@ describe('FETCH_KEY_REGISTRY', () => {
     const expectedTypes = [
       'stock-ticker', 'crypto', 'news', 'air-quality', 'sports',
       'standings', 'traffic', 'todoist', 'rain-map', 'history',
-      'quote', 'dad-joke', 'photo-slideshow',
+      'quote', 'dad-joke', 'photo-slideshow', 'chore-chart',
+      'fullscreen-chore-chart', 'fullscreen-meal-planner',
     ];
     for (const type of expectedTypes) {
       expect(FETCH_KEY_REGISTRY).toHaveProperty(type);
@@ -156,6 +163,9 @@ describe('FETCH_KEY_REGISTRY', () => {
     expect(FETCH_KEY_REGISTRY.quote.buildUrl).toBe(quoteUrl);
     expect(FETCH_KEY_REGISTRY['dad-joke'].buildUrl).toBe(dadJokeUrl);
     expect(FETCH_KEY_REGISTRY['photo-slideshow'].buildUrl).toBe(photoSlideshowUrl);
+    expect(FETCH_KEY_REGISTRY['chore-chart'].buildUrl).toBe(choresUrl);
+    expect(FETCH_KEY_REGISTRY['fullscreen-chore-chart'].buildUrl).toBe(choresUrl);
+    expect(FETCH_KEY_REGISTRY['fullscreen-meal-planner'].buildUrl).toBe(mealsDataUrl);
   });
 });
 

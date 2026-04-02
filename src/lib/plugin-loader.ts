@@ -431,11 +431,8 @@ function executeBundle(
   component: ComponentType<Record<string, unknown>>;
   configSection?: ComponentType<PluginConfigSectionProps>;
 } {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const win = window as any;
-
   // Clean up any previous plugin global
-  win.__HS_PLUGIN__ = undefined;
+  window.__HS_PLUGIN__ = undefined;
 
   try {
     // Create and inject script element (inline scripts execute synchronously)
@@ -444,8 +441,8 @@ function executeBundle(
     document.head.appendChild(script);
     document.head.removeChild(script);
 
-    // Read the plugin exports from the global
-    const pluginExports = win.__HS_PLUGIN__ as Record<string, unknown> | undefined;
+    // Read the plugin exports from the global (script injection above sets this as a side effect)
+    const pluginExports = window.__HS_PLUGIN__ as Record<string, unknown> | undefined;
 
     if (!pluginExports) {
       throw new Error('Bundle did not set window.__HS_PLUGIN__');
@@ -473,7 +470,7 @@ function executeBundle(
   } catch (err) {
     throw new Error(`Bundle execution failed: ${err instanceof Error ? err.message : String(err)}`);
   } finally {
-    win.__HS_PLUGIN__ = undefined;
+    window.__HS_PLUGIN__ = undefined;
   }
 }
 

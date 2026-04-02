@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { LIBRARY_FILTERS, type LibraryFilter } from '@/components/modules/meal-planner/types';
-import { INPUT } from '@/components/editor/CRUDModalShell';
+import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface SidebarLibraryProps {
   meals: SavedMeal[];
@@ -81,7 +81,7 @@ export default function SidebarLibrary({
           </svg>
           <input
             type="text"
-            className={`${INPUT} pl-8`}
+            className={`${MODAL_INPUT_CLASS} pl-8`}
             placeholder="Search meals..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}

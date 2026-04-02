@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizePluginId, validateManifest } from '@/lib/plugins';
+import { sanitizePluginId } from '@/lib/plugin-utils';
+import { validateManifest } from '@/lib/plugins';
 
 describe('sanitizePluginId', () => {
   it('allows valid characters', () => {

@@ -57,11 +57,9 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
  */
 export default function PluginGlobals() {
   useLayoutEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const win = window as any;
-    win.React = React;
-    win.ReactDOM = ReactDOM;
-    win.__HS_SDK__ = {
+    window.React = React;
+    window.ReactDOM = ReactDOM;
+    window.__HS_SDK__ = {
       // CSS class strings for consistent editor form styling
       INPUT_CLASS,
       NESTED_INPUT_CLASS,

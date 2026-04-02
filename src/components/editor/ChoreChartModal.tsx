@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { uuid } from '@/lib/uuid';
 import { displayCache } from '@/lib/display-cache';
 import Button from '@/components/ui/Button';
-import CRUDModalShell, { INPUT } from '@/components/editor/CRUDModalShell';
+import CRUDModalShell from '@/components/editor/CRUDModalShell';
+import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import type {
   ChoreMember,
   ChoreDefinition,
@@ -82,7 +83,7 @@ function IconPicker({
           placeholder="Filter icons..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={INPUT}
+          className={MODAL_INPUT_CLASS}
         />
       )}
 
@@ -162,7 +163,7 @@ function MemberForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
-        className={INPUT}
+        className={MODAL_INPUT_CLASS}
         autoFocus
       />
 
@@ -279,7 +280,7 @@ function ChoreForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
-        className={INPUT}
+        className={MODAL_INPUT_CLASS}
         autoFocus
       />
 
@@ -298,7 +299,7 @@ function ChoreForm({
             type="number"
             value={points}
             onChange={(e) => setPoints(e.target.value)}
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
             min={1}
           />
         </label>
@@ -307,7 +308,7 @@ function ChoreForm({
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -319,7 +320,7 @@ function ChoreForm({
           <select
             value={timeOfDay}
             onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
           >
             {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((t) => (
               <option key={t} value={t}>
@@ -380,7 +381,7 @@ function ChoreForm({
           <select
             value={rotation}
             onChange={(e) => setRotation(e.target.value as ChoreRotation)}
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
           >
             <option value="fixed">Fixed (all do it)</option>
             <option value="rotate-daily">Rotate Daily</option>
@@ -756,7 +757,7 @@ export default function ChoreChartModal({
                   placeholder="Search chores..."
                   value={choreSearch}
                   onChange={(e) => setChoreSearch(e.target.value)}
-                  className={INPUT}
+                  className={MODAL_INPUT_CLASS}
                 />
               </div>
             )}

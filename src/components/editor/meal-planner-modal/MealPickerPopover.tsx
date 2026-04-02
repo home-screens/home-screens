@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedMeal, MealSlotType } from '@/types/config';
 import { SLOT_META, DAY_NAMES_FULL } from '@/components/modules/meal-planner/types';
-import { INPUT } from '@/components/editor/CRUDModalShell';
+import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface MealPickerPopoverProps {
   target: { day: number; slot: MealSlotType };
@@ -71,7 +71,7 @@ export default function MealPickerPopover({
           <input
             ref={inputRef}
             type="text"
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
             placeholder="Search meals..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}

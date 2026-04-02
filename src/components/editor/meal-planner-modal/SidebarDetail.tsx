@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
 import { MEAL_TAGS, FOOD_EMOJIS } from '@/components/modules/meal-planner/types';
-import { INPUT } from '@/components/editor/CRUDModalShell';
+import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
 
 interface SidebarDetailProps {
@@ -146,7 +146,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <label className={labelClass}>Name</label>
           <input
             type="text"
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -179,7 +179,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             <label className={labelClass}>Prep Time</label>
             <input
               type="number"
-              className={INPUT}
+              className={MODAL_INPUT_CLASS}
               placeholder="min"
               value={prepTime ?? ''}
               onChange={(e) => setPrepTime(e.target.value ? Number(e.target.value) : undefined)}
@@ -189,7 +189,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             <label className={labelClass}>Cook Time</label>
             <input
               type="number"
-              className={INPUT}
+              className={MODAL_INPUT_CLASS}
               placeholder="min"
               value={cookTime ?? ''}
               onChange={(e) => setCookTime(e.target.value ? Number(e.target.value) : undefined)}
@@ -203,7 +203,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             <label className={labelClass}>Servings</label>
             <input
               type="number"
-              className={INPUT}
+              className={MODAL_INPUT_CLASS}
               value={servings ?? ''}
               onChange={(e) => setServings(e.target.value ? Number(e.target.value) : undefined)}
             />
@@ -272,7 +272,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
               <div className="flex gap-2">
                 <input
                   type="text"
-                  className={`flex-1 ${INPUT}`}
+                  className={`flex-1 ${MODAL_INPUT_CLASS}`}
                   placeholder="Ingredient name"
                   value={ingredient.name}
                   onChange={(e) => updateIngredient(index, 'name', e.target.value)}
@@ -288,13 +288,13 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
               <div className="flex gap-2 mt-1.5">
                 <input
                   type="text"
-                  className={`w-24 ${INPUT}`}
+                  className={`w-24 ${MODAL_INPUT_CLASS}`}
                   placeholder="Amount"
                   value={ingredient.amount ?? ''}
                   onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
                 />
                 <select
-                  className={`flex-1 ${INPUT}`}
+                  className={`flex-1 ${MODAL_INPUT_CLASS}`}
                   value={ingredient.category ?? ''}
                   onChange={(e) =>
                     updateIngredient(index, 'category', e.target.value)
@@ -324,7 +324,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <label className={labelClass}>Recipe URL</label>
           <input
             type="url"
-            className={INPUT}
+            className={MODAL_INPUT_CLASS}
             placeholder="https://..."
             value={recipeUrl}
             onChange={(e) => setRecipeUrl(e.target.value)}
@@ -336,7 +336,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <label className={labelClass}>Notes</label>
           <textarea
             rows={3}
-            className={`${INPUT} resize-none`}
+            className={`${MODAL_INPUT_CLASS} resize-none`}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />

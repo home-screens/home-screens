@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ChoreMember, ChoreDefinition, ChoreCompletion } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayFetch } from '@/lib/display-fetch';
+import { choresUrl, choresDataUrl } from '@/lib/fetch-keys';
 import {
   type ResolvedAssignment,
   type MemberStats,
@@ -69,8 +70,8 @@ function getWeekDates(weekStartDay: 'sunday' | 'monday'): string[] {
 }
 
 export function useChoreData(config: ChoreDataConfig): ChoreDataState {
-  const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>('/api/chores', 30_000);
-  const [fetchedChoreData] = useFetchData<ChoreDataResponse>('/api/chores/data', 60_000);
+  const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), 30_000);
+  const [fetchedChoreData] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
 
   // Members and chores from shared data file
@@ -257,7 +258,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     });
 
     try {
-      const res = await displayFetch('/api/chores', {
+      const res = await displayFetch(choresUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ choreId, memberId, date: today }),

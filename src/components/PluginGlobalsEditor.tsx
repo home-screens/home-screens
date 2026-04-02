@@ -56,21 +56,19 @@ export default function PluginGlobalsEditor() {
   const settings = useEditorStore((s) => s.config?.settings);
 
   useLayoutEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const win = window as any;
-    if (!win.__HS_SDK__) {
+    if (!window.__HS_SDK__) {
       console.warn('[plugin] PluginGlobalsEditor: __HS_SDK__ not initialized — PluginGlobals must mount first');
       return;
     }
 
     // Editor-only SDK additions
-    win.__HS_SDK__.AccordionSection = AccordionSection;
-    win.__HS_SDK__.useModuleConfig = useModuleConfig;
+    window.__HS_SDK__.AccordionSection = AccordionSection;
+    window.__HS_SDK__.useModuleConfig = useModuleConfig;
 
     return () => {
-      if (!win.__HS_SDK__) return;
-      delete win.__HS_SDK__.AccordionSection;
-      delete win.__HS_SDK__.useModuleConfig;
+      if (!window.__HS_SDK__) return;
+      delete window.__HS_SDK__.AccordionSection;
+      delete window.__HS_SDK__.useModuleConfig;
     };
   }, []);
 

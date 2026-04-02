@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPluginManifest } from '@/lib/plugins';
+import { getPluginManifest } from '@/lib/plugin-utils';
 import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';

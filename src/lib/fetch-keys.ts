@@ -4,6 +4,8 @@
  * ensuring the prefetched URL always matches what the module requests.
  */
 
+// Typed config interfaces lack index signatures, making Record<string, unknown>
+// incompatible — `any` is an intentional variance escape for structural compatibility.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyConfig = Record<string, any>;
 
@@ -69,6 +71,18 @@ export function photoSlideshowUrl(config: AnyConfig): string {
   return dir ? `/api/backgrounds?directory=${encodeURIComponent(dir)}` : '/api/backgrounds';
 }
 
+export function choresUrl(): string {
+  return '/api/chores';
+}
+
+export function choresDataUrl(): string {
+  return '/api/chores/data';
+}
+
+export function mealsDataUrl(): string {
+  return '/api/meals/data';
+}
+
 /** Registry of URL builders + TTLs for prefetching.
  *  TTLs are aligned with the corresponding server-side cache durations
  *  so the client doesn't consider data fresh when the server has newer data,
@@ -92,6 +106,9 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
   'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
+  'chore-chart':             { buildUrl: choresUrl, ttlMs: 30_000 },            // server: no cache
+  'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 30_000 },            // shared useChoreData hook
+  'fullscreen-meal-planner': { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
 };
 
 /** Allow plugins to register their own fetch key entries for prefetching. */

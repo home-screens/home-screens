@@ -29,9 +29,8 @@ const migrations: Migration[] = [
           ...screen,
           modules: screen.modules.map((mod) => {
             if ((mod.type as string) !== 'flag-status') return mod;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const cfg = mod.config as any;
-            const refreshMs = cfg?.refreshIntervalMs;
+            const cfg = mod.config as Record<string, unknown>;
+            const refreshMs = cfg?.refreshIntervalMs as number | undefined;
             const newConfig = { ...cfg };
             if (refreshMs != null) {
               delete newConfig.refreshIntervalMs;
@@ -50,9 +49,8 @@ const migrations: Migration[] = [
           ...screen,
           modules: screen.modules.map((mod) => {
             if (mod.type !== ('plugin:flag-status' as string)) return mod;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const cfg = mod.config as any;
-            const refreshMin = cfg?.refreshIntervalMin;
+            const cfg = mod.config as Record<string, unknown>;
+            const refreshMin = cfg?.refreshIntervalMin as number | undefined;
             const newConfig = { ...cfg };
             if (refreshMin != null) {
               delete newConfig.refreshIntervalMin;

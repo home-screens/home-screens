@@ -177,8 +177,7 @@ export function getClientIP(request: NextRequest): string {
  *     // …handler logic…
  *   }, 'Failed to …');
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function withAuth<C = any>(
+export function withAuth<C = unknown>(
   handler: (request: NextRequest, context: C) => Promise<Response>,
   errorMsg: string,
 ) {
@@ -197,8 +196,7 @@ export function withAuth<C = any>(
  * Like `withAuth`, but accepts either a session cookie OR a display Bearer token.
  * Use this for endpoints the display polls (config, weather, commands, etc.).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function withDisplayAuth<C = any>(
+export function withDisplayAuth<C = unknown>(
   handler: (request: NextRequest, context: C) => Promise<Response>,
   errorMsg: string,
 ) {

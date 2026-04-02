@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth, errorResponse } from '@/lib/api-utils';
-import { getPluginManifest } from '@/lib/plugins';
+import { getPluginManifest } from '@/lib/plugin-utils';
 import {
   getPluginSecretStatus,
   setPluginSecret,

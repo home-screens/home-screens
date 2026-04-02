@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
+import { mealsDataUrl } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
 import { getActiveSlot } from './meal-planner-utils';
@@ -33,7 +34,7 @@ export default function FullscreenMealPlannerModule({
   fullscreenTheme,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
-  const [mealData] = useFetchData<MealDataResponse>('/api/meals/data', 60_000);
+  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const plan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
 

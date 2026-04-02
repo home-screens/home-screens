@@ -15,9 +15,6 @@ interface CRUDModalShellProps {
   children: ReactNode;
 }
 
-// Re-export the modal-sized input class under the legacy name for existing consumers
-export { MODAL_INPUT_CLASS as INPUT } from '@/components/ui/input-classes';
-
 export default function CRUDModalShell({
   title,
   icon,
