@@ -7,6 +7,7 @@ import type { MoonPhaseConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { MetadataText } from './shared/MetadataText';
 
 interface MoonPhaseModuleProps {
   config: MoonPhaseConfig;
@@ -104,9 +105,22 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
           </p>
         )}
         {config.showMoonTimes && moonTimes && (
-          <div className="text-center" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.secondary }}>
-            {moonTimes.rise && <p>Rise: {formatTimeInTZ(moonTimes.rise, timezone)}</p>}
-            {moonTimes.set && <p>Set: {formatTimeInTZ(moonTimes.set, timezone)}</p>}
+          <div className="flex items-center gap-3">
+            {moonTimes.rise && (
+              <MetadataText size="sm">
+                <span style={{ opacity: TEXT_OPACITY.tertiary }}>Rise</span>{' '}
+                <span className="tabular-nums">{formatTimeInTZ(moonTimes.rise, timezone)}</span>
+              </MetadataText>
+            )}
+            {moonTimes.rise && moonTimes.set && (
+              <span className="w-px h-3" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            )}
+            {moonTimes.set && (
+              <MetadataText size="sm">
+                <span style={{ opacity: TEXT_OPACITY.tertiary }}>Set</span>{' '}
+                <span className="tabular-nums">{formatTimeInTZ(moonTimes.set, timezone)}</span>
+              </MetadataText>
+            )}
           </div>
         )}
       </div>
