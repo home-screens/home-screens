@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 .c*
+!.claude/
+.claude/*
+!.claude/commands/
 tailwind/*
 mockups/*
 

@@ -72,10 +72,19 @@ jobs:
             exit 1
           fi
 
+      - name: Check for release notes
+        id: notes
+        run: |
+          NOTES_FILE="RELEASE_NOTES/${GITHUB_REF_NAME}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            echo "path=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: home-screens-*.tar.gz
-          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: ${{ steps.notes.outputs.path == '' }}
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
