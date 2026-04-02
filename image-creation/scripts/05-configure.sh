@@ -167,6 +167,21 @@ else
 fi
 
 # ============================================================================
+# WiFi — disable power management (causes latency spikes and disconnects)
+# ============================================================================
+log_info "Disabling WiFi power management"
+mkdir -p /etc/NetworkManager/conf.d
+cat > /etc/NetworkManager/conf.d/wifi-powersave.conf << 'EOF'
+[connection]
+# Disable WiFi power save — the brcmfmac driver aggressively sleeps the radio,
+# causing 500-800ms latency spikes and repeated association failures on boot.
+# No benefit on a wall-powered kiosk device.
+# Values: 1=default, 2=disable, 3=enable
+wifi.powersave = 2
+EOF
+log_info "  WiFi power management disabled (NetworkManager)"
+
+# ============================================================================
 # Boot optimization — disable wait for network
 # ============================================================================
 log_info "Configuring boot optimizations"

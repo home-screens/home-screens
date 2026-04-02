@@ -737,6 +737,16 @@ ExecStartPre=/bin/sleep 5"
       fi
     fi
 
+    # 14. Disable WiFi power management (brcmfmac causes latency spikes and drops)
+    WIFI_PS_CONF="/etc/NetworkManager/conf.d/wifi-powersave.conf"
+    DESIRED_WIFI_PS="[connection]
+wifi.powersave = 2"
+    if [ ! -f "${WIFI_PS_CONF}" ] || [ "$(sudo cat "${WIFI_PS_CONF}")" != "${DESIRED_WIFI_PS}" ]; then
+      echo "${DESIRED_WIFI_PS}" | sudo tee "${WIFI_PS_CONF}" > /dev/null
+      sudo iw wlan0 set power_save off 2>/dev/null || true
+      changed="${changed}wifi-powersave,"
+    fi
+
     # Remove trailing comma
     changed="${changed%,}"
     if [ -n "${changed}" ]; then
