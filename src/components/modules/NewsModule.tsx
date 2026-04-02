@@ -7,7 +7,6 @@ import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { newsUrl } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
-import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
 import { MetadataText } from './shared/MetadataText';
@@ -66,20 +65,19 @@ function ListView({ items, showTimestamp, showDescription, accentColor }: {
       <div className="flex flex-col gap-2.5 overflow-y-auto min-h-0 pr-1">
         {items.map((item, i) => (
           <div key={i} className="flex gap-2" style={{ fontSize: '0.9em' }}>
-            {accentColor ? (
-              <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ backgroundColor: accentColor }} />
-            ) : (
-              <span className="shrink-0 mt-0.5 leading-snug" style={{ opacity: TEXT_OPACITY.tertiary }}>•</span>
-            )}
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+              style={{ backgroundColor: accentColor ?? 'rgba(255,255,255,0.35)' }}
+            />
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="leading-snug line-clamp-2">{item.title}</span>
               {showDescription && item.description && (
-                <span className="leading-snug line-clamp-2" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
+                <MetadataText className="leading-snug line-clamp-2">
                   {item.description}
-                </span>
+                </MetadataText>
               )}
               {showTimestamp && item.pubDate && (
-                <MetadataText>
+                <MetadataText size="xs">
                   {formatTime(item.pubDate)}
                 </MetadataText>
               )}
@@ -97,7 +95,7 @@ function TickerView({ items, speed }: { items: NewsItem[]; speed: number }) {
     <TickerMarquee itemCount={items.length} speed={speed} gap={8}>
       {items.map((item, i) => (
         <span key={i} className="inline-flex items-center gap-3 whitespace-nowrap" style={{ fontSize: '0.9em' }}>
-          <span style={{ opacity: TEXT_OPACITY.tertiary }}>•</span>
+          <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.35)' }} />
           <span>{item.title}</span>
         </span>
       ))}
