@@ -151,6 +151,91 @@ if [ ! -s /etc/machine-id ]; then
     systemd-machine-id-setup
 fi
 
+# Configure WiFi from /boot/firmware/wifi.txt if present.
+# Users create this file on the FAT32 boot partition after flashing the image.
+# Format: SSID=..., PASSWORD=..., COUNTRY=... (one per line, PASSWORD optional
+# for open networks, COUNTRY optional — defaults to US).
+WIFI_FILE="/boot/firmware/wifi.txt"
+if [ -f "${WIFI_FILE}" ]; then
+    log "Found wifi.txt — configuring WiFi"
+    WIFI_SSID="" WIFI_PASS="" WIFI_COUNTRY="" WIFI_HIDDEN=""
+    while IFS= read -r line; do
+        # Skip comments and blank lines
+        case "$line" in \#*|"") continue ;; esac
+        key="${line%%=*}"
+        value="${line#*=}"
+        key=$(echo "$key" | tr -d '[:space:]')
+        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        case "$key" in
+            SSID)     WIFI_SSID="$value" ;;
+            PASSWORD) WIFI_PASS="$value" ;;
+            COUNTRY)  WIFI_COUNTRY="$value" ;;
+            HIDDEN)   WIFI_HIDDEN="$value" ;;
+        esac
+    done < "${WIFI_FILE}"
+
+    if [ -n "${WIFI_SSID}" ]; then
+        IMAGER_CUSTOM="/usr/lib/raspberrypi-sys-mods/imager_custom"
+        if [ -x "${IMAGER_CUSTOM}" ]; then
+            WLAN_ARGS=""
+            [ "${WIFI_HIDDEN}" = "true" ] && WLAN_ARGS="${WLAN_ARGS} --hidden"
+            if [ -n "${WIFI_PASS}" ]; then
+                "${IMAGER_CUSTOM}" set_wlan ${WLAN_ARGS} --plain \
+                    "${WIFI_SSID}" "${WIFI_PASS}" ${WIFI_COUNTRY:+"${WIFI_COUNTRY}"} \
+                    && log "WiFi configured via imager_custom" \
+                    || log "imager_custom set_wlan failed"
+            else
+                "${IMAGER_CUSTOM}" set_wlan ${WLAN_ARGS} --plain \
+                    "${WIFI_SSID}" "" ${WIFI_COUNTRY:+"${WIFI_COUNTRY}"} \
+                    && log "WiFi configured via imager_custom (open network)" \
+                    || log "imager_custom set_wlan failed"
+            fi
+        else
+            # Fallback: write the nmconnection file directly
+            log "imager_custom not found — writing nmconnection directly"
+            CONNFILE="/etc/NetworkManager/system-connections/preconfigured.nmconnection"
+            cat > "${CONNFILE}" << NMEOF
+[connection]
+id=preconfigured
+uuid=$(cat /proc/sys/kernel/random/uuid)
+type=wifi
+[wifi]
+mode=infrastructure
+ssid=${WIFI_SSID}
+hidden=${WIFI_HIDDEN:-false}
+[ipv4]
+method=auto
+[ipv6]
+addr-gen-mode=default
+method=auto
+[proxy]
+NMEOF
+            if [ -n "${WIFI_PASS}" ]; then
+                cat >> "${CONNFILE}" << NMEOF
+[wifi-security]
+key-mgmt=wpa-psk
+psk=${WIFI_PASS}
+NMEOF
+            fi
+            chmod 600 "${CONNFILE}"
+        fi
+
+        # Tell NetworkManager to pick up the new connection and activate it
+        nmcli connection reload 2>/dev/null || true
+        nmcli connection up preconfigured 2>/dev/null \
+            && log "WiFi connection activated" \
+            || log "WiFi activation deferred — will connect on next boot"
+    else
+        log "wifi.txt found but SSID is empty — skipping"
+    fi
+
+    # Remove wifi.txt (contains plaintext credentials on the FAT32 partition)
+    rm -f "${WIFI_FILE}"
+    log "Removed wifi.txt from boot partition"
+else
+    log "No wifi.txt found — skipping WiFi provisioning"
+fi
+
 # Expand filesystem to fill SD card (immediate, no reboot needed)
 ROOT_PART=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
 ROOT_DEV=$(lsblk -no PKNAME "$ROOT_PART" 2>/dev/null || echo "")
@@ -222,6 +307,25 @@ chmod +x /opt/home-screens/bin/firstboot.sh
 systemctl enable home-screens-firstboot.service
 
 # ============================================================================
+# Drop wifi.txt.example on the boot partition so users know the format
+# ============================================================================
+log_info "Creating wifi.txt.example on boot partition"
+cat > /boot/firmware/wifi.txt.example << 'WIFIEOF'
+# Home Screens WiFi Configuration
+# Rename this file to wifi.txt and fill in your details.
+# The Pi will connect to WiFi on first boot and delete this file.
+#
+# SSID     — Your WiFi network name (required)
+# PASSWORD — Your WiFi password (omit for open networks)
+# COUNTRY  — Two-letter country code, e.g. US, GB, DE (optional, defaults to US)
+# HIDDEN   — Set to true if your network is hidden (optional, defaults to false)
+
+SSID=
+PASSWORD=
+COUNTRY=US
+WIFIEOF
+
+# ============================================================================
 # Prepare filesystem for imaging
 # ============================================================================
 log_info "Preparing filesystem for imaging"
@@ -272,6 +376,16 @@ if [ "$VERIFY_OK" = "true" ]; then
 else
     log_warn "Some verifications failed — image may not work correctly"
     exit 1
+fi
+
+# ============================================================================
+# Clear cloud-init state so it treats the end-user's boot as a fresh first boot.
+# Without this, cloud-init sees the cached instance-id from the build and skips
+# first-boot modules (networking, user setup, etc.).
+# ============================================================================
+if [ -d /var/lib/cloud ]; then
+    log_info "Clearing cloud-init state"
+    rm -rf /var/lib/cloud
 fi
 
 # ============================================================================
