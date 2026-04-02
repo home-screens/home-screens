@@ -35,6 +35,23 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
+# Run lint, tests, and typecheck in parallel — abort if any fail
+echo "Running pre-release checks..."
+FAIL=false
+npm run lint    2>&1 | sed 's/^/  [lint] /'      &  PID_LINT=$!
+npm test        2>&1 | sed 's/^/  [test] /'      &  PID_TEST=$!
+npx tsc --noEmit 2>&1 | sed 's/^/  [types] /'    &  PID_TYPES=$!
+
+wait $PID_LINT  || FAIL=true
+wait $PID_TEST  || FAIL=true
+wait $PID_TYPES || FAIL=true
+
+if $FAIL; then
+  echo "Pre-release checks failed. Fix the errors above before releasing."
+  exit 1
+fi
+echo "All checks passed."
+
 # Pre-release bumps use --preid rc (e.g., 0.4.0-rc.0)
 PRE_ARGS=()
 if [[ "$BUMP" == pre* ]]; then
