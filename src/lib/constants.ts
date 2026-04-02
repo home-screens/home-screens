@@ -89,3 +89,11 @@ export const TEXT_OPACITY = {
   secondary: 0.6,
   tertiary: 0.35,
 } as const;
+
+// Standard divider color for consistent borders/separators across modules
+export const DIVIDER_COLOR = 'rgba(255,255,255,0.08)';
+
+/** Check whether a user-configured accent color is actually set (not the default black). */
+export function hasAccentColor(color: string | undefined): color is string {
+  return !!color && color !== '#000000';
+}
