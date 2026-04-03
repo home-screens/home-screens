@@ -714,7 +714,7 @@ exec chromium \
     THEME_DIR="/usr/share/plymouth/themes/home-screens"
     if [ -d "${THEME_SRC}" ]; then
       theme_changed=false
-      for f in home-screens.plymouth home-screens.script logo.png; do
+      for f in home-screens.plymouth home-screens.script logo.png dot.png; do
         if [ -f "${THEME_SRC}/${f}" ] && { [ ! -f "${THEME_DIR}/${f}" ] || ! cmp -s "${THEME_SRC}/${f}" "${THEME_DIR}/${f}"; }; then
           theme_changed=true
         fi
@@ -725,6 +725,7 @@ exec chromium \
         sudo cp "${THEME_SRC}/home-screens.plymouth" "${THEME_DIR}/"
         sudo cp "${THEME_SRC}/home-screens.script" "${THEME_DIR}/"
         [ -f "${THEME_SRC}/logo.png" ] && sudo cp "${THEME_SRC}/logo.png" "${THEME_DIR}/"
+        [ -f "${THEME_SRC}/dot.png" ] && sudo cp "${THEME_SRC}/dot.png" "${THEME_DIR}/"
       fi
 
       current_theme=$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)

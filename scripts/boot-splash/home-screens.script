@@ -20,8 +20,9 @@ num_dots = 3;
 gap = 16;
 title_gap = 10;
 
+dot_base = Image("dot.png");
 for (i = 0; i < num_dots; i++) {
-  dot_image[i] = Image.Text("●", 1, 1, 1);
+  dot_image[i] = dot_base;
   dot_sprite[i] = Sprite(dot_image[i]);
   dot_sprite[i].SetOpacity(0.3);
 }
