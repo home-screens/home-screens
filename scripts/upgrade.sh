@@ -560,6 +560,7 @@ ExecStart=-/sbin/agetty --autologin ${USER} --noclear %I \$TERM"
     if [ ! -f "${AUTOLOGIN_CONF}" ] || [ "$(cat "${AUTOLOGIN_CONF}")" != "${DESIRED_AUTOLOGIN}" ]; then
       sudo mkdir -p "${AUTOLOGIN_DIR}"
       echo "${DESIRED_AUTOLOGIN}" | sudo tee "${AUTOLOGIN_CONF}" > /dev/null
+      sudo systemctl daemon-reload
       changed="${changed}autologin,"
     fi
 

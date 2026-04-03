@@ -105,7 +105,7 @@ cat > /etc/systemd/system/home-screens-firstboot.service << EOF
 Description=Home Screens First Boot Initialization
 ConditionPathExists=!/opt/home-screens/.initialized
 After=network.target
-Before=home-screens.service ssh.service sshd.service
+Before=home-screens.service ssh.service sshd.service getty@tty1.service
 
 [Service]
 Type=oneshot
