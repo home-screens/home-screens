@@ -108,16 +108,6 @@ server {
 
 The `Upgrade` and `Connection` headers are included in case you use any WebSocket-based features in the future.
 
-### Security headers
-
-Home Screens already sets the following headers on all responses via `next.config.mjs`:
-
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-
-Your reverse proxy can add additional headers (e.g. `Strict-Transport-Security`) as needed.
-
 ---
 
 ## HTTPS with Let's Encrypt
@@ -331,8 +321,6 @@ Set a password in the editor under **Settings > Security**. When enabled:
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
 - The display view (`/display`) remains accessible without login
 - Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
-
-Sessions last 30 days and use HMAC-SHA256 signed cookies.
 
 ### Keep API keys server-side
 

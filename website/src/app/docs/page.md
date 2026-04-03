@@ -41,15 +41,15 @@ Home Screens is built with Next.js 16, React 19, and Tailwind CSS. Configuration
 
 ### Quick start
 
-**Raspberry Pi** (recommended) — run the install script on a fresh Raspberry Pi OS:
+**Pre-built image** (easiest) — download a ready-to-boot SD card image from [GitHub Releases](https://github.com/home-screens/home-screens/releases), flash it with [Raspberry Pi Imager](https://www.raspberrypi.com/software/), and power on. Images are available for major and minor releases.
+
+**Install script** — run the install script on a fresh Raspberry Pi OS:
 
 ```bash
 sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh
 ```
-
-After reboot, the display starts automatically. Configure at `http://<pi-ip>:3000/editor` from another device.
 
 **Local development** — run on your own machine for development or testing:
 
@@ -60,9 +60,9 @@ npm install
 npm run dev
 ```
 
-Then visit `http://localhost:3000/editor` to start building your display.
+After setup, configure your screens at `http://<pi-ip>:3000/editor` from another device on your network.
 
-See the [Installation guide](/docs/getting-started) for full details.
+See the [Installation guide](/docs/getting-started) for full details including WiFi setup for pre-built images.
 
 ---
 

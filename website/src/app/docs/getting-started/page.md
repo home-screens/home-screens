@@ -12,9 +12,94 @@ Home Screens can be deployed as a dedicated kiosk display on a Raspberry Pi, or 
 
 ---
 
-## Raspberry Pi {% .lead %}
+## Pre-built image {% .lead %}
 
-The recommended way to run Home Screens. The install script sets up everything on a fresh Raspberry Pi OS — Node.js, the pre-built app, Chromium in kiosk mode, and a systemd service.
+The fastest way to get started. Download a ready-to-boot SD card image, flash it, and power on — no manual install needed.
+
+Pre-built images are published for **major and minor releases** (e.g. v1.0.0, v1.1.0) but not patch releases. Each image includes Raspberry Pi OS Lite 64-bit with Home Screens pre-installed and configured for kiosk mode.
+
+### Requirements
+
+- Raspberry Pi 4 or 5 (2 GB+ RAM recommended)
+- A microSD card (16 GB+ recommended)
+- [Raspberry Pi Imager](https://www.raspberrypi.com/software/) installed on your computer
+- A display connected via HDMI
+
+### Download and flash
+
+1. Go to the [Home Screens releases page](https://github.com/home-screens/home-screens/releases) and find the latest release that has an image file attached (e.g. `home-screens-v1.0.0.img.xz`)
+2. Download the `.img.xz` file — you do not need to decompress it
+3. Open **Raspberry Pi Imager**
+4. Click **Choose Device** and select your Raspberry Pi model
+5. Click **Choose OS**, scroll to the bottom, and select **Use custom**
+6. Select the downloaded `.img.xz` file
+7. Click **Choose Storage** and select your microSD card
+8. Click **Next**, then **No** when asked to apply OS customization settings — the image is already configured
+
+{% callout type="warning" %}
+Raspberry Pi Imager hides its OS customization screen for custom images, so you cannot configure WiFi or SSH through the Imager UI. Use the `wifi.txt` method below for wireless connections instead. Ethernet works immediately with no configuration.
+{% /callout %}
+
+### WiFi setup
+
+If your Pi will connect over WiFi instead of Ethernet, you need to configure it before first boot:
+
+1. After flashing, remove and re-insert the microSD card so the boot partition mounts on your computer
+2. Open the boot partition (labeled `bootfs`) in your file manager
+3. Find the file `wifi.txt.example` and rename it to `wifi.txt`
+4. Open `wifi.txt` in a text editor and fill in your network details:
+
+```
+SSID=Your Network Name
+PASSWORD=your-wifi-password
+COUNTRY=US
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `SSID` | Yes | Your WiFi network name |
+| `PASSWORD` | No | Your WiFi password (omit the line entirely for open networks) |
+| `COUNTRY` | No | Two-letter country code (defaults to `US`) |
+| `HIDDEN` | No | Set to `true` if your network is hidden (defaults to `false`) |
+
+5. Save the file, eject the card, and insert it into your Pi
+
+On first boot the Pi reads `wifi.txt`, connects to your network, and **deletes the file** so your credentials are not left in plaintext on the SD card.
+
+### First boot
+
+Insert the microSD card into your Pi and power it on. The first boot takes a minute or two while the system:
+
+- Expands the filesystem to fill the SD card
+- Detects your display's native resolution
+- Connects to WiFi (if configured)
+- Starts the Home Screens server and kiosk
+
+Once booted, configure your screens by visiting `http://<pi-ip>:3000/editor` from another device on your network. To find your Pi's IP address, check your router's admin page or connected device list.
+
+### Default SSH credentials
+
+The pre-built image includes SSH enabled with the following default credentials:
+
+| | |
+|---|---|
+| **Username** | `hs` |
+| **Password** | `screens` |
+| **Hostname** | `home-screens` |
+
+You can connect with `ssh hs@home-screens.local` or `ssh hs@<pi-ip>`.
+
+{% callout type="warning" %}
+Change the default password after first login by running `passwd` over SSH. Anyone on your network can access the Pi with these credentials until you do.
+{% /callout %}
+
+For display orientation, service management, upgrading, and troubleshooting, see the full [Raspberry Pi guide](/docs/raspberry-pi).
+
+---
+
+## Install script {% .lead %}
+
+If you prefer to install on an existing Raspberry Pi OS setup — or need a patch release that doesn't have a pre-built image — the install script sets up everything from scratch: Node.js, the pre-built app, Chromium in kiosk mode, and a systemd service.
 
 ### Requirements
 

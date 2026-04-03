@@ -8,6 +8,10 @@ nextjs:
 
 Home Screens is designed to run as a dedicated kiosk display on a Raspberry Pi. The install script handles the full setup from a fresh Raspberry Pi OS installation.
 
+{% callout %}
+For the fastest setup, consider using a [pre-built image](/docs/getting-started#pre-built-image) instead — flash to an SD card and boot directly with no manual installation required. Images are available for major and minor releases.
+{% /callout %}
+
 ## Requirements
 
 - Raspberry Pi 4 or 5 (2 GB+ RAM recommended)
@@ -37,31 +41,6 @@ git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh --desktop
 ```
 
-### Installer Flags
-
-| Flag | Description |
-|---|---|
-| `--desktop` | Use Desktop mode instead of Lite (configures kiosk via autostart instead of cage on TTY1) |
-| `--version v1.2.0` | Install a specific release instead of the latest |
-| `--port 8080` | Run the server on a custom port instead of the default 3000 |
-| `--non-interactive` | Skip all prompts and use defaults (portrait 90° rotation, auto-detected resolution). Useful for automated or headless deployments. |
-
-### What the installer does
-
-1. **Node.js 22** — installs via NodeSource
-2. **Latest release** — downloads the pre-built tarball from GitHub Releases to `/opt/home-screens/`
-3. **Chromium + cage** — installs the browser and Wayland kiosk compositor
-4. **systemd service** — creates and enables the `home-screens` server
-5. **Kiosk auto-launch** — configures Chromium in fullscreen kiosk mode via cage on TTY1
-6. **Autologin** — configures automatic login for the kiosk user
-7. **Boot splash** — Plymouth theme with quiet boot (no kernel text, no rainbow screen)
-
-### Boot Splash
-
-The installer configures a clean boot experience with a Plymouth splash screen. Kernel text output and the rainbow screen are suppressed for a polished, appliance-like startup. This applies to both Desktop and Lite installs.
-
-On Lite installs, additional packages are installed: `fonts-noto-core` (base fonts), `libpam-systemd` (session management), and `dbus-user-session` (D-Bus session bus).
-
 ## Post-Install
 
 Reboot to start the kiosk:
@@ -88,59 +67,17 @@ How is your display oriented?
 4) Inverted (rotated 180°)
 ```
 
-It also asks for your display resolution, or auto-detects the native resolution from the connected display if you leave it blank. These choices are saved to `config.json` and `data/kiosk.conf` so that the kiosk launches with the correct orientation and resolution from first boot.
+It also asks for your display resolution, or auto-detects the native resolution from the connected display if you leave it blank.
 
-To change the orientation after installation, use the display transform setting in the editor (**Settings > Display**), or run:
-
-```bash
-bash scripts/rotate-display.sh
-```
-
-The available transforms are: `normal`, `90`, `180`, `270`.
-
-## Managing Services
-
-```bash
-# Start/stop the server
-sudo systemctl start home-screens
-sudo systemctl stop home-screens
-
-# Check status
-sudo systemctl status home-screens
-
-# View logs (follow mode)
-journalctl -u home-screens -f
-
-# Restart everything
-sudo systemctl restart home-screens
-```
-
-## Manual Start
-
-To run without systemd (useful for debugging):
-
-```bash
-bash scripts/start-display.sh
-```
-
-This starts the Next.js server and opens Chromium in kiosk mode.
+To change the orientation after installation, use the display transform setting in the editor (**Settings > Display**).
 
 ## Upgrading
 
-You can upgrade from the editor's **System Panel > Check for Updates**, or via the API:
-
-```bash
-curl -X POST http://localhost:3000/api/system/upgrade -H 'Content-Type: application/json' -d '{"tag":"v0.14.0"}'
-```
-
-The upgrade process downloads the pre-built release tarball from GitHub, atomically swaps the application directory, and restarts the service. No build step is needed on the Pi.
+You can upgrade from the editor's **System Panel > Check for Updates**. The upgrade downloads the latest release from GitHub and restarts the service. No build step is needed on the Pi.
 
 ## Rolling Back
 
-If an upgrade causes problems, roll back to the previous version:
-
-- From the editor's **System Panel > Rollback**
-- Or via the API: `curl -X POST http://localhost:3000/api/system/rollback`
+If an upgrade causes problems, roll back to the previous version from the editor's **System Panel > Rollback**.
 
 ## Troubleshooting
 
@@ -182,3 +119,68 @@ If the Pi runs low on memory:
 - Close any other running applications
 - Consider reducing the number of modules that make API calls
 - Increase swap: `sudo dphys-swapfile swapoff && sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile && sudo dphys-swapfile setup && sudo dphys-swapfile swapon`
+
+---
+
+## Reference
+
+### Installer flags
+
+| Flag | Description |
+|---|---|
+| `--desktop` | Use Desktop mode instead of Lite |
+| `--version v1.2.0` | Install a specific release instead of the latest |
+| `--port 8080` | Run the server on a custom port instead of the default 3000 |
+| `--non-interactive` | Skip all prompts and use defaults (portrait 90° rotation, auto-detected resolution) |
+
+### What the installer does
+
+1. **Node.js** — installs the runtime needed to run the server
+2. **Latest release** — downloads the pre-built app from GitHub
+3. **Browser** — installs Chromium and a fullscreen kiosk shell
+4. **Background service** — sets up Home Screens to start automatically on boot
+5. **Autologin** — configures the Pi to log in and launch the display without interaction
+6. **Boot splash** — shows a clean loading screen instead of terminal text during startup
+
+### Managing services
+
+```bash
+# Start/stop the server
+sudo systemctl start home-screens
+sudo systemctl stop home-screens
+
+# Check status
+sudo systemctl status home-screens
+
+# View logs (follow mode)
+journalctl -u home-screens -f
+
+# Restart everything
+sudo systemctl restart home-screens
+```
+
+### Manual start
+
+To run without the background service (useful for debugging):
+
+```bash
+bash scripts/start-display.sh
+```
+
+### Upgrade and rollback via API
+
+```bash
+# Upgrade to a specific version
+curl -X POST http://localhost:3000/api/system/upgrade -H 'Content-Type: application/json' -d '{"tag":"v0.14.0"}'
+
+# Roll back to the previous version
+curl -X POST http://localhost:3000/api/system/rollback
+```
+
+### Changing orientation via command line
+
+```bash
+bash scripts/rotate-display.sh
+```
+
+The available transforms are: `normal`, `90`, `180`, `270`.
