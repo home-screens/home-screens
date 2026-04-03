@@ -6,6 +6,7 @@ import type { Screen, GlobalSettings, Profile } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
+import NetworkIndicator from './NetworkIndicator';
 import { useDisplayControl } from './useDisplayControl';
 import { useBackgroundRotation } from './useBackgroundRotation';
 import { useLiveConfig } from './useLiveConfig';
@@ -305,6 +306,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
         </div>
       )}
 
+      <NetworkIndicator displayState={displayState} scale={scale} />
       <AlertOverlay alertSettings={settings.alerts} displayState={displayState} scale={scale} />
 
       <SleepOverlay
