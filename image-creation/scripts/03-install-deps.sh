@@ -34,7 +34,8 @@ PACKAGES_CORE="
 # Display and kiosk packages
 PACKAGES_DISPLAY="
     chromium
-    cage
+    labwc
+    wtype
     wlr-randr
 "
 

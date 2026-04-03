@@ -162,7 +162,7 @@ chown -R "${APP_USER}:${APP_USER}" "${INSTALL_BASE}"
 # Patch seed config defaults
 # ============================================================================
 # The image is generic — display detection happens at boot via firstboot.
-# Seed with 0x0 dimensions so setup-system omits DISPLAY_MODE and cage
+# Seed with 0x0 dimensions so setup-system omits DISPLAY_MODE and labwc
 # auto-detects the connected display's native resolution.
 log_info "Configuring seed defaults"
 

@@ -297,7 +297,7 @@ case "${action}" in
     if [ "${reloaded}" = false ]; then
       # Find the Wayland display for the running Chromium
       WAYLAND_DISPLAY=""
-      CHROMIUM_PID=$(pgrep -f 'chromium.*kiosk' | head -1)
+      CHROMIUM_PID=$(pgrep -x chromium | head -1)
       if [ -n "${CHROMIUM_PID}" ]; then
         WAYLAND_DISPLAY=$(tr '\0' '\n' < "/proc/${CHROMIUM_PID}/environ" 2>/dev/null | grep '^WAYLAND_DISPLAY=' | cut -d= -f2)
       fi
@@ -314,18 +314,24 @@ case "${action}" in
 
       if [ "${NEED_DBUS}" = true ]; then
         WAYLAND_DISPLAY="${WAYLAND_DISPLAY}" XDG_RUNTIME_DIR="/run/user/$(id -u)" \
-          nohup dbus-run-session -- chromium --kiosk --noerrdialogs --disable-infobars --no-first-run \
+          nohup dbus-run-session -- chromium --app=http://localhost:${PORT}/display \
+            --noerrdialogs --disable-infobars --no-first-run \
             --disable-session-crashed-bubble --disable-translate \
             --check-for-update-interval=31536000 --password-store=basic \
             --ozone-platform=wayland --remote-debugging-port=9222 \
-            http://localhost:${PORT}/display > /dev/null 2>&1 &
+            --ignore-gpu-blocklist --enable-zero-copy \
+            --num-raster-threads=2 --force-gpu-mem-available-mb=256 \
+            > /dev/null 2>&1 &
       else
         WAYLAND_DISPLAY="${WAYLAND_DISPLAY}" XDG_RUNTIME_DIR="/run/user/$(id -u)" \
-          nohup chromium --kiosk --noerrdialogs --disable-infobars --no-first-run \
+          nohup chromium --app=http://localhost:${PORT}/display \
+            --noerrdialogs --disable-infobars --no-first-run \
             --disable-session-crashed-bubble --disable-translate \
             --check-for-update-interval=31536000 --password-store=basic \
             --ozone-platform=wayland --remote-debugging-port=9222 \
-            http://localhost:${PORT}/display > /dev/null 2>&1 &
+            --ignore-gpu-blocklist --enable-zero-copy \
+            --num-raster-threads=2 --force-gpu-mem-available-mb=256 \
+            > /dev/null 2>&1 &
       fi
       echo "{\"ok\":true,\"method\":\"relaunch\"}"
     fi
@@ -422,7 +428,7 @@ case "${action}" in
     changed=""
 
     # 0. Ensure required system packages are installed
-    REQUIRED_PACKAGES="chromium cage xdotool wlr-randr fonts-noto-color-emoji plymouth plymouth-themes"
+    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji plymouth plymouth-themes"
     missing=""
     for pkg in ${REQUIRED_PACKAGES}; do
       if ! dpkg -s "${pkg}" &>/dev/null; then
@@ -442,7 +448,7 @@ case "${action}" in
       changed="${changed}packages,"
     fi
 
-    # Ensure GPU access for cage/Chromium on Lite (Desktop adds these by default)
+    # Ensure GPU access for labwc/Chromium on Lite (Desktop adds these by default)
     if [ "${PI_VARIANT}" = "lite" ]; then
       for grp in video render; do
         if getent group "${grp}" >/dev/null 2>&1 && ! id -nG "${USER}" | grep -qw "${grp}"; then
@@ -523,7 +529,7 @@ WantedBy=multi-user.target"
       changed="${changed}service,"
     fi
 
-    # 3. Boot to console (required for cage kiosk)
+    # 3. Boot to console (required for labwc kiosk)
     CURRENT_DEFAULT=$(systemctl get-default 2>/dev/null || echo "unknown")
     if [ "${CURRENT_DEFAULT}" != "multi-user.target" ]; then
       sudo systemctl set-default multi-user.target
@@ -581,10 +587,12 @@ GENEOF
       fi
     fi
 
-    # 8. Kiosk launcher script
+    # 8a. Kiosk launcher script (run as labwc --session child)
     LAUNCHER="${APP_DIR}/scripts/kiosk-launcher.sh"
     DESIRED_LAUNCHER='#!/usr/bin/env bash
-# Launched inside cage — applies resolution, rotation, then starts Chromium.
+# Launched as the labwc --session child — applies resolution, rotation, hides
+# the cursor, then starts Chromium.  When this script (or Chromium) exits,
+# labwc exits too, and the autologin cycle restarts everything.
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
 
@@ -612,6 +620,16 @@ if [ -n "${DISPLAY_TRANSFORM}" ] || [ -n "${DISPLAY_MODE}" ]; then
       || true) &
 fi
 
+# Hide cursor — triggers the HideCursor keybind defined in labwc rc.xml.
+# The cursor reappears on mouse movement and stays hidden during touch.
+(sleep 2 && wtype -M logo -k h -m logo) &
+
+# Clear Chromium crash state so kiosk mode is not overridden by a restore dialog.
+CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
+if [ -f "${CHROME_PREFS}" ]; then
+  sed -i '"'"'s/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/'"'"' "${CHROME_PREFS}"
+fi
+
 # Wait for the Next.js server before launching Chromium (defense in depth —
 # on first boot the server may be delayed by firstboot tasks).
 for _i in $(seq 1 120); do
@@ -619,10 +637,12 @@ for _i in $(seq 1 120); do
   sleep 1
 done
 
-# Launch Chromium (exec replaces this script)
+# Launch Chromium in app mode (chromeless window — no tabs, no address bar).
+# labwc'"'"'s window rule handles fullscreen via ToggleFullscreen.
 # --remote-debugging-port enables programmatic page reload after deploys/upgrades
 # GPU flags improve animation/transition smoothness on the Pi
-exec chromium --kiosk \
+exec chromium \
+  --app=http://localhost:${PORT}/display \
   --noerrdialogs \
   --disable-infobars \
   --no-first-run \
@@ -633,13 +653,9 @@ exec chromium --kiosk \
   --ozone-platform=wayland \
   --remote-debugging-port=9222 \
   --ignore-gpu-blocklist \
-  --enable-gpu-rasterization \
   --enable-zero-copy \
   --num-raster-threads=2 \
-  --enable-oop-rasterization \
-  --force-gpu-mem-available-mb=256 \
-  --enable-features=CanvasOopRasterization \
-  http://localhost:${PORT}/display'
+  --force-gpu-mem-available-mb=256'
 
     if [ ! -f "${LAUNCHER}" ] || [ "$(cat "${LAUNCHER}")" != "${DESIRED_LAUNCHER}" ]; then
       echo "${DESIRED_LAUNCHER}" > "${LAUNCHER}"
@@ -647,7 +663,30 @@ exec chromium --kiosk \
       changed="${changed}launcher,"
     fi
 
-    # 9. Cage auto-launch in .bash_profile (idempotent: updates stale blocks)
+    # 8b. labwc configuration (window rules, cursor hiding keybind)
+    LABWC_DIR="${HOME}/.config/labwc"
+    mkdir -p "${LABWC_DIR}"
+
+    DESIRED_RC='<?xml version="1.0"?>
+<labwc_config>
+  <windowRules>
+    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes">
+      <action name="ToggleFullscreen"/>
+    </windowRule>
+  </windowRules>
+  <keyboard>
+    <keybind key="W-h">
+      <action name="HideCursor"/>
+    </keybind>
+  </keyboard>
+</labwc_config>'
+
+    if [ ! -f "${LABWC_DIR}/rc.xml" ] || [ "$(cat "${LABWC_DIR}/rc.xml")" != "${DESIRED_RC}" ]; then
+      echo "${DESIRED_RC}" > "${LABWC_DIR}/rc.xml"
+      changed="${changed}labwc-rc,"
+    fi
+
+    # 9. labwc auto-launch in .bash_profile (idempotent: updates stale blocks)
     #    Re-source kiosk.conf so PI_VARIANT reflects step 7's output (on the
     #    very first run kiosk.conf didn't exist when we sourced it at the top).
     [ -f "${KIOSK_CONF}" ] && source "${KIOSK_CONF}"

@@ -44,22 +44,19 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-echo "Launching Chromium in kiosk mode..."
-chromium-browser \
-  --kiosk \
+echo "Launching Chromium in app mode..."
+chromium \
+  --app=http://localhost:${PORT}/display \
   --noerrdialogs \
   --disable-infobars \
   --no-first-run \
   --disable-session-crashed-bubble \
   --disable-translate \
+  --remote-debugging-port=9222 \
   --ignore-gpu-blocklist \
-  --enable-gpu-rasterization \
   --enable-zero-copy \
   --num-raster-threads=2 \
-  --enable-oop-rasterization \
-  --force-gpu-mem-available-mb=256 \
-  --enable-features=CanvasOopRasterization \
-  http://localhost:${PORT}/display &
+  --force-gpu-mem-available-mb=256 &
 BROWSER_PID=$!
 
 echo "Display running. Press Ctrl+C to stop."

@@ -43,7 +43,7 @@ sudo HS_LOCAL=true ./build-image.sh
 |-------|--------|-------------|
 | 01 | `01-base-setup.sh` | Hostname, user, SSH, locale, timezone |
 | 02 | `02-package-cleanup.sh` | Remove unnecessary packages, disable services |
-| 03 | `03-install-deps.sh` | Node.js, Chromium, cage, fonts, Plymouth |
+| 03 | `03-install-deps.sh` | Node.js, Chromium, labwc, fonts, Plymouth |
 | 04 | `04-install-app.sh` | Download release tarball, install, configure |
 | 05 | `05-configure.sh` | OS-level optimizations (journal, swap, tmpfs) |
 | 99 | `99-finalize.sh` | Distribution cleanup (`--img` only) |
@@ -53,7 +53,7 @@ sudo HS_LOCAL=true ./build-image.sh
 The build process downloads a pre-built release tarball from GitHub and uses the existing `scripts/upgrade.sh setup-system` for application-level configuration. The image-creation scripts handle:
 
 1. **OS preparation** — Hostname (`home-screens`), user (`hs`), locale, SSH
-2. **Package management** — Install display stack (Chromium, cage), remove bloat
+2. **Package management** — Install display stack (Chromium, labwc), remove bloat
 3. **App installation** — Download release tarball or build from local source
 4. **System setup** — Delegates to `upgrade.sh setup-system` for services, kiosk, Plymouth, autologin
 5. **Optimization** — Volatile journal, zram swap, tmpfs mounts, boot speed
@@ -186,8 +186,8 @@ When `HS_LOCAL=true`, the build uses the parent directory of `image-creation/` a
 **Installed:**
 - Node.js 22 (Next.js server runtime)
 - Chromium (kiosk browser)
-- cage (Wayland compositor)
-- wlr-randr, xdotool (display utilities)
+- labwc (Wayland compositor)
+- wtype, wlr-randr (display utilities)
 - Plymouth (boot splash)
 - Fonts (Noto Color Emoji, Noto Core)
 
@@ -197,7 +197,7 @@ When `HS_LOCAL=true`, the build uses the parent directory of `image-creation/` a
 ### Services
 
 - `home-screens.service` — Next.js server (port 3000)
-- cage → Chromium kiosk (auto-launches on TTY1)
+- labwc → Chromium kiosk (auto-launches on TTY1)
 - Plymouth boot splash
 
 ### Optimizations
@@ -240,8 +240,8 @@ journalctl -u home-screens -f
 ### Display not showing
 
 ```bash
-# Check cage is running
-ps aux | grep cage
+# Check labwc is running
+ps aux | grep labwc
 
 # Check kiosk config
 cat /opt/home-screens/current/data/kiosk.conf

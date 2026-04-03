@@ -174,7 +174,7 @@ else
   fi
 fi
 
-# Save display config to kiosk.conf (consumed by kiosk-launcher.sh)
+# Save display config to kiosk.conf (consumed by labwc kiosk-launcher.sh)
 # Values are quoted to match the format upgrade.sh generates from config.json.
 KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
 : > "${KIOSK_CONF}"
@@ -252,7 +252,7 @@ echo "  Display URL:  http://$(hostname -I | awk '{print $1}'):${PORT}/display"
 echo "  Editor URL:   http://$(hostname -I | awk '{print $1}'):${PORT}/editor"
 echo ""
 echo "  Service:      home-screens (Next.js server)"
-echo "  Kiosk:        cage (launches automatically on TTY1)"
+echo "  Kiosk:        labwc (launches automatically on TTY1)"
 echo "  App:          ${APP_DIR}"
 echo "  Data:         ${APP_DIR}/data/config.json"
 echo ""

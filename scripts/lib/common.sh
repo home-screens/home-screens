@@ -123,13 +123,13 @@ write_kiosk_block() {
     kiosk_block="${marker_start}
 if [ \"\$(tty)\" = \"/dev/tty1\" ]; then
   export XDG_RUNTIME_DIR=\"/run/user/\$(id -u)\"
-  exec dbus-run-session -- cage -s -- ${app_dir}/scripts/kiosk-launcher.sh
+  exec dbus-run-session -- labwc --session ${app_dir}/scripts/kiosk-launcher.sh
 fi
 ${marker_end}"
   else
     kiosk_block="${marker_start}
 if [ \"\$(tty)\" = \"/dev/tty1\" ]; then
-  exec cage -s -- ${app_dir}/scripts/kiosk-launcher.sh
+  exec labwc --session ${app_dir}/scripts/kiosk-launcher.sh
 fi
 ${marker_end}"
   fi

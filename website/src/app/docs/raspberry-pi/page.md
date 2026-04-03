@@ -91,14 +91,14 @@ If an upgrade causes problems, roll back to the previous version from the editor
 ### Chromium won't start
 
 1. Make sure you're logged in (autologin should handle this)
-2. Check that cage is running: `pgrep cage`
+2. Check that labwc is running: `pgrep labwc`
 3. Check `.bash_profile` has the kiosk block: `grep 'Home Screens Kiosk' ~/.bash_profile`
 4. Try starting manually: `bash scripts/start-display.sh`
 5. On Lite installs, verify D-Bus is available: `echo $DBUS_SESSION_BUS_ADDRESS`
 
 ### Screen keeps going black
 
-The Wayland compositor (cage) should prevent screen blanking. If it persists, check for DPMS settings:
+The Wayland compositor (labwc) should prevent screen blanking. If it persists, check for DPMS settings:
 
 ```bash
 # Check current display power state

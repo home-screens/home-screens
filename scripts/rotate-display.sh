@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Rotate the display on Raspberry Pi (Wayland/cage or labwc).
+# Rotate the display on Raspberry Pi (Wayland/labwc).
 #
 # Usage:
 #   bash scripts/rotate-display.sh          # interactive
@@ -40,7 +40,7 @@ else
   info "Display rotated ${ANGLE}°."
 fi
 
-# Persist in kiosk.conf (used by cage kiosk launcher)
+# Persist in kiosk.conf (used by labwc kiosk launcher)
 # Read-modify-write: preserve existing values (DISPLAY_MODE, PI_VARIANT, etc.)
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
