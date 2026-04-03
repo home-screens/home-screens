@@ -585,6 +585,10 @@ GENEOF
         echo "${DESIRED_KIOSK}" > "${KIOSK_CONF}"
         changed="${changed}kiosk-conf,"
       fi
+      # Fix ownership so the Next.js server (running as $USER) can update kiosk.conf
+      if [ "$(id -u)" -eq 0 ] && [ -n "${USER}" ] && [ "${USER}" != "root" ]; then
+        chown "${USER}:${USER}" "${KIOSK_CONF}"
+      fi
     fi
 
     # 8a. Kiosk launcher script (run as labwc --session child)
@@ -662,6 +666,10 @@ exec chromium \
       chmod +x "${LAUNCHER}"
       changed="${changed}launcher,"
     fi
+    # Fix ownership when running as root during image build
+    if [ "$(id -u)" -eq 0 ] && [ -n "${USER}" ] && [ "${USER}" != "root" ]; then
+      chown "${USER}:${USER}" "${LAUNCHER}"
+    fi
 
     # 8b. labwc configuration (window rules, cursor hiding keybind)
     LABWC_DIR="${HOME}/.config/labwc"
@@ -684,6 +692,11 @@ exec chromium \
     if [ ! -f "${LABWC_DIR}/rc.xml" ] || [ "$(cat "${LABWC_DIR}/rc.xml")" != "${DESIRED_RC}" ]; then
       echo "${DESIRED_RC}" > "${LABWC_DIR}/rc.xml"
       changed="${changed}labwc-rc,"
+    fi
+
+    # Fix ownership when running as root during image build
+    if [ "$(id -u)" -eq 0 ] && [ -n "${USER}" ] && [ "${USER}" != "root" ]; then
+      chown -R "${USER}:${USER}" "${HOME}/.config/labwc"
     fi
 
     # 9. labwc auto-launch in .bash_profile (idempotent: updates stale blocks)
