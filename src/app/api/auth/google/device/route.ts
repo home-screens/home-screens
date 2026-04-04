@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { requestDeviceCode, pollDeviceToken } from '@/lib/google-auth';
 import { withAuth } from '@/lib/api-utils';
 

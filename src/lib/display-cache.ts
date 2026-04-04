@@ -148,8 +148,8 @@ class DisplayDataCache {
         const data = await res.json();
         this.set(url, data, ttlMs);
       }
-    } catch {
-      // keep existing cache entry on failure — stale data beats no data
+    } catch (err) {
+      console.debug('[display-cache] fetch failed, keeping stale entry:', err);
     }
   }
 

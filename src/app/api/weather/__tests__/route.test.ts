@@ -312,7 +312,7 @@ describe('GET /api/weather', () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json.error).toMatch(/No API key configured for pirateweather/);
+    expect(json.error).toMatch(/No pirateweather API key configured/);
     expect(mockCreateWeatherProvider).not.toHaveBeenCalled();
   });
 

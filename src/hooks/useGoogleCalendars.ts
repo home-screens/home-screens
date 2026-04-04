@@ -61,8 +61,8 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
         setGoogleConnected(false);
         onAuthError(errData?.error || 'Your Google connection has expired. Please sign in again.');
       }
-    } catch {
-      // ignore (editorFetch handles 401 session errors)
+    } catch (err) {
+      console.debug('[useGoogleCalendars] fetchCalendars failed (editorFetch handles 401 session errors):', err);
     }
   }, [onChange, onAuthError]);
 
@@ -74,8 +74,8 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
         setCredentialsConfigured(!!data.credentialsConfigured);
         setGoogleConnected(data.connected);
         if (data.connected) await fetchCalendars();
-      } catch {
-        // ignore
+      } catch (err) {
+        console.debug('[useGoogleCalendars] checkAuth failed:', err);
       } finally {
         setGoogleLoading(false);
       }

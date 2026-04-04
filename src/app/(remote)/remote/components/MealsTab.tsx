@@ -12,6 +12,7 @@ import MealsWeekView from './MealsWeekView';
 import MealsPlanView from './MealsPlanView';
 import MealsLibraryView from './MealsLibraryView';
 import MealsGroceryView from './MealsGroceryView';
+import ConfirmSheet from './ConfirmSheet';
 
 export default function MealsTab() {
   const {
@@ -36,7 +37,7 @@ export default function MealsTab() {
   const [pickingSlot, setPickingSlot] = useState<{ day: number; slot: MealSlotType } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('All');
-  const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; confirmLabel: string; onConfirm: () => void } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -72,7 +73,9 @@ export default function MealsTab() {
 
   const clearAllPlan = useCallback(() => {
     setConfirmAction({
-      message: 'Clear all planned meals for the week?',
+      title: 'Clear plan?',
+      description: 'This will remove all planned meals for the week.',
+      confirmLabel: 'Clear All',
       onConfirm: async () => {
         setPlan([]);
         await saveData(savedMeals, []);
@@ -122,7 +125,9 @@ export default function MealsTab() {
     if (form.editingMeal === 'new' || form.editingMeal === null) return;
     const mealToDelete = form.editingMeal;
     setConfirmAction({
-      message: `Delete "${mealToDelete.name}"? This will also remove it from any planned slots.`,
+      title: `Delete "${mealToDelete.name}"?`,
+      description: 'This will also remove it from any planned slots.',
+      confirmLabel: 'Delete Meal',
       onConfirm: async () => {
         const id = mealToDelete.id;
         const newMeals = savedMeals.filter((m) => m.id !== id);
@@ -302,33 +307,7 @@ export default function MealsTab() {
           setSearchQuery={setSearchQuery}
           filterTag={filterTag}
           setFilterTag={setFilterTag}
-          editingMeal={form.editingMeal}
-          setEditingMeal={form.setEditingMeal}
-          formName={form.formName}
-          setFormName={form.setFormName}
-          formEmoji={form.formEmoji}
-          setFormEmoji={form.setFormEmoji}
-          formPrepTime={form.formPrepTime}
-          setFormPrepTime={form.setFormPrepTime}
-          formCookTime={form.formCookTime}
-          setFormCookTime={form.setFormCookTime}
-          formServings={form.formServings}
-          setFormServings={form.setFormServings}
-          formDifficulty={form.formDifficulty}
-          setFormDifficulty={form.setFormDifficulty}
-          formTags={form.formTags}
-          setFormTags={form.setFormTags}
-          formIngredients={form.formIngredients}
-          setFormIngredients={form.setFormIngredients}
-          formRecipeUrl={form.formRecipeUrl}
-          setFormRecipeUrl={form.setFormRecipeUrl}
-          formNotes={form.formNotes}
-          setFormNotes={form.setFormNotes}
-          formRating={form.formRating}
-          setFormRating={form.setFormRating}
-          formFavorite={form.formFavorite}
-          setFormFavorite={form.setFormFavorite}
-          nameInputRef={form.nameInputRef}
+          form={form}
           openNewMealForm={openNewMealForm}
           openEditMealForm={openEditMealForm}
           saveMealForm={saveMealForm}
@@ -349,72 +328,13 @@ export default function MealsTab() {
 
       {/* Confirmation dialog */}
       {confirmAction && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 300,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.6)',
-          }}
-          onClick={() => setConfirmAction(null)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#1a1a1a',
-              borderRadius: 16,
-              padding: '20px 24px',
-              maxWidth: 320,
-              width: '90%',
-              border: '1px solid #262626',
-            }}
-          >
-            <p style={{ fontSize: 15, color: '#e5e5e5', marginBottom: 20, lineHeight: 1.5 }}>
-              {confirmAction.message}
-            </p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setConfirmAction(null)}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  minHeight: 44,
-                  borderRadius: 10,
-                  border: '1px solid #262626',
-                  background: '#171717',
-                  color: '#a3a3a3',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAction.onConfirm}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  minHeight: 44,
-                  borderRadius: 10,
-                  border: 'none',
-                  background: '#ef4444',
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmSheet
+          title={confirmAction.title}
+          description={confirmAction.description}
+          confirmLabel={confirmAction.confirmLabel}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
       )}
 
       {/* Save error toast */}
@@ -442,16 +362,6 @@ export default function MealsTab() {
         </div>
       )}
 
-      {/* Inline keyframe for form overlay slide-up animation */}
-      <style>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          * { animation-duration: 0.01ms !important; }
-        }
-      `}</style>
     </div>
   );
 }

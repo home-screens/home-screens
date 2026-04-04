@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, withDisplayAuth, createTTLCache, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -108,86 +108,86 @@ export const PUT = withAuth(async (request: NextRequest) => {
 
 // ─── GET: Fetch tasks ───
 
-/** @internal exported for test cleanup */
-export const cache = createTTLCache<unknown>(60 * 1000); // 1 minute
+const { GET, cache } = cachedProxyRoute<unknown>({
+  auth: 'display',
+  ttlMs: 60 * 1000, // 1 minute
+  execute: async () => {
+    const token = await requireSecret('todoist_token', 'Todoist');
+    if (token instanceof NextResponse) return token;
 
-export const GET = withDisplayAuth(async () => {
-  const token = await requireSecret('todoist_token', 'Todoist');
-  if (token instanceof NextResponse) return token;
+    const [rawTasks, rawProjects, rawSections, rawLabels] = await Promise.all([
+      fetchTodoistList('/tasks', token),
+      fetchTodoistList('/projects', token),
+      fetchTodoistList('/sections', token),
+      fetchTodoistList('/labels', token),
+    ]);
 
-  const cached = cache.get('todoist');
-  if (cached) return NextResponse.json(cached);
+    const projectMap = new Map<string, { name: string; color: string }>();
+    for (const p of rawProjects) {
+      const id = str(p, 'id');
+      projectMap.set(id, {
+        name: str(p, 'name'),
+        color: resolveColor(str(p, 'color')),
+      });
+    }
 
-  const [rawTasks, rawProjects, rawSections, rawLabels] = await Promise.all([
-    fetchTodoistList('/tasks', token),
-    fetchTodoistList('/projects', token),
-    fetchTodoistList('/sections', token),
-    fetchTodoistList('/labels', token),
-  ]);
+    const sectionMap = new Map<string, string>();
+    for (const s of rawSections) {
+      sectionMap.set(str(s, 'id'), str(s, 'name'));
+    }
 
-  const projectMap = new Map<string, { name: string; color: string }>();
-  for (const p of rawProjects) {
-    const id = str(p, 'id');
-    projectMap.set(id, {
+    const labelColorMap = new Map<string, string>();
+    for (const l of rawLabels) {
+      labelColorMap.set(str(l, 'name'), resolveColor(str(l, 'color')));
+    }
+
+    const enrichedTasks = rawTasks.map((t) => {
+      const projectId = str(t, 'project_id', 'projectId');
+      const sectionId = str(t, 'section_id', 'sectionId');
+      const project = projectMap.get(projectId);
+      const labels = arr(t, 'labels');
+
+      const rawDue = t.due as Record<string, unknown> | null | undefined;
+      const due = rawDue
+        ? {
+            date: str(rawDue, 'date'),
+            datetime: strOrNull(rawDue, 'datetime'),
+            isRecurring: bool(rawDue, 'is_recurring', 'isRecurring'),
+          }
+        : null;
+
+      return {
+        id: str(t, 'id'),
+        content: str(t, 'content'),
+        description: str(t, 'description'),
+        priority: num(t, 'priority'),
+        due,
+        labels,
+        labelColors: Object.fromEntries(
+          labels.map((l) => [l, labelColorMap.get(l) ?? '#808080']),
+        ),
+        projectId,
+        projectName: project?.name ?? 'Unknown',
+        projectColor: project?.color ?? '#808080',
+        sectionId,
+        sectionName: sectionMap.get(sectionId) ?? '',
+        parentId: strOrNull(t, 'parent_id', 'parentId'),
+        order: num(t, 'child_order', 'childOrder', 'order'),
+        commentCount: num(t, 'note_count', 'noteCount', 'comment_count', 'commentCount'),
+      };
+    });
+
+    const enrichedProjects = rawProjects.map((p) => ({
+      id: str(p, 'id'),
       name: str(p, 'name'),
       color: resolveColor(str(p, 'color')),
-    });
-  }
+      order: num(p, 'child_order', 'childOrder', 'order'),
+    }));
 
-  const sectionMap = new Map<string, string>();
-  for (const s of rawSections) {
-    sectionMap.set(str(s, 'id'), str(s, 'name'));
-  }
+    return { tasks: enrichedTasks, projects: enrichedProjects };
+  },
+  errorMessage: 'Failed to fetch Todoist data',
+});
 
-  const labelColorMap = new Map<string, string>();
-  for (const l of rawLabels) {
-    labelColorMap.set(str(l, 'name'), resolveColor(str(l, 'color')));
-  }
-
-  const enrichedTasks = rawTasks.map((t) => {
-    const projectId = str(t, 'project_id', 'projectId');
-    const sectionId = str(t, 'section_id', 'sectionId');
-    const project = projectMap.get(projectId);
-    const labels = arr(t, 'labels');
-
-    const rawDue = t.due as Record<string, unknown> | null | undefined;
-    const due = rawDue
-      ? {
-          date: str(rawDue, 'date'),
-          datetime: strOrNull(rawDue, 'datetime'),
-          isRecurring: bool(rawDue, 'is_recurring', 'isRecurring'),
-        }
-      : null;
-
-    return {
-      id: str(t, 'id'),
-      content: str(t, 'content'),
-      description: str(t, 'description'),
-      priority: num(t, 'priority'),
-      due,
-      labels,
-      labelColors: Object.fromEntries(
-        labels.map((l) => [l, labelColorMap.get(l) ?? '#808080']),
-      ),
-      projectId,
-      projectName: project?.name ?? 'Unknown',
-      projectColor: project?.color ?? '#808080',
-      sectionId,
-      sectionName: sectionMap.get(sectionId) ?? '',
-      parentId: strOrNull(t, 'parent_id', 'parentId'),
-      order: num(t, 'child_order', 'childOrder', 'order'),
-      commentCount: num(t, 'note_count', 'noteCount', 'comment_count', 'commentCount'),
-    };
-  });
-
-  const enrichedProjects = rawProjects.map((p) => ({
-    id: str(p, 'id'),
-    name: str(p, 'name'),
-    color: resolveColor(str(p, 'color')),
-    order: num(p, 'child_order', 'childOrder', 'order'),
-  }));
-
-  const result = { tasks: enrichedTasks, projects: enrichedProjects };
-  cache.set('todoist', result);
-  return NextResponse.json(result);
-}, 'Failed to fetch Todoist data');
+/** @internal exported for test cleanup */
+export { GET, cache };

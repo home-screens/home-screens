@@ -33,7 +33,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
   // Start from today so the display always shows upcoming events
   const days = useMemo(
     () => Array.from({ length: daysToShow }, (_, i) => addDays(today, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
     [today.toDateString(), daysToShow],
   );
 

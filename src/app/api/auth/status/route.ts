@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { isAuthEnabled, readAuthState, verifySession, getDisplayToken } from '@/lib/auth';
 import { errorResponse } from '@/lib/api-utils';
 

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { createImageDownloadHandler } from '@/lib/route-factories';

@@ -231,7 +231,7 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
     } else {
       setSources([src, src]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
   }, [photoIndex, files]);
 
   // Theme

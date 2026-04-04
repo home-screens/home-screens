@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { execFile } from 'child_process';
 import { readFile } from 'fs/promises';
 import path from 'path';

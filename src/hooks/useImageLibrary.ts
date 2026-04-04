@@ -80,8 +80,8 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         const data = await res.json();
         setDirectories(data.directories ?? []);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('[useImageLibrary] fetchDirectories failed:', err);
     }
     setLoadingDirs(false);
   }, []);
@@ -194,8 +194,8 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setSelectedImage((prev) => prev === imageUrl ? null : prev);
         fetchDirectories();
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('[useImageLibrary] deleteImage failed:', err);
     }
     setDeletingImage(null);
   }, [fetchDirectories]);

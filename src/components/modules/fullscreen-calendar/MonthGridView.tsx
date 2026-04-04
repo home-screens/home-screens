@@ -35,7 +35,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
       cursor = addDays(cursor, 1);
     }
     return { cells: result, weekCount: Math.ceil(result.length / 7) };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [today.toDateString()]);
 
   const dowLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

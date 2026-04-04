@@ -134,7 +134,7 @@ export default function SettingsSheet({ open, onClose }: SettingsSheetProps) {
   // Re-fetch stats each time the sheet opens
   useEffect(() => {
     if (open && !loading) fetchStats();
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- fetchStats and loading are intentionally excluded; we want to trigger on open, not re-trigger when stats load
 
   const sendPower = async (action: 'restart-service' | 'reboot') => {
     try {

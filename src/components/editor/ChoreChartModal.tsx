@@ -534,6 +534,327 @@ function WeeklyPreview({
   );
 }
 
+// ── Member Column ────────────────────────────────────────────────
+
+interface MemberColumnProps {
+  members: ChoreMember[];
+  showAddMember: boolean;
+  editingMemberId: string | null;
+  setShowAddMember: (v: boolean) => void;
+  setEditingMemberId: (v: string | null) => void;
+  addMember: (data: Omit<ChoreMember, 'id'>) => void;
+  updateMember: (id: string, data: Omit<ChoreMember, 'id'>) => void;
+  deleteMember: (id: string) => void;
+}
+
+function MemberColumn({
+  members,
+  showAddMember,
+  editingMemberId,
+  setShowAddMember,
+  setEditingMemberId,
+  addMember,
+  updateMember,
+  deleteMember,
+}: MemberColumnProps) {
+  return (
+    <div className="w-[260px] border-r border-neutral-700 flex flex-col">
+      <div className="px-3 py-2 border-b border-neutral-700/50">
+        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          Family Members
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
+        {members.length === 0 && !showAddMember && (
+          <div className="flex flex-col items-center justify-center py-6 gap-2">
+            <p className="text-xs text-neutral-500">No members yet</p>
+          </div>
+        )}
+
+        {members.map((member) =>
+          editingMemberId === member.id ? (
+            <MemberForm
+              key={member.id}
+              initial={member}
+              submitLabel="Save"
+              onSubmit={(data) => updateMember(member.id, data)}
+              onCancel={() => setEditingMemberId(null)}
+            />
+          ) : (
+            <div
+              key={member.id}
+              className="group flex items-center gap-2.5 bg-neutral-800/40 hover:bg-neutral-800/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-neutral-700/50"
+            >
+              <span className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: member.color }}>
+                {member.emoji ? (
+                  <ChoreIcon value={member.emoji} size={20} color={member.color} />
+                ) : (
+                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: member.color }} />
+                )}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-neutral-200 truncate">{member.name}</div>
+              </div>
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingMemberId(member.id);
+                    setShowAddMember(false);
+                  }}
+                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                  aria-label={`Edit ${member.name}`}
+                >
+                  &#9998;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteMember(member.id)}
+                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                  aria-label={`Delete ${member.name}`}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+          ),
+        )}
+
+        {showAddMember && (
+          <MemberForm
+            submitLabel="Add Member"
+            onSubmit={addMember}
+            onCancel={() => setShowAddMember(false)}
+          />
+        )}
+      </div>
+
+      {!showAddMember && (
+        <div className="p-3 border-t border-neutral-700/50">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full"
+            onClick={() => {
+              setShowAddMember(true);
+              setEditingMemberId(null);
+            }}
+          >
+            + Add Member
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Chore Column ─────────────────────────────────────────────────
+
+interface ChoreColumnProps {
+  chores: ChoreDefinition[];
+  members: ChoreMember[];
+  choreSearch: string;
+  showAddChore: boolean;
+  editingChoreId: string | null;
+  setChoreSearch: (v: string) => void;
+  setShowAddChore: (v: boolean) => void;
+  setEditingChoreId: (v: string | null) => void;
+  deleteChore: (id: string) => void;
+}
+
+function ChoreColumn({
+  chores,
+  members,
+  choreSearch,
+  showAddChore,
+  editingChoreId,
+  setChoreSearch,
+  setShowAddChore,
+  setEditingChoreId,
+  deleteChore,
+}: ChoreColumnProps) {
+  return (
+    <div className="flex-1 border-r border-neutral-700 flex flex-col min-w-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-700/50">
+        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          Chores
+        </span>
+        {members.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddChore(true);
+              setEditingChoreId(null);
+            }}
+            className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-700 text-neutral-200 hover:bg-neutral-600 transition-colors"
+          >
+            + Add Chore
+          </button>
+        )}
+      </div>
+
+      {chores.length > 5 && (
+        <div className="px-3 pt-2">
+          <input
+            type="text"
+            placeholder="Search chores..."
+            value={choreSearch}
+            onChange={(e) => setChoreSearch(e.target.value)}
+            className={MODAL_INPUT_CLASS}
+          />
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
+        {chores.length === 0 && !showAddChore && (
+          <div className="flex flex-col items-center justify-center py-6 gap-2">
+            <p className="text-xs text-neutral-500">No chores yet</p>
+            {members.length === 0 && (
+              <p className="text-[11px] text-neutral-600">Add family members first</p>
+            )}
+          </div>
+        )}
+
+        {chores
+          .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
+          .map((chore) => (
+            <div
+              key={chore.id}
+              className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
+                editingChoreId === chore.id
+                  ? 'bg-neutral-700/50 border-neutral-600'
+                  : 'bg-neutral-800/40 hover:bg-neutral-800/70 border-transparent hover:border-neutral-700/50'
+              }`}
+            >
+              <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-neutral-300">
+                {chore.emoji ? (
+                  <ChoreIcon value={chore.emoji} size={18} color="currentColor" />
+                ) : (
+                  <span className="w-4 h-4 rounded bg-neutral-700" />
+                )}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-neutral-200 truncate">
+                  {chore.name}
+                </div>
+                <div className="text-[11px] text-neutral-400 mt-0.5">
+                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
+                  &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
+                  &middot; {chore.points}pt{chore.points !== 1 ? 's' : ''}
+                </div>
+                <div className="text-[11px] text-neutral-400 mt-0.5">
+                  &rarr;{' '}
+                  {chore.assigneeIds
+                    .map((id) => members.find((m) => m.id === id)?.name ?? '?')
+                    .join(', ')}
+                  {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
+                    <span className="text-neutral-600">
+                      {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : 'rotate weekly'})
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingChoreId(chore.id);
+                    setShowAddChore(false);
+                  }}
+                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                  aria-label={`Edit ${chore.name}`}
+                >
+                  &#9998;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteChore(chore.id)}
+                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                  aria-label={`Delete ${chore.name}`}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Preview Column ───────────────────────────────────────────────
+
+interface PreviewColumnProps {
+  chores: ChoreDefinition[];
+  members: ChoreMember[];
+  showAddChore: boolean;
+  editingChoreId: string | null;
+  weekStartDay: 'sunday' | 'monday';
+  accentColor: string;
+  addChore: (data: Omit<ChoreDefinition, 'id'>) => void;
+  updateChore: (id: string, data: Omit<ChoreDefinition, 'id'>) => void;
+  setShowAddChore: (v: boolean) => void;
+  setEditingChoreId: (v: string | null) => void;
+}
+
+function PreviewColumn({
+  chores,
+  members,
+  showAddChore,
+  editingChoreId,
+  weekStartDay,
+  accentColor,
+  addChore,
+  updateChore,
+  setShowAddChore,
+  setEditingChoreId,
+}: PreviewColumnProps) {
+  return (
+    <div className={`${showAddChore || editingChoreId ? 'w-[450px]' : 'w-[280px]'} flex flex-col transition-all duration-200`}>
+      <div className="px-3 py-2 border-b border-neutral-700/50">
+        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          {showAddChore ? 'New Chore' : editingChoreId ? 'Edit Chore' : "This Week\u2019s Schedule"}
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3" style={{ scrollbarWidth: 'thin' }}>
+        {showAddChore ? (
+          <ChoreForm
+            members={members}
+            submitLabel="Add Chore"
+            onSubmit={addChore}
+            onCancel={() => setShowAddChore(false)}
+          />
+        ) : editingChoreId ? (
+          <ChoreForm
+            key={editingChoreId}
+            initial={chores.find((c) => c.id === editingChoreId)}
+            members={members}
+            submitLabel="Save"
+            onSubmit={(data) => updateChore(editingChoreId, data)}
+            onCancel={() => setEditingChoreId(null)}
+          />
+        ) : chores.length === 0 || members.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <p className="text-xs text-neutral-500 text-center">
+              Add members and chores to see the weekly schedule
+            </p>
+          </div>
+        ) : (
+          <WeeklyPreview
+            chores={chores}
+            members={members}
+            weekStartDay={weekStartDay}
+            accentColor={accentColor}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Modal ────────────────────────────────────────────────────
 
 export default function ChoreChartModal({
@@ -640,245 +961,39 @@ export default function ChoreChartModal({
         </div>
       )}
       <div className="flex flex-1 min-h-0">
-          {/* ── Left: Members ──────────────────────────── */}
-          <div className="w-[260px] border-r border-neutral-700 flex flex-col">
-            <div className="px-3 py-2 border-b border-neutral-700/50">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                Family Members
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
-              {members.length === 0 && !showAddMember && (
-                <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <p className="text-xs text-neutral-500">No members yet</p>
-                </div>
-              )}
-
-              {members.map((member) =>
-                editingMemberId === member.id ? (
-                  <MemberForm
-                    key={member.id}
-                    initial={member}
-                    submitLabel="Save"
-                    onSubmit={(data) => updateMember(member.id, data)}
-                    onCancel={() => setEditingMemberId(null)}
-                  />
-                ) : (
-                  <div
-                    key={member.id}
-                    className="group flex items-center gap-2.5 bg-neutral-800/40 hover:bg-neutral-800/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-neutral-700/50"
-                  >
-                    <span className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: member.color }}>
-                      {member.emoji ? (
-                        <ChoreIcon value={member.emoji} size={20} color={member.color} />
-                      ) : (
-                        <span className="w-5 h-5 rounded-full" style={{ backgroundColor: member.color }} />
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-neutral-200 truncate">{member.name}</div>
-                    </div>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingMemberId(member.id);
-                          setShowAddMember(false);
-                        }}
-                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
-                        aria-label={`Edit ${member.name}`}
-                      >
-                        &#9998;
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteMember(member.id)}
-                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
-                        aria-label={`Delete ${member.name}`}
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  </div>
-                ),
-              )}
-
-              {showAddMember && (
-                <MemberForm
-                  submitLabel="Add Member"
-                  onSubmit={addMember}
-                  onCancel={() => setShowAddMember(false)}
-                />
-              )}
-            </div>
-
-            {!showAddMember && (
-              <div className="p-3 border-t border-neutral-700/50">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    setShowAddMember(true);
-                    setEditingMemberId(null);
-                  }}
-                >
-                  + Add Member
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* ── Center: Chores ─────────────────────────── */}
-          <div className="flex-1 border-r border-neutral-700 flex flex-col min-w-0">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-700/50">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                Chores
-              </span>
-              {members.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddChore(true);
-                    setEditingChoreId(null);
-                  }}
-                  className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-700 text-neutral-200 hover:bg-neutral-600 transition-colors"
-                >
-                  + Add Chore
-                </button>
-              )}
-            </div>
-
-            {chores.length > 5 && (
-              <div className="px-3 pt-2">
-                <input
-                  type="text"
-                  placeholder="Search chores..."
-                  value={choreSearch}
-                  onChange={(e) => setChoreSearch(e.target.value)}
-                  className={MODAL_INPUT_CLASS}
-                />
-              </div>
-            )}
-
-            <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
-              {chores.length === 0 && !showAddChore && (
-                <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <p className="text-xs text-neutral-500">No chores yet</p>
-                  {members.length === 0 && (
-                    <p className="text-[11px] text-neutral-600">Add family members first</p>
-                  )}
-                </div>
-              )}
-
-              {chores
-                .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
-                .map((chore) => (
-                  <div
-                    key={chore.id}
-                    className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
-                      editingChoreId === chore.id
-                        ? 'bg-neutral-700/50 border-neutral-600'
-                        : 'bg-neutral-800/40 hover:bg-neutral-800/70 border-transparent hover:border-neutral-700/50'
-                    }`}
-                  >
-                    <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-neutral-300">
-                      {chore.emoji ? (
-                        <ChoreIcon value={chore.emoji} size={18} color="currentColor" />
-                      ) : (
-                        <span className="w-4 h-4 rounded bg-neutral-700" />
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-neutral-200 truncate">
-                        {chore.name}
-                      </div>
-                      <div className="text-[11px] text-neutral-400 mt-0.5">
-                        {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
-                        &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
-                        &middot; {chore.points}pt{chore.points !== 1 ? 's' : ''}
-                      </div>
-                      <div className="text-[11px] text-neutral-400 mt-0.5">
-                        &rarr;{' '}
-                        {chore.assigneeIds
-                          .map((id) => members.find((m) => m.id === id)?.name ?? '?')
-                          .join(', ')}
-                        {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
-                          <span className="text-neutral-600">
-                            {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : 'rotate weekly'})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingChoreId(chore.id);
-                          setShowAddChore(false);
-                        }}
-                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
-                        aria-label={`Edit ${chore.name}`}
-                      >
-                        &#9998;
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteChore(chore.id)}
-                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
-                        aria-label={`Delete ${chore.name}`}
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  </div>
-                ),
-              )}
-            </div>
-          </div>
-
-          {/* ── Right: Weekly Preview / Chore Form ────── */}
-          <div className={`${showAddChore || editingChoreId ? 'w-[450px]' : 'w-[280px]'} flex flex-col transition-all duration-200`}>
-            <div className="px-3 py-2 border-b border-neutral-700/50">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                {showAddChore ? 'New Chore' : editingChoreId ? 'Edit Chore' : "This Week\u2019s Schedule"}
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3" style={{ scrollbarWidth: 'thin' }}>
-              {showAddChore ? (
-                <ChoreForm
-                  members={members}
-                  submitLabel="Add Chore"
-                  onSubmit={addChore}
-                  onCancel={() => setShowAddChore(false)}
-                />
-              ) : editingChoreId ? (
-                <ChoreForm
-                  key={editingChoreId}
-                  initial={chores.find((c) => c.id === editingChoreId)}
-                  members={members}
-                  submitLabel="Save"
-                  onSubmit={(data) => updateChore(editingChoreId, data)}
-                  onCancel={() => setEditingChoreId(null)}
-                />
-              ) : chores.length === 0 || members.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-2">
-                  <p className="text-xs text-neutral-500 text-center">
-                    Add members and chores to see the weekly schedule
-                  </p>
-                </div>
-              ) : (
-                <WeeklyPreview
-                  chores={chores}
-                  members={members}
-                  weekStartDay={weekStartDay}
-                  accentColor={accentColor}
-                />
-              )}
-            </div>
-          </div>
+          <MemberColumn
+            members={members}
+            showAddMember={showAddMember}
+            editingMemberId={editingMemberId}
+            setShowAddMember={setShowAddMember}
+            setEditingMemberId={setEditingMemberId}
+            addMember={addMember}
+            updateMember={updateMember}
+            deleteMember={deleteMember}
+          />
+          <ChoreColumn
+            chores={chores}
+            members={members}
+            choreSearch={choreSearch}
+            showAddChore={showAddChore}
+            editingChoreId={editingChoreId}
+            setChoreSearch={setChoreSearch}
+            setShowAddChore={setShowAddChore}
+            setEditingChoreId={setEditingChoreId}
+            deleteChore={deleteChore}
+          />
+          <PreviewColumn
+            chores={chores}
+            members={members}
+            showAddChore={showAddChore}
+            editingChoreId={editingChoreId}
+            weekStartDay={weekStartDay}
+            accentColor={accentColor}
+            addChore={addChore}
+            updateChore={updateChore}
+            setShowAddChore={setShowAddChore}
+            setEditingChoreId={setEditingChoreId}
+          />
         </div>
 
     </CRUDModalShell>

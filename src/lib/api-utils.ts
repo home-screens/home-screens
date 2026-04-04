@@ -326,6 +326,32 @@ export async function requireSecret(
   return value;
 }
 
+/**
+ * Guard against accidentally overwriting non-empty data with an empty payload.
+ * Returns a 409 response if all `incoming` arrays are empty but existing data has content.
+ * Returns null if the write should proceed.
+ */
+export async function guardEmptyOverwrite(
+  incoming: unknown[][],
+  loadExisting: () => Promise<unknown[][]>,
+  dataName: string,
+  force?: boolean,
+): Promise<NextResponse | null> {
+  if (force || incoming.some((a) => a.length > 0)) return null;
+  try {
+    const existing = await loadExisting();
+    if (existing.some((a) => a.length > 0)) {
+      return NextResponse.json(
+        { error: `Refusing to overwrite non-empty ${dataName} data with empty payload. Send { force: true } to confirm.` },
+        { status: 409 },
+      );
+    }
+  } catch {
+    // Can't read existing — allow the write
+  }
+  return null;
+}
+
 /** Split a comma-separated query parameter into a trimmed, non-empty array of strings. */
 export function parseCommaList(param: string | null): string[] {
   if (!param) return [];

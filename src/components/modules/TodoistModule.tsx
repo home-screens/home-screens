@@ -34,7 +34,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
   const viewMode = config.viewMode ?? 'list';
   // Stabilize `now` so useMemo deps in child views don't bust on every render.
   // Recompute only when fresh data arrives from the API.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed to data, not time; re-snapshot `now` only when fresh API data arrives
   const now = useMemo(() => new Date(), [data]);
 
   if (!data) {

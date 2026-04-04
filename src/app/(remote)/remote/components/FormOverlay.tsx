@@ -7,10 +7,12 @@ export default function FormOverlay({
   title,
   onBack,
   children,
+  footer,
 }: {
   title: string;
   onBack: () => void;
   children: ReactNode;
+  footer?: ReactNode;
 }) {
   const [visible, setVisible] = useState(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -86,11 +88,18 @@ export default function FormOverlay({
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
           padding: '20px 16px',
-          paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: footer
+            ? '20px'
+            : 'calc(80px + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {children}
       </div>
+      {footer && (
+        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          {footer}
+        </div>
+      )}
     </div>
   );
 }

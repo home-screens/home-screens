@@ -104,3 +104,5 @@ export function useMealForm() {
     buildMealData,
   };
 }
+
+export type MealFormState = ReturnType<typeof useMealForm>;

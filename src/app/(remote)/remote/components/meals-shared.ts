@@ -28,7 +28,17 @@ export function currentSlotIndex(): number {
   return 3;                // dinner
 }
 
-export const inputStyle: React.CSSProperties = {
+export const LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  fontWeight: 700,
+  color: '#a3a3a3',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.04em',
+  marginBottom: 6,
+};
+
+export const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
   minHeight: 44,
@@ -41,7 +51,7 @@ export const inputStyle: React.CSSProperties = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 };
 
-export const cardStyle: React.CSSProperties = {
+export const CARD_STYLE: React.CSSProperties = {
   background: '#171717',
   border: '1px solid #262626',
   borderRadius: 12,

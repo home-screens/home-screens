@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { readMealData, writeMealData } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,20 +23,13 @@ export const PUT = withAuth(async (req: NextRequest) => {
     );
   }
 
-  // Guard against accidental empty overwrites
-  if (savedMeals.length === 0 && plan.length === 0 && !force) {
-    try {
-      const existing = await readMealData();
-      if (existing.savedMeals.length > 0 || existing.plan.length > 0) {
-        return NextResponse.json(
-          { error: 'Refusing to overwrite non-empty meal data with empty payload. Send { force: true } to confirm.' },
-          { status: 409 },
-        );
-      }
-    } catch {
-      // Can't read existing — allow the write
-    }
-  }
+  const guard = await guardEmptyOverwrite(
+    [savedMeals, plan],
+    async () => { const d = await readMealData(); return [d.savedMeals, d.plan]; },
+    'meal',
+    force,
+  );
+  if (guard) return guard;
 
   const existing = await readMealData().catch(() => ({ previousPlan: [], groceryChecked: [] as string[] }));
   const data = {

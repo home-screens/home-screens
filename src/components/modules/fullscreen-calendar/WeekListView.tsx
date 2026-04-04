@@ -21,7 +21,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- weekStart is a new Date object each render; toDateString() gives a stable string key that only changes when the day changes
     [weekStart.toDateString()],
   );
 

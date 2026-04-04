@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { NASA_IMAGE_API } from '@/lib/nasa';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 

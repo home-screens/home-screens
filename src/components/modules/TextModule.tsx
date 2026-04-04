@@ -69,7 +69,7 @@ function useAutoFit(
       cancelAnimationFrame(rafHandle);
       observer.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps is a spread array from the caller; the linter can't statically verify its contents
   }, [enabled, ...deps]);
 
   return state;
@@ -149,7 +149,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
 
   const resolvedContent = useMemo(
     () => (config.templateVariables ? resolveTemplateVariables(rawContent, timezone) : rawContent),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick drives periodic re-evaluation of time-based template variables
     [rawContent, config.templateVariables, timezone, tick],
   );
 

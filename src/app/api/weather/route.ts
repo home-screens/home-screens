@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
-import { getSecret } from '@/lib/secrets';
-import { cachedProxyRoute, getLocationFromConfig } from '@/lib/api-utils';
+import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,15 +52,11 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
 
     // NOAA and Open-Meteo require no API key — skip the secret lookup
     const secretKey = secretKeyMap[provider];
-    const apiKey = secretKey
-      ? (await getSecret(secretKey) ?? undefined)
-      : undefined;
-
-    if (secretKey && !apiKey) {
-      return NextResponse.json(
-        { error: `No API key configured for ${provider}. Add it in Settings → Integrations.` },
-        { status: 400 },
-      );
+    let apiKey: string | undefined;
+    if (secretKey) {
+      const result = await requireSecret(secretKey, provider);
+      if (result instanceof NextResponse) return result;
+      apiKey = result;
     }
 
     const weatherProvider = createWeatherProvider(provider, apiKey);

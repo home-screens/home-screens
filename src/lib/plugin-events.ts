@@ -34,7 +34,7 @@ export const pluginEventBus = {
     }
 
     for (const handler of handlers) {
-      try { handler(event); } catch { /* plugin events must never crash the host */ }
+      try { handler(event); } catch (err) { console.debug('[plugin-events] handler threw:', err); }
     }
   },
 
