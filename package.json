@@ -1,6 +1,6 @@
 {
   "name": "home-screens",
-  "version": "0.23.0",
+  "version": "0.24.0-rc.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
