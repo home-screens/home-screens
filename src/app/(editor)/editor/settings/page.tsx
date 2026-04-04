@@ -71,6 +71,8 @@ interface DisplayState {
   transitionEffect: string;
   transitionDuration: number;
   fullscreenTheme: string;
+  pauseEnabled: boolean;
+  pauseTimeoutSeconds: number;
 }
 
 interface LocationState {
@@ -139,6 +141,8 @@ const FORM_DEFAULTS: SettingsState = {
     transitionEffect: 'fade',
     transitionDuration: 0.6,
     fullscreenTheme: 'linen',
+    pauseEnabled: true,
+    pauseTimeoutSeconds: 300,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
@@ -171,6 +175,8 @@ function toFormState(s: GlobalSettings | undefined): SettingsState {
       transitionEffect: s.transitionEffect ?? FORM_DEFAULTS.display.transitionEffect,
       transitionDuration: s.transitionDuration ?? FORM_DEFAULTS.display.transitionDuration,
       fullscreenTheme: s.fullscreenTheme ?? FORM_DEFAULTS.display.fullscreenTheme,
+      pauseEnabled: s.pauseEnabled ?? FORM_DEFAULTS.display.pauseEnabled,
+      pauseTimeoutSeconds: s.pauseTimeoutSeconds ?? FORM_DEFAULTS.display.pauseTimeoutSeconds,
     },
     location: {
       lat: (s.latitude ?? s.weather.latitude)?.toString() ?? '',
@@ -226,6 +232,8 @@ function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
     transitionEffect: display.transitionEffect as GlobalSettings['transitionEffect'],
     transitionDuration: display.transitionDuration,
     fullscreenTheme: display.fullscreenTheme,
+    pauseEnabled: display.pauseEnabled,
+    pauseTimeoutSeconds: display.pauseTimeoutSeconds,
     latitude: parsedLat,
     longitude: parsedLon,
     locationName: location.locationName ?? undefined,

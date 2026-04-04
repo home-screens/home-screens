@@ -194,6 +194,8 @@ export interface GlobalSettings {
   alerts?: AlertSettings;
   telemetryEnabled?: boolean;
   fullscreenTheme?: string;
+  pauseEnabled?: boolean;
+  pauseTimeoutSeconds?: number;
 }
 
 export interface Profile {

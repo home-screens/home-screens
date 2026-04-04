@@ -93,6 +93,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const [currentIndex, setCurrentIndex] = useState(0);
   // Bumped on manual navigation to reset the auto-rotation timer
   const [rotationEpoch, setRotationEpoch] = useState(0);
+  // Pause rotation state (toggled by double-tapping the active pagination dot)
+  const [paused, setPaused] = useState(false);
+  const lastDotTapRef = useRef(0);
   // Shared data needs all screens (for weather provider detection), not just active profile screens
   const sharedData = useSharedDisplayData(allScreens, settings);
 
@@ -177,6 +180,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     setRotationEpoch((e) => e + 1);
   }, []);
 
+  const clearPause = useCallback(() => setPaused(false), []);
+
   const { displayState, dimOpacity } = useDisplayControl({
     sleep: settings.sleep,
     screenIndex: safeIndex,
@@ -187,18 +192,19 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     nextScreen,
     prevScreen,
     resetRotation,
+    clearPause,
   });
 
   // Subscribe to plugin navigate events
   useEffect(() => {
     return pluginEventBus.on((event) => {
       if (event.type !== 'navigate') return;
-      if (event.direction === 'next') { nextScreen(); resetRotation(); }
-      else if (event.direction === 'prev') { prevScreen(); resetRotation(); }
+      if (event.direction === 'next') { nextScreen(); resetRotation(); clearPause(); }
+      else if (event.direction === 'prev') { prevScreen(); resetRotation(); clearPause(); }
       else if (event.direction === 'screen' && event.screenIndex != null
-        && event.screenIndex >= 0 && event.screenIndex < screens.length) goToScreen(event.screenIndex);
+        && event.screenIndex >= 0 && event.screenIndex < screens.length) { goToScreen(event.screenIndex); clearPause(); }
     });
-  }, [nextScreen, prevScreen, goToScreen, resetRotation, screens.length]);
+  }, [nextScreen, prevScreen, goToScreen, resetRotation, clearPause, screens.length]);
 
   // Push host settings so plugins can read them via getHostSettings().
   // useLayoutEffect ensures settings are available before plugins render.
@@ -219,20 +225,60 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Prefetch next screen's API data before rotation fires
   usePrefetchNextScreen(screens, screenKey, currentIndex, settings.rotationIntervalMs, displayState);
 
-  // Reset currentIndex when the active screen set changes (handles both
-  // length changes and same-length profile switches with different screens).
-  // No animation — this is a hard reset (e.g. profile switch).
+  // Reset currentIndex and pause state when the active screen set changes
+  // (handles both length changes and same-length profile switches with
+  // different screens). No animation — this is a hard reset (e.g. profile switch).
   useEffect(() => {
     setCurrentIndex(0);
+    setPaused(false);
   }, [screenKey]);
 
-  // Pause screen rotation when display is asleep (no point cycling invisible screens).
+  // Clear pause when display wakes from sleep
+  const prevDisplayStateRef = useRef(displayState);
+  useEffect(() => {
+    const prev = prevDisplayStateRef.current;
+    prevDisplayStateRef.current = displayState;
+    if (prev === 'asleep' && displayState !== 'asleep') setPaused(false);
+  }, [displayState]);
+
+  // Pause screen rotation when display is asleep or user has paused via double-tap.
   // rotationEpoch resets the timer after manual navigation (dot click, remote command).
   useEffect(() => {
-    if (screens.length <= 1 || displayState === 'asleep') return;
+    if (screens.length <= 1 || displayState === 'asleep' || paused) return;
     const interval = setInterval(nextScreen, settings.rotationIntervalMs);
     return () => clearInterval(interval);
-  }, [nextScreen, settings.rotationIntervalMs, screens.length, displayState, rotationEpoch]);
+  }, [nextScreen, settings.rotationIntervalMs, screens.length, displayState, rotationEpoch, paused]);
+
+  // Clear pause if the feature is disabled via live config reload
+  useEffect(() => {
+    if (settings.pauseEnabled === false) setPaused(false);
+  }, [settings.pauseEnabled]);
+
+  // Auto-resume rotation after the configured timeout
+  useEffect(() => {
+    if (!paused) return;
+    const timeout = settings.pauseTimeoutSeconds ?? 300;
+    if (timeout === 0) return; // 0 means stay paused indefinitely
+    const timer = setTimeout(() => setPaused(false), timeout * 1000);
+    return () => clearTimeout(timer);
+  }, [paused, settings.pauseTimeoutSeconds]);
+
+  // Handle double-tap on the active pagination dot to toggle pause
+  const handleDotClick = useCallback((index: number) => {
+    if (index === safeIndex && (settings.pauseEnabled ?? true)) {
+      const now = Date.now();
+      if (now - lastDotTapRef.current < 300) {
+        setPaused((p) => !p);
+        lastDotTapRef.current = 0; // reset to avoid triple-tap triggering again
+        return;
+      }
+      lastDotTapRef.current = now;
+      return; // single tap on active dot is a no-op
+    }
+    lastDotTapRef.current = 0;
+    goToScreen(index);
+    setPaused(false); // navigating away resumes rotation
+  }, [safeIndex, settings.pauseEnabled, goToScreen]);
 
   if (screens.length === 0) {
     return (
@@ -267,43 +313,96 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
-            gap: 8,
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
             zIndex: 100,
             viewTransitionName: 'pagination',
           }}
         >
-          {screens.map((s, i) => (
-            <button
-              key={s.id}
-              onClick={() => goToScreen(i)}
-              aria-label={`Go to screen ${i + 1}${s.name ? `: ${s.name}` : ''}`}
-              aria-current={i === safeIndex ? 'true' : undefined}
+          {paused && (
+            <span
               style={{
-                width: 44,
-                height: 44,
-                padding: 0,
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                color: 'rgba(255,255,255,0.85)',
+                backgroundColor: 'rgba(0,0,0,0.45)',
+                padding: '3px 8px',
+                borderRadius: 6,
+                animation: 'pause-fade-in 0.3s ease-out',
               }}
             >
-              <span
+              PAUSED
+            </span>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+          {screens.map((s, i) => {
+            const isActive = i === safeIndex;
+            const showPause = isActive && paused;
+            return (
+              <button
+                key={s.id}
+                onClick={() => handleDotClick(i)}
+                aria-label={
+                  showPause
+                    ? 'Resume rotation'
+                    : isActive
+                      ? 'Pause rotation (double-tap)'
+                      : `Go to screen ${i + 1}${s.name ? `: ${s.name}` : ''}`
+                }
+                aria-current={isActive ? 'true' : undefined}
                 style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  backgroundColor: i === safeIndex ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
-                  boxShadow: '0 0 0 1px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)',
-                  transition: 'background-color 0.3s',
-                  display: 'block',
+                  width: 44,
+                  height: 44,
+                  padding: 0,
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-              />
-            </button>
-          ))}
+              >
+                {showPause ? (
+                  <span
+                    style={{
+                      display: 'flex',
+                      gap: 2,
+                      filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.5))',
+                    }}
+                  >
+                    <span style={{ width: 3, height: 10, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.85)' }} />
+                    <span style={{ width: 3, height: 10, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.85)' }} />
+                  </span>
+                ) : (
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      backgroundColor: isActive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
+                      boxShadow: '0 0 0 1px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)',
+                      transition: 'background-color 0.3s',
+                      display: 'block',
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+          </div>
         </div>
+      )}
+
+      {/* Keyframes for pause label fade-in */}
+      {paused && (
+        <style>{`
+          @keyframes pause-fade-in {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
       )}
 
       <NetworkIndicator displayState={displayState} scale={scale} />

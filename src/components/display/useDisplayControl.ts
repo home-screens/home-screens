@@ -15,6 +15,7 @@ interface UseDisplayControlParams {
   nextScreen: () => void;
   prevScreen: () => void;
   resetRotation: () => void;
+  clearPause?: () => void;
 }
 
 export function useDisplayControl({
@@ -27,18 +28,21 @@ export function useDisplayControl({
   nextScreen,
   prevScreen,
   resetRotation,
+  clearPause,
 }: UseDisplayControlParams) {
   const { displayState, dimOpacity, wake, forceSleep, setRemoteBrightness } = useSleepManager(sleep);
 
   const remoteNext = useCallback(() => {
     nextScreen();
     resetRotation();
-  }, [nextScreen, resetRotation]);
+    clearPause?.();
+  }, [nextScreen, resetRotation, clearPause]);
 
   const remotePrev = useCallback(() => {
     prevScreen();
     resetRotation();
-  }, [prevScreen, resetRotation]);
+    clearPause?.();
+  }, [prevScreen, resetRotation, clearPause]);
 
   const reload = useCallback(() => {
     window.location.reload();

@@ -28,6 +28,8 @@ interface DisplaySettings {
   transitionEffect: string;
   transitionDuration: number;
   fullscreenTheme: string;
+  pauseEnabled: boolean;
+  pauseTimeoutSeconds: number;
 }
 
 interface Props {
@@ -42,7 +44,7 @@ function resolvePreset(width: number, height: number) {
 }
 
 export default function DisplaySection({ values, onChange }: Props) {
-  const { displayWidth, displayHeight, displayTransform, rotationInterval, cursorHideSeconds, transitionEffect, transitionDuration, fullscreenTheme } = values;
+  const { displayWidth, displayHeight, displayTransform, rotationInterval, cursorHideSeconds, transitionEffect, transitionDuration, fullscreenTheme, pauseEnabled, pauseTimeoutSeconds } = values;
 
   // Derive orientation from the actual dimensions (source of truth for the canvas),
   // not from displayTransform which may be out of sync from the old UI.
@@ -201,6 +203,36 @@ export default function DisplaySection({ values, onChange }: Props) {
           Only applies when you have multiple screens configured.
         </p>
       </div>
+      <label className="flex items-center gap-2 mb-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={pauseEnabled}
+          onChange={(e) => onChange({ pauseEnabled: e.target.checked })}
+          className="rounded bg-neutral-800 border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+        />
+        <span className="text-sm text-neutral-300">Allow pausing rotation from touchscreen</span>
+      </label>
+      <p className="text-xs text-neutral-500 -mt-1 mb-3">
+        Double-tap the active pagination dot to pause screen rotation. Double-tap again to resume.
+      </p>
+      {pauseEnabled && (
+        <div className="mb-3">
+          <Slider
+            label="Auto-resume Timeout (seconds)"
+            value={pauseTimeoutSeconds}
+            min={0}
+            max={600}
+            step={30}
+            displayValue={pauseTimeoutSeconds === 0 ? 'Never' : `${pauseTimeoutSeconds}s`}
+            onChange={(v) => onChange({ pauseTimeoutSeconds: v })}
+          />
+          <p className="text-xs text-neutral-500 mt-1">
+            Automatically resume rotation after this many seconds. Set to 0 to stay paused until manually resumed.
+          </p>
+        </div>
+      )}
+
+      <hr className="my-6 border-neutral-700" />
       <label className="block mb-3">
         <span className="text-xs text-neutral-400">Transition Effect</span>
         <select
