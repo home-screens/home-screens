@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, getActiveSlot } from './types';
+import { SLOT_META, resolveMeal, getActiveSlot } from '@/lib/meal-constants';
 
 interface TodayViewProps {
   config: MealPlannerConfig;

@@ -1,7 +1,7 @@
 'use client';
 
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/components/modules/meal-planner/types';
+import { SLOT_META, DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2 } from 'lucide-react';
 
 interface WeekGridProps {

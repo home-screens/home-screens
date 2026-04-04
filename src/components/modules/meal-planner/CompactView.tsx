@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal } from './types';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMeal } from '@/lib/meal-constants';
 
 interface CompactViewProps {
   config: MealPlannerConfig;

@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal } from './types';
+import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
 
 interface ListViewProps {
   config: MealPlannerConfig;

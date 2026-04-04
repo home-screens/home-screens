@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, getNextMealSlot } from './types';
+import { SLOT_META, resolveMeal } from '@/lib/meal-constants';
+import { getNextMealSlot } from './types';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;

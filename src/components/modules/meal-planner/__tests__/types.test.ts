@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  getOrderedDays,
-  resolveMeal,
-  getActiveSlot,
-  getNextMealSlot,
-} from '../types';
+import { getOrderedDays, resolveMeal, getActiveSlot } from '@/lib/meal-constants';
+import { getNextMealSlot } from '../types';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 
 // ── Helpers ──────────────────────────────────────────────────────────

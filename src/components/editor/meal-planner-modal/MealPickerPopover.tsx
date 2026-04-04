@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_FULL } from '@/components/modules/meal-planner/types';
+import { SLOT_META, DAY_NAMES_FULL } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface MealPickerPopoverProps {

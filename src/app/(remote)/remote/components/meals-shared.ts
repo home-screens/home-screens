@@ -1,19 +1,9 @@
 import type { MealSlotType, SavedMeal, PlannedMeal } from '@/types/config';
 
-export const SLOT_META: Record<MealSlotType, { label: string; color: string }> = {
-  breakfast: { label: 'Breakfast', color: '#f59e0b' },
-  lunch:     { label: 'Lunch',     color: '#10b981' },
-  dinner:    { label: 'Dinner',    color: '#6366f1' },
-  snack:     { label: 'Snack',     color: '#ec4899' },
-};
-
-export const SLOT_ORDER: MealSlotType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
-
 export const TAG_OPTIONS = ['Quick', 'Healthy', 'Comfort', 'Kid-Friendly', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Spicy', 'Batch Cook'];
 
-export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
 export function getWeekDates(): { day: number; date: Date; label: string; shortDate: string }[] {
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const now = new Date();
   const currentDay = now.getDay(); // 0=Sun
   const result: { day: number; date: Date; label: string; shortDate: string }[] = [];
@@ -34,8 +24,8 @@ export function currentSlotIndex(): number {
   const h = new Date().getHours();
   if (h < 10) return 0;   // breakfast
   if (h < 14) return 1;   // lunch
-  if (h < 20) return 2;   // dinner
-  return 3;                // snack
+  if (h < 17) return 2;   // snack
+  return 3;                // dinner
 }
 
 export const inputStyle: React.CSSProperties = {

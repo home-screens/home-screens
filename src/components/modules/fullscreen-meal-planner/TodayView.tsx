@@ -1,5 +1,6 @@
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMeal } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMeal, getDifficultyColor } from './meal-planner-utils';
+import { getDifficultyColor } from './meal-planner-utils';
 
 export default function TodayView({
   savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,

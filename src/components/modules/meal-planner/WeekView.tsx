@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from './types';
+import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;

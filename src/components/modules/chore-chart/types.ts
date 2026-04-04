@@ -31,8 +31,7 @@ export interface WeekDayData {
 
 // ── Constants ──────────────────────────────────────────────────────
 
-export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-export const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export { DAY_NAMES_SHORT, DAY_NAMES_FULL } from '@/lib/meal-constants';
 
 export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { label: string; icon: string; order: number }> = {
   morning:   { label: 'Morning',   icon: '\u2600\ufe0f', order: 0 },

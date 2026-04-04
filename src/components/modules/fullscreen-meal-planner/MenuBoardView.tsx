@@ -1,6 +1,7 @@
 import type { MealSlotType, SavedMeal } from '@/types/config';
+import { SLOT_META, SLOT_ORDER, resolveMeal } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { SLOT_META, SLOT_ORDER, resolveMeal, getDifficultyColor } from './meal-planner-utils';
+import { getDifficultyColor } from './meal-planner-utils';
 
 export default function MenuBoardView({
   savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,

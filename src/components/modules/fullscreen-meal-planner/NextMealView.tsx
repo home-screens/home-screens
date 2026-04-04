@@ -1,5 +1,6 @@
+import { SLOT_META } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { SLOT_META, getNextMeal, getDifficultyColor } from './meal-planner-utils';
+import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
 
 export default function NextMealView({
   savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,

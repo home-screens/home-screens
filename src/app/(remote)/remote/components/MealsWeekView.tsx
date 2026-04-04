@@ -1,7 +1,8 @@
 'use client';
 
 import type { MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, type MealsViewProps } from './meals-shared';
+import { SLOT_META, SLOT_ORDER } from '@/lib/meal-constants';
+import type { MealsViewProps } from './meals-shared';
 
 interface MealsWeekViewProps extends MealsViewProps {
   setSubView: (v: 'plan') => void;

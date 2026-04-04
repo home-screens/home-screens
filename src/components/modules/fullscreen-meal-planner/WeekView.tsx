@@ -1,5 +1,6 @@
+import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal, countPlanned } from './meal-planner-utils';
+import { countPlanned } from './meal-planner-utils';
 
 export default function WeekView({
   config, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,

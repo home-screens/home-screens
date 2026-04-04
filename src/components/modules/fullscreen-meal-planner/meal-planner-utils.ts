@@ -1,4 +1,5 @@
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal } from '@/lib/meal-constants';
 
 export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
@@ -18,56 +19,11 @@ export interface MealPlannerViewProps {
   bodyFont: string;
 }
 
-export const SLOT_META: Record<MealSlotType, { label: string; color: string }> = {
-  breakfast: { label: 'Breakfast', color: '#f59e0b' },
-  lunch:     { label: 'Lunch',     color: '#10b981' },
-  dinner:    { label: 'Dinner',    color: '#6366f1' },
-  snack:     { label: 'Snack',     color: '#ec4899' },
-};
-
-export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-export const SLOT_ORDER: MealSlotType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
-
-export const SLOT_WINDOWS: Record<MealSlotType, { start: number; end: number }> = {
-  breakfast: { start: 5, end: 10 },
-  lunch:     { start: 10, end: 14 },
-  snack:     { start: 14, end: 17 },
-  dinner:    { start: 17, end: 21 },
-};
-
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {
   if (difficulty === 'easy') return '#10b981';
   if (difficulty === 'medium') return '#f59e0b';
   if (difficulty === 'hard') return '#ef4444';
   return undefined;
-}
-
-export function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {
-  if (weekStartDay === 'monday') return [1, 2, 3, 4, 5, 6, 0];
-  return [0, 1, 2, 3, 4, 5, 6];
-}
-
-export function resolveMeal(
-  day: number,
-  slot: MealSlotType,
-  planArr: PlannedMeal[],
-  meals: SavedMeal[],
-): SavedMeal | null {
-  const planned = planArr.find((p) => p.day === day && p.slot === slot);
-  if (!planned) return null;
-  if (planned.mealId) {
-    return meals.find((m) => m.id === planned.mealId) ?? null;
-  }
-  return null;
-}
-
-export function getActiveSlot(hour: number, slots: MealSlotType[]): MealSlotType | null {
-  const active = SLOT_ORDER.filter((s) => slots.includes(s));
-  for (const s of active) {
-    const w = SLOT_WINDOWS[s];
-    if (hour >= w.start && hour < w.end) return s;
-  }
-  return null;
 }
 
 export function getNextMeal(
