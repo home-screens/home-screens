@@ -43,16 +43,9 @@ async function loadModule() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function mockExecSuccess(stdout: string) {
-  mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: unknown) => {
-    (cb as Function)(null, stdout, '');
-    return {} as ReturnType<typeof execFile>;
-  });
-}
-
 function mockExecFailure(err = new Error('command failed')) {
   mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: unknown) => {
-    (cb as Function)(err, '', '');
+    (cb as (...a: unknown[]) => void)(err, '', '');
     return {} as ReturnType<typeof execFile>;
   });
 }
@@ -250,15 +243,15 @@ describe('getVersionInfo', () => {
     mockExecFile.mockImplementation((_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
       const argArr = args as string[];
       if (argArr.includes('--is-inside-work-tree')) {
-        (cb as Function)(null, 'true', '');
+        (cb as (...a: unknown[]) => void)(null, 'true', '');
       } else if (argArr.includes('--short')) {
-        (cb as Function)(null, 'abc123', '');
+        (cb as (...a: unknown[]) => void)(null, 'abc123', '');
       } else if (argArr.includes('--abbrev-ref')) {
-        (cb as Function)(null, 'main', '');
+        (cb as (...a: unknown[]) => void)(null, 'main', '');
       } else if (argArr.includes('--tags')) {
-        (cb as Function)(null, '', '');
+        (cb as (...a: unknown[]) => void)(null, '', '');
       } else {
-        (cb as Function)(null, '', '');
+        (cb as (...a: unknown[]) => void)(null, '', '');
       }
       return {} as ReturnType<typeof execFile>;
     });

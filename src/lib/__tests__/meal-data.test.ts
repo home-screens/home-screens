@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+import type { MealData } from '../meal-data';
 import { readMealData, writeMealData } from '../meal-data';
 
 let tmpDir: string;
@@ -92,9 +93,9 @@ describe('readMealData', () => {
 
 describe('writeMealData', () => {
   it('writes and round-trips meal data', async () => {
-    const data = {
-      savedMeals: [{ id: 'm1', name: 'Tacos', ingredients: ['beef', 'shells'], tags: ['mexican'], prepTime: 20 }],
-      plan: [{ day: 1, slot: 'dinner' as const, mealId: 'm1' }],
+    const data: MealData = {
+      savedMeals: [{ id: 'm1', name: 'Tacos', ingredients: [{ name: 'beef' }, { name: 'shells' }], tags: ['mexican'], prepTime: 20 }],
+      plan: [{ day: 1, slot: 'dinner', mealId: 'm1' }],
       previousPlan: [],
       groceryChecked: ['beef'],
     };

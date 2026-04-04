@@ -152,14 +152,7 @@ describe('applyDisplaySettings', () => {
   /** Simulate execFile — call (cmd, args, opts, callback) */
   function mockExecSuccess(stdout = '') {
     mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: unknown) => {
-      (cb as Function)(null, stdout, '');
-      return {} as ReturnType<typeof execFile>;
-    });
-  }
-
-  function mockExecFailure(err = new Error('command failed')) {
-    mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: unknown) => {
-      (cb as Function)(err, '', '');
+      (cb as (...a: unknown[]) => void)(null, stdout, '');
       return {} as ReturnType<typeof execFile>;
     });
   }
@@ -167,16 +160,14 @@ describe('applyDisplaySettings', () => {
   it('detects output name from wlr-randr and applies transform', async () => {
     // First call: detectOutput (wlr-randr with no args)
     // Subsequent calls: wlr-randr --output ...
-    let callIndex = 0;
     mockExecFile.mockImplementation((_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
-      callIndex++;
       const argArr = args as string[];
       if (argArr.length === 0) {
         // detectOutput — return a display name
-        (cb as Function)(null, 'HDMI-A-2 (some info)\n', '');
+        (cb as (...a: unknown[]) => void)(null, 'HDMI-A-2 (some info)\n', '');
       } else {
         // wlr-randr --output ... — success
-        (cb as Function)(null, '', '');
+        (cb as (...a: unknown[]) => void)(null, '', '');
       }
       return {} as ReturnType<typeof execFile>;
     });
@@ -195,15 +186,13 @@ describe('applyDisplaySettings', () => {
   });
 
   it('falls back to HDMI-A-1 when wlr-randr detection fails', async () => {
-    let callIndex = 0;
     mockExecFile.mockImplementation((_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
-      callIndex++;
       const argArr = args as string[];
       if (argArr.length === 0) {
         // detectOutput fails
-        (cb as Function)(new Error('not found'), '', '');
+        (cb as (...a: unknown[]) => void)(new Error('not found'), '', '');
       } else {
-        (cb as Function)(null, '', '');
+        (cb as (...a: unknown[]) => void)(null, '', '');
       }
       return {} as ReturnType<typeof execFile>;
     });
@@ -246,15 +235,13 @@ describe('applyDisplaySettings', () => {
   });
 
   it('tries --custom-mode when --mode fails', async () => {
-    let callCount = 0;
     mockExecFile.mockImplementation((_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
-      callCount++;
       const argArr = args as string[];
       if (argArr.includes('--mode')) {
         // Mode fails (not in EDID)
-        (cb as Function)(new Error('mode not available'), '', '');
+        (cb as (...a: unknown[]) => void)(new Error('mode not available'), '', '');
       } else {
-        (cb as Function)(null, 'HDMI-A-1\n', '');
+        (cb as (...a: unknown[]) => void)(null, 'HDMI-A-1\n', '');
       }
       return {} as ReturnType<typeof execFile>;
     });
@@ -281,15 +268,14 @@ describe('applyDisplaySettings', () => {
   });
 
   it('returns false when transform command fails', async () => {
-    let callIndex = 0;
     mockExecFile.mockImplementation((_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
       const argArr = args as string[];
       if (argArr.length === 0) {
-        (cb as Function)(null, 'HDMI-A-1\n', '');
+        (cb as (...a: unknown[]) => void)(null, 'HDMI-A-1\n', '');
       } else if (argArr.includes('--transform')) {
-        (cb as Function)(new Error('transform failed'), '', '');
+        (cb as (...a: unknown[]) => void)(new Error('transform failed'), '', '');
       } else {
-        (cb as Function)(null, '', '');
+        (cb as (...a: unknown[]) => void)(null, '', '');
       }
       return {} as ReturnType<typeof execFile>;
     });
@@ -305,7 +291,7 @@ describe('applyDisplaySettings', () => {
       if (argArr.includes('--transform')) {
         callOrder.push(argArr[argArr.indexOf('--transform') + 1]);
       }
-      (cb as Function)(null, 'HDMI-A-1\n', '');
+      (cb as (...a: unknown[]) => void)(null, 'HDMI-A-1\n', '');
       return {} as ReturnType<typeof execFile>;
     });
 

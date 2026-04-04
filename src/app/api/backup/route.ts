@@ -6,6 +6,7 @@ import { readConfig, writeConfig } from '@/lib/config';
 import { readChoreData, writeChoreData } from '@/lib/chore-data';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
+import { writeBackupState } from '@/lib/backup-state';
 import { withAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +53,13 @@ export const GET = withAuth(async () => {
     meals,
     rewards,
   };
+
+  // Record backup timestamp (fire-and-forget) — write both fields directly
+  // to avoid a read-modify-write race with concurrent dismiss POSTs
+  writeBackupState({
+    lastBackupDate: new Date().toISOString(),
+    lastDismissedDate: null,
+  }).catch(() => {});
 
   return NextResponse.json(bundle);
 }, 'Failed to create backup');

@@ -173,6 +173,11 @@ export interface AlertSettings {
   scale?: number; // 0.75–2.0, default 1.0
 }
 
+export interface BackupReminderSettings {
+  enabled: boolean;
+  intervalDays: number; // default 7
+}
+
 export interface GlobalSettings {
   rotationIntervalMs: number;
   displayWidth: number;
@@ -196,6 +201,7 @@ export interface GlobalSettings {
   fullscreenTheme?: string;
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
+  backupReminder?: BackupReminderSettings;
 }
 
 export interface Profile {
