@@ -1,0 +1,50 @@
+// ── Public types ─────────────────────────────────────────────────────
+
+export interface HourlyWeather {
+  time: string;
+  temp: number;
+  feelsLike?: number;
+  humidity?: number;
+  icon: string;
+  description: string;
+  windSpeed?: number;
+  precipProbability?: number;
+  pressure?: number;       // hPa (from station observations)
+  visibility?: number;     // km or miles depending on units
+  dewPoint?: number;       // degrees in configured unit
+}
+
+export interface ForecastDay {
+  date: string;
+  high: number;
+  low: number;
+  icon: string;
+  description: string;
+  precipProbability?: number;
+  precipAmount?: number;
+  humidity?: number;
+  windSpeed?: number;
+  detailedForecast?: string; // NWS narrative forecast (NOAA only)
+}
+
+export interface MinutelyPrecip {
+  time: number;
+  intensity: number;
+  probability: number;
+  type?: string;
+}
+
+export interface WeatherAlert {
+  title: string;
+  severity: 'Extreme' | 'Severe' | 'Moderate' | 'Minor' | 'Unknown';
+  description: string;
+  expires: number;
+  uri?: string;
+}
+
+export interface WeatherProvider {
+  getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]>;
+  getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]>;
+  getMinutely?(lat: number, lon: number, units: string): Promise<MinutelyPrecip[]>;
+  getAlerts?(lat: number, lon: number, units: string): Promise<WeatherAlert[]>;
+}

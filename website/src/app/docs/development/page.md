@@ -141,7 +141,7 @@ Module components use the `useFetchData` hook to call API routes (e.g., `/api/we
 
 ### Weather Provider Abstraction
 
-Weather data comes from a pluggable provider system in `src/lib/weather.ts`.
+Weather data comes from a pluggable provider system in `src/lib/weather/`.
 
 The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. Five implementations exist:
 

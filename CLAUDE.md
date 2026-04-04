@@ -65,7 +65,7 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/lib/module-registry.ts` — module definitions (type, label, icon, category, defaults)
 - `src/lib/module-components.ts` — dynamic imports mapping ModuleType → React component
 - `src/lib/config.ts` — config file read/write
-- `src/lib/weather.ts` — 5 weather providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo) with abstract interface
+- `src/lib/weather/` — 5 weather providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo) with shared types and factory
 - `src/lib/google-calendar.ts` — Google Calendar integration (OAuth device flow)
 - `src/stores/editor-store.ts` — Zustand store for all editor state and actions
 - `src/lib/plugin-loader.ts` — plugin loading, registration, and dev mode
