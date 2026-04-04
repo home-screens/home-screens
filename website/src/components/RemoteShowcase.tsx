@@ -90,7 +90,6 @@ function PhoneFrame({
         <div className="relative overflow-hidden rounded-[18px] bg-black">
           {/* Notch */}
           <div className="absolute top-0 left-1/2 z-10 h-[14px] w-[60px] -translate-x-1/2 rounded-b-xl bg-black" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt={alt}

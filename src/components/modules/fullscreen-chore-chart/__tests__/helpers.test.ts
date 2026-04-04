@@ -7,7 +7,7 @@ import {
   TOD_ORDER,
 } from '../helpers';
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
-import type { ChoreDefinition, ChoreTimeOfDay } from '@/types/config';
+import type { ChoreDefinition } from '@/types/config';
 
 // ---------------------------------------------------------------------------
 // Helper to build test fixtures

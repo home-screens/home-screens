@@ -64,7 +64,6 @@ export function EditorExperience() {
 
           {/* Right: editor screenshot */}
           <div className="overflow-hidden rounded-2xl border border-[#222] bg-[#111]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/editor-1.jpg"
               alt="Home Screens visual editor showing drag and drop interface"

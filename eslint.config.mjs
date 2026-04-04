@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "website/out/**",
     // Installed plugin build artifacts (minified bundles, not source)
     "data/plugins/**",
+    // Test coverage reports
+    "coverage/**",
   ]),
   {
     rules: {
