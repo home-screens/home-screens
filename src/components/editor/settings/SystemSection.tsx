@@ -232,8 +232,6 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     );
   }
 
-  // Updates are available for git and tarball installs (not just git)
-  const canUpdate = versionInfo.installedVia !== 'unknown';
   const latestIsPrerelease = versionInfo.latest?.includes('-') ?? false;
 
   return (
@@ -254,27 +252,21 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             <p className="text-xs text-neutral-500 mt-0.5">
               {versionInfo.installedVia === 'git'
                 ? `Branch: ${versionInfo.channel}`
-                : versionInfo.installedVia === 'tarball'
-                  ? 'Installed from release'
-                  : 'Installation method unknown'}
-              {canUpdate && (
-                <>
-                  {' · '}
-                  <button
-                    onClick={handleToggleChannel}
-                    className="text-neutral-400 hover:text-blue-400 transition-colors"
-                  >
-                    {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
-                  </button>
-                </>
-              )}
+                : 'Installed from release'}
+              {' · '}
+              <button
+                onClick={handleToggleChannel}
+                className="text-neutral-400 hover:text-blue-400 transition-colors"
+              >
+                {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
+              </button>
             </p>
           </div>
           <Button
             variant="secondary"
             size="sm"
             onClick={handleCheckUpdates}
-            disabled={checking || !canUpdate}
+            disabled={checking}
           >
             {checking ? 'Checking...' : 'Check for Updates'}
           </Button>
@@ -332,64 +324,56 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </div>
         )}
 
-        {!versionInfo.updateAvailable && canUpdate && (
+        {!versionInfo.updateAvailable && (
           <p className="text-xs text-green-400/80 mt-2 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             You&apos;re on the latest version
           </p>
         )}
-
-        {!canUpdate && (
-          <p className="text-xs text-yellow-400/80 mt-2">
-            Unable to check for updates. Re-install from a release to enable auto-upgrade.
-          </p>
-        )}
       </section>
 
       {/* Changelog */}
-      {canUpdate && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
-              Changelog
-            </h3>
-            {!showChangelog && (
-              <button
-                onClick={() => { setShowChangelog(true); fetchChangelog(); }}
-                className="text-xs text-blue-400 hover:text-blue-300"
-              >
-                View Changelog
-              </button>
-            )}
-          </div>
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+            Changelog
+          </h3>
+          {!showChangelog && (
+            <button
+              onClick={() => { setShowChangelog(true); fetchChangelog(); }}
+              className="text-xs text-blue-400 hover:text-blue-300"
+            >
+              View Changelog
+            </button>
+          )}
+        </div>
 
-          {showChangelog && (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {releases.length === 0 ? (
-                <p className="text-xs text-neutral-500">No releases found on GitHub.</p>
-              ) : (
-                releases.map((r) => (
-                  <div key={r.tag} className="rounded-md bg-neutral-800 border border-neutral-700 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-200 font-mono">{r.tag}</span>
-                      {r.published && (
-                        <span className="text-xs text-neutral-500">
-                          {new Date(r.published).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                    {r.body && (
-                      <p className="text-xs text-neutral-400 mt-1 whitespace-pre-line line-clamp-3">
-                        {r.body}
-                      </p>
+        {showChangelog && (
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {releases.length === 0 ? (
+              <p className="text-xs text-neutral-500">No releases found on GitHub.</p>
+            ) : (
+              releases.map((r) => (
+                <div key={r.tag} className="rounded-md bg-neutral-800 border border-neutral-700 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-neutral-200 font-mono">{r.tag}</span>
+                    {r.published && (
+                      <span className="text-xs text-neutral-500">
+                        {new Date(r.published).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
-                ))
-              )}
-            </div>
-          )}
-        </section>
-      )}
+                  {r.body && (
+                    <p className="text-xs text-neutral-400 mt-1 whitespace-pre-line line-clamp-3">
+                      {r.body}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </section>
 
       {/* Version History / Rollback */}
       {versionInfo.tags.length > 0 && (

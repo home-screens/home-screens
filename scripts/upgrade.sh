@@ -791,14 +791,110 @@ ExecStartPre=/bin/sleep 5"
       fi
     fi
 
-    # 14. Disable WiFi power management (brcmfmac causes latency spikes and drops)
-    WIFI_PS_CONF="/etc/NetworkManager/conf.d/wifi-powersave.conf"
-    DESIRED_WIFI_PS="[connection]
-wifi.powersave = 2"
-    if [ ! -f "${WIFI_PS_CONF}" ] || [ "$(sudo cat "${WIFI_PS_CONF}")" != "${DESIRED_WIFI_PS}" ]; then
-      echo "${DESIRED_WIFI_PS}" | sudo tee "${WIFI_PS_CONF}" > /dev/null
+    # 14. WiFi reliability — power management, MAC randomization, IPv6, bgscan.
+    #     brcmfmac aggressively sleeps the radio (500-800ms latency spikes),
+    #     randomized scan MACs confuse mesh APs, IPv6 multicast triggers radio
+    #     issues, and background scanning takes the radio off-channel.
+    WIFI_NM_CONF="/etc/NetworkManager/conf.d/wifi-powersave.conf"
+    DESIRED_WIFI_NM="[connection]
+wifi.powersave = 2
+
+[device-wifi]
+match-device=type:wifi
+wifi.scan-rand-mac-address=no
+
+[connection-wifi-default]
+match-device=type:wifi
+wifi.cloned-mac-address=preserve
+ipv6.method=disabled"
+    if [ ! -f "${WIFI_NM_CONF}" ] || [ "$(sudo cat "${WIFI_NM_CONF}")" != "${DESIRED_WIFI_NM}" ]; then
+      echo "${DESIRED_WIFI_NM}" | sudo tee "${WIFI_NM_CONF}" > /dev/null
       sudo iw wlan0 set power_save off 2>/dev/null || true
-      changed="${changed}wifi-powersave,"
+      changed="${changed}wifi-nm-conf,"
+    fi
+
+    # 15. WiFi per-connection hardening — infinite retries, relaxed bgscan, no IPv6.
+    #     On mesh networks (Google/Nest WiFi), AP steering causes brief disconnects.
+    #     The NM default of 4 retries burns through instantly, leaving the Pi offline.
+    #     bgscan takes the radio off-channel; for a stationary device, scan ~never.
+    WIFI_CONN=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep ':802-11-wireless$' | head -1 | cut -d: -f1)
+    if [ -n "${WIFI_CONN}" ]; then
+      CURRENT_RETRIES=$(nmcli -g connection.autoconnect-retries connection show "${WIFI_CONN}" 2>/dev/null)
+      if [ "${CURRENT_RETRIES}" != "0" ]; then
+        sudo nmcli connection modify "${WIFI_CONN}" \
+          connection.autoconnect-retries 0 \
+          802-11-wireless.powersave 2 \
+          ipv6.method disabled 2>/dev/null || true
+        changed="${changed}wifi-connection,"
+      fi
+    fi
+
+    # 15a. Mask suspend/hibernate — brcmfmac can't recover from suspend.
+    for target in sleep.target suspend.target hibernate.target hybrid-sleep.target; do
+      if ! systemctl is-enabled "${target}" 2>/dev/null | grep -q masked; then
+        sudo systemctl mask "${target}" 2>/dev/null || true
+        changed="${changed}mask-suspend,"
+      fi
+    done
+
+    # 16. WiFi watchdog — monitors connectivity and recovers from drops.
+    #     Pings the gateway every 2 minutes; escalates through NM reconnect,
+    #     interface cycle, and driver reload if needed.
+    WATCHDOG_SCRIPT="/usr/local/bin/wifi-watchdog.sh"
+    DESIRED_WATCHDOG='#!/bin/bash
+# WiFi watchdog for Home Screens display
+GATEWAY=$(ip route show default 2>/dev/null | awk "/default via/ {print \$3; exit}")
+[ -z "$GATEWAY" ] && exit 0
+LOG_TAG=wifi-watchdog
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then exit 0; fi
+logger -t $LOG_TAG "Gateway unreachable, attempting NM reconnect"
+WIFI_CONN=$(nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ":802-11-wireless$" | head -1 | cut -d: -f1)
+[ -z "$WIFI_CONN" ] && exit 1
+nmcli connection up "$WIFI_CONN" 2>/dev/null; sleep 10
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then logger -t $LOG_TAG "Reconnected via NM"; exit 0; fi
+logger -t $LOG_TAG "NM reconnect failed, cycling wlan0"
+nmcli device disconnect wlan0 2>/dev/null; sleep 3; nmcli device connect wlan0 2>/dev/null; sleep 10
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then logger -t $LOG_TAG "Reconnected via interface cycle"; exit 0; fi
+logger -t $LOG_TAG "Interface cycle failed, reloading brcmfmac"
+modprobe -r brcmfmac && sleep 2 && modprobe brcmfmac; sleep 15
+nmcli connection up "$WIFI_CONN" 2>/dev/null
+logger -t $LOG_TAG "Driver reloaded, connection attempt sent"'
+
+    if [ ! -f "${WATCHDOG_SCRIPT}" ] || [ "$(sudo cat "${WATCHDOG_SCRIPT}")" != "${DESIRED_WATCHDOG}" ]; then
+      echo "${DESIRED_WATCHDOG}" | sudo tee "${WATCHDOG_SCRIPT}" > /dev/null
+      sudo chmod +x "${WATCHDOG_SCRIPT}"
+      changed="${changed}wifi-watchdog,"
+    fi
+
+    WATCHDOG_SERVICE="/etc/systemd/system/wifi-watchdog.service"
+    DESIRED_WD_SERVICE="[Unit]
+Description=WiFi connectivity watchdog
+After=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=${WATCHDOG_SCRIPT}"
+    if [ ! -f "${WATCHDOG_SERVICE}" ] || [ "$(sudo cat "${WATCHDOG_SERVICE}")" != "${DESIRED_WD_SERVICE}" ]; then
+      echo "${DESIRED_WD_SERVICE}" | sudo tee "${WATCHDOG_SERVICE}" > /dev/null
+      changed="${changed}wifi-watchdog-service,"
+    fi
+
+    WATCHDOG_TIMER="/etc/systemd/system/wifi-watchdog.timer"
+    DESIRED_WD_TIMER="[Unit]
+Description=Run WiFi watchdog every 2 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=120
+
+[Install]
+WantedBy=timers.target"
+    if [ ! -f "${WATCHDOG_TIMER}" ] || [ "$(sudo cat "${WATCHDOG_TIMER}")" != "${DESIRED_WD_TIMER}" ]; then
+      echo "${DESIRED_WD_TIMER}" | sudo tee "${WATCHDOG_TIMER}" > /dev/null
+      sudo systemctl daemon-reload
+      sudo systemctl enable wifi-watchdog.timer 2>/dev/null || true
+      sudo systemctl start wifi-watchdog.timer 2>/dev/null || true
+      changed="${changed}wifi-watchdog-timer,"
     fi
 
     # Remove trailing comma

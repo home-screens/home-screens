@@ -115,6 +115,13 @@ for service in $SERVICES_MASK; do
     fi
 done
 
+# Mask suspend/hibernate — brcmfmac can't recover from suspend, and a kiosk
+# device should never sleep.
+for target in sleep.target suspend.target hibernate.target hybrid-sleep.target; do
+    systemctl mask "$target" 2>/dev/null || true
+done
+log_info "  Masked suspend/hibernate targets"
+
 # ============================================================================
 # Storage-specific optimizations
 # ============================================================================
@@ -169,7 +176,7 @@ fi
 # ============================================================================
 # WiFi — disable power management (causes latency spikes and disconnects)
 # ============================================================================
-log_info "Disabling WiFi power management"
+log_info "Configuring WiFi reliability"
 mkdir -p /etc/NetworkManager/conf.d
 cat > /etc/NetworkManager/conf.d/wifi-powersave.conf << 'EOF'
 [connection]
@@ -178,8 +185,101 @@ cat > /etc/NetworkManager/conf.d/wifi-powersave.conf << 'EOF'
 # No benefit on a wall-powered kiosk device.
 # Values: 1=default, 2=disable, 3=enable
 wifi.powersave = 2
+
+[device-wifi]
+match-device=type:wifi
+# Disable scan MAC randomization — mesh APs (Google/Nest WiFi) can reject
+# or get confused by randomized MACs, causing association failures.
+wifi.scan-rand-mac-address=no
+
+[connection-wifi-default]
+match-device=type:wifi
+wifi.cloned-mac-address=preserve
+# Disable IPv6 — brcmfmac handles IPv6 multicast poorly; neighbor discovery
+# traffic triggers radio issues and confuses NM connectivity state.
+ipv6.method=disabled
 EOF
-log_info "  WiFi power management disabled (NetworkManager)"
+log_info "  WiFi power management, MAC randomization, and IPv6 configured"
+
+# ============================================================================
+# WiFi — infinite autoconnect retries
+# ============================================================================
+# NM default is 4 retries then give up permanently. On mesh networks
+# (Google/Nest WiFi), AP steering causes brief disconnects that burn through
+# all retries in seconds, leaving a headless display offline until reboot.
+# A NetworkManager dispatcher script sets retries=0 (infinite) on any WiFi
+# connection that activates — this covers the "preconfigured" connection
+# from Pi Imager and any user-created connections.
+log_info "Configuring WiFi autoconnect retries (infinite)"
+mkdir -p /etc/NetworkManager/dispatcher.d
+cat > /etc/NetworkManager/dispatcher.d/99-wifi-autoconnect << 'DISPEOF'
+#!/bin/bash
+# Set infinite autoconnect retries on WiFi connections.
+# Runs when any interface comes up; only acts on wifi type.
+[ "$2" != "up" ] && exit 0
+CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CONN_TYPE" != "802-11-wireless" ] && exit 0
+CURRENT=$(nmcli -g connection.autoconnect-retries connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CURRENT" = "0" ] && exit 0
+nmcli connection modify "$CONNECTION_UUID" connection.autoconnect-retries 0 2>/dev/null
+nmcli connection modify "$CONNECTION_UUID" 802-11-wireless.powersave 2 2>/dev/null
+DISPEOF
+chmod +x /etc/NetworkManager/dispatcher.d/99-wifi-autoconnect
+log_info "  WiFi autoconnect retries set to infinite"
+
+# ============================================================================
+# WiFi — connectivity watchdog
+# ============================================================================
+# Pings the default gateway every 2 minutes. If unreachable, escalates through
+# NM reconnect → interface cycle → driver reload.
+log_info "Installing WiFi watchdog"
+cat > /usr/local/bin/wifi-watchdog.sh << 'WDEOF'
+#!/bin/bash
+# WiFi watchdog for Home Screens display
+GATEWAY=$(ip route show default 2>/dev/null | awk '/default via/ {print $3; exit}')
+[ -z "$GATEWAY" ] && exit 0
+LOG_TAG=wifi-watchdog
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then exit 0; fi
+logger -t $LOG_TAG "Gateway unreachable, attempting NM reconnect"
+WIFI_CONN=$(nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ":802-11-wireless$" | head -1 | cut -d: -f1)
+[ -z "$WIFI_CONN" ] && exit 1
+nmcli connection up "$WIFI_CONN" 2>/dev/null; sleep 10
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then logger -t $LOG_TAG "Reconnected via NM"; exit 0; fi
+logger -t $LOG_TAG "NM reconnect failed, cycling wlan0"
+nmcli device disconnect wlan0 2>/dev/null; sleep 3; nmcli device connect wlan0 2>/dev/null; sleep 10
+if ping -c 3 -W 5 $GATEWAY > /dev/null 2>&1; then logger -t $LOG_TAG "Reconnected via interface cycle"; exit 0; fi
+logger -t $LOG_TAG "Interface cycle failed, reloading brcmfmac"
+modprobe -r brcmfmac && sleep 2 && modprobe brcmfmac; sleep 15
+nmcli connection up "$WIFI_CONN" 2>/dev/null
+logger -t $LOG_TAG "Driver reloaded, connection attempt sent"
+WDEOF
+chmod +x /usr/local/bin/wifi-watchdog.sh
+
+cat > /etc/systemd/system/wifi-watchdog.service << 'EOF'
+[Unit]
+Description=WiFi connectivity watchdog
+After=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/wifi-watchdog.sh
+EOF
+
+cat > /etc/systemd/system/wifi-watchdog.timer << 'EOF'
+[Unit]
+Description=Run WiFi watchdog every 2 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=120
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload
+systemctl enable wifi-watchdog.timer
+log_info "  WiFi watchdog installed and enabled"
 
 # ============================================================================
 # Boot optimization — disable wait for network

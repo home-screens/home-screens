@@ -264,12 +264,21 @@ export async function getVersionTags(options?: {
 /** Detect how the app was installed */
 async function detectInstallMethod(): Promise<'git' | 'tarball' | 'unknown'> {
   if (await isGitRepo()) return 'git';
+  const cwd = process.cwd();
   // Tarball installs have server.js at root but no .git
   try {
-    await fs.access(path.join(process.cwd(), 'server.js'));
+    await fs.access(path.join(cwd, 'server.js'));
     return 'tarball';
   } catch {
-    return 'unknown';
+    // Fallback: a built Next.js app always has a .next directory, even if
+    // server.js is missing (e.g. RC tarballs built with a slightly different
+    // standalone layout, or image-creation scripts that restructure the tree).
+    try {
+      await fs.access(path.join(cwd, '.next'));
+      return 'tarball';
+    } catch {
+      return 'unknown';
+    }
   }
 }
 
