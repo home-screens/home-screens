@@ -1,6 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { createJsonStore } from './json-store';
 
 /* ─── Types ──────────────────────────────────── */
 
@@ -22,50 +21,26 @@ interface SessionPayload {
 
 /* ─── Constants ──────────────────────────────── */
 
-const AUTH_FILE = 'data/auth.json';
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
 const SESSION_REMEMBER_ME_AGE = 90 * 24 * 60 * 60; // 90 days in seconds
 const SCRYPT_KEYLEN = 64;
-
-function getAuthPath(): string {
-  return path.join(process.cwd(), AUTH_FILE);
-}
 
 /* ─── Auth State (fail-closed reads) ─────────── */
 
 const DISABLED_STATE: AuthState = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
-export async function readAuthState(): Promise<AuthState> {
-  const filePath = getAuthPath();
-  try {
-    const data = await fs.readFile(filePath, 'utf-8');
-    // Fail closed: if file exists but is corrupt, throw (don't disable auth)
-    return JSON.parse(data) as AuthState;
-  } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-      return DISABLED_STATE;
-    }
-    throw err; // parse error or other I/O error → fail closed
-  }
-}
+const authStore = createJsonStore<AuthState>({
+  path: 'data/auth.json',
+  defaultValue: DISABLED_STATE,
+  chmod: 0o600,
+  errorHandling: 'throw-corrupt',
+});
 
-// Serialize all read-modify-write operations on auth.json to prevent races
-// between concurrent setPassword() and regenerateDisplayToken() calls.
-let writeQueue: Promise<void> = Promise.resolve();
+export const readAuthState = authStore.read;
 
 async function writeAuthState(state: AuthState): Promise<void> {
-  const op = writeQueue.then(async () => {
-    const filePath = getAuthPath();
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tmp = filePath + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(state, null, 2), 'utf-8');
-    await fs.chmod(tmp, 0o600);
-    await fs.rename(tmp, filePath);
-    // Clear cache so next read picks up new state
-    cachedState = null;
-  });
-  writeQueue = op.catch(() => {});
-  return op;
+  await authStore.write(state);
+  cachedState = null;
 }
 
 /* ─── Cached reads (short TTL for requireSession hot path) ── */

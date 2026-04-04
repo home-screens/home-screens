@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
-import { errorResponse, withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,39 +22,35 @@ function serveUrl(filename: string, directory?: string) {
 }
 
 export const GET = withDisplayAuth(async (request: NextRequest) => {
-  try {
-    const directory = request.nextUrl.searchParams.get('directory') || '';
+  const directory = request.nextUrl.searchParams.get('directory') || '';
 
-    let dir: string;
-    if (directory) {
-      const resolved = safePath(directory);
-      if (!resolved) {
-        return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
-      }
-      dir = resolved;
-    } else {
-      dir = BGS;
+  let dir: string;
+  if (directory) {
+    const resolved = safePath(directory);
+    if (!resolved) {
+      return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
     }
-
-    // Only auto-create the root directory; subdirectories must already exist
-    if (!directory) {
-      await fs.mkdir(dir, { recursive: true });
-    } else {
-      try {
-        await fs.access(dir);
-      } catch {
-        return NextResponse.json([], { status: 200 });
-      }
-    }
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    const images = entries
-      .filter((e) => e.isFile() && /\.(jpe?g|png|webp|gif|avif)$/i.test(e.name))
-      .map((e) => e.name);
-    const paths = images.map((name) => serveUrl(name, directory || undefined));
-    return NextResponse.json(paths);
-  } catch (error) {
-    return errorResponse(error, 'Failed to list backgrounds');
+    dir = resolved;
+  } else {
+    dir = BGS;
   }
+
+  // Only auto-create the root directory; subdirectories must already exist
+  if (!directory) {
+    await fs.mkdir(dir, { recursive: true });
+  } else {
+    try {
+      await fs.access(dir);
+    } catch {
+      return NextResponse.json([], { status: 200 });
+    }
+  }
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const images = entries
+    .filter((e) => e.isFile() && /\.(jpe?g|png|webp|gif|avif)$/i.test(e.name))
+    .map((e) => e.name);
+  const paths = images.map((name) => serveUrl(name, directory || undefined));
+  return NextResponse.json(paths);
 }, 'Failed to list backgrounds');
 
 export const POST = withAuth(async (request: NextRequest) => {

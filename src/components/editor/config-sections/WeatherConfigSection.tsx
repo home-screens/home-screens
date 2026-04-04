@@ -90,10 +90,10 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   // Auto-reset view if the current provider doesn't support it
   const viewReq = VIEW_REQUIRES[view];
-  if (viewReq && !caps[viewReq]) {
-    // Defer state update to avoid React warning
-    setTimeout(() => set({ view: 'hourly' }), 0);
-  }
+  const viewIncompatible = !!(viewReq && !caps[viewReq]);
+  useEffect(() => {
+    if (viewIncompatible) set({ view: 'hourly' });
+  }, [viewIncompatible, set]);
 
   // Filter providers: when a capability-specific view is selected, only show compatible providers
   const viewRequirement = VIEW_REQUIRES[view];

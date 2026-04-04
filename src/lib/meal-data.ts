@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
-import path from 'path';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
+import { createJsonStore } from './json-store';
 
 // ── Data shape ────────────────────────────────
 
@@ -11,17 +11,19 @@ export interface MealData {
   groceryChecked: string[]; // ingredient names that have been checked off
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DATA_FILE = path.join(DATA_DIR, 'meals.json');
-const BACKUP_FILE = DATA_FILE + '.bak';
-
 const EMPTY: MealData = { savedMeals: [], plan: [], previousPlan: [], groceryChecked: [] };
 
-// ── Read ──────────────────────────────────────
+const mealStore = createJsonStore<MealData>({
+  path: 'data/meals.json',
+  defaultValue: EMPTY,
+  backup: true,
+});
+
+// ── Read (with field normalization for backward compat) ──
 
 export async function readMealData(): Promise<MealData> {
   try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8');
+    const raw = await fs.readFile(mealStore.filePath, 'utf-8');
     const parsed = JSON.parse(raw);
     return {
       savedMeals: Array.isArray(parsed.savedMeals) ? parsed.savedMeals : [],
@@ -37,25 +39,4 @@ export async function readMealData(): Promise<MealData> {
 
 // ── Write (queued, atomic) ────────────────────
 
-let writeQueue: Promise<void> = Promise.resolve();
-
-export function writeMealData(data: MealData): Promise<void> {
-  const next = writeQueue.then(async () => {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-
-    // Backup
-    try {
-      await fs.copyFile(DATA_FILE, BACKUP_FILE);
-    } catch {
-      // No existing file to back up — fine
-    }
-
-    // Atomic write via temp file + rename
-    const tmp = DATA_FILE + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-    await fs.rename(tmp, DATA_FILE);
-  });
-
-  writeQueue = next.catch(() => {});
-  return next;
-}
+export const writeMealData = mealStore.write;

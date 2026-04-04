@@ -1,9 +1,10 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { isAuthEnabled } from '@/lib/auth';
 import { getInstalledPlugins } from '@/lib/plugins';
+import { createJsonStore } from '@/lib/json-store';
 import type { ScreenConfiguration } from '@/types/config';
 
 /* ─── Constants ──────────────────────────────── */
@@ -50,33 +51,13 @@ interface TelemetryBeacon {
 
 /* ─── File I/O ───────────────────────────────── */
 
-function getTelemetryPath(): string {
-  return path.join(process.cwd(), TELEMETRY_FILE);
-}
+const store = createJsonStore<TelemetryData | null>({
+  path: TELEMETRY_FILE,
+  defaultValue: null,
+});
 
-export async function readTelemetryData(): Promise<TelemetryData | null> {
-  try {
-    const data = await fs.readFile(getTelemetryPath(), 'utf-8');
-    return JSON.parse(data) as TelemetryData;
-  } catch {
-    return null;
-  }
-}
-
-// Write queue prevents concurrent writes from racing on the .tmp file
-let writeQueue: Promise<void> = Promise.resolve();
-
-export async function writeTelemetryData(data: TelemetryData): Promise<void> {
-  const next = writeQueue.then(async () => {
-    const filePath = getTelemetryPath();
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tmp = filePath + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-    await fs.rename(tmp, filePath);
-  });
-  writeQueue = next.catch(() => {});
-  return next;
-}
+export const readTelemetryData = store.read;
+export const writeTelemetryData = store.write;
 
 /* ─── Install ID ─────────────────────────────── */
 

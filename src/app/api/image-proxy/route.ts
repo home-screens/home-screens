@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,17 +35,13 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return imageResponse(cached.data, cached.contentType);
   }
 
-  try {
-    const res = await fetchWithTimeout(url);
-    if (!res.ok) return NextResponse.json({ error: 'Upstream fetch failed' }, { status: 502 });
+  const res = await fetchWithTimeout(url);
+  if (!res.ok) return NextResponse.json({ error: 'Upstream fetch failed' }, { status: 502 });
 
-    const data = await res.arrayBuffer();
-    const contentType = res.headers.get('Content-Type') || 'image/png';
+  const data = await res.arrayBuffer();
+  const contentType = res.headers.get('Content-Type') || 'image/png';
 
-    cache.set(url, { data, contentType });
+  cache.set(url, { data, contentType });
 
-    return imageResponse(data, contentType);
-  } catch (error) {
-    return errorResponse(error, 'Fetch error');
-  }
+  return imageResponse(data, contentType);
 }, 'Failed to proxy image');

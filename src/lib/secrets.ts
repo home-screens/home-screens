@@ -1,9 +1,4 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-
-function getSecretsPath(): string {
-  return path.join(process.cwd(), 'data', 'secrets.json');
-}
+import { createJsonStore } from './json-store';
 
 export type SecretKey =
   | 'openweathermap_key'
@@ -38,47 +33,37 @@ export function isValidSecretKey(key: string): key is SecretKey {
   return ALL_KEYS.includes(key as SecretKey);
 }
 
-export async function readSecrets(): Promise<SecretsStore> {
-  try {
-    const secretsPath = getSecretsPath();
-    const data = await fs.readFile(secretsPath, 'utf-8');
-    return JSON.parse(data) as SecretsStore;
-  } catch {
-    return {};
-  }
-}
+const store = createJsonStore<SecretsStore>({
+  path: 'data/secrets.json',
+  defaultValue: {},
+  chmod: 0o600,
+});
 
-export async function writeSecrets(store: SecretsStore): Promise<void> {
-  const secretsPath = getSecretsPath();
-  await fs.mkdir(path.dirname(secretsPath), { recursive: true });
-  const tmp = secretsPath + '.tmp';
-  await fs.writeFile(tmp, JSON.stringify(store, null, 2), 'utf-8');
-  await fs.chmod(tmp, 0o600);
-  await fs.rename(tmp, secretsPath);
-}
+export const readSecrets = store.read;
+export const writeSecrets = store.write;
 
 export async function getSecret(key: SecretKey): Promise<string | null> {
-  const store = await readSecrets();
-  return store[key] || null;
+  const secrets = await readSecrets();
+  return secrets[key] || null;
 }
 
 export async function setSecret(key: SecretKey, value: string): Promise<void> {
-  const store = await readSecrets();
-  store[key] = value;
-  await writeSecrets(store);
+  const secrets = await readSecrets();
+  secrets[key] = value;
+  await writeSecrets(secrets);
 }
 
 export async function deleteSecret(key: SecretKey): Promise<void> {
-  const store = await readSecrets();
-  delete store[key];
-  await writeSecrets(store);
+  const secrets = await readSecrets();
+  delete secrets[key];
+  await writeSecrets(secrets);
 }
 
 export async function getSecretStatus(): Promise<Record<SecretKey, boolean>> {
-  const store = await readSecrets();
+  const secrets = await readSecrets();
   const status = {} as Record<SecretKey, boolean>;
   for (const key of ALL_KEYS) {
-    status[key] = Boolean(store[key]);
+    status[key] = Boolean(secrets[key]);
   }
   return status;
 }

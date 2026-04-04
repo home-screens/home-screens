@@ -179,8 +179,8 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                       : isWeekend && config.shadeWeekends
                         ? 'var(--cal-weekend-shade)'
                         : undefined,
-                    opacity: isPast && config.dimPastEvents ? 'var(--cal-past-opacity)' as unknown as number : 1,
-                  }}
+                    opacity: isPast && config.dimPastEvents ? 'var(--cal-past-opacity)' : 1,
+                  } as React.CSSProperties}
                 >
                   {/* Hour lines */}
                   <HourLines totalHours={totalHours} hourHeight={hourHeight} hourStart={hourStart} dimOffHours={{ businessStart, businessEnd }} />

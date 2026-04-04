@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { errorResponse, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
@@ -136,141 +136,137 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   // sanitizePluginId validates and strips unsafe chars (throws on empty)
   const safeId = sanitizePluginId(pluginId);
 
-  try {
-    // Look up by raw pluginId (matches installed.json entries) and verify enabled
-    const installed = await getInstalledPlugins();
-    const plugin = installed.plugins.find((p) => p.id === pluginId && p.enabled);
-    if (!plugin) {
-      return NextResponse.json({ error: 'Plugin not installed or not enabled' }, { status: 404 });
-    }
-
-    // Load manifest (uses sanitized ID for filesystem path)
-    const manifest = await getPluginManifest(safeId);
-    if (!manifest) {
-      return NextResponse.json({ error: 'Plugin manifest not found' }, { status: 404 });
-    }
-
-    // Rate limit
-    if (!checkRateLimit(safeId)) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded (60 requests/minute)' },
-        { status: 429 },
-      );
-    }
-
-    // Parse request body
-    const body: ProxyRequestBody = await request.json();
-    if (!body.url || typeof body.url !== 'string') {
-      return NextResponse.json({ error: 'url is required' }, { status: 400 });
-    }
-
-    // Enforce request payload size limit (1MB)
-    if (body.payload && body.payload.length > 1_048_576) {
-      return NextResponse.json({ error: 'Payload too large (max 1MB)' }, { status: 413 });
-    }
-
-    // Validate HTTP method
-    const method = (body.method ?? 'GET').toUpperCase();
-    if (!ALLOWED_METHODS.has(method)) {
-      return NextResponse.json(
-        { error: `HTTP method "${method}" is not allowed. Use GET, POST, PUT, or PATCH.` },
-        { status: 400 },
-      );
-    }
-
-    // Validate domain
-    const allowedDomains = manifest.allowedDomains ?? [];
-    if (allowedDomains.length === 0) {
-      return NextResponse.json(
-        { error: 'Plugin has no allowedDomains declared — proxy requests denied' },
-        { status: 403 },
-      );
-    }
-    if (!isAllowedDomain(body.url, allowedDomains)) {
-      return NextResponse.json(
-        { error: 'Upstream domain not in plugin allowedDomains' },
-        { status: 403 },
-      );
-    }
-
-    // Resolve secret injections
-    let upstreamUrl = body.url;
-    const upstreamHeaders: Record<string, string> = { ...body.headers };
-
-    if (body.secretInjections?.header) {
-      const resolved = await resolveSecrets(safeId, body.secretInjections.header);
-      Object.assign(upstreamHeaders, resolved);
-    }
-
-    if (body.secretInjections?.query) {
-      const resolved = await resolveSecrets(safeId, body.secretInjections.query);
-      const url = new URL(upstreamUrl);
-      for (const [key, value] of Object.entries(resolved)) {
-        url.searchParams.set(key, value);
-      }
-      upstreamUrl = url.toString();
-    }
-
-    // Check cache (GET-only, keyed on resolved URL + headers hash)
-    const cacheTtl = Math.min(Math.max(body.cacheTtlMs ?? 60_000, 0), 3600_000);
-    const headerHash = crypto.createHash('sha256')
-      .update(JSON.stringify(Object.entries(upstreamHeaders).sort()))
-      .digest('hex').slice(0, 8);
-    const cacheKey = `${safeId}:${upstreamUrl}:${headerHash}`;
-    if (method === 'GET' && cacheTtl > 0) {
-      const cached = getCached(cacheKey);
-      if (cached) {
-        return new NextResponse(cached.body, {
-          headers: { 'Content-Type': cached.contentType },
-        });
-      }
-    }
-
-    // Make upstream request
-    const isBodyMethod = method !== 'GET' && method !== 'HEAD';
-    const upstreamRes = await fetchWithTimeout(upstreamUrl, {
-      method,
-      headers: upstreamHeaders,
-      body: isBodyMethod ? body.payload : undefined,
-      timeout: PROXY_TIMEOUT_MS,
-    });
-
-    // Enforce response size limit
-    const contentLength = upstreamRes.headers.get('content-length');
-    if (contentLength && parseInt(contentLength, 10) > MAX_RESPONSE_SIZE) {
-      return NextResponse.json(
-        { error: 'Upstream response too large (max 5MB)' },
-        { status: 502 },
-      );
-    }
-
-    const rawBuffer = await upstreamRes.arrayBuffer();
-    if (rawBuffer.byteLength > MAX_RESPONSE_SIZE) {
-      return NextResponse.json(
-        { error: 'Upstream response too large (max 5MB)' },
-        { status: 502 },
-      );
-    }
-
-    const contentType = upstreamRes.headers.get('content-type') ?? 'application/octet-stream';
-
-    // Cache successful GET text/json responses with per-entry TTL
-    if (method === 'GET' && upstreamRes.ok && cacheTtl > 0) {
-      const isTextContent = contentType.startsWith('text/') ||
-        contentType.includes('json') || contentType.includes('xml');
-      if (isTextContent) {
-        setCached(cacheKey, new TextDecoder().decode(rawBuffer), contentType, cacheTtl);
-      }
-    }
-
-    const domain = new URL(body.url).hostname;
-    audit({ action: 'plugin_proxy', pluginId: safeId, domain, method, status: upstreamRes.status });
-
-    return new NextResponse(rawBuffer, {
-      status: upstreamRes.status,
-      headers: { 'Content-Type': contentType },
-    });
-  } catch (error) {
-    return errorResponse(error, 'Plugin proxy request failed');
+  // Look up by raw pluginId (matches installed.json entries) and verify enabled
+  const installed = await getInstalledPlugins();
+  const plugin = installed.plugins.find((p) => p.id === pluginId && p.enabled);
+  if (!plugin) {
+    return NextResponse.json({ error: 'Plugin not installed or not enabled' }, { status: 404 });
   }
+
+  // Load manifest (uses sanitized ID for filesystem path)
+  const manifest = await getPluginManifest(safeId);
+  if (!manifest) {
+    return NextResponse.json({ error: 'Plugin manifest not found' }, { status: 404 });
+  }
+
+  // Rate limit
+  if (!checkRateLimit(safeId)) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded (60 requests/minute)' },
+      { status: 429 },
+    );
+  }
+
+  // Parse request body
+  const body: ProxyRequestBody = await request.json();
+  if (!body.url || typeof body.url !== 'string') {
+    return NextResponse.json({ error: 'url is required' }, { status: 400 });
+  }
+
+  // Enforce request payload size limit (1MB)
+  if (body.payload && body.payload.length > 1_048_576) {
+    return NextResponse.json({ error: 'Payload too large (max 1MB)' }, { status: 413 });
+  }
+
+  // Validate HTTP method
+  const method = (body.method ?? 'GET').toUpperCase();
+  if (!ALLOWED_METHODS.has(method)) {
+    return NextResponse.json(
+      { error: `HTTP method "${method}" is not allowed. Use GET, POST, PUT, or PATCH.` },
+      { status: 400 },
+    );
+  }
+
+  // Validate domain
+  const allowedDomains = manifest.allowedDomains ?? [];
+  if (allowedDomains.length === 0) {
+    return NextResponse.json(
+      { error: 'Plugin has no allowedDomains declared — proxy requests denied' },
+      { status: 403 },
+    );
+  }
+  if (!isAllowedDomain(body.url, allowedDomains)) {
+    return NextResponse.json(
+      { error: 'Upstream domain not in plugin allowedDomains' },
+      { status: 403 },
+    );
+  }
+
+  // Resolve secret injections
+  let upstreamUrl = body.url;
+  const upstreamHeaders: Record<string, string> = { ...body.headers };
+
+  if (body.secretInjections?.header) {
+    const resolved = await resolveSecrets(safeId, body.secretInjections.header);
+    Object.assign(upstreamHeaders, resolved);
+  }
+
+  if (body.secretInjections?.query) {
+    const resolved = await resolveSecrets(safeId, body.secretInjections.query);
+    const url = new URL(upstreamUrl);
+    for (const [key, value] of Object.entries(resolved)) {
+      url.searchParams.set(key, value);
+    }
+    upstreamUrl = url.toString();
+  }
+
+  // Check cache (GET-only, keyed on resolved URL + headers hash)
+  const cacheTtl = Math.min(Math.max(body.cacheTtlMs ?? 60_000, 0), 3600_000);
+  const headerHash = crypto.createHash('sha256')
+    .update(JSON.stringify(Object.entries(upstreamHeaders).sort()))
+    .digest('hex').slice(0, 8);
+  const cacheKey = `${safeId}:${upstreamUrl}:${headerHash}`;
+  if (method === 'GET' && cacheTtl > 0) {
+    const cached = getCached(cacheKey);
+    if (cached) {
+      return new NextResponse(cached.body, {
+        headers: { 'Content-Type': cached.contentType },
+      });
+    }
+  }
+
+  // Make upstream request
+  const isBodyMethod = method !== 'GET' && method !== 'HEAD';
+  const upstreamRes = await fetchWithTimeout(upstreamUrl, {
+    method,
+    headers: upstreamHeaders,
+    body: isBodyMethod ? body.payload : undefined,
+    timeout: PROXY_TIMEOUT_MS,
+  });
+
+  // Enforce response size limit
+  const contentLength = upstreamRes.headers.get('content-length');
+  if (contentLength && parseInt(contentLength, 10) > MAX_RESPONSE_SIZE) {
+    return NextResponse.json(
+      { error: 'Upstream response too large (max 5MB)' },
+      { status: 502 },
+    );
+  }
+
+  const rawBuffer = await upstreamRes.arrayBuffer();
+  if (rawBuffer.byteLength > MAX_RESPONSE_SIZE) {
+    return NextResponse.json(
+      { error: 'Upstream response too large (max 5MB)' },
+      { status: 502 },
+    );
+  }
+
+  const contentType = upstreamRes.headers.get('content-type') ?? 'application/octet-stream';
+
+  // Cache successful GET text/json responses with per-entry TTL
+  if (method === 'GET' && upstreamRes.ok && cacheTtl > 0) {
+    const isTextContent = contentType.startsWith('text/') ||
+      contentType.includes('json') || contentType.includes('xml');
+    if (isTextContent) {
+      setCached(cacheKey, new TextDecoder().decode(rawBuffer), contentType, cacheTtl);
+    }
+  }
+
+  const domain = new URL(body.url).hostname;
+  audit({ action: 'plugin_proxy', pluginId: safeId, domain, method, status: upstreamRes.status });
+
+  return new NextResponse(rawBuffer, {
+    status: upstreamRes.status,
+    headers: { 'Content-Type': contentType },
+  });
 }, 'Plugin proxy request failed');

@@ -182,6 +182,6 @@ describe('GET /api/image-proxy', () => {
     const json = await res.json();
 
     expect(res.status).toBe(500);
-    expect(json.error).toBe('Fetch error');
+    expect(json.error).toBe('Failed to proxy image');
   });
 });
