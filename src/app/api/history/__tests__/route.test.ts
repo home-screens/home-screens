@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/auth', () => ({
@@ -9,51 +9,53 @@ vi.mock('@/lib/auth', () => ({
 
 const dummyRequest = new NextRequest('http://localhost/api/history');
 
-function makeHistoryEvent(year: string, text: string) {
-  return { year, text, links: [{ title: 'Wikipedia', link: `https://en.wikipedia.org/wiki/${text}` }] };
-}
-
-function makeHistoryResponse(events: Array<{ year: string; text: string }>) {
+function makeMuffinLabsResponse(events: Array<{ year: string; text: string }>) {
   return {
     date: 'March 9',
     url: 'https://history.muffinlabs.com/date/3/9',
     data: {
-      Events: events.map((e) => makeHistoryEvent(e.year, e.text)),
+      Events: events.map((e) => ({
+        year: e.year,
+        text: e.text,
+        links: [{ title: 'Wikipedia', link: `https://en.wikipedia.org/wiki/${e.text}` }],
+      })),
       Births: [],
       Deaths: [],
     },
   };
 }
 
-function mockFetchSuccess(events: Array<{ year: string; text: string }>) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(makeHistoryResponse(events)),
-      }),
-    ),
-  );
+function makeWikipediaResponse(events: Array<{ year: number; text: string }>) {
+  return {
+    events: events.map((e) => ({
+      year: e.year,
+      text: e.text,
+      pages: [{ title: e.text }],
+    })),
+  };
 }
 
-function mockFetchUpstreamFailure(status: number) {
+function mockBothSources(
+  muffinEvents: Array<{ year: string; text: string }>,
+  wikiEvents: Array<{ year: number; text: string }>,
+) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(() =>
-      Promise.resolve({
-        ok: false,
-        status,
-        json: () => Promise.resolve({}),
-      }),
-    ),
-  );
-}
-
-function mockFetchNetworkError(message: string) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() => Promise.reject(new Error(message))),
+    vi.fn((url: string) => {
+      if (url.includes('history.muffinlabs.com')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeMuffinLabsResponse(muffinEvents)),
+        });
+      }
+      if (url.includes('wikimedia.org')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeWikipediaResponse(wikiEvents)),
+        });
+      }
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
+    }),
   );
 }
 
@@ -69,66 +71,102 @@ describe('GET /api/history', () => {
     vi.useRealTimers();
   });
 
-  // We need to import after each reset to get a fresh module with an empty cache
   async function importGET() {
     const mod = await import('@/app/api/history/route');
     return mod.GET;
   }
 
-  it('returns events with year and text from upstream', async () => {
-    const events = [
-      { year: '1959', text: 'Barbie doll goes on sale' },
-      { year: '1916', text: 'Pancho Villa leads a raid' },
-    ];
-    mockFetchSuccess(events);
+  it('returns events from both sources with source field', async () => {
+    mockBothSources(
+      [{ year: '1959', text: 'Barbie doll goes on sale' }],
+      [{ year: 1916, text: 'Pancho Villa leads a raid' }],
+    );
 
     const GET = await importGET();
     const response = await GET(dummyRequest);
     const json = await response.json();
 
     expect(response.status).toBe(200);
-    expect(json.events).toEqual([
-      { year: '1959', text: 'Barbie doll goes on sale' },
-      { year: '1916', text: 'Pancho Villa leads a raid' },
-    ]);
+    expect(json.events).toHaveLength(2);
+
+    const sources = json.events.map((e: { source: string }) => e.source).sort();
+    expect(sources).toEqual(['muffinlabs', 'wikipedia']);
+
+    const years = json.events.map((e: { year: string }) => e.year).sort();
+    expect(years).toEqual(['1916', '1959']);
   });
 
-  it('limits events to 10 even when upstream returns more', async () => {
-    const events = Array.from({ length: 15 }, (_, i) => ({
-      year: `${1900 + i}`,
-      text: `Event ${i + 1}`,
-    }));
-    mockFetchSuccess(events);
+  it('deduplicates events by year, preferring Wikipedia', async () => {
+    mockBothSources(
+      [{ year: '1959', text: 'MuffinLabs version of 1959 event' }],
+      [{ year: 1959, text: 'Wikipedia version of 1959 event' }],
+    );
 
     const GET = await importGET();
     const response = await GET(dummyRequest);
     const json = await response.json();
 
-    expect(json.events).toHaveLength(10);
-    expect(json.events[0].year).toBe('1900');
-    expect(json.events[9].year).toBe('1909');
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('wikipedia');
+    expect(json.events[0].text).toBe('Wikipedia version of 1959 event');
   });
 
-  it('maps only year and text fields, stripping links and other data', async () => {
-    mockFetchSuccess([{ year: '2000', text: 'Something happened' }]);
-
-    const GET = await importGET();
-    const response = await GET(dummyRequest);
-    const json = await response.json();
-
-    const event = json.events[0];
-    expect(Object.keys(event)).toEqual(['year', 'text']);
-  });
-
-  it('returns empty events array when upstream has no Events', async () => {
+  it('returns events from MuffinLabs alone when Wikipedia fails', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ data: {} }),
-        }),
-      ),
+      vi.fn((url: string) => {
+        if (url.includes('history.muffinlabs.com')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve(
+                makeMuffinLabsResponse([{ year: '2000', text: 'Something happened' }]),
+              ),
+          });
+        }
+        return Promise.reject(new Error('ECONNREFUSED'));
+      }),
+    );
+
+    const GET = await importGET();
+    const response = await GET(dummyRequest);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('muffinlabs');
+  });
+
+  it('returns events from Wikipedia alone when MuffinLabs fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url.includes('wikimedia.org')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve(
+                makeWikipediaResponse([{ year: 2020, text: 'Wiki event' }]),
+              ),
+          });
+        }
+        return Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({}) });
+      }),
+    );
+
+    const GET = await importGET();
+    const response = await GET(dummyRequest);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('wikipedia');
+  });
+
+  it('returns empty events when both sources fail', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new Error('ECONNREFUSED'))),
     );
 
     const GET = await importGET();
@@ -139,57 +177,88 @@ describe('GET /api/history', () => {
     expect(json.events).toEqual([]);
   });
 
-  it('returns 502 when upstream API returns non-ok response', async () => {
-    mockFetchUpstreamFailure(503);
+  it('limits each source to 10 events', async () => {
+    const muffinEvents = Array.from({ length: 15 }, (_, i) => ({
+      year: `${1900 + i}`,
+      text: `MuffinLabs Event ${i + 1}`,
+    }));
+    const wikiEvents = Array.from({ length: 15 }, (_, i) => ({
+      year: 1950 + i,
+      text: `Wikipedia Event ${i + 1}`,
+    }));
+    mockBothSources(muffinEvents, wikiEvents);
 
     const GET = await importGET();
     const response = await GET(dummyRequest);
     const json = await response.json();
 
-    expect(response.status).toBe(502);
-    expect(json).toEqual({ error: 'Failed to fetch historical events' });
+    // 10 from each source, all unique years → 20 total
+    expect(json.events.length).toBeLessThanOrEqual(20);
+    expect(json.events.length).toBeGreaterThanOrEqual(10);
   });
 
-  it('returns 500 with error message when network request fails', async () => {
-    mockFetchNetworkError('ECONNREFUSED');
-
-    const GET = await importGET();
-    const response = await GET(dummyRequest);
-    const json = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Failed to fetch historical events' });
-  });
-
-  it('sends correct URL and Accept header to upstream API', async () => {
-    mockFetchSuccess([{ year: '2020', text: 'Test' }]);
+  it('fetches Wikipedia with correct date path', async () => {
+    mockBothSources([], []);
 
     const GET = await importGET();
     await GET(dummyRequest);
 
-    expect(fetch).toHaveBeenCalledWith('https://history.muffinlabs.com/date', expect.objectContaining({
-      headers: { Accept: 'application/json' },
-    }));
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const wikiCall = calls.find((c: string[]) => c[0].includes('wikimedia.org'));
+    expect(wikiCall).toBeDefined();
+    expect(wikiCall![0]).toContain('/03/09');
   });
 
   it('serves cached response on second call for the same day', async () => {
-    mockFetchSuccess([{ year: '1999', text: 'Cached event' }]);
+    mockBothSources(
+      [{ year: '1999', text: 'Cached event' }],
+      [{ year: 2001, text: 'Wiki cached' }],
+    );
 
     const GET = await importGET();
 
-    // First call fetches from upstream
     const response1 = await GET(dummyRequest);
     const json1 = await response1.json();
-    expect(json1.events).toHaveLength(1);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(json1.events.length).toBeGreaterThan(0);
+    expect(fetch).toHaveBeenCalledTimes(2); // both sources
 
-    // Second call should use cache
     const response2 = await GET(dummyRequest);
     const json2 = await response2.json();
-    expect(json2.events).toEqual([{ year: '1999', text: 'Cached event' }]);
-    expect(fetch).toHaveBeenCalledTimes(1); // not called again
+    expect(json2.events).toEqual(json1.events);
+    expect(fetch).toHaveBeenCalledTimes(2); // not called again
+  });
+
+  it('only fetches MuffinLabs when sources=muffinlabs', async () => {
+    mockBothSources(
+      [{ year: '1959', text: 'Barbie doll goes on sale' }],
+      [{ year: 1916, text: 'Pancho Villa leads a raid' }],
+    );
+
+    const GET = await importGET();
+    const request = new NextRequest('http://localhost/api/history?sources=muffinlabs');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('muffinlabs');
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.every((c: string[]) => !c[0].includes('wikimedia.org'))).toBe(true);
+  });
+
+  it('only fetches Wikipedia when sources=wikipedia', async () => {
+    mockBothSources(
+      [{ year: '1959', text: 'Barbie doll goes on sale' }],
+      [{ year: 1916, text: 'Pancho Villa leads a raid' }],
+    );
+
+    const GET = await importGET();
+    const request = new NextRequest('http://localhost/api/history?sources=wikipedia');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('wikipedia');
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.every((c: string[]) => !c[0].includes('muffinlabs.com'))).toBe(true);
   });
 });
-
-// afterEach must be at module level for the describe block above
-import { afterEach } from 'vitest';

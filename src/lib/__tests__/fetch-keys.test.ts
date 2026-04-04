@@ -117,7 +117,9 @@ describe('static URL builders', () => {
   it('airQualityUrl', () => expect(airQualityUrl()).toBe('/api/air-quality'));
   it('todoistUrl', () => expect(todoistUrl()).toBe('/api/todoist'));
   it('rainMapUrl', () => expect(rainMapUrl()).toBe('/api/rain-map'));
-  it('historyUrl', () => expect(historyUrl()).toBe('/api/history'));
+  it('historyUrl defaults both sources', () => expect(historyUrl({})).toBe('/api/history?sources=muffinlabs,wikipedia'));
+  it('historyUrl with only wikipedia', () => expect(historyUrl({ sourceMuffinLabs: false })).toBe('/api/history?sources=wikipedia'));
+  it('historyUrl with only muffinlabs', () => expect(historyUrl({ sourceWikipedia: false })).toBe('/api/history?sources=muffinlabs'));
   it('quoteUrl', () => expect(quoteUrl()).toBe('/api/quote'));
   it('dadJokeUrl', () => expect(dadJokeUrl()).toBe('/api/jokes'));
   it('choresUrl', () => expect(choresUrl()).toBe('/api/chores'));

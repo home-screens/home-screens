@@ -19,10 +19,11 @@ interface HistoryModuleProps {
 interface HistoryEvent {
   year: string;
   text: string;
+  source?: 'muffinlabs' | 'wikipedia';
 }
 
 export default function HistoryModule({ config, style }: HistoryModuleProps) {
-  const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(), config.refreshIntervalMs ?? 86400000);
+  const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(config), config.refreshIntervalMs ?? 86400000);
   const events = data?.events ?? [];
 
   const rotationMs = config.rotationIntervalMs ?? 10000;

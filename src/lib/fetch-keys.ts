@@ -54,8 +54,11 @@ export function rainMapUrl(): string {
   return '/api/rain-map';
 }
 
-export function historyUrl(): string {
-  return '/api/history';
+export function historyUrl(config: AnyConfig): string {
+  const sources: string[] = [];
+  if (config.sourceMuffinLabs !== false) sources.push('muffinlabs');
+  if (config.sourceWikipedia !== false) sources.push('wikipedia');
+  return `/api/history?sources=${sources.join(',')}`;
 }
 
 export function quoteUrl(): string {

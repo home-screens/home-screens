@@ -7,7 +7,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance } from '@/types/config';
 
 export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ refreshIntervalMs?: number; rotationIntervalMs?: number; accentColor?: string; showDividers?: boolean }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ refreshIntervalMs?: number; rotationIntervalMs?: number; accentColor?: string; showDividers?: boolean; sourceMuffinLabs?: boolean; sourceWikipedia?: boolean }>(mod, screenId);
 
   return (
     <>
@@ -32,6 +32,8 @@ export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         value={c.accentColor ?? '#000000'}
         onChange={(v) => set({ accentColor: v })}
       />
+      <Toggle label="Source: Wikipedia" checked={c.sourceWikipedia !== false} onChange={(v) => set({ sourceWikipedia: v })} />
+      <Toggle label="Source: MuffinLabs" checked={c.sourceMuffinLabs !== false} onChange={(v) => set({ sourceMuffinLabs: v })} />
     </>
   );
 }

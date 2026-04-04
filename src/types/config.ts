@@ -493,6 +493,8 @@ export interface HistoryConfig {
   rotationIntervalMs: number;
   accentColor?: string;
   showDividers?: boolean;
+  sourceMuffinLabs?: boolean;
+  sourceWikipedia?: boolean;
 }
 
 // Moon phase module config
