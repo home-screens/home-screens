@@ -123,7 +123,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
       ) : activeTab === 'chores' ? (
         <>
           <div className="px-4 pb-8 pt-4">
-            <ChoresTab config={initialData.choreConfig!} />
+            <ChoresTab config={initialData.choreConfig!} isAdmin />
           </div>
           <div className="h-20" />
         </>

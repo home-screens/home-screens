@@ -11,6 +11,8 @@ export interface ToastItem {
   memberName: string;
   memberColor: string;
   wasCompleted: boolean;
+  /** Override the default "completed"/"uncompleted" verb (e.g. "redeemed"). */
+  verb?: string;
 }
 
 interface ChoreToastProps {
@@ -75,15 +77,15 @@ function ToastEntry({
           {toast.memberName}
         </span>
         <span style={{ fontSize: 14, color: 'var(--fcc-text-2)', marginLeft: 4 }}>
-          {toast.wasCompleted ? 'completed' : 'uncompleted'}
+          {toast.verb ?? (toast.wasCompleted ? 'completed' : 'uncompleted')}
         </span>
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fcc-text)', marginLeft: 4 }}>
           {toast.choreName}
         </span>
       </div>
 
-      {/* Undo button */}
-      <button
+      {/* Undo button — hidden for non-chore toasts (e.g. redemptions) */}
+      {toast.choreId && <button
         type="button"
         onClick={() => onUndo(toast.id)}
         className="press-dot"
@@ -104,7 +106,7 @@ function ToastEntry({
         aria-label={`Undo ${toast.wasCompleted ? 'completing' : 'uncompleting'} ${toast.choreName}`}
       >
         <Undo2 size={18} />
-      </button>
+      </button>}
     </div>
   );
 }

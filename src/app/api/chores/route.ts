@@ -4,6 +4,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import type { ChoreCompletion } from '@/types/config';
 import { withDisplayAuth } from '@/lib/api-utils';
+import { readChoreData } from '@/lib/chore-data';
+import { creditPoints, debitPoints } from '@/lib/reward-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,6 +94,9 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
     );
   }
 
+  // Read chore data in parallel with toggle (needed for point value lookup)
+  const choreDataPromise = readChoreData();
+
   const result = await enqueueOp(async (data) => {
     const existing = data.completions.findIndex(
       (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
@@ -110,6 +115,18 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
 
     return data;
   });
+
+  // Credit or debit reward balance (fire-and-forget)
+  const wasAdded = result.completions.some(
+    (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
+  );
+  choreDataPromise.then((choreData) => {
+    const chore = choreData.chores.find((c) => c.id === choreId);
+    if (chore && chore.points > 0) {
+      (wasAdded ? creditPoints(memberId, chore.points) : debitPoints(memberId, chore.points))
+        .catch(console.error);
+    }
+  }).catch(console.error);
 
   return NextResponse.json({ completions: result.completions });
 }, 'Failed to update chore completions');

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ChoreMember, ChoreDefinition, ChoreCompletion } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayFetch } from '@/lib/display-fetch';
-import { choresUrl, choresDataUrl } from '@/lib/fetch-keys';
+import { choresUrl, choresDataUrl, rewardsUrl } from '@/lib/fetch-keys';
+import type { RewardRedemption } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
   type MemberStats,
@@ -36,6 +37,11 @@ interface ChoreDataResponse {
   chores: ChoreDefinition[];
 }
 
+interface RewardsResponse {
+  balances: Record<string, number>;
+  redemptions?: RewardRedemption[];
+}
+
 interface ChoreDataState {
   members: ChoreMember[];
   chores: ChoreDefinition[];
@@ -43,6 +49,7 @@ interface ChoreDataState {
   completionSet: Set<string>;
   memberStats: Map<string, MemberStats>;
   weekData: WeekDayData[];
+  recentRedemptions: RewardRedemption[];
   isLoading: boolean;
   error: string | null;
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
@@ -72,6 +79,7 @@ function getWeekDates(weekStartDay: 'sunday' | 'monday'): string[] {
 export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), 30_000);
   const [fetchedChoreData] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
+  const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), 30_000);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
 
   // Members and chores from shared data file
@@ -193,11 +201,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         streak,
         weeklyPoints,
         weeklyPointsTotal,
+        rewardBalance: fetchedRewards?.balances?.[member.id] ?? 0,
       });
     }
 
     return stats;
-  }, [members, chores, todayAssignments, completionSet, config.weekStartDay]);
+  }, [members, chores, todayAssignments, completionSet, config.weekStartDay, fetchedRewards]);
 
   // Week data for star chart — aligned to configured week start day
   const weekData = useMemo(() => {
@@ -272,6 +281,14 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     }
   }, []);
 
+  // Recent redemptions (last 5 minutes) for display toasts
+  const recentRedemptions = useMemo(() => {
+    const list = fetchedRewards?.redemptions;
+    if (!list || list.length === 0) return [];
+    const cutoff = Date.now() - 5 * 60_000;
+    return list.filter((r) => new Date(r.redeemedAt).getTime() >= cutoff);
+  }, [fetchedRewards]);
+
   return {
     members,
     chores,
@@ -279,6 +296,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     completionSet,
     memberStats,
     weekData,
+    recentRedemptions,
     isLoading,
     error,
     toggleComplete,

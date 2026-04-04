@@ -10,9 +10,10 @@ interface MemberChipProps {
   stats: MemberStats | undefined;
   chipHeight: number;
   showStreaks: boolean;
+  showPoints?: boolean;
 }
 
-function MemberChip({ member, stats, chipHeight, showStreaks }: MemberChipProps) {
+function MemberChip({ member, stats, chipHeight, showStreaks, showPoints }: MemberChipProps) {
   const avatarSize = chipHeight * 0.65;
   const nameFontSize = chipHeight * 0.24;
   const statFontSize = chipHeight * 0.19;
@@ -56,6 +57,12 @@ function MemberChip({ member, stats, chipHeight, showStreaks }: MemberChipProps)
             </span>
           )}
           {stats?.completed ?? 0}/{stats?.total ?? 0}
+          {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
+            <>
+              <span style={{ color: 'var(--fcc-text-2)', margin: '0 2px' }}>&middot;</span>
+              <span style={{ color: '#a78bfa' }}>🎟️{stats!.rewardBalance}</span>
+            </>
+          )}
         </div>
         {/* Mini progress bar */}
         <div style={{ height: chipHeight * 0.05, background: 'var(--fcc-border)', borderRadius: 2, marginTop: chipHeight * 0.05, width: '100%', overflow: 'hidden' }}>
@@ -74,6 +81,7 @@ interface MemberStripProps {
   chipHeight: number;
   gap: number;
   showStreaks: boolean;
+  showPoints?: boolean;
   availableWidth: number;
 }
 
@@ -83,6 +91,7 @@ export default function MemberStrip({
   chipHeight,
   gap,
   showStreaks,
+  showPoints,
   availableWidth,
 }: MemberStripProps) {
   // Calculate how many chips fit per row
@@ -119,6 +128,7 @@ export default function MemberStrip({
                 stats={memberStats.get(id)}
                 chipHeight={chipHeight}
                 showStreaks={showStreaks}
+                showPoints={showPoints}
               />
             );
           })}

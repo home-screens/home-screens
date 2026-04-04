@@ -50,7 +50,7 @@ export default function FullscreenChoreChartModule({
     isDark: theme.isDark,
   }), [dims, config.density, config.typographySize, theme.isDark]);
 
-  const { todayAssignments, memberStats, weekData, members, toggleComplete } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   const currentTod = getCurrentTimeOfDay(new Date().getHours());
 
@@ -59,6 +59,36 @@ export default function FullscreenChoreChartModule({
   const toastIdRef = useRef(0);
   const toastsRef = useRef(toasts);
   useEffect(() => { toastsRef.current = toasts; }, [toasts]);
+
+  // Redemption toasts — show when new redemptions appear from polling
+  const seenRedemptionIds = useRef(new Set<string>());
+  const seededRedemptions = useRef(false);
+  useEffect(() => {
+    if (recentRedemptions.length === 0) return;
+    // On first load, seed the set so we don't toast stale entries
+    if (!seededRedemptions.current) {
+      seededRedemptions.current = true;
+      for (const r of recentRedemptions) seenRedemptionIds.current.add(r.id);
+      return;
+    }
+    for (const r of recentRedemptions) {
+      if (seenRedemptionIds.current.has(r.id)) continue;
+      seenRedemptionIds.current.add(r.id);
+      // Find member color
+      const member = members.find((m) => m.id === r.memberId);
+      const id = `redeem-${r.id}`;
+      setToasts((prev) => [...prev.slice(-2), {
+        id,
+        choreId: '',
+        memberId: r.memberId,
+        choreName: `${r.rewardName} 🎟️`,
+        memberName: r.memberName,
+        memberColor: member?.color ?? '#a3a3a3',
+        wasCompleted: true,
+        verb: 'redeemed',
+      }]);
+    }
+  }, [recentRedemptions, members]);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -168,7 +198,7 @@ export default function FullscreenChoreChartModule({
             </div>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <MemberStrip members={members} memberStats={memberStats} chipHeight={s * 4} gap={s * 0.7} showStreaks={config.showStreaks} availableWidth={memberStripWidth} />
+            <MemberStrip members={members} memberStats={memberStats} chipHeight={s * 4} gap={s * 0.7} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
           </div>
         </div>
       ) : (
@@ -197,7 +227,7 @@ export default function FullscreenChoreChartModule({
             </div>
           </div>
           <div style={{ padding: `${s * 0.8}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
-            <MemberStrip members={members} memberStats={memberStats} chipHeight={s * 5.5} gap={s * 0.7} showStreaks={config.showStreaks} availableWidth={memberStripWidth} />
+            <MemberStrip members={members} memberStats={memberStats} chipHeight={s * 5.5} gap={s * 0.7} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
           </div>
         </>
       )}

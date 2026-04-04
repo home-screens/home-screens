@@ -1,0 +1,275 @@
+'use client';
+
+import { useState } from 'react';
+import type { ChoreMember } from '@/types/config';
+import type { RewardDefinition } from '@/lib/reward-data';
+import { uuid } from '@/lib/uuid';
+import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import MobileIconPicker from './MobileIconPicker';
+import FormOverlay from './FormOverlay';
+import ConfirmSheet from './ConfirmSheet';
+
+const REWARD_ICONS = [
+  // Gifts & prizes
+  'gift', 'trophy', 'gem', 'crown', 'star', 'badge-check', 'sticker',
+  // Screens & entertainment
+  'tv', 'gamepad-2', 'headphones', 'clapperboard', 'popcorn', 'drama', 'music',
+  // Food & treats
+  'ice-cream-cone', 'pizza', 'candy', 'cookie', 'cake', 'apple', 'coffee',
+  // Activities
+  'bike', 'volleyball', 'puzzle', 'palette', 'tent', 'fish', 'plane',
+  // Money & passes
+  'banknote', 'circle-dollar-sign', 'wallet', 'ticket', 'circle-check-big',
+  // Fun
+  'party-popper', 'rocket', 'sparkles', 'heart', 'smile',
+];
+
+interface RewardFormOverlayProps {
+  reward: RewardDefinition | null; // null = add mode
+  members: ChoreMember[];
+  onSave: (reward: RewardDefinition) => void;
+  onDelete?: (id: string) => void;
+  onBack: () => void;
+}
+
+export default function RewardFormOverlay({
+  reward,
+  members,
+  onSave,
+  onDelete,
+  onBack,
+}: RewardFormOverlayProps) {
+  const isEdit = reward !== null;
+  const [name, setName] = useState(reward?.name ?? '');
+  const [emoji, setEmoji] = useState(reward?.emoji ?? 'gift');
+  const [costStr, setCostStr] = useState(String(reward?.cost ?? 10));
+  const [description, setDescription] = useState(reward?.description ?? '');
+  const [memberIds, setMemberIds] = useState<string[]>(reward?.memberIds ?? []);
+  const [enabled, setEnabled] = useState(reward?.enabled ?? true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const isEveryone = memberIds.length === 0;
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    onSave({
+      id: reward?.id ?? uuid(),
+      name: name.trim(),
+      emoji,
+      cost: Math.max(1, Number(costStr) || 1),
+      description: description.trim(),
+      memberIds,
+      enabled,
+    });
+  };
+
+  const toggleMember = (id: string) => {
+    setMemberIds((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+    );
+  };
+
+  return (
+    <>
+      <FormOverlay
+        title={isEdit ? 'Edit Reward' : 'Add Reward'}
+        onBack={onBack}
+        footer={
+          <div style={{ padding: '12px 16px' }}>
+            <button
+              type="button"
+              className="press-btn"
+              onPointerDown={(e) => { e.preventDefault(); handleSave(); }}
+              style={{
+                width: '100%',
+                minHeight: 48,
+                borderRadius: 12,
+                border: 'none',
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: name.trim() ? 'pointer' : 'default',
+                background: name.trim() ? '#f59e0b' : '#333',
+                color: name.trim() ? '#000' : '#666',
+                transition: 'all 0.15s',
+              }}
+            >
+              Save Reward
+            </button>
+            {isEdit && onDelete && (
+              <button
+                type="button"
+                className="press-scale"
+                onClick={() => setConfirmDelete(true)}
+                style={{
+                  width: '100%',
+                  minHeight: 44,
+                  borderRadius: 12,
+                  border: 'none',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  color: '#ef4444',
+                  marginTop: 8,
+                }}
+              >
+                Delete Reward
+              </button>
+            )}
+          </div>
+        }
+      >
+        {/* Icon */}
+        <MobileIconPicker
+          value={emoji}
+          onChange={setEmoji}
+          icons={REWARD_ICONS}
+          label="Icon"
+        />
+
+        {/* Name */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={LABEL_STYLE}>Name</div>
+          <input
+            style={INPUT_STYLE}
+            type="text"
+            placeholder="e.g. Extra Screen Time"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+        </div>
+
+        {/* Cost + Enabled grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+          <div>
+            <div style={LABEL_STYLE}>Point Cost</div>
+            <input
+              style={INPUT_STYLE}
+              type="number"
+              min={1}
+              placeholder="10"
+              value={costStr}
+              onChange={(e) => setCostStr(e.target.value)}
+            />
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Enabled</div>
+            <button
+              onClick={() => setEnabled((v) => !v)}
+              style={{
+                ...INPUT_STYLE,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                cursor: 'pointer',
+              }}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 26,
+                  borderRadius: 13,
+                  background: enabled ? '#f59e0b' : '#333',
+                  position: 'relative',
+                  transition: 'background 0.15s',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    background: 'white',
+                    position: 'absolute',
+                    top: 2,
+                    left: enabled ? 20 : 2,
+                    transition: 'left 0.15s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: 14, color: '#a3a3a3' }}>
+                {enabled ? 'Visible' : 'Hidden'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={LABEL_STYLE}>Description (optional)</div>
+          <input
+            style={INPUT_STYLE}
+            type="text"
+            placeholder="Short description..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        {/* Available To */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={LABEL_STYLE}>Available To</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <button
+              className="press-scale-xs"
+              onClick={() => setMemberIds([])}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: isEveryone ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
+                background: isEveryone ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
+                color: isEveryone ? '#f59e0b' : '#525252',
+                transition: 'all 0.15s',
+              }}
+            >
+              Everyone
+            </button>
+            {members.map((m) => {
+              const isSelected = memberIds.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  className="press-scale-xs"
+                  onClick={() => toggleMember(m.id)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    border: isSelected ? `1px solid ${m.color}40` : '1px solid transparent',
+                    background: isSelected ? `color-mix(in srgb, ${m.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
+                    color: isSelected ? m.color : '#525252',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {m.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+      </FormOverlay>
+
+      {confirmDelete && (
+        <ConfirmSheet
+          title="Delete Reward"
+          description={`Are you sure you want to delete "${reward?.name}"? Existing redemption history will be preserved.`}
+          confirmLabel="Delete"
+          onConfirm={() => {
+            setConfirmDelete(false);
+            onDelete?.(reward!.id);
+          }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+    </>
+  );
+}

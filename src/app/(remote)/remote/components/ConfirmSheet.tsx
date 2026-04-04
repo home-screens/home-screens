@@ -1,15 +1,21 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 export default function ConfirmSheet({
   title,
   description,
   confirmLabel,
+  confirmColor,
+  icon,
   onConfirm,
   onCancel,
 }: {
   title: string;
   description: string;
   confirmLabel: string;
+  confirmColor?: string;
+  icon?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -32,9 +38,13 @@ export default function ConfirmSheet({
           borderRadius: '20px 20px 0 0',
           padding: '24px 16px',
           paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
+          textAlign: icon ? 'center' : undefined,
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {icon && (
+          <div style={{ marginBottom: 12 }}>{icon}</div>
+        )}
         <div style={{ fontSize: 17, fontWeight: 700, color: '#fafafa', marginBottom: 8 }}>
           {title}
         </div>
@@ -51,7 +61,7 @@ export default function ConfirmSheet({
             borderRadius: 12,
             fontSize: 15,
             fontWeight: 700,
-            background: '#ef4444',
+            background: confirmColor ?? '#ef4444',
             color: '#fff',
             border: 'none',
             cursor: 'pointer',

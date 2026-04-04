@@ -31,7 +31,7 @@ export default function FormOverlay({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 50,
+        zIndex: 55,
         backgroundColor: '#0a0a0a',
         display: 'flex',
         flexDirection: 'column',
@@ -96,7 +96,7 @@ export default function FormOverlay({
         {children}
       </div>
       {footer && (
-        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid #1a1a1a' }}>
           {footer}
         </div>
       )}

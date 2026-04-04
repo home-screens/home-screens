@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import type { SavedMeal, MealIngredient } from '@/types/config';
+import { uuid } from '@/lib/uuid';
 
 export function useMealForm() {
   const [editingMeal, setEditingMeal] = useState<SavedMeal | 'new' | null>(null);
@@ -56,7 +57,7 @@ export function useMealForm() {
   };
 
   const buildMealData = (): SavedMeal => ({
-    id: editingMeal === 'new' ? crypto.randomUUID() : (editingMeal as SavedMeal).id,
+    id: editingMeal === 'new' ? uuid() : (editingMeal as SavedMeal).id,
     name: formName.trim(),
     emoji: formEmoji || undefined,
     prepTime: formPrepTime ? Number(formPrepTime) : undefined,

@@ -65,6 +65,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
   let totalAssigned = 0;
   let bestStreak = { name: '', streak: 0 };
   let totalWeeklyPoints = 0;
+  let totalRewardBalance = 0;
 
   for (const member of members) {
     const stats = memberStats.get(member.id);
@@ -72,6 +73,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
       totalCompleted += stats.completed;
       totalAssigned += stats.total;
       totalWeeklyPoints += stats.weeklyPoints;
+      totalRewardBalance += stats.rewardBalance;
       if (stats.streak > bestStreak.streak) {
         bestStreak = { name: member.name, streak: stats.streak };
       }
@@ -159,6 +161,15 @@ export function ProgressView({ config, data }: ProgressViewProps) {
             <span>&#128200; Today&apos;s completion</span>
             <span style={{ fontWeight: 600 }}>{overallPct}%</span>
           </div>
+          {showPoints && totalRewardBalance > 0 && (
+            <>
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+              <div className="flex items-center justify-between" style={{ color: '#a78bfa' }}>
+                <span>🎟️ Reward balances</span>
+                <span style={{ fontWeight: 600 }}>{totalRewardBalance} pts</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

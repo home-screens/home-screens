@@ -79,6 +79,10 @@ export function choresDataUrl(): string {
   return '/api/chores/data';
 }
 
+export function rewardsUrl(): string {
+  return '/api/rewards';
+}
+
 export function mealsDataUrl(): string {
   return '/api/meals/data';
 }

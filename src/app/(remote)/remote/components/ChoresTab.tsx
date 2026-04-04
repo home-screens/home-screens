@@ -13,6 +13,7 @@ import {
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import ChoresManageView from './ChoresManageView';
+import RewardsView from './RewardsView';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -23,13 +24,15 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 
 interface ChoresTabProps {
   config: ChoreChartConfig;
+  /** When false, hides Manage sub-view and restricts Rewards to redeem/history only. */
+  isAdmin?: boolean;
 }
 
-export default function ChoresTab({ config }: ChoresTabProps) {
+export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
   // ── Lifted state (shared between Today + Manage views) ──
   const [members, setMembers] = useState<ChoreMember[]>(config.members ?? []);
   const [chores, setChores] = useState<ChoreDefinition[]>(config.chores ?? []);
-  const [subView, setSubView] = useState<'today' | 'manage'>('today');
+  const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
   // ── Debounced auto-save ──
@@ -237,7 +240,7 @@ export default function ChoresTab({ config }: ChoresTabProps) {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa' }}>Chores</h2>
       </div>
 
-      {/* Sub-nav: Today / Manage */}
+      {/* Sub-nav: Today / Manage / Rewards */}
       <div
         style={{
           display: 'flex',
@@ -249,45 +252,32 @@ export default function ChoresTab({ config }: ChoresTabProps) {
           marginBottom: 16,
         }}
       >
-        <button
-          onClick={() => setSubView('today')}
-          style={{
-            flex: 1,
-            padding: '8px 12px',
-            minHeight: 40,
-            fontSize: 13,
-            fontWeight: 600,
-            borderRadius: 8,
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-            background: subView === 'today' ? 'rgba(255,255,255,0.08)' : 'transparent',
-            color: subView === 'today' ? '#e5e5e5' : '#525252',
-          }}
-        >
-          Today
-        </button>
-        <button
-          onClick={() => setSubView('manage')}
-          style={{
-            flex: 1,
-            padding: '8px 12px',
-            minHeight: 40,
-            fontSize: 13,
-            fontWeight: 600,
-            borderRadius: 8,
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-            background: subView === 'manage' ? 'rgba(255,255,255,0.08)' : 'transparent',
-            color: subView === 'manage' ? '#e5e5e5' : '#525252',
-          }}
-        >
-          Manage
-        </button>
+        {(isAdmin ? ['today', 'manage', 'rewards'] as const : ['today', 'rewards'] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setSubView(v)}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              minHeight: 40,
+              fontSize: 13,
+              fontWeight: 600,
+              borderRadius: 8,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              background: subView === v ? 'rgba(255,255,255,0.08)' : 'transparent',
+              color: subView === v ? '#e5e5e5' : '#525252',
+            }}
+          >
+            {v.charAt(0).toUpperCase() + v.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {subView === 'manage' ? (
+      {subView === 'rewards' ? (
+        <RewardsView members={members} accentColor={accentColor} isAdmin={isAdmin} />
+      ) : subView === 'manage' ? (
         <ChoresManageView
           members={members}
           chores={chores}

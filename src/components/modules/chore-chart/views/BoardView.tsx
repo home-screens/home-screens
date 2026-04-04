@@ -50,6 +50,11 @@ export function BoardView({ config, data }: BoardViewProps) {
                   <div style={{ fontSize: '0.7em', fontWeight: 600, color: member.color }}>
                     {member.name}
                   </div>
+                  {config.showPoints && (stats?.rewardBalance ?? 0) > 0 && (
+                    <div style={{ fontSize: '0.55em', fontWeight: 700, color: '#a78bfa', marginTop: 2, opacity: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                      🎟️ {stats!.rewardBalance}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 flex items-center justify-center" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
                   Day off! &#127796;
@@ -71,6 +76,11 @@ export function BoardView({ config, data }: BoardViewProps) {
                 <div style={{ fontSize: '0.7em', fontWeight: 600, color: member.color }}>
                   {member.name}
                 </div>
+                {config.showPoints && (stats?.rewardBalance ?? 0) > 0 && (
+                  <div style={{ fontSize: '0.55em', fontWeight: 700, color: '#a78bfa', marginTop: 2, opacity: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                    🎟️ {stats!.rewardBalance}
+                  </div>
+                )}
               </div>
 
               {/* Chore cards */}

@@ -21,6 +21,12 @@ import {
   Microwave, Refrigerator, Apple, Coffee, Egg, Pill,
   ToyBrick, Backpack, Dumbbell, AlarmClock, Timer,
   Fence, Bike, Blinds,
+  // Reward icons
+  Gift, Tv, IceCreamCone, Clapperboard, Pizza, Banknote,
+  CircleCheckBig, PartyPopper, Rocket, Gem, Trophy,
+  Gamepad2, Headphones, Candy, Cookie, Cake, Palette,
+  Ticket, Popcorn, CircleDollarSign, Wallet, BadgeCheck,
+  Plane, Tent, Fish, Drama, Puzzle, Sticker, Volleyball,
 } from 'lucide-react';
 
 // ── Icon registry ─────────────────────────────────────────────────
@@ -122,6 +128,36 @@ const ICON_MAP: Record<string, IconDef> = {
   backpack:          { component: Backpack,          label: 'School',     defaultColor: '#60a5fa' },
   // Chores — windows
   blinds:            { component: Blinds,            label: 'Blinds',     defaultColor: '#6b7280' },
+  // Rewards
+  gift:              { component: Gift,              label: 'Gift',       defaultColor: '#f472b6' },
+  tv:                { component: Tv,                label: 'TV',         defaultColor: '#60a5fa' },
+  'ice-cream-cone':  { component: IceCreamCone,      label: 'Ice Cream',  defaultColor: '#f9a8d4' },
+  clapperboard:      { component: Clapperboard,      label: 'Movie',      defaultColor: '#fbbf24' },
+  pizza:             { component: Pizza,             label: 'Pizza',      defaultColor: '#fb923c' },
+  banknote:          { component: Banknote,          label: 'Money',      defaultColor: '#4ade80' },
+  'circle-check-big':{ component: CircleCheckBig,    label: 'Pass',       defaultColor: '#4ade80' },
+  'party-popper':    { component: PartyPopper,       label: 'Party',      defaultColor: '#e879f9' },
+  rocket:            { component: Rocket,            label: 'Rocket',     defaultColor: '#f87171' },
+  gem:               { component: Gem,               label: 'Gem',        defaultColor: '#818cf8' },
+  trophy:            { component: Trophy,            label: 'Trophy',     defaultColor: '#fbbf24' },
+  'gamepad-2':       { component: Gamepad2,          label: 'Gaming',     defaultColor: '#a78bfa' },
+  headphones:        { component: Headphones,        label: 'Music',      defaultColor: '#60a5fa' },
+  candy:             { component: Candy,             label: 'Candy',      defaultColor: '#f472b6' },
+  cookie:            { component: Cookie,            label: 'Cookie',     defaultColor: '#fb923c' },
+  cake:              { component: Cake,              label: 'Cake',       defaultColor: '#f9a8d4' },
+  palette:           { component: Palette,           label: 'Art',        defaultColor: '#e879f9' },
+  ticket:            { component: Ticket,            label: 'Ticket',     defaultColor: '#fbbf24' },
+  popcorn:           { component: Popcorn,           label: 'Popcorn',    defaultColor: '#f87171' },
+  'circle-dollar-sign': { component: CircleDollarSign, label: 'Dollar',  defaultColor: '#4ade80' },
+  wallet:            { component: Wallet,            label: 'Wallet',     defaultColor: '#a78bfa' },
+  'badge-check':     { component: BadgeCheck,        label: 'Badge',      defaultColor: '#22d3ee' },
+  plane:             { component: Plane,             label: 'Travel',     defaultColor: '#38bdf8' },
+  tent:              { component: Tent,              label: 'Camping',    defaultColor: '#4ade80' },
+  fish:              { component: Fish,              label: 'Fish',       defaultColor: '#38bdf8' },
+  drama:             { component: Drama,             label: 'Theater',    defaultColor: '#e879f9' },
+  puzzle:            { component: Puzzle,            label: 'Puzzle',     defaultColor: '#60a5fa' },
+  sticker:           { component: Sticker,           label: 'Sticker',    defaultColor: '#fbbf24' },
+  volleyball:        { component: Volleyball,        label: 'Sports',     defaultColor: '#fb923c' },
 };
 
 export function getIconDef(name: string): IconDef | undefined {
