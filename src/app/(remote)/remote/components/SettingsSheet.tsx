@@ -5,6 +5,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 interface SettingsSheetProps {
   open: boolean;
   onClose: () => void;
+  onBackup: () => Promise<boolean>;
+  backupBusy: boolean;
 }
 
 interface SystemStats {
@@ -111,10 +113,17 @@ function ConfirmableAction({
   );
 }
 
-export default function SettingsSheet({ open, onClose }: SettingsSheetProps) {
+export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: SettingsSheetProps) {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backupDone, setBackupDone] = useState(false);
+
+  // Restore state machine: idle → confirming → busy → done/invalid-file/restore-failed
+  const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'invalid-file' | 'restore-failed'>('idle');
+  const restoreDataRef = useRef<string | null>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
+  const restoreTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -131,10 +140,66 @@ export default function SettingsSheet({ open, onClose }: SettingsSheetProps) {
     }
   }, []);
 
-  // Re-fetch stats each time the sheet opens
+  // Re-fetch stats each time the sheet opens; reset data action states
   useEffect(() => {
     if (open && !loading) fetchStats();
+    if (open) {
+      setBackupDone(false);
+      setRestoreState('idle');
+      restoreDataRef.current = null;
+      clearTimeout(restoreTimerRef.current);
+    }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- fetchStats and loading are intentionally excluded; we want to trigger on open, not re-trigger when stats load
+
+  const handleBackup = async () => {
+    const ok = await onBackup();
+    if (ok) setBackupDone(true);
+  };
+
+  const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        // Validate: must be a bundle or a legacy config
+        if (data._type !== 'home-screens-backup' && !(data.screens && data.settings)) {
+          setRestoreState('invalid-file');
+          return;
+        }
+        restoreDataRef.current = reader.result as string;
+        setRestoreState('confirming');
+        restoreTimerRef.current = setTimeout(() => {
+          setRestoreState('idle');
+          restoreDataRef.current = null;
+        }, 5000);
+      } catch {
+        setRestoreState('invalid-file');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleRestoreConfirm = async () => {
+    if (!restoreDataRef.current) return;
+    clearTimeout(restoreTimerRef.current);
+    setRestoreState('busy');
+    try {
+      const res = await fetch('/api/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: restoreDataRef.current,
+      });
+      if (res.status === 401) { setRestoreState('restore-failed'); return; }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setRestoreState('done');
+      restoreDataRef.current = null;
+    } catch {
+      setRestoreState('restore-failed');
+    }
+  };
 
   const sendPower = async (action: 'restart-service' | 'reboot') => {
     try {
@@ -207,6 +272,82 @@ export default function SettingsSheet({ open, onClose }: SettingsSheetProps) {
               <UsageBar used={stats.disk.used} total={stats.disk.total} label="Disk" color="#22c55e" />
             </div>
           ) : null}
+        </div>
+
+        {/* Data */}
+        <div className="px-5 pb-5">
+          <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Data</h3>
+          <button
+            onClick={handleBackup}
+            disabled={backupBusy || backupDone}
+            className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
+          >
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-amber-500/[0.12] text-amber-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className={`text-[15px] font-medium ${backupDone ? 'text-green-400' : 'text-white'}`}>
+                {backupDone ? 'Backup Saved' : backupBusy ? 'Downloading\u2026' : 'Backup All Data'}
+              </div>
+              {!backupBusy && !backupDone && (
+                <div className="text-xs text-neutral-500 mt-0.5">Download config, chores, meals &amp; rewards</div>
+              )}
+            </div>
+            {!backupBusy && !backupDone && (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-neutral-600 shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            onClick={restoreState === 'confirming' ? handleRestoreConfirm : () => restoreInputRef.current?.click()}
+            disabled={restoreState === 'busy' || restoreState === 'done'}
+            className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
+          >
+            <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${
+              restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'bg-red-500/[0.12] text-red-400' : 'bg-blue-500/[0.12] text-blue-400'
+            }`}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className={`text-[15px] font-medium ${
+                restoreState === 'confirming' ? 'text-red-400 animate-pulse'
+                : restoreState === 'done' ? 'text-green-400'
+                : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-red-400'
+                : 'text-white'
+              }`}>
+                {restoreState === 'confirming' ? 'Tap again to restore'
+                : restoreState === 'busy' ? 'Restoring\u2026'
+                : restoreState === 'done' ? 'Restored'
+                : restoreState === 'invalid-file' ? 'Invalid backup file'
+                : restoreState === 'restore-failed' ? 'Restore failed'
+                : 'Restore Backup'}
+              </div>
+              {restoreState === 'idle' && (
+                <div className="text-xs text-neutral-500 mt-0.5">Upload a backup file from this device</div>
+              )}
+              {restoreState === 'confirming' && (
+                <div className="text-xs text-neutral-500 mt-0.5">This will replace all existing data</div>
+              )}
+            </div>
+            {restoreState === 'idle' && (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-neutral-600 shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            )}
+          </button>
+          <input
+            ref={restoreInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleRestoreFile}
+          />
         </div>
 
         {/* Power */}

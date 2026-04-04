@@ -13,6 +13,8 @@ import BrightnessCard from './components/BrightnessCard';
 import ProfileSwitcher from './components/ProfileSwitcher';
 import AlertSender from './components/AlertSender';
 import SettingsSheet from './components/SettingsSheet';
+import BackupReminderBanner from './components/BackupReminderBanner';
+import { useBackupReminder } from '@/hooks/useBackupReminder';
 import BottomTabBar from './components/BottomTabBar';
 import ChoresTab from './components/ChoresTab';
 import MealsTab from './components/MealsTab';
@@ -26,10 +28,15 @@ interface RemoteInitialData {
   hasMeals: boolean;
   hasPhotos: boolean;
   photoDirectory: string;
+  backupReminder: { enabled: boolean; intervalDays: number };
 }
 
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
   const { status, isConnected, lastUpdated, nudge } = useRemoteStatus();
+  const backup = useBackupReminder({
+    enabled: initialData.backupReminder.enabled,
+    intervalDays: initialData.backupReminder.intervalDays,
+  });
 
   const [activeTab, setActiveTab] = useState<string>('control');
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -103,6 +110,13 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
       {activeTab === 'control' ? (
         <>
           <StatusBar isConnected={isConnected} onSettingsOpen={() => setSettingsOpen(true)} />
+          <BackupReminderBanner
+            shouldShow={backup.shouldShow}
+            daysSinceBackup={backup.daysSinceBackup}
+            busy={backup.busy}
+            onBackup={backup.handleBackup}
+            onDismiss={backup.handleDismiss}
+          />
           <DisplayHero status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} />
           <ScreenNav status={effectiveStatus} onNav={handleNav} />
           <QuickActions isAsleep={isAsleep} onSleepWake={handleSleepWake} onAlertOpen={() => setAlertOpen(true)} />
@@ -118,7 +132,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           {(hasChores || hasMeals || hasPhotos) && <div className="h-20" />}
 
           <AlertSender open={alertOpen} onClose={() => setAlertOpen(false)} />
-          <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+          <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onBackup={backup.handleBackup} backupBusy={backup.busy} />
         </>
       ) : activeTab === 'chores' ? (
         <>

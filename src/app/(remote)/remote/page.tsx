@@ -66,9 +66,14 @@ export default async function RemotePage() {
     if (hasPhotos) break;
   }
 
+  const backupReminder = {
+    enabled: config.settings.backupReminder?.enabled ?? false,
+    intervalDays: config.settings.backupReminder?.intervalDays ?? 7,
+  };
+
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder }}
     />
   );
 }
