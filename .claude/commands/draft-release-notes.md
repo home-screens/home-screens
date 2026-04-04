@@ -2,8 +2,11 @@ Generate user-friendly release notes for Home Screens version $ARGUMENTS.
 
 ## Steps
 
-1. **Get commits since the last tag:**
-   Run `git log` from the last tag to HEAD to get all commit messages. If there are no previous tags, get all commits on the branch.
+1. **Get commits since the last relevant tag:**
+   Determine the base tag to diff from:
+   - If `$ARGUMENTS` is a **pre-release** (contains `-rc`), use the most recent tag before HEAD (any tag, including other RCs).
+   - If `$ARGUMENTS` is a **stable release** (no `-rc`), find the most recent **stable** tag (skip tags containing `-rc`, `-beta`, `-alpha`). Use: `git tag --sort=-v:refname | grep -v -e '-rc' -e '-beta' -e '-alpha' | head -1`
+   Run `git log <base-tag>..HEAD` to get all commit messages. If there are no previous tags, get all commits on the branch.
 
 2. **Skip non-user-facing commits** — drop commits that are purely:
    - Release version bumps (`release v...`)
