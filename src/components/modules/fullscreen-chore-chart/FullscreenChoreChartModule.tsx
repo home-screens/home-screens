@@ -485,7 +485,7 @@ export default function FullscreenChoreChartModule({
                   <div key={day.date} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: starSize * 1.5 }}>
                     <Star
                       size={starSize}
-                      color={earned ? member.color : 'var(--fcc-border-sub)'}
+                      color={earned ? member.color : 'var(--fcc-text-3)'}
                       fill={earned ? member.color : 'none'}
                       strokeWidth={earned ? 0 : 1.5}
                     />
