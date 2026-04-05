@@ -80,6 +80,8 @@ describe('GET /api/secrets', () => {
       google_client_id: false,
       google_client_secret: false,
       github_token: false,
+      immich_url: false,
+      immich_api_key: false,
     };
     vi.mocked(getSecretStatus).mockResolvedValue(mockStatus);
 

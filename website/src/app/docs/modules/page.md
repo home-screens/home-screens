@@ -95,7 +95,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 
 ### Full-Screen Photo Viewer
 
-A fullscreen digital photo frame that cycles through photos from a local directory. Supports transitions, shuffle, and an optional clock overlay.
+A fullscreen digital photo frame that cycles through photos from a local directory or an Immich library. Supports transitions, shuffle, and an optional clock overlay.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -106,6 +106,15 @@ A fullscreen digital photo frame that cycles through photos from a local directo
 | `shuffle` | boolean | `false` | Randomize photo order |
 | `showClock` | boolean | `true` | Show clock overlay on photos |
 | `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
+| `source` | string | `"local"` | Photo source: `local` or `immich` (Immich requires keys in Settings > Integrations) |
+| `immichAlbumId` | string | — | Filter to a specific Immich album |
+| `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
+| `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
+| `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
+
+{% callout type="note" title="Immich source" %}
+The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > Integrations. Album and person filters are mutually exclusive — selecting one clears the other.
+{% /callout %}
 
 ---
 
@@ -627,7 +636,7 @@ Displays a static image.
 
 ### Photo Slideshow
 
-Rotates through images from a directory.
+Rotates through images from a local directory or an Immich photo library.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -636,6 +645,13 @@ Rotates through images from a directory.
 | `transition` | string | `"fade"` | Transition effect: `fade` or `none` |
 | `objectFit` | string | `"cover"` | Image fit mode |
 | `refreshIntervalMs` | number | `600000` | How often to re-scan the directory for new images (10 min) |
+| `source` | string | `"local"` | Photo source: `local` or `immich` (Immich requires keys in Settings > Integrations) |
+| `immichAlbumId` | string | — | Filter to a specific Immich album |
+| `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
+| `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
+| `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
+
+When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
 
 ### QR Code
 

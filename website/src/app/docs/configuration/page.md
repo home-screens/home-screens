@@ -36,6 +36,8 @@ Supported secret keys:
 | `google_client_id` | Google Calendar OAuth |
 | `google_client_secret` | Google Calendar OAuth |
 | `nasa_api_key` | Background rotation (NASA APOD) |
+| `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
+| `immich_api_key` | Immich API key (Account Settings → API Keys) |
 | `github_token` | GitHub API rate limit for version checks |
 
 ## Schema
@@ -175,9 +177,12 @@ type TransitionEffect =
   backgroundImage: string       // Path to background image
   backgroundRotation?: {        // Optional background rotation
     enabled: boolean
-    source?: 'unsplash' | 'nasa-apod'  // Image source
-    query: string
+    source?: 'unsplash' | 'nasa-apod' | 'immich'  // Image source
+    query: string               // Unsplash search query (ignored for other sources)
     intervalMinutes: number
+    immichAlbumId?: string      // Immich album filter
+    immichPersonId?: string     // Immich person (face) filter
+    immichFavoritesOnly?: boolean  // Only use Immich favorites
   }
   modules: ModuleInstance[]     // Modules on this screen
 }
@@ -586,6 +591,11 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
   transition: 'fade' | 'none'
   objectFit: 'cover' | 'contain' | 'fill'
   refreshIntervalMs: number
+  source?: 'local' | 'immich'          // Photo source (default: local)
+  immichAlbumId?: string               // Immich album filter
+  immichPersonId?: string              // Immich person (face) filter
+  immichFavoritesOnly?: boolean        // Only use Immich favorites
+  immichCount?: number                 // Photos per refresh (10–200, default 50)
 }
 ```
 

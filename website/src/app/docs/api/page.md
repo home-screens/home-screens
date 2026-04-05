@@ -889,7 +889,7 @@ Serves a background image file.
 
 ### GET /api/backgrounds/rotate
 
-Returns a rotating background image (Unsplash integration).
+Returns a rotating background image from Unsplash, NASA APOD, or Immich.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -927,6 +927,84 @@ Deletes an empty subdirectory. Refuses to delete directories that still contain 
 **Body:** `{ "path": "Nature/Landscapes" }`
 
 **Response:** `{ "deleted": "Nature/Landscapes" }`
+
+---
+
+## Immich
+
+Immich is a self-hosted Google Photos alternative. These endpoints proxy requests to your Immich server so the display can fetch photos without exposing credentials. Requires `immich_url` and `immich_api_key` configured in Settings > Integrations.
+
+### GET /api/immich/validate
+
+Validates the Immich server connection and API key. Pings the server, then checks authentication.
+
+**Response:**
+```json
+{
+  "reachable": true,
+  "authenticated": true,
+  "version": "1.106.4"
+}
+```
+
+Returns `reachable: false` if the server cannot be reached, or `authenticated: false` if the API key is invalid.
+
+### GET /api/immich/albums
+
+Lists all albums from the Immich library. Cached for 60 seconds.
+
+**Response:**
+```json
+[
+  { "id": "abc-123", "name": "Vacation 2025", "assetCount": 142 },
+  { "id": "def-456", "name": "Family", "assetCount": 89 }
+]
+```
+
+### GET /api/immich/people
+
+Lists all recognized people (faces) from the Immich library. Hidden people and unnamed entries are excluded. Cached for 60 seconds.
+
+**Response:**
+```json
+[
+  { "id": "person-1", "name": "Alice", "thumbnailUrl": "/api/immich/serve?assetId=person-1&type=person" },
+  { "id": "person-2", "name": "Bob", "thumbnailUrl": "/api/immich/serve?assetId=person-2&type=person" }
+]
+```
+
+### GET /api/immich/photos
+
+Returns random photos from the Immich library with optional filters. Cached for 5 minutes per unique filter combination. Used by photo slideshow, fullscreen photo, and background rotation.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `albumId` | string | — | Filter to a specific album |
+| `personId` | string | — | Filter to a recognized person |
+| `favorites` | boolean | `false` | Only return favorites |
+| `count` | number | `50` | Number of photos (max 200) |
+
+**Response:** Array of image URLs served through the proxy:
+```json
+[
+  "/api/immich/serve?assetId=abc123&size=preview",
+  "/api/immich/serve?assetId=def456&size=preview"
+]
+```
+
+When `albumId` is specified, photos are fetched from the album directly (since Immich's random search does not support album filtering). Otherwise, photos are fetched via Immich's `search/random` endpoint.
+
+### GET /api/immich/serve
+
+Proxies an Immich image through the server. Validates the asset ID format and caches the response for 24 hours.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `assetId` | string | *(required)* | UUID of the Immich asset |
+| `size` | string | `"preview"` | Image size: `preview` (1080px) or `thumbnail` (250px) |
+| `type` | string | `"asset"` | Asset type: `asset` (photo) or `person` (face thumbnail) |
+
+**Response:** The image binary with appropriate `Content-Type` header and a 24-hour browser cache (`Cache-Control: public, max-age=86400, immutable`).
 
 ---
 

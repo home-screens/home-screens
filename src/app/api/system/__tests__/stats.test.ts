@@ -67,6 +67,8 @@ beforeEach(() => {
     google_client_id: false,
     google_client_secret: false,
     github_token: false,
+    immich_url: false,
+    immich_api_key: false,
   });
 
   // Default: no telemetry data
@@ -230,6 +232,8 @@ describe('GET /api/system/stats - app stats', () => {
       google_client_id: false,
       google_client_secret: false,
       github_token: false,
+      immich_url: false,
+      immich_api_key: false,
     });
 
     const res = await GET(makeRequest());

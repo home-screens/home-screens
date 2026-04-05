@@ -140,6 +140,17 @@ Home Screens supports five weather providers. Here's a comparison:
 
 If you're in the US and want zero setup, **NOAA** is the easiest choice. For global coverage without an API key, use **Open-Meteo**. If you want the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
 
+### What photo sources are supported?
+
+Home Screens supports two photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
+
+- **Local** — photos uploaded to `public/backgrounds/` or a subdirectory, managed through the editor or API
+- **[Immich](https://immich.app)** — a self-hosted Google Photos alternative; browse and display photos from your Immich library with album, person (face recognition), and favorites filtering
+
+For **background rotation**, three sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), and **Immich**.
+
+To use Immich, enter your server URL and API key in **Settings > Integrations**. The API key is generated from Immich's Account Settings → API Keys page.
+
 ---
 
 ## Display
@@ -156,7 +167,7 @@ Several built-in features help prevent burn-in:
 - **Sleep schedule** --- configure hours when the display is fully blanked (e.g., overnight) at **Settings > Sleep**
 - **Dim schedule** --- reduce brightness during certain hours without fully blanking the screen
 - **Screensaver** --- during sleep, a minimal clock can be shown that moves position to avoid static pixels
-- **Unsplash background rotation** --- automatically cycle background images to vary what's on screen
+- **Background rotation** --- automatically cycle background images from Unsplash, NASA, or Immich to vary what's on screen
 
 ### Can I control the display remotely?
 

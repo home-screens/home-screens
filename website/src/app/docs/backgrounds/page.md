@@ -3,10 +3,10 @@ title: Backgrounds
 nextjs:
   metadata:
     title: Backgrounds
-    description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, and auto-rotation.
+    description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, Immich, and auto-rotation.
 ---
 
-Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash or NASA imagery directly from the editor, and optionally enable auto-rotation to keep things fresh.
+Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, and optionally enable auto-rotation to keep things fresh.
 
 ---
 
@@ -165,17 +165,42 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 
 ---
 
+## Immich integration
+
+[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can browse your Immich library directly from the background picker and use Immich as a source for background rotation.
+
+### Setup
+
+1. Install and configure an Immich server on your network
+2. In Immich, go to **Account Settings → API Keys** and generate a new key
+3. In the editor, go to **Settings > Integrations** and enter the **Immich Server URL** (e.g. `http://192.168.1.50:2283`) and the **Immich API Key**
+
+### Browsing and selecting
+
+1. Open the **Background** section in the right sidebar
+2. Switch to the **Immich** tab (only visible when both Immich keys are configured)
+3. Optionally filter by album using the dropdown
+4. Click **Refresh** to load a new batch of photos
+5. Click a photo to download it and set it as the screen background
+
+When you select an Immich photo, the preview-quality image is downloaded through the server proxy, saved locally to `public/backgrounds/`, and set as a static background. If auto-rotation was enabled, it is automatically disabled so your choice is preserved.
+
+The Immich browser shows a grid of 20 random photos from your library at a time.
+
+---
+
 ## Background rotation
 
-Auto-rotation periodically replaces the screen background with a new image from Unsplash or NASA APOD.
+Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, or Immich.
 
 ### Enabling rotation
 
 1. Open the **Background** section in the right sidebar
 2. Toggle **Auto-rotate background** on
-3. Choose a **Source**: Unsplash or NASA Picture of the Day
+3. Choose a **Source**: Unsplash, NASA Picture of the Day, or Immich
 4. For Unsplash, enter a **Search query** (default: "nature landscape")
-5. Set the **Rotate every** interval
+5. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
+6. Set the **Rotate every** interval
 
 ### Interval options
 
@@ -194,6 +219,7 @@ The display client polls the server every 60 seconds. The server maintains a cac
 
 - **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
 - **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
+- **Immich rotation** fetches a random photo from your Immich library, optionally filtered by album, person, or favorites. The server caches Immich filter parameters so changing your album or person selection immediately busts the cache and fetches a fresh photo.
 
 If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
 
@@ -254,9 +280,12 @@ Backgrounds are configured per-screen in `data/config.json`. Here is the relevan
 | Field | Type | Description |
 |---|---|---|
 | `enabled` | `boolean` | Whether auto-rotation is active |
-| `source` | `'unsplash' \| 'nasa-apod'` | Image source for rotation |
-| `query` | `string` | Search query (Unsplash only; ignored for NASA APOD) |
+| `source` | `'unsplash' \| 'nasa-apod' \| 'immich'` | Image source for rotation |
+| `query` | `string` | Search query (Unsplash only; ignored for other sources) |
 | `intervalMinutes` | `number` | Minutes between background changes |
+| `immichAlbumId` | `string` | Immich album filter (optional) |
+| `immichPersonId` | `string` | Immich person (face) filter (optional) |
+| `immichFavoritesOnly` | `boolean` | Only use photos marked as favorites in Immich (optional) |
 
 ### Static background only
 

@@ -246,6 +246,8 @@ The **Integrations** tab is where you configure all API keys and external servic
 - **Unsplash Access Key** — enables browsing HD photos in the background picker (free at unsplash.com/developers)
 - **NASA API Key** — enables Astronomy Picture of the Day browsing and rotation (free at api.nasa.gov)
 - **Todoist API Token** — for the Todoist task integration
+- **Immich Server URL** — your Immich server address (e.g. `http://192.168.1.50:2283`) for self-hosted photo library integration
+- **Immich API Key** — generated from your Immich account settings (Account Settings → API Keys); enables Immich as a photo source for slideshows, fullscreen photo, and background rotation
 - **TomTom API Key** — alternative to Google Maps for traffic data (free at developer.tomtom.com)
 - **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour
 
