@@ -409,7 +409,7 @@ Displays a vocabulary word with definition and usage. The word is computed from 
 
 ### This Day in History
 
-Historical events that happened on today's date.
+Historical events that happened on today's date. Fetches from two data sources — Wikipedia "On This Day" and MuffinLabs — in parallel, deduplicates by year (preferring Wikipedia's richer text), and shuffles. Each source degrades gracefully if the other fails.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -417,6 +417,8 @@ Historical events that happened on today's date.
 | `rotationIntervalMs` | number | `10000` | How often to rotate between events (10 sec) |
 | `accentColor` | string | `"#000000"` | Accent color for years-ago badge and dividers |
 | `showDividers` | boolean | `true` | Show decorative dividers |
+| `sourceMuffinLabs` | boolean | `true` | Enable MuffinLabs data source |
+| `sourceWikipedia` | boolean | `true` | Enable Wikipedia "On This Day" data source |
 
 ---
 
@@ -537,10 +539,7 @@ A meal planning widget for organizing daily meals across configurable slots (bre
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
-| `savedMeals` | array | `[]` | Meal definitions with name, emoji, tags, prep time, and notes |
-| `plan` | array | `[]` | Weekly schedule mapping day + slot to a saved meal |
-
-Meals are configured in the editor with emoji, prep time, tags (quick, healthy, vegetarian, etc.), and notes. The weekly plan assigns meals to specific day/slot combinations.
+Meal data (saved meals and weekly plan) is stored in `data/meals.json` via the `/api/meals/data` endpoint, shared across the standard widget, fullscreen display, editor, and remote. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
 **View details:**
 
@@ -552,7 +551,7 @@ Meals are configured in the editor with emoji, prep time, tags (quick, healthy, 
 
 ### Chore Chart
 
-A chore tracking widget for families or housemates. Assign chores to members with points, streaks, rotation schedules, and multiple visual layouts.
+A chore tracking widget for families or housemates. Assign chores to members with points, streaks, rotation schedules, and multiple visual layouts. Includes a **rewards system** where members earn points from completed chores and can redeem them for parent-defined rewards (managed via the remote's Chores tab).
 
 | Option | Type | Default | Description |
 |---|---|---|---|

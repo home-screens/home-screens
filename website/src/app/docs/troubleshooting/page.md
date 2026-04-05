@@ -132,6 +132,63 @@ If the display orientation is wrong on your Raspberry Pi:
 
 ---
 
+## WiFi keeps disconnecting
+
+If your Raspberry Pi display frequently drops its WiFi connection:
+
+1. **Check that the watchdog is running** — The install script sets up a connectivity watchdog that auto-recovers. Verify it's active:
+   ```bash
+   systemctl list-timers | grep wifi
+   ```
+2. **Check NetworkManager connectivity** — See if NM thinks it's online:
+   ```bash
+   nmcli general status
+   nmcli device wifi list
+   ```
+3. **Check for driver issues** — The Broadcom WiFi driver (`brcmfmac`) on Raspberry Pi can be flaky. Check for firmware errors:
+   ```bash
+   dmesg | grep brcmfmac | tail -20
+   ```
+4. **Move closer to the access point** — Mesh networks and weak signal cause the most connectivity drops on Pi displays.
+5. **Use Ethernet** — For maximum reliability, a wired connection avoids WiFi issues entirely.
+
+The install script applies WiFi hardening (infinite reconnect retries, disabled MAC randomization, disabled IPv6 on WiFi, masked suspend). See [Networking > WiFi reliability](/docs/networking#wifi-reliability) for details.
+
+---
+
+## Display shows a WiFi icon at the bottom
+
+A WiFi-off icon at the lower right of the display indicates the device has lost network connectivity. The icon appears after 3 seconds of being offline and clears immediately when connectivity is restored.
+
+1. **Check your WiFi** — verify the router/access point is up and the Pi is in range
+2. **Check the service** — the connectivity watchdog should auto-recover, but you can check manually:
+   ```bash
+   nmcli general status
+   ```
+3. **Restart networking** — if the connection is stuck:
+   ```bash
+   sudo nmcli device disconnect wlan0 && sudo nmcli device connect wlan0
+   ```
+
+---
+
+## Cursor visible on touchscreen
+
+If the mouse cursor is visible on a touchscreen display, the labwc compositor may have crashed:
+
+1. **Check labwc** — verify it's running:
+   ```bash
+   pgrep labwc
+   ```
+2. **Restart the service** — this will restart both labwc and Chromium:
+   ```bash
+   sudo systemctl restart home-screens
+   ```
+
+Home Screens uses the labwc Wayland compositor (which replaced cage) for proper cursor hiding on touchscreen displays.
+
+---
+
 ## Upgrade failed
 
 If an upgrade through the UI or CLI did not complete successfully:

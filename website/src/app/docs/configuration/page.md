@@ -108,6 +108,14 @@ The configuration has the following structure:
     scale?: number                // 0.75–2.0, default 1.0 — scales alert dimensions
   }
 
+  pauseEnabled?: boolean          // Allow double-tap on pagination dot to pause rotation (default true)
+  pauseTimeoutSeconds?: number    // Auto-resume after this many seconds (0 = never, default 300)
+
+  backupReminder?: {
+    enabled: boolean              // Show a reminder when backup is overdue (default true)
+    intervalDays: number          // Days between reminders (default 7)
+  }
+
   telemetryEnabled?: boolean      // Enable anonymous usage telemetry
 }
 ```
@@ -546,6 +554,8 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
   rotationIntervalMs: number
   accentColor?: string         // Accent color for years-ago badge and dividers
   showDividers?: boolean       // Show decorative dividers (default true)
+  sourceMuffinLabs?: boolean   // Enable MuffinLabs data source (default true)
+  sourceWikipedia?: boolean    // Enable Wikipedia "On This Day" data source (default true)
 }
 ```
 
@@ -775,13 +785,11 @@ Date display module with 5 visual styles.
 
 ### MealPlannerConfig
 
-Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal.
+Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal. Meal data (saved meals and weekly plan) is stored in `data/meals.json` via the `/api/meals/data` endpoint, not in the module config.
 
 ```typescript
 {
   view: 'week' | 'today' | 'next-meal' | 'compact' | 'list'
-  savedMeals: { id: string; name: string; emoji?: string; tags?: string[]; prepTime?: number; notes?: string }[]
-  plan: { day: number; slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'; mealId: string }[]
   slots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
   weekStartDay: 'sunday' | 'monday'
   showEmoji: boolean
@@ -790,6 +798,30 @@ Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlight
   accentColor: string
 }
 ```
+
+Meal data is stored separately in `data/meals.json`:
+
+```typescript
+{
+  savedMeals: SavedMeal[]     // Meal library (name, emoji, tags, prep/cook time, difficulty, ingredients, etc.)
+  plan: PlannedMeal[]         // Weekly schedule entries
+  grocery: string[]           // Grocery list items
+}
+```
+
+Each `PlannedMeal` uses an ISO date string to support multi-week planning:
+
+```typescript
+{
+  date: string                // ISO date (e.g. "2026-04-04")
+  slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  mealId?: string             // References a SavedMeal.id
+  customText?: string         // Freeform text (e.g. "Eating out", "Leftovers")
+  notes?: string
+}
+```
+
+Old configs that used `day: number` (day-of-week index) are automatically migrated to ISO date format on first read.
 
 ### IframeConfig
 
@@ -869,8 +901,9 @@ Config files include a `version` number. When the schema changes between release
 
 ## Backup & Restore
 
-- **Export** from the editor's System Panel downloads the config as JSON
-- **Import** replaces the current config with an uploaded JSON file
+- **Export** from the editor's Data section or the remote's Settings sheet downloads a full backup as JSON
+- **Import** replaces the current config with an uploaded JSON file (available in both the editor and the remote)
+- A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Data)
 - Manual backups: copy `data/config.json` to a safe location
 
 ## Example

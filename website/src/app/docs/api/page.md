@@ -241,6 +241,130 @@ Both `members` and `chores` must be arrays. The full set replaces the existing d
 
 ---
 
+## Meals
+
+### GET /api/meals/data
+
+Returns saved meals, weekly plan, and grocery checked state from `data/meals.json`. Accessible by the display (display token auth).
+
+**Response:**
+```json
+{
+  "savedMeals": [
+    { "id": "meal-1", "name": "Tacos", "emoji": "🌮", "tags": ["quick"], "prepTime": 20, "difficulty": "easy" }
+  ],
+  "plan": [
+    { "date": "2026-04-04", "slot": "dinner", "mealId": "meal-1" }
+  ],
+  "groceryChecked": ["tortillas"]
+}
+```
+
+The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week support. Entries older than 12 weeks are pruned on write.
+
+### PUT /api/meals/data
+
+Updates saved meals and weekly plan. Requires a valid session.
+
+**Body:**
+```json
+{
+  "savedMeals": [ ... ],
+  "plan": [ ... ],
+  "groceryChecked": [ ... ],
+  "force": false
+}
+```
+
+Both `savedMeals` and `plan` must be arrays. The `groceryChecked` field is optional (preserves existing if omitted). Set `force: true` to allow overwriting with empty arrays (safety guard against accidental wipes).
+
+**Response:** The saved `{ savedMeals, plan, groceryChecked }` object.
+
+### GET /api/meals/grocery
+
+Returns just the grocery checked state.
+
+**Response:** `{ "groceryChecked": ["tortillas", "cheese"] }`
+
+### POST /api/meals/grocery
+
+Toggles a grocery item's checked state. If the item is already checked, it is unchecked; otherwise it is checked. Requires a valid session.
+
+**Body:**
+```json
+{
+  "item": "tortillas"
+}
+```
+
+**Response:** `{ "groceryChecked": [...] }` (the full updated list)
+
+---
+
+## Rewards
+
+### GET /api/rewards
+
+Returns reward definitions, point balances, and redemption history from `data/rewards.json`. Accessible by the display (display token auth).
+
+**Response:**
+```json
+{
+  "rewards": [
+    { "id": "reward-1", "name": "Ice Cream", "emoji": "🍦", "cost": 50, "description": "Pick any flavor", "memberIds": [], "enabled": true }
+  ],
+  "balances": { "member-1": 120 },
+  "redemptions": [
+    { "id": "r-1", "rewardId": "reward-1", "rewardName": "Ice Cream", "memberId": "member-1", "memberName": "Alice", "cost": 50, "redeemedAt": "2026-04-01T18:00:00.000Z" }
+  ]
+}
+```
+
+### POST /api/rewards
+
+Redeems a reward for a member. Checks eligibility (member restriction) and sufficient point balance. Accessible by the display (display token auth).
+
+**Body:**
+```json
+{
+  "rewardId": "reward-1",
+  "memberId": "member-1"
+}
+```
+
+**Response:** The updated `{ rewards, balances, redemptions }` object.
+
+### PUT /api/rewards/data
+
+Updates reward definitions (add, edit, remove rewards). Requires a valid session.
+
+**Body:**
+```json
+{
+  "rewards": [ ... ]
+}
+```
+
+**Response:** `{ "rewards": [...] }` (the saved reward definitions)
+
+### POST /api/rewards/data
+
+Manual point balance adjustment. Requires a valid session.
+
+**Body:**
+```json
+{
+  "memberId": "member-1",
+  "amount": 10
+}
+```
+
+Positive amounts credit points; negative amounts debit. Amount must be non-zero.
+
+**Response:** The updated `{ rewards, balances, redemptions }` object.
+
+---
+
 ## Authentication
 
 ### GET /api/auth/status
@@ -515,13 +639,19 @@ Returns a daily inspirational quote from ZenQuotes.
 
 ### GET /api/history
 
-Returns historical events for today's date. Results are cached daily.
+Returns historical events for today's date. Fetches from Wikipedia "On This Day" and MuffinLabs in parallel, deduplicates by year, and shuffles. Results are cached daily per source combination.
+
+**Query parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `sources` | string | `"muffinlabs,wikipedia"` | Comma-separated list of sources to fetch from |
 
 **Response:**
 ```json
 {
   "events": [
-    { "year": "1983", "text": "The first mobile phone call was made." }
+    { "year": "1983", "text": "The first mobile phone call was made.", "source": "wikipedia" }
   ]
 }
 ```

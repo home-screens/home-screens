@@ -137,10 +137,11 @@ If the Pi runs low on memory:
 
 1. **Node.js** — installs the runtime needed to run the server
 2. **Latest release** — downloads the pre-built app from GitHub
-3. **Browser** — installs Chromium and a fullscreen kiosk shell
+3. **Browser** — installs Chromium and the labwc Wayland compositor for fullscreen kiosk display with proper cursor hiding on touchscreens
 4. **Background service** — sets up Home Screens to start automatically on boot
 5. **Autologin** — configures the Pi to log in and launch the display without interaction
 6. **Boot splash** — shows a clean loading screen instead of terminal text during startup
+7. **WiFi hardening** — applies reliability fixes for headless displays (infinite reconnect retries, connectivity watchdog, disabled suspend; see [Networking > WiFi reliability](/docs/networking#wifi-reliability))
 
 ### Managing services
 

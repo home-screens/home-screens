@@ -12,14 +12,16 @@ Home Screens runs as a local web server on your network. This guide covers how t
 
 ## Default network setup
 
-Home Screens runs a Next.js server on **port 3000** by default. Once installed, two URLs are available on your local network:
+Home Screens runs a Next.js server on **port 3000** by default. Once installed, these URLs are available on your local network:
 
 | URL | Purpose |
 |---|---|
+| `http://<ip>:3000/` | Redirects to `/editor` |
 | `http://<ip>:3000/display` | Fullscreen kiosk view (what the display shows) |
 | `http://<ip>:3000/editor` | Configuration editor |
+| `http://<ip>:3000/remote` | Mobile remote control |
 
-Any device on the same LAN can reach both URLs. The display view is designed for the connected screen; the editor is designed for phones, tablets, and laptops.
+Any device on the same LAN can reach these URLs. The display view is designed for the connected screen; the editor is designed for phones, tablets, and laptops. Visiting the root URL (`/`) redirects to the editor since users navigating to the bare hostname are typically in a setup/configuration context. Pi displays are unaffected — the kiosk launches Chromium directly at `/display`.
 
 ---
 
@@ -272,6 +274,24 @@ curl -X POST http://<ip>:3000/api/display/profile \
 
 ---
 
+## WiFi reliability
+
+The install script applies several WiFi reliability hardening measures for Raspberry Pi deployments, especially important for headless displays on mesh networks:
+
+- **Infinite autoconnect retries** — NetworkManager's default of 4 retries can leave a headless display permanently offline; the installer sets unlimited retries
+- **Disabled scan MAC randomization** — random MACs confuse mesh access points and can prevent reconnection
+- **Disabled IPv6 on WiFi** — the Broadcom WiFi driver (`brcmfmac`) handles IPv6 multicast poorly, which can cause intermittent drops
+- **Masked suspend/hibernate** — `brcmfmac` cannot recover WiFi after suspend, so power management sleep states are disabled
+- **Connectivity watchdog** — a timer checks connectivity every 2 minutes and escalates through three recovery steps: NetworkManager reconnect, interface cycle, and driver reload
+
+These changes are applied automatically by both the install script and the pre-built image. No manual configuration is needed.
+
+### Offline indicator
+
+When the display loses network connectivity, a WiFi-off icon appears at the lower-right corner of the screen. The indicator uses a 3-second debounce to avoid flashing during brief WiFi blips. It clears immediately when connectivity is restored.
+
+---
+
 ## Firewall considerations
 
 Home Screens only needs one port open (default 3000). The server binds to `0.0.0.0`, so it accepts connections from any device on the network.
@@ -340,11 +360,15 @@ The `data/` directory contains your configuration, API keys, authentication stat
 
 ```bash
 # Files to back up
-data/config.json       # Screen configuration
-data/secrets.json      # API keys
-data/auth.json         # Password hash and session secret
+data/config.json         # Screen configuration
+data/secrets.json        # API keys
+data/auth.json           # Password hash and session secret
 data/google-tokens.json  # Google OAuth tokens
-data/port.conf         # Custom port (if set)
+data/port.conf           # Custom port (if set)
+data/meals.json          # Meal planner data (saved meals, weekly plan, grocery list)
+data/chores.json         # Chore chart data (members, chores, completions)
+data/rewards.json        # Chore rewards data (definitions, balances, redemptions)
+data/backup-state.json   # Backup reminder tracking
 ```
 
 The editor also supports config backups under **System > Backups**.

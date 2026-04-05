@@ -8,7 +8,7 @@ nextjs:
 
 Control your display from any phone or tablet on the same network. The remote control is a mobile-friendly page that lets you navigate screens, adjust brightness, switch profiles, send alerts, manage chores, and manage the system -- all from your pocket. {% .lead %}
 
-The remote has two tabs: **Control** (display management) and **Chores** (chore tracking). A segmented control at the top of the page lets you switch between them.
+The remote has up to four tabs depending on your configuration: **Control** (display management), **Chores** (chore tracking and rewards), **Meals** (meal planning), and **Photos** (photo management). A bottom tab bar appears when more than one tab is available.
 
 ---
 
@@ -96,9 +96,11 @@ Alerts appear as overlays on the display. You can clear all active alerts by sen
 
 ---
 
-## System information
+## Settings
 
-Tap the **System** heading to expand a panel showing:
+Tap the gear icon to open the Settings sheet, which includes:
+
+### System information
 
 - Hostname, platform, and architecture
 - System uptime
@@ -106,7 +108,14 @@ Tap the **System** heading to expand a panel showing:
 - Disk usage (bar chart)
 - Screen and module counts
 
-System information **requires authentication**. The data is fetched on demand when you expand the section, not continuously polled.
+### Backup & Restore
+
+- **Backup All Data** — downloads a full backup of your configuration as a JSON file
+- **Restore Backup** — upload a previously exported backup file (tap-to-confirm before applying)
+
+A **backup reminder banner** appears on the Control tab when you haven't backed up recently. The reminder interval is configurable in the editor under Settings > Data.
+
+Settings **requires authentication**. The data is fetched on demand when you open the sheet, not continuously polled.
 
 ---
 
@@ -134,8 +143,11 @@ The remote uses a mixed authentication model. When a password is set (Settings >
 | Brightness | No |
 | Profile switching | Yes |
 | Send alert | No |
-| System info | Yes |
+| Settings (system info, backup/restore) | Yes |
 | Power controls | Yes |
+| Chores tab | No |
+| Meals tab | No |
+| Photos tab | No |
 
 Controls that don't require a password work immediately, even if you're not logged in. Controls that require a password show a "Sign in" link that redirects to the login page.
 
@@ -147,23 +159,70 @@ You can also append `?token=TOKEN` to bookmarked command URLs (e.g., wake/sleep)
 
 ## Chores tab
 
-The **Chores** tab provides a mobile interface for tracking household chores. It uses the same shared data as the chore chart widget and fullscreen chore chart module.
+The **Chores** tab provides a mobile interface for tracking household chores. It uses the same shared data as the chore chart widget and fullscreen chore chart module. The tab appears when any chore chart module exists in your configuration.
 
-### Member selection
+The Chores tab has three sub-views, selectable via a segmented control: **Today**, **Manage**, and **Rewards**.
+
+### Today
+
+#### Member selection
 
 Colored pill buttons across the top show each family member (with emoji avatar). Tap a member to see their assigned chores for today. A progress bar shows the member's completion percentage.
 
-### Today's chores
+#### Today's chores
 
 Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, point value, and a toggle button to mark it complete.
 
 Tapping a chore toggles its completion with an optimistic update -- the UI updates immediately without waiting for the server response. The data is polled every 15 seconds for live updates across devices.
 
-### Completion tracking
+#### Completion tracking
 
 - A progress bar at the top shows how many of the selected member's chores are done
 - When all assigned chores are complete, a "All done!" message appears
 - The view automatically refreshes at midnight to show the new day's chores
+
+### Manage
+
+The Manage sub-view lets you add, edit, and organize chore definitions and household members directly from the remote — the same management features available in the editor.
+
+### Rewards
+
+The Rewards sub-view provides a points-based reward system:
+
+- **Redeem** — select a member and browse available rewards; each reward has a point cost and members can only redeem if they have enough points
+- **Rewards** — define rewards (name, emoji, point cost, description) and restrict them to specific members or make them available to all
+- **Balances** — view each member's current point balance with options for manual adjustments
+- **History** — chronological log of all redemptions
+
+Points are earned automatically when chores are marked complete (based on each chore's configured point value). Reward definitions and redemption data are stored in `data/rewards.json`.
+
+---
+
+## Meals tab
+
+The **Meals** tab provides a mobile interface for meal planning. It appears when any meal planner module exists in your configuration. The tab has four sub-views: **This Week**, **Plan**, **Library**, and **Grocery**.
+
+### This Week
+
+Shows the current week's meal plan organized by day and slot. Week navigation arrows and a "Today" button let you browse past and future weeks. Tap a meal card to view details.
+
+### Plan
+
+Manage the weekly meal plan — assign meals from your library to specific day/slot combinations. Supports "Copy Last Week" to duplicate a previous week's plan and "Random" to generate a random plan from your library.
+
+### Library
+
+Browse, add, edit, and delete saved meals. Each meal has a name, emoji, tags (quick, healthy, vegetarian, etc.), prep/cook time, difficulty, servings, ingredients with categories, recipe URL, and notes.
+
+### Grocery
+
+A shopping list that can be auto-generated from the current week's meal plan ingredients or managed manually.
+
+---
+
+## Photos tab
+
+The **Photos** tab lets you manage the photos displayed by the photo slideshow and fullscreen photo modules. It appears when a photo slideshow or fullscreen photo module is configured. Upload, browse, and delete photos directly from your phone.
 
 ---
 

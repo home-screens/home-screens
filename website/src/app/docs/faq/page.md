@@ -62,13 +62,15 @@ Home Screens keeps the previous version on disk so rollbacks are instant.
 
 ### How do I backup my configuration?
 
-Go to **Settings > Data > Full Backup** in the editor and click **Export**. This downloads a JSON file containing your entire configuration --- screens, modules, settings, location, calendars, and device preferences.
+Go to **Settings > Data > Full Backup** in the editor and click **Export**. This downloads a JSON file containing your entire configuration --- screens, modules, settings, location, calendars, and device preferences. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
+
+A configurable backup reminder will notify you when you haven't backed up recently (configurable in Settings > Data).
 
 You can also use the **Share Layout** option to export just the visual layout (screens and modules) without personal data like API keys or location, which is safe to share with others.
 
 ### How do I restore a backup?
 
-Go to **Settings > Data > Full Backup** in the editor and click **Import**. Select a previously exported JSON backup file. Your configuration will be replaced with the contents of the backup.
+Go to **Settings > Data > Full Backup** in the editor and click **Import**. Select a previously exported JSON backup file. Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
 
 ### How do I reset to factory defaults?
 

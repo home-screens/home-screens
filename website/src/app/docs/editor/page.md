@@ -183,6 +183,7 @@ Open the **Settings Panel** to configure system-wide options. Settings are organ
 - **Transition Effect** — animation when cycling between screens (see [Screen Transitions](#screen-transitions) above for the full list)
 - **Transition Duration** — how long the transition takes (0.3–2 seconds, default 0.6)
 - **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
+- **Touchscreen Pause** — when enabled (default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) resumes rotation after a period of inactivity
 
 ### Profiles
 
@@ -267,6 +268,7 @@ The editor can be protected with a password to prevent unauthorized access. Once
 - **Import Layout** — import a previously exported layout file
 - **Templates** — start from a pre-built template while preserving your existing settings
 - **Full Backup** — export or restore the entire configuration including all settings, location, calendars, and device preferences
+- **Backup Reminder** — a configurable reminder that shows a toast when you haven't backed up in a while; set the interval or disable it entirely
 
 ### Stats
 
