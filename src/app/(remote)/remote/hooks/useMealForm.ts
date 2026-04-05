@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import type { SavedMeal, MealIngredient } from '@/types/config';
 import { uuid } from '@/lib/uuid';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 export function useMealForm() {
   const [editingMeal, setEditingMeal] = useState<SavedMeal | 'new' | null>(null);
@@ -22,7 +23,7 @@ export function useMealForm() {
 
   const openNew = (clearError: () => void) => {
     setFormName('');
-    setFormEmoji('🍽️');
+    setFormEmoji(DEFAULT_MEAL_EMOJI);
     setFormPrepTime('');
     setFormCookTime('');
     setFormServings('');
@@ -40,7 +41,7 @@ export function useMealForm() {
 
   const openEdit = (meal: SavedMeal, clearError: () => void) => {
     setFormName(meal.name);
-    setFormEmoji(meal.emoji ?? '🍽️');
+    setFormEmoji(meal.emoji ?? DEFAULT_MEAL_EMOJI);
     setFormPrepTime(meal.prepTime ?? '');
     setFormCookTime(meal.cookTime ?? '');
     setFormServings(meal.servings ?? '');

@@ -21,6 +21,7 @@ import ChoreIcon, {
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import MobileIconPicker from './MobileIconPicker';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
@@ -238,9 +239,9 @@ function ChoreFormOverlay({
               onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
               style={SELECT_STYLE}
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="biweekly">Every Other Week</option>
+              {CHORE_FREQUENCIES.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -375,9 +376,9 @@ function ChoreFormOverlay({
               onChange={(e) => setRotation(e.target.value as ChoreRotation)}
               style={SELECT_STYLE}
             >
-              <option value="fixed">Fixed (all do it)</option>
-              <option value="rotate-daily">Rotate Daily</option>
-              <option value="rotate-weekly">Rotate Weekly</option>
+              {CHORE_ROTATIONS.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
+              ))}
             </select>
           </div>
         )}

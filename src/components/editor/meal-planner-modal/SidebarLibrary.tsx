@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { LIBRARY_FILTERS, type LibraryFilter } from '@/components/modules/meal-planner/types';
+import { LIBRARY_FILTERS, type LibraryFilter, formatTagLabel, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface SidebarLibraryProps {
@@ -16,10 +16,10 @@ interface SidebarLibraryProps {
 const FILTER_LABELS: Record<LibraryFilter, string> = {
   all: 'All',
   favorites: 'Favs',
-  quick: 'Quick',
-  healthy: 'Healthy',
-  comfort: 'Comfort',
-  'kid-friendly': 'Kid-Friendly',
+  quick: formatTagLabel('quick'),
+  healthy: formatTagLabel('healthy'),
+  comfort: formatTagLabel('comfort'),
+  'kid-friendly': formatTagLabel('kid-friendly'),
 };
 
 function starRating(rating: number | undefined): string {
@@ -54,7 +54,7 @@ export default function SidebarLibrary({
       result = result.filter((m) => m.isFavorite);
     } else if (filter !== 'all') {
       result = result.filter((m) =>
-        m.tags?.some((t) => t.toLowerCase() === filter.toLowerCase()),
+        m.tags?.some((t) => normalizeTag(t) === filter),
       );
     }
 
@@ -144,7 +144,7 @@ export default function SidebarLibrary({
                 }`}
               >
                 <span className="text-2xl w-8 text-center shrink-0">
-                  {meal.emoji || '🍽️'}
+                  {meal.emoji || DEFAULT_MEAL_EMOJI}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-neutral-200 truncate">

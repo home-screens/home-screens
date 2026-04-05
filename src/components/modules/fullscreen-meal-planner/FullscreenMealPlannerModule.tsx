@@ -7,7 +7,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { getActiveSlot } from '@/lib/meal-constants';
+import { getActiveSlot, DEFAULT_SLOTS } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
@@ -58,7 +58,7 @@ export default function FullscreenMealPlannerModule({
   }, []);
 
   const currentHour = now.getHours();
-  const slots = useMemo(() => config.slots ?? ['breakfast', 'lunch', 'dinner'], [config.slots]);
+  const slots = useMemo(() => config.slots ?? DEFAULT_SLOTS, [config.slots]);
   const activeSlot = getActiveSlot(currentHour, slots);
   const view = config.view ?? 'week';
 

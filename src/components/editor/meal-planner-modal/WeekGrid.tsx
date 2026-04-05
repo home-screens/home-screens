@@ -1,7 +1,7 @@
 'use client';
 
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2 } from 'lucide-react';
 
 interface WeekGridProps {
@@ -156,7 +156,7 @@ export default function WeekGrid({
                           isSelected ? 'border-amber-500/30 bg-amber-500/5' : ''
                         }`}
                       >
-                        <span className="text-lg">{meal.emoji || '🍽️'}</span>
+                        <span className="text-2xl">{meal.emoji || DEFAULT_MEAL_EMOJI}</span>
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-neutral-200 truncate">
                             {meal.name}

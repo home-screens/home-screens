@@ -1,4 +1,78 @@
-import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, FullscreenTypographySize } from '@/types/config';
+
+// ── Shared defaults (used across editor + remote + config sections) ────
+
+/** Default accent color used throughout the app */
+export const DEFAULT_ACCENT_COLOR = '#f59e0b';
+
+/** Default emoji for meals with no emoji set */
+export const DEFAULT_MEAL_EMOJI = '🍽️';
+
+/** Typography size options for fullscreen modules */
+export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string }[] = [
+  { value: 'small', label: 'Small' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'large', label: 'Large' },
+  { value: 'extra-large', label: 'Extra Large' },
+  { value: '2x-large', label: '2X Large' },
+  { value: '3x-large', label: '3X Large' },
+];
+
+/** Default meal slots when none configured (excludes snack) */
+export const DEFAULT_SLOTS: readonly MealSlotType[] = ['breakfast', 'lunch', 'dinner'];
+
+/** Difficulty level colors (hex) */
+export const DIFFICULTY_COLORS: Record<string, string> = {
+  easy:   '#10b981',
+  medium: '#f59e0b',
+  hard:   '#ef4444',
+};
+
+// ── Meal tags & emoji constants (shared across editor + remote) ────
+
+/** Slot tags — meals tagged with these only appear in the matching slot during shuffle */
+export const SLOT_TAGS = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
+
+/** All available meal tags (lowercase canonical form). Slot tags first, then dietary/style. */
+export const MEAL_TAGS = [
+  ...SLOT_TAGS,
+  'quick', 'healthy', 'vegetarian', 'vegan', 'comfort',
+  'spicy', 'kid-friendly', 'meal-prep', 'gluten-free', 'dairy-free', 'batch-cook',
+] as const;
+
+/** Library filter categories (for sidebar pill filters in both editor + remote) */
+export const LIBRARY_FILTERS = [
+  'all', 'favorites', 'quick', 'healthy', 'comfort', 'kid-friendly',
+] as const;
+export type LibraryFilter = (typeof LIBRARY_FILTERS)[number];
+
+/** Emoji picker grid for meal detail form */
+export const FOOD_EMOJIS = [
+  '🍳', '🥞', '🧇', '🥣', '🥗', '🥪', '🌮', '🌯',
+  '🍕', '🍔', '🍝', '🍜', '🍲', '🥘', '🍛', '🍣',
+  '🍱', '🥩', '🍗', '🐟', '🥦', '🥕', '🌽', '🥑',
+  '🍅', '🫑', '🧀', '🥚', '🍞', '🥐', '🍰', '🧁',
+  '🍪', '🍩', '🍫', '🥤', '☕', '🍵', '🧃', '🥛',
+  '🥧', '🍿', '🥜', '🫘', '🍓', '🍌', '🍎', '🥝',
+] as const;
+
+/** Normalize a tag to canonical form: 'Batch Cook' → 'batch-cook' */
+export function normalizeTag(tag: string): string {
+  return tag.toLowerCase().replace(/\s+/g, '-');
+}
+
+/** Capitalize a tag for display: 'kid-friendly' → 'Kid-Friendly' */
+export function formatTagLabel(tag: string): string {
+  return tag
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join('-');
+}
+
+/** Capitalize for simple labels: 'produce' → 'Produce' */
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 /** Slot visual config */
 export const SLOT_META: Record<MealSlotType, { label: string; color: string; bg: string }> = {

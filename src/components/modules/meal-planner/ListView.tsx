@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -11,7 +11,7 @@ interface ListViewProps {
 
 export function ListView({ config, today }: ListViewProps) {
   const days = getOrderedDays(config.weekStartDay);
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;

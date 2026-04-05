@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
 import { getNextMealSlot } from './types';
 
 interface NextMealViewProps {
@@ -13,7 +13,7 @@ interface NextMealViewProps {
 }
 
 export function NextMealView({ config, today, currentHour }: NextMealViewProps) {
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = config.slots ?? DEFAULT_SLOTS;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 

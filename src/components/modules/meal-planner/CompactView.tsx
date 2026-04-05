@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -10,7 +10,7 @@ interface CompactViewProps {
 }
 
 export function CompactView({ config, today }: CompactViewProps) {
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
   const tomorrow = (today + 1) % 7;
   const columns = [

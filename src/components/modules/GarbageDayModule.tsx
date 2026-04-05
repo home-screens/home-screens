@@ -5,14 +5,13 @@ import type { GarbageDayConfig, GarbageFrequency, ModuleStyle } from '@/types/co
 import ModuleWrapper from './ModuleWrapper';
 import { SectionHeader } from './shared/SectionHeader';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { DAY_NAMES_FULL } from '@/lib/meal-constants';
 
 interface GarbageDayModuleProps {
   config: GarbageDayConfig;
   style: ModuleStyle;
   timezone?: string;
 }
-
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
 /**
  * Determines if a given date falls on a collection week.
@@ -94,11 +93,11 @@ function getNextCollectionText(
     future.setDate(future.getDate() + i);
     if (future.getDay() === scheduleDay && isCollectionWeek(future, scheduleDay, frequency, startDate)) {
       if (i === 1) return 'Tomorrow';
-      if (i <= 6) return DAYS[future.getDay()];
-      return `Next ${DAYS[future.getDay()]}`;
+      if (i <= 6) return DAY_NAMES_FULL[future.getDay()];
+      return `Next ${DAY_NAMES_FULL[future.getDay()]}`;
     }
   }
-  return DAYS[scheduleDay];
+  return DAY_NAMES_FULL[scheduleDay];
 }
 
 // Trash can icon
@@ -170,7 +169,7 @@ function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequen
           {label}
         </p>
         <p style={{ fontSize: '0.75em', opacity: active ? TEXT_OPACITY.secondary : TEXT_OPACITY.tertiary }}>
-          {frequencyLabel}{DAYS[scheduleDay]}
+          {frequencyLabel}{DAY_NAMES_FULL[scheduleDay]}
         </p>
       </div>
       {active ? (

@@ -1,24 +1,73 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
-import { MEAL_TAGS, FOOD_EMOJIS } from '@/components/modules/meal-planner/types';
+import { MEAL_TAGS, FOOD_EMOJIS, formatTagLabel, normalizeTag, capitalize, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
+
+/** All selectable categories for ingredient editing (includes seafood, which the grocery list merges into meat) */
+const INGREDIENT_CATEGORIES: GroceryCategory[] = [
+  'produce', 'dairy', 'meat', 'seafood', 'bakery', 'pantry', 'frozen', 'beverages', 'other',
+];
+
+/** Searchable keywords for each food emoji */
+const EMOJI_KEYWORDS: Record<string, string[]> = {
+  '🍳': ['eggs', 'fried', 'breakfast'],
+  '🥞': ['pancakes', 'breakfast'],
+  '🧇': ['waffle', 'breakfast'],
+  '🥣': ['cereal', 'oatmeal', 'breakfast', 'bowl'],
+  '🥗': ['salad', 'healthy', 'vegetables'],
+  '🥪': ['sandwich', 'lunch'],
+  '🌮': ['taco', 'mexican'],
+  '🌯': ['burrito', 'wrap', 'mexican'],
+  '🍕': ['pizza', 'italian'],
+  '🍔': ['burger', 'hamburger'],
+  '🍝': ['pasta', 'spaghetti', 'italian'],
+  '🍜': ['noodles', 'ramen', 'soup', 'asian'],
+  '🍲': ['stew', 'soup', 'pot'],
+  '🥘': ['curry', 'casserole', 'pan'],
+  '🍛': ['curry', 'rice', 'indian'],
+  '🍣': ['sushi', 'japanese', 'fish'],
+  '🍱': ['bento', 'japanese', 'box'],
+  '🥩': ['steak', 'meat', 'beef'],
+  '🍗': ['chicken', 'poultry', 'drumstick'],
+  '🐟': ['fish', 'seafood'],
+  '🥦': ['broccoli', 'vegetable', 'green'],
+  '🥕': ['carrot', 'vegetable'],
+  '🌽': ['corn', 'vegetable'],
+  '🥑': ['avocado', 'guacamole'],
+  '🍅': ['tomato', 'vegetable'],
+  '🫑': ['pepper', 'vegetable', 'bell pepper'],
+  '🧀': ['cheese', 'dairy'],
+  '🥚': ['egg', 'breakfast'],
+  '🍞': ['bread', 'toast', 'bakery'],
+  '🥐': ['croissant', 'pastry', 'bakery', 'breakfast'],
+  '🍰': ['cake', 'dessert'],
+  '🧁': ['cupcake', 'dessert'],
+  '🍪': ['cookie', 'dessert', 'snack'],
+  '🍩': ['donut', 'doughnut', 'dessert'],
+  '🍫': ['chocolate', 'dessert', 'candy'],
+  '🥤': ['drink', 'soda', 'smoothie', 'beverage'],
+  '☕': ['coffee', 'drink', 'beverage', 'hot'],
+  '🍵': ['tea', 'drink', 'beverage', 'hot'],
+  '🧃': ['juice', 'drink', 'beverage'],
+  '🥛': ['milk', 'drink', 'dairy', 'beverage'],
+  '🥧': ['pie', 'dessert'],
+  '🍿': ['popcorn', 'snack'],
+  '🥜': ['peanuts', 'nuts', 'snack'],
+  '🫘': ['beans', 'legumes'],
+  '🍓': ['strawberry', 'fruit', 'berry'],
+  '🍌': ['banana', 'fruit'],
+  '🍎': ['apple', 'fruit'],
+  '🥝': ['kiwi', 'fruit'],
+};
 
 interface SidebarDetailProps {
   meal: SavedMeal | null;
   onSave: (updated: SavedMeal) => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
-}
-
-const GROCERY_CATEGORIES: GroceryCategory[] = [
-  'produce', 'dairy', 'meat', 'seafood', 'bakery', 'pantry', 'frozen', 'beverages', 'other',
-];
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite }: SidebarDetailProps) {
@@ -33,6 +82,15 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
   const [recipeUrl, setRecipeUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<number | undefined>(undefined);
+  const [emojiSearch, setEmojiSearch] = useState('');
+
+  const filteredEmojis = useMemo(() => {
+    if (!emojiSearch) return FOOD_EMOJIS as readonly string[];
+    const q = emojiSearch.toLowerCase();
+    return (FOOD_EMOJIS as readonly string[]).filter(
+      (e) => EMOJI_KEYWORDS[e]?.some((kw) => kw.includes(q)),
+    );
+  }, [emojiSearch]);
 
   // Reinitialize all local state when the meal changes
   useEffect(() => {
@@ -43,11 +101,12 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     setCookTime(meal.cookTime);
     setServings(meal.servings);
     setDifficulty(meal.difficulty);
-    setTags(meal.tags ?? []);
+    setTags((meal.tags ?? []).map(normalizeTag));
     setIngredients(meal.ingredients ? meal.ingredients.map((i) => ({ ...i })) : []);
     setRecipeUrl(meal.recipeUrl ?? '');
     setNotes(meal.notes ?? '');
     setRating(meal.rating);
+    setEmojiSearch('');
   }, [meal?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!meal) {
@@ -114,7 +173,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       <div className="flex-1 overflow-y-auto p-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-neutral-700">
-          <span className="text-4xl">{emoji || '🍽️'}</span>
+          <span className="text-4xl">{emoji || DEFAULT_MEAL_EMOJI}</span>
           <div className="flex-1">
             <div className="text-lg font-bold text-neutral-200">{name || 'Untitled'}</div>
             <div className="flex gap-0.5">
@@ -155,12 +214,19 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
         {/* Emoji grid */}
         <div className="mb-4">
           <label className={labelClass}>Emoji</label>
-          <div className="grid grid-cols-8 gap-1">
-            {FOOD_EMOJIS.map((e) => (
+          <input
+            type="text"
+            className={`${MODAL_INPUT_CLASS} mb-2`}
+            placeholder="Search emojis (e.g. pizza, breakfast, dessert)..."
+            value={emojiSearch}
+            onChange={(e) => setEmojiSearch(e.target.value)}
+          />
+          <div className="grid grid-cols-6 gap-1">
+            {filteredEmojis.map((e) => (
               <button
                 key={e}
                 type="button"
-                className={`aspect-square rounded border-2 text-lg flex items-center justify-center transition ${
+                className={`aspect-square rounded border-2 text-2xl flex items-center justify-center transition ${
                   emoji === e
                     ? 'border-amber-500 bg-amber-500/10'
                     : 'border-transparent bg-neutral-800 hover:bg-neutral-700 hover:border-neutral-600'
@@ -170,6 +236,11 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 {e}
               </button>
             ))}
+            {filteredEmojis.length === 0 && (
+              <div className="col-span-6 py-4 text-center text-xs text-neutral-500">
+                No emojis match &ldquo;{emojiSearch}&rdquo;
+              </div>
+            )}
           </div>
         </div>
 
@@ -254,7 +325,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   }`}
                   onClick={() => toggleTag(tag)}
                 >
-                  {capitalize(tag)}
+                  {formatTagLabel(tag)}
                 </button>
               );
             })}
@@ -301,7 +372,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   }
                 >
                   <option value="">Category...</option>
-                  {GROCERY_CATEGORIES.map((cat) => (
+                  {INGREDIENT_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
                       {capitalize(cat)}
                     </option>

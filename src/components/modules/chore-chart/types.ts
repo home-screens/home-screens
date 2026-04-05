@@ -32,7 +32,7 @@ export interface WeekDayData {
 
 // ── Constants ──────────────────────────────────────────────────────
 
-export { DAY_NAMES_SHORT, DAY_NAMES_FULL } from '@/lib/meal-constants';
+export { DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/lib/meal-constants';
 
 export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { label: string; icon: string; order: number }> = {
   morning:   { label: 'Morning',   icon: '\u2600\ufe0f', order: 0 },
@@ -61,11 +61,6 @@ function dateToUTC(date: string): number {
 
 const EPOCH_UTC = Date.UTC(2024, 0, 1);
 const MS_PER_DAY = 86_400_000;
-
-export function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {
-  if (weekStartDay === 'monday') return [1, 2, 3, 4, 5, 6, 0];
-  return [0, 1, 2, 3, 4, 5, 6];
-}
 
 /** Get today's date as YYYY-MM-DD in local time */
 export function todayStr(): string {

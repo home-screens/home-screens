@@ -3,6 +3,9 @@ import {
   getOrderedDays,
   resolveMeal,
   getActiveSlot,
+  formatTagLabel,
+  capitalize,
+  normalizeTag,
   SLOT_ORDER,
   SLOT_WINDOWS,
   SLOT_META,
@@ -129,6 +132,67 @@ describe('getActiveSlot', () => {
   it('boundary: slot window end is exclusive', () => {
     expect(getActiveSlot(10, allSlots)).not.toBe('breakfast'); // breakfast ends at 10
     expect(getActiveSlot(14, allSlots)).not.toBe('lunch');     // lunch ends at 14
+  });
+});
+
+// ── formatTagLabel ──
+
+describe('formatTagLabel', () => {
+  it('capitalizes a single word', () => {
+    expect(formatTagLabel('quick')).toBe('Quick');
+  });
+
+  it('capitalizes each segment of a hyphenated tag', () => {
+    expect(formatTagLabel('kid-friendly')).toBe('Kid-Friendly');
+  });
+
+  it('handles multi-hyphen tags', () => {
+    expect(formatTagLabel('gluten-free')).toBe('Gluten-Free');
+    expect(formatTagLabel('batch-cook')).toBe('Batch-Cook');
+  });
+
+  it('handles already-capitalized input', () => {
+    expect(formatTagLabel('Quick')).toBe('Quick');
+  });
+});
+
+// ── capitalize ──
+
+describe('capitalize', () => {
+  it('capitalizes the first letter', () => {
+    expect(capitalize('produce')).toBe('Produce');
+  });
+
+  it('leaves already-capitalized strings unchanged', () => {
+    expect(capitalize('Produce')).toBe('Produce');
+  });
+
+  it('handles single character', () => {
+    expect(capitalize('a')).toBe('A');
+  });
+
+  it('handles empty string', () => {
+    expect(capitalize('')).toBe('');
+  });
+});
+
+// ── normalizeTag ──
+
+describe('normalizeTag', () => {
+  it('lowercases and converts spaces to hyphens', () => {
+    expect(normalizeTag('Batch Cook')).toBe('batch-cook');
+  });
+
+  it('passes through already-canonical tags', () => {
+    expect(normalizeTag('kid-friendly')).toBe('kid-friendly');
+  });
+
+  it('handles mixed case', () => {
+    expect(normalizeTag('Kid-Friendly')).toBe('kid-friendly');
+  });
+
+  it('collapses multiple spaces into one hyphen', () => {
+    expect(normalizeTag('Batch  Cook')).toBe('batch-cook');
   });
 });
 

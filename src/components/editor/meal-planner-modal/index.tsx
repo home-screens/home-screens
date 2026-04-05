@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { uuid } from '@/lib/uuid';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
@@ -82,7 +83,7 @@ export default function MealPlannerModal({
     const newMeal: SavedMeal = {
       id,
       name: 'New Meal',
-      emoji: '🍽️',
+      emoji: DEFAULT_MEAL_EMOJI,
     };
     // Don't persist yet — keep it local until the user saves
     setPendingMeal(newMeal);
@@ -92,9 +93,11 @@ export default function MealPlannerModal({
 
   const saveMeal = useCallback((updated: SavedMeal) => {
     if (pendingMeal && updated.id === pendingMeal.id) {
-      // First save of a new meal — persist it
+      // First save of a new meal — persist it then return to library
       onUpdate({ savedMeals: [...savedMeals, updated] });
       setPendingMeal(null);
+      setSelectedMealId(null);
+      setSidebarTab('library');
     } else {
       onUpdate({
         savedMeals: savedMeals.map((m) => (m.id === updated.id ? updated : m)),

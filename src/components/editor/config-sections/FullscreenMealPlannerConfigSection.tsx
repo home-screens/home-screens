@@ -8,12 +8,11 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import type { FullscreenTypographySize } from '@/types/config';
+import { SLOT_ORDER, DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_SLOTS } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
-  MealSlotType,
   SavedMeal,
   PlannedMeal,
 } from '@/types/config';
@@ -26,8 +25,6 @@ const VIEWS = [
   { value: 'menu-board', label: 'Menu Board' },
   { value: 'next-meal', label: 'Next Meal' },
 ] as const;
-
-const ALL_SLOTS: MealSlotType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
@@ -70,7 +67,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     } catch {}
   }, [mealData]);
 
-  const activeSlots = c.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const activeSlots = c.slots ?? [...DEFAULT_SLOTS];
 
   return (
     <>
@@ -121,15 +118,12 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         <span className="text-xs text-neutral-400">Typography Size</span>
         <select
           value={c.typographySize ?? 'medium'}
-          onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })}
+          onChange={(e) => set({ typographySize: e.target.value as typeof TYPOGRAPHY_SIZES[number]['value'] })}
           className={INPUT_CLASS}
         >
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="extra-large">Extra Large</option>
-          <option value="2x-large">2X Large</option>
-          <option value="3x-large">3X Large</option>
+          {TYPOGRAPHY_SIZES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
         </select>
       </label>
 
@@ -150,7 +144,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       <div className="flex flex-col gap-0.5">
         <span className="text-xs text-neutral-400">Meal Slots</span>
         <div className="rounded-md bg-neutral-800 border border-neutral-600 divide-y divide-neutral-700">
-          {ALL_SLOTS.map((slot) => (
+          {SLOT_ORDER.map((slot) => (
             <label key={slot} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
               <input
                 type="checkbox"
@@ -178,7 +172,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Accent Color */}
       <ColorPicker
         label="Accent Color"
-        value={c.accentColor ?? '#f59e0b'}
+        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -212,7 +206,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           previousPlan={mealData.previousPlan}
           slots={activeSlots}
           weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={c.accentColor ?? '#f59e0b'}
+          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}
         />

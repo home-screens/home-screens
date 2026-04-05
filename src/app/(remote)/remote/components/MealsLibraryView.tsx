@@ -3,6 +3,7 @@
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, CARD_STYLE } from './meals-shared';
+import { LIBRARY_FILTERS, formatTagLabel, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import MealFormOverlay from './MealFormOverlay';
 
 interface MealsLibraryViewProps {
@@ -54,13 +55,13 @@ export default function MealsLibraryView({
 
       {/* Filter pills */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' as const, paddingBottom: 12 }}>
-        {['All', 'Favorites', 'Quick', 'Healthy', 'Comfort', 'Kid-Friendly'].map((tag) => {
+        {LIBRARY_FILTERS.map((tag) => {
           const isActive = filterTag === tag;
           return (
             <button
               key={tag}
               onClick={() => setFilterTag(tag)}
-              aria-label={`Filter by ${tag}`}
+              aria-label={`Filter by ${formatTagLabel(tag)}`}
               aria-pressed={isActive}
               style={{
                 padding: '6px 14px',
@@ -77,7 +78,7 @@ export default function MealsLibraryView({
                 fontFamily: 'inherit',
               }}
             >
-              {tag}
+              {formatTagLabel(tag)}
             </button>
           );
         })}
@@ -112,7 +113,7 @@ export default function MealsLibraryView({
             }}
           >
             {/* Emoji */}
-            <span style={{ fontSize: 32, flexShrink: 0 }}>{meal.emoji ?? '🍽️'}</span>
+            <span style={{ fontSize: 32, flexShrink: 0 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>

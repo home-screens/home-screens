@@ -1,6 +1,7 @@
 'use client';
 
 import type { DisplayStatus } from '@/lib/display-commands';
+import { formatTimeAgo } from '@/lib/chore-constants';
 
 interface DisplayHeroProps {
   status: DisplayStatus | null;
@@ -13,14 +14,6 @@ const STATE_BADGE = {
   dimmed: 'bg-amber-500/[0.12] text-amber-400 border-amber-500/25',
   asleep: 'bg-neutral-500/[0.12] text-neutral-400 border-neutral-500/25',
 } as const;
-
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 5) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}m ago`;
-}
 
 export default function DisplayHero({ status, isConnected, lastUpdated }: DisplayHeroProps) {
   const displayState = status?.displayState ?? 'active';

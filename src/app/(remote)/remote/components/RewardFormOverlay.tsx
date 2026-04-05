@@ -5,24 +5,10 @@ import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import { REWARD_ICONS } from '@/lib/chore-constants';
 import MobileIconPicker from './MobileIconPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
-
-const REWARD_ICONS = [
-  // Gifts & prizes
-  'gift', 'trophy', 'gem', 'crown', 'star', 'badge-check', 'sticker',
-  // Screens & entertainment
-  'tv', 'gamepad-2', 'headphones', 'clapperboard', 'popcorn', 'drama', 'music',
-  // Food & treats
-  'ice-cream-cone', 'pizza', 'candy', 'cookie', 'cake', 'apple', 'coffee',
-  // Activities
-  'bike', 'volleyball', 'puzzle', 'palette', 'tent', 'fish', 'plane',
-  // Money & passes
-  'banknote', 'circle-dollar-sign', 'wallet', 'ticket', 'circle-check-big',
-  // Fun
-  'party-popper', 'rocket', 'sparkles', 'heart', 'smile',
-];
 
 interface RewardFormOverlayProps {
   reward: RewardDefinition | null; // null = add mode
@@ -123,7 +109,7 @@ export default function RewardFormOverlay({
         <MobileIconPicker
           value={emoji}
           onChange={setEmoji}
-          icons={REWARD_ICONS}
+          icons={[...REWARD_ICONS]}
           label="Icon"
         />
 

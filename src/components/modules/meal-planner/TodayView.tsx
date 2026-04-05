@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, getActiveSlot } from '@/lib/meal-constants';
+import { SLOT_META, resolveMeal, getActiveSlot, DEFAULT_SLOTS } from '@/lib/meal-constants';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -95,7 +95,7 @@ function SlotCard({
 }
 
 export function TodayView({ config, today, currentHour }: TodayViewProps) {
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = config.slots ?? DEFAULT_SLOTS;
   const activeSlot = getActiveSlot(currentHour, slots);
 
   return (

@@ -9,6 +9,7 @@ import {
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3,
 } from 'lucide-react';
 import { DEFAULT_MODULE_SIZES } from './constants';
+import { DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
 
 type ModuleCategory =
@@ -168,7 +169,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       darkMode: true,
       density: 'cozy',
       typographySize: 'medium',
-      accentColor: '#f59e0b',
+      accentColor: DEFAULT_ACCENT_COLOR,
     },
     defaultSize: DEFAULT_MODULE_SIZES['fullscreen-chore-chart'],
     defaultStyle: FULLSCREEN_STYLE,
@@ -183,9 +184,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'week',
       density: 'cozy',
       typographySize: 'medium',
-      accentColor: '#f59e0b',
+      accentColor: DEFAULT_ACCENT_COLOR,
       weekStartDay: 'monday',
-      slots: ['breakfast', 'lunch', 'dinner'],
+      slots: DEFAULT_SLOTS,
       showPrepTime: true,
       showTags: true,
       showEmoji: true,
@@ -627,12 +628,12 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'week',
       savedMeals: [],
       plan: [],
-      slots: ['breakfast', 'lunch', 'dinner'],
+      slots: DEFAULT_SLOTS,
       weekStartDay: 'monday',
       showEmoji: true,
       showPrepTime: true,
       showTags: true,
-      accentColor: '#f59e0b',
+      accentColor: DEFAULT_ACCENT_COLOR,
     },
     defaultSize: DEFAULT_MODULE_SIZES['meal-planner'],
   },
@@ -648,7 +649,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showStreaks: true,
       showTimeOfDay: true,
       allowDisplayComplete: true,
-      accentColor: '#f59e0b',
+      accentColor: DEFAULT_ACCENT_COLOR,
     },
     defaultSize: DEFAULT_MODULE_SIZES['chore-chart'],
     defaultStyle: { fontSize: 24 },

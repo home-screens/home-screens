@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -11,7 +11,7 @@ interface WeekViewProps {
 
 export function WeekView({ config, today }: WeekViewProps) {
   const days = getOrderedDays(config.weekStartDay);
-  const slots = config.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
 
   // Short slot labels for column headers

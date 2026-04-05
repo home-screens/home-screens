@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_FULL } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_FULL, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface MealPickerPopoverProps {
@@ -91,8 +91,8 @@ export default function MealPickerPopover({
                 onClick={() => onSelect(meal.id)}
                 className="flex items-center gap-3 w-full px-2 py-2.5 rounded-md hover:bg-neutral-800 transition text-left"
               >
-                <span className="text-xl shrink-0">
-                  {meal.emoji || '🍽️'}
+                <span className="text-2xl shrink-0">
+                  {meal.emoji || DEFAULT_MEAL_EMOJI}
                 </span>
                 <span className="text-sm font-semibold text-neutral-200 flex-1 truncate">
                   {meal.name}

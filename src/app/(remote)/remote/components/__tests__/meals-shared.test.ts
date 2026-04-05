@@ -86,11 +86,18 @@ describe('currentSlotIndex', () => {
 });
 
 describe('TAG_OPTIONS', () => {
-  it('contains expected dietary/preparation tags', () => {
-    expect(TAG_OPTIONS).toContain('Quick');
-    expect(TAG_OPTIONS).toContain('Healthy');
-    expect(TAG_OPTIONS).toContain('Vegetarian');
-    expect(TAG_OPTIONS).toContain('Gluten-Free');
+  it('contains expected dietary/preparation tags (lowercase canonical form)', () => {
+    expect(TAG_OPTIONS).toContain('quick');
+    expect(TAG_OPTIONS).toContain('healthy');
+    expect(TAG_OPTIONS).toContain('vegetarian');
+    expect(TAG_OPTIONS).toContain('gluten-free');
+  });
+
+  it('excludes slot tags (those belong to SLOT_TAGS)', () => {
+    expect(TAG_OPTIONS).not.toContain('breakfast');
+    expect(TAG_OPTIONS).not.toContain('lunch');
+    expect(TAG_OPTIONS).not.toContain('dinner');
+    expect(TAG_OPTIONS).not.toContain('snack');
   });
 
   it('has no duplicates', () => {

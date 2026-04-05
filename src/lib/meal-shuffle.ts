@@ -1,7 +1,8 @@
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import { SLOT_TAGS } from '@/lib/meal-constants';
 
 /** Slot tag names that restrict which slot a meal can be assigned to */
-const SLOT_TAG_SET = new Set(['breakfast', 'lunch', 'dinner', 'snack']);
+const SLOT_TAG_SET = new Set<string>(SLOT_TAGS);
 
 /**
  * Generate a random meal plan that respects slot tags.

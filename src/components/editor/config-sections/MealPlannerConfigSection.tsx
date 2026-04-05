@@ -8,6 +8,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
+import { SLOT_ORDER, SLOT_META, DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS } from '@/lib/meal-constants';
 import type {
   ModuleInstance,
   MealPlannerView,
@@ -37,20 +38,13 @@ const VIEWS: { value: MealPlannerView; label: string }[] = [
   { value: 'list', label: 'Full Week List' },
 ];
 
-const ALL_SLOTS: { value: MealSlotType; label: string }[] = [
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-  { value: 'snack', label: 'Snack' },
-];
-
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
 
   const savedMeals = c.savedMeals ?? [];
   const plan = c.plan ?? [];
-  const slots = c.slots ?? ['breakfast', 'lunch', 'dinner'];
+  const slots = c.slots ?? [...DEFAULT_SLOTS];
 
   const toggleSlot = (slot: MealSlotType) => {
     const has = slots.includes(slot);
@@ -70,12 +64,12 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Meal Slots */}
       <div className="flex flex-col gap-1">
         <span className="text-xs text-neutral-400">Meal Slots</span>
-        {ALL_SLOTS.map((s) => (
+        {SLOT_ORDER.map((slot) => (
           <Toggle
-            key={s.value}
-            label={s.label}
-            checked={slots.includes(s.value)}
-            onChange={() => toggleSlot(s.value)}
+            key={slot}
+            label={SLOT_META[slot].label}
+            checked={slots.includes(slot)}
+            onChange={() => toggleSlot(slot)}
           />
         ))}
       </div>
@@ -113,7 +107,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Accent Color */}
       <ColorPicker
         label="Accent Color"
-        value={c.accentColor ?? '#f59e0b'}
+        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -141,7 +135,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           previousPlan={c.previousPlan ?? []}
           slots={slots}
           weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={c.accentColor ?? '#f59e0b'}
+          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onUpdate={set}
           onClose={() => setShowModal(false)}
         />

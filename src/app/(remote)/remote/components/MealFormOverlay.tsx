@@ -3,7 +3,7 @@
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { TAG_OPTIONS, INPUT_STYLE, LABEL_STYLE } from './meals-shared';
-import { FOOD_EMOJIS } from '@/components/modules/meal-planner/types';
+import { FOOD_EMOJIS, formatTagLabel, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import {
   GROCERY_CATEGORIES,
   GROCERY_CATEGORY_ORDER,
@@ -200,11 +200,7 @@ export default function MealFormOverlay({
           <div style={LABEL_STYLE}>Difficulty</div>
           <div style={{ display: 'flex', gap: 4 }}>
             {(['easy', 'medium', 'hard'] as const).map((d) => {
-              const diffColors: Record<typeof d, { color: string; bg: string; border: string }> = {
-                easy:   { color: '#10b981', bg: 'rgba(16,185,129,0.08)',  border: '#10b981' },
-                medium: { color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: '#f59e0b' },
-                hard:   { color: '#ef4444', bg: 'rgba(239,68,68,0.08)',  border: '#ef4444' },
-              };
+              const hex = DIFFICULTY_COLORS[d];
               const isSelected = formDifficulty === d;
               return (
                 <button
@@ -217,9 +213,9 @@ export default function MealFormOverlay({
                     fontSize: 12,
                     fontWeight: 600,
                     borderRadius: 12,
-                    border: isSelected ? `1px solid ${diffColors[d].border}` : '1px solid #2a2a2a',
-                    background: isSelected ? diffColors[d].bg : '#1a1a1a',
-                    color: isSelected ? diffColors[d].color : '#525252',
+                    border: isSelected ? `1px solid ${hex}` : '1px solid #2a2a2a',
+                    background: isSelected ? `${hex}14` : '#1a1a1a',
+                    color: isSelected ? hex : '#525252',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -237,13 +233,13 @@ export default function MealFormOverlay({
         <div style={LABEL_STYLE}>Tags</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {TAG_OPTIONS.map((tag) => {
-            const isActive = formTags.includes(tag);
+            const isActive = formTags.some((t) => normalizeTag(t) === tag);
             return (
               <button
                 key={tag}
                 onClick={() => {
                   setFormTags((prev) =>
-                    isActive ? prev.filter((t) => t !== tag) : [...prev, tag],
+                    isActive ? prev.filter((t) => normalizeTag(t) !== tag) : [...prev, tag],
                   );
                 }}
                 style={{
@@ -259,7 +255,7 @@ export default function MealFormOverlay({
                   transition: 'all 0.15s',
                 }}
               >
-                {tag}
+                {formatTagLabel(tag)}
               </button>
             );
           })}

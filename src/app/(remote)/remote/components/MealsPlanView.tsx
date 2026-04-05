@@ -1,7 +1,7 @@
 'use client';
 
 import type { MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import type { MealsViewProps } from './meals-shared';
 
 interface MealsPlanViewProps extends MealsViewProps {
@@ -277,7 +277,7 @@ export default function MealsPlanView({
                       fontFamily: 'inherit',
                     }}
                   >
-                    <span style={{ fontSize: 24 }}>{meal.emoji ?? '🍽️'}</span>
+                    <span style={{ fontSize: 24 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
                     <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#fafafa' }}>{meal.name}</span>
                     {meal.prepTime ? (
                       <span style={{ fontSize: 11, color: '#525252' }}>{meal.prepTime}m</span>

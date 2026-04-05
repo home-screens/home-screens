@@ -5,7 +5,7 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
-import { DAY_NAMES_FULL } from '@/components/modules/chore-chart/types';
+import { DAY_NAMES_FULL } from '@/lib/meal-constants';
 import ChoreToast, { type ToastItem } from './ChoreToast';
 import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';

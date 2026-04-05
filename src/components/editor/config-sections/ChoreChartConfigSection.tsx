@@ -8,6 +8,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import type {
   ModuleInstance,
   ChoreChartView,
@@ -90,7 +91,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       {/* Accent Color */}
       <ColorPicker
         label="Accent Color"
-        value={c.accentColor ?? '#f59e0b'}
+        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -120,7 +121,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       {showModal && (
         <ChoreChartModal
           weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={c.accentColor ?? '#f59e0b'}
+          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onClose={() => setShowModal(false)}
         />
       )}

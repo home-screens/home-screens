@@ -11,9 +11,10 @@ interface MemberChipProps {
   chipHeight: number;
   showStreaks: boolean;
   showPoints?: boolean;
+  minWidth: number;
 }
 
-function MemberChip({ member, stats, chipHeight, showStreaks, showPoints }: MemberChipProps) {
+function MemberChip({ member, stats, chipHeight, showStreaks, showPoints, minWidth }: MemberChipProps) {
   const avatarSize = chipHeight * 0.65;
   const nameFontSize = chipHeight * 0.24;
   const statFontSize = chipHeight * 0.19;
@@ -28,7 +29,7 @@ function MemberChip({ member, stats, chipHeight, showStreaks, showPoints }: Memb
         padding: `${chipHeight * 0.15}px ${chipHeight * 0.2}px`,
         background: 'var(--fcc-surface)',
         borderRadius: chipHeight * 0.2,
-        minWidth: 0,
+        minWidth,
       }}
     >
       <div
@@ -45,23 +46,20 @@ function MemberChip({ member, stats, chipHeight, showStreaks, showPoints }: Memb
       >
         <ChoreIcon value={member.emoji} size={avatarSize * 0.5} color="white" />
       </div>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: nameFontSize, fontWeight: 600, color: 'var(--fcc-text)' }}>
+      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+        <div style={{ fontSize: nameFontSize, fontWeight: 600, color: 'var(--fcc-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {member.name}
         </div>
-        <div style={{ fontSize: statFontSize, color: 'var(--fcc-text-2)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div style={{ fontSize: statFontSize, color: 'var(--fcc-text-2)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden' }}>
           {showStreaks && stats && stats.streak > 0 && (
-            <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-              <Flame size={statFontSize} /> {stats.streak}
+            <span style={{ color: 'var(--fcc-accent)' }}>
+              <Flame size={statFontSize} style={{ display: 'inline', verticalAlign: '-0.1em' }} /> {stats.streak}
               <span style={{ color: 'var(--fcc-text-2)', margin: '0 2px' }}>&middot;</span>
             </span>
           )}
           {stats?.completed ?? 0}/{stats?.total ?? 0}
           {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
-            <>
-              <span style={{ color: 'var(--fcc-text-2)', margin: '0 2px' }}>&middot;</span>
-              <span style={{ color: '#a78bfa' }}>🎟️{stats!.rewardBalance}</span>
-            </>
+            <span style={{ color: '#a78bfa' }}> · 🎟️{stats!.rewardBalance}</span>
           )}
         </div>
         {/* Mini progress bar */}
@@ -94,8 +92,9 @@ export default function MemberStrip({
   showPoints,
   availableWidth,
 }: MemberStripProps) {
-  // Calculate how many chips fit per row
-  const minChipWidth = chipHeight * 2.6;
+  // Calculate how many chips fit per row — slightly wider when stats are shown
+  const extraWidth = (showStreaks ? chipHeight * 0.2 : 0) + (showPoints ? chipHeight * 0.2 : 0);
+  const minChipWidth = chipHeight * 2.6 + extraWidth;
   const perRow = Math.max(1, Math.floor((availableWidth + gap) / (minChipWidth + gap)));
   const rows: string[][] = [];
   for (let i = 0; i < members.length; i += perRow) {
@@ -129,6 +128,7 @@ export default function MemberStrip({
                 chipHeight={chipHeight}
                 showStreaks={showStreaks}
                 showPoints={showPoints}
+                minWidth={minChipWidth}
               />
             );
           })}

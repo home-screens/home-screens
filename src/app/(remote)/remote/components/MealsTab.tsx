@@ -6,7 +6,7 @@ import { generateGroceryList } from '@/lib/grocery-utils';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
 import { useMealsData } from '../hooks/useMealsData';
 import { useMealForm } from '../hooks/useMealForm';
-import { SLOT_ORDER } from '@/lib/meal-constants';
+import { SLOT_ORDER, normalizeTag } from '@/lib/meal-constants';
 import { getWeekDates, currentSlotIndex } from './meals-shared';
 import MealsWeekView from './MealsWeekView';
 import MealsPlanView from './MealsPlanView';
@@ -36,7 +36,7 @@ export default function MealsTab() {
   const [subView, setSubView] = useState<'week' | 'plan' | 'library' | 'grocery'>('week');
   const [pickingSlot, setPickingSlot] = useState<{ day: number; slot: MealSlotType } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTag, setFilterTag] = useState<string>('All');
+  const [filterTag, setFilterTag] = useState<string>('all');
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; confirmLabel: string; onConfirm: () => void } | null>(null);
 
   useEffect(() => {
@@ -158,10 +158,10 @@ export default function MealsTab() {
         m.tags?.some((t) => t.toLowerCase().includes(q)),
       );
     }
-    if (filterTag === 'Favorites') {
+    if (filterTag === 'favorites') {
       result = result.filter((m) => m.isFavorite);
-    } else if (filterTag !== 'All') {
-      result = result.filter((m) => m.tags?.some((t) => t.toLowerCase() === filterTag.toLowerCase()));
+    } else if (filterTag !== 'all') {
+      result = result.filter((m) => m.tags?.some((t) => normalizeTag(t) === filterTag));
     }
     return result;
   }, [savedMeals, searchQuery, filterTag]);

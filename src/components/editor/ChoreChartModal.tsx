@@ -30,6 +30,7 @@ import ChoreIcon, {
   getIconDef,
   toLucideValue,
 } from '@/components/modules/chore-chart/ChoreIcon';
+import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 
 // ── Icon Picker ───────────────────────────────────────────────────
 
@@ -310,9 +311,9 @@ function ChoreForm({
             onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
             className={MODAL_INPUT_CLASS}
           >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Every Other Week</option>
+            {CHORE_FREQUENCIES.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
@@ -383,9 +384,9 @@ function ChoreForm({
             onChange={(e) => setRotation(e.target.value as ChoreRotation)}
             className={MODAL_INPUT_CLASS}
           >
-            <option value="fixed">Fixed (all do it)</option>
-            <option value="rotate-daily">Rotate Daily</option>
-            <option value="rotate-weekly">Rotate Weekly</option>
+            {CHORE_ROTATIONS.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
           </select>
         </label>
       )}

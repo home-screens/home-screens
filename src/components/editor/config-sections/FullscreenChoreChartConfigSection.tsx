@@ -8,7 +8,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import type { FullscreenTypographySize } from '@/types/config';
+import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES } from '@/lib/meal-constants';
 import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
@@ -63,15 +63,12 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         <span className="text-xs text-neutral-400">Typography Size</span>
         <select
           value={c.typographySize ?? 'medium'}
-          onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })}
+          onChange={(e) => set({ typographySize: e.target.value as typeof TYPOGRAPHY_SIZES[number]['value'] })}
           className={INPUT_CLASS}
         >
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="extra-large">Extra Large</option>
-          <option value="2x-large">2X Large</option>
-          <option value="3x-large">3X Large</option>
+          {TYPOGRAPHY_SIZES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
         </select>
       </label>
 
@@ -113,7 +110,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {/* Accent Color */}
       <ColorPicker
         label="Accent Color"
-        value={c.accentColor ?? '#f59e0b'}
+        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -143,7 +140,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {showModal && (
         <ChoreChartModal
           weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={c.accentColor ?? '#f59e0b'}
+          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onClose={() => setShowModal(false)}
         />
       )}

@@ -1,5 +1,5 @@
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 
 export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
@@ -20,10 +20,8 @@ export interface MealPlannerViewProps {
 }
 
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {
-  if (difficulty === 'easy') return '#10b981';
-  if (difficulty === 'medium') return '#f59e0b';
-  if (difficulty === 'hard') return '#ef4444';
-  return undefined;
+  if (!difficulty) return undefined;
+  return DIFFICULTY_COLORS[difficulty];
 }
 
 export function getNextMeal(
