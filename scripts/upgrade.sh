@@ -791,10 +791,28 @@ ExecStartPre=/bin/sleep 5"
       fi
     fi
 
-    # 14. WiFi reliability — power management, MAC randomization, IPv6, bgscan.
-    #     brcmfmac aggressively sleeps the radio (500-800ms latency spikes),
-    #     randomized scan MACs confuse mesh APs, IPv6 multicast triggers radio
-    #     issues, and background scanning takes the radio off-channel.
+    # 14a. brcmfmac driver stability — disable firmware roaming and buggy features.
+    #      Official RPi Foundation fix, also adopted by Home Assistant OS.
+    BRCMFMAC_CONF="/etc/modprobe.d/brcmfmac.conf"
+    DESIRED_BRCMFMAC="options brcmfmac roamoff=1 feature_disable=0x282000"
+    if [ ! -f "${BRCMFMAC_CONF}" ] || ! grep -q "feature_disable=0x282000" "${BRCMFMAC_CONF}" 2>/dev/null; then
+      echo "${DESIRED_BRCMFMAC}" | sudo tee "${BRCMFMAC_CONF}" > /dev/null
+      changed="${changed}brcmfmac-modprobe,"
+    fi
+
+    # 14b. Reserve kernel memory for network buffers — prevents WiFi drops
+    #      under memory pressure when packet allocation fails.
+    WIFI_MEM_CONF="/etc/sysctl.d/98-wifi-memory.conf"
+    if [ ! -f "${WIFI_MEM_CONF}" ] || ! grep -q "min_free_kbytes" "${WIFI_MEM_CONF}" 2>/dev/null; then
+      echo "vm.min_free_kbytes = 16384" | sudo tee "${WIFI_MEM_CONF}" > /dev/null
+      sudo sysctl vm.min_free_kbytes=16384 2>/dev/null || true
+      changed="${changed}wifi-memory,"
+    fi
+
+    # 14c. WiFi reliability — power management, MAC randomization, IPv6, bgscan.
+    #      brcmfmac aggressively sleeps the radio (500-800ms latency spikes),
+    #      randomized scan MACs confuse mesh APs, IPv6 multicast triggers radio
+    #      issues, and background scanning takes the radio off-channel.
     WIFI_NM_CONF="/etc/NetworkManager/conf.d/wifi-powersave.conf"
     DESIRED_WIFI_NM="[connection]
 wifi.powersave = 2

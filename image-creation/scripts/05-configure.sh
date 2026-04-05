@@ -174,6 +174,36 @@ else
 fi
 
 # ============================================================================
+# WiFi — brcmfmac driver stability (BCM43455 on Pi 4/5)
+# ============================================================================
+# Official RPi Foundation fix: https://github.com/RPi-Distro/firmware-nonfree/commit/40dea60
+# Also adopted by Home Assistant OS (PR #4056).
+log_info "Configuring brcmfmac driver options"
+mkdir -p /etc/modprobe.d
+cat > /etc/modprobe.d/brcmfmac.conf << 'EOF'
+# roamoff=1: Disable firmware internal roaming — on mesh networks the AP
+# should control roaming, not the client. The firmware roaming engine fights
+# with AP-initiated BSS transitions and causes disconnects.
+# feature_disable=0x282000: Disable three buggy firmware features:
+#   - FWSUP (firmware WPA supplicant offload) — conflicts with host wpa_supplicant
+#   - MONITOR_FMT_HW_RX_HDR — unnecessary hardware RX header formatting
+#   - DUMP_OBSS (overlapping BSS scan) — causes "set chanspec fail, reason -52"
+#     errors and 5GHz crashes on kernel 6.6+
+options brcmfmac roamoff=1 feature_disable=0x282000
+EOF
+
+# ============================================================================
+# WiFi — reserve kernel memory for network buffers
+# ============================================================================
+# Under memory pressure, network packet allocation can fail, manifesting as
+# WiFi drops. Reserve 16MB for kernel allocations (default ~3MB is too low).
+# From Home Assistant OS (PR #1525).
+log_info "Configuring kernel memory reservation for WiFi stability"
+cat > /etc/sysctl.d/98-wifi-memory.conf << 'EOF'
+vm.min_free_kbytes = 16384
+EOF
+
+# ============================================================================
 # WiFi — disable power management (causes latency spikes and disconnects)
 # ============================================================================
 log_info "Configuring WiFi reliability"
