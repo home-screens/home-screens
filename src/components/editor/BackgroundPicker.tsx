@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 import type { BackgroundRotation } from '@/types/config';
@@ -8,11 +8,76 @@ import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
 
+interface ImmichAlbumOption { id: string; name: string; assetCount: number }
+interface ImmichPersonOption { id: string; name: string }
+
+function ImmichRotationFields({ rotation, onChange }: {
+  rotation: BackgroundRotation;
+  onChange: (updates: Partial<BackgroundRotation>) => void;
+}) {
+  const [albums, setAlbums] = useState<ImmichAlbumOption[]>([]);
+  const [people, setPeople] = useState<ImmichPersonOption[]>([]);
+
+  const fetchOptions = useCallback(async () => {
+    const [albumRes, peopleRes] = await Promise.all([
+      editorFetch('/api/immich/albums').catch(() => null),
+      editorFetch('/api/immich/people').catch(() => null),
+    ]);
+    if (albumRes?.ok) setAlbums(await albumRes.json());
+    if (peopleRes?.ok) setPeople(await peopleRes.json());
+  }, []);
+
+  useEffect(() => { fetchOptions(); }, [fetchOptions]);
+
+  const selectClass = 'mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500';
+
+  return (
+    <>
+      <label className="block">
+        <span className="text-[10px] text-neutral-500">Album</span>
+        <select
+          value={rotation.immichAlbumId || ''}
+          onChange={(e) => onChange({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
+          className={selectClass}
+        >
+          <option value="">Any album</option>
+          {albums.map((a) => (
+            <option key={a.id} value={a.id}>{a.name} ({a.assetCount})</option>
+          ))}
+        </select>
+      </label>
+      <label className="block">
+        <span className="text-[10px] text-neutral-500">Person</span>
+        <select
+          value={rotation.immichPersonId || ''}
+          onChange={(e) => onChange({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
+          className={selectClass}
+        >
+          <option value="">Anyone</option>
+          {people.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </label>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={rotation.immichFavoritesOnly || false}
+          onChange={(e) => onChange({ immichFavoritesOnly: e.target.checked || undefined })}
+          className="rounded border-neutral-600"
+        />
+        <span className="text-[10px] text-neutral-500">Favorites only</span>
+      </label>
+    </>
+  );
+}
+
 export default function BackgroundPicker() {
   const [tab, setTab] = useState<'unsplash' | 'nasa' | 'local'>('unsplash');
   const { config, selectedScreenId, updateScreen } = useEditorStore();
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
   const [hasNasaKey, setHasNasaKey] = useState(false);
+  const [hasImmichKey, setHasImmichKey] = useState(false);
 
   const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
   const rotationSource = currentScreen?.backgroundRotation?.source || 'unsplash';
@@ -25,6 +90,7 @@ export default function BackgroundPicker() {
           const data: Record<string, boolean> = await res.json();
           setHasUnsplashKey(!!data.unsplash_access_key);
           setHasNasaKey(!!data.nasa_api_key);
+          setHasImmichKey(!!data.immich_api_key && !!data.immich_url);
         }
       } catch (err) {
         console.debug('Failed to check API key status:', err);
@@ -40,7 +106,7 @@ export default function BackgroundPicker() {
       <h4 className="text-xs font-semibold text-neutral-500 uppercase">Background</h4>
 
       {/* Auto-rotation controls — only show when at least one source is available */}
-      {(hasUnsplashKey || hasNasaKey) && <div className="bg-neutral-800/50 rounded-md p-2.5 space-y-2">
+      {(hasUnsplashKey || hasNasaKey || hasImmichKey) && <div className="bg-neutral-800/50 rounded-md p-2.5 space-y-2">
         <label className="flex items-center justify-between gap-2 cursor-pointer">
           <span className="text-xs text-neutral-400">Auto-rotate background</span>
           <button
@@ -52,7 +118,7 @@ export default function BackgroundPicker() {
               const current = currentScreen?.backgroundRotation;
               const updated: BackgroundRotation = {
                 enabled: !current?.enabled,
-                source: current?.source || (hasUnsplashKey ? 'unsplash' : 'nasa-apod'),
+                source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : 'immich'),
                 query: current?.query || 'nature landscape',
                 intervalMinutes: current?.intervalMinutes || 60,
               };
@@ -77,14 +143,12 @@ export default function BackgroundPicker() {
                 value={rotationSource}
                 onChange={(e) => {
                   if (!selectedScreenId) return;
-                  const source = e.target.value as 'unsplash' | 'nasa-apod';
+                  const source = e.target.value as BackgroundRotation['source'];
                   updateScreen(selectedScreenId, {
                     backgroundRotation: {
                       ...currentScreen.backgroundRotation!,
                       source,
-                      // Reset query when switching to APOD (not needed)
-                      query: source === 'nasa-apod' ? '' : (currentScreen.backgroundRotation!.query || 'nature landscape'),
-                      // APOD changes daily — default to 4 hours for nasa
+                      query: source === 'nasa-apod' || source === 'immich' ? '' : (currentScreen.backgroundRotation!.query || 'nature landscape'),
                       intervalMinutes: source === 'nasa-apod' ? 240 : (currentScreen.backgroundRotation!.intervalMinutes || 60),
                     },
                   });
@@ -93,6 +157,7 @@ export default function BackgroundPicker() {
               >
                 {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
                 {hasNasaKey && <option value="nasa-apod">NASA Picture of the Day</option>}
+                {hasImmichKey && <option value="immich">Immich</option>}
               </select>
             </label>
             {rotationSource === 'unsplash' && (
@@ -111,6 +176,17 @@ export default function BackgroundPicker() {
                   className="mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500"
                 />
               </label>
+            )}
+            {rotationSource === 'immich' && (
+              <ImmichRotationFields
+                rotation={currentScreen.backgroundRotation!}
+                onChange={(updates) => {
+                  if (!selectedScreenId) return;
+                  updateScreen(selectedScreenId, {
+                    backgroundRotation: { ...currentScreen.backgroundRotation!, ...updates },
+                  });
+                }}
+              />
             )}
             <label className="block">
               <span className="text-[10px] text-neutral-500">Rotate every</span>

@@ -6,7 +6,9 @@ import { readConfig } from '@/lib/config';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
+import { immichFetch } from '@/lib/immich';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import type { BackgroundRotation } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +22,7 @@ interface CacheEntry {
   query: string;
   fetchedAt: number;
   intervalMinutes: number;
+  immichFilters?: string;
 }
 
 type BackgroundCache = Record<string, CacheEntry>;
@@ -100,6 +103,55 @@ async function fetchAndSaveApod(): Promise<string | null> {
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
 }
 
+async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<string | null> {
+  let assetId: string | undefined;
+
+  if (rotation.immichAlbumId) {
+    // Fetch album assets and pick one randomly (search/random doesn't support albumIds)
+    const albumRes = await immichFetch(`/api/albums/${rotation.immichAlbumId}`);
+    if (!albumRes.ok) return null;
+    const album = await albumRes.json();
+    let assets = ((album.assets ?? []) as { id: string; type: string; isFavorite: boolean }[])
+      .filter((a) => a.type === 'IMAGE');
+    if (rotation.immichFavoritesOnly) assets = assets.filter((a) => a.isFavorite);
+    if (assets.length === 0) return null;
+    assetId = assets[Math.floor(Math.random() * assets.length)].id;
+  } else {
+    // Use random search endpoint
+    const body: Record<string, unknown> = { type: 'IMAGE', size: 1 };
+    if (rotation.immichPersonId) body.personIds = [rotation.immichPersonId];
+    if (rotation.immichFavoritesOnly) body.isFavorite = true;
+
+    const res = await immichFetch('/api/search/random', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return null;
+
+    const assets = await res.json();
+    if (!Array.isArray(assets) || assets.length === 0) return null;
+    assetId = assets[0].id as string;
+  }
+
+  if (!assetId) return null;
+
+  // Download preview-quality image
+  const imgRes = await immichFetch(`/api/assets/${assetId}/thumbnail?size=preview`, { timeout: 15_000 });
+  if (!imgRes.ok) return null;
+
+  const buffer = Buffer.from(await imgRes.arrayBuffer());
+  const contentType = imgRes.headers.get('content-type') ?? '';
+  const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
+  const filename = `immich-${assetId}${ext}`;
+  const filePath = path.join(BGS, filename);
+
+  await fs.mkdir(BGS, { recursive: true });
+  await fs.writeFile(filePath, buffer);
+
+  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+}
+
 /**
  * GET /api/backgrounds/rotate?screenId=X
  *
@@ -123,7 +175,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
 
   const rotation = screen.backgroundRotation;
   const source = rotation?.source || 'unsplash';
-  if (!rotation?.enabled || (source === 'unsplash' && !rotation.query)) {
+  if (!rotation?.enabled || (source === 'unsplash' && !rotation.query) || (source !== 'unsplash' && source !== 'nasa-apod' && source !== 'immich')) {
     return NextResponse.json({ path: screen.backgroundImage || null });
   }
 
@@ -131,13 +183,17 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const entry = cache[screenId];
   const intervalMs = (rotation.intervalMinutes || 60) * 60 * 1000;
   const now = Date.now();
+  const immichFilters = source === 'immich'
+    ? JSON.stringify({ a: rotation.immichAlbumId, p: rotation.immichPersonId, f: rotation.immichFavoritesOnly })
+    : undefined;
 
   // Check if cached entry is still fresh
   if (
     entry &&
     entry.source === source &&
     entry.query === rotation.query &&
-    entry.intervalMinutes === rotation.intervalMinutes &&
+    entry.intervalMinutes === (rotation.intervalMinutes || 60) &&
+    entry.immichFilters === immichFilters &&
     now - entry.fetchedAt < intervalMs
   ) {
     return NextResponse.json({ path: entry.path, fresh: false });
@@ -147,7 +203,9 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   try {
     let newPath: string | null = null;
 
-    if (source === 'nasa-apod') {
+    if (source === 'immich') {
+      newPath = await fetchAndSaveImmichPhoto(rotation);
+    } else if (source === 'nasa-apod') {
       newPath = await fetchAndSaveApod();
     } else {
       const accessKey = await getUnsplashAccessKey();
@@ -164,6 +222,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         query: rotation.query,
         fetchedAt: now,
         intervalMinutes: rotation.intervalMinutes || 60,
+        immichFilters,
       };
       await writeCache(cache);
       return NextResponse.json({ path: newPath, fresh: true });

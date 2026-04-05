@@ -7,15 +7,27 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import type { ModuleInstance } from '@/types/config';
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ directory?: string; intervalMs?: number; transition?: string; objectFit?: string }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ source?: string; directory?: string; intervalMs?: number; transition?: string; objectFit?: string }>(mod, screenId);
   const [showBrowser, setShowBrowser] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [photoCount, setPhotoCount] = useState(0);
+  const [hasImmichKey, setHasImmichKey] = useState(false);
 
+  const source = (c.source as string) || 'local';
   const directory = (c.directory as string) || '';
+
+  useEffect(() => {
+    editorFetch('/api/secrets').then(async (res) => {
+      if (res.ok) {
+        const data: Record<string, boolean> = await res.json();
+        setHasImmichKey(!!data.immich_api_key && !!data.immich_url);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Fetch preview images when directory changes
   const fetchPreviews = useCallback(async (dir: string) => {
@@ -37,45 +49,66 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   }, []);
 
   useEffect(() => {
-    fetchPreviews(directory);
-  }, [directory, fetchPreviews]);
+    if (source === 'local') fetchPreviews(directory);
+  }, [directory, fetchPreviews, source]);
 
   return (
     <>
-      {/* Folder picker */}
-      <div>
-        <span className="text-xs text-neutral-400">Folder</span>
-        <div className="flex gap-1.5 mt-1">
-          <div className="flex-1 px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-300 truncate">
-            {directory || 'All Photos (root)'}
-          </div>
-          <Button size="sm" onClick={() => setShowBrowser(true)}>
-            Browse...
-          </Button>
-        </div>
-        {/* Photo count + preview strip */}
-        {photoCount > 0 && (
-          <div className="mt-1.5">
-            <span className="text-[10px] text-neutral-500">
-              {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
-            </span>
-            <div className="flex gap-1 mt-1 overflow-x-auto">
-              {previewImages.map((img) => (
-                <img
-                  key={img}
-                  src={img}
-                  alt=""
-                  loading="lazy"
-                  className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
-                />
-              ))}
+      {/* Source selector — only show if Immich is configured */}
+      {hasImmichKey && (
+        <label className="flex flex-col gap-0.5">
+          <span className="text-xs text-neutral-400">Photo Source</span>
+          <select
+            value={source}
+            onChange={(e) => set({ source: e.target.value })}
+            className={INPUT_CLASS}
+          >
+            <option value="local">Local Photos</option>
+            <option value="immich">Immich</option>
+          </select>
+        </label>
+      )}
+
+      {source === 'immich' ? (
+        <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
+      ) : (
+        <>
+          {/* Folder picker */}
+          <div>
+            <span className="text-xs text-neutral-400">Folder</span>
+            <div className="flex gap-1.5 mt-1">
+              <div className="flex-1 px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-300 truncate">
+                {directory || 'All Photos (root)'}
+              </div>
+              <Button size="sm" onClick={() => setShowBrowser(true)}>
+                Browse...
+              </Button>
             </div>
+            {/* Photo count + preview strip */}
+            {photoCount > 0 && (
+              <div className="mt-1.5">
+                <span className="text-[10px] text-neutral-500">
+                  {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
+                </span>
+                <div className="flex gap-1 mt-1 overflow-x-auto">
+                  {previewImages.map((img) => (
+                    <img
+                      key={img}
+                      src={img}
+                      alt=""
+                      loading="lazy"
+                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            {photoCount === 0 && (
+              <p className="text-[10px] text-neutral-500 mt-1">No photos in this folder</p>
+            )}
           </div>
-        )}
-        {photoCount === 0 && (
-          <p className="text-[10px] text-neutral-500 mt-1">No photos in this folder</p>
-        )}
-      </div>
+        </>
+      )}
 
       <Slider
         label="Slide Interval (seconds)"

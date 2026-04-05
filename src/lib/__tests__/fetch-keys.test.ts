@@ -109,6 +109,50 @@ describe('photoSlideshowUrl', () => {
   it('uses bare endpoint when directory is missing', () => {
     expect(photoSlideshowUrl({})).toBe('/api/backgrounds');
   });
+
+  it('returns local endpoint when source is local', () => {
+    expect(photoSlideshowUrl({ source: 'local', directory: 'pics' }))
+      .toBe('/api/backgrounds?directory=pics');
+  });
+
+  it('returns immich endpoint when source is immich', () => {
+    const url = photoSlideshowUrl({ source: 'immich' });
+    expect(url).toBe('/api/immich/photos?');
+  });
+
+  it('includes albumId for immich source', () => {
+    const url = photoSlideshowUrl({ source: 'immich', immichAlbumId: 'abc-123' });
+    expect(url).toContain('albumId=abc-123');
+  });
+
+  it('includes personId for immich source', () => {
+    const url = photoSlideshowUrl({ source: 'immich', immichPersonId: 'xyz' });
+    expect(url).toContain('personId=xyz');
+  });
+
+  it('includes favorites flag for immich source', () => {
+    const url = photoSlideshowUrl({ source: 'immich', immichFavoritesOnly: true });
+    expect(url).toContain('favorites=true');
+  });
+
+  it('includes count for immich source', () => {
+    const url = photoSlideshowUrl({ source: 'immich', immichCount: 20 });
+    expect(url).toContain('count=20');
+  });
+
+  it('combines multiple immich filters', () => {
+    const url = photoSlideshowUrl({
+      source: 'immich',
+      immichAlbumId: 'album-1',
+      immichPersonId: 'person-1',
+      immichFavoritesOnly: true,
+      immichCount: 100,
+    });
+    expect(url).toContain('albumId=album-1');
+    expect(url).toContain('personId=person-1');
+    expect(url).toContain('favorites=true');
+    expect(url).toContain('count=100');
+  });
 });
 
 // ── Static URL builders ─────────────────────────────────────────
@@ -134,8 +178,9 @@ describe('FETCH_KEY_REGISTRY', () => {
     const expectedTypes = [
       'stock-ticker', 'crypto', 'news', 'air-quality', 'sports',
       'standings', 'traffic', 'todoist', 'rain-map', 'history',
-      'quote', 'dad-joke', 'photo-slideshow', 'chore-chart',
-      'fullscreen-chore-chart', 'fullscreen-meal-planner',
+      'quote', 'dad-joke', 'photo-slideshow', 'fullscreen-photo',
+      'chore-chart', 'fullscreen-chore-chart',
+      'meal-planner', 'fullscreen-meal-planner',
     ];
     for (const type of expectedTypes) {
       expect(FETCH_KEY_REGISTRY).toHaveProperty(type);

@@ -200,6 +200,8 @@ describe('getSecretStatus', () => {
     expect(status.todoist_token).toBe(false);
     expect(status.google_maps_key).toBe(false);
     expect(status.tomtom_key).toBe(false);
+    expect(status.immich_url).toBe(false);
+    expect(status.immich_api_key).toBe(false);
   });
 
   it('returns correct boolean map for mixed set/unset keys', async () => {

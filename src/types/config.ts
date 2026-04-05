@@ -86,9 +86,12 @@ export interface ModuleInstance {
 
 export interface BackgroundRotation {
   enabled: boolean;
-  source?: 'unsplash' | 'nasa-apod';
+  source?: 'unsplash' | 'nasa-apod' | 'immich';
   query: string;
   intervalMinutes: number;
+  immichAlbumId?: string;
+  immichPersonId?: string;
+  immichFavoritesOnly?: boolean;
 }
 
 export interface Screen {
@@ -519,6 +522,11 @@ export interface PhotoSlideshowConfig {
   transition: 'fade' | 'none';
   objectFit: 'cover' | 'contain' | 'fill';
   refreshIntervalMs: number;
+  source?: 'local' | 'immich';
+  immichAlbumId?: string;
+  immichPersonId?: string;
+  immichFavoritesOnly?: boolean;
+  immichCount?: number;
 }
 
 // QR code module config
@@ -843,5 +851,10 @@ export interface FullscreenPhotoConfig {
   showClock: boolean;
   kenBurns: boolean;
   theme?: string;
+  source?: 'local' | 'immich';
+  immichAlbumId?: string;
+  immichPersonId?: string;
+  immichFavoritesOnly?: boolean;
+  immichCount?: number;
 }
 

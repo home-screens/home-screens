@@ -15,7 +15,9 @@ type SecretKey =
   | 'tomtom_key'
   | 'google_client_id'
   | 'google_client_secret'
-  | 'github_token';
+  | 'github_token'
+  | 'immich_url'
+  | 'immich_api_key';
 
 type SecretStatus = Partial<Record<SecretKey, boolean>>;
 
@@ -263,6 +265,33 @@ export default function IntegrationsSection() {
             placeholder="Paste your TomTom API key"
             helpText="Alternative to Google Maps for traffic data. Free at developer.tomtom.com — Routing API required."
             status={!!status.tomtom_key}
+            onSaved={fetchStatus}
+          />
+        </div>
+      </div>
+
+      <hr className="my-6 border-neutral-700" />
+
+      {/* Immich */}
+      <div>
+        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          Photos (Immich)
+        </h3>
+        <div className="space-y-4">
+          <SecretField
+            label="Server URL"
+            secretKey="immich_url"
+            placeholder="e.g. http://192.168.1.50:2283"
+            helpText="The base URL of your Immich instance. Include the port if not using a reverse proxy."
+            status={!!status.immich_url}
+            onSaved={fetchStatus}
+          />
+          <SecretField
+            label="API Key"
+            secretKey="immich_api_key"
+            placeholder="Paste your Immich API key"
+            helpText="Create at Immich → Account Settings → API Keys. Used for photo slideshow and background rotation."
+            status={!!status.immich_api_key}
             onSaved={fetchStatus}
           />
         </div>

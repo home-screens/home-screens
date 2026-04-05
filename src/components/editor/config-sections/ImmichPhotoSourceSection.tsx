@@ -1,0 +1,206 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
+import { editorFetch } from '@/lib/editor-fetch';
+import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+
+interface ImmichAlbum {
+  id: string;
+  name: string;
+  assetCount: number;
+}
+
+interface ImmichPerson {
+  id: string;
+  name: string;
+  thumbnailUrl: string;
+}
+
+interface ConnectionStatus {
+  reachable: boolean;
+  authenticated: boolean;
+  version?: string;
+}
+
+interface Props {
+  config: Record<string, unknown>;
+  set: (updates: Record<string, unknown>) => void;
+}
+
+export function ImmichPhotoSourceSection({ config, set }: Props) {
+  const [status, setStatus] = useState<ConnectionStatus | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [albums, setAlbums] = useState<ImmichAlbum[]>([]);
+  const [people, setPeople] = useState<ImmichPerson[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+  const albumId = (config.immichAlbumId as string) || '';
+  const personId = (config.immichPersonId as string) || '';
+  const favoritesOnly = (config.immichFavoritesOnly as boolean) || false;
+  const count = (config.immichCount as number) || 50;
+
+  // Use album assetCount when available, otherwise null
+  const selectedAlbum = albums.find((a) => a.id === albumId);
+  const photoCount = selectedAlbum ? selectedAlbum.assetCount : null;
+
+  // Validate connection
+  const checkConnection = useCallback(async () => {
+    setChecking(true);
+    try {
+      const res = await editorFetch('/api/immich/validate');
+      if (res.ok) setStatus(await res.json());
+      else setStatus({ reachable: false, authenticated: false });
+    } catch {
+      setStatus({ reachable: false, authenticated: false });
+    }
+    setChecking(false);
+  }, []);
+
+  useEffect(() => { checkConnection(); }, [checkConnection]);
+
+  // Fetch albums + people when connected
+  useEffect(() => {
+    if (!status?.authenticated) return;
+    editorFetch('/api/immich/albums').then(async (res) => {
+      if (res.ok) setAlbums(await res.json());
+    }).catch(() => {});
+    editorFetch('/api/immich/people').then(async (res) => {
+      if (res.ok) setPeople(await res.json());
+    }).catch(() => {});
+  }, [status?.authenticated]);
+
+  // Fetch preview images when filters change (with cancellation)
+  useEffect(() => {
+    if (!status?.authenticated) return;
+    let cancelled = false;
+
+    const params = new URLSearchParams();
+    if (albumId) params.set('albumId', albumId);
+    if (personId) params.set('personId', personId);
+    if (favoritesOnly) params.set('favorites', 'true');
+    params.set('count', '4');
+    editorFetch(`/api/immich/photos?${params}`).then(async (res) => {
+      if (cancelled) return;
+      if (res.ok) {
+        const urls: string[] = await res.json();
+        setPreviewImages(urls.map((u) => u.replace('size=preview', 'size=thumbnail')));
+      }
+    }).catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [status?.authenticated, albumId, personId, favoritesOnly]);
+
+  return (
+    <div className="space-y-2">
+      {/* Connection status */}
+      <div className="flex items-center gap-2">
+        <span
+          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            checking ? 'bg-yellow-500 animate-pulse' :
+            status?.authenticated ? 'bg-green-500' :
+            status?.reachable ? 'bg-yellow-500' : 'bg-red-500'
+          }`}
+        />
+        <span className="text-xs text-neutral-400">
+          {checking ? 'Connecting...' :
+           status?.authenticated ? `Connected${status.version ? ` (v${status.version})` : ''}` :
+           status?.reachable ? 'API key invalid' : 'Cannot reach server'}
+        </span>
+        {!checking && !status?.authenticated && (
+          <button
+            onClick={checkConnection}
+            className="text-[10px] text-blue-400 hover:text-blue-300"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+
+      {status?.authenticated && (
+        <>
+          {/* Album picker */}
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-neutral-400">Album</span>
+            <select
+              value={albumId}
+              onChange={(e) => set({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
+              className={INPUT_CLASS}
+            >
+              <option value="">Any album</option>
+              {albums.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.assetCount})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* Person filter */}
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-neutral-400">Person</span>
+            <div className="flex gap-1.5 items-center">
+              <select
+                value={personId}
+                onChange={(e) => set({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
+                className={`${INPUT_CLASS} flex-1`}
+              >
+                <option value="">Anyone</option>
+                {people.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              {personId && people.find((p) => p.id === personId)?.thumbnailUrl && (
+                <img
+                  src={people.find((p) => p.id === personId)!.thumbnailUrl}
+                  alt=""
+                  className="w-6 h-6 rounded-full object-cover border border-neutral-600"
+                />
+              )}
+            </div>
+          </label>
+
+          {/* Favorites toggle */}
+          <Toggle
+            label="Favorites Only"
+            checked={favoritesOnly}
+            onChange={(v) => set({ immichFavoritesOnly: v })}
+          />
+
+          {/* Photo count slider */}
+          <Slider
+            label="Photos per Refresh"
+            value={count}
+            min={10}
+            max={200}
+            step={10}
+            onChange={(v) => set({ immichCount: v })}
+          />
+
+          {/* Preview strip */}
+          {previewImages.length > 0 && (
+            <div className="mt-1.5">
+              {photoCount !== null && (
+                <span className="text-[10px] text-neutral-500">
+                  {photoCount} {photoCount === 1 ? 'photo' : 'photos'} in album
+                </span>
+              )}
+              <div className="flex gap-1 mt-1 overflow-x-auto">
+                {previewImages.map((url) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

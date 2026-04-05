@@ -70,6 +70,14 @@ export function dadJokeUrl(): string {
 }
 
 export function photoSlideshowUrl(config: AnyConfig): string {
+  if (config.source === 'immich') {
+    const params = new URLSearchParams();
+    if (config.immichAlbumId) params.set('albumId', config.immichAlbumId as string);
+    if (config.immichPersonId) params.set('personId', config.immichPersonId as string);
+    if (config.immichFavoritesOnly) params.set('favorites', 'true');
+    if (config.immichCount) params.set('count', String(config.immichCount));
+    return `/api/immich/photos?${params}`;
+  }
   const dir = config.directory as string | undefined;
   return dir ? `/api/backgrounds?directory=${encodeURIComponent(dir)}` : '/api/backgrounds';
 }
