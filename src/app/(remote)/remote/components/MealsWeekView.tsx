@@ -11,19 +11,19 @@ interface MealsWeekViewProps extends MealsViewProps {
 export default function MealsWeekView({
   plan,
   weekDates,
-  today,
+  todayISO,
   currentSlot,
   getMealForSlot,
   setSubView,
 }: MealsWeekViewProps) {
   return (
     <div style={{ paddingBottom: 80 }}>
-      {weekDates.map(({ day, label, shortDate }) => {
-        const isToday = day === today;
-        const isPast = day < today;
+      {weekDates.map(({ date, label, shortDate }) => {
+        const isToday = date === todayISO;
+        const isPast = date < todayISO;
 
         return (
-          <div key={day} style={{ marginBottom: 16 }}>
+          <div key={date} style={{ marginBottom: 16 }}>
             {/* Day header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? '#fafafa' : '#a3a3a3' }}>
@@ -51,7 +51,7 @@ export default function MealsWeekView({
 
             {/* Meal slots */}
             {SLOT_ORDER.map((slot: MealSlotType, slotIdx: number) => {
-              const { planned, meal } = getMealForSlot(day, slot);
+              const { planned, meal } = getMealForSlot(date, slot);
               const hasMeal = !!(meal || planned?.customText);
               const isPastSlot = isPast || (isToday && slotIdx < currentSlot);
               const isCurrentSlot = isToday && slotIdx === currentSlot;

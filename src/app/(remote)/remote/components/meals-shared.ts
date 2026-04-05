@@ -1,20 +1,17 @@
 import type { MealSlotType, SavedMeal, PlannedMeal } from '@/types/config';
-import { MEAL_TAGS, SLOT_TAGS, SLOT_ORDER, SLOT_WINDOWS, DAY_NAMES_FULL } from '@/lib/meal-constants';
+import { SLOT_ORDER, SLOT_WINDOWS, DAY_NAMES_FULL, toISODate } from '@/lib/meal-constants';
 
-/** Meal tags for the remote form — excludes slot tags (breakfast/lunch/dinner/snack) */
-export const TAG_OPTIONS = (MEAL_TAGS as readonly string[])
-  .filter((t) => !(SLOT_TAGS as readonly string[]).includes(t));
-
-export function getWeekDates(): { day: number; date: Date; label: string; shortDate: string }[] {
-  const now = new Date();
+export function getWeekDates(startDate?: Date): { date: string; dayIndex: number; label: string; shortDate: string }[] {
+  const now = startDate ?? new Date();
   const currentDay = now.getDay(); // 0=Sun
-  const result: { day: number; date: Date; label: string; shortDate: string }[] = [];
+  const result: { date: string; dayIndex: number; label: string; shortDate: string }[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() - currentDay + i);
+    const isoDate = toISODate(d);
     result.push({
-      day: i,
-      date: d,
+      date: isoDate,
+      dayIndex: i,
       label: DAY_NAMES_FULL[i],
       shortDate: `${d.getMonth() + 1}/${d.getDate()}`,
     });
@@ -67,7 +64,7 @@ export interface MealsViewProps {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   weekDates: ReturnType<typeof getWeekDates>;
-  today: number;
+  todayISO: string;
   currentSlot: number;
-  getMealForSlot: (day: number, slot: MealSlotType) => { planned: PlannedMeal | undefined; meal: SavedMeal | undefined };
+  getMealForSlot: (date: string, slot: MealSlotType) => { planned: PlannedMeal | undefined; meal: SavedMeal | undefined };
 }

@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_FULL, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_FULL, DEFAULT_MEAL_EMOJI, dateToDayIndex } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
 interface MealPickerPopoverProps {
-  target: { day: number; slot: MealSlotType };
+  target: { date: string; slot: MealSlotType };
   meals: SavedMeal[];
   onSelect: (mealId: string) => void;
   onClose: () => void;
@@ -49,7 +49,7 @@ export default function MealPickerPopover({
   }, [onClose]);
 
   const slotLabel = SLOT_META[target.slot]?.label ?? target.slot;
-  const dayName = DAY_NAMES_FULL[target.day] ?? '';
+  const dayName = DAY_NAMES_FULL[dateToDayIndex(target.date)] ?? '';
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">

@@ -1,18 +1,18 @@
 import type { MealSlotType, SavedMeal } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, resolveMeal, toISODate } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
 export default function MenuBoardView({
   savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
-  const todayDow = now.getDay();
+  const todayISO = toISODate(now);
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
   // Only show slots that have a meal planned
   const courses = activeOrder
-    .map((sl) => ({ slot: sl, meal: resolveMeal(todayDow, sl, plan, savedMeals), meta: SLOT_META[sl] }))
+    .map((sl) => ({ slot: sl, meal: resolveMeal(todayISO, sl, plan, savedMeals), meta: SLOT_META[sl] }))
     .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; meta: { label: string; color: string } }[];
 
   return (

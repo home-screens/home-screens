@@ -1,14 +1,23 @@
 'use client';
 
+import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
-import type { MealPlannerConfig, ModuleStyle } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
+import { useFetchData } from '@/hooks/useFetchData';
+import { mealsDataUrl } from '@/lib/fetch-keys';
+import { getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
 import ModuleWrapper from '../ModuleWrapper';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
 import { NextMealView } from './NextMealView';
 import { CompactView } from './CompactView';
 import { ListView } from './ListView';
+
+interface MealDataResponse {
+  savedMeals: SavedMeal[];
+  plan: PlannedMeal[];
+}
 
 interface MealPlannerModuleProps {
   config: MealPlannerConfig;
@@ -19,10 +28,27 @@ interface MealPlannerModuleProps {
 export default function MealPlannerModule({ config, style, timezone }: MealPlannerModuleProps) {
   const now = useTZClock(timezone, 60_000);
   const view = config.view ?? 'week';
-  const today = now.getDay();
+  const todayISO = toISODate(now);
   const currentHour = now.getHours();
 
-  const hasMeals = (config.plan?.length ?? 0) > 0;
+  // Fetch meal data from API (same source as fullscreen)
+  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
+  const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
+  const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+
+  // Filter plan to current week
+  const { start: weekStart, end: weekEnd } = useMemo(
+    () => getWeekRange(new Date(todayISO + 'T12:00:00'), config.weekStartDay ?? 'sunday'),
+    [todayISO, config.weekStartDay],
+  );
+  const plan = useMemo(
+    () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
+    [fullPlan, weekStart, weekEnd],
+  );
+
+  const hasMeals = view === 'next-meal' || view === 'compact'
+    ? fullPlan.length > 0
+    : plan.length > 0;
 
   if (!hasMeals && view !== 'week') {
     return (
@@ -40,11 +66,11 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'week' && <WeekView config={config} today={today} />}
-      {view === 'today' && <TodayView config={config} today={today} currentHour={currentHour} />}
-      {view === 'next-meal' && <NextMealView config={config} today={today} currentHour={currentHour} />}
-      {view === 'compact' && <CompactView config={config} today={today} />}
-      {view === 'list' && <ListView config={config} today={today} />}
+      {view === 'week' && <WeekView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'today' && <TodayView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
+      {view === 'next-meal' && <NextMealView config={config} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
+      {view === 'compact' && <CompactView config={config} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'list' && <ListView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
     </ModuleWrapper>
   );
 }

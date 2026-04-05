@@ -1,25 +1,30 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import type { MealPlannerConfig } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_META, resolveMeal, DEFAULT_SLOTS, toISODate } from '@/lib/meal-constants';
 import { getNextMealSlot } from './types';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
-  today: number;
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
   currentHour: number;
 }
 
-export function NextMealView({ config, today, currentHour }: NextMealViewProps) {
+export function NextMealView({ config, plan, savedMeals, todayISO, currentHour }: NextMealViewProps) {
   const slots = config.slots ?? DEFAULT_SLOTS;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 
   const { slot, dayOffset, label } = getNextMealSlot(currentHour, slots);
-  const mealDay = (today + dayOffset) % 7;
-  const meal = resolveMeal(mealDay, slot, config.plan, config.savedMeals);
+  // Compute the ISO date for the target day
+  const targetDate = new Date(todayISO + 'T12:00:00');
+  targetDate.setDate(targetDate.getDate() + dayOffset);
+  const mealDate = toISODate(targetDate);
+  const meal = resolveMeal(mealDate, slot, plan, savedMeals);
   const meta = SLOT_META[slot];
 
   return (
@@ -43,7 +48,7 @@ export function NextMealView({ config, today, currentHour }: NextMealViewProps) 
       <AnimatePresence mode="wait">
         {meal ? (
           <motion.div
-            key={`${mealDay}-${slot}-${meal.name}`}
+            key={`${mealDate}-${slot}-${meal.name}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}

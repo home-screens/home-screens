@@ -115,6 +115,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
   'chore-chart':             { buildUrl: choresUrl, ttlMs: 30_000 },            // server: no cache
   'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 30_000 },            // shared useChoreData hook
+  'meal-planner':            { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
   'fullscreen-meal-planner': { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
 };
 

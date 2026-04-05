@@ -1,27 +1,31 @@
 'use client';
 
-import type { MealPlannerConfig } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS, toISODate, dateToDayIndex } from '@/lib/meal-constants';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
-  today: number;
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
 }
 
-export function CompactView({ config, today }: CompactViewProps) {
+export function CompactView({ config, plan, savedMeals, todayISO }: CompactViewProps) {
   const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
-  const tomorrow = (today + 1) % 7;
+  const tomorrowDate = new Date(todayISO + 'T12:00:00');
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowISO = toISODate(tomorrowDate);
   const columns = [
-    { day: today, label: 'Today' },
-    { day: tomorrow, label: 'Tomorrow' },
+    { date: todayISO, label: 'Today' },
+    { date: tomorrowISO, label: 'Tomorrow' },
   ];
 
   return (
     <div className="flex h-full gap-3">
-      {columns.map(({ day, label }) => (
-        <div key={day} className="flex-1 flex flex-col min-w-0">
+      {columns.map(({ date, label }) => (
+        <div key={date} className="flex-1 flex flex-col min-w-0">
           {/* Day header */}
           <div className="flex items-center gap-1.5 mb-2">
             <span
@@ -35,14 +39,14 @@ export function CompactView({ config, today }: CompactViewProps) {
               {label}
             </span>
             <span className="opacity-20" style={{ fontSize: '0.5em' }}>
-              {DAY_NAMES_SHORT[day]}
+              {DAY_NAMES_SHORT[dateToDayIndex(date)]}
             </span>
           </div>
 
           {/* Meals */}
           <div className="flex flex-col gap-1 flex-1">
             {slots.map((slot) => {
-              const meal = resolveMeal(day, slot, config.plan, config.savedMeals);
+              const meal = resolveMeal(date, slot, plan, savedMeals);
               const meta = SLOT_META[slot];
               return (
                 <div

@@ -6,6 +6,14 @@ import {
   formatTagLabel,
   capitalize,
   normalizeTag,
+  toISODate,
+  fromISODate,
+  dateToDayIndex,
+  getWeekRange,
+  getWeekDatesForRange,
+  filterPlanToWeek,
+  replaceWeekInPlan,
+  copyWeekEntries,
   SLOT_ORDER,
   SLOT_WINDOWS,
   SLOT_META,
@@ -29,6 +37,157 @@ describe('getOrderedDays', () => {
   });
 });
 
+// ── Date utilities ──
+
+describe('toISODate', () => {
+  it('formats date as YYYY-MM-DD', () => {
+    expect(toISODate(new Date(2026, 3, 4))).toBe('2026-04-04');
+  });
+
+  it('zero-pads month and day', () => {
+    expect(toISODate(new Date(2026, 0, 5))).toBe('2026-01-05');
+  });
+});
+
+describe('fromISODate', () => {
+  it('parses ISO date string to a Date', () => {
+    const d = fromISODate('2026-04-04');
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(3); // 0-indexed
+    expect(d.getDate()).toBe(4);
+  });
+});
+
+describe('dateToDayIndex', () => {
+  it('returns correct day-of-week for known dates', () => {
+    // 2026-04-04 is a Saturday
+    expect(dateToDayIndex('2026-04-04')).toBe(6);
+    // 2026-04-05 is a Sunday
+    expect(dateToDayIndex('2026-04-05')).toBe(0);
+    // 2026-04-06 is a Monday
+    expect(dateToDayIndex('2026-04-06')).toBe(1);
+  });
+});
+
+describe('getWeekRange', () => {
+  it('returns Sunday-start range for Sunday start', () => {
+    // 2026-04-04 is Saturday → week should be Mar 29 – Apr 4
+    const { start, end } = getWeekRange(new Date(2026, 3, 4), 'sunday');
+    expect(start).toBe('2026-03-29');
+    expect(end).toBe('2026-04-04');
+  });
+
+  it('returns Monday-start range for Monday start', () => {
+    // 2026-04-04 is Saturday → week should be Mar 30 – Apr 5
+    const { start, end } = getWeekRange(new Date(2026, 3, 4), 'monday');
+    expect(start).toBe('2026-03-30');
+    expect(end).toBe('2026-04-05');
+  });
+});
+
+describe('getWeekDatesForRange', () => {
+  it('returns 7 dates', () => {
+    const dates = getWeekDatesForRange('2026-03-29', 'sunday');
+    expect(dates).toHaveLength(7);
+  });
+
+  it('returns consecutive dates starting from the aligned week start', () => {
+    const dates = getWeekDatesForRange('2026-03-29', 'sunday');
+    expect(dates[0]).toBe('2026-03-29');
+    expect(dates[6]).toBe('2026-04-04');
+  });
+
+  it('returns correct dates for Monday start', () => {
+    // 2026-03-30 is a Monday
+    const dates = getWeekDatesForRange('2026-03-30', 'monday');
+    expect(dates).toHaveLength(7);
+    expect(dates[0]).toBe('2026-03-30'); // Monday
+    expect(dates[6]).toBe('2026-04-05'); // Sunday
+  });
+
+  it('re-aligns when start is mid-week', () => {
+    // Pass a Wednesday — should still return the full week starting from Sunday
+    const dates = getWeekDatesForRange('2026-04-01', 'sunday');
+    expect(dates[0]).toBe('2026-03-29'); // aligned to Sunday
+    expect(dates[6]).toBe('2026-04-04');
+  });
+});
+
+describe('filterPlanToWeek', () => {
+  it('filters entries within the range (inclusive)', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-03-29', slot: 'breakfast', mealId: 'a' },
+      { date: '2026-04-01', slot: 'lunch', mealId: 'b' },
+      { date: '2026-04-04', slot: 'dinner', mealId: 'c' },
+      { date: '2026-04-05', slot: 'breakfast', mealId: 'd' }, // next week
+    ];
+    const result = filterPlanToWeek(plan, '2026-03-29', '2026-04-04');
+    expect(result).toHaveLength(3);
+    expect(result.map((p) => p.mealId)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('returns empty array when nothing matches', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-05', slot: 'breakfast', mealId: 'a' },
+    ];
+    expect(filterPlanToWeek(plan, '2026-03-29', '2026-04-04')).toHaveLength(0);
+  });
+});
+
+describe('replaceWeekInPlan', () => {
+  it('replaces only the specified week', () => {
+    const fullPlan: PlannedMeal[] = [
+      { date: '2026-03-29', slot: 'breakfast', mealId: 'old' },
+      { date: '2026-04-05', slot: 'lunch', mealId: 'other-week' },
+    ];
+    const weekDates = ['2026-03-29', '2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04'];
+    const newEntries: PlannedMeal[] = [
+      { date: '2026-03-29', slot: 'breakfast', mealId: 'new' },
+    ];
+    const result = replaceWeekInPlan(fullPlan, weekDates, newEntries);
+    expect(result).toHaveLength(2);
+    expect(result.find((p) => p.date === '2026-03-29')!.mealId).toBe('new');
+    expect(result.find((p) => p.date === '2026-04-05')!.mealId).toBe('other-week');
+  });
+});
+
+describe('copyWeekEntries', () => {
+  const fromDates = ['2026-03-29', '2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04'];
+  const toDates = ['2026-04-05', '2026-04-06', '2026-04-07', '2026-04-08', '2026-04-09', '2026-04-10', '2026-04-11'];
+
+  it('copies entries from one week to another preserving position', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-03-29', slot: 'breakfast', mealId: 'a' },
+      { date: '2026-04-01', slot: 'dinner', mealId: 'b' },
+      { date: '2026-04-12', slot: 'lunch', mealId: 'other' }, // outside source week
+    ];
+    const result = copyWeekEntries(plan, fromDates, toDates);
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ date: '2026-04-05', slot: 'breakfast', mealId: 'a' }); // position 0 → 0
+    expect(result[1]).toEqual({ date: '2026-04-08', slot: 'dinner', mealId: 'b' });   // position 3 → 3
+  });
+
+  it('returns empty array when source week has no entries', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-12', slot: 'lunch', mealId: 'x' },
+    ];
+    const result = copyWeekEntries(plan, fromDates, toDates);
+    expect(result).toHaveLength(0);
+  });
+
+  it('falls back to index 0 when date is not in fromDates', () => {
+    // Construct a plan with a date that exists in the range but not in fromDates array
+    const plan: PlannedMeal[] = [
+      { date: '2026-03-29', slot: 'lunch', mealId: 'x' },
+    ];
+    // Use a fromDates that doesn't include '2026-03-29'
+    const altFrom = ['2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04', '2026-04-05'];
+    const result = copyWeekEntries(plan, altFrom, toDates);
+    // date is within the filter range (altFrom[0]..altFrom[6]) but '2026-03-29' < '2026-03-30', so no entries
+    expect(result).toHaveLength(0);
+  });
+});
+
 // ── resolveMeal ──
 
 describe('resolveMeal', () => {
@@ -38,32 +197,32 @@ describe('resolveMeal', () => {
   ];
 
   it('returns null when plan is undefined', () => {
-    expect(resolveMeal(0, 'dinner', undefined, meals)).toBeNull();
+    expect(resolveMeal('2026-04-04', 'dinner', undefined, meals)).toBeNull();
   });
 
   it('returns null when savedMeals is undefined', () => {
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'pasta' }];
-    expect(resolveMeal(0, 'dinner', plan, undefined)).toBeNull();
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'pasta' }];
+    expect(resolveMeal('2026-04-04', 'dinner', plan, undefined)).toBeNull();
   });
 
-  it('returns null when no plan entry matches day/slot', () => {
-    const plan: PlannedMeal[] = [{ day: 1, slot: 'lunch', mealId: 'pasta' }];
-    expect(resolveMeal(0, 'dinner', plan, meals)).toBeNull();
+  it('returns null when no plan entry matches date/slot', () => {
+    const plan: PlannedMeal[] = [{ date: '2026-04-03', slot: 'lunch', mealId: 'pasta' }];
+    expect(resolveMeal('2026-04-04', 'dinner', plan, meals)).toBeNull();
   });
 
   it('returns null when mealId is empty', () => {
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: '' }];
-    expect(resolveMeal(0, 'dinner', plan, meals)).toBeNull();
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: '' }];
+    expect(resolveMeal('2026-04-04', 'dinner', plan, meals)).toBeNull();
   });
 
   it('returns null when mealId references a non-existent meal', () => {
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'deleted' }];
-    expect(resolveMeal(0, 'dinner', plan, meals)).toBeNull();
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'deleted' }];
+    expect(resolveMeal('2026-04-04', 'dinner', plan, meals)).toBeNull();
   });
 
   it('resolves a valid planned meal', () => {
-    const plan: PlannedMeal[] = [{ day: 2, slot: 'lunch', mealId: 'salad' }];
-    const result = resolveMeal(2, 'lunch', plan, meals);
+    const plan: PlannedMeal[] = [{ date: '2026-04-01', slot: 'lunch', mealId: 'salad' }];
+    const result = resolveMeal('2026-04-01', 'lunch', plan, meals);
     expect(result).not.toBeNull();
     expect(result!.id).toBe('salad');
     expect(result!.name).toBe('Salad');
@@ -71,11 +230,11 @@ describe('resolveMeal', () => {
 
   it('resolves the correct meal when multiple entries exist', () => {
     const plan: PlannedMeal[] = [
-      { day: 0, slot: 'breakfast', mealId: 'pasta' },
-      { day: 0, slot: 'dinner', mealId: 'salad' },
+      { date: '2026-04-04', slot: 'breakfast', mealId: 'pasta' },
+      { date: '2026-04-04', slot: 'dinner', mealId: 'salad' },
     ];
-    expect(resolveMeal(0, 'breakfast', plan, meals)!.id).toBe('pasta');
-    expect(resolveMeal(0, 'dinner', plan, meals)!.id).toBe('salad');
+    expect(resolveMeal('2026-04-04', 'breakfast', plan, meals)!.id).toBe('pasta');
+    expect(resolveMeal('2026-04-04', 'dinner', plan, meals)!.id).toBe('salad');
   });
 });
 
@@ -116,7 +275,6 @@ describe('getActiveSlot', () => {
   });
 
   it('skips disabled slots and returns null if no match', () => {
-    // Only breakfast enabled; hour 12 is lunch time
     expect(getActiveSlot(12, ['breakfast'])).toBeNull();
   });
 
@@ -125,13 +283,13 @@ describe('getActiveSlot', () => {
   });
 
   it('boundary: slot window start is inclusive', () => {
-    expect(getActiveSlot(10, allSlots)).toBe('lunch');   // lunch starts at 10
-    expect(getActiveSlot(17, allSlots)).toBe('dinner');  // dinner starts at 17
+    expect(getActiveSlot(10, allSlots)).toBe('lunch');
+    expect(getActiveSlot(17, allSlots)).toBe('dinner');
   });
 
   it('boundary: slot window end is exclusive', () => {
-    expect(getActiveSlot(10, allSlots)).not.toBe('breakfast'); // breakfast ends at 10
-    expect(getActiveSlot(14, allSlots)).not.toBe('lunch');     // lunch ends at 14
+    expect(getActiveSlot(10, allSlots)).not.toBe('breakfast');
+    expect(getActiveSlot(14, allSlots)).not.toBe('lunch');
   });
 });
 

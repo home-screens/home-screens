@@ -1,48 +1,61 @@
 'use client';
 
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
-import { Shuffle, Copy, Trash2 } from 'lucide-react';
+import { SLOT_META, SLOT_ORDER, DAY_NAMES_SHORT, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate } from '@/lib/meal-constants';
+import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface WeekGridProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   slots: MealSlotType[];
-  weekStartDay: 'sunday' | 'monday';
   accentColor: string;
   selectedMealId: string | null;
+  weekDates: string[];
+  isCurrentWeek: boolean;
   onSelectMeal: (id: string) => void;
-  onRemoveMeal: (day: number, slot: MealSlotType) => void;
-  onEmptyCellClick: (day: number, slot: MealSlotType) => void;
+  onRemoveMeal: (date: string, slot: MealSlotType) => void;
+  onEmptyCellClick: (date: string, slot: MealSlotType) => void;
   onSuggestRandom: () => void;
   onCopyLastWeek: () => void;
-  hasPreviousPlan: boolean;
+  hasPreviousWeek: boolean;
   onClearWeek: () => void;
+  onNavigateWeek: (direction: -1 | 1) => void;
+  onJumpToToday: () => void;
 }
 
 export default function WeekGrid({
   plan,
   savedMeals,
   slots,
-  weekStartDay,
   accentColor,
   selectedMealId,
+  weekDates,
+  isCurrentWeek,
   onSelectMeal,
   onRemoveMeal,
   onEmptyCellClick,
   onSuggestRandom,
   onCopyLastWeek,
-  hasPreviousPlan,
+  hasPreviousWeek,
   onClearWeek,
+  onNavigateWeek,
+  onJumpToToday,
 }: WeekGridProps) {
-  const today = new Date().getDay();
-  const orderedDays = getOrderedDays(weekStartDay);
+  const todayISO = toISODate(new Date());
+  // Sort slots into chronological order regardless of config toggle order
+  const orderedSlots = SLOT_ORDER.filter((s) => slots.includes(s));
+
+  // Format week date range for header
+  const startDate = new Date(weekDates[0] + 'T12:00:00');
+  const endDate = new Date(weekDates[6] + 'T12:00:00');
+  const formatShort = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dateRangeLabel = `${formatShort(startDate)} – ${formatShort(endDate)}`;
 
   const ghostBtn =
     'flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded border border-neutral-700 bg-transparent text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition';
 
-  function resolveMealForCell(day: number, slot: MealSlotType): SavedMeal | null {
-    const entry = plan.find((p) => p.day === day && p.slot === slot);
+  function resolveMealForCell(date: string, slot: MealSlotType): SavedMeal | null {
+    const entry = plan.find((p) => p.date === date && p.slot === slot);
     if (!entry?.mealId) return null;
     return savedMeals.find((m) => m.id === entry.mealId) ?? null;
   }
@@ -51,15 +64,39 @@ export default function WeekGrid({
     <div className="flex-1 flex flex-col min-w-0">
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-5 py-2.5 border-b border-neutral-700">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-          This Week
+        {/* Week navigation */}
+        <button
+          type="button"
+          onClick={() => onNavigateWeek(-1)}
+          className="p-1 rounded hover:bg-neutral-800 text-neutral-500 hover:text-neutral-300 transition"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 min-w-[140px] text-center">
+          {dateRangeLabel}
         </span>
+        <button
+          type="button"
+          onClick={() => onNavigateWeek(1)}
+          className="p-1 rounded hover:bg-neutral-800 text-neutral-500 hover:text-neutral-300 transition"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+        {!isCurrentWeek && (
+          <button
+            type="button"
+            onClick={onJumpToToday}
+            className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition"
+          >
+            Today
+          </button>
+        )}
         <div className="flex-1" />
         <button type="button" onClick={onSuggestRandom} className={ghostBtn}>
           <Shuffle className="w-3.5 h-3.5" />
           Suggest
         </button>
-        {hasPreviousPlan && (
+        {hasPreviousWeek && (
           <button type="button" onClick={onCopyLastWeek} className={ghostBtn}>
             <Copy className="w-3.5 h-3.5" />
             Copy Last Week
@@ -81,12 +118,12 @@ export default function WeekGrid({
           className="gap-x-1.5 gap-y-0"
           style={{
             display: 'grid',
-            gridTemplateColumns: `90px repeat(${slots.length}, 1fr)`,
+            gridTemplateColumns: `90px repeat(${orderedSlots.length}, 1fr)`,
           }}
         >
           {/* Header row */}
           <div /> {/* Corner cell */}
-          {slots.map((slot) => (
+          {orderedSlots.map((slot) => (
             <div
               key={slot}
               className="text-center text-[10px] font-bold uppercase tracking-wider pb-2"
@@ -97,15 +134,18 @@ export default function WeekGrid({
           ))}
 
           {/* Day rows */}
-          {orderedDays.map((day) => {
-            const isToday = day === today;
+          {weekDates.map((date) => {
+            const isToday = isCurrentWeek && date === todayISO;
+            const dayIdx = dateToDayIndex(date);
+            const dateObj = new Date(date + 'T12:00:00');
+            const shortDate = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
 
-            return slots.map((slot, slotIdx) => {
-              const meal = resolveMealForCell(day, slot);
+            return orderedSlots.map((slot, slotIdx) => {
+              const meal = resolveMealForCell(date, slot);
               const isSelected = meal ? selectedMealId === meal.id : false;
 
               return (
-                <div key={`${day}-${slot}`} style={{ display: 'contents' }}>
+                <div key={`${date}-${slot}`} style={{ display: 'contents' }}>
                   {/* Day label — only render for the first slot */}
                   {slotIdx === 0 && (
                     <div
@@ -130,12 +170,17 @@ export default function WeekGrid({
                               Today
                             </div>
                             <div className="text-[10px] text-neutral-600">
-                              {DAY_NAMES_FULL[day]}
+                              {DAY_NAMES_SHORT[dayIdx]} {shortDate}
                             </div>
                           </>
                         ) : (
-                          <div className="text-sm text-neutral-500">
-                            {DAY_NAMES_SHORT[day]}
+                          <div>
+                            <div className="text-sm text-neutral-500">
+                              {DAY_NAMES_SHORT[dayIdx]}
+                            </div>
+                            <div className="text-[10px] text-neutral-600">
+                              {shortDate}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -171,7 +216,7 @@ export default function WeekGrid({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onRemoveMeal(day, slot);
+                            onRemoveMeal(date, slot);
                           }}
                           className="absolute top-1 right-1 w-5 h-5 rounded bg-transparent text-neutral-600 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 transition flex items-center justify-center text-xs"
                         >
@@ -180,7 +225,7 @@ export default function WeekGrid({
                       </div>
                     ) : (
                       <div
-                        onClick={() => onEmptyCellClick(day, slot)}
+                        onClick={() => onEmptyCellClick(date, slot)}
                         className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-neutral-700 cursor-pointer transition group"
                       >
                         <span className="text-sm text-transparent group-hover:text-neutral-600">

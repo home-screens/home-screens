@@ -1,16 +1,20 @@
 'use client';
 
-import type { MealPlannerConfig } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_FULL, getOrderedDays, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_FULL, resolveMeal, DEFAULT_SLOTS, getWeekDatesForRange, getWeekRange, dateToDayIndex } from '@/lib/meal-constants';
 
 interface ListViewProps {
   config: MealPlannerConfig;
-  today: number;
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
 }
 
-export function ListView({ config, today }: ListViewProps) {
-  const days = getOrderedDays(config.weekStartDay);
+export function ListView({ config, plan, savedMeals, todayISO }: ListViewProps) {
+  const weekStartDay = config.weekStartDay ?? 'sunday';
+  const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
+  const weekDates = getWeekDatesForRange(start, weekStartDay);
   const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
   const showPrepTime = config.showPrepTime ?? true;
@@ -18,16 +22,17 @@ export function ListView({ config, today }: ListViewProps) {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
-      {days.map((day) => {
-        const isToday = day === today;
+      {weekDates.map((date) => {
+        const isToday = date === todayISO;
+        const dayIdx = dateToDayIndex(date);
         const meals = slots.map((slot) => ({
           slot,
-          meal: resolveMeal(day, slot, config.plan, config.savedMeals),
+          meal: resolveMeal(date, slot, plan, savedMeals),
         }));
         const hasMeals = meals.some((m) => m.meal);
 
         return (
-          <div key={day} className="mb-2">
+          <div key={date} className="mb-2">
             {/* Day header */}
             <div className="flex items-center gap-2 mb-1">
               <span
@@ -38,11 +43,11 @@ export function ListView({ config, today }: ListViewProps) {
                   opacity: isToday ? 1 : TEXT_OPACITY.secondary,
                 }}
               >
-                {isToday ? 'Today' : DAY_NAMES_FULL[day]}
+                {isToday ? 'Today' : DAY_NAMES_FULL[dayIdx]}
               </span>
               {isToday && (
                 <span className="opacity-30" style={{ fontSize: '0.5em' }}>
-                  {DAY_NAMES_FULL[day]}
+                  {DAY_NAMES_FULL[dayIdx]}
                 </span>
               )}
               <div

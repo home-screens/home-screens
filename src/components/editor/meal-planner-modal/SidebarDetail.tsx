@@ -359,25 +359,31 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
               <div className="flex gap-2 mt-1.5">
                 <input
                   type="text"
-                  className={`w-24 ${MODAL_INPUT_CLASS}`}
+                  className={`flex-1 ${MODAL_INPUT_CLASS}`}
                   placeholder="Amount"
                   value={ingredient.amount ?? ''}
                   onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
                 />
-                <select
-                  className={`flex-1 ${MODAL_INPUT_CLASS}`}
-                  value={ingredient.category ?? ''}
-                  onChange={(e) =>
-                    updateIngredient(index, 'category', e.target.value)
-                  }
-                >
-                  <option value="">Category...</option>
-                  {INGREDIENT_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {capitalize(cat)}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative w-28 shrink-0">
+                  <select
+                    className={`w-full appearance-none ${MODAL_INPUT_CLASS} pr-7 cursor-pointer`}
+                    style={{ color: ingredient.category ? undefined : '#737373' }}
+                    value={ingredient.category ?? ''}
+                    onChange={(e) =>
+                      updateIngredient(index, 'category', e.target.value)
+                    }
+                  >
+                    <option value="">Category</option>
+                    {INGREDIENT_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {capitalize(cat)}
+                      </option>
+                    ))}
+                  </select>
+                  <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 6l4 4 4-4" />
+                  </svg>
+                </div>
               </div>
             </div>
           ))}

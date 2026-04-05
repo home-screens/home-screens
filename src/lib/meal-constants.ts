@@ -105,20 +105,107 @@ export function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {
   return [0, 1, 2, 3, 4, 5, 6];
 }
 
+// ── Date utilities (ISO date string helpers for multi-week plans) ────
+
+/** Format a Date as ISO date string "2026-04-04" */
+export function toISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** Parse an ISO date string back to a Date (noon local time to avoid DST boundary issues) */
+export function fromISODate(s: string): Date {
+  return new Date(s + 'T12:00:00');
+}
+
+/** Get the day-of-week index (0=Sun) for an ISO date string */
+export function dateToDayIndex(date: string): number {
+  return new Date(date + 'T12:00:00').getDay();
+}
+
+/** Get the ISO date range (start, end) for the week containing `referenceDate` */
+export function getWeekRange(
+  referenceDate: Date,
+  weekStartDay: 'sunday' | 'monday' = 'sunday',
+): { start: string; end: string } {
+  const d = new Date(referenceDate);
+  const dow = d.getDay();
+  const startOffset = weekStartDay === 'monday' ? ((dow + 6) % 7) : dow;
+  const start = new Date(d);
+  start.setDate(d.getDate() - startOffset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start: toISODate(start), end: toISODate(end) };
+}
+
+/** Return 7 ISO date strings for the week starting at `start` (already aligned) */
+export function getWeekDatesForRange(
+  start: string,
+  weekStartDay: 'sunday' | 'monday' = 'sunday',
+): string[] {
+  const d = fromISODate(start);
+  // If start isn't already aligned, align it
+  const dow = d.getDay();
+  const offset = weekStartDay === 'monday' ? ((dow + 6) % 7) : dow;
+  d.setDate(d.getDate() - offset);
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(d);
+    day.setDate(d.getDate() + i);
+    dates.push(toISODate(day));
+  }
+  return dates;
+}
+
+/** Filter plan entries to those within a date range (inclusive) */
+export function filterPlanToWeek(
+  plan: PlannedMeal[],
+  start: string,
+  end: string,
+): PlannedMeal[] {
+  return plan.filter((p) => p.date >= start && p.date <= end);
+}
+
+/** Replace one week's entries in the full plan (used for multi-week merge) */
+export function replaceWeekInPlan(
+  fullPlan: PlannedMeal[],
+  weekDates: string[],
+  newWeekEntries: PlannedMeal[],
+): PlannedMeal[] {
+  const weekSet = new Set(weekDates);
+  const otherWeeks = fullPlan.filter((p) => !weekSet.has(p.date));
+  return [...otherWeeks, ...newWeekEntries];
+}
+
 /** Resolve a planned meal to display info */
 export function resolveMeal(
-  day: number,
+  date: string,
   slot: MealSlotType,
   plan: PlannedMeal[] | undefined,
   savedMeals: SavedMeal[] | undefined,
 ): SavedMeal | null {
   if (!plan || !savedMeals) return null;
-  const planned = plan.find((p) => p.day === day && p.slot === slot);
+  const planned = plan.find((p) => p.date === date && p.slot === slot);
   if (!planned) return null;
   if (planned.mealId) {
     return savedMeals.find((m) => m.id === planned.mealId) ?? null;
   }
   return null;
+}
+
+/** Copy entries from one week to another, preserving day-of-week position */
+export function copyWeekEntries(
+  plan: PlannedMeal[],
+  fromDates: string[],
+  toDates: string[],
+): PlannedMeal[] {
+  const entries = filterPlanToWeek(plan, fromDates[0], fromDates[fromDates.length - 1]);
+  return entries.map((entry) => {
+    const idx = fromDates.indexOf(entry.date);
+    return { ...entry, date: toDates[idx >= 0 ? idx : 0] };
+  });
 }
 
 /** Get the active (current) meal slot based on time and enabled slots */

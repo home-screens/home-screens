@@ -10,16 +10,16 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/meal-data', () => ({
   readMealData: vi.fn(),
   writeMealData: vi.fn(),
+  prunePlan: vi.fn((plan: unknown[]) => plan), // pass-through for tests
 }));
 
 import { GET, PUT } from '@/app/api/meals/data/route';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 
-const emptyData = { savedMeals: [], plan: [], previousPlan: [], groceryChecked: [] };
+const emptyData = { savedMeals: [], plan: [], groceryChecked: [] };
 const populatedData = {
   savedMeals: [{ id: 'm1', name: 'Tacos', emoji: '🌮' }],
-  plan: [{ day: 0, slot: 'dinner', mealId: 'm1' }],
-  previousPlan: [{ day: 1, slot: 'lunch', mealId: 'm1' }],
+  plan: [{ date: '2026-04-04', slot: 'dinner', mealId: 'm1' }],
   groceryChecked: ['tortillas'],
 };
 
@@ -135,16 +135,6 @@ describe('PUT /api/meals/data', () => {
   // ------- Field preservation -------
 
   describe('field preservation', () => {
-    it('preserves existing previousPlan when not provided', async () => {
-      vi.mocked(readMealData).mockResolvedValue(populatedData as never);
-
-      const res = await PUT(makePutRequest({ savedMeals: [{ id: 'm2' }], plan: [] }));
-      const json = await res.json();
-
-      expect(res.status).toBe(200);
-      expect(json.previousPlan).toEqual(populatedData.previousPlan);
-    });
-
     it('preserves existing groceryChecked when not provided', async () => {
       vi.mocked(readMealData).mockResolvedValue(populatedData as never);
 
@@ -153,18 +143,6 @@ describe('PUT /api/meals/data', () => {
 
       expect(res.status).toBe(200);
       expect(json.groceryChecked).toEqual(populatedData.groceryChecked);
-    });
-
-    it('uses provided previousPlan when given', async () => {
-      const newPrevious = [{ day: 3, slot: 'breakfast', mealId: 'm1' }];
-      const res = await PUT(makePutRequest({
-        savedMeals: [{ id: 'm2' }],
-        plan: [],
-        previousPlan: newPrevious,
-      }));
-      const json = await res.json();
-
-      expect(json.previousPlan).toEqual(newPrevious);
     });
 
     it('uses provided groceryChecked when given', async () => {
@@ -180,15 +158,12 @@ describe('PUT /api/meals/data', () => {
     });
 
     it('falls back gracefully when readMealData fails during field preservation', async () => {
-      // First call (guard) passes because incoming is non-empty,
-      // second call (field preservation) fails
       vi.mocked(readMealData).mockRejectedValue(new Error('disk error'));
 
       const res = await PUT(makePutRequest({ savedMeals: [{ id: 'm2' }], plan: [] }));
       const json = await res.json();
 
       expect(res.status).toBe(200);
-      expect(json.previousPlan).toEqual([]);
       expect(json.groceryChecked).toEqual([]);
     });
   });

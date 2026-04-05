@@ -9,8 +9,8 @@ function meal(id: string, name: string): SavedMeal {
   return { id, name };
 }
 
-function planned(day: number, slot: MealSlotType, mealId: string): PlannedMeal {
-  return { day, slot, mealId };
+function planned(date: string, slot: MealSlotType, mealId: string): PlannedMeal {
+  return { date, slot, mealId };
 }
 
 const ALL_SLOTS: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
@@ -34,33 +34,33 @@ describe('resolveMeal', () => {
   const savedMeals = [meal('a', 'Oatmeal'), meal('b', 'Pasta')];
 
   it('returns null when plan is undefined', () => {
-    expect(resolveMeal(1, 'breakfast', undefined, savedMeals)).toBeNull();
+    expect(resolveMeal('2026-04-01', 'breakfast', undefined, savedMeals)).toBeNull();
   });
 
   it('returns null when savedMeals is undefined', () => {
-    expect(resolveMeal(1, 'breakfast', [planned(1, 'breakfast', 'a')], undefined)).toBeNull();
+    expect(resolveMeal('2026-04-01', 'breakfast', [planned('2026-04-01', 'breakfast', 'a')], undefined)).toBeNull();
   });
 
   it('returns null when no planned entry matches day/slot', () => {
-    expect(resolveMeal(2, 'lunch', [planned(1, 'breakfast', 'a')], savedMeals)).toBeNull();
+    expect(resolveMeal('2026-04-02', 'lunch', [planned('2026-04-01', 'breakfast', 'a')], savedMeals)).toBeNull();
   });
 
   it('returns null when mealId references nonexistent saved meal', () => {
-    expect(resolveMeal(1, 'breakfast', [planned(1, 'breakfast', 'missing')], savedMeals)).toBeNull();
+    expect(resolveMeal('2026-04-01', 'breakfast', [planned('2026-04-01', 'breakfast', 'missing')], savedMeals)).toBeNull();
   });
 
   it('returns the saved meal when plan entry matches', () => {
-    const result = resolveMeal(1, 'breakfast', [planned(1, 'breakfast', 'a')], savedMeals);
+    const result = resolveMeal('2026-04-01', 'breakfast', [planned('2026-04-01', 'breakfast', 'a')], savedMeals);
     expect(result).toEqual(savedMeals[0]);
   });
 
   it('returns correct meal from multiple plan entries', () => {
-    const plan = [planned(1, 'breakfast', 'a'), planned(1, 'dinner', 'b')];
-    expect(resolveMeal(1, 'dinner', plan, savedMeals)).toEqual(savedMeals[1]);
+    const plan = [planned('2026-04-01', 'breakfast', 'a'), planned('2026-04-01', 'dinner', 'b')];
+    expect(resolveMeal('2026-04-01', 'dinner', plan, savedMeals)).toEqual(savedMeals[1]);
   });
 
   it('returns null for empty arrays', () => {
-    expect(resolveMeal(0, 'breakfast', [], [])).toBeNull();
+    expect(resolveMeal('2026-04-04', 'breakfast', [], [])).toBeNull();
   });
 });
 

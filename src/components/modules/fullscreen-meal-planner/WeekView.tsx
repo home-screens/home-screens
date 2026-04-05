@@ -1,31 +1,25 @@
-import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, toISODate, getWeekDatesForRange, getWeekRange } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 
 export default function WeekView({
   config, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
 }: MealPlannerViewProps) {
-  const days = getOrderedDays(config.weekStartDay ?? 'sunday');
-  const dateNow = now;
-  const todayDow = dateNow.getDay();
+  const weekStartDay = config.weekStartDay ?? 'sunday';
+  const { start } = getWeekRange(now, weekStartDay);
+  const weekDates = getWeekDatesForRange(start, weekStartDay);
+  const todayISO = toISODate(now);
 
-  // Compute start-of-week date for the date range header
-  let startOffset = days[0] - todayDow;
-  if (startOffset > 0) startOffset -= 7;
-  const weekStart = new Date(dateNow);
-  weekStart.setDate(dateNow.getDate() + startOffset);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-
+  // Compute display range
+  const weekStartDate = new Date(weekDates[0] + 'T12:00:00');
+  const weekEndDate = new Date(weekDates[6] + 'T12:00:00');
   const formatShort = (d: Date) =>
     d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const dateRange = `${formatShort(weekStart)} – ${formatShort(weekEnd)}`;
+  const dateRange = `${formatShort(weekStartDate)} – ${formatShort(weekEndDate)}`;
 
-  const { filled, total, pct } = countPlanned(plan, days.length * slots.length);
+  const { filled, total, pct } = countPlanned(plan, weekDates.length * slots.length);
 
-  // Determine past days using position within the ordered week
-  const todayIndex = days.indexOf(todayDow);
-  const isPast = (day: number) => days.indexOf(day) < todayIndex;
+  const isPast = (date: string) => date < todayISO;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: bodyFont }}>
@@ -38,22 +32,22 @@ export default function WeekView({
           This Week&rsquo;s Meals
         </div>
         <div style={{ fontSize: s * 1.1, color: 'var(--fmp-text-3)', marginTop: s * 0.3 }}>
-          {dateRange}, {weekStart.getFullYear()}
+          {dateRange}, {weekStartDate.getFullYear()}
         </div>
       </div>
 
       {/* Day rows */}
       <div className="fmp-scroll" style={{ flex: 1, minHeight: 0, padding: `0 ${pad}px`, display: 'flex', flexDirection: 'column', gap: s * 0.6 }}>
-        {days.map((day) => {
-          const isToday = day === todayDow;
-          const dayPast = isPast(day);
-          const dayDate = new Date(weekStart);
-          dayDate.setDate(weekStart.getDate() + days.indexOf(day));
+        {weekDates.map((date) => {
+          const isToday = date === todayISO;
+          const dayPast = isPast(date);
+          const dayDate = new Date(date + 'T12:00:00');
+          const day = dayDate.getDay();
           const dateNum = dayDate.getDate();
 
           return (
             <div
-              key={day}
+              key={date}
               style={{
                 opacity: dayPast && !isToday ? `var(--fmp-past-op)` : 1,
                 background: isToday ? `color-mix(in srgb, var(--fmp-accent) 6%, transparent)` : 'transparent',
@@ -89,7 +83,7 @@ export default function WeekView({
               {/* Meal cards row */}
               <div style={{ display: 'flex', gap: s * 0.6 }}>
                 {slots.map((slot) => {
-                  const meal = resolveMeal(day, slot, plan, savedMeals);
+                  const meal = resolveMeal(date, slot, plan, savedMeals);
                   const meta = SLOT_META[slot];
                   const isActiveSlot = isToday && slot === activeSlot;
 

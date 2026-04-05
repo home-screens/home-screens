@@ -7,7 +7,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { getActiveSlot, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { getActiveSlot, DEFAULT_SLOTS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
@@ -36,7 +36,7 @@ export default function FullscreenMealPlannerModule({
   // ── Data fetching ──
   const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
-  const plan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+  const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
 
   // ── Scale system ──
   const { containerRef, dims } = useFullscreenDims();
@@ -61,6 +61,17 @@ export default function FullscreenMealPlannerModule({
   const slots = useMemo(() => config.slots ?? DEFAULT_SLOTS, [config.slots]);
   const activeSlot = getActiveSlot(currentHour, slots);
   const view = config.view ?? 'week';
+
+  // Filter plan to current week for display
+  const todayISO = toISODate(now);
+  const { start: weekStart, end: weekEnd } = useMemo(
+    () => getWeekRange(new Date(todayISO + 'T12:00:00'), config.weekStartDay ?? 'sunday'),
+    [todayISO, config.weekStartDay],
+  );
+  const plan = useMemo(
+    () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
+    [fullPlan, weekStart, weekEnd],
+  );
 
   const pad = s * 2 * d;
   const headerFont = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
@@ -123,7 +134,7 @@ export default function FullscreenMealPlannerModule({
       {view === 'week' && <WeekView {...viewProps} />}
       {view === 'today' && <TodayView {...viewProps} />}
       {view === 'menu-board' && <MenuBoardView {...viewProps} />}
-      {view === 'next-meal' && <NextMealView {...viewProps} />}
+      {view === 'next-meal' && <NextMealView {...viewProps} plan={fullPlan} />}
     </div>
   );
 }

@@ -717,7 +717,7 @@ export interface SavedMeal {
 }
 
 export interface PlannedMeal {
-  day: number;            // 0=Sun...6=Sat
+  date: string;           // ISO date "2026-04-04"
   slot: MealSlotType;
   mealId?: string;        // references SavedMeal.id
   customText?: string;    // "Eating out", "Leftovers"
@@ -726,9 +726,6 @@ export interface PlannedMeal {
 
 export interface MealPlannerConfig {
   view: MealPlannerView;
-  savedMeals: SavedMeal[];
-  plan: PlannedMeal[];
-  previousPlan?: PlannedMeal[];
   slots: MealSlotType[];
   weekStartDay: 'sunday' | 'monday';
   showEmoji: boolean;

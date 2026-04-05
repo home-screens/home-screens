@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getWeekDates, currentSlotIndex, TAG_OPTIONS } from '../meals-shared';
+import { getWeekDates, currentSlotIndex } from '../meals-shared';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -10,21 +10,29 @@ describe('getWeekDates', () => {
     expect(getWeekDates()).toHaveLength(7);
   });
 
-  it('starts on Sunday (day 0) and ends on Saturday (day 6)', () => {
+  it('starts on Sunday (dayIndex 0) and ends on Saturday (dayIndex 6)', () => {
     const dates = getWeekDates();
-    expect(dates[0].day).toBe(0);
+    expect(dates[0].dayIndex).toBe(0);
     expect(dates[0].label).toBe('Sunday');
-    expect(dates[6].day).toBe(6);
+    expect(dates[6].dayIndex).toBe(6);
     expect(dates[6].label).toBe('Saturday');
   });
 
   it('returns consecutive dates', () => {
     const dates = getWeekDates();
     for (let i = 1; i < dates.length; i++) {
-      const diff = dates[i].date.getTime() - dates[i - 1].date.getTime();
-      // Diff should be ~24 hours (within DST tolerance)
+      const prev = new Date(dates[i - 1].date + 'T12:00:00');
+      const curr = new Date(dates[i].date + 'T12:00:00');
+      const diff = curr.getTime() - prev.getTime();
       expect(diff).toBeGreaterThan(23 * 60 * 60 * 1000);
       expect(diff).toBeLessThan(25 * 60 * 60 * 1000);
+    }
+  });
+
+  it('returns ISO date strings in YYYY-MM-DD format', () => {
+    const dates = getWeekDates();
+    for (const d of dates) {
+      expect(d.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   });
 
@@ -43,11 +51,12 @@ describe('getWeekDates', () => {
     expect(found).toBe(true);
   });
 
-  it('places today at index matching its day-of-week', () => {
-    const today = new Date();
-    const dates = getWeekDates();
-    const todayEntry = dates[today.getDay()];
-    expect(todayEntry.date.getDate()).toBe(today.getDate());
+  it('accepts a custom start date', () => {
+    // Pass a specific date and verify it returns that week
+    const start = new Date(2026, 3, 5); // Sunday Apr 5 2026
+    const dates = getWeekDates(start);
+    expect(dates[0].date).toBe('2026-04-05');
+    expect(dates[6].date).toBe('2026-04-11');
   });
 });
 
@@ -85,22 +94,3 @@ describe('currentSlotIndex', () => {
   });
 });
 
-describe('TAG_OPTIONS', () => {
-  it('contains expected dietary/preparation tags (lowercase canonical form)', () => {
-    expect(TAG_OPTIONS).toContain('quick');
-    expect(TAG_OPTIONS).toContain('healthy');
-    expect(TAG_OPTIONS).toContain('vegetarian');
-    expect(TAG_OPTIONS).toContain('gluten-free');
-  });
-
-  it('excludes slot tags (those belong to SLOT_TAGS)', () => {
-    expect(TAG_OPTIONS).not.toContain('breakfast');
-    expect(TAG_OPTIONS).not.toContain('lunch');
-    expect(TAG_OPTIONS).not.toContain('dinner');
-    expect(TAG_OPTIONS).not.toContain('snack');
-  });
-
-  it('has no duplicates', () => {
-    expect(new Set(TAG_OPTIONS).size).toBe(TAG_OPTIONS.length);
-  });
-});

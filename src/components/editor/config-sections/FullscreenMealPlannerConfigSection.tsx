@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
@@ -29,7 +29,7 @@ const VIEWS = [
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[]; previousPlan: PlannedMeal[] }>({ savedMeals: [], plan: [], previousPlan: [] });
+  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[] }>({ savedMeals: [], plan: [] });
 
   const fetchMealData = useCallback(() => {
     fetch('/api/meals/data')
@@ -37,18 +37,21 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
         plan: d.plan ?? [],
-        previousPlan: d.previousPlan ?? [],
       }))
       .catch(() => {});
   }, []);
 
   useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
 
+  // Ref for stable closure in handleModalUpdate
+  const mealDataRef = useRef(mealData);
+  useEffect(() => { mealDataRef.current = mealData; }, [mealData]);
+
   const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
+    const current = mealDataRef.current;
     const optimistic = {
-      savedMeals: (updates.savedMeals as SavedMeal[]) ?? mealData.savedMeals,
-      plan: (updates.plan as PlannedMeal[]) ?? mealData.plan,
-      previousPlan: (updates.previousPlan as PlannedMeal[]) ?? mealData.previousPlan,
+      savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
+      plan: (updates.plan as PlannedMeal[]) ?? current.plan,
     };
     // Update local state immediately so the modal reflects changes without waiting for the server
     setMealData(optimistic);
@@ -60,12 +63,12 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       });
       if (res.ok) {
         const data = await res.json();
-        setMealData({ savedMeals: data.savedMeals, plan: data.plan, previousPlan: data.previousPlan ?? [] });
+        setMealData({ savedMeals: data.savedMeals, plan: data.plan });
       }
       // Notify the canvas preview to refetch via displayCache invalidation
       displayCache.invalidate('/api/meals/data');
     } catch {}
-  }, [mealData]);
+  }, []);
 
   const activeSlots = c.slots ?? [...DEFAULT_SLOTS];
 
@@ -203,7 +206,6 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         <MealPlannerModal
           savedMeals={mealData.savedMeals}
           plan={mealData.plan}
-          previousPlan={mealData.previousPlan}
           slots={activeSlots}
           weekStartDay={c.weekStartDay ?? 'monday'}
           accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}

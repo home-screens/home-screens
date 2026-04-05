@@ -15,7 +15,7 @@ describe('generateGroceryList', () => {
   });
 
   it('returns empty map when plan references no saved meals', () => {
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'breakfast', mealId: 'nonexistent' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'breakfast', mealId: 'nonexistent' }];
     const result = generateGroceryList(plan, [], []);
     expect(result.size).toBe(0);
   });
@@ -27,7 +27,7 @@ describe('generateGroceryList', () => {
         { name: 'Lettuce', amount: '1 head', category: 'produce' },
       ]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     expect(result.has('meat')).toBe(true);
@@ -42,8 +42,8 @@ describe('generateGroceryList', () => {
       meal('b', [{ name: 'Butter', amount: '1 tbsp', category: 'dairy' }]),
     ];
     const plan: PlannedMeal[] = [
-      { day: 0, slot: 'breakfast', mealId: 'a' },
-      { day: 1, slot: 'lunch', mealId: 'b' },
+      { date: '2026-04-04', slot: 'breakfast', mealId: 'a' },
+      { date: '2026-04-05', slot: 'lunch', mealId: 'b' },
     ];
 
     const result = generateGroceryList(plan, meals, []);
@@ -56,7 +56,7 @@ describe('generateGroceryList', () => {
     const meals = [
       meal('a', [{ name: 'Salmon', amount: '1 fillet', category: 'seafood' }]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     expect(result.has('seafood')).toBe(false);
@@ -68,7 +68,7 @@ describe('generateGroceryList', () => {
     const meals = [
       meal('a', [{ name: 'Sriracha', amount: '1 bottle' }]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'lunch', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'lunch', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     expect(result.has('other')).toBe(true);
@@ -82,7 +82,7 @@ describe('generateGroceryList', () => {
         { name: 'Eggs', amount: '1 doz', category: 'dairy' },
       ]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'breakfast', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'breakfast', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, ['milk']);
     const dairy = result.get('dairy')!;
@@ -100,7 +100,7 @@ describe('generateGroceryList', () => {
         { name: 'Cream', amount: '', category: 'dairy' },
       ]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'breakfast', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'breakfast', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, ['butter']);
     const names = result.get('dairy')!.items.map((i) => i.name);
@@ -112,7 +112,7 @@ describe('generateGroceryList', () => {
     const meals = [
       meal('a', [{ name: 'brown sugar', amount: '1 cup', category: 'pantry' }]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     expect(result.get('pantry')!.items[0].name).toBe('Brown sugar');
@@ -126,7 +126,7 @@ describe('generateGroceryList', () => {
         { name: 'Item3', amount: '', category: 'pantry' },
       ]),
     ];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     const keys = Array.from(result.keys());
@@ -140,8 +140,8 @@ describe('generateGroceryList', () => {
   it('skips plan entries with no mealId', () => {
     const meals = [meal('a', [{ name: 'Rice', amount: '1 cup', category: 'pantry' }])];
     const plan: PlannedMeal[] = [
-      { day: 0, slot: 'lunch', mealId: '' },
-      { day: 1, slot: 'dinner', mealId: 'a' },
+      { date: '2026-04-04', slot: 'lunch', mealId: '' },
+      { date: '2026-04-05', slot: 'dinner', mealId: 'a' },
     ];
 
     const result = generateGroceryList(plan, meals, []);
@@ -151,7 +151,7 @@ describe('generateGroceryList', () => {
 
   it('skips meals that have no ingredients', () => {
     const meals = [meal('a', undefined)];
-    const plan: PlannedMeal[] = [{ day: 0, slot: 'dinner', mealId: 'a' }];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
 
     const result = generateGroceryList(plan, meals, []);
     expect(result.size).toBe(0);

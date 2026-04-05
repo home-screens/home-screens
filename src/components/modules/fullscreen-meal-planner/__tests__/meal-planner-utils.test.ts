@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getDifficultyColor, getNextMeal, countPlanned } from '../meal-planner-utils';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import { toISODate } from '@/lib/meal-constants';
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -10,8 +11,8 @@ function makeMeal(id: string, name: string): SavedMeal {
   return { id, name, ingredients: [], tags: [], prepTime: 30 };
 }
 
-function makePlan(day: number, slot: MealSlotType, mealId: string): PlannedMeal {
-  return { day, slot, mealId };
+function makePlan(date: string, slot: MealSlotType, mealId: string): PlannedMeal {
+  return { date, slot, mealId };
 }
 
 const allSlots: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
@@ -51,10 +52,10 @@ describe('getDifficultyColor', () => {
 describe('getNextMeal', () => {
   describe('currently in a slot window', () => {
     it('returns "now" when hour falls within breakfast window (5-10)', () => {
-      const plan = [makePlan(3, 'breakfast', 'm1')]; // Wednesday
-      // 7am on a Wednesday (day index 3)
-      const now = new Date(2026, 3, 1, 7, 0); // Wed Apr 1 2026, 7am
-      // now.getDay() === 3 (Wednesday)
+      // Wed Apr 1 2026, 7am
+      const now = new Date(2026, 3, 1, 7, 0);
+      const todayISO = toISODate(now);
+      const plan = [makePlan(todayISO, 'breakfast', 'm1')];
       const result = getNextMeal(now, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('now');
@@ -64,7 +65,8 @@ describe('getNextMeal', () => {
 
     it('returns "now" when in dinner window (17-21)', () => {
       const today = new Date(2026, 3, 1, 18, 0); // Wed 6pm
-      const plan = [makePlan(today.getDay(), 'dinner', 'm4')];
+      const todayISO = toISODate(today);
+      const plan = [makePlan(todayISO, 'dinner', 'm4')];
       const result = getNextMeal(today, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('now');
@@ -76,7 +78,8 @@ describe('getNextMeal', () => {
   describe('upcoming slot today', () => {
     it('returns "upcoming" for the next slot when not currently in one', () => {
       const today = new Date(2026, 3, 1, 4, 0); // 4am, before any slot
-      const plan = [makePlan(today.getDay(), 'breakfast', 'm1')];
+      const todayISO = toISODate(today);
+      const plan = [makePlan(todayISO, 'breakfast', 'm1')];
       const result = getNextMeal(today, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('upcoming');
@@ -85,8 +88,8 @@ describe('getNextMeal', () => {
 
     it('skips slots without planned meals', () => {
       const today = new Date(2026, 3, 1, 4, 0); // 4am
-      // Only dinner is planned, no breakfast/lunch/snack
-      const plan = [makePlan(today.getDay(), 'dinner', 'm4')];
+      const todayISO = toISODate(today);
+      const plan = [makePlan(todayISO, 'dinner', 'm4')];
       const result = getNextMeal(today, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('upcoming');
@@ -97,31 +100,36 @@ describe('getNextMeal', () => {
   describe('tomorrow fallback', () => {
     it('returns "tomorrow" when no more slots today', () => {
       const today = new Date(2026, 3, 1, 22, 0); // 10pm, past all slots
-      const tomorrow = (today.getDay() + 1) % 7;
-      const plan = [makePlan(tomorrow, 'breakfast', 'm1')];
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowISO = toISODate(tomorrow);
+      const plan = [makePlan(tomorrowISO, 'breakfast', 'm1')];
       const result = getNextMeal(today, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('tomorrow');
       expect(result!.slot).toBe('breakfast');
-      expect(result!.day).toBe(tomorrow);
+      expect(result!.date).toBe(tomorrowISO);
     });
 
     it('wraps Saturday → Sunday', () => {
-      // Saturday at 10pm
       const sat = new Date(2026, 3, 4, 22, 0);
       expect(sat.getDay()).toBe(6); // Saturday
-      const plan = [makePlan(0, 'breakfast', 'm1')]; // Sunday breakfast
+      const sun = new Date(sat);
+      sun.setDate(sat.getDate() + 1);
+      const sunISO = toISODate(sun);
+      const plan = [makePlan(sunISO, 'breakfast', 'm1')];
       const result = getNextMeal(sat, plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('tomorrow');
-      expect(result!.day).toBe(0); // Sunday
+      expect(result!.date).toBe(sunISO);
     });
   });
 
   describe('edge cases', () => {
     it('returns null when no slots are enabled', () => {
       const now = new Date(2026, 3, 1, 12, 0);
-      const plan = [makePlan(now.getDay(), 'lunch', 'm2')];
+      const todayISO = toISODate(now);
+      const plan = [makePlan(todayISO, 'lunch', 'm2')];
       const result = getNextMeal(now, plan, meals, []);
       expect(result).toBeNull();
     });
@@ -134,19 +142,19 @@ describe('getNextMeal', () => {
 
     it('returns null when planned mealId does not match any saved meal', () => {
       const now = new Date(2026, 3, 1, 7, 0);
-      const plan = [makePlan(now.getDay(), 'breakfast', 'nonexistent')];
+      const todayISO = toISODate(now);
+      const plan = [makePlan(todayISO, 'breakfast', 'nonexistent')];
       const result = getNextMeal(now, plan, meals, allSlots);
-      // resolveMeal returns null for unknown mealId, so it skips
       expect(result).toBeNull();
     });
 
     it('respects slot filtering — only checks enabled slots', () => {
       const now = new Date(2026, 3, 1, 7, 0); // 7am
+      const todayISO = toISODate(now);
       const plan = [
-        makePlan(now.getDay(), 'breakfast', 'm1'),
-        makePlan(now.getDay(), 'lunch', 'm2'),
+        makePlan(todayISO, 'breakfast', 'm1'),
+        makePlan(todayISO, 'lunch', 'm2'),
       ];
-      // Only lunch enabled — skip breakfast even though we're in that window
       const result = getNextMeal(now, plan, meals, ['lunch']);
       expect(result).not.toBeNull();
       expect(result!.slot).toBe('lunch');
@@ -155,9 +163,9 @@ describe('getNextMeal', () => {
 
     it('handles plans with empty mealId', () => {
       const now = new Date(2026, 3, 1, 7, 0);
-      const plan: PlannedMeal[] = [{ day: now.getDay(), slot: 'breakfast', mealId: '' }];
+      const todayISO = toISODate(now);
+      const plan: PlannedMeal[] = [{ date: todayISO, slot: 'breakfast', mealId: '' }];
       const result = getNextMeal(now, plan, meals, allSlots);
-      // Empty mealId should be treated as unplanned
       expect(result).toBeNull();
     });
   });
@@ -169,9 +177,9 @@ describe('getNextMeal', () => {
 describe('countPlanned', () => {
   it('counts meals with mealId as filled', () => {
     const plan: PlannedMeal[] = [
-      makePlan(0, 'breakfast', 'm1'),
-      makePlan(0, 'lunch', 'm2'),
-      { day: 0, slot: 'dinner' }, // no mealId
+      makePlan('2026-04-04', 'breakfast', 'm1'),
+      makePlan('2026-04-04', 'lunch', 'm2'),
+      { date: '2026-04-04', slot: 'dinner' }, // no mealId
     ];
     const result = countPlanned(plan, 28);
     expect(result.filled).toBe(2);
@@ -191,7 +199,7 @@ describe('countPlanned', () => {
   });
 
   it('calculates 100% when all slots are filled', () => {
-    const plan = [makePlan(0, 'breakfast', 'm1'), makePlan(0, 'lunch', 'm2')];
+    const plan = [makePlan('2026-04-04', 'breakfast', 'm1'), makePlan('2026-04-04', 'lunch', 'm2')];
     const result = countPlanned(plan, 2);
     expect(result.pct).toBe(100);
   });

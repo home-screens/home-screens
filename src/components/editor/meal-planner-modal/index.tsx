@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { uuid } from '@/lib/uuid';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import {
+  DEFAULT_MEAL_EMOJI,
+  toISODate,
+  getWeekRange,
+  getWeekDatesForRange,
+  filterPlanToWeek,
+  replaceWeekInPlan,
+  copyWeekEntries,
+} from '@/lib/meal-constants';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
@@ -17,7 +25,6 @@ import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 interface MealPlannerModalProps {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
-  previousPlan?: PlannedMeal[];
   slots: MealSlotType[];
   weekStartDay: 'sunday' | 'monday';
   accentColor: string;
@@ -38,7 +45,6 @@ const TAB_LABELS: Record<SidebarTab, string> = {
 export default function MealPlannerModal({
   savedMeals,
   plan,
-  previousPlan = [],
   slots,
   weekStartDay,
   accentColor,
@@ -47,7 +53,7 @@ export default function MealPlannerModal({
 }: MealPlannerModalProps) {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('library');
   const [selectedMealId, setSelectedMealId] = useState<string | null>(null);
-  const [pickerTarget, setPickerTarget] = useState<{ day: number; slot: MealSlotType } | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<{ date: string; slot: MealSlotType } | null>(null);
   // Pending new meal: created locally, only persisted when user saves from Detail tab
   const [pendingMeal, setPendingMeal] = useState<SavedMeal | null>(null);
   // Grocery checked state lives here so it survives tab switches
@@ -55,6 +61,40 @@ export default function MealPlannerModal({
   // Toast notification
   const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // ── Week navigation ──
+
+  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => {
+    const { start } = getWeekRange(new Date(), weekStartDay);
+    return new Date(start + 'T12:00:00');
+  });
+
+  const viewedWeekDates = useMemo(
+    () => getWeekDatesForRange(toISODate(viewingWeekStart), weekStartDay),
+    [viewingWeekStart, weekStartDay],
+  );
+
+  const todayISO = toISODate(new Date());
+  const isCurrentWeek = viewedWeekDates.includes(todayISO);
+
+  // Filter plan to viewed week for grid display
+  const weekPlan = useMemo(
+    () => filterPlanToWeek(plan, viewedWeekDates[0], viewedWeekDates[6]),
+    [plan, viewedWeekDates],
+  );
+
+  const navigateWeek = useCallback((direction: -1 | 1) => {
+    setViewingWeekStart((prev) => {
+      const next = new Date(prev);
+      next.setDate(prev.getDate() + direction * 7);
+      return next;
+    });
+  }, []);
+
+  const jumpToToday = useCallback(() => {
+    const { start } = getWeekRange(new Date(), weekStartDay);
+    setViewingWeekStart(new Date(start + 'T12:00:00'));
+  }, [weekStartDay]);
 
   const showToast = useCallback((message: string, undo?: () => void) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -145,17 +185,17 @@ export default function MealPlannerModal({
     });
   }, [savedMeals, pendingMeal, onUpdate]);
 
-  // ── Plan actions ──
+  // ── Plan actions (all multi-week safe) ──
 
-  const setSlotMeal = useCallback((day: number, slot: MealSlotType, mealId: string) => {
-    const filtered = plan.filter((p) => !(p.day === day && p.slot === slot));
-    onUpdate({ plan: [...filtered, { day, slot, mealId }] });
+  const setSlotMeal = useCallback((date: string, slot: MealSlotType, mealId: string) => {
+    const filtered = plan.filter((p) => !(p.date === date && p.slot === slot));
+    onUpdate({ plan: [...filtered, { date, slot, mealId }] });
     setPickerTarget(null);
   }, [plan, onUpdate]);
 
-  const removeSlotMeal = useCallback((day: number, slot: MealSlotType) => {
-    const removed = plan.find((p) => p.day === day && p.slot === slot);
-    const newPlan = plan.filter((p) => !(p.day === day && p.slot === slot));
+  const removeSlotMeal = useCallback((date: string, slot: MealSlotType) => {
+    const removed = plan.find((p) => p.date === date && p.slot === slot);
+    const newPlan = plan.filter((p) => !(p.date === date && p.slot === slot));
     onUpdate({ plan: newPlan });
     if (removed) {
       showToast('Meal removed', () => {
@@ -166,32 +206,44 @@ export default function MealPlannerModal({
 
   const suggestRandom = useCallback(() => {
     if (savedMeals.length === 0) return;
-    const newPlan = generateRandomPlan(savedMeals, slots);
-    // Snapshot current plan before replacing
-    onUpdate({ previousPlan: [...plan], plan: newPlan });
+    const newWeek = generateRandomPlan(savedMeals, slots, viewedWeekDates);
+    onUpdate({ plan: replaceWeekInPlan(plan, viewedWeekDates, newWeek) });
     showToast('Random meals suggested!');
-  }, [savedMeals, slots, plan, onUpdate, showToast]);
+  }, [savedMeals, slots, plan, viewedWeekDates, onUpdate, showToast]);
 
   const copyLastWeek = useCallback(() => {
-    if (previousPlan.length === 0) return;
-    // Restore previous plan without overwriting previousPlan itself
-    onUpdate({ plan: [...previousPlan] });
+    const prevStart = new Date(viewingWeekStart);
+    prevStart.setDate(prevStart.getDate() - 7);
+    const prevWeekDates = getWeekDatesForRange(toISODate(prevStart), weekStartDay);
+    const restamped = copyWeekEntries(plan, prevWeekDates, viewedWeekDates);
+    if (restamped.length === 0) return;
+    onUpdate({ plan: replaceWeekInPlan(plan, viewedWeekDates, restamped) });
     showToast('Last week copied!');
-  }, [previousPlan, onUpdate, showToast]);
+  }, [plan, viewingWeekStart, viewedWeekDates, weekStartDay, onUpdate, showToast]);
 
   const clearWeek = useCallback(() => {
-    if (plan.length === 0) return;
+    if (weekPlan.length === 0) return;
+    const weekSet = new Set(viewedWeekDates);
+    const remaining = plan.filter((p) => !weekSet.has(p.date));
     const snapshot = [...plan];
-    onUpdate({ previousPlan: snapshot, plan: [] });
+    onUpdate({ plan: remaining });
     showToast('Week cleared', () => {
       onUpdate({ plan: snapshot });
     });
-  }, [plan, onUpdate, showToast]);
+  }, [plan, weekPlan, viewedWeekDates, onUpdate, showToast]);
+
+  // Check if previous week has entries
+  const hasPreviousWeekEntries = useMemo(() => {
+    const prevStart = new Date(viewingWeekStart);
+    prevStart.setDate(prevStart.getDate() - 7);
+    const prevWeekDates = getWeekDatesForRange(toISODate(prevStart), weekStartDay);
+    return filterPlanToWeek(plan, prevWeekDates[0], prevWeekDates[6]).length > 0;
+  }, [plan, viewingWeekStart, weekStartDay]);
 
   // ── Picker ──
 
-  const openPicker = useCallback((day: number, slot: MealSlotType) => {
-    setPickerTarget({ day, slot });
+  const openPicker = useCallback((date: string, slot: MealSlotType) => {
+    setPickerTarget({ date, slot });
   }, []);
 
   const closePicker = useCallback(() => {
@@ -274,7 +326,7 @@ export default function MealPlannerModal({
           )}
           {sidebarTab === 'grocery' && (
             <SidebarGrocery
-              plan={plan}
+              plan={weekPlan}
               meals={savedMeals}
               checkedItems={groceryChecked}
               onToggleItem={toggleGroceryItem}
@@ -284,19 +336,22 @@ export default function MealPlannerModal({
 
         {/* ── Week Grid ── */}
         <WeekGrid
-          plan={plan}
+          plan={weekPlan}
           savedMeals={savedMeals}
           slots={slots}
-          weekStartDay={weekStartDay}
           accentColor={accentColor}
           selectedMealId={selectedMealId}
+          weekDates={viewedWeekDates}
+          isCurrentWeek={isCurrentWeek}
           onSelectMeal={selectMeal}
           onRemoveMeal={removeSlotMeal}
           onEmptyCellClick={openPicker}
           onSuggestRandom={suggestRandom}
           onCopyLastWeek={copyLastWeek}
-          hasPreviousPlan={previousPlan.length > 0}
+          hasPreviousWeek={hasPreviousWeekEntries}
           onClearWeek={clearWeek}
+          onNavigateWeek={navigateWeek}
+          onJumpToToday={jumpToToday}
         />
       </div>
 
@@ -305,7 +360,7 @@ export default function MealPlannerModal({
         <MealPickerPopover
           target={pickerTarget}
           meals={savedMeals}
-          onSelect={(mealId) => setSlotMeal(pickerTarget.day, pickerTarget.slot, mealId)}
+          onSelect={(mealId) => setSlotMeal(pickerTarget.date, pickerTarget.slot, mealId)}
           onClose={closePicker}
         />
       )}

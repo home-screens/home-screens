@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { generateGroceryList } from '@/lib/grocery-utils';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
+import { toISODate, filterPlanToWeek, replaceWeekInPlan, copyWeekEntries } from '@/lib/meal-constants';
 import { useMealsData } from '../hooks/useMealsData';
 import { useMealForm } from '../hooks/useMealForm';
 import { SLOT_ORDER, normalizeTag } from '@/lib/meal-constants';
@@ -34,39 +35,65 @@ export default function MealsTab() {
   const form = useMealForm();
 
   const [subView, setSubView] = useState<'week' | 'plan' | 'library' | 'grocery'>('week');
-  const [pickingSlot, setPickingSlot] = useState<{ day: number; slot: MealSlotType } | null>(null);
+  const [pickingSlot, setPickingSlot] = useState<{ date: string; slot: MealSlotType } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; confirmLabel: string; onConfirm: () => void } | null>(null);
+
+  // Week navigation state
+  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => {
+    const now = new Date();
+    const d = new Date(now);
+    d.setDate(now.getDate() - now.getDay()); // align to Sunday
+    return d;
+  });
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    fetchData();
-  }, [subView, fetchData]);
-
-  const weekDates = useMemo(() => getWeekDates(), []);
-  const today = new Date().getDay();
+  const weekDates = useMemo(() => getWeekDates(viewingWeekStart), [viewingWeekStart]);
+  const todayISO = toISODate(new Date());
   const currentSlot = currentSlotIndex();
+  const isCurrentWeek = weekDates.some((d) => d.date === todayISO);
 
-  const getMealForSlot = useCallback((day: number, slot: MealSlotType): { planned: PlannedMeal | undefined; meal: SavedMeal | undefined } => {
-    const planned = plan.find((p) => p.day === day && p.slot === slot);
+  // Filter plan to viewed week
+  const weekPlan = useMemo(
+    () => filterPlanToWeek(plan, weekDates[0].date, weekDates[6].date),
+    [plan, weekDates],
+  );
+
+  const navigateWeek = useCallback((direction: -1 | 1) => {
+    setViewingWeekStart((prev) => {
+      const next = new Date(prev);
+      next.setDate(prev.getDate() + direction * 7);
+      return next;
+    });
+  }, []);
+
+  const jumpToToday = useCallback(() => {
+    const now = new Date();
+    const d = new Date(now);
+    d.setDate(now.getDate() - now.getDay());
+    setViewingWeekStart(d);
+  }, []);
+
+  const getMealForSlot = useCallback((date: string, slot: MealSlotType): { planned: PlannedMeal | undefined; meal: SavedMeal | undefined } => {
+    const planned = weekPlan.find((p) => p.date === date && p.slot === slot);
     const meal = planned?.mealId ? savedMeals.find((m) => m.id === planned.mealId) : undefined;
     return { planned, meal };
-  }, [plan, savedMeals]);
+  }, [weekPlan, savedMeals]);
 
-  const assignMealToSlot = useCallback(async (day: number, slot: MealSlotType, mealId: string) => {
-    const newPlan = plan.filter((p) => !(p.day === day && p.slot === slot));
-    newPlan.push({ day, slot, mealId });
+  const assignMealToSlot = useCallback(async (date: string, slot: MealSlotType, mealId: string) => {
+    const newPlan = plan.filter((p) => !(p.date === date && p.slot === slot));
+    newPlan.push({ date, slot, mealId });
     setPlan(newPlan);
     setPickingSlot(null);
     await saveData(savedMeals, newPlan);
   }, [plan, savedMeals, saveData, setPlan]);
 
-  const clearSlot = useCallback(async (day: number, slot: MealSlotType) => {
-    const newPlan = plan.filter((p) => !(p.day === day && p.slot === slot));
+  const clearSlot = useCallback(async (date: string, slot: MealSlotType) => {
+    const newPlan = plan.filter((p) => !(p.date === date && p.slot === slot));
     setPlan(newPlan);
     await saveData(savedMeals, newPlan);
   }, [plan, savedMeals, saveData, setPlan]);
@@ -74,22 +101,45 @@ export default function MealsTab() {
   const clearAllPlan = useCallback(() => {
     setConfirmAction({
       title: 'Clear plan?',
-      description: 'This will remove all planned meals for the week.',
-      confirmLabel: 'Clear All',
+      description: 'This will remove all planned meals for this week.',
+      confirmLabel: 'Clear Week',
       onConfirm: async () => {
-        setPlan([]);
-        await saveData(savedMeals, []);
+        const weekSet = new Set(weekDates.map((d) => d.date));
+        const remaining = plan.filter((p) => !weekSet.has(p.date));
+        setPlan(remaining);
+        await saveData(savedMeals, remaining);
         setConfirmAction(null);
       },
     });
-  }, [savedMeals, saveData, setPlan]);
+  }, [savedMeals, plan, weekDates, saveData, setPlan]);
 
   const suggestRandom = useCallback(async () => {
     if (savedMeals.length === 0) return;
-    const newPlan = generateRandomPlan(savedMeals, SLOT_ORDER);
-    setPlan(newPlan);
-    await saveData(savedMeals, newPlan);
-  }, [savedMeals, saveData, setPlan]);
+    const weekDateStrs = weekDates.map((d) => d.date);
+    const newWeek = generateRandomPlan(savedMeals, SLOT_ORDER, weekDateStrs);
+    const merged = replaceWeekInPlan(plan, weekDateStrs, newWeek);
+    setPlan(merged);
+    await saveData(savedMeals, merged);
+  }, [savedMeals, plan, weekDates, saveData, setPlan]);
+
+  const copyLastWeek = useCallback(async () => {
+    const prevStart = new Date(viewingWeekStart);
+    prevStart.setDate(prevStart.getDate() - 7);
+    const prevWeekDates = getWeekDates(prevStart).map((d) => d.date);
+    const weekDateStrs = weekDates.map((d) => d.date);
+    const restamped = copyWeekEntries(plan, prevWeekDates, weekDateStrs);
+    if (restamped.length === 0) return;
+    const merged = replaceWeekInPlan(plan, weekDateStrs, restamped);
+    setPlan(merged);
+    await saveData(savedMeals, merged);
+  }, [plan, savedMeals, viewingWeekStart, weekDates, saveData, setPlan]);
+
+  const hasPreviousWeekEntries = useMemo(() => {
+    const prevStart = new Date(viewingWeekStart);
+    prevStart.setDate(prevStart.getDate() - 7);
+    const prevWeekDates = getWeekDates(prevStart);
+    return filterPlanToWeek(plan, prevWeekDates[0].date, prevWeekDates[6].date).length > 0;
+  }, [plan, viewingWeekStart]);
 
   const openNewMealForm = () => {
     form.openNew(() => setSaveError(null));
@@ -166,7 +216,7 @@ export default function MealsTab() {
     return result;
   }, [savedMeals, searchQuery, filterTag]);
 
-  const groceryList = useMemo(() => generateGroceryList(plan, savedMeals, groceryChecked), [plan, savedMeals, groceryChecked]);
+  const groceryList = useMemo(() => generateGroceryList(weekPlan, savedMeals, groceryChecked), [weekPlan, savedMeals, groceryChecked]);
 
   const groceryStats = useMemo(() => {
     let total = 0;
@@ -187,6 +237,12 @@ export default function MealsTab() {
       </div>
     );
   }
+
+  // Format week date range for header
+  const startDate = new Date(weekDates[0].date + 'T12:00:00');
+  const endDate = new Date(weekDates[6].date + 'T12:00:00');
+  const formatShort = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const weekLabel = isCurrentWeek ? 'This Week' : `${formatShort(startDate)} – ${formatShort(endDate)}`;
 
   return (
     <div>
@@ -212,7 +268,7 @@ export default function MealsTab() {
       >
         {(['week', 'plan', 'library', 'grocery'] as const).map((view) => {
           const labels: Record<typeof view, string> = {
-            week: 'This Week',
+            week: weekLabel,
             plan: 'Plan',
             library: 'Library',
             grocery: 'Grocery',
@@ -269,12 +325,53 @@ export default function MealsTab() {
         })}
       </div>
 
+      {/* Week navigation (shown for week/plan/grocery views) */}
+      {(subView === 'week' || subView === 'plan' || subView === 'grocery') && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <button
+            onClick={() => navigateWeek(-1)}
+            style={{
+              width: 32, height: 32, borderRadius: 8, border: '1px solid #262626',
+              background: 'transparent', color: '#a3a3a3', fontSize: 16, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
+            }}
+          >
+            ‹
+          </button>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#a3a3a3' }}>
+            {isCurrentWeek ? 'This Week' : `${formatShort(startDate)} – ${formatShort(endDate)}`}
+          </span>
+          <button
+            onClick={() => navigateWeek(1)}
+            style={{
+              width: 32, height: 32, borderRadius: 8, border: '1px solid #262626',
+              background: 'transparent', color: '#a3a3a3', fontSize: 16, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
+            }}
+          >
+            ›
+          </button>
+          {!isCurrentWeek && (
+            <button
+              onClick={jumpToToday}
+              style={{
+                padding: '4px 12px', borderRadius: 6, border: 'none',
+                background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
+                fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Today
+            </button>
+          )}
+        </div>
+      )}
+
       {subView === 'week' && (
         <MealsWeekView
           savedMeals={savedMeals}
-          plan={plan}
+          plan={weekPlan}
           weekDates={weekDates}
-          today={today}
+          todayISO={todayISO}
           currentSlot={currentSlot}
           getMealForSlot={getMealForSlot}
           setSubView={setSubView}
@@ -284,15 +381,17 @@ export default function MealsTab() {
       {subView === 'plan' && (
         <MealsPlanView
           savedMeals={savedMeals}
-          plan={plan}
+          plan={weekPlan}
           weekDates={weekDates}
-          today={today}
+          todayISO={todayISO}
           currentSlot={currentSlot}
           getMealForSlot={getMealForSlot}
           assignMealToSlot={assignMealToSlot}
           clearSlot={clearSlot}
           clearAllPlan={clearAllPlan}
           suggestRandom={suggestRandom}
+          copyLastWeek={copyLastWeek}
+          hasPreviousWeek={hasPreviousWeekEntries}
           pickingSlot={pickingSlot}
           setPickingSlot={setPickingSlot}
           setSubView={setSubView}

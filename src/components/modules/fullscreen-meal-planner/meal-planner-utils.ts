@@ -1,5 +1,5 @@
 import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS } from '@/lib/meal-constants';
+import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS, toISODate } from '@/lib/meal-constants';
 
 export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
@@ -29,9 +29,12 @@ export function getNextMeal(
   planArr: PlannedMeal[],
   meals: SavedMeal[],
   slots: MealSlotType[],
-): { meal: SavedMeal; slot: MealSlotType; context: 'now' | 'upcoming' | 'tomorrow'; day: number } | null {
+): { meal: SavedMeal; slot: MealSlotType; context: 'now' | 'upcoming' | 'tomorrow'; date: string } | null {
   const hour = now.getHours();
-  const today = now.getDay();
+  const todayISO = toISODate(now);
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const tomorrowISO = toISODate(tomorrow);
   const activeOrder = SLOT_ORDER.filter((s) => slots.includes(s));
   if (activeOrder.length === 0) return null;
 
@@ -39,24 +42,23 @@ export function getNextMeal(
   for (const s of activeOrder) {
     const w = SLOT_WINDOWS[s];
     if (hour >= w.start && hour < w.end) {
-      const meal = resolveMeal(today, s, planArr, meals);
-      if (meal) return { meal, slot: s, context: 'now', day: today };
+      const meal = resolveMeal(todayISO, s, planArr, meals);
+      if (meal) return { meal, slot: s, context: 'now', date: todayISO };
     }
   }
 
   // Next upcoming slot today
   for (const s of activeOrder) {
     if (hour < SLOT_WINDOWS[s].start) {
-      const meal = resolveMeal(today, s, planArr, meals);
-      if (meal) return { meal, slot: s, context: 'upcoming', day: today };
+      const meal = resolveMeal(todayISO, s, planArr, meals);
+      if (meal) return { meal, slot: s, context: 'upcoming', date: todayISO };
     }
   }
 
   // First slot tomorrow
-  const tomorrow = (today + 1) % 7;
   for (const s of activeOrder) {
-    const meal = resolveMeal(tomorrow, s, planArr, meals);
-    if (meal) return { meal, slot: s, context: 'tomorrow', day: tomorrow };
+    const meal = resolveMeal(tomorrowISO, s, planArr, meals);
+    if (meal) return { meal, slot: s, context: 'tomorrow', date: tomorrowISO };
   }
 
   return null;

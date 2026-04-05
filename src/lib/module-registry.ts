@@ -626,8 +626,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'Personal',
     defaultConfig: {
       view: 'week',
-      savedMeals: [],
-      plan: [],
       slots: DEFAULT_SLOTS,
       weekStartDay: 'monday',
       showEmoji: true,

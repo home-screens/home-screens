@@ -2,8 +2,8 @@
 
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
-import { TAG_OPTIONS, INPUT_STYLE, LABEL_STYLE } from './meals-shared';
-import { FOOD_EMOJIS, formatTagLabel, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
+import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
+import { MEAL_TAGS, FOOD_EMOJIS, formatTagLabel, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import {
   GROCERY_CATEGORIES,
   GROCERY_CATEGORY_ORDER,
@@ -232,7 +232,7 @@ export default function MealFormOverlay({
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>Tags</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {TAG_OPTIONS.map((tag) => {
+          {MEAL_TAGS.map((tag) => {
             const isActive = formTags.some((t) => normalizeTag(t) === tag);
             return (
               <button

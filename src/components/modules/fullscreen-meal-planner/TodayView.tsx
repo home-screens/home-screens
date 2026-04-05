@@ -1,4 +1,4 @@
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMeal } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMeal, toISODate } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
@@ -6,12 +6,12 @@ export default function TodayView({
   savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
   const currentHour = now.getHours();
-  const todayDow = now.getDay();
+  const todayISO = toISODate(now);
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
   // Find current/hero meal
   const heroSlot = activeSlot ?? activeOrder[0] ?? 'dinner';
-  const heroMeal = resolveMeal(todayDow, heroSlot, plan, savedMeals);
+  const heroMeal = resolveMeal(todayISO, heroSlot, plan, savedMeals);
   const heroMeta = SLOT_META[heroSlot];
 
   // Other meals (non-hero)
@@ -130,7 +130,7 @@ export default function TodayView({
           </div>
           <div style={{ display: 'flex', gap: s * 0.6, flexWrap: 'wrap' as const }}>
             {otherSlots.map((sl) => {
-              const meal = resolveMeal(todayDow, sl, plan, savedMeals);
+              const meal = resolveMeal(todayISO, sl, plan, savedMeals);
               const meta = SLOT_META[sl];
               const past = isSlotPast(sl);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
@@ -8,7 +8,8 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { SLOT_ORDER, SLOT_META, DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_ORDER, SLOT_META, DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS, toISODate } from '@/lib/meal-constants';
+import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   MealPlannerView,
@@ -19,9 +20,6 @@ import type {
 
 type Config = {
   view?: MealPlannerView;
-  savedMeals?: SavedMeal[];
-  plan?: PlannedMeal[];
-  previousPlan?: PlannedMeal[];
   slots?: MealSlotType[];
   weekStartDay?: 'sunday' | 'monday';
   showEmoji?: boolean;
@@ -41,9 +39,90 @@ const VIEWS: { value: MealPlannerView; label: string }[] = [
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
+  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[] }>({ savedMeals: [], plan: [] });
 
-  const savedMeals = c.savedMeals ?? [];
-  const plan = c.plan ?? [];
+  const fetchMealData = useCallback(() => {
+    fetch('/api/meals/data')
+      .then((r) => r.json())
+      .then((d) => setMealData({
+        savedMeals: d.savedMeals ?? [],
+        plan: d.plan ?? [],
+      }))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
+
+  // Ref for stable closure in handleModalUpdate
+  const mealDataRef = useRef(mealData);
+  mealDataRef.current = mealData;
+
+  // One-time migration: if existing config has embedded savedMeals/plan, push to API
+  useEffect(() => {
+    const raw = mod.config as Record<string, unknown>;
+    const embeddedMeals = raw?.savedMeals;
+    const embeddedPlan = raw?.plan;
+    if (Array.isArray(embeddedMeals) && embeddedMeals.length > 0) {
+      // Normalize legacy day-based plan entries to date-based before pushing
+      const rawPlan = Array.isArray(embeddedPlan) ? embeddedPlan : [];
+      const now = new Date();
+      const sunday = new Date(now);
+      sunday.setDate(now.getDate() - now.getDay());
+      const normalizedPlan = rawPlan.map((e: Record<string, unknown>) => {
+        if (typeof e.date === 'string') return e;
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + (typeof e.day === 'number' ? e.day : 0));
+        const { day: _day, ...rest } = e;
+        return { ...rest, date: toISODate(d) };
+      });
+      // Merge with existing API data (a fullscreen module may already have data there)
+      fetch('/api/meals/data')
+        .then((r) => r.json())
+        .then((existing) => {
+          const existingMeals: SavedMeal[] = existing.savedMeals ?? [];
+          const existingIds = new Set(existingMeals.map((m: SavedMeal) => m.id));
+          const mergedMeals = [
+            ...existingMeals,
+            ...(embeddedMeals as SavedMeal[]).filter((m: SavedMeal) => !existingIds.has(m.id)),
+          ];
+          const mergedPlan = [...(existing.plan ?? []), ...normalizedPlan];
+          return fetch('/api/meals/data', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ savedMeals: mergedMeals, plan: mergedPlan }),
+          });
+        })
+        .then(() => {
+          // Clear embedded data from config — keep only display preferences
+          set({ savedMeals: undefined, plan: undefined, previousPlan: undefined } as unknown as Config);
+          displayCache.invalidate('/api/meals/data');
+          fetchMealData();
+        }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
+    const current = mealDataRef.current;
+    const optimistic = {
+      savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
+      plan: (updates.plan as PlannedMeal[]) ?? current.plan,
+    };
+    setMealData(optimistic);
+    try {
+      const res = await fetch('/api/meals/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(optimistic),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMealData({ savedMeals: data.savedMeals, plan: data.plan });
+      }
+      displayCache.invalidate('/api/meals/data');
+    } catch {}
+  }, []);
+
   const slots = c.slots ?? [...DEFAULT_SLOTS];
 
   const toggleSlot = (slot: MealSlotType) => {
@@ -114,9 +193,9 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Open Modal */}
       <div className="pt-1 border-t border-neutral-700 space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-neutral-500">
-          <span>{savedMeals.length} saved meals</span>
+          <span>{mealData.savedMeals.length} saved meals</span>
           <span>&middot;</span>
-          <span>{plan.length} planned</span>
+          <span>{mealData.plan.length} planned</span>
         </div>
         <Button
           variant="primary"
@@ -130,13 +209,12 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Modal */}
       {showModal && (
         <MealPlannerModal
-          savedMeals={savedMeals}
-          plan={plan}
-          previousPlan={c.previousPlan ?? []}
+          savedMeals={mealData.savedMeals}
+          plan={mealData.plan}
           slots={slots}
           weekStartDay={c.weekStartDay ?? 'monday'}
           accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
-          onUpdate={set}
+          onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}
         />
       )}

@@ -1,28 +1,34 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { MealPlannerConfig, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, resolveMeal, getActiveSlot, DEFAULT_SLOTS } from '@/lib/meal-constants';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
-  today: number;
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
   currentHour: number;
 }
 
 function SlotCard({
   slot,
   config,
-  today,
+  plan,
+  savedMeals,
+  todayISO,
   isActive,
 }: {
   slot: MealSlotType;
   config: MealPlannerConfig;
-  today: number;
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
   isActive: boolean;
 }) {
-  const meal = resolveMeal(today, slot, config.plan, config.savedMeals);
+  const meal = resolveMeal(todayISO, slot, plan, savedMeals);
   const meta = SLOT_META[slot];
   const showEmoji = config.showEmoji ?? true;
   const showPrepTime = config.showPrepTime ?? true;
@@ -94,7 +100,7 @@ function SlotCard({
   );
 }
 
-export function TodayView({ config, today, currentHour }: TodayViewProps) {
+export function TodayView({ config, plan, savedMeals, todayISO, currentHour }: TodayViewProps) {
   const slots = config.slots ?? DEFAULT_SLOTS;
   const activeSlot = getActiveSlot(currentHour, slots);
 
@@ -125,7 +131,9 @@ export function TodayView({ config, today, currentHour }: TodayViewProps) {
             key={slot}
             slot={slot}
             config={config}
-            today={today}
+            plan={plan}
+            savedMeals={savedMeals}
+            todayISO={todayISO}
             isActive={slot === activeSlot}
           />
         ))}

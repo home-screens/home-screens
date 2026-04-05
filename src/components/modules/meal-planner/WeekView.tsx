@@ -1,16 +1,20 @@
 'use client';
 
-import type { MealPlannerConfig, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, getOrderedDays, resolveMeal, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS, getWeekDatesForRange, getWeekRange, dateToDayIndex } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
-  today: number; // 0-6 day of week
+  plan: PlannedMeal[];
+  savedMeals: SavedMeal[];
+  todayISO: string;
 }
 
-export function WeekView({ config, today }: WeekViewProps) {
-  const days = getOrderedDays(config.weekStartDay);
+export function WeekView({ config, plan, savedMeals, todayISO }: WeekViewProps) {
+  const weekStartDay = config.weekStartDay ?? 'sunday';
+  const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
+  const weekDates = getWeekDatesForRange(start, weekStartDay);
   const slots = config.slots ?? DEFAULT_SLOTS;
   const showEmoji = config.showEmoji ?? true;
 
@@ -46,11 +50,12 @@ export function WeekView({ config, today }: WeekViewProps) {
 
       {/* Day rows */}
       <div className="flex-1 flex flex-col gap-px">
-        {days.map((day) => {
-          const isToday = day === today;
+        {weekDates.map((date) => {
+          const isToday = date === todayISO;
+          const dayIdx = dateToDayIndex(date);
           return (
             <div
-              key={day}
+              key={date}
               className="grid gap-px flex-1 min-h-0 items-center rounded-md transition-colors"
               style={{
                 gridTemplateColumns: `2.5em repeat(${slots.length}, 1fr)`,
@@ -66,12 +71,12 @@ export function WeekView({ config, today }: WeekViewProps) {
                   color: isToday ? config.accentColor : undefined,
                 }}
               >
-                {DAY_NAMES_SHORT[day]}
+                {DAY_NAMES_SHORT[dayIdx]}
               </div>
 
               {/* Meal cells */}
               {slots.map((slot) => {
-                const meal = resolveMeal(day, slot, config.plan, config.savedMeals);
+                const meal = resolveMeal(date, slot, plan, savedMeals);
                 return (
                   <div
                     key={slot}

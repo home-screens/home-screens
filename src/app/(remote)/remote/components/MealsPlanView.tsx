@@ -5,12 +5,14 @@ import { SLOT_META, SLOT_ORDER, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants'
 import type { MealsViewProps } from './meals-shared';
 
 interface MealsPlanViewProps extends MealsViewProps {
-  assignMealToSlot: (day: number, slot: MealSlotType, mealId: string) => Promise<void>;
-  clearSlot: (day: number, slot: MealSlotType) => Promise<void>;
+  assignMealToSlot: (date: string, slot: MealSlotType, mealId: string) => Promise<void>;
+  clearSlot: (date: string, slot: MealSlotType) => Promise<void>;
   clearAllPlan: () => void;
   suggestRandom: () => Promise<void>;
-  pickingSlot: { day: number; slot: MealSlotType } | null;
-  setPickingSlot: React.Dispatch<React.SetStateAction<{ day: number; slot: MealSlotType } | null>>;
+  copyLastWeek: () => Promise<void>;
+  hasPreviousWeek: boolean;
+  pickingSlot: { date: string; slot: MealSlotType } | null;
+  setPickingSlot: React.Dispatch<React.SetStateAction<{ date: string; slot: MealSlotType } | null>>;
   setSubView: (v: 'library') => void;
 }
 
@@ -18,12 +20,14 @@ export default function MealsPlanView({
   savedMeals,
   plan,
   weekDates,
-  today,
+  todayISO,
   getMealForSlot,
   assignMealToSlot,
   clearSlot,
   clearAllPlan,
   suggestRandom,
+  copyLastWeek,
+  hasPreviousWeek,
   pickingSlot,
   setPickingSlot,
   setSubView,
@@ -57,29 +61,32 @@ export default function MealsPlanView({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
           Suggest
         </button>
-        <button
-          style={{
-            flex: 1,
-            padding: '8px 8px',
-            minHeight: 44,
-            fontSize: 12,
-            fontWeight: 600,
-            borderRadius: 8,
-            border: '1px solid #262626',
-            cursor: 'pointer',
-            background: '#171717',
-            color: '#a3a3a3',
-            fontFamily: 'inherit',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-          }}
-          aria-label="Copy last week's plan"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy Last Week
-        </button>
+        {hasPreviousWeek && (
+          <button
+            onClick={copyLastWeek}
+            style={{
+              flex: 1,
+              padding: '8px 8px',
+              minHeight: 44,
+              fontSize: 12,
+              fontWeight: 600,
+              borderRadius: 8,
+              border: '1px solid #262626',
+              cursor: 'pointer',
+              background: '#171717',
+              color: '#a3a3a3',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
+            }}
+            aria-label="Copy last week's plan"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy Last Week
+          </button>
+        )}
         <button
           onClick={clearAllPlan}
           disabled={plan.length === 0}
@@ -134,11 +141,11 @@ export default function MealsPlanView({
       )}
 
       {/* Days grid */}
-      {weekDates.map(({ day, label }) => {
-        const isToday = day === today;
+      {weekDates.map(({ date, label }) => {
+        const isToday = date === todayISO;
 
         return (
-          <div key={day} style={{ marginBottom: 20 }}>
+          <div key={date} style={{ marginBottom: 20 }}>
             {/* Day label */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? '#fafafa' : '#a3a3a3' }}>
@@ -152,7 +159,7 @@ export default function MealsPlanView({
             {/* 2-column slot grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {SLOT_ORDER.map((slot) => {
-                const { planned, meal } = getMealForSlot(day, slot);
+                const { planned, meal } = getMealForSlot(date, slot);
                 const hasMeal = !!(meal || planned?.customText);
 
                 return (
@@ -160,9 +167,9 @@ export default function MealsPlanView({
                     key={slot}
                     onClick={() => {
                       if (hasMeal) {
-                        clearSlot(day, slot);
+                        clearSlot(date, slot);
                       } else {
-                        setPickingSlot({ day, slot });
+                        setPickingSlot({ date, slot });
                       }
                     }}
                     style={{
@@ -261,7 +268,7 @@ export default function MealsPlanView({
                 savedMeals.map((meal) => (
                   <button
                     key={meal.id}
-                    onClick={() => assignMealToSlot(pickingSlot.day, pickingSlot.slot, meal.id)}
+                    onClick={() => assignMealToSlot(pickingSlot.date, pickingSlot.slot, meal.id)}
                     style={{
                       width: '100%',
                       display: 'flex',
@@ -290,7 +297,7 @@ export default function MealsPlanView({
             <div style={{ padding: '12px 16px 24px', borderTop: '1px solid #262626' }}>
               <button
                 onClick={() => {
-                  clearSlot(pickingSlot.day, pickingSlot.slot);
+                  clearSlot(pickingSlot.date, pickingSlot.slot);
                   setPickingSlot(null);
                 }}
                 style={{
