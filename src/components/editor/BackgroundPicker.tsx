@@ -7,6 +7,7 @@ import type { BackgroundRotation } from '@/types/config';
 import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
+import ImmichBrowser from './ImmichBrowser';
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -73,7 +74,7 @@ function ImmichRotationFields({ rotation, onChange }: {
 }
 
 export default function BackgroundPicker() {
-  const [tab, setTab] = useState<'unsplash' | 'nasa' | 'local'>('unsplash');
+  const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('unsplash');
   const { config, selectedScreenId, updateScreen } = useEditorStore();
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
   const [hasNasaKey, setHasNasaKey] = useState(false);
@@ -234,6 +235,16 @@ export default function BackgroundPicker() {
         >
           NASA
         </button>
+        {hasImmichKey && (
+          <button
+            onClick={() => setTab('immich')}
+            className={`flex-1 text-xs py-1.5 rounded ${
+              tab === 'immich' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+            }`}
+          >
+            Immich
+          </button>
+        )}
         <button
           onClick={() => setTab('local')}
           className={`flex-1 text-xs py-1.5 rounded ${
@@ -250,6 +261,10 @@ export default function BackgroundPicker() {
 
       {tab === 'nasa' && (
         <NasaBrowser selectedScreenId={selectedScreenId} hasNasaKey={hasNasaKey} />
+      )}
+
+      {tab === 'immich' && (
+        <ImmichBrowser selectedScreenId={selectedScreenId} hasImmichKey={hasImmichKey} />
       )}
 
       {tab === 'local' && (
