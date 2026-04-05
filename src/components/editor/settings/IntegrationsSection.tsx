@@ -4,10 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
+import {
+  ChevronDown,
+  Globe,
+  CheckCircle2,
+  Send,
+  Camera,
+} from 'lucide-react';
 
 type SecretKey =
-  | 'openweathermap_key'
-  | 'weatherapi_key'
   | 'unsplash_access_key'
   | 'nasa_api_key'
   | 'todoist_token'
@@ -20,6 +25,8 @@ type SecretKey =
   | 'immich_api_key';
 
 type SecretStatus = Partial<Record<SecretKey, boolean>>;
+
+/* ─── SecretField (unchanged logic) ────────── */
 
 function SecretField({
   label,
@@ -80,10 +87,10 @@ function SecretField({
   }
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
+    <div className="min-w-0">
+      <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs text-neutral-400">{label}</span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <StatusDot configured={status} />
           {status && (
             <button
@@ -101,7 +108,7 @@ function SecretField({
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
           placeholder={placeholder}
-          className="flex-1 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="flex-1 min-w-0 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
         />
         <Button
           variant="secondary"
@@ -118,10 +125,145 @@ function SecretField({
       {saveStatus === 'error' && (
         <span className="text-xs text-red-400">{errorMsg}</span>
       )}
-      <p className="text-xs text-neutral-500">{helpText}</p>
+      <p className="text-xs text-neutral-500 mt-1">{helpText}</p>
     </div>
   );
 }
+
+/* ─── IntegrationCard ──────────────────────── */
+
+function IntegrationCard({
+  icon,
+  iconBg,
+  name,
+  description,
+  statusLabel,
+  statusType,
+  defaultOpen,
+  children,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  name: string;
+  description: string;
+  statusLabel: string;
+  statusType: 'connected' | 'partial' | 'none';
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+
+  const pillClasses =
+    statusType === 'none'
+      ? 'bg-neutral-700/30 text-neutral-500'
+      : statusType === 'partial'
+        ? 'bg-amber-400/10 text-amber-400'
+        : 'bg-green-400/10 text-green-400';
+
+  const dotClasses =
+    statusType === 'none'
+      ? 'bg-neutral-600'
+      : statusType === 'partial'
+        ? 'bg-amber-400'
+        : 'bg-green-400';
+
+  return (
+    <div className="mb-2.5 border border-neutral-700/80 rounded-[10px] bg-neutral-800/60 overflow-hidden hover:border-neutral-600 transition-colors">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between px-4 py-3.5 cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: iconBg }}
+          >
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-neutral-200">{name}</div>
+            <div className="text-xs text-neutral-500">{description}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 shrink-0 ml-3">
+          <span className={`inline-flex items-center gap-1.5 p-1.5 lg:px-2.5 lg:py-0.5 rounded-full text-[11px] whitespace-nowrap ${pillClasses}`}>
+            <span className={`w-2 h-2 lg:w-[5px] lg:h-[5px] rounded-full ${dotClasses}`} />
+            <span className="hidden lg:inline">{statusLabel}</span>
+          </span>
+          <ChevronDown
+            className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          />
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-neutral-700/60 px-4 py-4">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Service icons (inline SVG for branded ones) ── */
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+  );
+}
+
+function UnsplashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+      <path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z" />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
+/* ─── Helpers ──────────────────────────────── */
+
+type Integration = {
+  name: string;
+  keys: SecretKey[];
+};
+
+const INTEGRATIONS: Integration[] = [
+  { name: 'Google', keys: ['google_client_id', 'google_client_secret', 'google_maps_key'] },
+  { name: 'Immich', keys: ['immich_url', 'immich_api_key'] },
+  { name: 'Unsplash', keys: ['unsplash_access_key'] },
+  { name: 'NASA', keys: ['nasa_api_key'] },
+  { name: 'Todoist', keys: ['todoist_token'] },
+  { name: 'TomTom', keys: ['tomtom_key'] },
+  { name: 'GitHub', keys: ['github_token'] },
+];
+
+function getStatusInfo(
+  status: SecretStatus,
+  keys: SecretKey[],
+): { label: string; type: 'connected' | 'partial' | 'none' } {
+  const configured = keys.filter((k) => !!status[k]).length;
+  if (configured === 0) return { label: 'Not configured', type: 'none' };
+  if (configured === keys.length) return { label: 'Connected', type: 'connected' };
+  return { label: `${configured} of ${keys.length}`, type: 'partial' };
+}
+
+/* ─── Main component ──────────────────────── */
 
 export default function IntegrationsSection() {
   const [status, setStatus] = useState<SecretStatus>({});
@@ -153,166 +295,216 @@ export default function IntegrationsSection() {
     );
   }
 
+  const configuredCount = INTEGRATIONS.filter((i) =>
+    i.keys.some((k) => !!status[k]),
+  ).length;
+
+  const google = getStatusInfo(status, ['google_client_id', 'google_client_secret', 'google_maps_key']);
+  const immich = getStatusInfo(status, ['immich_url', 'immich_api_key']);
+  const unsplash = getStatusInfo(status, ['unsplash_access_key']);
+  const nasa = getStatusInfo(status, ['nasa_api_key']);
+  const todoist = getStatusInfo(status, ['todoist_token']);
+  const tomtom = getStatusInfo(status, ['tomtom_key']);
+  const github = getStatusInfo(status, ['github_token']);
+
   return (
     <section>
-      {/* Google */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Google
-        </h3>
-        <div className="space-y-4">
-          <SecretField
-            label="OAuth Client ID"
-            secretKey="google_client_id"
-            placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
-            helpText="Required for Google Calendar. Create at console.cloud.google.com → APIs & Services → Credentials. Use type: TVs and Limited Input devices."
-            status={!!status.google_client_id}
-            onSaved={fetchStatus}
-          />
-          <SecretField
-            label="OAuth Client Secret"
-            secretKey="google_client_secret"
-            placeholder="e.g. GOCSPX-..."
-            helpText="The client secret from the same OAuth credential above."
-            status={!!status.google_client_secret}
-            onSaved={fetchStatus}
-          />
-          <SecretField
-            label="Maps API Key"
-            secretKey="google_maps_key"
-            placeholder="Paste your Google Maps API key"
-            helpText="Optional — for traffic/commute widget. Enable the Routes API in the same Cloud Console project."
-            status={!!status.google_maps_key}
-            onSaved={fetchStatus}
-          />
+      {/* Header */}
+      <div className="mb-7">
+        <h2 className="text-lg font-semibold text-neutral-100 mb-1.5">Integrations</h2>
+        <p className="text-[13px] text-neutral-500">
+          Connect external services to unlock additional modules and features. API keys are stored locally and never leave your device.
+        </p>
+      </div>
+
+      {/* Summary bar */}
+      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-800/50 border border-neutral-700/60 rounded-lg mb-7">
+        <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-green-400' : 'bg-neutral-600'}`} />
+        <span className="text-[13px] text-neutral-400">
+          <strong className="text-neutral-300">{configuredCount}</strong> of{' '}
+          <strong className="text-neutral-300">{INTEGRATIONS.length}</strong> integrations configured
+        </span>
+      </div>
+
+      {/* Google — full width */}
+      <div className="mb-6">
+        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+          Google Ecosystem
+        </div>
+        <IntegrationCard
+          icon={<GoogleIcon />}
+          iconBg="linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%)"
+          name="Google"
+          description="Calendar, Maps"
+          statusLabel={google.label}
+          statusType={google.type}
+          defaultOpen={google.type !== 'none'}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SecretField
+              label="OAuth Client ID"
+              secretKey="google_client_id"
+              placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
+              helpText="Create at console.cloud.google.com → APIs & Services → Credentials. Use type: TVs and Limited Input devices."
+              status={!!status.google_client_id}
+              onSaved={fetchStatus}
+            />
+            <SecretField
+              label="OAuth Client Secret"
+              secretKey="google_client_secret"
+              placeholder="e.g. GOCSPX-..."
+              helpText="The client secret from the same OAuth credential above."
+              status={!!status.google_client_secret}
+              onSaved={fetchStatus}
+            />
+          </div>
+          <div className="border-t border-neutral-700/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
+            <SecretField
+              label="Maps API Key"
+              secretKey="google_maps_key"
+              placeholder="Paste your Google Maps API key"
+              helpText="Optional — for traffic/commute widget. Enable the Routes API in the same Cloud Console project."
+              status={!!status.google_maps_key}
+              onSaved={fetchStatus}
+            />
+          </div>
+        </IntegrationCard>
+      </div>
+
+      {/* Photos & Backgrounds — 2-col masonry */}
+      <div className="mb-6">
+        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+          Photos &amp; Backgrounds
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+          <IntegrationCard
+            icon={<Camera className="w-[18px] h-[18px] text-white" />}
+            iconBg="#4250af"
+            name="Immich"
+            description="Self-hosted photo library"
+            statusLabel={immich.label}
+            statusType={immich.type}
+          >
+            <div className="space-y-4">
+              <SecretField
+                label="Server URL"
+                secretKey="immich_url"
+                placeholder="e.g. http://192.168.1.50:2283"
+                helpText="The base URL of your Immich instance."
+                status={!!status.immich_url}
+                onSaved={fetchStatus}
+              />
+              <SecretField
+                label="API Key"
+                secretKey="immich_api_key"
+                placeholder="Paste your Immich API key"
+                helpText="Create at Immich → Account Settings → API Keys."
+                status={!!status.immich_api_key}
+                onSaved={fetchStatus}
+              />
+            </div>
+          </IntegrationCard>
+
+          <IntegrationCard
+            icon={<UnsplashIcon />}
+            iconBg="#111111"
+            name="Unsplash"
+            description="HD photo backgrounds by category"
+            statusLabel={unsplash.label}
+            statusType={unsplash.type}
+          >
+            <SecretField
+              label="Access Key"
+              secretKey="unsplash_access_key"
+              placeholder="Paste your Unsplash access key"
+              helpText="Free at unsplash.com/developers — 50 requests/hour on free tier."
+              status={!!status.unsplash_access_key}
+              onSaved={fetchStatus}
+            />
+          </IntegrationCard>
+
+          <IntegrationCard
+            icon={<Globe className="w-[18px] h-[18px] text-white" />}
+            iconBg="#0b3d91"
+            name="NASA"
+            description="Astronomy Picture of the Day"
+            statusLabel={nasa.label}
+            statusType={nasa.type}
+          >
+            <SecretField
+              label="API Key"
+              secretKey="nasa_api_key"
+              placeholder="Paste your NASA API key"
+              helpText="Free at api.nasa.gov — 1,000 requests/hour. Image Library search works without a key."
+              status={!!status.nasa_api_key}
+              onSaved={fetchStatus}
+            />
+          </IntegrationCard>
         </div>
       </div>
 
-      <hr className="my-6 border-neutral-700" />
-
-      {/* Unsplash */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Backgrounds (Unsplash)
-        </h3>
-        <div className="space-y-3">
-          <SecretField
-            label="Access Key"
-            secretKey="unsplash_access_key"
-            placeholder="Paste your Unsplash access key"
-            helpText="Free at unsplash.com/developers — 50 requests/hour on free tier"
-            status={!!status.unsplash_access_key}
-            onSaved={fetchStatus}
-          />
-          <p className="text-xs text-neutral-500">
-            Enables browsing thousands of free HD photos by category in the background picker.
-          </p>
+      {/* Services — 2-col masonry */}
+      <div className="mb-6">
+        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+          Services
         </div>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+          <IntegrationCard
+            icon={<CheckCircle2 className="w-[18px] h-[18px] text-white" />}
+            iconBg="#e44332"
+            name="Todoist"
+            description="Display tasks from your projects"
+            statusLabel={todoist.label}
+            statusType={todoist.type}
+          >
+            <SecretField
+              label="API Token"
+              secretKey="todoist_token"
+              placeholder="Paste your Todoist API token"
+              helpText="Get your token from app.todoist.com/app/settings/integrations/developer. Validated on save."
+              status={!!status.todoist_token}
+              onSaved={fetchStatus}
+            />
+          </IntegrationCard>
 
-      <hr className="my-6 border-neutral-700" />
+          <IntegrationCard
+            icon={<Send className="w-[18px] h-[18px] text-white" />}
+            iconBg="#333333"
+            name="TomTom"
+            description="Traffic & commute times"
+            statusLabel={tomtom.label}
+            statusType={tomtom.type}
+          >
+            <SecretField
+              label="API Key"
+              secretKey="tomtom_key"
+              placeholder="Paste your TomTom API key"
+              helpText="Free at developer.tomtom.com — Routing API required. Alternative to Google Maps."
+              status={!!status.tomtom_key}
+              onSaved={fetchStatus}
+            />
+          </IntegrationCard>
 
-      {/* NASA */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Backgrounds (NASA)
-        </h3>
-        <div className="space-y-3">
-          <SecretField
-            label="API Key"
-            secretKey="nasa_api_key"
-            placeholder="Paste your NASA API key"
-            helpText="Free at api.nasa.gov — required for APOD (Picture of the Day). 1000 requests/hour."
-            status={!!status.nasa_api_key}
-            onSaved={fetchStatus}
-          />
-          <p className="text-xs text-neutral-500">
-            Enables Astronomy Picture of the Day browsing and auto-rotation. NASA&apos;s Image Library search works without a key.
-          </p>
-        </div>
-      </div>
-
-      <hr className="my-6 border-neutral-700" />
-
-      {/* Todoist */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Todoist
-        </h3>
-        <div className="space-y-3">
-          <SecretField
-            label="API Token"
-            secretKey="todoist_token"
-            placeholder="Paste your Todoist API token"
-            helpText="Get your API token from app.todoist.com/app/settings/integrations/developer"
-            status={!!status.todoist_token}
-            onSaved={fetchStatus}
-          />
-        </div>
-      </div>
-
-      <hr className="my-6 border-neutral-700" />
-
-      {/* Traffic / Commute */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Traffic / Commute
-        </h3>
-        <div className="space-y-4">
-          <SecretField
-            label="TomTom API Key"
-            secretKey="tomtom_key"
-            placeholder="Paste your TomTom API key"
-            helpText="Alternative to Google Maps for traffic data. Free at developer.tomtom.com — Routing API required."
-            status={!!status.tomtom_key}
-            onSaved={fetchStatus}
-          />
-        </div>
-      </div>
-
-      <hr className="my-6 border-neutral-700" />
-
-      {/* Immich */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Photos (Immich)
-        </h3>
-        <div className="space-y-4">
-          <SecretField
-            label="Server URL"
-            secretKey="immich_url"
-            placeholder="e.g. http://192.168.1.50:2283"
-            helpText="The base URL of your Immich instance. Include the port if not using a reverse proxy."
-            status={!!status.immich_url}
-            onSaved={fetchStatus}
-          />
-          <SecretField
-            label="API Key"
-            secretKey="immich_api_key"
-            placeholder="Paste your Immich API key"
-            helpText="Create at Immich → Account Settings → API Keys. Used for photo slideshow and background rotation."
-            status={!!status.immich_api_key}
-            onSaved={fetchStatus}
-          />
-        </div>
-      </div>
-
-      <hr className="my-6 border-neutral-700" />
-
-      {/* GitHub */}
-      <div>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          GitHub
-        </h3>
-        <div className="space-y-3">
-          <SecretField
-            label="Personal Access Token"
-            secretKey="github_token"
-            placeholder="Paste your GitHub token"
-            helpText="Optional — increases the GitHub API rate limit for version checks from 60 to 5,000 requests/hour. Create at github.com/settings/tokens (no scopes needed)."
-            status={!!status.github_token}
-            onSaved={fetchStatus}
-          />
+          <IntegrationCard
+            icon={<GitHubIcon />}
+            iconBg="#24292e"
+            name="GitHub"
+            description="Higher rate limit for version checks"
+            statusLabel={github.label}
+            statusType={github.type}
+          >
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[11px] mb-3">
+              Optional
+            </div>
+            <SecretField
+              label="Personal Access Token"
+              secretKey="github_token"
+              placeholder="Paste your GitHub token"
+              helpText="Increases rate limit from 60 to 5,000 req/hr. Create at github.com/settings/tokens (no scopes needed)."
+              status={!!status.github_token}
+              onSaved={fetchStatus}
+            />
+          </IntegrationCard>
         </div>
       </div>
     </section>

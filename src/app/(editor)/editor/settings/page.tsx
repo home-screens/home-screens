@@ -475,7 +475,7 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-6 py-6">
+          <div className={`mx-auto px-6 py-6 ${activeTab === 'integrations' ? 'max-w-4xl' : 'max-w-2xl'}`}>
             {activeTab === 'display' && (
               <DisplaySection
                 values={state.display}
