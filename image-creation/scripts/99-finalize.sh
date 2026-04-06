@@ -379,6 +379,14 @@ else
 fi
 
 # ============================================================================
+# Remove build-time telemetry identity so each device generates its own UUID
+# on first boot. Without this, every image flashed from this build would share
+# the same installId.
+# ============================================================================
+rm -f "${APP_DIR}/data/telemetry.json"
+log_info "Cleared telemetry identity"
+
+# ============================================================================
 # Clear cloud-init state so it treats the end-user's boot as a fresh first boot.
 # Without this, cloud-init sees the cached instance-id from the build and skips
 # first-boot modules (networking, user setup, etc.).

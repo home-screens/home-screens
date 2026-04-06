@@ -197,7 +197,6 @@ EOF
 # ============================================================================
 # Under memory pressure, network packet allocation can fail, manifesting as
 # WiFi drops. Reserve 16MB for kernel allocations (default ~3MB is too low).
-# From Home Assistant OS (PR #1525).
 log_info "Configuring kernel memory reservation for WiFi stability"
 cat > /etc/sysctl.d/98-wifi-memory.conf << 'EOF'
 vm.min_free_kbytes = 16384
@@ -234,8 +233,8 @@ log_info "  WiFi power management, MAC randomization, and IPv6 configured"
 # ============================================================================
 # WiFi — infinite autoconnect retries
 # ============================================================================
-# NM default is 4 retries then give up permanently. On mesh networks
-# (Google/Nest WiFi), AP steering causes brief disconnects that burn through
+# NM default is 4 retries then give up permanently. On mesh networks,
+# AP steering causes brief disconnects that burn through
 # all retries in seconds, leaving a headless display offline until reboot.
 # A NetworkManager dispatcher script sets retries=0 (infinite) on any WiFi
 # connection that activates — this covers the "preconfigured" connection
