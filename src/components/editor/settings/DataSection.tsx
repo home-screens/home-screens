@@ -103,53 +103,48 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     }
   }, []);
 
+  // Shared restore path for both legacy raw-config uploads and new bundle
+  // uploads. POST the body, then reload the server-authoritative config and
+  // hydrate the editor store from it. Hydrating directly from the upload
+  // would skip migrate-on-boot and leave the editor showing a pre-migration
+  // shape until the next save.
+  const postBackupAndReload = useCallback(async (rawJson: string) => {
+    setBackupBusy(true);
+    try {
+      const res = await editorFetch('/api/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: rawJson,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const configRes = await editorFetch('/api/config');
+      if (configRes.ok) {
+        const config = await configRes.json();
+        importConfig(JSON.stringify(config));
+      }
+      onSettingsImported();
+    } finally {
+      setBackupBusy(false);
+    }
+  }, [importConfig, onSettingsImported]);
+
   const handleBackupRestore = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async () => {
       try {
-        const data = JSON.parse(reader.result as string);
-
-        // New bundle format — restore via API
-        if (data._type === 'home-screens-backup') {
-          setBackupBusy(true);
-          try {
-            const res = await editorFetch('/api/backup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: reader.result as string,
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            // Reload the config into the editor store
-            const configRes = await editorFetch('/api/config');
-            if (configRes.ok) {
-              const config = await configRes.json();
-              importConfig(JSON.stringify(config));
-            }
-            onSettingsImported();
-          } finally {
-            setBackupBusy(false);
-          }
-          return;
-        }
-
-        // Legacy format: raw config object
-        const res = await editorFetch('/api/backup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: reader.result as string,
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        importConfig(reader.result as string);
-        onSettingsImported();
+        // Validate JSON parses (the API enforces shape — we just need to
+        // know whether to take the bundle vs legacy branch from the wrapper).
+        JSON.parse(reader.result as string);
+        await postBackupAndReload(reader.result as string);
       } catch {
         useConfirmStore.getState().alert('Invalid backup file.');
       }
     };
     reader.readAsText(file);
     e.target.value = '';
-  }, [importConfig, onSettingsImported]);
+  }, [postBackupAndReload]);
 
   const handleTemplateSelect = (layout: LayoutExport) => {
     setShowTemplatePicker(false);

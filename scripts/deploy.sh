@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Home Screens - Deploy to Raspberry Pi
-# Syncs code, installs dependencies, builds, and restarts the service.
+# Home Screens - DEVELOPMENT deploy convenience script.
+#
+# This is a workstation tool for fast iterating against a Pi via SSH/rsync.
+# It is NOT the production upgrade mechanism — production devices upgrade
+# themselves via the on-device tarball pipeline (scripts/upgrade.sh, driven
+# by the editor's Updates page or POST /api/upgrade). Releases tagged via
+# scripts/release.sh build a tarball in CI that the on-device pipeline
+# consumes; this script is a separate dev-only path.
+#
+# Use this when you have SSH access to a Pi and want to push uncommitted
+# work without going through a release tag.
 #
 # Usage:
 #   ./scripts/deploy.sh                          # deploy to default host

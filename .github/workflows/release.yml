@@ -62,6 +62,17 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           tar -czf "home-screens-${TAG}.tar.gz" -C .next/standalone .
 
+      # Generate SHA-256 sidecar for artifact integrity verification.
+      # install.sh and upgrade.sh download this alongside the tarball and
+      # verify before extraction. Closes the gap where HTTPS provides
+      # transport integrity but not artifact integrity (compromised GitHub
+      # account or replaced asset would otherwise go undetected).
+      - name: Compute checksum
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          sha256sum "home-screens-${TAG}.tar.gz" > "home-screens-${TAG}.tar.gz.sha256"
+          cat "home-screens-${TAG}.tar.gz.sha256"
+
       # Fail if tarball exceeds 60MB
       - name: Size gate
         run: |
@@ -83,7 +94,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2.5.0
         with:
-          files: home-screens-*.tar.gz
+          files: |
+            home-screens-*.tar.gz
+            home-screens-*.tar.gz.sha256
           body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: ${{ steps.notes.outputs.path == '' }}
           draft: false

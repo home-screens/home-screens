@@ -5,7 +5,7 @@ import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { audit } from '@/lib/audit';
-import { isBlockedHost } from '@/lib/url-safety';
+import { isBlockedHost, isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,6 +114,10 @@ function setCached(key: string, body: string, contentType: string, ttlMs: number
 const MAX_RESPONSE_SIZE = 5 * 1024 * 1024; // 5MB
 const PROXY_TIMEOUT_MS = 15_000;
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH']);
+/** Maximum number of redirect hops the proxy will follow. Each hop is
+ *  re-validated against allowedDomains and isSafeExternalUrl, so this is the
+ *  cap on how many DNS lookups a single request can fan out to. */
+const MAX_REDIRECT_HOPS = 5;
 
 // --- Route handler ---
 
@@ -191,6 +195,14 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       { status: 403 },
     );
   }
+  // SSRF defense-in-depth: even if the manifest allows the domain, refuse
+  // if it resolves to a private/loopback address (DNS rebinding protection).
+  if (!(await isSafeExternalUrl(body.url))) {
+    return NextResponse.json(
+      { error: 'Upstream URL resolves to a private or unreachable address' },
+      { status: 403 },
+    );
+  }
 
   // Resolve secret injections
   let upstreamUrl = body.url;
@@ -225,14 +237,69 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     }
   }
 
-  // Make upstream request
-  const isBodyMethod = method !== 'GET' && method !== 'HEAD';
-  const upstreamRes = await fetchWithTimeout(upstreamUrl, {
-    method,
-    headers: upstreamHeaders,
-    body: isBodyMethod ? body.payload : undefined,
-    timeout: PROXY_TIMEOUT_MS,
-  });
+  // Make upstream request with manual redirect handling.
+  //
+  // SSRF defense: we MUST re-validate every redirect hop against
+  // allowedDomains and isSafeExternalUrl. Letting Node fetch follow redirects
+  // automatically (the default) would let an allowed domain return a 302 to
+  // http://169.254.169.254/ or http://10.0.0.1/, completely bypassing the
+  // DNS-rebinding defense above. We follow up to MAX_REDIRECT_HOPS hops and
+  // re-check each one with the same rules as the initial URL.
+  let isBodyMethod = method !== 'GET' && method !== 'HEAD';
+  let currentUrl = upstreamUrl;
+  let currentMethod = method;
+  let currentBody: string | undefined = isBodyMethod ? body.payload : undefined;
+  let upstreamRes!: Response;
+  for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
+    upstreamRes = await fetchWithTimeout(currentUrl, {
+      method: currentMethod,
+      headers: upstreamHeaders,
+      body: isBodyMethod ? currentBody : undefined,
+      timeout: PROXY_TIMEOUT_MS,
+      redirect: 'manual',
+    });
+    // 3xx with no Location header is treated as the final response
+    if (upstreamRes.status < 300 || upstreamRes.status >= 400) break;
+    const location = upstreamRes.headers.get('location');
+    if (!location) break;
+    if (hop === MAX_REDIRECT_HOPS) {
+      return NextResponse.json(
+        { error: 'Too many redirects from upstream' },
+        { status: 502 },
+      );
+    }
+    // Resolve relative redirects against the current URL
+    let nextUrl: string;
+    try {
+      nextUrl = new URL(location, currentUrl).toString();
+    } catch {
+      return NextResponse.json(
+        { error: 'Upstream returned an invalid redirect Location' },
+        { status: 502 },
+      );
+    }
+    // Re-run the same validation we applied to the initial URL
+    if (!isAllowedDomain(nextUrl, allowedDomains)) {
+      return NextResponse.json(
+        { error: 'Redirect target not in plugin allowedDomains' },
+        { status: 403 },
+      );
+    }
+    if (!(await isSafeExternalUrl(nextUrl))) {
+      return NextResponse.json(
+        { error: 'Redirect target resolves to a private or unreachable address' },
+        { status: 403 },
+      );
+    }
+    // Per the fetch spec, 301/302/303 downgrade to GET and drop the body;
+    // 307/308 preserve the original method and body.
+    if (upstreamRes.status === 301 || upstreamRes.status === 302 || upstreamRes.status === 303) {
+      currentMethod = 'GET';
+      currentBody = undefined;
+      isBodyMethod = false;
+    }
+    currentUrl = nextUrl;
+  }
 
   // Enforce response size limit
   const contentLength = upstreamRes.headers.get('content-length');

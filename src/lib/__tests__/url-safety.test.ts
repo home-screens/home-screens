@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { isBlockedHost, isSafeExternalUrl } from '@/lib/url-safety';
+import { promises as dns } from 'dns';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('isBlockedHost', () => {
   it('blocks localhost', () => {
@@ -10,10 +15,33 @@ describe('isBlockedHost', () => {
     expect(isBlockedHost('0.0.0.0')).toBe(true);
   });
 
-  it('blocks IPv6 addresses (bracketed)', () => {
-    expect(isBlockedHost('[::1]')).toBe(true);
-    expect(isBlockedHost('[::ffff:127.0.0.1]')).toBe(true);
-    expect(isBlockedHost('[fe80::1]')).toBe(true);
+  it('blocks private/loopback IPv6 addresses (bracketed)', () => {
+    expect(isBlockedHost('[::1]')).toBe(true);                  // loopback
+    expect(isBlockedHost('[::]')).toBe(true);                   // unspecified
+    expect(isBlockedHost('[::ffff:127.0.0.1]')).toBe(true);     // IPv4-mapped loopback
+    expect(isBlockedHost('[::ffff:10.0.0.1]')).toBe(true);      // IPv4-mapped private
+    expect(isBlockedHost('[fe80::1]')).toBe(true);              // link-local
+    expect(isBlockedHost('[febf::cafe]')).toBe(true);           // link-local upper bound
+    expect(isBlockedHost('[fc00::1]')).toBe(true);              // unique local
+    expect(isBlockedHost('[fd12:3456::1]')).toBe(true);         // unique local
+  });
+
+  it('allows public IPv6 addresses (bracketed)', () => {
+    // Regression: previous implementation blanket-blocked all bracketed
+    // IPv6 hosts, breaking dual-stack APIs and CDNs that resolve via AAAA.
+    expect(isBlockedHost('[2001:db8::1]')).toBe(false);
+    expect(isBlockedHost('[2606:2800:220:1:248:1893:25c8:1946]')).toBe(false); // example.com
+    expect(isBlockedHost('[2606:4700:4700::1111]')).toBe(false);               // 1.1.1.1
+  });
+
+  it('handles bare IPv6 addresses (as returned by dns.lookup)', () => {
+    expect(isBlockedHost('::1')).toBe(true);
+    expect(isBlockedHost('fe80::1')).toBe(true);
+    expect(isBlockedHost('2001:db8::1')).toBe(false);
+  });
+
+  it('strips zone identifiers from IPv6 addresses', () => {
+    expect(isBlockedHost('fe80::1%eth0')).toBe(true);
   });
 
   it('blocks 127.0.0.0/8 loopback', () => {
@@ -60,32 +88,108 @@ describe('isBlockedHost', () => {
 });
 
 describe('isSafeExternalUrl', () => {
-  it('allows https URLs to public hosts', () => {
-    expect(isSafeExternalUrl('https://api.example.com/data')).toBe(true);
-    expect(isSafeExternalUrl('https://images.unsplash.com/photo-123')).toBe(true);
+  // Helper: stub dns.lookup to return the given addresses without hitting the network
+  function mockResolve(addresses: string[]) {
+    vi.spyOn(dns, 'lookup').mockResolvedValue(
+      addresses.map((address) => ({ address, family: address.includes(':') ? 6 : 4 })) as never,
+    );
+  }
+
+  it('allows https URLs to public hosts', async () => {
+    mockResolve(['203.0.113.10']);
+    expect(await isSafeExternalUrl('https://api.example.com/data')).toBe(true);
   });
 
-  it('allows http URLs to public hosts', () => {
-    expect(isSafeExternalUrl('http://api.example.com/data')).toBe(true);
+  it('allows http URLs to public hosts', async () => {
+    mockResolve(['203.0.113.10']);
+    expect(await isSafeExternalUrl('http://api.example.com/data')).toBe(true);
   });
 
-  it('blocks non-http protocols', () => {
-    expect(isSafeExternalUrl('file:///etc/passwd')).toBe(false);
-    expect(isSafeExternalUrl('ftp://example.com/file')).toBe(false);
-    expect(isSafeExternalUrl('javascript:alert(1)')).toBe(false);
+  it('blocks non-http protocols (no DNS lookup needed)', async () => {
+    expect(await isSafeExternalUrl('file:///etc/passwd')).toBe(false);
+    expect(await isSafeExternalUrl('ftp://example.com/file')).toBe(false);
+    expect(await isSafeExternalUrl('javascript:alert(1)')).toBe(false);
   });
 
-  it('blocks private/internal hosts', () => {
-    expect(isSafeExternalUrl('http://localhost:3000/api/config')).toBe(false);
-    expect(isSafeExternalUrl('http://127.0.0.1/admin')).toBe(false);
-    expect(isSafeExternalUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
-    expect(isSafeExternalUrl('http://10.0.0.1/internal')).toBe(false);
-    expect(isSafeExternalUrl('http://192.168.1.1/config')).toBe(false);
+  it('fast-path blocks literal private/internal hosts without DNS lookup', async () => {
+    const lookupSpy = vi.spyOn(dns, 'lookup');
+    expect(await isSafeExternalUrl('http://localhost:3000/api/config')).toBe(false);
+    expect(await isSafeExternalUrl('http://127.0.0.1/admin')).toBe(false);
+    expect(await isSafeExternalUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
+    expect(await isSafeExternalUrl('http://10.0.0.1/internal')).toBe(false);
+    expect(await isSafeExternalUrl('http://192.168.1.1/config')).toBe(false);
+    expect(lookupSpy).not.toHaveBeenCalled();
   });
 
-  it('returns false for malformed URLs', () => {
-    expect(isSafeExternalUrl('')).toBe(false);
-    expect(isSafeExternalUrl('not-a-url')).toBe(false);
-    expect(isSafeExternalUrl('://missing-scheme')).toBe(false);
+  it('returns false for malformed URLs', async () => {
+    expect(await isSafeExternalUrl('')).toBe(false);
+    expect(await isSafeExternalUrl('not-a-url')).toBe(false);
+    expect(await isSafeExternalUrl('://missing-scheme')).toBe(false);
+  });
+
+  // ── DNS rebinding protection ───────────────────────────────────────────
+
+  it('blocks public-looking hostname that resolves to loopback', async () => {
+    mockResolve(['127.0.0.1']);
+    expect(await isSafeExternalUrl('http://evil.attacker.com/path')).toBe(false);
+  });
+
+  it('blocks public-looking hostname that resolves to AWS metadata IP', async () => {
+    mockResolve(['169.254.169.254']);
+    expect(await isSafeExternalUrl('http://metadata.attacker.com/')).toBe(false);
+  });
+
+  it('blocks public-looking hostname that resolves to a private RFC1918 address', async () => {
+    mockResolve(['10.0.5.42']);
+    expect(await isSafeExternalUrl('https://lan.attacker.com/')).toBe(false);
+  });
+
+  it('blocks when ANY resolved address is internal (multi-A response)', async () => {
+    // First address is public, second is private — must reject
+    mockResolve(['8.8.8.8', '192.168.1.10']);
+    expect(await isSafeExternalUrl('https://mixed.attacker.com/')).toBe(false);
+  });
+
+  it('blocks IPv6 loopback returned via AAAA record', async () => {
+    mockResolve(['::1']);
+    expect(await isSafeExternalUrl('http://v6.attacker.com/')).toBe(false);
+  });
+
+  it('blocks IPv6 link-local returned via AAAA', async () => {
+    mockResolve(['fe80::1']);
+    expect(await isSafeExternalUrl('http://v6ll.attacker.com/')).toBe(false);
+  });
+
+  it('blocks IPv6 unique-local (fc00::/7) returned via AAAA', async () => {
+    mockResolve(['fd12:3456:789a::1']);
+    expect(await isSafeExternalUrl('http://v6ula.attacker.com/')).toBe(false);
+  });
+
+  it('allows public IPv6 returned via AAAA (regression: dual-stack CDNs)', async () => {
+    mockResolve(['2606:4700:4700::1111']);
+    expect(await isSafeExternalUrl('https://dual-stack.example.com/')).toBe(true);
+  });
+
+  it('allows dual-stack hostname (mix of public IPv4 and public IPv6)', async () => {
+    mockResolve(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']);
+    expect(await isSafeExternalUrl('https://example.com/')).toBe(true);
+  });
+
+  it('returns false when DNS resolution fails entirely', async () => {
+    vi.spyOn(dns, 'lookup').mockRejectedValue(new Error('ENOTFOUND'));
+    expect(await isSafeExternalUrl('http://nonexistent.example/')).toBe(false);
+  });
+
+  it('always re-resolves (no cache — closes the DNS rebinding window)', async () => {
+    // Regression: a previous version cached resolved addresses for 60s,
+    // which let an attacker present a public IP on the first lookup and
+    // rebind to a private IP for the next 60 seconds while subsequent
+    // fetches did their own (now stale) DNS lookup. Always re-resolve.
+    const lookupSpy = vi.spyOn(dns, 'lookup').mockResolvedValue(
+      [{ address: '203.0.113.5', family: 4 }] as never,
+    );
+    expect(await isSafeExternalUrl('https://repeated.example.com/')).toBe(true);
+    expect(await isSafeExternalUrl('https://repeated.example.com/other')).toBe(true);
+    expect(lookupSpy).toHaveBeenCalledTimes(2);
   });
 });

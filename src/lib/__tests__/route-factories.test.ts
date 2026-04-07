@@ -26,7 +26,7 @@ silenceConsole();
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  mockIsSafe.mockReturnValue(true);
+  mockIsSafe.mockResolvedValue(true);
   mockDownload.mockResolvedValue({ path: '/backgrounds/test.jpg' });
 });
 
@@ -57,7 +57,7 @@ describe('createImageDownloadHandler', () => {
   });
 
   it('returns 400 when imageUrl is not a safe external URL', async () => {
-    mockIsSafe.mockReturnValue(false);
+    mockIsSafe.mockResolvedValue(false);
     const handler = makeHandler();
     const res = await handler(postRequest({ imageUrl: 'http://169.254.169.254/secret' }));
     expect(res.status).toBe(400);

@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { readConfig, writeConfig } from '../config';
+import { getLatestSchemaVersion } from '../migrations';
 
 // Override process.cwd to use a temp directory for tests
 let tmpDir: string;
@@ -23,7 +24,9 @@ afterEach(async () => {
 describe('readConfig', () => {
   it('returns default config when file does not exist', async () => {
     const config = await readConfig();
-    expect(config.version).toBe(1);
+    // Default tracks the latest schema version so fresh installs don't
+    // trigger an unnecessary migrate-on-boot write.
+    expect(config.version).toBe(getLatestSchemaVersion());
     expect(config.screens).toHaveLength(1);
     expect(config.screens[0].id).toBe('default');
     expect(config.settings.weather.provider).toBe('weatherapi');
@@ -42,6 +45,43 @@ describe('readConfig', () => {
     const config = await readConfig();
     expect(config.version).toBe(2);
     expect(config.screens[0].id).toBe('custom');
+  });
+
+  // Fail-closed regression: see code-review-remediation.md item 1.
+  // The previous bare catch returned DEFAULT_CONFIG on any error, which
+  // caused read-mutate-write callers (e.g. profile change) to overwrite
+  // real config with defaults. readConfig must now THROW on corruption.
+  it('throws when the config file contains invalid JSON', async () => {
+    const configDir = path.join(tmpDir, 'data');
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(path.join(configDir, 'config.json'), 'this is not json {{{');
+
+    await expect(readConfig()).rejects.toThrow();
+  });
+
+  it('does not write fallback defaults when read fails', async () => {
+    // Seed corrupt config
+    const configDir = path.join(tmpDir, 'data');
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(path.join(configDir, 'config.json'), '{ truncated');
+
+    // Simulate a read-mutate-write caller (like the profile-change route).
+    // After the readConfig throws, the caller should NOT proceed to write.
+    let didWrite = false;
+    try {
+      await readConfig();
+      // If we reach here the bug is back — caller would clobber the file.
+      await writeConfig({} as never);
+      didWrite = true;
+    } catch {
+      // Expected: fail closed.
+    }
+
+    expect(didWrite).toBe(false);
+
+    // Verify the corrupt content is still on disk untouched
+    const raw = await fs.readFile(path.join(configDir, 'config.json'), 'utf-8');
+    expect(raw).toBe('{ truncated');
   });
 });
 

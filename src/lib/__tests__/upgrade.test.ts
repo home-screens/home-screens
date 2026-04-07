@@ -38,11 +38,13 @@ vi.mock('@/lib/version', () => ({
 const mockFsAccess = vi.fn();
 const mockFsRename = vi.fn();
 const mockFsRm = vi.fn();
+const mockFsMkdir = vi.fn();
 vi.mock('fs', () => ({
   promises: {
     access: (...args: unknown[]) => mockFsAccess(...args),
     rename: (...args: unknown[]) => mockFsRename(...args),
     rm: (...args: unknown[]) => mockFsRm(...args),
+    mkdir: (...args: unknown[]) => mockFsMkdir(...args),
   },
 }));
 
@@ -137,6 +139,7 @@ function resetMockDefaults() {
   mockFsAccess.mockResolvedValue(undefined); // .git exists by default
   mockFsRename.mockResolvedValue(undefined);
   mockFsRm.mockResolvedValue(undefined);
+  mockFsMkdir.mockResolvedValue(undefined);
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────
@@ -536,8 +539,15 @@ describe('runUpgrade — tarball path', () => {
     expect(steps).toContain('deploy');
     expect(steps).toContain('setup-system');
     expect(steps).toContain('restart');
-    expect(steps).toContain('cleanup');
     expect(steps).toContain('complete');
+
+    // Cleanup is intentionally NOT a separate pipeline step on the tarball
+    // path. See code-review-remediation.md item 2: cleanup-rollback used to
+    // run before the new release proved it could boot, leaving nothing to
+    // recover from on startup failure. The `restart` action now spawns a
+    // detached background job that health-checks the new server and only
+    // then removes the rollback dir.
+    expect(steps).not.toContain('cleanup');
 
     // Git-only steps should be absent
     expect(steps).not.toContain('fetch');
@@ -588,6 +598,47 @@ describe('runUpgrade — tarball path', () => {
 
     // Should have attempted rename(rollbackDir, APP_DIR) for recovery
     expect(mockFsRename).toHaveBeenCalled();
+  });
+
+  it('recovers from interrupted deploy (stale staging dir) by reconciling stranded data', async () => {
+    // Scenario 2: APP_DIR is fine, but a stale .staging dir exists from
+    // a previous deploy that was interrupted before the swap. The new
+    // recoverFromInterruptedDeploy logic should:
+    //   1. Detect the staging dir
+    //   2. Find stranded `data/` inside it (since old code did mv, not cp)
+    //   3. Move it back to APP_DIR/data because dst is missing
+    //   4. Remove the staging dir
+    //
+    // We mock fs.access by inspecting the path argument and returning the
+    // appropriate result for each scenario branch.
+    mockFsAccess.mockImplementation(async (p: string) => {
+      // APP_DIR exists (scenario 1 doesn't apply)
+      if (p.endsWith('/current')) return undefined;
+      // staging dir exists (triggers scenario 2)
+      if (p.endsWith('/current.staging')) return undefined;
+      // staging has a stranded data subdir
+      if (p.endsWith('/current.staging/data')) return undefined;
+      // dst (APP_DIR/data) is missing → restore from staging
+      if (p.endsWith('/current/data')) throw new Error('ENOENT');
+      // staging does NOT have public/backgrounds
+      if (p.endsWith('/current.staging/public/backgrounds')) throw new Error('ENOENT');
+      // Anything else: assume present
+      return undefined;
+    });
+
+    setupSpawnForSuccess();
+    await upgradeModule.runUpgrade('v1.2.0');
+
+    // Should have renamed the stranded data back to APP_DIR
+    expect(mockFsRename).toHaveBeenCalledWith(
+      expect.stringContaining('.staging/data'),
+      expect.stringContaining('/current/data'),
+    );
+    // Should have removed the staging dir during recovery
+    expect(mockFsRm).toHaveBeenCalledWith(
+      expect.stringContaining('.staging'),
+      { recursive: true, force: true },
+    );
   });
 
   it('completes with correct message including the target tag', async () => {

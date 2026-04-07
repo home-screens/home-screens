@@ -9,8 +9,8 @@ set -euo pipefail
 #   upgrade.sh backup                 - Backup config to data/backups/
 #   upgrade.sh download <tag>         - Download release tarball from GitHub
 #   upgrade.sh deploy                 - Atomic swap of staged files into place
-#   upgrade.sh cleanup-rollback       - Remove rollback directory after success
-#   upgrade.sh restart                - Restart the systemd service
+#   upgrade.sh finalize-deploy [port] - Wait for new release to be healthy then drop rollback
+#   upgrade.sh restart                - Restart the systemd service (spawns finalize-deploy)
 #   upgrade.sh health-check           - Verify server is responding
 #   upgrade.sh setup-system           - Apply system config (services, kiosk, boot target)
 #   upgrade.sh list-backups           - List config backups
@@ -146,6 +146,22 @@ case "${action}" in
       exit 1
     fi
 
+    # Verify SHA-256 checksum if a sidecar is published. Releases predating
+    # the checksum rollout lack a sidecar — warn but continue in that case
+    # to keep upgrades to older versions working.
+    checksum_name="${asset_name}.sha256"
+    checksum_url="https://github.com/${repo}/releases/download/${tag}/${checksum_name}"
+    if curl -fsSL --max-time 30 -o "${staging_dir}/${checksum_name}" "${checksum_url}" 2>/dev/null; then
+      if ! ( cd "${staging_dir}" && sha256sum -c "${checksum_name}" >/dev/null 2>&1 ); then
+        rm -rf "${staging_dir}"
+        echo "{\"ok\":false,\"error\":\"Checksum verification failed for ${asset_name}\"}"
+        exit 1
+      fi
+      rm -f "${staging_dir}/${checksum_name}"
+    fi
+    # If the sidecar was missing we silently continue (backwards compatible
+    # with pre-checksum releases) — the bash trap still cleans staging on error.
+
     # Extract
     tar -xzf "${staging_dir}/${asset_name}" -C "${staging_dir}"
     rm "${staging_dir}/${asset_name}"
@@ -172,28 +188,28 @@ case "${action}" in
 
     rollback_dir="${APP_DIR}.rollback"
 
-    # Safety trap: covers both the data-move phase and the atomic swap.
-    # Order matters: restore APP_DIR from rollback FIRST (phase 2), then
-    # move data back (phase 1). If APP_DIR is gone, the data-restore
-    # conditions would skip because they check [ -d "${APP_DIR}" ].
+    # Safety trap: covers the atomic swap. Data is COPIED into staging
+    # (not moved), so a power loss before the swap leaves the original
+    # data intact in APP_DIR — no data restoration is needed in that case.
+    # We only need to roll back APP_DIR if the swap failed mid-rename.
     trap '
-      # Phase 2: restore APP_DIR from rollback if the swap failed
       [ ! -d "${APP_DIR}" ] && [ -d "${rollback_dir}" ] && mv "${rollback_dir}" "${APP_DIR}" 2>/dev/null
-      # Phase 1: restore data moved to staging
-      [ -d "${staging_dir}/data" ] && [ ! -d "${APP_DIR}/data" ] && [ -d "${APP_DIR}" ] && mv "${staging_dir}/data" "${APP_DIR}/data" 2>/dev/null
-      [ -d "${staging_dir}/public/backgrounds" ] && [ ! -d "${APP_DIR}/public/backgrounds" ] && [ -d "${APP_DIR}" ] && mv "${staging_dir}/public/backgrounds" "${APP_DIR}/public/backgrounds" 2>/dev/null
       true
     ' ERR INT TERM
 
-    # 1. Move user data INTO the staged release so it survives the swap
+    # 1. COPY user data INTO the staged release so it survives the swap.
+    #    Copying (not moving) eliminates the data-stranding window: the
+    #    original data remains in APP_DIR throughout the copy phase. If
+    #    power is lost mid-copy, recovery is automatic — APP_DIR is intact.
+    #    The cost is one extra copy per upgrade (typically tens of MB).
     if [ -d "${APP_DIR}/data" ]; then
       rm -rf "${staging_dir}/data"
-      mv "${APP_DIR}/data" "${staging_dir}/data"
+      cp -a "${APP_DIR}/data" "${staging_dir}/data"
     fi
     if [ -d "${APP_DIR}/public/backgrounds" ]; then
       mkdir -p "${staging_dir}/public"
       rm -rf "${staging_dir}/public/backgrounds"
-      mv "${APP_DIR}/public/backgrounds" "${staging_dir}/public/backgrounds"
+      cp -a "${APP_DIR}/public/backgrounds" "${staging_dir}/public/backgrounds"
     fi
     # Preserve .env files
     shopt -s nullglob
@@ -206,7 +222,10 @@ case "${action}" in
     rm -rf "${rollback_dir}"
 
     # 3. Atomic swap: rename current → rollback, staging → current
-    #    rename(2) is atomic on the same filesystem
+    #    rename(2) is atomic on the same filesystem.
+    #    After the swap, the rollback dir still contains the old user data.
+    #    finalize-deploy will remove rollback (and that stale data copy)
+    #    once the new release passes its health check.
     mv "${APP_DIR}" "${rollback_dir}"
     mv "${staging_dir}" "${APP_DIR}"
 
@@ -217,10 +236,42 @@ case "${action}" in
     echo '{"ok":true}'
     ;;
 
-  cleanup-rollback)
+  finalize-deploy)
+    # Wait for the new server to become healthy after a deploy + restart,
+    # then clean up the rollback directory. Designed to run as a detached
+    # background job spawned from `restart`, because the orchestrating
+    # process is killed by the systemd restart and cannot run cleanup
+    # itself. Leaves the rollback in place if health check fails so the
+    # user can recover via the upgrade UI's rollback action.
+    #
+    # Health check accepts ANY HTTP response code (incl. 401) — when auth
+    # is enabled /api/config requires a session or display token, but the
+    # 401 still proves the server is bound to the port and processing
+    # requests, which is what "healthy" means here. We just want to know
+    # the new release booted successfully.
+    port="${1:-${PORT:-3000}}"
     rollback_dir="${APP_DIR}.rollback"
-    rm -rf "${rollback_dir}" 2>/dev/null || true
-    echo '{"ok":true}'
+    if [ ! -d "${rollback_dir}" ]; then
+      echo '{"ok":true,"healthy":true,"rollback":"absent"}'
+      exit 0
+    fi
+    attempt=0
+    max_attempts=45  # 45 * 2s = 90s
+    while [ ${attempt} -lt ${max_attempts} ]; do
+      # %{http_code} is "000" when curl can't connect at all; any HTTP
+      # response (200, 401, 500, ...) means the server is reachable.
+      http_code=$(curl -s -o /dev/null --max-time 5 -w "%{http_code}" \
+        "http://localhost:${port}/api/config" 2>/dev/null || echo "000")
+      if [ -n "${http_code}" ] && [ "${http_code}" != "000" ]; then
+        rm -rf "${rollback_dir}" 2>/dev/null || true
+        echo "{\"ok\":true,\"healthy\":true,\"attempts\":${attempt},\"status\":${http_code}}"
+        exit 0
+      fi
+      sleep 2
+      attempt=$(( attempt + 1 ))
+    done
+    echo "{\"ok\":false,\"error\":\"New release did not become healthy within 90s; rollback preserved at ${rollback_dir}\"}"
+    exit 1
     ;;
 
   migrate-remote)
@@ -270,7 +321,36 @@ case "${action}" in
     # We schedule the restart with a short delay so this script can exit
     # cleanly and the API can respond before the process is terminated.
     if command -v systemctl &>/dev/null && systemctl is-active "${SERVICE_NAME}" &>/dev/null; then
-      nohup bash -c "sleep 3 && sudo systemctl restart ${SERVICE_NAME}" > /dev/null 2>&1 &
+      # Read port now so the detached job doesn't depend on the orchestrating
+      # process's environment after restart. Wrap cat||echo in braces so the
+      # fallback applies to the whole subshell, not just the trailing tr.
+      finalize_port=$( { cat "${APP_DIR}/data/port.conf" 2>/dev/null || echo 3000; } | tr -d '[:space:]' )
+      finalize_log="${APP_DIR}/data/upgrade-finalize.log"
+      mkdir -p "$(dirname "${finalize_log}")" 2>/dev/null || true
+      # Detached job: restart the service, verify systemd actually replaced
+      # the running process, then finalize by health-checking and cleaning up
+      # the rollback. `setsid` makes it survive the orchestrator's death.
+      #
+      # CRITICAL: this block must short-circuit on ANY failure so finalize-deploy
+      # never runs against a still-living old process. `set -e` aborts on error.
+      # The MainPID check rejects the case where systemctl exits 0 but the
+      # process was not actually replaced (e.g., transient systemd state).
+      nohup setsid bash -c "
+        set -e
+        sleep 3
+        old_pid=\$(systemctl show -p MainPID --value ${SERVICE_NAME} 2>/dev/null || echo 0)
+        sudo systemctl restart ${SERVICE_NAME}
+        # Give systemd time to spawn the replacement process
+        sleep 5
+        new_pid=\$(systemctl show -p MainPID --value ${SERVICE_NAME} 2>/dev/null || echo 0)
+        if [ \"\${new_pid}\" = \"0\" ] || [ \"\${new_pid}\" = \"\${old_pid}\" ]; then
+          echo \"Restart did not produce a new MainPID (old=\${old_pid}, new=\${new_pid}); aborting finalize to preserve rollback\" >&2
+          exit 1
+        fi
+        systemctl is-active --quiet ${SERVICE_NAME}
+        bash '${APP_DIR}/scripts/upgrade.sh' finalize-deploy '${finalize_port}'
+      " > "${finalize_log}" 2>&1 < /dev/null &
+      disown 2>/dev/null || true
       echo "{\"ok\":true,\"method\":\"systemctl\"}"
     else
       echo "{\"ok\":true,\"method\":\"manual\",\"message\":\"Service not managed by systemd. Restart manually.\"}"
@@ -368,12 +448,16 @@ case "${action}" in
     ;;
 
   health-check)
+    # Accept any HTTP response code (incl. 401 from auth-enabled installs)
+    # as proof the server is up. We're checking liveness, not authorization.
     port="${1:-${PORT}}"
     max_attempts=30
     attempt=0
     while [ $attempt -lt $max_attempts ]; do
-      if curl -sf "http://localhost:${port}/api/config" >/dev/null 2>&1; then
-        echo "{\"ok\":true,\"attempts\":${attempt}}"
+      http_code=$(curl -s -o /dev/null --max-time 5 -w "%{http_code}" \
+        "http://localhost:${port}/api/config" 2>/dev/null || echo "000")
+      if [ -n "${http_code}" ] && [ "${http_code}" != "000" ]; then
+        echo "{\"ok\":true,\"attempts\":${attempt},\"status\":${http_code}}"
         exit 0
       fi
       sleep 2

@@ -101,7 +101,13 @@ else
     echo "  Bump RC:      $0 prerelease"
     echo "  Promote:      $0 minor  (or patch/major)"
   else
-    echo "Released ${TAG}. Deploy with:"
-    echo "  ./scripts/deploy.sh"
+    echo "Released ${TAG}."
+    echo ""
+    echo "  Devices on the stable update channel will see this release in the"
+    echo "  editor's Updates page once GitHub Actions finishes building the"
+    echo "  release tarball (a few minutes). Upgrade from there."
+    echo ""
+    echo "  For a workstation/dev SSH push (not the production path):"
+    echo "    ./scripts/deploy.sh"
   fi
 fi

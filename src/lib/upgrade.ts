@@ -429,19 +429,61 @@ export async function runUpgrade(targetTag: string): Promise<void> {
   }
 }
 
-/** Recover from an interrupted deploy — if APP_DIR is missing but a rollback exists, restore it */
+/**
+ * Recover from an interrupted deploy. Two scenarios:
+ *   1. APP_DIR is missing but rollback exists → atomic swap was interrupted,
+ *      restore APP_DIR from rollback.
+ *   2. APP_DIR is fine but a stale .staging dir exists → a previous deploy
+ *      was interrupted before the swap. The staging dir may contain
+ *      stranded user data (data/, public/backgrounds/) from the data-move
+ *      phase. Move that data back to APP_DIR if missing, then remove staging.
+ */
 async function recoverFromInterruptedDeploy(): Promise<void> {
   const { promises: fsPromises } = await import('fs');
   const rollbackDir = `${APP_DIR}.rollback`;
+  const stagingDir = `${APP_DIR}.staging`;
+
+  // Scenario 1: missing APP_DIR — restore from rollback
   try {
     await fsPromises.access(APP_DIR);
   } catch {
-    // APP_DIR missing — attempt recovery from rollback
     try {
       await fsPromises.rename(rollbackDir, APP_DIR);
     } catch {
       // No rollback either — nothing to recover
     }
+  }
+
+  // Scenario 2: stale staging dir — reconcile any stranded user data
+  try {
+    await fsPromises.access(stagingDir);
+    // staging dir exists; check for stranded data and restore it if APP_DIR
+    // is missing the corresponding directories
+    for (const rel of ['data', 'public/backgrounds']) {
+      const src = `${stagingDir}/${rel}`;
+      const dst = `${APP_DIR}/${rel}`;
+      try {
+        await fsPromises.access(src);
+      } catch {
+        continue; // staging doesn't have this subdir
+      }
+      try {
+        await fsPromises.access(dst);
+        // dst already exists — staging copy is stale, leave it for cleanup
+      } catch {
+        // dst missing — restore from staging
+        try {
+          await fsPromises.mkdir(path.dirname(dst), { recursive: true });
+          await fsPromises.rename(src, dst);
+        } catch {
+          // best-effort recovery
+        }
+      }
+    }
+    // Remove the (now reconciled) staging directory
+    await fsPromises.rm(stagingDir, { recursive: true, force: true });
+  } catch {
+    // No staging dir — nothing to reconcile
   }
 }
 
@@ -488,14 +530,11 @@ async function runTarballUpgrade(targetTag: string): Promise<void> {
       },
     },
     setupSystemStep(75),
-    {
-      step: 'cleanup',
-      progress: 85,
-      message: 'Finalizing...',
-      run: async () => {
-        await runUpgradeScript('cleanup-rollback', [], streamTo('cleanup'), { cwd: APP_DIR });
-      },
-    },
+    // NOTE: cleanup-rollback is intentionally NOT a separate pipeline step.
+    // It would run BEFORE the new release proves it can boot, leaving
+    // nothing to recover from if startup fails. Instead, the `restart`
+    // action below schedules a detached background job that polls the new
+    // server's health and only then removes the rollback directory.
     restartStep(92),
     completeStep(`Upgrade to ${targetTag} complete!`),
   ];

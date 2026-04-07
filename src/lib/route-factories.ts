@@ -22,7 +22,7 @@ export function createImageDownloadHandler(config: {
       return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 });
     }
 
-    if (!isSafeExternalUrl(imageUrl)) {
+    if (!(await isSafeExternalUrl(imageUrl))) {
       return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
     }
 

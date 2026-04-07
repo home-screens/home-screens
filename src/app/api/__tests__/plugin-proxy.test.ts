@@ -26,6 +26,18 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
+// Mock SSRF safety so tests don't hit the network. The real url-safety
+// module performs DNS resolution to defend against DNS rebinding; here we
+// stub it to permit any allowed-domain URL the tests construct. Individual
+// tests can still override `isSafeExternalUrl` to verify rejection paths.
+vi.mock('@/lib/url-safety', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/url-safety')>();
+  return {
+    ...actual,
+    isSafeExternalUrl: vi.fn().mockResolvedValue(true),
+  };
+});
+
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();
   return {
@@ -1013,6 +1025,173 @@ describe('POST /api/plugins/proxy/[pluginId] — SSRF prevention via domain allo
     const res = await POST(req, ctx);
 
     expect(res.status).toBe(403);
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Security — redirect SSRF (every hop must re-validate)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/** Build a fake fetch that returns scripted responses in order. Each entry
+ *  is either a redirect (status + Location) or a body response. */
+function mockUpstreamSequence(
+  responses: Array<
+    | { redirect: string; status?: number }
+    | { body: string; status?: number; contentType?: string }
+  >,
+) {
+  let callIdx = 0;
+  global.fetch = vi.fn().mockImplementation(async () => {
+    const r = responses[Math.min(callIdx++, responses.length - 1)];
+    if ('redirect' in r) {
+      const headers = new Headers({ Location: r.redirect });
+      return {
+        ok: false,
+        status: r.status ?? 302,
+        headers,
+        arrayBuffer: async () => new ArrayBuffer(0),
+      };
+    }
+    const buffer = new TextEncoder().encode(r.body).buffer;
+    const headers = new Headers({ 'Content-Type': r.contentType ?? 'application/json' });
+    const status = r.status ?? 200;
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      headers,
+      arrayBuffer: async () => buffer,
+    };
+  });
+}
+
+describe('POST /api/plugins/proxy/[pluginId] — redirect SSRF re-validation', () => {
+  it('follows a redirect within the same allowed domain and returns the final body', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    const initial = uniqueUrl();
+    const target = uniqueUrl();
+    mockUpstreamSequence([
+      { redirect: target, status: 302 },
+      { body: '{"final":true}' },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', { url: initial });
+    const res = await POST(req, ctx);
+
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('final');
+  });
+
+  it('rejects a redirect that escapes the allowedDomains list', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    mockUpstreamSequence([
+      // Allowed domain redirects to an external host that the manifest doesn't permit
+      { redirect: 'https://attacker.com/exfil', status: 302 },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', { url: uniqueUrl() });
+    const res = await POST(req, ctx);
+    const json = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(json.error).toMatch(/Redirect target not in plugin allowedDomains/);
+  });
+
+  it('rejects a redirect to a literal private IP', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    mockUpstreamSequence([
+      { redirect: 'http://169.254.169.254/latest/meta-data/', status: 302 },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', { url: uniqueUrl() });
+    const res = await POST(req, ctx);
+
+    // The redirect target's hostname is a literal private IP, so the
+    // allowedDomains check (which blocks isBlockedHost unconditionally)
+    // rejects it before we even reach isSafeExternalUrl.
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects a redirect when isSafeExternalUrl returns false (DNS-rebound private IP)', async () => {
+    // The mock at the top of the file always returns true; override per-test.
+    const { isSafeExternalUrl } = await import('@/lib/url-safety');
+    vi.mocked(isSafeExternalUrl).mockResolvedValueOnce(true);  // initial URL passes
+    vi.mocked(isSafeExternalUrl).mockResolvedValueOnce(false); // redirect target fails
+
+    setupPlugin({ allowedDomains: ['*.example.com'] });
+    mockUpstreamSequence([
+      // Both hosts pass the allowedDomains glob, but the redirect target
+      // resolves to a private address according to the (mocked) DNS check.
+      { redirect: 'https://internal.example.com/secret', status: 302 },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', { url: uniqueUrl() });
+    const res = await POST(req, ctx);
+    const json = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(json.error).toMatch(/private or unreachable address/);
+  });
+
+  it('rejects a redirect chain longer than the hop cap', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    // 6 redirects in a row — the cap is 5. Use uniqueUrl to avoid GET cache.
+    const targets = Array.from({ length: 6 }, () => uniqueUrl());
+    mockUpstreamSequence(
+      targets.map((t) => ({ redirect: t, status: 302 })),
+    );
+
+    const [req, ctx] = makeProxyRequest('test-plugin', { url: uniqueUrl() });
+    const res = await POST(req, ctx);
+    const json = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(json.error).toMatch(/Too many redirects/);
+  });
+
+  it('downgrades POST to GET on a 303 redirect (per fetch spec)', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    mockUpstreamSequence([
+      { redirect: uniqueUrl(), status: 303 },
+      { body: '{"ok":true}' },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: uniqueUrl(),
+      method: 'POST',
+      payload: '{"data":"value"}',
+    });
+    const res = await POST(req, ctx);
+
+    expect(res.status).toBe(200);
+    // Verify second fetch was called as GET with no body
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.length).toBe(2);
+    const secondCall = calls[1][1] as RequestInit;
+    expect(secondCall.method).toBe('GET');
+    expect(secondCall.body).toBeUndefined();
+  });
+
+  it('preserves POST and body on a 307 redirect', async () => {
+    setupPlugin({ allowedDomains: ['api.example.com'] });
+    mockUpstreamSequence([
+      { redirect: uniqueUrl(), status: 307 },
+      { body: '{"ok":true}' },
+    ]);
+
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: uniqueUrl(),
+      method: 'POST',
+      payload: '{"data":"value"}',
+    });
+    const res = await POST(req, ctx);
+
+    expect(res.status).toBe(200);
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.length).toBe(2);
+    const secondCall = calls[1][1] as RequestInit;
+    expect(secondCall.method).toBe('POST');
+    expect(secondCall.body).toBe('{"data":"value"}');
   });
 });
 

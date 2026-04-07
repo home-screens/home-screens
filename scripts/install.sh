@@ -75,9 +75,29 @@ fi
 info "Downloading ${LATEST_TAG}..."
 ASSET_NAME="home-screens-${LATEST_TAG}.tar.gz"
 DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${ASSET_NAME}"
+CHECKSUM_NAME="${ASSET_NAME}.sha256"
+CHECKSUM_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${CHECKSUM_NAME}"
 
 if ! curl -fSL --speed-limit 1024 --speed-time 60 -o "/tmp/${ASSET_NAME}" "${DOWNLOAD_URL}"; then
   error "Failed to download release tarball."
+fi
+
+# Verify SHA-256 checksum if a sidecar is published. Releases prior to the
+# checksum rollout don't have one — warn but continue in that case so users
+# can still install older versions.
+if curl -fsSL --max-time 30 -o "/tmp/${CHECKSUM_NAME}" "${CHECKSUM_URL}" 2>/dev/null; then
+  info "Verifying checksum..."
+  # The sidecar was generated against the bare filename — run from /tmp so
+  # the relative path resolves correctly.
+  if ( cd /tmp && sha256sum -c "${CHECKSUM_NAME}" >/dev/null 2>&1 ); then
+    info "Checksum OK."
+  else
+    rm -f "/tmp/${ASSET_NAME}" "/tmp/${CHECKSUM_NAME}"
+    error "Checksum verification FAILED for ${ASSET_NAME}. Refusing to install."
+  fi
+  rm -f "/tmp/${CHECKSUM_NAME}"
+else
+  warn "No checksum sidecar published for ${LATEST_TAG} — skipping verification."
 fi
 
 # Create the install base owned by the current user.
