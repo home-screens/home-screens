@@ -236,6 +236,23 @@ case "${action}" in
     echo '{"ok":true}'
     ;;
 
+  cleanup-rollback)
+    # Backwards-compat shim for v0.25.0 and earlier upgrade pipelines.
+    #
+    # Those releases call `cleanup-rollback` AFTER the atomic swap (so this
+    # NEW script handles the call) and BEFORE `restart`. The action used to
+    # delete APP_DIR.rollback immediately, but that left nothing to recover
+    # from when the new release failed to boot — see commit 2d9b1bd.
+    #
+    # In the current model, `restart` spawns a detached `finalize-deploy`
+    # job that drops the rollback dir only after a health check passes, so
+    # this shim just needs to succeed without touching anything. If we
+    # removed the case entirely (as 2d9b1bd briefly did), the shell hits
+    # the unknown-action fallthrough and old installs cannot upgrade past
+    # v0.25.0. Keep this case until v0.25.0 is no longer in the wild.
+    echo '{"ok":true,"shim":true}'
+    ;;
+
   finalize-deploy)
     # Wait for the new server to become healthy after a deploy + restart,
     # then clean up the rollback directory. Designed to run as a detached
