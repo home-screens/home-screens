@@ -19,6 +19,7 @@ import {
   Activity,
   Bell,
   BookOpen,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
@@ -29,6 +30,7 @@ import LocationSection from '@/components/editor/settings/LocationSection';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
+import MealsSection from '@/components/editor/settings/MealsSection';
 import ProfilesSection from '@/components/editor/settings/ProfilesSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
@@ -50,6 +52,7 @@ const TABS = [
   { id: 'location', label: 'Location', icon: MapPin },
   { id: 'weather', label: 'Weather', icon: CloudSun },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
+  { id: 'meals', label: 'Meals', icon: UtensilsCrossed },
   { id: 'integrations', label: 'Integrations', icon: Plug },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'data', label: 'Data', icon: Database },
@@ -413,7 +416,7 @@ export default function SettingsPage() {
     );
   }
 
-  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'stats', 'docs']);
+  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'stats', 'docs', 'meals']);
   const showSaveButton = !SELF_SAVING_TABS.has(activeTab);
 
   return (
@@ -535,6 +538,10 @@ export default function SettingsPage() {
                 }}
                 onChange={(updates) => updateGroup('calendar', updates)}
               />
+            )}
+
+            {activeTab === 'meals' && (
+              <MealsSection />
             )}
 
             {activeTab === 'integrations' && (

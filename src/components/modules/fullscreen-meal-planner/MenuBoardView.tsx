@@ -1,10 +1,10 @@
 import type { MealSlotType, SavedMeal } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, resolveMeal, toISODate } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
 export default function MenuBoardView({
-  savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
   const todayISO = toISODate(now);
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -12,8 +12,12 @@ export default function MenuBoardView({
 
   // Only show slots that have a meal planned
   const courses = activeOrder
-    .map((sl) => ({ slot: sl, meal: resolveMeal(todayISO, sl, plan, savedMeals), meta: SLOT_META[sl] }))
-    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; meta: { label: string; color: string } }[];
+    .map((sl) => {
+      const { meal, planned } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);
+      const time = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
+      return { slot: sl, meal, time, meta: SLOT_META[sl] };
+    })
+    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; time: string | undefined; meta: { label: string; color: string } }[];
 
   return (
     <div style={{
@@ -60,8 +64,8 @@ export default function MenuBoardView({
           </div>
         ) : courses.map((course, i) => (
           <div key={course.slot}>
-            {/* Slot pill */}
-            <div style={{ marginBottom: s * 0.5 }}>
+            {/* Slot pill + serving time */}
+            <div style={{ marginBottom: s * 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: s * 0.5 }}>
               <span style={{
                 fontSize: s * 0.6, fontWeight: 700, textTransform: 'uppercase' as const,
                 letterSpacing: '0.12em', color: course.meta.color,
@@ -70,6 +74,14 @@ export default function MenuBoardView({
               }}>
                 {course.meta.label}
               </span>
+              {course.time && (
+                <span style={{
+                  fontSize: s * 0.6, fontWeight: 600, color: 'var(--fmp-text-3)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {formatMealTime(course.time, settings.timeFormat)}
+                </span>
+              )}
             </div>
 
             {/* Emoji */}

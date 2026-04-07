@@ -8,16 +8,23 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { SLOT_ORDER, DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
+  MealSettings,
   SavedMeal,
   PlannedMeal,
 } from '@/types/config';
 
 type Config = Partial<FullscreenMealPlannerConfig>;
+
+interface MealsPayload {
+  savedMeals: SavedMeal[];
+  plan: PlannedMeal[];
+  settings: MealSettings;
+}
 
 const VIEWS = [
   { value: 'week', label: 'Week' },
@@ -29,7 +36,11 @@ const VIEWS = [
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[] }>({ savedMeals: [], plan: [] });
+  const [mealData, setMealData] = useState<MealsPayload>({
+    savedMeals: [],
+    plan: [],
+    settings: { ...DEFAULT_MEAL_SETTINGS },
+  });
 
   const fetchMealData = useCallback(() => {
     fetch('/api/meals/data')
@@ -37,11 +48,27 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
         plan: d.plan ?? [],
+        settings: d.settings ?? { ...DEFAULT_MEAL_SETTINGS },
       }))
       .catch(() => {});
   }, []);
 
   useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
+
+  // One-time migration: strip stale slots/weekStartDay fields from this
+  // module's in-memory config. These fields used to live on
+  // FullscreenMealPlannerConfig but now come from the shared meals.json
+  // `settings` block. The server migration (parseAndMigrate) atomically
+  // harvests any embedded data from data/config.json on first read, so
+  // this effect only needs to clean up the local Zustand store.
+  useEffect(() => {
+    const raw = mod.config as Record<string, unknown>;
+    if (raw?.slots !== undefined || raw?.weekStartDay !== undefined) {
+      set({ slots: undefined, weekStartDay: undefined } as unknown as Config);
+      displayCache.invalidate('/api/meals/data');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Ref for stable closure in handleModalUpdate
   const mealDataRef = useRef(mealData);
@@ -49,9 +76,14 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
   const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
     const current = mealDataRef.current;
-    const optimistic = {
+    // The modal only edits meals + plan. Don't include `settings` in the PUT body —
+    // the API preserves existing settings when the field is omitted, which avoids
+    // clobbering changes made concurrently from /remote or Settings → Meals since
+    // this panel last fetched (the cached `current.settings` could be stale).
+    const optimistic: MealsPayload = {
       savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
       plan: (updates.plan as PlannedMeal[]) ?? current.plan,
+      settings: current.settings, // local optimistic state only — not sent
     };
     // Update local state immediately so the modal reflects changes without waiting for the server
     setMealData(optimistic);
@@ -59,18 +91,26 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       const res = await fetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(optimistic),
+        body: JSON.stringify({
+          savedMeals: optimistic.savedMeals,
+          plan: optimistic.plan,
+          // settings deliberately omitted — API preserves existing
+        }),
       });
       if (res.ok) {
         const data = await res.json();
-        setMealData({ savedMeals: data.savedMeals, plan: data.plan });
+        setMealData({
+          savedMeals: data.savedMeals,
+          plan: data.plan,
+          // Use the server-returned settings (which may have been updated by
+          // another surface in the meantime) so the local cache stays correct.
+          settings: data.settings ?? optimistic.settings,
+        });
       }
       // Notify the canvas preview to refetch via displayCache invalidation
       displayCache.invalidate('/api/meals/data');
     } catch {}
   }, []);
-
-  const activeSlots = c.slots ?? [...DEFAULT_SLOTS];
 
   return (
     <>
@@ -130,42 +170,6 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         </select>
       </label>
 
-      {/* Week Start */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Week Starts On</span>
-        <select
-          value={c.weekStartDay ?? 'monday'}
-          onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
-          className={INPUT_CLASS}
-        >
-          <option value="sunday">Sunday</option>
-          <option value="monday">Monday</option>
-        </select>
-      </label>
-
-      {/* Meal Slots */}
-      <div className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Meal Slots</span>
-        <div className="rounded-md bg-neutral-800 border border-neutral-600 divide-y divide-neutral-700">
-          {SLOT_ORDER.map((slot) => (
-            <label key={slot} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
-              <input
-                type="checkbox"
-                checked={activeSlots.includes(slot)}
-                onChange={(e) => {
-                  const next = e.target.checked
-                    ? [...activeSlots, slot]
-                    : activeSlots.filter((s) => s !== slot);
-                  set({ slots: next });
-                }}
-                className="rounded bg-neutral-800 border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
-              />
-              <span className="text-sm text-neutral-300 capitalize">{slot}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* Display Toggles */}
       <Toggle label="Show Emoji" checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
       <Toggle label="Show Prep Time" checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
@@ -197,8 +201,10 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Mobile hint */}
       <p className="text-[11px] text-neutral-600 leading-relaxed">
-        Plan meals and manage your grocery list from your phone via the Meals tab at{' '}
-        <span className="text-neutral-400">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
+        Meal slots, week start, time format, and default serving times are shared across
+        all meal modules. Edit them from{' '}
+        <a href="/editor/settings?tab=meals" className="text-blue-400 hover:text-blue-300 underline">Settings &rarr; Meals</a>{' '}
+        or the <span className="text-neutral-400">/remote</span> settings drawer.
       </p>
 
       {/* Modal */}
@@ -206,8 +212,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         <MealPlannerModal
           savedMeals={mealData.savedMeals}
           plan={mealData.plan}
-          slots={activeSlots}
-          weekStartDay={c.weekStartDay ?? 'monday'}
+          settings={mealData.settings}
           accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}

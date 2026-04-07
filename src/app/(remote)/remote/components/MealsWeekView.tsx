@@ -1,7 +1,7 @@
 'use client';
 
 import type { MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealsViewProps } from './meals-shared';
 
 interface MealsWeekViewProps extends MealsViewProps {
@@ -12,10 +12,14 @@ export default function MealsWeekView({
   plan,
   weekDates,
   todayISO,
-  currentSlot,
+  activeSlot,
+  currentHour,
   getMealForSlot,
+  settings,
   setSubView,
 }: MealsWeekViewProps) {
+  const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
+
   return (
     <div style={{ paddingBottom: 80 }}>
       {weekDates.map(({ date, label, shortDate }) => {
@@ -50,11 +54,13 @@ export default function MealsWeekView({
             </div>
 
             {/* Meal slots */}
-            {SLOT_ORDER.map((slot: MealSlotType, slotIdx: number) => {
+            {enabledSlotsOrdered.map((slot: MealSlotType) => {
               const { planned, meal } = getMealForSlot(date, slot);
               const hasMeal = !!(meal || planned?.customText);
-              const isPastSlot = isPast || (isToday && slotIdx < currentSlot);
-              const isCurrentSlot = isToday && slotIdx === currentSlot;
+              const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
+              // A slot is "past" today if its window has ended (currentHour >= window.end)
+              const isPastSlot = isPast || (isToday && currentHour >= SLOT_WINDOWS[slot].end);
+              const isCurrentSlot = isToday && slot === activeSlot;
 
               if (!hasMeal) {
                 return (
@@ -102,6 +108,16 @@ export default function MealsWeekView({
                       <span style={{ fontSize: 10, color: '#525252', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                         {SLOT_META[slot].label}{isCurrentSlot ? ' \u2022 Now' : ''}
                       </span>
+                      {time && (
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: SLOT_META[slot].color,
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>
+                          {formatMealTime(time, settings.timeFormat)}
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: '#fafafa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {meal?.name ?? planned?.customText ?? ''}

@@ -1,11 +1,11 @@
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, toISODate, getWeekDatesForRange, getWeekRange } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 
 export default function WeekView({
-  config, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
 }: MealPlannerViewProps) {
-  const weekStartDay = config.weekStartDay ?? 'sunday';
+  const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(now, weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
   const todayISO = toISODate(now);
@@ -83,7 +83,8 @@ export default function WeekView({
               {/* Meal cards row */}
               <div style={{ display: 'flex', gap: s * 0.6 }}>
                 {slots.map((slot) => {
-                  const meal = resolveMeal(date, slot, plan, savedMeals);
+                  const { meal, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
+                  const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                   const meta = SLOT_META[slot];
                   const isActiveSlot = isToday && slot === activeSlot;
 
@@ -152,6 +153,16 @@ export default function WeekView({
                       }}>
                         {meal.name}
                       </span>
+                      {time && (
+                        <span style={{
+                          fontSize: s * 0.9,
+                          fontWeight: 600,
+                          color: 'var(--fmp-accent)',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>
+                          {formatMealTime(time, settings.timeFormat)}
+                        </span>
+                      )}
                       {showPrepTime && meal.prepTime && (
                         <span style={{ fontSize: s * 0.9, color: 'var(--fmp-text-3)' }}>
                           {meal.prepTime} min

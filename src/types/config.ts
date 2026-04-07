@@ -730,12 +730,43 @@ export interface PlannedMeal {
   mealId?: string;        // references SavedMeal.id
   customText?: string;    // "Eating out", "Leftovers"
   notes?: string;
+  /** Optional serving time in 24-hour "HH:MM" format (e.g. "18:30"). Per-instance: Tuesday's dinner can be at 6:30 while Friday's is at 7:00. */
+  time?: string;
+}
+
+/**
+ * Shared meal-planner settings stored in `data/meals.json` (NOT per-module config).
+ * These describe the household's planning model — what slots exist, when the week starts,
+ * default times — and are edited from `/remote` so all meal modules stay consistent.
+ */
+export interface MealSettings {
+  /** Which meal slots are enabled across all meal-planner modules */
+  enabledSlots: MealSlotType[];
+  /** First day of the planning week */
+  weekStartDay: 'sunday' | 'monday';
+  /**
+   * Default serving time per slot in 24-hour "HH:MM" format. Used as a fallback
+   * when a `PlannedMeal` does not have its own `time` set. Always present (may
+   * be empty `{}`); per-slot keys are optional since not every slot needs a default.
+   *
+   * `normalizeMealSettings` guarantees this object exists at every read/write
+   * boundary (server read, server write, client fetch), so consumers can access
+   * `settings.defaultSlotTimes[slot]` directly without an outer optional check.
+   */
+  defaultSlotTimes: Partial<Record<MealSlotType, string>>;
+  /**
+   * Time display format for meal serving times across all surfaces.
+   * A household preference — having one module show "6:30 PM" and another
+   * show "18:30" on the same screen would be confusing, so this lives in
+   * the shared settings block rather than per-module config.
+   *
+   * Always present at runtime (`normalizeMealSettings` defaults to '12h').
+   */
+  timeFormat: '12h' | '24h';
 }
 
 export interface MealPlannerConfig {
   view: MealPlannerView;
-  slots: MealSlotType[];
-  weekStartDay: 'sunday' | 'monday';
   showEmoji: boolean;
   showPrepTime: boolean;
   showTags: boolean;
@@ -830,8 +861,6 @@ export interface FullscreenMealPlannerConfig {
   density: 'cozy' | 'snug';
   typographySize: FullscreenTypographySize;
   accentColor: string;
-  weekStartDay: 'sunday' | 'monday';
-  slots: MealSlotType[];
   showPrepTime: boolean;
   showTags: boolean;
   showEmoji: boolean;

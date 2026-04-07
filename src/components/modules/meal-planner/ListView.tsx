@@ -1,21 +1,22 @@
 'use client';
 
-import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_FULL, resolveMeal, DEFAULT_SLOTS, getWeekDatesForRange, getWeekRange, dateToDayIndex } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_FULL, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 
 interface ListViewProps {
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
 }
 
-export function ListView({ config, plan, savedMeals, todayISO }: ListViewProps) {
-  const weekStartDay = config.weekStartDay ?? 'sunday';
+export function ListView({ config, settings, plan, savedMeals, todayISO }: ListViewProps) {
+  const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
-  const slots = config.slots ?? DEFAULT_SLOTS;
+  const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
@@ -25,10 +26,14 @@ export function ListView({ config, plan, savedMeals, todayISO }: ListViewProps) 
       {weekDates.map((date) => {
         const isToday = date === todayISO;
         const dayIdx = dateToDayIndex(date);
-        const meals = slots.map((slot) => ({
-          slot,
-          meal: resolveMeal(date, slot, plan, savedMeals),
-        }));
+        const meals = slots.map((slot) => {
+          const { meal, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
+          return {
+            slot,
+            meal,
+            time: resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes),
+          };
+        });
         const hasMeals = meals.some((m) => m.meal);
 
         return (
@@ -59,7 +64,7 @@ export function ListView({ config, plan, savedMeals, todayISO }: ListViewProps) 
             {/* Meals */}
             {hasMeals ? (
               <div className="flex flex-col gap-0.5 pl-1">
-                {meals.map(({ slot, meal }) => {
+                {meals.map(({ slot, meal, time }) => {
                   if (!meal) return null;
                   const meta = SLOT_META[slot];
                   return (
@@ -87,6 +92,16 @@ export function ListView({ config, plan, savedMeals, todayISO }: ListViewProps) 
 
                       {/* Meta */}
                       <div className="flex items-center gap-1.5 shrink-0" style={{ fontSize: '0.45em' }}>
+                        {time && (
+                          <span
+                            style={{
+                              opacity: TEXT_OPACITY.secondary,
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {formatMealTime(time, settings.timeFormat)}
+                          </span>
+                        )}
                         {showPrepTime && meal.prepTime && (
                           <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {meal.prepTime}m</span>
                         )}

@@ -39,25 +39,60 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
     }
   }
 
+  async function writeImpl(data: T): Promise<void> {
+    const filePath = resolvedPath();
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    if (opts.backup) {
+      try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
+    }
+    const tmp = filePath + '.tmp';
+    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
+    if (opts.chmod != null) await fs.chmod(tmp, opts.chmod);
+    await fs.rename(tmp, filePath);
+  }
+
   function write(data: T): Promise<void> {
-    const next = writeQueue.then(async () => {
-      const filePath = resolvedPath();
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
-      if (opts.backup) {
-        try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
-      }
-      const tmp = filePath + '.tmp';
-      await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-      if (opts.chmod != null) await fs.chmod(tmp, opts.chmod);
-      await fs.rename(tmp, filePath);
-    });
+    const next = writeQueue.then(() => writeImpl(data));
     writeQueue = next.catch(() => {});
     return next;
+  }
+
+  /**
+   * Atomic read-modify-write. Serializes through the same queue as `write`,
+   * so the read happens AFTER any prior queued writes have landed, and
+   * subsequent writes wait for this cycle to finish. Use this whenever a
+   * caller must observe the on-disk state, mutate it, and persist the
+   * result without another writer interleaving.
+   *
+   * The mutator may throw (including throwing a `Response` for API routes
+   * that want to short-circuit) — the throw propagates through the queue
+   * without advancing the file, and subsequent queued writes still run.
+   */
+  function updateAtomic(mutator: (current: T) => T | Promise<T>): Promise<T> {
+    // Resolve lazily so the queue propagates errors without skipping.
+    let resultHolder: { value: T } | undefined;
+    const next = writeQueue.then(async () => {
+      // Read happens here, *after* prior queued writes have landed.
+      const current = await read();
+      const mutated = await mutator(current);
+      await writeImpl(mutated);
+      resultHolder = { value: mutated };
+    });
+    writeQueue = next.catch(() => {});
+    return next.then(() => {
+      if (!resultHolder) {
+        // Unreachable: next resolved without setting resultHolder would
+        // only happen if writeImpl succeeded but we skipped the assignment.
+        throw new Error('updateAtomic: unexpected missing result');
+      }
+      return resultHolder.value;
+    });
   }
 
   return {
     read,
     write,
+    updateAtomic,
     get filePath() { return resolvedPath(); },
   };
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   getOrderedDays,
   resolveMeal,
+  resolveMealWithEntry,
   getActiveSlot,
   formatTagLabel,
   capitalize,
@@ -14,6 +15,14 @@ import {
   filterPlanToWeek,
   replaceWeekInPlan,
   copyWeekEntries,
+  formatMealTime,
+  parseTimeToMinutes,
+  resolvePlannedMealTime,
+  getSlotTimePresets,
+  SLOT_TIME_PRESETS,
+  normalizeMealSettings,
+  DEFAULT_MEAL_SETTINGS,
+  alignToWeekStart,
   SLOT_ORDER,
   SLOT_WINDOWS,
   SLOT_META,
@@ -378,5 +387,343 @@ describe('SLOT_META', () => {
       expect(SLOT_META[slot].label).toBeTruthy();
       expect(SLOT_META[slot].color).toBeTruthy();
     }
+  });
+});
+
+// ── alignToWeekStart ──
+
+describe('alignToWeekStart', () => {
+  it('aligns Wednesday → Sunday (sunday week start)', () => {
+    const wed = new Date(2026, 3, 8); // Wed Apr 8 2026
+    const aligned = alignToWeekStart(wed, 'sunday');
+    expect(aligned.getDay()).toBe(0);
+    expect(toISODate(aligned)).toBe('2026-04-05');
+  });
+
+  it('aligns Wednesday → Monday (monday week start)', () => {
+    const wed = new Date(2026, 3, 8); // Wed Apr 8 2026
+    const aligned = alignToWeekStart(wed, 'monday');
+    expect(aligned.getDay()).toBe(1);
+    expect(toISODate(aligned)).toBe('2026-04-06');
+  });
+
+  it('is a no-op when the date is already aligned (sunday)', () => {
+    const sun = new Date(2026, 3, 5); // Sun Apr 5 2026
+    const aligned = alignToWeekStart(sun, 'sunday');
+    expect(toISODate(aligned)).toBe('2026-04-05');
+  });
+
+  it('is a no-op when the date is already aligned (monday)', () => {
+    const mon = new Date(2026, 3, 6); // Mon Apr 6 2026
+    const aligned = alignToWeekStart(mon, 'monday');
+    expect(toISODate(aligned)).toBe('2026-04-06');
+  });
+
+  it('aligns Sunday → previous Monday in monday-start mode (no double-walk)', () => {
+    // In Monday-start convention, a Sunday belongs to the *previous* week whose
+    // start is the preceding Monday. So for Sun Apr 5 2026 the expected origin
+    // is Mon Mar 30 2026 — six days back, which is the mathematically correct
+    // result of `((dow + 6) % 7) = 6` when dow = 0.
+    //
+    // Regression guard: the prior implementation computed this offset twice
+    // by applying alignToWeekStart to an already-aligned reference date, which
+    // would subtract *another* week on top, landing on the Monday before that.
+    // Callers must apply the offset once, starting from the raw reference date.
+    const sun = new Date(2026, 3, 5); // Sun Apr 5 2026
+    const aligned = alignToWeekStart(sun, 'monday');
+    expect(toISODate(aligned)).toBe('2026-03-30');
+  });
+
+  it('aligns Saturday → Sunday (sunday week start)', () => {
+    const sat = new Date(2026, 3, 11); // Sat Apr 11 2026
+    const aligned = alignToWeekStart(sat, 'sunday');
+    expect(toISODate(aligned)).toBe('2026-04-05');
+  });
+
+  it('aligns Saturday → Monday (monday week start)', () => {
+    const sat = new Date(2026, 3, 11); // Sat Apr 11 2026
+    const aligned = alignToWeekStart(sat, 'monday');
+    expect(toISODate(aligned)).toBe('2026-04-06');
+  });
+
+  it('does not mutate the input date', () => {
+    const wed = new Date(2026, 3, 8);
+    const wedISO = toISODate(wed);
+    alignToWeekStart(wed, 'monday');
+    expect(toISODate(wed)).toBe(wedISO);
+  });
+
+  it('handles spring-forward DST boundary (March 8 2026 US)', () => {
+    // DST spring-forward in US is Sunday March 8 2026 at 02:00.
+    // A Wednesday in the same week should still align to Sunday March 8 cleanly.
+    const wedAfterSpring = new Date(2026, 2, 11); // Wed Mar 11 2026
+    const alignedSun = alignToWeekStart(wedAfterSpring, 'sunday');
+    expect(toISODate(alignedSun)).toBe('2026-03-08');
+
+    // And to Monday March 9
+    const alignedMon = alignToWeekStart(wedAfterSpring, 'monday');
+    expect(toISODate(alignedMon)).toBe('2026-03-09');
+  });
+
+  it('handles fall-back DST boundary (November 1 2026 US)', () => {
+    // DST fall-back is Sunday November 1 2026 at 02:00.
+    const wedAfterFall = new Date(2026, 10, 4); // Wed Nov 4 2026
+    const aligned = alignToWeekStart(wedAfterFall, 'sunday');
+    expect(toISODate(aligned)).toBe('2026-11-01');
+  });
+
+  it('handles month boundaries cleanly', () => {
+    // Wed April 1 2026 with sunday-start should land on Sun March 29 2026
+    const wedFirstOfMonth = new Date(2026, 3, 1);
+    const aligned = alignToWeekStart(wedFirstOfMonth, 'sunday');
+    expect(toISODate(aligned)).toBe('2026-03-29');
+  });
+
+  it('handles year boundaries cleanly', () => {
+    // Friday Jan 2 2026 with monday-start should land on Mon Dec 29 2025
+    const friFirstOfYear = new Date(2026, 0, 2);
+    const aligned = alignToWeekStart(friFirstOfYear, 'monday');
+    expect(toISODate(aligned)).toBe('2025-12-29');
+  });
+});
+
+// ── formatMealTime ──
+
+describe('formatMealTime', () => {
+  it('returns empty string for undefined', () => {
+    expect(formatMealTime(undefined)).toBe('');
+  });
+
+  it('returns empty string for malformed input', () => {
+    expect(formatMealTime('')).toBe('');
+    expect(formatMealTime('abc')).toBe('');
+    expect(formatMealTime('25:00')).toBe('');
+    expect(formatMealTime('12:60')).toBe('');
+    expect(formatMealTime('12')).toBe('');
+    expect(formatMealTime('12:5')).toBe('');
+  });
+
+  it('formats AM correctly in 12h mode', () => {
+    expect(formatMealTime('07:30', '12h')).toBe('7:30 AM');
+    expect(formatMealTime('00:00', '12h')).toBe('12:00 AM'); // midnight
+    expect(formatMealTime('00:01', '12h')).toBe('12:01 AM');
+    expect(formatMealTime('11:59', '12h')).toBe('11:59 AM');
+  });
+
+  it('formats PM correctly in 12h mode', () => {
+    expect(formatMealTime('12:00', '12h')).toBe('12:00 PM'); // noon
+    expect(formatMealTime('12:30', '12h')).toBe('12:30 PM');
+    expect(formatMealTime('13:00', '12h')).toBe('1:00 PM');
+    expect(formatMealTime('18:30', '12h')).toBe('6:30 PM');
+    expect(formatMealTime('23:59', '12h')).toBe('11:59 PM');
+  });
+
+  it('formats correctly in 24h mode', () => {
+    expect(formatMealTime('07:30', '24h')).toBe('07:30');
+    expect(formatMealTime('00:00', '24h')).toBe('00:00');
+    expect(formatMealTime('18:30', '24h')).toBe('18:30');
+    expect(formatMealTime('23:59', '24h')).toBe('23:59');
+  });
+
+  it('defaults to 12h format when no format argument supplied', () => {
+    expect(formatMealTime('18:30')).toBe('6:30 PM');
+  });
+
+  it('zero-pads single-digit minutes in 24h mode', () => {
+    expect(formatMealTime('9:00', '24h')).toBe('09:00');
+  });
+});
+
+// ── parseTimeToMinutes ──
+
+describe('parseTimeToMinutes', () => {
+  it('returns null for undefined / malformed', () => {
+    expect(parseTimeToMinutes(undefined)).toBeNull();
+    expect(parseTimeToMinutes('')).toBeNull();
+    expect(parseTimeToMinutes('abc')).toBeNull();
+    expect(parseTimeToMinutes('25:00')).toBeNull();
+    expect(parseTimeToMinutes('12:60')).toBeNull();
+  });
+
+  it('converts valid times to minutes since midnight', () => {
+    expect(parseTimeToMinutes('00:00')).toBe(0);
+    expect(parseTimeToMinutes('00:30')).toBe(30);
+    expect(parseTimeToMinutes('01:00')).toBe(60);
+    expect(parseTimeToMinutes('12:00')).toBe(720);
+    expect(parseTimeToMinutes('18:30')).toBe(1110);
+    expect(parseTimeToMinutes('23:59')).toBe(1439);
+  });
+});
+
+// ── resolvePlannedMealTime ──
+
+describe('resolvePlannedMealTime', () => {
+  it('returns the entry time when set (ignores default)', () => {
+    const planned: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1', time: '18:30' };
+    expect(resolvePlannedMealTime(planned, 'dinner', { dinner: '19:00' })).toBe('18:30');
+  });
+
+  it('falls back to slot default when entry has no time', () => {
+    const planned: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1' };
+    expect(resolvePlannedMealTime(planned, 'dinner', { dinner: '19:00' })).toBe('19:00');
+  });
+
+  it('returns undefined when neither entry nor default exists', () => {
+    const planned: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1' };
+    expect(resolvePlannedMealTime(planned, 'dinner', {})).toBeUndefined();
+  });
+
+  it('returns undefined when planned entry is undefined and defaults is empty', () => {
+    expect(resolvePlannedMealTime(undefined, 'dinner', {})).toBeUndefined();
+  });
+
+  it('uses default when planned entry is undefined but default exists', () => {
+    expect(resolvePlannedMealTime(undefined, 'dinner', { dinner: '18:30' })).toBe('18:30');
+  });
+});
+
+// ── resolveMealWithEntry ──
+
+describe('resolveMealWithEntry', () => {
+  const meals: SavedMeal[] = [
+    { id: 'm1', name: 'Tacos' },
+    { id: 'm2', name: 'Pizza' },
+  ];
+  const plan: PlannedMeal[] = [
+    { date: '2026-04-01', slot: 'dinner', mealId: 'm1', time: '18:30' },
+    { date: '2026-04-02', slot: 'lunch', customText: 'Eating out' }, // entry without mealId
+  ];
+
+  it('returns both meal and planned entry when present', () => {
+    const result = resolveMealWithEntry('2026-04-01', 'dinner', plan, meals);
+    expect(result.meal?.name).toBe('Tacos');
+    expect(result.planned?.time).toBe('18:30');
+  });
+
+  it('returns null meal but the entry when entry has no mealId (customText case)', () => {
+    const result = resolveMealWithEntry('2026-04-02', 'lunch', plan, meals);
+    expect(result.meal).toBeNull();
+    expect(result.planned?.customText).toBe('Eating out');
+  });
+
+  it('returns nulls when there is no entry for that date+slot', () => {
+    const result = resolveMealWithEntry('2026-04-03', 'dinner', plan, meals);
+    expect(result.meal).toBeNull();
+    expect(result.planned).toBeUndefined();
+  });
+
+  it('handles undefined plan gracefully', () => {
+    const result = resolveMealWithEntry('2026-04-01', 'dinner', undefined, meals);
+    expect(result.meal).toBeNull();
+    expect(result.planned).toBeUndefined();
+  });
+});
+
+// ── getSlotTimePresets ──
+
+describe('getSlotTimePresets / SLOT_TIME_PRESETS', () => {
+  it('returns 4 presets for every slot type', () => {
+    const slots: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+    for (const slot of slots) {
+      const presets = getSlotTimePresets(slot);
+      expect(presets).toHaveLength(4);
+      // Each preset should be a valid HH:MM 24h string
+      for (const p of presets) {
+        expect(parseTimeToMinutes(p)).not.toBeNull();
+      }
+    }
+  });
+
+  it('uses the canonical SLOT_TIME_PRESETS table', () => {
+    expect(getSlotTimePresets('dinner')).toBe(SLOT_TIME_PRESETS.dinner);
+    expect(SLOT_TIME_PRESETS.breakfast).toEqual(['06:00', '06:30', '07:00', '07:30']);
+    expect(SLOT_TIME_PRESETS.lunch).toEqual(['11:00', '11:30', '12:00', '12:30']);
+  });
+});
+
+// ── normalizeMealSettings ──
+
+describe('normalizeMealSettings', () => {
+  it('returns full defaults for null / undefined / non-object input', () => {
+    const fromNull = normalizeMealSettings(null);
+    expect(fromNull.enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+    expect(fromNull.weekStartDay).toBe(DEFAULT_MEAL_SETTINGS.weekStartDay);
+    expect(fromNull.timeFormat).toBe('12h');
+
+    expect(normalizeMealSettings(undefined).enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+    expect(normalizeMealSettings('a string').enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+    expect(normalizeMealSettings(42).enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+  });
+
+  it('does not return a shared array reference (mutation safety)', () => {
+    const a = normalizeMealSettings(null);
+    const b = normalizeMealSettings(null);
+    a.enabledSlots.push('snack');
+    expect(b.enabledSlots).not.toContain('snack');
+  });
+
+  it('filters out invalid slot strings from enabledSlots', () => {
+    const result = normalizeMealSettings({
+      enabledSlots: ['breakfast', 'brunch', 42, null, 'dinner'],
+    });
+    expect(result.enabledSlots).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('falls back to defaults when enabledSlots filters down to empty', () => {
+    const result = normalizeMealSettings({ enabledSlots: ['brunch', 'snacc'] });
+    expect(result.enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+  });
+
+  it('falls back to defaults when enabledSlots is literally empty', () => {
+    const result = normalizeMealSettings({ enabledSlots: [] });
+    expect(result.enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+  });
+
+  it('falls back to default when weekStartDay is invalid', () => {
+    expect(normalizeMealSettings({ weekStartDay: 'tuesday' }).weekStartDay).toBe('sunday');
+    expect(normalizeMealSettings({ weekStartDay: 42 }).weekStartDay).toBe('sunday');
+  });
+
+  it('accepts only sunday/monday for weekStartDay', () => {
+    expect(normalizeMealSettings({ weekStartDay: 'monday' }).weekStartDay).toBe('monday');
+    expect(normalizeMealSettings({ weekStartDay: 'sunday' }).weekStartDay).toBe('sunday');
+  });
+
+  it('rejects out-of-range default slot times (e.g. 25:99)', () => {
+    const result = normalizeMealSettings({
+      defaultSlotTimes: { dinner: '25:99', lunch: '12:30', breakfast: 'not a time' },
+    });
+    expect(result.defaultSlotTimes).toEqual({ lunch: '12:30' });
+  });
+
+  it('drops unknown slot keys from defaultSlotTimes', () => {
+    const result = normalizeMealSettings({
+      defaultSlotTimes: { dinner: '18:00', brunch: '10:30' },
+    });
+    expect(result.defaultSlotTimes).toEqual({ dinner: '18:00' });
+  });
+
+  it('falls back to 12h when timeFormat is invalid', () => {
+    expect(normalizeMealSettings({ timeFormat: '36h' }).timeFormat).toBe('12h');
+    expect(normalizeMealSettings({ timeFormat: 42 }).timeFormat).toBe('12h');
+  });
+
+  it('accepts 12h and 24h for timeFormat', () => {
+    expect(normalizeMealSettings({ timeFormat: '12h' }).timeFormat).toBe('12h');
+    expect(normalizeMealSettings({ timeFormat: '24h' }).timeFormat).toBe('24h');
+  });
+
+  it('round-trips a fully-valid settings object', () => {
+    const input = {
+      enabledSlots: ['breakfast', 'dinner'],
+      weekStartDay: 'monday',
+      defaultSlotTimes: { dinner: '18:30' },
+      timeFormat: '24h',
+    };
+    const result = normalizeMealSettings(input);
+    expect(result.enabledSlots).toEqual(['breakfast', 'dinner']);
+    expect(result.weekStartDay).toBe('monday');
+    expect(result.defaultSlotTimes.dinner).toBe('18:30');
+    expect(result.timeFormat).toBe('24h');
   });
 });

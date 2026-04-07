@@ -87,10 +87,6 @@
           "zIndex": 1,
           "config": {
             "view": "week",
-            "savedMeals": [],
-            "plan": [],
-            "slots": ["breakfast", "lunch", "dinner"],
-            "weekStartDay": "monday",
             "showEmoji": true,
             "showPrepTime": false,
             "showTags": false,

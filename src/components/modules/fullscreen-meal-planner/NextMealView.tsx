@@ -1,9 +1,9 @@
-import { SLOT_META } from '@/lib/meal-constants';
+import { SLOT_META, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
 
 export default function NextMealView({
-  savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
   const next = getNextMeal(now, plan, savedMeals, slots);
 
@@ -20,8 +20,11 @@ export default function NextMealView({
     );
   }
 
-  const { meal, slot, context } = next;
+  const { meal, slot, context, date } = next;
   const meta = SLOT_META[slot];
+  // Find the planned entry for this date+slot to grab its time
+  const plannedEntry = plan.find((p) => p.date === date && p.slot === slot);
+  const time = resolvePlannedMealTime(plannedEntry, slot, settings.defaultSlotTimes);
 
   const contextStyles: Record<string, { color: string; bg: string; label: string; icon: string }> = {
     now:       { color: 'var(--fmp-accent)', bg: `color-mix(in srgb, var(--fmp-accent) 12%, transparent)`, label: 'Now', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
@@ -49,13 +52,23 @@ export default function NextMealView({
         {ctx.label}
       </span>
 
-      {/* Slot label */}
-      <span style={{
-        fontSize: s * 0.8, fontWeight: 600, textTransform: 'uppercase' as const,
-        letterSpacing: '0.1em', color: 'var(--fmp-text-3)',
-      }}>
-        {meta.label}
-      </span>
+      {/* Slot label + serving time */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: s * 0.6 }}>
+        <span style={{
+          fontSize: s * 0.8, fontWeight: 600, textTransform: 'uppercase' as const,
+          letterSpacing: '0.1em', color: 'var(--fmp-text-3)',
+        }}>
+          {meta.label}
+        </span>
+        {time && (
+          <span style={{
+            fontSize: s * 0.8, fontWeight: 700, color: 'var(--fmp-accent)',
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            {formatMealTime(time, settings.timeFormat)}
+          </span>
+        )}
+      </div>
 
       {/* Giant emoji */}
       {showEmoji && meal.emoji && (

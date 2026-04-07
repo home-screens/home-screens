@@ -1,12 +1,14 @@
 'use client';
 
 import type { MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, DEFAULT_MEAL_EMOJI, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealsViewProps } from './meals-shared';
+import MealTimeChip from '@/components/meals/MealTimeChip';
 
 interface MealsPlanViewProps extends MealsViewProps {
   assignMealToSlot: (date: string, slot: MealSlotType, mealId: string) => Promise<void>;
   clearSlot: (date: string, slot: MealSlotType) => Promise<void>;
+  setSlotTime: (date: string, slot: MealSlotType, time: string | undefined) => Promise<void>;
   clearAllPlan: () => void;
   suggestRandom: () => Promise<void>;
   copyLastWeek: () => Promise<void>;
@@ -24,14 +26,18 @@ export default function MealsPlanView({
   getMealForSlot,
   assignMealToSlot,
   clearSlot,
+  setSlotTime,
   clearAllPlan,
   suggestRandom,
   copyLastWeek,
   hasPreviousWeek,
   pickingSlot,
   setPickingSlot,
+  settings,
   setSubView,
 }: MealsPlanViewProps) {
+  // Use chronological slot order, but only the slots the household has enabled
+  const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* Quick actions */}
@@ -156,57 +162,96 @@ export default function MealsPlanView({
               )}
             </div>
 
-            {/* 2-column slot grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {SLOT_ORDER.map((slot) => {
+            {/* Stacked slot rows — full width to make room for the time chip */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {enabledSlotsOrdered.map((slot) => {
                 const { planned, meal } = getMealForSlot(date, slot);
                 const hasMeal = !!(meal || planned?.customText);
+                const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
 
                 return (
-                  <button
+                  <div
                     key={slot}
-                    onClick={() => {
-                      if (hasMeal) {
-                        clearSlot(date, slot);
-                      } else {
-                        setPickingSlot({ date, slot });
-                      }
-                    }}
                     style={{
+                      position: 'relative',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 6,
-                      padding: '10px 10px',
+                      gap: 8,
+                      padding: '10px 12px',
                       minHeight: 50,
                       borderRadius: 10,
                       border: hasMeal ? `1px solid ${SLOT_META[slot].color}30` : '1px dashed #262626',
                       background: hasMeal ? `${SLOT_META[slot].color}10` : 'transparent',
-                      cursor: 'pointer',
-                      textAlign: 'left' as const,
-                      color: 'inherit',
-                      fontFamily: 'inherit',
-                      overflow: 'hidden',
+                      overflow: 'visible' as const,
                     }}
                   >
                     {hasMeal ? (
                       <>
-                        <div style={{ width: 3, height: 28, borderRadius: 2, background: SLOT_META[slot].color, flexShrink: 0 }} />
-                        {meal?.emoji && <span style={{ fontSize: 16, flexShrink: 0 }}>{meal.emoji}</span>}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 10, color: SLOT_META[slot].color, fontWeight: 600, textTransform: 'uppercase' as const }}>
-                            {SLOT_META[slot].label}
+                        <button
+                          type="button"
+                          onClick={() => clearSlot(date, slot)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            flex: 1,
+                            minWidth: 0,
+                            padding: 0,
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'inherit',
+                            cursor: 'pointer',
+                            textAlign: 'left' as const,
+                            fontFamily: 'inherit',
+                          }}
+                          aria-label={`Remove ${meal?.name ?? planned?.customText ?? 'meal'} from ${SLOT_META[slot].label}`}
+                        >
+                          <div style={{ width: 3, height: 28, borderRadius: 2, background: SLOT_META[slot].color, flexShrink: 0 }} />
+                          {meal?.emoji && <span style={{ fontSize: 18, flexShrink: 0 }}>{meal.emoji}</span>}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 10, color: SLOT_META[slot].color, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                              {SLOT_META[slot].label}
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fafafa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {meal?.name ?? planned?.customText ?? ''}
+                            </div>
                           </div>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: '#d4d4d4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {meal?.name ?? planned?.customText ?? ''}
-                          </div>
-                        </div>
+                        </button>
+                        <span style={{ flexShrink: 0 }}>
+                          <MealTimeChip
+                            value={time}
+                            onChange={(t) => setSlotTime(date, slot, t)}
+                            slot={slot}
+                            variant="darker"
+                            align="right"
+                            timeFormat={settings.timeFormat}
+                          />
+                        </span>
                       </>
                     ) : (
-                      <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: 11, color: '#525252' }}>{SLOT_META[slot].label}</div>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPickingSlot({ date, slot })}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          flex: 1,
+                          padding: 0,
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'inherit',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                        aria-label={`Plan ${SLOT_META[slot].label} for ${label}`}
+                      >
+                        <div style={{ width: 3, height: 20, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.4, flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, color: '#525252' }}>{SLOT_META[slot].label}</span>
+                        <span style={{ fontSize: 11, color: '#404040', marginLeft: 'auto' }}>+ Add meal</span>
+                      </button>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>

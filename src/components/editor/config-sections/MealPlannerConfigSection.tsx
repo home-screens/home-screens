@@ -6,27 +6,30 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { SLOT_ORDER, SLOT_META, DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS, toISODate } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   MealPlannerView,
-  MealSlotType,
+  MealSettings,
   SavedMeal,
   PlannedMeal,
 } from '@/types/config';
 
 type Config = {
   view?: MealPlannerView;
-  slots?: MealSlotType[];
-  weekStartDay?: 'sunday' | 'monday';
   showEmoji?: boolean;
   showPrepTime?: boolean;
   showTags?: boolean;
   accentColor?: string;
 };
+
+interface MealsPayload {
+  savedMeals: SavedMeal[];
+  plan: PlannedMeal[];
+  settings: MealSettings;
+}
 
 const VIEWS: { value: MealPlannerView; label: string }[] = [
   { value: 'week', label: 'Week Grid' },
@@ -39,7 +42,11 @@ const VIEWS: { value: MealPlannerView; label: string }[] = [
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<{ savedMeals: SavedMeal[]; plan: PlannedMeal[] }>({ savedMeals: [], plan: [] });
+  const [mealData, setMealData] = useState<MealsPayload>({
+    savedMeals: [],
+    plan: [],
+    settings: { ...DEFAULT_MEAL_SETTINGS },
+  });
 
   const fetchMealData = useCallback(() => {
     fetch('/api/meals/data')
@@ -47,6 +54,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
         plan: d.plan ?? [],
+        settings: d.settings ?? { ...DEFAULT_MEAL_SETTINGS },
       }))
       .catch(() => {});
   }, []);
@@ -57,79 +65,62 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
   const mealDataRef = useRef(mealData);
   mealDataRef.current = mealData;
 
-  // One-time migration: if existing config has embedded savedMeals/plan, push to API
+  // One-time migration: strip stale fields from the in-memory module config.
+  //
+  // The server-side migration (in `parseAndMigrate` / `migrateLegacyMealSettings`)
+  // already harvests any embedded `savedMeals` / `plan` from data/config.json
+  // into the shared meals.json atomically on first read. This effect just
+  // removes the now-orphan fields from the local Zustand store so the next
+  // editor save doesn't persist them again. No network round-trip needed,
+  // which eliminates the race where two mounted meal-planner modules
+  // simultaneously GET-merge-PUT and clobber each other's embedded data.
   useEffect(() => {
     const raw = mod.config as Record<string, unknown>;
-    const embeddedMeals = raw?.savedMeals;
-    const embeddedPlan = raw?.plan;
-    if (Array.isArray(embeddedMeals) && embeddedMeals.length > 0) {
-      // Normalize legacy day-based plan entries to date-based before pushing
-      const rawPlan = Array.isArray(embeddedPlan) ? embeddedPlan : [];
-      const now = new Date();
-      const sunday = new Date(now);
-      sunday.setDate(now.getDate() - now.getDay());
-      const normalizedPlan = rawPlan.map((e: Record<string, unknown>) => {
-        if (typeof e.date === 'string') return e;
-        const d = new Date(sunday);
-        d.setDate(sunday.getDate() + (typeof e.day === 'number' ? e.day : 0));
-        const { day: _day, ...rest } = e;
-        return { ...rest, date: toISODate(d) };
-      });
-      // Merge with existing API data (a fullscreen module may already have data there)
-      fetch('/api/meals/data')
-        .then((r) => r.json())
-        .then((existing) => {
-          const existingMeals: SavedMeal[] = existing.savedMeals ?? [];
-          const existingIds = new Set(existingMeals.map((m: SavedMeal) => m.id));
-          const mergedMeals = [
-            ...existingMeals,
-            ...(embeddedMeals as SavedMeal[]).filter((m: SavedMeal) => !existingIds.has(m.id)),
-          ];
-          const mergedPlan = [...(existing.plan ?? []), ...normalizedPlan];
-          return fetch('/api/meals/data', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ savedMeals: mergedMeals, plan: mergedPlan }),
-          });
-        })
-        .then(() => {
-          // Clear embedded data from config — keep only display preferences
-          set({ savedMeals: undefined, plan: undefined, previousPlan: undefined } as unknown as Config);
-          displayCache.invalidate('/api/meals/data');
-          fetchMealData();
-        }).catch(() => {});
-    }
+    const hasStaleFields = raw?.slots !== undefined || raw?.weekStartDay !== undefined
+      || raw?.savedMeals !== undefined || raw?.plan !== undefined || raw?.previousPlan !== undefined;
+    if (!hasStaleFields) return;
+    set({ savedMeals: undefined, plan: undefined, previousPlan: undefined, slots: undefined, weekStartDay: undefined } as unknown as Config);
+    // Nudge the canvas preview so it re-fetches the (now migrated) meals.json
+    // in case the server just backfilled embedded meals from this module.
+    displayCache.invalidate('/api/meals/data');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
     const current = mealDataRef.current;
-    const optimistic = {
+    // The modal only edits meals + plan. Don't include `settings` in the PUT body —
+    // the API preserves existing settings when the field is omitted, which avoids
+    // clobbering changes made concurrently from /remote or Settings → Meals since
+    // this panel last fetched (the cached `current.settings` could be stale).
+    const optimistic: MealsPayload = {
       savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
       plan: (updates.plan as PlannedMeal[]) ?? current.plan,
+      settings: current.settings, // local optimistic state only — not sent
     };
     setMealData(optimistic);
     try {
       const res = await fetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(optimistic),
+        body: JSON.stringify({
+          savedMeals: optimistic.savedMeals,
+          plan: optimistic.plan,
+          // settings deliberately omitted — API preserves existing
+        }),
       });
       if (res.ok) {
         const data = await res.json();
-        setMealData({ savedMeals: data.savedMeals, plan: data.plan });
+        setMealData({
+          savedMeals: data.savedMeals,
+          plan: data.plan,
+          // Use the server-returned settings (which may have been updated by
+          // another surface in the meantime) so the local cache stays correct.
+          settings: data.settings ?? optimistic.settings,
+        });
       }
       displayCache.invalidate('/api/meals/data');
     } catch {}
   }, []);
-
-  const slots = c.slots ?? [...DEFAULT_SLOTS];
-
-  const toggleSlot = (slot: MealSlotType) => {
-    const has = slots.includes(slot);
-    const next = has ? slots.filter((s) => s !== slot) : [...slots, slot];
-    if (next.length > 0) set({ slots: next });
-  };
 
   return (
     <>
@@ -139,32 +130,6 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         onChange={(v) => set({ view: v })}
         options={VIEWS}
       />
-
-      {/* Meal Slots */}
-      <div className="flex flex-col gap-1">
-        <span className="text-xs text-neutral-400">Meal Slots</span>
-        {SLOT_ORDER.map((slot) => (
-          <Toggle
-            key={slot}
-            label={SLOT_META[slot].label}
-            checked={slots.includes(slot)}
-            onChange={() => toggleSlot(slot)}
-          />
-        ))}
-      </div>
-
-      {/* Week Start */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Week Starts On</span>
-        <select
-          value={c.weekStartDay ?? 'monday'}
-          onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
-          className={INPUT_CLASS}
-        >
-          <option value="sunday">Sunday</option>
-          <option value="monday">Monday</option>
-        </select>
-      </label>
 
       {/* Display Toggles */}
       <Toggle
@@ -190,6 +155,15 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         onChange={(v) => set({ accentColor: v })}
       />
 
+      {/* Note: planning settings (which slots, week start, default times, time format)
+          are shared across all meal modules. Edit them from either Settings → Meals
+          (in the editor) or the /remote settings drawer. */}
+      <p className="text-[11px] text-neutral-600 leading-relaxed">
+        Meal slots, week start, time format, and default serving times are managed from{' '}
+        <a href="/editor/settings?tab=meals" className="text-blue-400 hover:text-blue-300 underline">Settings &rarr; Meals</a>{' '}
+        or <span className="text-neutral-400">/remote</span> so all your meal modules stay in sync.
+      </p>
+
       {/* Open Modal */}
       <div className="pt-1 border-t border-neutral-700 space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-neutral-500">
@@ -211,8 +185,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         <MealPlannerModal
           savedMeals={mealData.savedMeals}
           plan={mealData.plan}
-          slots={slots}
-          weekStartDay={c.weekStartDay ?? 'monday'}
+          settings={mealData.settings}
           accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}

@@ -1,21 +1,22 @@
 'use client';
 
-import type { MealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS, getWeekDatesForRange, getWeekRange, dateToDayIndex } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
 }
 
-export function WeekView({ config, plan, savedMeals, todayISO }: WeekViewProps) {
-  const weekStartDay = config.weekStartDay ?? 'sunday';
+export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekViewProps) {
+  const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
-  const slots = config.slots ?? DEFAULT_SLOTS;
+  const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
 
   // Short slot labels for column headers
@@ -76,7 +77,8 @@ export function WeekView({ config, plan, savedMeals, todayISO }: WeekViewProps) 
 
               {/* Meal cells */}
               {slots.map((slot) => {
-                const meal = resolveMeal(date, slot, plan, savedMeals);
+                const { meal, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
+                const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                 return (
                   <div
                     key={slot}
@@ -97,6 +99,18 @@ export function WeekView({ config, plan, savedMeals, todayISO }: WeekViewProps) 
                         >
                           {meal.name}
                         </span>
+                        {time && (
+                          <span
+                            className="shrink-0"
+                            style={{
+                              fontSize: '0.55em',
+                              opacity: TEXT_OPACITY.tertiary,
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {formatMealTime(time, settings.timeFormat)}
+                          </span>
+                        )}
                       </>
                     ) : (
                       <span style={{ fontSize: '0.6em', opacity: 0.2 }}>&mdash;</span>

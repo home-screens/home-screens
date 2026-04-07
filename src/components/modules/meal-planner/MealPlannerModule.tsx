@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
-import type { MealPlannerConfig, SavedMeal, PlannedMeal, ModuleStyle } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
-import { getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
+import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import ModuleWrapper from '../ModuleWrapper';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
@@ -17,6 +17,7 @@ import { ListView } from './ListView';
 interface MealDataResponse {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
+  settings?: MealSettings;
 }
 
 interface MealPlannerModuleProps {
@@ -35,11 +36,13 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
   const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+  // Settings now come from the shared meals.json (edited via /remote), not per-module config
+  const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
 
   // Filter plan to current week
   const { start: weekStart, end: weekEnd } = useMemo(
-    () => getWeekRange(new Date(todayISO + 'T12:00:00'), config.weekStartDay ?? 'sunday'),
-    [todayISO, config.weekStartDay],
+    () => getWeekRange(new Date(todayISO + 'T12:00:00'), settings.weekStartDay),
+    [todayISO, settings.weekStartDay],
   );
   const plan = useMemo(
     () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
@@ -66,11 +69,11 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'week' && <WeekView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
-      {view === 'today' && <TodayView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
-      {view === 'next-meal' && <NextMealView config={config} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
-      {view === 'compact' && <CompactView config={config} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} />}
-      {view === 'list' && <ListView config={config} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'week' && <WeekView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'today' && <TodayView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
+      {view === 'next-meal' && <NextMealView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
+      {view === 'compact' && <CompactView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'list' && <ListView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
     </ModuleWrapper>
   );
 }

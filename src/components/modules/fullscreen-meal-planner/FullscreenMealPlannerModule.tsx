@@ -5,9 +5,9 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
-import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
+import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { getActiveSlot, DEFAULT_SLOTS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
+import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
@@ -18,6 +18,7 @@ interface MealDataResponse {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   groceryChecked: string[];
+  settings?: MealSettings;
 }
 
 interface FullscreenMealPlannerModuleProps {
@@ -37,6 +38,8 @@ export default function FullscreenMealPlannerModule({
   const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+  // Settings now come from the shared meals.json (edited via /remote), not per-module config
+  const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
 
   // ── Scale system ──
   const { containerRef, dims } = useFullscreenDims();
@@ -58,15 +61,15 @@ export default function FullscreenMealPlannerModule({
   }, []);
 
   const currentHour = now.getHours();
-  const slots = useMemo(() => config.slots ?? DEFAULT_SLOTS, [config.slots]);
+  const slots = settings.enabledSlots;
   const activeSlot = getActiveSlot(currentHour, slots);
   const view = config.view ?? 'week';
 
   // Filter plan to current week for display
   const todayISO = toISODate(now);
   const { start: weekStart, end: weekEnd } = useMemo(
-    () => getWeekRange(new Date(todayISO + 'T12:00:00'), config.weekStartDay ?? 'sunday'),
-    [todayISO, config.weekStartDay],
+    () => getWeekRange(new Date(todayISO + 'T12:00:00'), settings.weekStartDay),
+    [todayISO, settings.weekStartDay],
   );
   const plan = useMemo(
     () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
@@ -85,7 +88,7 @@ export default function FullscreenMealPlannerModule({
 
   // ── View props ──
   const viewProps: MealPlannerViewProps = {
-    config, savedMeals, plan, now, slots, activeSlot,
+    config, settings, savedMeals, plan, now, slots, activeSlot,
     bu, s, pad,
     showEmoji: config.showEmoji ?? true,
     showPrepTime: config.showPrepTime ?? true,

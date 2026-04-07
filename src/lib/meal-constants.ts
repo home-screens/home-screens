@@ -1,4 +1,4 @@
-import type { SavedMeal, PlannedMeal, MealSlotType, FullscreenTypographySize } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize } from '@/types/config';
 
 // ── Shared defaults (used across editor + remote + config sections) ────
 
@@ -18,8 +18,13 @@ export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string 
   { value: '3x-large', label: '3X Large' },
 ];
 
-/** Default meal slots when none configured (excludes snack) */
-export const DEFAULT_SLOTS: readonly MealSlotType[] = ['breakfast', 'lunch', 'dinner'];
+/**
+ * Default meal slots when none configured (excludes snack).
+ * Internal — only used by `DEFAULT_MEAL_SETTINGS` below. Not part of the
+ * module's public API; consumers should read from `DEFAULT_MEAL_SETTINGS`
+ * or the household's actual `MealSettings`.
+ */
+const DEFAULT_SLOTS: readonly MealSlotType[] = ['breakfast', 'lunch', 'dinner'];
 
 /** Difficulty level colors (hex) */
 export const DIFFICULTY_COLORS: Record<string, string> = {
@@ -103,6 +108,31 @@ export const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thur
 export function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {
   if (weekStartDay === 'monday') return [1, 2, 3, 4, 5, 6, 0];
   return [0, 1, 2, 3, 4, 5, 6];
+}
+
+/**
+ * Align an arbitrary date to the start of its containing week, given the
+ * household's `weekStartDay`. Returns a new Date — never mutates the input.
+ *
+ * Examples (Wed April 8 2026):
+ *   alignToWeekStart(Wed Apr 8, 'sunday') → Sun Apr 5
+ *   alignToWeekStart(Wed Apr 8, 'monday') → Mon Apr 6
+ *
+ * Idempotent for same-day-of-week inputs (a Sunday aligned to Sunday-start
+ * returns the same Sunday). DST-safe — uses local-time `setDate`, which the
+ * JS Date API handles correctly across spring-forward / fall-back boundaries.
+ *
+ * This is the canonical helper for the offset math; previously the same
+ * `(dow + 6) % 7` vs `dow` calculation lived in five places across MealsTab,
+ * meals-shared.ts, and the realign effect, which led to a "compounding offset"
+ * bug when the math was applied to an already-aligned date.
+ */
+export function alignToWeekStart(date: Date, weekStartDay: 'sunday' | 'monday'): Date {
+  const dow = date.getDay(); // 0 = Sunday
+  const offset = weekStartDay === 'monday' ? ((dow + 6) % 7) : dow;
+  const aligned = new Date(date);
+  aligned.setDate(date.getDate() - offset);
+  return aligned;
 }
 
 // ── Date utilities (ISO date string helpers for multi-week plans) ────
@@ -195,6 +225,26 @@ export function resolveMeal(
   return null;
 }
 
+/**
+ * Resolve both the saved meal AND the planned-meal entry for a given date+slot,
+ * so callers can access both the meal definition and per-instance fields like
+ * `time` and `notes` without having to scan the plan twice.
+ */
+export function resolveMealWithEntry(
+  date: string,
+  slot: MealSlotType,
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+): { meal: SavedMeal | null; planned: PlannedMeal | undefined } {
+  if (!plan) return { meal: null, planned: undefined };
+  const planned = plan.find((p) => p.date === date && p.slot === slot);
+  if (!planned) return { meal: null, planned: undefined };
+  const meal = planned.mealId && savedMeals
+    ? savedMeals.find((m) => m.id === planned.mealId) ?? null
+    : null;
+  return { meal, planned };
+}
+
 /** Copy entries from one week to another, preserving day-of-week position */
 export function copyWeekEntries(
   plan: PlannedMeal[],
@@ -216,4 +266,160 @@ export function getActiveSlot(hour: number, slots: MealSlotType[]): MealSlotType
     if (hour >= w.start && hour < w.end) return s;
   }
   return null;
+}
+
+// ── Default MealSettings ────────────────────────────────────────────
+
+/** Sensible defaults used when `data/meals.json` has no `settings` block yet */
+export const DEFAULT_MEAL_SETTINGS: MealSettings = {
+  enabledSlots: [...DEFAULT_SLOTS],
+  weekStartDay: 'sunday',
+  defaultSlotTimes: {},
+  timeFormat: '12h',
+};
+
+// ── Settings normalization (shared by server reads and client fetches) ──
+
+const VALID_SLOT_SET: ReadonlySet<MealSlotType> = new Set(['breakfast', 'lunch', 'dinner', 'snack']);
+
+/**
+ * Validate an "HH:MM" 24h time string. Range-checks hours (0–23) and minutes
+ * (0–59) — stricter than a regex alone, so '25:99' is rejected.
+ */
+function isValidTimeString(v: unknown): v is string {
+  if (typeof v !== 'string') return false;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(v);
+  if (!m) return false;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  return h >= 0 && h <= 23 && min >= 0 && min <= 59;
+}
+
+/**
+ * Coerce an unknown settings blob into a valid `MealSettings`, falling back
+ * to defaults per-field. Used by both server reads (`readMealData`) and client
+ * fetches (`useMealsData`) so the invariant is enforced on both sides — a
+ * stale or partial API response can't crash subsequent renders.
+ */
+export function normalizeMealSettings(raw: unknown): MealSettings {
+  if (!raw || typeof raw !== 'object') {
+    return { ...DEFAULT_MEAL_SETTINGS, enabledSlots: [...DEFAULT_MEAL_SETTINGS.enabledSlots], defaultSlotTimes: {} };
+  }
+  const r = raw as Record<string, unknown>;
+
+  const filteredSlots = Array.isArray(r.enabledSlots)
+    ? r.enabledSlots.filter((s): s is MealSlotType => typeof s === 'string' && VALID_SLOT_SET.has(s as MealSlotType))
+    : null;
+  // Empty / all-invalid enabledSlots → fall back to defaults so the household
+  // is never left with zero slots (which would silently render nothing everywhere).
+  const enabledSlots: MealSlotType[] = filteredSlots && filteredSlots.length > 0
+    ? filteredSlots
+    : [...DEFAULT_MEAL_SETTINGS.enabledSlots];
+
+  const weekStartDay: 'sunday' | 'monday' =
+    r.weekStartDay === 'monday' || r.weekStartDay === 'sunday'
+      ? r.weekStartDay
+      : DEFAULT_MEAL_SETTINGS.weekStartDay;
+
+  const defaultSlotTimes: Partial<Record<MealSlotType, string>> = {};
+  if (r.defaultSlotTimes && typeof r.defaultSlotTimes === 'object') {
+    for (const [k, v] of Object.entries(r.defaultSlotTimes as Record<string, unknown>)) {
+      if (VALID_SLOT_SET.has(k as MealSlotType) && isValidTimeString(v)) {
+        defaultSlotTimes[k as MealSlotType] = v;
+      }
+    }
+  }
+
+  const timeFormat: '12h' | '24h' =
+    r.timeFormat === '24h' || r.timeFormat === '12h'
+      ? r.timeFormat
+      : DEFAULT_MEAL_SETTINGS.timeFormat;
+
+  return { enabledSlots, weekStartDay, defaultSlotTimes, timeFormat };
+}
+
+// ── Time formatting & resolution ────────────────────────────────────
+
+/**
+ * Resolve the effective serving time for a planned meal:
+ * the explicit `time` on the entry, or the default for that slot, or undefined.
+ *
+ * `defaults` is the household's `MealSettings.defaultSlotTimes` map (always present
+ * post-normalization, may be empty `{}`).
+ */
+export function resolvePlannedMealTime(
+  planned: PlannedMeal | undefined,
+  slot: MealSlotType,
+  defaults: Partial<Record<MealSlotType, string>>,
+): string | undefined {
+  if (planned?.time) return planned.time;
+  return defaults[slot];
+}
+
+/**
+ * Format an "HH:MM" 24-hour time string for display.
+ * Honors the global timeFormat preference. Returns empty string for invalid input.
+ *
+ * Examples:
+ *   formatMealTime('18:30', '12h') → '6:30 PM'
+ *   formatMealTime('18:30', '24h') → '18:30'
+ *   formatMealTime('07:00', '12h') → '7:00 AM'
+ */
+export function formatMealTime(
+  time: string | undefined,
+  format: '12h' | '24h' = '12h',
+): string {
+  if (!time) return '';
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time);
+  if (!match) return '';
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return '';
+
+  if (format === '24h') {
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Parse an "HH:MM" string to total minutes since midnight.
+ * Returns null for invalid input.
+ */
+export function parseTimeToMinutes(time: string | undefined): number | null {
+  if (!time) return null;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time);
+  if (!match) return null;
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+  return h * 60 + m;
+}
+
+/**
+ * Suggested time presets shown as quick-pick buttons in MealTimeChip.
+ *
+ * Hand-authored per slot rather than derived from SLOT_WINDOWS so each slot
+ * can reflect realistic household eating times. SLOT_WINDOWS still defines
+ * the broader "active window" used for getActiveSlot, but those windows are
+ * intentionally generous (5–10 AM for breakfast) and would produce unrealistic
+ * presets like 5:30 AM. Edit this table directly to tune defaults per slot.
+ */
+export const SLOT_TIME_PRESETS: Record<MealSlotType, string[]> = {
+  breakfast: ['06:00', '06:30', '07:00', '07:30'],
+  lunch:     ['11:00', '11:30', '12:00', '12:30'],
+  snack:     ['14:30', '15:00', '15:30', '16:00'],
+  dinner:    ['17:30', '18:00', '18:30', '19:00'],
+};
+
+/**
+ * Get suggested time presets for a given slot.
+ * Returns 4 common eating times appropriate for the slot.
+ *
+ * Example: dinner → ['17:30', '18:00', '18:30', '19:00']
+ */
+export function getSlotTimePresets(slot: MealSlotType): string[] {
+  return SLOT_TIME_PRESETS[slot];
 }

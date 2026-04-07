@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { SavedMeal, PlannedMeal } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
+import { DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from '@/lib/meal-constants';
 
 export function useMealsData() {
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
   const [plan, setPlan] = useState<PlannedMeal[]>([]);
   const [groceryChecked, setGroceryChecked] = useState<string[]>([]);
+  const [settings, setSettings] = useState<MealSettings>({ ...DEFAULT_MEAL_SETTINGS });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -16,9 +18,13 @@ export function useMealsData() {
       const res = await fetch('/api/meals/data');
       if (!res.ok) return;
       const data = await res.json();
-      setSavedMeals(data.savedMeals ?? []);
-      setPlan(data.plan ?? []);
-      setGroceryChecked(data.groceryChecked ?? []);
+      setSavedMeals(Array.isArray(data.savedMeals) ? data.savedMeals : []);
+      setPlan(Array.isArray(data.plan) ? data.plan : []);
+      setGroceryChecked(Array.isArray(data.groceryChecked) ? data.groceryChecked : []);
+      // Defensive client-side normalization — protects against partial/stale API
+      // responses (e.g. an old server returning only some fields, or a proxy
+      // dropping the settings block) that would otherwise crash subsequent renders.
+      setSettings(normalizeMealSettings(data.settings));
     } catch {
       /* silent */
     } finally {
@@ -26,7 +32,11 @@ export function useMealsData() {
     }
   }, []);
 
-  const saveData = useCallback(async (meals: SavedMeal[], planData: PlannedMeal[], grocery?: string[]): Promise<boolean> => {
+  const saveData = useCallback(async (
+    meals: SavedMeal[],
+    planData: PlannedMeal[],
+    grocery?: string[],
+  ): Promise<boolean> => {
     try {
       const res = await fetch('/api/meals/data', {
         method: 'PUT',
@@ -40,6 +50,31 @@ export function useMealsData() {
       });
       if (!res.ok) {
         setSaveError('Failed to save. Please try again.');
+        return false;
+      }
+      return true;
+    } catch {
+      setSaveError('Network error. Please try again.');
+      return false;
+    }
+  }, []);
+
+  /**
+   * Settings-only PUT — does not round-trip savedMeals/plan/groceryChecked.
+   *
+   * The API preserves omitted fields, so this can't accidentally clobber a
+   * concurrent meal write from another surface (the editor modal, Settings →
+   * Meals, etc.). Use this whenever you're only changing the shared `MealSettings`.
+   */
+  const saveSettingsOnly = useCallback(async (next: MealSettings): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/meals/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: next }),
+      });
+      if (!res.ok) {
+        setSaveError('Failed to save settings. Please try again.');
         return false;
       }
       return true;
@@ -79,12 +114,15 @@ export function useMealsData() {
     setPlan,
     groceryChecked,
     setGroceryChecked,
+    settings,
+    setSettings,
     loading,
     saving,
     setSaving,
     saveError,
     setSaveError,
     saveData,
+    saveSettingsOnly,
     toggleGroceryItem,
     fetchData,
   };

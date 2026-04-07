@@ -1,9 +1,9 @@
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMeal, toISODate } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
 export default function TodayView({
-  savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
   const currentHour = now.getHours();
   const todayISO = toISODate(now);
@@ -11,7 +11,8 @@ export default function TodayView({
 
   // Find current/hero meal
   const heroSlot = activeSlot ?? activeOrder[0] ?? 'dinner';
-  const heroMeal = resolveMeal(todayISO, heroSlot, plan, savedMeals);
+  const { meal: heroMeal, planned: heroPlanned } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
+  const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
   const heroMeta = SLOT_META[heroSlot];
 
   // Other meals (non-hero)
@@ -51,8 +52,17 @@ export default function TodayView({
           letterSpacing: '0.1em', color: 'var(--fmp-accent)',
           background: `color-mix(in srgb, var(--fmp-accent) 12%, transparent)`,
           padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
+          display: 'inline-flex', alignItems: 'center', gap: s * 0.4,
         }}>
-          ⚡ Now &mdash; {heroMeta.label}
+          <span>⚡ Now &mdash; {heroMeta.label}</span>
+          {heroTime && (
+            <span style={{
+              fontVariantNumeric: 'tabular-nums',
+              opacity: 0.85,
+            }}>
+              · {formatMealTime(heroTime, settings.timeFormat)}
+            </span>
+          )}
         </span>
 
         {heroMeal ? (
@@ -130,7 +140,8 @@ export default function TodayView({
           </div>
           <div style={{ display: 'flex', gap: s * 0.6, flexWrap: 'wrap' as const }}>
             {otherSlots.map((sl) => {
-              const meal = resolveMeal(todayISO, sl, plan, savedMeals);
+              const { meal, planned } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);
+              const slotTime = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
               const meta = SLOT_META[sl];
               const past = isSlotPast(sl);
 
@@ -155,8 +166,19 @@ export default function TodayView({
                     <div style={{
                       fontSize: s * 0.55, fontWeight: 600, textTransform: 'uppercase' as const,
                       letterSpacing: '0.06em', color: meta.color, marginBottom: s * 0.1,
+                      display: 'flex', alignItems: 'baseline', gap: s * 0.4,
                     }}>
-                      {meta.label}
+                      <span>{meta.label}</span>
+                      {slotTime && (
+                        <span style={{
+                          color: 'var(--fmp-text-3)',
+                          textTransform: 'none' as const,
+                          letterSpacing: 0,
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>
+                          {formatMealTime(slotTime, settings.timeFormat)}
+                        </span>
+                      )}
                     </div>
                     <div style={{
                       fontSize: s * 0.8, fontWeight: 600, color: 'var(--fmp-text)',

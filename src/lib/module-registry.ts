@@ -9,7 +9,7 @@ import {
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3,
 } from 'lucide-react';
 import { DEFAULT_MODULE_SIZES } from './constants';
-import { DEFAULT_ACCENT_COLOR, DEFAULT_SLOTS } from './meal-constants';
+import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
 
 type ModuleCategory =
@@ -185,8 +185,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       density: 'cozy',
       typographySize: 'medium',
       accentColor: DEFAULT_ACCENT_COLOR,
-      weekStartDay: 'monday',
-      slots: DEFAULT_SLOTS,
       showPrepTime: true,
       showTags: true,
       showEmoji: true,
@@ -627,8 +625,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'Personal',
     defaultConfig: {
       view: 'week',
-      slots: DEFAULT_SLOTS,
-      weekStartDay: 'monday',
       showEmoji: true,
       showPrepTime: true,
       showTags: true,

@@ -3,18 +3,22 @@
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { SLOT_META, SLOT_ORDER, DAY_NAMES_SHORT, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import MealTimeChip from '@/components/meals/MealTimeChip';
 
 interface WeekGridProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   slots: MealSlotType[];
   accentColor: string;
+  /** Time display format for the chip face — comes from shared MealSettings */
+  timeFormat: '12h' | '24h';
   selectedMealId: string | null;
   weekDates: string[];
   isCurrentWeek: boolean;
   onSelectMeal: (id: string) => void;
   onRemoveMeal: (date: string, slot: MealSlotType) => void;
   onEmptyCellClick: (date: string, slot: MealSlotType) => void;
+  onSetSlotTime: (date: string, slot: MealSlotType, time: string | undefined) => void;
   onSuggestRandom: () => void;
   onCopyLastWeek: () => void;
   hasPreviousWeek: boolean;
@@ -28,12 +32,14 @@ export default function WeekGrid({
   savedMeals,
   slots,
   accentColor,
+  timeFormat,
   selectedMealId,
   weekDates,
   isCurrentWeek,
   onSelectMeal,
   onRemoveMeal,
   onEmptyCellClick,
+  onSetSlotTime,
   onSuggestRandom,
   onCopyLastWeek,
   hasPreviousWeek,
@@ -54,10 +60,10 @@ export default function WeekGrid({
   const ghostBtn =
     'flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded border border-neutral-700 bg-transparent text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition';
 
-  function resolveMealForCell(date: string, slot: MealSlotType): SavedMeal | null {
-    const entry = plan.find((p) => p.date === date && p.slot === slot);
-    if (!entry?.mealId) return null;
-    return savedMeals.find((m) => m.id === entry.mealId) ?? null;
+  function resolveMealCell(date: string, slot: MealSlotType): { meal: SavedMeal | null; planned: PlannedMeal | undefined } {
+    const planned = plan.find((p) => p.date === date && p.slot === slot);
+    if (!planned?.mealId) return { meal: null, planned };
+    return { meal: savedMeals.find((m) => m.id === planned.mealId) ?? null, planned };
   }
 
   return (
@@ -141,7 +147,7 @@ export default function WeekGrid({
             const shortDate = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
 
             return orderedSlots.map((slot, slotIdx) => {
-              const meal = resolveMealForCell(date, slot);
+              const { meal, planned } = resolveMealCell(date, slot);
               const isSelected = meal ? selectedMealId === meal.id : false;
 
               return (
@@ -197,21 +203,33 @@ export default function WeekGrid({
                     {meal ? (
                       <div
                         onClick={() => onSelectMeal(meal.id)}
-                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg bg-neutral-800/60 border border-neutral-700/50 cursor-pointer hover:bg-neutral-800 hover:border-neutral-600 transition-all relative group ${
+                        className={`relative flex flex-col gap-1 px-2.5 py-2 rounded-lg bg-neutral-800/60 border border-neutral-700/50 cursor-pointer hover:bg-neutral-800 hover:border-neutral-600 transition-all group ${
                           isSelected ? 'border-amber-500/30 bg-amber-500/5' : ''
                         }`}
                       >
-                        <span className="text-2xl">{meal.emoji || DEFAULT_MEAL_EMOJI}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-neutral-200 truncate">
-                            {meal.name}
-                          </div>
-                          {meal.prepTime != null && (
-                            <div className="text-[10px] text-neutral-600">
-                              {meal.prepTime}m prep
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{meal.emoji || DEFAULT_MEAL_EMOJI}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-neutral-200 truncate">
+                              {meal.name}
                             </div>
-                          )}
+                            {meal.prepTime != null && (
+                              <div className="text-[10px] text-neutral-600">
+                                {meal.prepTime}m prep
+                              </div>
+                            )}
+                          </div>
                         </div>
+                        {/* Time chip — self-anchors via its own positioned wrapper */}
+                        <MealTimeChip
+                          value={planned?.time}
+                          onChange={(t) => onSetSlotTime(date, slot, t)}
+                          slot={slot}
+                          variant="dark"
+                          accentColor={accentColor}
+                          compact
+                          timeFormat={timeFormat}
+                        />
                         <button
                           type="button"
                           onClick={(e) => {

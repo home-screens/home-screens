@@ -1,12 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { MealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, getActiveSlot, DEFAULT_SLOTS } from '@/lib/meal-constants';
+import { SLOT_META, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -16,6 +17,7 @@ interface TodayViewProps {
 function SlotCard({
   slot,
   config,
+  settings,
   plan,
   savedMeals,
   todayISO,
@@ -23,12 +25,14 @@ function SlotCard({
 }: {
   slot: MealSlotType;
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   isActive: boolean;
 }) {
-  const meal = resolveMeal(todayISO, slot, plan, savedMeals);
+  const { meal, planned } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
+  const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
   const showEmoji = config.showEmoji ?? true;
   const showPrepTime = config.showPrepTime ?? true;
@@ -43,15 +47,26 @@ function SlotCard({
         borderLeft: `3px solid ${isActive ? meta.color : `${meta.color}30`}`,
       }}
     >
-      {/* Slot label */}
+      {/* Slot label + serving time */}
       <div
         className="px-3 pt-2 pb-0.5 uppercase tracking-[0.15em] font-semibold flex items-center gap-2"
         style={{ fontSize: '0.5em', color: meta.color, opacity: isActive ? 1 : TEXT_OPACITY.secondary }}
       >
-        {meta.label}
+        <span>{meta.label}</span>
+        {time && (
+          <span
+            className="normal-case tracking-normal font-medium"
+            style={{
+              opacity: TEXT_OPACITY.secondary,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formatMealTime(time, settings.timeFormat)}
+          </span>
+        )}
         {isActive && (
           <span
-            className="rounded-full px-1.5 py-px normal-case tracking-normal font-normal"
+            className="rounded-full px-1.5 py-px normal-case tracking-normal font-normal ml-auto"
             style={{ backgroundColor: `${meta.color}20`, fontSize: '0.9em' }}
           >
             now
@@ -100,8 +115,8 @@ function SlotCard({
   );
 }
 
-export function TodayView({ config, plan, savedMeals, todayISO, currentHour }: TodayViewProps) {
-  const slots = config.slots ?? DEFAULT_SLOTS;
+export function TodayView({ config, settings, plan, savedMeals, todayISO, currentHour }: TodayViewProps) {
+  const slots = settings.enabledSlots;
   const activeSlot = getActiveSlot(currentHour, slots);
 
   return (
@@ -131,6 +146,7 @@ export function TodayView({ config, plan, savedMeals, todayISO, currentHour }: T
             key={slot}
             slot={slot}
             config={config}
+            settings={settings}
             plan={plan}
             savedMeals={savedMeals}
             todayISO={todayISO}

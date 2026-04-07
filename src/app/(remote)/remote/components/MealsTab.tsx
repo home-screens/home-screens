@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings } from '@/types/config';
 import { generateGroceryList } from '@/lib/grocery-utils';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
-import { toISODate, filterPlanToWeek, replaceWeekInPlan, copyWeekEntries } from '@/lib/meal-constants';
+import { toISODate, filterPlanToWeek, replaceWeekInPlan, copyWeekEntries, alignToWeekStart } from '@/lib/meal-constants';
 import { useMealsData } from '../hooks/useMealsData';
 import { useMealForm } from '../hooks/useMealForm';
-import { SLOT_ORDER, normalizeTag } from '@/lib/meal-constants';
-import { getWeekDates, currentSlotIndex } from './meals-shared';
+import { normalizeTag } from '@/lib/meal-constants';
+import { getWeekDates, currentActiveSlot } from './meals-shared';
 import MealsWeekView from './MealsWeekView';
 import MealsPlanView from './MealsPlanView';
 import MealsLibraryView from './MealsLibraryView';
 import MealsGroceryView from './MealsGroceryView';
+import MealsSettingsSheet from './MealsSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
 
 export default function MealsTab() {
@@ -22,12 +23,15 @@ export default function MealsTab() {
     plan,
     setPlan,
     groceryChecked,
+    settings,
+    setSettings,
     loading,
     saving,
     setSaving,
     saveError,
     setSaveError,
     saveData,
+    saveSettingsOnly,
     toggleGroceryItem,
     fetchData,
   } = useMealsData();
@@ -39,22 +43,54 @@ export default function MealsTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; confirmLabel: string; onConfirm: () => void } | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
-  // Week navigation state
-  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => {
-    const now = new Date();
-    const d = new Date(now);
-    d.setDate(now.getDate() - now.getDay()); // align to Sunday
-    return d;
-  });
+  // Week navigation state — initialized as a placeholder; the effect below
+  // re-aligns it to the household's weekStartDay once settings load.
+  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => new Date());
+
+  // Wall-clock tick — drives the "active slot" highlight and time-aware
+  // fade-out of past slots. Without this tick, memoized values like
+  // `activeSlotType` and `currentHour` freeze at first render, so a phone
+  // left open at 4:55 PM would still show "Lunch • Now" at 6:00 PM.
+  // Ticks once a minute, which is fine-grained enough for slot boundaries.
+  const [clockNow, setClockNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setClockNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const weekDates = useMemo(() => getWeekDates(viewingWeekStart), [viewingWeekStart]);
-  const todayISO = toISODate(new Date());
-  const currentSlot = currentSlotIndex();
+  // Re-align the week origin to today whenever the household's weekStartDay
+  // changes. Anchored to today (not to the existing `viewingWeekStart`) so the
+  // user always lands on the current week regardless of whether they were
+  // viewing a future or past week when the setting changed. See the
+  // alignToWeekStart unit tests for the offset math, including the regression
+  // case for the compounding-offset bug.
+  //
+  // This also fires on mount (after fetchData resolves with a non-default
+  // weekStartDay), so we don't need a separate initial-alignment effect.
+  useEffect(() => {
+    setViewingWeekStart(alignToWeekStart(new Date(), settings.weekStartDay));
+  }, [settings.weekStartDay]);
+
+  const weekDates = useMemo(
+    () => getWeekDates(viewingWeekStart, settings.weekStartDay),
+    [viewingWeekStart, settings.weekStartDay],
+  );
+  // Derive todayISO from the tick so a phone left open past midnight rolls
+  // the "Today" highlight to the new day automatically.
+  const todayISO = useMemo(() => toISODate(clockNow), [clockNow]);
+  const currentHour = useMemo(() => clockNow.getHours(), [clockNow]);
+  // Re-run when the clock ticks so "active slot" advances across slot
+  // boundaries. Otherwise this memo would freeze at first render.
+  const activeSlotType = useMemo(
+    () => currentActiveSlot(settings.enabledSlots, clockNow),
+    [settings.enabledSlots, clockNow],
+  );
   const isCurrentWeek = weekDates.some((d) => d.date === todayISO);
 
   // Filter plan to viewed week
@@ -72,11 +108,8 @@ export default function MealsTab() {
   }, []);
 
   const jumpToToday = useCallback(() => {
-    const now = new Date();
-    const d = new Date(now);
-    d.setDate(now.getDate() - now.getDay());
-    setViewingWeekStart(d);
-  }, []);
+    setViewingWeekStart(alignToWeekStart(new Date(), settings.weekStartDay));
+  }, [settings.weekStartDay]);
 
   const getMealForSlot = useCallback((date: string, slot: MealSlotType): { planned: PlannedMeal | undefined; meal: SavedMeal | undefined } => {
     const planned = weekPlan.find((p) => p.date === date && p.slot === slot);
@@ -85,8 +118,10 @@ export default function MealsTab() {
   }, [weekPlan, savedMeals]);
 
   const assignMealToSlot = useCallback(async (date: string, slot: MealSlotType, mealId: string) => {
+    const existing = plan.find((p) => p.date === date && p.slot === slot);
     const newPlan = plan.filter((p) => !(p.date === date && p.slot === slot));
-    newPlan.push({ date, slot, mealId });
+    // Preserve existing per-instance fields (time, notes, customText) when swapping the meal
+    newPlan.push({ ...(existing ?? {}), date, slot, mealId });
     setPlan(newPlan);
     setPickingSlot(null);
     await saveData(savedMeals, newPlan);
@@ -97,6 +132,35 @@ export default function MealsTab() {
     setPlan(newPlan);
     await saveData(savedMeals, newPlan);
   }, [plan, savedMeals, saveData, setPlan]);
+
+  const setSlotTime = useCallback(async (date: string, slot: MealSlotType, time: string | undefined) => {
+    const existing = plan.find((p) => p.date === date && p.slot === slot);
+    if (!existing) return;
+    const updated: PlannedMeal = { ...existing };
+    if (time) {
+      updated.time = time;
+    } else {
+      delete updated.time;
+    }
+    const newPlan = plan.map((p) => (p === existing ? updated : p));
+    setPlan(newPlan);
+    await saveData(savedMeals, newPlan);
+  }, [plan, savedMeals, saveData, setPlan]);
+
+  const saveSettings = useCallback(async (next: MealSettings): Promise<boolean> => {
+    const prev = settings;
+    setSettings(next); // optimistic update
+    // Settings-only PUT — does not round-trip meals/plan, so it can't clobber
+    // a concurrent meal write from the editor or another /remote tab.
+    const ok = await saveSettingsOnly(next);
+    if (!ok) {
+      // Server rejected the write — revert local state so the UI matches
+      // what's actually on disk. The useMealsData hook will have set
+      // `saveError` which the toast already renders.
+      setSettings(prev);
+    }
+    return ok;
+  }, [settings, saveSettingsOnly, setSettings]);
 
   const clearAllPlan = useCallback(() => {
     setConfirmAction({
@@ -116,30 +180,35 @@ export default function MealsTab() {
   const suggestRandom = useCallback(async () => {
     if (savedMeals.length === 0) return;
     const weekDateStrs = weekDates.map((d) => d.date);
-    const newWeek = generateRandomPlan(savedMeals, SLOT_ORDER, weekDateStrs);
+    const newWeek = generateRandomPlan(savedMeals, settings.enabledSlots, weekDateStrs);
     const merged = replaceWeekInPlan(plan, weekDateStrs, newWeek);
     setPlan(merged);
     await saveData(savedMeals, merged);
-  }, [savedMeals, plan, weekDates, saveData, setPlan]);
+  }, [savedMeals, plan, weekDates, settings.enabledSlots, saveData, setPlan]);
 
   const copyLastWeek = useCallback(async () => {
     const prevStart = new Date(viewingWeekStart);
     prevStart.setDate(prevStart.getDate() - 7);
-    const prevWeekDates = getWeekDates(prevStart).map((d) => d.date);
+    // Pass the household's weekStartDay so the previous-week window aligns
+    // correctly for Monday-start households. Without this, prevStart was rolled
+    // back to a Sunday and the 7-day window was shifted by one day.
+    const prevWeekDates = getWeekDates(prevStart, settings.weekStartDay).map((d) => d.date);
     const weekDateStrs = weekDates.map((d) => d.date);
     const restamped = copyWeekEntries(plan, prevWeekDates, weekDateStrs);
     if (restamped.length === 0) return;
     const merged = replaceWeekInPlan(plan, weekDateStrs, restamped);
     setPlan(merged);
     await saveData(savedMeals, merged);
-  }, [plan, savedMeals, viewingWeekStart, weekDates, saveData, setPlan]);
+  }, [plan, savedMeals, viewingWeekStart, weekDates, settings.weekStartDay, saveData, setPlan]);
 
   const hasPreviousWeekEntries = useMemo(() => {
     const prevStart = new Date(viewingWeekStart);
     prevStart.setDate(prevStart.getDate() - 7);
-    const prevWeekDates = getWeekDates(prevStart);
+    // Same fix as copyLastWeek — must honor weekStartDay or the previous-week
+    // window is misaligned for Monday-start households.
+    const prevWeekDates = getWeekDates(prevStart, settings.weekStartDay);
     return filterPlanToWeek(plan, prevWeekDates[0].date, prevWeekDates[6].date).length > 0;
-  }, [plan, viewingWeekStart]);
+  }, [plan, viewingWeekStart, settings.weekStartDay]);
 
   const openNewMealForm = () => {
     form.openNew(() => setSaveError(null));
@@ -247,11 +316,37 @@ export default function MealsTab() {
   return (
     <div>
       {/* Header */}
-      <div style={{ padding: '12px 0 4px' }}>
-        <div style={{ fontSize: 12, color: '#525252' }}>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+      <div style={{ padding: '12px 0 4px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 12, color: '#525252' }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+          </div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa', margin: 0 }}>Meals</h2>
         </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa', margin: 0 }}>Meals</h2>
+        <button
+          type="button"
+          onClick={() => setShowSettings(true)}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            border: '1px solid #262626',
+            background: '#171717',
+            color: '#a3a3a3',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'inherit',
+          }}
+          aria-label="Open meal settings"
+          title="Settings"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
       </div>
 
       {/* Sub-navigation */}
@@ -372,8 +467,10 @@ export default function MealsTab() {
           plan={weekPlan}
           weekDates={weekDates}
           todayISO={todayISO}
-          currentSlot={currentSlot}
+          activeSlot={activeSlotType}
+          currentHour={currentHour}
           getMealForSlot={getMealForSlot}
+          settings={settings}
           setSubView={setSubView}
         />
       )}
@@ -384,16 +481,19 @@ export default function MealsTab() {
           plan={weekPlan}
           weekDates={weekDates}
           todayISO={todayISO}
-          currentSlot={currentSlot}
+          activeSlot={activeSlotType}
+          currentHour={currentHour}
           getMealForSlot={getMealForSlot}
           assignMealToSlot={assignMealToSlot}
           clearSlot={clearSlot}
+          setSlotTime={setSlotTime}
           clearAllPlan={clearAllPlan}
           suggestRandom={suggestRandom}
           copyLastWeek={copyLastWeek}
           hasPreviousWeek={hasPreviousWeekEntries}
           pickingSlot={pickingSlot}
           setPickingSlot={setPickingSlot}
+          settings={settings}
           setSubView={setSubView}
         />
       )}
@@ -433,6 +533,15 @@ export default function MealsTab() {
           confirmLabel={confirmAction.confirmLabel}
           onConfirm={confirmAction.onConfirm}
           onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      {/* Settings sheet */}
+      {showSettings && (
+        <MealsSettingsSheet
+          settings={settings}
+          onSave={saveSettings}
+          onClose={() => setShowSettings(false)}
         />
       )}
 

@@ -1,8 +1,10 @@
-import type { FullscreenMealPlannerConfig, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS, toISODate } from '@/lib/meal-constants';
 
 export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
+  /** Shared planning settings from data/meals.json — single source of truth for slots/weekStart/defaultSlotTimes */
+  settings: MealSettings;
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   now: Date;

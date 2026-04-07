@@ -18,15 +18,15 @@ import SidebarDetail from './SidebarDetail';
 import SidebarGrocery from './SidebarGrocery';
 import WeekGrid from './WeekGrid';
 import MealPickerPopover from './MealPickerPopover';
-import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings } from '@/types/config';
 
 // ── Props ────────────────────────────────────────────────────
 
 interface MealPlannerModalProps {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
-  slots: MealSlotType[];
-  weekStartDay: 'sunday' | 'monday';
+  /** Shared meal settings — slots, week start, default times. Comes from data/meals.json. */
+  settings: MealSettings;
   accentColor: string;
   onUpdate: (updates: Record<string, unknown>) => void;
   onClose: () => void;
@@ -45,12 +45,13 @@ const TAB_LABELS: Record<SidebarTab, string> = {
 export default function MealPlannerModal({
   savedMeals,
   plan,
-  slots,
-  weekStartDay,
+  settings,
   accentColor,
   onUpdate,
   onClose,
 }: MealPlannerModalProps) {
+  const slots = settings.enabledSlots;
+  const weekStartDay = settings.weekStartDay;
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('library');
   const [selectedMealId, setSelectedMealId] = useState<string | null>(null);
   const [pickerTarget, setPickerTarget] = useState<{ date: string; slot: MealSlotType } | null>(null);
@@ -188,9 +189,29 @@ export default function MealPlannerModal({
   // ── Plan actions (all multi-week safe) ──
 
   const setSlotMeal = useCallback((date: string, slot: MealSlotType, mealId: string) => {
+    const existing = plan.find((p) => p.date === date && p.slot === slot);
     const filtered = plan.filter((p) => !(p.date === date && p.slot === slot));
-    onUpdate({ plan: [...filtered, { date, slot, mealId }] });
+    // Preserve existing per-instance fields (time, notes, customText) when changing the meal
+    const updated: PlannedMeal = { ...(existing ?? {}), date, slot, mealId };
+    onUpdate({ plan: [...filtered, updated] });
     setPickerTarget(null);
+  }, [plan, onUpdate]);
+
+  const setSlotTime = useCallback((date: string, slot: MealSlotType, time: string | undefined) => {
+    const existing = plan.find((p) => p.date === date && p.slot === slot);
+    if (!existing) return; // can't set a time on a slot with no meal
+    // Treat empty string the same as undefined — a future caller (or a bug in
+    // MealTimeChip) that emits `""` must not write an invalid `time: ""` to
+    // JSON, where it would fail `isValidTimeString` on the next read.
+    const normalized = time ? time : undefined;
+    const updated: PlannedMeal = { ...existing };
+    if (normalized) {
+      updated.time = normalized;
+    } else {
+      delete updated.time;
+    }
+    const newPlan = plan.map((p) => (p === existing ? updated : p));
+    onUpdate({ plan: newPlan });
   }, [plan, onUpdate]);
 
   const removeSlotMeal = useCallback((date: string, slot: MealSlotType) => {
@@ -340,12 +361,14 @@ export default function MealPlannerModal({
           savedMeals={savedMeals}
           slots={slots}
           accentColor={accentColor}
+          timeFormat={settings.timeFormat}
           selectedMealId={selectedMealId}
           weekDates={viewedWeekDates}
           isCurrentWeek={isCurrentWeek}
           onSelectMeal={selectMeal}
           onRemoveMeal={removeSlotMeal}
           onEmptyCellClick={openPicker}
+          onSetSlotTime={setSlotTime}
           onSuggestRandom={suggestRandom}
           onCopyLastWeek={copyLastWeek}
           hasPreviousWeek={hasPreviousWeekEntries}

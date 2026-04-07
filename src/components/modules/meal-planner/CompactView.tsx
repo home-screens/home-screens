@@ -1,18 +1,19 @@
 'use client';
 
-import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMeal, DEFAULT_SLOTS, toISODate, dateToDayIndex } from '@/lib/meal-constants';
+import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
 }
 
-export function CompactView({ config, plan, savedMeals, todayISO }: CompactViewProps) {
-  const slots = config.slots ?? DEFAULT_SLOTS;
+export function CompactView({ config, settings, plan, savedMeals, todayISO }: CompactViewProps) {
+  const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
   const tomorrowDate = new Date(todayISO + 'T12:00:00');
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
@@ -46,7 +47,8 @@ export function CompactView({ config, plan, savedMeals, todayISO }: CompactViewP
           {/* Meals */}
           <div className="flex flex-col gap-1 flex-1">
             {slots.map((slot) => {
-              const meal = resolveMeal(date, slot, plan, savedMeals);
+              const { meal, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
+              const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
               const meta = SLOT_META[slot];
               return (
                 <div
@@ -70,6 +72,18 @@ export function CompactView({ config, plan, savedMeals, todayISO }: CompactViewP
                       <span className="truncate" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
                         {meal.name}
                       </span>
+                      {time && (
+                        <span
+                          className="shrink-0 ml-auto"
+                          style={{
+                            fontSize: '0.55em',
+                            opacity: TEXT_OPACITY.tertiary,
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {formatMealTime(time, settings.timeFormat)}
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <span style={{ fontSize: '0.55em', opacity: 0.15 }}>&mdash;</span>

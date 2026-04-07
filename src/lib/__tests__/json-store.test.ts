@@ -154,3 +154,118 @@ describe('filePath', () => {
     expect(store.filePath).toBe(path.join(tmpDir, 'data', 'test.json'));
   });
 });
+
+describe('updateAtomic', () => {
+  interface Counter { count: number; log: string[] }
+
+  it('serializes concurrent read-modify-write cycles — no lost updates', async () => {
+    // Regression test for the cross-surface race: two PUTs hitting the meals
+    // API would both read the same `existing`, both compute their mutation,
+    // and the second write would silently revert the first. updateAtomic
+    // threads the read through the same write queue so each mutator sees
+    // the prior mutator's result.
+    const store = createJsonStore<Counter>({
+      path: 'data/counter.json',
+      defaultValue: { count: 0, log: [] },
+    });
+
+    // Seed initial state
+    await store.write({ count: 0, log: [] });
+
+    // Fire three concurrent increments. Each mutator awaits a small delay
+    // BEFORE computing the new value to make sure the test fails without
+    // serialization (the delay simulates the readMealData+compute+writeMealData
+    // pause that made the old PUT handler racy).
+    const increment = (tag: string) => store.updateAtomic(async (current) => {
+      await new Promise((r) => setTimeout(r, 10));
+      return { count: current.count + 1, log: [...current.log, tag] };
+    });
+
+    await Promise.all([increment('a'), increment('b'), increment('c')]);
+
+    const final = await store.read();
+    // All three increments must land — no updates lost
+    expect(final.count).toBe(3);
+    // All three tags must appear (order is serialization order — 'a','b','c'
+    // by FIFO promise queue, but any order is acceptable as long as they're
+    // all present).
+    expect(final.log).toHaveLength(3);
+    expect(final.log.sort()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('a thrown mutator propagates to the caller without corrupting state', async () => {
+    const store = createJsonStore<{ v: number }>({
+      path: 'data/counter.json',
+      defaultValue: { v: 0 },
+    });
+    await store.write({ v: 42 });
+
+    const sentinel = new Error('abort-from-mutator');
+    await expect(
+      store.updateAtomic(() => { throw sentinel; }),
+    ).rejects.toBe(sentinel);
+
+    // File is unchanged
+    const after = await store.read();
+    expect(after.v).toBe(42);
+  });
+
+  it('a mutator throwing a Response (API guard pattern) short-circuits without writing', async () => {
+    // The PUT /api/meals/data handler uses the same pattern: its
+    // guardEmptyOverwrite helper returns a Response that the route throws
+    // from inside the mutator to short-circuit. Verify the file is untouched
+    // on that path.
+    const store = createJsonStore<{ meals: string[] }>({
+      path: 'data/meals.json',
+      defaultValue: { meals: [] },
+    });
+    await store.write({ meals: ['existing'] });
+
+    class FakeResponse {}
+    const response = new FakeResponse();
+
+    await expect(
+      store.updateAtomic(() => { throw response; }),
+    ).rejects.toBe(response);
+
+    const after = await store.read();
+    expect(after.meals).toEqual(['existing']);
+  });
+
+  it('a failed mutator does not jam the queue — subsequent updates still run', async () => {
+    const store = createJsonStore<{ v: number }>({
+      path: 'data/counter.json',
+      defaultValue: { v: 0 },
+    });
+    await store.write({ v: 1 });
+
+    // Fire a failing update and a subsequent succeeding update. The second
+    // must still land even though the first rejected.
+    const failing = store.updateAtomic(() => { throw new Error('boom'); });
+    const succeeding = store.updateAtomic((c) => ({ v: c.v + 100 }));
+
+    await expect(failing).rejects.toThrow('boom');
+    const result = await succeeding;
+    expect(result.v).toBe(101);
+
+    const after = await store.read();
+    expect(after.v).toBe(101);
+  });
+
+  it('sees writes from prior queued writes (read-through-queue semantics)', async () => {
+    const store = createJsonStore<{ v: number }>({
+      path: 'data/counter.json',
+      defaultValue: { v: 0 },
+    });
+
+    // Queue a write and an updateAtomic without awaiting the write.
+    // The updateAtomic's read must observe the prior write, not the
+    // default value.
+    const writePromise = store.write({ v: 7 });
+    const atomicPromise = store.updateAtomic((current) => ({ v: current.v + 1 }));
+
+    await writePromise;
+    const result = await atomicPromise;
+    expect(result.v).toBe(8);
+  });
+});

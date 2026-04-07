@@ -1,21 +1,22 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import type { MealPlannerConfig, SavedMeal, PlannedMeal } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMeal, DEFAULT_SLOTS, toISODate } from '@/lib/meal-constants';
+import { SLOT_META, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { getNextMealSlot } from './types';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
+  settings: MealSettings;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   currentHour: number;
 }
 
-export function NextMealView({ config, plan, savedMeals, todayISO, currentHour }: NextMealViewProps) {
-  const slots = config.slots ?? DEFAULT_SLOTS;
+export function NextMealView({ config, settings, plan, savedMeals, todayISO, currentHour }: NextMealViewProps) {
+  const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 
@@ -24,7 +25,8 @@ export function NextMealView({ config, plan, savedMeals, todayISO, currentHour }
   const targetDate = new Date(todayISO + 'T12:00:00');
   targetDate.setDate(targetDate.getDate() + dayOffset);
   const mealDate = toISODate(targetDate);
-  const meal = resolveMeal(mealDate, slot, plan, savedMeals);
+  const { meal, planned } = resolveMealWithEntry(mealDate, slot, plan, savedMeals);
+  const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
 
   return (
@@ -67,6 +69,20 @@ export function NextMealView({ config, plan, savedMeals, todayISO, currentHour }
             >
               {meal.name}
             </p>
+
+            {/* Serving time */}
+            {time && (
+              <p
+                className="text-center font-medium"
+                style={{
+                  fontSize: '0.7em',
+                  opacity: TEXT_OPACITY.secondary,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                serving at {formatMealTime(time, settings.timeFormat)}
+              </p>
+            )}
 
             {/* Tags */}
             {showTags && meal.tags && meal.tags.length > 0 && (
