@@ -9,8 +9,28 @@ export default function TodayView({
   const todayISO = toISODate(now);
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
-  // Find current/hero meal
-  const heroSlot = activeSlot ?? activeOrder[0] ?? 'dinner';
+  // Find current/hero meal + the badge label that goes with it.
+  // Three cases, in priority order:
+  //   1. Currently inside a slot window     → "Now"
+  //   2. Before some slot starts later today → "Up Next"
+  //   3. Past all of today's slots          → "Tonight" (show today's last slot)
+  // Without case 3, late-evening (e.g. 9:30pm — past dinner's [17,21) window)
+  // would fall back to activeOrder[0] = breakfast and mislabel it as "Now".
+  let heroSlot: typeof SLOT_ORDER[number];
+  let heroLabel: string;
+  if (activeSlot) {
+    heroSlot = activeSlot;
+    heroLabel = 'Now';
+  } else {
+    const upcoming = activeOrder.find((sl) => currentHour < SLOT_WINDOWS[sl].start);
+    if (upcoming) {
+      heroSlot = upcoming;
+      heroLabel = 'Up Next';
+    } else {
+      heroSlot = activeOrder[activeOrder.length - 1] ?? 'dinner';
+      heroLabel = 'Tonight';
+    }
+  }
   const { meal: heroMeal, planned: heroPlanned } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
   const heroMeta = SLOT_META[heroSlot];
@@ -54,7 +74,7 @@ export default function TodayView({
           padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
           display: 'inline-flex', alignItems: 'center', gap: s * 0.4,
         }}>
-          <span>⚡ Now &mdash; {heroMeta.label}</span>
+          <span>⚡ {heroLabel} &mdash; {heroMeta.label}</span>
           {heroTime && (
             <span style={{
               fontVariantNumeric: 'tabular-nums',
