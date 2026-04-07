@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useDisplayTarget } from '../display-target';
 
 export default function BrightnessCard() {
   const [brightness, setBrightness] = useState(100);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const { target } = useDisplayTarget();
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
 
@@ -15,10 +17,10 @@ export default function BrightnessCard() {
       fetch('/api/display/brightness', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value }),
+        body: JSON.stringify({ value, ...(target ? { displayId: target } : {}) }),
       }).catch(() => {});
     }, 300);
-  }, []);
+  }, [target]);
 
   return (
     <div className="mx-5 mt-4 p-4 bg-white/[0.03] border border-white/[0.06] rounded-[14px]">

@@ -214,11 +214,49 @@ export interface Profile {
   schedule?: ModuleSchedule;
 }
 
+/**
+ * Per-display settings overrides. Any field omitted falls back to GlobalSettings.
+ * Nested objects (sleep, screensaver) are full-replacement, NOT deep-merged.
+ */
+export interface DisplayNodeSettings {
+  displayWidth?: number;
+  displayHeight?: number;
+  displayTransform?: 'normal' | '90' | '180' | '270';
+  rotationIntervalMs?: number;
+  transitionEffect?: TransitionEffect;
+  transitionDuration?: number;
+  sleep?: SleepSettings;
+  screensaver?: ScreensaverSettings;
+}
+
+/**
+ * A named display device. Each display has its own screen assignments and
+ * optional per-display profile/settings overrides. When `displays` is
+ * undefined/empty on the parent ScreenConfiguration, the system runs in
+ * single-display mode (all screens, all profiles).
+ */
+export interface DisplayNode {
+  /** URL-safe slug used as the route segment: /display/<id> */
+  id: string;
+  /** Human-readable label shown in the editor */
+  name: string;
+  /** Screen IDs assigned to this display (subset of ScreenConfiguration.screens) */
+  screenIds: string[];
+  /** Optional: restricts which profiles apply to this display */
+  profileIds?: string[];
+  /** Per-display active profile (falls back to GlobalSettings.activeProfile) */
+  activeProfile?: string;
+  /** Per-display setting overrides */
+  settings?: DisplayNodeSettings;
+}
+
 export interface ScreenConfiguration {
   version: number;
   settings: GlobalSettings;
   screens: Screen[];
   profiles?: Profile[];
+  /** Multi-display registry. Omitted = single-display mode (backward compat). */
+  displays?: DisplayNode[];
 }
 
 // Default style for new modules

@@ -20,11 +20,13 @@ import {
   Bell,
   BookOpen,
   UtensilsCrossed,
+  Tv,
 } from 'lucide-react';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import Button from '@/components/ui/Button';
 import DisplaySection from '@/components/editor/settings/DisplaySection';
+import DisplaysSection from '@/components/editor/settings/DisplaysSection';
 import SleepSection from '@/components/editor/settings/SleepSection';
 import LocationSection from '@/components/editor/settings/LocationSection';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
@@ -46,6 +48,7 @@ import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
 
 const TABS = [
   { id: 'display', label: 'Display', icon: Monitor },
+  { id: 'displays', label: 'Displays', icon: Tv },
   { id: 'profiles', label: 'Profiles', icon: Layers },
   { id: 'sleep', label: 'Sleep', icon: Moon },
   { id: 'alerts', label: 'Alerts', icon: Bell },
@@ -416,7 +419,7 @@ export default function SettingsPage() {
     );
   }
 
-  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'stats', 'docs', 'meals']);
+  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'displays', 'stats', 'docs', 'meals']);
   const showSaveButton = !SELF_SAVING_TABS.has(activeTab);
 
   return (
@@ -484,6 +487,10 @@ export default function SettingsPage() {
                 values={state.display}
                 onChange={handleDisplayChange}
               />
+            )}
+
+            {activeTab === 'displays' && (
+              <DisplaysSection />
             )}
 
             {activeTab === 'profiles' && (

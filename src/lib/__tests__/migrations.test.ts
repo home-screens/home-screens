@@ -70,8 +70,27 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 2', () => {
-    expect(getLatestSchemaVersion()).toBe(2);
+  it('getLatestSchemaVersion returns 3', () => {
+    expect(getLatestSchemaVersion()).toBe(3);
+  });
+});
+
+describe('migration v3: multi-display registry available', () => {
+  it('is a no-op transform that bumps the version', () => {
+    const config = makeConfig(2);
+    const { config: result, migrationsRun } = migrateUp(config, 3);
+    expect(migrationsRun).toHaveLength(1);
+    expect(result.version).toBe(3);
+    expect(result.screens).toEqual(config.screens);
+    expect(result.settings).toEqual(config.settings);
+    expect(result.displays).toBeUndefined();
+  });
+
+  it('round-trips down to v2', () => {
+    const config = makeConfig(2);
+    const { config: up } = migrateUp(config, 3);
+    const { config: down } = migrateDown(up, 2);
+    expect(down.version).toBe(2);
   });
 });
 

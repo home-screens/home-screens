@@ -10,6 +10,7 @@ import type {
   GlobalSettings,
   Screen,
   Profile,
+  DisplayNode,
 } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -64,6 +65,9 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
+  addDisplay: (display: Omit<DisplayNode, 'screenIds'> & { screenIds?: string[] }) => void;
+  updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
+  removeDisplay: (id: string) => void;
   importConfig: (json: string) => void;
   exportLayout: (options?: { screenIds?: string[]; name?: string; description?: string }) => void;
   importLayoutAction: (layout: LayoutExport, options: { mode: 'add' | 'replace'; applyVisual?: boolean }) => void;
@@ -281,9 +285,15 @@ export const useEditorStore = create<EditorState>((set, get) => {
       ...p,
       screenIds: p.screenIds.filter((sid) => sid !== id),
     }));
+    // Also strip the removed screen from any display assignments so we
+    // never leave a dangling reference that the writeConfig validator rejects.
+    const displays = config.displays?.map((d) => ({
+      ...d,
+      screenIds: d.screenIds.filter((sid) => sid !== id),
+    }));
     const newSelectedId = selectedScreenId === id ? screens[0]?.id ?? null : selectedScreenId;
     mutateConfig(() => ({
-      config: { ...config, screens, profiles },
+      config: { ...config, screens, profiles, displays },
       selectedScreenId: newSelectedId,
       selectedModuleId: null,
     }));
@@ -337,7 +347,14 @@ export const useEditorStore = create<EditorState>((set, get) => {
       const settings = config.settings.activeProfile === id
         ? { ...config.settings, activeProfile: undefined }
         : config.settings;
-      return { config: { ...config, profiles, settings } };
+      // Strip the removed profile from any display profileIds and clear it
+      // from per-display activeProfile so the writeConfig validator stays happy.
+      const displays = config.displays?.map((d) => ({
+        ...d,
+        ...(d.profileIds ? { profileIds: d.profileIds.filter((pid) => pid !== id) } : {}),
+        ...(d.activeProfile === id ? { activeProfile: undefined } : {}),
+      }));
+      return { config: { ...config, profiles, settings, displays } };
     });
   },
 
@@ -365,6 +382,48 @@ export const useEditorStore = create<EditorState>((set, get) => {
     mutateConfig((config) => ({
       config: { ...config, settings: { ...config.settings, activeProfile: id } },
     }), { coalesce: 'activeProfile' });
+  },
+
+  addDisplay: (display) => {
+    mutateConfig((config) => {
+      const newDisplay: DisplayNode = {
+        id: display.id,
+        name: display.name,
+        screenIds: display.screenIds ?? config.screens.map((s) => s.id),
+        ...(display.profileIds ? { profileIds: display.profileIds } : {}),
+        ...(display.activeProfile ? { activeProfile: display.activeProfile } : {}),
+        ...(display.settings ? { settings: display.settings } : {}),
+      };
+      return {
+        config: { ...config, displays: [...(config.displays ?? []), newDisplay] },
+      };
+    });
+  },
+
+  updateDisplay: (id, updates) => {
+    mutateConfig((config) => ({
+      config: {
+        ...config,
+        displays: (config.displays ?? []).map((d) =>
+          d.id === id ? { ...d, ...updates } : d,
+        ),
+      },
+    }), { coalesce: `display:${id}` });
+  },
+
+  removeDisplay: (id) => {
+    mutateConfig((config) => {
+      // Collapse an empty result back to undefined so a legacy single-display
+      // config (where `displays` never existed) does not get promoted to an
+      // empty-array "multi-display mode with no displays" state.
+      const filtered = (config.displays ?? []).filter((d) => d.id !== id);
+      return {
+        config: {
+          ...config,
+          displays: filtered.length > 0 ? filtered : undefined,
+        },
+      };
+    });
   },
 
   importConfig: (json: string) => {

@@ -16,6 +16,7 @@ export default async function RemotePage() {
     .map((s) => ({ id: s.id, name: s.name }));
   const profiles = (config.profiles ?? []).map((p) => ({ id: p.id, name: p.name }));
   const activeProfile = config.settings.activeProfile;
+  const displays = (config.displays ?? []).map((d) => ({ id: d.id, name: d.name }));
 
   // Find display settings from the first chore module in config
   let modConfig: Record<string, unknown> | null = null;
@@ -73,7 +74,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays }}
     />
   );
 }

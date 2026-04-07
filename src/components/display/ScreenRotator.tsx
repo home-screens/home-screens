@@ -28,6 +28,12 @@ interface ScreenRotatorProps {
   settings: GlobalSettings;
   profiles?: Profile[];
   displayToken?: string | null;
+  /**
+   * Multi-display routing key. When set, the live config hook re-filters
+   * each `/api/config` poll for this display, and command/status traffic
+   * targets this display's queue. Undefined = legacy single-display mode.
+   */
+  displayId?: string;
 }
 
 // ---- View Transitions API integration ----
@@ -78,11 +84,11 @@ function startScreenTransition(
 
 // ---- Main component ----
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken, displayId }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, profiles } = useLiveConfig(initialScreens, initialSettings, initialProfiles);
+  const { screens: allScreens, settings, profiles } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
@@ -193,6 +199,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     prevScreen,
     resetRotation,
     clearPause,
+    displayId,
   });
 
   // Subscribe to plugin navigate events

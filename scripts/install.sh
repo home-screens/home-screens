@@ -10,6 +10,10 @@ set -euo pipefail
 #   ~/home-screens/scripts/install.sh --desktop              # Pi OS with Desktop
 #   ~/home-screens/scripts/install.sh --version v1.2.0       # Install a specific release
 #   ~/home-screens/scripts/install.sh --non-interactive      # Skip display prompts (use defaults)
+#
+# Display-only install (no backend, just a kiosk pointed at a hub Pi):
+#   ~/home-screens/scripts/install.sh --display-only --backend http://192.168.1.100:3000
+#   ~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
 
 INSTALL_BASE="/opt/home-screens"
 APP_DIR="${INSTALL_BASE}/current"
@@ -26,6 +30,9 @@ setup_logging
 PI_VARIANT="lite"
 REQUESTED_VERSION=""
 REQUESTED_PORT=""
+DISPLAY_ONLY="false"
+BACKEND_URL=""
+DISPLAY_NODE_ID=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --desktop) PI_VARIANT="desktop"; shift ;;
@@ -37,6 +44,13 @@ while [[ $# -gt 0 ]]; do
       if ! [[ "${2}" =~ ^[0-9]+$ ]]; then error "--port must be a number (e.g. --port 8080)"; fi
       REQUESTED_PORT="$2"; shift 2 ;;
     --non-interactive) NON_INTERACTIVE="true"; shift ;;
+    --display-only) DISPLAY_ONLY="true"; shift ;;
+    --backend)
+      if [ -z "${2:-}" ]; then error "--backend requires a URL (e.g. --backend http://hub:3000)"; fi
+      BACKEND_URL="$2"; shift 2 ;;
+    --display-id)
+      if [ -z "${2:-}" ]; then error "--display-id requires a value (e.g. --display-id kitchen)"; fi
+      DISPLAY_NODE_ID="$2"; shift 2 ;;
     *)      error "Unknown option: $1" ;;
   esac
 done
@@ -45,6 +59,293 @@ done
 ensure_tty
 check_arch
 check_not_root
+
+# --- Display-only branch: skip Node, tarball, server setup. Just kiosk. ---
+if [ "${DISPLAY_ONLY}" = "true" ]; then
+  if [ -z "${BACKEND_URL}" ]; then
+    error "--display-only requires --backend <url> (e.g. --backend http://192.168.1.100:3000)"
+  fi
+  # Strip trailing slash so URL composition stays clean
+  BACKEND_URL="${BACKEND_URL%/}"
+
+  # Auto-generate a display ID from the hostname when none was given.
+  # Lowercase, swap any non-alnum to '-', strip leading/trailing dashes,
+  # and truncate to the 64-char cap (with another trailing-dash strip in
+  # case truncation lands mid-dash).
+  if [ -z "${DISPLAY_NODE_ID}" ]; then
+    DISPLAY_NODE_ID=$(hostname \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed 's/[^a-z0-9]/-/g; s/^-*//; s/-*$//' \
+      | cut -c1-64 \
+      | sed 's/-*$//')
+    if [ -z "${DISPLAY_NODE_ID}" ]; then
+      DISPLAY_NODE_ID="display-$(date +%s)"
+    fi
+    info "Auto-generated display ID: ${DISPLAY_NODE_ID} (override with --display-id)"
+  fi
+
+  # Validate the ID is URL-safe and within the 64-char cap enforced by
+  # display-filter.ts + display-commands.ts. Without this cap, a hostname
+  # like an overly long auto-generated string would pass the regex here and
+  # then get silently rejected by the API layer — the display would never
+  # show up in the editor's unadopted list with no visible error.
+  if ! [[ "${DISPLAY_NODE_ID}" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+    error "Invalid --display-id '${DISPLAY_NODE_ID}': must be lowercase letters, digits, hyphens (e.g. kitchen, bedroom-tv)"
+  fi
+  if [ "${#DISPLAY_NODE_ID}" -gt 64 ]; then
+    error "Invalid --display-id '${DISPLAY_NODE_ID}': max length is 64 characters (got ${#DISPLAY_NODE_ID})"
+  fi
+
+  info "Display-only install — backend ${BACKEND_URL}, display ${DISPLAY_NODE_ID}"
+
+  # 1. Install only the kiosk-side packages. No Node, no Next.js.
+  info "Installing kiosk packages..."
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq chromium labwc wtype wlr-randr fonts-noto-color-emoji curl
+  if [ "${PI_VARIANT}" = "lite" ]; then
+    sudo apt-get install -y -qq fonts-noto-core libpam-systemd dbus-user-session
+  fi
+
+  # 2. GPU group access for labwc/Chromium on Lite
+  if [ "${PI_VARIANT}" = "lite" ]; then
+    for grp in video render; do
+      if getent group "${grp}" >/dev/null 2>&1 && ! id -nG "${USER}" | grep -qw "${grp}"; then
+        sudo usermod -aG "${grp}" "${USER}"
+      fi
+    done
+  fi
+
+  # 3. Display orientation prompts (same as full install)
+  if [ "${NON_INTERACTIVE}" = "true" ]; then
+    WLR_TRANSFORM="90"
+    DISPLAY_MODE=""
+    NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
+    if [ -n "${NATIVE_RES}" ]; then
+      DISPLAY_MODE="${NATIVE_RES}"
+    fi
+  else
+    echo ""
+    echo "  How is your display oriented?"
+    echo "  1) Portrait (default, rotated 90° clockwise)"
+    echo "  2) Portrait (rotated 90° counter-clockwise)"
+    echo "  3) Landscape (no rotation)"
+    echo "  4) Inverted (rotated 180°)"
+    echo ""
+    read -rp "  Display orientation [1]: " ORIENT_CHOICE
+    ORIENT_CHOICE="${ORIENT_CHOICE:-1}"
+    case "${ORIENT_CHOICE}" in
+      2) WLR_TRANSFORM="270" ;;
+      3) WLR_TRANSFORM=""    ;;
+      4) WLR_TRANSFORM="180" ;;
+      *) WLR_TRANSFORM="90"  ;;
+    esac
+    echo ""
+    read -rp "  Resolution [auto]: " DISPLAY_RES
+    DISPLAY_MODE=""
+    if [ -n "${DISPLAY_RES}" ]; then
+      DISPLAY_MODE="${DISPLAY_RES}"
+    else
+      NATIVE_RES=$(cat /sys/class/drm/card*-*/modes 2>/dev/null | head -1 || true)
+      [ -n "${NATIVE_RES}" ] && DISPLAY_MODE="${NATIVE_RES}"
+    fi
+  fi
+
+  # 4. Create app dir owned by the user. We do not download a tarball — the
+  #    only files we need are the kiosk-launcher and a stub HTML page.
+  if [ ! -d "${INSTALL_BASE}" ]; then
+    sudo mkdir -p "${INSTALL_BASE}"
+    sudo chown "${USER}:${USER}" "${INSTALL_BASE}"
+  fi
+  mkdir -p "${APP_DIR}/data" "${APP_DIR}/scripts" "${APP_DIR}/share"
+
+  # 5. kiosk.conf — same shape as the full install, plus DISPLAY_URL.
+  #    The launcher reads this to know which URL to open.
+  KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
+  : > "${KIOSK_CONF}"
+  echo "DISPLAY_URL=\"${BACKEND_URL}/display/${DISPLAY_NODE_ID}\"" >> "${KIOSK_CONF}"
+  echo "BACKEND_URL=\"${BACKEND_URL}\"" >> "${KIOSK_CONF}"
+  echo "DISPLAY_ID=\"${DISPLAY_NODE_ID}\"" >> "${KIOSK_CONF}"
+  [ -n "${DISPLAY_MODE}" ] && echo "DISPLAY_MODE=\"${DISPLAY_MODE}\"" >> "${KIOSK_CONF}"
+  [ -n "${WLR_TRANSFORM}" ] && echo "DISPLAY_TRANSFORM=\"${WLR_TRANSFORM}\"" >> "${KIOSK_CONF}"
+  echo "PI_VARIANT=\"${PI_VARIANT}\"" >> "${KIOSK_CONF}"
+
+  # 6. Local "Connecting…" splash served via file:// while the hub boots.
+  SPLASH_HTML="${APP_DIR}/share/connecting.html"
+  cat > "${SPLASH_HTML}" <<'SPLASH_EOF'
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Home Screens</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0a0a;color:#e5e5e5;
+    font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;
+    justify-content:center;text-align:center;}
+  .wrap{padding:32px;max-width:520px}
+  h1{font-size:32px;font-weight:600;margin:0 0 12px;color:#fafafa}
+  p{font-size:16px;color:#a3a3a3;line-height:1.5;margin:0 0 24px}
+  .pill{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;
+    border-radius:999px;background:#171717;border:1px solid #262626;
+    font-size:13px;color:#737373}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:#22c55e;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+</style></head><body><div class="wrap">
+  <h1>Home Screens</h1>
+  <p>Waiting for the hub to come online…</p>
+  <span class="pill"><span class="dot"></span>Connecting</span>
+</div></body></html>
+SPLASH_EOF
+
+  # 7. Kiosk launcher — health-checks the hub before launching Chromium so
+  #    a display-only Pi sharing a power strip with the hub doesn't try to
+  #    load a URL that isn't ready yet.
+  LAUNCHER="${APP_DIR}/scripts/kiosk-launcher.sh"
+  cat > "${LAUNCHER}" <<'LAUNCHER_EOF'
+#!/usr/bin/env bash
+# Display-only kiosk launcher. Reads DISPLAY_URL/BACKEND_URL from kiosk.conf,
+# waits for the hub to respond, then launches Chromium pointed at the hub.
+#
+# Boot-time strategy:
+#   1. Try the hub immediately. If reachable, launch chromium with DISPLAY_URL.
+#   2. Otherwise launch chromium with a local "Connecting…" splash and start a
+#      background watcher. The watcher polls the hub; the moment it answers it
+#      sends SIGTERM to chromium. labwc's autologin cycle then restarts the
+#      whole stack and we re-enter this script — this time the immediate health
+#      check succeeds and we open DISPLAY_URL directly.
+#
+# This pattern relies on the existing labwc-restart-on-exit cycle from the
+# full install, so there is no DevTools fragility and no "exec foo &" confusion.
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
+
+DISPLAY_URL=""
+BACKEND_URL=""
+DISPLAY_TRANSFORM=""
+DISPLAY_MODE=""
+[ -f "${KIOSK_CONF}" ] && source "${KIOSK_CONF}"
+
+if [ -z "${DISPLAY_URL}" ]; then
+  echo "[kiosk-launcher] DISPLAY_URL not set in ${KIOSK_CONF}" >&2
+  exit 1
+fi
+
+# Apply rotation/resolution in the background. Same flow as the full install.
+if [ -n "${DISPLAY_TRANSFORM}" ] || [ -n "${DISPLAY_MODE}" ]; then
+  OUTPUT=$(wlr-randr 2>/dev/null | head -1 | awk '{print $1}' || echo 'HDMI-A-1')
+  [ -n "${DISPLAY_TRANSFORM}" ] && (sleep 1 && wlr-randr --output "${OUTPUT}" --transform "${DISPLAY_TRANSFORM}") &
+  [ -n "${DISPLAY_MODE}" ] && \
+    (sleep 2 && wlr-randr --output "${OUTPUT}" --mode "${DISPLAY_MODE}" 2>/dev/null \
+      || wlr-randr --output "${OUTPUT}" --custom-mode "${DISPLAY_MODE}" 2>/dev/null \
+      || true) &
+fi
+
+(sleep 2 && wtype -M logo -k h -m logo) &
+
+CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
+if [ -f "${CHROME_PREFS}" ]; then
+  sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${CHROME_PREFS}"
+fi
+
+HEALTH_URL="${BACKEND_URL:-${DISPLAY_URL%/display/*}}/api/system/build-id"
+SPLASH_URL="file://${APP_DIR}/share/connecting.html"
+
+# Single immediate health check. We don't loop here because labwc's
+# autologin-on-exit cycle re-runs this script every few seconds anyway,
+# and we want the splash to render in the meantime.
+if curl -fsS --max-time 5 "${HEALTH_URL}" >/dev/null 2>&1; then
+  TARGET_URL="${DISPLAY_URL}"
+else
+  TARGET_URL="${SPLASH_URL}"
+  # Background watcher: when the hub comes online, kill chromium so labwc
+  # exits and the bash_profile auto-launch picks the real URL on the next
+  # cycle. Loop terminates with chromium so we don't leak the watcher.
+  (
+    while sleep 5; do
+      if curl -fsS --max-time 3 "${HEALTH_URL}" >/dev/null 2>&1; then
+        pkill -TERM chromium 2>/dev/null || true
+        break
+      fi
+    done
+  ) &
+fi
+
+exec chromium \
+  --app="${TARGET_URL}" \
+  --noerrdialogs \
+  --disable-infobars \
+  --no-first-run \
+  --disable-session-crashed-bubble \
+  --disable-translate \
+  --check-for-update-interval=31536000 \
+  --password-store=basic \
+  --ozone-platform=wayland \
+  --ignore-gpu-blocklist \
+  --enable-zero-copy \
+  --num-raster-threads=2 \
+  --force-gpu-mem-available-mb=256
+LAUNCHER_EOF
+  chmod +x "${LAUNCHER}"
+
+  # 8. labwc rc.xml (same window rules and cursor hide as full install)
+  LABWC_DIR="${HOME}/.config/labwc"
+  mkdir -p "${LABWC_DIR}"
+  cat > "${LABWC_DIR}/rc.xml" <<'RC_EOF'
+<?xml version="1.0"?>
+<labwc_config>
+  <windowRules>
+    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes">
+      <action name="ToggleFullscreen"/>
+    </windowRule>
+  </windowRules>
+  <keyboard>
+    <keybind key="W-h">
+      <action name="HideCursor"/>
+    </keybind>
+  </keyboard>
+</labwc_config>
+RC_EOF
+
+  # 9. Boot to console + autologin on TTY1
+  CURRENT_DEFAULT=$(systemctl get-default 2>/dev/null || echo "unknown")
+  if [ "${CURRENT_DEFAULT}" != "multi-user.target" ]; then
+    sudo systemctl set-default multi-user.target
+  fi
+  for dm in lightdm gdm3 sddm; do
+    if systemctl is-enabled "${dm}" &>/dev/null; then
+      sudo systemctl disable "${dm}"
+    fi
+  done
+  AUTOLOGIN_DIR="/etc/systemd/system/getty@tty1.service.d"
+  AUTOLOGIN_CONF="${AUTOLOGIN_DIR}/autologin.conf"
+  sudo mkdir -p "${AUTOLOGIN_DIR}"
+  sudo tee "${AUTOLOGIN_CONF}" >/dev/null <<EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin ${USER} --noclear %I \$TERM
+EOF
+  sudo systemctl daemon-reload
+
+  # 10. Bash profile kiosk auto-launch (reuses the shared helper)
+  write_kiosk_block "${PI_VARIANT}" "${APP_DIR}" || true
+
+  echo ""
+  echo -e "${GREEN}============================================${NC}"
+  echo -e "${GREEN}  Display-only install complete!${NC}"
+  echo -e "${GREEN}============================================${NC}"
+  echo ""
+  echo "  Hub:          ${BACKEND_URL}"
+  echo "  Display ID:   ${DISPLAY_NODE_ID}"
+  echo "  Display URL:  ${BACKEND_URL}/display/${DISPLAY_NODE_ID}"
+  echo ""
+  echo "  Next steps:"
+  echo "    1. Reboot this Pi:    sudo reboot"
+  echo "    2. On the hub Pi, open the editor → Settings → Displays."
+  echo "    3. Adopt '${DISPLAY_NODE_ID}' from the unadopted list and assign it screens."
+  echo ""
+  if [ -n "${LOGFILE:-}" ]; then
+    echo "  Log:          ${LOGFILE}"
+    echo ""
+  fi
+  exit 0
+fi
 
 # --- Step 1: Bootstrap packages ---
 info "Installing bootstrap packages..."

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCommand } from '../hooks';
+import { useDisplayTarget } from '../display-target';
 
 interface ProfileSwitcherProps {
   profiles: Array<{ id: string; name: string }>;
@@ -9,14 +10,18 @@ interface ProfileSwitcherProps {
 
 export default function ProfileSwitcher({ profiles, activeProfile }: ProfileSwitcherProps) {
   const { state, execute } = useCommand();
+  const { target } = useDisplayTarget();
 
   const switchProfile = async (profileId: string) => {
     const id = profileId === activeProfile ? '' : profileId;
+    // Profile switching doesn't broadcast — when targeting "all" we fall back
+    // to the global profile (no displayId) so every display follows it.
+    const displayId = target && target !== 'all' ? target : undefined;
     await execute(() =>
       fetch('/api/display/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile: id }),
+        body: JSON.stringify({ profile: id, ...(displayId ? { displayId } : {}) }),
       }),
     );
   };

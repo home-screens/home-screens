@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCommand } from '../hooks';
+import { useDisplayTarget } from '../display-target';
 
 interface AlertSenderProps {
   open: boolean;
@@ -28,6 +29,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
   const [message, setMessage] = useState('');
   const [duration, setDuration] = useState(10000);
   const { state, execute } = useCommand();
+  const { target } = useDisplayTarget();
 
   // Reset form when sheet closes
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
           title: title.trim() || undefined,
           message: message.trim() || undefined,
           duration: duration || undefined,
+          ...(target ? { displayId: target } : {}),
         }),
       }),
     );

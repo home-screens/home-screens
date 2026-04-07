@@ -7,7 +7,7 @@ import { migrateUp, getLatestSchemaVersion } from './migrations';
 // migration, bump this and add any new required fields. Otherwise fresh
 // installs will trigger an unnecessary migrate-on-boot write.
 const DEFAULT_CONFIG: ScreenConfiguration = {
-  version: 2,
+  version: 3,
   settings: {
     rotationIntervalMs: 30000,
     displayWidth: 1080,
@@ -83,3 +83,26 @@ export async function readConfig(): Promise<ScreenConfiguration> {
 }
 
 export const writeConfig = configStore.write;
+
+/**
+ * Atomic read-modify-write for `config.json`. Routes that need to observe
+ * the on-disk state, mutate it, and persist the result without another
+ * writer interleaving (e.g. the per-display profile change handler) must
+ * use this rather than the bare `readConfig()` → mutate → `writeConfig()`
+ * sequence — the latter races against the editor's PUT /api/config.
+ *
+ * Migrations are applied transparently inside the mutator's input so the
+ * caller always sees a config at the latest schema version.
+ */
+export function updateConfigAtomic(
+  mutator: (current: ScreenConfiguration) => ScreenConfiguration | Promise<ScreenConfiguration>,
+): Promise<ScreenConfiguration> {
+  const target = getLatestSchemaVersion();
+  return configStore.updateAtomic(async (current) => {
+    // Migrate-on-read inside the queue so the mutator always sees the
+    // current schema. This mirrors what readConfig() does outside the queue.
+    const migrated =
+      (current.version ?? 0) < target ? migrateUp(current, target).config : current;
+    return mutator(migrated);
+  });
+}

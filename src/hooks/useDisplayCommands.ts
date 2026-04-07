@@ -19,10 +19,24 @@ export interface CommandHandlers {
 const COMMAND_POLL_MS = 3_000;
 
 /**
+ * Append `?display=<id>` (or `&display=<id>`) when running in multi-display
+ * mode. Single-display mode (no displayId) uses the bare URL exactly as today.
+ */
+function withDisplayParam(url: string, displayId: string | undefined): string {
+  if (!displayId) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}display=${encodeURIComponent(displayId)}`;
+}
+
+/**
  * Polls /api/display/commands every 3s and dispatches to handler callbacks.
  * Commands are drained from the server queue on each poll.
+ *
+ * When `displayId` is provided, the poll targets that display's queue and
+ * also registers it in the hub's `knownDisplays` set (so it shows up in
+ * the editor's "Unadopted Displays" section before being formally added).
  */
-export function useDisplayCommands(handlers: CommandHandlers) {
+export function useDisplayCommands(handlers: CommandHandlers, displayId?: string) {
   const handlersRef = useRef(handlers);
   useEffect(() => {
     handlersRef.current = handlers;
@@ -33,7 +47,7 @@ export function useDisplayCommands(handlers: CommandHandlers) {
 
     async function poll() {
       try {
-        const res = await displayFetch('/api/display/commands');
+        const res = await displayFetch(withDisplayParam('/api/display/commands', displayId));
         if (!res.ok || !mounted) return;
         const { commands } = (await res.json()) as {
           commands: DisplayCommand[];
@@ -93,12 +107,15 @@ export function useDisplayCommands(handlers: CommandHandlers) {
       mounted = false;
       clearInterval(id);
     };
-  }, []);
+  }, [displayId]);
 }
 
 /**
  * Reports display status to /api/display/status periodically (every 30s)
  * and immediately on significant state changes.
+ *
+ * In multi-display mode the `displayId` is included in the POST body so
+ * the hub can store the report under the right per-display slot.
  */
 export function useStatusReporter(
   currentScreenIndex: number,
@@ -107,6 +124,7 @@ export function useStatusReporter(
   screenCount: number,
   activeProfile: string | undefined | null,
   displayState: string,
+  displayId?: string,
 ) {
   const valuesRef = useRef({
     currentScreenIndex,
@@ -115,6 +133,7 @@ export function useStatusReporter(
     screenCount,
     activeProfile,
     displayState,
+    displayId,
   });
 
   useEffect(() => {
@@ -125,17 +144,18 @@ export function useStatusReporter(
       screenCount,
       activeProfile,
       displayState,
+      displayId,
     };
   });
 
   // Report immediately on significant changes
   const prevKeyRef = useRef('');
   useEffect(() => {
-    const key = `${currentScreenIndex}:${screenCount}:${displayState}:${activeProfile}`;
+    const key = `${currentScreenIndex}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}`;
     if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
     reportStatus(valuesRef.current);
-  }, [currentScreenIndex, screenCount, displayState, activeProfile]);
+  }, [currentScreenIndex, screenCount, displayState, activeProfile, displayId]);
 
   // Periodic report every 30s for freshness
   useEffect(() => {
@@ -151,6 +171,7 @@ function reportStatus(s: {
   screenCount: number;
   activeProfile: string | undefined | null;
   displayState: string;
+  displayId?: string;
 }) {
   displayFetch('/api/display/status', {
     method: 'POST',
@@ -166,6 +187,9 @@ function reportStatus(s: {
       displayState: s.displayState,
       timestamp: Date.now(),
       cacheStats: displayCache.getStats(),
+      // Stripped server-side before storage; lets the hub key the report
+      // under the right per-display slot in `statusMap`.
+      ...(s.displayId ? { displayId: s.displayId } : {}),
     }),
   }).catch(() => {});
 }

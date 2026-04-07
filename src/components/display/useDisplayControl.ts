@@ -16,6 +16,8 @@ interface UseDisplayControlParams {
   prevScreen: () => void;
   resetRotation: () => void;
   clearPause?: () => void;
+  /** Multi-display routing key (undefined = legacy single-display mode). */
+  displayId?: string;
 }
 
 export function useDisplayControl({
@@ -29,6 +31,7 @@ export function useDisplayControl({
   prevScreen,
   resetRotation,
   clearPause,
+  displayId,
 }: UseDisplayControlParams) {
   const { displayState, dimOpacity, wake, forceSleep, setRemoteBrightness } = useSleepManager(sleep);
 
@@ -48,14 +51,17 @@ export function useDisplayControl({
     window.location.reload();
   }, []);
 
-  useDisplayCommands({
-    wake,
-    sleep: forceSleep,
-    nextScreen: remoteNext,
-    prevScreen: remotePrev,
-    setBrightness: setRemoteBrightness,
-    reload,
-  });
+  useDisplayCommands(
+    {
+      wake,
+      sleep: forceSleep,
+      nextScreen: remoteNext,
+      prevScreen: remotePrev,
+      setBrightness: setRemoteBrightness,
+      reload,
+    },
+    displayId,
+  );
 
   useStatusReporter(
     screenIndex,
@@ -64,6 +70,7 @@ export function useDisplayControl({
     screenCount,
     activeProfile,
     displayState,
+    displayId,
   );
 
   return { displayState, dimOpacity };

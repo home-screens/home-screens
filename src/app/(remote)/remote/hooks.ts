@@ -46,7 +46,7 @@ export function useCommand() {
 // useRemoteStatus — polls display status with burst-polling after commands
 // ---------------------------------------------------------------------------
 
-export function useRemoteStatus(pollMs = 5000) {
+export function useRemoteStatus(pollMs = 5000, displayId?: string) {
   const [status, setStatus] = useState<DisplayStatus | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -56,7 +56,10 @@ export function useRemoteStatus(pollMs = 5000) {
 
   const poll = useCallback(async () => {
     try {
-      const res = await fetch('/api/display/status');
+      const url = displayId
+        ? `/api/display/status?display=${encodeURIComponent(displayId)}`
+        : '/api/display/status';
+      const res = await fetch(url);
       if (res.ok) {
         const data: DisplayStatus = await res.json();
         setStatus(data);
@@ -72,9 +75,13 @@ export function useRemoteStatus(pollMs = 5000) {
       failuresRef.current++;
       if (failuresRef.current >= 3) setIsConnected(false);
     }
-  }, []);
+  }, [displayId]);
 
   useEffect(() => {
+    // Reset status whenever the target display changes so the UI doesn't
+    // show stale data from the previous target.
+    setStatus(null);
+    setLastUpdated(null);
     poll();
     intervalRef.current = setInterval(poll, pollMs);
     return () => {

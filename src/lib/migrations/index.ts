@@ -62,6 +62,16 @@ const migrations: Migration[] = [
       };
     },
   },
+  // Migration 003: signal that the multi-display registry feature is available.
+  // No-op transform — the optional `displays` field is fully backward compatible.
+  // The version bump just lets newer code distinguish "this config could have
+  // displays defined" from "this config predates the feature entirely".
+  {
+    version: 3,
+    description: 'Multi-display registry available',
+    up: (config) => ({ ...config, version: 3 }),
+    down: (config) => ({ ...config, version: 2 }),
+  },
 ];
 
 /** @internal Get all migrations sorted by version */

@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 
 function LoginForm() {
@@ -117,12 +118,12 @@ function LoginForm() {
         </form>
 
         <div className="text-center mt-6">
-          <a
+          <Link
             href="/display"
             className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors"
           >
             Back to display
-          </a>
+          </Link>
         </div>
       </div>
     </div>

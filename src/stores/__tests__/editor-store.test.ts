@@ -516,6 +516,196 @@ describe('editor store', () => {
     });
   });
 
+  /* ─── Display CRUD ────────────────────────────── */
+
+  describe('addDisplay', () => {
+    it('appends a display to the registry with the given name and ID', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(1);
+      expect(displays[0]).toMatchObject({ id: 'kitchen', name: 'Kitchen' });
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('defaults screenIds to all current screens when not provided', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      expect(store.getState().config!.displays![0].screenIds).toEqual(['s1', 's2']);
+    });
+
+    it('uses an explicit screenIds list when provided', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] });
+
+      expect(store.getState().config!.displays![0].screenIds).toEqual(['s1']);
+    });
+
+    it('omits optional fields when not provided to keep saved JSON minimal', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig() });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const display = store.getState().config!.displays![0];
+      expect(display).not.toHaveProperty('profileIds');
+      expect(display).not.toHaveProperty('activeProfile');
+      expect(display).not.toHaveProperty('settings');
+    });
+  });
+
+  describe('updateDisplay', () => {
+    it('merges partial updates into the matching display', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{ id: 'kitchen', name: 'Old name', screenIds: ['s1'] }],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplay('kitchen', { name: 'Kitchen' });
+
+      const display = store.getState().config!.displays![0];
+      expect(display.name).toBe('Kitchen');
+      expect(display.screenIds).toEqual(['s1']);
+    });
+
+    it('does not affect other displays', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
+          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplay('kitchen', { name: 'New' });
+
+      expect(store.getState().config!.displays![1].name).toBe('Bedroom');
+    });
+  });
+
+  describe('removeDisplay', () => {
+    it('removes the display by ID', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
+          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().removeDisplay('kitchen');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(1);
+      expect(displays[0].id).toBe('bedroom');
+    });
+
+    it('collapses to undefined when the last display is removed', () => {
+      // Removing the last display must not leave `displays: []` behind —
+      // that would promote a legacy single-display config into an empty
+      // multi-display state that later code could misinterpret.
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      });
+      store.setState({ config });
+
+      store.getState().removeDisplay('kitchen');
+
+      expect(store.getState().config!.displays).toBeUndefined();
+    });
+  });
+
+  /* ─── cascade prune of display references ─────── */
+
+  describe('removeScreen prunes display references', () => {
+    it('removes deleted screen ID from each display.screenIds', () => {
+      // This path exists specifically so the writeConfig validator
+      // (validateDisplays) does not reject saves after a screen deletion.
+      // A regression here only surfaces as a 400 on next save.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+        displays: [
+          { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's2'] },
+          { id: 'bedroom', name: 'Bedroom', screenIds: ['s2'] },
+        ],
+      });
+      store.setState({ config, selectedScreenId: 's1' });
+
+      store.getState().removeScreen('s2');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays[0].screenIds).toEqual(['s1']);
+      expect(displays[1].screenIds).toEqual([]);
+    });
+  });
+
+  describe('removeProfile prunes display references', () => {
+    it('strips the deleted profile from display.profileIds and clears matching activeProfile', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [
+          { id: 'day', name: 'Day', screenIds: [] },
+          { id: 'night', name: 'Night', screenIds: [] },
+        ],
+        displays: [
+          {
+            id: 'kitchen',
+            name: 'Kitchen',
+            screenIds: [],
+            profileIds: ['day', 'night'],
+            activeProfile: 'day',
+          },
+          {
+            id: 'bedroom',
+            name: 'Bedroom',
+            screenIds: [],
+            profileIds: ['night'],
+            activeProfile: 'night',
+          },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().removeProfile('day');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays[0].profileIds).toEqual(['night']);
+      // activeProfile was 'day' on kitchen — should now be undefined
+      expect(displays[0].activeProfile).toBeUndefined();
+      // bedroom only had 'night' — should be untouched
+      expect(displays[1].profileIds).toEqual(['night']);
+      expect(displays[1].activeProfile).toBe('night');
+    });
+  });
+
   describe('saveConfig', () => {
     let fetchMock: ReturnType<typeof vi.fn>;
 

@@ -36,14 +36,16 @@ describe('readConfig', () => {
     const configDir = path.join(tmpDir, 'data');
     await fs.mkdir(configDir, { recursive: true });
     const custom = {
-      version: 2,
+      // Use the current schema version so readConfig doesn't auto-migrate.
+      // (When this is older than the latest, readConfig bumps it transparently.)
+      version: 3,
       settings: { rotationIntervalMs: 5000, weather: {}, calendar: {} },
       screens: [{ id: 'custom', name: 'My Screen', backgroundImage: '', modules: [] }],
     };
     await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(custom));
 
     const config = await readConfig();
-    expect(config.version).toBe(2);
+    expect(config.version).toBe(3);
     expect(config.screens[0].id).toBe('custom');
   });
 
@@ -134,7 +136,9 @@ describe('writeConfig', () => {
 
   it('round-trips: write then read returns same data', async () => {
     const config = {
-      version: 2,
+      // Pin to the current latest schema version so readConfig doesn't apply
+      // a migration on the way back out and bump the value past what we wrote.
+      version: 3,
       settings: {
         rotationIntervalMs: 15000,
         displayWidth: 1080,
