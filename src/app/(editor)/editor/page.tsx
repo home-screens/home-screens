@@ -162,7 +162,7 @@ export default function EditorPage() {
         {/* Toolbar */}
         <div className="flex items-center gap-4 overflow-hidden border-b border-neutral-700 bg-neutral-900 px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
-            <HomeScreensLogo contextLabel="Editor" />
+            <HomeScreensLogo />
             <div className="h-8 w-px bg-neutral-800" />
             <DisplaySwitcher />
             <ScreenTabs />

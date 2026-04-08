@@ -3,7 +3,7 @@ import {
   formatClientAddress,
   collapseReports,
   type ViewportReport,
-} from '@/components/editor/settings/DisplaysSection';
+} from '@/components/editor/settings/DisplaysIndexPage';
 
 /* ─── formatClientAddress ─────────────────────── */
 

@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Monitor, Trash2, Pencil, Plus, RefreshCw, ExternalLink, X, LayoutGrid } from 'lucide-react';
+import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
-import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
@@ -130,15 +129,6 @@ export function collapseReports(reports: ViewportReport[]): CollapsedReport[] {
     }
   }
   return [...grouped.values()].sort((a, b) => b.lastSeen - a.lastSeen);
-}
-
-/** Online if a heartbeat arrived in the last 30s, idle within 5min, otherwise offline. */
-function statusDot(lastSeen: number | null): string {
-  if (!lastSeen) return 'bg-neutral-700';
-  const diff = Date.now() - lastSeen;
-  if (diff < 30_000) return 'bg-green-500';
-  if (diff < 300_000) return 'bg-amber-500';
-  return 'bg-neutral-600';
 }
 
 function slugify(input: string): string {
@@ -416,13 +406,32 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
 
 /* ─── Main section ────────────────────────────────── */
 
-export default function DisplaysSection() {
+/**
+ * Formerly `DisplaysSection`. After Phase 4 of the settings-defaults
+ * redesign this is the "All displays" landing page reachable from the
+ * sidebar's `Per display → All displays` entry.
+ *
+ * Phase 5 rebuilt this as a 2-column card grid matching the mockup —
+ * each card is clickable and navigates to the per-display drill-down
+ * page (`?section=display&id=<id>&subtab=overview`) where editing,
+ * renaming, deleting, and screen layout now live. The inline per-card
+ * pencil / trash / edit-screens affordances were removed because their
+ * canonical home is now `PerDisplayPage`'s Identity / Display / Header
+ * subtabs, and keeping them here was just building two sources of
+ * truth for the same mutation.
+ *
+ * The Add / Adopt paths stay inline because `PerDisplayPage` doesn't
+ * have an entry point for creating or adopting displays — that flow
+ * only makes sense on an index page. The unadopted section and the
+ * multi-reporter warning are also preserved since they're the primary
+ * reason this page still has any mutating affordances at all.
+ */
+export default function DisplaysIndexPage() {
   const router = useRouter();
-  const { config, addDisplay, updateDisplay, removeDisplay, saveConfig, setSelectedDisplay } = useEditorStore();
+  const { config, addDisplay, saveConfig } = useEditorStore();
 
   const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -488,201 +497,83 @@ export default function DisplaysSection() {
     await mutateAndSave(() => addDisplay(display));
   };
 
-  const handleUpdate = async (id: string, display: DisplayNode) => {
-    setEditingId(null);
-    await mutateAndSave(() => updateDisplay(id, display));
-  };
-
-  const handleDelete = async (display: DisplayNode) => {
-    if (await useConfirmStore.getState().confirm(`Remove display "${display.name}"?`)) {
-      await mutateAndSave(() => removeDisplay(display.id));
-    }
-  };
-
   /**
-   * "Edit screens" — switch the editor's selected display to this one and
-   * navigate back to the canvas. The editor's screen list and dimensions
-   * automatically follow the selection.
+   * Open a display's per-display detail page. Single source of truth for
+   * editing name / resolution / rotation / screens — all the affordances
+   * that used to live as inline buttons on each row.
    */
-  const handleEditScreens = (display: DisplayNode) => {
-    setSelectedDisplay(display.id);
-    router.push(`/editor?display=${encodeURIComponent(display.id)}`);
+  const openDisplay = (id: string) => {
+    router.push(`?section=display&id=${encodeURIComponent(id)}&subtab=overview`);
   };
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
-          Displays
-        </h3>
-        <button
-          onClick={refresh}
-          disabled={refreshing}
-          className="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 disabled:opacity-50"
-          title="Refresh heartbeats"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
-      <p className="text-xs text-neutral-500 mb-4">
-        Run multiple Pis from a single hub. Each display has its own screens,
-        designed at its own resolution and orientation, but shares chores,
-        meals, calendars and API keys with the rest of your home. Adding the
-        first display also creates a <strong>Main</strong> entry for the hub
-        Pi so its kiosk keeps showing what it was showing before.
-      </p>
-
-      {/* Registered displays */}
-      <div className="space-y-2 mb-4">
-        {displays.map((display) => {
-          const heartbeat = heartbeats.get(display.id);
-          const lastSeen = heartbeat?.lastSeen ?? null;
-          const editing = editingId === display.id;
-          const oriented = display.displayWidth && display.displayHeight
-            ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
-            : null;
-          const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
-          const screenCount = displayScreenCount(display);
-          // The hub's "main" display has its resolution / orientation /
-          // screens driven by the global Display settings tab, so editing
-          // those fields here would duplicate the source of truth. Hide
-          // the per-display edit form and delete button for main entirely.
-          const isMainDisplay = display.id === 'main';
-
-          if (editing && !isMainDisplay) {
-            return (
-              <DisplayForm
-                key={display.id}
-                initial={display}
-                prefilledViewport={heartbeat?.reportedViewport}
-                takenIds={new Set([...takenIds].filter((id) => id !== display.id))}
-                onCancel={() => setEditingId(null)}
-                onSubmit={(updated) => handleUpdate(display.id, updated)}
-              />
-            );
-          }
-
-          const heartbeatViewports = collapseReports(heartbeat?.viewportReports ?? []);
-          const primaryReporter = heartbeatViewports[0];
-          // Only warn about "multiple reporters" when they're distinct
-          // sources — duplicate tabs from the same IP at the same size
-          // collapse into one row so they don't cry wolf.
-          const multipleReporters = heartbeatViewports.length > 1;
-
-          return (
-            <div
-              key={display.id}
-              className="rounded-lg border border-neutral-700 bg-neutral-800/50 px-4 py-3 flex items-start gap-3"
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Displays</div>
+          <h1 className="text-xl font-semibold text-neutral-100">
+            {displays.length} {displays.length === 1 ? 'display' : 'displays'} in this home
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Click a display to edit its own settings. Everything else uses the shared{' '}
+            <a
+              href="?section=defaults&page=display"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('?section=defaults&page=display');
+              }}
+              className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
             >
-              <Monitor className="w-5 h-5 text-neutral-500 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-neutral-200 truncate">
-                    {display.name}
-                  </span>
-                  <code className="text-[10px] text-neutral-500 font-mono">
-                    {display.id}
-                  </code>
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-[11px] text-neutral-500 flex-wrap">
-                  <span className="flex items-center gap-1.5">
-                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${statusDot(lastSeen)}`} />
-                    {formatLastSeen(lastSeen)}
-                  </span>
-                  {formatClientAddress(primaryReporter?.clientAddress) && (
-                    <span className="font-mono text-neutral-600">
-                      from {formatClientAddress(primaryReporter?.clientAddress)}
-                    </span>
-                  )}
-                  <span>{screenCount} screen{screenCount === 1 ? '' : 's'}</span>
-                  {dimensions && <span className="tabular-nums">{dimensions}</span>}
-                  {display.displayTransform && display.displayTransform !== 'normal' && (
-                    <span>↻ {display.displayTransform}°</span>
-                  )}
-                  {heartbeat?.status?.displayState && (
-                    <span className="capitalize">{heartbeat.status.displayState}</span>
-                  )}
-                </div>
-                {multipleReporters && (
-                  <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2.5 py-1.5 text-[11px] text-amber-300">
-                    <div className="font-medium mb-1">
-                      {heartbeatViewports.length} distinct clients reporting for this display
-                    </div>
-                    <ul className="space-y-0.5 text-neutral-400">
-                      {heartbeatViewports.map((v, i) => {
-                        const addr = formatClientAddress(v.clientAddress);
-                        return (
-                          <li key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`} className="tabular-nums">
-                            {addr && (
-                              <span className="font-mono text-amber-300/80">{addr}</span>
-                            )}
-                            {addr && <span className="text-neutral-600"> · </span>}
-                            {v.width}×{v.height}
-                            {v.count > 1 && (
-                              <span className="text-neutral-600"> · ×{v.count} tabs</span>
-                            )}
-                            <span className="text-neutral-600"> · {formatLastSeen(v.lastSeen)}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    <p className="text-neutral-500 mt-1">
-                      Only one physical display should POST for each ID. Check the
-                      source IPs above to find stray reporters (duplicate installs,
-                      a hub kiosk pointed at the wrong URL, or stale chromium tabs).
-                    </p>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => handleEditScreens(display)}
-                className="text-blue-400 hover:text-blue-300 transition-colors shrink-0 flex items-center gap-1 text-xs"
-                title="Edit this display's screens in the canvas"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                Edit screens
-              </button>
-              <a
-                href={`/display/${display.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-600 hover:text-neutral-300 transition-colors shrink-0"
-                title="Open display URL"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              {!isMainDisplay && (
-                <>
-                  <button
-                    onClick={() => setEditingId(display.id)}
-                    className="text-neutral-600 hover:text-neutral-300 transition-colors shrink-0"
-                    title="Edit name / resolution"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(display)}
-                    className="text-neutral-600 hover:text-red-400 transition-colors shrink-0"
-                    title="Remove"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-        {displays.length === 0 && !adding && (
-          <div className="rounded-md border border-dashed border-neutral-700 px-3 py-4 text-xs text-neutral-500 text-center">
+              Defaults
+            </a>
+            .
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={refresh}
+            disabled={refreshing}
+            className="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 disabled:opacity-50"
+            title="Refresh heartbeats"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          {!adding && (
+            <button
+              onClick={() => setAdding(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Add display
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Registered displays — 2-column card grid */}
+      {displays.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+          {displays.map((display) => (
+            <DisplayCard
+              key={display.id}
+              display={display}
+              heartbeat={heartbeats.get(display.id) ?? null}
+              onOpen={() => openDisplay(display.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        !adding && (
+          <div className="rounded-md border border-dashed border-neutral-700 px-3 py-6 text-xs text-neutral-500 text-center mb-5">
             No displays registered. Add one below or adopt a Pi that has already connected.
           </div>
-        )}
-      </div>
+        )
+      )}
 
       {/* Add form */}
       {adding && !adoptingId && (
-        <div className="mb-4">
+        <div className="mb-5">
           <DisplayForm
             takenIds={takenIds}
             onCancel={() => setAdding(false)}
@@ -691,23 +582,17 @@ export default function DisplaysSection() {
         </div>
       )}
 
-      {!adding && (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 mb-4"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add display
-        </button>
-      )}
-
-      {/* Unadopted */}
+      {/* Unadopted — unchanged from the mockup, which renders this block
+          identically to the current implementation. */}
       {unadopted.length > 0 && (
-        <div className="border-t border-neutral-700 pt-4 mt-4">
-          <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
-            Unadopted Displays
-          </h4>
-          <p className="text-xs text-neutral-500 mb-3">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] px-4 py-3.5">
+          <div className="flex items-center gap-2 mb-1">
+            <Monitor className="w-4 h-4 text-amber-400" />
+            <span className="text-sm font-medium text-amber-200">
+              {unadopted.length} unadopted display{unadopted.length === 1 ? '' : 's'} waiting
+            </span>
+          </div>
+          <p className="text-xs text-neutral-500 mb-3 pl-6">
             These Pis are connected to the hub but have not been registered yet.
             Click <strong>Adopt</strong> to assign them screens.
           </p>
@@ -732,11 +617,10 @@ export default function DisplaysSection() {
               return (
                 <div
                   key={un.id}
-                  className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 flex items-start gap-3"
+                  className="rounded-md border border-amber-500/20 bg-amber-500/[0.03] px-3 py-2.5 flex items-start gap-3"
                 >
-                  <Monitor className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <code className="text-sm font-mono text-amber-200">{un.id}</code>
+                    <code className="text-xs font-mono text-amber-300">{un.id}</code>
                     <div className="flex items-center gap-3 text-[11px] text-neutral-500 mt-0.5 flex-wrap">
                       <span>Last seen {formatLastSeen(un.lastSeen)}</span>
                       {soleReporter && (
@@ -799,7 +683,7 @@ export default function DisplaysSection() {
 
       {/* Auto-save status toast */}
       {(saving || saveMessage) && (
-        <div className="flex items-center gap-2 mt-6 border-t border-neutral-700 pt-4 text-xs">
+        <div className="flex items-center gap-2 mt-6 border-t border-neutral-800 pt-4 text-xs">
           {saving && <span className="text-neutral-500">Saving…</span>}
           {!saving && saveMessage && (
             <span className={saveMessage === 'Saved' ? 'text-green-400' : 'text-red-400'}>
@@ -809,5 +693,140 @@ export default function DisplaysSection() {
         </div>
       )}
     </section>
+  );
+}
+
+/* ─── Display card (2-column grid) ────────────────── */
+
+/**
+ * One card in the displays grid. Mockup structure:
+ *
+ *   +------------------------------------------------+
+ *   | [thumb]  Name               | [status pill]   |
+ *   |          code                                  |
+ *   +------------------------------------------------+
+ *   | 1920×1080 · normal · 4 screens · 192.168.…    |
+ *   +------------------------------------------------+
+ *
+ * The entire card is a button — clicking it navigates to
+ * `?section=display&id=<id>&subtab=overview`. Main gets a subtle blue
+ * ring so the user can pick it out at a glance. Multi-reporter cards
+ * get a warning strip below the metadata row.
+ */
+function DisplayCard({
+  display,
+  heartbeat,
+  onOpen,
+}: {
+  display: DisplayNode;
+  heartbeat: DisplayApiEntry | null;
+  onOpen: () => void;
+}) {
+  const lastSeen = heartbeat?.lastSeen ?? null;
+  const oriented = display.displayWidth && display.displayHeight
+    ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
+    : null;
+  const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
+  const screenCount = displayScreenCount(display);
+  const isMain = display.id === 'main';
+
+  const reports = collapseReports(heartbeat?.viewportReports ?? []);
+  const primaryReporter = reports[0];
+  const reporterIp = formatClientAddress(primaryReporter?.clientAddress);
+  const multipleReporters = reports.length > 1;
+
+  const status = (() => {
+    if (!lastSeen) {
+      return {
+        className: 'bg-neutral-800 border-neutral-700 text-neutral-400',
+        dot: 'bg-neutral-600',
+        label: '—',
+      };
+    }
+    const diff = Date.now() - lastSeen;
+    if (diff < 30_000) {
+      return {
+        className: 'bg-green-500/10 border-green-500/30 text-green-300',
+        dot: 'bg-green-500',
+        label: `Online · ${formatLastSeen(lastSeen)}`,
+      };
+    }
+    if (diff < 300_000) {
+      return {
+        className: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
+        dot: 'bg-amber-500',
+        label: `Idle · ${formatLastSeen(lastSeen)}`,
+      };
+    }
+    return {
+      className: 'bg-neutral-800 border-neutral-700 text-neutral-400',
+      dot: 'bg-neutral-600',
+      label: `Offline · ${formatLastSeen(lastSeen)}`,
+    };
+  })();
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`text-left rounded-xl border px-5 py-4 transition-colors ${
+        isMain
+          ? 'border-blue-500/30 bg-neutral-900/50 hover:border-blue-500/50 hover:bg-neutral-800/60'
+          : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 hover:bg-neutral-800/60'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-neutral-100 truncate">{display.name}</div>
+          <code className="text-[10px] text-neutral-500 font-mono">{display.id}</code>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${status.className}`}
+        >
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dot}`} />
+          {status.label}
+        </span>
+      </div>
+      <div className="flex items-center gap-3 text-[11px] text-neutral-500 flex-wrap">
+        {dimensions && <span className="tabular-nums">{dimensions}</span>}
+        <span>
+          {display.displayTransform && display.displayTransform !== 'normal'
+            ? `${display.displayTransform}° rotation`
+            : 'normal'}
+        </span>
+        <span>
+          {screenCount} screen{screenCount === 1 ? '' : 's'}
+        </span>
+        {reporterIp ? (
+          <span className="font-mono text-neutral-600">{reporterIp}</span>
+        ) : (
+          <span className="font-mono text-neutral-700">—</span>
+        )}
+      </div>
+      {multipleReporters && (
+        <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2.5 py-1.5 text-[11px] text-amber-300">
+          <div className="font-medium mb-1">
+            {reports.length} distinct clients reporting for this display
+          </div>
+          <ul className="space-y-0.5 text-neutral-400">
+            {reports.map((v, i) => {
+              const addr = formatClientAddress(v.clientAddress);
+              return (
+                <li
+                  key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`}
+                  className="tabular-nums"
+                >
+                  {addr && <span className="font-mono text-amber-300/80">{addr}</span>}
+                  {addr && <span className="text-neutral-600"> · </span>}
+                  {v.width}×{v.height}
+                  {v.count > 1 && <span className="text-neutral-600"> · ×{v.count} tabs</span>}
+                  <span className="text-neutral-600"> · {formatLastSeen(v.lastSeen)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </button>
   );
 }

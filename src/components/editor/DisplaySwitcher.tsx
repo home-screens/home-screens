@@ -28,9 +28,9 @@ export default function DisplaySwitcher() {
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
 
   return (
-    <div className="relative shrink-0">
+    <div className="relative shrink-0" title="Which display is this canvas editing? (Settings overrides live in Settings → Per display.)">
       <label className="sr-only" htmlFor="editor-display-switcher">
-        Switch display
+        Which display is this canvas editing?
       </label>
       <div className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800/70 px-2.5 py-1.5 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors">
         <Monitor className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
@@ -51,7 +51,7 @@ export default function DisplaySwitcher() {
           value={active.id}
           onChange={(e) => setSelectedDisplay(e.target.value)}
           className="absolute inset-0 opacity-0 cursor-pointer"
-          aria-label="Switch display"
+          aria-label="Which display is this canvas editing?"
         >
           {displays.map((d) => {
             // Apply the same orientation normalization as the pill so the

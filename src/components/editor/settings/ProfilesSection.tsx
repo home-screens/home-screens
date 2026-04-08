@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -124,9 +124,13 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
   if (!config) return null;
 
-  // Profiles reference the screens of whichever display the editor is
-  // currently working on. In legacy single-display mode this resolves to
-  // the global screen pool.
+  // Profiles reference screens by ID, and screens are owned per-display
+  // in multi-display mode (every DisplayNode has its own `screens` list).
+  // So a profile defined for Kitchen references kitchen.screens, not the
+  // legacy global pool. We follow the editor's `selectedDisplayId` so the
+  // screen list and the profile's screen membership both reflect the
+  // currently-active display. In single-display mode this resolves to
+  // `config.screens` automatically.
   const screens = getActiveScreens(config, selectedDisplayId);
   // activeProfile sits on the DisplayNode when the display owns its
   // profiles, otherwise it lives on the global settings. Match what
@@ -417,9 +421,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 /* ─── Main section ───────────────────────────── */
 
 export default function ProfilesSection() {
-  const { config, selectedDisplayId, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const { config, selectedDisplayId, setSelectedDisplay, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
@@ -427,16 +429,55 @@ export default function ProfilesSection() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  // Auto-save: watch the slice of config this section can mutate and
+  // debounce-save whenever it changes. `config.profiles` is the shared
+  // pool, `config.displays` covers per-display owned profiles (the
+  // actual storage target in multi-display installs), and
+  // `config.settings.activeProfile` is the global active field. The
+  // first-render ref skips the initial load so we don't save config-
+  // to-itself immediately after the page mounts. Debounced 500ms so
+  // rapid drag reorders or schedule-day toggles collapse into a
+  // single PUT.
+  //
+  // This replaces the old explicit "Save Profiles" button — every
+  // profile mutation now persists automatically, matching the rest
+  // of the settings page.
+  const initializedRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      return;
+    }
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveConfig().catch((err) => {
+        console.error('Profile auto-save failed:', err);
+      });
+    }, 500);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [config?.profiles, config?.displays, config?.settings.activeProfile, saveConfig]);
+
   if (!config) return null;
 
-  // In multi-display mode, profile list + active-profile selection follow
-  // the currently-selected display — every display owns its own profile
-  // list (addDisplay bootstrap migrates `config.profiles` onto Main and
-  // gives every subsequent display an empty owned list). Legacy configs
-  // loaded from disk may still have a display with `!display.profiles`
-  // that transparently reads through to `config.profiles`; the fall-
-  // through below keeps those rendering correctly until the user edits
-  // something that forces a resave.
+  // Profiles are per-display in multi-display mode. The Phase 4 plan
+  // imagined profiles as "shared definitions" with a per-display active
+  // picker on top, but the data model can't actually support that split:
+  // every profile references screen IDs, and screens are owned per-
+  // display, so a profile only has meaning in the context of one
+  // display's screen list. `addDisplay`'s bootstrap reflects this — it
+  // copies `config.profiles` onto `display.profiles` for every new
+  // display, after which the global pool is vestigial.
+  //
+  // So this page follows the editor's `selectedDisplayId` and edits
+  // whichever display the user is currently working on. Single-display
+  // installs see no change because `selectedDisplayId` is null and the
+  // helpers fall through to `config.profiles` / `config.screens`.
+  // The store's profile actions (`addProfile` etc.) already consult
+  // `selectedDisplayId` via `resolveProfileTarget`, so reads and writes
+  // stay in sync.
   const activeDisplay = selectedDisplayId
     ? config.displays?.find((d) => d.id === selectedDisplayId) ?? null
     : null;
@@ -471,6 +512,16 @@ export default function ProfilesSection() {
     }
   };
 
+  // Display picker for multi-display installs. Profiles are per-display
+  // because they reference per-display screens, so the page needs an
+  // explicit "which display am I editing?" affordance — without it the
+  // user would have to switch displays in the canvas first, then come
+  // back to the settings page, which is the workflow that hid the
+  // Phase 5 mutation/read disconnect from QA. Hidden in single-display
+  // mode where there's only one possible answer.
+  const allDisplays = config.displays ?? [];
+  const isMultiDisplay = allDisplays.length > 0;
+
   return (
     <section>
       <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
@@ -480,6 +531,31 @@ export default function ProfilesSection() {
         Profiles control which screens are shown on the display and in what order. Create different layouts for morning, evening, weekends, etc.
         When no profile is active, all screens rotate in the default tab order.
       </p>
+
+      {isMultiDisplay && (
+        <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/[0.07] px-3 py-2.5">
+          <label className="block">
+            <span className="text-[11px] uppercase tracking-wider text-blue-300 font-medium">
+              Editing profiles for
+            </span>
+            <select
+              value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
+              onChange={(e) => setSelectedDisplay(e.target.value || null)}
+              className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            >
+              {allDisplays.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.id})
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-neutral-500 mt-1.5">
+              Profiles are per-display because they reference each display&apos;s own screens.
+              Switching here changes which display the editor canvas is also working on.
+            </p>
+          </label>
+        </div>
+      )}
 
       {/* Active profile selector */}
       {profiles.length > 0 && (
@@ -532,30 +608,11 @@ export default function ProfilesSection() {
         <Button variant="secondary" onClick={handleAdd}>
           Add Profile
         </Button>
-        <Button
-          variant="primary"
-          onClick={async () => {
-            setSaving(true);
-            setSaveMessage(null);
-            try {
-              await saveConfig();
-              setSaveMessage('Saved');
-              setTimeout(() => setSaveMessage(null), 2000);
-            } catch {
-              setSaveMessage('Save failed');
-            } finally {
-              setSaving(false);
-            }
-          }}
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : 'Save Profiles'}
-        </Button>
-        {saveMessage && (
-          <span className={`text-xs ${saveMessage === 'Saved' ? 'text-green-400' : 'text-red-400'}`}>
-            {saveMessage}
-          </span>
-        )}
+        {/* Save button removed in Phase 5 auto-save — every profile
+            mutation persists via the useEffect at the top of this
+            component. Status feedback lives in the parent settings
+            page's header indicator which subscribes to the store's
+            `isSaving` flag. */}
       </div>
     </section>
   );

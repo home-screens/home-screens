@@ -867,6 +867,15 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   removeDisplay: (id) => {
+    // The hub Pi's `main` display is the source of the original
+    // single-display layout (auto-created from `config.screens` on first
+    // multi-display bootstrap). Removing it would orphan those screens
+    // and reset the hub kiosk to an unadopted state, so we hard-block it
+    // at the store layer rather than relying on every UI surface to hide
+    // its delete affordance. UIs are still free to hide the trash button
+    // for clarity, but this guard means a stray call (tests, scripts,
+    // future surfaces) can't accidentally delete main.
+    if (id === 'main') return;
     const { selectedDisplayId, selectedScreenId } = get();
     mutateConfig((config) => {
       // Collapse an empty result back to undefined so a legacy single-display

@@ -77,12 +77,12 @@ After install, reboot the Pi. On boot it tries the hub immediately. If the hub a
 
 ## Adopting a spoke in the editor
 
-When a freshly installed spoke first contacts the hub, it doesn't have a registered display yet. Instead it shows a "waiting for adoption" screen and polls `/api/displays` every five seconds. On the hub side, the spoke automatically appears in the editor's **Settings > Displays** tab under **Unadopted Displays**, tagged with its IP address and self-reported viewport.
+When a freshly installed spoke first contacts the hub, it doesn't have a registered display yet. Instead it shows a "waiting for adoption" screen and polls `/api/displays` every five seconds. On the hub side, the spoke automatically appears in the editor's **Settings > Per display > All displays** page under **Unadopted Displays**, tagged with its IP address and self-reported viewport.
 
 To adopt:
 
 1. Open the editor on the hub: `http://<hub>:3000/editor`
-2. Go to **Settings > Displays**
+2. Go to **Settings > Per display > All displays**
 3. Find the spoke under **Unadopted Displays** — it will show its display ID, source IP, and current viewport (e.g. `1080×1920`)
 4. Click **Adopt**
 5. Give it a friendly name (e.g. "Kitchen", "Bedroom TV")
@@ -110,16 +110,31 @@ If two browser tabs at the same URL on the same Pi report under one display ID, 
 
 Each display has its own independent screen list, designed at its own resolution. The editor surfaces this through two controls:
 
-- The **Display Switcher** pill in the editor toolbar (hidden in single-display installs) shows the current display name and dimensions, and drops down to any registered display. Pick a display from the dropdown, and the canvas, property panel, and screen tabs all switch to that display's content.
-- The **Edit screens** shortcut on each display card in **Settings > Displays** does the same thing in one click.
+- The **Display Switcher** pill in the editor toolbar (hidden in single-display installs) shows the current display name and dimensions, and drops down to any registered display. Pick a display from the dropdown, and the canvas, property panel, and screen tabs all switch to that display's content. The pill answers "which canvas am I editing?" — it never changes a settings scope.
+- The **Edit screens** shortcut on each display's detail page in **Settings > Per display** does the same thing in one click.
 
 The canvas always renders at the active display's resolution and rotation, so a portrait kitchen touchscreen and a landscape living-room TV are designed at the right physical proportions side by side.
 
 ### Main display
 
-When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens and dimensions. The legacy `/display` URL redirects to `/display/main` so the existing kiosk keeps showing its current layout. The `main` display is editable but cannot be deleted from the Displays tab — its dimensions and rotation are managed through the global **Settings > Display** tab.
+When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens and dimensions. The legacy `/display` URL redirects to `/display/main` so the existing kiosk keeps showing its current layout. `main` is now a regular display node that owns its own resolution and rotation — you edit them on its **Per display > Main > Display** page like any other display. Removing `main` is hard-blocked at the store layer because it would orphan the hub's screens.
 
 Second and later displays start with an empty screen list so you design fresh for the new resolution.
+
+---
+
+## Defaults vs Per display
+
+The settings sidebar splits into two groups in multi-display mode:
+
+- **Defaults** — every shared value (display, sleep, alerts, location, weather, calendar, profiles, integrations, security, etc.). These apply to *every* display until a specific one overrides them. Each defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
+- **Per display** — one drill-down page per registered display, plus an "All displays" landing page (the card grid where you adopt new displays). Each drill-down has six sub-tabs: Overview, Display, Sleep, Alerts, Profile, Identity.
+
+On a per-display page, every inheritable field is rendered as an **OverrideRow** that starts in the *default* state (dimmed control, "Override" button) and flips to *overridden* when you click Override (full-opacity blue-tinted row, "Reset to default" button). The help text under each field always links back to the source defaults page, so you can navigate from a per-display field to its global default and back.
+
+Resolution, rotation, and flip live directly on the `DisplayNode` and have no shared default to inherit from — they're rendered as plain inputs on the per-display Display sub-tab with a **Per display** tag, distinct from the inheritable fields below.
+
+In single-display installs (`displays` undefined or empty), the sidebar collapses back to a flat list of the same settings pages — exactly like the pre-multi-display layout. Every multi-display affordance is hidden so legacy installs see zero UI delta.
 
 ---
 
@@ -325,4 +340,4 @@ Its display ID was deleted from the hub. Either click "Go to default display now
 
 ### The editor's Display Switcher is missing
 
-The Display Switcher pill is hidden when only one display is registered. As soon as you add a second display in **Settings > Displays**, the pill appears in the editor toolbar.
+The Display Switcher pill is hidden when only one display is registered. As soon as you add a second display from **Settings > Per display > All displays**, the pill appears in the editor toolbar.

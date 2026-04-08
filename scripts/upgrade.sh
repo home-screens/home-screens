@@ -949,12 +949,14 @@ ipv6.method=disabled"
     fi
 
     # 15a. Mask suspend/hibernate — brcmfmac can't recover from suspend.
+    masked_any=0
     for target in sleep.target suspend.target hibernate.target hybrid-sleep.target; do
       if ! systemctl is-enabled "${target}" 2>/dev/null | grep -q masked; then
         sudo systemctl mask "${target}" 2>/dev/null || true
-        changed="${changed}mask-suspend,"
+        masked_any=1
       fi
     done
+    [ "${masked_any}" = "1" ] && changed="${changed}mask-suspend,"
 
     # 16. WiFi watchdog — monitors connectivity and recovers from drops.
     #     Pings the gateway every 2 minutes; escalates through NM reconnect,

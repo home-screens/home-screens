@@ -1,35 +1,19 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
-import type { GlobalSettings, DisplayNodeSettings } from '@/types/config';
-import { diffDisplayOverrides } from '@/lib/display-override-diff';
-import DisplayContextHeader from '@/components/editor/settings/DisplayContextHeader';
-import {
-  ArrowLeft,
-  Monitor,
-  Moon,
-  MapPin,
-  CloudSun,
-  Calendar,
-  Plug,
-  Server,
-  Database,
-  Shield,
-  Layers,
-  Activity,
-  Bell,
-  BookOpen,
-  UtensilsCrossed,
-  Tv,
-} from 'lucide-react';
+import type { GlobalSettings } from '@/types/config';
+import SettingsSidebar from '@/components/editor/settings/SettingsSidebar';
+import { ArrowLeft } from 'lucide-react';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
-import Button from '@/components/ui/Button';
-import DisplaySection from '@/components/editor/settings/DisplaySection';
-import DisplaysSection from '@/components/editor/settings/DisplaysSection';
-import SleepSection from '@/components/editor/settings/SleepSection';
+import DefaultDisplaySection from '@/components/editor/settings/DefaultDisplaySection';
+import DefaultSleepSection from '@/components/editor/settings/DefaultSleepSection';
+import DefaultAlertsSection from '@/components/editor/settings/DefaultAlertsSection';
+import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
+import { resolveSettingsRoute } from '@/lib/settings-route';
+import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import LocationSection from '@/components/editor/settings/LocationSection';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
@@ -39,7 +23,6 @@ import ProfilesSection from '@/components/editor/settings/ProfilesSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
-import AlertSection from '@/components/editor/settings/AlertSection';
 import DataSection from '@/components/editor/settings/DataSection';
 import DocsSection from '@/components/editor/settings/DocsSection';
 import OrientationChangeModal from '@/components/editor/settings/OrientationChangeModal';
@@ -48,25 +31,36 @@ import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
 
 /* ─── Tab definitions ─────────────────────────────── */
 
-const TABS = [
-  { id: 'display', label: 'Display', icon: Monitor },
-  { id: 'displays', label: 'Displays', icon: Tv },
-  { id: 'profiles', label: 'Profiles', icon: Layers },
-  { id: 'sleep', label: 'Sleep', icon: Moon },
-  { id: 'alerts', label: 'Alerts', icon: Bell },
-  { id: 'location', label: 'Location', icon: MapPin },
-  { id: 'weather', label: 'Weather', icon: CloudSun },
-  { id: 'calendar', label: 'Calendar', icon: Calendar },
-  { id: 'meals', label: 'Meals', icon: UtensilsCrossed },
-  { id: 'integrations', label: 'Integrations', icon: Plug },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'data', label: 'Data', icon: Database },
-  { id: 'stats', label: 'Stats', icon: Activity },
-  { id: 'system', label: 'System', icon: Server },
-  { id: 'docs', label: 'Docs', icon: BookOpen },
-] as const;
-
-type TabId = (typeof TABS)[number]['id'];
+/**
+ * Canonical id union for the page-content router. Phase 4 hoisted the
+ * sidebar rendering into `SettingsSidebar` (which has its own icon
+ * mapping) and Phase 5 hoisted the URL parser into `lib/settings-route`
+ * (which has its own `DEFAULT_PAGE_IDS` const), so the only thing
+ * `settings/page.tsx` still needs from the legacy TABS array is the
+ * literal union — exposed here directly to keep the file dependency-
+ * free of any lucide-react icon imports it doesn't actually render.
+ *
+ * `displays` is kept in the union because it's a valid `section`
+ * value (not a page), and the active-tab derivation needs to be aware
+ * of it even though the content branches never render it as a
+ * Defaults page.
+ */
+type TabId =
+  | 'display'
+  | 'displays'
+  | 'profiles'
+  | 'sleep'
+  | 'alerts'
+  | 'location'
+  | 'weather'
+  | 'calendar'
+  | 'meals'
+  | 'integrations'
+  | 'security'
+  | 'data'
+  | 'stats'
+  | 'system'
+  | 'docs';
 
 /* ─── Settings state ──────────────────────────────── */
 
@@ -226,69 +220,6 @@ function toFormState(s: GlobalSettings | undefined): SettingsState {
   };
 }
 
-/**
- * Convert the flat SleepState form shape back to the nested
- * { sleep, screensaver } config shape. Extracted so both the global Save
- * path and the per-display fork path can compute the same value.
- */
-function sleepFormToConfig(sleep: SleepState): {
-  sleep: NonNullable<GlobalSettings['sleep']>;
-  screensaver: NonNullable<GlobalSettings['screensaver']>;
-} {
-  return {
-    sleep: {
-      enabled: sleep.sleepEnabled,
-      dimAfterMinutes: sleep.dimAfterMinutes,
-      sleepAfterMinutes: sleep.sleepAfterMinutes,
-      dimBrightness: sleep.dimBrightness,
-      ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
-      ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
-    },
-    screensaver: {
-      mode: sleep.screensaverMode as 'clock' | 'blank' | 'off',
-    },
-  };
-}
-
-function sleepConfigToForm(
-  sleep: GlobalSettings['sleep'] | undefined,
-  screensaver: GlobalSettings['screensaver'] | undefined,
-): SleepState {
-  return {
-    sleepEnabled: sleep?.enabled ?? FORM_DEFAULTS.sleep.sleepEnabled,
-    dimAfterMinutes: sleep?.dimAfterMinutes ?? FORM_DEFAULTS.sleep.dimAfterMinutes,
-    sleepAfterMinutes: sleep?.sleepAfterMinutes ?? FORM_DEFAULTS.sleep.sleepAfterMinutes,
-    dimBrightness: sleep?.dimBrightness ?? FORM_DEFAULTS.sleep.dimBrightness,
-    dimScheduleEnabled: !!sleep?.dimSchedule,
-    dimStartTime: sleep?.dimSchedule?.startTime ?? FORM_DEFAULTS.sleep.dimStartTime,
-    dimEndTime: sleep?.dimSchedule?.endTime ?? FORM_DEFAULTS.sleep.dimEndTime,
-    sleepScheduleEnabled: !!sleep?.schedule,
-    sleepStartTime: sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
-    sleepEndTime: sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
-    screensaverMode: screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
-  };
-}
-
-function alertsFormToConfig(alerts: AlertState): NonNullable<GlobalSettings['alerts']> {
-  return {
-    enabled: alerts.alertsEnabled,
-    position: alerts.alertsPosition as 'top' | 'bottom',
-    maxVisible: alerts.alertsMaxVisible,
-    defaultDuration: alerts.alertsDefaultDuration * 1000,
-    scale: alerts.alertsScale,
-  };
-}
-
-function alertsConfigToForm(alerts: GlobalSettings['alerts'] | undefined): AlertState {
-  return {
-    alertsEnabled: alerts?.enabled ?? FORM_DEFAULTS.alerts.alertsEnabled,
-    alertsPosition: alerts?.position ?? FORM_DEFAULTS.alerts.alertsPosition,
-    alertsMaxVisible: alerts?.maxVisible ?? FORM_DEFAULTS.alerts.alertsMaxVisible,
-    alertsDefaultDuration: (alerts?.defaultDuration ?? 0) / 1000,
-    alertsScale: alerts?.scale ?? FORM_DEFAULTS.alerts.alertsScale,
-  };
-}
-
 function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
   const { display, location, weather, calendar, sleep, alerts } = state;
   const parsedLat = parseFloat(location.lat) || 0;
@@ -346,41 +277,83 @@ function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
 
 /* ─── Page ────────────────────────────────────────── */
 
-function getInitialTab(): TabId {
-  if (typeof window === 'undefined') return 'display';
-  const params = new URLSearchParams(window.location.search);
-  const tab = params.get('tab') as TabId;
-  return TABS.some((t) => t.id === tab) ? tab : 'display';
-}
+/**
+ * The Phase 4 settings sidebar URL shape — `?section=defaults&page=X`,
+ * `?section=display&id=X&subtab=Y`, `?section=displays` — is parsed by
+ * the pure helpers in `lib/settings-route.ts`. Phase 5 hoisted that
+ * parser out so the legacy `?tab=X` redirect can be unit-tested without
+ * a `window`. The page still drives content branching off the `kind`
+ * field of the resolved route below.
+ */
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const initialTab = getInitialTab();
-
-  const { config, selectedDisplayId, updateSettings, updateDisplaySettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
-  const settings = config?.settings;
-  const displays = config?.displays;
-  const isMultiDisplay = !!displays && displays.length > 0;
-  const activeDisplay = isMultiDisplay && selectedDisplayId
-    ? displays.find((d) => d.id === selectedDisplayId) ?? null
-    : null;
-
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-  const [state, setState] = useState<SettingsState>(() => toFormState(settings));
-  // Per-display override form state. Tracks ONLY the fields the user has
-  // explicitly forked for the currently-selected display. A missing key
-  // means "inherit from global"; a present key is the override value. On
-  // Save we diff this against the saved display.settings to compute both
-  // additions/updates and explicit resets (undefined ⇒ delete key).
-  const [displayOverrideState, setDisplayOverrideState] = useState<DisplayNodeSettings>(
-    () => activeDisplay?.settings ?? {},
+  // `useSearchParams` forces the page to bail out of static prerender
+  // unless it's wrapped in a Suspense boundary. The outer shell is
+  // intentionally empty (or a cheap fallback) so Next can prerender a
+  // static HTML skeleton and stream the real content at runtime.
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen flex items-center justify-center text-neutral-500">
+          Loading...
+        </div>
+      }
+    >
+      <SettingsPageContent />
+    </Suspense>
   );
-  // Dirty flag for the per-display form. Set by `setDisplayOverride`;
-  // cleared on display switch (via the reload effect) and after Save.
-  // `handleSave` skips the `updateDisplaySettings` store call entirely
-  // when this is false, so saves on globals-only edits don't re-write
-  // every forked key (and can't clobber concurrent per-display writes).
-  const displayOverrideDirtyRef = useRef(false);
+}
+
+function SettingsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const { config, selectedDisplayId, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
+  // Subscribe to the store's save state so the header indicator lights
+  // up for BOTH the local auto-save effect (Defaults pages) and the
+  // per-display subtab mutations (which call saveConfig directly via
+  // updateDisplay / updateDisplaySettings). Without this subscription
+  // the indicator would only flash for edits that flowed through
+  // `state` below, and per-display overrides would save silently.
+  const storeIsSaving = useEditorStore((s) => s.isSaving);
+  const storeSaveError = useEditorStore((s) => s.saveError);
+  // Subscribed here via selector so the retry-observer effect below
+  // re-renders on every isDirty transition — the effect needs to read
+  // the latest isDirty when isSaving goes true→false so it can decide
+  // whether to flush a blocked/concurrent save.
+  const storeIsDirty = useEditorStore((s) => s.isDirty);
+  const settings = config?.settings;
+
+  // Phase 4: the URL is the single source of truth for content routing.
+  // `useSearchParams` re-renders this component whenever Next's router
+  // updates — so browser back/forward, `router.push` from the sidebar,
+  // and every `<Link>` click all stay in sync without a popstate listener.
+  // Phase 5 hoisted the parser into `lib/settings-route` so the legacy
+  // `?tab=X` redirect can be unit-tested without a `window`. The
+  // `redirectedQuery` field tells the effect below whether the URL bar
+  // needs to be rewritten to the canonical shape.
+  const { route: sectionRoute, redirectedQuery } = useMemo(
+    () => resolveSettingsRoute(searchParams?.toString() ?? ''),
+    [searchParams],
+  );
+
+  // One-shot legacy URL canonicalization. The pure helper above already
+  // resolved the route from the legacy `?tab=X`, so the first render
+  // shows the right content. This effect just flushes the canonical
+  // query string into the URL bar so subsequent navigations don't see
+  // the legacy key. No-op on every pass after the first.
+  useEffect(() => {
+    if (!redirectedQuery) return;
+    router.replace(`?${redirectedQuery}`);
+  }, [redirectedQuery, router]);
+
+  // `activeTab` is derived from sectionRoute when a Defaults page is
+  // active. The legacy content branches below still key off it
+  // (`activeTab === 'display'`, etc.) so the routing change stays
+  // surgical — only the sidebar and the URL parser need to know about
+  // the new shape.
+  const activeTab: TabId | null = sectionRoute.kind === 'defaults' ? sectionRoute.page : null;
+  const [state, setState] = useState<SettingsState>(() => toFormState(settings));
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -400,52 +373,107 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
-  // When the selected display changes, reload the per-display override
-  // form from THAT display's saved settings. Unsaved edits on the previous
-  // display are dropped — matching the toolbar's DisplaySwitcher UX.
+  // Auto-save infrastructure.
   //
-  // IMPORTANT: we intentionally key this effect on `selectedDisplayId` only
-  // (not on a stringified snapshot of `activeDisplay.settings`). If the
-  // effect fired on every store mutation, a successful Save would
-  // re-trigger it mid-save and clobber in-flight form edits. The downside
-  // is that external writes to `display.settings` (e.g. a different
-  // editor tab saving) won't refresh the form — but the user can reload
-  // to pick them up, and the alternative (post-save clobber) was worse.
-  const prevDisplayIdRef = useRef<string | null>(selectedDisplayId);
+  // `userDirtyRef` flips to true the first time the user actually edits
+  // a form field, so the initial `settingsInitRef` hydration (which calls
+  // `setState(toFormState(settings))` once config loads) doesn't trigger
+  // a pointless write-back of config-to-itself. Every path that mutates
+  // `state` from user input funnels through `updateGroup` below, which
+  // sets the flag — so adding a new form field Just Works without having
+  // to remember to mark it dirty manually.
+  //
+  // `autoSaveTimerRef` holds the debounce timer. Every state change
+  // cancels any pending timer and schedules a fresh save 500ms out, so
+  // slider drags and per-keystroke number inputs collapse into a single
+  // PUT instead of hammering the disk on every tick.
+  //
+  // `latestStateRef` captures the most recent `state` without forcing
+  // the auto-save callback to re-capture on every render — the timer
+  // fires once and reads the latest state at the moment it runs,
+  // regardless of how many renders happened in between.
+  const userDirtyRef = useRef(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestStateRef = useRef(state);
   useEffect(() => {
-    if (prevDisplayIdRef.current !== selectedDisplayId) {
-      prevDisplayIdRef.current = selectedDisplayId;
-      setDisplayOverrideState(activeDisplay?.settings ?? {});
-      displayOverrideDirtyRef.current = false;
+    latestStateRef.current = state;
+  }, [state]);
+
+  // Pulse a "Saved" toast whenever the store's isSaving flag transitions
+  // from true back to false without an error. This catches per-display
+  // subtab mutations (DisplaySubtab, SleepSubtab, AlertsSubtab, etc.)
+  // which call `saveConfig()` directly — their saves would otherwise
+  // complete silently with no header feedback. The local auto-save
+  // effect for Defaults pages also flips store.isSaving, so this fires
+  // for both paths via a single subscription.
+  //
+  // This effect also carries the "save retry observer": if the store is
+  // still dirty after an in-flight save completes, schedule a follow-up
+  // saveConfig(). That covers the race where a subtab fires
+  // `updateDisplaySettings + saveConfig()` while the parent auto-save
+  // is mid-flight — without the observer, the second saveConfig hits
+  // the `isSaving` early-return inside the store and the later mutation
+  // would stay pinned in memory until an unrelated trigger re-fired a
+  // save. The retry fires at most once per save-cycle; any further
+  // mutations that land during the retry are picked up by the next
+  // transition in the exact same way.
+  const prevStoreIsSavingRef = useRef(storeIsSaving);
+  useEffect(() => {
+    const wasSaving = prevStoreIsSavingRef.current;
+    prevStoreIsSavingRef.current = storeIsSaving;
+    if (wasSaving && !storeIsSaving && !storeSaveError) {
+      setSaveMessage('Saved');
+      const timer = setTimeout(
+        () => setSaveMessage((prev) => (prev === 'Saved' ? null : prev)),
+        2000,
+      );
+      if (storeIsDirty) {
+        // Fire-and-forget — any error surfaces through storeSaveError
+        // and is rendered by the header status indicator on the next
+        // effect pass.
+        saveConfig().catch((err) => console.error('Auto-retry save failed:', err));
+      }
+      return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDisplayId]);
+  }, [storeIsSaving, storeSaveError, storeIsDirty, saveConfig]);
+
+  useEffect(() => {
+    if (!settingsInitRef.current || !userDirtyRef.current) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(async () => {
+      setSaving(true);
+      setSaveMessage(null);
+      try {
+        updateSettings(toConfigSettings(latestStateRef.current));
+        await saveConfig();
+        setSaveMessage('Saved');
+        // Clear the "Saved" toast after a couple of seconds so it
+        // disappears during long idle periods and reappears on the
+        // next change.
+        setTimeout(() => setSaveMessage((prev) => (prev === 'Saved' ? null : prev)), 2000);
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+        setSaveMessage('Save failed');
+      } finally {
+        setSaving(false);
+      }
+    }, 500);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [state, updateSettings, saveConfig]);
 
   // Upgrade/rollback modal state
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [rollbackTarget, setRollbackTarget] = useState<string | null>(null);
 
   const updateGroup = useCallback(<K extends keyof SettingsState>(group: K, updates: Partial<SettingsState[K]>) => {
+    // Mark the form as user-dirty so the auto-save effect knows the
+    // next state change is a real edit, not hydration. Set before
+    // setState so the effect's dependency update sees the flag already
+    // true on the subsequent render.
+    userDirtyRef.current = true;
     setState((prev) => ({ ...prev, [group]: { ...prev[group], ...updates } }));
-    setSaveMessage(null);
-  }, []);
-
-  // Set (or clear) a per-display override on the form. Passing `undefined`
-  // for `value` means "reset this field to inherited" — we delete the key
-  // from the form state so the Save-time diff turns it into an explicit
-  // `undefined` for updateDisplaySettings, which in turn removes the key
-  // from display.settings on disk.
-  const setDisplayOverride = useCallback(<K extends keyof DisplayNodeSettings>(key: K, value: DisplayNodeSettings[K] | undefined) => {
-    setDisplayOverrideState((prev) => {
-      if (value === undefined) {
-        if (!(key in prev)) return prev;
-        const { [key]: _drop, ...rest } = prev;
-        void _drop;
-        return rest as DisplayNodeSettings;
-      }
-      return { ...prev, [key]: value };
-    });
-    displayOverrideDirtyRef.current = true;
     setSaveMessage(null);
   }, []);
 
@@ -497,49 +525,15 @@ export default function SettingsPage() {
     });
   }, [state.display.displayWidth, state.display.displayHeight, config, selectedDisplayId, updateGroup]);
 
-  function handleTabChange(tab: TabId) {
-    setActiveTab(tab);
-    // Update URL without full navigation
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
-    window.history.replaceState(null, '', url.toString());
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setSaveMessage(null);
-    try {
-      updateSettings(toConfigSettings(state));
-
-      // In multi-display mode, also flush the per-display override form
-      // to the active display — but ONLY if the user actually touched
-      // any per-display field since the last load. Without this guard,
-      // every Save would re-write every forked key, potentially
-      // clobbering concurrent writes from other editor tabs or from the
-      // /api/display/profile endpoint.
-      //
-      // When the form IS dirty, we diff against the saved display.settings
-      // so keys that the user "Reset to inherited" are sent as `undefined`
-      // (which `updateDisplaySettings` converts into a delete-key) rather
-      // than silently sticking around.
-      if (selectedDisplayId && activeDisplay && displayOverrideDirtyRef.current) {
-        const diff = diffDisplayOverrides(
-          activeDisplay.settings ?? {},
-          displayOverrideState,
-        );
-        if (Object.keys(diff).length > 0) {
-          updateDisplaySettings(selectedDisplayId, diff);
-        }
-      }
-
-      await saveConfig();
-      displayOverrideDirtyRef.current = false;
-      setSaveMessage('Saved');
-      setTimeout(() => setSaveMessage(null), 2000);
-    } finally {
-      setSaving(false);
-    }
-  }
+  // Phase 4 entry-point used by the sidebar's "+" Add display button.
+  // Routes the user to the displays index page where the existing
+  // DisplaysSection's add form is the canonical add flow. Uses
+  // `router.push` so `useSearchParams` re-renders the page with the
+  // new route and the back button returns the user to the previous
+  // section.
+  const handleAddDisplayFromSidebar = useCallback(() => {
+    router.push('?section=displays');
+  }, [router]);
 
   function handleUpgradeComplete() {
     setUpgradeTarget(null);
@@ -574,8 +568,36 @@ export default function SettingsPage() {
     );
   }
 
-  const SELF_SAVING_TABS = new Set<TabId>(['system', 'data', 'integrations', 'security', 'profiles', 'displays', 'stats', 'docs', 'meals']);
-  const showSaveButton = !SELF_SAVING_TABS.has(activeTab);
+  // Header status indicator: visible whenever a save is in flight or
+  // a recently-completed save is still being acknowledged. Replaces
+  // the old per-tab Save button now that every settings surface
+  // auto-saves. The indicator is presence-only in the steady state —
+  // no visual clutter when the user isn't actively editing.
+  //
+  // The isSaving source-of-truth is the store, not the local `saving`
+  // state. This way both the Defaults-page auto-save effect AND the
+  // per-display subtab direct-save paths light up the same indicator.
+  // Error state falls back to storeSaveError so per-display save
+  // failures don't disappear just because local state said "Saved".
+  const isActivelySaving = saving || storeIsSaving;
+  const failureMessage =
+    saveMessage === 'Save failed' ? 'Save failed' : storeSaveError ? 'Save failed' : null;
+  const statusIndicator = isActivelySaving ? (
+    <span className="text-xs text-neutral-400 flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+      Saving…
+    </span>
+  ) : failureMessage ? (
+    <span className="text-xs text-red-400 flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500" />
+      {failureMessage}
+    </span>
+  ) : saveMessage === 'Saved' ? (
+    <span className="text-xs text-green-400 flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+      Saved
+    </span>
+  ) : null;
 
   return (
     <div className="h-screen flex flex-col">
@@ -594,166 +616,66 @@ export default function SettingsPage() {
             <HomeScreensLogo contextLabel="Settings" />
           </button>
         </div>
-        {showSaveButton && (
-          <div className="flex items-center gap-3">
-            {saveMessage && (
-              <span className="text-xs text-green-400">{saveMessage}</span>
-            )}
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-            </Button>
-          </div>
-        )}
+        {statusIndicator && <div>{statusIndicator}</div>}
       </div>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <nav className="w-52 shrink-0 border-r border-neutral-700 bg-neutral-900/50 py-3 overflow-y-auto">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                  isActive
-                    ? 'bg-neutral-800 text-neutral-100 border-r-2 border-blue-500'
-                    : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Phase 4 sidebar — splits into Defaults / Per display in
+            multi-display mode and collapses to a flat list in legacy
+            single-display mode. URL-driven highlight, no parent state. */}
+        <SettingsSidebar onAddDisplay={handleAddDisplayFromSidebar} />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
+          {sectionRoute?.kind === 'display' ? (
+            <div className="mx-auto px-6 py-6 max-w-3xl">
+              {/* `key` forces a fresh mount on display switch so the
+                  subtabs' local form state (e.g. `widthDraft` in
+                  DisplaySubtab, `name` in IdentitySubtab) rehydrates
+                  from the new display's values. Without the key, React
+                  reuses the existing instance and `useState` initializers
+                  do not re-run — the user would see stale values for
+                  the previously-viewed display. */}
+              <PerDisplayPage
+                key={sectionRoute.displayId}
+                displayId={sectionRoute.displayId}
+                subtab={sectionRoute.subtab}
+              />
+            </div>
+          ) : sectionRoute.kind === 'displays' ? (
+            <div className="mx-auto px-6 py-6 max-w-4xl">
+              <DisplaysIndexPage />
+            </div>
+          ) : (
           <div className={`mx-auto px-6 py-6 ${activeTab === 'integrations' ? 'max-w-4xl' : 'max-w-2xl'}`}>
-            {activeTab === 'display' && (
-              <>
-                <DisplayContextHeader />
-                <DisplaySection
-                  values={state.display}
-                  onChange={handleDisplayChange}
-                  perDisplay={isMultiDisplay ? {
-                    overrides: displayOverrideState,
-                    onFork: setDisplayOverride,
-                    onReset: (key) => setDisplayOverride(key, undefined),
-                  } : undefined}
-                  /* Dimensions for non-main displays live on the DisplayNode
-                     itself and are edited via the Displays tab. Hide the
-                     Orientation/Resolution/Flip controls here so the form
-                     can't silently write to the global settings. Main's
-                     dimensions still live on globals, so main keeps the
-                     controls. */
-                  dimensionsLocked={isMultiDisplay && selectedDisplayId !== null && selectedDisplayId !== 'main'}
-                  dimensionsLockedDisplayName={activeDisplay?.name}
-                />
-              </>
-            )}
-
-            {activeTab === 'displays' && (
-              <DisplaysSection />
+            {activeTab === 'display' && config && (
+              <DefaultDisplaySection
+                config={config}
+                values={state.display}
+                onChange={handleDisplayChange}
+              />
             )}
 
             {activeTab === 'profiles' && (
-              <>
-                <DisplayContextHeader />
-                <ProfilesSection />
-              </>
+              <ProfilesSection />
             )}
 
-            {activeTab === 'sleep' && (() => {
-              // Sleep + screensaver are treated as one forked unit (plan:
-              // nested-object overrides are full-replacement). When either
-              // side of the override is set, the tab edits the override;
-              // otherwise it edits the global sleep form.
-              const isForked = !!(displayOverrideState.sleep || displayOverrideState.screensaver);
-              const sleepValues = isForked
-                ? sleepConfigToForm(displayOverrideState.sleep, displayOverrideState.screensaver)
-                : state.sleep;
-              const handleChange = (updates: Partial<SleepState>) => {
-                if (isForked) {
-                  // Re-derive the nested shape from the merged form state and
-                  // write back into the override, so every keystroke keeps
-                  // the override in sync with the form.
-                  const merged = { ...sleepValues, ...updates };
-                  const { sleep, screensaver } = sleepFormToConfig(merged);
-                  setDisplayOverride('sleep', sleep);
-                  setDisplayOverride('screensaver', screensaver);
-                } else {
-                  updateGroup('sleep', updates);
-                }
-              };
-              return (
-                <>
-                  <DisplayContextHeader />
-                  <SleepSection
-                    values={sleepValues}
-                    onChange={handleChange}
-                    fork={isMultiDisplay && selectedDisplayId ? {
-                      isForked,
-                      displayName: activeDisplay?.name ?? selectedDisplayId,
-                      onFork: () => {
-                        // Seed both override fields from the current global
-                        // form state so the user sees no behavior change
-                        // until they edit a specific sub-control.
-                        const { sleep, screensaver } = sleepFormToConfig(state.sleep);
-                        setDisplayOverride('sleep', sleep);
-                        setDisplayOverride('screensaver', screensaver);
-                      },
-                      onReset: () => {
-                        setDisplayOverride('sleep', undefined);
-                        setDisplayOverride('screensaver', undefined);
-                      },
-                    } : undefined}
-                  />
-                </>
-              );
-            })()}
+            {activeTab === 'sleep' && config && (
+              <DefaultSleepSection
+                config={config}
+                values={state.sleep}
+                onChange={(updates) => updateGroup('sleep', updates)}
+              />
+            )}
 
-            {activeTab === 'alerts' && (() => {
-              const isForked = displayOverrideState.alerts !== undefined;
-              const alertValues = isForked
-                ? alertsConfigToForm(displayOverrideState.alerts)
-                : state.alerts;
-              const handleChange = (updates: Partial<AlertState>) => {
-                if (isForked) {
-                  const merged = { ...alertValues, ...updates };
-                  setDisplayOverride('alerts', alertsFormToConfig(merged));
-                } else {
-                  updateGroup('alerts', updates);
-                }
-              };
-              return (
-                <>
-                  <DisplayContextHeader />
-                  <AlertSection
-                    values={alertValues}
-                    onChange={handleChange}
-                    displayId={isMultiDisplay ? selectedDisplayId : null}
-                    fork={isMultiDisplay && selectedDisplayId ? {
-                      isForked,
-                      displayName: activeDisplay?.name ?? selectedDisplayId,
-                      onFork: () => {
-                        setDisplayOverride('alerts', alertsFormToConfig(state.alerts));
-                      },
-                      onReset: () => {
-                        setDisplayOverride('alerts', undefined);
-                      },
-                    } : undefined}
-                  />
-                </>
-              );
-            })()}
+            {activeTab === 'alerts' && config && (
+              <DefaultAlertsSection
+                config={config}
+                values={state.alerts}
+                onChange={(updates) => updateGroup('alerts', updates)}
+              />
+            )}
 
             {activeTab === 'location' && (
               <LocationSection
@@ -826,7 +748,9 @@ export default function SettingsPage() {
             {activeTab === 'docs' && (
               <DocsSection />
             )}
+
           </div>
+          )}
         </div>
       </div>
 

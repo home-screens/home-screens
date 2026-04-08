@@ -471,3 +471,183 @@ describe('writeConfig / readConfig — error recovery', () => {
     expect(parsed.screens[0].id).toBe('success');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Main display normalization (Phase 0 of the settings-defaults redesign)
+//
+// Background: the multi-display registry historically let `main` exist as a
+// `DisplayNode` with no dimension fields, falling back to
+// `config.settings.displayWidth/Height/Transform` at render time. That carve-
+// out forced "main is special" branches in every editor surface. Phase 0
+// flattens main into a regular DisplayNode that owns its own dimensions, via
+// an idempotent in-memory normalization that runs on every readConfig().
+//
+// We test through the public `readConfig()` API rather than the private
+// helper so the tests cover what every caller actually observes — the
+// normalization is invisible from outside the module otherwise.
+// ---------------------------------------------------------------------------
+describe('readConfig — main display normalization', () => {
+  // Build a complete v3 config so readConfig doesn't trigger an upgrade write
+  // and the test only exercises the post-migration normalization path.
+  function makeMultiDisplayConfig(mainDisplayOverrides: Record<string, unknown> = {}) {
+    return {
+      version: 3,
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90' as const,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'weatherapi' as const, latitude: 0, longitude: 0, units: 'imperial' as const },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+      displays: [
+        // Main with NO dimension fields — the legacy shape that the
+        // normalization should fix on read.
+        { id: 'main', name: 'Main Display', screens: [], ...mainDisplayOverrides },
+        { id: 'kitchen', name: 'Kitchen', screens: [], displayWidth: 1920, displayHeight: 1080, displayTransform: 'normal' as const },
+      ],
+    };
+  }
+
+  async function writeRaw(config: unknown) {
+    const configDir = path.join(tmpDir, 'data');
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(config));
+  }
+
+  it('seeds main display dimensions from globals when missing', async () => {
+    await writeRaw(makeMultiDisplayConfig());
+    const config = await readConfig();
+    const main = config.displays?.find((d) => d.id === 'main');
+    expect(main).toBeDefined();
+    expect(main!.displayWidth).toBe(1080);
+    expect(main!.displayHeight).toBe(1920);
+    expect(main!.displayTransform).toBe('90');
+  });
+
+  it('does not clobber explicit per-display dimensions on main', async () => {
+    await writeRaw(
+      makeMultiDisplayConfig({
+        displayWidth: 2560,
+        displayHeight: 1440,
+        displayTransform: 'normal' as const,
+      }),
+    );
+    const config = await readConfig();
+    const main = config.displays?.find((d) => d.id === 'main');
+    expect(main!.displayWidth).toBe(2560);
+    expect(main!.displayHeight).toBe(1440);
+    expect(main!.displayTransform).toBe('normal');
+  });
+
+  it('only fills the missing fields, leaving present ones intact', async () => {
+    // Width is set, height/transform are not — only the missing two should
+    // be seeded from globals.
+    await writeRaw(makeMultiDisplayConfig({ displayWidth: 800 }));
+    const config = await readConfig();
+    const main = config.displays?.find((d) => d.id === 'main');
+    expect(main!.displayWidth).toBe(800); // user value preserved
+    expect(main!.displayHeight).toBe(1920); // pulled from globals
+    expect(main!.displayTransform).toBe('90'); // pulled from globals
+  });
+
+  it('falls back to "normal" transform when globals also lack one', async () => {
+    const cfg = makeMultiDisplayConfig();
+    delete (cfg.settings as { displayTransform?: string }).displayTransform;
+    await writeRaw(cfg);
+    const config = await readConfig();
+    const main = config.displays?.find((d) => d.id === 'main');
+    expect(main!.displayTransform).toBe('normal');
+  });
+
+  it('is a no-op when no displays registry exists (legacy single-display)', async () => {
+    // Legacy v3 install with no displays array — normalization must not
+    // synthesize one or otherwise touch the config shape.
+    await writeRaw({
+      version: 3,
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+    });
+    const config = await readConfig();
+    expect(config.displays).toBeUndefined();
+  });
+
+  it('is a no-op when there is a displays array but no main entry', async () => {
+    // Multi-display config without a "main" — happens if the user named
+    // their hub display something else. Normalization must not invent one.
+    const cfg = makeMultiDisplayConfig();
+    cfg.displays = cfg.displays.filter((d) => d.id !== 'main');
+    await writeRaw(cfg);
+    const config = await readConfig();
+    expect(config.displays?.find((d) => d.id === 'main')).toBeUndefined();
+    expect(config.displays).toHaveLength(1);
+    expect(config.displays?.[0].id).toBe('kitchen');
+  });
+
+  it('is idempotent — calling readConfig() twice yields the same result', async () => {
+    await writeRaw(makeMultiDisplayConfig());
+    const first = await readConfig();
+    const second = await readConfig();
+    expect(first.displays?.find((d) => d.id === 'main')).toEqual(
+      second.displays?.find((d) => d.id === 'main'),
+    );
+    // And specifically: the second pass also has the seeded values, not
+    // the original (missing) shape.
+    expect(second.displays?.find((d) => d.id === 'main')?.displayWidth).toBe(1080);
+  });
+
+  it('does not write the normalized shape back to disk', async () => {
+    // Normalization is a pure in-memory shim — it must not trigger a
+    // write-back of the seeded dimensions onto config.json. Tests the
+    // "no side effects on disk" half of the idempotency contract: a
+    // caller can read the config as many times as it wants without
+    // stomping on the on-disk shape.
+    const configDir = path.join(tmpDir, 'data');
+    const configPath = path.join(configDir, 'config.json');
+    await writeRaw(makeMultiDisplayConfig());
+    await readConfig();
+    const diskRaw = await fs.readFile(configPath, 'utf-8');
+    const diskParsed = JSON.parse(diskRaw) as { displays: Array<Record<string, unknown>> };
+    const diskMain = diskParsed.displays.find((d) => d.id === 'main');
+    expect(diskMain).toBeDefined();
+    // On-disk main must still be missing its dimension fields. The
+    // in-memory result has them seeded, but the disk copy is untouched
+    // until a real mutation (editor PUT, etc.) flushes it.
+    expect(diskMain!.displayWidth).toBeUndefined();
+    expect(diskMain!.displayHeight).toBeUndefined();
+    expect(diskMain!.displayTransform).toBeUndefined();
+  });
+
+  it('does not mutate the input when returning the normalized copy', async () => {
+    // Cloning invariant: a second caller looking at the same parsed
+    // input must not see the seeded fields leak in via shared-reference
+    // mutation. We simulate two concurrent /api/displays cache hits by
+    // reading twice back-to-back and asserting the two main nodes are
+    // distinct object references — if the helper mutated in place, the
+    // second call would see the first call's normalization even though
+    // both should independently re-normalize from the fresh parse.
+    await writeRaw(makeMultiDisplayConfig());
+    const first = await readConfig();
+    const second = await readConfig();
+    const firstMain = first.displays?.find((d) => d.id === 'main');
+    const secondMain = second.displays?.find((d) => d.id === 'main');
+    expect(firstMain).toBeDefined();
+    expect(secondMain).toBeDefined();
+    // Two different JSON.parse results → two different object identities.
+    expect(firstMain).not.toBe(secondMain);
+    // Mutating one result's main node must not contaminate the other.
+    firstMain!.displayWidth = 9999;
+    expect(secondMain!.displayWidth).toBe(1080);
+  });
+});

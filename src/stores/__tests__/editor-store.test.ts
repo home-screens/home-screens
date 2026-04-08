@@ -898,6 +898,61 @@ describe('editor store', () => {
 
       expect(store.getState().config!.displays).toBeUndefined();
     });
+
+    it('refuses to remove the "main" display', () => {
+      // The hub Pi's main display is the source of the original
+      // single-display layout (auto-created from `config.screens` on first
+      // multi-display bootstrap). Removing it would orphan those screens
+      // and reset the hub kiosk to an unadopted state — the store layer
+      // hard-blocks the call so a stray UI button or test can't trigger it.
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'main', name: 'Main', screens: [], displayWidth: 1080, displayHeight: 1920 },
+          { id: 'kitchen', name: 'Kitchen', screens: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().removeDisplay('main');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(2);
+      expect(displays.find((d) => d.id === 'main')).toBeDefined();
+    });
+  });
+
+  describe('multi-display: getActiveDimensions reads from DisplayNode after main normalization', () => {
+    // Phase 0 of the settings-defaults redesign: main is no longer "special"
+    // — its dimensions live on the DisplayNode just like every other
+    // display. The `getActiveDimensions` helper already preferred the
+    // per-display field over globals, so this test pins the post-
+    // normalization expectation: editing main's display node directly
+    // changes the active canvas size, even when global settings disagree.
+    it('returns main display node dimensions, not global settings', async () => {
+      const { getActiveDimensions } = await import('@/stores/editor-store');
+      const config = makeConfig({
+        settings: {
+          ...makeConfig().settings,
+          displayWidth: 1080,
+          displayHeight: 1920,
+          displayTransform: '90' as const,
+        },
+        displays: [
+          {
+            id: 'main',
+            name: 'Main',
+            screens: [],
+            displayWidth: 2560,
+            displayHeight: 1440,
+            displayTransform: 'normal' as const,
+          },
+        ],
+      });
+      const dims = getActiveDimensions(config, 'main');
+      expect(dims.width).toBe(2560);
+      expect(dims.height).toBe(1440);
+    });
   });
 
   /* ─── cascade prune of display references ─────── */
