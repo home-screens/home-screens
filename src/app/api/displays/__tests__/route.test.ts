@@ -9,6 +9,7 @@ vi.mock('@/lib/config', () => ({
 vi.mock('@/lib/display-commands', () => ({
   getAllDisplayStatuses: vi.fn(() => new Map()),
   getUnadoptedDisplays: vi.fn(() => []),
+  getViewportReports: vi.fn(() => []),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -163,8 +164,54 @@ describe('GET /api/displays (full list)', () => {
     const res = await GET(makeRequest());
     const json = await res.json();
 
-    expect(json.unadopted).toEqual([{ id: 'garage', lastSeen: 999 }]);
+    expect(json.unadopted).toHaveLength(1);
+    expect(json.unadopted[0]).toMatchObject({ id: 'garage', lastSeen: 999 });
+    expect(json.unadopted[0].viewportReports).toEqual([]);
     expect(getUnadoptedDisplays).toHaveBeenCalledWith(['kitchen']);
+  });
+
+  it('returns per-client viewport reports when multiple clients post for the same display', async () => {
+    vi.mocked(readConfig).mockResolvedValue({
+      version: 3,
+      screens: [],
+      settings: {} as never,
+      displays: [],
+    });
+    vi.mocked(getUnadoptedDisplays).mockReturnValue(['home-screens']);
+    vi.mocked(getAllDisplayStatuses).mockReturnValue(
+      new Map([
+        [
+          'home-screens',
+          {
+            currentScreen: { index: 0, id: '', name: '' },
+            screenCount: 0,
+            activeProfile: null,
+            displayState: 'active',
+            timestamp: 0,
+            lastSeen: 5000,
+          },
+        ],
+      ]),
+    );
+    // Two distinct clients reporting different viewports for the same id
+    const { getViewportReports } = await import('@/lib/display-commands');
+    vi.mocked(getViewportReports).mockImplementation((id: string) => {
+      if (id === 'home-screens') {
+        return [
+          { width: 1440, height: 2560, lastSeen: 5000 },
+          { width: 1024, height: 768, lastSeen: 4000 },
+        ];
+      }
+      return [];
+    });
+
+    const res = await GET(makeRequest());
+    const json = await res.json();
+
+    expect(json.unadopted[0].viewportReports).toHaveLength(2);
+    expect(json.unadopted[0].viewportReports[0]).toMatchObject({ width: 1440, height: 2560 });
+    // The primary (back-compat `reportedViewport`) tracks the most recent
+    expect(json.unadopted[0].reportedViewport).toEqual({ width: 1440, height: 2560 });
   });
 });
 

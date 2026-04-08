@@ -5,11 +5,12 @@ import {
   drainCommands,
   getDisplayStatus,
   setDisplayStatus,
+  recordViewportReport,
   type DisplayCommandType,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
-import { errorResponse, withDisplayAuth } from '@/lib/api-utils';
+import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -234,9 +235,14 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
           { status: 400 },
         );
       }
-      // Strip displayId out of the persisted status so the body shape stays
-      // the same as before (the in-memory keying is handled by setDisplayStatus).
-      const { displayId: bodyDisplayId, ...statusPayload } = body as Record<string, unknown>;
+      // Strip displayId and clientId out of the persisted status so the
+      // body shape stays the same as before (the in-memory keying is
+      // handled by setDisplayStatus / recordViewportReport).
+      const {
+        displayId: bodyDisplayId,
+        clientId: bodyClientId,
+        ...statusPayload
+      } = body as Record<string, unknown>;
       const rawDisplayId =
         typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
       // Validate the body field too — `pickDisplayId` only validates the body
@@ -247,6 +253,32 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
         statusPayload as unknown as Parameters<typeof setDisplayStatus>[0],
         validatedStatus,
       );
+
+      // Track viewport per-client so the editor can surface "N things are
+      // reporting with this display ID" instead of silently flapping between
+      // whichever client POSTed most recently. We also stash the source IP
+      // so the user can trace a phantom reporter back to its device on the
+      // LAN (critical when the Pi they *think* is posting is actually off).
+      const viewport = (body as { reportedViewport?: unknown }).reportedViewport;
+      if (
+        validatedStatus
+        && typeof bodyClientId === 'string'
+        && bodyClientId.length > 0
+        && viewport
+        && typeof viewport === 'object'
+      ) {
+        const v = viewport as { width?: unknown; height?: unknown };
+        if (typeof v.width === 'number' && typeof v.height === 'number') {
+          recordViewportReport(
+            validatedStatus,
+            bodyClientId,
+            v.width,
+            v.height,
+            getClientIP(request),
+          );
+        }
+      }
+
       return NextResponse.json({ ok: true });
     }
 

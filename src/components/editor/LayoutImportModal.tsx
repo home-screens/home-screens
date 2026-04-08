@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
 
@@ -14,15 +14,20 @@ export default function LayoutImportModal({
   layout,
   onClose,
 }: LayoutImportModalProps) {
-  const { config, importLayoutAction, saveConfig } = useEditorStore();
+  const { config, selectedDisplayId, importLayoutAction, saveConfig } = useEditorStore();
   const [applyVisual, setApplyVisual] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { metadata, screens, visual } = layout;
 
-  // Dimension mismatch check
-  const currentWidth = config?.settings.displayWidth ?? 1080;
-  const currentHeight = config?.settings.displayHeight ?? 1920;
+  // Dimension mismatch check — compare against the currently-selected
+  // display's dimensions so a landscape layout imported into a portrait
+  // display correctly warns about the aspect ratio mismatch.
+  const activeDims = config
+    ? getActiveDimensions(config, selectedDisplayId)
+    : { width: 1080, height: 1920 };
+  const currentWidth = activeDims.width;
+  const currentHeight = activeDims.height;
   const dimensionMismatch =
     metadata.sourceDisplay.width !== currentWidth ||
     metadata.sourceDisplay.height !== currentHeight;

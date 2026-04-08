@@ -230,23 +230,45 @@ export interface DisplayNodeSettings {
 }
 
 /**
- * A named display device. Each display has its own screen assignments and
- * optional per-display profile/settings overrides. When `displays` is
- * undefined/empty on the parent ScreenConfiguration, the system runs in
- * single-display mode (all screens, all profiles).
+ * A named display device. Each display owns its own list of screens, designed
+ * at its own resolution and orientation — this is how a portrait kitchen
+ * touchscreen can live alongside a landscape living-room TV without either
+ * of them squashing the other's layout.
+ *
+ * When `displays` is undefined/empty on the parent ScreenConfiguration, the
+ * system runs in single-display mode (no DisplayNode exists at all; the
+ * legacy `ScreenConfiguration.screens` is rendered directly).
  */
 export interface DisplayNode {
   /** URL-safe slug used as the route segment: /display/<id> */
   id: string;
   /** Human-readable label shown in the editor */
   name: string;
-  /** Screen IDs assigned to this display (subset of ScreenConfiguration.screens) */
-  screenIds: string[];
+  /**
+   * Screens owned by this display. Each display has its own independent list,
+   * laid out at this display's resolution. When present, `screenIds` is
+   * ignored and the display renders these screens directly.
+   */
+  screens?: Screen[];
+  /**
+   * Legacy screen-pool reference — pick screens from the parent
+   * `ScreenConfiguration.screens` list by ID. Kept for backward compat with
+   * early multi-display configs that predated owned screens. New displays
+   * should use `screens` directly.
+   * @deprecated prefer `screens`
+   */
+  screenIds?: string[];
+  /** Canvas width in pixels (overrides GlobalSettings.displayWidth) */
+  displayWidth?: number;
+  /** Canvas height in pixels (overrides GlobalSettings.displayHeight) */
+  displayHeight?: number;
+  /** wlr-randr transform applied at boot on the display-only Pi (informational on the hub side) */
+  displayTransform?: 'normal' | '90' | '180' | '270';
   /** Optional: restricts which profiles apply to this display */
   profileIds?: string[];
   /** Per-display active profile (falls back to GlobalSettings.activeProfile) */
   activeProfile?: string;
-  /** Per-display setting overrides */
+  /** Per-display setting overrides (rotation interval, sleep, etc.) */
   settings?: DisplayNodeSettings;
 }
 

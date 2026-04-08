@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import ImageSearchBrowser, { type BrowsePhoto, type CategoryDef, type SearchResult } from './ImageSearchBrowser';
 
@@ -57,7 +57,7 @@ interface Props {
 export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
   const [mode, setMode] = useState<'library' | 'apod'>(hasNasaKey ? 'apod' : 'library');
   const [apodRefreshKey, setApodRefreshKey] = useState(0);
-  const { config, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, updateScreen } = useEditorStore();
 
   const handleLibrarySearch = useCallback(async (query: string, pageNum: number): Promise<SearchResult> => {
     const url = `/api/nasa?type=search&query=${encodeURIComponent(query)}&page=${pageNum}`;
@@ -119,14 +119,15 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
       throw new Error(data.error || 'Failed to save image');
     }
     if (data.path) {
-      const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
+      const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+      const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
       const updates: Record<string, unknown> = { backgroundImage: data.path };
       if (currentScreen?.backgroundRotation?.enabled) {
         updates.backgroundRotation = { ...currentScreen.backgroundRotation, enabled: false };
       }
       updateScreen(selectedScreenId, updates);
     }
-  }, [selectedScreenId, config, updateScreen]);
+  }, [selectedScreenId, config, selectedDisplayId, updateScreen]);
 
   const modeToggle = (
     <div className="flex gap-1 bg-neutral-800 rounded-md p-0.5">

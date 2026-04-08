@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import type { DisplayCommand } from '@/lib/display-commands';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
+import { getDisplayClientId } from '@/lib/display-client-id';
 import { useAlertStore } from '@/stores/alert-store';
 import type { AlertType } from '@/types/config';
 
@@ -173,6 +174,19 @@ function reportStatus(s: {
   displayState: string;
   displayId?: string;
 }) {
+  // Self-report the viewport so the hub can pre-fill per-display dimensions
+  // in the editor. `innerWidth`/`innerHeight` are post-rotation, so a
+  // portrait-rotated 1920×1080 panel reports as 1080×1920 directly.
+  //
+  // The per-tab `clientId` lets the hub distinguish "two things reporting
+  // with the same display ID" from "one thing reporting consistently", so
+  // the editor can surface a multi-client conflict instead of silently
+  // flapping between whichever tab POSTed last.
+  const viewport =
+    typeof window !== 'undefined'
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : undefined;
+  const clientId = getDisplayClientId();
   displayFetch('/api/display/status', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -187,6 +201,8 @@ function reportStatus(s: {
       displayState: s.displayState,
       timestamp: Date.now(),
       cacheStats: displayCache.getStats(),
+      clientId,
+      ...(viewport ? { reportedViewport: viewport } : {}),
       // Stripped server-side before storage; lets the hub key the report
       // under the right per-display slot in `statusMap`.
       ...(s.displayId ? { displayId: s.displayId } : {}),

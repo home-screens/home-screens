@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterConfigForDisplay, validateDisplays } from '@/lib/display-filter';
+import { filterConfigForDisplay, validateDisplays, findScreenById } from '@/lib/display-filter';
 import type {
   GlobalSettings,
   Profile,
@@ -109,7 +109,14 @@ describe('filterConfigForDisplay', () => {
 
   it('shallow-merges per-display settings over global settings', () => {
     const config = makeConfig({
-      settings: makeSettings({ rotationIntervalMs: 30_000, displayWidth: 1080 }),
+      // Include a portrait transform so the 1080×1920 dims survive the
+      // orientation-normalization layer without being flipped.
+      settings: makeSettings({
+        rotationIntervalMs: 30_000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90',
+      }),
       screens: [makeScreen('s1')],
       displays: [{
         id: 'kitchen',
@@ -122,6 +129,7 @@ describe('filterConfigForDisplay', () => {
     expect(filtered?.settings.rotationIntervalMs).toBe(60_000);
     // Untouched fields fall through from the global object
     expect(filtered?.settings.displayWidth).toBe(1080);
+    expect(filtered?.settings.displayHeight).toBe(1920);
   });
 
   it('replaces nested objects wholesale (no deep merge of sleep)', () => {
@@ -350,5 +358,334 @@ describe('validateDisplays', () => {
       }],
     });
     expect(validateDisplays(config)).toMatch(/too many screens/);
+  });
+
+  it('rejects too many owned screens per display', () => {
+    const displayScreens = Array.from({ length: 257 }, (_, i) => makeScreen(`ds${i}`));
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'mega',
+        name: 'Mega',
+        screens: displayScreens,
+      }],
+    });
+    expect(validateDisplays(config)).toMatch(/too many screens/);
+  });
+
+  describe('per-display dimensions', () => {
+    it('accepts positive integer dimensions', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screens: [],
+          displayWidth: 1080,
+          displayHeight: 1920,
+        }],
+      });
+      expect(validateDisplays(config)).toBeNull();
+    });
+
+    it('rejects non-integer width', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screens: [],
+          displayWidth: 1080.5,
+        }],
+      });
+      expect(validateDisplays(config)).toMatch(/displayWidth must be a positive integer/);
+    });
+
+    it('rejects zero or negative height', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screens: [],
+          displayHeight: 0,
+        }],
+      });
+      expect(validateDisplays(config)).toMatch(/displayHeight must be a positive integer/);
+    });
+
+    it('rejects unreasonably large width', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screens: [],
+          displayWidth: 999999,
+        }],
+      });
+      expect(validateDisplays(config)).toMatch(/displayWidth/);
+    });
+  });
+
+  it('owned screens bypass the screenIds cross-reference check', () => {
+    // A display that owns its own screens never touches config.screens —
+    // the owned screens are self-contained, so validateDisplays does not
+    // reject them for missing global references.
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('owned-1'), makeScreen('owned-2')],
+      }],
+    });
+    expect(validateDisplays(config)).toBeNull();
+  });
+});
+
+/* ─── filterConfigForDisplay with owned screens ─── */
+
+describe('filterConfigForDisplay — owned screens', () => {
+  it('returns display.screens when set, ignoring the global pool', () => {
+    const config = makeConfig({
+      // Global pool has different screens — these should NOT be returned
+      screens: [makeScreen('pool-1'), makeScreen('pool-2')],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('owned-a'), makeScreen('owned-b')],
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.screens.map((s) => s.id)).toEqual(['owned-a', 'owned-b']);
+  });
+
+  it('prefers owned screens over legacy screenIds when both are set', () => {
+    const config = makeConfig({
+      screens: [makeScreen('pool-1')],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        // Legacy field left in — owned screens should win
+        screenIds: ['pool-1'],
+        screens: [makeScreen('owned-x')],
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.screens.map((s) => s.id)).toEqual(['owned-x']);
+  });
+
+  it('merges per-display displayWidth/Height/Transform into settings', () => {
+    const config = makeConfig({
+      settings: makeSettings({
+        displayWidth: 1920,
+        displayHeight: 1080,
+        displayTransform: 'normal',
+      }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90',
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.displayWidth).toBe(1080);
+    expect(filtered?.settings.displayHeight).toBe(1920);
+    expect(filtered?.settings.displayTransform).toBe('90');
+  });
+
+  it('keeps global dimensions when the display has none set', () => {
+    const config = makeConfig({
+      settings: makeSettings({ displayWidth: 1920, displayHeight: 1080 }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.displayWidth).toBe(1920);
+    expect(filtered?.settings.displayHeight).toBe(1080);
+  });
+
+  describe('rotation is authoritative for canvas orientation', () => {
+    it('flips landscape-shaped dimensions into portrait when rotation is 90°', () => {
+      // The user typed the "long" side as width (landscape-shape) but then
+      // chose 90° rotation. The canvas must end up portrait, matching the
+      // rotation rather than the typed order.
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          displayWidth: 2560,
+          displayHeight: 1440,
+          displayTransform: '90',
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'kitchen');
+      expect(filtered?.settings.displayWidth).toBe(1440);
+      expect(filtered?.settings.displayHeight).toBe(2560);
+    });
+
+    it('flips portrait-shaped dimensions into landscape when rotation is normal', () => {
+      // Symmetric: user typed portrait shape but picked landscape rotation.
+      // This was the screenshot the user hit — 1440×2560 + Normal (landscape)
+      // rendered as a portrait canvas. The fix makes rotation win.
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'main',
+          name: 'Main',
+          screens: [],
+          displayWidth: 1440,
+          displayHeight: 2560,
+          displayTransform: 'normal',
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'main');
+      expect(filtered?.settings.displayWidth).toBe(2560);
+      expect(filtered?.settings.displayHeight).toBe(1440);
+    });
+
+    it('treats undefined transform as landscape', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          displayWidth: 1440,
+          displayHeight: 2560,
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'kitchen');
+      expect(filtered?.settings.displayWidth).toBe(2560);
+      expect(filtered?.settings.displayHeight).toBe(1440);
+    });
+
+    it('treats 180° the same as normal (still landscape)', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          displayWidth: 1440,
+          displayHeight: 2560,
+          displayTransform: '180',
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'kitchen');
+      expect(filtered?.settings.displayWidth).toBe(2560);
+      expect(filtered?.settings.displayHeight).toBe(1440);
+    });
+
+    it('treats 270° the same as 90° (still portrait)', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          displayWidth: 2560,
+          displayHeight: 1440,
+          displayTransform: '270',
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'kitchen');
+      expect(filtered?.settings.displayWidth).toBe(1440);
+      expect(filtered?.settings.displayHeight).toBe(2560);
+    });
+  });
+});
+
+/* ─── findScreenById ───────────────────────────── */
+
+describe('findScreenById', () => {
+  it('finds a screen in the legacy global pool', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1'), makeScreen('s2')],
+    });
+    expect(findScreenById(config, 's2')?.id).toBe('s2');
+  });
+
+  it('finds a screen owned by a display', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('owned-a'), makeScreen('owned-b')],
+      }],
+    });
+    expect(findScreenById(config, 'owned-b')?.id).toBe('owned-b');
+  });
+
+  it('returns null when the screen is nowhere', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1')],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('owned-a')],
+      }],
+    });
+    expect(findScreenById(config, 'missing')).toBeNull();
+  });
+
+  it('prefers display-owned screens over the global pool when the same id appears in both', () => {
+    // Unlikely but possible during migration. Owned screens win because
+    // they're the newer, authoritative shape.
+    const pooled = { ...makeScreen('shared'), name: 'Pooled Version' };
+    const owned = { ...makeScreen('shared'), name: 'Owned Version' };
+    const config = makeConfig({
+      screens: [pooled],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [owned],
+      }],
+    });
+    expect(findScreenById(config, 'shared')?.name).toBe('Owned Version');
+  });
+
+  it('searches across multiple displays in order', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [makeScreen('kitchen-s1')],
+        },
+        {
+          id: 'bedroom',
+          name: 'Bedroom',
+          screens: [makeScreen('bedroom-s1')],
+        },
+      ],
+    });
+    expect(findScreenById(config, 'kitchen-s1')?.id).toBe('kitchen-s1');
+    expect(findScreenById(config, 'bedroom-s1')?.id).toBe('bedroom-s1');
+  });
+
+  it('returns null when displays exist but the screen is not in any of them', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('other')],
+      }],
+    });
+    expect(findScreenById(config, 'missing')).toBeNull();
   });
 });

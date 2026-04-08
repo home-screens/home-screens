@@ -70,17 +70,30 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
 
   # Auto-generate a display ID from the hostname when none was given.
   # Lowercase, swap any non-alnum to '-', strip leading/trailing dashes,
-  # and truncate to the 64-char cap (with another trailing-dash strip in
-  # case truncation lands mid-dash).
+  # truncate to leave room for a 5-char "-XXXX" suffix, and append four
+  # random lowercase-alphanumeric characters from /dev/urandom. The
+  # suffix prevents two Pis with the same hostname (the Raspberry Pi OS
+  # default of "raspberrypi" is a classic case) from colliding on the
+  # same display id when they're both adopted via --display-only.
   if [ -z "${DISPLAY_NODE_ID}" ]; then
-    DISPLAY_NODE_ID=$(hostname \
+    HOST_SLUG=$(hostname \
       | tr '[:upper:]' '[:lower:]' \
       | sed 's/[^a-z0-9]/-/g; s/^-*//; s/-*$//' \
-      | cut -c1-64 \
+      | cut -c1-59 \
       | sed 's/-*$//')
-    if [ -z "${DISPLAY_NODE_ID}" ]; then
-      DISPLAY_NODE_ID="display-$(date +%s)"
+    if [ -z "${HOST_SLUG}" ]; then
+      HOST_SLUG="display"
     fi
+    # LC_ALL=C makes tr treat /dev/urandom as bytes regardless of locale;
+    # the 2>/dev/null swallows the harmless "broken pipe" warning that
+    # tr emits when head closes the read side after 4 bytes.
+    RAND_SUFFIX=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom 2>/dev/null | head -c 4)
+    if [ "${#RAND_SUFFIX}" -ne 4 ]; then
+      # Fallback: very unusual /dev/urandom failure. $RANDOM is enough
+      # entropy for a 4-char suffix when we just need a tiebreaker.
+      RAND_SUFFIX=$(printf '%04x' $((RANDOM % 65536)))
+    fi
+    DISPLAY_NODE_ID="${HOST_SLUG}-${RAND_SUFFIX}"
     info "Auto-generated display ID: ${DISPLAY_NODE_ID} (override with --display-id)"
   fi
 

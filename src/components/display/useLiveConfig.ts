@@ -73,12 +73,15 @@ export function useLiveConfig(
                 setProfiles(filtered.profiles);
               } else if (!displayReloadingRef.current) {
                 // Display was removed from the config while this Pi was
-                // running. Hard-reload so the server re-runs the filter and
-                // renders DisplayNotFound (or a re-added display's rotator).
-                // The guard prevents a reload loop if the reload itself
-                // somehow fires the poll again before the page unmounts.
+                // running. Navigate to the canonical `/display` entry point
+                // (NOT a same-URL reload): reloading would just bounce us
+                // into DisplayNotFound on a dead URL, while /display lets
+                // the server-side redirect land us on whichever display is
+                // now the default. The guard prevents a navigation loop if
+                // the navigation itself somehow fires the poll again before
+                // the page unmounts.
                 displayReloadingRef.current = true;
-                window.location.reload();
+                window.location.href = '/display';
                 return;
               }
             } else {

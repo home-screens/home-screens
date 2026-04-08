@@ -22,9 +22,11 @@ import {
   importLayout as importLayoutCore,
 } from '@/lib/layout-export';
 import { scaleModulesToFit } from '@/lib/module-utils';
+import { getDisplayScreens } from '@/lib/display-filter';
 
 interface HistoryEntry {
   config: ScreenConfiguration;
+  selectedDisplayId: string | null;
   selectedScreenId: string | null;
   selectedModuleId: string | null;
 }
@@ -34,6 +36,13 @@ const COALESCE_WINDOW_MS = 500;
 
 interface EditorState {
   config: ScreenConfiguration | null;
+  /**
+   * The display the editor is currently operating on. When null, the editor
+   * is in legacy single-display mode and all screen mutations go to
+   * `config.screens`. When set to a display ID, mutations go to
+   * `displays[i].screens` and the canvas uses that display's dimensions.
+   */
+  selectedDisplayId: string | null;
   selectedScreenId: string | null;
   selectedModuleId: string | null;
   isDirty: boolean;
@@ -47,6 +56,7 @@ interface EditorState {
 
   loadConfig: () => Promise<void>;
   saveConfig: () => Promise<void>;
+  setSelectedDisplay: (id: string | null) => void;
   selectScreen: (id: string) => void;
   selectModule: (id: string | null) => void;
   addModule: (screenId: string, type: ModuleType, position?: ModulePosition) => void;
@@ -65,7 +75,7 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
-  addDisplay: (display: Omit<DisplayNode, 'screenIds'> & { screenIds?: string[] }) => void;
+  addDisplay: (display: Omit<DisplayNode, 'screenIds' | 'screens'> & { screenIds?: string[]; screens?: Screen[] }) => void;
   updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
   removeDisplay: (id: string) => void;
   importConfig: (json: string) => void;
@@ -77,20 +87,119 @@ interface EditorState {
   redo: () => void;
 }
 
+/**
+ * Returns the screens the editor is currently operating on. In legacy
+ * single-display mode (no `selectedDisplayId`) this is `config.screens`.
+ * In multi-display mode it delegates to `getDisplayScreens` (the same
+ * helper `filterConfigForDisplay` uses server-side) so the editor's
+ * active view and the rotator's rendered view can never disagree about
+ * what "this display's screens" means.
+ */
+export function getActiveScreens(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+): Screen[] {
+  if (!selectedDisplayId) return config.screens;
+  const display = config.displays?.find((d) => d.id === selectedDisplayId);
+  if (!display) return config.screens;
+  return getDisplayScreens(display, config.screens);
+}
+
+/**
+ * Returns a new `ScreenConfiguration` with the active screens replaced.
+ * Sibling displays and the legacy global pool are untouched. Setting a
+ * display's owned `screens` also clears its deprecated `screenIds` field
+ * so the two fields can never disagree.
+ */
+function withActiveScreens(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  screens: Screen[],
+): ScreenConfiguration {
+  if (!selectedDisplayId) return { ...config, screens };
+  const displays = config.displays;
+  if (!displays) return { ...config, screens };
+  const idx = displays.findIndex((d) => d.id === selectedDisplayId);
+  if (idx === -1) return { ...config, screens };
+  const nextDisplays = [...displays];
+  const { screenIds: _legacy, ...rest } = nextDisplays[idx];
+  void _legacy;
+  nextDisplays[idx] = { ...rest, screens };
+  return { ...config, displays: nextDisplays };
+}
+
+/**
+ * Returns the effective canvas dimensions for the editor. Per-display
+ * dimensions win over global; this is what every editor component should
+ * consume instead of reading `config.settings.displayWidth` directly.
+ *
+ * The rotation (`displayTransform`) is authoritative for orientation: the
+ * canvas long edge goes along the landscape axis when transform is
+ * `normal`/`180`, and along the portrait axis when transform is `90`/`270`.
+ * We sort the raw `(width, height)` pair into the right order regardless
+ * of how the user typed them in the form, so "1440 × 2560 + Normal
+ * (landscape)" produces a 2560 × 1440 landscape canvas rather than a
+ * portrait one whose shape contradicts its rotation label.
+ */
+export function getActiveDimensions(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+): { width: number; height: number } {
+  let rawWidth: number;
+  let rawHeight: number;
+  let transform: 'normal' | '90' | '180' | '270' | undefined;
+
+  if (selectedDisplayId) {
+    const display = config.displays?.find((d) => d.id === selectedDisplayId);
+    if (display) {
+      rawWidth = display.displayWidth ?? config.settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH;
+      rawHeight = display.displayHeight ?? config.settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT;
+      transform = display.displayTransform ?? config.settings.displayTransform;
+    } else {
+      rawWidth = config.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
+      rawHeight = config.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
+      transform = config.settings.displayTransform;
+    }
+  } else {
+    rawWidth = config.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
+    rawHeight = config.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
+    transform = config.settings.displayTransform;
+  }
+
+  return orientDimensions(rawWidth, rawHeight, transform);
+}
+
+/**
+ * Sort a `(width, height)` pair so the canvas orientation matches the
+ * rotation the user selected. Called by both the editor canvas and the
+ * filter used by the per-display route so the two can't drift.
+ */
+export function orientDimensions(
+  width: number,
+  height: number,
+  transform: 'normal' | '90' | '180' | '270' | undefined,
+): { width: number; height: number } {
+  const isPortrait = transform === '90' || transform === '270';
+  const long = Math.max(width, height);
+  const short = Math.min(width, height);
+  return isPortrait
+    ? { width: short, height: long }
+    : { width: long, height: short };
+}
+
 function updateModuleInConfig(
   config: ScreenConfiguration,
+  selectedDisplayId: string | null,
   screenId: string,
   moduleId: string,
   updater: (mod: ModuleInstance) => ModuleInstance,
 ): ScreenConfiguration {
-  return {
-    ...config,
-    screens: config.screens.map((s) =>
-      s.id === screenId
-        ? { ...s, modules: s.modules.map((m) => (m.id === moduleId ? updater(m) : m)) }
-        : s,
-    ),
-  };
+  const screens = getActiveScreens(config, selectedDisplayId).map((s) =>
+    s.id === screenId
+      ? { ...s, modules: s.modules.map((m) => (m.id === moduleId ? updater(m) : m)) }
+      : s,
+  );
+  return withActiveScreens(config, selectedDisplayId, screens);
 }
 
 export const useEditorStore = create<EditorState>((set, get) => {
@@ -111,6 +220,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     } else {
       newPast = [...state._past, {
         config: structuredClone(config),
+        selectedDisplayId: state.selectedDisplayId,
         selectedScreenId: state.selectedScreenId,
         selectedModuleId: state.selectedModuleId,
       }];
@@ -126,6 +236,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
   return {
   config: null,
+  selectedDisplayId: null,
   selectedScreenId: null,
   selectedModuleId: null,
   isDirty: false,
@@ -143,13 +254,29 @@ export const useEditorStore = create<EditorState>((set, get) => {
       if (!res.ok) throw new Error(`Load failed: ${res.status}`);
       const config: ScreenConfiguration = await res.json();
       if (!config.screens) throw new Error('Invalid config');
-      // Restore selected screen from URL if present, otherwise default to first
+
+      // Restore which display the editor was operating on from the URL.
+      // Multi-display: default to 'main' when it exists, otherwise the first
+      // display in the list. Single-display: null (legacy behavior).
       const params = new URLSearchParams(window.location.search);
+      const displayParam = params.get('display');
+      let selectedDisplayId: string | null = null;
+      if (config.displays && config.displays.length > 0) {
+        const fromUrl = displayParam && config.displays.find((d) => d.id === displayParam);
+        selectedDisplayId = fromUrl
+          ? fromUrl.id
+          : config.displays.find((d) => d.id === 'main')?.id
+            ?? config.displays[0]!.id;
+      }
+
+      // Pick the selected screen from the active display's list.
+      const activeScreens = getActiveScreens(config, selectedDisplayId);
       const screenParam = params.get('screen');
-      const restoredScreen = screenParam && config.screens.find((s) => s.id === screenParam);
+      const restoredScreen = screenParam && activeScreens.find((s) => s.id === screenParam);
       set({
         config,
-        selectedScreenId: restoredScreen ? restoredScreen.id : config.screens[0]?.id ?? null,
+        selectedDisplayId,
+        selectedScreenId: restoredScreen ? restoredScreen.id : activeScreens[0]?.id ?? null,
         selectedModuleId: null,
         isDirty: false,
         _past: [],
@@ -160,6 +287,32 @@ export const useEditorStore = create<EditorState>((set, get) => {
     } catch (err) {
       console.error('Failed to load config:', err);
     }
+  },
+
+  setSelectedDisplay: (id) => {
+    const { config } = get();
+    if (!config) return;
+    // Pick a sensible first screen for the newly-selected display.
+    const activeScreens = getActiveScreens(config, id);
+    const firstId = activeScreens[0]?.id ?? null;
+    set({
+      selectedDisplayId: id,
+      selectedScreenId: firstId,
+      selectedModuleId: null,
+    });
+    // Sync the URL so refreshes land back on the same display.
+    const url = new URL(window.location.href);
+    if (id) {
+      url.searchParams.set('display', id);
+    } else {
+      url.searchParams.delete('display');
+    }
+    if (firstId) {
+      url.searchParams.set('screen', firstId);
+    } else {
+      url.searchParams.delete('screen');
+    }
+    window.history.replaceState(null, '', url.toString());
   },
 
   saveConfig: async () => {
@@ -196,52 +349,60 @@ export const useEditorStore = create<EditorState>((set, get) => {
   addModule: (screenId, type, position) => {
     const def = getModuleDefinition(type);
     if (!def) return;
-    const cfg = get().config;
+    const state = get();
+    const cfg = state.config;
     const fillsCanvas = def.fillsCanvas && cfg;
+    const dims = cfg
+      ? getActiveDimensions(cfg, state.selectedDisplayId)
+      : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
     const newModule: ModuleInstance = {
       id: uuidv4(),
       type,
       position: fillsCanvas ? { x: 0, y: 0 } : (position ?? { x: 100, y: 100 }),
       size: fillsCanvas
-        ? { w: cfg.settings.displayWidth || DEFAULT_DISPLAY_WIDTH, h: cfg.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT }
+        ? { w: dims.width, h: dims.height }
         : { ...def.defaultSize },
       zIndex: 1,
       config: { ...def.defaultConfig },
       style: { ...defaultStyle, ...def.defaultStyle },
     };
     mutateConfig((config) => ({
-      config: {
-        ...config,
-        screens: config.screens.map((s) =>
+      config: withActiveScreens(
+        config,
+        get().selectedDisplayId,
+        getActiveScreens(config, get().selectedDisplayId).map((s) =>
           s.id === screenId ? { ...s, modules: [...s.modules, newModule] } : s,
         ),
-      },
+      ),
       selectedModuleId: newModule.id,
     }));
   },
 
   removeModule: (screenId, moduleId) => {
-    const { selectedModuleId } = get();
+    const { selectedModuleId, selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: {
-        ...config,
-        screens: config.screens.map((s) =>
+      config: withActiveScreens(
+        config,
+        selectedDisplayId,
+        getActiveScreens(config, selectedDisplayId).map((s) =>
           s.id === screenId ? { ...s, modules: s.modules.filter((m) => m.id !== moduleId) } : s,
         ),
-      },
+      ),
       selectedModuleId: selectedModuleId === moduleId ? null : selectedModuleId,
     }));
   },
 
   updateModule: (screenId, moduleId, updates) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, ...updates })),
+      config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, ...updates })),
     }), { coalesce: `updateModule:${moduleId}` });
   },
 
   updateModuleStyle: (screenId, moduleId, style) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: updateModuleInConfig(config, screenId, moduleId, (m) => ({
+      config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({
         ...m,
         style: { ...m.style, ...style },
       })),
@@ -249,26 +410,35 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   moveModule: (screenId, moduleId, position) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, position })),
+      config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, position })),
     }), { coalesce: `move:${moduleId}` });
   },
 
   resizeModule: (screenId, moduleId, size) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: updateModuleInConfig(config, screenId, moduleId, (m) => ({ ...m, size })),
+      config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, size })),
     }), { coalesce: `resize:${moduleId}` });
   },
 
   addScreen: () => {
+    const { config, selectedDisplayId } = get();
+    if (!config) return;
+    const currentScreens = getActiveScreens(config, selectedDisplayId);
     const newScreen: Screen = {
       id: uuidv4(),
-      name: `Screen ${(get().config?.screens.length ?? 0) + 1}`,
+      name: `Screen ${currentScreens.length + 1}`,
       backgroundImage: '',
       modules: [],
     };
-    mutateConfig((config) => ({
-      config: { ...config, screens: [...config.screens, newScreen] },
+    mutateConfig((cfg) => ({
+      config: withActiveScreens(
+        cfg,
+        selectedDisplayId,
+        [...getActiveScreens(cfg, selectedDisplayId), newScreen],
+      ),
       selectedScreenId: newScreen.id,
       selectedModuleId: null,
     }));
@@ -278,22 +448,39 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   removeScreen: (id) => {
-    const { config, selectedScreenId } = get();
-    if (!config || config.screens.length <= 1) return;
-    const screens = config.screens.filter((s) => s.id !== id);
+    const { config, selectedScreenId, selectedDisplayId } = get();
+    if (!config) return;
+    const activeScreens = getActiveScreens(config, selectedDisplayId);
+    if (activeScreens.length <= 1) return;
+    const screens = activeScreens.filter((s) => s.id !== id);
+
+    // Always strip the deleted screen ID from profile.screenIds — profiles
+    // are global (not per-display) and a profile created while editing one
+    // display can reference owned-screen IDs from that display. Leaving a
+    // dangling ID would silently shrink the profile when the rotator
+    // resolves it. The filter is a no-op for IDs that were never present.
     const profiles = config.profiles?.map((p) => ({
       ...p,
       screenIds: p.screenIds.filter((sid) => sid !== id),
     }));
-    // Also strip the removed screen from any display assignments so we
-    // never leave a dangling reference that the writeConfig validator rejects.
-    const displays = config.displays?.map((d) => ({
-      ...d,
-      screenIds: d.screenIds.filter((sid) => sid !== id),
-    }));
+    // Display cascade-prune stays legacy-only: owned `screens` are
+    // self-contained and can't cross-reference sibling displays. The only
+    // shared reference surface is the deprecated `screenIds` field, which
+    // only exists on displays that still use the shared-pool model.
+    const displays = selectedDisplayId
+      ? config.displays
+      : config.displays?.map((d) => ({
+          ...d,
+          ...(d.screenIds ? { screenIds: d.screenIds.filter((sid) => sid !== id) } : {}),
+        }));
+
+    let nextConfig = withActiveScreens(config, selectedDisplayId, screens);
+    if (profiles !== config.profiles) nextConfig = { ...nextConfig, profiles };
+    if (displays !== config.displays) nextConfig = { ...nextConfig, displays };
+
     const newSelectedId = selectedScreenId === id ? screens[0]?.id ?? null : selectedScreenId;
     mutateConfig(() => ({
-      config: { ...config, screens, profiles, displays },
+      config: nextConfig,
       selectedScreenId: newSelectedId,
       selectedModuleId: null,
     }));
@@ -305,20 +492,25 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   reorderScreens: (fromIndex: number, toIndex: number) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => {
-      const screens = [...config.screens];
+      const screens = [...getActiveScreens(config, selectedDisplayId)];
       const [moved] = screens.splice(fromIndex, 1);
       screens.splice(toIndex, 0, moved);
-      return { config: { ...config, screens } };
+      return { config: withActiveScreens(config, selectedDisplayId, screens) };
     });
   },
 
   updateScreen: (id, updates) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: {
-        ...config,
-        screens: config.screens.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-      },
+      config: withActiveScreens(
+        config,
+        selectedDisplayId,
+        getActiveScreens(config, selectedDisplayId).map((s) =>
+          s.id === id ? { ...s, ...updates } : s,
+        ),
+      ),
     }), { coalesce: `screen:${id}` });
   },
 
@@ -329,11 +521,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   addProfile: (name: string) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => {
       const newProfile: Profile = {
         id: uuidv4(),
         name,
-        screenIds: config.screens.map((s) => s.id),
+        screenIds: getActiveScreens(config, selectedDisplayId).map((s) => s.id),
       };
       return {
         config: { ...config, profiles: [...(config.profiles ?? []), newProfile] },
@@ -385,17 +578,89 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   addDisplay: (display) => {
+    // When no displays exist yet, adding one also auto-creates a "main"
+    // display for the hub Pi itself — the existing `config.screens` layout
+    // becomes Main's owned screens and the hub's kiosk (loading /display,
+    // which redirects to /display/main) keeps showing the original screens
+    // instead of getting routed to whatever new display was just added.
+    //
+    // Two paths bootstrap "main":
+    //   1. User adds a non-main display first → we auto-create a sibling
+    //      'main' that inherits the existing global screens.
+    //   2. User adds 'main' explicitly as the first display → the new
+    //      display itself inherits the existing global screens (we can't
+    //      auto-create a duplicate sibling — there can only be one 'main').
+    //
+    // New displays other than "main" start with an EMPTY screens list so
+    // they can be designed for their own resolution rather than inheriting
+    // a landscape layout that won't translate to portrait (or vice versa).
     mutateConfig((config) => {
+      const existingDisplays = config.displays ?? [];
+      const nextDisplays = [...existingDisplays];
+      let newSelectedId = get().selectedDisplayId;
+
+      const isFirstDisplay = existingDisplays.length === 0;
+      const hasMain = existingDisplays.some((d) => d.id === 'main');
+      const userAddingMainAsFirst = isFirstDisplay && display.id === 'main';
+      const userDidNotSpecifyScreens = !display.screens && !display.screenIds;
+
+      if (isFirstDisplay && !hasMain && display.id !== 'main') {
+        // Path 1: user added a non-main display first. Seed the Main
+        // display with the existing global screens + current global
+        // dimensions so the hub's kiosk keeps rendering what it was
+        // rendering before multi-display got turned on.
+        nextDisplays.push({
+          id: 'main',
+          name: 'Main Display',
+          screens: structuredClone(config.screens),
+          displayWidth: config.settings.displayWidth,
+          displayHeight: config.settings.displayHeight,
+          ...(config.settings.displayTransform
+            ? { displayTransform: config.settings.displayTransform }
+            : {}),
+        });
+      }
+
+      // Path 2: user explicitly added 'main' as the very first display
+      // without providing its own screens — inherit the existing global
+      // screens so the hub's kiosk survives the promotion to multi-display.
+      // Respect user-provided dims/transform from the form; only inherit
+      // global values for fields the caller left unset.
+      const inheritScreens = userAddingMainAsFirst && userDidNotSpecifyScreens;
+
       const newDisplay: DisplayNode = {
         id: display.id,
         name: display.name,
-        screenIds: display.screenIds ?? config.screens.map((s) => s.id),
+        // Own an empty screens list by default (designed at this display's
+        // resolution). Callers can still pass `screenIds` explicitly for the
+        // legacy shared-pool flow, or `screens` for pre-built layouts.
+        ...(inheritScreens
+          ? { screens: structuredClone(config.screens) }
+          : display.screens
+            ? { screens: display.screens }
+            : display.screenIds
+              ? { screenIds: display.screenIds }
+              : { screens: [] }),
+        ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
+        ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
+        ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),
         ...(display.profileIds ? { profileIds: display.profileIds } : {}),
         ...(display.activeProfile ? { activeProfile: display.activeProfile } : {}),
         ...(display.settings ? { settings: display.settings } : {}),
       };
+      nextDisplays.push(newDisplay);
+
+      // When bootstrapping multi-display mode, keep the editor focused on
+      // "main" so the user's existing screens stay visible until they
+      // explicitly switch to the newly-added display.
+      if (newSelectedId === null && nextDisplays.length > 0) {
+        newSelectedId =
+          nextDisplays.find((d) => d.id === 'main')?.id ?? nextDisplays[0].id;
+      }
+
       return {
-        config: { ...config, displays: [...(config.displays ?? []), newDisplay] },
+        config: { ...config, displays: nextDisplays },
+        selectedDisplayId: newSelectedId,
       };
     });
   },
@@ -412,16 +677,38 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   removeDisplay: (id) => {
+    const { selectedDisplayId, selectedScreenId } = get();
     mutateConfig((config) => {
       // Collapse an empty result back to undefined so a legacy single-display
       // config (where `displays` never existed) does not get promoted to an
       // empty-array "multi-display mode with no displays" state.
       const filtered = (config.displays ?? []).filter((d) => d.id !== id);
+      const nextDisplays = filtered.length > 0 ? filtered : undefined;
+
+      // If the currently-selected display is being removed, point the editor
+      // back at "main" (or the first remaining display, or null for legacy).
+      let nextSelected = selectedDisplayId;
+      if (selectedDisplayId === id) {
+        nextSelected =
+          nextDisplays?.find((d) => d.id === 'main')?.id ?? nextDisplays?.[0]?.id ?? null;
+      }
+
+      // Re-resolve selectedScreenId against the new active display: the
+      // previously-selected screen was owned by the removed display and is
+      // not reachable anywhere else, so we'd otherwise leave the editor
+      // pointing at a ghost ID until the user manually clicks a tab.
+      let nextSelectedScreenId = selectedScreenId;
+      if (nextSelected !== selectedDisplayId) {
+        const nextConfig = { ...config, displays: nextDisplays };
+        const nextActiveScreens = getActiveScreens(nextConfig, nextSelected);
+        nextSelectedScreenId = nextActiveScreens[0]?.id ?? null;
+      }
+
       return {
-        config: {
-          ...config,
-          displays: filtered.length > 0 ? filtered : undefined,
-        },
+        config: { ...config, displays: nextDisplays },
+        selectedDisplayId: nextSelected,
+        selectedScreenId: nextSelectedScreenId,
+        selectedModuleId: nextSelected !== selectedDisplayId ? null : get().selectedModuleId,
       };
     });
   },
@@ -436,15 +723,21 @@ export const useEditorStore = create<EditorState>((set, get) => {
     if (state.config) {
       const snapshot: HistoryEntry = {
         config: structuredClone(state.config),
+        selectedDisplayId: state.selectedDisplayId,
         selectedScreenId: state.selectedScreenId,
         selectedModuleId: state.selectedModuleId,
       };
       newPast = [...state._past, snapshot];
       if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
     }
-    const firstId = parsed.screens[0]?.id ?? null;
+    const nextDisplayId = parsed.displays && parsed.displays.length > 0
+      ? parsed.displays.find((d) => d.id === 'main')?.id ?? parsed.displays[0].id
+      : null;
+    const activeScreens = getActiveScreens(parsed, nextDisplayId);
+    const firstId = activeScreens[0]?.id ?? null;
     set({
       config: parsed,
+      selectedDisplayId: nextDisplayId,
       selectedScreenId: firstId,
       selectedModuleId: null,
       isDirty: true, saveError: null,
@@ -458,9 +751,22 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   exportLayout: (options = {}) => {
-    const { config } = get();
+    const { config, selectedDisplayId } = get();
     if (!config) return;
-    const layout = createLayoutExport(config, options);
+    // Export operates on the screens the editor is currently working on —
+    // a per-display export in multi-display mode, the global pool in legacy.
+    const activeScreens = getActiveScreens(config, selectedDisplayId);
+    const dims = getActiveDimensions(config, selectedDisplayId);
+    const tempConfig: ScreenConfiguration = {
+      ...config,
+      screens: activeScreens,
+      settings: {
+        ...config.settings,
+        displayWidth: dims.width,
+        displayHeight: dims.height,
+      },
+    };
+    const layout = createLayoutExport(tempConfig, options);
     const slug = (options.name ?? 'my-layout')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -475,14 +781,56 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   importLayoutAction: (layout, options) => {
+    const { selectedDisplayId } = get();
     let firstNewId: string | null = null;
     mutateConfig((config) => {
-      const updated = importLayoutCore(layout, config, options);
-      const existingIds = new Set(config.screens.map((s) => s.id));
+      // Work against a temp single-display view of the active screens so
+      // importLayoutCore's existing logic can scale/clamp modules to the
+      // target canvas without knowing about displays.
+      const activeScreens = getActiveScreens(config, selectedDisplayId);
+      const dims = getActiveDimensions(config, selectedDisplayId);
+      const tempConfig: ScreenConfiguration = {
+        ...config,
+        screens: activeScreens,
+        settings: {
+          ...config.settings,
+          displayWidth: dims.width,
+          displayHeight: dims.height,
+        },
+      };
+      const updated = importLayoutCore(layout, tempConfig, options);
+
+      // Apply the screen changes back to the active container, and carry
+      // any applyVisual settings/profile changes forward on the root config.
+      //
+      // In multi-display mode, preserve the ORIGINAL global displayWidth/Height
+      // when writing updated.settings back — the temp-config shim set those
+      // fields to the active display's dims so importLayoutCore could scale
+      // modules against the right canvas, but writing those per-display dims
+      // onto the root config would silently corrupt the global fallback for
+      // any display that relies on it.
+      const nextConfig = withActiveScreens(config, selectedDisplayId, updated.screens);
+      const settingsOut: GlobalSettings = selectedDisplayId
+        ? {
+            ...updated.settings,
+            displayWidth: config.settings.displayWidth,
+            displayHeight: config.settings.displayHeight,
+            ...(config.settings.displayTransform != null
+              ? { displayTransform: config.settings.displayTransform }
+              : {}),
+          }
+        : updated.settings;
+      const merged: ScreenConfiguration = {
+        ...nextConfig,
+        settings: settingsOut,
+        ...(updated.profiles ? { profiles: updated.profiles } : {}),
+      };
+
+      const existingIds = new Set(activeScreens.map((s) => s.id));
       firstNewId = updated.screens.find((s) => !existingIds.has(s.id))?.id
         ?? updated.screens[0]?.id ?? null;
       return {
-        config: updated,
+        config: merged,
         selectedScreenId: firstNewId,
         selectedModuleId: null,
       };
@@ -495,11 +843,19 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   scaleAllModules: (oldWidth, oldHeight, newWidth, newHeight) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => ({
-      config: {
-        ...config,
-        screens: scaleModulesToFit(config.screens, oldWidth, oldHeight, newWidth, newHeight),
-      },
+      config: withActiveScreens(
+        config,
+        selectedDisplayId,
+        scaleModulesToFit(
+          getActiveScreens(config, selectedDisplayId),
+          oldWidth,
+          oldHeight,
+          newWidth,
+          newHeight,
+        ),
+      ),
     }));
   },
 
@@ -514,6 +870,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     const currentSnapshot: HistoryEntry = {
       config: structuredClone(state.config),
+      selectedDisplayId: state.selectedDisplayId,
       selectedScreenId: state.selectedScreenId,
       selectedModuleId: state.selectedModuleId,
     };
@@ -521,6 +878,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     const newFuture = [...state._future, currentSnapshot];
     set({
       config: entry.config,
+      selectedDisplayId: entry.selectedDisplayId,
       selectedScreenId: entry.selectedScreenId,
       selectedModuleId: entry.selectedModuleId,
       isDirty: true,
@@ -531,13 +889,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
       _lastHistoryActionKey: '',
     });
 
-    if (entry.selectedScreenId !== state.selectedScreenId) {
+    if (entry.selectedScreenId !== state.selectedScreenId || entry.selectedDisplayId !== state.selectedDisplayId) {
       const url = new URL(window.location.href);
-      if (entry.selectedScreenId) {
-        url.searchParams.set('screen', entry.selectedScreenId);
-      } else {
-        url.searchParams.delete('screen');
-      }
+      if (entry.selectedScreenId) url.searchParams.set('screen', entry.selectedScreenId);
+      else url.searchParams.delete('screen');
+      if (entry.selectedDisplayId) url.searchParams.set('display', entry.selectedDisplayId);
+      else url.searchParams.delete('display');
       window.history.replaceState(null, '', url.toString());
     }
   },
@@ -551,6 +908,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     const currentSnapshot: HistoryEntry = {
       config: structuredClone(state.config),
+      selectedDisplayId: state.selectedDisplayId,
       selectedScreenId: state.selectedScreenId,
       selectedModuleId: state.selectedModuleId,
     };
@@ -558,6 +916,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     const newPast = [...state._past, currentSnapshot];
     set({
       config: entry.config,
+      selectedDisplayId: entry.selectedDisplayId,
       selectedScreenId: entry.selectedScreenId,
       selectedModuleId: entry.selectedModuleId,
       isDirty: true,
@@ -568,13 +927,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
       _lastHistoryActionKey: '',
     });
 
-    if (entry.selectedScreenId !== state.selectedScreenId) {
+    if (entry.selectedScreenId !== state.selectedScreenId || entry.selectedDisplayId !== state.selectedDisplayId) {
       const url = new URL(window.location.href);
-      if (entry.selectedScreenId) {
-        url.searchParams.set('screen', entry.selectedScreenId);
-      } else {
-        url.searchParams.delete('screen');
-      }
+      if (entry.selectedScreenId) url.searchParams.set('screen', entry.selectedScreenId);
+      else url.searchParams.delete('screen');
+      if (entry.selectedDisplayId) url.searchParams.set('display', entry.selectedDisplayId);
+      else url.searchParams.delete('display');
       window.history.replaceState(null, '', url.toString());
     }
   },

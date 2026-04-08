@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
 
@@ -16,9 +16,10 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { config, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, updateScreen } = useEditorStore();
 
-  const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
+  const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+  const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
 
   useEffect(() => {
     async function fetchBackgrounds() {

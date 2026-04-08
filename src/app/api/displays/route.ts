@@ -3,6 +3,7 @@ import { readConfig } from '@/lib/config';
 import {
   getAllDisplayStatuses,
   getUnadoptedDisplays,
+  getViewportReports,
 } from '@/lib/display-commands';
 import { withDisplayAuth } from '@/lib/api-utils';
 import type { ScreenConfiguration } from '@/types/config';
@@ -66,14 +67,31 @@ export const GET = withDisplayAuth(async (request) => {
   return NextResponse.json({
     displays: registered.map((d) => {
       const status = statuses.get(d.id);
+      const viewportReports = getViewportReports(d.id);
+      // Return a precomputed screen count rather than the full `screens` /
+      // `screenIds` arrays. The editor's Displays tab only renders the
+      // count, and the full `screens` array would include every module's
+      // config (potentially ~100KB per poll, every 5s, and potentially
+      // containing plugin-configured secrets).
+      const screenCount = d.screens?.length ?? d.screenIds?.length ?? 0;
       return {
         id: d.id,
         name: d.name,
-        screenIds: d.screenIds,
+        screenCount,
         profileIds: d.profileIds,
         activeProfile: d.activeProfile,
         settings: d.settings,
+        displayWidth: d.displayWidth,
+        displayHeight: d.displayHeight,
+        displayTransform: d.displayTransform,
         lastSeen: status?.lastSeen ?? null,
+        // Back-compat: the first (most recent) viewport stays in the old
+        // single-value field so older editor builds keep working, while the
+        // full list lets the current editor surface multi-client conflicts.
+        reportedViewport: viewportReports[0]
+          ? { width: viewportReports[0].width, height: viewportReports[0].height }
+          : status?.reportedViewport,
+        viewportReports,
         status: status
           ? {
               currentScreen: status.currentScreen,
@@ -85,9 +103,14 @@ export const GET = withDisplayAuth(async (request) => {
     }),
     unadopted: unadopted.map((unadoptedId) => {
       const status = statuses.get(unadoptedId);
+      const viewportReports = getViewportReports(unadoptedId);
       return {
         id: unadoptedId,
         lastSeen: status?.lastSeen ?? null,
+        reportedViewport: viewportReports[0]
+          ? { width: viewportReports[0].width, height: viewportReports[0].height }
+          : status?.reportedViewport,
+        viewportReports,
       };
     }),
   });

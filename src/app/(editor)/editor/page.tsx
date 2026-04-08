@@ -12,7 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { Check, AlertCircle } from 'lucide-react';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
@@ -21,6 +21,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import type { ModuleType } from '@/types/config';
 
 import ScreenTabs from '@/components/editor/ScreenTabs';
+import DisplaySwitcher from '@/components/editor/DisplaySwitcher';
 import ModulePalette from '@/components/editor/ModulePalette';
 import EditorCanvas from '@/components/editor/EditorCanvas';
 import PropertyPanel from '@/components/editor/PropertyPanel';
@@ -33,6 +34,7 @@ const MIN_EDITOR_WIDTH = 768;
 export default function EditorPage() {
   const {
     config,
+    selectedDisplayId,
     selectedScreenId,
     loadConfig,
     addModule,
@@ -65,7 +67,12 @@ export default function EditorPage() {
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
 
   useEffect(() => {
-    loadConfig();
+    // Zustand is a module-level singleton, so if the user is navigating
+    // here from /editor/settings the config is already in memory. Skip
+    // loadConfig in that case to preserve the undo/redo history (which
+    // would otherwise get reset to []), and also to avoid a needless
+    // /api/config fetch on every display switch from the Displays tab.
+    if (!useEditorStore.getState().config) loadConfig();
     loadPlugins();
   }, [loadConfig, loadPlugins]);
 
@@ -86,8 +93,12 @@ export default function EditorPage() {
       const snap = useEditorStore.getState().snapEnabled;
       const align = snap ? snapToGrid : Math.round;
 
-      const displayW = config?.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
-      const displayH = config?.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
+      // Canvas dimensions match the currently-selected display.
+      const dims = config
+        ? getActiveDimensions(config, selectedDisplayId)
+        : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
+      const displayW = dims.width;
+      const displayH = dims.height;
 
       if (data?.source === 'palette' && over.id === 'canvas-drop') {
         const scale = canvasScaleRef.current;
@@ -106,7 +117,8 @@ export default function EditorPage() {
         addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
       } else if (data?.source === 'canvas') {
         const moduleId = data.moduleId as string;
-        const screen = config?.screens.find((s) => s.id === selectedScreenId);
+        const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+        const screen = activeScreens.find((s) => s.id === selectedScreenId);
         const mod = screen?.modules.find((m) => m.id === moduleId);
         if (!mod) return;
 
@@ -119,7 +131,7 @@ export default function EditorPage() {
         moveModule(selectedScreenId, moduleId, { x: newX, y: newY });
       }
     },
-    [selectedScreenId, config, addModule, moveModule],
+    [selectedScreenId, selectedDisplayId, config, addModule, moveModule],
   );
 
   if (!config || pluginLoading) {
@@ -152,6 +164,7 @@ export default function EditorPage() {
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
             <HomeScreensLogo contextLabel="Editor" />
             <div className="h-8 w-px bg-neutral-800" />
+            <DisplaySwitcher />
             <ScreenTabs />
           </div>
           <div className="flex shrink-0 items-center gap-2">

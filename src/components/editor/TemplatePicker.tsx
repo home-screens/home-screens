@@ -6,7 +6,7 @@ import { TEMPLATE_CATALOG, TEMPLATE_CATEGORIES, loadTemplate, getDisplayOrientat
 import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
 import { getModuleDefinition } from '@/lib/module-registry';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 
 interface TemplatePickerProps {
@@ -16,12 +16,16 @@ interface TemplatePickerProps {
 
 export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
   const config = useEditorStore((s) => s.config);
+  const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [category, setCategory] = useState<string>('All');
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const displayWidth = config?.settings.displayWidth ?? 1080;
-  const displayHeight = config?.settings.displayHeight ?? 1920;
+  const dims = config
+    ? getActiveDimensions(config, selectedDisplayId)
+    : { width: 1080, height: 1920 };
+  const displayWidth = dims.width;
+  const displayHeight = dims.height;
   const orientation = getDisplayOrientation(displayWidth, displayHeight);
 
   const filtered =

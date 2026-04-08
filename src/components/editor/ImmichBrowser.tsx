@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 
 interface ImmichAlbum { id: string; name: string; assetCount: number }
@@ -14,7 +14,10 @@ interface Props {
 
 export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props) {
   const { updateScreen } = useEditorStore();
-  const currentScreen = useEditorStore((s) => s.config?.screens.find((sc) => sc.id === selectedScreenId));
+  const currentScreen = useEditorStore((s) => {
+    if (!s.config) return undefined;
+    return getActiveScreens(s.config, s.selectedDisplayId).find((sc) => sc.id === selectedScreenId);
+  });
   const [albums, setAlbums] = useState<ImmichAlbum[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);

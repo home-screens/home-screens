@@ -8,6 +8,7 @@ import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
 import { immichFetch } from '@/lib/immich';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { findScreenById } from '@/lib/display-filter';
 import type { BackgroundRotation } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -166,9 +167,12 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'screenId required' }, { status: 400 });
   }
 
-  // Read config to get this screen's rotation settings
+  // Read config to get this screen's rotation settings. Look across every
+  // display's owned `screens` AND the legacy global pool — in multi-display
+  // mode the screen we care about almost certainly lives under a
+  // `display.screens` array, not `config.screens`.
   const config = await readConfig();
-  const screen = config.screens.find((s) => s.id === screenId);
+  const screen = findScreenById(config, screenId);
   if (!screen) {
     return NextResponse.json({ path: null });
   }

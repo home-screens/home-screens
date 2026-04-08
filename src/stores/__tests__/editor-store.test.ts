@@ -519,58 +519,122 @@ describe('editor store', () => {
   /* ─── Display CRUD ────────────────────────────── */
 
   describe('addDisplay', () => {
-    it('appends a display to the registry with the given name and ID', () => {
+    it('auto-creates a Main display alongside the first added display', () => {
+      // This is the "hub display fix": adding the first display also
+      // registers a `main` entry so the hub Pi's kiosk (loading /display,
+      // which redirects to /display/main) keeps showing its existing
+      // screens instead of whatever new display was just added.
       const store = useEditorStore;
-      store.setState({ config: makeConfig(), isDirty: false });
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config, isDirty: false });
 
       store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
 
       const displays = store.getState().config!.displays!;
-      expect(displays).toHaveLength(1);
-      expect(displays[0]).toMatchObject({ id: 'kitchen', name: 'Kitchen' });
+      expect(displays).toHaveLength(2);
+      expect(displays[0].id).toBe('main');
+      expect(displays[0].name).toBe('Main Display');
+      expect(displays[1].id).toBe('kitchen');
       expect(store.getState().isDirty).toBe(true);
     });
 
-    it('defaults screenIds to all current screens when not provided', () => {
+    it('main inherits the existing global screens and global dimensions', () => {
       const store = useEditorStore;
       const config = makeConfig({
         screens: [
           { id: 's1', name: 'A', backgroundImage: '', modules: [] },
           { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+      });
+      config.settings.displayWidth = 1920;
+      config.settings.displayHeight = 1080;
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const main = store.getState().config!.displays!.find((d) => d.id === 'main')!;
+      expect(main.screens?.map((s) => s.id)).toEqual(['s1', 's2']);
+      expect(main.displayWidth).toBe(1920);
+      expect(main.displayHeight).toBe(1080);
+    });
+
+    it('new non-main displays start with an empty screens list', () => {
+      // Per the data model: a freshly-added display owns an empty list of
+      // screens so the user designs fresh layouts at its own resolution
+      // rather than inheriting the hub's layout which won't translate.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
         ],
       });
       store.setState({ config });
 
       store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
 
-      expect(store.getState().config!.displays![0].screenIds).toEqual(['s1', 's2']);
+      const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.screens).toEqual([]);
+      expect(kitchen.screenIds).toBeUndefined();
     });
 
-    it('uses an explicit screenIds list when provided', () => {
+    it('does not double-create main when explicitly adding a display called "main"', () => {
       const store = useEditorStore;
-      const config = makeConfig({
-        screens: [
-          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
-          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
-        ],
-      });
-      store.setState({ config });
+      store.setState({ config: makeConfig() });
 
-      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] });
+      store.getState().addDisplay({ id: 'main', name: 'Main' });
 
-      expect(store.getState().config!.displays![0].screenIds).toEqual(['s1']);
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(1);
+      expect(displays[0].id).toBe('main');
+    });
+
+    it('does not re-create main when a second display is added', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig() });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+      store.getState().addDisplay({ id: 'bedroom', name: 'Bedroom' });
+
+      const displays = store.getState().config!.displays!;
+      // main + kitchen + bedroom
+      expect(displays.map((d) => d.id)).toEqual(['main', 'kitchen', 'bedroom']);
     });
 
     it('omits optional fields when not provided to keep saved JSON minimal', () => {
       const store = useEditorStore;
       store.setState({ config: makeConfig() });
 
-      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+      store.getState().addDisplay({ id: 'main', name: 'Main' });
 
       const display = store.getState().config!.displays![0];
       expect(display).not.toHaveProperty('profileIds');
       expect(display).not.toHaveProperty('activeProfile');
       expect(display).not.toHaveProperty('settings');
+    });
+
+    it('applies explicit per-display dimensions when provided', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig() });
+
+      // Add main first to skip the auto-main branch
+      store.getState().addDisplay({ id: 'main', name: 'Main' });
+      store.getState().addDisplay({
+        id: 'kitchen',
+        name: 'Kitchen',
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90',
+      });
+
+      const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.displayWidth).toBe(1080);
+      expect(kitchen.displayHeight).toBe(1920);
+      expect(kitchen.displayTransform).toBe('90');
     });
   });
 
@@ -1257,6 +1321,278 @@ describe('editor store', () => {
 
       store.getState().redo();
       expect(store.getState().config!.screens[0].modules).toHaveLength(2);
+    });
+  });
+
+  /* ─── Multi-display regression guards ─────────────── */
+
+  describe('multi-display: removeScreen strips profile refs in multi-display mode', () => {
+    it('removes a deleted owned-screen ID from all profile.screenIds', async () => {
+      // Regression guard: profiles are GLOBAL (not per-display), and a
+      // profile created while editing a display can reference owned-screen
+      // IDs from that display. If removeScreen skips profile cleanup in
+      // multi-display mode, deleting the screen leaves a dangling ID that
+      // silently shrinks the profile when the rotator resolves it.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [
+            { id: 'k1', name: 'K1', backgroundImage: '', modules: [] },
+            { id: 'k2', name: 'K2', backgroundImage: '', modules: [] },
+          ],
+          displayWidth: 1080,
+          displayHeight: 1920,
+        }],
+        profiles: [
+          { id: 'day', name: 'Day', screenIds: ['k1', 'k2'] },
+          { id: 'night', name: 'Night', screenIds: ['k2'] },
+        ],
+      });
+      store.setState({
+        config,
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+      });
+
+      store.getState().removeScreen('k2');
+
+      const profiles = store.getState().config!.profiles!;
+      expect(profiles[0].screenIds).toEqual(['k1']);
+      expect(profiles[1].screenIds).toEqual([]);
+      // The display's owned screens should also have been updated.
+      const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.screens?.map((s) => s.id)).toEqual(['k1']);
+    });
+  });
+
+  describe('multi-display: removeDisplay re-resolves selectedScreenId', () => {
+    it('points selectedScreenId at the new active display when the selected display is removed', () => {
+      // Regression guard: the previously-selected screen was owned by the
+      // removed display and is unreachable — leaving selectedScreenId
+      // pointing at it would leave the canvas blank until the user
+      // manually clicks a tab.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [],
+        displays: [
+          {
+            id: 'main',
+            name: 'Main',
+            screens: [{ id: 'main-1', name: 'Main 1', backgroundImage: '', modules: [] }],
+          },
+          {
+            id: 'kitchen',
+            name: 'Kitchen',
+            screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+          },
+        ],
+      });
+      store.setState({
+        config,
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+        selectedModuleId: 'irrelevant-mod-id',
+      });
+
+      store.getState().removeDisplay('kitchen');
+
+      const state = store.getState();
+      expect(state.selectedDisplayId).toBe('main');
+      expect(state.selectedScreenId).toBe('main-1');
+      expect(state.selectedModuleId).toBeNull();
+    });
+
+    it('collapses to legacy mode and picks the global pool first screen when the last display is removed', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        // Legacy pool has a surviving screen that should be picked after
+        // the display collapses.
+        screens: [{ id: 'legacy-1', name: 'L1', backgroundImage: '', modules: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+        }],
+      });
+      store.setState({
+        config,
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+      });
+
+      store.getState().removeDisplay('kitchen');
+
+      const state = store.getState();
+      expect(state.config!.displays).toBeUndefined();
+      expect(state.selectedDisplayId).toBeNull();
+      expect(state.selectedScreenId).toBe('legacy-1');
+    });
+  });
+
+  describe('multi-display: addDisplay({id: "main"}) as first display inherits existing screens', () => {
+    it('seeds the explicit main display with the existing global screens so the hub kiosk survives', () => {
+      // Regression guard: a user who names their first display "main"
+      // should get the same hub-survival behavior as the auto-create-main
+      // branch. Without this, the hub Pi silently loses its existing
+      // screens and shows an empty kiosk after multi-display is enabled.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({
+        id: 'main',
+        name: 'Main',
+        displayWidth: 1920,
+        displayHeight: 1080,
+      });
+
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(1);
+      expect(displays[0].id).toBe('main');
+      expect(displays[0].screens?.map((s) => s.id)).toEqual(['s1', 's2']);
+      // User-provided dims are still respected (not overwritten by global).
+      expect(displays[0].displayWidth).toBe(1920);
+      expect(displays[0].displayHeight).toBe(1080);
+    });
+  });
+
+  describe('multi-display: importLayoutAction preserves global dims in multi-display mode', () => {
+    it('does not leak per-display dimensions into config.settings when importing', async () => {
+      // Regression guard: importLayoutAction builds a temp-config shim
+      // with the active display's dims so importLayoutCore can scale
+      // modules correctly. Those per-display dims must NOT be written
+      // back onto config.settings — doing so would silently corrupt the
+      // global fallback for any display that still relies on it.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [],
+        displays: [
+          {
+            id: 'main',
+            name: 'Main',
+            screens: [{ id: 'main-1', name: 'Main 1', backgroundImage: '', modules: [] }],
+            displayWidth: 1920,
+            displayHeight: 1080,
+          },
+          {
+            id: 'kitchen',
+            name: 'Kitchen',
+            screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+            displayWidth: 1080,
+            displayHeight: 1920,
+          },
+        ],
+      });
+      // Hub-level global dims — must survive the import below.
+      config.settings.displayWidth = 1920;
+      config.settings.displayHeight = 1080;
+      store.setState({
+        config,
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+      });
+
+      const layoutJson = {
+        _type: 'home-screens-layout' as const,
+        _version: 1 as const,
+        metadata: {
+          name: 'test',
+          description: '',
+          exportedAt: new Date().toISOString(),
+          configVersion: 1,
+          sourceDisplay: { width: 1080, height: 1920 },
+          screenCount: 1,
+          moduleCount: 0,
+        },
+        visual: {
+          rotationIntervalMs: 30000,
+        },
+        screens: [{
+          id: 'imported-1',
+          name: 'Imported',
+          backgroundImage: '',
+          modules: [],
+        }],
+      };
+
+      store.getState().importLayoutAction(layoutJson, { mode: 'add' });
+
+      const state = store.getState();
+      // Global settings dims remain at the hub's resolution, NOT the
+      // kitchen's per-display dims.
+      expect(state.config!.settings.displayWidth).toBe(1920);
+      expect(state.config!.settings.displayHeight).toBe(1080);
+      // The imported screen landed in the kitchen display (screens are
+      // assigned fresh UUIDs by importLayoutCore, so check by length and
+      // that the original is still there).
+      const kitchen = state.config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.screens).toHaveLength(2);
+      expect(kitchen.screens?.some((s) => s.id === 'k1')).toBe(true);
+      // The legacy global pool stays empty — nothing leaked into it.
+      expect(state.config!.screens).toEqual([]);
+      // Main's screens are untouched.
+      const main = state.config!.displays!.find((d) => d.id === 'main')!;
+      expect(main.screens).toHaveLength(1);
+      expect(main.screens?.[0].id).toBe('main-1');
+    });
+  });
+
+  describe('multi-display: getActiveScreens helper branches', () => {
+    it('returns config.screens when selectedDisplayId is null (legacy mode)', async () => {
+      const mod = await import('@/stores/editor-store');
+      const config = makeConfig({
+        screens: [{ id: 'g1', name: 'G1', backgroundImage: '', modules: [] }],
+      });
+      expect(mod.getActiveScreens(config, null)).toEqual([
+        { id: 'g1', name: 'G1', backgroundImage: '', modules: [] },
+      ]);
+    });
+
+    it('returns display.screens for a multi-display with owned screens', async () => {
+      const mod = await import('@/stores/editor-store');
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+        }],
+      });
+      expect(mod.getActiveScreens(config, 'kitchen').map((s) => s.id)).toEqual(['k1']);
+    });
+
+    it('resolves legacy screenIds against config.screens when the display uses the shared-pool model', async () => {
+      const mod = await import('@/stores/editor-store');
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+        displays: [{
+          id: 'kitchen',
+          name: 'K',
+          screenIds: ['s2'],
+        }],
+      });
+      expect(mod.getActiveScreens(config, 'kitchen').map((s) => s.id)).toEqual(['s2']);
+    });
+
+    it('falls back to config.screens when the selected display ID is unknown', async () => {
+      const mod = await import('@/stores/editor-store');
+      const config = makeConfig({
+        screens: [{ id: 'g1', name: 'G1', backgroundImage: '', modules: [] }],
+      });
+      expect(mod.getActiveScreens(config, 'does-not-exist')).toEqual([
+        { id: 'g1', name: 'G1', backgroundImage: '', modules: [] },
+      ]);
     });
   });
 });

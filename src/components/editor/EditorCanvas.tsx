@@ -3,8 +3,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { useDroppable, useDndMonitor } from '@dnd-kit/core';
 import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3, LayoutDashboard } from 'lucide-react';
-import { useEditorStore } from '@/stores/editor-store';
-import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE, snapToGrid } from '@/lib/constants';
+import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
+import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import type { ModuleInstance } from '@/types/config';
@@ -84,7 +84,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerCanvasRef = useRef<HTMLDivElement>(null);
   const [baseScale, setBaseScale] = useState(0.4);
-  const { config, selectedScreenId, selectedModuleId, selectModule, resizeModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, resizeModule } = useEditorStore();
   const previewData = usePreviewData();
   const [dragState, setDragState] = useState<{
     moduleId: string;
@@ -94,8 +94,13 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const [isDragging, setIsDragging] = useState(false);
   const scaleAtDragStartRef = useRef(0);
 
-  const displayWidth = config?.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
-  const displayHeight = config?.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
+  // In multi-display mode, the canvas renders at the currently-selected
+  // display's resolution so modules lay out against the actual target screen.
+  const dims = config
+    ? getActiveDimensions(config, selectedDisplayId)
+    : { width: 1080, height: 1920 };
+  const displayWidth = dims.width;
+  const displayHeight = dims.height;
 
   const { userZoom, effectiveScale, zoomIn, zoomOut, resetZoom } = useCanvasZoom(
     baseScale,
@@ -153,7 +158,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     units: config.settings.weather.units,
     fullscreenTheme: config.settings.fullscreenTheme,
   } : null;
-  const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
+  const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+  const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
 
   // Poll the server-side background cache so the editor shows the same
   // rotating background that the display is using.

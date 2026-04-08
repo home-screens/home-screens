@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
@@ -184,10 +184,11 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
 };
 
 export default function PropertyPanel() {
-  const { config, selectedScreenId, selectedModuleId, removeModule, updateModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, updateModule } = useEditorStore();
   const pluginMap = usePluginStore((s) => s.plugins);
 
-  const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
+  const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+  const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
   const selectedModule = currentScreen?.modules.find((m) => m.id === selectedModuleId);
 
   if (!selectedModule || !selectedScreenId) {

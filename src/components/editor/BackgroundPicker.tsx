@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import type { BackgroundRotation } from '@/types/config';
 import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
@@ -75,12 +75,13 @@ function ImmichRotationFields({ rotation, onChange }: {
 
 export default function BackgroundPicker() {
   const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('unsplash');
-  const { config, selectedScreenId, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
   const [hasNasaKey, setHasNasaKey] = useState(false);
   const [hasImmichKey, setHasImmichKey] = useState(false);
 
-  const currentScreen = config?.screens.find((s) => s.id === selectedScreenId);
+  const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+  const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
   const rotationSource = currentScreen?.backgroundRotation?.source || 'unsplash';
 
   useEffect(() => {

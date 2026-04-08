@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 
 interface LayoutExportModalProps {
@@ -11,8 +11,8 @@ interface LayoutExportModalProps {
 }
 
 export default function LayoutExportModal({ onClose, preSelectedScreenId }: LayoutExportModalProps) {
-  const { config, exportLayout } = useEditorStore();
-  const screens = config?.screens ?? [];
+  const { config, selectedDisplayId, exportLayout } = useEditorStore();
+  const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
 
   const preSelectedScreen = preSelectedScreenId
     ? screens.find((s) => s.id === preSelectedScreenId)

@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
@@ -95,7 +95,7 @@ interface ProfileCardProps {
 }
 
 function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: ProfileCardProps) {
-  const { config, updateProfile, removeProfile } = useEditorStore();
+  const { config, selectedDisplayId, updateProfile, removeProfile } = useEditorStore();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
@@ -123,7 +123,10 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
   if (!config) return null;
 
-  const screens = config.screens;
+  // Profiles reference the screens of whichever display the editor is
+  // currently working on. In legacy single-display mode this resolves to
+  // the global screen pool.
+  const screens = getActiveScreens(config, selectedDisplayId);
   const activeProfileId = config.settings.activeProfile;
 
   // Screens included in this profile (in profile order)

@@ -57,6 +57,14 @@ export interface DisplayStatus {
   cacheStats?: CacheStats;
   /** Server-side heartbeat: when this display was last seen polling. */
   lastSeen?: number;
+  /**
+   * Viewport dimensions self-reported by the display's browser. Captured
+   * from `window.innerWidth`/`innerHeight` on each status POST — these are
+   * post-rotation, so a wlr-randr --transform 90 on a 1920×1080 screen
+   * reports as 1080×1920 directly. The editor's adoption form pre-fills
+   * `displayWidth`/`displayHeight` from this when the user clicks "Adopt".
+   */
+  reportedViewport?: { width: number; height: number };
 }
 
 /** Sentinel queue key for displays that poll without an explicit `displayId`. */
@@ -77,6 +85,21 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
  */
 const MAX_KNOWN_DISPLAYS = 64;
 
+/**
+ * An unadopted display that stops heartbeating for this long is evicted
+ * from `knownDisplays` / `statusMap` / `viewportReports` / `commandQueues`
+ * so it disappears from the editor's Unadopted section. Adopted displays
+ * (those listed in `config.displays`) are NOT subject to this eviction —
+ * they always appear in the registered list regardless of heartbeat age,
+ * which is the right behavior: a powered-off kitchen Pi should still show
+ * up in the editor with an "offline" badge, not vanish entirely.
+ *
+ * The current heartbeat cadence is 3s, so ~2 minutes is long enough to
+ * ride out brief network hiccups while still feeling responsive when a
+ * mistakenly-configured Pi is taken off the LAN.
+ */
+const UNADOPTED_STALENESS_MS = 2 * 60 * 1000;
+
 /** True for any ID safe to use as a queue/status/heartbeat key. */
 function isValidDisplayId(id: string): boolean {
   return id.length > 0 && id.length <= 64 && SLUG_RE.test(id);
@@ -86,6 +109,88 @@ const commandQueues = new Map<string, DisplayCommand[]>();
 const statusMap = new Map<string, DisplayStatus>();
 /** Set of displays that have polled at least once — used for broadcast fan-out. */
 const knownDisplays = new Set<string>();
+
+/** Per-tab viewport reports keyed by displayId → clientId. */
+export interface ViewportReport {
+  width: number;
+  height: number;
+  /** When this client last reported (ms since epoch) */
+  lastSeen: number;
+  /**
+   * Source IP the report arrived from (from `x-forwarded-for` /
+   * `x-real-ip` / the connection peer, via `getClientIP`). Lets the
+   * editor surface "which device on the LAN is actually posting this"
+   * so a phantom reporter (stale tab, stray curl loop, duplicate install)
+   * can be traced back to a specific box instead of a mystery.
+   */
+  clientAddress?: string;
+}
+const VIEWPORT_REPORT_TTL_MS = 60_000;
+const MAX_CLIENTS_PER_DISPLAY = 16;
+const viewportReports = new Map<string, Map<string, ViewportReport>>();
+
+function pruneStaleClients(perClient: Map<string, ViewportReport>): void {
+  const cutoff = Date.now() - VIEWPORT_REPORT_TTL_MS;
+  for (const [clientId, report] of perClient) {
+    if (report.lastSeen < cutoff) perClient.delete(clientId);
+  }
+}
+
+/**
+ * Record a viewport report from a specific browser tab. Tracking per-client
+ * (not per-display) lets the editor surface "multiple things are reporting
+ * with the same display ID" rather than silently flapping between two values.
+ *
+ * Stale clients are pruned every write so abandoned tabs don't pollute the
+ * reported list forever, and a hard cap stops a malicious caller from
+ * spawning unbounded clients.
+ */
+export function recordViewportReport(
+  displayId: string,
+  clientId: string,
+  width: number,
+  height: number,
+  clientAddress?: string,
+): void {
+  if (!isValidDisplayId(displayId)) return;
+  if (!clientId || clientId.length > 64 || clientId.length < 1) return;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+
+  let perClient = viewportReports.get(displayId);
+  if (!perClient) {
+    perClient = new Map();
+    viewportReports.set(displayId, perClient);
+  }
+  pruneStaleClients(perClient);
+
+  // Refuse new clients past the cap, but always accept updates from
+  // clients we already know about.
+  if (perClient.size >= MAX_CLIENTS_PER_DISPLAY && !perClient.has(clientId)) return;
+
+  perClient.set(clientId, {
+    width,
+    height,
+    lastSeen: Date.now(),
+    ...(clientAddress ? { clientAddress } : {}),
+  });
+}
+
+/**
+ * Returns all live viewport reports for a display, sorted most-recent-first.
+ *
+ * Entries are NOT de-duplicated by `(width, height)` here: if two clients
+ * from different IPs both report the same 1440×2560 viewport, we want the
+ * editor to see them as two distinct rows so the user can tell them apart
+ * by source address. Stale entries (>60s) are pruned before returning.
+ */
+export function getViewportReports(displayId: string): ViewportReport[] {
+  const perClient = viewportReports.get(displayId);
+  if (!perClient) return [];
+  pruneStaleClients(perClient);
+  return [...perClient.values()]
+    .map((r) => ({ ...r }))
+    .sort((a, b) => b.lastSeen - a.lastSeen);
+}
 
 function pushTo(queueId: string, command: DisplayCommand): void {
   const queue = commandQueues.get(queueId);
@@ -184,6 +289,34 @@ function makeEmptyStatus(): DisplayStatus {
  * `drainCommands`. The literal `'all'` is rejected because it has no
  * meaning here (broadcast is an enqueue-only concept).
  */
+/**
+ * A "stub heartbeat" is a status POST whose only real payload is the
+ * heartbeat itself — sent by `DisplayNotFound` on unadopted Pis so the hub
+ * registers the display ID without pretending to know what screen is
+ * showing. We detect these by the empty `currentScreen.id` + `screenCount
+ * === 0` signature and avoid clobbering a previously-stored real status,
+ * which could otherwise flash blank in the editor's Displays tab if an
+ * adopted display transiently falls back to DisplayNotFound.
+ */
+function isStubHeartbeat(status: DisplayStatus): boolean {
+  return status.currentScreen?.id === '' && status.screenCount === 0;
+}
+
+/**
+ * Returns the viewport only if it's a sane, positive, finite pair. A
+ * polling Pi can legitimately POST `{width: 0, height: 0}` during initial
+ * layout, and we don't want that noise to pollute the editor's adoption
+ * form pre-fill.
+ */
+function sanitizeViewport(
+  v: { width: number; height: number } | undefined,
+): { width: number; height: number } | undefined {
+  if (!v) return undefined;
+  if (!Number.isFinite(v.width) || !Number.isFinite(v.height)) return undefined;
+  if (v.width <= 0 || v.height <= 0) return undefined;
+  return v;
+}
+
 export function setDisplayStatus(status: DisplayStatus, displayId?: string): void {
   if (displayId !== undefined && !isValidDisplayId(displayId)) return;
 
@@ -196,8 +329,27 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
     }
     knownDisplays.add(displayId);
   }
+  const existing = statusMap.get(id);
+  const incomingViewport = sanitizeViewport(status.reportedViewport);
+
+  // Stub heartbeat + we already have a real status → only refresh the
+  // liveness fields (lastSeen + reportedViewport) and preserve the real
+  // currentScreen/screenCount/activeProfile that the rotator reported.
+  if (existing && !isStubHeartbeat(existing) && isStubHeartbeat(status)) {
+    statusMap.set(id, {
+      ...existing,
+      reportedViewport: incomingViewport ?? existing.reportedViewport,
+      lastSeen: Date.now(),
+    });
+    return;
+  }
+
+  // Preserve reportedViewport across updates when the new status doesn't
+  // carry one — the display reports it on every POST in practice, but we
+  // don't want to drop the value if a single report happens to omit it.
   statusMap.set(id, {
     ...status,
+    reportedViewport: incomingViewport ?? existing?.reportedViewport,
     // Heartbeat is "now" — when the report arrives. Math.max with the
     // previous lastSeen would be redundant since Date.now() is monotonic.
     lastSeen: Date.now(),
@@ -227,7 +379,30 @@ export function getAllDisplayStatuses(): Map<string, DisplayStatus> {
  */
 export function getUnadoptedDisplays(configDisplayIds: string[]): string[] {
   const configured = new Set(configDisplayIds);
-  return [...knownDisplays].filter((id) => !configured.has(id));
+  const now = Date.now();
+  const stillFresh: string[] = [];
+  const stale: string[] = [];
+
+  for (const id of knownDisplays) {
+    if (configured.has(id)) continue; // adopted — not an unadopted concern
+    const lastSeen = statusMap.get(id)?.lastSeen ?? 0;
+    if (lastSeen && now - lastSeen <= UNADOPTED_STALENESS_MS) {
+      stillFresh.push(id);
+    } else {
+      stale.push(id);
+    }
+  }
+
+  // Evict stale unadopted displays from every tracking structure so they
+  // disappear from the editor and don't leak memory for abandoned Pis.
+  for (const id of stale) {
+    knownDisplays.delete(id);
+    statusMap.delete(id);
+    viewportReports.delete(id);
+    commandQueues.delete(id);
+  }
+
+  return stillFresh;
 }
 
 /**
@@ -238,4 +413,5 @@ export function __resetForTests(): void {
   commandQueues.clear();
   statusMap.clear();
   knownDisplays.clear();
+  viewportReports.clear();
 }

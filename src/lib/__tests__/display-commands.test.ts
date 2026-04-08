@@ -6,6 +6,8 @@ import {
   getDisplayStatus,
   getAllDisplayStatuses,
   getUnadoptedDisplays,
+  recordViewportReport,
+  getViewportReports,
   __resetForTests,
   type DisplayStatus,
 } from '@/lib/display-commands';
@@ -208,5 +210,134 @@ describe('getUnadoptedDisplays', () => {
 
   it('returns empty when nothing has polled', () => {
     expect(getUnadoptedDisplays(['kitchen'])).toEqual([]);
+  });
+
+  it('prunes unadopted displays whose last heartbeat is older than the staleness window', async () => {
+    // Seed an unadopted display with a stale heartbeat by stubbing Date.now.
+    const realNow = Date.now;
+    const longAgo = realNow() - 5 * 60 * 1000; // 5 minutes ago
+    try {
+      // Stub Date.now so drainCommands writes a "5 minutes ago" lastSeen
+      Date.now = () => longAgo;
+      drainCommands('abandoned');
+    } finally {
+      Date.now = realNow;
+    }
+
+    // First call with real now() sees the stale entry and prunes it
+    expect(getUnadoptedDisplays([])).toEqual([]);
+    // Second call confirms it's really gone from the tracking maps
+    expect(getUnadoptedDisplays([])).toEqual([]);
+    expect(getDisplayStatus('abandoned')).toBeNull();
+  });
+
+  it('keeps unadopted displays whose heartbeat is fresh', () => {
+    drainCommands('kitchen');
+    expect(getUnadoptedDisplays([])).toEqual(['kitchen']);
+    // Calling again doesn't prune it (still fresh)
+    expect(getUnadoptedDisplays([])).toEqual(['kitchen']);
+  });
+
+  it('never prunes adopted displays even when stale', () => {
+    const realNow = Date.now;
+    const longAgo = realNow() - 10 * 60 * 1000;
+    try {
+      Date.now = () => longAgo;
+      drainCommands('kitchen');
+    } finally {
+      Date.now = realNow;
+    }
+    // 'kitchen' is in the config (configDisplayIds), so it's NOT unadopted
+    // and NOT subject to pruning. Its statusMap entry stays.
+    getUnadoptedDisplays(['kitchen']);
+    expect(getDisplayStatus('kitchen')?.lastSeen).toBe(longAgo);
+  });
+});
+
+describe('viewport reports (per-client tracking)', () => {
+  it('records and returns a single viewport per client', () => {
+    recordViewportReport('kitchen', 'client-a', 1920, 1080);
+    const reports = getViewportReports('kitchen');
+    expect(reports).toHaveLength(1);
+    expect(reports[0]).toMatchObject({ width: 1920, height: 1080 });
+  });
+
+  it('tracks multiple distinct clients posting different viewports', () => {
+    recordViewportReport('home-screens', 'client-a', 1440, 2560);
+    recordViewportReport('home-screens', 'client-b', 1024, 768);
+    const reports = getViewportReports('home-screens');
+    expect(reports).toHaveLength(2);
+    // Most recent first (client-b was recorded later)
+    expect(reports.map((r) => `${r.width}x${r.height}`).sort()).toEqual([
+      '1024x768',
+      '1440x2560',
+    ]);
+  });
+
+  it('keeps clients with identical viewports as distinct rows', () => {
+    // Intentionally not deduped: two devices with the same resolution
+    // but different source IPs need to appear as two rows in the editor
+    // so the user can trace the phantom reporter by address.
+    recordViewportReport('home-screens', 'client-a', 1440, 2560, '192.168.1.10');
+    recordViewportReport('home-screens', 'client-b', 1440, 2560, '192.168.1.20');
+    const reports = getViewportReports('home-screens');
+    expect(reports).toHaveLength(2);
+    expect(reports.map((r) => r.clientAddress).sort()).toEqual([
+      '192.168.1.10',
+      '192.168.1.20',
+    ]);
+  });
+
+  it('records the client source address when provided', () => {
+    recordViewportReport('kitchen', 'client-a', 1920, 1080, '10.0.0.5');
+    const reports = getViewportReports('kitchen');
+    expect(reports[0].clientAddress).toBe('10.0.0.5');
+  });
+
+  it('updates an existing client when it re-reports', () => {
+    recordViewportReport('kitchen', 'client-a', 1024, 768);
+    recordViewportReport('kitchen', 'client-a', 1920, 1080);
+    const reports = getViewportReports('kitchen');
+    expect(reports).toHaveLength(1);
+    expect(reports[0]).toMatchObject({ width: 1920, height: 1080 });
+  });
+
+  it('rejects invalid display ids', () => {
+    recordViewportReport('INVALID', 'client-a', 1920, 1080);
+    expect(getViewportReports('INVALID')).toEqual([]);
+  });
+
+  it('rejects empty client ids', () => {
+    recordViewportReport('kitchen', '', 1920, 1080);
+    expect(getViewportReports('kitchen')).toEqual([]);
+  });
+
+  it('rejects non-positive dimensions', () => {
+    recordViewportReport('kitchen', 'client-a', 0, 1080);
+    recordViewportReport('kitchen', 'client-b', 1920, -1);
+    recordViewportReport('kitchen', 'client-c', Infinity, 1080);
+    expect(getViewportReports('kitchen')).toEqual([]);
+  });
+
+  it('caps the number of distinct clients per display', () => {
+    // Fill the map to its cap (16)
+    for (let i = 0; i < 16; i++) {
+      recordViewportReport('kitchen', `client-${i}`, 100 + i, 200 + i);
+    }
+    // 17th new client should be refused (distinct dims so no dedup)
+    recordViewportReport('kitchen', 'client-overflow', 9999, 9999);
+    const reports = getViewportReports('kitchen');
+    expect(reports.length).toBeLessThanOrEqual(16);
+    expect(reports.find((r) => r.width === 9999)).toBeUndefined();
+  });
+
+  it('updates accepted from existing clients even past the cap', () => {
+    for (let i = 0; i < 16; i++) {
+      recordViewportReport('kitchen', `client-${i}`, 100 + i, 200 + i);
+    }
+    // Existing client bumping its value still works
+    recordViewportReport('kitchen', 'client-0', 5000, 6000);
+    const reports = getViewportReports('kitchen');
+    expect(reports.find((r) => r.width === 5000 && r.height === 6000)).toBeTruthy();
   });
 });

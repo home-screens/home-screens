@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import type { GlobalSettings } from '@/types/config';
 import {
   ArrowLeft,
@@ -292,7 +292,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const initialTab = getInitialTab();
 
-  const { config, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
+  const { config, selectedDisplayId, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
   const settings = config?.settings;
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
@@ -346,7 +346,14 @@ export default function SettingsPage() {
       return;
     }
 
-    const offCanvas = countOffCanvasModules(config.screens, newW, newH);
+    // In multi-display mode, the Display tab's dimension fields edit the
+    // GLOBAL settings, but module layout lives inside the currently-active
+    // display's own `screens`. Count off-canvas modules and source the
+    // "oldWidth/oldHeight" for scaleAllModules from that same active view
+    // so the confirm modal and the actual scale op stay consistent.
+    const activeScreens = getActiveScreens(config, selectedDisplayId);
+    const activeDims = getActiveDimensions(config, selectedDisplayId);
+    const offCanvas = countOffCanvasModules(activeScreens, newW, newH);
 
     if (offCanvas === 0) {
       updateGroup('display', updates);
@@ -355,15 +362,16 @@ export default function SettingsPage() {
 
     setOrientationModal({
       offCanvasCount: offCanvas,
-      totalCount: totalModuleCount(config.screens),
-      // Use saved config dimensions — modules are laid out against those, not unsaved form state
-      oldWidth: config.settings.displayWidth,
-      oldHeight: config.settings.displayHeight,
+      totalCount: totalModuleCount(activeScreens),
+      // Use saved active-display dimensions — modules are laid out against
+      // those, not unsaved form state or the global fallback.
+      oldWidth: activeDims.width,
+      oldHeight: activeDims.height,
       newWidth: newW,
       newHeight: newH,
       pendingUpdates: updates,
     });
-  }, [state.display.displayWidth, state.display.displayHeight, config, updateGroup]);
+  }, [state.display.displayWidth, state.display.displayHeight, config, selectedDisplayId, updateGroup]);
 
   function handleTabChange(tab: TabId) {
     setActiveTab(tab);

@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { LayoutExport } from '@/types/layout-export';
 import type { Screen } from '@/types/config';
@@ -156,7 +156,10 @@ function SortableTab({
 /* ─── Main component ────────────────────────── */
 
 export default function ScreenTabs() {
-  const { config, selectedScreenId, selectScreen, addScreen, removeScreen, reorderScreens, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectScreen, addScreen, removeScreen, reorderScreens, updateScreen } = useEditorStore();
+  // Screen operations target the currently-selected display's screens.
+  // In legacy single-display mode this resolves to the global screen pool.
+  const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -174,7 +177,7 @@ export default function ScreenTabs() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [importLayout, setImportLayout] = useState<LayoutExport | null>(null);
 
-  const screenSignature = config?.screens.map((screen) => `${screen.id}:${screen.name}`).join('|') ?? '';
+  const screenSignature = screens.map((screen) => `${screen.id}:${screen.name}`).join('|');
 
   // DnD sensors — distance constraint prevents drag from interfering with click/scroll
   const sensors = useSensors(
@@ -229,13 +232,13 @@ export default function ScreenTabs() {
   const handleContextMenu = useCallback((e: React.MouseEvent, screenId: string) => {
     e.preventDefault();
     setContextMenu({ screenId, x: e.clientX, y: e.clientY });
-  }, []);
+  }, [setContextMenu]);
 
   if (!config) return null;
 
   const commitRename = (screenId: string) => {
     const trimmed = editValue.trim();
-    if (trimmed && trimmed !== config.screens.find((s) => s.id === screenId)?.name) {
+    if (trimmed && trimmed !== screens.find((s) => s.id === screenId)?.name) {
       updateScreen(screenId, { name: trimmed });
     }
     setEditingId(null);
@@ -265,24 +268,24 @@ export default function ScreenTabs() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const fromIndex = config.screens.findIndex((s) => s.id === active.id);
-    const toIndex = config.screens.findIndex((s) => s.id === over.id);
+    const fromIndex = screens.findIndex((s) => s.id === active.id);
+    const toIndex = screens.findIndex((s) => s.id === over.id);
     if (fromIndex !== -1 && toIndex !== -1) {
       reorderScreens(fromIndex, toIndex);
     }
   };
 
   const handleMoveScreen = (screenId: string, direction: 'left' | 'right') => {
-    const fromIndex = config.screens.findIndex((s) => s.id === screenId);
+    const fromIndex = screens.findIndex((s) => s.id === screenId);
     if (fromIndex === -1) return;
     const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
-    if (toIndex < 0 || toIndex >= config.screens.length) return;
+    if (toIndex < 0 || toIndex >= screens.length) return;
     reorderScreens(fromIndex, toIndex);
     setContextMenu(null);
   };
 
   const contextScreenIndex = contextMenu
-    ? config.screens.findIndex((s) => s.id === contextMenu.screenId)
+    ? screens.findIndex((s) => s.id === contextMenu.screenId)
     : -1;
 
   return (
@@ -290,12 +293,12 @@ export default function ScreenTabs() {
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <div className="relative min-w-0 flex-1">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={config.screens.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
+            <SortableContext items={screens.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
               <div
                 ref={scrollContainerRef}
                 className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto overflow-y-hidden px-9"
               >
-                {config.screens.map((screen) => (
+                {screens.map((screen) => (
                   <SortableTab
                     key={screen.id}
                     screen={screen}
@@ -317,7 +320,7 @@ export default function ScreenTabs() {
                       }
                     }}
                     onContextMenu={(e) => handleContextMenu(e, screen.id)}
-                    canDelete={config.screens.length > 1}
+                    canDelete={screens.length > 1}
                   />
                 ))}
               </div>
@@ -431,7 +434,7 @@ export default function ScreenTabs() {
           </button>
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-default"
-            disabled={contextScreenIndex >= config.screens.length - 1}
+            disabled={contextScreenIndex >= screens.length - 1}
             onClick={() => handleMoveScreen(contextMenu.screenId, 'right')}
           >
             Move Right
@@ -446,7 +449,7 @@ export default function ScreenTabs() {
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
             onClick={() => {
-              const screen = config.screens.find((s) => s.id === contextMenu.screenId);
+              const screen = screens.find((s) => s.id === contextMenu.screenId);
               if (screen) {
                 updateScreen(contextMenu.screenId, {
                   enabled: screen.enabled === false ? undefined : false,
@@ -455,7 +458,7 @@ export default function ScreenTabs() {
               setContextMenu(null);
             }}
           >
-            {config.screens.find((s) => s.id === contextMenu.screenId)?.enabled === false
+            {screens.find((s) => s.id === contextMenu.screenId)?.enabled === false
               ? 'Enable'
               : 'Disable'}
           </button>
@@ -464,17 +467,17 @@ export default function ScreenTabs() {
             className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
             onClick={() => {
               setEditingId(contextMenu.screenId);
-              setEditValue(config.screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
+              setEditValue(screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
               setContextMenu(null);
             }}
           >
             Rename
           </button>
-          {config.screens.length > 1 && (
+          {screens.length > 1 && (
             <button
               className="w-full px-3 py-1.5 text-left text-sm text-red-400 hover:bg-neutral-800"
               onClick={async () => {
-                const screenName = config.screens.find((s) => s.id === contextMenu.screenId)?.name;
+                const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name;
                 setContextMenu(null);
                 if (await useConfirmStore.getState().confirm(`Remove "${screenName}"?`)) {
                   removeScreen(contextMenu.screenId);
