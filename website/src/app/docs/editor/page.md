@@ -17,6 +17,10 @@ The editor has four main areas:
 - **Property Panel** (right sidebar) — configure the selected module's settings and appearance
 - **Screen Tabs** (top) — manage multiple screens
 
+## Display Switcher (multi-display)
+
+When the hub has more than one display registered, a **Display Switcher** pill appears in the editor toolbar showing the current display name and dimensions. Click it to drop down to any registered display — the canvas, screen tabs, and property panel all switch to that display's content. The pill is hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+
 ## Canvas Controls
 
 The editor canvas includes a floating toolbar with controls for zoom, undo/redo, and snap-to-grid.
@@ -170,9 +174,11 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 ## Global Settings
 
-Open the **Settings Panel** to configure system-wide options. Settings are organized into thirteen tabs:
+Open the **Settings Panel** to configure system-wide options. Settings are organized into the following tabs:
 
-**Display** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
+**Display** · **Displays** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
+
+The **Displays** tab is hidden in single-display installs and only appears once you add a second display.
 
 ### Display
 
@@ -184,6 +190,17 @@ Open the **Settings Panel** to configure system-wide options. Settings are organ
 - **Transition Duration** — how long the transition takes (0.3–2 seconds, default 0.6)
 - **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
 - **Touchscreen Pause** — when enabled (default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) resumes rotation after a period of inactivity
+
+### Displays
+
+The Displays tab manages the hub-and-spoke registry when more than one Pi spoke is connected to the hub. Each registered display appears as a card with its name, dimensions, rotation, online dot, last-seen timestamp, source IP, and screen count. Powered-on Pi spokes that haven't been registered yet appear under **Unadopted Displays** and can be adopted with one click.
+
+- **Adopt** — register an unadopted spoke. Lock the friendly name and confirm the dimensions/rotation (pre-filled from the spoke's reported viewport). The display ID cannot be changed at adoption time because the spoke continues using its original ID.
+- **Edit screens** — switch the editor's selected display to this one and drop the canvas onto its screens.
+- **Edit** — change the friendly name, dimensions, rotation, or active profile (the `main` display's dimensions are managed through the Display tab instead).
+- **Delete** — remove a display. Spokes still pointed at the deleted URL show a 60-second countdown and auto-navigate to the current default display.
+
+Multi-display features (this tab, the Display Switcher pill, the remote's Display Picker) are hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full setup, including the spoke install command.
 
 ### Profiles
 

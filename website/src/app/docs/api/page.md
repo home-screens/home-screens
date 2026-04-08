@@ -1434,9 +1434,66 @@ Restores a configuration backup. Requires a valid session.
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
+### Targeting a display (multi-display)
+
+When the hub has more than one display registered, every display-control endpoint accepts an optional display target. There are two ways to provide it:
+
+- **Query string** — append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
+- **JSON body field** — `{ "displayId": "<id>", … }` (POST only).
+
+Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, alert) and rejected for read-only or mutate-config actions (status, profile).
+
+Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+
+### GET /api/displays
+
+Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's Displays tab and by display-only Pis waiting for adoption.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | string | Optional. When provided, returns a minimal `{adopted, displayId}` shape used by spoke Pis to poll for adoption. Without `id`, returns the full registry. |
+
+**Response (full):**
+
+```json
+{
+  "displays": [
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "screenCount": 3,
+      "displayWidth": 1080,
+      "displayHeight": 1920,
+      "displayTransform": "90",
+      "lastSeen": 1709913600000,
+      "reportedViewport": { "width": 1080, "height": 1920 },
+      "viewportReports": [
+        { "width": 1080, "height": 1920, "address": "192.168.86.187", "tabCount": 1 }
+      ],
+      "status": {
+        "currentScreen": { "id": "abc-123", "name": "Main" },
+        "displayState": "active",
+        "activeProfile": null
+      }
+    }
+  ],
+  "unadopted": [
+    { "id": "home-screens-hysd", "lastSeen": 1709913600000, "reportedViewport": { "width": 1920, "height": 1080 } }
+  ]
+}
+```
+
+**Response (`?id=kitchen`):**
+
+```json
+{ "adopted": true, "displayId": "kitchen" }
+```
+
+This endpoint is read-only — all writes go through `PUT /api/config` so undo/redo and validation stay consistent.
+
 ### GET /api/display/commands
 
-Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds.
+Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
 
 **Response:**
 ```json

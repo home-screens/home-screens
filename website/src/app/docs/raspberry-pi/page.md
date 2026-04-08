@@ -132,6 +132,23 @@ If the Pi runs low on memory:
 | `--version v1.2.0` | Install a specific release instead of the latest |
 | `--port 8080` | Run the server on a custom port instead of the default 3000 |
 | `--non-interactive` | Skip all prompts and use defaults (portrait 90° rotation, auto-detected resolution) |
+| `--display-only` | Install as a display-only spoke that points at an existing Home Screens hub. Skips Node.js, the app tarball, and the systemd service — installs only Chromium, labwc, wtype, wlr-randr, and the kiosk launcher. Requires `--backend`. |
+| `--backend <url>` | Hub URL the display-only kiosk should point at (e.g. `--backend http://192.168.1.100:3000`). Required with `--display-only`. |
+| `--display-id <id>` | Optional display ID this spoke registers under. Must be lowercase letters, digits, and hyphens, max 64 characters. If omitted, the installer auto-generates one from the hostname plus a 4-character random suffix (e.g. `home-screens-hysd`) so two Pis with the same hostname don't collide. |
+
+### Display-only spokes
+
+To set up a Pi as a display-only spoke pointing at an existing hub:
+
+```bash
+# Auto-generated display ID
+~/home-screens/scripts/install.sh --display-only --backend http://192.168.1.100:3000
+
+# Explicit display ID
+~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
+```
+
+After install and reboot, the spoke contacts the hub and appears in the editor's **Settings > Displays** tab under **Unadopted Displays**, ready to be adopted. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
 
 ### What the installer does
 

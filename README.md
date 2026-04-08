@@ -19,6 +19,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **38 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), meal planner (5 views), chore chart (5 views), iframe, and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
 - **Drag-and-drop editor** — visually arrange modules on a configurable canvas
 - **Multi-screen rotation** — cycle through screens with 8 transition effects
+- **Multi-display hub-and-spoke** — one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
 - **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free), and Open-Meteo (free)
 - **Plugin system** — extend with custom modules via runtime-loaded plugins ([template](https://github.com/home-screens/home-screens-plugin-template), [example](https://github.com/home-screens/home-screens-plugin-standings))
 - **Profile system** — named screen groups with schedule-based auto-activation
@@ -50,6 +51,9 @@ git clone https://github.com/home-screens/home-screens.git
 
 # Custom port (default is 3000)
 ~/home-screens/scripts/install.sh --port 8080
+
+# Display-only spoke (no Node, kiosk only — points at a hub Pi)
+~/home-screens/scripts/install.sh --display-only --backend http://home-screens.local:3000
 ```
 
 The script installs Node.js 22, Chromium, system dependencies, creates the systemd service, and configures the kiosk with display orientation. Reboot to start:
@@ -89,6 +93,43 @@ Uses **OAuth 2.0 Device Flow** — authorize from any device, no redirect URI re
 
 Add any iCal/ICS URL in **Settings > Calendar** — works with Outlook, Apple iCloud, Fastmail, and any service that provides an ICS subscription URL.
 
+## Multi-Display Setup
+
+Home Screens runs in two modes. A normal install is a single Pi that serves and renders its own display — nothing changes for that case, and the rest of this section is optional.
+
+For more than one screen, pick one Pi as the **hub** (the one running Next.js) and install additional **spoke** Pis as kiosks pointed at it. Each display owns its own screens, dimensions, rotation, and active profile — a portrait kitchen touchscreen and a landscape living-room TV can coexist on one hub without squashing each other.
+
+### Add a spoke Pi
+
+On the new Pi:
+
+```bash
+sudo apt install git
+git clone https://github.com/home-screens/home-screens.git
+
+# Install kiosk only — no Node.js, no server
+~/home-screens/scripts/install.sh --display-only --backend http://home-screens.local:3000
+
+# Or pin a specific display ID instead of the auto-generated one
+~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
+```
+
+The `--display-only` flag installs just Chromium, labwc, wtype, wlr-randr, and fonts — no Node.js, no release tarball. The Pi auto-generates a display ID from its hostname (e.g. `home-screens-hysd`) unless you pass `--display-id`. Reboot and it will boot straight to a "Connecting…" splash, then auto-launch into the real display URL the moment the hub answers.
+
+### Adopt the spoke
+
+On the hub, open the editor and go to **Settings > Displays**. Any spoke that's powered on and pointed at this hub shows up in the unadopted list — click to adopt it, give it a name, and pick its resolution and rotation. The display appears in the editor's **Display Switcher** pill in the toolbar so you can flip between which display you're editing.
+
+Each display card has an **Edit screens** shortcut, an online/offline dot driven by live heartbeats, and the spoke's reported viewport — including its source IP — so you can tell which physical Pi is reporting at a glance.
+
+### Targeting from /remote
+
+The `/remote` page gets a segmented **Display Picker** at the top (All / Kitchen / Bedroom / etc.) when more than one display is registered. Brightness, profile switching, alerts, and next/prev/wake/sleep all target the selected display, or broadcast to **All**.
+
+### Stranded-URL recovery
+
+If a kiosk ends up stuck on a deleted display URL, it shows a 60-second countdown and a **Go to default display now** button, then auto-navigates to the current default. No power cycle needed.
+
 ## Managing the Pi
 
 ### SSH Access (Pre-Built Image)
@@ -121,6 +162,7 @@ Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
 |---|---|
 | `config.json` | Screen layouts, module settings, display configuration |
 | `secrets.json` | API keys (weather, Unsplash, Todoist, TomTom, etc.) |
+| `meals.json` | Saved meals and weekly meal plan |
 | `auth.json` | Editor password hash and session secret |
 | `google-tokens.json` | Google Calendar OAuth tokens |
 
@@ -190,12 +232,13 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 graph TB
     subgraph Clients
         Editor["Editor<br/>(browser)"]
-        Display["Display<br/>(kiosk / browser)"]
+        Display["Display(s)<br/>(1 hub or N spoke kiosks)"]
     end
 
-    subgraph "Next.js Server"
+    subgraph "Next.js Server (hub)"
         API["API Routes"]
         ConfigAPI["/api/config"]
+        DisplaysAPI["/api/displays"]
         SecretsAPI["/api/secrets"]
         PluginProxy["/api/plugins/proxy"]
     end
@@ -203,6 +246,7 @@ graph TB
     subgraph "Local Storage"
         Config["data/config.json"]
         Secrets["data/secrets.json"]
+        Meals["data/meals.json"]
         Plugins["data/plugins/"]
     end
 
@@ -214,8 +258,11 @@ graph TB
     end
 
     Editor -- "Zustand store<br/>PUT /api/config" --> ConfigAPI
+    Editor -- "adopt + heartbeat" --> DisplaysAPI
     ConfigAPI -- "read / write" --> Config
-    Display -- "GET /api/config" --> ConfigAPI
+    Display -- "GET /api/config<br/>(per display)" --> ConfigAPI
+    Display -- "heartbeat / viewport" --> DisplaysAPI
+    DisplaysAPI -- "registry" --> Config
     API -- "read keys" --> Secrets
     SecretsAPI -- "read / write" --> Secrets
     PluginProxy -- "inject secrets" --> Other
@@ -266,6 +313,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/time` | GET | Server time |
 | `/api/image-proxy` | GET | External image proxy |
 | `/api/secrets` | GET, PUT | API key management |
+| `/api/displays` | GET | Multi-display registry, heartbeat, and unadopted-display list |
 | `/api/display/*` | GET, POST | Remote display control |
 | `/api/auth/*` | GET, POST | Authentication (password + Google OAuth) |
 | `/api/system/*` | GET, POST, DELETE | System management (version, upgrade, rollback, backups, power, stats) |

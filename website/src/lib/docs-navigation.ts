@@ -16,6 +16,7 @@ export const navigation = [
       { title: 'Profiles & Scheduling', href: '/docs/profiles' },
       { title: 'Configuration', href: '/docs/configuration' },
       { title: 'Remote Control', href: '/docs/remote-control' },
+      { title: 'Multi-display', href: '/docs/multi-display' },
       { title: 'Networking', href: '/docs/networking' },
       { title: 'Troubleshooting', href: '/docs/troubleshooting' },
     ],

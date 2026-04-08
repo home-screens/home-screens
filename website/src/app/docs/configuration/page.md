@@ -6,17 +6,25 @@ nextjs:
     description: Complete configuration reference for Home Screens.
 ---
 
-Home Screens uses a single JSON file for all configuration: `data/config.json`. There is no database — the file is read and written directly by the API.
+Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database — every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.
 
-**In general you should never have to interact with the raw configuration file unless you are a power user.  All settings can be managed in the web editor and get written automatically.**
+**In general you should never have to interact with the raw configuration files unless you are a power user. All settings can be managed in the web editor and get written automatically.**
 
-## File Location
+## Data files
 
-```
-data/config.json
-```
+| File | Purpose | API |
+|---|---|---|
+| `data/config.json` | Screens, modules, profiles, global settings, multi-display registry | `/api/config` |
+| `data/secrets.json` | API keys for external integrations (weather, calendar, photos, etc.) | `/api/secrets` |
+| `data/auth.json` | Password hash and session secret for editor authentication | (internal) |
+| `data/meals.json` | Meal library, weekly plan, grocery list, household meal settings | `/api/meals/data` |
+| `data/chores.json` | Chore definitions, members, completion records | `/api/chores/data` |
+| `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
+| `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
+| `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
+| `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
 
-The config is read via `GET /api/config` and written via `PUT /api/config`. Writes are atomic (temp file + rename) to prevent corruption during power loss.
+The main config is read via `GET /api/config` and written via `PUT /api/config`.
 
 ## API Keys & Credentials
 
@@ -53,12 +61,15 @@ The configuration has the following structure:
 
 ```typescript
 {
-  version: number           // Config schema version (for migrations)
-  settings: GlobalSettings  // System-wide settings
-  screens: Screen[]         // Array of display screens
-  profiles?: Profile[]      // Named screen groups with optional schedules
+  version: number             // Config schema version (for migrations)
+  settings: GlobalSettings    // System-wide settings
+  screens: Screen[]           // Array of display screens (used in single-display mode)
+  profiles?: Profile[]        // Named screen groups with optional schedules
+  displays?: DisplayNode[]    // Multi-display registry (omitted = single-display mode)
 }
 ```
+
+The `displays` field is opt-in. When it is undefined or empty, Home Screens runs in single-display mode and renders `screens` directly — this is the default for fresh installs and the unchanged behavior for any existing config that predates the multi-display feature. When `displays` is populated, each entry has its own owned screens, dimensions, and rotation; see [DisplayNode](#displaynode-multi-display) below and the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
 
 ### GlobalSettings
 
@@ -230,6 +241,57 @@ Named groups of screens that can be activated manually or on a schedule.
 ```
 
 Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles have overlapping schedules, the first matching profile wins. Manual activation via `settings.activeProfile` overrides scheduled profiles.
+
+### DisplayNode (multi-display)
+
+A named display device. Each display owns its own list of screens, designed at its own resolution and orientation. Used in hub-and-spoke deployments where one server drives multiple Pi displays. See the [Multi-display guide](/docs/multi-display) for the install and adoption flow.
+
+```typescript
+{
+  id: string                       // URL-safe slug used as the route segment: /display/<id>
+  name: string                     // Human-readable label shown in the editor
+  screens?: Screen[]               // Owned screens for this display, designed at its resolution
+  screenIds?: string[]             // @deprecated — legacy reference to global screens by ID
+  displayWidth?: number            // Canvas width in pixels (overrides GlobalSettings.displayWidth)
+  displayHeight?: number           // Canvas height in pixels (overrides GlobalSettings.displayHeight)
+  displayTransform?: 'normal' | '90' | '180' | '270'  // Per-display rotation
+  profileIds?: string[]            // Optional: restricts which profiles apply to this display
+  activeProfile?: string           // Per-display active profile (falls back to settings.activeProfile)
+  settings?: DisplayNodeSettings   // Per-display setting overrides
+}
+```
+
+`DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display:
+
+```typescript
+{
+  displayWidth?: number
+  displayHeight?: number
+  displayTransform?: 'normal' | '90' | '180' | '270'
+  rotationIntervalMs?: number
+  transitionEffect?: TransitionEffect
+  transitionDuration?: number
+  sleep?: SleepSettings
+  screensaver?: ScreensaverSettings
+}
+```
+
+Per-display dimension fields (top-level on the DisplayNode) override the equivalents nested inside `settings`. Per-display `settings` override the global `settings` on a per-key basis. Rotation is authoritative for canvas orientation: the hub sorts the (width, height) pair so the long edge points along the landscape axis when the rotation is `normal`/`180` and along the portrait axis when it's `90`/`270`.
+
+**Validation rules** (enforced when the config is written):
+
+| Rule | Limit |
+|---|---|
+| Display ID format | URL-safe slug — lowercase letters, digits, hyphens; must start with a letter or digit |
+| Display ID length | ≤ 64 characters |
+| IDs must be unique | Yes |
+| Reserved IDs | `all` cannot be used (it is the broadcast keyword on command endpoints) |
+| Maximum displays | 64 per config |
+| Maximum screens per display | 256 |
+| Dimensions | Positive integers, ≤ 16384 |
+| `screenIds` references | Must reference an existing global screen (legacy mode only) |
+| `profileIds` references | Must reference an existing profile |
+| `activeProfile` references | Must reference an existing profile, and (when `profileIds` is set) must be a member of that list |
 
 ### ModuleType
 
@@ -795,13 +857,11 @@ Date display module with 5 visual styles.
 
 ### MealPlannerConfig
 
-Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal. Meal data (saved meals and weekly plan) is stored in `data/meals.json` via the `/api/meals/data` endpoint, not in the module config.
+Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal. The per-module config only contains visual options — the meal library, weekly plan, grocery list, and household-wide settings (enabled slots, week start day, default serving times, time format) all live in `data/meals.json` via the `/api/meals/data` endpoint with atomic writes. This keeps every meal-planner module on the same display in sync without duplicating settings into each module.
 
 ```typescript
 {
   view: 'week' | 'today' | 'next-meal' | 'compact' | 'list'
-  slots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
-  weekStartDay: 'sunday' | 'monday'
   showEmoji: boolean
   showPrepTime: boolean
   showTags: boolean
@@ -813,9 +873,21 @@ Meal data is stored separately in `data/meals.json`:
 
 ```typescript
 {
+  settings: MealSettings      // Household-wide planning settings (enabled slots, week start, slot times, time format)
   savedMeals: SavedMeal[]     // Meal library (name, emoji, tags, prep/cook time, difficulty, ingredients, etc.)
   plan: PlannedMeal[]         // Weekly schedule entries
   grocery: string[]           // Grocery list items
+}
+```
+
+`MealSettings` is edited from the `/remote` Meals tab so every meal module on every display stays consistent:
+
+```typescript
+{
+  enabledSlots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
+  weekStartDay: 'sunday' | 'monday'
+  defaultSlotTimes: { breakfast?: string; lunch?: string; dinner?: string; snack?: string }  // "HH:MM" 24h
+  timeFormat: '12h' | '24h'
 }
 ```
 
@@ -920,7 +992,7 @@ Config files include a `version` number. When the schema changes between release
 
 ```json
 {
-  "version": 1,
+  "version": 3,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

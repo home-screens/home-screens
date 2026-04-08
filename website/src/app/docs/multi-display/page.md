@@ -1,0 +1,328 @@
+---
+title: Multi-display
+nextjs:
+  metadata:
+    title: Multi-display
+    description: Run multiple Raspberry Pi displays from one Home Screens hub.
+---
+
+Home Screens supports a hub-and-spoke deployment where one Next.js server (the **hub**) drives any number of Raspberry Pi displays (the **spokes**). Each display owns its own screens, layout, dimensions, rotation, and active profile, all served from the single `data/config.json` on the hub. A portrait kitchen touchscreen and a landscape living-room TV can coexist on the same hub without either of them squashing the other's layout.
+
+Multi-display support is **opt-in**. Existing single-display installs are completely unchanged — the legacy `/display` URL continues to render the global screens directly, and no UI element changes until you add a second display.
+
+---
+
+## How it works
+
+```
+                ┌─────────────────────────────┐
+                │   Hub (Raspberry Pi or PC)  │
+                │   /opt/home-screens         │
+                │   data/config.json          │
+                │   Next.js server :3000      │
+                └────────────┬────────────────┘
+                             │
+        ┌────────────────────┼─────────────────────┐
+        │                    │                     │
+        ▼                    ▼                     ▼
+   ┌──────────┐         ┌──────────┐         ┌──────────┐
+   │ Kitchen  │         │ Bedroom  │         │ Office   │
+   │ Pi (Lite)│         │ Pi (Lite)│         │ Pi (Lite)│
+   │ Chromium │         │ Chromium │         │ Chromium │
+   │ /display/│         │ /display/│         │ /display/│
+   │ kitchen  │         │ bedroom  │         │ office   │
+   └──────────┘         └──────────┘         └──────────┘
+```
+
+The hub holds one config file. Each spoke is a Pi running Chromium in kiosk mode against `http://<hub>:3000/display/<id>`. Spokes have **no local Node.js, no app, no config** — just the kiosk browser. Editor changes on the hub are picked up by the spokes on the next reload or live config refresh.
+
+| Term | Meaning |
+|---|---|
+| **Hub** | The machine running the Home Screens server. Holds `data/config.json` and serves the editor. |
+| **Spoke** | A display-only Raspberry Pi running Chromium pointed at the hub. No Node.js. |
+| **Display** | A registered entry in the hub's `displays` array. Has an ID (`kitchen`), name, screens, dimensions, rotation, and optional active profile. |
+| **Adoption** | The flow that moves a powered-on but unregistered spoke from the "Unadopted Displays" list into the registered displays list. |
+
+---
+
+## Installing a spoke Pi
+
+A spoke install skips Node.js and the release tarball entirely. It installs only Chromium, the labwc Wayland compositor, `wtype`, `wlr-randr`, and the kiosk launcher.
+
+### Prerequisites
+
+- A Raspberry Pi running [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) (Desktop also supported with `--desktop`)
+- Network access to the hub
+- The hub URL (e.g. `http://192.168.1.100:3000`)
+
+### Install command
+
+```bash
+sudo apt install git
+git clone https://github.com/home-screens/home-screens.git
+~/home-screens/scripts/install.sh --display-only --backend http://192.168.1.100:3000
+```
+
+| Flag | Description |
+|---|---|
+| `--display-only` | Skip Node.js, the app tarball, and the systemd service. Install only the kiosk packages and launcher. |
+| `--backend <url>` | Required with `--display-only`. The hub URL the kiosk should point at. Trailing slashes are stripped. |
+| `--display-id <id>` | Optional. The display ID this spoke will register under. Must be lowercase letters, digits, and hyphens, max 64 chars. If omitted, the installer auto-generates one from the hostname plus a 4-character random suffix (e.g. `home-screens-hysd`). |
+
+The auto-generated suffix prevents two Pis with the same hostname (the Raspberry Pi OS default of `raspberrypi` is the classic case) from colliding on the same display ID.
+
+After install, reboot the Pi. On boot it tries the hub immediately. If the hub answers, Chromium opens `http://<hub>:3000/display/<id>` directly. If the hub is unreachable, the launcher shows a local splash screen and starts a background watcher; the moment the hub answers, the watcher kills Chromium, the labwc autologin cycle restarts the launcher, and it exec's into the real display URL. No power cycle is needed.
+
+---
+
+## Adopting a spoke in the editor
+
+When a freshly installed spoke first contacts the hub, it doesn't have a registered display yet. Instead it shows a "waiting for adoption" screen and polls `/api/displays` every five seconds. On the hub side, the spoke automatically appears in the editor's **Settings > Displays** tab under **Unadopted Displays**, tagged with its IP address and self-reported viewport.
+
+To adopt:
+
+1. Open the editor on the hub: `http://<hub>:3000/editor`
+2. Go to **Settings > Displays**
+3. Find the spoke under **Unadopted Displays** — it will show its display ID, source IP, and current viewport (e.g. `1080×1920`)
+4. Click **Adopt**
+5. Give it a friendly name (e.g. "Kitchen", "Bedroom TV")
+6. The dimensions and rotation pre-fill from the spoke's reported viewport. Adjust if needed.
+7. Click **Save**
+
+The display ID is locked at adoption time — it cannot be renamed later because the spoke continues using its original ID and would silently lose its connection. The friendly **name** can be changed freely.
+
+Within a few seconds the spoke's polling picks up the adoption, navigates to `/display/<id>`, and starts rendering screens. New displays start with an empty screen list — design them by clicking **Edit screens** on the display card, which drops the editor canvas onto that display.
+
+### Watching reporters
+
+Each adopted display row shows:
+
+- **Online dot** — green when the spoke has reported a heartbeat in the last few minutes, gray otherwise
+- **Last seen** — relative timestamp (e.g. "Last seen 1s ago")
+- **Source IP** — the network address the report came from (e.g. `from 192.168.86.187`)
+- **Viewport** — post-rotation width and height as the spoke sees it
+
+If two browser tabs at the same URL on the same Pi report under one display ID, they collapse into a single row with a `×2 tabs` badge. If two distinct IPs report under one display ID, they show as separate rows — a useful signal that you've accidentally pointed two Pis at the same display URL.
+
+---
+
+## Designing screens for each display
+
+Each display has its own independent screen list, designed at its own resolution. The editor surfaces this through two controls:
+
+- The **Display Switcher** pill in the editor toolbar (hidden in single-display installs) shows the current display name and dimensions, and drops down to any registered display. Pick a display from the dropdown, and the canvas, property panel, and screen tabs all switch to that display's content.
+- The **Edit screens** shortcut on each display card in **Settings > Displays** does the same thing in one click.
+
+The canvas always renders at the active display's resolution and rotation, so a portrait kitchen touchscreen and a landscape living-room TV are designed at the right physical proportions side by side.
+
+### Main display
+
+When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens and dimensions. The legacy `/display` URL redirects to `/display/main` so the existing kiosk keeps showing its current layout. The `main` display is editable but cannot be deleted from the Displays tab — its dimensions and rotation are managed through the global **Settings > Display** tab.
+
+Second and later displays start with an empty screen list so you design fresh for the new resolution.
+
+---
+
+## Per-display profiles
+
+Each display can have its own active profile. Profile activation through the API or remote control targets the chosen display only — other displays keep their current profile.
+
+When a display has a `profileIds` allowlist, only those profiles apply to that display. The display's `activeProfile` must be a member of `profileIds`. When `profileIds` is unset, all global profiles apply.
+
+---
+
+## Remote control
+
+When more than one display is registered, the `/remote` page shows a segmented **DisplayPicker** at the top: **All / Kitchen / Bedroom / …**. Brightness, profile switching, alerts, and next/prev/wake/sleep all target the selected display. Picking **All** broadcasts to every display.
+
+The picker is hidden in single-display installs, so existing remote bookmarks keep working with no change.
+
+---
+
+## API targeting
+
+Display control endpoints accept an optional `displayId` to target a specific display. There are two ways to provide it:
+
+- **Query string** — `?display=kitchen` (works for GET and POST, useful for bookmarkable simple commands)
+- **JSON body field** — `{ "displayId": "kitchen", … }` (POST only)
+
+Use `all` as the display ID to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, alert) and rejected for read-only or mutate-config actions (status, profile).
+
+### Examples
+
+Wake the kitchen display:
+
+```bash
+curl http://<hub>:3000/api/display/wake?display=kitchen
+```
+
+Set brightness on the bedroom display:
+
+```bash
+curl -X POST http://<hub>:3000/api/display/brightness \
+  -H 'Content-Type: application/json' \
+  -d '{"value": 30, "displayId": "bedroom"}'
+```
+
+Broadcast an alert to every display:
+
+```bash
+curl -X POST http://<hub>:3000/api/display/alert?display=all \
+  -H 'Content-Type: application/json' \
+  -d '{"type": "info", "title": "Dinner", "message": "Come eat", "duration": 30000}'
+```
+
+Switch the kitchen display to a profile (requires authentication):
+
+```bash
+curl -X POST http://<hub>:3000/api/display/profile \
+  -H 'Content-Type: application/json' \
+  -d '{"profile": "evening", "displayId": "kitchen"}'
+```
+
+Calls without a `displayId` continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged.
+
+---
+
+## Inspecting registered displays
+
+The hub exposes a read-only registry endpoint:
+
+```bash
+curl http://<hub>:3000/api/displays
+```
+
+**Response:**
+
+```json
+{
+  "displays": [
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "screenCount": 3,
+      "displayWidth": 1080,
+      "displayHeight": 1920,
+      "displayTransform": "90",
+      "lastSeen": 1709913600000,
+      "reportedViewport": { "width": 1080, "height": 1920 },
+      "viewportReports": [
+        { "width": 1080, "height": 1920, "address": "192.168.86.187", "tabCount": 1 }
+      ],
+      "status": {
+        "currentScreen": { "id": "abc-123", "name": "Main" },
+        "displayState": "active",
+        "activeProfile": null
+      }
+    }
+  ],
+  "unadopted": [
+    {
+      "id": "home-screens-hysd",
+      "lastSeen": 1709913600000,
+      "reportedViewport": { "width": 1920, "height": 1080 }
+    }
+  ]
+}
+```
+
+The `?id=<id>` form is used by the spoke's waiting-room screen to check whether it has been adopted yet:
+
+```bash
+curl http://<hub>:3000/api/displays?id=kitchen
+# {"adopted": true, "displayId": "kitchen"}
+```
+
+---
+
+## Limits and validation
+
+To bound the in-memory state on the hub, the following caps apply:
+
+| Limit | Value |
+|---|---|
+| Maximum displays per config | 64 |
+| Maximum screens per display | 256 |
+| Maximum display ID length | 64 characters |
+| Display ID format | URL-safe slug — lowercase letters, digits, hyphens; must start with a letter or digit |
+| Maximum dimension (width or height) | 16384 pixels |
+| Viewport reports per display | 16 most-recent clients |
+| Viewport report TTL | 60 seconds |
+
+Display IDs are validated at both the route layer and the data layer. The reserved word `all` cannot be used as a display ID — it is only valid as a broadcast target on command-enqueue endpoints.
+
+---
+
+## Configuration shape
+
+The multi-display registry lives on `ScreenConfiguration.displays`. When this field is undefined or empty, the system runs in single-display mode — there is no `displays` field to manage and the legacy `screens` array is rendered directly. See [Configuration](/docs/configuration#displaynode-multi-display) for the full type.
+
+```typescript
+{
+  version: 3,
+  settings: { /* global defaults */ },
+  screens: [ /* legacy screen pool, used by main display in mixed mode */ ],
+  profiles: [ /* shared profiles */ ],
+  displays: [
+    {
+      id: "kitchen",
+      name: "Kitchen",
+      screens: [ /* owned screens, designed at this display's resolution */ ],
+      displayWidth: 1080,
+      displayHeight: 1920,
+      displayTransform: "90",
+      activeProfile: "morning"
+    },
+    {
+      id: "living-room",
+      name: "Living Room TV",
+      screens: [ /* a different layout designed at 1920x1080 */ ],
+      displayWidth: 1920,
+      displayHeight: 1080,
+      displayTransform: "normal"
+    }
+  ]
+}
+```
+
+Per-display dimension fields override the global `settings.displayWidth` / `displayHeight` / `displayTransform`. Per-display `settings` (rotation interval, sleep, transitions) override the global equivalents on a per-key basis.
+
+Rotation is authoritative for canvas orientation. The hub sorts the (width, height) pair so the long edge points along the landscape axis when the rotation is `normal`/`180` and along the portrait axis when it's `90`/`270`, regardless of how the values were entered into the form.
+
+---
+
+## Stranded displays
+
+If you delete a display from the editor while a spoke is still pointed at the deleted URL, the spoke lands on a **DisplayNotFound** waiting-room screen. When the hub already has other registered displays, the waiting room shows a visible 60-second countdown and a "Go to default display now" button. Once the countdown hits zero (or the user clicks the button) the spoke navigates to `/display`, which redirects to the current default display. No power cycle is needed.
+
+A bootstrap install with no other displays registered (i.e. waiting for its first adoption) skips the countdown and waits indefinitely for the editor to adopt it.
+
+While waiting, the spoke continues to POST status heartbeats with its post-rotation viewport, so an unadopted display still appears in the editor with the resolution it would render at.
+
+---
+
+## Troubleshooting
+
+### A spoke doesn't appear under Unadopted Displays
+
+1. Verify the spoke can reach the hub: `curl http://<hub>:3000/api/system/build-id` from the spoke
+2. Check that `DISPLAY_URL` in `/opt/home-screens/data/kiosk.conf` on the spoke points at the correct hub
+3. Wait up to 10 seconds — the unadopted poll runs every 5 seconds and the editor refreshes every 5 seconds
+4. Confirm the display ID matches the format rules (lowercase, digits, hyphens, ≤64 chars)
+5. The hub evicts unadopted displays whose last heartbeat is older than 2 minutes — restart the spoke to make it re-register
+
+### Two browser tabs reporting under one display ID
+
+Each browser tab carries a stable `clientId` from `sessionStorage`, so the hub distinguishes "two tabs reporting from one Pi" from "two distinct devices reporting under one ID". Two tabs at the same URL on the same Pi collapse into one row with a `×2 tabs` badge. This is harmless, but if you didn't intend it, close the duplicate tab.
+
+### Two distinct IPs reporting under one display ID
+
+This means you have two Pis pointed at the same display URL. They render the same content but report independently, and editor commands fan out to both. To split them, reinstall one of the Pis with a different `--display-id` and adopt it as a separate display.
+
+### A spoke is stuck on a 60-second countdown
+
+Its display ID was deleted from the hub. Either click "Go to default display now" on the spoke, wait for the countdown to expire (it auto-navigates to the current default), or re-create the display in the editor with the original ID.
+
+### The editor's Display Switcher is missing
+
+The Display Switcher pill is hidden when only one display is registered. As soon as you add a second display in **Settings > Displays**, the pill appears in the editor toolbar.

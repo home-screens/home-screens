@@ -242,35 +242,7 @@ Then use these in automations, scripts, or dashboards.
 
 ## Multi-display setup
 
-### Multiple browsers, one server
-
-The simplest multi-display setup is to point multiple browsers at the same server. Each browser opens `http://<server-ip>:3000/display` and shows the same screens from the shared configuration.
-
-Remote commands (wake, sleep, next-screen) affect all connected displays simultaneously since they all poll the same command queue.
-
-### Multiple servers
-
-For independent displays that show different content, run separate Home Screens instances on different ports or different devices:
-
-```bash
-# Display 1 (kitchen) — default port
-~/home-screens/scripts/install.sh
-
-# Display 2 (office) — custom port on the same device
-~/home-screens/scripts/install.sh --port 3001
-```
-
-Each instance has its own `data/config.json`, so screens, modules, and profiles are fully independent.
-
-### Profiles for different displays
-
-If you want a single server with different views, use the **profile system**. Create profiles in the editor (e.g. "Kitchen", "Office") and switch each display's active profile via the API:
-
-```bash
-curl -X POST http://<ip>:3000/api/display/profile \
-  -H 'Content-Type: application/json' \
-  -d '{"profile": "kitchen"}'
-```
+Home Screens supports a hub-and-spoke deployment where one server drives any number of Raspberry Pi displays — each with its own screens, layout, dimensions, rotation, and active profile, all served from one config file. Spoke Pis run only Chromium and the kiosk launcher (no Node.js) and are installed with `--display-only --backend <hub-url>`. See the dedicated **[Multi-display guide](/docs/multi-display)** for the install flow, the adoption flow in the editor's Displays tab, per-display API targeting, and troubleshooting.
 
 ---
 

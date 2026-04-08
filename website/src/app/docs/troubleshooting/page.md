@@ -189,6 +189,32 @@ Home Screens uses the labwc Wayland compositor (which replaced cage) for proper 
 
 ---
 
+## Display kiosk stuck on a deleted URL
+
+If you delete a display from the editor's **Settings > Displays** tab while a Pi spoke is still pointed at the deleted display URL, the spoke shows a **DisplayNotFound** waiting-room screen.
+
+When the hub already has other registered displays, the waiting room displays a visible 60-second countdown and a **Go to default display now** button:
+
+1. Wait for the countdown to expire — the spoke auto-navigates to `/display`, which redirects to the current default display
+2. Or click the button to go immediately
+3. No power cycle is needed
+
+If the spoke is brand new and has never been adopted, the countdown is suppressed and it waits indefinitely for the editor to adopt it. See the [Multi-display guide](/docs/multi-display) for the adoption flow.
+
+---
+
+## Finding which Pi is reporting under a display ID
+
+In a multi-display setup, the editor's **Settings > Displays** tab shows each display's source IP and viewport so you can trace which physical Pi is reporting. The row label looks like:
+
+```
+Last seen 1s ago · from 192.168.86.187
+```
+
+If two browser tabs at the same URL on the same Pi report under one display ID, they collapse into a single row with a `×2 tabs` badge. If two distinct IPs report under one display ID, they show as separate rows — a useful signal that you accidentally pointed two Pis at the same display URL. To split them, reinstall one of the Pis with a different `--display-id`.
+
+---
+
 ## Upgrade failed
 
 If an upgrade through the UI or CLI did not complete successfully:

@@ -85,9 +85,7 @@ sudo systemctl start home-screens
 
 ### Can I run multiple displays from one server?
 
-Yes. The display view at `/display` is a standard web page, so multiple browsers can load it simultaneously. All displays will show the same configuration and rotate through the same screens.
-
-If you want different content on different displays, run separate Home Screens instances on different ports.
+Yes. Home Screens supports a hub-and-spoke deployment where one Next.js server (the hub) drives any number of Raspberry Pi displays (the spokes), each with its own screens, layout, dimensions, rotation, and active profile. Spoke Pis run only Chromium and the kiosk launcher — no Node.js — and are installed with `~/home-screens/scripts/install.sh --display-only --backend http://<hub>:3000`. After install, the spoke appears in the editor's **Settings > Displays** tab under **Unadopted Displays** and you click **Adopt** to register it. See the [Multi-display guide](/docs/multi-display) for the full setup.
 
 ### How do I change the port?
 

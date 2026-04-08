@@ -36,6 +36,12 @@ Status updates every 5 seconds. After sending a command, updates speed up to onc
 
 If the display is unreachable (device is off, not on the network, or service isn't running), a red banner appears at the top of the page.
 
+### Targeting a display (multi-display only)
+
+When more than one display is registered on the hub, a segmented **Display Picker** appears at the top of the remote: **All / Kitchen / Bedroom / …**. Brightness, profile switching, alerts, and next/prev/wake/sleep all target the selected display. Picking **All** broadcasts the command to every display.
+
+The picker is hidden in single-display installs, so existing remote bookmarks keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+
 ---
 
 ## Screen navigation
