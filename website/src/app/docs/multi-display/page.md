@@ -117,9 +117,9 @@ The canvas always renders at the active display's resolution and rotation, so a 
 
 ### Main display
 
-When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens and dimensions. The legacy `/display` URL redirects to `/display/main` so the existing kiosk keeps showing its current layout. `main` is now a regular display node that owns its own resolution and rotation — you edit them on its **Per display > Main > Display** page like any other display. Removing `main` is hard-blocked at the store layer because it would orphan the hub's screens.
+When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens, profiles, and dimensions. The legacy `/display` URL redirects to `/display/main` whenever a display with that ID exists (which is the normal case), and falls back to the first display in the registry otherwise — so the existing kiosk keeps showing its current layout and active profile even if `main` was renamed or removed by hand. `main` is now a regular display node that owns its own resolution and rotation — you edit them on its **Per display > Main > Display** page like any other display. Removing `main` through the editor is hard-blocked at the store layer because it would orphan the hub's screens.
 
-Second and later displays start with an empty screen list so you design fresh for the new resolution.
+Second and later displays start with an empty screen list and an empty owned profile list, so you design fresh for the new resolution.
 
 ---
 
@@ -140,9 +140,11 @@ In single-display installs (`displays` undefined or empty), the sidebar collapse
 
 ## Per-display profiles
 
-Each display can have its own active profile. Profile activation through the API or remote control targets the chosen display only — other displays keep their current profile.
+Each display owns its own profile list. Profile activation through the API or remote control targets the chosen display only — other displays keep their current profile.
 
-When a display has a `profileIds` allowlist, only those profiles apply to that display. The display's `activeProfile` must be a member of `profileIds`. When `profileIds` is unset, all global profiles apply.
+In multi-display mode profiles are always per-display. When the first additional display is added, `config.profiles` and `config.settings.activeProfile` are migrated onto the auto-created `main` display alongside its screens; subsequent displays start with an empty owned profile list so they build fresh against their own screens. Owned profile `screenIds` reference the display's own `screens`, never the global pool — this is the same owned-vs-pool rule that applies to screens, and for the same reason: a pool profile's screen references would silently diverge from each display's owned screens as soon as either one was edited.
+
+The deprecated `profileIds` pool reference is still honored for backward compatibility with early multi-display configs, but new displays should use owned `profiles` instead. A display cannot set both `profiles` and `profileIds` at the same time.
 
 ---
 

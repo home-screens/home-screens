@@ -83,7 +83,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
 | `showEmoji` | boolean | `true` | Show meal emoji |
-| `showDifficulty` | boolean | `true` | Show difficulty indicator |
+| `showDifficulty` | boolean | `false` | Show difficulty indicator |
 | `theme` | string | — | Color theme preset |
 
 **View details:**

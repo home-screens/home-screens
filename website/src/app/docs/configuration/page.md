@@ -255,13 +255,16 @@ A named display device. Each display owns its own list of screens, designed at i
   displayWidth?: number            // Canvas width in pixels (overrides GlobalSettings.displayWidth)
   displayHeight?: number           // Canvas height in pixels (overrides GlobalSettings.displayHeight)
   displayTransform?: 'normal' | '90' | '180' | '270'  // Per-display rotation
-  profileIds?: string[]            // Optional: restricts which profiles apply to this display
+  profiles?: Profile[]             // Owned profiles for this display. Mutually exclusive with profileIds.
+  profileIds?: string[]            // @deprecated — legacy reference to global profiles by ID
   activeProfile?: string           // Per-display active profile (falls back to settings.activeProfile)
   settings?: DisplayNodeSettings   // Per-display setting overrides
 }
 ```
 
-`DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display:
+Like `screens`, the `profiles` field is owned by the display: owned profile `screenIds` reference the display's own `screens`, not the global pool. When the first additional display is added to a single-display install, the existing `config.profiles` and `config.settings.activeProfile` migrate onto the auto-created `main` display alongside its screens; subsequent displays start with `profiles: []` so they build fresh against their own screens. In multi-display mode profiles are always per-display — there is no "shared pool" escape hatch, because a pool profile's `screenIds` would silently diverge from each display's owned screens as soon as either one is edited.
+
+`DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display. Nested objects (`sleep`, `screensaver`, `alerts`) are full-replacement, not deep-merged — override the whole object or omit it:
 
 ```typescript
 {
@@ -273,8 +276,15 @@ A named display device. Each display owns its own list of screens, designed at i
   transitionDuration?: number
   sleep?: SleepSettings
   screensaver?: ScreensaverSettings
+  alerts?: AlertSettings
+  fullscreenTheme?: string
+  cursorHideSeconds?: number
+  pauseEnabled?: boolean
+  pauseTimeoutSeconds?: number
 }
 ```
+
+Per-display location overrides (`latitude`, `longitude`, `locationName`, `timezone`) are intentionally **not** available: the weather, air-quality, and calendar API routes read location via `readConfig()` directly rather than through `filterConfigForDisplay`, so a per-display override would only affect client rendering while the upstream fetch still used the hub's coordinates.
 
 Per-display dimension fields (top-level on the DisplayNode) override the equivalents nested inside `settings`. Per-display `settings` override the global `settings` on a per-key basis. Rotation is authoritative for canvas orientation: the hub sorts the (width, height) pair so the long edge points along the landscape axis when the rotation is `normal`/`180` and along the portrait axis when it's `90`/`270`.
 
@@ -290,8 +300,11 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 | Maximum screens per display | 256 |
 | Dimensions | Positive integers, ≤ 16384 |
 | `screenIds` references | Must reference an existing global screen (legacy mode only) |
-| `profileIds` references | Must reference an existing profile |
-| `activeProfile` references | Must reference an existing profile, and (when `profileIds` is set) must be a member of that list |
+| `profiles` vs `profileIds` | Mutually exclusive — a display either owns its profile list or references the pool, never both |
+| Owned profile IDs | Must be unique within the display's `profiles` list |
+| Owned profile `screenIds` | Must reference the display's own `screens` (not the global pool) |
+| `profileIds` references | Must reference an existing global profile |
+| `activeProfile` references | When owned profiles are present, must be a member of `profiles`; otherwise must be a member of `profileIds` (if set) and of the global profile list |
 
 ### ModuleType
 
@@ -367,12 +380,33 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
 
 ```typescript
 {
+  view: ClockView              // one of the 18 view names below
   format24h: boolean
   showSeconds: boolean
   showDate: boolean
   dateFormat: string
   showWeekNumber: boolean
   showDayOfYear: boolean
+
+  // View-specific fields (safe to leave at defaults for views that ignore them)
+  showNumerals: boolean        // analog: hour numbers on the clock face
+  animateFlip: boolean         // flip: animate digit flips
+  accentColor: string          // shared accent color for several views
+  worldZones: WorldClockZone[] // world: up to 3 extra timezones
+  referenceTime: string        // elapsed: ISO timestamp or time string
+  referenceLabel: string       // elapsed: label ("market open", "shift start")
+  countUp: boolean             // elapsed: count up (true) or down (false)
+}
+
+type ClockView =
+  | 'classic' | 'digital' | 'analog' | 'minimal' | 'flip'
+  | 'word'    | 'binary'  | 'vertical' | 'split' | 'progress'
+  | 'fuzzy'   | 'world'   | 'dot-matrix' | 'radial' | 'arc'
+  | 'neon'    | 'bar'     | 'elapsed'
+
+interface WorldClockZone {
+  label: string
+  timezone: string             // IANA zone, e.g. "America/Los_Angeles"
 }
 ```
 

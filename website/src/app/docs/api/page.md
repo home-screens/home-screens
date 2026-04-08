@@ -332,7 +332,7 @@ Redeems a reward for a member. Checks eligibility (member restriction) and suffi
 }
 ```
 
-**Response:** The updated `{ rewards, balances, redemptions }` object.
+**Response:** `{ "balances": { ... }, "redemptions": [ ... ] }` — the updated point balances for all members and the updated redemption history after the redeem. Reward definitions are not returned here (they didn't change); re-fetch them via `GET /api/rewards` if needed.
 
 ### PUT /api/rewards/data
 
@@ -361,7 +361,7 @@ Manual point balance adjustment. Requires a valid session.
 
 Positive amounts credit points; negative amounts debit. Amount must be non-zero.
 
-**Response:** The updated `{ rewards, balances, redemptions }` object.
+**Response:** `{ "balances": { ... } }` — only the updated balances map. Reward definitions and redemption history are unchanged by this endpoint, so they are not returned.
 
 ---
 
@@ -437,13 +437,7 @@ Revokes all active sessions by bumping the session epoch. All users (including t
 
 ## Google Auth
 
-### GET /api/auth/google
-
-Initiates the OAuth 2.0 web redirect flow. Redirects the browser to Google's consent screen. Requires a valid session.
-
-### GET /api/auth/google/callback
-
-OAuth callback handler. Exchanges the authorization code for tokens and redirects back to the editor with a `google_auth=success` or `google_auth=error` query parameter. Validates a CSRF state cookie.
+Google sign-in uses the **OAuth 2.0 device flow** exclusively — there is no browser redirect endpoint, since the display itself is a kiosk with no keyboard. The editor calls `POST /api/auth/google/device` to get a `user_code`, the user enters that code at `google.com/device` on their phone or laptop, and the editor polls `PUT /api/auth/google/device` until Google returns a token.
 
 ### GET /api/auth/google/status
 
@@ -1012,11 +1006,51 @@ Proxies an Immich image through the server. Validates the asset ID format and ca
 
 ### GET /api/unsplash
 
-Search or list Unsplash photos. Requires an Unsplash access key in settings.
+Searches Unsplash photos. Requires an Unsplash access key in settings. Requires a valid session.
 
-### GET /api/unsplash/random
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `query` | string | `"nature landscape"` | Search query |
+| `page` | number | `1` | Page number |
+| `per_page` | number | `20` | Results per page |
+| `orientation` | string | `"portrait"` | `portrait`, `landscape`, or `squarish` |
 
-Returns a random Unsplash photo with optional query filter.
+**Response:**
+```json
+{
+  "photos": [
+    {
+      "id": "abc123",
+      "description": "Mountain landscape at sunset",
+      "thumb": "https://images.unsplash.com/...",
+      "small": "https://images.unsplash.com/...",
+      "regular": "https://images.unsplash.com/...",
+      "full": "https://images.unsplash.com/...",
+      "raw": "https://images.unsplash.com/...",
+      "authorName": "Jane Doe",
+      "authorUrl": "https://unsplash.com/@janedoe",
+      "downloadUrl": "https://api.unsplash.com/photos/abc123/download"
+    }
+  ],
+  "totalPages": 42,
+  "total": 830
+}
+```
+
+### POST /api/unsplash
+
+Downloads a chosen Unsplash photo to the local backgrounds directory and fires Unsplash's download-tracking pixel (required by the Unsplash API terms — the hit only fires when `downloadUrl` points at the real `api.unsplash.com` host, to prevent credential leakage). Requires a valid session.
+
+**Body:**
+```json
+{
+  "imageUrl": "https://images.unsplash.com/...",
+  "downloadUrl": "https://api.unsplash.com/photos/abc123/download",
+  "filename": "optional-base-name"
+}
+```
+
+**Response (201):** `{ "path": "/backgrounds/unsplash-<timestamp>.jpg" }`
 
 ---
 
@@ -1447,7 +1481,7 @@ Calls with no display target continue to drive the legacy single-display queue, 
 
 ### GET /api/displays
 
-Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's Displays tab and by display-only Pis waiting for adoption.
+Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's **Per display > All displays** page and by display-only Pis waiting for adoption.
 
 | Parameter | Type | Description |
 |---|---|---|
