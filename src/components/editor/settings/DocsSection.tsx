@@ -15,6 +15,7 @@ import {
   HelpCircle,
   ExternalLink,
   Smartphone,
+  Monitor,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -98,9 +99,15 @@ const DOCS: DocSection[] = [
         icon: Smartphone,
       },
       {
+        title: 'Multi-display',
+        href: '/docs/multi-display',
+        description: 'Hub-and-spoke setup for running multiple Pis from one server',
+        icon: Monitor,
+      },
+      {
         title: 'Networking',
         href: '/docs/networking',
-        description: 'Reverse proxy, remote access, multi-display setup',
+        description: 'Reverse proxy and remote access from outside your LAN',
         icon: Globe,
       },
       {
