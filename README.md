@@ -118,7 +118,7 @@ The `--display-only` flag installs just Chromium, labwc, wtype, wlr-randr, and f
 
 ### Adopt the spoke
 
-On the hub, open the editor and go to **Settings > Displays**. Any spoke that's powered on and pointed at this hub shows up in the unadopted list — click to adopt it, give it a name, and pick its resolution and rotation. The display appears in the editor's **Display Switcher** pill in the toolbar so you can flip between which display you're editing.
+On the hub, open the editor and go to **Settings > Per display > All displays**. Any spoke that's powered on and pointed at this hub shows up in the unadopted list — click to adopt it, give it a name, and pick its resolution and rotation. The display appears in the editor's **Display Switcher** pill in the toolbar so you can flip between which display you're editing, and in the sidebar's **Per display** group as its own drill-down page with Overview, Display, Sleep, Alerts, Profile, and Identity sub-tabs.
 
 Each display card has an **Edit screens** shortcut, an online/offline dot driven by live heartbeats, and the spoke's reported viewport — including its source IP — so you can tell which physical Pi is reporting at a glance.
 

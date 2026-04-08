@@ -242,7 +242,7 @@ Then use these in automations, scripts, or dashboards.
 
 ## Multi-display setup
 
-Home Screens supports a hub-and-spoke deployment where one server drives any number of Raspberry Pi displays — each with its own screens, layout, dimensions, rotation, and active profile, all served from one config file. Spoke Pis run only Chromium and the kiosk launcher (no Node.js) and are installed with `--display-only --backend <hub-url>`. See the dedicated **[Multi-display guide](/docs/multi-display)** for the install flow, the adoption flow in the editor's Displays tab, per-display API targeting, and troubleshooting.
+Home Screens supports a hub-and-spoke deployment where one server drives any number of Raspberry Pi displays — each with its own screens, layout, dimensions, rotation, and active profile, all served from one config file. Spoke Pis run only Chromium and the kiosk launcher (no Node.js) and are installed with `--display-only --backend <hub-url>`. See the dedicated **[Multi-display guide](/docs/multi-display)** for the install flow, the adoption flow in the editor's **Per display > All displays** page, per-display API targeting, and troubleshooting.
 
 ---
 

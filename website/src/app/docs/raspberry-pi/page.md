@@ -148,7 +148,7 @@ To set up a Pi as a display-only spoke pointing at an existing hub:
 ~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
 ```
 
-After install and reboot, the spoke contacts the hub and appears in the editor's **Settings > Displays** tab under **Unadopted Displays**, ready to be adopted. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
+After install and reboot, the spoke contacts the hub and appears in the editor's **Settings > Per display > All displays** page under **Unadopted Displays**, ready to be adopted. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
 
 ### What the installer does
 

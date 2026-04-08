@@ -78,7 +78,9 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/lib/display-filter.ts` — `filterConfigForDisplay`, `validateDisplays`, `findScreenById`, `getDisplayScreens` (shared between server route and `useLiveConfig`)
 - `src/lib/display-commands.ts` — per-display command queues, `statusMap`, `viewportReports`, `getUnadoptedDisplays` with stale eviction
 - `src/lib/display-client-id.ts` — per-tab `clientId` from sessionStorage so the hub can distinguish multiple tabs reporting under the same display ID
-- `src/components/editor/DisplaySwitcher.tsx`, `src/components/editor/settings/DisplaysSection.tsx` — multi-display UI (toolbar pill + Displays settings tab)
+- `src/components/editor/DisplaySwitcher.tsx`, `src/components/editor/settings/DisplaysIndexPage.tsx` — multi-display UI (toolbar pill + Per display > All displays index)
+- `src/components/editor/settings/SettingsSidebar.tsx`, `src/components/editor/settings/display/PerDisplayPage.tsx`, `src/lib/settings-route.ts` — Phase 4 settings split (Defaults / Per display) with URL-driven routing
+- `src/components/editor/settings/OverrideRow.tsx`, `src/lib/display-defaults-backlinks.ts`, `src/lib/display-profile-allowlist.ts` — per-display field overrides + the "which displays override this field?" backlink banner on Defaults pages
 
 ### Website
 The marketing site and documentation live in `website/` as a separate Next.js app:

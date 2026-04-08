@@ -174,11 +174,16 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 ## Global Settings
 
-Open the **Settings Panel** to configure system-wide options. Settings are organized into the following tabs:
+Open the **Settings Panel** to configure system-wide options. In a **single-display install**, the sidebar is a single flat list of pages:
 
-**Display** · **Displays** · **Profiles** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
+**Display** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Meals** · **Profiles** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
 
-The **Displays** tab is hidden in single-display installs and only appears once you add a second display.
+When you add a second display, the sidebar automatically splits into two groups:
+
+- **Defaults** — the same set of pages above, holding the shared source-of-truth values that apply to *every* display until a specific one overrides them. Each Defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
+- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has six sub-tabs: **Overview**, **Display**, **Sleep**, **Alerts**, **Profile**, **Identity**. Every inheritable field on a sub-tab is rendered as an **OverrideRow** with explicit **Override** / **Reset to default** actions, so the provenance of each value is visible instead of inferred. Resolution, rotation, and flip live directly on the `DisplayNode` and render as plain inputs on the Display sub-tab — they have no shared default to inherit from.
+
+See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
 ### Display
 
@@ -191,16 +196,16 @@ The **Displays** tab is hidden in single-display installs and only appears once 
 - **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
 - **Touchscreen Pause** — when enabled (default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) resumes rotation after a period of inactivity
 
-### Displays
+### Per display (All displays)
 
-The Displays tab manages the hub-and-spoke registry when more than one Pi spoke is connected to the hub. Each registered display appears as a card with its name, dimensions, rotation, online dot, last-seen timestamp, source IP, and screen count. Powered-on Pi spokes that haven't been registered yet appear under **Unadopted Displays** and can be adopted with one click.
+The **All displays** landing page under **Per display** manages the hub-and-spoke registry when more than one Pi spoke is connected to the hub. Each registered display appears as a card with its name, dimensions, rotation, online dot, last-seen timestamp, source IP, and screen count. Powered-on Pi spokes that haven't been registered yet appear under **Unadopted Displays** and can be adopted with one click.
 
-- **Adopt** — register an unadopted spoke. Lock the friendly name and confirm the dimensions/rotation (pre-filled from the spoke's reported viewport). The display ID cannot be changed at adoption time because the spoke continues using its original ID.
+- **Adopt** — register an unadopted spoke. Give it a friendly name and confirm the dimensions/rotation (pre-filled from the spoke's reported viewport). The display ID cannot be changed at adoption time because the spoke continues using its original ID.
 - **Edit screens** — switch the editor's selected display to this one and drop the canvas onto its screens.
-- **Edit** — change the friendly name, dimensions, rotation, or active profile (the `main` display's dimensions are managed through the Display tab instead).
+- **Open display** — jump into the display's drill-down page (Overview / Display / Sleep / Alerts / Profile / Identity sub-tabs) to edit its friendly name, dimensions, rotation, per-display overrides, and active profile. The `main` display is edited the same way — it's a regular display node that owns its own dimensions.
 - **Delete** — remove a display. Spokes still pointed at the deleted URL show a 60-second countdown and auto-navigate to the current default display.
 
-Multi-display features (this tab, the Display Switcher pill, the remote's Display Picker) are hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full setup, including the spoke install command.
+Multi-display features (the Defaults / Per display sidebar split, the All displays landing page, the Display Switcher pill, the remote's Display Picker) are hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full setup, including the spoke install command.
 
 ### Profiles
 
