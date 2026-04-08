@@ -506,28 +506,50 @@ export default function DisplaysIndexPage() {
     router.push(`?section=display&id=${encodeURIComponent(id)}&subtab=overview`);
   };
 
+  // First-visit copy vs. the concise header existing multi-display installs
+  // already understand. The empty-state version has to answer three questions
+  // a new user will ask the moment they land here: "what is this?", "why would
+  // I want it?", and "is it safe to click Add?". The populated version assumes
+  // the user already knows the answers and gets out of the way.
+  const isEmpty = displays.length === 0;
+
   return (
     <section>
       <div className="flex items-start justify-between mb-5">
-        <div>
+        <div className="max-w-2xl">
           <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Displays</div>
           <h1 className="text-xl font-semibold text-neutral-100">
-            {displays.length} {displays.length === 1 ? 'display' : 'displays'} in this home
+            {isEmpty
+              ? 'Run Home Screens on multiple displays'
+              : `${displays.length} ${displays.length === 1 ? 'display' : 'displays'} in this home`}
           </h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            Click a display to edit its own settings. Everything else uses the shared{' '}
-            <a
-              href="?section=defaults&page=display"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push('?section=defaults&page=display');
-              }}
-              className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
-            >
-              Defaults
-            </a>
-            .
-          </p>
+          {isEmpty ? (
+            <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
+              Drive more than one screen from this Pi — a kitchen touchscreen, a
+              bedroom monitor, a living-room TV — each with its own layout,
+              resolution, and rotation. This Pi becomes the hub and serves all of
+              them; secondary displays can be cheap Pi Zeros running{' '}
+              <code className="text-[12px] px-1 py-0.5 rounded bg-neutral-800 text-neutral-300">
+                install.sh --display-only
+              </code>
+              .
+            </p>
+          ) : (
+            <p className="text-sm text-neutral-500 mt-1">
+              Click a display to edit its own settings. Everything else uses the shared{' '}
+              <a
+                href="?section=defaults&page=display"
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push('?section=defaults&page=display');
+                }}
+                className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
+              >
+                Defaults
+              </a>
+              .
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -551,7 +573,7 @@ export default function DisplaysIndexPage() {
         </div>
       </div>
 
-      {/* Registered displays — 2-column card grid */}
+      {/* Registered displays — 2-column card grid, or first-visit explainer */}
       {displays.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
           {displays.map((display) => (
@@ -565,8 +587,45 @@ export default function DisplaysIndexPage() {
         </div>
       ) : (
         !adding && (
-          <div className="rounded-md border border-dashed border-neutral-700 px-3 py-6 text-xs text-neutral-500 text-center mb-5">
-            No displays registered. Add one below or adopt a Pi that has already connected.
+          // First-visit explainer. We deliberately keep this card visually
+          // heavier than the old one-liner — a new user lands here with no
+          // context, and the opt-in step (Add display → auto-bootstrap of
+          // "Main") is irreversible enough that it deserves a paragraph of
+          // reassurance rather than a single neutral-500 line.
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 px-5 py-5 mb-5">
+            <div className="text-sm font-medium text-neutral-200 mb-1.5">
+              This install is running in single-display mode
+            </div>
+            <p className="text-[13px] text-neutral-400 leading-relaxed mb-3">
+              Your current setup counts as one display but isn&apos;t registered here
+              yet — multi-display support is opt-in so existing installs stay
+              unchanged until you explicitly add a second screen. The moment you
+              add your first display, this Pi&apos;s current layout becomes a display
+              called <span className="text-neutral-200 font-medium">Main</span> and
+              keeps running exactly as it does today.
+            </p>
+            <ul className="text-[13px] text-neutral-400 space-y-1.5 mb-1">
+              <li className="flex gap-2">
+                <span className="text-neutral-600 shrink-0">→</span>
+                <span>
+                  Click <span className="text-neutral-200 font-medium">Add display</span> above
+                  to register a new screen — give it a name, resolution, and rotation,
+                  then design its own layout in the editor.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-neutral-600 shrink-0">→</span>
+                <span>
+                  Or flash another Pi with{' '}
+                  <code className="text-[12px] px-1 py-0.5 rounded bg-neutral-800 text-neutral-300">
+                    install.sh --display-only --backend http://&lt;this-pi&gt;:3000
+                  </code>
+                  . Once it boots, it will appear below as an{' '}
+                  <span className="text-amber-300">unadopted display</span> waiting
+                  to be adopted with one click.
+                </span>
+              </li>
+            </ul>
           </div>
         )
       )}
