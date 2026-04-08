@@ -141,7 +141,19 @@ export default function StatsSection() {
   const [error, setError] = useState<string | null>(null);
   const [showCacheDetails, setShowCacheDetails] = useState(false);
   const [showTelemetryDetails, setShowTelemetryDetails] = useState(false);
-  const { config, updateSettings, saveConfig, isSaving } = useEditorStore();
+  const { config, updateSettings, saveConfig, isSaving, selectedDisplayId, setSelectedDisplay } = useEditorStore();
+  const displays = config?.displays ?? [];
+  const isMultiDisplay = displays.length > 0;
+
+  // In multi-display mode every display POSTs status with its own displayId,
+  // so the hub keyed-by-`__default__` slot stays empty. We have to thread the
+  // currently-selected display through the query string — otherwise
+  // /api/display/status returns 404 and the page flashes "no display connected"
+  // even when displays are actively heartbeating. In legacy single-display
+  // mode `selectedDisplayId` is null and we keep the bare URL exactly as before.
+  const activeDisplay = selectedDisplayId
+    ? config?.displays?.find((d) => d.id === selectedDisplayId) ?? null
+    : null;
 
   const fetchStats = useCallback(async () => {
     try {
@@ -161,7 +173,10 @@ export default function StatsSection() {
 
   const fetchDisplayStatus = useCallback(async () => {
     try {
-      const res = await editorFetch('/api/display/status');
+      const url = selectedDisplayId
+        ? `/api/display/status?display=${encodeURIComponent(selectedDisplayId)}`
+        : '/api/display/status';
+      const res = await editorFetch(url);
       if (res.ok) {
         setDisplayStatus(await res.json());
       } else {
@@ -170,7 +185,7 @@ export default function StatsSection() {
     } catch {
       // display may not be connected
     }
-  }, []);
+  }, [selectedDisplayId]);
 
   useEffect(() => {
     fetchStats();
@@ -180,6 +195,13 @@ export default function StatsSection() {
     const id = setInterval(fetchDisplayStatus, 5_000);
     return () => clearInterval(id);
   }, [fetchStats, fetchDisplayStatus]);
+
+  // When the user switches displays, drop the previously-cached status so
+  // we don't briefly show the wrong display's cache stats / screen index
+  // while the first poll for the new display is in flight.
+  useEffect(() => {
+    setDisplayStatus(null);
+  }, [selectedDisplayId]);
 
   if (loading) {
     return (
@@ -220,9 +242,35 @@ export default function StatsSection() {
     <div className="space-y-0 divide-y divide-neutral-600 [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       {/* ─── Display Status ──────────────────── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
-          Display Status
-        </h3>
+        <div className="flex items-center justify-between mb-3 gap-3">
+          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+            Display Status
+          </h3>
+          {isMultiDisplay && (
+            // Inline picker so the user can switch which display this panel
+            // (and the Data Cache panel below) is reporting on — the editor's
+            // toolbar display-switcher pill is absent on the settings route,
+            // and forcing a trip to the Displays tab just to swap views here
+            // was the friction the user flagged. Wired to the store's
+            // `setSelectedDisplay` so switching also updates the URL and the
+            // rest of the editor's display context in one gesture.
+            <label className="flex items-center gap-2 text-xs text-neutral-500 shrink-0">
+              <span>Display</span>
+              <select
+                value={selectedDisplayId ?? ''}
+                onChange={(e) => setSelectedDisplay(e.target.value || null)}
+                className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-700 transition-colors cursor-pointer"
+                aria-label="Switch display"
+              >
+                {displays.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
         {displayConnected && displayStatus ? (
           <div className="rounded-md bg-neutral-800/50 border border-neutral-700 p-3">
             <div className="flex items-center justify-between">
@@ -257,7 +305,13 @@ export default function StatsSection() {
           </div>
         ) : (
           <p className="text-xs text-neutral-500">
-            No display connected. Open <span className="font-mono text-neutral-400">/display</span> to start.
+            No display connected
+            {activeDisplay ? <> for <span className="text-neutral-300">{activeDisplay.name}</span></> : null}
+            . Open{' '}
+            <span className="font-mono text-neutral-400">
+              /display{activeDisplay ? `/${activeDisplay.id}` : ''}
+            </span>{' '}
+            to start.
           </p>
         )}
       </section>
@@ -341,7 +395,8 @@ export default function StatsSection() {
           </div>
         ) : (
           <p className="text-xs text-neutral-500">
-            Cache stats are reported by the display client. No display connected.
+            Cache stats are reported by the display client. No display connected
+            {activeDisplay ? <> for <span className="text-neutral-300">{activeDisplay.name}</span></> : null}.
           </p>
         )}
       </section>

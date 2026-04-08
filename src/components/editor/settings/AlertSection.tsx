@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
+import ForkBanner from '@/components/editor/settings/ForkBanner';
 
 interface AlertValues {
   alertsEnabled: boolean;
@@ -12,12 +13,33 @@ interface AlertValues {
   alertsScale: number;
 }
 
+/**
+ * Per-display fork affordance for notification/alert settings. Mirrors
+ * `SleepSection`'s `fork` prop — `alerts` is a nested AlertSettings object
+ * on GlobalSettings, so per-display overrides replace the whole object.
+ */
+interface AlertForkProps {
+  isForked: boolean;
+  displayName: string;
+  onFork: () => void;
+  onReset: () => void;
+}
+
 interface Props {
   values: AlertValues;
   onChange: (updates: Partial<AlertValues>) => void;
+  fork?: AlertForkProps;
+  /**
+   * Target display ID for command endpoints (e.g. clear-alerts). Named-
+   * display Pis poll `/api/display/commands?display=<id>` queues, not the
+   * legacy `__default__` queue, so without a `displayId` the "Clear All
+   * Alerts" button silently no-ops on any adopted display. Leave undefined
+   * in single-display installs to keep using the legacy default queue.
+   */
+  displayId?: string | null;
 }
 
-export default function AlertSection({ values, onChange }: Props) {
+export default function AlertSection({ values, onChange, fork, displayId }: Props) {
   const { alertsEnabled, alertsPosition, alertsMaxVisible, alertsDefaultDuration, alertsScale } = values;
   const [clearing, setClearing] = useState(false);
   const [clearMessage, setClearMessage] = useState<string | null>(null);
@@ -26,7 +48,10 @@ export default function AlertSection({ values, onChange }: Props) {
     setClearing(true);
     setClearMessage(null);
     try {
-      const res = await fetch('/api/display/clear-alerts', { method: 'POST' });
+      const url = displayId
+        ? `/api/display/clear-alerts?display=${encodeURIComponent(displayId)}`
+        : '/api/display/clear-alerts';
+      const res = await fetch(url, { method: 'POST' });
       setClearMessage(res.ok ? 'Cleared' : 'Failed');
       setTimeout(() => setClearMessage(null), 2000);
     } catch (err) {
@@ -36,12 +61,23 @@ export default function AlertSection({ values, onChange }: Props) {
     }
   }
 
+  const isInherited = fork && !fork.isForked;
+
   return (
     <section>
       <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
         Notifications
       </h3>
-      <div className="space-y-3">
+      {fork && (
+        <ForkBanner
+          label="Notifications"
+          displayName={fork.displayName}
+          isForked={fork.isForked}
+          onFork={fork.onFork}
+          onReset={fork.onReset}
+        />
+      )}
+      <div className={`space-y-3 ${isInherited ? 'opacity-60 pointer-events-none' : ''}`}>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"

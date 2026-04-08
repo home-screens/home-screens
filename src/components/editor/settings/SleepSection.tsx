@@ -1,6 +1,7 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import ForkBanner from '@/components/editor/settings/ForkBanner';
 
 interface SleepSettings {
   sleepEnabled: boolean;
@@ -16,12 +17,31 @@ interface SleepSettings {
   screensaverMode: string;
 }
 
+/**
+ * Per-display fork affordance. In single-display mode this prop is
+ * undefined and the section edits the global Sleep settings directly.
+ * In multi-display mode:
+ *   - When `isForked` is false, the section renders the global values as
+ *     read-only with a "Override Sleep for <display>" button at the top.
+ *   - When `isForked` is true, the section renders the display-specific
+ *     values (passed via `values`) as editable, with a "Reset to inherited"
+ *     link at the top. Nested-object overrides are full-replacement by
+ *     contract, so the whole Sleep+screensaver block is forked as one unit.
+ */
+interface SleepForkProps {
+  isForked: boolean;
+  displayName: string;
+  onFork: () => void;
+  onReset: () => void;
+}
+
 interface Props {
   values: SleepSettings;
   onChange: (updates: Partial<SleepSettings>) => void;
+  fork?: SleepForkProps;
 }
 
-export default function SleepSection({ values, onChange }: Props) {
+export default function SleepSection({ values, onChange, fork }: Props) {
   const {
     sleepEnabled, dimAfterMinutes, sleepAfterMinutes, dimBrightness,
     dimScheduleEnabled, dimStartTime, dimEndTime,
@@ -29,12 +49,23 @@ export default function SleepSection({ values, onChange }: Props) {
     screensaverMode,
   } = values;
 
+  const isInherited = fork && !fork.isForked;
+
   return (
     <section>
       <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
         Sleep &amp; Screensaver
       </h3>
-      <div className="space-y-3">
+      {fork && (
+        <ForkBanner
+          label="Sleep settings"
+          displayName={fork.displayName}
+          isForked={fork.isForked}
+          onFork={fork.onFork}
+          onReset={fork.onReset}
+        />
+      )}
+      <div className={`space-y-3 ${isInherited ? 'opacity-60 pointer-events-none' : ''}`}>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"

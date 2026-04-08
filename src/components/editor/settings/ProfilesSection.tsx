@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { getDisplayProfiles } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
@@ -127,7 +128,15 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
   // currently working on. In legacy single-display mode this resolves to
   // the global screen pool.
   const screens = getActiveScreens(config, selectedDisplayId);
-  const activeProfileId = config.settings.activeProfile;
+  // activeProfile sits on the DisplayNode when the display owns its
+  // profiles, otherwise it lives on the global settings. Match what
+  // filterConfigForDisplay / api/display/profile do.
+  const activeDisplay = selectedDisplayId
+    ? config.displays?.find((d) => d.id === selectedDisplayId)
+    : null;
+  const activeProfileId = activeDisplay && activeDisplay.profiles
+    ? activeDisplay.activeProfile
+    : config.settings.activeProfile;
 
   // Screens included in this profile (in profile order)
   const includedScreens = profile.screenIds
@@ -408,7 +417,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 /* ─── Main section ───────────────────────────── */
 
 export default function ProfilesSection() {
-  const { config, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
+  const { config, selectedDisplayId, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -420,8 +429,24 @@ export default function ProfilesSection() {
 
   if (!config) return null;
 
-  const profiles = config.profiles ?? [];
-  const activeProfileId = config.settings.activeProfile;
+  // In multi-display mode, profile list + active-profile selection follow
+  // the currently-selected display — every display owns its own profile
+  // list (addDisplay bootstrap migrates `config.profiles` onto Main and
+  // gives every subsequent display an empty owned list). Legacy configs
+  // loaded from disk may still have a display with `!display.profiles`
+  // that transparently reads through to `config.profiles`; the fall-
+  // through below keeps those rendering correctly until the user edits
+  // something that forces a resave.
+  const activeDisplay = selectedDisplayId
+    ? config.displays?.find((d) => d.id === selectedDisplayId) ?? null
+    : null;
+  const isDisplayOwnedProfiles = !!activeDisplay?.profiles;
+  const profiles = activeDisplay
+    ? getDisplayProfiles(activeDisplay, config.profiles)
+    : config.profiles ?? [];
+  const activeProfileId = isDisplayOwnedProfiles
+    ? activeDisplay?.activeProfile
+    : config.settings.activeProfile;
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {

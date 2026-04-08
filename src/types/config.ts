@@ -216,7 +216,13 @@ export interface Profile {
 
 /**
  * Per-display settings overrides. Any field omitted falls back to GlobalSettings.
- * Nested objects (sleep, screensaver) are full-replacement, NOT deep-merged.
+ * Nested objects (sleep, screensaver, alerts) are full-replacement, NOT deep-merged —
+ * partial overrides would create surprising fallback chains. Override the whole
+ * object or omit it.
+ *
+ * Adding a new override here is sufficient to make `filterConfigForDisplay`
+ * pick it up: the merge in `display-filter.ts` is `{ ...global, ...perDisplay }`,
+ * so the field flows through automatically without any merge-logic change.
  */
 export interface DisplayNodeSettings {
   displayWidth?: number;
@@ -227,6 +233,22 @@ export interface DisplayNodeSettings {
   transitionDuration?: number;
   sleep?: SleepSettings;
   screensaver?: ScreensaverSettings;
+
+  // Per-display rendering / interaction overrides
+  fullscreenTheme?: string;
+  cursorHideSeconds?: number;
+  pauseEnabled?: boolean;
+  pauseTimeoutSeconds?: number;
+  alerts?: AlertSettings;
+
+  // NOTE: per-display location overrides (latitude/longitude/locationName/
+  // timezone) were intentionally NOT added. The server-side API routes
+  // that fetch weather/air-quality/calendar data read location via
+  // `readConfig()` directly, not through `filterConfigForDisplay`, so a
+  // per-display override would only affect client-side rendering — the
+  // actual weather module would still hit the hub's coordinates. Ship
+  // this properly by threading displayId into those routes first, then
+  // re-introduce the override fields here.
 }
 
 /**
@@ -264,8 +286,21 @@ export interface DisplayNode {
   displayHeight?: number;
   /** wlr-randr transform applied at boot on the display-only Pi (informational on the hub side) */
   displayTransform?: 'normal' | '90' | '180' | '270';
-  /** Optional: restricts which profiles apply to this display */
+  /**
+   * Legacy profile-pool reference — pick profiles from the parent
+   * `ScreenConfiguration.profiles` list by ID. Mutually exclusive with
+   * the owned `profiles` field below: a display either references the
+   * shared pool or owns its own list, never both.
+   * @deprecated prefer owned `profiles`
+   */
   profileIds?: string[];
+  /**
+   * Profiles owned by this display. When present, this display ignores
+   * both `profileIds` and the global `config.profiles` pool — analogous to
+   * how `screens` overrides the legacy `screenIds`-from-pool model. Owned
+   * profile `screenIds` reference this display's own `screens`.
+   */
+  profiles?: Profile[];
   /** Per-display active profile (falls back to GlobalSettings.activeProfile) */
   activeProfile?: string;
   /** Per-display setting overrides (rotation interval, sleep, etc.) */

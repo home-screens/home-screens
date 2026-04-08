@@ -3,7 +3,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
-import type { GlobalSettings } from '@/types/config';
+import type { GlobalSettings, DisplayNodeSettings } from '@/types/config';
+import { diffDisplayOverrides } from '@/lib/display-override-diff';
+import DisplayContextHeader from '@/components/editor/settings/DisplayContextHeader';
 import {
   ArrowLeft,
   Monitor,
@@ -224,6 +226,69 @@ function toFormState(s: GlobalSettings | undefined): SettingsState {
   };
 }
 
+/**
+ * Convert the flat SleepState form shape back to the nested
+ * { sleep, screensaver } config shape. Extracted so both the global Save
+ * path and the per-display fork path can compute the same value.
+ */
+function sleepFormToConfig(sleep: SleepState): {
+  sleep: NonNullable<GlobalSettings['sleep']>;
+  screensaver: NonNullable<GlobalSettings['screensaver']>;
+} {
+  return {
+    sleep: {
+      enabled: sleep.sleepEnabled,
+      dimAfterMinutes: sleep.dimAfterMinutes,
+      sleepAfterMinutes: sleep.sleepAfterMinutes,
+      dimBrightness: sleep.dimBrightness,
+      ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
+      ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
+    },
+    screensaver: {
+      mode: sleep.screensaverMode as 'clock' | 'blank' | 'off',
+    },
+  };
+}
+
+function sleepConfigToForm(
+  sleep: GlobalSettings['sleep'] | undefined,
+  screensaver: GlobalSettings['screensaver'] | undefined,
+): SleepState {
+  return {
+    sleepEnabled: sleep?.enabled ?? FORM_DEFAULTS.sleep.sleepEnabled,
+    dimAfterMinutes: sleep?.dimAfterMinutes ?? FORM_DEFAULTS.sleep.dimAfterMinutes,
+    sleepAfterMinutes: sleep?.sleepAfterMinutes ?? FORM_DEFAULTS.sleep.sleepAfterMinutes,
+    dimBrightness: sleep?.dimBrightness ?? FORM_DEFAULTS.sleep.dimBrightness,
+    dimScheduleEnabled: !!sleep?.dimSchedule,
+    dimStartTime: sleep?.dimSchedule?.startTime ?? FORM_DEFAULTS.sleep.dimStartTime,
+    dimEndTime: sleep?.dimSchedule?.endTime ?? FORM_DEFAULTS.sleep.dimEndTime,
+    sleepScheduleEnabled: !!sleep?.schedule,
+    sleepStartTime: sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
+    sleepEndTime: sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
+    screensaverMode: screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
+  };
+}
+
+function alertsFormToConfig(alerts: AlertState): NonNullable<GlobalSettings['alerts']> {
+  return {
+    enabled: alerts.alertsEnabled,
+    position: alerts.alertsPosition as 'top' | 'bottom',
+    maxVisible: alerts.alertsMaxVisible,
+    defaultDuration: alerts.alertsDefaultDuration * 1000,
+    scale: alerts.alertsScale,
+  };
+}
+
+function alertsConfigToForm(alerts: GlobalSettings['alerts'] | undefined): AlertState {
+  return {
+    alertsEnabled: alerts?.enabled ?? FORM_DEFAULTS.alerts.alertsEnabled,
+    alertsPosition: alerts?.position ?? FORM_DEFAULTS.alerts.alertsPosition,
+    alertsMaxVisible: alerts?.maxVisible ?? FORM_DEFAULTS.alerts.alertsMaxVisible,
+    alertsDefaultDuration: (alerts?.defaultDuration ?? 0) / 1000,
+    alertsScale: alerts?.scale ?? FORM_DEFAULTS.alerts.alertsScale,
+  };
+}
+
 function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
   const { display, location, weather, calendar, sleep, alerts } = state;
   const parsedLat = parseFloat(location.lat) || 0;
@@ -292,11 +357,30 @@ export default function SettingsPage() {
   const router = useRouter();
   const initialTab = getInitialTab();
 
-  const { config, selectedDisplayId, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
+  const { config, selectedDisplayId, updateSettings, updateDisplaySettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
   const settings = config?.settings;
+  const displays = config?.displays;
+  const isMultiDisplay = !!displays && displays.length > 0;
+  const activeDisplay = isMultiDisplay && selectedDisplayId
+    ? displays.find((d) => d.id === selectedDisplayId) ?? null
+    : null;
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [state, setState] = useState<SettingsState>(() => toFormState(settings));
+  // Per-display override form state. Tracks ONLY the fields the user has
+  // explicitly forked for the currently-selected display. A missing key
+  // means "inherit from global"; a present key is the override value. On
+  // Save we diff this against the saved display.settings to compute both
+  // additions/updates and explicit resets (undefined ⇒ delete key).
+  const [displayOverrideState, setDisplayOverrideState] = useState<DisplayNodeSettings>(
+    () => activeDisplay?.settings ?? {},
+  );
+  // Dirty flag for the per-display form. Set by `setDisplayOverride`;
+  // cleared on display switch (via the reload effect) and after Save.
+  // `handleSave` skips the `updateDisplaySettings` store call entirely
+  // when this is false, so saves on globals-only edits don't re-write
+  // every forked key (and can't clobber concurrent per-display writes).
+  const displayOverrideDirtyRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -316,12 +400,52 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
+  // When the selected display changes, reload the per-display override
+  // form from THAT display's saved settings. Unsaved edits on the previous
+  // display are dropped — matching the toolbar's DisplaySwitcher UX.
+  //
+  // IMPORTANT: we intentionally key this effect on `selectedDisplayId` only
+  // (not on a stringified snapshot of `activeDisplay.settings`). If the
+  // effect fired on every store mutation, a successful Save would
+  // re-trigger it mid-save and clobber in-flight form edits. The downside
+  // is that external writes to `display.settings` (e.g. a different
+  // editor tab saving) won't refresh the form — but the user can reload
+  // to pick them up, and the alternative (post-save clobber) was worse.
+  const prevDisplayIdRef = useRef<string | null>(selectedDisplayId);
+  useEffect(() => {
+    if (prevDisplayIdRef.current !== selectedDisplayId) {
+      prevDisplayIdRef.current = selectedDisplayId;
+      setDisplayOverrideState(activeDisplay?.settings ?? {});
+      displayOverrideDirtyRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDisplayId]);
+
   // Upgrade/rollback modal state
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [rollbackTarget, setRollbackTarget] = useState<string | null>(null);
 
   const updateGroup = useCallback(<K extends keyof SettingsState>(group: K, updates: Partial<SettingsState[K]>) => {
     setState((prev) => ({ ...prev, [group]: { ...prev[group], ...updates } }));
+    setSaveMessage(null);
+  }, []);
+
+  // Set (or clear) a per-display override on the form. Passing `undefined`
+  // for `value` means "reset this field to inherited" — we delete the key
+  // from the form state so the Save-time diff turns it into an explicit
+  // `undefined` for updateDisplaySettings, which in turn removes the key
+  // from display.settings on disk.
+  const setDisplayOverride = useCallback(<K extends keyof DisplayNodeSettings>(key: K, value: DisplayNodeSettings[K] | undefined) => {
+    setDisplayOverrideState((prev) => {
+      if (value === undefined) {
+        if (!(key in prev)) return prev;
+        const { [key]: _drop, ...rest } = prev;
+        void _drop;
+        return rest as DisplayNodeSettings;
+      }
+      return { ...prev, [key]: value };
+    });
+    displayOverrideDirtyRef.current = true;
     setSaveMessage(null);
   }, []);
 
@@ -386,7 +510,30 @@ export default function SettingsPage() {
     setSaveMessage(null);
     try {
       updateSettings(toConfigSettings(state));
+
+      // In multi-display mode, also flush the per-display override form
+      // to the active display — but ONLY if the user actually touched
+      // any per-display field since the last load. Without this guard,
+      // every Save would re-write every forked key, potentially
+      // clobbering concurrent writes from other editor tabs or from the
+      // /api/display/profile endpoint.
+      //
+      // When the form IS dirty, we diff against the saved display.settings
+      // so keys that the user "Reset to inherited" are sent as `undefined`
+      // (which `updateDisplaySettings` converts into a delete-key) rather
+      // than silently sticking around.
+      if (selectedDisplayId && activeDisplay && displayOverrideDirtyRef.current) {
+        const diff = diffDisplayOverrides(
+          activeDisplay.settings ?? {},
+          displayOverrideState,
+        );
+        if (Object.keys(diff).length > 0) {
+          updateDisplaySettings(selectedDisplayId, diff);
+        }
+      }
+
       await saveConfig();
+      displayOverrideDirtyRef.current = false;
       setSaveMessage('Saved');
       setTimeout(() => setSaveMessage(null), 2000);
     } finally {
@@ -491,10 +638,26 @@ export default function SettingsPage() {
         <div className="flex-1 overflow-y-auto">
           <div className={`mx-auto px-6 py-6 ${activeTab === 'integrations' ? 'max-w-4xl' : 'max-w-2xl'}`}>
             {activeTab === 'display' && (
-              <DisplaySection
-                values={state.display}
-                onChange={handleDisplayChange}
-              />
+              <>
+                <DisplayContextHeader />
+                <DisplaySection
+                  values={state.display}
+                  onChange={handleDisplayChange}
+                  perDisplay={isMultiDisplay ? {
+                    overrides: displayOverrideState,
+                    onFork: setDisplayOverride,
+                    onReset: (key) => setDisplayOverride(key, undefined),
+                  } : undefined}
+                  /* Dimensions for non-main displays live on the DisplayNode
+                     itself and are edited via the Displays tab. Hide the
+                     Orientation/Resolution/Flip controls here so the form
+                     can't silently write to the global settings. Main's
+                     dimensions still live on globals, so main keeps the
+                     controls. */
+                  dimensionsLocked={isMultiDisplay && selectedDisplayId !== null && selectedDisplayId !== 'main'}
+                  dimensionsLockedDisplayName={activeDisplay?.name}
+                />
+              </>
             )}
 
             {activeTab === 'displays' && (
@@ -502,22 +665,95 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'profiles' && (
-              <ProfilesSection />
+              <>
+                <DisplayContextHeader />
+                <ProfilesSection />
+              </>
             )}
 
-            {activeTab === 'sleep' && (
-              <SleepSection
-                values={state.sleep}
-                onChange={(updates) => updateGroup('sleep', updates)}
-              />
-            )}
+            {activeTab === 'sleep' && (() => {
+              // Sleep + screensaver are treated as one forked unit (plan:
+              // nested-object overrides are full-replacement). When either
+              // side of the override is set, the tab edits the override;
+              // otherwise it edits the global sleep form.
+              const isForked = !!(displayOverrideState.sleep || displayOverrideState.screensaver);
+              const sleepValues = isForked
+                ? sleepConfigToForm(displayOverrideState.sleep, displayOverrideState.screensaver)
+                : state.sleep;
+              const handleChange = (updates: Partial<SleepState>) => {
+                if (isForked) {
+                  // Re-derive the nested shape from the merged form state and
+                  // write back into the override, so every keystroke keeps
+                  // the override in sync with the form.
+                  const merged = { ...sleepValues, ...updates };
+                  const { sleep, screensaver } = sleepFormToConfig(merged);
+                  setDisplayOverride('sleep', sleep);
+                  setDisplayOverride('screensaver', screensaver);
+                } else {
+                  updateGroup('sleep', updates);
+                }
+              };
+              return (
+                <>
+                  <DisplayContextHeader />
+                  <SleepSection
+                    values={sleepValues}
+                    onChange={handleChange}
+                    fork={isMultiDisplay && selectedDisplayId ? {
+                      isForked,
+                      displayName: activeDisplay?.name ?? selectedDisplayId,
+                      onFork: () => {
+                        // Seed both override fields from the current global
+                        // form state so the user sees no behavior change
+                        // until they edit a specific sub-control.
+                        const { sleep, screensaver } = sleepFormToConfig(state.sleep);
+                        setDisplayOverride('sleep', sleep);
+                        setDisplayOverride('screensaver', screensaver);
+                      },
+                      onReset: () => {
+                        setDisplayOverride('sleep', undefined);
+                        setDisplayOverride('screensaver', undefined);
+                      },
+                    } : undefined}
+                  />
+                </>
+              );
+            })()}
 
-            {activeTab === 'alerts' && (
-              <AlertSection
-                values={state.alerts}
-                onChange={(updates) => updateGroup('alerts', updates)}
-              />
-            )}
+            {activeTab === 'alerts' && (() => {
+              const isForked = displayOverrideState.alerts !== undefined;
+              const alertValues = isForked
+                ? alertsConfigToForm(displayOverrideState.alerts)
+                : state.alerts;
+              const handleChange = (updates: Partial<AlertState>) => {
+                if (isForked) {
+                  const merged = { ...alertValues, ...updates };
+                  setDisplayOverride('alerts', alertsFormToConfig(merged));
+                } else {
+                  updateGroup('alerts', updates);
+                }
+              };
+              return (
+                <>
+                  <DisplayContextHeader />
+                  <AlertSection
+                    values={alertValues}
+                    onChange={handleChange}
+                    displayId={isMultiDisplay ? selectedDisplayId : null}
+                    fork={isMultiDisplay && selectedDisplayId ? {
+                      isForked,
+                      displayName: activeDisplay?.name ?? selectedDisplayId,
+                      onFork: () => {
+                        setDisplayOverride('alerts', alertsFormToConfig(state.alerts));
+                      },
+                      onReset: () => {
+                        setDisplayOverride('alerts', undefined);
+                      },
+                    } : undefined}
+                  />
+                </>
+              );
+            })()}
 
             {activeTab === 'location' && (
               <LocationSection

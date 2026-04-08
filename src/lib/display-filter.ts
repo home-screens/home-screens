@@ -47,6 +47,42 @@ export function getDisplayScreens(
 }
 
 /**
+ * Internal precedence resolver. Preserves `undefined` in the "nothing
+ * set anywhere" case so `filterConfigForDisplay` can keep a legacy
+ * signal — the exported `getDisplayProfiles` wraps this with `?? []`
+ * for UI callers that always want an iterable.
+ */
+function resolveDisplayProfiles(
+  display: DisplayNode,
+  pool: Profile[] | undefined,
+): Profile[] | undefined {
+  if (display.profiles) return display.profiles;
+  if (display.profileIds) {
+    const set = new Set(display.profileIds);
+    return pool?.filter((p) => set.has(p.id));
+  }
+  return pool;
+}
+
+/**
+ * Pick the effective profile list for a display:
+ *
+ *   1. `display.profiles` — owned profiles, scoped to this display's screens (preferred)
+ *   2. `display.profileIds` over `pool` — legacy shared-pool references
+ *   3. the full `pool` (or empty list if `pool` is undefined)
+ *
+ * Owned profiles win over `profileIds` for the same reason owned screens win
+ * over `screenIds`: a display that has migrated to owned profiles is
+ * self-contained and the shared-pool list is no longer relevant to it.
+ */
+export function getDisplayProfiles(
+  display: DisplayNode,
+  pool: Profile[] | undefined,
+): Profile[] {
+  return resolveDisplayProfiles(display, pool) ?? [];
+}
+
+/**
  * Find a screen by ID across every place it might live: each display's
  * owned `screens`, the legacy global `config.screens` pool, or both.
  * Server-side routes that only know a `screenId` (e.g. the background
@@ -96,11 +132,12 @@ export function filterConfigForDisplay(
 
   const screens = getDisplayScreens(display, config.screens);
 
-  let profiles = config.profiles;
-  if (display.profileIds) {
-    const profileIdSet = new Set(display.profileIds);
-    profiles = config.profiles?.filter((p) => profileIdSet.has(p.id));
-  }
+  // Use the undefined-preserving resolver so a legacy config with no
+  // profiles anywhere still surfaces as `FilteredDisplayConfig.profiles
+  // === undefined`, matching legacy single-display behavior. The
+  // exported `getDisplayProfiles` collapses that to `[]` for UI callers
+  // that always want an iterable.
+  const profiles = resolveDisplayProfiles(display, config.profiles);
 
   // Merge per-display settings over global settings. Per-display values win.
   // We thread the per-display activeProfile through `settings.activeProfile`
@@ -204,6 +241,13 @@ export function validateDisplays(config: ScreenConfiguration): string | null {
       }
     }
 
+    // Owned profiles and the legacy `profileIds` reference are mutually
+    // exclusive — a display either references the shared pool or owns its
+    // own list, never both. Mirrors the owned-vs-`screenIds` rule.
+    if (display.profiles && display.profileIds) {
+      return `Display "${display.id}" sets both "profiles" and "profileIds" — pick one`;
+    }
+
     if (display.profileIds) {
       for (const pid of display.profileIds) {
         if (!profileIds.has(pid)) {
@@ -212,14 +256,47 @@ export function validateDisplays(config: ScreenConfiguration): string | null {
       }
     }
 
-    if (display.activeProfile) {
-      if (!profileIds.has(display.activeProfile)) {
-        return `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"`;
+    // Owned-profile validation: profiles are self-contained, so their
+    // screenIds must resolve within this display's own screens (NOT the
+    // global pool). IDs must be unique within the owned list.
+    let ownedProfileIds: Set<string> | null = null;
+    if (display.profiles) {
+      ownedProfileIds = new Set();
+      // Owned profiles can only reference owned screens. Legacy displays
+      // that still use `screenIds`-from-pool can't have `profiles` set
+      // (they'd be missing screen objects to validate against), so we
+      // resolve the screen-id set off `display.screens` directly.
+      const ownedScreenIds = new Set((display.screens ?? []).map((s) => s.id));
+      for (const profile of display.profiles) {
+        if (ownedProfileIds.has(profile.id)) {
+          return `Display "${display.id}" has duplicate profile id "${profile.id}"`;
+        }
+        ownedProfileIds.add(profile.id);
+        for (const sid of profile.screenIds) {
+          if (!ownedScreenIds.has(sid)) {
+            return `Display "${display.id}" profile "${profile.id}" references unknown screen "${sid}"`;
+          }
+        }
       }
-      // When profileIds restricts the display, activeProfile must be in that set —
-      // otherwise the merged settings select a profile the filtered list won't contain.
-      if (display.profileIds && !display.profileIds.includes(display.activeProfile)) {
-        return `Display "${display.id}" activeProfile "${display.activeProfile}" is not in its profileIds list`;
+    }
+
+    if (display.activeProfile) {
+      // When the display owns profiles, activeProfile is resolved against
+      // the owned list and the global pool is irrelevant. Otherwise fall
+      // through to the existing global+profileIds check.
+      if (ownedProfileIds) {
+        if (!ownedProfileIds.has(display.activeProfile)) {
+          return `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"`;
+        }
+      } else {
+        if (!profileIds.has(display.activeProfile)) {
+          return `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"`;
+        }
+        // When profileIds restricts the display, activeProfile must be in that set —
+        // otherwise the merged settings select a profile the filtered list won't contain.
+        if (display.profileIds && !display.profileIds.includes(display.activeProfile)) {
+          return `Display "${display.id}" activeProfile "${display.activeProfile}" is not in its profileIds list`;
+        }
       }
     }
 

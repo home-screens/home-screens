@@ -359,6 +359,68 @@ describe('POST /api/display/profile', () => {
     );
     expect(res.status).toBe(404);
   });
+
+  it('accepts an owned-profile ID when the target display owns its profile list', async () => {
+    // The display owns its own profile list. `owned-day` exists only
+    // inside `display.profiles` — the global pool is empty. The endpoint
+    // should still accept it because owned-profiles mode resolves
+    // activeProfile against the display's own list.
+    vi.mocked(requireSession).mockResolvedValue(undefined as never);
+    const display: {
+      id: string;
+      name: string;
+      screenIds: string[];
+      profiles: Array<{ id: string; name: string; screenIds: string[] }>;
+      activeProfile?: string;
+    } = {
+      id: 'kitchen',
+      name: 'Kitchen',
+      screenIds: [],
+      profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: [] }],
+    };
+    vi.mocked(readConfig).mockResolvedValue({
+      version: 3,
+      screens: [],
+      settings: { activeProfile: undefined } as never,
+      profiles: [],
+      displays: [display],
+    });
+    vi.mocked(writeConfig).mockResolvedValue(undefined);
+
+    const res = await POST(
+      makeRequest({ profile: 'owned-day', displayId: 'kitchen' }),
+      makeParams('profile'),
+    );
+    expect(res.status).toBe(200);
+    expect(display.activeProfile).toBe('owned-day');
+  });
+
+  it('rejects a global-pool profile ID against an owned-profiles display', async () => {
+    // The display owns its own profile list (`owned-day`). The global
+    // pool contains `global-day`. A request to activate `global-day` on
+    // the owned-profiles display must 404 — this is the whole point of
+    // the owned-vs-pool distinction and the only test that locks in
+    // "owned-profiles mode ignores the global pool."
+    vi.mocked(requireSession).mockResolvedValue(undefined as never);
+    vi.mocked(readConfig).mockResolvedValue({
+      version: 3,
+      screens: [],
+      settings: { activeProfile: undefined } as never,
+      profiles: [{ id: 'global-day', name: 'Global Day', screenIds: [] }],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screenIds: [],
+        profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: [] }],
+      }],
+    });
+
+    const res = await POST(
+      makeRequest({ profile: 'global-day', displayId: 'kitchen' }),
+      makeParams('profile'),
+    );
+    expect(res.status).toBe(404);
+  });
 });
 
 describe('POST /api/display/alert', () => {

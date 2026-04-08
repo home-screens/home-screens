@@ -8,9 +8,10 @@ interface SliderProps {
   step?: number;
   displayValue?: string;
   onChange: (value: number) => void;
+  disabled?: boolean;
 }
 
-export default function Slider({ label, value, min, max, step = 1, displayValue, onChange }: SliderProps) {
+export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled }: SliderProps) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-neutral-400 flex justify-between">
@@ -24,7 +25,8 @@ export default function Slider({ label, value, min, max, step = 1, displayValue,
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-blue-500"
+        disabled={disabled}
+        className="w-full accent-blue-500 disabled:cursor-not-allowed"
       />
     </label>
   );

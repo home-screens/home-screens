@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { filterConfigForDisplay, validateDisplays, findScreenById } from '@/lib/display-filter';
+import { filterConfigForDisplay, validateDisplays, findScreenById, getDisplayProfiles } from '@/lib/display-filter';
 import type {
+  AlertSettings,
   GlobalSettings,
   Profile,
   Screen,
@@ -687,5 +688,262 @@ describe('findScreenById', () => {
       }],
     });
     expect(findScreenById(config, 'missing')).toBeNull();
+  });
+});
+
+/* ─── Per-display settings overrides (Phase 1) ─── */
+
+describe('filterConfigForDisplay — per-display overrides', () => {
+  it('fullscreenTheme override beats the global value', () => {
+    const config = makeConfig({
+      settings: makeSettings({ fullscreenTheme: 'linen' }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { fullscreenTheme: 'charcoal' },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.fullscreenTheme).toBe('charcoal');
+  });
+
+  it('cursorHideSeconds override beats the global value', () => {
+    const config = makeConfig({
+      settings: makeSettings({ cursorHideSeconds: 3 }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { cursorHideSeconds: 10 },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.cursorHideSeconds).toBe(10);
+  });
+
+  it('pauseEnabled / pauseTimeoutSeconds overrides beat globals', () => {
+    const config = makeConfig({
+      settings: makeSettings({ pauseEnabled: true, pauseTimeoutSeconds: 300 }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { pauseEnabled: false, pauseTimeoutSeconds: 0 },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.pauseEnabled).toBe(false);
+    expect(filtered?.settings.pauseTimeoutSeconds).toBe(0);
+  });
+
+  it('screensaver override is full-replacement (nested object)', () => {
+    // ScreensaverSettings currently has only `mode`, so this test looks
+    // like a plain "override wins" — but screensaver is the third nested
+    // object users can fork, alongside sleep + alerts, and the shallow-
+    // merge contract applies to it too. This test locks in the
+    // full-replacement semantics so a future schema addition (e.g.
+    // `screensaver.timeoutSeconds`) cannot silently acquire deep-merge
+    // behavior that would inherit half the object from the global.
+    const config = makeConfig({
+      settings: makeSettings({ screensaver: { mode: 'clock' } }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { screensaver: { mode: 'blank' } },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.screensaver).toEqual({ mode: 'blank' });
+  });
+
+  it('alerts override is full-replacement (nested object)', () => {
+    const globalAlerts: AlertSettings = {
+      enabled: true,
+      position: 'top',
+      maxVisible: 3,
+      defaultDuration: 0,
+      scale: 1,
+    };
+    const displayAlerts: AlertSettings = {
+      enabled: false,
+      position: 'bottom',
+      maxVisible: 1,
+      defaultDuration: 10_000,
+    };
+    const config = makeConfig({
+      settings: makeSettings({ alerts: globalAlerts }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { alerts: displayAlerts },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    // Full-replacement: scale was present on global but not on the override,
+    // so the merged alerts has no scale (not the global's `1`).
+    expect(filtered?.settings.alerts).toEqual(displayAlerts);
+    expect(filtered?.settings.alerts?.scale).toBeUndefined();
+  });
+
+});
+
+/* ─── getDisplayProfiles ───────────────────────── */
+
+describe('getDisplayProfiles', () => {
+  it('returns owned profiles when display.profiles is set', () => {
+    const owned = [makeProfile('display-day'), makeProfile('display-night')];
+    const display: DisplayNode = {
+      id: 'kitchen',
+      name: 'Kitchen',
+      screens: [],
+      profiles: owned,
+    };
+    // Pool should be ignored entirely when owned profiles are present.
+    const result = getDisplayProfiles(display, [makeProfile('pool-day')]);
+    expect(result.map((p) => p.id)).toEqual(['display-day', 'display-night']);
+  });
+
+  it('owned profiles win even when legacy profileIds is also set', () => {
+    // Validator rejects this shape, but the resolver still has a
+    // deterministic precedence so a misconfigured file never returns
+    // the wrong list silently.
+    const owned = [makeProfile('owned-1')];
+    const pool = [makeProfile('pool-1')];
+    const display: DisplayNode = {
+      id: 'kitchen',
+      name: 'Kitchen',
+      screens: [],
+      profiles: owned,
+      profileIds: ['pool-1'],
+    };
+    expect(getDisplayProfiles(display, pool).map((p) => p.id)).toEqual(['owned-1']);
+  });
+
+  it('filters the pool by profileIds when owned profiles are not set', () => {
+    const pool = [makeProfile('day'), makeProfile('night'), makeProfile('weekend')];
+    const display: DisplayNode = {
+      id: 'kitchen',
+      name: 'Kitchen',
+      screens: [],
+      profileIds: ['day', 'weekend'],
+    };
+    expect(getDisplayProfiles(display, pool).map((p) => p.id)).toEqual(['day', 'weekend']);
+  });
+
+  it('returns the full pool when neither owned nor profileIds is set', () => {
+    const pool = [makeProfile('day'), makeProfile('night')];
+    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: [] };
+    expect(getDisplayProfiles(display, pool)).toBe(pool);
+  });
+
+  it('returns an empty array when pool is undefined and nothing is owned', () => {
+    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: [] };
+    expect(getDisplayProfiles(display, undefined)).toEqual([]);
+  });
+});
+
+describe('filterConfigForDisplay — owned profiles', () => {
+  it('returns owned profiles and ignores the global pool', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('pool-day'), makeProfile('pool-night')],
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [makeProfile('owned-day', ['k-s1'])],
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.profiles?.map((p) => p.id)).toEqual(['owned-day']);
+  });
+});
+
+describe('validateDisplays — owned profiles', () => {
+  it('accepts a valid owned-profiles display', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1'), makeScreen('k-s2')],
+        profiles: [
+          makeProfile('day', ['k-s1']),
+          makeProfile('night', ['k-s2']),
+        ],
+        activeProfile: 'day',
+      }],
+    });
+    expect(validateDisplays(config)).toBeNull();
+  });
+
+  it('rejects a display that sets both "profiles" and "profileIds"', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('day')],
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [makeProfile('owned', ['k-s1'])],
+        profileIds: ['day'],
+      }],
+    });
+    expect(validateDisplays(config)).toMatch(/both "profiles" and "profileIds"/);
+  });
+
+  it('rejects an owned profile whose screenIds reference a global-pool screen', () => {
+    const config = makeConfig({
+      // Global pool has a screen the owned profile tries to reference —
+      // owned profiles are self-contained and must not reach out.
+      screens: [makeScreen('pool-s1')],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [makeProfile('day', ['pool-s1'])],
+      }],
+    });
+    expect(validateDisplays(config)).toMatch(/profile "day" references unknown screen "pool-s1"/);
+  });
+
+  it('rejects duplicate owned-profile ids within a single display', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [
+          makeProfile('day', ['k-s1']),
+          makeProfile('day', ['k-s1']),
+        ],
+      }],
+    });
+    expect(validateDisplays(config)).toMatch(/duplicate profile id "day"/);
+  });
+
+  it('rejects activeProfile that does not exist in the owned list', () => {
+    const config = makeConfig({
+      // Global pool also has "night" to prove owned-profile displays ignore it.
+      profiles: [makeProfile('night')],
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [makeProfile('day', ['k-s1'])],
+        activeProfile: 'night',
+      }],
+    });
+    expect(validateDisplays(config)).toMatch(/unknown activeProfile "night"/);
   });
 });

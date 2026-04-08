@@ -582,6 +582,82 @@ describe('editor store', () => {
       expect(kitchen.screenIds).toBeUndefined();
     });
 
+    it('auto-migrates the legacy profile pool onto Main on first addDisplay', () => {
+      // Multi-display mode always has per-display owned profiles — there is
+      // no runtime "switch to per-display profiles" choice. The bootstrap
+      // path must deep-clone `config.profiles` onto Main's own list so the
+      // hub's existing profile layout keeps working and isn't mirrored on
+      // every subsequent display. `config.settings.activeProfile` is also
+      // carried forward as `main.activeProfile`.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [
+          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
+          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
+        ],
+        profiles: [
+          { id: 'day', name: 'Day', screenIds: ['s1', 's2'] },
+          { id: 'night', name: 'Night', screenIds: ['s1'] },
+        ],
+      });
+      config.settings.activeProfile = 'day';
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const main = store.getState().config!.displays!.find((d) => d.id === 'main')!;
+      expect(main.profiles?.map((p) => p.id)).toEqual(['day', 'night']);
+      expect(main.profiles?.[0].screenIds).toEqual(['s1', 's2']);
+      expect(main.activeProfile).toBe('day');
+    });
+
+    it('main profile migration is a deep clone (no back-leak from later edits)', () => {
+      // Regression guard: later edits to main.profiles[0].screenIds must
+      // NOT mutate the original config.profiles pool through a shared
+      // reference. structuredClone protects against this at bootstrap.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [] }],
+        profiles: [{ id: 'day', name: 'Day', screenIds: ['s1'] }],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const mainBefore = store.getState().config!.displays!.find((d) => d.id === 'main')!;
+      // Mutate main's profile through the store (not via raw state) so we
+      // exercise the normal edit path.
+      store.setState({ selectedDisplayId: 'main' });
+      store.getState().updateProfile(mainBefore.profiles![0].id, { screenIds: [] });
+
+      const after = store.getState().config!;
+      // The ghost pool on config.profiles keeps its original screenIds
+      // because main owns its own cloned list.
+      expect(after.profiles?.[0].screenIds).toEqual(['s1']);
+      const mainAfter = after.displays!.find((d) => d.id === 'main')!;
+      expect(mainAfter.profiles?.[0].screenIds).toEqual([]);
+    });
+
+    it('new non-main displays start with an empty profile list, not the shared pool', () => {
+      // A kitchen display designed for 1080×1920 shouldn't automatically
+      // pick up the hub's profiles (which reference screens that don't
+      // exist on kitchen). `profiles: []` is semantically "owned empty",
+      // which is distinct from "no profiles field, fall through to
+      // config.profiles".
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [] }],
+        profiles: [{ id: 'day', name: 'Day', screenIds: ['s1'] }],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.profiles).toEqual([]);
+      expect(kitchen.activeProfile).toBeUndefined();
+    });
+
     it('does not double-create main when explicitly adding a display called "main"', () => {
       const store = useEditorStore;
       store.setState({ config: makeConfig() });
@@ -666,6 +742,127 @@ describe('editor store', () => {
       store.getState().updateDisplay('kitchen', { name: 'New' });
 
       expect(store.getState().config!.displays![1].name).toBe('Bedroom');
+    });
+  });
+
+  describe('updateDisplaySettings', () => {
+    it('sets a new override on a display with no existing settings', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplaySettings('kitchen', { cursorHideSeconds: 10 });
+
+      const display = store.getState().config!.displays![0];
+      expect(display.settings).toEqual({ cursorHideSeconds: 10 });
+    });
+
+    it('merges new overrides with existing ones', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screenIds: [],
+          settings: { cursorHideSeconds: 10 },
+        }],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplaySettings('kitchen', { rotationIntervalMs: 60_000 });
+
+      const display = store.getState().config!.displays![0];
+      expect(display.settings).toEqual({
+        cursorHideSeconds: 10,
+        rotationIntervalMs: 60_000,
+      });
+    });
+
+    it('deletes a key when the value is explicitly undefined (reset-to-inherited)', () => {
+      // This is how "Reset to inherited" reaches the data layer: the form
+      // sends `undefined` for the field, which we must NOT spread into
+      // display.settings as-is — otherwise the merged GlobalSettings would
+      // carry an `undefined` override that shadows the global value with
+      // `undefined`. Delete the key so the shallow merge falls through.
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screenIds: [],
+          settings: { cursorHideSeconds: 10, rotationIntervalMs: 60_000 },
+        }],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplaySettings('kitchen', { cursorHideSeconds: undefined });
+
+      const display = store.getState().config!.displays![0];
+      expect(display.settings).toEqual({ rotationIntervalMs: 60_000 });
+      expect(display.settings && 'cursorHideSeconds' in display.settings).toBe(false);
+    });
+
+    it('removes display.settings entirely when the last override is cleared', () => {
+      // Keeps the on-disk JSON clean — no empty `settings: {}` left behind.
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screenIds: [],
+          settings: { cursorHideSeconds: 10 },
+        }],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplaySettings('kitchen', { cursorHideSeconds: undefined });
+
+      const display = store.getState().config!.displays![0];
+      expect('settings' in display).toBe(false);
+    });
+
+    it('does nothing when the display does not exist', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      });
+      store.setState({ config, isDirty: false });
+
+      store.getState().updateDisplaySettings('ghost', { cursorHideSeconds: 10 });
+
+      // No-op: the original display is unchanged and nothing got marked dirty.
+      const displays = store.getState().config!.displays!;
+      expect(displays).toHaveLength(1);
+      expect(displays[0].settings).toBeUndefined();
+    });
+
+    it('does nothing in legacy single-display mode (no displays array)', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      store.setState({ config, isDirty: false });
+
+      store.getState().updateDisplaySettings('main', { cursorHideSeconds: 10 });
+
+      expect(store.getState().config!.displays).toBeUndefined();
+    });
+
+    it('does not leak the new settings object to sibling displays', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
+          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().updateDisplaySettings('kitchen', { cursorHideSeconds: 10 });
+
+      const displays = store.getState().config!.displays!;
+      expect(displays[0].settings).toEqual({ cursorHideSeconds: 10 });
+      expect(displays[1].settings).toBeUndefined();
     });
   });
 
@@ -1433,18 +1630,23 @@ describe('editor store', () => {
   });
 
   describe('multi-display: addDisplay({id: "main"}) as first display inherits existing screens', () => {
-    it('seeds the explicit main display with the existing global screens so the hub kiosk survives', () => {
+    it('seeds the explicit main display with the existing global screens + profiles so the hub kiosk survives', () => {
       // Regression guard: a user who names their first display "main"
       // should get the same hub-survival behavior as the auto-create-main
       // branch. Without this, the hub Pi silently loses its existing
-      // screens and shows an empty kiosk after multi-display is enabled.
+      // screens (and its existing profile list) and shows an empty kiosk
+      // after multi-display is enabled.
       const store = useEditorStore;
       const config = makeConfig({
         screens: [
           { id: 's1', name: 'A', backgroundImage: '', modules: [] },
           { id: 's2', name: 'B', backgroundImage: '', modules: [] },
         ],
+        profiles: [
+          { id: 'day', name: 'Day', screenIds: ['s1', 's2'] },
+        ],
       });
+      config.settings.activeProfile = 'day';
       store.setState({ config });
 
       store.getState().addDisplay({
@@ -1458,6 +1660,10 @@ describe('editor store', () => {
       expect(displays).toHaveLength(1);
       expect(displays[0].id).toBe('main');
       expect(displays[0].screens?.map((s) => s.id)).toEqual(['s1', 's2']);
+      // Profile inheritance mirrors screen inheritance — Main owns a
+      // deep-cloned copy of the legacy pool.
+      expect(displays[0].profiles?.map((p) => p.id)).toEqual(['day']);
+      expect(displays[0].activeProfile).toBe('day');
       // User-provided dims are still respected (not overwritten by global).
       expect(displays[0].displayWidth).toBe(1920);
       expect(displays[0].displayHeight).toBe(1080);
@@ -1593,6 +1799,214 @@ describe('editor store', () => {
       expect(mod.getActiveScreens(config, 'does-not-exist')).toEqual([
         { id: 'g1', name: 'G1', backgroundImage: '', modules: [] },
       ]);
+    });
+  });
+
+  /* ─── Per-display profile routing (Phase 4) ────── */
+
+  describe('per-display profile routing', () => {
+    it('addProfile targets display.profiles when the selected display owns profiles', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [{ id: 'pool-day', name: 'Pool Day', screenIds: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          profiles: [],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().addProfile('Owned One');
+
+      // Global pool untouched
+      expect(store.getState().config!.profiles).toHaveLength(1);
+      expect(store.getState().config!.profiles![0].id).toBe('pool-day');
+      // New profile landed on the display
+      const display = store.getState().config!.displays![0];
+      expect(display.profiles).toHaveLength(1);
+      expect(display.profiles![0].name).toBe('Owned One');
+      // Screens seeded from the active display's own screens
+      expect(display.profiles![0].screenIds).toEqual(['k-s1']);
+    });
+
+    it('addProfile still targets the global pool when the selected display uses shared profiles', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          // Shared-pool mode: no owned profiles
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().addProfile('Shared One');
+
+      expect(store.getState().config!.profiles).toHaveLength(1);
+      expect(store.getState().config!.displays![0].profiles).toBeUndefined();
+    });
+
+    it('updateProfile targets display.profiles when the selected display owns profiles', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [{ id: 'pool-day', name: 'Pool Day', screenIds: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: ['k-s1'] }],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().updateProfile('owned-day', { name: 'Owned Morning' });
+
+      expect(store.getState().config!.displays![0].profiles![0].name).toBe('Owned Morning');
+      // Global pool untouched
+      expect(store.getState().config!.profiles![0].name).toBe('Pool Day');
+    });
+
+    it('removeProfile targets display.profiles when the selected display owns profiles', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [{ id: 'pool-day', name: 'Pool Day', screenIds: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          profiles: [
+            { id: 'owned-day', name: 'Owned Day', screenIds: ['k-s1'] },
+            { id: 'owned-night', name: 'Owned Night', screenIds: ['k-s1'] },
+          ],
+          activeProfile: 'owned-day',
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().removeProfile('owned-day');
+
+      const display = store.getState().config!.displays![0];
+      expect(display.profiles).toHaveLength(1);
+      expect(display.profiles![0].id).toBe('owned-night');
+      // activeProfile cleared because it was the removed one
+      expect(display.activeProfile).toBeUndefined();
+      // Global pool untouched
+      expect(store.getState().config!.profiles![0].id).toBe('pool-day');
+    });
+
+    it('reorderProfiles targets display.profiles when the selected display owns profiles', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        // Global pool reversed — if the wrong branch is taken, the
+        // global pool would be reordered instead and this test would
+        // observe that the owned profiles are unchanged.
+        profiles: [
+          { id: 'pool-day', name: 'Pool Day', screenIds: [] },
+          { id: 'pool-night', name: 'Pool Night', screenIds: [] },
+        ],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          profiles: [
+            { id: 'owned-a', name: 'Owned A', screenIds: ['k-s1'] },
+            { id: 'owned-b', name: 'Owned B', screenIds: ['k-s1'] },
+            { id: 'owned-c', name: 'Owned C', screenIds: ['k-s1'] },
+          ],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().reorderProfiles(0, 2);
+
+      // Owned order becomes [B, C, A]
+      const display = store.getState().config!.displays![0];
+      expect(display.profiles!.map((p) => p.id)).toEqual(['owned-b', 'owned-c', 'owned-a']);
+      // Global pool order untouched
+      expect(store.getState().config!.profiles!.map((p) => p.id)).toEqual(['pool-day', 'pool-night']);
+    });
+
+    it('setActiveProfile targets display.activeProfile in multi-display mode', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [{ id: 'pool-day', name: 'Pool Day', screenIds: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: ['k-s1'] }],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().setActiveProfile('owned-day');
+
+      expect(store.getState().config!.displays![0].activeProfile).toBe('owned-day');
+      // Global activeProfile untouched
+      expect(store.getState().config!.settings.activeProfile).toBeUndefined();
+    });
+
+    it('setActiveProfile targets global settings when the selected display uses the shared pool', () => {
+      // Regression guard for the read/write split-brain: without the
+      // owned-profiles guard, shared-pool displays used to write to
+      // display.activeProfile while ProfilesSection read from
+      // config.settings.activeProfile, leaving the dropdown out of sync
+      // with the actual rendered profile.
+      const store = useEditorStore;
+      const config = makeConfig({
+        profiles: [{ id: 'pool-day', name: 'Pool Day', screenIds: [] }],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [{ id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] }],
+          // No owned profiles — shared pool.
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().setActiveProfile('pool-day');
+
+      // Write lands on the global settings, matching what ProfilesSection
+      // reads for shared-pool displays.
+      expect(store.getState().config!.settings.activeProfile).toBe('pool-day');
+      expect(store.getState().config!.displays![0].activeProfile).toBeUndefined();
+    });
+
+    it('removeScreen prunes the deleted screen ID from the active display\'s owned profiles', () => {
+      // The screen gets removed from display.screens. The display also
+      // owns profiles that reference that screen id. Without cascade-prune
+      // validateDisplays rejects the save because the profile's screenId
+      // is now dangling.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [],
+        displays: [{
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [
+            { id: 'k-s1', name: 'K1', backgroundImage: '', modules: [] },
+            { id: 'k-s2', name: 'K2', backgroundImage: '', modules: [] },
+          ],
+          profiles: [{
+            id: 'owned-day',
+            name: 'Owned Day',
+            screenIds: ['k-s1', 'k-s2'],
+          }],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen', selectedScreenId: 'k-s1' });
+
+      store.getState().removeScreen('k-s1');
+
+      const display = store.getState().config!.displays![0];
+      expect(display.screens).toHaveLength(1);
+      expect(display.screens![0].id).toBe('k-s2');
+      // The owned profile's screenIds were pruned to just k-s2
+      expect(display.profiles![0].screenIds).toEqual(['k-s2']);
     });
   });
 });

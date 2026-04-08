@@ -11,6 +11,7 @@ import type {
   Screen,
   Profile,
   DisplayNode,
+  DisplayNodeSettings,
 } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -70,6 +71,7 @@ interface EditorState {
   reorderScreens: (fromIndex: number, toIndex: number) => void;
   updateScreen: (id: string, updates: Partial<Screen>) => void;
   updateSettings: (settings: Partial<GlobalSettings>) => void;
+  updateDisplaySettings: (displayId: string, partial: Partial<DisplayNodeSettings>) => void;
   addProfile: (name: string) => void;
   removeProfile: (id: string) => void;
   updateProfile: (id: string, updates: Partial<Profile>) => void;
@@ -185,6 +187,35 @@ export function orientDimensions(
   return isPortrait
     ? { width: short, height: long }
     : { width: long, height: short };
+}
+
+/**
+ * Decide where a profile mutation should land.
+ *
+ * - `{ kind: 'display', idx, display }` means the selected display owns its
+ *   profile list and the mutation should target `display.profiles`.
+ * - `{ kind: 'global' }` means the mutation targets `config.profiles` and
+ *   `config.settings.activeProfile`. This is the case for legacy single-
+ *   display installs, for multi-display installs with a shared profile
+ *   pool, and for any display whose `profiles` field is unset.
+ *
+ * Extracted so the five profile actions (addProfile, removeProfile,
+ * updateProfile, reorderProfiles, setActiveProfile) can't drift.
+ */
+type ProfileTarget =
+  | { kind: 'display'; idx: number; display: DisplayNode }
+  | { kind: 'global' };
+
+function resolveProfileTarget(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+): ProfileTarget {
+  if (!selectedDisplayId || !config.displays) return { kind: 'global' };
+  const idx = config.displays.findIndex((d) => d.id === selectedDisplayId);
+  if (idx === -1) return { kind: 'global' };
+  const display = config.displays[idx];
+  if (!display.profiles) return { kind: 'global' };
+  return { kind: 'display', idx, display };
 }
 
 function updateModuleInConfig(
@@ -463,20 +494,40 @@ export const useEditorStore = create<EditorState>((set, get) => {
       ...p,
       screenIds: p.screenIds.filter((sid) => sid !== id),
     }));
-    // Display cascade-prune stays legacy-only: owned `screens` are
-    // self-contained and can't cross-reference sibling displays. The only
-    // shared reference surface is the deprecated `screenIds` field, which
-    // only exists on displays that still use the shared-pool model.
-    const displays = selectedDisplayId
-      ? config.displays
-      : config.displays?.map((d) => ({
-          ...d,
-          ...(d.screenIds ? { screenIds: d.screenIds.filter((sid) => sid !== id) } : {}),
-        }));
-
+    // Apply the screen removal first so any subsequent display-level
+    // cascade-prune operates against the already-updated display.screens
+    // (otherwise we'd overwrite the removal with the stale pre-removal
+    // display list).
     let nextConfig = withActiveScreens(config, selectedDisplayId, screens);
     if (profiles !== config.profiles) nextConfig = { ...nextConfig, profiles };
-    if (displays !== config.displays) nextConfig = { ...nextConfig, displays };
+
+    // Display cascade-prune has two branches:
+    //   1. Legacy mode (global-pool delete): strip the deleted id from any
+    //      display.screenIds (deprecated shared-pool path).
+    //   2. Multi-display mode (owned-screens delete): the deleted id only
+    //      lives inside the active display's own screens, BUT if that
+    //      display also owns its profiles, those profiles may reference
+    //      the deleted screen id — prune them.
+    if (nextConfig.displays) {
+      const updatedDisplays = selectedDisplayId
+        ? nextConfig.displays.map((d) => {
+            if (d.id !== selectedDisplayId || !d.profiles) return d;
+            return {
+              ...d,
+              profiles: d.profiles.map((p) => ({
+                ...p,
+                screenIds: p.screenIds.filter((sid) => sid !== id),
+              })),
+            };
+          })
+        : nextConfig.displays.map((d) => ({
+            ...d,
+            ...(d.screenIds ? { screenIds: d.screenIds.filter((sid) => sid !== id) } : {}),
+          }));
+      if (updatedDisplays !== nextConfig.displays) {
+        nextConfig = { ...nextConfig, displays: updatedDisplays };
+      }
+    }
 
     const newSelectedId = selectedScreenId === id ? screens[0]?.id ?? null : selectedScreenId;
     mutateConfig(() => ({
@@ -520,6 +571,46 @@ export const useEditorStore = create<EditorState>((set, get) => {
     }), { coalesce: 'settings' });
   },
 
+  updateDisplaySettings: (displayId, partial) => {
+    mutateConfig((config) => {
+      const displays = config.displays;
+      if (!displays) return {};
+      const idx = displays.findIndex((d) => d.id === displayId);
+      if (idx === -1) return {};
+
+      // Clone the current override object and merge the partial in. A field
+      // set to `undefined` in `partial` is treated as a "reset to inherited"
+      // — delete the key so the shallow merge in filterConfigForDisplay
+      // falls back to the global value instead of writing `undefined` over it.
+      const nextSettings: DisplayNodeSettings = { ...(displays[idx].settings ?? {}) };
+      for (const key of Object.keys(partial) as Array<keyof DisplayNodeSettings>) {
+        const value = partial[key];
+        if (value === undefined) {
+          delete nextSettings[key];
+        } else {
+          (nextSettings as Record<string, unknown>)[key] = value;
+        }
+      }
+
+      const nextDisplays = [...displays];
+      // If the resulting overrides object is empty, strip the `settings`
+      // field from the display entirely so the on-disk JSON stays clean
+      // and a grep for `"settings":` doesn't surface a noise hit.
+      if (Object.keys(nextSettings).length === 0) {
+        const { settings: _drop, ...rest } = nextDisplays[idx];
+        void _drop;
+        nextDisplays[idx] = rest;
+      } else {
+        nextDisplays[idx] = { ...nextDisplays[idx], settings: nextSettings };
+      }
+
+      return { config: { ...config, displays: nextDisplays } };
+      // Share the 'settings' coalesce key with `updateSettings` so a Save
+      // that writes both global and per-display overrides lands as a
+      // single undo entry rather than two.
+    }, { coalesce: 'settings' });
+  },
+
   addProfile: (name: string) => {
     const { selectedDisplayId } = get();
     mutateConfig((config) => {
@@ -528,6 +619,15 @@ export const useEditorStore = create<EditorState>((set, get) => {
         name,
         screenIds: getActiveScreens(config, selectedDisplayId).map((s) => s.id),
       };
+      const target = resolveProfileTarget(config, selectedDisplayId);
+      if (target.kind === 'display') {
+        const nextDisplays = [...config.displays!];
+        nextDisplays[target.idx] = {
+          ...target.display,
+          profiles: [...(target.display.profiles ?? []), newProfile],
+        };
+        return { config: { ...config, displays: nextDisplays } };
+      }
       return {
         config: { ...config, profiles: [...(config.profiles ?? []), newProfile] },
       };
@@ -535,7 +635,19 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   removeProfile: (id: string) => {
+    const { selectedDisplayId } = get();
     mutateConfig((config) => {
+      const target = resolveProfileTarget(config, selectedDisplayId);
+      if (target.kind === 'display') {
+        const nextDisplays = [...config.displays!];
+        nextDisplays[target.idx] = {
+          ...target.display,
+          profiles: (target.display.profiles ?? []).filter((p) => p.id !== id),
+          ...(target.display.activeProfile === id ? { activeProfile: undefined } : {}),
+        };
+        return { config: { ...config, displays: nextDisplays } };
+      }
+
       const profiles = (config.profiles ?? []).filter((p) => p.id !== id);
       const settings = config.settings.activeProfile === id
         ? { ...config.settings, activeProfile: undefined }
@@ -552,19 +664,44 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   updateProfile: (id: string, updates: Partial<Profile>) => {
-    mutateConfig((config) => ({
-      config: {
-        ...config,
-        profiles: (config.profiles ?? []).map((p) =>
-          p.id === id ? { ...p, ...updates } : p,
-        ),
-      },
-    }), { coalesce: `profile:${id}` });
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => {
+      const target = resolveProfileTarget(config, selectedDisplayId);
+      if (target.kind === 'display') {
+        const nextDisplays = [...config.displays!];
+        nextDisplays[target.idx] = {
+          ...target.display,
+          profiles: (target.display.profiles ?? []).map((p) =>
+            p.id === id ? { ...p, ...updates } : p,
+          ),
+        };
+        return { config: { ...config, displays: nextDisplays } };
+      }
+      return {
+        config: {
+          ...config,
+          profiles: (config.profiles ?? []).map((p) =>
+            p.id === id ? { ...p, ...updates } : p,
+          ),
+        },
+      };
+    }, { coalesce: `profile:${id}` });
   },
 
   reorderProfiles: (fromIndex: number, toIndex: number) => {
-    const { config } = get();
-    if (!config?.profiles) return;
+    const { config, selectedDisplayId } = get();
+    if (!config) return;
+    const target = resolveProfileTarget(config, selectedDisplayId);
+    if (target.kind === 'display') {
+      const profiles = [...(target.display.profiles ?? [])];
+      const [moved] = profiles.splice(fromIndex, 1);
+      profiles.splice(toIndex, 0, moved);
+      const nextDisplays = [...config.displays!];
+      nextDisplays[target.idx] = { ...target.display, profiles };
+      mutateConfig(() => ({ config: { ...config, displays: nextDisplays } }), { coalesce: 'reorderProfiles' });
+      return;
+    }
+    if (!config.profiles) return;
     const profiles = [...config.profiles];
     const [moved] = profiles.splice(fromIndex, 1);
     profiles.splice(toIndex, 0, moved);
@@ -572,9 +709,22 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   setActiveProfile: (id: string | undefined) => {
-    mutateConfig((config) => ({
-      config: { ...config, settings: { ...config.settings, activeProfile: id } },
-    }), { coalesce: 'activeProfile' });
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => {
+      // Match the sibling profile actions: only route to display.activeProfile
+      // when the display OWNS its profile list. Shared-pool displays and
+      // legacy single-display installs write to config.settings.activeProfile,
+      // which is what ProfilesSection's read path checks for those cases.
+      const target = resolveProfileTarget(config, selectedDisplayId);
+      if (target.kind === 'display') {
+        const nextDisplays = [...config.displays!];
+        nextDisplays[target.idx] = { ...target.display, activeProfile: id };
+        return { config: { ...config, displays: nextDisplays } };
+      }
+      return {
+        config: { ...config, settings: { ...config.settings, activeProfile: id } },
+      };
+    }, { coalesce: 'activeProfile' });
   },
 
   addDisplay: (display) => {
@@ -586,10 +736,21 @@ export const useEditorStore = create<EditorState>((set, get) => {
     //
     // Two paths bootstrap "main":
     //   1. User adds a non-main display first → we auto-create a sibling
-    //      'main' that inherits the existing global screens.
+    //      'main' that inherits the existing global screens + profiles.
     //   2. User adds 'main' explicitly as the first display → the new
-    //      display itself inherits the existing global screens (we can't
-    //      auto-create a duplicate sibling — there can only be one 'main').
+    //      display itself inherits the existing global screens + profiles
+    //      (we can't auto-create a duplicate sibling — there can only be
+    //      one 'main').
+    //
+    // In multi-display mode, profiles are ALWAYS per-display. The legacy
+    // `config.profiles` shared pool is a single-display concept — it can't
+    // cleanly generalize because profiles reference screen IDs and screen
+    // IDs become display-specific once displays own their own screens. So
+    // on bootstrap we deep-clone `config.profiles` onto Main's own list
+    // (alongside screens) and every new non-main display starts with an
+    // empty profiles list, just like it starts with empty screens. There's
+    // no runtime "switch to per-display profiles" choice any more — that
+    // choice is implicit the moment the user enters multi-display mode.
     //
     // New displays other than "main" start with an EMPTY screens list so
     // they can be designed for their own resolution rather than inheriting
@@ -606,13 +767,17 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
       if (isFirstDisplay && !hasMain && display.id !== 'main') {
         // Path 1: user added a non-main display first. Seed the Main
-        // display with the existing global screens + current global
-        // dimensions so the hub's kiosk keeps rendering what it was
+        // display with the existing global screens + profiles + current
+        // global dimensions so the hub's kiosk keeps rendering what it was
         // rendering before multi-display got turned on.
         nextDisplays.push({
           id: 'main',
           name: 'Main Display',
           screens: structuredClone(config.screens),
+          profiles: structuredClone(config.profiles ?? []),
+          ...(config.settings.activeProfile
+            ? { activeProfile: config.settings.activeProfile }
+            : {}),
           displayWidth: config.settings.displayWidth,
           displayHeight: config.settings.displayHeight,
           ...(config.settings.displayTransform
@@ -623,10 +788,30 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
       // Path 2: user explicitly added 'main' as the very first display
       // without providing its own screens — inherit the existing global
-      // screens so the hub's kiosk survives the promotion to multi-display.
-      // Respect user-provided dims/transform from the form; only inherit
-      // global values for fields the caller left unset.
-      const inheritScreens = userAddingMainAsFirst && userDidNotSpecifyScreens;
+      // screens + profiles so the hub's kiosk survives the promotion to
+      // multi-display. Respect user-provided dims/transform from the
+      // form; only inherit global values for fields the caller left unset.
+      const inheritFromGlobal = userAddingMainAsFirst && userDidNotSpecifyScreens;
+
+      // Decide the new display's profile list:
+      //   - Legacy callers (tests, external) that explicitly passed
+      //     `profileIds` → keep the shared-pool subset reference; runtime
+      //     still supports it for backward compat.
+      //   - Main-as-first inheriting screens → deep-clone the legacy pool
+      //     (screen IDs coincide with Main's owned screens at bootstrap).
+      //   - Everything else → own an empty list. Profiles are per-display
+      //     in multi-display mode, and a fresh display designed for its
+      //     own resolution has no meaningful starting profiles.
+      const initialProfiles: Profile[] | undefined = display.profileIds
+        ? undefined
+        : inheritFromGlobal
+          ? structuredClone(config.profiles ?? [])
+          : [];
+      // Main-as-first also inherits the global activeProfile; other new
+      // displays start with none.
+      const inheritedActiveProfile = inheritFromGlobal
+        ? config.settings.activeProfile
+        : undefined;
 
       const newDisplay: DisplayNode = {
         id: display.id,
@@ -634,18 +819,23 @@ export const useEditorStore = create<EditorState>((set, get) => {
         // Own an empty screens list by default (designed at this display's
         // resolution). Callers can still pass `screenIds` explicitly for the
         // legacy shared-pool flow, or `screens` for pre-built layouts.
-        ...(inheritScreens
+        ...(inheritFromGlobal
           ? { screens: structuredClone(config.screens) }
           : display.screens
             ? { screens: display.screens }
             : display.screenIds
               ? { screenIds: display.screenIds }
               : { screens: [] }),
+        ...(initialProfiles !== undefined ? { profiles: initialProfiles } : {}),
         ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
         ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
         ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),
         ...(display.profileIds ? { profileIds: display.profileIds } : {}),
-        ...(display.activeProfile ? { activeProfile: display.activeProfile } : {}),
+        ...(display.activeProfile
+          ? { activeProfile: display.activeProfile }
+          : inheritedActiveProfile
+            ? { activeProfile: inheritedActiveProfile }
+            : {}),
         ...(display.settings ? { settings: display.settings } : {}),
       };
       nextDisplays.push(newDisplay);

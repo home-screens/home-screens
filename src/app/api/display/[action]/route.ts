@@ -9,6 +9,7 @@ import {
   type DisplayCommandType,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
+import { getDisplayProfiles } from '@/lib/display-filter';
 import { requireSession } from '@/lib/auth';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 
@@ -169,12 +170,6 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
         // The mutator throws a Response for validation errors, which propagates
         // out of updateConfigAtomic for us to return directly.
         await updateConfigAtomic((config) => {
-          if (profile && !config.profiles?.some((p) => p.id === profile)) {
-            throw NextResponse.json(
-              { error: `Unknown profile: ${profile}` },
-              { status: 404 },
-            );
-          }
           // Per-display profile: write display.activeProfile on the matching node.
           // Legacy mode (no displayId or 'all'): mutate settings.activeProfile.
           if (displayId && displayId !== 'all') {
@@ -185,8 +180,31 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
                 { status: 404 },
               );
             }
+            // Resolve the effective profile pool for this display:
+            //   - owned profiles (display.profiles), OR
+            //   - global pool filtered by display.profileIds, OR
+            //   - the unrestricted global pool
+            // `getDisplayProfiles` implements that precedence in one place —
+            // using the raw `display.profiles ?? config.profiles` fallback
+            // silently accepts profiles excluded by `profileIds`, which
+            // would then fail `validateDisplays` on the next save.
+            if (profile) {
+              const pool = getDisplayProfiles(display, config.profiles);
+              if (!pool.some((p) => p.id === profile)) {
+                throw NextResponse.json(
+                  { error: `Unknown profile: ${profile}` },
+                  { status: 404 },
+                );
+              }
+            }
             display.activeProfile = profile || undefined;
           } else {
+            if (profile && !config.profiles?.some((p) => p.id === profile)) {
+              throw NextResponse.json(
+                { error: `Unknown profile: ${profile}` },
+                { status: 404 },
+              );
+            }
             config.settings.activeProfile = profile || undefined;
           }
           return config;
