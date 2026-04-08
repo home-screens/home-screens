@@ -38,9 +38,14 @@ const worker = {
     }
 
     try {
-      // Read body as text and enforce actual size limit (don't trust content-length)
+      // Read body as text and enforce actual size limit (don't trust content-length).
+      // 16KB ceiling sized for the multi-display beacon (v2): a maxed-out
+      // 64-display install pushes ~12KB of `displays[]` plus moduleTypes and
+      // raw_payload, and we don't want a permanent silent telemetry blackout
+      // for those installs (the host advances `lastBeaconAt` before sending,
+      // so a 413 turns into a 24h-cycle-forever loss).
       const text = await request.text();
-      if (new TextEncoder().encode(text).byteLength > 10_000) {
+      if (new TextEncoder().encode(text).byteLength > 16_000) {
         return new Response(JSON.stringify({ error: 'Payload too large' }), {
           status: 413,
           headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -66,6 +71,12 @@ const worker = {
         });
       }
 
+      // Small helper — coerce a possibly-undefined boolean field into
+      // SQLite's 0/1/null convention. Used for every feature-flag column so
+      // we never accidentally store `undefined` as the string "undefined".
+      const boolToSqlite = (v: unknown): 0 | 1 | null =>
+        v === true ? 1 : v === false ? 0 : null;
+
       // Upsert: insert or update, preserving first_seen_at
       await env.DB.prepare(`
         INSERT INTO beacons (
@@ -77,6 +88,9 @@ const worker = {
           weather_provider, transition_effect,
           sleep_enabled, alerts_enabled, auth_enabled,
           has_google_calendar, has_ical_sources, plugin_count,
+          display_count, displays,
+          has_owned_screens, has_legacy_screen_ids, has_owned_profiles,
+          has_settings_override,
           raw_payload
         ) VALUES (
           ?1, datetime('now'), datetime('now'),
@@ -87,7 +101,10 @@ const worker = {
           ?14, ?15,
           ?16, ?17, ?18,
           ?19, ?20, ?21,
-          ?22
+          ?22, ?23,
+          ?24, ?25, ?26,
+          ?27,
+          ?28
         )
         ON CONFLICT(install_id) DO UPDATE SET
           last_seen_at = datetime('now'),
@@ -111,6 +128,12 @@ const worker = {
           has_google_calendar = excluded.has_google_calendar,
           has_ical_sources = excluded.has_ical_sources,
           plugin_count = excluded.plugin_count,
+          display_count = excluded.display_count,
+          displays = excluded.displays,
+          has_owned_screens = excluded.has_owned_screens,
+          has_legacy_screen_ids = excluded.has_legacy_screen_ids,
+          has_owned_profiles = excluded.has_owned_profiles,
+          has_settings_override = excluded.has_settings_override,
           raw_payload = excluded.raw_payload
       `)
         .bind(
@@ -129,12 +152,19 @@ const worker = {
           body.profileCount ?? null,
           body.weatherProvider ?? null,
           body.transitionEffect ?? null,
-          body.sleepEnabled === true ? 1 : body.sleepEnabled === false ? 0 : null,
-          body.alertsEnabled === true ? 1 : body.alertsEnabled === false ? 0 : null,
-          body.authEnabled === true ? 1 : body.authEnabled === false ? 0 : null,
-          body.hasGoogleCalendar === true ? 1 : body.hasGoogleCalendar === false ? 0 : null,
-          body.hasIcalSources === true ? 1 : body.hasIcalSources === false ? 0 : null,
+          boolToSqlite(body.sleepEnabled),
+          boolToSqlite(body.alertsEnabled),
+          boolToSqlite(body.authEnabled),
+          boolToSqlite(body.hasGoogleCalendar),
+          boolToSqlite(body.hasIcalSources),
           body.pluginCount ?? null,
+          // Multi-display columns (NULL on v1 payloads)
+          typeof body.displayCount === 'number' ? body.displayCount : null,
+          Array.isArray(body.displays) ? JSON.stringify(body.displays) : null,
+          boolToSqlite(body.hasOwnedScreens),
+          boolToSqlite(body.hasLegacyScreenIds),
+          boolToSqlite(body.hasOwnedProfiles),
+          boolToSqlite(body.hasSettingsOverride),
           JSON.stringify(body),
         )
         .run();

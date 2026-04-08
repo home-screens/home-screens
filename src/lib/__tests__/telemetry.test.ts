@@ -56,6 +56,9 @@ function makeConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfigu
       },
     ],
     profiles: overrides.profiles ?? [],
+    // displays defaults to undefined (legacy single-display mode); tests
+    // that need the multi-display registry pass one in explicitly.
+    ...(overrides.displays !== undefined ? { displays: overrides.displays } : {}),
   } as unknown as ScreenConfiguration;
 }
 
@@ -132,7 +135,7 @@ describe('buildBeaconPayload', () => {
     // Identity
     expect(payload.installId).toBe('payload-test-uuid');
     expect(payload.appVersion).toMatch(/^\d+\.\d+\.\d+/);
-    expect(payload.beaconVersion).toBe(1);
+    expect(payload.beaconVersion).toBe(2);
     expect(payload.sentAt).toBeTruthy();
 
     // Platform
@@ -276,6 +279,504 @@ describe('buildBeaconPayload', () => {
     expect(payload.hasGoogleCalendar).toBe(false);
     // No URL leaked into payload
     expect(JSON.stringify(payload)).not.toContain('example.com');
+  });
+
+  /* ─── Multi-display (beacon v2) ────────────────── */
+
+  it('reports displayCount 0 and empty displays[] in legacy single-display mode', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig();
+    const telemetryData = { installId: 'legacy-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.displayCount).toBe(0);
+    expect(payload.displays).toEqual([]);
+    expect(payload.hasOwnedScreens).toBe(false);
+    expect(payload.hasLegacyScreenIds).toBe(false);
+    expect(payload.hasOwnedProfiles).toBe(false);
+    expect(payload.beaconVersion).toBe(2);
+    // Legacy screen/module counts still read from config.screens
+    expect(payload.screenCount).toBe(1);
+    expect(payload.moduleCount).toBe(2);
+  });
+
+  it('aggregates screens and modules across every DisplayNode in multi-display mode', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      // config.screens still holds the legacy inheritance from the first
+      // addDisplay(), so the test intentionally keeps it populated to prove
+      // we don't double-count it into the aggregate.
+      displays: [
+        {
+          id: 'main',
+          name: 'Kitchen',
+          displayWidth: 1080,
+          displayHeight: 1920,
+          displayTransform: '90',
+          screens: [
+            {
+              id: 'main-s1',
+              name: 'K1',
+              modules: [
+                { id: 'km1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} },
+                { id: 'km2', type: 'weather', x: 0, y: 100, w: 100, h: 100, config: {} },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'living-room',
+          name: 'Living Room TV',
+          displayWidth: 1920,
+          displayHeight: 1080,
+          displayTransform: 'normal',
+          screens: [
+            {
+              id: 'lr-s1',
+              name: 'LR1',
+              modules: [
+                { id: 'lrm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} },
+                { id: 'lrm2', type: 'calendar', x: 0, y: 100, w: 100, h: 100, config: {} },
+                { id: 'lrm3', type: 'news', x: 0, y: 200, w: 100, h: 100, config: {} },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'multi-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.displayCount).toBe(2);
+    // 1 + 1 screens across the two displays — config.screens is NOT added in
+    expect(payload.screenCount).toBe(2);
+    // 2 + 3 modules — again, config.screens is not double-counted
+    expect(payload.moduleCount).toBe(5);
+    expect(payload.moduleTypes).toEqual({ clock: 2, weather: 1, calendar: 1, news: 1 });
+    expect(payload.displays).toHaveLength(2);
+    expect(payload.displays[0]).toMatchObject({
+      screenCount: 1,
+      moduleCount: 2,
+      hasOwnedScreens: true,
+    });
+    expect(payload.displays[1]).toMatchObject({
+      screenCount: 1,
+      moduleCount: 3,
+      hasOwnedScreens: true,
+    });
+  });
+
+  it('orients per-display dimensions by rotation (portrait transform = long edge vertical)', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          // Author typed landscape dimensions but selected portrait rotation —
+          // filterConfigForDisplay should normalize to long-edge-vertical,
+          // and telemetry should carry the normalized values.
+          displayWidth: 1920,
+          displayHeight: 1080,
+          displayTransform: '90',
+          screens: [],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'orient-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.displays[0].w).toBe(1080); // short edge becomes width
+    expect(payload.displays[0].h).toBe(1920); // long edge becomes height
+    expect(payload.displays[0].transform).toBe('90');
+  });
+
+  it('sleepEnabled is true when any display overrides sleep on, even if global is off', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        sleep: { enabled: false, schedule: [] },
+      },
+      displays: [
+        {
+          id: 'bedroom',
+          name: 'Bedroom',
+          screens: [],
+          settings: {
+            sleep: { enabled: true, schedule: [] },
+          },
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'sleep-any', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.sleepEnabled).toBe(true);
+  });
+
+  it('tracks hasOwnedScreens, hasLegacyScreenIds, and hasOwnedProfiles independently', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      screens: [
+        {
+          id: 'pool-s1',
+          name: 'Pool',
+          modules: [{ id: 'pm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} }],
+        },
+      ] as unknown as ScreenConfiguration['screens'],
+      profiles: [{ id: 'p1', name: 'Default', screenIds: ['pool-s1'] }],
+      displays: [
+        {
+          // Legacy shape — references pool screens by ID, no owned screens/profiles
+          id: 'legacy',
+          name: 'Legacy',
+          screenIds: ['pool-s1'],
+          profileIds: ['p1'],
+          activeProfile: 'p1',
+        },
+        {
+          // Owned shape — self-contained screens and profiles
+          id: 'modern',
+          name: 'Modern',
+          screens: [
+            {
+              id: 'm-s1',
+              name: 'M1',
+              modules: [{ id: 'mm1', type: 'weather', x: 0, y: 0, w: 100, h: 100, config: {} }],
+            },
+          ],
+          profiles: [{ id: 'mp1', name: 'Day', screenIds: ['m-s1'] }],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'mixed-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.hasOwnedScreens).toBe(true);
+    expect(payload.hasLegacyScreenIds).toBe(true);
+    expect(payload.hasOwnedProfiles).toBe(true);
+    // Per-display flags
+    expect(payload.displays[0]).toMatchObject({
+      hasOwnedScreens: false,
+      hasLegacyScreenIds: true,
+      hasOwnedProfiles: false,
+    });
+    expect(payload.displays[1]).toMatchObject({
+      hasOwnedScreens: true,
+      hasLegacyScreenIds: false,
+      hasOwnedProfiles: true,
+    });
+    // Profile aggregation: global pool (1) + modern's owned profile (1)
+    expect(payload.profileCount).toBe(2);
+  });
+
+  it('does not include display IDs or names in the beacon payload', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        {
+          id: 'master-bedroom',
+          name: 'Master Bedroom TV',
+          screens: [],
+          displayWidth: 1920,
+          displayHeight: 1080,
+          displayTransform: 'normal',
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'pii-display-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    const payloadStr = JSON.stringify(payload);
+    // Display ID slug and human name must never leave the host
+    expect(payloadStr).not.toContain('master-bedroom');
+    expect(payloadStr).not.toContain('Master Bedroom');
+    // But the count still exposes that a display exists
+    expect(payload.displayCount).toBe(1);
+  });
+
+  it('sleepEnabled is false when global is on but every display overrides off', async () => {
+    // This is the test the v1 OR-based semantic could not pass — the column
+    // claimed "is sleep used somewhere?" but lit up whenever global was on,
+    // even if every display had explicitly disabled sleep. Multi-display
+    // mode now derives sleepEnabled solely from per-display effective state.
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        sleep: { enabled: true, schedule: [] },
+      },
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          settings: { sleep: { enabled: false, schedule: [] } },
+        },
+        {
+          id: 'living-room',
+          name: 'Living Room',
+          screens: [],
+          settings: { sleep: { enabled: false, schedule: [] } },
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'sleep-none', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.sleepEnabled).toBe(false);
+  });
+
+  it('alertsEnabled mirrors sleepEnabled — per-display override flips it on', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        alerts: { enabled: false, position: 'top', maxVisible: 3, defaultDuration: 0 },
+      },
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          settings: {
+            alerts: { enabled: true, position: 'top', maxVisible: 3, defaultDuration: 0 },
+          },
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'alerts-any', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.alertsEnabled).toBe(true);
+  });
+
+  it('alertsEnabled is false when global is on but every display overrides off', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        alerts: { enabled: true, position: 'top', maxVisible: 3, defaultDuration: 0 },
+      },
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          settings: {
+            alerts: { enabled: false, position: 'top', maxVisible: 3, defaultDuration: 0 },
+          },
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'alerts-none', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.alertsEnabled).toBe(false);
+  });
+
+  it('rolls hasSettingsOverride up to top level and per-display, ignoring empty {}', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        {
+          // Real override — flips both per-display and top-level flags on
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [],
+          settings: { rotationIntervalMs: 60000 },
+        },
+        {
+          // Empty override block — doesn't count as a real override
+          id: 'living-room',
+          name: 'Living Room',
+          screens: [],
+          settings: {},
+        },
+        {
+          // No override at all
+          id: 'bedroom',
+          name: 'Bedroom',
+          screens: [],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'override-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.hasSettingsOverride).toBe(true);
+    expect(payload.displays[0].hasSettingsOverride).toBe(true);
+    expect(payload.displays[1].hasSettingsOverride).toBe(false);
+    expect(payload.displays[2].hasSettingsOverride).toBe(false);
+  });
+
+  it('hasSettingsOverride is false when no display carries any override', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screens: [] },
+        { id: 'living-room', name: 'Living Room', screens: [], settings: {} },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'no-override', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.hasSettingsOverride).toBe(false);
+  });
+
+  it('collapses plugin:* module types to "plugin" in multi-display mode too', async () => {
+    // Identical privacy rule to the legacy single-display path — plugin
+    // identifiers must never leave the host, regardless of which screen
+    // ownership shape the modules live in.
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        {
+          id: 'main',
+          name: 'Main',
+          screens: [
+            {
+              id: 'main-s1',
+              name: 'M1',
+              modules: [
+                { id: 'p1', type: 'plugin:secret-name', x: 0, y: 0, w: 100, h: 100, config: {} },
+                { id: 'p2', type: 'plugin:other-secret', x: 0, y: 100, w: 100, h: 100, config: {} },
+                { id: 'c1', type: 'clock', x: 0, y: 200, w: 100, h: 100, config: {} },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'plugin-md-test', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.moduleTypes).toEqual({ plugin: 2, clock: 1 });
+    // Plugin identifiers must not leak through any field
+    const payloadStr = JSON.stringify(payload);
+    expect(payloadStr).not.toContain('secret-name');
+    expect(payloadStr).not.toContain('other-secret');
+  });
+
+  it('treats displays: [] as legacy mode and aggregates from config.screens', async () => {
+    // An empty registry should behave identically to single-display mode
+    // (multiDisplay = displays.length > 0). A regression that flipped this
+    // check to `displays != null` would silently zero out screen counts.
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'empty-displays', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.displayCount).toBe(0);
+    expect(payload.displays).toEqual([]);
+    // Default makeConfig has 1 screen with 2 modules — must still be counted
+    expect(payload.screenCount).toBe(1);
+    expect(payload.moduleCount).toBe(2);
+  });
+
+  it('keeps top-level displayWidth/displayHeight pinned to global settings in multi-display', async () => {
+    // The top-level dimension columns are kept stable for v1/v2 D1
+    // comparability — they always reflect the global settings, never the
+    // first display's dimensions. Per-display dimensions live in displays[].
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      displays: [
+        {
+          id: 'tv',
+          name: 'TV',
+          // Wildly different from the global — must NOT bleed into the
+          // top-level beacon dimension fields.
+          displayWidth: 3840,
+          displayHeight: 2160,
+          displayTransform: 'normal',
+          screens: [],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'dim-stability', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    expect(payload.displayWidth).toBe(1080);
+    expect(payload.displayHeight).toBe(1920);
+    // The display's own dimensions still appear in the per-display entry
+    expect(payload.displays[0].w).toBe(3840);
+    expect(payload.displays[0].h).toBe(2160);
+  });
+
+  it('skips a display whose filterConfigForDisplay throws, without dropping the beacon', async () => {
+    // A malformed display config (here, a non-iterable `screenIds`) makes
+    // `new Set(...)` throw inside getDisplayScreens. The per-display
+    // try/catch in buildBeaconPayload should isolate the failure so the
+    // rest of the beacon still goes out — better than the entire beacon
+    // disappearing because of one bad display row.
+    const { buildBeaconPayload } = await import('../telemetry');
+    const config = makeConfig({
+      displays: [
+        {
+          id: 'broken',
+          name: 'Broken',
+          // Number is not iterable — `new Set(42)` throws TypeError inside
+          // getDisplayScreens, which propagates out of filterConfigForDisplay.
+          screenIds: 42 as unknown as string[],
+        },
+        {
+          id: 'fine',
+          name: 'Fine',
+          screens: [
+            {
+              id: 'fine-s1',
+              name: 'F1',
+              modules: [{ id: 'fm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} }],
+            },
+          ],
+        },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+    const telemetryData = { installId: 'broken-display', firstSeenAt: '', lastBeaconAt: null };
+
+    const payload = await buildBeaconPayload(config, telemetryData);
+    // displayCount still reflects the registry size — bookkeeping is honest
+    expect(payload.displayCount).toBe(2);
+    // …but only the healthy display contributes to displays[] / screen / module counts
+    expect(payload.displays).toHaveLength(1);
+    expect(payload.screenCount).toBe(1);
+    expect(payload.moduleCount).toBe(1);
   });
 });
 
