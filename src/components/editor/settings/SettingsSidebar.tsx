@@ -42,9 +42,19 @@ import type { DisplayNode } from '@/types/config';
  *     status dot, plus an "All displays" landing entry and a `+` add button.
  *
  * In single-display mode (`config.displays` undefined or empty) the sidebar
- * collapses back to a flat list of the legacy tab labels — exactly what
- * legacy installs see today, with zero new affordances. This is the
- * load-bearing reason every Phase 4 surface gates on `displays.length > 0`.
+ * collapses to a flat list of the legacy tab labels PLUS a single
+ * "Displays" entry below a separator. That extra entry is the discovery
+ * affordance for adoption: clicking it navigates to `DisplaysIndexPage`
+ * (which already handles the empty state) so a legacy install can see and
+ * adopt any Pi that has heartbeated into the hub's `knownDisplays` pool.
+ * Crucially, visiting that page is **not** the same as entering multi-
+ * display mode — the actual conversion only happens when the user clicks
+ * Add / Adopt inside the page, which triggers `addDisplay` in the editor
+ * store and bootstraps the `main` DisplayNode. Hiding the entry previously
+ * was overly conservative: it was enforcing a softer boundary than the
+ * one-way door in `editor-store.ts`, and the result was a discoverability
+ * trap where unadopted Pis were invisible from the only UI a legacy user
+ * would ever look at.
  *
  * The component is intentionally URL-driven, not state-driven: every nav
  * item emits a `?section=...&page=...` href and listens to `popstate` to
@@ -200,13 +210,15 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
 
   if (!isMultiDisplay) {
     // Legacy flat sidebar — every settings page as a single tab list,
-    // matching the pre-Phase-4 layout exactly. Implementation note:
-    // we render via the same DEFAULT_PAGES list (it already includes
-    // every settings tab), so the single-display sidebar in this branch
-    // is equivalent to the old TABS array — minus the multi-display
-    // entries (Displays, Profiles-as-fork) which only exist in multi
-    // mode. URL emitted is still `?section=defaults&page=X` so the
-    // router stays uniform.
+    // matching the pre-Phase-4 layout, plus a "Displays" entry below a
+    // separator as the opt-in discovery point for multi-display mode.
+    // The Displays entry navigates to `DisplaysIndexPage`, which is safe
+    // in legacy mode: it renders an empty state ("No displays registered.
+    // Add one below or adopt a Pi that has already connected.") and only
+    // mutates config if the user explicitly clicks Add / Adopt inside the
+    // page. Highlighting it on both `?section=displays` and `?section=display`
+    // means if someone deep-links to a specific display's detail page the
+    // sidebar still shows the right active row.
     return (
       <nav className="w-52 shrink-0 border-r border-neutral-800 py-3 overflow-y-auto bg-neutral-900/40">
         {DEFAULT_PAGES.map((p) => (
@@ -218,6 +230,13 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
             onClick={() => navigate(`?section=defaults&page=${p.id}`)}
           />
         ))}
+        <div className="mx-3.5 my-2 border-t border-neutral-800" />
+        <SidebarItem
+          icon={LayoutGrid}
+          label="Displays"
+          active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
+          onClick={() => navigate('?section=displays')}
+        />
       </nav>
     );
   }
