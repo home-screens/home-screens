@@ -5,6 +5,7 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import ViewSelect from '@/components/editor/ViewSelect';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { DEFAULT_ACCENT_COLOR, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
@@ -49,7 +50,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
   });
 
   const fetchMealData = useCallback(() => {
-    fetch('/api/meals/data')
+    editorFetch('/api/meals/data')
       .then((r) => r.json())
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
@@ -99,7 +100,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
     };
     setMealData(optimistic);
     try {
-      const res = await fetch('/api/meals/data', {
+      const res = await editorFetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -327,6 +327,28 @@ export async function requireSecret(
 }
 
 /**
+ * Validate that each named field on a JSON body is either absent or an array.
+ * Returns a 400 NextResponse on the first failure, or null when all checks pass.
+ *
+ * Use this in PUT handlers where every field is individually optional but the
+ * ones that ARE present must be arrays — for example `meals/data` and any other
+ * partial-update route. Callers that require a field to be present should add
+ * their own `field === undefined` check afterwards.
+ */
+export function assertOptionalArrays(
+  body: Record<string, unknown>,
+  keys: string[],
+): NextResponse | null {
+  for (const key of keys) {
+    const value = body[key];
+    if (value !== undefined && !Array.isArray(value)) {
+      return NextResponse.json({ error: `${key} must be an array` }, { status: 400 });
+    }
+  }
+  return null;
+}
+
+/**
  * Guard against accidentally overwriting non-empty data with an empty payload.
  * Returns a 409 response if all `incoming` arrays are empty but existing data has content.
  * Returns null if the write should proceed.

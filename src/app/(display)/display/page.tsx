@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { readConfig } from '@/lib/config';
 import { getDisplayToken } from '@/lib/auth';
+import { findMainDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 
 export const dynamic = 'force-dynamic';
@@ -20,9 +21,8 @@ export const dynamic = 'force-dynamic';
 export default async function DisplayPage() {
   const [config, displayToken] = await Promise.all([readConfig(), getDisplayToken()]);
 
-  if (config.displays && config.displays.length > 0) {
-    const target =
-      config.displays.find((d) => d.id === 'main') ?? config.displays[0];
+  const target = findMainDisplay(config.displays);
+  if (target) {
     redirect(`/display/${target.id}`);
   }
 

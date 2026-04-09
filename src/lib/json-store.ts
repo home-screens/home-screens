@@ -67,6 +67,20 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
    * The mutator may throw (including throwing a `Response` for API routes
    * that want to short-circuit) — the throw propagates through the queue
    * without advancing the file, and subsequent queued writes still run.
+   *
+   * **No-op signal:** if the mutator returns the same reference it was
+   * given (`mutated === current`), the disk write is skipped. Use this
+   * for routes that conditionally bail (e.g. validation failures) without
+   * changing state — it avoids a serialize+fsync on every error and
+   * keeps the critical section as short as possible. Mutators that need
+   * to persist changes must return a new object (spread / map / etc.).
+   *
+   * Wrappers that introduce intermediate transformations (migration,
+   * normalization, type narrowing) need to detect their own no-op state
+   * and explicitly return `current` when nothing forced an upstream
+   * change AND the user-supplied mutator returned its input unchanged.
+   * See `updateConfigAtomic` (`lib/config.ts`) and `updateMealData`
+   * (`lib/meal-data.ts`) for the canonical wrapper pattern.
    */
   function updateAtomic(mutator: (current: T) => T | Promise<T>): Promise<T> {
     // Resolve lazily so the queue propagates errors without skipping.
@@ -75,7 +89,9 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
       // Read happens here, *after* prior queued writes have landed.
       const current = await read();
       const mutated = await mutator(current);
-      await writeImpl(mutated);
+      if (mutated !== current) {
+        await writeImpl(mutated);
+      }
       resultHolder = { value: mutated };
     });
     writeQueue = next.catch(() => {});

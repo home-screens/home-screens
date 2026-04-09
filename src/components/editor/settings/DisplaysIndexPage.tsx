@@ -6,6 +6,7 @@ import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
+import { isMainDisplay } from '@/lib/display-filter';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
 
@@ -787,7 +788,7 @@ function DisplayCard({
     : null;
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
   const screenCount = displayScreenCount(display);
-  const isMain = display.id === 'main';
+  const isMain = isMainDisplay(display.id);
 
   const reports = collapseReports(heartbeat?.viewportReports ?? []);
   const primaryReporter = reports[0];

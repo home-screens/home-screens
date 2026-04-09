@@ -167,18 +167,27 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       try {
         // Atomic read-modify-write — without this the editor's PUT /api/config
         // can land between our read and write and lose unrelated edits.
-        // The mutator throws a Response for validation errors, which propagates
-        // out of updateConfigAtomic for us to return directly.
+        //
+        // Validation errors are captured into `validationError` and returned
+        // outside the mutator. The mutator returns the original `config`
+        // reference unchanged on validation failure; `updateConfigAtomic`
+        // detects the no-op (mutated === current) and skips the disk write,
+        // so failed validations don't trigger spurious serialize+fsync work
+        // or extend the critical section. The happy path returns a NEW
+        // config object (immutable update) so the reference comparison
+        // correctly identifies it as a real write.
+        let validationError: NextResponse | null = null;
         await updateConfigAtomic((config) => {
           // Per-display profile: write display.activeProfile on the matching node.
           // Legacy mode (no displayId or 'all'): mutate settings.activeProfile.
           if (displayId && displayId !== 'all') {
             const display = config.displays?.find((d) => d.id === displayId);
             if (!display) {
-              throw NextResponse.json(
+              validationError = NextResponse.json(
                 { error: `Unknown display: ${displayId}` },
                 { status: 404 },
               );
+              return config;
             }
             // Resolve the effective profile pool for this display:
             //   - owned profiles (display.profiles), OR
@@ -191,27 +200,34 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
             if (profile) {
               const pool = getDisplayProfiles(display, config.profiles);
               if (!pool.some((p) => p.id === profile)) {
-                throw NextResponse.json(
+                validationError = NextResponse.json(
                   { error: `Unknown profile: ${profile}` },
                   { status: 404 },
                 );
+                return config;
               }
             }
-            display.activeProfile = profile || undefined;
-          } else {
-            if (profile && !config.profiles?.some((p) => p.id === profile)) {
-              throw NextResponse.json(
-                { error: `Unknown profile: ${profile}` },
-                { status: 404 },
-              );
-            }
-            config.settings.activeProfile = profile || undefined;
+            const updatedDisplay = { ...display, activeProfile: profile || undefined };
+            return {
+              ...config,
+              displays: config.displays!.map((d) => (d.id === displayId ? updatedDisplay : d)),
+            };
           }
-          return config;
+          if (profile && !config.profiles?.some((p) => p.id === profile)) {
+            validationError = NextResponse.json(
+              { error: `Unknown profile: ${profile}` },
+              { status: 404 },
+            );
+            return config;
+          }
+          return {
+            ...config,
+            settings: { ...config.settings, activeProfile: profile || undefined },
+          };
         });
+        if (validationError) return validationError;
         return NextResponse.json({ ok: true, profile, displayId });
       } catch (error) {
-        if (error instanceof Response) return error;
         return errorResponse(error, 'Failed to update profile');
       }
     }

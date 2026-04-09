@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 
 interface ProviderWeatherData {
@@ -52,7 +53,7 @@ export function usePreviewData(): PreviewData {
     const controller = new AbortController();
     (async () => {
       try {
-        const res = await fetch('/api/secrets', { signal: controller.signal });
+        const res = await editorFetch('/api/secrets', { signal: controller.signal });
         if (!res.ok) {
           setProviders(ALL_PROVIDERS);
           return;
@@ -85,7 +86,7 @@ export function usePreviewData(): PreviewData {
     async function fetchPreviewData(signal: AbortSignal) {
       const results = await Promise.allSettled(
         providers!.map(async (p) => {
-          const res = await fetch(`/api/weather?provider=${p}`, { signal });
+          const res = await editorFetch(`/api/weather?provider=${p}`, { signal });
           if (!res.ok) return null;
           const data = await res.json();
           return { provider: p, hourly: data.hourly ?? null, forecast: data.forecast ?? null, minutely: data.minutely ?? null, alerts: data.alerts ?? null };
@@ -108,7 +109,7 @@ export function usePreviewData(): PreviewData {
       setPreviewData((prev) => ({ ...prev, weatherByProvider: byProvider }));
 
       try {
-        const calRes = await fetch('/api/calendar', { signal });
+        const calRes = await editorFetch('/api/calendar', { signal });
         if (calRes.ok) {
           const calData = await calRes.json();
           const events = Array.isArray(calData.events) ? calData.events : Array.isArray(calData) ? calData : [];

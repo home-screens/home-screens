@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
+import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
 
 // ── OpenWeatherMap API response types ────────────────────────────────
 
@@ -151,17 +152,6 @@ export class OpenWeatherMapProvider implements WeatherProvider {
   }
 
   private mapIcon(owmIcon: string): string {
-    const map: Record<string, string> = {
-      '01d': 'sun', '01n': 'moon',
-      '02d': 'cloud-sun', '02n': 'cloud-moon',
-      '03d': 'cloud', '03n': 'cloud',
-      '04d': 'cloud', '04n': 'cloud',
-      '09d': 'cloud-rain', '09n': 'cloud-rain',
-      '10d': 'cloud-drizzle', '10n': 'cloud-rain',
-      '11d': 'cloud-lightning', '11n': 'cloud-lightning',
-      '13d': 'snowflake', '13n': 'snowflake',
-      '50d': 'cloud-fog', '50n': 'cloud-fog',
-    };
-    return map[owmIcon] ?? 'thermometer';
+    return OWM_ICON_MAP[owmIcon] ?? FALLBACK_ICON;
   }
 }

@@ -2,6 +2,7 @@ import type { ScreenConfiguration } from '@/types/config';
 import { CONFIG_FILE_PATH } from './constants';
 import { createJsonStore } from './json-store';
 import { migrateUp, getLatestSchemaVersion } from './migrations';
+import { MAIN_DISPLAY_ID } from './display-filter';
 
 /**
  * Idempotent in-memory normalization that runs on every config read.
@@ -40,7 +41,7 @@ import { migrateUp, getLatestSchemaVersion } from './migrations';
 function applyMainDisplayNormalization(config: ScreenConfiguration): ScreenConfiguration {
   const displays = config.displays;
   if (!displays) return config;
-  const mainIdx = displays.findIndex((d) => d.id === 'main');
+  const mainIdx = displays.findIndex((d) => d.id === MAIN_DISPLAY_ID);
   if (mainIdx === -1) return config;
   const mainDisplay = displays[mainIdx];
   if (
@@ -154,8 +155,18 @@ export const writeConfig = configStore.write;
  * use this rather than the bare `readConfig()` → mutate → `writeConfig()`
  * sequence — the latter races against the editor's PUT /api/config.
  *
- * Migrations are applied transparently inside the mutator's input so the
- * caller always sees a config at the latest schema version.
+ * Migrations and main-display normalization are applied transparently
+ * inside the mutator's input so the caller always sees a config at the
+ * latest schema version with normalized dimensions.
+ *
+ * **No-op signal:** if the user mutator returns the same reference it
+ * was given (i.e. nothing changed), AND neither migration nor
+ * normalization had to run, the wrapper returns the original `current`
+ * reference. The underlying `updateAtomic` compares `mutated === current`
+ * and skips the disk write — used by validation-error paths to bail
+ * without spurious serialize+fsync work. When migration or normalization
+ * DID run, the write always fires (the upstream changes need to land
+ * regardless of whether the user mutator was a no-op).
  */
 export function updateConfigAtomic(
   mutator: (current: ScreenConfiguration) => ScreenConfiguration | Promise<ScreenConfiguration>,
@@ -164,12 +175,21 @@ export function updateConfigAtomic(
   return configStore.updateAtomic(async (current) => {
     // Migrate-on-read inside the queue so the mutator always sees the
     // current schema. This mirrors what readConfig() does outside the queue.
-    const migrated =
-      (current.version ?? 0) < target ? migrateUp(current, target).config : current;
+    const wasMigrated = (current.version ?? 0) < target;
+    const migrated = wasMigrated ? migrateUp(current, target).config : current;
     // Apply the same main-display normalization readConfig() runs, so a
     // mutator that touches `displays[main]` always observes the
     // dimensions on the DisplayNode rather than discovering them missing
     // and writing whatever stale form value it had.
-    return mutator(applyMainDisplayNormalization(migrated));
+    const normalized = applyMainDisplayNormalization(migrated);
+    const wasNormalized = normalized !== migrated;
+    const result = await mutator(normalized);
+    // No-op fast path: nothing upstream forced a write and the user
+    // mutator returned its input unchanged. Return `current` so
+    // `updateAtomic` sees `mutated === current` and skips the disk write.
+    if (result === normalized && !wasMigrated && !wasNormalized) {
+      return current;
+    }
+    return result;
   });
 }

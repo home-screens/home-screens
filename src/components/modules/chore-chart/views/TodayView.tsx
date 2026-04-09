@@ -4,6 +4,7 @@ import type { ChoreChartConfig, ChoreTimeOfDay, ChoreMember } from '@/types/conf
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import ChoreIcon from '../ChoreIcon';
 
 interface TodayViewProps {
@@ -14,17 +15,24 @@ interface TodayViewProps {
     memberStats: Map<string, MemberStats>;
     toggleComplete: (choreId: string, memberId: string) => Promise<void>;
   };
+  timezone?: string;
 }
 
 const TIME_SECTIONS: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
-export function TodayView({ config, data }: TodayViewProps) {
+export function TodayView({ config, data, timezone }: TodayViewProps) {
   const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
   const accentColor = config.accentColor ?? '#f59e0b';
-  const currentTime = getCurrentTimeOfDay(new Date().getHours());
+  // `tzNow` is a "shifted" Date whose local-time methods (getHours, getDay…)
+  // reflect the configured IANA timezone — used by `getCurrentTimeOfDay`
+  // which reads `getHours()`. `formatDateInTZ` does its own zone shift via
+  // `Intl.DateTimeFormat`, so it must receive a real UTC instant; passing
+  // `tzNow` would shift twice and yield the wrong weekday near midnight.
+  const tzNow = createTZDate(timezone);
+  const currentTime = getCurrentTimeOfDay(tzNow.getHours());
 
-  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const dayName = formatDateInTZ(new Date(), timezone, { weekday: 'long' });
   const totalAssigned = todayAssignments.length;
   const totalDone = todayAssignments.filter((a) => a.isCompleted).length;
 

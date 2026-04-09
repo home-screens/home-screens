@@ -17,6 +17,7 @@ import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { editorFetch } from '@/lib/editor-fetch';
+import { MAIN_DISPLAY_ID, findMainDisplay, isMainDisplay, pruneDanglingScreenRefs } from '@/lib/display-filter';
 import type { LayoutExport } from '@/types/layout-export';
 import {
   createLayoutExport,
@@ -35,6 +36,13 @@ interface HistoryEntry {
 const MAX_HISTORY = 50;
 const COALESCE_WINDOW_MS = 500;
 
+/** Deferred promise wired to the next save run. See `EditorState._pendingResave`. */
+interface PendingResave {
+  promise: Promise<void>;
+  resolve: () => void;
+  reject: (err: unknown) => void;
+}
+
 interface EditorState {
   config: ScreenConfiguration | null;
   /**
@@ -49,6 +57,15 @@ interface EditorState {
   isDirty: boolean;
   isSaving: boolean;
   saveError: string | null;
+  /** Internal: deferred promise representing a queued re-save. When
+   * `saveConfig()` is called while a previous save is still in flight,
+   * the caller awaits this so its `await saveConfig()` resolves only
+   * after the run that includes its mutation has actually landed on
+   * disk — preserving the contract that 15+ call sites already rely on
+   * (closing modals, painting "Saved", etc.). The in-flight save flushes
+   * this in its `finally` block by recursively calling `saveConfig`
+   * and tying the recursive call's outcome back to `resolve`/`reject`. */
+  _pendingResave: PendingResave | null;
   snapEnabled: boolean;
   _past: HistoryEntry[];
   _future: HistoryEntry[];
@@ -273,6 +290,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
   isDirty: false,
   isSaving: false,
   saveError: null,
+  _pendingResave: null,
   snapEnabled: true,
   _past: [],
   _future: [],
@@ -296,7 +314,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
         const fromUrl = displayParam && config.displays.find((d) => d.id === displayParam);
         selectedDisplayId = fromUrl
           ? fromUrl.id
-          : config.displays.find((d) => d.id === 'main')?.id
+          : findMainDisplay(config.displays)?.id
             ?? config.displays[0]!.id;
       }
 
@@ -347,8 +365,29 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   saveConfig: async () => {
-    const { config, isSaving } = get();
-    if (!config || isSaving) return;
+    const state = get();
+    const { config, isSaving } = state;
+    if (!config) return;
+    // Coalesce concurrent saves: if one is already in flight, return a
+    // deferred promise that resolves when the *next* save run completes.
+    // Multiple coalesced callers share a single deferred so they all
+    // settle together on the same re-save. The in-flight save's `finally`
+    // recursively invokes `saveConfig()` and chains its outcome onto the
+    // deferred — preserving the contract that `await saveConfig()` blocks
+    // until the caller's mutation has actually landed on disk (relied on
+    // by every modal that closes after save and the settings auto-save
+    // toast that paints "Saved" only after persistence completes).
+    if (isSaving) {
+      if (state._pendingResave) return state._pendingResave.promise;
+      let resolve!: () => void;
+      let reject!: (err: unknown) => void;
+      const promise = new Promise<void>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      set({ _pendingResave: { promise, resolve, reject } });
+      return promise;
+    }
     const configSnapshot = config;
     set({ isSaving: true, saveError: null });
     try {
@@ -365,6 +404,22 @@ export const useEditorStore = create<EditorState>((set, get) => {
       set({ isSaving: false, saveError: 'Failed to save' });
       console.error('Failed to save config:', err);
       throw err;
+    } finally {
+      // Hand off to the queued re-save (if any). Tying the recursive
+      // `saveConfig()` to `pending.resolve`/`pending.reject` settles the
+      // deferred when the run that includes the coalesced caller's
+      // mutation actually completes — propagating both success and
+      // failure correctly. Using a microtask means observers of the
+      // just-completed save see `isSaving === false` first, then the
+      // next save kicks off — avoids spurious "saving → saving" flicker
+      // without the observer ever seeing "saved".
+      const pending = get()._pendingResave;
+      if (pending) {
+        set({ _pendingResave: null });
+        queueMicrotask(() => {
+          get().saveConfig().then(pending.resolve, pending.reject);
+        });
+      }
     }
   },
 
@@ -485,49 +540,14 @@ export const useEditorStore = create<EditorState>((set, get) => {
     if (activeScreens.length <= 1) return;
     const screens = activeScreens.filter((s) => s.id !== id);
 
-    // Always strip the deleted screen ID from profile.screenIds — profiles
-    // are global (not per-display) and a profile created while editing one
-    // display can reference owned-screen IDs from that display. Leaving a
-    // dangling ID would silently shrink the profile when the rotator
-    // resolves it. The filter is a no-op for IDs that were never present.
-    const profiles = config.profiles?.map((p) => ({
-      ...p,
-      screenIds: p.screenIds.filter((sid) => sid !== id),
-    }));
-    // Apply the screen removal first so any subsequent display-level
-    // cascade-prune operates against the already-updated display.screens
-    // (otherwise we'd overwrite the removal with the stale pre-removal
-    // display list).
-    let nextConfig = withActiveScreens(config, selectedDisplayId, screens);
-    if (profiles !== config.profiles) nextConfig = { ...nextConfig, profiles };
-
-    // Display cascade-prune has two branches:
-    //   1. Legacy mode (global-pool delete): strip the deleted id from any
-    //      display.screenIds (deprecated shared-pool path).
-    //   2. Multi-display mode (owned-screens delete): the deleted id only
-    //      lives inside the active display's own screens, BUT if that
-    //      display also owns its profiles, those profiles may reference
-    //      the deleted screen id — prune them.
-    if (nextConfig.displays) {
-      const updatedDisplays = selectedDisplayId
-        ? nextConfig.displays.map((d) => {
-            if (d.id !== selectedDisplayId || !d.profiles) return d;
-            return {
-              ...d,
-              profiles: d.profiles.map((p) => ({
-                ...p,
-                screenIds: p.screenIds.filter((sid) => sid !== id),
-              })),
-            };
-          })
-        : nextConfig.displays.map((d) => ({
-            ...d,
-            ...(d.screenIds ? { screenIds: d.screenIds.filter((sid) => sid !== id) } : {}),
-          }));
-      if (updatedDisplays !== nextConfig.displays) {
-        nextConfig = { ...nextConfig, displays: updatedDisplays };
-      }
-    }
+    // Apply the screen removal first, then cascade-prune any dangling
+    // references. Ordering matters — the pruner scans whatever config it's
+    // handed, so swapping these would overwrite the removal with the
+    // stale pre-removal display list. Centralising the cascade in
+    // `pruneDanglingScreenRefs` keeps the "where can a screen id live?"
+    // knowledge in one place next to `validateDisplays`.
+    const withRemovedScreen = withActiveScreens(config, selectedDisplayId, screens);
+    const nextConfig = pruneDanglingScreenRefs(withRemovedScreen, id, selectedDisplayId);
 
     const newSelectedId = selectedScreenId === id ? screens[0]?.id ?? null : selectedScreenId;
     mutateConfig(() => ({
@@ -761,17 +781,17 @@ export const useEditorStore = create<EditorState>((set, get) => {
       let newSelectedId = get().selectedDisplayId;
 
       const isFirstDisplay = existingDisplays.length === 0;
-      const hasMain = existingDisplays.some((d) => d.id === 'main');
-      const userAddingMainAsFirst = isFirstDisplay && display.id === 'main';
+      const hasMain = existingDisplays.some((d) => isMainDisplay(d.id));
+      const userAddingMainAsFirst = isFirstDisplay && isMainDisplay(display.id);
       const userDidNotSpecifyScreens = !display.screens && !display.screenIds;
 
-      if (isFirstDisplay && !hasMain && display.id !== 'main') {
+      if (isFirstDisplay && !hasMain && !isMainDisplay(display.id)) {
         // Path 1: user added a non-main display first. Seed the Main
         // display with the existing global screens + profiles + current
         // global dimensions so the hub's kiosk keeps rendering what it was
         // rendering before multi-display got turned on.
         nextDisplays.push({
-          id: 'main',
+          id: MAIN_DISPLAY_ID,
           name: 'Main Display',
           screens: structuredClone(config.screens),
           profiles: structuredClone(config.profiles ?? []),
@@ -844,8 +864,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       // "main" so the user's existing screens stay visible until they
       // explicitly switch to the newly-added display.
       if (newSelectedId === null && nextDisplays.length > 0) {
-        newSelectedId =
-          nextDisplays.find((d) => d.id === 'main')?.id ?? nextDisplays[0].id;
+        newSelectedId = findMainDisplay(nextDisplays)!.id;
       }
 
       return {
@@ -875,7 +894,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     // its delete affordance. UIs are still free to hide the trash button
     // for clarity, but this guard means a stray call (tests, scripts,
     // future surfaces) can't accidentally delete main.
-    if (id === 'main') return;
+    if (isMainDisplay(id)) return;
     const { selectedDisplayId, selectedScreenId } = get();
     mutateConfig((config) => {
       // Collapse an empty result back to undefined so a legacy single-display
@@ -888,8 +907,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       // back at "main" (or the first remaining display, or null for legacy).
       let nextSelected = selectedDisplayId;
       if (selectedDisplayId === id) {
-        nextSelected =
-          nextDisplays?.find((d) => d.id === 'main')?.id ?? nextDisplays?.[0]?.id ?? null;
+        nextSelected = findMainDisplay(nextDisplays)?.id ?? null;
       }
 
       // Re-resolve selectedScreenId against the new active display: the
@@ -929,9 +947,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       newPast = [...state._past, snapshot];
       if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
     }
-    const nextDisplayId = parsed.displays && parsed.displays.length > 0
-      ? parsed.displays.find((d) => d.id === 'main')?.id ?? parsed.displays[0].id
-      : null;
+    const nextDisplayId = findMainDisplay(parsed.displays)?.id ?? null;
     const activeScreens = getActiveScreens(parsed, nextDisplayId);
     const firstId = activeScreens[0]?.id ?? null;
     set({

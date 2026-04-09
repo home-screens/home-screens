@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import { uuid } from '@/lib/uuid';
 import { displayCache } from '@/lib/display-cache';
 import Button from '@/components/ui/Button';
@@ -875,7 +876,7 @@ export default function ChoreChartModal({
 
   // Fetch shared chore data on mount
   useEffect(() => {
-    fetch('/api/chores/data')
+    editorFetch('/api/chores/data')
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -901,7 +902,7 @@ export default function ChoreChartModal({
   const flushSave = useCallback(() => {
     if (!loadedRef.current) return;
     clearTimeout(saveTimerRef.current);
-    fetch('/api/chores/data', {
+    editorFetch('/api/chores/data', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ members: membersRef.current, chores: choresRef.current }),

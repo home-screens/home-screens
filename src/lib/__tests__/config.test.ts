@@ -3,7 +3,7 @@ import fsModule from 'fs';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { readConfig, writeConfig } from '../config';
+import { readConfig, writeConfig, updateConfigAtomic } from '../config';
 import { getLatestSchemaVersion } from '../migrations';
 
 // Override process.cwd to use a temp directory for tests
@@ -649,5 +649,142 @@ describe('readConfig — main display normalization', () => {
     // Mutating one result's main node must not contaminate the other.
     firstMain!.displayWidth = 9999;
     expect(secondMain!.displayWidth).toBe(1080);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateConfigAtomic — no-op detection
+//
+// The wrapper short-circuits the disk write when the user mutator returns
+// its input unchanged AND neither migration nor main-display normalization
+// produced a new reference upstream. This is the path that validation-error
+// branches in API routes (e.g. POST /api/display/profile) rely on to bail
+// without spurious serialize+fsync work.
+// ---------------------------------------------------------------------------
+describe('updateConfigAtomic — no-op detection', () => {
+  // Steady-state config: latest schema version + main display already has
+  // its dimension fields, so neither migration nor normalization runs.
+  function makeSteadyStateConfig() {
+    return {
+      version: getLatestSchemaVersion(),
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90' as const,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'weatherapi' as const, latitude: 0, longitude: 0, units: 'imperial' as const },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+      displays: [
+        {
+          id: 'main',
+          name: 'Main Display',
+          screens: [],
+          displayWidth: 1080,
+          displayHeight: 1920,
+          displayTransform: '90' as const,
+        },
+      ],
+    };
+  }
+
+  async function writeRaw(config: unknown) {
+    const configDir = path.join(tmpDir, 'data');
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(config));
+  }
+
+  it('skips the disk write when the mutator returns its input unchanged in steady state', async () => {
+    await writeRaw(makeSteadyStateConfig());
+
+    // Spy on writeFile after the seed write so we only count writes from
+    // updateConfigAtomic itself.
+    const writeSpy = vi.spyOn(fs, 'writeFile');
+
+    // Mutator returns its input unchanged — the canonical validation-error
+    // signal used by POST /api/display/profile.
+    await updateConfigAtomic((config) => config);
+    expect(writeSpy).not.toHaveBeenCalled();
+
+    writeSpy.mockRestore();
+  });
+
+  it('still writes when the mutator returns a new reference (happy path)', async () => {
+    await writeRaw(makeSteadyStateConfig());
+
+    const writeSpy = vi.spyOn(fs, 'writeFile');
+    await updateConfigAtomic((config) => ({
+      ...config,
+      settings: { ...config.settings, rotationIntervalMs: 12345 },
+    }));
+
+    // The atomic write goes through the temp-file dance: writeFile(tmp)
+    // then rename, so at least one writeFile call is expected.
+    expect(writeSpy).toHaveBeenCalled();
+    writeSpy.mockRestore();
+
+    // And the change actually landed.
+    const after = await readConfig();
+    expect(after.settings.rotationIntervalMs).toBe(12345);
+  });
+
+  it('writes when migration runs even if the user mutator is a no-op', async () => {
+    // Stale schema → migration must fire and persist, regardless of what
+    // the user mutator does. This protects the migrate-on-read invariant.
+    await writeRaw({
+      // version 0 forces migration up to the latest version
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+    });
+
+    const writeSpy = vi.spyOn(fs, 'writeFile');
+    await updateConfigAtomic((config) => config);
+    expect(writeSpy).toHaveBeenCalled();
+    writeSpy.mockRestore();
+  });
+
+  it('writes when main-display normalization runs even if the user mutator is a no-op', async () => {
+    // Latest schema, but main display is missing its dimension fields →
+    // applyMainDisplayNormalization fills them in and that change must
+    // persist.
+    await writeRaw({
+      version: getLatestSchemaVersion(),
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 1080,
+        displayHeight: 1920,
+        displayTransform: '90',
+        latitude: 0,
+        longitude: 0,
+        weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      },
+      screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+      displays: [
+        // Main without dimensions — normalization should backfill from settings.
+        { id: 'main', name: 'Main', screens: [] },
+      ],
+    });
+
+    const writeSpy = vi.spyOn(fs, 'writeFile');
+    await updateConfigAtomic((config) => config);
+    expect(writeSpy).toHaveBeenCalled();
+    writeSpy.mockRestore();
+
+    // The normalization landed on disk so subsequent reads see it.
+    const after = await readConfig();
+    const main = after.displays?.find((d) => d.id === 'main');
+    expect(main?.displayWidth).toBe(1080);
   });
 });

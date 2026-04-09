@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useDroppable, useDndMonitor } from '@dnd-kit/core';
 import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3, LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
+import { editorFetch } from '@/lib/editor-fetch';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
@@ -173,7 +174,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
     async function fetchActive() {
       try {
-        const res = await fetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(currentScreen!.id)}`);
+        const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(currentScreen!.id)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.path) setActiveBackground(data.path);

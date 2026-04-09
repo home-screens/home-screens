@@ -310,7 +310,7 @@ export function useWaitForServer(done: boolean): string | null {
           // upgradeRunning: true. The NEW server starts fresh with
           // upgradeRunning: false — so we only reload once the new
           // server is confirmed ready.
-          const res = await fetch('/api/system/version', { cache: 'no-store' });
+          const res = await editorFetch('/api/system/version', { cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             if (!data.upgradeRunning) {

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Info, RotateCcw } from 'lucide-react';
 import type {
   DisplayNode,
   GlobalSettings,
@@ -13,6 +12,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import SleepFormFields, {
   type SleepFormValues,
 } from './SleepFormFields';
+import WholeBlockOverrideCard from './WholeBlockOverrideCard';
 
 interface SleepSubtabProps {
   config: ScreenConfiguration;
@@ -73,10 +73,13 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
   };
 
   return (
-    <>
-      <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/[0.07] px-4 py-3 flex items-start gap-3">
-        <Info className="w-4 h-4 text-blue-300 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-200 leading-relaxed">
+    <WholeBlockOverrideCard
+      label="Sleep schedule"
+      displayName={display.name}
+      defaultsHref="?section=defaults&page=sleep"
+      defaultsLabel="Defaults → Sleep"
+      infoCopy={
+        <>
           Sleep is overridden as a whole block — you can&apos;t fork individual fields like dim
           time. The default lives on{' '}
           <Link
@@ -86,48 +89,14 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
             Defaults → Sleep
           </Link>
           .
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
-        <div className="px-4 py-3.5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-medium text-neutral-200">Sleep schedule</div>
-            {isForked ? (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md text-blue-300 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset to default
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleFork}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-md text-neutral-300 bg-neutral-800 border border-neutral-700 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
-              >
-                Override for {display.name}
-              </button>
-            )}
-          </div>
-          <SleepFormFields values={values} onChange={handleChange} disabled={!isForked} />
-          {!isForked && (
-            <p className="text-[11px] text-neutral-500 mt-3">
-              Using the default from{' '}
-              <Link
-                href="?section=defaults&page=sleep"
-                className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
-              >
-                Defaults → Sleep
-              </Link>
-              .
-            </p>
-          )}
-        </div>
-      </div>
-    </>
+        </>
+      }
+      isForked={isForked}
+      onFork={handleFork}
+      onReset={handleReset}
+    >
+      <SleepFormFields values={values} onChange={handleChange} disabled={!isForked} />
+    </WholeBlockOverrideCard>
   );
 }
 

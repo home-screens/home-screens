@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { parseItems } from '@/lib/rss';
 import { cachedProxyRoute, fetchWithTimeout } from '@/lib/api-utils';
+import { isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,13 +14,11 @@ const { GET, cache } = cachedProxyRoute<{ items: unknown[] }>({
   execute: async (req) => {
     const feed = req.nextUrl.searchParams.get('feed') || DEFAULT_FEED;
 
-    try {
-      const url = new URL(feed);
-      if (!['http:', 'https:'].includes(url.protocol)) {
-        return NextResponse.json({ error: 'Invalid feed URL scheme' }, { status: 400 });
-      }
-    } catch {
-      return NextResponse.json({ error: 'Invalid feed URL' }, { status: 400 });
+    // SSRF guard: reject private/loopback/link-local hosts and validate
+    // every resolved IP. Runs inside execute() so the cachedProxyRoute hit
+    // path is safe (cached entries were already validated when stored).
+    if (!(await isSafeExternalUrl(feed))) {
+      return NextResponse.json({ error: 'Invalid or blocked feed URL' }, { status: 400 });
     }
 
     const res = await fetchWithTimeout(feed);

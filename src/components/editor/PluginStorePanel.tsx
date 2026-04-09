@@ -38,8 +38,8 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
     setLoading(true);
     try {
       const [regRes, instRes] = await Promise.all([
-        fetch('/api/plugins/registry').catch(() => null),
-        fetch('/api/plugins/installed').catch(() => null),
+        editorFetch('/api/plugins/registry').catch(() => null),
+        editorFetch('/api/plugins/installed').catch(() => null),
       ]);
       if (regRes?.ok) {
         const data: PluginRegistry = await regRes.json();
@@ -550,7 +550,7 @@ function InstallConfirmModal({
     async function fetchManifestDetails() {
       try {
         // Try to fetch the manifest if the plugin is already installed (has files on disk)
-        const res = await fetch(`/api/plugins/manifest/${plugin.id}`);
+        const res = await editorFetch(`/api/plugins/manifest/${plugin.id}`);
         if (!res.ok || cancelled) return;
         const manifest = await res.json();
         if (cancelled) return;

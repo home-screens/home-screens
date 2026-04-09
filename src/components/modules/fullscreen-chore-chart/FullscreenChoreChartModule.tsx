@@ -6,6 +6,7 @@ import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import { DAY_NAMES_FULL } from '@/lib/meal-constants';
+import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import ChoreToast, { type ToastItem } from './ChoreToast';
 import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';
@@ -27,6 +28,7 @@ interface FullscreenChoreChartModuleProps {
   config: FullscreenChoreChartConfig;
   style: ModuleStyle;
   fullscreenTheme?: string;
+  timezone?: string;
 }
 
 // ─── Component ───
@@ -35,6 +37,7 @@ export default function FullscreenChoreChartModule({
   config,
   style: _style,
   fullscreenTheme,
+  timezone,
 }: FullscreenChoreChartModuleProps) {
   const { containerRef, dims } = useFullscreenDims();
 
@@ -52,7 +55,14 @@ export default function FullscreenChoreChartModule({
 
   const { todayAssignments, memberStats, weekData, members, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
-  const currentTod = getCurrentTimeOfDay(new Date().getHours());
+  // `tzNow` is a "shifted" Date whose local-time methods reflect the
+  // configured IANA timezone — used by `getCurrentTimeOfDay`/DAY_NAMES_FULL
+  // which read `.getHours()`/`.getDay()`. `formatDateInTZ` further down
+  // takes a real UTC instant (`new Date()`) so it can do its own zone
+  // shift via `Intl.DateTimeFormat`; passing the shifted Date would
+  // double-shift and yield the wrong day near midnight.
+  const tzNow = createTZDate(timezone);
+  const currentTod = getCurrentTimeOfDay(tzNow.getHours());
 
   // Toast state for completion feedback
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -114,10 +124,11 @@ export default function FullscreenChoreChartModule({
   const totalDone = todayAssignments.filter((a) => a.isCompleted).length;
   const overallPct = totalChores > 0 ? Math.round((totalDone / totalChores) * 100) : 0;
 
-  // Date
-  const today = new Date();
-  const dayName = DAY_NAMES_FULL[today.getDay()];
-  const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  // Date — `tzNow.getDay()` is correct because shifted-Date local-time
+  // methods read in target zone, but `formatDateInTZ` needs a real UTC
+  // instant so its internal `Intl` shift doesn't double-apply.
+  const dayName = DAY_NAMES_FULL[tzNow.getDay()];
+  const dateStr = formatDateInTZ(new Date(), timezone, { month: 'long', day: 'numeric', year: 'numeric' });
 
   // Member lookup
   const memberMap = useMemo(() => {

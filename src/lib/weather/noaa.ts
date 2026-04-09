@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, WeatherAlert, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
+import { inferIconFromText } from './icons';
 
 // ── NOAA/NWS API response types ──────────────────────────────────────
 
@@ -273,17 +274,6 @@ export class NOAAProvider implements WeatherProvider {
   }
 
   private mapForecast(shortForecast: string, isDaytime: boolean): string {
-    const f = shortForecast.toLowerCase();
-    if (f.includes('thunder') || f.includes('storm')) return 'cloud-lightning';
-    if (f.includes('snow') || f.includes('blizzard') || f.includes('flurr')) return 'snowflake';
-    if (f.includes('sleet') || f.includes('ice') || f.includes('freez')) return 'cloud-hail';
-    if (f.includes('rain') || f.includes('shower') || f.includes('drizzle')) return 'cloud-rain';
-    if (f.includes('fog') || f.includes('haze') || f.includes('mist')) return 'cloud-fog';
-    // "Mostly Sunny", "Mostly Clear", "Partly Sunny", "Partly Cloudy" → partial cloud
-    if (f.includes('partly') || f.includes('mostly sunny') || f.includes('mostly clear'))
-      return isDaytime ? 'cloud-sun' : 'cloud-moon';
-    if (f.includes('cloud') || f.includes('overcast')) return 'cloud';
-    if (f.includes('sunny') || f.includes('clear')) return isDaytime ? 'sun' : 'moon';
-    return 'thermometer';
+    return inferIconFromText(shortForecast, isDaytime);
   }
 }

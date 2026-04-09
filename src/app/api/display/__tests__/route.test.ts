@@ -337,10 +337,14 @@ describe('POST /api/display/profile', () => {
       makeParams('profile'),
     );
     expect(res.status).toBe(200);
-    // The display in the in-memory config should now have activeProfile set,
-    // and the global settings.activeProfile should be left untouched.
-    expect(display.activeProfile).toBe('day');
+    // The mutator now produces an immutable update — the original `display`
+    // reference is left untouched and a new object is written via
+    // writeConfig. Inspecting the writeConfig payload is the right place
+    // to verify the persisted state.
     expect(writeConfig).toHaveBeenCalled();
+    const written = vi.mocked(writeConfig).mock.calls[0][0] as { displays: Array<{ id: string; activeProfile?: string }> };
+    const writtenDisplay = written.displays.find((d) => d.id === 'kitchen');
+    expect(writtenDisplay?.activeProfile).toBe('day');
   });
 
   it('returns 404 when targeting an unknown display', async () => {
@@ -392,7 +396,11 @@ describe('POST /api/display/profile', () => {
       makeParams('profile'),
     );
     expect(res.status).toBe(200);
-    expect(display.activeProfile).toBe('owned-day');
+    // Immutable update — assert against the writeConfig payload, not the
+    // local `display` reference (which is left unchanged by design).
+    const written = vi.mocked(writeConfig).mock.calls[0][0] as { displays: Array<{ id: string; activeProfile?: string }> };
+    const writtenDisplay = written.displays.find((d) => d.id === 'kitchen');
+    expect(writtenDisplay?.activeProfile).toBe('owned-day');
   });
 
   it('rejects a global-pool profile ID against an owned-profiles display', async () => {

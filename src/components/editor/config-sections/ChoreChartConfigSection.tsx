@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
@@ -38,7 +39,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   const [counts, setCounts] = useState({ members: 0, chores: 0 });
 
   useEffect(() => {
-    fetch('/api/chores/data')
+    editorFetch('/api/chores/data')
       .then((r) => r.json())
       .then((d) => setCounts({ members: d.members?.length ?? 0, chores: d.chores?.length ?? 0 }))
       .catch(() => {});

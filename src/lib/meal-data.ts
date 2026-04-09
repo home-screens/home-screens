@@ -286,6 +286,13 @@ export async function readMealData(): Promise<MealData> {
  * The mutator may throw. Throwing a `Response` short-circuits for API
  * routes that need to return a 4xx without writing (e.g. the empty-overwrite
  * guard in PUT /api/meals/data).
+ *
+ * **No-op signal:** if the user mutator returns the same `MealData`
+ * reference it was given AND no migration was applied, the wrapper
+ * returns the original `current` reference so `updateAtomic` skips the
+ * disk write. Migration always forces a write (its whole point is to
+ * land normalized fields on disk) regardless of whether the user
+ * mutator was a no-op.
  */
 export function updateMealData(
   mutator: (current: MealData) => MealData | Promise<MealData>,
@@ -294,8 +301,15 @@ export function updateMealData(
     // Run the same migration logic that readMealData applies, so the
     // mutator always sees normalized data even if the file still has
     // legacy fields on disk.
-    const { data } = await parseAndMigrate(current);
-    return mutator(data);
+    const { data, migrated } = await parseAndMigrate(current);
+    const result = await mutator(data);
+    // No-op fast path: user mutator returned its input unchanged AND
+    // parseAndMigrate didn't backfill anything → skip the write by
+    // returning the original on-disk reference.
+    if (result === data && !migrated) {
+      return current;
+    }
+    return result;
   });
 }
 

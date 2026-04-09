@@ -13,9 +13,10 @@ import { CompactView } from './views/CompactView';
 interface ChoreChartModuleProps {
   config: ChoreChartConfig;
   style: ModuleStyle;
+  timezone?: string;
 }
 
-export default function ChoreChartModule({ config, style }: ChoreChartModuleProps) {
+export default function ChoreChartModule({ config, style, timezone }: ChoreChartModuleProps) {
   const view = config.view ?? 'board';
   const data = useChoreData(config);
 
@@ -55,7 +56,7 @@ export default function ChoreChartModule({ config, style }: ChoreChartModuleProp
     <ModuleWrapper style={style}>
       {view === 'board' && <BoardView {...viewProps} />}
       {view === 'star-chart' && <StarChartView {...viewProps} />}
-      {view === 'today' && <TodayView {...viewProps} />}
+      {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
       {view === 'progress' && <ProgressView {...viewProps} />}
       {view === 'compact' && <CompactView {...viewProps} />}
     </ModuleWrapper>

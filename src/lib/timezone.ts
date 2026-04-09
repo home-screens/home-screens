@@ -72,6 +72,29 @@ export function formatTimeInTZ(
 }
 
 /**
+ * Format a Date in the given IANA timezone using Intl.DateTimeFormat.
+ * Prefer this over calling `date.toLocaleDateString('en-US', opts)` directly
+ * when `date` is a real UTC instant and the module has a configured timezone,
+ * otherwise the Pi's OS timezone leaks into the displayed string.
+ */
+export function formatDateInTZ(
+  date: Date,
+  timezone: string | undefined,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  if (isNaN(date.getTime())) return '—';
+  try {
+    return date.toLocaleDateString('en-US', {
+      ...options,
+      ...(timezone ? { timeZone: timezone } : {}),
+    });
+  } catch {
+    // Invalid timezone — format without timezone override
+    return date.toLocaleDateString('en-US', options);
+  }
+}
+
+/**
  * Parse a naive datetime string (no Z or offset) as if it were in the
  * given timezone, returning a Date with the correct UTC epoch.
  *

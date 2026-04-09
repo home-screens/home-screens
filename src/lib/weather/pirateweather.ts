@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
+import { PIRATE_ICON_MAP, FALLBACK_ICON } from './icons';
 
 // ── Pirate Weather API response types ────────────────────────────────
 
@@ -147,19 +148,6 @@ export class PirateWeatherProvider implements WeatherProvider {
   }
 
   private mapIcon(pwIcon: string): string {
-    const map: Record<string, string> = {
-      'clear-day': 'sun',
-      'clear-night': 'moon',
-      'partly-cloudy-day': 'cloud-sun',
-      'partly-cloudy-night': 'cloud-moon',
-      'cloudy': 'cloud',
-      'rain': 'cloud-rain',
-      'snow': 'snowflake',
-      'sleet': 'cloud-hail',
-      'thunderstorm': 'cloud-lightning',
-      'fog': 'cloud-fog',
-      'wind': 'cloud',
-    };
-    return map[pwIcon] ?? 'thermometer';
+    return PIRATE_ICON_MAP[pwIcon] ?? FALLBACK_ICON;
   }
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
@@ -43,7 +44,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   });
 
   const fetchMealData = useCallback(() => {
-    fetch('/api/meals/data')
+    editorFetch('/api/meals/data')
       .then((r) => r.json())
       .then((d) => setMealData({
         savedMeals: d.savedMeals ?? [],
@@ -88,7 +89,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     // Update local state immediately so the modal reflects changes without waiting for the server
     setMealData(optimistic);
     try {
-      const res = await fetch('/api/meals/data', {
+      const res = await editorFetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

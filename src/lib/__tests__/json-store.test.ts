@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -267,5 +267,32 @@ describe('updateAtomic', () => {
     await writePromise;
     const result = await atomicPromise;
     expect(result.v).toBe(8);
+  });
+
+  it('no-op signal: returning the input reference unchanged skips the disk write', async () => {
+    // Spy on `fs.writeFile` to count actual disk writes — the no-op
+    // optimization is observable as "fewer writeFile calls."
+    const writeSpy = vi.spyOn(fs, 'writeFile');
+
+    const store = createJsonStore<{ v: number }>({
+      path: 'data/counter.json',
+      defaultValue: { v: 0 },
+    });
+
+    // Seed initial state — this consumes one writeFile call.
+    await store.write({ v: 99 });
+    const baselineWrites = writeSpy.mock.calls.length;
+
+    // Mutator returns its input ref unchanged → updateAtomic should
+    // detect the no-op and skip the write entirely.
+    const result = await store.updateAtomic((current) => current);
+    expect(result.v).toBe(99);
+    expect(writeSpy.mock.calls.length).toBe(baselineWrites);
+
+    // Sanity check: a mutator that returns a NEW reference still writes.
+    await store.updateAtomic((current) => ({ v: current.v + 1 }));
+    expect(writeSpy.mock.calls.length).toBe(baselineWrites + 1);
+
+    writeSpy.mockRestore();
   });
 });

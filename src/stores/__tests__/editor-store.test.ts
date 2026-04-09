@@ -1114,32 +1114,195 @@ describe('editor store', () => {
       expect(store.getState().saveError).toBeNull();
     });
 
-    it('concurrent save call is a no-op while another save is in flight', async () => {
+    it('concurrent save call awaits the coalesced re-save (not just early-returns)', async () => {
       const store = setupStoreWithConfig();
 
-      let resolveFetch!: () => void;
-      fetchMock.mockImplementation(() => new Promise<{ ok: boolean; status: number }>((resolve) => {
-        resolveFetch = () => resolve({ ok: true, status: 200 });
-      }));
+      // Queue two resolvers so we can complete both saves independently.
+      const fetchResolvers: Array<() => void> = [];
+      fetchMock.mockImplementation(
+        () =>
+          new Promise<{ ok: boolean; status: number }>((resolve) => {
+            fetchResolvers.push(() => resolve({ ok: true, status: 200 }));
+          }),
+      );
 
       // Start first save
       const firstSave = store.getState().saveConfig();
       expect(store.getState().isSaving).toBe(true);
 
-      // Attempt a second save while first is in flight — should be a no-op
-      const secondSave = store.getState().saveConfig();
+      // Attempt a second save while the first is in flight. The contract
+      // (relied on by every modal that closes after `await saveConfig()`):
+      // the returned promise must resolve only AFTER the run that includes
+      // this caller's mutation actually completes — not immediately.
+      let secondSettled = false;
+      const secondSave = store.getState().saveConfig().then(() => { secondSettled = true; });
 
-      // Only one fetch call should have been made
+      // Still only the first fetch is in flight at this point.
       expect(fetchMock).toHaveBeenCalledOnce();
 
-      // Resolve and finish
-      resolveFetch();
+      // Drain microtasks to confirm secondSave has NOT settled yet — its
+      // promise is wired to the queued re-save, which can't run until the
+      // first save completes.
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(secondSettled).toBe(false);
+
+      // Resolve the first save — this unblocks its `finally`, which queues
+      // a microtask that fires the coalesced re-save.
+      fetchResolvers[0]();
       await firstSave;
+
+      // Drain microtasks until the recursive saveConfig has scheduled its
+      // own fetch. With proper queue draining the second fetch is observable.
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(store.getState().isSaving).toBe(true);
+
+      // secondSave still hasn't resolved — its mutation is in flight now.
+      expect(secondSettled).toBe(false);
+
+      // Resolve the re-save and wait for everything to settle.
+      fetchResolvers[1]();
       await secondSave;
 
+      expect(secondSettled).toBe(true);
       expect(store.getState().isSaving).toBe(false);
-      // Still only one fetch call total
+    });
+
+    it('coalesced re-save sends the latest in-memory config, not a stale snapshot', async () => {
+      const store = setupStoreWithConfig();
+
+      const fetchResolvers: Array<() => void> = [];
+      const sentBodies: string[] = [];
+      fetchMock.mockImplementation((_url: string, init: { body: string }) => {
+        sentBodies.push(init.body);
+        return new Promise<{ ok: boolean; status: number }>((resolve) => {
+          fetchResolvers.push(() => resolve({ ok: true, status: 200 }));
+        });
+      });
+
+      const firstSave = store.getState().saveConfig();
+
+      // Mutate the config WHILE the first save is in flight and the
+      // mutation must be visible in the re-save's PUT body — that's the
+      // entire point of the coalescing mechanism.
+      store.getState().updateSettings({ rotationIntervalMs: 12345 });
+
+      const secondSave = store.getState().saveConfig();
+
+      fetchResolvers[0]();
+      await firstSave;
+      // Drain queued microtasks to let the re-save dispatch its fetch.
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      fetchResolvers[1]();
+      await secondSave;
+
+      expect(sentBodies).toHaveLength(2);
+      // First PUT used the snapshot from before the mutation.
+      const firstBody = JSON.parse(sentBodies[0]);
+      expect(firstBody.settings.rotationIntervalMs).toBe(30000);
+      // Second PUT must contain the post-mutation value.
+      const secondBody = JSON.parse(sentBodies[1]);
+      expect(secondBody.settings.rotationIntervalMs).toBe(12345);
+    });
+
+    it('multiple coalesced callers all share a single re-save and resolve together', async () => {
+      const store = setupStoreWithConfig();
+
+      const fetchResolvers: Array<() => void> = [];
+      fetchMock.mockImplementation(
+        () =>
+          new Promise<{ ok: boolean; status: number }>((resolve) => {
+            fetchResolvers.push(() => resolve({ ok: true, status: 200 }));
+          }),
+      );
+
+      const firstSave = store.getState().saveConfig();
+      // Three concurrent callers all coalesce onto the same deferred.
+      const settled = [false, false, false];
+      const callers = [
+        store.getState().saveConfig().then(() => { settled[0] = true; }),
+        store.getState().saveConfig().then(() => { settled[1] = true; }),
+        store.getState().saveConfig().then(() => { settled[2] = true; }),
+      ];
+
+      // Only the first fetch fires while everything is queued.
       expect(fetchMock).toHaveBeenCalledOnce();
+
+      fetchResolvers[0]();
+      await firstSave;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+      // The three coalesced callers fire exactly ONE re-save, not three.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      // None have settled yet — they're all chained to the re-save.
+      expect(settled).toEqual([false, false, false]);
+
+      fetchResolvers[1]();
+      await Promise.all(callers);
+
+      // All three resolve together once the re-save lands.
+      expect(settled).toEqual([true, true, true]);
+    });
+
+    it('coalesced re-save still fires when the in-flight save fails', async () => {
+      const store = setupStoreWithConfig();
+
+      const fetchResolvers: Array<(ok: boolean) => void> = [];
+      fetchMock.mockImplementation(
+        () =>
+          new Promise<{ ok: boolean; status: number }>((resolve) => {
+            fetchResolvers.push((ok) => resolve({ ok, status: ok ? 200 : 500 }));
+          }),
+      );
+
+      const firstSave = store.getState().saveConfig();
+      const secondSave = store.getState().saveConfig();
+
+      // First save fails — it should still trigger the coalesced re-save
+      // through the `finally` block, and the second caller's promise must
+      // be settled by the re-save's outcome (not the first save's error).
+      fetchResolvers[0](false);
+      await expect(firstSave).rejects.toThrow('Save failed: 500');
+
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Re-save succeeds — second caller resolves cleanly.
+      fetchResolvers[1](true);
+      await expect(secondSave).resolves.toBeUndefined();
+      expect(store.getState().isSaving).toBe(false);
+    });
+
+    it('coalesced re-save propagates its own error to the queued caller', async () => {
+      const store = setupStoreWithConfig();
+
+      const fetchResolvers: Array<(ok: boolean) => void> = [];
+      fetchMock.mockImplementation(
+        () =>
+          new Promise<{ ok: boolean; status: number }>((resolve) => {
+            fetchResolvers.push((ok) => resolve({ ok, status: ok ? 200 : 503 }));
+          }),
+      );
+
+      const firstSave = store.getState().saveConfig();
+      const secondSave = store.getState().saveConfig();
+
+      // First save succeeds, re-save fails — the queued caller gets the
+      // re-save's failure (its mutation didn't land).
+      fetchResolvers[0](true);
+      await firstSave;
+
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      fetchResolvers[1](false);
+
+      await expect(secondSave).rejects.toThrow('Save failed: 503');
+      expect(store.getState().isSaving).toBe(false);
+      expect(store.getState().saveError).toBe('Failed to save');
     });
 
     it('save error keeps isDirty true so retry can happen', async () => {
@@ -1286,13 +1449,19 @@ describe('editor store', () => {
       expect(store.getState().isDirty).toBe(true);
     });
 
-    it('isSaving guard prevents stale snapshot from overwriting newer data', async () => {
+    it('in-flight save uses its own snapshot, then coalesced re-save persists later mutations', async () => {
       const store = setupStoreWithConfig();
 
-      let resolveFetch!: () => void;
-      fetchMock.mockImplementation(() => new Promise<{ ok: boolean; status: number }>((resolve) => {
-        resolveFetch = () => resolve({ ok: true, status: 200 });
-      }));
+      // Two-resolver queue so we can complete both saves independently and
+      // capture each PUT body to assert which snapshot landed when.
+      const fetchResolvers: Array<() => void> = [];
+      const sentBodies: string[] = [];
+      fetchMock.mockImplementation((_url: string, init: { body: string }) => {
+        sentBodies.push(init.body);
+        return new Promise<{ ok: boolean; status: number }>((resolve) => {
+          fetchResolvers.push(() => resolve({ ok: true, status: 200 }));
+        });
+      });
 
       // Start first save — captures snapshot of config
       const firstSave = store.getState().saveConfig();
@@ -1301,18 +1470,35 @@ describe('editor store', () => {
       store.getState().updateSettings({ rotationIntervalMs: 11111 });
       store.getState().updateSettings({ rotationIntervalMs: 22222 });
 
-      // Attempt another save — should be blocked by isSaving guard
-      const blockedSave = store.getState().saveConfig();
+      // Attempt another save — coalesced into a re-save that will pick up
+      // the LATEST state (22222), not the snapshot (30000) the first save is
+      // writing. Awaiting this should block until the re-save lands.
+      const coalescedSave = store.getState().saveConfig();
 
-      // Complete first save
-      resolveFetch();
+      // Complete first save → its `finally` queues the re-save microtask.
+      fetchResolvers[0]();
       await firstSave;
-      await blockedSave;
+      // Drain the microtask + the recursive saveConfig's first await.
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      // Re-save's fetch is now in flight — resolve it.
+      fetchResolvers[1]();
+      await coalescedSave;
 
-      // Config should retain the latest mutations, not be overwritten
+      // First PUT used the stale snapshot (couldn't be clobbered by later
+      // mutations), the re-save persisted the latest state.
+      expect(sentBodies).toHaveLength(2);
+      const firstBody = JSON.parse(sentBodies[0]);
+      const secondBody = JSON.parse(sentBodies[1]);
+      expect(firstBody.settings.rotationIntervalMs).toBe(30000);
+      expect(secondBody.settings.rotationIntervalMs).toBe(22222);
+
+      // Config still holds the latest in-memory state, and isDirty is now
+      // false because the re-save actually persisted it — under the old
+      // boolean-flag implementation this would have stayed dirty until an
+      // unrelated trigger re-fired a save.
       expect(store.getState().config!.settings.rotationIntervalMs).toBe(22222);
-      // isDirty should be true since config diverged from what was saved
-      expect(store.getState().isDirty).toBe(true);
+      expect(store.getState().isDirty).toBe(false);
     });
   });
 

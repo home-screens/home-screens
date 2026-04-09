@@ -14,6 +14,25 @@ vi.mock('@/lib/rss', () => ({
   ]),
 }));
 
+// Stub the SSRF guard so tests don't depend on real DNS resolution.
+// `isSafeExternalUrl` calls `dns.lookup` for every non-literal-IP host,
+// which would either flake or fail outright in network-isolated CI
+// sandboxes. The stub keeps the same shape (URL parse + protocol check
+// + literal-IP loopback/metadata block) so the route's behavior matches
+// what callers actually see in production for the cases tested here.
+vi.mock('@/lib/url-safety', () => ({
+  isSafeExternalUrl: vi.fn(async (url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+      const blocked = new Set(['localhost', '127.0.0.1', '169.254.169.254', '::1']);
+      return !blocked.has(u.hostname);
+    } catch {
+      return false;
+    }
+  }),
+}));
+
 const mockParseItems = vi.mocked(parseItems);
 
 // Lazily import GET so the rss mock is in place before module evaluation
@@ -54,13 +73,19 @@ describe('GET /api/news', () => {
     expect(global.fetch).toHaveBeenCalledWith('https://feeds.bbci.co.uk/news/rss.xml', expect.anything());
   });
 
+  // All malformed/dangerous URLs now collapse to a single generic
+  // "Invalid or blocked feed URL" message — isSafeExternalUrl handles
+  // URL parsing, protocol check, and SSRF filtering in one place, and
+  // leaking the specific failure reason back to clients is needless
+  // information disclosure.
+
   it('returns 400 for an invalid URL', async () => {
     const req = new NextRequest('http://localhost/api/news?feed=not-a-url');
     const res = await GET(req);
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json).toEqual({ error: 'Invalid feed URL' });
+    expect(json).toEqual({ error: 'Invalid or blocked feed URL' });
   });
 
   it('returns 400 for a non-http protocol (ftp)', async () => {
@@ -69,7 +94,7 @@ describe('GET /api/news', () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json).toEqual({ error: 'Invalid feed URL scheme' });
+    expect(json).toEqual({ error: 'Invalid or blocked feed URL' });
   });
 
   it('returns 400 for a non-http protocol (file)', async () => {
@@ -78,7 +103,25 @@ describe('GET /api/news', () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json).toEqual({ error: 'Invalid feed URL scheme' });
+    expect(json).toEqual({ error: 'Invalid or blocked feed URL' });
+  });
+
+  it('returns 400 for a loopback URL (SSRF guard)', async () => {
+    const req = new NextRequest('http://localhost/api/news?feed=http://127.0.0.1/rss.xml');
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json).toEqual({ error: 'Invalid or blocked feed URL' });
+  });
+
+  it('returns 400 for a cloud-metadata URL (SSRF guard)', async () => {
+    const req = new NextRequest('http://localhost/api/news?feed=http://169.254.169.254/latest/meta-data/');
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json).toEqual({ error: 'Invalid or blocked feed URL' });
   });
 
   it('returns 502 when upstream fetch fails', async () => {

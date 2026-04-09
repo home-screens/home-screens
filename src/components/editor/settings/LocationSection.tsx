@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 
 interface LocationSettings {
@@ -33,7 +34,7 @@ export default function LocationSection({ values, onChange }: Props) {
     async function fetchServerTime() {
       const fetchedAt = Date.now();
       try {
-        const res = await fetch('/api/time');
+        const res = await editorFetch('/api/time');
         const data = await res.json();
         const serverMs = new Date(data.iso).getTime();
         setServerInfo({ offsetMs: serverMs - fetchedAt, timezone: data.timezone });
@@ -49,7 +50,7 @@ export default function LocationSection({ values, onChange }: Props) {
     setLocationStatus('Looking up...');
     onChange({ locationName: null });
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(locationQuery.trim())}`);
+      const res = await editorFetch(`/api/geocode?q=${encodeURIComponent(locationQuery.trim())}`);
       if (res.ok) {
         const data = await res.json();
         const newLat = data.latitude.toFixed(4);
@@ -66,7 +67,7 @@ export default function LocationSection({ values, onChange }: Props) {
   }
 
   async function detectViaIP() {
-    const res = await fetch('/api/geocode?detect=ip');
+    const res = await editorFetch('/api/geocode?detect=ip');
     if (!res.ok) throw new Error('IP geolocation failed');
     const data = await res.json();
     const newLat = data.latitude.toFixed(4);
@@ -93,7 +94,7 @@ export default function LocationSection({ values, onChange }: Props) {
         const newLon = pos.coords.longitude.toFixed(4);
         onChange({ lat: newLat, lon: newLon });
         try {
-          const res = await fetch(`/api/geocode?q=${newLat},${newLon}`);
+          const res = await editorFetch(`/api/geocode?q=${newLat},${newLon}`);
           if (res.ok) {
             const data = await res.json();
             onChange({ locationName: data.displayName });

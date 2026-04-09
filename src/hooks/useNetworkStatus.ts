@@ -6,7 +6,6 @@ export function useNetworkStatus(): { isOnline: boolean } {
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
-  const [simulateOffline, setSimulateOffline] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -30,21 +29,12 @@ export function useNetworkStatus(): { isOnline: boolean } {
       handleOffline();
     }
 
-    // TODO: Remove — temporary Shift+N toggle for testing
-    function handleKeydown(e: KeyboardEvent) {
-      if (e.shiftKey && e.key === 'N') {
-        setSimulateOffline((prev) => !prev);
-      }
-    }
-    window.addEventListener('keydown', handleKeydown);
-
     return () => {
       clearTimeout(timerRef.current);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('keydown', handleKeydown);
     };
   }, []);
 
-  return { isOnline: isOnline && !simulateOffline };
+  return { isOnline };
 }

@@ -317,11 +317,6 @@ function SettingsPageContent() {
   // `state` below, and per-display overrides would save silently.
   const storeIsSaving = useEditorStore((s) => s.isSaving);
   const storeSaveError = useEditorStore((s) => s.saveError);
-  // Subscribed here via selector so the retry-observer effect below
-  // re-renders on every isDirty transition — the effect needs to read
-  // the latest isDirty when isSaving goes true→false so it can decide
-  // whether to flush a blocked/concurrent save.
-  const storeIsDirty = useEditorStore((s) => s.isDirty);
   const settings = config?.settings;
 
   // Phase 4: the URL is the single source of truth for content routing.
@@ -407,35 +402,36 @@ function SettingsPageContent() {
   // effect for Defaults pages also flips store.isSaving, so this fires
   // for both paths via a single subscription.
   //
-  // This effect also carries the "save retry observer": if the store is
-  // still dirty after an in-flight save completes, schedule a follow-up
-  // saveConfig(). That covers the race where a subtab fires
-  // `updateDisplaySettings + saveConfig()` while the parent auto-save
-  // is mid-flight — without the observer, the second saveConfig hits
-  // the `isSaving` early-return inside the store and the later mutation
-  // would stay pinned in memory until an unrelated trigger re-fired a
-  // save. The retry fires at most once per save-cycle; any further
-  // mutations that land during the retry are picked up by the next
-  // transition in the exact same way.
+  // The save-coalescing retry previously lived here (watching the
+  // `isDirty` flag and re-firing saveConfig() after a concurrent
+  // subtab write) but it has moved into `saveConfig` itself — the
+  // store's `_pendingResave` flag flushes any mutation that landed
+  // while a save was in flight, so the race is handled at the source
+  // instead of observed from here.
   const prevStoreIsSavingRef = useRef(storeIsSaving);
   useEffect(() => {
     const wasSaving = prevStoreIsSavingRef.current;
     prevStoreIsSavingRef.current = storeIsSaving;
     if (wasSaving && !storeIsSaving && !storeSaveError) {
+      // Coalesced-save flicker guard: when a mutation lands during an
+      // in-flight save, the store transitions isSaving true→false→true
+      // (first save lands, queueMicrotask schedules the re-save). The
+      // observer fires on the intermediate false, but a "Saved" toast at
+      // that moment is misleading because the latest mutation is still
+      // pending. Read the live store state imperatively (no subscription,
+      // no extra re-renders) to detect the in-progress re-save: if
+      // anything is still dirty or another save has already kicked off,
+      // skip the toast and wait for the final transition.
+      const live = useEditorStore.getState();
+      if (live.isSaving || live.isDirty) return;
       setSaveMessage('Saved');
       const timer = setTimeout(
         () => setSaveMessage((prev) => (prev === 'Saved' ? null : prev)),
         2000,
       );
-      if (storeIsDirty) {
-        // Fire-and-forget — any error surfaces through storeSaveError
-        // and is rendered by the header status indicator on the next
-        // effect pass.
-        saveConfig().catch((err) => console.error('Auto-retry save failed:', err));
-      }
       return () => clearTimeout(timer);
     }
-  }, [storeIsSaving, storeSaveError, storeIsDirty, saveConfig]);
+  }, [storeIsSaving, storeSaveError]);
 
   useEffect(() => {
     if (!settingsInitRef.current || !userDirtyRef.current) return;

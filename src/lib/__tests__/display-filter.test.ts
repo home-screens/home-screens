@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { filterConfigForDisplay, validateDisplays, findScreenById, getDisplayProfiles } from '@/lib/display-filter';
+import {
+  filterConfigForDisplay,
+  validateDisplays,
+  findScreenById,
+  getDisplayProfiles,
+  findMainDisplay,
+  isMainDisplay,
+  pruneDanglingScreenRefs,
+  MAIN_DISPLAY_ID,
+} from '@/lib/display-filter';
 import type {
   AlertSettings,
   GlobalSettings,
@@ -945,5 +954,144 @@ describe('validateDisplays — owned profiles', () => {
       }],
     });
     expect(validateDisplays(config)).toMatch(/unknown activeProfile "night"/);
+  });
+});
+
+/* ─── findMainDisplay / isMainDisplay ────────────── */
+
+describe('findMainDisplay', () => {
+  it('returns undefined when displays is undefined', () => {
+    expect(findMainDisplay(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when displays is empty', () => {
+    expect(findMainDisplay([])).toBeUndefined();
+  });
+
+  it('returns the canonical "main" display when present', () => {
+    // The legacy /display redirect depends on this precedence — main wins
+    // even when other displays come first in the array.
+    const displays: DisplayNode[] = [
+      { id: 'kitchen', name: 'Kitchen' },
+      { id: MAIN_DISPLAY_ID, name: 'Main' },
+      { id: 'bedroom', name: 'Bedroom' },
+    ];
+    expect(findMainDisplay(displays)?.id).toBe(MAIN_DISPLAY_ID);
+  });
+
+  it('falls back to the first display when no canonical main is present', () => {
+    const displays: DisplayNode[] = [
+      { id: 'kitchen', name: 'Kitchen' },
+      { id: 'bedroom', name: 'Bedroom' },
+    ];
+    expect(findMainDisplay(displays)?.id).toBe('kitchen');
+  });
+});
+
+describe('isMainDisplay', () => {
+  it('matches the canonical id', () => {
+    expect(isMainDisplay(MAIN_DISPLAY_ID)).toBe(true);
+  });
+
+  it('rejects other ids', () => {
+    expect(isMainDisplay('kitchen')).toBe(false);
+    expect(isMainDisplay('Main')).toBe(false); // case-sensitive
+  });
+
+  it('handles undefined and null safely', () => {
+    expect(isMainDisplay(undefined)).toBe(false);
+    expect(isMainDisplay(null)).toBe(false);
+  });
+});
+
+/* ─── pruneDanglingScreenRefs ─────────────────────── */
+
+describe('pruneDanglingScreenRefs', () => {
+  it('returns a new config object without mutating input', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('day', ['s1', 's2'])],
+    });
+    const beforeProfileIds = config.profiles![0].screenIds.slice();
+    const result = pruneDanglingScreenRefs(config, 's1', null);
+    expect(result).not.toBe(config);
+    // Input untouched.
+    expect(config.profiles![0].screenIds).toEqual(beforeProfileIds);
+    // Output pruned.
+    expect(result.profiles![0].screenIds).toEqual(['s2']);
+  });
+
+  it('is a no-op (returns shallow-equal config) when nothing references the deleted id', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('day', ['other'])],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['other'] }],
+    });
+    const result = pruneDanglingScreenRefs(config, 'never-existed', null);
+    // Pruner unconditionally maps profiles/displays so the result is a new
+    // object reference, but its inner contents must equal the input.
+    expect(result.profiles).toEqual(config.profiles);
+    expect(result.displays).toEqual(config.displays);
+  });
+
+  it('prunes from global profile pool regardless of selectedDisplayId', () => {
+    const config = makeConfig({
+      profiles: [
+        makeProfile('day', ['s1', 's2', 's3']),
+        makeProfile('night', ['s2', 's4']),
+      ],
+    });
+    const result = pruneDanglingScreenRefs(config, 's2', null);
+    expect(result.profiles![0].screenIds).toEqual(['s1', 's3']);
+    expect(result.profiles![1].screenIds).toEqual(['s4']);
+  });
+
+  it('prunes legacy display.screenIds across ALL displays in legacy mode (selectedDisplayId=null)', () => {
+    const config = makeConfig({
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's2'] },
+        { id: 'bedroom', name: 'Bedroom', screenIds: ['s2', 's3'] },
+      ],
+    });
+    const result = pruneDanglingScreenRefs(config, 's2', null);
+    expect(result.displays![0].screenIds).toEqual(['s1']);
+    expect(result.displays![1].screenIds).toEqual(['s3']);
+  });
+
+  it('prunes only the selected display\'s owned profiles in multi-display mode', () => {
+    const config = makeConfig({
+      displays: [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [makeScreen('k-s1')],
+          profiles: [makeProfile('day', ['k-s1', 'k-s2'])],
+        },
+        {
+          id: 'bedroom',
+          name: 'Bedroom',
+          screens: [makeScreen('b-s1')],
+          profiles: [makeProfile('night', ['k-s2', 'b-s1'])],
+        },
+      ],
+    });
+    // Only kitchen's profiles should be touched, even though bedroom's
+    // profile also references 'k-s2' (it shouldn't, but the pruner is
+    // scoped to the selected display so cross-display contamination is
+    // surfaced by `validateDisplays` instead of silently swept up).
+    const result = pruneDanglingScreenRefs(config, 'k-s2', 'kitchen');
+    expect(result.displays![0].profiles![0].screenIds).toEqual(['k-s1']);
+    expect(result.displays![1].profiles![0].screenIds).toEqual(['k-s2', 'b-s1']);
+  });
+
+  it('leaves displays alone when selectedDisplayId targets a non-existent display', () => {
+    const config = makeConfig({
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+        profiles: [makeProfile('day', ['k-s1'])],
+      }],
+    });
+    const result = pruneDanglingScreenRefs(config, 'k-s1', 'nonexistent');
+    expect(result.displays![0].profiles![0].screenIds).toEqual(['k-s1']);
   });
 });

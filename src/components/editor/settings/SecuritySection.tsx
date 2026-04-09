@@ -39,7 +39,7 @@ export default function SecuritySection() {
   useEffect(() => {
     async function check() {
       try {
-        const res = await fetch('/api/auth/status');
+        const res = await editorFetch('/api/auth/status');
         if (res.ok) {
           const data = await res.json();
           setStatus(data);
@@ -228,7 +228,7 @@ export default function SecuritySection() {
 
   async function handleLogout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await editorFetch('/api/auth/logout', { method: 'POST' });
       window.location.href = '/login';
     } catch (err) {
       console.debug('Logout request failed:', err);

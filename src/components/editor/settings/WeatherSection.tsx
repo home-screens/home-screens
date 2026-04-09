@@ -129,7 +129,7 @@ export default function WeatherSection({ values, onChange }: Props) {
       });
       await saveConfig();
 
-      const res = await fetch(
+      const res = await editorFetch(
         `/api/weather?provider=${provider}&lat=${lat}&lon=${lon}&units=${units}&type=hourly`
       );
       if (res.ok) {

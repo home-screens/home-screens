@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -966,5 +966,56 @@ describe('parseTagParam', () => {
     expect((result as NextResponse).status).toBe(400);
     const json = await (result as NextResponse).json();
     expect(json.error).toBe('Invalid tag format');
+  });
+});
+
+describe('assertOptionalArrays', () => {
+  it('returns null when no fields are present', () => {
+    const result = assertOptionalArrays({}, ['savedMeals', 'plan', 'groceryChecked']);
+    expect(result).toBeNull();
+  });
+
+  it('returns null when all present fields are arrays', () => {
+    const body = { savedMeals: [], plan: [{ id: 1 }], groceryChecked: ['a', 'b'] };
+    const result = assertOptionalArrays(body, ['savedMeals', 'plan', 'groceryChecked']);
+    expect(result).toBeNull();
+  });
+
+  it('returns null when only some fields are present (allow-absent semantics)', () => {
+    // The function exists specifically to allow partial-update PUT bodies.
+    const result = assertOptionalArrays({ plan: [] }, ['savedMeals', 'plan', 'groceryChecked']);
+    expect(result).toBeNull();
+  });
+
+  it('returns 400 when a field is present but not an array', async () => {
+    const result = assertOptionalArrays({ plan: 'oops' }, ['plan']);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json).toEqual({ error: 'plan must be an array' });
+  });
+
+  it('reports the first failing key in declared order', async () => {
+    // savedMeals is checked first, so it should be the one that surfaces
+    // even though groceryChecked is also invalid.
+    const body = { savedMeals: 'nope', groceryChecked: 'also nope' };
+    const result = assertOptionalArrays(body, ['savedMeals', 'plan', 'groceryChecked']);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('savedMeals must be an array');
+  });
+
+  it('treats null as a non-array failure', async () => {
+    // null !== undefined, so it counts as "present but invalid".
+    const result = assertOptionalArrays({ plan: null }, ['plan']);
+    expect(result).toBeInstanceOf(NextResponse);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('plan must be an array');
+  });
+
+  it('treats objects as a non-array failure', async () => {
+    const result = assertOptionalArrays({ plan: { length: 1 } }, ['plan']);
+    expect(result).toBeInstanceOf(NextResponse);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('plan must be an array');
   });
 });

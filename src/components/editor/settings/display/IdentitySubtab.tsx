@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react';
 import type { DisplayNode } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { isMainDisplay } from '@/lib/display-filter';
 
 interface IdentitySubtabProps {
   display: DisplayNode;
@@ -29,7 +30,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
   const { updateDisplay, removeDisplay, saveConfig } = useEditorStore();
   const [name, setName] = useState(display.name);
   const [saving, setSaving] = useState(false);
-  const isMainDisplay = display.id === 'main';
+  const isMain = isMainDisplay(display.id);
 
   const handleNameBlur = async () => {
     const trimmed = name.trim();
@@ -45,7 +46,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
   };
 
   const handleDelete = async () => {
-    if (isMainDisplay) return;
+    if (isMain) return;
     const ok = await useConfirmStore
       .getState()
       .confirm(`Remove display "${display.name}"? This deletes its screens.`);
@@ -103,14 +104,14 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
       <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/[0.04] p-4">
         <div className="text-sm font-medium text-red-300 mb-1">Danger zone</div>
         <div className="text-xs text-neutral-400 mb-3">
-          {isMainDisplay
+          {isMain
             ? 'The main display is the hub kiosk and cannot be removed. Removing it would orphan its screens and reset the hub to an unadopted state.'
             : 'Removing a display stops serving it and deletes its screens. The Pi can re-register as unadopted.'}
         </div>
         <button
           type="button"
           onClick={handleDelete}
-          disabled={isMainDisplay || saving}
+          disabled={isMain || saving}
           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-transparent text-red-400 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-red-500/30 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData, prunePlan } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 
 export const dynamic = 'force-dynamic';
@@ -39,21 +39,15 @@ export const PUT = withAuth(async (req: NextRequest) => {
   const body = await req.json();
   const { savedMeals, plan, groceryChecked, settings, force } = body;
 
-  // Determine which fields are present and validate their types
+  const arrayCheck = assertOptionalArrays(body, ['savedMeals', 'plan', 'groceryChecked']);
+  if (arrayCheck) return arrayCheck;
+
+  // Determine which fields are present so we know what to write
   const hasSavedMeals = savedMeals !== undefined;
   const hasPlan = plan !== undefined;
   const hasGroceryChecked = groceryChecked !== undefined;
   const hasSettings = settings !== undefined;
 
-  if (hasSavedMeals && !Array.isArray(savedMeals)) {
-    return NextResponse.json({ error: 'savedMeals must be an array' }, { status: 400 });
-  }
-  if (hasPlan && !Array.isArray(plan)) {
-    return NextResponse.json({ error: 'plan must be an array' }, { status: 400 });
-  }
-  if (hasGroceryChecked && !Array.isArray(groceryChecked)) {
-    return NextResponse.json({ error: 'groceryChecked must be an array' }, { status: 400 });
-  }
   if (!hasSavedMeals && !hasPlan && !hasGroceryChecked && !hasSettings) {
     return NextResponse.json(
       { error: 'PUT body must include at least one of: savedMeals, plan, groceryChecked, settings' },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 
@@ -59,7 +60,7 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
       const url = displayId
         ? `/api/display/clear-alerts?display=${encodeURIComponent(displayId)}`
         : '/api/display/clear-alerts';
-      const res = await fetch(url, { method: 'POST' });
+      const res = await editorFetch(url, { method: 'POST' });
       setClearMessage(res.ok ? 'Cleared' : 'Failed');
       setTimeout(() => setClearMessage(null), 2000);
     } catch (err) {

@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
+import { wmoCodeToIcon } from './icons';
 
 // ── Open-Meteo API response types ─────────────────────────────────────
 
@@ -108,17 +109,7 @@ export class OpenMeteoProvider implements WeatherProvider {
   }
 
   private mapWMOCode(code: number, isDay: boolean): string {
-    if (code === 0) return isDay ? 'sun' : 'moon';
-    if (code <= 2) return isDay ? 'cloud-sun' : 'cloud-moon'; // 1=mainly clear, 2=partly cloudy
-    if (code === 3) return 'cloud'; // overcast
-    if (code === 45 || code === 48) return 'cloud-fog'; // fog, rime fog
-    if (code >= 51 && code <= 57) return 'cloud-drizzle'; // drizzle variants
-    if (code >= 61 && code <= 67) return 'cloud-rain'; // rain + freezing rain
-    if (code >= 71 && code <= 77) return 'snowflake'; // snow variants
-    if (code >= 80 && code <= 82) return 'cloud-rain'; // rain showers
-    if (code >= 85 && code <= 86) return 'snowflake'; // snow showers
-    if (code >= 95 && code <= 99) return 'cloud-lightning'; // thunderstorms
-    return 'thermometer';
+    return wmoCodeToIcon(code, isDay);
   }
 
   private wmoDescription(code: number): string {

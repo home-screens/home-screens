@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
+import { weatherApiCodeToIcon } from './icons';
 
 // ── WeatherAPI response types ────────────────────────────────────────
 
@@ -97,39 +98,7 @@ export class WeatherAPIProvider implements WeatherProvider {
     }));
   }
 
-  private static readonly CONDITION_ICON: Record<number, string> = {
-    // Clear
-    1000: 'clear',
-    // Partly cloudy
-    1003: 'partly-cloudy',
-    // Cloudy / Overcast
-    1006: 'cloud', 1009: 'cloud',
-    // Mist / Fog / Freezing fog
-    1030: 'cloud-fog', 1117: 'cloud-fog', 1135: 'cloud-fog', 1147: 'cloud-fog',
-    // Drizzle / Light rain
-    1063: 'cloud-drizzle', 1150: 'cloud-drizzle', 1153: 'cloud-drizzle',
-    1180: 'cloud-drizzle', 1183: 'cloud-drizzle',
-    // Rain
-    1186: 'cloud-rain', 1189: 'cloud-rain', 1192: 'cloud-rain', 1195: 'cloud-rain',
-    1240: 'cloud-rain', 1243: 'cloud-rain', 1246: 'cloud-rain',
-    // Snow
-    1066: 'snowflake', 1114: 'snowflake', 1210: 'snowflake', 1213: 'snowflake',
-    1216: 'snowflake', 1219: 'snowflake', 1222: 'snowflake', 1225: 'snowflake',
-    1255: 'snowflake', 1258: 'snowflake',
-    // Sleet / Hail / Freezing rain
-    1069: 'cloud-hail', 1072: 'cloud-hail', 1168: 'cloud-hail', 1171: 'cloud-hail',
-    1198: 'cloud-hail', 1201: 'cloud-hail', 1204: 'cloud-hail', 1207: 'cloud-hail',
-    1237: 'cloud-hail', 1249: 'cloud-hail', 1252: 'cloud-hail',
-    // Thunder
-    1087: 'cloud-lightning', 1273: 'cloud-lightning', 1276: 'cloud-lightning',
-    1279: 'cloud-lightning', 1282: 'cloud-lightning',
-  };
-
   private mapConditionToIcon(code: number, isDay: boolean): string {
-    const icon = WeatherAPIProvider.CONDITION_ICON[code];
-    if (!icon) return 'thermometer';
-    if (icon === 'clear') return isDay ? 'sun' : 'moon';
-    if (icon === 'partly-cloudy') return isDay ? 'cloud-sun' : 'cloud-moon';
-    return icon;
+    return weatherApiCodeToIcon(code, isDay);
   }
 }
