@@ -84,10 +84,12 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
     if [ -z "${HOST_SLUG}" ]; then
       HOST_SLUG="display"
     fi
-    # LC_ALL=C makes tr treat /dev/urandom as bytes regardless of locale;
-    # the 2>/dev/null swallows the harmless "broken pipe" warning that
-    # tr emits when head closes the read side after 4 bytes.
-    RAND_SUFFIX=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom 2>/dev/null | head -c 4)
+    # LC_ALL=C makes tr treat /dev/urandom as bytes regardless of locale.
+    # The 2>/dev/null swallows the harmless "broken pipe" warning, and the
+    # outer ( ... ) || true keeps `set -euo pipefail` from killing the
+    # script when tr exits 141 after head -c 4 closes the pipe — without
+    # this guard the whole install silently exits right after the banner.
+    RAND_SUFFIX=$( (LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom 2>/dev/null | head -c 4) || true)
     if [ "${#RAND_SUFFIX}" -ne 4 ]; then
       # Fallback: very unusual /dev/urandom failure. $RANDOM is enough
       # entropy for a 4-char suffix when we just need a tiebreaker.
