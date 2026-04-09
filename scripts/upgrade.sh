@@ -810,86 +810,12 @@ exec chromium \
       changed="${changed}bash-profile,"
     fi
 
-    # 10. Plymouth boot splash
-    THEME_SRC="${APP_DIR}/scripts/boot-splash"
-    THEME_DIR="/usr/share/plymouth/themes/home-screens"
-    if [ -d "${THEME_SRC}" ]; then
-      theme_changed=false
-      for f in home-screens.plymouth home-screens.script logo.png dot.png; do
-        if [ -f "${THEME_SRC}/${f}" ] && { [ ! -f "${THEME_DIR}/${f}" ] || ! cmp -s "${THEME_SRC}/${f}" "${THEME_DIR}/${f}"; }; then
-          theme_changed=true
-        fi
-      done
-
-      if [ "${theme_changed}" = true ]; then
-        sudo mkdir -p "${THEME_DIR}"
-        sudo cp "${THEME_SRC}/home-screens.plymouth" "${THEME_DIR}/"
-        sudo cp "${THEME_SRC}/home-screens.script" "${THEME_DIR}/"
-        [ -f "${THEME_SRC}/logo.png" ] && sudo cp "${THEME_SRC}/logo.png" "${THEME_DIR}/"
-        [ -f "${THEME_SRC}/dot.png" ] && sudo cp "${THEME_SRC}/dot.png" "${THEME_DIR}/"
-      fi
-
-      current_theme=$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)
-      if [ "${current_theme}" != "home-screens" ] || [ "${theme_changed}" = true ]; then
-        sudo /usr/sbin/plymouth-set-default-theme home-screens
-        sudo update-initramfs -u
-        changed="${changed}plymouth,"
-      fi
-    fi
-
-    # 11. Plymouth minimum display time (5 seconds)
-    PLYMOUTH_QUIT_DROP="/etc/systemd/system/plymouth-quit.service.d/delay.conf"
-    DESIRED_DELAY="[Service]
-ExecStartPre=/bin/sleep 5"
-    if [ ! -f "${PLYMOUTH_QUIT_DROP}" ] || [ "$(cat "${PLYMOUTH_QUIT_DROP}")" != "${DESIRED_DELAY}" ]; then
-      sudo mkdir -p "$(dirname "${PLYMOUTH_QUIT_DROP}")"
-      echo "${DESIRED_DELAY}" | sudo tee "${PLYMOUTH_QUIT_DROP}" > /dev/null
-      sudo systemctl daemon-reload
-      changed="${changed}plymouth-delay,"
-    fi
-
-    # 12. Quiet boot (suppress kernel messages, hide cursor/logo)
-    CMDLINE="/boot/firmware/cmdline.txt"
-    if [ -f "${CMDLINE}" ]; then
-      cmdline_updated=false
-      current_cmdline=$(cat "${CMDLINE}")
-
-      # Remove serial console — forces Plymouth into text-only mode
-      if echo "${current_cmdline}" | grep -qE 'console=(serial|ttyAMA|ttyS)[0-9]'; then
-        current_cmdline=$(echo "${current_cmdline}" | sed -E 's/ ?console=(serial|ttyAMA|ttyS)[0-9][^ ]*//g')
-        cmdline_updated=true
-      fi
-
-      # Remove plymouth.debug if present (leftover from troubleshooting)
-      if echo "${current_cmdline}" | grep -q 'plymouth\.debug'; then
-        current_cmdline=$(echo "${current_cmdline}" | sed -E 's/ ?plymouth\.debug//g')
-        cmdline_updated=true
-      fi
-
-      for param in quiet "loglevel=0" "logo.nologo" "vt.global_cursor_default=0" "consoleblank=0" splash; do
-        if ! echo " ${current_cmdline} " | grep -q " ${param} "; then
-          current_cmdline="${current_cmdline} ${param}"
-          cmdline_updated=true
-        fi
-      done
-      if [ "${cmdline_updated}" = true ]; then
-        echo "${current_cmdline}" | sudo tee "${CMDLINE}" > /dev/null
-        changed="${changed}cmdline,"
-      fi
-    fi
-
-    # 13. Disable firmware rainbow splash
-    CONFIG_TXT="/boot/firmware/config.txt"
-    if [ -f "${CONFIG_TXT}" ]; then
-      if grep -q "^disable_splash=" "${CONFIG_TXT}"; then
-        if ! grep -q "^disable_splash=1" "${CONFIG_TXT}"; then
-          sudo sed -i 's/^disable_splash=.*/disable_splash=1/' "${CONFIG_TXT}"
-          changed="${changed}config-txt,"
-        fi
-      elif ! grep -q "^disable_splash=1" "${CONFIG_TXT}"; then
-        echo "disable_splash=1" | sudo tee -a "${CONFIG_TXT}" > /dev/null
-        changed="${changed}config-txt,"
-      fi
+    # 10. Plymouth boot splash + 5s minimum display + quiet-boot cmdline +
+    #     firmware rainbow splash. Same logic the display-only branch in
+    #     install.sh runs — see setup_boot_splash in scripts/lib/common.sh.
+    setup_boot_splash "${APP_DIR}/scripts/boot-splash"
+    if [ -n "${BOOT_SPLASH_CHANGES}" ]; then
+      changed="${changed}${BOOT_SPLASH_CHANGES},"
     fi
 
     # 14a. brcmfmac driver stability — disable firmware roaming and buggy features.

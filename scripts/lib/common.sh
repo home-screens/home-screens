@@ -160,3 +160,128 @@ ${marker_end}"
   fi
   return 0
 }
+
+# --- Plymouth boot splash ---
+
+setup_boot_splash() {
+  # Idempotent setup of the Home Screens Plymouth boot splash. Safe to call
+  # from both the full install (via upgrade.sh setup-system) and the
+  # display-only branch in install.sh — both use the same theme assets.
+  #
+  #   1. Install plymouth + plymouth-themes if missing
+  #   2. Copy the home-screens theme into /usr/share/plymouth/themes/home-screens,
+  #      set it as the default, and rebuild the initramfs
+  #   3. Add a 5-second minimum display time so the splash is not a single frame
+  #   4. Edit /boot/firmware/cmdline.txt for quiet boot (quiet, splash, etc.)
+  #   5. Disable the Pi firmware rainbow splash via /boot/firmware/config.txt
+  #
+  # Usage: setup_boot_splash <theme_src_dir>
+  #   theme_src_dir: directory containing home-screens.plymouth, home-screens.script,
+  #                  logo.png, dot.png (typically scripts/boot-splash/ in the repo)
+  #
+  # Sets BOOT_SPLASH_CHANGES (comma-separated, no trailing comma) so callers
+  # like upgrade.sh's setup-system can fold it into their own change tracking.
+  local theme_src="${1}"
+  local theme_dir="/usr/share/plymouth/themes/home-screens"
+  BOOT_SPLASH_CHANGES=""
+
+  # 1. Install plymouth packages if missing
+  local missing=""
+  local pkg
+  for pkg in plymouth plymouth-themes; do
+    if ! dpkg -s "${pkg}" &>/dev/null; then
+      missing="${missing} ${pkg}"
+    fi
+  done
+  if [ -n "${missing}" ]; then
+    sudo apt-get install -y -qq ${missing}
+    BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}plymouth-packages,"
+  fi
+
+  # 2. Copy theme files (only when content actually differs) and set default
+  if [ -d "${theme_src}" ]; then
+    local theme_changed=false
+    local f
+    for f in home-screens.plymouth home-screens.script logo.png dot.png; do
+      if [ -f "${theme_src}/${f}" ] && { [ ! -f "${theme_dir}/${f}" ] || ! cmp -s "${theme_src}/${f}" "${theme_dir}/${f}"; }; then
+        theme_changed=true
+      fi
+    done
+
+    if [ "${theme_changed}" = true ]; then
+      sudo mkdir -p "${theme_dir}"
+      sudo cp "${theme_src}/home-screens.plymouth" "${theme_dir}/"
+      sudo cp "${theme_src}/home-screens.script" "${theme_dir}/"
+      [ -f "${theme_src}/logo.png" ] && sudo cp "${theme_src}/logo.png" "${theme_dir}/"
+      [ -f "${theme_src}/dot.png" ] && sudo cp "${theme_src}/dot.png" "${theme_dir}/"
+    fi
+
+    local current_theme
+    current_theme=$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)
+    if [ "${current_theme}" != "home-screens" ] || [ "${theme_changed}" = true ]; then
+      sudo /usr/sbin/plymouth-set-default-theme home-screens
+      sudo update-initramfs -u
+      BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}plymouth,"
+    fi
+  fi
+
+  # 3. Plymouth minimum display time (5 seconds)
+  local plymouth_quit_drop="/etc/systemd/system/plymouth-quit.service.d/delay.conf"
+  local desired_delay="[Service]
+ExecStartPre=/bin/sleep 5"
+  if [ ! -f "${plymouth_quit_drop}" ] || [ "$(cat "${plymouth_quit_drop}")" != "${desired_delay}" ]; then
+    sudo mkdir -p "$(dirname "${plymouth_quit_drop}")"
+    echo "${desired_delay}" | sudo tee "${plymouth_quit_drop}" > /dev/null
+    sudo systemctl daemon-reload
+    BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}plymouth-delay,"
+  fi
+
+  # 4. Quiet boot (suppress kernel messages, hide cursor/logo)
+  local cmdline="/boot/firmware/cmdline.txt"
+  if [ -f "${cmdline}" ]; then
+    local cmdline_updated=false
+    local current_cmdline
+    current_cmdline=$(cat "${cmdline}")
+
+    # Remove serial console — forces Plymouth into framebuffer mode
+    if echo "${current_cmdline}" | grep -qE 'console=(serial|ttyAMA|ttyS)[0-9]'; then
+      current_cmdline=$(echo "${current_cmdline}" | sed -E 's/ ?console=(serial|ttyAMA|ttyS)[0-9][^ ]*//g')
+      cmdline_updated=true
+    fi
+
+    # Remove plymouth.debug if present (leftover from troubleshooting)
+    if echo "${current_cmdline}" | grep -q 'plymouth\.debug'; then
+      current_cmdline=$(echo "${current_cmdline}" | sed -E 's/ ?plymouth\.debug//g')
+      cmdline_updated=true
+    fi
+
+    local param
+    for param in quiet "loglevel=0" "logo.nologo" "vt.global_cursor_default=0" "consoleblank=0" splash; do
+      if ! echo " ${current_cmdline} " | grep -q " ${param} "; then
+        current_cmdline="${current_cmdline} ${param}"
+        cmdline_updated=true
+      fi
+    done
+    if [ "${cmdline_updated}" = true ]; then
+      echo "${current_cmdline}" | sudo tee "${cmdline}" > /dev/null
+      BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}cmdline,"
+    fi
+  fi
+
+  # 5. Disable firmware rainbow splash
+  local config_txt="/boot/firmware/config.txt"
+  if [ -f "${config_txt}" ]; then
+    if grep -q "^disable_splash=" "${config_txt}"; then
+      if ! grep -q "^disable_splash=1" "${config_txt}"; then
+        sudo sed -i 's/^disable_splash=.*/disable_splash=1/' "${config_txt}"
+        BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}config-txt,"
+      fi
+    elif ! grep -q "^disable_splash=1" "${config_txt}"; then
+      echo "disable_splash=1" | sudo tee -a "${config_txt}" > /dev/null
+      BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES}config-txt,"
+    fi
+  fi
+
+  # Trim trailing comma so callers can append cleanly
+  BOOT_SPLASH_CHANGES="${BOOT_SPLASH_CHANGES%,}"
+}

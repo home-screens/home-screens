@@ -128,6 +128,16 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
     done
   fi
 
+  # 2b. Plymouth boot splash (Home Screens branded splash on early boot).
+  #     The full install gets this via upgrade.sh setup-system, but the
+  #     display-only branch never runs that path — call the shared helper
+  #     directly so display-only Pis show the same branded boot splash
+  #     instead of the vanilla rainbow → black-screen → kiosk transition.
+  #     Theme assets ship in scripts/boot-splash/ in the cloned repo.
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  info "Installing boot splash..."
+  setup_boot_splash "${SCRIPT_DIR}/boot-splash"
+
   # 3. Display orientation prompts (same as full install)
   if [ "${NON_INTERACTIVE}" = "true" ]; then
     WLR_TRANSFORM="90"
