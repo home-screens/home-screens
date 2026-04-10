@@ -326,7 +326,7 @@ function ChoreForm({
       timeOfDay,
       assigneeIds: finalAssigneeIds,
       rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
-      ...(isSchedule ? { schedule } : {}),
+      ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
     });
   };
 
@@ -891,7 +891,7 @@ function ChoreColumn({
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}
-                  {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
+                  {((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') && (
                     <span className="text-hs-text-faint">
                       {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : chore.rotation === 'rotate-weekly' ? 'rotate weekly' : 'schedule'})
                     </span>

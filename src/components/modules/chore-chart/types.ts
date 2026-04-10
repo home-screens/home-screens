@@ -294,10 +294,13 @@ export function cascadeDeleteMember(
             updated.schedule = undefined;
             updated.rotation = 'fixed';
           } else if (remaining === 1 && updated.rotation === 'schedule') {
+            updated.daysOfWeek = Object.values(rest)[0];
             updated.schedule = undefined;
             updated.rotation = 'fixed';
           } else {
             updated.schedule = rest;
+            // Recalculate daysOfWeek from remaining schedule entries
+            updated.daysOfWeek = [...new Set(Object.values(rest).flat())].sort((a, b) => a - b);
           }
         }
         return updated;

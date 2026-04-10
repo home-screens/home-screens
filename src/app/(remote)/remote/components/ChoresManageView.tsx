@@ -162,7 +162,49 @@ function ChoreFormOverlay({
   const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
+  const [schedule, setSchedule] = useState<Record<string, number[]>>(
+    initial?.schedule ?? {}
+  );
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const switchToSchedule = () => {
+    setRotation('schedule');
+    if (Object.keys(schedule).length === 0) {
+      const seeded: Record<string, number[]> = {};
+      for (const id of assigneeIds) {
+        seeded[id] = [...daysOfWeek];
+      }
+      setSchedule(seeded);
+    }
+  };
+
+  const switchFromSchedule = (newRotation: ChoreRotation) => {
+    const ids = Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id);
+    const days = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
+    if (ids.length > 0) setAssigneeIds(ids);
+    if (days.length > 0) setDaysOfWeek(days);
+    setRotation(newRotation);
+  };
+
+  const toggleScheduleDay = (memberId: string, day: number) => {
+    setSchedule((prev) => {
+      const current = prev[memberId] ?? [];
+      const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day];
+      if (next.length === 0) {
+        const { [memberId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [memberId]: next };
+    });
+  };
+
+  const addMemberToSchedule = (memberId: string) => {
+    setSchedule((prev) => ({ ...prev, [memberId]: [] }));
+  };
+
+  const scheduleMembers = Object.keys(schedule);
+  const scheduleDays = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
+  const unscheduledMembers = members.filter((m) => !scheduleMembers.includes(m.id));
 
   const toggleDay = (d: number) => {
     setDaysOfWeek((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
@@ -172,25 +214,39 @@ function ChoreFormOverlay({
     setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  const canSave = name.trim().length > 0 && assigneeIds.length > 0;
+  const scheduleHasAssignment = rotation === 'schedule'
+    ? Object.values(schedule).some((days) => days.length > 0)
+    : true;
+  const canSave = name.trim().length > 0
+    && (rotation === 'schedule' ? scheduleHasAssignment : assigneeIds.length > 0);
   const validationHint = !name.trim()
     ? 'Enter a chore name'
-    : assigneeIds.length === 0
-      ? 'Select at least one person'
-      : null;
+    : rotation === 'schedule' && !scheduleHasAssignment
+      ? 'Add at least one person to the schedule'
+      : rotation !== 'schedule' && assigneeIds.length === 0
+        ? 'Select at least one person'
+        : null;
   const isEdit = !!initial;
 
   const handleSubmit = () => {
     if (!canSave) return;
+    const isSchedule = rotation === 'schedule';
+    const finalAssigneeIds = isSchedule
+      ? Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id)
+      : assigneeIds;
+    const finalDaysOfWeek = isSchedule
+      ? [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b)
+      : daysOfWeek;
     onSubmit({
       name: name.trim(),
       emoji,
       points: parseInt(points) || 1,
       frequency,
-      daysOfWeek,
+      daysOfWeek: finalDaysOfWeek,
       timeOfDay,
-      assigneeIds,
-      rotation: assigneeIds.length <= 1 ? 'fixed' : rotation,
+      assigneeIds: finalAssigneeIds,
+      rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
+      ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
     });
   };
 
@@ -262,118 +318,235 @@ function ChoreFormOverlay({
           </select>
         </div>
 
-        {/* Days of week */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Days</div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[0, 1, 2, 3, 4, 5, 6].map((d) => {
-              const isOn = daysOfWeek.includes(d);
-              return (
-                <button
-                  key={d}
-                  type="button"
-                  className="press-scale-xs"
-                  onClick={() => toggleDay(d)}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    flexShrink: 0,
-                    border: `1px solid ${isOn ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
-                    background: isOn ? 'var(--hs-bg-active)' : 'var(--hs-bg-panel)',
-                    color: isOn ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {DAY_NAMES_SHORT[d][0]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {rotation !== 'schedule' && (
+          <>
+            {/* Days of week */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={LABEL_STYLE}>Days</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                  const isOn = daysOfWeek.includes(d);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      className="press-scale-xs"
+                      onClick={() => toggleDay(d)}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        flexShrink: 0,
+                        border: `1px solid ${isOn ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
+                        background: isOn ? 'var(--hs-bg-active)' : 'var(--hs-bg-panel)',
+                        color: isOn ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {DAY_NAMES_SHORT[d][0]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* Assignees */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Assign to</div>
-          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
-            {members.map((m, i) => {
-              const isAssigned = assigneeIds.includes(m.id);
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => toggleAssignee(m.id)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 16px',
-                    minHeight: 48,
-                    background: 'var(--hs-bg-panel)',
-                    border: 'none',
-                    borderBottom: i < members.length - 1 ? '1px solid var(--hs-border)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    color: 'inherit',
-                    textAlign: 'left' as const,
-                  }}
-                >
+            {/* Assignees */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={LABEL_STYLE}>Assign to</div>
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
+                {members.map((m, i) => {
+                  const isAssigned = assigneeIds.includes(m.id);
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => toggleAssignee(m.id)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '12px 16px',
+                        minHeight: 48,
+                        background: 'var(--hs-bg-panel)',
+                        border: 'none',
+                        borderBottom: i < members.length - 1 ? '1px solid var(--hs-border)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        color: 'inherit',
+                        textAlign: 'left' as const,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 6,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          border: isAssigned ? 'none' : '2px solid var(--hs-border-strong)',
+                          background: isAssigned ? m.color : 'transparent',
+                        }}
+                      >
+                        {isAssigned && <Check size={14} color="white" strokeWidth={3} />}
+                      </div>
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          background: `color-mix(in srgb, ${m.color} 15%, transparent)`,
+                        }}
+                      >
+                        {m.emoji ? (
+                          <ChoreIcon value={m.emoji} size={18} color={m.color} />
+                        ) : (
+                          <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1 }}>
+                        {m.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {rotation === 'schedule' && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={LABEL_STYLE}>Weekly Schedule</div>
+            {/* Day headers */}
+            <div style={{ display: 'flex', gap: 4, marginBottom: 4, paddingLeft: 70 }}>
+              {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+                <div key={d} style={{ width: 32, textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--hs-text-faint)', letterSpacing: '0.04em' }}>
+                  {DAY_NAMES_SHORT[d][0]}
+                </div>
+              ))}
+            </div>
+            {/* Member rows */}
+            <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
+              {scheduleMembers.map((memberId, i) => {
+                const member = members.find((m) => m.id === memberId);
+                if (!member) return null;
+                const memberDays = schedule[memberId] ?? [];
+                return (
                   <div
+                    key={memberId}
                     style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 6,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      border: isAssigned ? 'none' : '2px solid var(--hs-border-strong)',
-                      background: isAssigned ? m.color : 'transparent',
+                      gap: 8,
+                      padding: '10px 14px',
+                      background: 'var(--hs-bg-panel)',
+                      borderBottom: i < scheduleMembers.length - 1 ? '1px solid var(--hs-border)' : 'none',
+                      minHeight: 48,
                     }}
                   >
-                    {isAssigned && <Check size={14} color="white" strokeWidth={3} />}
+                    <div
+                      style={{
+                        width: 28, height: 28, borderRadius: 8,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, background: `color-mix(in srgb, ${member.color} 15%, transparent)`,
+                      }}
+                    >
+                      {member.emoji ? (
+                        <ChoreIcon value={member.emoji} size={16} color={member.color} />
+                      ) : (
+                        <span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{member.name[0]}</span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--hs-text-body)', minWidth: 20, flexShrink: 0 }}>
+                      {member.name}
+                    </span>
+                    <div style={{ display: 'flex', gap: 4, flex: 1, justifyContent: 'flex-end' }}>
+                      {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                        const isOn = memberDays.includes(d);
+                        return (
+                          <button
+                            key={d}
+                            type="button"
+                            className="press-scale-xs"
+                            onClick={() => toggleScheduleDay(memberId, d)}
+                            style={{
+                              width: 32, height: 32, borderRadius: '50%',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 10, fontWeight: 700, flexShrink: 0,
+                              border: isOn ? 'none' : '1px solid var(--hs-border)',
+                              background: isOn ? member.color : 'var(--hs-bg-panel)',
+                              color: isOn ? '#fff' : 'var(--hs-text-faint)',
+                              cursor: 'pointer', transition: 'all 0.15s',
+                            }}
+                          >
+                            {DAY_NAMES_SHORT[d][0]}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div
+                );
+              })}
+            </div>
+            {/* Add member buttons */}
+            {unscheduledMembers.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {unscheduledMembers.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className="press-scale-xs"
+                    onClick={() => addMemberToSchedule(m.id)}
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      background: `color-mix(in srgb, ${m.color} 15%, transparent)`,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '8px 12px', borderRadius: 10,
+                      background: 'var(--hs-bg-panel)',
+                      border: '1px dashed var(--hs-border)',
+                      color: 'var(--hs-text-faint)', fontSize: 13, cursor: 'pointer',
                     }}
                   >
-                    {m.emoji ? (
-                      <ChoreIcon value={m.emoji} size={18} color={m.color} />
-                    ) : (
-                      <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>
-                    )}
-                  </div>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1 }}>
-                    {m.name}
-                  </span>
-                </button>
-              );
-            })}
+                    <span style={{ fontSize: 14 }}>+</span> {m.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Coverage summary */}
+            <div style={{ marginTop: 10, fontSize: 11, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>Coverage: {scheduleDays.length} of 7 days</span>
+              {scheduleDays.length < 7 && (
+                <span style={{ color: 'var(--hs-warning)', fontSize: 10 }}>
+                  · {[0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => DAY_NAMES_SHORT[d]).join(', ')} uncovered
+                </span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Rotation */}
-        {assigneeIds.length >= 2 && (
+        {(assigneeIds.length >= 2 || rotation === 'schedule') && (
           <div style={{ marginBottom: 24 }}>
             <div style={LABEL_STYLE}>Rotation</div>
             <select
               value={rotation}
-              onChange={(e) => setRotation(e.target.value as ChoreRotation)}
+              onChange={(e) => {
+                const val = e.target.value as ChoreRotation;
+                if (val === 'schedule') switchToSchedule();
+                else if (rotation === 'schedule') switchFromSchedule(val);
+                else setRotation(val);
+              }}
               style={SELECT_STYLE}
             >
               {CHORE_ROTATIONS.map((r) => (
@@ -734,8 +907,8 @@ export default function ChoresManageView({
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}
-                  {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
-                    <span> ({chore.rotation === 'rotate-daily' ? 'rotate daily' : 'rotate weekly'})</span>
+                  {((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') && (
+                    <span> ({chore.rotation === 'rotate-daily' ? 'rotate daily' : chore.rotation === 'rotate-weekly' ? 'rotate weekly' : 'schedule'})</span>
                   )}
                 </div>
               </div>

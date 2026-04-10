@@ -499,6 +499,23 @@ describe('cascadeDeleteMember', () => {
     expect(result.chores[0].rotation).toBe('fixed');
     expect(result.chores[0].schedule).toBeUndefined();
     expect(result.chores[0].assigneeIds).toEqual(['b']);
+    // daysOfWeek must be recalculated to only Bob's days, not the old union
+    expect(result.chores[0].daysOfWeek).toEqual([3]);
+  });
+
+  it('recalculates daysOfWeek when removing a member from a multi-member schedule', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
+    const chores = [makeChore({
+      id: 'c1',
+      assigneeIds: ['a', 'b', 'c'],
+      rotation: 'schedule',
+      schedule: { a: [1, 2], b: [3, 4], c: [5] },
+      daysOfWeek: [1, 2, 3, 4, 5],
+    })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    // Schedule should only have Bob and Charlie's days now
+    expect(result.chores[0].schedule).toEqual({ b: [3, 4], c: [5] });
+    expect(result.chores[0].daysOfWeek).toEqual([3, 4, 5]);
   });
 });
 
