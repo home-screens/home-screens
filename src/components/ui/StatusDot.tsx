@@ -5,10 +5,10 @@ export default function StatusDot({ configured }: { configured: boolean }) {
     <span className="flex items-center gap-1.5 text-xs">
       <span
         className={`w-1.5 h-1.5 rounded-full inline-block ${
-          configured ? 'bg-green-400' : 'bg-neutral-600'
+          configured ? 'bg-hs-success' : 'bg-hs-text-faint'
         }`}
       />
-      <span className={configured ? 'text-green-400' : 'text-neutral-500'}>
+      <span className={configured ? 'text-hs-success' : 'text-hs-text-faint'}>
         {configured ? 'Configured' : 'Not configured'}
       </span>
     </span>

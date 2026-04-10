@@ -20,7 +20,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     <div className="space-y-2">
       {/* ── Content ── */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Content</span>
+        <span className="text-xs text-hs-text-muted">Content</span>
         <textarea
           value={(c.content as string) || ''}
           onChange={(e) => set({ content: e.target.value })}
@@ -32,7 +32,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       {/* ── Layout ── */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Orientation</span>
+        <span className="text-xs text-hs-text-muted">Orientation</span>
         <select
           value={(c.orientation as string) || 'horizontal'}
           onChange={(e) => set({ orientation: e.target.value })}
@@ -45,7 +45,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       </label>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Alignment</span>
+        <span className="text-xs text-hs-text-muted">Alignment</span>
         <select
           value={(c.alignment as string) || 'center'}
           onChange={(e) => set({ alignment: e.target.value })}
@@ -58,7 +58,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       </label>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Vertical Align</span>
+        <span className="text-xs text-hs-text-muted">Vertical Align</span>
         <select
           value={(c.verticalAlign as string) || 'center'}
           onChange={(e) => set({ verticalAlign: e.target.value })}
@@ -74,7 +74,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       <SectionHeading>Typography</SectionHeading>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Text Transform</span>
+        <span className="text-xs text-hs-text-muted">Text Transform</span>
         <select
           value={(c.textTransform as string) || 'none'}
           onChange={(e) => set({ textTransform: e.target.value })}
@@ -98,12 +98,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-neutral-400">Emoji</span>
+          <span className="text-xs text-hs-text-muted">Emoji</span>
           {c.icon && (
             <button
               type="button"
               onClick={() => set({ icon: '' })}
-              className="text-[10px] text-neutral-500 hover:text-neutral-300"
+              className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
             >
               Clear
             </button>
@@ -116,14 +116,14 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
               type="button"
               onClick={() => set({ icon: c.icon === e ? '' : e })}
               className={`w-7 h-7 rounded text-sm flex items-center justify-center transition-colors ${
-                c.icon === e ? 'bg-blue-600/40 ring-1 ring-blue-500' : 'bg-neutral-700/50 hover:bg-neutral-600/50'
+                c.icon === e ? 'bg-hs-accent/40 ring-1 ring-hs-accent' : 'bg-hs-hover hover:bg-hs-card/50'
               }`}
             >
               {e}
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-neutral-500">Shown before the text</span>
+        <span className="text-[10px] text-hs-text-faint">Shown before the text</span>
       </div>
 
       {/* ── Features ── */}
@@ -131,7 +131,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <Toggle label="Markdown" checked={!!c.markdown} onChange={(v) => set({ markdown: v })} />
       {!!c.markdown && (
-        <p className="text-[10px] text-neutral-500 pl-1 leading-relaxed">
+        <p className="text-[10px] text-hs-text-faint pl-1 leading-relaxed">
           **bold** &nbsp; *italic* &nbsp; ~~strike~~ &nbsp; `code` &nbsp; newlines → line breaks
         </p>
       )}
@@ -144,7 +144,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ templateVariables: v })}
       />
       {!!c.templateVariables && (
-        <p className="text-[10px] text-neutral-500 pl-1">
+        <p className="text-[10px] text-hs-text-faint pl-1">
           {'{{time}} {{time12}} {{date}} {{day}} {{month}} {{year}} {{greeting}}'}
         </p>
       )}
@@ -153,7 +153,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       <SectionHeading>Effect</SectionHeading>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Effect</span>
+        <span className="text-xs text-hs-text-muted">Effect</span>
         <select
           value={effect}
           onChange={(e) => set({ effect: e.target.value })}
@@ -202,8 +202,8 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       <Toggle label="Slideshow" checked={rotationOn} onChange={(v) => set({ rotationEnabled: v })} />
       {rotationOn && (
         <>
-          <p className="text-[10px] text-neutral-500 pl-1 leading-relaxed">
-            Separate slides with <span className="font-mono text-neutral-400">---</span> in the content above
+          <p className="text-[10px] text-hs-text-faint pl-1 leading-relaxed">
+            Separate slides with <span className="font-mono text-hs-text-muted">---</span> in the content above
           </p>
           <Slider
             label="Interval"
@@ -215,7 +215,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ rotationIntervalMs: v })}
           />
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Separator</span>
+            <span className="text-xs text-hs-text-muted">Separator</span>
             <input
               type="text"
               value={(c.rotationSeparator as string) || '---'}
@@ -234,7 +234,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {marqueeOn && (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Direction</span>
+            <span className="text-xs text-hs-text-muted">Direction</span>
             <select
               value={(c.marqueeDirection as string) || 'left'}
               onChange={(e) => set({ marqueeDirection: e.target.value })}

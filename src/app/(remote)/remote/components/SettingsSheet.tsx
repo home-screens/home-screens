@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -31,11 +32,11 @@ function UsageBar({ used, total, label, color }: { used: number; total: number; 
   const pct = total > 0 ? Math.round((used / total) * 100) : 0;
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <span className="text-[13px] text-neutral-400 w-14 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+      <span className="text-[13px] text-hs-text-muted w-14 shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 bg-hs-border rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-xs text-neutral-500 w-10 text-right tabular-nums shrink-0">{pct}%</span>
+      <span className="text-xs text-hs-text-faint w-10 text-right tabular-nums shrink-0">{pct}%</span>
     </div>
   );
 }
@@ -97,15 +98,15 @@ function ConfirmableAction({
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-[15px] font-medium ${confirming ? 'text-red-400 animate-pulse' : executed ? 'text-neutral-500' : 'text-white'}`}>
+        <div className={`text-[15px] font-medium ${confirming ? 'text-hs-danger animate-pulse' : executed ? 'text-hs-text-faint' : 'text-hs-text-primary'}`}>
           {executed ? 'Sent' : confirming ? confirmLabel : label}
         </div>
         {!confirming && !executed && (
-          <div className="text-xs text-neutral-500 mt-0.5">{description}</div>
+          <div className="text-xs text-hs-text-faint mt-0.5">{description}</div>
         )}
       </div>
       {!confirming && !executed && (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-neutral-600 shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       )}
@@ -118,6 +119,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backupDone, setBackupDone] = useState(false);
+  const [themeChoice, setTheme] = useState<ThemeChoice>('dark');
 
   // Restore state machine: idle → confirming → busy → done/invalid-file/restore-failed
   const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'invalid-file' | 'restore-failed'>('idle');
@@ -148,6 +150,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
       setRestoreState('idle');
       restoreDataRef.current = null;
       clearTimeout(restoreTimerRef.current);
+      setTheme(getThemeChoice());
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- fetchStats and loading are intentionally excluded; we want to trigger on open, not re-trigger when stats load
 
@@ -226,22 +229,22 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[101] bg-[#141414] rounded-t-[20px] max-h-[70dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
+        className={`fixed bottom-0 left-0 right-0 z-[101] bg-hs-panel rounded-t-[20px] max-h-[70dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
       >
         {/* Handle */}
         <div className="flex justify-center pt-2.5">
-          <div className="w-9 h-[5px] rounded-full bg-white/[0.15]" />
+          <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
         </div>
 
         {/* Sheet Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="text-lg font-bold text-white">Settings</h2>
+          <h2 className="text-lg font-bold text-hs-text-primary">Settings</h2>
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-full bg-white/[0.08] flex items-center justify-center text-neutral-400"
+            className="w-11 h-11 rounded-full bg-hs-card flex items-center justify-center text-hs-text-muted"
             aria-label="Close settings"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -252,21 +255,21 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* System Info */}
         <div className="px-5 pb-5">
-          <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">System</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">System</h3>
 
           {loading ? (
-            <p className="text-sm text-neutral-500 text-center py-4">Loading&hellip;</p>
+            <p className="text-sm text-hs-text-faint text-center py-4">Loading&hellip;</p>
           ) : error ? (
-            <p className="text-sm text-red-400 text-center py-4">{error}</p>
+            <p className="text-sm text-hs-danger text-center py-4">{error}</p>
           ) : stats ? (
             <div className="space-y-0">
               <div className="flex justify-between text-[13px] py-1.5">
-                <span className="text-neutral-400">Host</span>
-                <span className="text-white font-medium">{stats.os.hostname}</span>
+                <span className="text-hs-text-muted">Host</span>
+                <span className="text-hs-text-primary font-medium">{stats.os.hostname}</span>
               </div>
               <div className="flex justify-between text-[13px] py-1.5 mb-2">
-                <span className="text-neutral-400">Uptime</span>
-                <span className="text-white font-medium">{formatUptime(stats.os.uptime)}</span>
+                <span className="text-hs-text-muted">Uptime</span>
+                <span className="text-hs-text-primary font-medium">{formatUptime(stats.os.uptime)}</span>
               </div>
               <UsageBar used={stats.memory.used} total={stats.memory.total} label="Memory" color="#3b82f6" />
               <UsageBar used={stats.disk.used} total={stats.disk.total} label="Disk" color="#22c55e" />
@@ -274,29 +277,49 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           ) : null}
         </div>
 
+        {/* Theme */}
+        <div className="px-5 pb-5">
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">Theme</h3>
+          <div className="flex gap-2">
+            {(['light', 'dark', 'system'] as const).map((opt) => (
+              <button
+                key={opt}
+                onClick={() => { setTheme(opt); setThemeChoice(opt); }}
+                className={`flex-1 py-2.5 text-[13px] font-medium rounded-lg transition-colors min-h-[44px] ${
+                  themeChoice === opt
+                    ? 'bg-hs-accent text-white'
+                    : 'bg-hs-card text-hs-text-muted'
+                }`}
+              >
+                {opt === 'system' ? 'System' : opt === 'light' ? 'Light' : 'Dark'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Data */}
         <div className="px-5 pb-5">
-          <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Data</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">Data</h3>
           <button
             onClick={handleBackup}
             disabled={backupBusy || backupDone}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-amber-500/[0.12] text-amber-400">
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <div className={`text-[15px] font-medium ${backupDone ? 'text-green-400' : 'text-white'}`}>
+              <div className={`text-[15px] font-medium ${backupDone ? 'text-hs-success' : 'text-hs-text-primary'}`}>
                 {backupDone ? 'Backup Saved' : backupBusy ? 'Downloading\u2026' : 'Backup All Data'}
               </div>
               {!backupBusy && !backupDone && (
-                <div className="text-xs text-neutral-500 mt-0.5">Download config, chores, meals &amp; rewards</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">Download config, chores, meals &amp; rewards</div>
               )}
             </div>
             {!backupBusy && !backupDone && (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-neutral-600 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
             )}
@@ -308,7 +331,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
             <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${
-              restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'bg-red-500/[0.12] text-red-400' : 'bg-blue-500/[0.12] text-blue-400'
+              restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'bg-hs-danger/[0.12] text-hs-danger' : 'bg-hs-accent-soft text-hs-accent-hover'
             }`}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -316,10 +339,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
             </div>
             <div className="flex-1 min-w-0">
               <div className={`text-[15px] font-medium ${
-                restoreState === 'confirming' ? 'text-red-400 animate-pulse'
-                : restoreState === 'done' ? 'text-green-400'
-                : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-red-400'
-                : 'text-white'
+                restoreState === 'confirming' ? 'text-hs-danger animate-pulse'
+                : restoreState === 'done' ? 'text-hs-success'
+                : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-hs-danger'
+                : 'text-hs-text-primary'
               }`}>
                 {restoreState === 'confirming' ? 'Tap again to restore'
                 : restoreState === 'busy' ? 'Restoring\u2026'
@@ -329,14 +352,14 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
                 : 'Restore Backup'}
               </div>
               {restoreState === 'idle' && (
-                <div className="text-xs text-neutral-500 mt-0.5">Upload a backup file from this device</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">Upload a backup file from this device</div>
               )}
               {restoreState === 'confirming' && (
-                <div className="text-xs text-neutral-500 mt-0.5">This will replace all existing data</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">This will replace all existing data</div>
               )}
             </div>
             {restoreState === 'idle' && (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-neutral-600 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
             )}
@@ -352,17 +375,17 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* Power */}
         <div className="px-5 pb-6">
-          <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">Power</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-1">Power</h3>
 
-          <div className="divide-y divide-white/[0.06]">
+          <div className="divide-y divide-hs-border">
             <ConfirmableAction
               label="Restart Service"
               description="Restart the Home Screens app"
               confirmLabel="Tap again to restart"
               onConfirm={() => sendPower('restart-service')}
               sheetOpen={open}
-              iconBg="bg-blue-500/[0.12]"
-              iconColor="text-blue-400"
+              iconBg="bg-hs-accent-soft"
+              iconColor="text-hs-accent-hover"
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
@@ -376,8 +399,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
               confirmLabel="Tap again to reboot"
               onConfirm={() => sendPower('reboot')}
               sheetOpen={open}
-              iconBg="bg-red-500/[0.12]"
-              iconColor="text-red-400"
+              iconBg="bg-hs-danger/[0.12]"
+              iconColor="text-hs-danger"
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />

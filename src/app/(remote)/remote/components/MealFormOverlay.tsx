@@ -59,11 +59,11 @@ export default function MealFormOverlay({
     <div
       style={{
         padding: '12px 16px',
-        borderTop: '1px solid #1a1a1a',
+        borderTop: '1px solid var(--hs-border)',
       }}
     >
       {saveError && (
-        <div style={{ fontSize: 13, color: '#ef4444', marginBottom: 8, textAlign: 'center' }}>
+        <div style={{ fontSize: 13, color: 'var(--hs-danger)', marginBottom: 8, textAlign: 'center' }}>
           {saveError}
         </div>
       )}
@@ -79,8 +79,8 @@ export default function MealFormOverlay({
           borderRadius: 12,
           border: 'none',
           cursor: formName.trim() && !saving ? 'pointer' : 'default',
-          background: formName.trim() && !saving ? '#f59e0b' : '#525252',
-          color: formName.trim() && !saving ? '#000' : '#888',
+          background: formName.trim() && !saving ? '#f59e0b' : 'var(--hs-text-faint)',
+          color: formName.trim() && !saving ? '#000' : 'var(--hs-text-muted)',
           opacity: formName.trim() && !saving ? 1 : 0.5,
           transition: 'all 0.15s',
         }}
@@ -99,8 +99,8 @@ export default function MealFormOverlay({
             fontWeight: 600,
             borderRadius: 10,
             border: 'none',
-            background: 'rgba(239,68,68,0.12)',
-            color: '#ef4444',
+            background: 'color-mix(in srgb, var(--hs-danger) 12%, transparent)',
+            color: 'var(--hs-danger)',
             cursor: 'pointer',
             transition: 'all 0.15s',
           }}
@@ -146,7 +146,7 @@ export default function MealFormOverlay({
                 aspectRatio: '1',
                 borderRadius: 8,
                 border: formEmoji === emoji ? '2px solid #f59e0b' : '2px solid transparent',
-                background: formEmoji === emoji ? 'rgba(245,158,11,0.12)' : '#1a1a1a',
+                background: formEmoji === emoji ? 'rgba(245,158,11,0.12)' : 'var(--hs-bg-panel)',
                 cursor: 'pointer',
                 fontSize: 22,
                 display: 'flex',
@@ -213,9 +213,9 @@ export default function MealFormOverlay({
                     fontSize: 12,
                     fontWeight: 600,
                     borderRadius: 12,
-                    border: isSelected ? `1px solid ${hex}` : '1px solid #2a2a2a',
-                    background: isSelected ? `${hex}14` : '#1a1a1a',
-                    color: isSelected ? hex : '#525252',
+                    border: isSelected ? `1px solid ${hex}` : '1px solid var(--hs-border)',
+                    background: isSelected ? `${hex}14` : 'var(--hs-bg-panel)',
+                    color: isSelected ? hex : 'var(--hs-text-faint)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -248,9 +248,9 @@ export default function MealFormOverlay({
                   fontSize: 12,
                   fontWeight: 600,
                   borderRadius: 999,
-                  border: isActive ? '1px solid #f59e0b' : '1px solid #2a2a2a',
-                  background: isActive ? 'rgba(245,158,11,0.15)' : '#1a1a1a',
-                  color: isActive ? '#f59e0b' : '#525252',
+                  border: isActive ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
+                  background: isActive ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
+                  color: isActive ? '#f59e0b' : 'var(--hs-text-faint)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -317,9 +317,9 @@ export default function MealFormOverlay({
                 width: 44,
                 height: 44,
                 borderRadius: 8,
-                border: '1px solid #2a2a2a',
+                border: '1px solid var(--hs-border)',
                 background: 'transparent',
-                color: '#ef4444',
+                color: 'var(--hs-danger)',
                 fontSize: 18,
                 cursor: 'pointer',
                 flexShrink: 0,
@@ -341,9 +341,9 @@ export default function MealFormOverlay({
             fontSize: 13,
             fontWeight: 600,
             borderRadius: 12,
-            border: '2px dashed #2a2a2a',
+            border: '2px dashed var(--hs-border)',
             background: 'transparent',
-            color: '#525252',
+            color: 'var(--hs-text-faint)',
             cursor: 'pointer',
             transition: 'all 0.15s',
           }}
@@ -393,8 +393,8 @@ export default function MealFormOverlay({
                 height: 44,
                 borderRadius: 8,
                 border: 'none',
-                background: star <= formRating ? 'rgba(245,158,11,0.2)' : '#1a1a1a',
-                color: star <= formRating ? '#f59e0b' : '#333',
+                background: star <= formRating ? 'rgba(245,158,11,0.2)' : 'var(--hs-bg-panel)',
+                color: star <= formRating ? '#f59e0b' : 'var(--hs-border-strong)',
                 fontSize: 22,
                 cursor: 'pointer',
                 display: 'flex',
@@ -419,17 +419,17 @@ export default function MealFormOverlay({
           padding: '12px 14px',
           minHeight: 48,
           borderRadius: 12,
-          border: formFavorite ? '1px solid rgba(239,68,68,0.3)' : '1px solid #2a2a2a',
-          background: formFavorite ? 'rgba(239,68,68,0.08)' : '#1a1a1a',
+          border: formFavorite ? '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)' : '1px solid var(--hs-border)',
+          background: formFavorite ? 'color-mix(in srgb, var(--hs-danger) 8%, transparent)' : 'var(--hs-bg-panel)',
           cursor: 'pointer',
           color: 'inherit',
           transition: 'all 0.15s',
         }}
       >
-        <span style={{ fontSize: 22, color: formFavorite ? '#ef4444' : '#333' }}>
+        <span style={{ fontSize: 22, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-border-strong)' }}>
           {formFavorite ? '\u2665' : '\u2661'}
         </span>
-        <span style={{ fontSize: 14, fontWeight: 600, color: formFavorite ? '#ef4444' : '#525252' }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}>
           {formFavorite ? 'Favorited' : 'Add to Favorites'}
         </span>
       </button>

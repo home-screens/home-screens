@@ -32,12 +32,12 @@ export default function DisplaySwitcher() {
       <label className="sr-only" htmlFor="editor-display-switcher">
         Which display is this canvas editing?
       </label>
-      <div className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800/70 px-2.5 py-1.5 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors">
-        <Monitor className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+      <div className="flex items-center gap-2 rounded-md border border-hs-border-strong bg-hs-card/70 px-2.5 py-1.5 text-xs text-hs-text-body hover:bg-hs-hover transition-colors">
+        <Monitor className="w-3.5 h-3.5 text-hs-text-faint shrink-0" />
         <div className="flex flex-col leading-tight">
-          <span className="font-medium text-neutral-200">{active.name}</span>
+          <span className="font-medium text-hs-text-body">{active.name}</span>
           {dimensions && (
-            <span className="text-[10px] text-neutral-500 tabular-nums">
+            <span className="text-[10px] text-hs-text-faint tabular-nums">
               {dimensions}
               {active.displayTransform && active.displayTransform !== 'normal'
                 ? ` · ${active.displayTransform}°`
@@ -45,7 +45,7 @@ export default function DisplaySwitcher() {
             </span>
           )}
         </div>
-        <ChevronDown className="w-3 h-3 text-neutral-500 shrink-0" />
+        <ChevronDown className="w-3 h-3 text-hs-text-faint shrink-0" />
         <select
           id="editor-display-switcher"
           value={active.id}

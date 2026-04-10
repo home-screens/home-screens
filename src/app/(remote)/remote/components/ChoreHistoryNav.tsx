@@ -139,7 +139,7 @@ export default function ChoreHistoryNav({
           gap: 8,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#fafafa' }}>{monthLabel}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{monthLabel}</div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
             type="button"
@@ -154,8 +154,8 @@ export default function ChoreHistoryNav({
               borderRadius: 12,
               border: 'none',
               cursor: prevDisabled ? 'default' : 'pointer',
-              background: prevDisabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
-              color: prevDisabled ? '#404040' : '#e5e5e5',
+              background: prevDisabled ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
+              color: prevDisabled ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -177,8 +177,8 @@ export default function ChoreHistoryNav({
               borderRadius: 12,
               border: 'none',
               cursor: nextDisabled ? 'default' : 'pointer',
-              background: nextDisabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
-              color: nextDisabled ? '#404040' : '#e5e5e5',
+              background: nextDisabled ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
+              color: nextDisabled ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -201,7 +201,7 @@ export default function ChoreHistoryNav({
                 border: 'none',
                 cursor: 'pointer',
                 background: accentColor,
-                color: '#0a0a0a',
+                color: 'var(--hs-bg-body)',
                 fontSize: 13,
                 fontWeight: 700,
                 display: 'inline-flex',
@@ -239,9 +239,9 @@ export default function ChoreHistoryNav({
             ? accentColor
             : isPartialGood
               ? '#fbbf24'
-              : '#737373';
+              : 'var(--hs-text-faint)';
 
-          const numColor = isSelected ? accentColor : '#fafafa';
+          const numColor = isSelected ? accentColor : 'var(--hs-text-primary)';
           const longLabel = dayLabels.get(day.date) ?? '';
           const ariaLabel = hasData
             ? `View ${longLabel}, ${day.earned} of ${day.total} kids earned all their chores`
@@ -265,7 +265,7 @@ export default function ChoreHistoryNav({
                 minHeight: 72,
                 padding: '8px 0 6px',
                 borderRadius: 12,
-                background: isSelected ? 'rgba(245, 158, 11, 0.18)' : 'rgba(255,255,255,0.04)',
+                background: isSelected ? 'color-mix(in srgb, var(--hs-warning) 18%, transparent)' : 'var(--hs-bg-card)',
                 border: 'none',
                 // Use boxShadow (not outline) for the selection ring so the browser's
                 // focus-visible outline remains available for keyboard users.
@@ -284,7 +284,7 @@ export default function ChoreHistoryNav({
               <span
                 style={{
                   fontSize: 10,
-                  color: '#737373',
+                  color: 'var(--hs-text-faint)',
                   fontWeight: 600,
                   textTransform: 'uppercase' as const,
                   lineHeight: 1,

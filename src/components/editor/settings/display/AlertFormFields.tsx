@@ -41,7 +41,7 @@ interface AlertFormFieldsProps {
  * duration, max visible) plus the runtime "Clear all alerts" action and the
  * API usage docs.
  *
- * Phase 5 inlined the legacy `AlertSection` into its two consumers
+ * Extracted from the legacy `AlertSection` into its two consumers
  * (`DefaultAlertsSection` for the defaults page, `AlertsSubtab` for the
  * per-display drill-down). Both consumers want the same field rows but
  * render different chrome around them — Defaults shows just the form,
@@ -78,11 +78,11 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
           checked={alertsEnabled}
           disabled={disabled}
           onChange={(e) => onChange({ alertsEnabled: e.target.checked })}
-          className="rounded border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+          className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
         />
-        <span className="text-sm text-neutral-200">Enable alert overlay</span>
+        <span className="text-sm text-hs-text-body">Enable alert overlay</span>
       </label>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-hs-text-faint">
         Show notifications on the display. Alerts can be triggered via the API and modules that
         implemented alert functionality.
       </p>
@@ -90,12 +90,12 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
       {alertsEnabled && (
         <>
           <label className="block">
-            <span className="text-xs text-neutral-400">Position</span>
+            <span className="text-xs text-hs-text-muted">Position</span>
             <select
               value={alertsPosition}
               disabled={disabled}
               onChange={(e) => onChange({ alertsPosition: e.target.value })}
-              className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 disabled:opacity-70"
+              className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-70"
             >
               <option value="top">Top</option>
               <option value="bottom">Bottom</option>
@@ -122,7 +122,7 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
             disabled={disabled}
           />
           {alertsDefaultDuration === 0 && (
-            <p className="text-xs text-neutral-500 -mt-1">
+            <p className="text-xs text-hs-text-faint -mt-1">
               Info: 10s, Warning: 30s, Urgent: persistent until dismissed.
             </p>
           )}
@@ -138,29 +138,29 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
             disabled={disabled}
           />
 
-          <div className="mt-4 pt-4 border-t border-neutral-700">
-            <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+          <div className="mt-4 pt-4 border-t border-hs-border-strong">
+            <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
               Active Alerts
             </h4>
             <div className="flex items-center gap-3">
               <Button onClick={handleClearAlerts} disabled={clearing || disabled}>
                 {clearing ? 'Clearing...' : 'Clear All Alerts'}
               </Button>
-              {clearMessage && <span className="text-xs text-green-400">{clearMessage}</span>}
+              {clearMessage && <span className="text-xs text-hs-success">{clearMessage}</span>}
             </div>
-            <p className="text-xs text-neutral-500 mt-2">
+            <p className="text-xs text-hs-text-faint mt-2">
               Dismiss all active alerts on the display. Takes effect within 3 seconds.
             </p>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-neutral-700">
-            <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+          <div className="mt-4 pt-4 border-t border-hs-border-strong">
+            <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
               API Usage
             </h4>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hs-text-faint">
               Send alerts from external tools (Home Assistant, scripts, etc.):
             </p>
-            <pre className="mt-2 text-xs text-neutral-400 bg-neutral-800/50 rounded-md p-3 overflow-x-auto">
+            <pre className="mt-2 text-xs text-hs-text-muted bg-hs-hover rounded-md p-3 overflow-x-auto">
 {`POST /api/display/alert
 {
   "type": "info",
@@ -169,10 +169,10 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
   "duration": 15000
 }`}
             </pre>
-            <p className="text-xs text-neutral-500 mt-2">
-              Types: <code className="text-neutral-400">info</code>,{' '}
-              <code className="text-neutral-400">warning</code>,{' '}
-              <code className="text-neutral-400">urgent</code>
+            <p className="text-xs text-hs-text-faint mt-2">
+              Types: <code className="text-hs-text-muted">info</code>,{' '}
+              <code className="text-hs-text-muted">warning</code>,{' '}
+              <code className="text-hs-text-muted">urgent</code>
             </p>
           </div>
         </>

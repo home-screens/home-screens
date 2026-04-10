@@ -69,9 +69,9 @@ export default function MobileIconPicker({
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: isSelected ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
+                background: isSelected ? 'var(--hs-bg-hover)' : 'var(--hs-bg-card)',
                 color: def.defaultColor,
-                outline: isSelected ? '2px solid #fafafa' : 'none',
+                outline: isSelected ? '2px solid var(--hs-text-primary)' : 'none',
                 outlineOffset: 1,
               }}
             >
@@ -79,7 +79,7 @@ export default function MobileIconPicker({
               <span
                 style={{
                   fontSize: 9,
-                  color: '#525252',
+                  color: 'var(--hs-text-faint)',
                   textAlign: 'center',
                   lineHeight: 1.1,
                   maxWidth: '100%',
@@ -94,7 +94,7 @@ export default function MobileIconPicker({
           );
         })}
         {search && filtered.length === 0 && (
-          <span style={{ fontSize: 12, color: '#525252', padding: '12px 0', gridColumn: '1 / -1' }}>
+          <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', padding: '12px 0', gridColumn: '1 / -1' }}>
             No matching icons
           </span>
         )}

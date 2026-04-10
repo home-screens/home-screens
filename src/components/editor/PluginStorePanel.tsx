@@ -116,12 +116,12 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Plugins">
-      <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
+      <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-neutral-100">Plugins</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="p-1 rounded hover:bg-neutral-700">
-            <X className="w-5 h-5 text-neutral-400" />
+        <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
+          <h2 className="text-lg font-semibold text-hs-text-primary">Plugins</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 rounded hover:bg-hs-card">
+            <X className="w-5 h-5 text-hs-text-muted" />
           </button>
         </div>
 
@@ -134,13 +134,13 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onClick={() => setTab(t)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 tab === t
-                  ? 'bg-neutral-700 text-neutral-100'
-                  : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800'
+                  ? 'bg-hs-hover text-hs-text-primary'
+                  : 'text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card'
               }`}
             >
               {t === 'developer' ? 'Developer' : t.charAt(0).toUpperCase() + t.slice(1)}
               {t === 'updates' && updatable.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded-full">
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-hs-accent text-white rounded-full">
                   {updatable.length}
                 </span>
               )}
@@ -150,9 +150,9 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
         {/* Error banner */}
         {actionError && (
-          <div className="mx-5 mt-2 px-3 py-2 text-xs text-red-300 bg-red-900/30 border border-red-800 rounded-lg flex items-center justify-between">
+          <div className="mx-5 mt-2 px-3 py-2 text-xs text-hs-danger bg-hs-danger/10 border border-hs-danger/30 rounded-lg flex items-center justify-between">
             <span>{actionError}</span>
-            <button type="button" onClick={() => setActionError(null)} aria-label="Dismiss error" className="text-red-400 hover:text-red-200 ml-2">
+            <button type="button" onClick={() => setActionError(null)} aria-label="Dismiss error" className="text-hs-danger hover:text-hs-danger ml-2">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -161,7 +161,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-3">
           {loading ? (
-            <p className="text-sm text-neutral-500 mt-8 text-center">Loading...</p>
+            <p className="text-sm text-hs-text-faint mt-8 text-center">Loading...</p>
           ) : tab === 'browse' ? (
             <BrowseTab
               plugins={filteredRegistry}
@@ -231,10 +231,10 @@ function BrowseTab({
         placeholder="Search plugins..."
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm bg-neutral-800 border border-neutral-600 rounded-lg text-neutral-200 placeholder:text-neutral-500"
+        className="w-full px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
       />
       {plugins.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-10 text-neutral-500">
+        <div className="flex flex-col items-center gap-3 py-10 text-hs-text-faint">
           <PackageSearch size={32} strokeWidth={1.5} className="opacity-30" />
           <p className="text-sm text-center">
             {search ? 'No plugins match your search' : 'No plugins available in the registry'}
@@ -245,24 +245,24 @@ function BrowseTab({
           const latest = plugin.versions[0];
           const isInstalled = installedIds.has(plugin.id);
           return (
-            <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-neutral-700 bg-neutral-800/50">
+            <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-neutral-100">{plugin.name}</span>
+                  <span className="text-sm font-medium text-hs-text-primary">{plugin.name}</span>
                   {plugin.verified && (
-                    <span title="Verified"><CheckCircle className="w-3.5 h-3.5 text-blue-400" /></span>
+                    <span title="Verified"><CheckCircle className="w-3.5 h-3.5 text-hs-accent-hover" /></span>
                   )}
-                  <span className="text-xs text-neutral-500">{latest?.version}</span>
+                  <span className="text-xs text-hs-text-faint">{latest?.version}</span>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5">{plugin.description}</p>
+                <p className="text-xs text-hs-text-muted mt-0.5">{plugin.description}</p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-[10px] text-neutral-400">{plugin.author}</span>
-                  <span className="text-[10px] text-neutral-500">{plugin.category}</span>
+                  <span className="text-[10px] text-hs-text-muted">{plugin.author}</span>
+                  <span className="text-[10px] text-hs-text-faint">{plugin.category}</span>
                 </div>
               </div>
               <div className="shrink-0">
                 {isInstalled ? (
-                  <span className="text-xs text-green-400">Installed</span>
+                  <span className="text-xs text-hs-success">Installed</span>
                 ) : (
                   <Button
                     variant="secondary"
@@ -300,7 +300,7 @@ function InstalledTab({
   actionInProgress: string | null;
 }) {
   if (installed.length === 0) {
-    return <p className="text-sm text-neutral-500 text-center py-8">No plugins installed</p>;
+    return <p className="text-sm text-hs-text-faint text-center py-8">No plugins installed</p>;
   }
 
   return (
@@ -308,16 +308,16 @@ function InstalledTab({
       {installed.map((plugin) => {
         const error = errors.get(plugin.id);
         return (
-          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-neutral-700 bg-neutral-800/50">
+          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-100">{plugin.id}</span>
-                <span className="text-xs text-neutral-400">v{plugin.version}</span>
+                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+                <span className="text-xs text-hs-text-muted">v{plugin.version}</span>
               </div>
               {error && (
                 <div className="flex items-center gap-1 mt-1">
-                  <AlertTriangle className="w-3 h-3 text-amber-400" />
-                  <span className="text-xs text-amber-400">{error.message}</span>
+                  <AlertTriangle className="w-3 h-3 text-hs-warning" />
+                  <span className="text-xs text-hs-warning">{error.message}</span>
                 </div>
               )}
             </div>
@@ -325,21 +325,21 @@ function InstalledTab({
               type="button"
               onClick={() => onToggle(plugin.id, !plugin.enabled)}
               disabled={actionInProgress === plugin.id}
-              className="p-1 text-neutral-400 hover:text-neutral-200"
+              className="p-1 text-hs-text-muted hover:text-hs-text-body"
               title={plugin.enabled ? 'Disable' : 'Enable'}
               aria-label={plugin.enabled ? `Disable ${plugin.id}` : `Enable ${plugin.id}`}
             >
               {plugin.enabled ? (
-                <ToggleRight className="w-5 h-5 text-green-400" />
+                <ToggleRight className="w-5 h-5 text-hs-success" />
               ) : (
-                <ToggleLeft className="w-5 h-5 text-neutral-500" />
+                <ToggleLeft className="w-5 h-5 text-hs-text-faint" />
               )}
             </button>
             <button
               type="button"
               onClick={() => onUninstall(plugin.id)}
               disabled={actionInProgress === plugin.id}
-              className="p-1 text-neutral-400 hover:text-red-400"
+              className="p-1 text-hs-text-muted hover:text-hs-danger"
               title="Uninstall"
               aria-label={`Uninstall ${plugin.id}`}
             >
@@ -368,7 +368,7 @@ function UpdatesTab({
   actionInProgress: string | null;
 }) {
   if (updatable.length === 0) {
-    return <p className="text-sm text-neutral-500 text-center py-8">All plugins are up to date</p>;
+    return <p className="text-sm text-hs-text-faint text-center py-8">All plugins are up to date</p>;
   }
 
   return (
@@ -377,16 +377,16 @@ function UpdatesTab({
         const reg = registry.find((r) => r.id === plugin.id);
         const latest = reg?.versions[0];
         return (
-          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-neutral-700 bg-neutral-800/50">
+          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-100">{plugin.id}</span>
-                <span className="text-xs text-neutral-500">
+                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+                <span className="text-xs text-hs-text-faint">
                   v{plugin.version} → v{latest?.version}
                 </span>
               </div>
               {latest?.changelog && (
-                <p className="text-xs text-neutral-400 mt-0.5">{latest.changelog}</p>
+                <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
               )}
             </div>
             <Button
@@ -458,8 +458,8 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium text-neutral-300 mb-1.5">Load from URL</label>
-        <p className="text-[11px] text-neutral-400 mb-2">
+        <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">Load from URL</label>
+        <p className="text-[11px] text-hs-text-muted mb-2">
           Enter your dev server URL (e.g. http://localhost:5173). The plugin will auto-reload on changes.
         </p>
         <div className="flex gap-2">
@@ -469,7 +469,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
             onChange={(e) => setDevUrl(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLoad()}
             placeholder="http://localhost:5173"
-            className="flex-1 px-3 py-2 text-sm bg-neutral-800 border border-neutral-600 rounded-lg text-neutral-200 placeholder:text-neutral-500"
+            className="flex-1 px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
           />
           <Button
             variant="secondary"
@@ -484,23 +484,23 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
 
       {devPlugins.size > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-neutral-300 mb-2">Dev Plugins</h3>
+          <h3 className="text-xs font-medium text-hs-text-secondary mb-2">Dev Plugins</h3>
           <div className="space-y-2">
             {[...devPlugins].map(([id, dev]) => (
               <div key={id} className="flex items-center gap-3 p-3 rounded-lg border border-amber-800/50 bg-amber-950/20">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <Code2 className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-sm font-medium text-neutral-100">{dev.manifest.name}</span>
-                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-amber-300 rounded">Dev</span>
-                    <span className="text-xs text-neutral-500">v{dev.manifest.version}</span>
+                    <Code2 className="w-3.5 h-3.5 text-hs-warning" />
+                    <span className="text-sm font-medium text-hs-text-primary">{dev.manifest.name}</span>
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-hs-warning rounded">Dev</span>
+                    <span className="text-xs text-hs-text-faint">v{dev.manifest.version}</span>
                   </div>
-                  <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{dev.url}</p>
+                  <p className="text-[11px] text-hs-text-faint mt-0.5 truncate">{dev.url}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleUnload(id)}
-                  className="p-1 text-neutral-400 hover:text-red-400"
+                  className="p-1 text-hs-text-muted hover:text-hs-danger"
                   title="Unload"
                   aria-label={`Unload ${dev.manifest.name}`}
                 >
@@ -512,12 +512,12 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
         </div>
       )}
 
-      <div className="border-t border-neutral-800 pt-3">
-        <h3 className="text-xs font-medium text-neutral-300 mb-1">Tips</h3>
-        <ul className="text-[11px] text-neutral-400 space-y-1 list-disc list-inside">
+      <div className="border-t border-hs-border pt-3">
+        <h3 className="text-xs font-medium text-hs-text-secondary mb-1">Tips</h3>
+        <ul className="text-[11px] text-hs-text-muted space-y-1 list-disc list-inside">
           <li>Dev plugins are stored in localStorage only — they won&apos;t persist across browsers</li>
           <li>The plugin auto-reloads when the bundle changes (polled every 2s)</li>
-          <li>Source maps are supported — add <code className="text-neutral-400">sourcemap: true</code> to your Vite config</li>
+          <li>Source maps are supported — add <code className="text-hs-text-muted">sourcemap: true</code> to your Vite config</li>
           <li>Dev plugins override installed versions with the same module type</li>
         </ul>
       </div>
@@ -568,20 +568,20 @@ function InstallConfirmModal({
 
   return (
     <div className="fixed inset-0 z-nested flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl p-5">
+      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
         <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-base font-semibold text-neutral-100">Install Plugin</h3>
+          <h3 className="text-base font-semibold text-hs-text-primary">Install Plugin</h3>
           {plugin.verified && (
-            <span title="Verified"><CheckCircle className="w-4 h-4 text-blue-400" /></span>
+            <span title="Verified"><CheckCircle className="w-4 h-4 text-hs-accent-hover" /></span>
           )}
         </div>
 
         <div className="space-y-3">
           {/* Plugin info */}
-          <div className="p-3 rounded-lg bg-neutral-800/50 border border-neutral-700">
-            <div className="text-sm font-medium text-neutral-100">{plugin.name}</div>
-            <p className="text-xs text-neutral-400 mt-0.5">{plugin.description}</p>
-            <div className="flex items-center gap-3 mt-2 text-[11px] text-neutral-400">
+          <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
+            <div className="text-sm font-medium text-hs-text-primary">{plugin.name}</div>
+            <p className="text-xs text-hs-text-muted mt-0.5">{plugin.description}</p>
+            <div className="flex items-center gap-3 mt-2 text-[11px] text-hs-text-muted">
               <span>{plugin.author}</span>
               <span>v{latest?.version}</span>
               <span>{plugin.license}</span>
@@ -591,10 +591,10 @@ function InstallConfirmModal({
           {/* Unverified warning */}
           {!plugin.verified && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-hs-warning shrink-0 mt-0.5" />
               <div>
-                <div className="text-xs font-medium text-amber-300">Unverified Plugin</div>
-                <p className="text-[11px] text-amber-400/80 mt-0.5">
+                <div className="text-xs font-medium text-hs-warning">Unverified Plugin</div>
+                <p className="text-[11px] text-hs-warning/80 mt-0.5">
                   This plugin has not been reviewed by the Home Screens team. Install at your own discretion.
                 </p>
               </div>
@@ -603,15 +603,15 @@ function InstallConfirmModal({
 
           {/* Permissions */}
           {manifestPermissions.length > 0 && (
-            <div className="p-3 rounded-lg bg-neutral-800/50 border border-neutral-700">
+            <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
               <div className="flex items-center gap-1.5 mb-2">
-                <Shield className="w-3.5 h-3.5 text-neutral-400" />
-                <span className="text-xs font-medium text-neutral-300">Permissions requested</span>
+                <Shield className="w-3.5 h-3.5 text-hs-text-muted" />
+                <span className="text-xs font-medium text-hs-text-secondary">Permissions requested</span>
               </div>
               <div className="space-y-1">
                 {manifestPermissions.map((perm) => (
-                  <div key={perm} className="flex items-center gap-2 text-xs text-neutral-400">
-                    <span className="w-1 h-1 rounded-full bg-neutral-500" />
+                  <div key={perm} className="flex items-center gap-2 text-xs text-hs-text-muted">
+                    <span className="w-1 h-1 rounded-full bg-hs-text-faint" />
                     {PERMISSION_LABELS[perm] || perm}
                   </div>
                 ))}
@@ -621,14 +621,14 @@ function InstallConfirmModal({
 
           {/* Required secrets */}
           {manifestSecrets.length > 0 && (
-            <div className="p-3 rounded-lg bg-neutral-800/50 border border-neutral-700">
-              <div className="text-xs font-medium text-neutral-300 mb-2">API keys required</div>
+            <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
+              <div className="text-xs font-medium text-hs-text-secondary mb-2">API keys required</div>
               <div className="space-y-1">
                 {manifestSecrets.map((s) => (
-                  <div key={s.key} className="flex items-center gap-2 text-xs text-neutral-400">
-                    <span className="w-1 h-1 rounded-full bg-neutral-500" />
+                  <div key={s.key} className="flex items-center gap-2 text-xs text-hs-text-muted">
+                    <span className="w-1 h-1 rounded-full bg-hs-text-faint" />
                     {s.label}
-                    {s.required && <span className="text-[10px] text-amber-400">(required)</span>}
+                    {s.required && <span className="text-[10px] text-hs-warning">(required)</span>}
                   </div>
                 ))}
               </div>

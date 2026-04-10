@@ -33,7 +33,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         options={SPORTS_VIEWS}
       />
       <div className="space-y-1">
-        <span className="text-xs text-neutral-400">Leagues</span>
+        <span className="text-xs text-hs-text-muted">Leagues</span>
         {leagueOptions.map((league) => (
           <Toggle
             key={league}

@@ -36,9 +36,9 @@ export default function DefaultsBacklinkBanner({
   if (overrides.length === 0) return null;
 
   return (
-    <div className="mb-5 rounded-lg border border-blue-500/20 bg-blue-500/[0.07] px-4 py-3 flex items-start gap-3">
-      <Info className="w-4 h-4 text-blue-300 shrink-0 mt-0.5" />
-      <div className="text-xs text-blue-200 leading-relaxed">
+    <div className="mb-5 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
+      <Info className="w-4 h-4 text-hs-accent-hover shrink-0 mt-0.5" />
+      <div className="text-xs text-hs-accent-hover leading-relaxed">
         {overrides.length === 1 ? (
           <SingleDisplayLine summary={overrides[0]} pageLabel={pageLabel} />
         ) : (
@@ -60,14 +60,14 @@ function SingleDisplayLine({
   const fieldCount = overriddenFields.length;
   return (
     <>
-      <strong className="text-neutral-100">{displayName}</strong> currently overrides{' '}
-      <strong className="text-neutral-100">
+      <strong className="text-hs-text-primary">{displayName}</strong> currently overrides{' '}
+      <strong className="text-hs-text-primary">
         {fieldCount} {fieldCount === 1 ? 'field' : 'fields'}
       </strong>{' '}
       on {pageLabel}.{' '}
       <Link
         href={`?section=display&id=${encodeURIComponent(displayId)}`}
-        className="text-blue-300 hover:text-blue-200 underline decoration-dashed underline-offset-2"
+        className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
       >
         Open {displayName}
       </Link>{' '}
@@ -85,17 +85,17 @@ function MultiDisplayLine({
 }) {
   return (
     <>
-      <strong className="text-neutral-100">{summaries.length} displays</strong> currently override
+      <strong className="text-hs-text-primary">{summaries.length} displays</strong> currently override
       fields on {pageLabel}:{' '}
       {summaries.map((summary, idx) => (
         <span key={summary.displayId}>
           <Link
             href={`?section=display&id=${encodeURIComponent(summary.displayId)}`}
-            className="text-blue-300 hover:text-blue-200 underline decoration-dashed underline-offset-2"
+            className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {summary.displayName}
           </Link>
-          <span className="text-blue-300/70"> ({summary.overriddenFields.length})</span>
+          <span className="text-hs-accent-hover/70"> ({summary.overriddenFields.length})</span>
           {idx < summaries.length - 1 ? ', ' : '.'}
         </span>
       ))}

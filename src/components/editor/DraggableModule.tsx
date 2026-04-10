@@ -166,7 +166,7 @@ export default function DraggableModule({
       <div
         {...listeners}
         className={`w-full h-full overflow-hidden transition-shadow cursor-grab ${
-          isSelected ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-transparent' : ''
+          isSelected ? 'ring-2 ring-hs-accent ring-offset-1 ring-offset-transparent' : ''
         }`}
         style={{
           borderRadius: mod.style.borderRadius * scale,
@@ -194,7 +194,7 @@ export default function DraggableModule({
         <div
           className={`absolute top-0 right-0 p-0.5 rounded-bl ${
             isModuleVisible(mod.schedule, now)
-              ? 'bg-blue-600/70 text-white'
+              ? 'bg-hs-accent/70 text-white'
               : 'bg-amber-600/70 text-amber-200'
           }`}
           title={isModuleVisible(mod.schedule, now) ? 'Scheduled — currently active' : 'Scheduled — currently inactive'}
@@ -205,7 +205,7 @@ export default function DraggableModule({
       {isSelected && (
         <div
           onMouseDown={handleResizeStart}
-          className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 cursor-se-resize rounded-tl"
+          className="absolute bottom-0 right-0 w-3 h-3 bg-hs-accent cursor-se-resize rounded-tl"
           style={{ zIndex: 999 }}
         />
       )}

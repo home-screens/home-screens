@@ -9,14 +9,14 @@ interface ToggleProps {
 export default function Toggle({ label, checked, onChange }: ToggleProps) {
   return (
     <label className="flex items-center justify-between gap-2 cursor-pointer">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative w-9 h-5 rounded-full transition-colors ${
-          checked ? 'bg-blue-600' : 'bg-neutral-600'
+          checked ? 'bg-hs-accent' : 'bg-hs-card'
         }`}
       >
         <span

@@ -118,39 +118,39 @@ export default function LocationSection({ values, onChange }: Props) {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         Location
       </h3>
       <div className="space-y-3">
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-hs-text-faint">
           Used by weather, moon phase, sunrise/sunset, and air quality modules.
         </p>
 
-        <div className="rounded-md bg-neutral-800 border border-neutral-600 px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1">
+        <div className="rounded-md bg-hs-card border border-hs-border-strong px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1">
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Browser</span>
-            <p className="text-sm text-neutral-200 tabular-nums">
+            <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Browser</span>
+            <p className="text-sm text-hs-text-body tabular-nums">
               {browserTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
             </p>
-            <p className="text-[10px] text-neutral-500">{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+            <p className="text-[10px] text-hs-text-faint">{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Server</span>
-            <p className="text-sm text-neutral-200 tabular-nums">
+            <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Server</span>
+            <p className="text-sm text-hs-text-body tabular-nums">
               {serverInfo
                 ? new Date(browserTime.getTime() + serverInfo.offsetMs).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZone: serverInfo.timezone })
-                : <span className="text-neutral-500">...</span>}
+                : <span className="text-hs-text-faint">...</span>}
             </p>
-            <p className="text-[10px] text-neutral-500">{serverInfo?.timezone ?? ''}</p>
+            <p className="text-[10px] text-hs-text-faint">{serverInfo?.timezone ?? ''}</p>
           </div>
         </div>
 
         <label className="block">
-          <span className="text-xs text-neutral-400">Timezone</span>
+          <span className="text-xs text-hs-text-muted">Timezone</span>
           <select
             value={timezone}
             onChange={(e) => onChange({ timezone: e.target.value })}
-            className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             <option value="">System default ({Intl.DateTimeFormat().resolvedOptions().timeZone})</option>
             {(() => {
@@ -168,7 +168,7 @@ export default function LocationSection({ values, onChange }: Props) {
               }
             })()}
           </select>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-hs-text-faint mt-1">
             Override the server&apos;s OS timezone for clock, greeting, and other time-based modules.
           </p>
         </label>
@@ -181,7 +181,7 @@ export default function LocationSection({ values, onChange }: Props) {
               onChange={(e) => setLocationQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && lookupLocation()}
               placeholder="Zip code or city name"
-              className="flex-1 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             />
             <Button variant="secondary" size="sm" onClick={lookupLocation}>
               Look up
@@ -191,14 +191,14 @@ export default function LocationSection({ values, onChange }: Props) {
             </Button>
           </div>
           <p
-            className={`text-xs ${!locationStatus ? 'sr-only' : locationStatus.startsWith('Error') || locationStatus.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}
+            className={`text-xs ${!locationStatus ? 'sr-only' : locationStatus.startsWith('Error') || locationStatus.startsWith('Failed') ? 'text-hs-danger' : 'text-hs-success'}`}
             aria-live="polite"
             role={locationStatus?.startsWith('Error') || locationStatus?.startsWith('Failed') ? 'alert' : undefined}
           >
             {locationStatus ?? ''}
           </p>
           {(lat && lon) && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hs-text-faint">
               {locationName ? `${locationName} — ` : ''}
               {lat}, {lon}
             </p>
@@ -206,28 +206,28 @@ export default function LocationSection({ values, onChange }: Props) {
         </div>
 
         <details className="text-xs">
-          <summary className="text-neutral-500 cursor-pointer hover:text-neutral-400">
+          <summary className="text-hs-text-faint cursor-pointer hover:text-hs-text-muted">
             Edit coordinates manually
           </summary>
           <div className="grid grid-cols-2 gap-3 mt-2">
             <label className="block">
-              <span className="text-xs text-neutral-400">Latitude</span>
+              <span className="text-xs text-hs-text-muted">Latitude</span>
               <input
                 type="text"
                 value={lat}
                 onChange={(e) => onChange({ lat: e.target.value })}
                 placeholder="40.7128"
-                className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-neutral-400">Longitude</span>
+              <span className="text-xs text-hs-text-muted">Longitude</span>
               <input
                 type="text"
                 value={lon}
                 onChange={(e) => onChange({ lon: e.target.value })}
                 placeholder="-74.006"
-                className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
               />
             </label>
           </div>

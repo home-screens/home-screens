@@ -147,7 +147,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
 
   return (
     <DisplayTargetContext.Provider value={targetCtx}>
-      <div className="min-h-dvh bg-[#0a0a0a] text-neutral-200">
+      <div className="min-h-dvh bg-hs-body text-hs-text-body">
         {!isConnected && <ConnectionBanner />}
 
         {activeTab === 'control' ? (

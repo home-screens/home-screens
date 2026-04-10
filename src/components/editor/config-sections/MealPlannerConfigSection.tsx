@@ -159,15 +159,15 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       {/* Note: planning settings (which slots, week start, default times, time format)
           are shared across all meal modules. Edit them from either Settings → Meals
           (in the editor) or the /remote settings drawer. */}
-      <p className="text-[11px] text-neutral-600 leading-relaxed">
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
         Meal slots, week start, time format, and default serving times are managed from{' '}
-        <a href="/editor/settings?tab=meals" className="text-blue-400 hover:text-blue-300 underline">Settings &rarr; Meals</a>{' '}
-        or <span className="text-neutral-400">/remote</span> so all your meal modules stay in sync.
+        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">Settings &rarr; Meals</a>{' '}
+        or <span className="text-hs-text-muted">/remote</span> so all your meal modules stay in sync.
       </p>
 
       {/* Open Modal */}
-      <div className="pt-1 border-t border-neutral-700 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
           <span>{mealData.savedMeals.length} saved meals</span>
           <span>&middot;</span>
           <span>{mealData.plan.length} planned</span>

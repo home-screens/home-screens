@@ -64,17 +64,17 @@ function DragGhost({
 
   return (
     <div
-      className="absolute border-2 border-blue-400 border-dashed rounded pointer-events-none"
+      className="absolute border-2 border-hs-accent border-dashed rounded pointer-events-none"
       style={{
         left: snappedX * scale,
         top: snappedY * scale,
         width: mod.size.w * scale,
         height: mod.size.h * scale,
         zIndex: 9999,
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: 'var(--hs-accent-soft)',
       }}
     >
-      <div className="absolute -top-5 left-0 text-[10px] text-blue-400 whitespace-nowrap font-mono">
+      <div className="absolute -top-5 left-0 text-[10px] text-hs-accent-hover whitespace-nowrap font-mono">
         {snappedX}, {snappedY}
       </div>
     </div>
@@ -222,7 +222,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   if (!currentScreen) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-neutral-500">
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-hs-text-faint">
         <LayoutDashboard size={40} strokeWidth={1.5} className="opacity-30" />
         <p className="text-sm">No screen selected</p>
       </div>
@@ -233,7 +233,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const canvasH = displayHeight * effectiveScale;
 
   return (
-    <div className="relative flex-1 flex flex-col overflow-hidden bg-neutral-950">
+    <div className="relative flex-1 flex flex-col overflow-hidden bg-hs-canvas">
       {/* Scrollable canvas area */}
       <div
         ref={scrollRef}
@@ -245,13 +245,14 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           className="flex items-center justify-center"
           style={{ minWidth: '100%', minHeight: '100%', padding: 16 }}
         >
+          {/* Frame uses hardcoded dark colors to mimic the actual display appearance */}
           <div
             ref={(node) => {
               setNodeRef(node);
               innerCanvasRef.current = node;
               if (canvasRef) (canvasRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
             }}
-            className="relative bg-neutral-900 border border-neutral-700 overflow-hidden shrink-0"
+            className="relative bg-[#0f172a] ring-[6px] ring-[#1e293b] overflow-hidden shrink-0"
             style={{
               width: canvasW,
               height: canvasH,
@@ -297,12 +298,12 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       </div>
 
       {/* Floating toolbar: undo/redo + zoom controls */}
-      <div className="absolute bottom-3 left-1/2 z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-lg border border-neutral-700 bg-neutral-900/90 px-1 py-0.5 backdrop-blur-sm">
+      <div className="absolute bottom-3 left-1/2 z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-lg border border-hs-border-strong bg-hs-panel/90 px-1 py-0.5 backdrop-blur-sm">
         {/* Undo / Redo */}
         <button
           onClick={() => useEditorStore.getState().undo()}
           disabled={!canUndo}
-          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
           title="Undo (Cmd+Z)"
           aria-label="Undo"
         >
@@ -311,22 +312,22 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
         <button
           onClick={() => useEditorStore.getState().redo()}
           disabled={!canRedo}
-          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
           title="Redo (Cmd+Shift+Z)"
           aria-label="Redo"
         >
           <Redo2 className="h-3.5 w-3.5" />
         </button>
 
-        <div className="mx-0.5 h-4 w-px bg-neutral-700" />
+        <div className="mx-0.5 h-4 w-px bg-hs-card" />
 
         {/* Snap toggle */}
         <button
           onClick={() => useEditorStore.getState().toggleSnap()}
           className={`rounded p-1.5 transition-colors ${
             snapEnabled
-              ? 'text-blue-400 hover:bg-neutral-800 hover:text-blue-300'
-              : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'
+              ? 'text-hs-accent-hover hover:bg-hs-card hover:text-hs-accent-hover'
+              : 'text-hs-text-muted hover:bg-hs-card hover:text-hs-text-body'
           }`}
           title={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
           aria-label={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
@@ -335,25 +336,25 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           <Grid3x3 className="h-3.5 w-3.5" />
         </button>
 
-        <div className="mx-0.5 h-4 w-px bg-neutral-700" />
+        <div className="mx-0.5 h-4 w-px bg-hs-card" />
 
         {/* Zoom controls */}
         <button
           onClick={zoomOut}
           disabled={userZoom <= 0.25}
-          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
           title="Zoom out (Cmd+-)"
           aria-label="Zoom out"
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </button>
-        <span className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-neutral-400">
+        <span className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-hs-text-muted">
           {Math.round(userZoom * 100)}%
         </span>
         <button
           onClick={zoomIn}
           disabled={userZoom >= 3.0}
-          className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
           title="Zoom in (Cmd+=)"
           aria-label="Zoom in"
         >
@@ -362,10 +363,10 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
         {userZoom !== 1.0 && (
           <>
-            <div className="mx-0.5 h-4 w-px bg-neutral-700" />
+            <div className="mx-0.5 h-4 w-px bg-hs-card" />
             <button
               onClick={resetZoom}
-              className="rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+              className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body"
               title="Fit to screen (Cmd+0)"
               aria-label="Fit to screen"
             >

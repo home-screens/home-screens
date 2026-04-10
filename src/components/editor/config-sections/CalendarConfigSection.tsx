@@ -113,7 +113,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View Mode</span>
+        <span className="text-xs text-hs-text-muted">View Mode</span>
         <select
           value={viewMode}
           onChange={(e) => set({ viewMode: e.target.value })}
@@ -127,37 +127,37 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       </label>
 
       {googleAuthError && googleCalendarIds.length > 0 && (
-        <div className="rounded-md bg-amber-950/50 border border-amber-700/50 px-3 py-2 text-xs text-amber-300">
+        <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
           Google Calendar auth expired. Re-authenticate in Settings → Calendar.
         </div>
       )}
 
       {availableSources.length > 1 && (
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Sources</span>
-          <div className="rounded-md bg-neutral-800 border border-neutral-600 divide-y divide-neutral-700 max-h-40 overflow-y-auto">
-            <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
+          <span className="text-xs text-hs-text-muted">Sources</span>
+          <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong max-h-40 overflow-y-auto">
+            <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
               <input
                 type="radio"
                 checked={allSelected}
                 onChange={selectAll}
-                className="border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
               />
-              <span className="text-sm text-neutral-200">All Sources</span>
+              <span className="text-sm text-hs-text-body">All Sources</span>
             </label>
             {availableSources.map((src) => (
-              <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
+              <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
                 <input
                   type="checkbox"
                   checked={allSelected || sourceFilter.includes(src.id)}
                   onChange={() => toggleSource(src.id)}
-                  className="rounded border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                  className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                 />
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: src.color }}
                 />
-                <span className="text-sm text-neutral-200 truncate">{src.name}</span>
+                <span className="text-sm text-hs-text-body truncate">{src.name}</span>
               </label>
             ))}
           </div>
@@ -166,7 +166,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
 
       {viewMode === 'daily' && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Days to Show</span>
+          <span className="text-xs text-hs-text-muted">Days to Show</span>
           <input
             type="number"
             min={1}
@@ -179,7 +179,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {viewMode === 'agenda' && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Max Events</span>
+          <span className="text-xs text-hs-text-muted">Max Events</span>
           <input
             type="number"
             min={1}

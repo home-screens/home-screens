@@ -44,7 +44,7 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
         <>
           {/* Days of week */}
           <div>
-            <span className="text-xs text-neutral-400 mb-1 block">Days</span>
+            <span className="text-xs text-hs-text-muted mb-1 block">Days</span>
             <div className="flex gap-1">
               {DAYS.map((label, i) => {
                 const days = schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
@@ -56,8 +56,8 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
                     onClick={() => toggleDay(i)}
                     className={`flex-1 text-[10px] py-1 rounded transition-colors ${
                       active
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'
+                        ? 'bg-hs-accent text-white'
+                        : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
                     }`}
                   >
                     {label}
@@ -70,7 +70,7 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
           {/* Time window */}
           <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-neutral-400">From</span>
+              <span className="text-xs text-hs-text-muted">From</span>
               <input
                 type="time"
                 value={schedule?.startTime ?? ''}
@@ -79,7 +79,7 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
               />
             </label>
             <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-neutral-400">Until</span>
+              <span className="text-xs text-hs-text-muted">Until</span>
               <input
                 type="time"
                 value={schedule?.endTime ?? ''}

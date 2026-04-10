@@ -11,7 +11,7 @@ export default function QuickActions({ isAsleep, onSleepWake, onAlertOpen }: Qui
     <div className="grid grid-cols-2 gap-3 mx-5 mt-5">
       <button
         onClick={onSleepWake}
-        className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-[14px] flex flex-col items-center gap-2.5 transition-colors active:bg-white/[0.06] active:scale-[0.97]"
+        className="p-4 bg-hs-card border border-hs-border-strong rounded-[14px] flex flex-col items-center gap-2.5 transition-colors active:bg-hs-hover active:scale-[0.97]"
       >
         <div className="w-11 h-11 rounded-xl bg-violet-500/[0.12] text-violet-400 flex items-center justify-center">
           {isAsleep ? (
@@ -24,21 +24,21 @@ export default function QuickActions({ isAsleep, onSleepWake, onAlertOpen }: Qui
             </svg>
           )}
         </div>
-        <span className="text-[13px] font-semibold text-white">
+        <span className="text-[13px] font-semibold text-hs-text-primary">
           {isAsleep ? 'Wake Display' : 'Sleep Display'}
         </span>
       </button>
 
       <button
         onClick={onAlertOpen}
-        className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-[14px] flex flex-col items-center gap-2.5 transition-colors active:bg-white/[0.06] active:scale-[0.97]"
+        className="p-4 bg-hs-card border border-hs-border-strong rounded-[14px] flex flex-col items-center gap-2.5 transition-colors active:bg-hs-hover active:scale-[0.97]"
       >
         <div className="w-11 h-11 rounded-xl bg-amber-500/[0.12] text-amber-400 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[22px] h-[22px]">
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
           </svg>
         </div>
-        <span className="text-[13px] font-semibold text-white">Send Alert</span>
+        <span className="text-[13px] font-semibold text-hs-text-primary">Send Alert</span>
       </button>
     </div>
   );

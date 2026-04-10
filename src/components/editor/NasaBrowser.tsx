@@ -130,11 +130,11 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
   }, [selectedScreenId, config, selectedDisplayId, updateScreen]);
 
   const modeToggle = (
-    <div className="flex gap-1 bg-neutral-800 rounded-md p-0.5">
+    <div className="flex gap-1 bg-hs-card rounded-md p-0.5">
       <button
         onClick={() => { setMode('apod'); }}
         className={`flex-1 text-[10px] py-1 rounded ${
-          mode === 'apod' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+          mode === 'apod' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
         }`}
       >
         Picture of the Day
@@ -142,7 +142,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
       <button
         onClick={() => { setMode('library'); }}
         className={`flex-1 text-[10px] py-1 rounded ${
-          mode === 'library' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+          mode === 'library' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
         }`}
       >
         Image Library
@@ -151,7 +151,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
   );
 
   const nasaNote = (
-    <p className="text-[11px] text-neutral-500 leading-snug">
+    <p className="text-[11px] text-hs-text-faint leading-snug">
       Note: Some NASA images include embedded timestamps or watermarks that cannot be removed.
     </p>
   );
@@ -159,9 +159,9 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
   const apodBeforeGrid = (
     <>
       {!hasNasaKey && (
-        <div className="text-xs text-neutral-500 bg-neutral-800/50 rounded-md p-3 space-y-2">
+        <div className="text-xs text-hs-text-faint bg-hs-hover rounded-md p-3 space-y-2">
           <p>Add a free NASA API key in <strong>Settings</strong> to browse Astronomy Picture of the Day.</p>
-          <p className="text-neutral-600">Get one at api.nasa.gov</p>
+          <p className="text-hs-text-faint">Get one at api.nasa.gov</p>
         </div>
       )}
       {hasNasaKey && (

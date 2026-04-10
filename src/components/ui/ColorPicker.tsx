@@ -21,13 +21,13 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
 
   return (
     <label className="flex items-center justify-between gap-2">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <div className="flex items-center gap-2">
         <input
           type="color"
           value={value.startsWith('#') ? value : '#ffffff'}
           onChange={(e) => { onChange(e.target.value); setDraft(e.target.value); }}
-          className="w-8 h-8 rounded border border-neutral-600 bg-transparent cursor-pointer"
+          className="w-8 h-8 rounded border border-hs-border-strong bg-transparent cursor-pointer"
         />
         <input
           type="text"
@@ -45,7 +45,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
               setDraft(value);
             }
           }}
-          className="w-28 px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-200"
+          className="w-28 px-2 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
         />
       </div>
     </label>

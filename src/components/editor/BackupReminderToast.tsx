@@ -24,8 +24,8 @@ export default function BackupReminderToast() {
           to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
-      <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-neutral-900/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
-        <div className="text-amber-400 text-sm">
+      <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-hs-panel/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
+        <div className="text-hs-warning text-sm">
           You haven&#x2019;t backed up in {daysSinceBackup} day{daysSinceBackup === 1 ? '' : 's'}.
         </div>
         <button
@@ -38,7 +38,7 @@ export default function BackupReminderToast() {
         </button>
         <button
           onClick={handleDismiss}
-          className="text-neutral-500 hover:text-neutral-300 transition-colors p-0.5"
+          className="text-hs-text-faint hover:text-hs-text-secondary transition-colors p-0.5"
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" />

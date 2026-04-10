@@ -47,7 +47,7 @@ export const LABEL_STYLE: React.CSSProperties = {
   display: 'block',
   fontSize: 12,
   fontWeight: 700,
-  color: '#a3a3a3',
+  color: 'var(--hs-text-muted)',
   textTransform: 'uppercase' as const,
   letterSpacing: '0.04em',
   marginBottom: 6,
@@ -58,17 +58,17 @@ export const INPUT_STYLE: React.CSSProperties = {
   padding: '10px 12px',
   minHeight: 44,
   fontSize: 14,
-  background: '#171717',
-  border: '1px solid #262626',
+  background: 'var(--hs-bg-panel)',
+  border: '1px solid var(--hs-border)',
   borderRadius: 10,
-  color: '#fafafa',
+  color: 'var(--hs-text-primary)',
   outline: 'none',
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 };
 
 export const CARD_STYLE: React.CSSProperties = {
-  background: '#1a1a1a',
-  border: '1px solid #2a2a2a',
+  background: 'var(--hs-bg-card)',
+  border: '1px solid var(--hs-border)',
   borderRadius: 12,
   padding: 14,
 };

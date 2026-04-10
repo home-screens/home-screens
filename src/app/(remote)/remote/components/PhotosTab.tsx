@@ -164,10 +164,10 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Photos</h2>
+        <h2 className="text-lg font-semibold text-hs-text-primary">Photos</h2>
         <button
           onClick={() => setShowNewFolder(!showNewFolder)}
-          className="text-xs text-blue-400 active:text-blue-300 min-h-[44px] px-3 flex items-center"
+          className="text-xs text-hs-accent active:text-hs-accent-hover min-h-[44px] px-3 flex items-center"
         >
           {showNewFolder ? 'Cancel' : 'New Folder'}
         </button>
@@ -183,12 +183,12 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
             onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
             placeholder="Folder name"
             autoFocus
-            className="flex-1 px-3 py-2.5 text-sm bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-blue-500"
+            className="flex-1 px-3 py-2.5 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-primary placeholder:text-hs-text-faint focus:outline-none focus:border-hs-accent"
           />
           <button
             onClick={handleCreateFolder}
             disabled={!newFolderName.trim()}
-            className="px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg disabled:opacity-40 active:bg-blue-700 min-h-[44px]"
+            className="px-4 py-2.5 text-sm font-medium bg-hs-accent text-white rounded-lg disabled:opacity-40 active:bg-hs-accent-hover min-h-[44px]"
           >
             Create
           </button>
@@ -201,8 +201,8 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           onClick={() => setSelectedDir('')}
           className={`flex-shrink-0 px-3.5 py-2 text-sm rounded-full min-h-[44px] flex items-center transition-colors ${
             selectedDir === ''
-              ? 'bg-blue-600 text-white'
-              : 'bg-neutral-800 text-neutral-400 active:bg-neutral-700'
+              ? 'bg-hs-accent text-white'
+              : 'bg-hs-card text-hs-text-muted active:bg-hs-hover'
           }`}
         >
           All Photos
@@ -215,12 +215,12 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
               onClick={() => setSelectedDir(d.path)}
               className={`flex-shrink-0 px-3.5 py-2 text-sm rounded-full min-h-[44px] flex items-center gap-1.5 transition-colors ${
                 selectedDir === d.path
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-neutral-800 text-neutral-400 active:bg-neutral-700'
+                  ? 'bg-hs-accent text-white'
+                  : 'bg-hs-card text-hs-text-muted active:bg-hs-hover'
               }`}
             >
               {d.name}
-              <span className={`text-xs ${selectedDir === d.path ? 'text-blue-200' : 'text-neutral-600'}`}>
+              <span className={`text-xs ${selectedDir === d.path ? 'text-hs-accent-hover' : 'text-hs-text-faint'}`}>
                 {d.imageCount}
               </span>
             </button>
@@ -229,7 +229,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
 
       {/* Success toast */}
       {successMsg && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-emerald-900/50 border border-emerald-700/50 rounded-lg text-sm text-emerald-300">
+        <div className="flex items-center gap-2 px-3 py-2 bg-hs-success/10 border border-hs-success/30 rounded-lg text-sm text-hs-success">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 flex-shrink-0">
             <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
           </svg>
@@ -239,12 +239,12 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-start gap-2 px-3 py-2 bg-red-900/40 border border-red-800/50 rounded-lg text-sm text-red-300">
+        <div className="flex items-start gap-2 px-3 py-2 bg-hs-danger/10 border border-hs-danger/20 rounded-lg text-sm text-hs-danger">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 flex-shrink-0 mt-0.5">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
           </svg>
           <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-1">
+          <button onClick={() => setError(null)} className="text-hs-danger min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-1">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
             </svg>
@@ -267,13 +267,13 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           htmlFor="photo-upload"
           className={`flex items-center justify-center gap-2 w-full py-3.5 text-sm font-medium rounded-xl min-h-[52px] transition-colors cursor-pointer ${
             uploading
-              ? 'bg-neutral-800 text-neutral-500'
-              : 'bg-blue-600 text-white active:bg-blue-700'
+              ? 'bg-hs-card text-hs-text-faint'
+              : 'bg-hs-accent text-white active:bg-hs-accent-hover'
           }`}
         >
           {uploading ? (
             <>
-              <div className="w-4 h-4 border-2 border-neutral-600 border-t-neutral-300 rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-hs-border-strong border-t-hs-text-secondary rounded-full animate-spin" />
               {uploadProgress}
             </>
           ) : (
@@ -290,15 +290,15 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
       {/* Photo grid */}
       {loadingImages ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-6 h-6 border-2 border-neutral-700 border-t-neutral-300 rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-hs-border-strong border-t-hs-text-secondary rounded-full animate-spin" />
         </div>
       ) : images.length === 0 ? (
         <div className="text-center py-12 space-y-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 mx-auto text-neutral-700">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 mx-auto text-hs-text-faint">
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
           </svg>
-          <p className="text-neutral-500 text-sm">No photos in this folder</p>
-          <p className="text-neutral-600 text-xs">Tap Upload Photos to add images</p>
+          <p className="text-hs-text-faint text-sm">No photos in this folder</p>
+          <p className="text-hs-text-faint text-xs">Tap Upload Photos to add images</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-1.5">
@@ -313,18 +313,18 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
               {/* Delete button */}
               {confirmDelete === img ? (
                 <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center gap-2">
-                  <span className="text-xs text-neutral-300">Delete?</span>
+                  <span className="text-xs text-hs-text-secondary">Delete?</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleDeleteImage(img)}
                       disabled={deletingImage === img}
-                      className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-md min-h-[36px] active:bg-red-700"
+                      className="px-3 py-1.5 text-xs font-medium bg-hs-danger text-white rounded-md min-h-[36px] active:opacity-90"
                     >
                       {deletingImage === img ? 'Deleting...' : 'Delete'}
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="px-3 py-1.5 text-xs font-medium bg-neutral-700 text-neutral-300 rounded-md min-h-[36px] active:bg-neutral-600"
+                      className="px-3 py-1.5 text-xs font-medium bg-hs-card text-hs-text-secondary rounded-md min-h-[36px] active:bg-hs-hover"
                     >
                       Cancel
                     </button>

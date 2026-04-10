@@ -58,7 +58,7 @@ export default function WeekGrid({
   const dateRangeLabel = `${formatShort(startDate)} – ${formatShort(endDate)}`;
 
   const ghostBtn =
-    'flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded border border-neutral-700 bg-transparent text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition';
+    'flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded border border-hs-border-strong bg-transparent text-hs-text-faint hover:text-hs-text-secondary hover:bg-hs-card transition';
 
   function resolveMealCell(date: string, slot: MealSlotType): { meal: SavedMeal | null; planned: PlannedMeal | undefined } {
     const planned = plan.find((p) => p.date === date && p.slot === slot);
@@ -69,22 +69,22 @@ export default function WeekGrid({
   return (
     <div className="flex-1 flex flex-col min-w-0">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-neutral-700">
+      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-hs-border-strong">
         {/* Week navigation */}
         <button
           type="button"
           onClick={() => onNavigateWeek(-1)}
-          className="p-1 rounded hover:bg-neutral-800 text-neutral-500 hover:text-neutral-300 transition"
+          className="p-1 rounded hover:bg-hs-card text-hs-text-faint hover:text-hs-text-secondary transition"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 min-w-[140px] text-center">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-hs-text-faint min-w-[140px] text-center">
           {dateRangeLabel}
         </span>
         <button
           type="button"
           onClick={() => onNavigateWeek(1)}
-          className="p-1 rounded hover:bg-neutral-800 text-neutral-500 hover:text-neutral-300 transition"
+          className="p-1 rounded hover:bg-hs-card text-hs-text-faint hover:text-hs-text-secondary transition"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -111,7 +111,7 @@ export default function WeekGrid({
         <button
           type="button"
           onClick={onClearWeek}
-          className={`${ghostBtn} hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/8`}
+          className={`${ghostBtn} hover:text-hs-danger hover:border-hs-danger/50 hover:bg-hs-danger/8`}
         >
           <Trash2 className="w-3.5 h-3.5" />
           Clear
@@ -155,7 +155,7 @@ export default function WeekGrid({
                   {/* Day label — only render for the first slot */}
                   {slotIdx === 0 && (
                     <div
-                      className="py-3 pr-2 border-t border-neutral-800 flex items-start gap-2"
+                      className="py-3 pr-2 border-t border-hs-border flex items-start gap-2"
                       style={{
                         backgroundColor: isToday ? 'rgba(245,158,11,0.02)' : undefined,
                       }}
@@ -175,16 +175,16 @@ export default function WeekGrid({
                             >
                               Today
                             </div>
-                            <div className="text-[10px] text-neutral-600">
+                            <div className="text-[10px] text-hs-text-faint">
                               {DAY_NAMES_SHORT[dayIdx]} {shortDate}
                             </div>
                           </>
                         ) : (
                           <div>
-                            <div className="text-sm text-neutral-500">
+                            <div className="text-sm text-hs-text-faint">
                               {DAY_NAMES_SHORT[dayIdx]}
                             </div>
-                            <div className="text-[10px] text-neutral-600">
+                            <div className="text-[10px] text-hs-text-faint">
                               {shortDate}
                             </div>
                           </div>
@@ -195,7 +195,7 @@ export default function WeekGrid({
 
                   {/* Slot cell */}
                   <div
-                    className="py-2 px-0.5 border-t border-neutral-800 min-h-[56px]"
+                    className="py-2 px-0.5 border-t border-hs-border min-h-[56px]"
                     style={{
                       backgroundColor: isToday ? 'rgba(245,158,11,0.02)' : undefined,
                     }}
@@ -203,18 +203,18 @@ export default function WeekGrid({
                     {meal ? (
                       <div
                         onClick={() => onSelectMeal(meal.id)}
-                        className={`relative flex flex-col gap-1 px-2.5 py-2 rounded-lg bg-neutral-800/60 border border-neutral-700/50 cursor-pointer hover:bg-neutral-800 hover:border-neutral-600 transition-all group ${
+                        className={`relative flex flex-col gap-1 px-2.5 py-2 rounded-lg bg-hs-card/60 border border-hs-border-strong/50 cursor-pointer hover:bg-hs-card hover:border-hs-border-strong transition-all group ${
                           isSelected ? 'border-amber-500/30 bg-amber-500/5' : ''
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">{meal.emoji || DEFAULT_MEAL_EMOJI}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-neutral-200 truncate">
+                            <div className="text-xs font-semibold text-hs-text-body truncate">
                               {meal.name}
                             </div>
                             {meal.prepTime != null && (
-                              <div className="text-[10px] text-neutral-600">
+                              <div className="text-[10px] text-hs-text-faint">
                                 {meal.prepTime}m prep
                               </div>
                             )}
@@ -236,7 +236,7 @@ export default function WeekGrid({
                             e.stopPropagation();
                             onRemoveMeal(date, slot);
                           }}
-                          className="absolute top-1 right-1 w-5 h-5 rounded bg-transparent text-neutral-600 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 transition flex items-center justify-center text-xs"
+                          className="absolute top-1 right-1 w-5 h-5 rounded bg-transparent text-hs-text-faint opacity-0 group-hover:opacity-100 hover:text-hs-danger hover:bg-hs-danger/10 transition flex items-center justify-center text-xs"
                         >
                           &times;
                         </button>
@@ -244,9 +244,9 @@ export default function WeekGrid({
                     ) : (
                       <div
                         onClick={() => onEmptyCellClick(date, slot)}
-                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-neutral-700 cursor-pointer transition group"
+                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-hs-border-strong cursor-pointer transition group"
                       >
-                        <span className="text-sm text-transparent group-hover:text-neutral-600">
+                        <span className="text-sm text-transparent group-hover:text-hs-text-faint">
                           +
                         </span>
                       </div>

@@ -20,16 +20,16 @@ function PaletteItem({ definition }: { definition: ModuleDefinition }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 cursor-grab hover:border-neutral-500 transition-colors ${
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-hs-card border border-hs-border-strong cursor-grab hover:border-hs-accent/40 transition-colors ${
         isDragging ? 'opacity-50' : ''
       }`}
     >
-      <definition.icon className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-      <span className="text-sm text-neutral-200">{definition.label}</span>
+      <definition.icon className="w-4 h-4 text-hs-text-muted flex-shrink-0" />
+      <span className="text-sm text-hs-text-body">{definition.label}</span>
       {isPlugin && (
-        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-900/50 border border-violet-700/50" title="Community plugin">
-          <Puzzle className="w-3 h-3 text-violet-400" />
-          <span className="text-[10px] text-violet-400 font-medium">Plugin</span>
+        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20" title="Community plugin">
+          <Puzzle className="w-3 h-3 text-violet-500" />
+          <span className="text-[10px] text-violet-500 font-medium">Plugin</span>
         </span>
       )}
     </div>
@@ -55,14 +55,14 @@ function CategoryGroup({
         className="flex items-center gap-1.5 w-full px-1 py-1.5 text-left group"
       >
         <ChevronRight
-          className={`w-3 h-3 text-neutral-500 transition-transform duration-200 ${
+          className={`w-3 h-3 text-hs-text-faint transition-transform duration-200 ${
             open ? 'rotate-90' : ''
           }`}
         />
-        <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider">
           {category}
         </span>
-        <span className="text-[10px] text-neutral-600 ml-auto">{modules.length}</span>
+        <span className="text-[10px] text-hs-text-faint ml-auto">{modules.length}</span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -118,25 +118,25 @@ export default function ModulePalette() {
   }, [grouped, query]);
 
   return (
-    <div className="w-56 flex-shrink-0 bg-neutral-900 border-r border-neutral-700 flex flex-col overflow-hidden">
+    <div className="w-56 flex-shrink-0 bg-hs-panel border-r border-hs-border-strong flex flex-col overflow-hidden">
       <div className="p-3 pb-2 flex flex-col gap-2">
-        <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+        <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider">
           Modules
         </h3>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search modules..."
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500"
+            className="w-full pl-8 pr-3 py-1.5 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint focus:outline-none focus:border-hs-accent"
           />
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1">
         {filteredGroups.length === 0 ? (
-          <p className="text-xs text-neutral-600 text-center py-4">No modules found</p>
+          <p className="text-xs text-hs-text-faint text-center py-4">No modules found</p>
         ) : (
           filteredGroups.map(([category, modules]) => (
             <CategoryGroup

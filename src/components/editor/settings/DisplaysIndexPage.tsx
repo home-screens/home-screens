@@ -279,33 +279,33 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
   };
 
   return (
-    <div className="rounded-lg border border-neutral-700 bg-neutral-800/50 p-4 space-y-4">
+    <div className="rounded-lg border border-hs-border-strong bg-hs-hover p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-neutral-200">
+        <h4 className="text-sm font-medium text-hs-text-body">
           {initial ? 'Edit Display' : prefilledId ? `Adopt ${prefilledId}` : 'Add Display'}
         </h4>
         <button
           onClick={onCancel}
-          className="text-neutral-500 hover:text-neutral-300 transition-colors"
+          className="text-hs-text-faint hover:text-hs-text-secondary transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <label className="block">
-        <span className="text-xs text-neutral-400">Name</span>
+        <span className="text-xs text-hs-text-muted">Name</span>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Kitchen Touchscreen"
-          className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
       </label>
 
       <label className="block">
-        <span className="text-xs text-neutral-400">
-          ID <span className="text-neutral-600">(used in URL: /display/&lt;id&gt;)</span>
+        <span className="text-xs text-hs-text-muted">
+          ID <span className="text-hs-text-faint">(used in URL: /display/&lt;id&gt;)</span>
         </span>
         <input
           type="text"
@@ -319,10 +319,10 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             setIdTouched(true);
           }}
           placeholder="kitchen"
-          className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 font-mono disabled:opacity-50"
+          className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent font-mono disabled:opacity-50"
         />
         {prefilledId && !initial && (
-          <p className="text-[11px] text-neutral-500 mt-1">
+          <p className="text-[11px] text-hs-text-faint mt-1">
             ID is locked to match the polling display.
           </p>
         )}
@@ -330,39 +330,39 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
 
       {/* Per-display dimensions */}
       <div>
-        <span className="text-xs text-neutral-400 block mb-2">
+        <span className="text-xs text-hs-text-muted block mb-2">
           Resolution
           {prefilledViewport && (
-            <span className="ml-2 text-neutral-600">
+            <span className="ml-2 text-hs-text-faint">
               (reported by display: {prefilledViewport.width} × {prefilledViewport.height})
             </span>
           )}
         </span>
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
-            <span className="text-[11px] text-neutral-500">Width</span>
+            <span className="text-[11px] text-hs-text-faint">Width</span>
             <input
               type="number"
               min={1}
               max={16384}
               value={width}
               onChange={(e) => setWidth(Number(e.target.value) || 0)}
-              className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
             />
           </label>
           <label className="block">
-            <span className="text-[11px] text-neutral-500">Height</span>
+            <span className="text-[11px] text-hs-text-faint">Height</span>
             <input
               type="number"
               min={1}
               max={16384}
               value={height}
               onChange={(e) => setHeight(Number(e.target.value) || 0)}
-              className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
             />
           </label>
         </div>
-        <p className="text-[11px] text-neutral-500 mt-2">
+        <p className="text-[11px] text-hs-text-faint mt-2">
           Set this to match the physical display the kiosk is rendering on.
           Modules will be laid out against this canvas size when you edit
           this display&apos;s screens.
@@ -370,27 +370,27 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       </div>
 
       <label className="block">
-        <span className="text-xs text-neutral-400">Rotation</span>
+        <span className="text-xs text-hs-text-muted">Rotation</span>
         <select
           value={transform}
           onChange={(e) =>
             handleTransformChange(e.target.value as 'normal' | '90' | '180' | '270')
           }
-          className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         >
           <option value="normal">Normal (landscape)</option>
           <option value="90">90° clockwise (portrait)</option>
           <option value="180">180° (inverted)</option>
           <option value="270">270° clockwise (portrait)</option>
         </select>
-        <p className="text-[11px] text-neutral-500 mt-1">
+        <p className="text-[11px] text-hs-text-faint mt-1">
           Picks the canvas orientation. The width and height above auto-swap
           so the longer edge matches whichever axis the rotation chose.
         </p>
       </label>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs text-red-300">
+        <div className="rounded-md bg-hs-danger/10 border border-hs-danger/30 px-3 py-2 text-xs text-hs-danger">
           {error}
         </div>
       )}
@@ -408,12 +408,11 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
 /* ─── Main section ────────────────────────────────── */
 
 /**
- * Formerly `DisplaysSection`. After Phase 4 of the settings-defaults
- * redesign this is the "All displays" landing page reachable from the
- * sidebar's `Per display → All displays` entry.
+ * Formerly `DisplaysSection`. This is the "All displays" landing page
+ * reachable from the sidebar's `Per display → All displays` entry.
  *
- * Phase 5 rebuilt this as a 2-column card grid matching the mockup —
- * each card is clickable and navigates to the per-display drill-down
+ * Rebuilt as a 2-column card grid matching the mockup — each card is
+ * clickable and navigates to the per-display drill-down
  * page (`?section=display&id=<id>&subtab=overview`) where editing,
  * renaming, deleting, and screen layout now live. The inline per-card
  * pencil / trash / edit-screens affordances were removed because their
@@ -518,25 +517,25 @@ export default function DisplaysIndexPage() {
     <section>
       <div className="flex items-start justify-between mb-5">
         <div className="max-w-2xl">
-          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Displays</div>
-          <h1 className="text-xl font-semibold text-neutral-100">
+          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">Displays</div>
+          <h1 className="text-xl font-semibold text-hs-text-primary">
             {isEmpty
               ? 'Run Home Screens on multiple displays'
               : `${displays.length} ${displays.length === 1 ? 'display' : 'displays'} in this home`}
           </h1>
           {isEmpty ? (
-            <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
+            <p className="text-sm text-hs-text-faint mt-1 leading-relaxed">
               Drive more than one screen from this Pi — a kitchen touchscreen, a
               bedroom monitor, a living-room TV — each with its own layout,
               resolution, and rotation. This Pi becomes the hub and serves all of
               them; secondary displays can be cheap Pi Zeros running{' '}
-              <code className="text-[12px] px-1 py-0.5 rounded bg-neutral-800 text-neutral-300">
+              <code className="text-[12px] px-1 py-0.5 rounded bg-hs-card text-hs-text-secondary">
                 install.sh --display-only
               </code>
               .
             </p>
           ) : (
-            <p className="text-sm text-neutral-500 mt-1">
+            <p className="text-sm text-hs-text-faint mt-1">
               Click a display to edit its own settings. Everything else uses the shared{' '}
               <a
                 href="?section=defaults&page=display"
@@ -544,7 +543,7 @@ export default function DisplaysIndexPage() {
                   e.preventDefault();
                   router.push('?section=defaults&page=display');
                 }}
-                className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
+                className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
                 Defaults
               </a>
@@ -556,7 +555,7 @@ export default function DisplaysIndexPage() {
           <button
             onClick={refresh}
             disabled={refreshing}
-            className="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 disabled:opacity-50"
+            className="text-xs text-hs-text-faint hover:text-hs-text-secondary flex items-center gap-1 disabled:opacity-50"
             title="Refresh heartbeats"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
@@ -565,7 +564,7 @@ export default function DisplaysIndexPage() {
           {!adding && (
             <button
               onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
             >
               <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
               Add display
@@ -593,36 +592,36 @@ export default function DisplaysIndexPage() {
           // context, and the opt-in step (Add display → auto-bootstrap of
           // "Main") is irreversible enough that it deserves a paragraph of
           // reassurance rather than a single neutral-500 line.
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 px-5 py-5 mb-5">
-            <div className="text-sm font-medium text-neutral-200 mb-1.5">
+          <div className="rounded-lg border border-hs-border bg-hs-panel/40 px-5 py-5 mb-5">
+            <div className="text-sm font-medium text-hs-text-body mb-1.5">
               This install is running in single-display mode
             </div>
-            <p className="text-[13px] text-neutral-400 leading-relaxed mb-3">
+            <p className="text-[13px] text-hs-text-muted leading-relaxed mb-3">
               Your current setup counts as one display but isn&apos;t registered here
               yet — multi-display support is opt-in so existing installs stay
               unchanged until you explicitly add a second screen. The moment you
               add your first display, this Pi&apos;s current layout becomes a display
-              called <span className="text-neutral-200 font-medium">Main</span> and
+              called <span className="text-hs-text-body font-medium">Main</span> and
               keeps running exactly as it does today.
             </p>
-            <ul className="text-[13px] text-neutral-400 space-y-1.5 mb-1">
+            <ul className="text-[13px] text-hs-text-muted space-y-1.5 mb-1">
               <li className="flex gap-2">
-                <span className="text-neutral-600 shrink-0">→</span>
+                <span className="text-hs-text-faint shrink-0">→</span>
                 <span>
-                  Click <span className="text-neutral-200 font-medium">Add display</span> above
+                  Click <span className="text-hs-text-body font-medium">Add display</span> above
                   to register a new screen — give it a name, resolution, and rotation,
                   then design its own layout in the editor.
                 </span>
               </li>
               <li className="flex gap-2">
-                <span className="text-neutral-600 shrink-0">→</span>
+                <span className="text-hs-text-faint shrink-0">→</span>
                 <span>
                   Or flash another Pi with{' '}
-                  <code className="text-[12px] px-1 py-0.5 rounded bg-neutral-800 text-neutral-300">
+                  <code className="text-[12px] px-1 py-0.5 rounded bg-hs-card text-hs-text-secondary">
                     install.sh --display-only --backend http://&lt;this-pi&gt;:3000
                   </code>
                   . Once it boots, it will appear below as an{' '}
-                  <span className="text-amber-300">unadopted display</span> waiting
+                  <span className="text-hs-warning">unadopted display</span> waiting
                   to be adopted with one click.
                 </span>
               </li>
@@ -645,14 +644,14 @@ export default function DisplaysIndexPage() {
       {/* Unadopted — unchanged from the mockup, which renders this block
           identically to the current implementation. */}
       {unadopted.length > 0 && (
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] px-4 py-3.5">
+        <div className="rounded-lg border border-hs-warning/20 bg-hs-warning/[0.04] px-4 py-3.5">
           <div className="flex items-center gap-2 mb-1">
-            <Monitor className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-medium text-amber-200">
+            <Monitor className="w-4 h-4 text-hs-warning" />
+            <span className="text-sm font-medium text-hs-warning">
               {unadopted.length} unadopted display{unadopted.length === 1 ? '' : 's'} waiting
             </span>
           </div>
-          <p className="text-xs text-neutral-500 mb-3 pl-6">
+          <p className="text-xs text-hs-text-faint mb-3 pl-6">
             These Pis are connected to the hub but have not been registered yet.
             Click <strong>Adopt</strong> to assign them screens.
           </p>
@@ -677,11 +676,11 @@ export default function DisplaysIndexPage() {
               return (
                 <div
                   key={un.id}
-                  className="rounded-md border border-amber-500/20 bg-amber-500/[0.03] px-3 py-2.5 flex items-start gap-3"
+                  className="rounded-md border border-hs-warning/20 bg-hs-warning/[0.03] px-3 py-2.5 flex items-start gap-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <code className="text-xs font-mono text-amber-300">{un.id}</code>
-                    <div className="flex items-center gap-3 text-[11px] text-neutral-500 mt-0.5 flex-wrap">
+                    <code className="text-xs font-mono text-hs-warning">{un.id}</code>
+                    <div className="flex items-center gap-3 text-[11px] text-hs-text-faint mt-0.5 flex-wrap">
                       <span>Last seen {formatLastSeen(un.lastSeen)}</span>
                       {soleReporter && (
                         <>
@@ -689,7 +688,7 @@ export default function DisplaysIndexPage() {
                             {soleReporter.width}×{soleReporter.height} reported
                           </span>
                           {formatClientAddress(soleReporter.clientAddress) && (
-                            <span className="font-mono text-neutral-600">
+                            <span className="font-mono text-hs-text-faint">
                               from {formatClientAddress(soleReporter.clientAddress)}
                             </span>
                           )}
@@ -702,26 +701,26 @@ export default function DisplaysIndexPage() {
                       )}
                     </div>
                     {multipleReporters && (
-                      <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2.5 py-1.5 text-[11px] text-amber-300">
+                      <div className="mt-2 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
                         <div className="font-medium mb-1">
                           {viewports.length} clients reporting with this ID
                         </div>
-                        <ul className="space-y-0.5 text-neutral-400">
+                        <ul className="space-y-0.5 text-hs-text-muted">
                           {viewports.map((v, i) => {
                             const addr = formatClientAddress(v.clientAddress);
                             return (
                               <li key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`} className="tabular-nums">
                                 {addr && (
-                                  <span className="font-mono text-amber-300/80">{addr}</span>
+                                  <span className="font-mono text-hs-warning/80">{addr}</span>
                                 )}
-                                {addr && <span className="text-neutral-600"> · </span>}
+                                {addr && <span className="text-hs-text-faint"> · </span>}
                                 {v.width}×{v.height}
-                                <span className="text-neutral-600"> · {formatLastSeen(v.lastSeen)}</span>
+                                <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen)}</span>
                               </li>
                             );
                           })}
                         </ul>
-                        <p className="text-neutral-500 mt-1">
+                        <p className="text-hs-text-faint mt-1">
                           Two or more clients are POSTing with this display ID.
                           Check the source IPs above to find which device is
                           actually reporting — most often a duplicate
@@ -743,10 +742,10 @@ export default function DisplaysIndexPage() {
 
       {/* Auto-save status toast */}
       {(saving || saveMessage) && (
-        <div className="flex items-center gap-2 mt-6 border-t border-neutral-800 pt-4 text-xs">
-          {saving && <span className="text-neutral-500">Saving…</span>}
+        <div className="flex items-center gap-2 mt-6 border-t border-hs-border pt-4 text-xs">
+          {saving && <span className="text-hs-text-faint">Saving…</span>}
           {!saving && saveMessage && (
-            <span className={saveMessage === 'Saved' ? 'text-green-400' : 'text-red-400'}>
+            <span className={saveMessage === 'Saved' ? 'text-hs-success' : 'text-hs-danger'}>
               {saveMessage}
             </span>
           )}
@@ -798,29 +797,29 @@ function DisplayCard({
   const status = (() => {
     if (!lastSeen) {
       return {
-        className: 'bg-neutral-800 border-neutral-700 text-neutral-400',
-        dot: 'bg-neutral-600',
+        className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
+        dot: 'bg-hs-card',
         label: '—',
       };
     }
     const diff = Date.now() - lastSeen;
     if (diff < 30_000) {
       return {
-        className: 'bg-green-500/10 border-green-500/30 text-green-300',
-        dot: 'bg-green-500',
+        className: 'bg-hs-success/10 border-hs-success/30 text-hs-success',
+        dot: 'bg-hs-success',
         label: `Online · ${formatLastSeen(lastSeen)}`,
       };
     }
     if (diff < 300_000) {
       return {
-        className: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
-        dot: 'bg-amber-500',
+        className: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning',
+        dot: 'bg-hs-warning',
         label: `Idle · ${formatLastSeen(lastSeen)}`,
       };
     }
     return {
-      className: 'bg-neutral-800 border-neutral-700 text-neutral-400',
-      dot: 'bg-neutral-600',
+      className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
+      dot: 'bg-hs-card',
       label: `Offline · ${formatLastSeen(lastSeen)}`,
     };
   })();
@@ -831,14 +830,14 @@ function DisplayCard({
       onClick={onOpen}
       className={`text-left rounded-xl border px-5 py-4 transition-colors ${
         isMain
-          ? 'border-blue-500/30 bg-neutral-900/50 hover:border-blue-500/50 hover:bg-neutral-800/60'
-          : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 hover:bg-neutral-800/60'
+          ? 'border-hs-accent/30 bg-hs-panel/50 hover:border-hs-accent/50 hover:bg-hs-card/60'
+          : 'border-hs-border bg-hs-panel/40 hover:border-hs-border-strong hover:bg-hs-card/60'
       }`}
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="min-w-0">
-          <div className="text-sm font-medium text-neutral-100 truncate">{display.name}</div>
-          <code className="text-[10px] text-neutral-500 font-mono">{display.id}</code>
+          <div className="text-sm font-medium text-hs-text-primary truncate">{display.name}</div>
+          <code className="text-[10px] text-hs-text-faint font-mono">{display.id}</code>
         </div>
         <span
           className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${status.className}`}
@@ -847,7 +846,7 @@ function DisplayCard({
           {status.label}
         </span>
       </div>
-      <div className="flex items-center gap-3 text-[11px] text-neutral-500 flex-wrap">
+      <div className="flex items-center gap-3 text-[11px] text-hs-text-faint flex-wrap">
         {dimensions && <span className="tabular-nums">{dimensions}</span>}
         <span>
           {display.displayTransform && display.displayTransform !== 'normal'
@@ -858,17 +857,17 @@ function DisplayCard({
           {screenCount} screen{screenCount === 1 ? '' : 's'}
         </span>
         {reporterIp ? (
-          <span className="font-mono text-neutral-600">{reporterIp}</span>
+          <span className="font-mono text-hs-text-faint">{reporterIp}</span>
         ) : (
-          <span className="font-mono text-neutral-700">—</span>
+          <span className="font-mono text-hs-text-faint">—</span>
         )}
       </div>
       {multipleReporters && (
-        <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2.5 py-1.5 text-[11px] text-amber-300">
+        <div className="mt-3 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
           <div className="font-medium mb-1">
             {reports.length} distinct clients reporting for this display
           </div>
-          <ul className="space-y-0.5 text-neutral-400">
+          <ul className="space-y-0.5 text-hs-text-muted">
             {reports.map((v, i) => {
               const addr = formatClientAddress(v.clientAddress);
               return (
@@ -876,11 +875,11 @@ function DisplayCard({
                   key={`${v.clientAddress ?? '?'}-${v.width}x${v.height}-${i}`}
                   className="tabular-nums"
                 >
-                  {addr && <span className="font-mono text-amber-300/80">{addr}</span>}
-                  {addr && <span className="text-neutral-600"> · </span>}
+                  {addr && <span className="font-mono text-hs-warning/80">{addr}</span>}
+                  {addr && <span className="text-hs-text-faint"> · </span>}
                   {v.width}×{v.height}
-                  {v.count > 1 && <span className="text-neutral-600"> · ×{v.count} tabs</span>}
-                  <span className="text-neutral-600"> · {formatLastSeen(v.lastSeen)}</span>
+                  {v.count > 1 && <span className="text-hs-text-faint"> · ×{v.count} tabs</span>}
+                  <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen)}</span>
                 </li>
               );
             })}

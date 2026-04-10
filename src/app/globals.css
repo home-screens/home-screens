@@ -1,31 +1,127 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Theme tokens — dark on :root (the default), light on [data-theme="light"].
+   The bootstrap script in layout.tsx resolves "system" to one of these two
+   before first paint, so CSS never needs a "system" selector.
+   ============================================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* DARK — the default. Captured from current Tailwind class usage. */
+  --hs-bg-body:        #0a0a0a;
+  --hs-bg-panel:       #171717;
+  --hs-bg-card:        #262626;
+  --hs-bg-canvas:      #0f0f0f;
+  --hs-bg-input:       #1f1f1f;
+  --hs-bg-input-hover: #262626;
+  --hs-bg-hover:       #2e2e2e;
+  --hs-bg-active:      #333333;
+
+  --hs-border:         #262626;
+  --hs-border-strong:  #404040;
+  --hs-border-subtle:  #1f1f1f;
+
+  --hs-text-primary:   #f5f5f5;
+  --hs-text-body:      #e5e5e5;
+  --hs-text-secondary: #d4d4d4;
+  --hs-text-muted:     #a3a3a3;
+  --hs-text-faint:     #737373;
+
+  --hs-accent:         #3b82f6;
+  --hs-accent-hover:   #60a5fa;
+  --hs-accent-soft:    rgba(59, 130, 246, 0.10);
+  --hs-accent-ring:    rgba(59, 130, 246, 0.30);
+
+  --hs-success:        #22c55e;
+  --hs-danger:         #f87171;
+  --hs-warning:        #f59e0b;
+
+  --hs-logo-wordmark:    rgba(103, 232, 249, 0.9);
+}
+
+[data-theme="light"] {
+  /* LIGHT — elevation-layered palette for depth and reduced glare.
+     Hierarchy (darkest → lightest): canvas → body → panel → card.
+     Total lightness spread ≈ 9 % (vs ≈ 4 % before). */
+  --hs-bg-body:        #eef0f3;
+  --hs-bg-panel:       #f5f6f8;
+  --hs-bg-card:        #f9fafc;
+  --hs-bg-canvas:      #e6e8ed;
+  --hs-bg-input:       #f0f2f5;
+  --hs-bg-input-hover: #e8eaef;
+  --hs-bg-hover:       #e8ebf0;
+  --hs-bg-active:      #dce4f5;
+
+  --hs-border:         #cdd2db;
+  --hs-border-strong:  #c0c6d1;
+  --hs-border-subtle:  #d8dce4;
+
+  --hs-text-primary:   #0f172a;
+  --hs-text-body:      #1f2937;
+  --hs-text-secondary: #475569;
+  --hs-text-muted:     #64748b;
+  --hs-text-faint:     #94a3b8;
+
+  --hs-accent:         #2563eb;
+  --hs-accent-hover:   #1d4ed8;
+  --hs-accent-soft:    #dbeafe;
+  --hs-accent-ring:    rgba(37, 99, 235, 0.22);
+
+  --hs-success:        #059669;
+  --hs-danger:         #dc2626;
+  --hs-warning:        #d97706;
+
+  --hs-logo-wordmark:    #0e7490;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
 
-  /* Semantic z-index scale — use z-modal, z-confirm, z-nested in markup */
+  /* Semantic z-index scale */
   --z-index-modal: 60;
   --z-index-confirm: 70;
   --z-index-nested: 80;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Background tokens */
+  --color-hs-body:         var(--hs-bg-body);
+  --color-hs-panel:        var(--hs-bg-panel);
+  --color-hs-card:         var(--hs-bg-card);
+  --color-hs-canvas:       var(--hs-bg-canvas);
+  --color-hs-input:        var(--hs-bg-input);
+  --color-hs-input-hover:  var(--hs-bg-input-hover);
+  --color-hs-hover:        var(--hs-bg-hover);
+  --color-hs-active:       var(--hs-bg-active);
+
+  /* Border tokens */
+  --color-hs-border:        var(--hs-border);
+  --color-hs-border-strong: var(--hs-border-strong);
+  --color-hs-border-subtle: var(--hs-border-subtle);
+
+  /* Text tokens */
+  --color-hs-text-primary:   var(--hs-text-primary);
+  --color-hs-text-body:      var(--hs-text-body);
+  --color-hs-text-secondary: var(--hs-text-secondary);
+  --color-hs-text-muted:     var(--hs-text-muted);
+  --color-hs-text-faint:     var(--hs-text-faint);
+
+  /* Accent tokens */
+  --color-hs-accent:        var(--hs-accent);
+  --color-hs-accent-hover:  var(--hs-accent-hover);
+  --color-hs-accent-soft:   var(--hs-accent-soft);
+  --color-hs-accent-ring:   var(--hs-accent-ring);
+
+  /* Brand tokens */
+  --color-hs-logo-wordmark: var(--hs-logo-wordmark);
+
+  /* Semantic tokens */
+  --color-hs-success:  var(--hs-success);
+  --color-hs-danger:   var(--hs-danger);
+  --color-hs-warning:  var(--hs-warning);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--hs-bg-body);
+  color: var(--hs-text-body);
   font-family: Arial, Helvetica, sans-serif;
 }
 

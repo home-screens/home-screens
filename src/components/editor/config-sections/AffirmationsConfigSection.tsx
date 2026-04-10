@@ -77,7 +77,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Categories */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-neutral-400">Content Categories</span>
+        <span className="text-xs text-hs-text-muted">Content Categories</span>
         {CATEGORIES.map((cat) => (
           <Toggle
             key={cat.value}
@@ -120,14 +120,14 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Custom Entries */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs text-neutral-400">Custom Entries ({customEntries.length})</span>
+        <span className="text-xs text-hs-text-muted">Custom Entries ({customEntries.length})</span>
         {customEntries.map((entry) => (
-          <div key={entry.id} className="flex items-start gap-1 text-xs bg-neutral-800 rounded p-1.5">
-            <span className="flex-1 text-neutral-300 leading-snug">{entry.text}</span>
+          <div key={entry.id} className="flex items-start gap-1 text-xs bg-hs-card rounded p-1.5">
+            <span className="flex-1 text-hs-text-secondary leading-snug">{entry.text}</span>
             <button
               type="button"
               onClick={() => removeCustom(entry.id)}
-              className="text-neutral-500 hover:text-red-400 shrink-0"
+              className="text-hs-text-faint hover:text-hs-danger shrink-0"
             >
               &times;
             </button>

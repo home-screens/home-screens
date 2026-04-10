@@ -184,7 +184,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
             style={{
               fontSize: 13,
               fontWeight: innerView === v ? 600 : 500,
-              color: innerView === v ? viewColors[v] : '#525252',
+              color: innerView === v ? viewColors[v] : 'var(--hs-text-faint)',
               paddingBottom: 4,
               cursor: 'pointer',
               background: 'none',
@@ -305,8 +305,8 @@ function RedeemSection({
                 minHeight: 44,
                 borderRadius: 999,
                 border: `2px solid ${isActive ? member.color : 'transparent'}`,
-                background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
-                color: isActive ? member.color : 'rgba(255,255,255,0.6)',
+                background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'var(--hs-bg-card)',
+                color: isActive ? member.color : 'var(--hs-text-muted)',
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -316,7 +316,7 @@ function RedeemSection({
               }}
             >
               {member.emoji ? (
-                <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'rgba(255,255,255,0.6)'} />
+                <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} />
               ) : (
                 <span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>
               )}
@@ -333,17 +333,17 @@ function RedeemSection({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: 20,
-          background: 'rgba(255,255,255,0.04)',
+          background: 'var(--hs-bg-card)',
           borderRadius: 16,
           marginBottom: 16,
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid var(--hs-bg-hover)',
         }}
       >
         <div>
           <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1, color: selectedColor }}>
             {balance}
           </div>
-          <div style={{ fontSize: 12, color: '#737373', fontWeight: 500, marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', fontWeight: 500, marginTop: 4 }}>
             points available
           </div>
         </div>
@@ -364,13 +364,13 @@ function RedeemSection({
       </div>
 
       {/* Available Rewards */}
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#525252', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
         Available Rewards
       </div>
 
       {rewards.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: '#525252', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
           No rewards set up yet
         </div>
       )}
@@ -388,14 +388,14 @@ function RedeemSection({
               alignItems: 'center',
               gap: 12,
               padding: '14px 16px',
-              background: 'rgba(255,255,255,0.06)',
+              background: 'var(--hs-bg-hover)',
               borderRadius: 12,
               marginBottom: 6,
               border: 'none',
               width: '100%',
               textAlign: 'left' as const,
               cursor: canAfford ? 'pointer' : 'not-allowed',
-              opacity: canAfford ? 1 : 0.4,
+              opacity: canAfford ? 1 : 0.7,
               transition: 'all 0.15s',
               color: 'inherit',
             }}
@@ -415,9 +415,9 @@ function RedeemSection({
               <ChoreIcon value={reward.emoji} size={20} color={selectedColor} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: '#e5e5e5' }}>{reward.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
               {reward.description && (
-                <div style={{ fontSize: 12, color: '#737373', marginTop: 1 }}>{reward.description}</div>
+                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>{reward.description}</div>
               )}
             </div>
             <div
@@ -428,8 +428,8 @@ function RedeemSection({
                 borderRadius: 999,
                 flexShrink: 0,
                 whiteSpace: 'nowrap' as const,
-                background: canAfford ? `color-mix(in srgb, ${selectedColor} 15%, transparent)` : 'rgba(255,255,255,0.06)',
-                color: canAfford ? selectedColor : '#525252',
+                background: canAfford ? `color-mix(in srgb, ${selectedColor} 15%, transparent)` : 'var(--hs-bg-hover)',
+                color: canAfford ? selectedColor : 'var(--hs-text-muted)',
               }}
             >
               {reward.cost} pts
@@ -454,10 +454,10 @@ function RewardsManageSection({
 
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#525252', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
         Rewards
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#333', fontWeight: 500, textTransform: 'none' as const, letterSpacing: 0 }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-border-strong)', fontWeight: 500, textTransform: 'none' as const, letterSpacing: 0 }}>
           {rewards.length} reward{rewards.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -472,7 +472,7 @@ function RewardsManageSection({
             alignItems: 'center',
             gap: 12,
             padding: '14px 16px',
-            background: 'rgba(255,255,255,0.04)',
+            background: 'var(--hs-bg-card)',
             borderRadius: 12,
             marginBottom: 6,
             cursor: 'pointer',
@@ -489,22 +489,22 @@ function RewardsManageSection({
               width: 36,
               height: 36,
               borderRadius: 10,
-              background: 'rgba(255,255,255,0.06)',
+              background: 'var(--hs-bg-hover)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <ChoreIcon value={reward.emoji} size={18} color="#a3a3a3" />
+            <ChoreIcon value={reward.emoji} size={18} color="var(--hs-text-muted)" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 500, color: '#e5e5e5' }}>{reward.name}</div>
-            <div style={{ fontSize: 12, color: '#525252', marginTop: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
               {reward.cost} pts · {reward.memberIds.length === 0 ? 'Everyone' : reward.enabled ? `${reward.memberIds.length} member${reward.memberIds.length !== 1 ? 's' : ''}` : 'Disabled'}
             </div>
           </div>
-          <div style={{ color: '#333', fontSize: 18 }}>›</div>
+          <div style={{ color: 'var(--hs-border-strong)', fontSize: 18 }}>›</div>
         </button>
       ))}
 
@@ -519,9 +519,9 @@ function RewardsManageSection({
           padding: '14px 16px',
           minHeight: 48,
           borderRadius: 12,
-          border: '2px dashed #2a2a2a',
+          border: '2px dashed var(--hs-border)',
           background: 'transparent',
-          color: '#525252',
+          color: 'var(--hs-text-faint)',
           fontSize: 14,
           fontWeight: 500,
           cursor: 'pointer',
@@ -548,7 +548,7 @@ function BalancesSection({
 }) {
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#525252', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
         Point Balances
       </div>
@@ -561,7 +561,7 @@ function BalancesSection({
             alignItems: 'center',
             gap: 8,
             padding: '10px 16px',
-            background: 'rgba(255,255,255,0.04)',
+            background: 'var(--hs-bg-card)',
             borderRadius: 12,
             marginBottom: 6,
           }}
@@ -583,10 +583,10 @@ function BalancesSection({
           >
             {member.name[0]}
           </div>
-          <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#e5e5e5' }}>
+          <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--hs-text-body)' }}>
             {member.name}
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#a3a3a3', marginRight: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
             {data?.balances[member.id] ?? 0} pts
           </div>
           <button
@@ -596,9 +596,9 @@ function BalancesSection({
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: '1px solid #2a2a2a',
-              background: '#1a1a1a',
-              color: '#a3a3a3',
+              border: '1px solid var(--hs-border)',
+              background: 'var(--hs-bg-panel)',
+              color: 'var(--hs-text-muted)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -614,9 +614,9 @@ function BalancesSection({
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: '1px solid #2a2a2a',
-              background: '#1a1a1a',
-              color: '#a3a3a3',
+              border: '1px solid var(--hs-border)',
+              background: 'var(--hs-bg-panel)',
+              color: 'var(--hs-text-muted)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -642,13 +642,13 @@ function HistorySection({
 }) {
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#525252', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>📜</span>
         Recent Redemptions
       </div>
 
       {redemptions.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: '#525252', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
           No redemptions yet
         </div>
       )}
@@ -661,7 +661,7 @@ function HistorySection({
             alignItems: 'center',
             gap: 10,
             padding: '10px 0',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            borderBottom: '1px solid var(--hs-bg-card)',
             fontSize: 13,
           }}
         >
@@ -670,17 +670,17 @@ function HistorySection({
               width: 8,
               height: 8,
               borderRadius: '50%',
-              background: memberColorMap.get(r.memberId) ?? '#525252',
+              background: memberColorMap.get(r.memberId) ?? 'var(--hs-text-faint)',
               flexShrink: 0,
             }}
           />
-          <div style={{ flex: 1, color: '#a3a3a3' }}>
-            <strong style={{ color: '#e5e5e5', fontWeight: 500 }}>{r.memberName}</strong>
+          <div style={{ flex: 1, color: 'var(--hs-text-muted)' }}>
+            <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.memberName}</strong>
             {' redeemed '}
-            <strong style={{ color: '#e5e5e5', fontWeight: 500 }}>{r.rewardName}</strong>
+            <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.rewardName}</strong>
             {' — '}{r.cost} pts
           </div>
-          <div style={{ fontSize: 11, color: '#525252', flexShrink: 0 }}>
+          <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
             {formatTimeAgo(r.redeemedAt)}
           </div>
         </div>

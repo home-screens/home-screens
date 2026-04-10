@@ -28,20 +28,20 @@ function TodoistTokenStatus() {
 
   return (
     <div className="space-y-1">
-      <span className="text-xs text-neutral-400">API Token</span>
+      <span className="text-xs text-hs-text-muted">API Token</span>
       {configured === null ? (
-        <p className="text-[10px] text-neutral-500">Checking...</p>
+        <p className="text-[10px] text-hs-text-faint">Checking...</p>
       ) : configured ? (
-        <span className="flex items-center gap-1.5 text-[10px] text-green-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+        <span className="flex items-center gap-1.5 text-[10px] text-hs-success">
+          <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
           Connected
         </span>
       ) : (
-        <p className="text-[10px] text-neutral-500">
+        <p className="text-[10px] text-hs-text-faint">
           Not configured.{' '}
           <a
             href="/editor/settings?tab=integrations"
-            className="text-blue-400 hover:text-blue-300 underline"
+            className="text-hs-accent hover:text-hs-accent-hover underline"
           >
             Settings &rarr; Integrations
           </a>
@@ -73,7 +73,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     <div className="space-y-3">
       <TodoistTokenStatus />
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Title</span>
+        <span className="text-xs text-hs-text-muted">Title</span>
         <input
           type="text"
           value={(c.title as string) || 'Todoist'}
@@ -82,7 +82,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View Mode</span>
+        <span className="text-xs text-hs-text-muted">View Mode</span>
         <select
           value={viewMode}
           onChange={(e) => set({ viewMode: e.target.value })}
@@ -95,7 +95,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       </label>
       {viewMode !== 'focus' && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Group By</span>
+          <span className="text-xs text-hs-text-muted">Group By</span>
           <select
             value={(c.groupBy as string) || 'date'}
             onChange={(e) => set({ groupBy: e.target.value })}
@@ -110,7 +110,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         </label>
       )}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Sort By</span>
+        <span className="text-xs text-hs-text-muted">Sort By</span>
         <select
           value={(c.sortBy as string) || 'default'}
           onChange={(e) => set({ sortBy: e.target.value })}
@@ -123,7 +123,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         </select>
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Filter Projects (comma-separated)</span>
+        <span className="text-xs text-hs-text-muted">Filter Projects (comma-separated)</span>
         <input
           type="text"
           value={(c.projectFilter as string) || ''}
@@ -133,7 +133,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Filter Labels (comma-separated)</span>
+        <span className="text-xs text-hs-text-muted">Filter Labels (comma-separated)</span>
         <input
           type="text"
           value={(c.labelFilter as string) || ''}
@@ -148,7 +148,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       <Toggle label="Show Description" checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
       <Toggle label="Show No-Date Tasks" checked={c.showNoDueDate !== false} onChange={(v) => set({ showNoDueDate: v })} />
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Max Tasks</span>
+        <span className="text-xs text-hs-text-muted">Max Tasks</span>
         <input
           type="number"
           min={1}

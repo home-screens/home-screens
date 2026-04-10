@@ -42,20 +42,20 @@ const ALL_STEPS = [...new Set([...TARBALL_STEPS, ...GIT_STEPS])];
 
 const STEP_STYLES: Record<StepState, { icon: React.ReactNode; textClass: string }> = {
   done: {
-    icon: <span className="text-green-400 text-xs">&#10003;</span>,
-    textClass: 'text-neutral-500',
+    icon: <span className="text-hs-success text-xs">&#10003;</span>,
+    textClass: 'text-hs-text-faint',
   },
   active: {
-    icon: <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />,
-    textClass: 'text-neutral-100',
+    icon: <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-accent-hover animate-pulse" />,
+    textClass: 'text-hs-text-primary',
   },
   error: {
-    icon: <span className="text-red-400 text-xs font-bold">&#10005;</span>,
-    textClass: 'text-red-400',
+    icon: <span className="text-hs-danger text-xs font-bold">&#10005;</span>,
+    textClass: 'text-hs-danger',
   },
   pending: {
-    icon: <span className="inline-block w-1.5 h-1.5 rounded-full bg-neutral-700" />,
-    textClass: 'text-neutral-600',
+    icon: <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-card" />,
+    textClass: 'text-hs-text-faint',
   },
 };
 
@@ -113,10 +113,10 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/70">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-neutral-700 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-neutral-100">
+        <div className="px-5 py-4 border-b border-hs-border-strong flex-shrink-0">
+          <h2 className="text-lg font-semibold text-hs-text-primary">
             {`${isRollback ? 'Rolling back' : 'Upgrading'} to ${targetTag}`}
           </h2>
         </div>
@@ -125,15 +125,15 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
           {/* Overall progress bar */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-neutral-400 truncate mr-2">{progress.message}</span>
-              <span className="text-xs text-neutral-500 font-mono flex-shrink-0">
+              <span className="text-xs text-hs-text-muted truncate mr-2">{progress.message}</span>
+              <span className="text-xs text-hs-text-faint font-mono flex-shrink-0">
                 {progress.progress}%
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-hs-card overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ease-out ${
-                  failed ? 'bg-red-500' : done ? 'bg-green-500' : 'bg-blue-500'
+                  failed ? 'bg-hs-danger' : done ? 'bg-hs-success' : 'bg-hs-accent'
                 }`}
                 style={{ width: `${progress.progress}%` }}
               />
@@ -155,17 +155,17 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
                   key={step}
                   className={`rounded-lg overflow-hidden border transition-colors ${
                     state === 'active'
-                      ? 'border-blue-500/30 bg-neutral-800/20'
+                      ? 'border-hs-accent/30 bg-hs-card/20'
                       : state === 'error'
-                        ? 'border-red-500/30 bg-red-950/10'
-                        : 'border-neutral-800/50'
+                        ? 'border-hs-danger/30 bg-hs-danger/10'
+                        : 'border-hs-border/50'
                   }`}
                 >
                   <button
                     disabled={!canExpand}
                     onClick={() => toggleExpand(step)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
-                      canExpand ? 'cursor-pointer hover:bg-neutral-800/30' : 'cursor-default'
+                      canExpand ? 'cursor-pointer hover:bg-hs-card/30' : 'cursor-default'
                     }`}
                   >
                     <span className="w-4 flex-shrink-0 text-center">
@@ -175,16 +175,16 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
                       {STEP_LABELS[step] ?? step}
                     </span>
                     {canExpand && (
-                      <span className="text-neutral-600 text-[10px]">{isOpen ? '▾' : '▸'}</span>
+                      <span className="text-hs-text-faint text-[10px]">{isOpen ? '▾' : '▸'}</span>
                     )}
                   </button>
 
                   {isOpen && hasLog && (
                     <div
                       ref={state === 'active' || state === 'error' ? activeLogRef : undefined}
-                      className="border-t border-neutral-800/50 bg-black/40 max-h-48 overflow-y-auto"
+                      className="border-t border-hs-border/50 bg-black/40 max-h-48 overflow-y-auto"
                     >
-                      <pre className="px-3 py-2 text-[11px] leading-relaxed font-mono text-neutral-500 whitespace-pre-wrap break-all">
+                      <pre className="px-3 py-2 text-[11px] leading-relaxed font-mono text-hs-text-faint whitespace-pre-wrap break-all">
                         {log}
                       </pre>
                     </div>
@@ -196,14 +196,14 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
 
           {/* Error detail */}
           {failed && progress.error && (
-            <div className="rounded-md bg-red-950/50 border border-red-800/50 p-3">
-              <p className="text-xs text-red-300 font-mono break-all">{progress.error}</p>
+            <div className="rounded-md bg-hs-danger/20 border border-hs-danger/30 p-3">
+              <p className="text-xs text-hs-danger font-mono break-all">{progress.error}</p>
             </div>
           )}
 
           {/* Warning */}
           {!done && !failed && (
-            <p className="text-xs text-yellow-500/70 text-center">
+            <p className="text-xs text-hs-warning/70 text-center">
               {cancelBlocked
                 ? 'Installing update — do not close or power off the device'
                 : 'Do not close this page or power off the device'}
@@ -212,14 +212,14 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
 
           {/* Success — polling for server */}
           {done && (
-            <p className="text-xs text-green-400 text-center">
+            <p className="text-xs text-hs-success text-center">
               {reloadStatus || 'Upgrade complete!'}
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-neutral-700 flex-shrink-0">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-hs-border-strong flex-shrink-0">
           {!done && !failed && (
             <Button variant="danger" size="sm" onClick={handleCancel} disabled={cancelBlocked}>
               Cancel

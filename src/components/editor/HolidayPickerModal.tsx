@@ -153,11 +153,11 @@ export default function HolidayPickerModal({
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-md flex flex-col" style={{ maxHeight: '80vh' }}>
+      <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-md flex flex-col" style={{ maxHeight: '80vh' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
-          <h2 className="text-sm font-semibold text-neutral-100">Add Holidays</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-200 text-lg leading-none">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
+          <h2 className="text-sm font-semibold text-hs-text-primary">Add Holidays</h2>
+          <button onClick={onClose} className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none">
             &times;
           </button>
         </div>
@@ -166,11 +166,11 @@ export default function HolidayPickerModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Country selector */}
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-neutral-400">Country</span>
+            <span className="text-xs text-hs-text-muted">Country</span>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="bg-neutral-800 border border-neutral-600 rounded px-2 py-1.5 text-sm text-neutral-100"
+              className="bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-sm text-hs-text-primary"
             >
               <option value="">Select a country...</option>
               {countries.map((c) => (
@@ -181,15 +181,15 @@ export default function HolidayPickerModal({
             </select>
           </label>
 
-          {loading && <p className="text-xs text-neutral-500">Loading holidays...</p>}
+          {loading && <p className="text-xs text-hs-text-faint">Loading holidays...</p>}
 
           {!loading && holidays.length > 0 && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-400">
+                <span className="text-xs text-hs-text-muted">
                   {selectedIds.size} of {holidays.length} selected
                 </span>
-                <button onClick={toggleAll} className="text-xs text-blue-400 hover:text-blue-300">
+                <button onClick={toggleAll} className="text-xs text-hs-accent hover:text-hs-accent-hover">
                   {selectedIds.size === holidays.length ? 'Deselect All' : 'Select All'}
                 </button>
               </div>
@@ -197,16 +197,16 @@ export default function HolidayPickerModal({
                 {holidays.map((h) => (
                   <label
                     key={h.id}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-neutral-800 cursor-pointer"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-hs-card cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={selectedIds.has(h.id)}
                       onChange={() => toggleHoliday(h.id)}
-                      className="accent-blue-500"
+                      className="accent-hs-accent"
                     />
-                    <span className="text-sm text-neutral-200 flex-1">{h.title}</span>
-                    <span className="text-xs text-neutral-500">{h.start}</span>
+                    <span className="text-sm text-hs-text-body flex-1">{h.title}</span>
+                    <span className="text-xs text-hs-text-faint">{h.start}</span>
                   </label>
                 ))}
               </div>
@@ -214,16 +214,16 @@ export default function HolidayPickerModal({
           )}
 
           {error && (
-            <p className="text-xs text-red-400">{error}</p>
+            <p className="text-xs text-hs-danger">{error}</p>
           )}
 
           {!loading && !error && country && holidays.length === 0 && (
-            <p className="text-xs text-neutral-500">No upcoming holidays found.</p>
+            <p className="text-xs text-hs-text-faint">No upcoming holidays found.</p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-neutral-700">
+        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
           <Button size="sm" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button size="sm" onClick={handleConfirm} disabled={selectedIds.size === 0}>
             Add {selectedIds.size > 0 ? `${selectedIds.size} Holidays` : 'Holidays'}

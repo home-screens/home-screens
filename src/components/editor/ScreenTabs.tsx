@@ -97,8 +97,8 @@ function SortableTab({
       title={isDisabled ? `${screen.name} (disabled — not shown on display)` : screen.name}
       className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
         isSelected
-          ? 'bg-neutral-800 text-white'
-          : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
+          ? 'bg-hs-card text-hs-text-primary'
+          : 'bg-hs-panel text-hs-text-muted hover:text-hs-text-body'
       }`}
       onClick={onSelect}
       onDoubleClick={onStartEditing}
@@ -118,19 +118,19 @@ function SortableTab({
           }}
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
-          className="w-28 border-b border-neutral-500 bg-transparent text-sm text-white outline-none"
+          className="w-28 border-b border-hs-border-strong bg-transparent text-sm text-hs-text-primary outline-none"
         />
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
-          {isDisabled && <span className="ml-0.5 text-[10px] text-neutral-500">⊘</span>}
+          {isDisabled && <span className="ml-0.5 text-[10px] text-hs-text-faint">⊘</span>}
           {isSelected && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onContextMenu(e);
               }}
-              className="ml-1 text-xs text-neutral-500 hover:text-neutral-200"
+              className="ml-1 text-xs text-hs-text-faint hover:text-hs-text-body"
               title="Screen options"
               aria-label={`Options for ${screen.name}`}
             >
@@ -142,7 +142,7 @@ function SortableTab({
       {canDelete && !isEditing && (
         <button
           onClick={onDelete}
-          className="ml-1 text-xs text-neutral-500 hover:text-red-400"
+          className="ml-1 text-xs text-hs-text-faint hover:text-hs-danger"
           aria-label={`Delete ${screen.name}`}
         >
           x
@@ -328,7 +328,7 @@ export default function ScreenTabs() {
           </DndContext>
           <div
             className={clsx(
-              'pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-neutral-900 via-neutral-900/95 to-transparent transition-opacity',
+              'pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-hs-panel via-hs-panel/95 to-transparent transition-opacity',
               canScrollLeft ? 'opacity-100' : 'opacity-0',
             )}
           />
@@ -339,15 +339,15 @@ export default function ScreenTabs() {
             aria-label="Scroll tabs left"
             title="Scroll tabs left"
             className={clsx(
-              'absolute left-1 top-1/2 -translate-y-1/2 rounded-full border border-neutral-700/80 bg-neutral-950/90 p-1 text-neutral-300 shadow-sm transition-all',
-              canScrollLeft ? 'opacity-100 hover:border-neutral-500 hover:text-white' : 'pointer-events-none opacity-0',
+              'absolute left-1 top-1/2 -translate-y-1/2 rounded-full border border-hs-border-strong/80 bg-hs-body/90 p-1 text-hs-text-secondary shadow-sm transition-all',
+              canScrollLeft ? 'opacity-100 hover:border-hs-border-strong hover:text-hs-text-primary' : 'pointer-events-none opacity-0',
             )}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div
             className={clsx(
-              'pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-neutral-900 via-neutral-900/95 to-transparent transition-opacity',
+              'pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-hs-panel via-hs-panel/95 to-transparent transition-opacity',
               canScrollRight ? 'opacity-100' : 'opacity-0',
             )}
           />
@@ -358,8 +358,8 @@ export default function ScreenTabs() {
             aria-label="Scroll tabs right"
             title="Scroll tabs right"
             className={clsx(
-              'absolute right-1 top-1/2 -translate-y-1/2 rounded-full border border-neutral-700/80 bg-neutral-950/90 p-1 text-neutral-300 shadow-sm transition-all',
-              canScrollRight ? 'opacity-100 hover:border-neutral-500 hover:text-white' : 'pointer-events-none opacity-0',
+              'absolute right-1 top-1/2 -translate-y-1/2 rounded-full border border-hs-border-strong/80 bg-hs-body/90 p-1 text-hs-text-secondary shadow-sm transition-all',
+              canScrollRight ? 'opacity-100 hover:border-hs-border-strong hover:text-hs-text-primary' : 'pointer-events-none opacity-0',
             )}
           >
             <ChevronRight className="h-4 w-4" />
@@ -371,7 +371,7 @@ export default function ScreenTabs() {
           <button
             ref={addBtnRef}
             aria-label="Add screen"
-            className="flex items-center gap-0.5 rounded-md bg-neutral-700 px-2 py-1 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-600"
+            className="flex items-center gap-0.5 rounded-md bg-hs-card px-2 py-1 text-xs font-medium text-hs-text-body transition-colors hover:bg-hs-hover"
             onClick={(e) => {
               e.stopPropagation();
               if (addMenuPos) {
@@ -393,12 +393,12 @@ export default function ScreenTabs() {
       {/* Add screen dropdown — fixed position to escape overflow-hidden parents */}
       {addMenuPos && (
         <div
-          className="fixed z-50 w-44 rounded-lg border border-neutral-700 bg-neutral-900 py-1 shadow-xl"
+          className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ top: addMenuPos.top, right: addMenuPos.right }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => {
               addScreen();
               setAddMenuPos(null);
@@ -407,7 +407,7 @@ export default function ScreenTabs() {
             Blank Screen
           </button>
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => {
               setShowTemplatePicker(true);
               setAddMenuPos(null);
@@ -421,33 +421,33 @@ export default function ScreenTabs() {
       {/* Right-click context menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 w-44 rounded-lg border border-neutral-700 bg-neutral-900 py-1 shadow-xl"
+          className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-default"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card disabled:text-hs-text-faint disabled:cursor-default"
             disabled={contextScreenIndex <= 0}
             onClick={() => handleMoveScreen(contextMenu.screenId, 'left')}
           >
             Move Left
           </button>
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-default"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card disabled:text-hs-text-faint disabled:cursor-default"
             disabled={contextScreenIndex >= screens.length - 1}
             onClick={() => handleMoveScreen(contextMenu.screenId, 'right')}
           >
             Move Right
           </button>
-          <div className="my-1 border-t border-neutral-700/60" />
+          <div className="my-1 border-t border-hs-border-strong/60" />
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => handleExportScreen(contextMenu.screenId)}
           >
             Export This Screen
           </button>
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => {
               const screen = screens.find((s) => s.id === contextMenu.screenId);
               if (screen) {
@@ -462,9 +462,9 @@ export default function ScreenTabs() {
               ? 'Enable'
               : 'Disable'}
           </button>
-          <div className="my-1 border-t border-neutral-700/60" />
+          <div className="my-1 border-t border-hs-border-strong/60" />
           <button
-            className="w-full px-3 py-1.5 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => {
               setEditingId(contextMenu.screenId);
               setEditValue(screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
@@ -475,7 +475,7 @@ export default function ScreenTabs() {
           </button>
           {screens.length > 1 && (
             <button
-              className="w-full px-3 py-1.5 text-left text-sm text-red-400 hover:bg-neutral-800"
+              className="w-full px-3 py-1.5 text-left text-sm text-hs-danger hover:bg-hs-card"
               onClick={async () => {
                 const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name;
                 setContextMenu(null);

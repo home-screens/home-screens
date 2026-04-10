@@ -42,7 +42,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Feed Source</span>
+        <span className="text-xs text-hs-text-muted">Feed Source</span>
         <select
           value={isCustom ? '__custom__' : feedUrl}
           onChange={(e) => {
@@ -59,7 +59,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       </label>
       {isCustom && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Custom RSS Feed URL</span>
+          <span className="text-xs text-hs-text-muted">Custom RSS Feed URL</span>
           <input
             type="text"
             value={feedUrl}

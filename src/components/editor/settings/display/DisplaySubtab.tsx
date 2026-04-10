@@ -166,29 +166,29 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   return (
     <>
       {/* Top status banner */}
-      <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/[0.07] px-4 py-3 flex items-start gap-3">
-        <Info className="w-4 h-4 text-blue-300 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-200 leading-relaxed">
-          Fields here show the <strong className="text-neutral-100">default</strong> value from{' '}
+      <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
+        <Info className="w-4 h-4 text-hs-accent-hover shrink-0 mt-0.5" />
+        <div className="text-xs text-hs-accent-hover leading-relaxed">
+          Fields here show the <strong className="text-hs-text-primary">default</strong> value from{' '}
           <Link
             href={DEFAULTS_HREF}
-            className="text-blue-300 hover:text-blue-200 underline decoration-dashed underline-offset-2"
+            className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {DEFAULTS_LABEL}
           </Link>
-          . Click <strong className="text-neutral-100">Override</strong> on any field to change it
+          . Click <strong className="text-hs-text-primary">Override</strong> on any field to change it
           just for {display.name}.
         </div>
       </div>
 
       {/* Canvas section — resolution, rotation, flip. Per-display only. */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Canvas</div>
-        <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
-          <div className="px-4 py-3.5 border-b border-neutral-800">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Canvas</div>
+        <div className="rounded-lg border border-hs-border bg-hs-panel/40">
+          <div className="px-4 py-3.5 border-b border-hs-border">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs text-neutral-400">Resolution</div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-600">Per display</span>
+              <div className="text-xs text-hs-text-muted">Resolution</div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Per display</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <input
@@ -198,7 +198,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 max={16384}
                 onChange={(e) => setWidthDraft(e.target.value)}
                 onBlur={commitWidth}
-                className="w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
               />
               <input
                 type="number"
@@ -207,23 +207,23 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 max={16384}
                 onChange={(e) => setHeightDraft(e.target.value)}
                 onBlur={commitHeight}
-                className="w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
               />
             </div>
-            <p className="text-[11px] text-neutral-500 mt-1.5">
+            <p className="text-[11px] text-hs-text-faint mt-1.5">
               Modules are laid out against this canvas. Every display carries its own resolution
               — it isn&apos;t shared.
             </p>
           </div>
           <div className="px-4 py-3.5">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs text-neutral-400">Rotation</div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-600">Per display</span>
+              <div className="text-xs text-hs-text-muted">Rotation</div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Per display</span>
             </div>
             <select
               value={display.displayTransform ?? 'normal'}
               onChange={(e) => handleTransform(e.target.value as 'normal' | '90' | '180' | '270')}
-              className="w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             >
               <option value="normal">Normal (landscape)</option>
               <option value="90">90° clockwise (portrait)</option>
@@ -236,10 +236,10 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
 
       {/* Rotation & transitions — inheritable */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
           Rotation &amp; transitions
         </div>
-        <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
+        <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label="Screen rotation interval"
             defaultValue={(settings.rotationIntervalMs ?? 30000) / 1000}
@@ -272,7 +272,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 value={value}
                 disabled={disabled}
                 onChange={(e) => onChange(e.target.value as TransitionEffect)}
-                className="w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-50"
               >
                 {TRANSITION_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -334,9 +334,9 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                   checked={value}
                   disabled={disabled}
                   onChange={(e) => onChange(e.target.checked)}
-                  className="rounded border-neutral-600 bg-neutral-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                  className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                 />
-                <span className="text-sm text-neutral-300">Enabled</span>
+                <span className="text-sm text-hs-text-secondary">Enabled</span>
               </label>
             )}
           </OverrideRow>
@@ -375,8 +375,8 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
 
       {/* Appearance — inheritable */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Appearance</div>
-        <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Appearance</div>
+        <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
             label="Hide cursor after"
             defaultValue={settings.cursorHideSeconds ?? 3}
@@ -414,22 +414,22 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                     onClick={() => onChange(t.id)}
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
                       value === t.id
-                        ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-neutral-700 bg-neutral-800 hover:bg-neutral-750 hover:border-neutral-600'
+                        ? 'border-hs-accent bg-hs-accent-soft'
+                        : 'border-hs-border-strong bg-hs-card hover:bg-hs-hover'
                     } disabled:cursor-not-allowed`}
                   >
                     <div
-                      className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-neutral-600"
+                      className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-hs-border-strong"
                       style={{ background: t.tokens.bg }}
                     >
                       <div style={{ height: '60%', background: t.tokens.bg }} />
                       <div style={{ height: '40%', background: t.tokens.border }} />
                     </div>
                     <div>
-                      <div className={`text-xs font-semibold ${value === t.id ? 'text-blue-400' : 'text-neutral-200'}`}>
+                      <div className={`text-xs font-semibold ${value === t.id ? 'text-hs-accent-hover' : 'text-hs-text-body'}`}>
                         {t.name}
                       </div>
-                      <div className="text-[10px] text-neutral-500 capitalize">{t.group}</div>
+                      <div className="text-[10px] text-hs-text-faint capitalize">{t.group}</div>
                     </div>
                   </button>
                 ))}
@@ -445,9 +445,9 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
           needs to visit those subtabs to reset them — we don't want a
           button here to silently wipe out the other two whole-block
           overrides on an unrelated page. */}
-      <div className="mt-6 flex items-center justify-between border-t border-neutral-800 pt-4">
-        <div className="text-xs text-neutral-500">
-          <span className="text-neutral-300">
+      <div className="mt-6 flex items-center justify-between border-t border-hs-border pt-4">
+        <div className="text-xs text-hs-text-faint">
+          <span className="text-hs-text-secondary">
             {overrideCount} display {overrideCount === 1 ? 'override' : 'overrides'}
           </span>{' '}
           active for {display.name}.
@@ -456,7 +456,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
           <button
             type="button"
             onClick={handleClearAll}
-            className="text-xs text-red-400 hover:text-red-300 transition-colors"
+            className="text-xs text-hs-danger hover:text-hs-danger transition-colors"
             title="Reset every field on this subtab to its default. Sleep and Alerts overrides are unaffected."
           >
             Clear display overrides

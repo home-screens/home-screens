@@ -48,11 +48,11 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl flex flex-col">
+      <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-neutral-100">Templates</h2>
-          <button onClick={onClose} className="text-neutral-500 hover:text-neutral-300">
+        <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
+          <h2 className="text-lg font-semibold text-hs-text-primary">Templates</h2>
+          <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -65,8 +65,8 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
               onClick={() => setCategory(cat)}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 category === cat
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-hs-accent text-white'
+                  : 'bg-hs-card text-hs-text-muted hover:text-hs-text-body'
               }`}
             >
               {cat}
@@ -77,7 +77,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
         {/* Grid */}
         <div className="flex-1 overflow-y-auto px-5 py-3">
           {error && (
-            <div className="mb-3 rounded-md bg-red-900/30 border border-red-700/50 px-3 py-2 text-xs text-red-300">
+            <div className="mb-3 rounded-md bg-hs-danger/10 border border-hs-danger/30 px-3 py-2 text-xs text-hs-danger">
               {error}
             </div>
           )}
@@ -87,17 +87,17 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                 key={template.id}
                 onClick={() => handleSelect(template)}
                 disabled={loading === template.id}
-                className="text-left rounded-lg border border-neutral-700 bg-neutral-800/50 p-4 hover:border-neutral-500 hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                className="text-left rounded-lg border border-hs-border-strong bg-hs-hover p-4 hover:bg-hs-active transition-colors disabled:opacity-50"
               >
                 <div className="flex items-start justify-between mb-1.5">
-                  <span className="text-sm font-medium text-neutral-200">
+                  <span className="text-sm font-medium text-hs-text-body">
                     {template.name}
                   </span>
-                  <span className="shrink-0 rounded-full bg-neutral-700/60 px-2 py-0.5 text-[10px] text-neutral-400">
+                  <span className="shrink-0 rounded-full bg-hs-card/60 px-2 py-0.5 text-[10px] text-hs-text-muted">
                     {template.category}
                   </span>
                 </div>
-                <p className="text-xs text-neutral-500 mb-3 line-clamp-2">
+                <p className="text-xs text-hs-text-faint mb-3 line-clamp-2">
                   {template.description}
                 </p>
                 <div className="flex items-center gap-1.5">
@@ -109,20 +109,20 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                       <div
                         key={type}
                         title={def.label}
-                        className="rounded bg-neutral-700/50 p-1"
+                        className="rounded bg-hs-hover p-1"
                       >
-                        <Icon className="w-3.5 h-3.5 text-neutral-400" />
+                        <Icon className="w-3.5 h-3.5 text-hs-text-muted" />
                       </div>
                     );
                   })}
                   {template.moduleTypes.length > 5 && (
-                    <span className="text-[10px] text-neutral-500">
+                    <span className="text-[10px] text-hs-text-faint">
                       +{template.moduleTypes.length - 5}
                     </span>
                   )}
                 </div>
                 {loading === template.id && (
-                  <span className="text-xs text-blue-400 mt-2 block">Loading...</span>
+                  <span className="text-xs text-hs-accent-hover mt-2 block">Loading...</span>
                 )}
               </button>
             ))}
@@ -130,7 +130,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-700 px-5 py-3 flex justify-end">
+        <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
           <Button variant="secondary" onClick={onClose}>Close</Button>
         </div>
       </div>

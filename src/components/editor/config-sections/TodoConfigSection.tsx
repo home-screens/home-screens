@@ -21,7 +21,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   return (
     <div className="space-y-2">
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Title</span>
+        <span className="text-xs text-hs-text-muted">Title</span>
         <input
           type="text"
           value={(c.title as string) || 'To Do'}
@@ -30,16 +30,16 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       </label>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-neutral-400">Items</span>
+        <span className="text-xs text-hs-text-muted">Items</span>
         <Button size="sm" onClick={addItem}>Add</Button>
       </div>
       {items.map((it) => (
-        <div key={it.id} className="flex items-center gap-1 p-1 bg-neutral-800 rounded">
+        <div key={it.id} className="flex items-center gap-1 p-1 bg-hs-card rounded">
           <input
             type="checkbox"
             checked={it.completed}
             onChange={(e) => updateItem(it.id, { completed: e.target.checked })}
-            className="rounded border-neutral-600 bg-neutral-700 text-blue-500"
+            className="rounded border-hs-border-strong bg-hs-card text-hs-accent"
           />
           <input
             type="text"
@@ -47,7 +47,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(e) => updateItem(it.id, { text: e.target.value })}
             className={`flex-1 ${NESTED_INPUT_CLASS}`}
           />
-          <button onClick={() => removeItem(it.id)} className="text-red-400 text-xs px-1">x</button>
+          <button onClick={() => removeItem(it.id)} className="text-hs-danger text-xs px-1">x</button>
         </div>
       ))}
       <AccentColorPicker

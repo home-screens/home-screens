@@ -111,7 +111,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
   if (!meal) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-neutral-500 gap-3">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-hs-text-faint gap-3">
         <span className="text-3xl opacity-15">&#9998;</span>
         <p className="text-sm leading-relaxed">Select a meal from the Library tab<br />to edit its details</p>
       </div>
@@ -165,24 +165,24 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     setIngredients((prev) => [...prev, { name: '', amount: '', category: undefined }]);
   }
 
-  const labelClass = 'text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5';
+  const labelClass = 'text-[11px] font-bold text-hs-text-faint uppercase tracking-wider mb-1.5';
 
   return (
     <>
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-4">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-neutral-700">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-hs-border-strong">
           <span className="text-4xl">{emoji || DEFAULT_MEAL_EMOJI}</span>
           <div className="flex-1">
-            <div className="text-lg font-bold text-neutral-200">{name || 'Untitled'}</div>
+            <div className="text-lg font-bold text-hs-text-body">{name || 'Untitled'}</div>
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   className="text-base transition-colors"
-                  style={{ color: rating && star <= rating ? '#f59e0b' : '#525252' }}
+                  style={{ color: rating && star <= rating ? '#f59e0b' : 'var(--hs-text-faint)' }}
                   onClick={() => setRating(star === rating ? undefined : star)}
                 >
                   ★
@@ -193,7 +193,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <button
             type="button"
             className="text-xl transition-colors"
-            style={{ color: meal.isFavorite ? '#ef4444' : '#525252' }}
+            style={{ color: meal.isFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}
             onClick={() => onToggleFavorite(meal.id)}
           >
             {meal.isFavorite ? '♥' : '♡'}
@@ -229,7 +229,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 className={`aspect-square rounded border-2 text-2xl flex items-center justify-center transition ${
                   emoji === e
                     ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-transparent bg-neutral-800 hover:bg-neutral-700 hover:border-neutral-600'
+                    : 'border-transparent bg-hs-card hover:bg-hs-hover hover:border-hs-border-strong'
                 }`}
                 onClick={() => setEmoji(emoji === e ? '' : e)}
               >
@@ -237,7 +237,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
               </button>
             ))}
             {filteredEmojis.length === 0 && (
-              <div className="col-span-6 py-4 text-center text-xs text-neutral-500">
+              <div className="col-span-6 py-4 text-center text-xs text-hs-text-faint">
                 No emojis match &ldquo;{emojiSearch}&rdquo;
               </div>
             )}
@@ -287,7 +287,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 const colorMap = {
                   easy: 'border-emerald-500 bg-emerald-500/8 text-emerald-500',
                   medium: 'border-amber-500 bg-amber-500/8 text-amber-500',
-                  hard: 'border-red-500 bg-red-500/8 text-red-500',
+                  hard: 'border-hs-danger bg-hs-danger/8 text-hs-danger',
                 };
                 return (
                   <button
@@ -296,7 +296,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                     className={`flex-1 py-2 text-xs font-semibold rounded border transition text-center ${
                       isActive
                         ? colorMap[level]
-                        : 'border-neutral-700 bg-neutral-800 text-neutral-500'
+                        : 'border-hs-border-strong bg-hs-card text-hs-text-faint'
                     }`}
                     onClick={() => setDifficulty(isActive ? undefined : level)}
                   >
@@ -321,7 +321,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   className={`px-3 py-1 text-xs font-semibold rounded-full border transition cursor-pointer ${
                     isActive
                       ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
-                      : 'border-neutral-700 text-neutral-500 hover:border-neutral-600'
+                      : 'border-hs-border-strong text-hs-text-faint hover:border-hs-text-faint'
                   }`}
                   onClick={() => toggleTag(tag)}
                 >
@@ -338,7 +338,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           {ingredients.map((ingredient, index) => (
             <div
               key={index}
-              className="bg-neutral-800 border border-neutral-700 rounded-md p-2 mb-1.5"
+              className="bg-hs-card border border-hs-border-strong rounded-md p-2 mb-1.5"
             >
               <div className="flex gap-2">
                 <input
@@ -350,7 +350,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 />
                 <button
                   type="button"
-                  className="w-7 h-7 rounded border border-neutral-700 text-neutral-600 hover:text-red-400 hover:border-red-400 hover:bg-red-500/8 flex items-center justify-center transition"
+                  className="w-7 h-7 rounded border border-hs-border-strong text-hs-text-faint hover:text-hs-danger hover:border-hs-danger hover:bg-hs-danger/8 flex items-center justify-center transition"
                   onClick={() => removeIngredient(index)}
                 >
                   &times;
@@ -380,7 +380,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                       </option>
                     ))}
                   </select>
-                  <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 6l4 4 4-4" />
                   </svg>
                 </div>
@@ -389,7 +389,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           ))}
           <button
             type="button"
-            className="w-full py-2 text-xs font-semibold border border-dashed border-neutral-700 rounded-md text-neutral-600 hover:border-neutral-500 hover:text-neutral-400 transition"
+            className="w-full py-2 text-xs font-semibold border border-dashed border-hs-border-strong rounded-md text-hs-text-faint hover:border-hs-border-strong hover:text-hs-text-muted transition"
             onClick={addIngredient}
           >
             + Add ingredient
@@ -421,7 +421,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       </div>
 
       {/* Pinned footer */}
-      <div className="px-4 py-2.5 border-t border-neutral-700 flex gap-2">
+      <div className="px-4 py-2.5 border-t border-hs-border-strong flex gap-2">
         <Button variant="primary" className="flex-1" onClick={handleSave}>
           Save Changes
         </Button>

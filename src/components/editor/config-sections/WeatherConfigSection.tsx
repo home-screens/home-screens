@@ -119,7 +119,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       {showsStats && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Icon Style</span>
+          <span className="text-xs text-hs-text-muted">Icon Style</span>
           <select
             value={c.iconSet ?? 'color'}
             onChange={(e) => set({ iconSet: e.target.value as WeatherIconSet })}
@@ -132,7 +132,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       {filteredProviders.length > 0 && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Data Provider</span>
+          <span className="text-xs text-hs-text-muted">Data Provider</span>
           <select
             value={c.provider ?? 'global'}
             onChange={(e) => set({ provider: e.target.value as WeatherProviderOption })}
@@ -159,7 +159,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       {showsHours && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Hours to Show</span>
+          <span className="text-xs text-hs-text-muted">Hours to Show</span>
           <input
             type="number"
             value={c.hoursToShow ?? 8}
@@ -170,7 +170,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       {showsDays && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Days to Show</span>
+          <span className="text-xs text-hs-text-muted">Days to Show</span>
           <input
             type="number"
             value={c.daysToShow ?? 5}

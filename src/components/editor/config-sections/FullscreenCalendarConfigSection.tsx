@@ -84,7 +84,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     <>
       {/* View Mode */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
+        <span className="text-xs text-hs-text-muted">View</span>
         <select value={view} onChange={(e) => set({ view: e.target.value })} className={INPUT_CLASS}>
           <option value="schedule">Schedule (Column Grid)</option>
           <option value="week-list">Week List</option>
@@ -96,7 +96,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Density */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Density</span>
+        <span className="text-xs text-hs-text-muted">Density</span>
         <select value={c.density ?? 'cozy'} onChange={(e) => set({ density: e.target.value })} className={INPUT_CLASS}>
           <option value="cozy">Cozy (distance reading)</option>
           <option value="snug">Snug (more events)</option>
@@ -105,7 +105,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Typography Size */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Typography Size</span>
+        <span className="text-xs text-hs-text-muted">Typography Size</span>
         <select value={c.typographySize ?? 'medium'} onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })} className={INPUT_CLASS}>
           <option value="small">Small</option>
           <option value="medium">Medium</option>
@@ -118,7 +118,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Theme Override */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Theme</span>
+        <span className="text-xs text-hs-text-muted">Theme</span>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -143,19 +143,19 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* Source filter */}
       {availableSources.length > 1 && (
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Sources</span>
-          <div className="rounded-md bg-neutral-800 border border-neutral-600 divide-y divide-neutral-700 max-h-40 overflow-y-auto">
-            <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
+          <span className="text-xs text-hs-text-muted">Sources</span>
+          <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong max-h-40 overflow-y-auto">
+            <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
               <input type="radio" checked={allSelected} onChange={() => set({ sourceFilter: undefined })}
-                className="border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0" />
-              <span className="text-sm text-neutral-200">All Sources</span>
+                className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0" />
+              <span className="text-sm text-hs-text-body">All Sources</span>
             </label>
             {availableSources.map((src) => (
-              <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-neutral-750">
+              <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
                 <input type="checkbox" checked={allSelected || sourceFilter.includes(src.id)} onChange={() => toggleSource(src.id)}
-                  className="rounded border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0" />
+                  className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0" />
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: src.color }} />
-                <span className="text-sm text-neutral-200 truncate">{src.name}</span>
+                <span className="text-sm text-hs-text-body truncate">{src.name}</span>
               </label>
             ))}
           </div>
@@ -166,7 +166,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {(view === 'schedule' || view === 'day-timeline') && (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Start Hour</span>
+            <span className="text-xs text-hs-text-muted">Start Hour</span>
             <input
               type="number" min={0} max={23}
               value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
@@ -175,7 +175,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             />
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">End Hour</span>
+            <span className="text-xs text-hs-text-muted">End Hour</span>
             <input
               type="number" min={1} max={24}
               value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
@@ -188,7 +188,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {view === 'schedule' && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Days to Show (0 = auto)</span>
+          <span className="text-xs text-hs-text-muted">Days to Show (0 = auto)</span>
           <input
             type="number" min={0} max={7}
             value={c.scheduleDaysToShow ?? 0}
@@ -206,7 +206,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         <>
           <Toggle label="Show Week Numbers" checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Max Events per Cell (0 = auto)</span>
+            <span className="text-xs text-hs-text-muted">Max Events per Cell (0 = auto)</span>
             <input
               type="number" min={0} max={8}
               value={c.monthMaxEventsPerCell ?? 0}
@@ -224,7 +224,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {view === 'agenda' && (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Days Ahead</span>
+            <span className="text-xs text-hs-text-muted">Days Ahead</span>
             <input
               type="number" min={7} max={30}
               value={c.agendaDaysAhead ?? 14}

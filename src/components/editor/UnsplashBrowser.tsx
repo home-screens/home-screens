@@ -87,9 +87,9 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
 
   if (!hasUnsplashKey) {
     return (
-      <div className="text-xs text-neutral-500 bg-neutral-800/50 rounded-md p-3 space-y-2">
+      <div className="text-xs text-hs-text-faint bg-hs-hover rounded-md p-3 space-y-2">
         <p>Add a free Unsplash API key in <strong>Settings</strong> to browse thousands of HD backgrounds.</p>
-        <p className="text-neutral-600">
+        <p className="text-hs-text-faint">
           Get one at unsplash.com/developers
         </p>
       </div>

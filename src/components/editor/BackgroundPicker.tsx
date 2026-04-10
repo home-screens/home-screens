@@ -30,12 +30,12 @@ function ImmichRotationFields({ rotation, onChange }: {
 
   useEffect(() => { fetchOptions(); }, [fetchOptions]);
 
-  const selectClass = 'mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500';
+  const selectClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
   return (
     <>
       <label className="block">
-        <span className="text-[10px] text-neutral-500">Album</span>
+        <span className="text-[10px] text-hs-text-faint">Album</span>
         <select
           value={rotation.immichAlbumId || ''}
           onChange={(e) => onChange({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
@@ -48,7 +48,7 @@ function ImmichRotationFields({ rotation, onChange }: {
         </select>
       </label>
       <label className="block">
-        <span className="text-[10px] text-neutral-500">Person</span>
+        <span className="text-[10px] text-hs-text-faint">Person</span>
         <select
           value={rotation.immichPersonId || ''}
           onChange={(e) => onChange({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
@@ -65,9 +65,9 @@ function ImmichRotationFields({ rotation, onChange }: {
           type="checkbox"
           checked={rotation.immichFavoritesOnly || false}
           onChange={(e) => onChange({ immichFavoritesOnly: e.target.checked || undefined })}
-          className="rounded border-neutral-600"
+          className="rounded border-hs-border-strong"
         />
-        <span className="text-[10px] text-neutral-500">Favorites only</span>
+        <span className="text-[10px] text-hs-text-faint">Favorites only</span>
       </label>
     </>
   );
@@ -105,12 +105,12 @@ export default function BackgroundPicker() {
 
   return (
     <div className="space-y-3">
-      <h4 className="text-xs font-semibold text-neutral-500 uppercase">Background</h4>
+      <h4 className="text-xs font-semibold text-hs-text-faint uppercase">Background</h4>
 
       {/* Auto-rotation controls — only show when at least one source is available */}
-      {(hasUnsplashKey || hasNasaKey || hasImmichKey) && <div className="bg-neutral-800/50 rounded-md p-2.5 space-y-2">
+      {(hasUnsplashKey || hasNasaKey || hasImmichKey) && <div className="bg-hs-hover rounded-md p-2.5 space-y-2">
         <label className="flex items-center justify-between gap-2 cursor-pointer">
-          <span className="text-xs text-neutral-400">Auto-rotate background</span>
+          <span className="text-xs text-hs-text-muted">Auto-rotate background</span>
           <button
             type="button"
             role="switch"
@@ -127,7 +127,7 @@ export default function BackgroundPicker() {
               updateScreen(selectedScreenId, { backgroundRotation: updated });
             }}
             className={`relative w-9 h-5 rounded-full transition-colors ${
-              currentScreen?.backgroundRotation?.enabled ? 'bg-blue-600' : 'bg-neutral-600'
+              currentScreen?.backgroundRotation?.enabled ? 'bg-hs-accent' : 'bg-hs-card'
             }`}
           >
             <span
@@ -140,7 +140,7 @@ export default function BackgroundPicker() {
         {currentScreen?.backgroundRotation?.enabled && (
           <div className="space-y-2">
             <label className="block">
-              <span className="text-[10px] text-neutral-500">Source</span>
+              <span className="text-[10px] text-hs-text-faint">Source</span>
               <select
                 value={rotationSource}
                 onChange={(e) => {
@@ -155,7 +155,7 @@ export default function BackgroundPicker() {
                     },
                   });
                 }}
-                className="mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500"
+                className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
               >
                 {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
                 {hasNasaKey && <option value="nasa-apod">NASA Picture of the Day</option>}
@@ -164,7 +164,7 @@ export default function BackgroundPicker() {
             </label>
             {rotationSource === 'unsplash' && (
               <label className="block">
-                <span className="text-[10px] text-neutral-500">Search query</span>
+                <span className="text-[10px] text-hs-text-faint">Search query</span>
                 <input
                   type="text"
                   value={currentScreen.backgroundRotation!.query}
@@ -175,7 +175,7 @@ export default function BackgroundPicker() {
                     });
                   }}
                   placeholder="nature landscape"
-                  className="mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500"
+                  className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
                 />
               </label>
             )}
@@ -191,7 +191,7 @@ export default function BackgroundPicker() {
               />
             )}
             <label className="block">
-              <span className="text-[10px] text-neutral-500">Rotate every</span>
+              <span className="text-[10px] text-hs-text-faint">Rotate every</span>
               <select
                 value={currentScreen.backgroundRotation!.intervalMinutes}
                 onChange={(e) => {
@@ -200,7 +200,7 @@ export default function BackgroundPicker() {
                     backgroundRotation: { ...currentScreen.backgroundRotation!, intervalMinutes: Number(e.target.value) },
                   });
                 }}
-                className="mt-0.5 block w-full rounded bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1 focus:outline-none focus:border-blue-500"
+                className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
               >
                 <option value={15}>15 minutes</option>
                 <option value={30}>30 minutes</option>
@@ -211,7 +211,7 @@ export default function BackgroundPicker() {
               </select>
             </label>
             {rotationSource === 'nasa-apod' && (
-              <p className="text-[10px] text-neutral-500">
+              <p className="text-[10px] text-hs-text-faint">
                 NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.
               </p>
             )}
@@ -219,11 +219,11 @@ export default function BackgroundPicker() {
         )}
       </div>}
 
-      <div className="flex gap-1 bg-neutral-800 rounded-md p-0.5">
+      <div className="flex gap-1 bg-hs-card rounded-md p-0.5">
         <button
           onClick={() => setTab('unsplash')}
           className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'unsplash' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+            tab === 'unsplash' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >
           Unsplash
@@ -231,7 +231,7 @@ export default function BackgroundPicker() {
         <button
           onClick={() => setTab('nasa')}
           className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'nasa' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+            tab === 'nasa' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >
           NASA
@@ -240,7 +240,7 @@ export default function BackgroundPicker() {
           <button
             onClick={() => setTab('immich')}
             className={`flex-1 text-xs py-1.5 rounded ${
-              tab === 'immich' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+              tab === 'immich' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
             Immich
@@ -249,7 +249,7 @@ export default function BackgroundPicker() {
         <button
           onClick={() => setTab('local')}
           className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'local' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+            tab === 'local' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >
           Local

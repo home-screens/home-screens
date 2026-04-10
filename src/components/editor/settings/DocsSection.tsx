@@ -153,15 +153,15 @@ const DOCS: DocSection[] = [
 
 export default function DocsSection() {
   return (
-    <div className="space-y-0 divide-y divide-neutral-600 [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+    <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       <section>
-        <p className="text-sm text-neutral-400 leading-relaxed">
+        <p className="text-sm text-hs-text-muted leading-relaxed">
           Full documentation is available at{' '}
           <a
             href={`${DOCS_BASE}/docs`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-hs-accent hover:text-hs-accent-hover transition-colors"
           >
             homescreens.dev/docs
           </a>
@@ -171,7 +171,7 @@ export default function DocsSection() {
 
       {DOCS.map((section) => (
         <section key={section.title}>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             {section.title}
           </h3>
           <div className="grid gap-2">
@@ -183,17 +183,17 @@ export default function DocsSection() {
                   href={`${DOCS_BASE}${link.href}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-start gap-3 rounded-lg border border-neutral-700 bg-neutral-800/40 px-3.5 py-3 transition-colors hover:bg-neutral-800 hover:border-neutral-600"
+                  className="group flex items-start gap-3 rounded-lg border border-hs-border-strong bg-hs-hover px-3.5 py-3 transition-colors hover:bg-hs-active"
                 >
-                  <Icon className="w-4 h-4 mt-0.5 shrink-0 text-neutral-500 group-hover:text-blue-400 transition-colors" />
+                  <Icon className="w-4 h-4 mt-0.5 shrink-0 text-hs-text-faint group-hover:text-hs-accent-hover transition-colors" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
+                      <span className="text-sm font-medium text-hs-text-body group-hover:text-hs-text-primary transition-colors">
                         {link.title}
                       </span>
-                      <ExternalLink className="w-3 h-3 text-neutral-600 group-hover:text-neutral-400 transition-colors" />
+                      <ExternalLink className="w-3 h-3 text-hs-text-faint group-hover:text-hs-text-muted transition-colors" />
                     </div>
-                    <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
+                    <p className="text-xs text-hs-text-faint mt-0.5 leading-relaxed">
                       {link.description}
                     </p>
                   </div>

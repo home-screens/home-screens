@@ -45,21 +45,21 @@ export default function LayoutImportModal({
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-neutral-100 mb-1">Import Layout</h2>
+      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-1">Import Layout</h2>
         {metadata.description && (
-          <p className="text-xs text-neutral-500 mb-3">{metadata.description}</p>
+          <p className="text-xs text-hs-text-faint mb-3">{metadata.description}</p>
         )}
 
         {/* Preview */}
-        <div className="rounded-lg bg-neutral-800/60 border border-neutral-700 p-3 mb-4 space-y-1.5">
+        <div className="rounded-lg bg-hs-card/60 border border-hs-border-strong p-3 mb-4 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-neutral-200">{metadata.name}</span>
-            <span className="text-xs text-neutral-500">
+            <span className="text-sm font-medium text-hs-text-body">{metadata.name}</span>
+            <span className="text-xs text-hs-text-faint">
               {new Date(metadata.exportedAt).toLocaleDateString()}
             </span>
           </div>
-          <div className="text-xs text-neutral-400 space-y-0.5">
+          <div className="text-xs text-hs-text-muted space-y-0.5">
             <p>
               {metadata.screenCount} screen{metadata.screenCount !== 1 ? 's' : ''},{' '}
               {metadata.moduleCount} module{metadata.moduleCount !== 1 ? 's' : ''}
@@ -73,10 +73,10 @@ export default function LayoutImportModal({
             {screens.map((s) => (
               <span
                 key={s.id}
-                className="inline-flex items-center gap-1 rounded-full bg-neutral-700/60 px-2 py-0.5 text-xs text-neutral-300"
+                className="inline-flex items-center gap-1 rounded-full bg-hs-card/60 px-2 py-0.5 text-xs text-hs-text-secondary"
               >
                 {s.name}
-                <span className="text-neutral-500">{s.modules.length}</span>
+                <span className="text-hs-text-faint">{s.modules.length}</span>
               </span>
             ))}
           </div>
@@ -84,8 +84,8 @@ export default function LayoutImportModal({
 
         {/* Dimension warning */}
         {dimensionMismatch && (
-          <div className="rounded-md bg-amber-900/30 border border-amber-700/50 px-3 py-2 mb-4">
-            <p className="text-xs text-amber-300">
+          <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
+            <p className="text-xs text-hs-warning">
               This layout was designed for{' '}
               {metadata.sourceDisplay.width}x{metadata.sourceDisplay.height} but your
               display is {currentWidth}x{currentHeight}. Modules will be scaled
@@ -100,11 +100,11 @@ export default function LayoutImportModal({
             type="checkbox"
             checked={applyVisual}
             onChange={(e) => setApplyVisual(e.target.checked)}
-            className="accent-blue-500"
+            className="accent-hs-accent"
           />
           <div>
-            <span className="text-sm text-neutral-200">Apply visual settings</span>
-            <p className="text-xs text-neutral-500">
+            <span className="text-sm text-hs-text-body">Apply visual settings</span>
+            <p className="text-xs text-hs-text-faint">
               Rotation: {visual.rotationIntervalMs / 1000}s
               {visual.transitionEffect ? `, transition: ${visual.transitionEffect}` : ''}
             </p>
@@ -113,8 +113,8 @@ export default function LayoutImportModal({
 
         {/* Error */}
         {error && (
-          <div className="rounded-md bg-red-900/30 border border-red-700/50 px-3 py-2 mb-4">
-            <p className="text-xs text-red-300">{error}</p>
+          <div className="rounded-md bg-hs-danger/10 border border-hs-danger/30 px-3 py-2 mb-4">
+            <p className="text-xs text-hs-danger">{error}</p>
           </div>
         )}
 

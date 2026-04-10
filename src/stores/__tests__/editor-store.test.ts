@@ -923,12 +923,12 @@ describe('editor store', () => {
   });
 
   describe('multi-display: getActiveDimensions reads from DisplayNode after main normalization', () => {
-    // Phase 0 of the settings-defaults redesign: main is no longer "special"
-    // — its dimensions live on the DisplayNode just like every other
-    // display. The `getActiveDimensions` helper already preferred the
-    // per-display field over globals, so this test pins the post-
-    // normalization expectation: editing main's display node directly
-    // changes the active canvas size, even when global settings disagree.
+    // Main is no longer "special" — its dimensions live on the DisplayNode
+    // just like every other display. The `getActiveDimensions` helper
+    // already preferred the per-display field over globals, so this test
+    // pins the post-normalization expectation: editing main's display node
+    // directly changes the active canvas size, even when global settings
+    // disagree.
     it('returns main display node dimensions, not global settings', async () => {
       const { getActiveDimensions } = await import('@/stores/editor-store');
       const config = makeConfig({
@@ -2043,7 +2043,7 @@ describe('editor store', () => {
     });
   });
 
-  /* ─── Per-display profile routing (Phase 4) ────── */
+  /* ─── Per-display profile routing ────── */
 
   describe('per-display profile routing', () => {
     it('addProfile targets display.profiles when the selected display owns profiles', () => {

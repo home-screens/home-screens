@@ -88,17 +88,17 @@ export default function OverrideRow<T>({
 
   return (
     <div
-      className={`px-4 py-3.5 border-b border-neutral-800 last:border-b-0 transition-colors ${
-        isOverridden ? 'bg-blue-500/[0.04]' : ''
+      className={`px-4 py-3.5 border-b border-hs-border last:border-b-0 transition-colors ${
+        isOverridden ? 'bg-hs-accent/[0.04]' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-3 mb-2">
-        <span className="text-xs text-neutral-400">{label}</span>
+        <span className="text-xs text-hs-text-muted">{label}</span>
         {isOverridden ? (
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md text-blue-300 bg-blue-500/10 border border-blue-500/35 hover:bg-blue-500/20 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors whitespace-nowrap"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -109,7 +109,7 @@ export default function OverrideRow<T>({
           <button
             type="button"
             onClick={() => onFork(defaultValue)}
-            className="text-[11px] font-medium px-2.5 py-1 rounded-md text-neutral-400 bg-neutral-800 border border-neutral-700 hover:text-neutral-200 hover:bg-neutral-700 hover:border-neutral-600 transition-colors whitespace-nowrap"
+            className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-muted bg-hs-card border border-hs-border-strong hover:text-hs-text-body hover:bg-hs-hover transition-colors whitespace-nowrap"
           >
             Override
           </button>
@@ -118,14 +118,14 @@ export default function OverrideRow<T>({
       <div className={isOverridden ? undefined : 'opacity-70'}>
         {children({ value, onChange: handleChange, disabled: !isOverridden })}
       </div>
-      <div className="text-[11px] text-neutral-500 mt-2">
+      <div className="text-[11px] text-hs-text-faint mt-2">
         {isOverridden ? (
           <>
             Overridden{displayName ? ` for ${displayName}` : ''}. Default:{' '}
-            <strong className="text-neutral-300">{formattedDefault}</strong> — edit on{' '}
+            <strong className="text-hs-text-secondary">{formattedDefault}</strong> — edit on{' '}
             <Link
               href={defaultsPageHref}
-              className="text-blue-400 hover:text-blue-300 border-b border-dashed border-blue-400/40 hover:border-blue-300/60"
+              className="text-hs-accent hover:text-hs-accent-hover border-b border-dashed border-hs-accent/40 hover:border-hs-accent/60"
             >
               {defaultsPageLabel}
             </Link>
@@ -136,11 +136,11 @@ export default function OverrideRow<T>({
             Using the default.{' '}
             <Link
               href={defaultsPageHref}
-              className="text-blue-400 hover:text-blue-300 border-b border-dashed border-blue-400/40 hover:border-blue-300/60"
+              className="text-hs-accent hover:text-hs-accent-hover border-b border-dashed border-hs-accent/40 hover:border-hs-accent/60"
             >
               {defaultsPageLabel}
             </Link>{' '}
-            uses <strong className="text-neutral-300">{formattedDefault}</strong> for every display.
+            uses <strong className="text-hs-text-secondary">{formattedDefault}</strong> for every display.
           </>
         )}
       </div>

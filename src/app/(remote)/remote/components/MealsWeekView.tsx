@@ -30,10 +30,10 @@ export default function MealsWeekView({
           <div key={date} style={{ marginBottom: 16 }}>
             {/* Day header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? '#fafafa' : '#a3a3a3' }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
                 {label}
               </span>
-              <span style={{ fontSize: 12, color: '#525252' }}>{shortDate}</span>
+              <span style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{shortDate}</span>
               {isToday && (
                 <span
                   style={{
@@ -73,12 +73,12 @@ export default function MealsWeekView({
                       padding: '10px 12px',
                       marginBottom: 4,
                       borderRadius: 10,
-                      border: '1px dashed #262626',
+                      border: '1px dashed var(--hs-border)',
                       opacity: isPastSlot ? 0.4 : 0.6,
                     }}
                   >
                     <div style={{ width: 4, height: 28, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.3 }} />
-                    <span style={{ fontSize: 13, color: '#525252' }}>
+                    <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
                       {SLOT_META[slot].label} - Not planned
                     </span>
                   </div>
@@ -95,9 +95,9 @@ export default function MealsWeekView({
                     padding: '10px 12px',
                     marginBottom: 6,
                     borderRadius: 12,
-                    background: '#171717',
+                    background: 'var(--hs-bg-panel)',
                     opacity: isPastSlot ? 0.4 : 1,
-                    border: isCurrentSlot ? '1px solid #f59e0b' : '1px solid #262626',
+                    border: isCurrentSlot ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
                     boxShadow: isCurrentSlot ? '0 0 12px rgba(245,158,11,0.08)' : 'none',
                   }}
                 >
@@ -105,7 +105,7 @@ export default function MealsWeekView({
                   {meal?.emoji && <span style={{ fontSize: 24 }}>{meal.emoji}</span>}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 10, color: '#525252', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: 10, color: 'var(--hs-text-faint)', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                         {SLOT_META[slot].label}{isCurrentSlot ? ' \u2022 Now' : ''}
                       </span>
                       {time && (
@@ -119,12 +119,12 @@ export default function MealsWeekView({
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fafafa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {meal?.name ?? planned?.customText ?? ''}
                     </div>
                   </div>
                   {meal?.prepTime && (
-                    <span style={{ fontSize: 11, color: '#525252', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
                       {meal.prepTime}m
                     </span>
                   )}
@@ -137,8 +137,8 @@ export default function MealsWeekView({
 
       {plan.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>No meals planned this week</p>
-          <p style={{ fontSize: 13, color: '#525252', marginBottom: 20 }}>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No meals planned this week</p>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
             Switch to Plan to start adding meals.
           </p>
           <button

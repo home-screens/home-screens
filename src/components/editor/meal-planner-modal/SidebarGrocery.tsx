@@ -35,12 +35,12 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
         {/* Progress section */}
         <div className="mb-4">
           <div className="flex justify-between mb-1.5">
-            <span className="text-sm font-semibold text-neutral-300">
+            <span className="text-sm font-semibold text-hs-text-secondary">
               {checked} of {total} items
             </span>
-            <span className="text-[11px] text-neutral-600">From this week</span>
+            <span className="text-[11px] text-hs-text-faint">From this week</span>
           </div>
-          <div className="h-1 bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-1 bg-hs-card rounded-full overflow-hidden">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-300"
               style={{ width: `${pct}%` }}
@@ -52,7 +52,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
         {total === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
             <span className="text-3xl opacity-20">&#128722;</span>
-            <p className="text-sm text-neutral-500 text-center">
+            <p className="text-sm text-hs-text-faint text-center">
               Plan meals with ingredients to see your shopping list
             </p>
           </div>
@@ -70,10 +70,10 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
             <div key={catKey} className="mb-5">
               {/* Category header */}
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
                   {GROCERY_CATEGORIES[catKey] ?? catKey}
                 </span>
-                <span className="ml-auto text-[10px] px-1.5 rounded bg-neutral-800 text-neutral-600">
+                <span className="ml-auto text-[10px] px-1.5 rounded bg-hs-card text-hs-text-faint">
                   {catChecked}/{catTotal}
                 </span>
               </div>
@@ -88,7 +88,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
                     key={itemKey}
                     type="button"
                     onClick={() => onToggleItem(itemKey)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 cursor-pointer transition mb-0.5 ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md border border-hs-border bg-hs-panel hover:bg-hs-card cursor-pointer transition mb-0.5 ${
                       isChecked ? 'opacity-40' : ''
                     }`}
                   >
@@ -97,7 +97,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
                       className={`w-4.5 h-4.5 rounded border-2 flex items-center justify-center text-[10px] shrink-0 transition ${
                         isChecked
                           ? 'bg-emerald-500 border-emerald-500 text-white'
-                          : 'border-neutral-600'
+                          : 'border-hs-border-strong'
                       }`}
                     >
                       {isChecked && '✓'}
@@ -107,8 +107,8 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
                     <span
                       className={`flex-1 text-sm font-medium text-left ${
                         isChecked
-                          ? 'line-through text-neutral-600'
-                          : 'text-neutral-300'
+                          ? 'line-through text-hs-text-faint'
+                          : 'text-hs-text-secondary'
                       }`}
                     >
                       {item.name}
@@ -116,7 +116,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
 
                     {/* Amount */}
                     {item.amount && (
-                      <span className="text-xs text-neutral-600 shrink-0">
+                      <span className="text-xs text-hs-text-faint shrink-0">
                         {item.amount}
                       </span>
                     )}

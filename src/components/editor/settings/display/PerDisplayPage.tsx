@@ -78,16 +78,16 @@ function formatLastSeen(lastSeen: number | null): string {
 
 function statusColor(lastSeen: number | null): { bg: string; text: string; dot: string; label: string } {
   if (!lastSeen) {
-    return { bg: 'bg-neutral-800', text: 'text-neutral-400', dot: 'bg-neutral-600', label: 'Offline' };
+    return { bg: 'bg-hs-card', text: 'text-hs-text-muted', dot: 'bg-hs-card', label: 'Offline' };
   }
   const diff = Date.now() - lastSeen;
   if (diff < 30_000) {
-    return { bg: 'bg-green-500/10 border-green-500/30', text: 'text-green-300', dot: 'bg-green-500', label: 'Online' };
+    return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', label: 'Online' };
   }
   if (diff < 300_000) {
-    return { bg: 'bg-amber-500/10 border-amber-500/30', text: 'text-amber-300', dot: 'bg-amber-500', label: 'Idle' };
+    return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', label: 'Idle' };
   }
-  return { bg: 'bg-neutral-800 border-neutral-700', text: 'text-neutral-400', dot: 'bg-neutral-600', label: 'Offline' };
+  return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', label: 'Offline' };
 }
 
 export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProps) {
@@ -169,9 +169,9 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   if (!display) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
-        <div className="text-lg font-semibold text-neutral-200">Display not found</div>
-        <p className="text-sm text-neutral-500 mt-2">
-          No display registered with id <code className="text-neutral-300">{displayId}</code>.
+        <div className="text-lg font-semibold text-hs-text-body">Display not found</div>
+        <p className="text-sm text-hs-text-faint mt-2">
+          No display registered with id <code className="text-hs-text-secondary">{displayId}</code>.
         </p>
       </div>
     );
@@ -184,9 +184,9 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   const primaryReporter = reports[0];
   const reporterIp = formatClientAddress(primaryReporter?.clientAddress);
 
-  // Display dimensions: prefer the per-display field (Phase 0 normalized
-  // main into the same shape), then orient against the rotation so the
-  // long edge always lines up with the rotation label.
+  // Display dimensions: prefer the per-display field (normalization
+  // ensures main has the same shape), then orient against the rotation
+  // so the long edge always lines up with the rotation label.
   const dims = display.displayWidth && display.displayHeight
     ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
@@ -209,8 +209,8 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       <div className="flex items-start justify-between gap-4 mb-5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-semibold text-neutral-100">{display.name}</h1>
-            <code className="text-[11px] text-neutral-500 font-mono">{display.id}</code>
+            <h1 className="text-xl font-semibold text-hs-text-primary">{display.name}</h1>
+            <code className="text-[11px] text-hs-text-faint font-mono">{display.id}</code>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <span
@@ -220,15 +220,15 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
               {status.label} · {formatLastSeen(lastSeen)}
             </span>
             {dims && (
-              <span className="text-[11px] text-neutral-400 bg-neutral-800 border border-neutral-700 px-2.5 py-1 rounded-full tabular-nums">
+              <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full tabular-nums">
                 {dims.width}×{dims.height}
               </span>
             )}
-            <span className="text-[11px] text-neutral-400 bg-neutral-800 border border-neutral-700 px-2.5 py-1 rounded-full">
+            <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full">
               {screenCount} screen{screenCount === 1 ? '' : 's'}
             </span>
             {reporterIp && (
-              <span className="text-[11px] text-neutral-400 bg-neutral-800 border border-neutral-700 px-2.5 py-1 rounded-full font-mono">
+              <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full font-mono">
                 {reporterIp}
               </span>
             )}
@@ -239,7 +239,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
             href={`/display/${display.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
             title="Open this display's kiosk URL"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
           <button
             type="button"
             onClick={handleEditScreens}
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
             title="Edit this display's screens in the canvas"
           >
             <LayoutGrid className="w-3.5 h-3.5" />
@@ -258,7 +258,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       </div>
 
       {/* Sub-tab bar */}
-      <div className="flex items-center border-b border-neutral-800 mb-5">
+      <div className="flex items-center border-b border-hs-border mb-5">
         {PER_DISPLAY_SUBTABS.map((tab) => {
           const isActive = subtab === tab;
           return (
@@ -268,8 +268,8 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
               onClick={() => navigateToSubtab(tab)}
               className={`px-1 py-2.5 mr-6 text-sm capitalize transition-colors border-b-2 ${
                 isActive
-                  ? 'text-neutral-100 border-blue-500'
-                  : 'text-neutral-500 border-transparent hover:text-neutral-300'
+                  ? 'text-hs-text-primary border-hs-accent'
+                  : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
               }`}
             >
               {tab}

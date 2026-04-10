@@ -53,7 +53,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         options={STANDINGS_VIEWS}
       />
       <div className="space-y-1">
-        <span className="text-xs text-neutral-400">League</span>
+        <span className="text-xs text-hs-text-muted">League</span>
         <select
           value={c.league ?? 'nba'}
           onChange={(e) => set({ league: e.target.value })}
@@ -65,7 +65,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         </select>
       </div>
       <div className="space-y-1">
-        <span className="text-xs text-neutral-400">Grouping</span>
+        <span className="text-xs text-hs-text-muted">Grouping</span>
         <select
           value={c.grouping ?? 'conference'}
           onChange={(e) => set({ grouping: e.target.value as StandingsGrouping })}

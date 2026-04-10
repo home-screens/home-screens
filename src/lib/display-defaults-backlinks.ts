@@ -7,7 +7,7 @@ import type { DisplayNodeSettings, ScreenConfiguration } from '@/types/config';
  *
  *     "Kitchen overrides 3 fields on this page → Open Kitchen"
  *
- * The banner is half of the Phase 4 "no more one-way lookups" guarantee:
+ * The banner is half of the "no more one-way lookups" guarantee:
  * from any per-display field you can jump to its Defaults page, and from
  * any Defaults page you can see which displays currently override its
  * fields and jump straight to them.

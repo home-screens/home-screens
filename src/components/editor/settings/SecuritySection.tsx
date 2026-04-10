@@ -238,14 +238,14 @@ export default function SecuritySection() {
   if (loading) {
     return (
       <section>
-        <p className="text-xs text-neutral-500">Checking authentication status...</p>
+        <p className="text-xs text-hs-text-faint">Checking authentication status...</p>
       </section>
     );
   }
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         Authentication
       </h3>
       <div className="space-y-3">
@@ -253,10 +253,10 @@ export default function SecuritySection() {
         <div className="flex items-center gap-2">
           <span
             className={`w-2 h-2 rounded-full ${
-              status?.authEnabled ? 'bg-green-400' : 'bg-neutral-600'
+              status?.authEnabled ? 'bg-hs-success' : 'bg-hs-card'
             }`}
           />
-          <span className="text-sm text-neutral-300">
+          <span className="text-sm text-hs-text-secondary">
             {status?.authEnabled
               ? 'Authentication is enabled'
               : 'Authentication is disabled'}
@@ -265,7 +265,7 @@ export default function SecuritySection() {
 
         {!status?.authEnabled && (
           <div className="space-y-3">
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hs-text-faint">
               Set a password to protect the editor and API endpoints.
               A display token will be auto-generated so the display can authenticate seamlessly.
             </p>
@@ -297,7 +297,7 @@ export default function SecuritySection() {
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-amber-400">
+                  <span className="text-xs text-hs-warning">
                     All sessions will be invalidated, including this one.
                   </span>
                   <Button
@@ -318,7 +318,7 @@ export default function SecuritySection() {
                 </div>
               )}
               {revokeMessage && (
-                <p className={`text-xs mt-1 ${revoking ? 'text-neutral-400' : revokeMessage.startsWith('All sessions') ? 'text-green-400' : 'text-red-400'}`}>
+                <p className={`text-xs mt-1 ${revoking ? 'text-hs-text-muted' : revokeMessage.startsWith('All sessions') ? 'text-hs-success' : 'text-hs-danger'}`}>
                   {revokeMessage}
                 </p>
               )}
@@ -326,15 +326,15 @@ export default function SecuritySection() {
 
             {/* Display Token */}
             {displayToken && (
-              <div className="mt-4 pt-4 border-t border-neutral-800">
-                <h4 className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+              <div className="mt-4 pt-4 border-t border-hs-border">
+                <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
                   Display Token
                 </h4>
-                <p className="text-xs text-neutral-500 mb-2">
+                <p className="text-xs text-hs-text-faint mb-2">
                   The display uses this token to authenticate API requests. It was auto-generated when you set a password.
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs bg-neutral-800 border border-neutral-700 rounded px-2 py-1.5 text-neutral-300 font-mono truncate select-all">
+                  <code className="flex-1 text-xs bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-hs-text-secondary font-mono truncate select-all">
                     {tokenRevealed ? displayToken : displayToken.slice(0, 8) + '\u2022'.repeat(16)}
                   </code>
                   <Button
@@ -359,7 +359,7 @@ export default function SecuritySection() {
                     </Button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-amber-400">
+                      <span className="text-xs text-hs-warning">
                         The display will need to reload to pick up the new token.
                       </span>
                       <Button
@@ -379,26 +379,26 @@ export default function SecuritySection() {
                       </Button>
                     </div>
                   )}
-                  {tokenError && <p className="text-xs text-red-400 mt-1">{tokenError}</p>}
+                  {tokenError && <p className="text-xs text-hs-danger mt-1">{tokenError}</p>}
                 </div>
-                <p className="text-xs text-neutral-600 mt-2">
-                  For phone bookmarks, append <code className="text-neutral-500">?token=TOKEN</code> to command URLs.
+                <p className="text-xs text-hs-text-faint mt-2">
+                  For phone bookmarks, append <code className="text-hs-text-faint">?token=TOKEN</code> to command URLs.
                 </p>
               </div>
             )}
           </div>
         )}
 
-        <p className="text-xs text-neutral-600">
-          Forgot your password? Delete <code className="text-neutral-500">data/auth.json</code> on the device to reset.
+        <p className="text-xs text-hs-text-faint">
+          Forgot your password? Delete <code className="text-hs-text-faint">data/auth.json</code> on the device to reset.
         </p>
       </div>
 
       {/* Modal overlay */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-neutral-900 border border-neutral-700 rounded-lg p-6 w-full max-w-sm shadow-xl">
-            <h4 className="text-sm font-medium text-neutral-200 mb-4">
+          <div className="bg-hs-panel border border-hs-border-strong rounded-lg p-6 w-full max-w-sm shadow-xl">
+            <h4 className="text-sm font-medium text-hs-text-body mb-4">
               {modal === 'set' && 'Set Password'}
               {modal === 'change' && 'Change Password'}
               {modal === 'disable' && 'Disable Authentication'}
@@ -412,7 +412,7 @@ export default function SecuritySection() {
                   onChange={(e) => { setCurrentPassword(e.target.value); setError(null); }}
                   placeholder="Current password"
                   autoFocus
-                  className="w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                 />
               )}
 
@@ -424,26 +424,26 @@ export default function SecuritySection() {
                     onChange={(e) => { setNewPassword(e.target.value); setError(null); }}
                     placeholder="New password (min 8 characters)"
                     autoFocus={modal === 'set'}
-                    className="w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                   />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
                     placeholder="Confirm new password"
-                    className="w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                   />
                 </>
               )}
 
               {modal === 'disable' && (
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-hs-text-faint">
                   This will remove the password and allow anyone on your network to access the editor.
                 </p>
               )}
 
-              {error && <p className="text-xs text-red-400">{error}</p>}
-              {success && <p className="text-xs text-green-400">{success}</p>}
+              {error && <p className="text-xs text-hs-danger">{error}</p>}
+              {success && <p className="text-xs text-hs-success">{success}</p>}
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button variant="secondary" size="sm" onClick={resetModal} disabled={submitting}>

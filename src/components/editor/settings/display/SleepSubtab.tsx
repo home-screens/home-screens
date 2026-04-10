@@ -30,8 +30,8 @@ interface SleepSubtabProps {
  * from then on every field on this page edits the per-display copy.
  * They can also click "Reset to default" to drop the entire fork.
  *
- * Phase 5 inlined the legacy `SleepSection` wrapper. The form body
- * now lives in the shared `SleepFormFields` component which both this
+ * The legacy `SleepSection` wrapper was inlined. The form body now
+ * lives in the shared `SleepFormFields` component which both this
  * subtab and `DefaultSleepSection` compose. The fork affordance moved
  * to a header row inside the rounded card here, matching the mockup's
  * "single rounded card with override button at the top" CTA layout.
@@ -84,7 +84,7 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
           time. The default lives on{' '}
           <Link
             href="?section=defaults&page=sleep"
-            className="text-blue-300 hover:text-blue-200 underline decoration-dashed underline-offset-2"
+            className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             Defaults → Sleep
           </Link>

@@ -302,7 +302,7 @@ export default function MealsTab() {
   if (loading) {
     return (
       <div style={{ padding: '48px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: 14, color: '#525252' }}>Loading meals...</div>
+        <div style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>Loading meals...</div>
       </div>
     );
   }
@@ -318,10 +318,10 @@ export default function MealsTab() {
       {/* Header */}
       <div style={{ padding: '12px 0 4px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontSize: 12, color: '#525252' }}>
+          <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
           </div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa', margin: 0 }}>Meals</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>Meals</h2>
         </div>
         <button
           type="button"
@@ -330,9 +330,9 @@ export default function MealsTab() {
             width: 40,
             height: 40,
             borderRadius: 10,
-            border: '1px solid #262626',
-            background: '#171717',
-            color: '#a3a3a3',
+            border: '1px solid var(--hs-border)',
+            background: 'var(--hs-bg-panel)',
+            color: 'var(--hs-text-muted)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -355,7 +355,7 @@ export default function MealsTab() {
           display: 'flex',
           gap: 2,
           padding: 3,
-          background: '#171717',
+          background: 'var(--hs-bg-panel)',
           borderRadius: 10,
           marginTop: 12,
           marginBottom: 16,
@@ -404,8 +404,8 @@ export default function MealsTab() {
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: subView === view ? '#262626' : 'transparent',
-                color: subView === view ? '#fafafa' : '#525252',
+                background: subView === view ? 'var(--hs-border)' : 'transparent',
+                color: subView === view ? 'var(--hs-text-primary)' : 'var(--hs-text-faint)',
                 fontFamily: 'inherit',
                 display: 'flex',
                 alignItems: 'center',
@@ -426,21 +426,21 @@ export default function MealsTab() {
           <button
             onClick={() => navigateWeek(-1)}
             style={{
-              width: 32, height: 32, borderRadius: 8, border: '1px solid #262626',
-              background: 'transparent', color: '#a3a3a3', fontSize: 16, cursor: 'pointer',
+              width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
+              background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
             }}
           >
             ‹
           </button>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#a3a3a3' }}>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--hs-text-muted)' }}>
             {isCurrentWeek ? 'This Week' : `${formatShort(startDate)} – ${formatShort(endDate)}`}
           </span>
           <button
             onClick={() => navigateWeek(1)}
             style={{
-              width: 32, height: 32, borderRadius: 8, border: '1px solid #262626',
-              background: 'transparent', color: '#a3a3a3', fontSize: 16, cursor: 'pointer',
+              width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
+              background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
             }}
           >
@@ -553,14 +553,14 @@ export default function MealsTab() {
             bottom: 100,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#ef4444',
+            background: 'var(--hs-danger)',
             color: '#fff',
             padding: '10px 20px',
             borderRadius: 10,
             fontSize: 13,
             fontWeight: 600,
             zIndex: 250,
-            boxShadow: '0 4px 20px rgba(239,68,68,0.3)',
+            boxShadow: 'none',
             cursor: 'pointer',
           }}
           onClick={() => setSaveError(null)}

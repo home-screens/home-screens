@@ -218,7 +218,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   if (loading) {
     return (
-      <div className="text-sm text-neutral-500 py-8 text-center">
+      <div className="text-sm text-hs-text-faint py-8 text-center">
         Loading system info...
       </div>
     );
@@ -226,7 +226,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   if (!versionInfo) {
     return (
-      <div className="text-sm text-red-400 py-8 text-center">
+      <div className="text-sm text-hs-danger py-8 text-center">
         Failed to load system information
       </div>
     );
@@ -235,28 +235,28 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const latestIsPrerelease = versionInfo.latest?.includes('-') ?? false;
 
   return (
-    <div className="space-y-0 divide-y divide-neutral-600 [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+    <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       {/* Current Version */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Version
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-neutral-100 font-mono text-sm">
+            <p className="text-hs-text-primary font-mono text-sm">
               v{versionInfo.current}
               {versionInfo.currentCommit !== 'unknown' && (
-                <span className="text-neutral-500 ml-2">({versionInfo.currentCommit})</span>
+                <span className="text-hs-text-faint ml-2">({versionInfo.currentCommit})</span>
               )}
             </p>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-hs-text-faint mt-0.5">
               {versionInfo.installedVia === 'git'
                 ? `Branch: ${versionInfo.channel}`
                 : 'Installed from release'}
               {' · '}
               <button
                 onClick={handleToggleChannel}
-                className="text-neutral-400 hover:text-blue-400 transition-colors"
+                className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
               >
                 {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
               </button>
@@ -273,13 +273,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         </div>
 
         {versionInfo.upgradeRunning && (
-          <div className="mt-3 rounded-lg bg-yellow-950/50 border border-yellow-800/50 p-3">
+          <div className="mt-3 rounded-lg bg-hs-warning/20 border border-hs-warning/30 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-yellow-300 font-medium">
+                <p className="text-sm text-hs-warning font-medium">
                   Upgrade in progress
                 </p>
-                <p className="text-xs text-yellow-400/70 mt-0.5">
+                <p className="text-xs text-hs-warning/70 mt-0.5">
                   An upgrade is currently running. If it appears stuck, you can cancel it.
                 </p>
               </div>
@@ -297,18 +297,18 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         {versionInfo.updateAvailable && versionInfo.latest && (
           <div className={`mt-3 rounded-lg border p-3 ${
             latestIsPrerelease
-              ? 'bg-orange-950/50 border-orange-800/50'
-              : 'bg-blue-950/50 border-blue-800/50'
+              ? 'bg-hs-warning/20 border-hs-warning/30'
+              : 'bg-hs-accent-soft border-hs-accent/30'
           }`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className={`text-sm font-medium ${
-                  latestIsPrerelease ? 'text-orange-300' : 'text-blue-300'
+                  latestIsPrerelease ? 'text-hs-warning' : 'text-hs-accent-hover'
                 }`}>
                   {latestIsPrerelease ? 'Pre-release' : 'Update'} available: v{versionInfo.latest}
                 </p>
                 <p className={`text-xs mt-0.5 ${
-                  latestIsPrerelease ? 'text-orange-400/70' : 'text-blue-400/70'
+                  latestIsPrerelease ? 'text-hs-warning/70' : 'text-hs-accent-hover/70'
                 }`}>
                   You are on v{versionInfo.current}
                 </p>
@@ -325,8 +325,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         )}
 
         {!versionInfo.updateAvailable && (
-          <p className="text-xs text-green-400/80 mt-2 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+          <p className="text-xs text-hs-success/80 mt-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
             You&apos;re on the latest version
           </p>
         )}
@@ -335,13 +335,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Changelog */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             Changelog
           </h3>
           {!showChangelog && (
             <button
               onClick={() => { setShowChangelog(true); fetchChangelog(); }}
-              className="text-xs text-blue-400 hover:text-blue-300"
+              className="text-xs text-hs-accent hover:text-hs-accent-hover"
             >
               View Changelog
             </button>
@@ -351,20 +351,20 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         {showChangelog && (
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {releases.length === 0 ? (
-              <p className="text-xs text-neutral-500">No releases found on GitHub.</p>
+              <p className="text-xs text-hs-text-faint">No releases found on GitHub.</p>
             ) : (
               releases.map((r) => (
-                <div key={r.tag} className="rounded-md bg-neutral-800 border border-neutral-700 p-3">
+                <div key={r.tag} className="rounded-md bg-hs-card border border-hs-border-strong p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-neutral-200 font-mono">{r.tag}</span>
+                    <span className="text-sm text-hs-text-body font-mono">{r.tag}</span>
                     {r.published && (
-                      <span className="text-xs text-neutral-500">
+                      <span className="text-xs text-hs-text-faint">
                         {new Date(r.published).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                   {r.body && (
-                    <p className="text-xs text-neutral-400 mt-1 whitespace-pre-line line-clamp-3">
+                    <p className="text-xs text-hs-text-muted mt-1 whitespace-pre-line line-clamp-3">
                       {r.body}
                     </p>
                   )}
@@ -378,7 +378,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Version History / Rollback */}
       {versionInfo.tags.length > 0 && (
         <section>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             Version History
           </h3>
           <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -387,12 +387,12 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
               return (
                 <div
                   key={t.tag}
-                  className="flex items-center justify-between rounded-md px-3 py-2 bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-neutral-200 font-mono">{t.tag}</span>
+                    <span className="text-sm text-hs-text-primary font-mono">{t.tag}</span>
                     {isCurrent && (
-                      <span className="text-[10px] uppercase tracking-wider bg-blue-600/30 text-blue-300 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] uppercase tracking-wider bg-hs-accent/30 text-hs-accent-hover px-1.5 py-0.5 rounded">
                         current
                       </span>
                     )}
@@ -400,7 +400,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   {!isCurrent && (
                     <button
                       onClick={() => handleRollback(t.tag)}
-                      className="text-xs text-neutral-500 hover:text-orange-400 transition-colors"
+                      className="text-xs text-hs-text-muted hover:text-hs-warning transition-colors"
                     >
                       Rollback
                     </button>
@@ -414,11 +414,11 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
       {/* Config Backups */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Config Backups
         </h3>
         {backups.length === 0 ? (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-hs-text-faint">
             No backups yet. Backups are created automatically before each upgrade.
           </p>
         ) : (
@@ -426,11 +426,11 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             {backups.map((b) => (
               <div
                 key={b.name}
-                className="flex items-center justify-between rounded-md px-3 py-2 bg-neutral-800/50"
+                className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
               >
                 <div>
-                  <span className="text-xs text-neutral-300 font-mono">{b.name}</span>
-                  <span className="text-xs text-neutral-500 ml-2">
+                  <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
+                  <span className="text-xs text-hs-text-faint ml-2">
                     {(b.size / 1024).toFixed(1)}KB
                   </span>
                 </div>
@@ -438,13 +438,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   <a
                     href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
                     download={b.name}
-                    className="text-xs text-neutral-500 hover:text-blue-400 transition-colors"
+                    className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
                     Download
                   </a>
                   <button
                     onClick={() => handleRestoreBackup(b.name)}
-                    className="text-xs text-neutral-500 hover:text-blue-400 transition-colors"
+                    className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
                     Restore
                   </button>
@@ -454,7 +454,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </div>
         )}
         {restoreStatus && (
-          <p className={`text-xs mt-2 ${restoreStatus.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>
+          <p className={`text-xs mt-2 ${restoreStatus.startsWith('Error') ? 'text-hs-danger' : 'text-hs-success'}`}>
             {restoreStatus}
           </p>
         )}
@@ -462,7 +462,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
       {/* System Actions */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           System Actions
         </h3>
         <div className="flex items-center gap-3">
@@ -484,24 +484,24 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </Button>
         </div>
         {powerState.status === 'ok' && powerState.action === 'restart-service' && (
-          <p className="text-xs text-green-400 mt-2">
+          <p className="text-xs text-hs-success mt-2">
             Service restart scheduled. The page will reload momentarily...
           </p>
         )}
         {powerState.status === 'ok' && powerState.action === 'reboot' && (
-          <p className="text-xs text-green-400 mt-2">
+          <p className="text-xs text-hs-success mt-2">
             System reboot scheduled. The display will come back online shortly...
           </p>
         )}
         {powerState.status === 'error' && (
-          <p className="text-xs text-red-400 mt-2">
+          <p className="text-xs text-hs-danger mt-2">
             {powerState.message}
           </p>
         )}
         {powerState.status === 'pending' && (
-          <p className="text-xs text-neutral-500 mt-2">Processing...</p>
+          <p className="text-xs text-hs-text-faint mt-2">Processing...</p>
         )}
-        <p className="text-xs text-neutral-500 mt-2">
+        <p className="text-xs text-hs-text-faint mt-2">
           Restart Service reloads the app. Reboot System restarts the entire Raspberry Pi.
         </p>
       </section>

@@ -20,7 +20,7 @@ export default function BackupReminderBanner({
   return (
     <div className="mx-4 mt-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] text-amber-400">
+        <div className="text-[13px] text-hs-warning">
           You haven&#x2019;t backed up in {daysSinceBackup} day{daysSinceBackup === 1 ? '' : 's'}.
         </div>
       </div>
@@ -33,7 +33,7 @@ export default function BackupReminderBanner({
       </button>
       <button
         onClick={onDismiss}
-        className="shrink-0 text-neutral-500 active:text-neutral-300 transition-colors p-1"
+        className="shrink-0 text-hs-text-faint active:text-hs-text-secondary transition-colors p-1"
         aria-label="Dismiss"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">

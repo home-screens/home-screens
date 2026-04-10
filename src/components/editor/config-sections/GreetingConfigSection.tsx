@@ -11,7 +11,7 @@ export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Name</span>
+        <span className="text-xs text-hs-text-muted">Name</span>
         <input
           type="text"
           value={(c.name as string) || 'Friend'}

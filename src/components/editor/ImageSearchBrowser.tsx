@@ -117,8 +117,8 @@ export default function ImageSearchBrowser({
                 onClick={() => handleCategoryChange(cat.query)}
                 className={`text-[10px] px-2 py-1 rounded-full transition-colors ${
                   selectedCategory === cat.query
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-hs-accent text-white'
+                    : 'bg-hs-card text-hs-text-muted hover:text-hs-text-body'
                 }`}
               >
                 {cat.label}
@@ -133,7 +133,7 @@ export default function ImageSearchBrowser({
               onChange={(e) => setCustomSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCustomSearch()}
               placeholder={searchPlaceholder}
-              className="flex-1 rounded-md bg-neutral-800 border border-neutral-700 text-xs text-neutral-200 px-2 py-1.5 focus:outline-none focus:border-blue-500"
+              className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1.5 focus:outline-none focus:border-hs-accent"
             />
             <Button size="sm" onClick={handleCustomSearch}>
               Search
@@ -144,10 +144,10 @@ export default function ImageSearchBrowser({
 
       {beforeGrid}
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-hs-danger">{error}</p>}
 
       {isLoading ? (
-        <div className="text-xs text-neutral-500 py-4 text-center">Loading...</div>
+        <div className="text-xs text-hs-text-faint py-4 text-center">Loading...</div>
       ) : (
         <div className={`grid gap-1.5 overflow-y-auto ${
           columns === 4 ? 'grid-cols-4' : columns === 3 ? 'grid-cols-3' : 'grid-cols-2 max-h-[300px]'
@@ -157,7 +157,7 @@ export default function ImageSearchBrowser({
               key={photo.id}
               onClick={() => handleUsePhoto(photo)}
               disabled={isSaving === photo.id}
-              className="group relative aspect-[9/16] rounded overflow-hidden border border-neutral-700 hover:border-blue-500 transition-colors"
+              className="group relative aspect-[9/16] rounded overflow-hidden border border-hs-border-strong hover:border-hs-accent transition-colors"
             >
               <img
                 src={photo.thumb}
@@ -192,7 +192,7 @@ export default function ImageSearchBrowser({
           >
             Prev
           </Button>
-          <span className="text-[10px] text-neutral-500">
+          <span className="text-[10px] text-hs-text-faint">
             Page {page} of {totalPages}
           </span>
           <Button
@@ -205,7 +205,7 @@ export default function ImageSearchBrowser({
         </div>
       )}
 
-      <p className="text-[9px] text-neutral-600 text-center">
+      <p className="text-[9px] text-hs-text-faint text-center">
         {attribution}
       </p>
     </>

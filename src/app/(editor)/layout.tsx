@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-neutral-950 text-neutral-100 font-sans antialiased h-screen overflow-hidden">
+    <div className="bg-hs-body text-hs-text-primary font-sans antialiased h-screen overflow-hidden">
       <PluginGlobalsEditor />
       {children}
       <ConfirmModal />

@@ -28,7 +28,7 @@ export function SunriseSunsetConfigSection({ mod, screenId }: { mod: ModuleInsta
       />
       <Toggle label="Show Day Length" checked={c.showDayLength !== false} onChange={(v) => set({ showDayLength: v })} />
       <Toggle label="Show Golden Hour" checked={!!c.showGoldenHour} onChange={(v) => set({ showGoldenHour: v })} />
-      <p className="text-xs text-neutral-500">Uses location from global settings.</p>
+      <p className="text-xs text-hs-text-faint">Uses location from global settings.</p>
     </>
   );
 }

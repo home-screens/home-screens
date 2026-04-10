@@ -473,14 +473,14 @@ describe('writeConfig / readConfig — error recovery', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Main display normalization (Phase 0 of the settings-defaults redesign)
+// Main display normalization
 //
 // Background: the multi-display registry historically let `main` exist as a
 // `DisplayNode` with no dimension fields, falling back to
 // `config.settings.displayWidth/Height/Transform` at render time. That carve-
-// out forced "main is special" branches in every editor surface. Phase 0
-// flattens main into a regular DisplayNode that owns its own dimensions, via
-// an idempotent in-memory normalization that runs on every readConfig().
+// out forced "main is special" branches in every editor surface. The
+// normalization flattens main into a regular DisplayNode that owns its own
+// dimensions, via an idempotent in-memory pass that runs on every readConfig().
 //
 // We test through the public `readConfig()` API rather than the private
 // helper so the tests cover what every caller actually observes — the

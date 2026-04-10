@@ -29,7 +29,7 @@ export default function MobileColorPicker({
               border: 'none',
               cursor: 'pointer',
               transition: 'all 0.15s',
-              outline: value === c ? '3px solid #fafafa' : 'none',
+              outline: value === c ? '3px solid var(--hs-text-primary)' : 'none',
               outlineOffset: 3,
             }}
           />
@@ -44,15 +44,15 @@ export default function MobileColorPicker({
             justifyContent: 'center',
             cursor: 'pointer',
             border: !MEMBER_COLORS.includes(value)
-              ? '3px solid #fafafa'
-              : '2px dashed #525252',
+              ? '3px solid var(--hs-text-primary)'
+              : '2px dashed var(--hs-border-strong)',
             backgroundColor: !MEMBER_COLORS.includes(value) ? value : 'transparent',
             position: 'relative',
           }}
           title="Custom color"
         >
           {MEMBER_COLORS.includes(value) && (
-            <Plus size={16} color="#525252" />
+            <Plus size={16} color="var(--hs-text-faint)" />
           )}
           <input
             type="color"

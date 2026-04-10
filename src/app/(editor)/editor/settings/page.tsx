@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import type { GlobalSettings } from '@/types/config';
 import SettingsSidebar from '@/components/editor/settings/SettingsSidebar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
+import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import DefaultDisplaySection from '@/components/editor/settings/DefaultDisplaySection';
@@ -32,13 +33,13 @@ import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
 /* ─── Tab definitions ─────────────────────────────── */
 
 /**
- * Canonical id union for the page-content router. Phase 4 hoisted the
- * sidebar rendering into `SettingsSidebar` (which has its own icon
- * mapping) and Phase 5 hoisted the URL parser into `lib/settings-route`
- * (which has its own `DEFAULT_PAGE_IDS` const), so the only thing
- * `settings/page.tsx` still needs from the legacy TABS array is the
- * literal union — exposed here directly to keep the file dependency-
- * free of any lucide-react icon imports it doesn't actually render.
+ * Canonical id union for the page-content router. The sidebar rendering
+ * lives in `SettingsSidebar` (which has its own icon mapping) and the
+ * URL parser lives in `lib/settings-route` (which has its own
+ * `DEFAULT_PAGE_IDS` const), so the only thing `settings/page.tsx`
+ * still needs from the legacy TABS array is the literal union — exposed
+ * here directly to keep the file dependency-free of any lucide-react
+ * icon imports it doesn't actually render.
  *
  * `displays` is kept in the union because it's a valid `section`
  * value (not a page), and the active-tab derivation needs to be aware
@@ -278,11 +279,11 @@ function toConfigSettings(state: SettingsState): Partial<GlobalSettings> {
 /* ─── Page ────────────────────────────────────────── */
 
 /**
- * The Phase 4 settings sidebar URL shape — `?section=defaults&page=X`,
+ * The settings sidebar URL shape — `?section=defaults&page=X`,
  * `?section=display&id=X&subtab=Y`, `?section=displays` — is parsed by
- * the pure helpers in `lib/settings-route.ts`. Phase 5 hoisted that
- * parser out so the legacy `?tab=X` redirect can be unit-tested without
- * a `window`. The page still drives content branching off the `kind`
+ * the pure helpers in `lib/settings-route.ts`. The parser was hoisted
+ * out so the legacy `?tab=X` redirect can be unit-tested without a
+ * `window`. The page still drives content branching off the `kind`
  * field of the resolved route below.
  */
 
@@ -294,7 +295,7 @@ export default function SettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen flex items-center justify-center text-neutral-500">
+        <div className="h-screen flex items-center justify-center text-hs-text-faint">
           Loading...
         </div>
       }
@@ -319,14 +320,14 @@ function SettingsPageContent() {
   const storeSaveError = useEditorStore((s) => s.saveError);
   const settings = config?.settings;
 
-  // Phase 4: the URL is the single source of truth for content routing.
+  // The URL is the single source of truth for content routing.
   // `useSearchParams` re-renders this component whenever Next's router
   // updates — so browser back/forward, `router.push` from the sidebar,
   // and every `<Link>` click all stay in sync without a popstate listener.
-  // Phase 5 hoisted the parser into `lib/settings-route` so the legacy
-  // `?tab=X` redirect can be unit-tested without a `window`. The
-  // `redirectedQuery` field tells the effect below whether the URL bar
-  // needs to be rewritten to the canonical shape.
+  // The parser lives in `lib/settings-route` so the legacy `?tab=X`
+  // redirect can be unit-tested without a `window`. The `redirectedQuery`
+  // field tells the effect below whether the URL bar needs to be
+  // rewritten to the canonical shape.
   const { route: sectionRoute, redirectedQuery } = useMemo(
     () => resolveSettingsRoute(searchParams?.toString() ?? ''),
     [searchParams],
@@ -521,9 +522,9 @@ function SettingsPageContent() {
     });
   }, [state.display.displayWidth, state.display.displayHeight, config, selectedDisplayId, updateGroup]);
 
-  // Phase 4 entry-point used by the sidebar's "+" Add display button.
-  // Routes the user to the displays index page where the existing
-  // DisplaysSection's add form is the canonical add flow. Uses
+  // Entry-point used by the sidebar's "+" Add display button. Routes the
+  // user to the displays index page where the existing DisplaysSection's
+  // add form is the canonical add flow. Uses
   // `router.push` so `useSearchParams` re-renders the page with the
   // new route and the back button returns the user to the previous
   // section.
@@ -558,7 +559,7 @@ function SettingsPageContent() {
 
   if (!settings) {
     return (
-      <div className="h-screen flex items-center justify-center text-neutral-500">
+      <div className="h-screen flex items-center justify-center text-hs-text-faint">
         Loading...
       </div>
     );
@@ -579,18 +580,18 @@ function SettingsPageContent() {
   const failureMessage =
     saveMessage === 'Save failed' ? 'Save failed' : storeSaveError ? 'Save failed' : null;
   const statusIndicator = isActivelySaving ? (
-    <span className="text-xs text-neutral-400 flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+    <span className="text-xs text-hs-text-muted flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse" />
       Saving…
     </span>
   ) : failureMessage ? (
-    <span className="text-xs text-red-400 flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500" />
+    <span className="text-xs text-hs-danger flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-danger" />
       {failureMessage}
     </span>
   ) : saveMessage === 'Saved' ? (
-    <span className="text-xs text-green-400 flex items-center gap-1.5">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+    <span className="text-xs text-hs-success flex items-center gap-1.5">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-success" />
       Saved
     </span>
   ) : null;
@@ -598,28 +599,31 @@ function SettingsPageContent() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-700 bg-neutral-900 px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-hs-border-strong bg-hs-panel px-4 py-2.5">
         <div className="flex items-center gap-4">
           <button
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-hs-text-muted hover:text-hs-text-body transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Editor
           </button>
-          <div className="h-6 w-px bg-neutral-800" />
+          <div className="h-6 w-px bg-hs-card" />
           <button onClick={handleBack}>
             <HomeScreensLogo contextLabel="Settings" />
           </button>
         </div>
-        {statusIndicator && <div>{statusIndicator}</div>}
+        <div className="flex items-center gap-2">
+          {statusIndicator}
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Phase 4 sidebar — splits into Defaults / Per display in
-            multi-display mode and collapses to a flat list in legacy
-            single-display mode. URL-driven highlight, no parent state. */}
+        {/* Sidebar — splits into Defaults / Per display in multi-display
+            mode and collapses to a flat list in legacy single-display
+            mode. URL-driven highlight, no parent state. */}
         <SettingsSidebar onAddDisplay={handleAddDisplayFromSidebar} />
 
         {/* Content */}
@@ -774,5 +778,33 @@ function SettingsPageContent() {
         />
       )}
     </div>
+  );
+}
+
+const THEME_CYCLE: ThemeChoice[] = ['dark', 'light', 'system'];
+const THEME_ICON = { dark: Moon, light: Sun, system: Monitor } as const;
+const THEME_LABEL = { dark: 'Dark', light: 'Light', system: 'System' } as const;
+
+function ThemeToggle() {
+  const [choice, setChoice] = useState<ThemeChoice>('dark');
+  useEffect(() => { setChoice(getThemeChoice()); }, []);
+
+  const cycle = () => {
+    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(choice) + 1) % THEME_CYCLE.length];
+    setChoice(next);
+    setThemeChoice(next);
+  };
+
+  const Icon = THEME_ICON[choice];
+
+  return (
+    <button
+      onClick={cycle}
+      className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover transition-colors"
+      title={`Theme: ${THEME_LABEL[choice]}`}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      <span>{THEME_LABEL[choice]}</span>
+    </button>
   );
 }

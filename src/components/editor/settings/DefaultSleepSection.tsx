@@ -20,10 +20,10 @@ import SleepFormFields, {
  * one-row-per-field. The backlink banner here only needs to know if any
  * display has the `sleep` or `screensaver` keys present at all.
  *
- * Phase 5 inlined the legacy `SleepSection` wrapper. The form rows now
- * live in the shared `SleepFormFields` component, and this page wraps
- * them with just the header + backlink banner — no fork affordance,
- * because the defaults page is always editable.
+ * The legacy `SleepSection` wrapper was inlined. The form rows now live
+ * in the shared `SleepFormFields` component, and this page wraps them
+ * with just the header + backlink banner — no fork affordance, because
+ * the defaults page is always editable.
  */
 interface DefaultSleepSectionProps {
   config: ScreenConfiguration;
@@ -41,17 +41,17 @@ export default function DefaultSleepSection({ config, values, onChange }: Defaul
   return (
     <>
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
           Defaults → Sleep
         </div>
-        <h1 className="text-xl font-semibold text-neutral-100">Default sleep settings</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-xl font-semibold text-hs-text-primary">Default sleep settings</h1>
+        <p className="text-sm text-hs-text-faint mt-1">
           Default dim / sleep schedule and screensaver applied to every display. A specific
           display can override the whole block from its own page.
         </p>
       </div>
       <DefaultsBacklinkBanner overrides={overrides} pageLabel="this page" />
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-4">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <SleepFormFields values={values} onChange={onChange} />
       </div>
     </>

@@ -98,12 +98,12 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
       <div className="flex items-center gap-2">
         <span
           className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            checking ? 'bg-yellow-500 animate-pulse' :
-            status?.authenticated ? 'bg-green-500' :
-            status?.reachable ? 'bg-yellow-500' : 'bg-red-500'
+            checking ? 'bg-hs-warning animate-pulse' :
+            status?.authenticated ? 'bg-hs-success' :
+            status?.reachable ? 'bg-hs-warning' : 'bg-hs-danger'
           }`}
         />
-        <span className="text-xs text-neutral-400">
+        <span className="text-xs text-hs-text-muted">
           {checking ? 'Connecting...' :
            status?.authenticated ? `Connected${status.version ? ` (v${status.version})` : ''}` :
            status?.reachable ? 'API key invalid' : 'Cannot reach server'}
@@ -111,7 +111,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
         {!checking && !status?.authenticated && (
           <button
             onClick={checkConnection}
-            className="text-[10px] text-blue-400 hover:text-blue-300"
+            className="text-[10px] text-hs-accent hover:text-hs-accent-hover"
           >
             Retry
           </button>
@@ -122,7 +122,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
         <>
           {/* Album picker */}
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Album</span>
+            <span className="text-xs text-hs-text-muted">Album</span>
             <select
               value={albumId}
               onChange={(e) => set({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
@@ -139,7 +139,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
 
           {/* Person filter */}
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Person</span>
+            <span className="text-xs text-hs-text-muted">Person</span>
             <div className="flex gap-1.5 items-center">
               <select
                 value={personId}
@@ -155,7 +155,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
                 <img
                   src={people.find((p) => p.id === personId)!.thumbnailUrl}
                   alt=""
-                  className="w-6 h-6 rounded-full object-cover border border-neutral-600"
+                  className="w-6 h-6 rounded-full object-cover border border-hs-border-strong"
                 />
               )}
             </div>
@@ -182,7 +182,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
           {previewImages.length > 0 && (
             <div className="mt-1.5">
               {photoCount !== null && (
-                <span className="text-[10px] text-neutral-500">
+                <span className="text-[10px] text-hs-text-faint">
                   {photoCount} {photoCount === 1 ? 'photo' : 'photos'} in album
                 </span>
               )}
@@ -193,7 +193,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
                     src={url}
                     alt=""
                     loading="lazy"
-                    className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
+                    className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"
                   />
                 ))}
               </div>

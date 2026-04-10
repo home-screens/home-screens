@@ -117,7 +117,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     <>
       {/* Theme Override */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Theme</span>
+        <span className="text-xs text-hs-text-muted">Theme</span>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -132,7 +132,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* View */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">View</span>
+        <span className="text-xs text-hs-text-muted">View</span>
         <select
           value={c.view ?? 'week'}
           onChange={(e) => set({ view: e.target.value as FullscreenMealPlannerConfig['view'] })}
@@ -146,7 +146,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Density */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Density</span>
+        <span className="text-xs text-hs-text-muted">Density</span>
         <select
           value={c.density ?? 'cozy'}
           onChange={(e) => set({ density: e.target.value as 'cozy' | 'snug' })}
@@ -159,7 +159,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Typography Size */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Typography Size</span>
+        <span className="text-xs text-hs-text-muted">Typography Size</span>
         <select
           value={c.typographySize ?? 'medium'}
           onChange={(e) => set({ typographySize: e.target.value as typeof TYPOGRAPHY_SIZES[number]['value'] })}
@@ -185,8 +185,8 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       />
 
       {/* Open Modal */}
-      <div className="pt-1 border-t border-neutral-700 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
           <span>{mealData.savedMeals.length} saved meals</span>
           <span>&middot;</span>
           <span>{mealData.plan.length} planned</span>
@@ -201,11 +201,11 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       </div>
 
       {/* Mobile hint */}
-      <p className="text-[11px] text-neutral-600 leading-relaxed">
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
         Meal slots, week start, time format, and default serving times are shared across
         all meal modules. Edit them from{' '}
-        <a href="/editor/settings?tab=meals" className="text-blue-400 hover:text-blue-300 underline">Settings &rarr; Meals</a>{' '}
-        or the <span className="text-neutral-400">/remote</span> settings drawer.
+        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">Settings &rarr; Meals</a>{' '}
+        or the <span className="text-hs-text-muted">/remote</span> settings drawer.
       </p>
 
       {/* Modal */}

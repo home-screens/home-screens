@@ -67,12 +67,12 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         iCal / ICS Feeds
       </h3>
       <div className="space-y-3">
         {icalSources.length > 0 && (
-          <div className="rounded-md bg-neutral-800 border border-neutral-600 divide-y divide-neutral-700">
+          <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
             {icalSources.map((source) => (
               <div key={source.id}>
                 <div className="flex items-center gap-3 px-3 py-2">
@@ -80,24 +80,24 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
                     type="checkbox"
                     checked={source.enabled}
                     onChange={() => toggleICalSource(source.id)}
-                    className="rounded border-neutral-600 bg-neutral-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                    className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                   />
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: source.color }}
                   />
-                  <span className="text-sm text-neutral-200 truncate flex-1">
+                  <span className="text-sm text-hs-text-body truncate flex-1">
                     {source.name}
                   </span>
                   <button
                     onClick={() => setEditingId(editingId === source.id ? null : source.id)}
-                    className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+                    className="text-xs text-hs-text-faint hover:text-hs-text-secondary transition-colors"
                   >
                     {editingId === source.id ? 'done' : 'edit'}
                   </button>
                   <button
                     onClick={() => removeICalSource(source.id)}
-                    className="text-xs text-neutral-500 hover:text-red-400 transition-colors"
+                    className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
                   >
                     &times;
                   </button>
@@ -108,18 +108,18 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
                       type="text"
                       value={source.name}
                       onChange={(e) => updateICalSource(source.id, { name: e.target.value })}
-                      className="w-full rounded-md bg-neutral-900 border border-neutral-600 px-2.5 py-1.5 text-sm text-neutral-200 focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
                       placeholder="Feed name"
                     />
                     <input
                       type="text"
                       value={source.url}
                       onChange={(e) => updateICalSource(source.id, { url: e.target.value })}
-                      className="w-full rounded-md bg-neutral-900 border border-neutral-600 px-2.5 py-1.5 text-sm text-neutral-200 focus:border-blue-500 focus:outline-none font-mono text-xs"
+                      className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
                       placeholder="https://example.com/calendar.ics"
                     />
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-neutral-400 mr-1">Color</span>
+                      <span className="text-xs text-hs-text-muted mr-1">Color</span>
                       {ICAL_COLOR_PALETTE.map((color) => (
                         <button
                           key={color}
@@ -140,12 +140,12 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
         )}
 
         {showAddForm ? (
-          <div className="rounded-md bg-neutral-800 border border-neutral-600 p-3 space-y-2">
+          <div className="rounded-md bg-hs-card border border-hs-border-strong p-3 space-y-2">
             <input
               type="text"
               value={newFeedName}
               onChange={(e) => setNewFeedName(e.target.value)}
-              className="w-full rounded-md bg-neutral-900 border border-neutral-600 px-2.5 py-1.5 text-sm text-neutral-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
               placeholder="Feed name (e.g. Work, Sports)"
               autoFocus
             />
@@ -153,11 +153,11 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
               type="text"
               value={newFeedUrl}
               onChange={(e) => setNewFeedUrl(e.target.value)}
-              className="w-full rounded-md bg-neutral-900 border border-neutral-600 px-2.5 py-1.5 text-sm text-neutral-200 focus:border-blue-500 focus:outline-none font-mono text-xs"
+              className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
               placeholder="https://example.com/calendar.ics"
             />
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-neutral-400 mr-1">Color</span>
+              <span className="text-xs text-hs-text-muted mr-1">Color</span>
               {ICAL_COLOR_PALETTE.map((color) => (
                 <button
                   key={color}
@@ -185,7 +185,7 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
           </Button>
         )}
 
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-hs-text-faint">
           Add ICS/iCal feed URLs from Google Calendar, Apple Calendar, Outlook, Nextcloud, or any service that provides .ics feeds.
         </p>
       </div>

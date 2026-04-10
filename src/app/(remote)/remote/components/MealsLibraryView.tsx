@@ -69,10 +69,10 @@ export default function MealsLibraryView({
                 fontSize: 12,
                 fontWeight: 600,
                 borderRadius: 999,
-                border: isActive ? '1px solid #f59e0b' : '1px solid #262626',
+                border: isActive ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
                 cursor: 'pointer',
-                background: isActive ? 'rgba(245,158,11,0.15)' : '#171717',
-                color: isActive ? '#f59e0b' : '#525252',
+                background: isActive ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
+                color: isActive ? '#f59e0b' : 'var(--hs-text-faint)',
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
                 fontFamily: 'inherit',
@@ -87,10 +87,10 @@ export default function MealsLibraryView({
       {/* Meal list */}
       {filteredMeals.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
             {savedMeals.length === 0 ? 'No meals yet' : 'No matches'}
           </p>
-          <p style={{ fontSize: 13, color: '#525252' }}>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
             {savedMeals.length === 0 ? 'Tap the + button to add your first meal.' : 'Try a different search or filter.'}
           </p>
         </div>
@@ -117,10 +117,10 @@ export default function MealsLibraryView({
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#e5e5e5', marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)', marginBottom: 4 }}>
                 {meal.name}
               </div>
-              <div style={{ display: 'flex', gap: 8, fontSize: 12, color: '#525252' }}>
+              <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
                 {meal.prepTime && <span>{meal.prepTime}m prep</span>}
                 {meal.difficulty && <span>{meal.difficulty}</span>}
               </div>
@@ -133,8 +133,8 @@ export default function MealsLibraryView({
                         fontSize: 10,
                         padding: '2px 8px',
                         borderRadius: 999,
-                        background: '#262626',
-                        color: '#a3a3a3',
+                        background: 'var(--hs-bg-card)',
+                        color: 'var(--hs-text-muted)',
                       }}
                     >
                       {tag}
@@ -157,7 +157,7 @@ export default function MealsLibraryView({
               style={{
                 fontSize: 20,
                 flexShrink: 0,
-                color: meal.isFavorite ? '#ef4444' : '#333',
+                color: meal.isFavorite ? 'var(--hs-danger)' : 'var(--hs-border-strong)',
                 cursor: 'pointer',
                 padding: 4,
                 minWidth: 44,

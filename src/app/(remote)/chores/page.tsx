@@ -39,14 +39,14 @@ export default async function ChoresPage() {
 
   if (!choreConfig) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-500 text-sm p-6 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-hs-body text-hs-text-faint text-sm p-6 text-center">
         No chores configured. Add a Chore Chart module in the editor to get started.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-hs-body">
       <ChoresTab config={choreConfig} />
     </div>
   );

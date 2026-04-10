@@ -10,8 +10,8 @@ interface PluginPlaceholderProps {
 export default function PluginPlaceholder({ moduleType }: PluginPlaceholderProps) {
   const pluginName = moduleType.replace('plugin:', '');
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full bg-neutral-800/80 text-neutral-400 rounded-lg gap-2">
-      <Puzzle className="w-8 h-8 text-neutral-500" />
+    <div className="flex flex-col items-center justify-center w-full h-full bg-hs-card/80 text-hs-text-muted rounded-lg gap-2">
+      <Puzzle className="w-8 h-8 text-hs-text-faint" />
       <span className="text-xs text-center px-2">
         Plugin not available: {pluginName}
       </span>

@@ -63,16 +63,16 @@ function PluginSecretField({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-neutral-400">{decl.label}</span>
+        <span className="text-xs text-hs-text-muted">{decl.label}</span>
         <div className="flex items-center gap-2">
           {decl.required && !configured && (
-            <span className="text-xs text-amber-400">Required</span>
+            <span className="text-xs text-hs-warning">Required</span>
           )}
           <StatusDot configured={configured} />
           {configured && (
             <button
               onClick={handleDelete}
-              className="text-xs text-neutral-500 hover:text-red-400 transition-colors"
+              className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
             >
               Remove
             </button>
@@ -85,7 +85,7 @@ function PluginSecretField({
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
           placeholder={decl.placeholder ?? `Enter ${decl.label.toLowerCase()}`}
-          className="flex-1 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
         <Button
           variant="secondary"
@@ -97,13 +97,13 @@ function PluginSecretField({
         </Button>
       </div>
       {saveStatus === 'saved' && (
-        <span className="text-xs text-green-400">Saved successfully</span>
+        <span className="text-xs text-hs-success">Saved successfully</span>
       )}
       {saveStatus === 'error' && (
-        <span className="text-xs text-red-400">{errorMsg}</span>
+        <span className="text-xs text-hs-danger">{errorMsg}</span>
       )}
       {decl.description && (
-        <p className="text-xs text-neutral-500">{decl.description}</p>
+        <p className="text-xs text-hs-text-faint">{decl.description}</p>
       )}
     </div>
   );
@@ -138,7 +138,7 @@ export default function PluginSecretsSection({
   }, [fetchStatus]);
 
   if (loading) {
-    return <p className="text-xs text-neutral-500">Loading secrets status...</p>;
+    return <p className="text-xs text-hs-text-faint">Loading secrets status...</p>;
   }
 
   return (

@@ -28,7 +28,7 @@ import type { ModuleSchedule, Profile } from '@/types/config';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const TIME_CLASS =
-  'mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500';
+  'mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';
 
 /* ─── Sortable screen row (inside profile) ──── */
 
@@ -60,24 +60,24 @@ function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove }: So
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-md bg-neutral-800/60 px-2 py-1.5"
+      className="flex items-center gap-2 rounded-md bg-hs-card/60 px-2 py-1.5"
     >
       <button
         type="button"
-        className="cursor-grab touch-none text-neutral-600 hover:text-neutral-400 transition-colors"
+        className="cursor-grab touch-none text-hs-text-faint hover:text-hs-text-muted transition-colors"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="w-3.5 h-3.5" />
       </button>
-      <span className="flex-1 text-sm text-neutral-300 truncate">
+      <span className="flex-1 text-sm text-hs-text-secondary truncate">
         {screenName}
-        {screenEnabled === false && <span className="ml-1 text-[10px] text-amber-500/70">(disabled)</span>}
+        {screenEnabled === false && <span className="ml-1 text-[10px] text-hs-warning/70">(disabled)</span>}
       </span>
       <button
         type="button"
         onClick={onRemove}
-        className="text-neutral-600 hover:text-red-400 transition-colors"
+        className="text-hs-text-faint hover:text-hs-danger transition-colors"
         title="Remove from profile"
       >
         <X className="w-3.5 h-3.5" />
@@ -202,13 +202,13 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-neutral-700 bg-neutral-800/50 overflow-hidden"
+      className="rounded-lg border border-hs-border-strong bg-hs-hover overflow-hidden"
     >
       {/* Collapsed header — always visible */}
       <div className="flex items-center gap-2 px-3 py-2.5">
         <button
           type="button"
-          className="cursor-grab touch-none text-neutral-600 hover:text-neutral-400 transition-colors"
+          className="cursor-grab touch-none text-hs-text-faint hover:text-hs-text-muted transition-colors"
           {...attributes}
           {...listeners}
         >
@@ -221,7 +221,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
           className="shrink-0"
         >
           <ChevronDown
-            className={`w-4 h-4 text-neutral-500 transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+            className={`w-4 h-4 text-hs-text-faint transition-transform ${isExpanded ? '' : '-rotate-90'}`}
           />
         </button>
 
@@ -235,12 +235,12 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                 if (e.key === 'Escape') setRenamingId(null);
               }}
               autoFocus
-              className="w-40 rounded border border-neutral-600 bg-neutral-900 px-2 py-0.5 text-sm text-neutral-200 outline-none focus:border-blue-500"
+              className="w-40 rounded border border-hs-border-strong bg-hs-panel px-2 py-0.5 text-sm text-hs-text-body outline-none focus:border-hs-accent"
             />
-            <button type="button" onClick={commitRename} className="text-green-400 hover:text-green-300">
+            <button type="button" onClick={commitRename} className="text-hs-success hover:text-hs-success/80">
               <Check className="w-3.5 h-3.5" />
             </button>
-            <button type="button" onClick={() => setRenamingId(null)} className="text-neutral-500 hover:text-neutral-300">
+            <button type="button" onClick={() => setRenamingId(null)} className="text-hs-text-faint hover:text-hs-text-secondary">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -250,17 +250,17 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             onClick={onToggleExpand}
             className="flex flex-1 items-center gap-2 min-w-0"
           >
-            <span className="text-sm font-medium text-neutral-200 truncate">{profile.name}</span>
+            <span className="text-sm font-medium text-hs-text-body truncate">{profile.name}</span>
             {activeProfileId === profile.id && (
-              <span className="text-[10px] uppercase tracking-wider text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded shrink-0">Active</span>
+              <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">Active</span>
             )}
             {profile.schedule && (
-              <span className="text-[10px] uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded shrink-0">Scheduled</span>
+              <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">Scheduled</span>
             )}
           </button>
         )}
 
-        <span className="text-[11px] text-neutral-600 tabular-nums shrink-0">#{index + 1}</span>
+        <span className="text-[11px] text-hs-text-faint tabular-nums shrink-0">#{index + 1}</span>
 
         <button
           onClick={(e) => {
@@ -268,7 +268,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             setRenamingId(profile.id);
             setRenameValue(profile.name);
           }}
-          className="text-neutral-600 hover:text-neutral-300 transition-colors shrink-0"
+          className="text-hs-text-faint hover:text-hs-text-secondary transition-colors shrink-0"
           title="Rename"
         >
           <Pencil className="w-3.5 h-3.5" />
@@ -280,7 +280,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
               removeProfile(profile.id);
             }
           }}
-          className="text-neutral-600 hover:text-red-400 transition-colors shrink-0"
+          className="text-hs-text-faint hover:text-hs-danger transition-colors shrink-0"
           title="Delete profile"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -289,10 +289,10 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
       {/* Expanded body */}
       {isExpanded && (
-        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-neutral-700/60">
+        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-hs-border-strong/60">
           {/* Screen selection — sortable included list + available list */}
           <div>
-            <span className="text-xs text-neutral-400 mb-1.5 block">Screens</span>
+            <span className="text-xs text-hs-text-muted mb-1.5 block">Screens</span>
 
             {/* Included screens — draggable to reorder */}
             {includedScreens.length > 0 && (
@@ -317,19 +317,19 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             {availableScreens.length > 0 && (
               <div className="space-y-1">
                 {includedScreens.length > 0 && (
-                  <span className="text-[10px] text-neutral-500 uppercase tracking-wider">Available</span>
+                  <span className="text-[10px] text-hs-text-faint uppercase tracking-wider">Available</span>
                 )}
                 {availableScreens.map((screen) => (
                   <button
                     key={screen.id}
                     type="button"
                     onClick={() => addScreen(screen.id)}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-800/60 hover:text-neutral-300 transition-colors"
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-hs-text-faint hover:bg-hs-card/60 hover:text-hs-text-secondary transition-colors"
                   >
                     <span className="text-xs">+</span>
                     <span className="truncate">
                       {screen.name}
-                      {screen.enabled === false && <span className="ml-1 text-[10px] text-amber-500/70">(disabled)</span>}
+                      {screen.enabled === false && <span className="ml-1 text-[10px] text-hs-warning/70">(disabled)</span>}
                     </span>
                   </button>
                 ))}
@@ -337,20 +337,20 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             )}
 
             {includedScreens.length === 0 && (
-              <p className="text-xs text-amber-400 mt-1">
+              <p className="text-xs text-hs-warning mt-1">
                 No screens selected — all screens will be shown as fallback.
               </p>
             )}
 
             {includedScreens.length > 1 && (
-              <p className="text-[10px] text-neutral-500 mt-2">
+              <p className="text-[10px] text-hs-text-faint mt-2">
                 Drag to set rotation order within this profile.
               </p>
             )}
           </div>
 
           {/* Schedule */}
-          <div className="border-t border-neutral-700 pt-3 space-y-3">
+          <div className="border-t border-hs-border-strong pt-3 space-y-3">
             <Toggle
               label="Auto-activate on schedule"
               checked={!!profile.schedule}
@@ -360,7 +360,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             {profile.schedule && (
               <>
                 <div>
-                  <span className="text-xs text-neutral-400 mb-1 block">Days</span>
+                  <span className="text-xs text-hs-text-muted mb-1 block">Days</span>
                   <div className="flex gap-1">
                     {DAYS.map((label, i) => {
                       const days = profile.schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
@@ -372,8 +372,8 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                           onClick={() => toggleDay(i)}
                           className={`flex-1 text-[10px] py-1 rounded transition-colors ${
                             active
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'
+                              ? 'bg-hs-accent text-white'
+                              : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
                           }`}
                         >
                           {label}
@@ -385,7 +385,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
                 <div className="grid grid-cols-2 gap-2">
                   <label className="block">
-                    <span className="text-xs text-neutral-400">From</span>
+                    <span className="text-xs text-hs-text-muted">From</span>
                     <input
                       type="time"
                       value={profile.schedule.startTime ?? ''}
@@ -394,7 +394,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-neutral-400">Until</span>
+                    <span className="text-xs text-hs-text-muted">Until</span>
                     <input
                       type="time"
                       value={profile.schedule.endTime ?? ''}
@@ -462,9 +462,9 @@ export default function ProfilesSection() {
 
   if (!config) return null;
 
-  // Profiles are per-display in multi-display mode. The Phase 4 plan
-  // imagined profiles as "shared definitions" with a per-display active
-  // picker on top, but the data model can't actually support that split:
+  // Profiles are per-display in multi-display mode. The data model
+  // can't support a "shared definitions with per-display active picker"
+  // split:
   // every profile references screen IDs, and screens are owned per-
   // display, so a profile only has meaning in the context of one
   // display's screen list. `addDisplay`'s bootstrap reflects this — it
@@ -516,32 +516,32 @@ export default function ProfilesSection() {
   // because they reference per-display screens, so the page needs an
   // explicit "which display am I editing?" affordance — without it the
   // user would have to switch displays in the canvas first, then come
-  // back to the settings page, which is the workflow that hid the
-  // Phase 5 mutation/read disconnect from QA. Hidden in single-display
+  // back to the settings page, which is a confusing workflow. Hidden
+  // in single-display
   // mode where there's only one possible answer.
   const allDisplays = config.displays ?? [];
   const isMultiDisplay = allDisplays.length > 0;
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         Profiles
       </h3>
-      <p className="text-xs text-neutral-500 mb-4">
+      <p className="text-xs text-hs-text-faint mb-4">
         Profiles control which screens are shown on the display and in what order. Create different layouts for morning, evening, weekends, etc.
         When no profile is active, all screens rotate in the default tab order.
       </p>
 
       {isMultiDisplay && (
-        <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/[0.07] px-3 py-2.5">
+        <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
           <label className="block">
-            <span className="text-[11px] uppercase tracking-wider text-blue-300 font-medium">
+            <span className="text-[11px] uppercase tracking-wider text-hs-accent-hover font-medium">
               Editing profiles for
             </span>
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
               onChange={(e) => setSelectedDisplay(e.target.value || null)}
-              className="mt-1 block w-full rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -549,7 +549,7 @@ export default function ProfilesSection() {
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-neutral-500 mt-1.5">
+            <p className="text-[11px] text-hs-text-faint mt-1.5">
               Profiles are per-display because they reference each display&apos;s own screens.
               Switching here changes which display the editor canvas is also working on.
             </p>
@@ -560,18 +560,18 @@ export default function ProfilesSection() {
       {/* Active profile selector */}
       {profiles.length > 0 && (
         <label className="block mb-4">
-          <span className="text-xs text-neutral-400">Active Profile</span>
+          <span className="text-xs text-hs-text-muted">Active Profile</span>
           <select
             value={activeProfileId ?? ''}
             onChange={(e) => setActiveProfile(e.target.value || undefined)}
-            className="block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 mt-1"
+            className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent mt-1"
           >
             <option value="">None (show all screens)</option>
             {profiles.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-hs-text-faint mt-1">
             Manually set which profile is active. Scheduled profiles take priority over this setting.
           </p>
         </label>
@@ -579,9 +579,9 @@ export default function ProfilesSection() {
 
       {/* Priority note */}
       {profiles.length > 1 && (
-        <div className="rounded-md bg-neutral-800/60 border border-neutral-700/50 px-3 py-2 mb-4">
-          <p className="text-xs text-neutral-400">
-            <span className="font-medium text-neutral-300">Priority order:</span>{' '}
+        <div className="rounded-md bg-hs-card/60 border border-hs-border-strong/50 px-3 py-2 mb-4">
+          <p className="text-xs text-hs-text-muted">
+            <span className="font-medium text-hs-text-secondary">Priority order:</span>{' '}
             When multiple profiles have overlapping schedules, the profile listed first wins. Drag to reorder.
           </p>
         </div>
@@ -608,11 +608,10 @@ export default function ProfilesSection() {
         <Button variant="secondary" onClick={handleAdd}>
           Add Profile
         </Button>
-        {/* Save button removed in Phase 5 auto-save — every profile
-            mutation persists via the useEffect at the top of this
-            component. Status feedback lives in the parent settings
-            page's header indicator which subscribes to the store's
-            `isSaving` flag. */}
+        {/* Save button removed — auto-save means every profile mutation
+            persists via the useEffect at the top of this component.
+            Status feedback lives in the parent settings page's header
+            indicator which subscribes to the store's `isSaving` flag. */}
       </div>
     </section>
   );

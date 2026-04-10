@@ -65,7 +65,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
       )}
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Scale ({((c.scale ?? 1) * 100).toFixed(0)}%)</span>
+        <span className="text-xs text-hs-text-muted">Scale ({((c.scale ?? 1) * 100).toFixed(0)}%)</span>
         <input
           type="range"
           min="0.5"
@@ -73,20 +73,20 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
           step="0.1"
           value={c.scale ?? 1}
           onChange={(e) => set({ scale: Number(e.target.value) })}
-          className="w-full accent-blue-500"
+          className="w-full accent-hs-accent"
         />
       </label>
 
       {/* Events header with Add + Browse Holidays */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-neutral-400">Events</span>
+        <span className="text-xs text-hs-text-muted">Events</span>
         <div className="flex items-center gap-1">
           <Button size="sm" onClick={() => setShowHolidayPicker(true)}>Holidays...</Button>
           <Button size="sm" onClick={addEvent}>Add</Button>
         </div>
       </div>
 
-      <p className="text-[10px] text-neutral-500 -mt-1">
+      <p className="text-[10px] text-hs-text-faint -mt-1">
         The nearest upcoming event&#39;s background image will be used as the page background.
       </p>
 
@@ -94,7 +94,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
       {events.map((ev) => {
         const isHoliday = ev.source === 'holiday';
         return (
-          <div key={ev.id} className="p-2 bg-neutral-800 rounded space-y-1">
+          <div key={ev.id} className="p-2 bg-hs-card rounded space-y-1">
             <div className="flex items-center gap-1">
               {isHoliday && (
                 <span className="text-[10px] bg-emerald-800 text-emerald-200 px-1 rounded shrink-0">Holiday</span>
@@ -107,7 +107,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                 className={`flex-1 ${NESTED_INPUT_CLASS}`}
                 readOnly={isHoliday}
               />
-              <button onClick={() => removeEvent(ev.id)} className="text-red-400 text-xs px-1">x</button>
+              <button onClick={() => removeEvent(ev.id)} className="text-hs-danger text-xs px-1">x</button>
             </div>
             {!isHoliday && (
               <>
@@ -117,7 +117,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                   onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
                   className={NESTED_INPUT_CLASS}
                 />
-                <label className="flex items-center gap-1.5 text-[11px] text-neutral-400 cursor-pointer select-none">
+                <label className="flex items-center gap-1.5 text-[11px] text-hs-text-muted cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={ev.recurring === 'yearly'}
@@ -130,14 +130,14 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                         set({ events: events.map((item) => (item.id === ev.id ? rest : item)) });
                       }
                     }}
-                    className="accent-blue-500"
+                    className="accent-hs-accent"
                   />
                   Repeat yearly
                 </label>
               </>
             )}
             {isHoliday && (
-              <p className="text-[10px] text-neutral-500">
+              <p className="text-[10px] text-hs-text-faint">
                 Recurring yearly &middot; {ev.date.slice(0, 10)}
               </p>
             )}
@@ -152,7 +152,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                   />
                   <button
                     onClick={() => updateEvent(ev.id, { backgroundImage: undefined })}
-                    className="text-neutral-500 hover:text-neutral-300 text-[10px]"
+                    className="text-hs-text-faint hover:text-hs-text-secondary text-[10px]"
                   >
                     Clear
                   </button>
@@ -160,7 +160,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
               ) : (
                 <button
                   onClick={() => setImageBrowserEventId(ev.id)}
-                  className="text-blue-400 hover:text-blue-300 text-[10px]"
+                  className="text-hs-accent hover:text-hs-accent-hover text-[10px]"
                 >
                   Set Background...
                 </button>

@@ -31,7 +31,7 @@ import {
 import type { DisplayNode } from '@/types/config';
 
 /**
- * The Phase 4 settings sidebar.
+ * The settings sidebar.
  *
  * In multi-display mode the sidebar splits into two distinct groups:
  *
@@ -116,11 +116,11 @@ const DEFAULT_PAGES: { id: DefaultPageId; label: string; icon: LucideIcon }[] =
  * display detail page header agree on a display's online state.
  */
 function statusDotClass(lastSeen: number | null): string {
-  if (!lastSeen) return 'bg-neutral-600';
+  if (!lastSeen) return 'bg-hs-text-faint';
   const diff = Date.now() - lastSeen;
-  if (diff < 30_000) return 'bg-green-500 ring-2 ring-green-500/20';
-  if (diff < 300_000) return 'bg-amber-500';
-  return 'bg-neutral-600';
+  if (diff < 30_000) return 'bg-hs-success ring-2 ring-hs-success/20';
+  if (diff < 300_000) return 'bg-hs-warning';
+  return 'bg-hs-text-faint';
 }
 
 export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) {
@@ -210,8 +210,8 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
 
   if (!isMultiDisplay) {
     // Legacy flat sidebar — every settings page as a single tab list,
-    // matching the pre-Phase-4 layout, plus a "Displays" entry below a
-    // separator as the opt-in discovery point for multi-display mode.
+    // plus a "Displays" entry below a separator as the opt-in discovery
+    // point for multi-display mode.
     // The Displays entry navigates to `DisplaysIndexPage`, which is safe
     // in legacy mode: it renders an empty state ("No displays registered.
     // Add one below or adopt a Pi that has already connected.") and only
@@ -220,7 +220,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     // means if someone deep-links to a specific display's detail page the
     // sidebar still shows the right active row.
     return (
-      <nav className="w-52 shrink-0 border-r border-neutral-800 py-3 overflow-y-auto bg-neutral-900/40">
+      <nav className="w-52 shrink-0 border-r border-hs-border py-3 overflow-y-auto bg-hs-panel/40">
         {DEFAULT_PAGES.map((p) => (
           <SidebarItem
             key={p.id}
@@ -230,7 +230,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
             onClick={() => navigate(`?section=defaults&page=${p.id}`)}
           />
         ))}
-        <div className="mx-3.5 my-2 border-t border-neutral-800" />
+        <div className="mx-3.5 my-2 border-t border-hs-border" />
         <SidebarItem
           icon={LayoutGrid}
           label="Displays"
@@ -242,12 +242,12 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   }
 
   return (
-    <nav className="w-60 shrink-0 border-r border-neutral-800 py-3 overflow-y-auto bg-neutral-900/40">
+    <nav className="w-60 shrink-0 border-r border-hs-border py-3 overflow-y-auto bg-hs-panel/40">
       {/* DEFAULTS group */}
-      <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
+      <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
         Defaults
       </div>
-      <div className="px-3.5 pb-1.5 text-[10px] text-neutral-600 italic leading-tight">
+      <div className="px-3.5 pb-1.5 text-[10px] text-hs-text-faint italic leading-tight">
         Used by every display until overridden.
       </div>
       {DEFAULT_PAGES.map((p) => (
@@ -265,12 +265,12 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
       ))}
 
       {/* PER DISPLAY group */}
-      <div className="flex items-center justify-between px-3.5 pt-4 pb-1 text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
+      <div className="flex items-center justify-between px-3.5 pt-4 pb-1 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
         <span>Per display</span>
         <button
           type="button"
           onClick={onAddDisplay}
-          className="text-neutral-600 hover:text-neutral-300 transition-colors"
+          className="text-hs-text-faint hover:text-hs-text-secondary transition-colors"
           title="Add display"
         >
           <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
@@ -302,14 +302,14 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
             onClick={() => navigate(`?section=display&id=${encodeURIComponent(display.id)}&subtab=overview`)}
             className={`w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 ${
               isActive
-                ? 'text-neutral-100 bg-neutral-800 border-blue-500'
-                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50 border-transparent'
+                ? 'text-hs-text-primary bg-hs-card border-hs-accent'
+                : 'text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover border-transparent'
             }`}
           >
             <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${statusDotClass(lastSeen)}`} />
             <span className="flex-1 min-w-0 truncate text-left">{display.name}</span>
             {dimensions && (
-              <span className="text-[10px] text-neutral-600 tabular-nums">{dimensions}</span>
+              <span className="text-[10px] text-hs-text-faint tabular-nums">{dimensions}</span>
             )}
           </button>
         );
@@ -342,13 +342,13 @@ function SidebarItem({
       onClick={onClick}
       className={`w-full flex items-center gap-2.5 px-3.5 py-1.5 text-[13px] transition-colors border-l-2 ${
         active
-          ? 'text-neutral-100 bg-neutral-800 border-blue-500'
-          : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50 border-transparent'
+          ? 'text-hs-text-primary bg-hs-card border-hs-accent'
+          : 'text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover border-transparent'
       }`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       <span className="flex-1 min-w-0 truncate text-left">{label}</span>
-      {badge && <span className="text-[10px] text-neutral-600 tabular-nums">{badge}</span>}
+      {badge && <span className="text-[10px] text-hs-text-faint tabular-nums">{badge}</span>}
     </button>
   );
 }

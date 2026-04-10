@@ -32,22 +32,22 @@ export default function OrientationChangeModal({
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-neutral-100 mb-3">
+      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-3">
           Modules may be off-screen
         </h2>
 
-        <div className="rounded-md bg-amber-900/30 border border-amber-700/50 px-3 py-2 mb-4">
-          <p className="text-xs text-amber-300">
+        <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
+          <p className="text-xs text-hs-warning">
             {offCanvasCount} of {totalModuleCount} module{totalModuleCount !== 1 ? 's' : ''}{' '}
             would extend beyond the new {newWidth}&times;{newHeight} canvas.
           </p>
         </div>
 
-        <p className="text-sm text-neutral-400 mb-5">
-          <strong className="text-neutral-300">Scale to Fit</strong> shrinks all modules
+        <p className="text-sm text-hs-text-muted mb-5">
+          <strong className="text-hs-text-secondary">Scale to Fit</strong> shrinks all modules
           proportionally so nothing is cut off.{' '}
-          <strong className="text-neutral-300">Switch Anyway</strong> keeps modules at their
+          <strong className="text-hs-text-secondary">Switch Anyway</strong> keeps modules at their
           current positions — you can reposition them manually.
         </p>
 

@@ -10,9 +10,9 @@ interface AlertSenderProps {
 }
 
 const ALERT_TYPES = [
-  { value: 'info', label: 'Info', activeBg: 'bg-blue-500/[0.15]', activeText: 'text-blue-400', activeBorder: 'border-blue-500/30' },
-  { value: 'warning', label: 'Warning', activeBg: 'bg-amber-500/[0.15]', activeText: 'text-amber-400', activeBorder: 'border-amber-500/30' },
-  { value: 'urgent', label: 'Urgent', activeBg: 'bg-red-500/[0.15]', activeText: 'text-red-400', activeBorder: 'border-red-500/30' },
+  { value: 'info', label: 'Info', activeBg: 'bg-hs-accent/[0.15]', activeText: 'text-hs-accent-hover', activeBorder: 'border-hs-accent/30' },
+  { value: 'warning', label: 'Warning', activeBg: 'bg-hs-warning/[0.15]', activeText: 'text-hs-warning', activeBorder: 'border-hs-warning/30' },
+  { value: 'urgent', label: 'Urgent', activeBg: 'bg-hs-danger/[0.15]', activeText: 'text-hs-danger', activeBorder: 'border-hs-danger/30' },
 ] as const;
 
 const DURATIONS = [
@@ -77,7 +77,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[101] bg-[#141414] rounded-t-[20px] max-h-[85dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
+        className={`fixed bottom-0 left-0 right-0 z-[101] bg-hs-panel rounded-t-[20px] max-h-[85dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
@@ -89,10 +89,10 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="text-lg font-bold text-white">Send Alert</h2>
+          <h2 className="text-lg font-bold text-hs-text-primary">Send Alert</h2>
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-full bg-white/[0.08] flex items-center justify-center text-neutral-400"
+            className="w-11 h-11 rounded-full bg-hs-card flex items-center justify-center text-hs-text-muted"
             aria-label="Close alert sender"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -111,7 +111,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
                 className={`flex-1 min-h-[44px] py-2.5 rounded-xl text-[13px] font-semibold border transition-all active:scale-[0.98] ${
                   type === t.value
                     ? `${t.activeBg} ${t.activeText} ${t.activeBorder}`
-                    : 'bg-white/[0.04] text-neutral-500 border-white/[0.06]'
+                    : 'bg-hs-input text-hs-text-faint border-hs-border-strong'
                 }`}
               >
                 {t.label}
@@ -121,33 +121,33 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
           {/* Title */}
           <div>
-            <label htmlFor="alert-title" className="block text-xs font-medium text-neutral-500 mb-1.5">Title</label>
+            <label htmlFor="alert-title" className="block text-xs font-medium text-hs-text-faint mb-1.5">Title</label>
             <input
               id="alert-title"
               type="text"
               placeholder="Optional"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 min-h-[44px] text-sm bg-white/[0.04] border border-white/[0.06] rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/40 transition-colors"
+              className="w-full px-4 py-3 min-h-[44px] text-sm bg-hs-input border border-hs-border-strong rounded-xl text-hs-text-primary placeholder-hs-text-faint focus:outline-none focus:border-hs-accent/40 transition-colors"
             />
           </div>
 
           {/* Message */}
           <div>
-            <label htmlFor="alert-message" className="block text-xs font-medium text-neutral-500 mb-1.5">Message</label>
+            <label htmlFor="alert-message" className="block text-xs font-medium text-hs-text-faint mb-1.5">Message</label>
             <textarea
               id="alert-message"
               placeholder="What should the display show?"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={2}
-              className="w-full px-4 py-3 text-sm bg-white/[0.04] border border-white/[0.06] rounded-xl text-white placeholder-neutral-600 resize-none focus:outline-none focus:border-blue-500/40 transition-colors"
+              className="w-full px-4 py-3 text-sm bg-hs-input border border-hs-border-strong rounded-xl text-hs-text-primary placeholder-hs-text-faint resize-none focus:outline-none focus:border-hs-accent/40 transition-colors"
             />
           </div>
 
           {/* Duration */}
           <div>
-            <span className="block text-xs font-medium text-neutral-500 mb-1.5">Duration</span>
+            <span className="block text-xs font-medium text-hs-text-faint mb-1.5">Duration</span>
             <div className="flex gap-2 overflow-x-auto scrollbar-none">
               {DURATIONS.map((d) => (
                 <button
@@ -155,8 +155,8 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
                   onClick={() => setDuration(d.value)}
                   className={`shrink-0 px-3.5 py-2 min-h-[44px] rounded-lg text-xs font-semibold transition-all active:scale-[0.98] ${
                     duration === d.value
-                      ? 'bg-white/[0.1] text-white'
-                      : 'bg-white/[0.04] text-neutral-500'
+                      ? 'bg-hs-active text-hs-text-primary'
+                      : 'bg-hs-input text-hs-text-faint'
                   }`}
                 >
                   {d.label}
@@ -171,10 +171,10 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             disabled={!canSend}
             className={`w-full py-3.5 min-h-[48px] rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 ${
               state === 'success'
-                ? 'bg-green-600 text-white'
+                ? 'bg-hs-success text-white'
                 : state === 'error'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-blue-600 active:bg-blue-500 text-white'
+                  ? 'bg-hs-danger text-white'
+                  : 'bg-hs-accent active:bg-hs-accent-hover text-white'
             }`}
           >
             {state === 'pending' ? 'Sending\u2026' : state === 'success' ? 'Sent!' : state === 'error' ? 'Failed \u2014 try again' : 'Send Alert'}

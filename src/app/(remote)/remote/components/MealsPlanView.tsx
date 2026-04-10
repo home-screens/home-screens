@@ -52,10 +52,10 @@ export default function MealsPlanView({
             fontSize: 12,
             fontWeight: 600,
             borderRadius: 8,
-            border: '1px solid #262626',
+            border: '1px solid var(--hs-border)',
             cursor: savedMeals.length === 0 ? 'default' : 'pointer',
-            background: '#171717',
-            color: savedMeals.length === 0 ? '#333' : '#a3a3a3',
+            background: 'var(--hs-bg-panel)',
+            color: savedMeals.length === 0 ? 'var(--hs-border-strong)' : 'var(--hs-text-muted)',
             fontFamily: 'inherit',
             display: 'flex',
             alignItems: 'center',
@@ -77,10 +77,10 @@ export default function MealsPlanView({
               fontSize: 12,
               fontWeight: 600,
               borderRadius: 8,
-              border: '1px solid #262626',
+              border: '1px solid var(--hs-border)',
               cursor: 'pointer',
-              background: '#171717',
-              color: '#a3a3a3',
+              background: 'var(--hs-bg-panel)',
+              color: 'var(--hs-text-muted)',
               fontFamily: 'inherit',
               display: 'flex',
               alignItems: 'center',
@@ -103,10 +103,10 @@ export default function MealsPlanView({
             fontSize: 12,
             fontWeight: 600,
             borderRadius: 8,
-            border: '1px solid #262626',
+            border: '1px solid var(--hs-border)',
             cursor: plan.length === 0 ? 'default' : 'pointer',
-            background: '#171717',
-            color: plan.length === 0 ? '#333' : '#a3a3a3',
+            background: 'var(--hs-bg-panel)',
+            color: plan.length === 0 ? 'var(--hs-border-strong)' : 'var(--hs-text-muted)',
             fontFamily: 'inherit',
             display: 'flex',
             alignItems: 'center',
@@ -122,8 +122,8 @@ export default function MealsPlanView({
 
       {savedMeals.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>No meals in your library</p>
-          <p style={{ fontSize: 13, color: '#525252', marginBottom: 20 }}>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No meals in your library</p>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
             Add meals to your library first, then plan your week.
           </p>
           <button
@@ -154,7 +154,7 @@ export default function MealsPlanView({
           <div key={date} style={{ marginBottom: 20 }}>
             {/* Day label */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? '#fafafa' : '#a3a3a3' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
                 {label}
               </span>
               {isToday && (
@@ -180,7 +180,7 @@ export default function MealsPlanView({
                       padding: '10px 12px',
                       minHeight: 50,
                       borderRadius: 10,
-                      border: hasMeal ? `1px solid ${SLOT_META[slot].color}30` : '1px dashed #262626',
+                      border: hasMeal ? `1px solid ${SLOT_META[slot].color}30` : '1px dashed var(--hs-border)',
                       background: hasMeal ? `${SLOT_META[slot].color}10` : 'transparent',
                       overflow: 'visible' as const,
                     }}
@@ -212,7 +212,7 @@ export default function MealsPlanView({
                             <div style={{ fontSize: 10, color: SLOT_META[slot].color, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                               {SLOT_META[slot].label}
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fafafa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {meal?.name ?? planned?.customText ?? ''}
                             </div>
                           </div>
@@ -247,8 +247,8 @@ export default function MealsPlanView({
                         aria-label={`Plan ${SLOT_META[slot].label} for ${label}`}
                       >
                         <div style={{ width: 3, height: 20, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.4, flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, color: '#525252' }}>{SLOT_META[slot].label}</span>
-                        <span style={{ fontSize: 11, color: '#404040', marginLeft: 'auto' }}>+ Add meal</span>
+                        <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>{SLOT_META[slot].label}</span>
+                        <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginLeft: 'auto' }}>+ Add meal</span>
                       </button>
                     )}
                   </div>
@@ -287,7 +287,7 @@ export default function MealsPlanView({
           <div
             style={{
               position: 'relative',
-              background: '#0a0a0a',
+              background: 'var(--hs-bg-body)',
               borderRadius: '16px 16px 0 0',
               maxHeight: '60vh',
               display: 'flex',
@@ -297,16 +297,16 @@ export default function MealsPlanView({
           >
             {/* Drag handle */}
             <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: '#525252' }} />
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
             </div>
             {/* Title */}
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fafafa', padding: '8px 16px 10px', borderBottom: '1px solid #262626' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)', padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)' }}>
               Choose a Meal
             </div>
             {/* Scrollable list */}
             <div style={{ overflow: 'auto', padding: '8px 16px', flex: 1, scrollbarWidth: 'none' as const }}>
               {savedMeals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: '#525252', fontSize: 13 }}>
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--hs-text-faint)', fontSize: 13 }}>
                   No meals in library. Add some first.
                 </div>
               ) : (
@@ -321,7 +321,7 @@ export default function MealsPlanView({
                       gap: 12,
                       padding: '11px 0',
                       border: 'none',
-                      borderBottom: '1px solid #262626',
+                      borderBottom: '1px solid var(--hs-border)',
                       background: 'transparent',
                       cursor: 'pointer',
                       textAlign: 'left' as const,
@@ -330,16 +330,16 @@ export default function MealsPlanView({
                     }}
                   >
                     <span style={{ fontSize: 24 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
-                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#fafafa' }}>{meal.name}</span>
+                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)' }}>{meal.name}</span>
                     {meal.prepTime ? (
-                      <span style={{ fontSize: 11, color: '#525252' }}>{meal.prepTime}m</span>
+                      <span style={{ fontSize: 11, color: 'var(--hs-text-faint)' }}>{meal.prepTime}m</span>
                     ) : null}
                   </button>
                 ))
               )}
             </div>
             {/* Remove Meal button */}
-            <div style={{ padding: '12px 16px 24px', borderTop: '1px solid #262626' }}>
+            <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)' }}>
               <button
                 onClick={() => {
                   clearSlot(pickingSlot.date, pickingSlot.slot);
@@ -350,9 +350,9 @@ export default function MealsPlanView({
                   padding: '12px',
                   minHeight: 44,
                   borderRadius: 10,
-                  border: '1px solid #262626',
-                  background: '#171717',
-                  color: '#ef4444',
+                  border: '1px solid var(--hs-border)',
+                  background: 'var(--hs-bg-panel)',
+                  color: 'var(--hs-danger)',
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',

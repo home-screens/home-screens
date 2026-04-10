@@ -14,9 +14,9 @@ interface SliderProps {
 export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled }: SliderProps) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-xs text-neutral-400 flex justify-between">
+      <span className="text-xs text-hs-text-muted flex justify-between">
         <span>{label}</span>
-        <span className="text-neutral-500">{displayValue ?? value}</span>
+        <span className="text-hs-text-faint">{displayValue ?? value}</span>
       </span>
       <input
         type="range"
@@ -26,7 +26,7 @@ export default function Slider({ label, value, min, max, step = 1, displayValue,
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         disabled={disabled}
-        className="w-full accent-blue-500 disabled:cursor-not-allowed"
+        className="w-full accent-hs-accent disabled:cursor-not-allowed"
       />
     </label>
   );

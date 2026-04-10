@@ -79,7 +79,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {has('dateFormat') && (
         <div className="flex flex-col gap-1">
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Date Format</span>
+            <span className="text-xs text-hs-text-muted">Date Format</span>
             <select
               value={showCustomDate ? '__custom__' : dateFormatVal}
               onChange={(e) => {
@@ -107,7 +107,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
               className={INPUT_CLASS}
             />
           )}
-          <span className="text-xs text-neutral-500">{datePreview}</span>
+          <span className="text-xs text-hs-text-faint">{datePreview}</span>
         </div>
       )}
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import {
   GROCERY_CATEGORIES,
   GROCERY_CATEGORY_ICONS,
@@ -11,49 +12,93 @@ interface MealsGroceryViewProps {
   toggleGroceryItem: (itemName: string) => Promise<void>;
 }
 
+function buildShareText(groceryList: Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>): string {
+  const sections: string[] = [];
+  for (const [catKey, { items }] of groceryList) {
+    const unchecked = items.filter((i) => !i.checked);
+    if (unchecked.length === 0) continue;
+    const label = GROCERY_CATEGORIES[catKey] ?? catKey;
+    const lines = unchecked.map((i) => `  ${i.name}${i.amount ? ` (${i.amount})` : ''}`);
+    sections.push(`${label}\n${lines.join('\n')}`);
+  }
+  if (sections.length === 0) return 'Grocery list is complete!';
+  return `Grocery List\n\n${sections.join('\n\n')}`;
+}
+
 export default function MealsGroceryView({
   groceryList,
   groceryStats,
   toggleGroceryItem,
 }: MealsGroceryViewProps) {
+  const [shareLabel, setShareLabel] = useState('Share');
+
+  const handleShare = useCallback(async () => {
+    const text = buildShareText(groceryList);
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+    } catch (e) {
+      // AbortError = user cancelled share sheet — fall through to copy
+      if (e instanceof DOMException && e.name === 'AbortError') return;
+    }
+    // Clipboard fallback (works over HTTP unlike navigator.clipboard)
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    setShareLabel('Copied!');
+    setTimeout(() => setShareLabel('Share'), 2000);
+  }, [groceryList]);
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* Header stats */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#e5e5e5' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-body)' }}>
             {groceryStats.checked} of {groceryStats.total} items
           </span>
           <button
+            onClick={handleShare}
             style={{
               padding: '6px 14px',
               minHeight: 36,
               fontSize: 12,
               fontWeight: 600,
               borderRadius: 8,
-              border: '1px solid #262626',
-              background: '#171717',
-              color: '#a3a3a3',
+              border: '1px solid var(--hs-border)',
+              background: 'var(--hs-bg-panel)',
+              color: shareLabel === 'Copied!' ? 'var(--hs-success)' : 'var(--hs-text-muted)',
               cursor: 'pointer',
               fontFamily: 'inherit',
+              transition: 'color 0.15s',
             }}
           >
-            Share
+            {shareLabel}
           </button>
         </div>
         {/* Progress bar */}
-        <div style={{ height: 6, background: '#262626', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
+        <div style={{ height: 6, background: 'var(--hs-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
           <div
             style={{
               height: '100%',
               borderRadius: 3,
               width: groceryStats.total > 0 ? `${(groceryStats.checked / groceryStats.total) * 100}%` : '0%',
-              backgroundColor: '#22c55e',
+              backgroundColor: 'var(--hs-success)',
               transition: 'width 0.3s ease',
             }}
           />
         </div>
-        <div style={{ fontSize: 11, color: '#525252' }}>
+        <div style={{ fontSize: 11, color: 'var(--hs-text-faint)' }}>
           Auto-generated from this week&apos;s meals
         </div>
       </div>
@@ -61,8 +106,8 @@ export default function MealsGroceryView({
       {/* Empty state */}
       {groceryStats.total === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>No grocery items</p>
-          <p style={{ fontSize: 13, color: '#525252' }}>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No grocery items</p>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
             Plan meals with ingredients to see your shopping list.
           </p>
         </div>
@@ -76,11 +121,11 @@ export default function MealsGroceryView({
           {/* Category header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             {GROCERY_CATEGORY_ICONS[catKey] && (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hs-text-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d={GROCERY_CATEGORY_ICONS[catKey]} />
               </svg>
             )}
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {GROCERY_CATEGORIES[catKey] ?? catKey}
             </span>
             <span
@@ -88,8 +133,8 @@ export default function MealsGroceryView({
                 fontSize: 10,
                 padding: '1px 6px',
                 borderRadius: 8,
-                background: '#171717',
-                color: '#525252',
+                background: 'var(--hs-bg-panel)',
+                color: 'var(--hs-text-faint)',
                 fontWeight: 500,
                 marginLeft: 'auto',
               }}
@@ -112,8 +157,8 @@ export default function MealsGroceryView({
                 minHeight: 44,
                 marginBottom: 4,
                 borderRadius: 10,
-                border: '1px solid #262626',
-                background: '#171717',
+                border: '1px solid var(--hs-border)',
+                background: 'var(--hs-bg-panel)',
                 cursor: 'pointer',
                 opacity: item.checked ? 0.45 : 1,
                 transition: 'all 0.15s',
@@ -133,8 +178,8 @@ export default function MealsGroceryView({
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  background: item.checked ? '#22c55e' : 'transparent',
-                  border: item.checked ? 'none' : '2px solid #525252',
+                  background: item.checked ? 'var(--hs-success)' : 'transparent',
+                  border: item.checked ? 'none' : '2px solid var(--hs-text-faint)',
                   transition: 'all 0.15s',
                 }}
               >
@@ -149,7 +194,7 @@ export default function MealsGroceryView({
                   flex: 1,
                   fontSize: 14,
                   fontWeight: 500,
-                  color: item.checked ? '#525252' : '#e5e5e5',
+                  color: item.checked ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
                   textDecoration: item.checked ? 'line-through' : 'none',
                 }}
               >
@@ -158,7 +203,7 @@ export default function MealsGroceryView({
 
               {/* Amount */}
               {item.amount && (
-                <span style={{ fontSize: 12, color: '#525252', flexShrink: 0 }}>
+                <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
                   {item.amount}
                 </span>
               )}

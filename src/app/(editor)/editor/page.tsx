@@ -136,7 +136,7 @@ export default function EditorPage() {
 
   if (!config || pluginLoading) {
     return (
-      <div className="h-screen flex items-center justify-center text-neutral-500">
+      <div className="h-screen flex items-center justify-center text-hs-text-faint">
         Loading...
       </div>
     );
@@ -144,12 +144,12 @@ export default function EditorPage() {
 
   if (tooNarrow) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-3 px-6 text-center bg-neutral-950">
+      <div className="h-screen flex flex-col items-center justify-center gap-3 px-6 text-center bg-hs-body">
         <HomeScreensLogo />
-        <p className="text-neutral-300 text-sm">
+        <p className="text-hs-text-secondary text-sm">
           The editor requires a screen at least {MIN_EDITOR_WIDTH}px wide.
         </p>
-        <p className="text-neutral-500 text-xs">
+        <p className="text-hs-text-faint text-xs">
           Please use a desktop browser or widen your window.
         </p>
       </div>
@@ -160,10 +160,10 @@ export default function EditorPage() {
     <DndContext sensors={sensors} autoScroll={false} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActivePaletteType(null)}>
       <div className="h-screen flex flex-col">
         {/* Toolbar */}
-        <div className="flex items-center gap-4 overflow-hidden border-b border-neutral-700 bg-neutral-900 px-3 py-2">
+        <div className="flex items-center gap-4 overflow-hidden border-b border-hs-border-strong bg-hs-panel px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
             <HomeScreensLogo />
-            <div className="h-8 w-px bg-neutral-800" />
+            <div className="h-8 w-px bg-hs-card" />
             <DisplaySwitcher />
             <ScreenTabs />
           </div>
@@ -192,18 +192,18 @@ export default function EditorPage() {
             <div className="min-w-24 flex items-center justify-end gap-1.5" aria-live="polite">
               {saveError ? (
                 <span role="alert" className="flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-xs text-red-400">Save failed</span>
+                  <AlertCircle className="w-3.5 h-3.5 text-hs-danger" />
+                  <span className="text-xs text-hs-danger">Save failed</span>
                   <Button variant="secondary" size="sm" onClick={saveConfig}>
                     Retry
                   </Button>
                 </span>
               ) : isSaving ? (
-                <span className="text-xs text-neutral-500">Saving...</span>
+                <span className="text-xs text-hs-text-faint">Saving...</span>
               ) : !isDirty ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-green-500" />
-                  <span className="text-xs text-green-500">Saved</span>
+                  <Check className="w-3.5 h-3.5 text-hs-success" />
+                  <span className="text-xs text-hs-success">Saved</span>
                 </>
               ) : null}
             </div>
@@ -222,9 +222,9 @@ export default function EditorPage() {
           const def = getModuleDefinition(activePaletteType as ModuleType);
           if (!def) return null;
           return (
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-neutral-800 border border-blue-500 shadow-lg shadow-blue-500/20 cursor-grabbing">
-              <def.icon className="w-5 h-5 text-blue-400" />
-              <span className="text-sm text-neutral-200">{def.label}</span>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-hs-card border border-hs-accent shadow-lg shadow-hs-accent/20 cursor-grabbing">
+              <def.icon className="w-5 h-5 text-hs-accent-hover" />
+              <span className="text-sm text-hs-text-body">{def.label}</span>
             </div>
           );
         })()}

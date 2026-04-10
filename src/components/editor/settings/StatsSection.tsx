@@ -95,9 +95,9 @@ function shortenUrl(url: string): string {
 }
 
 function barColor(percent: number): string {
-  if (percent > 90) return 'bg-red-500';
-  if (percent > 70) return 'bg-yellow-500';
-  return 'bg-emerald-500';
+  if (percent > 90) return 'bg-hs-danger';
+  if (percent > 70) return 'bg-hs-warning';
+  return 'bg-hs-success';
 }
 
 const INTEGRATION_LABELS: Record<string, string> = {
@@ -119,10 +119,10 @@ function UsageBar({ percent, label, detail }: { percent: number; label: string; 
   return (
     <div>
       <div className="flex items-center justify-between text-xs mb-1">
-        <span className="text-neutral-400">{label}</span>
-        <span className="text-neutral-300">{detail}</span>
+        <span className="text-hs-text-muted">{label}</span>
+        <span className="text-hs-text-secondary">{detail}</span>
       </div>
-      <div className="h-2.5 bg-neutral-700 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-hs-card rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor(percent)}`}
           style={{ width: `${Math.min(percent, 100)}%` }}
@@ -205,7 +205,7 @@ export default function StatsSection() {
 
   if (loading) {
     return (
-      <div className="text-sm text-neutral-500 py-8 text-center">
+      <div className="text-sm text-hs-text-faint py-8 text-center">
         Loading stats...
       </div>
     );
@@ -213,7 +213,7 @@ export default function StatsSection() {
 
   if (error || !stats) {
     return (
-      <div className="text-sm text-red-400 py-8 text-center">
+      <div className="text-sm text-hs-danger py-8 text-center">
         {error || 'Failed to load stats'}
       </div>
     );
@@ -239,11 +239,11 @@ export default function StatsSection() {
   const allIntegrationKeys = Object.keys(INTEGRATION_LABELS).filter(k => k !== 'google_client_secret');
 
   return (
-    <div className="space-y-0 divide-y divide-neutral-600 [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+    <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       {/* ─── Display Status ──────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3 gap-3">
-          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             Display Status
           </h3>
           {isMultiDisplay && (
@@ -254,12 +254,12 @@ export default function StatsSection() {
             // was the friction the user flagged. Wired to the store's
             // `setSelectedDisplay` so switching also updates the URL and the
             // rest of the editor's display context in one gesture.
-            <label className="flex items-center gap-2 text-xs text-neutral-500 shrink-0">
+            <label className="flex items-center gap-2 text-xs text-hs-text-faint shrink-0">
               <span>Display</span>
               <select
                 value={selectedDisplayId ?? ''}
                 onChange={(e) => setSelectedDisplay(e.target.value || null)}
-                className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-700 transition-colors cursor-pointer"
+                className="rounded-md border border-hs-border-strong bg-hs-card px-2 py-1 text-xs text-hs-text-body hover:bg-hs-hover transition-colors cursor-pointer"
                 aria-label="Switch display"
               >
                 {displays.map((d) => (
@@ -272,43 +272,43 @@ export default function StatsSection() {
           )}
         </div>
         {displayConnected && displayStatus ? (
-          <div className="rounded-md bg-neutral-800/50 border border-neutral-700 p-3">
+          <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${
-                  displayStatus.displayState === 'active' ? 'bg-emerald-400' :
-                  displayStatus.displayState === 'dimmed' ? 'bg-yellow-400' : 'bg-neutral-500'
+                  displayStatus.displayState === 'active' ? 'bg-hs-success' :
+                  displayStatus.displayState === 'dimmed' ? 'bg-hs-warning' : 'bg-hs-text-faint'
                 }`} />
-                <span className="text-sm text-neutral-200 capitalize">
+                <span className="text-sm text-hs-text-body capitalize">
                   {displayStatus.displayState}
                 </span>
               </div>
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-hs-text-faint">
                 Last seen {formatAge(statusAge!)} ago
               </span>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-xs">
-              <div className="text-neutral-500">Screen</div>
-              <div className="text-neutral-300">
+              <div className="text-hs-text-faint">Screen</div>
+              <div className="text-hs-text-secondary">
                 {displayStatus.currentScreen.name}
-                <span className="text-neutral-500 ml-1">
+                <span className="text-hs-text-faint ml-1">
                   ({displayStatus.currentScreen.index + 1}/{displayStatus.screenCount})
                 </span>
               </div>
               {displayStatus.activeProfile && (
                 <>
-                  <div className="text-neutral-500">Profile</div>
-                  <div className="text-neutral-300">{displayStatus.activeProfile}</div>
+                  <div className="text-hs-text-faint">Profile</div>
+                  <div className="text-hs-text-secondary">{displayStatus.activeProfile}</div>
                 </>
               )}
             </div>
           </div>
         ) : (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-hs-text-faint">
             No display connected
-            {activeDisplay ? <> for <span className="text-neutral-300">{activeDisplay.name}</span></> : null}
+            {activeDisplay ? <> for <span className="text-hs-text-secondary">{activeDisplay.name}</span></> : null}
             . Open{' '}
-            <span className="font-mono text-neutral-400">
+            <span className="font-mono text-hs-text-muted">
               /display{activeDisplay ? `/${activeDisplay.id}` : ''}
             </span>{' '}
             to start.
@@ -319,13 +319,13 @@ export default function StatsSection() {
       {/* ─── Data Cache ──────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             Data Cache
           </h3>
           {cacheStats && cacheStats.details.length > 0 && (
             <button
               onClick={() => setShowCacheDetails(!showCacheDetails)}
-              className="text-xs text-blue-400 hover:text-blue-300"
+              className="text-xs text-hs-accent hover:text-hs-accent-hover"
             >
               {showCacheDetails ? 'Hide Details' : 'Show Details'}
             </button>
@@ -339,49 +339,49 @@ export default function StatsSection() {
               detail={`${cacheStats.entries} / ${cacheStats.maxEntries}`}
             />
             <div className="grid grid-cols-3 gap-3">
-              <Stat label="Fresh" value={String(cacheStats.fresh)} color="text-emerald-400" />
-              <Stat label="Stale" value={String(cacheStats.stale)} color={cacheStats.stale > 0 ? 'text-yellow-400' : 'text-neutral-300'} />
+              <Stat label="Fresh" value={String(cacheStats.fresh)} color="text-hs-success" />
+              <Stat label="Stale" value={String(cacheStats.stale)} color={cacheStats.stale > 0 ? 'text-hs-warning' : 'text-hs-text-secondary'} />
               <Stat label="Inflight" value={String(cacheStats.inflight)} />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <Stat label="Hits" value={cacheStats.hits.toLocaleString()} />
               <Stat label="Misses" value={cacheStats.misses.toLocaleString()} />
-              <Stat label="Hit Rate" value={hitRate > 0 ? `${hitRate.toFixed(1)}%` : '—'} color={hitRate >= 90 ? 'text-emerald-400' : hitRate >= 70 ? 'text-yellow-400' : 'text-neutral-300'} />
+              <Stat label="Hit Rate" value={hitRate > 0 ? `${hitRate.toFixed(1)}%` : '—'} color={hitRate >= 90 ? 'text-hs-success' : hitRate >= 70 ? 'text-hs-warning' : 'text-hs-text-secondary'} />
             </div>
             {cacheStats.evictions > 0 && (
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-hs-text-faint">
                 {cacheStats.evictions} LRU eviction{cacheStats.evictions !== 1 ? 's' : ''}
               </p>
             )}
 
             {showCacheDetails && cacheStats.details.length > 0 && (
-              <div className="max-h-48 overflow-y-auto rounded-md border border-neutral-700">
+              <div className="max-h-48 overflow-y-auto rounded-md border border-hs-border-strong">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-neutral-500 border-b border-neutral-700">
+                    <tr className="text-hs-text-faint border-b border-hs-border-strong">
                       <th className="text-left px-2 py-1.5 font-medium">URL</th>
                       <th className="text-right px-2 py-1.5 font-medium">Age</th>
                       <th className="text-right px-2 py-1.5 font-medium">TTL</th>
                       <th className="text-right px-2 py-1.5 font-medium">State</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-800">
+                  <tbody className="divide-y divide-hs-border">
                     {cacheStats.details.map((d) => (
-                      <tr key={d.url} className="hover:bg-neutral-800/50">
-                        <td className="px-2 py-1.5 text-neutral-300 font-mono truncate max-w-[200px]">
+                      <tr key={d.url} className="hover:bg-hs-hover">
+                        <td className="px-2 py-1.5 text-hs-text-secondary font-mono truncate max-w-[200px]">
                           {shortenUrl(d.url)}
                         </td>
-                        <td className="px-2 py-1.5 text-neutral-400 text-right whitespace-nowrap">
+                        <td className="px-2 py-1.5 text-hs-text-muted text-right whitespace-nowrap">
                           {formatAge(d.ageMs)}
                         </td>
-                        <td className="px-2 py-1.5 text-neutral-400 text-right whitespace-nowrap">
+                        <td className="px-2 py-1.5 text-hs-text-muted text-right whitespace-nowrap">
                           {formatDuration(d.ttlMs)}
                         </td>
                         <td className="px-2 py-1.5 text-right">
                           <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
                             d.stale
-                              ? 'bg-yellow-900/50 text-yellow-400'
-                              : 'bg-emerald-900/50 text-emerald-400'
+                              ? 'bg-hs-warning/20 text-hs-warning'
+                              : 'bg-hs-success/20 text-hs-success'
                           }`}>
                             {d.stale ? 'stale' : 'fresh'}
                           </span>
@@ -394,16 +394,16 @@ export default function StatsSection() {
             )}
           </div>
         ) : (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-hs-text-faint">
             Cache stats are reported by the display client. No display connected
-            {activeDisplay ? <> for <span className="text-neutral-300">{activeDisplay.name}</span></> : null}.
+            {activeDisplay ? <> for <span className="text-hs-text-secondary">{activeDisplay.name}</span></> : null}.
           </p>
         )}
       </section>
 
       {/* ─── Disk Usage ──────────────────────── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Disk Usage
         </h3>
         <div className="space-y-3">
@@ -414,29 +414,29 @@ export default function StatsSection() {
               detail={`${formatBytes(stats.disk.used)} / ${formatBytes(stats.disk.total)}`}
             />
           ) : (
-            <p className="text-xs text-neutral-500">Disk stats unavailable</p>
+            <p className="text-xs text-hs-text-faint">Disk stats unavailable</p>
           )}
           {stats.disk.total > 0 && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hs-text-faint">
               {diskPercent.toFixed(1)}% used &middot; {formatBytes(stats.disk.free)} free
             </p>
           )}
 
-          <div className="rounded-md bg-neutral-800/50 border border-neutral-700 overflow-hidden">
+          <div className="rounded-md bg-hs-hover border border-hs-border-strong overflow-hidden">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-neutral-700 text-neutral-500">
+                <tr className="border-b border-hs-border-strong text-hs-text-faint">
                   <th className="text-left px-3 py-2 font-medium">Home Screens Data</th>
                   <th className="text-right px-3 py-2 font-medium">Size</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-800">
+              <tbody className="divide-y divide-hs-border">
                 <DataRow label="Backgrounds" size={stats.disk.dataDir.backgrounds} />
                 <DataRow label="Config Backups" size={stats.disk.dataDir.backups} />
                 <DataRow label="Configuration" size={stats.disk.dataDir.config} />
-                <tr className="border-t border-neutral-700">
-                  <td className="px-3 py-2 text-neutral-300 font-medium">Total</td>
-                  <td className="px-3 py-2 text-right text-neutral-200 font-medium">
+                <tr className="border-t border-hs-border-strong">
+                  <td className="px-3 py-2 text-hs-text-secondary font-medium">Total</td>
+                  <td className="px-3 py-2 text-right text-hs-text-body font-medium">
                     {formatBytes(stats.disk.dataDir.total)}
                   </td>
                 </tr>
@@ -448,7 +448,7 @@ export default function StatsSection() {
 
       {/* ─── Configuration ───────────────────── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Configuration
         </h3>
         <div className="space-y-3">
@@ -460,14 +460,14 @@ export default function StatsSection() {
 
           {Object.keys(stats.app.moduleTypes).length > 0 && (
             <div>
-              <p className="text-xs text-neutral-500 mb-1.5">Module breakdown</p>
+              <p className="text-xs text-hs-text-faint mb-1.5">Module breakdown</p>
               <div className="flex flex-wrap gap-1.5">
                 {Object.entries(stats.app.moduleTypes)
                   .sort(([, a], [, b]) => b - a)
                   .map(([type, count]) => (
-                    <span key={type} className="inline-flex items-center gap-1 bg-neutral-800 rounded px-2 py-0.5 text-xs text-neutral-300">
+                    <span key={type} className="inline-flex items-center gap-1 bg-hs-card rounded px-2 py-0.5 text-xs text-hs-text-secondary">
                       {type}
-                      <span className="text-neutral-500">&times;{count}</span>
+                      <span className="text-hs-text-faint">&times;{count}</span>
                     </span>
                   ))}
               </div>
@@ -475,7 +475,7 @@ export default function StatsSection() {
           )}
 
           <div>
-            <p className="text-xs text-neutral-500 mb-1.5">
+            <p className="text-xs text-hs-text-faint mb-1.5">
               Integrations {secretsForDisplay.length}/{allIntegrationKeys.length} configured
             </p>
             <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -483,8 +483,8 @@ export default function StatsSection() {
                 const configured = secretsForDisplay.includes(key);
                 return (
                   <span key={key} className="flex items-center gap-1.5 text-xs">
-                    <span className={`w-1.5 h-1.5 rounded-full ${configured ? 'bg-emerald-400' : 'bg-neutral-600'}`} />
-                    <span className={configured ? 'text-neutral-300' : 'text-neutral-500'}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${configured ? 'bg-hs-success' : 'bg-hs-card'}`} />
+                    <span className={configured ? 'text-hs-text-secondary' : 'text-hs-text-faint'}>
                       {INTEGRATION_LABELS[key] ?? key}
                     </span>
                   </span>
@@ -498,7 +498,7 @@ export default function StatsSection() {
       {/* ─── Server ──────────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             Server
           </h3>
           <Button variant="secondary" size="sm" onClick={fetchStats}>
@@ -507,14 +507,14 @@ export default function StatsSection() {
         </div>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-            <div className="text-neutral-500">Hostname</div>
-            <div className="text-neutral-300 font-mono">{stats.os.hostname}</div>
-            <div className="text-neutral-500">Platform</div>
-            <div className="text-neutral-300">{stats.os.platform} / {stats.os.arch}</div>
-            <div className="text-neutral-500">Node.js</div>
-            <div className="text-neutral-300 font-mono">{stats.os.nodeVersion}</div>
-            <div className="text-neutral-500">Uptime</div>
-            <div className="text-neutral-300">{formatUptime(stats.os.uptime)}</div>
+            <div className="text-hs-text-faint">Hostname</div>
+            <div className="text-hs-text-secondary font-mono">{stats.os.hostname}</div>
+            <div className="text-hs-text-faint">Platform</div>
+            <div className="text-hs-text-secondary">{stats.os.platform} / {stats.os.arch}</div>
+            <div className="text-hs-text-faint">Node.js</div>
+            <div className="text-hs-text-secondary font-mono">{stats.os.nodeVersion}</div>
+            <div className="text-hs-text-faint">Uptime</div>
+            <div className="text-hs-text-secondary">{formatUptime(stats.os.uptime)}</div>
           </div>
 
           <UsageBar
@@ -522,7 +522,7 @@ export default function StatsSection() {
             label="Memory"
             detail={`${formatBytes(stats.memory.used)} / ${formatBytes(stats.memory.total)}`}
           />
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-hs-text-faint">
             {memPercent.toFixed(1)}% used &middot; {formatBytes(stats.memory.free)} free
           </p>
         </div>
@@ -530,11 +530,11 @@ export default function StatsSection() {
 
       {/* ─── Anonymous Telemetry ─────────────── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Anonymous Telemetry
         </h3>
         <div className="space-y-3">
-          <p className="text-xs text-neutral-400 leading-relaxed">
+          <p className="text-xs text-hs-text-muted leading-relaxed">
             Home Screens collects anonymous usage statistics to help prioritize features
             and understand how the app is used. No personal data, IP addresses, or content
             is ever collected.
@@ -544,7 +544,7 @@ export default function StatsSection() {
             const telemetryOn = config?.settings.telemetryEnabled !== false;
             return (
               <div className="flex items-center justify-between">
-                <label htmlFor="telemetry-toggle" className="text-sm text-neutral-300">
+                <label htmlFor="telemetry-toggle" className="text-sm text-hs-text-secondary">
                   Send anonymous usage data
                 </label>
                 <button
@@ -557,7 +557,7 @@ export default function StatsSection() {
                     await saveConfig();
                   }}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
-                    telemetryOn ? 'bg-blue-600' : 'bg-neutral-600'
+                    telemetryOn ? 'bg-hs-accent' : 'bg-hs-card'
                   }`}
                 >
                   <span
@@ -574,14 +574,14 @@ export default function StatsSection() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
               {stats.telemetry.installId && (
                 <>
-                  <div className="text-neutral-500">Install ID</div>
-                  <div className="text-neutral-400 font-mono text-[11px] truncate">
+                  <div className="text-hs-text-faint">Install ID</div>
+                  <div className="text-hs-text-muted font-mono text-[11px] truncate">
                     {stats.telemetry.installId}
                   </div>
                 </>
               )}
-              <div className="text-neutral-500">Last beacon</div>
-              <div className="text-neutral-400">
+              <div className="text-hs-text-faint">Last beacon</div>
+              <div className="text-hs-text-muted">
                 {stats.telemetry.lastBeaconAt
                   ? new Date(stats.telemetry.lastBeaconAt).toLocaleString()
                   : 'Never'}
@@ -591,15 +591,15 @@ export default function StatsSection() {
 
           <button
             onClick={() => setShowTelemetryDetails(!showTelemetryDetails)}
-            className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+            className="flex items-center gap-1 text-xs text-hs-accent hover:text-hs-accent-hover"
           >
             {showTelemetryDetails ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             What we collect
           </button>
 
           {showTelemetryDetails && (
-            <div className="rounded-md bg-neutral-800/50 border border-neutral-700 p-3 text-xs text-neutral-400 space-y-2">
-              <p className="text-neutral-300 font-medium">Data sent once daily:</p>
+            <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3 text-xs text-hs-text-muted space-y-2">
+              <p className="text-hs-text-secondary font-medium">Data sent once daily:</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li>Anonymous install ID (random UUID)</li>
                 <li>App version and platform (OS, architecture)</li>
@@ -611,7 +611,7 @@ export default function StatsSection() {
                 <li>Whether calendar integrations are configured</li>
                 <li>Number of installed plugins</li>
               </ul>
-              <p className="text-neutral-500 mt-2">
+              <p className="text-hs-text-faint mt-2">
                 We never collect: IP addresses, location, calendar events, API keys,
                 module content, hostnames, or any personally identifiable information. 
                 All of the code is Open Source and can be verified.
@@ -628,9 +628,9 @@ export default function StatsSection() {
 
 function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div className="rounded-md bg-neutral-800/50 border border-neutral-700 px-3 py-2">
-      <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{label}</p>
-      <p className={`text-lg font-semibold ${color ?? 'text-neutral-200'}`}>{value}</p>
+    <div className="rounded-md bg-hs-hover border border-hs-border-strong px-3 py-2">
+      <p className="text-[10px] text-hs-text-faint uppercase tracking-wider">{label}</p>
+      <p className={`text-lg font-semibold ${color ?? 'text-hs-text-body'}`}>{value}</p>
     </div>
   );
 }
@@ -638,8 +638,8 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
 function DataRow({ label, size }: { label: string; size: number }) {
   return (
     <tr>
-      <td className="px-3 py-2 text-neutral-400">{label}</td>
-      <td className="px-3 py-2 text-right text-neutral-300">{formatBytes(size)}</td>
+      <td className="px-3 py-2 text-hs-text-muted">{label}</td>
+      <td className="px-3 py-2 text-right text-hs-text-secondary">{formatBytes(size)}</td>
     </tr>
   );
 }

@@ -26,7 +26,7 @@ export default function DisplayPicker() {
 
   return (
     <section className="mt-4 mx-5">
-      <div className="text-[11px] uppercase tracking-wider text-neutral-500 mb-2">
+      <div className="text-[11px] uppercase tracking-wider text-hs-text-faint mb-2">
         Targeting
       </div>
       <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-1">
@@ -38,8 +38,8 @@ export default function DisplayPicker() {
               onClick={() => setTarget(opt.value)}
               className={`shrink-0 px-3.5 py-2 min-h-[40px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
                 active
-                  ? 'bg-blue-500/[0.12] text-blue-400 border-blue-500/25'
-                  : 'bg-white/[0.03] text-neutral-400 border-white/[0.06]'
+                  ? 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/25'
+                  : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
               }`}
             >
               {opt.label}

@@ -28,11 +28,11 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ refreshIntervalMs: v * 60000 })}
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-neutral-400">Routes</span>
+        <span className="text-xs text-hs-text-muted">Routes</span>
         <Button size="sm" onClick={addRoute}>Add</Button>
       </div>
       {routes.map((r, idx) => (
-        <div key={idx} className="p-2 bg-neutral-800 rounded space-y-1">
+        <div key={idx} className="p-2 bg-hs-card rounded space-y-1">
           <div className="flex items-center gap-1">
             <input
               type="text"
@@ -41,7 +41,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
               placeholder="Label"
               className={`flex-1 ${NESTED_INPUT_CLASS}`}
             />
-            <button onClick={() => removeRoute(idx)} className="text-red-400 text-xs px-1">x</button>
+            <button onClick={() => removeRoute(idx)} className="text-hs-danger text-xs px-1">x</button>
           </div>
           <input
             type="text"

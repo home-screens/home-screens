@@ -10,7 +10,7 @@ export function StickyNoteConfigSection({ mod, screenId }: { mod: ModuleInstance
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Content</span>
+        <span className="text-xs text-hs-text-muted">Content</span>
         <textarea
           value={(c.content as string) || ''}
           onChange={(e) => set({ content: e.target.value })}
@@ -19,12 +19,12 @@ export function StickyNoteConfigSection({ mod, screenId }: { mod: ModuleInstance
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Note Color</span>
+        <span className="text-xs text-hs-text-muted">Note Color</span>
         <input
           type="color"
           value={(c.noteColor as string) || '#fef08a'}
           onChange={(e) => set({ noteColor: e.target.value })}
-          className="w-full h-8 rounded bg-neutral-800 border border-neutral-600 cursor-pointer"
+          className="w-full h-8 rounded bg-hs-card border border-hs-border-strong cursor-pointer"
         />
       </label>
     </>

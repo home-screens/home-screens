@@ -11,8 +11,8 @@ import {
  * Pure-function unit tests for the settings route parser. These exist
  * because the original parser lived inside the settings page client
  * component and depended on `window.location` / `window.history`, which
- * the project's `node` test environment can't provide. Phase 5 hoisted
- * the logic into `lib/settings-route` so it can be exercised here as a
+ * the project's `node` test environment can't provide. The logic was
+ * hoisted into `lib/settings-route` so it can be exercised here as a
  * direct call against `URLSearchParams`.
  */
 

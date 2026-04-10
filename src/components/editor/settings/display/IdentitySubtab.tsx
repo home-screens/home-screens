@@ -68,42 +68,42 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
 
   return (
     <>
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
-        <div className="px-4 py-3.5 border-b border-neutral-800">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40">
+        <div className="px-4 py-3.5 border-b border-hs-border">
           <label className="block">
-            <span className="text-xs text-neutral-400">Display name</span>
+            <span className="text-xs text-hs-text-muted">Display name</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={handleNameBlur}
-              className="mt-1.5 block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             />
-            <p className="text-[11px] text-neutral-500 mt-1.5">
+            <p className="text-[11px] text-hs-text-faint mt-1.5">
               Shown in the sidebar and on the display kiosk. Auto-saves on blur.
             </p>
           </label>
         </div>
         <div className="px-4 py-3.5">
           <label className="block">
-            <span className="text-xs text-neutral-400">Display ID</span>
+            <span className="text-xs text-hs-text-muted">Display ID</span>
             <input
               type="text"
               value={display.id}
               disabled
-              className="mt-1.5 block w-full rounded-md bg-neutral-800/50 border border-neutral-700 text-sm text-neutral-400 px-3 py-2 font-mono"
+              className="mt-1.5 block w-full rounded-md bg-hs-hover border border-hs-border-strong text-sm text-hs-text-muted px-3 py-2 font-mono"
             />
-            <p className="text-[11px] text-neutral-500 mt-1.5">
-              Used in the kiosk URL <code className="text-neutral-400">/display/{display.id}</code>.
+            <p className="text-[11px] text-hs-text-faint mt-1.5">
+              Used in the kiosk URL <code className="text-hs-text-muted">/display/{display.id}</code>.
               Cannot be changed without reconfiguring the Pi.
             </p>
           </label>
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/[0.04] p-4">
-        <div className="text-sm font-medium text-red-300 mb-1">Danger zone</div>
-        <div className="text-xs text-neutral-400 mb-3">
+      <div className="mt-5 rounded-lg border border-hs-danger/20 bg-hs-danger/[0.04] p-4">
+        <div className="text-sm font-medium text-hs-danger mb-1">Danger zone</div>
+        <div className="text-xs text-hs-text-muted mb-3">
           {isMain
             ? 'The main display is the hub kiosk and cannot be removed. Removing it would orphan its screens and reset the hub to an unadopted state.'
             : 'Removing a display stops serving it and deletes its screens. The Pi can re-register as unadopted.'}
@@ -112,7 +112,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
           type="button"
           onClick={handleDelete}
           disabled={isMain || saving}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-transparent text-red-400 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-red-500/30 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-transparent text-hs-danger border border-hs-danger/30 hover:bg-hs-danger/10 hover:border-hs-danger/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-hs-danger/30 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
           Remove {display.name}

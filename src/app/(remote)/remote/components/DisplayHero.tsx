@@ -10,9 +10,9 @@ interface DisplayHeroProps {
 }
 
 const STATE_BADGE = {
-  active: 'bg-green-500/[0.12] text-green-400 border-green-500/25',
-  dimmed: 'bg-amber-500/[0.12] text-amber-400 border-amber-500/25',
-  asleep: 'bg-neutral-500/[0.12] text-neutral-400 border-neutral-500/25',
+  active: 'bg-hs-success/[0.12] text-hs-success border-hs-success/25',
+  dimmed: 'bg-hs-warning/[0.12] text-hs-warning border-hs-warning/25',
+  asleep: 'bg-hs-text-faint/[0.12] text-hs-text-muted border-hs-text-faint/25',
 } as const;
 
 export default function DisplayHero({ status, isConnected, lastUpdated }: DisplayHeroProps) {
@@ -20,9 +20,9 @@ export default function DisplayHero({ status, isConnected, lastUpdated }: Displa
   const stateLabel = displayState.charAt(0).toUpperCase() + displayState.slice(1);
 
   return (
-    <div className="mx-5 mt-1 p-5 bg-white/[0.03] border border-white/[0.06] rounded-[14px] relative overflow-hidden">
+    <div className="mx-5 mt-1 p-5 bg-hs-card border border-hs-border-strong rounded-[14px] relative overflow-hidden">
       {/* Subtle top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-hs-accent/30 to-transparent" />
 
       <div className="flex items-center justify-between mb-4">
         {status ? (
@@ -34,22 +34,22 @@ export default function DisplayHero({ status, isConnected, lastUpdated }: Displa
           <span />
         )}
         {lastUpdated && (
-          <span className="text-xs text-neutral-500">Updated {formatTimeAgo(lastUpdated)}</span>
+          <span className="text-xs text-hs-text-faint">Updated {formatTimeAgo(lastUpdated)}</span>
         )}
       </div>
 
       {status ? (
         <>
-          <div className="text-[26px] font-bold tracking-tight text-white mb-1">
+          <div className="text-[26px] font-bold tracking-tight text-hs-text-primary mb-1">
             {status.currentScreen.name}
           </div>
-          <div className="text-[13px] text-neutral-500">
-            Screen <span className="text-neutral-400">{status.currentScreen.index + 1}</span> of{' '}
-            <span className="text-neutral-400">{status.screenCount}</span>
+          <div className="text-[13px] text-hs-text-faint">
+            Screen <span className="text-hs-text-muted">{status.currentScreen.index + 1}</span> of{' '}
+            <span className="text-hs-text-muted">{status.screenCount}</span>
           </div>
         </>
       ) : (
-        <div className="text-lg font-semibold text-neutral-500">
+        <div className="text-lg font-semibold text-hs-text-faint">
           {isConnected ? 'Waiting for display\u2026' : 'Display unreachable'}
         </div>
       )}

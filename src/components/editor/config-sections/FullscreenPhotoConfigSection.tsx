@@ -59,7 +59,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
     <>
       {/* Theme Override */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Theme</span>
+        <span className="text-xs text-hs-text-muted">Theme</span>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -75,7 +75,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Photo Source</span>
+          <span className="text-xs text-hs-text-muted">Photo Source</span>
           <select
             value={source}
             onChange={(e) => set({ source: e.target.value })}
@@ -93,9 +93,9 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         <>
           {/* Folder picker */}
           <div>
-            <span className="text-xs text-neutral-400">Photo Folder</span>
+            <span className="text-xs text-hs-text-muted">Photo Folder</span>
             <div className="flex gap-1.5 mt-1">
-              <div className="flex-1 px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-300 truncate">
+              <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
                 {directory || 'All Photos (root)'}
               </div>
               <Button size="sm" onClick={() => setShowBrowser(true)}>
@@ -104,7 +104,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
             </div>
             {photoCount > 0 && (
               <div className="mt-1.5">
-                <span className="text-[10px] text-neutral-500">
+                <span className="text-[10px] text-hs-text-faint">
                   {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
                 </span>
                 <div className="flex gap-1 mt-1 overflow-x-auto">
@@ -114,14 +114,14 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
                       src={img}
                       alt=""
                       loading="lazy"
-                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
+                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"
                     />
                   ))}
                 </div>
               </div>
             )}
             {photoCount === 0 && (
-              <p className="text-[10px] text-neutral-500 mt-1">No photos in this folder</p>
+              <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
             )}
           </div>
         </>
@@ -140,7 +140,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Transition & Object Fit row */}
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Transition</span>
+          <span className="text-xs text-hs-text-muted">Transition</span>
           <select
             value={c.transition ?? 'fade'}
             onChange={(e) => set({ transition: e.target.value as FullscreenPhotoConfig['transition'] })}
@@ -153,7 +153,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Object Fit</span>
+          <span className="text-xs text-hs-text-muted">Object Fit</span>
           <select
             value={c.objectFit ?? 'cover'}
             onChange={(e) => set({ objectFit: e.target.value as 'cover' | 'contain' | 'fill' })}
@@ -184,9 +184,9 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       />
 
       {/* Mobile hint */}
-      <p className="text-[11px] text-neutral-600 leading-relaxed">
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
         Upload photos from your phone via the Photos tab at{' '}
-        <span className="text-neutral-400">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
+        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 
       {showBrowser && (

@@ -1,16 +1,16 @@
 /**
- * Pure URL parser + redirect helper for the Phase 4 settings page.
+ * Pure URL parser + redirect helper for the settings page.
  *
- * The Phase 4 sidebar URL shape:
+ * The sidebar URL shape:
  *   - `?section=defaults&page=display`             — a Defaults source-of-truth page
  *   - `?section=display&id=kitchen&subtab=display` — a per-display drill-down page
  *   - `?section=displays`                          — the all-displays card grid
  *
- * Phase 5 extracted these helpers out of `app/(editor)/editor/settings/page.tsx`
- * so the legacy `?tab=X` redirect can be unit-tested without a `window`. The
- * existing test environment is `node`, not `jsdom`, and the original parser
- * was buried inside a client component that touched `window.history.replaceState`
- * — both blockers to a simple test. Everything in this file is intentionally
+ * Extracted from `app/(editor)/editor/settings/page.tsx` so the legacy
+ * `?tab=X` redirect can be unit-tested without a `window`. The existing test
+ * environment is `node`, not `jsdom`, and the original parser was buried
+ * inside a client component that touched `window.history.replaceState` —
+ * both blockers to a simple test. Everything in this file is intentionally
  * `string`-in / data-out so the tests don't need any DOM.
  */
 
@@ -68,8 +68,8 @@ export type SettingsRoute =
   | { kind: 'displays' };
 
 /**
- * Map a legacy `?tab=X` value (the pre-Phase-4 flat sidebar) onto the
- * new section/page shape. Bookmarks survive: anyone visiting an old URL
+ * Map a legacy `?tab=X` value (from the old flat sidebar) onto the new
+ * section/page shape. Bookmarks survive: anyone visiting an old URL
  * lands on the right content on the first render and the page rewrites
  * the URL bar to the canonical form.
  */
@@ -89,8 +89,8 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   system: { kind: 'defaults', page: 'system' },
   docs: { kind: 'defaults', page: 'docs' },
   displays: { kind: 'displays' },
-  // Hidden routes that briefly existed in Phase 2 — bookmarks of those
-  // collapse to the proper Defaults pages.
+  // Hidden routes that briefly existed — bookmarks of those collapse to
+  // the proper Defaults pages.
   'default-display': { kind: 'defaults', page: 'display' },
   'default-sleep': { kind: 'defaults', page: 'sleep' },
   'default-alerts': { kind: 'defaults', page: 'alerts' },

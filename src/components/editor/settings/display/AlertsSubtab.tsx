@@ -20,8 +20,8 @@ interface AlertsSubtabProps {
  * Rendering matches `SleepSubtab` exactly: single rounded card with a
  * header row ("Alert overlay" label + Override/Reset button) and the
  * shared `AlertFormFields` form body below, dimmed when inheriting and
- * editable when forked. An earlier Phase 5 pass rendered this subtab
- * as an empty-state CTA per the mockup, which was inconsistent with
+ * editable when forked. An earlier pass rendered this subtab as an
+ * empty-state CTA per the mockup, which was inconsistent with
  * the Sleep subtab's dimmed-form treatment — two subtabs that do the
  * same thing (whole-block override of a nested settings object) should
  * use the same affordance. The dimmed-form pattern also lets the user
@@ -72,7 +72,7 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
           Alerts is overridden as a whole block. The default lives on{' '}
           <Link
             href="?section=defaults&page=alerts"
-            className="text-blue-300 hover:text-blue-200 underline decoration-dashed underline-offset-2"
+            className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             Defaults → Alerts
           </Link>

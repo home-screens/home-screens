@@ -31,7 +31,7 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
   if (error) {
     return (
       <div className="flex items-center justify-center h-full px-4">
-        <p className="text-center text-sm text-red-400/80">{error}</p>
+        <p className="text-center text-sm text-hs-danger/80">{error}</p>
       </div>
     );
   }

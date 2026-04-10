@@ -11,7 +11,7 @@ export function MoonPhaseConfigSection({ mod, screenId }: { mod: ModuleInstance;
     <>
       <Toggle label="Show Illumination %" checked={c.showIllumination !== false} onChange={(v) => set({ showIllumination: v })} />
       <Toggle label="Show Moon Times" checked={c.showMoonTimes !== false} onChange={(v) => set({ showMoonTimes: v })} />
-      <p className="text-xs text-neutral-500">Uses location from global settings.</p>
+      <p className="text-xs text-hs-text-faint">Uses location from global settings.</p>
     </>
   );
 }

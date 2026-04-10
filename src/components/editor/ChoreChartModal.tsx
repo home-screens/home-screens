@@ -61,17 +61,17 @@ function IconPicker({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <span className="text-xs text-neutral-400">{label}</span>
+        <span className="text-xs text-hs-text-muted">{label}</span>
         {value ? (
           <ChoreIcon value={value} size={22} />
         ) : (
-          <span className="text-xs text-neutral-600">None</span>
+          <span className="text-xs text-hs-text-faint">None</span>
         )}
         {value && (
           <button
             type="button"
             onClick={() => onChange('')}
-            className="text-[10px] text-neutral-500 hover:text-neutral-300 ml-auto"
+            className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary ml-auto"
             aria-label={`Clear ${label.toLowerCase()}`}
           >
             Clear
@@ -103,7 +103,7 @@ function IconPicker({
               onClick={() => onChange(lucideVal)}
               className={`flex flex-col items-center gap-0.5 rounded-lg transition-all px-1.5 py-1.5 ${
                 isSelected
-                  ? 'ring-2 ring-white ring-offset-1 ring-offset-neutral-900 scale-105'
+                  ? 'ring-2 ring-white ring-offset-1 ring-offset-hs-panel scale-105'
                   : 'hover:scale-105 hover:brightness-125'
               }`}
               style={{
@@ -113,14 +113,14 @@ function IconPicker({
               }}
             >
               <Icon size={22} strokeWidth={1.75} />
-              <span className="text-[9px] leading-tight text-neutral-400 truncate w-full text-center">
+              <span className="text-[9px] leading-tight text-hs-text-muted truncate w-full text-center">
                 {def.label}
               </span>
             </button>
           );
         })}
         {search && filtered.length === 0 && (
-          <span className="text-xs text-neutral-500 py-2">No matching icons</span>
+          <span className="text-xs text-hs-text-faint py-2">No matching icons</span>
         )}
       </div>
     </div>
@@ -158,7 +158,7 @@ function MemberForm({
   };
 
   return (
-    <div className="bg-neutral-800/60 rounded-lg p-3 space-y-3 border border-neutral-700">
+    <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
       <input
         type="text"
         placeholder="Name..."
@@ -178,7 +178,7 @@ function MemberForm({
 
       {/* Color picker */}
       <div className="space-y-1.5">
-        <span className="text-xs text-neutral-400">Color</span>
+        <span className="text-xs text-hs-text-muted">Color</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {MEMBER_COLORS.map((c) => (
             <button
@@ -186,18 +186,18 @@ function MemberForm({
               type="button"
               onClick={() => setColor(c)}
               className={`w-6 h-6 rounded-full transition-all ${
-                color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-neutral-900 scale-110' : ''
+                color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-hs-panel scale-110' : ''
               }`}
               style={{ backgroundColor: c }}
             />
           ))}
           <label
-            className="w-6 h-6 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 border-dashed border-neutral-500 hover:border-neutral-300 relative"
+            className="w-6 h-6 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 border-dashed border-hs-border-strong hover:border-hs-text-secondary relative"
             style={!MEMBER_COLORS.includes(color) ? { backgroundColor: color, borderStyle: 'solid', borderColor: 'white' } : undefined}
             title="Pick custom color"
           >
             {MEMBER_COLORS.includes(color) && (
-              <span className="text-neutral-500 text-[10px] font-bold leading-none">+</span>
+              <span className="text-hs-text-faint text-[10px] font-bold leading-none">+</span>
             )}
             <input
               type="color"
@@ -275,7 +275,7 @@ function ChoreForm({
   };
 
   return (
-    <div className="bg-neutral-800/60 rounded-lg p-3 space-y-3 border border-neutral-700">
+    <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
       <input
         type="text"
         placeholder="Chore name..."
@@ -296,7 +296,7 @@ function ChoreForm({
       {/* Points & Frequency */}
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 w-20">
-          <span className="text-xs text-neutral-400">Points</span>
+          <span className="text-xs text-hs-text-muted">Points</span>
           <input
             type="number"
             value={points}
@@ -306,7 +306,7 @@ function ChoreForm({
           />
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Frequency</span>
+          <span className="text-xs text-hs-text-muted">Frequency</span>
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
@@ -318,7 +318,7 @@ function ChoreForm({
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Time of Day</span>
+          <span className="text-xs text-hs-text-muted">Time of Day</span>
           <select
             value={timeOfDay}
             onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
@@ -335,7 +335,7 @@ function ChoreForm({
 
       {/* Days of week */}
       <div className="space-y-1.5">
-        <span className="text-xs text-neutral-400">Days</span>
+        <span className="text-xs text-hs-text-muted">Days</span>
         <div className="flex gap-1">
           {[0, 1, 2, 3, 4, 5, 6].map((d) => (
             <button
@@ -344,8 +344,8 @@ function ChoreForm({
               onClick={() => toggleDay(d)}
               className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
                 daysOfWeek.includes(d)
-                  ? 'bg-neutral-600 text-neutral-200'
-                  : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'
+                  ? 'bg-hs-accent-soft text-hs-accent'
+                  : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
               }`}
             >
               {DAY_NAMES_SHORT[d][0]}
@@ -356,7 +356,7 @@ function ChoreForm({
 
       {/* Assignees */}
       <div className="space-y-1.5">
-        <span className="text-xs text-neutral-400">Assign to</span>
+        <span className="text-xs text-hs-text-muted">Assign to</span>
         <div className="flex flex-wrap gap-1.5">
           {members.map((m) => (
             <button
@@ -365,8 +365,8 @@ function ChoreForm({
               onClick={() => toggleAssignee(m.id)}
               className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all ${
                 assigneeIds.includes(m.id)
-                  ? 'bg-neutral-600 text-neutral-200 ring-1 ring-neutral-400'
-                  : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'
+                  ? 'bg-hs-accent-soft text-hs-accent ring-1 ring-hs-accent/30'
+                  : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
               }`}
             >
               {m.emoji && <ChoreIcon value={m.emoji} size={14} color="currentColor" />}
@@ -379,7 +379,7 @@ function ChoreForm({
       {/* Rotation (only when 2+ assignees) */}
       {assigneeIds.length >= 2 && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Rotation</span>
+          <span className="text-xs text-hs-text-muted">Rotation</span>
           <select
             value={rotation}
             onChange={(e) => setRotation(e.target.value as ChoreRotation)}
@@ -393,7 +393,7 @@ function ChoreForm({
       )}
 
       {validationHint && (
-        <p className="text-xs text-amber-400/80">{validationHint}</p>
+        <p className="text-xs text-hs-warning/80">{validationHint}</p>
       )}
       <div className="flex gap-2 pt-1">
         <Button variant="primary" size="sm" onClick={submit} className="flex-1" disabled={!canSave}>
@@ -480,7 +480,7 @@ function WeeklyPreview({
               {isToday ? `Today (${DAY_NAMES_FULL[day]})` : DAY_NAMES_FULL[day]}
             </div>
             {dayChores.length === 0 ? (
-              <div className="text-[11px] text-neutral-600 pl-2">No chores</div>
+              <div className="text-[11px] text-hs-text-faint pl-2">No chores</div>
             ) : (
               dayChores.map((chore) => {
                 const assignees = resolveAssignee(chore, dateStr);
@@ -491,8 +491,8 @@ function WeeklyPreview({
                     className="flex items-center gap-1.5 pl-2 py-0.5 text-[11px]"
                   >
                     {chore.emoji && <ChoreIcon value={chore.emoji} size={12} color="currentColor" />}
-                    <span className="text-neutral-300">{chore.name}</span>
-                    <span className="text-neutral-600">&rarr;</span>
+                    <span className="text-hs-text-secondary">{chore.name}</span>
+                    <span className="text-hs-text-faint">&rarr;</span>
                     {assignees.map((aid) => {
                       const m = members.find((x) => x.id === aid);
                       if (!m) return null;
@@ -504,7 +504,7 @@ function WeeklyPreview({
                       );
                     })}
                     {isRotated && (
-                      <span className="text-neutral-600 text-[10px]">&larr; rot</span>
+                      <span className="text-hs-text-faint text-[10px]">&larr; rot</span>
                     )}
                   </div>
                 );
@@ -515,7 +515,7 @@ function WeeklyPreview({
       })}
 
       {/* Weekly totals */}
-      <div className="pt-2 border-t border-neutral-700/50">
+      <div className="pt-2 border-t border-hs-border-strong/50">
         <div className="text-xs font-semibold mb-1.5 opacity-60">
           Weekly totals
         </div>
@@ -524,8 +524,8 @@ function WeeklyPreview({
           return (
             <div key={m.id} className="flex items-center gap-1.5 text-[11px] py-0.5 pl-2">
               {m.emoji && <ChoreIcon value={m.emoji} size={11} color="currentColor" />}
-              <span className="text-neutral-300">{m.name}:</span>
-              <span className="text-neutral-400">
+              <span className="text-hs-text-secondary">{m.name}:</span>
+              <span className="text-hs-text-muted">
                 {t?.chores ?? 0} chores, {t?.points ?? 0} pts
               </span>
             </div>
@@ -560,9 +560,9 @@ function MemberColumn({
   deleteMember,
 }: MemberColumnProps) {
   return (
-    <div className="w-[260px] border-r border-neutral-700 flex flex-col">
-      <div className="px-3 py-2 border-b border-neutral-700/50">
-        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+    <div className="w-[260px] border-r border-hs-border-strong flex flex-col">
+      <div className="px-3 py-2 border-b border-hs-border-strong/50">
+        <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
           Family Members
         </span>
       </div>
@@ -570,7 +570,7 @@ function MemberColumn({
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
         {members.length === 0 && !showAddMember && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <p className="text-xs text-neutral-500">No members yet</p>
+            <p className="text-xs text-hs-text-faint">No members yet</p>
           </div>
         )}
 
@@ -586,7 +586,7 @@ function MemberColumn({
           ) : (
             <div
               key={member.id}
-              className="group flex items-center gap-2.5 bg-neutral-800/40 hover:bg-neutral-800/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-neutral-700/50"
+              className="group flex items-center gap-2.5 bg-hs-hover hover:bg-hs-card/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-hs-border-strong/50"
             >
               <span className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: member.color }}>
                 {member.emoji ? (
@@ -596,7 +596,7 @@ function MemberColumn({
                 )}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-neutral-200 truncate">{member.name}</div>
+                <div className="text-sm font-medium text-hs-text-body truncate">{member.name}</div>
               </div>
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -605,7 +605,7 @@ function MemberColumn({
                     setEditingMemberId(member.id);
                     setShowAddMember(false);
                   }}
-                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
                   aria-label={`Edit ${member.name}`}
                 >
                   &#9998;
@@ -613,7 +613,7 @@ function MemberColumn({
                 <button
                   type="button"
                   onClick={() => deleteMember(member.id)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
                   aria-label={`Delete ${member.name}`}
                 >
                   &times;
@@ -633,7 +633,7 @@ function MemberColumn({
       </div>
 
       {!showAddMember && (
-        <div className="p-3 border-t border-neutral-700/50">
+        <div className="p-3 border-t border-hs-border-strong/50">
           <Button
             variant="secondary"
             size="sm"
@@ -677,9 +677,9 @@ function ChoreColumn({
   deleteChore,
 }: ChoreColumnProps) {
   return (
-    <div className="flex-1 border-r border-neutral-700 flex flex-col min-w-0">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-700/50">
-        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+    <div className="flex-1 border-r border-hs-border-strong flex flex-col min-w-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-hs-border-strong/50">
+        <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
           Chores
         </span>
         {members.length > 0 && (
@@ -689,7 +689,7 @@ function ChoreColumn({
               setShowAddChore(true);
               setEditingChoreId(null);
             }}
-            className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-700 text-neutral-200 hover:bg-neutral-600 transition-colors"
+            className="text-[11px] font-medium px-2 py-0.5 rounded bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors"
           >
             + Add Chore
           </button>
@@ -711,9 +711,9 @@ function ChoreColumn({
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
         {chores.length === 0 && !showAddChore && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <p className="text-xs text-neutral-500">No chores yet</p>
+            <p className="text-xs text-hs-text-faint">No chores yet</p>
             {members.length === 0 && (
-              <p className="text-[11px] text-neutral-600">Add family members first</p>
+              <p className="text-[11px] text-hs-text-faint">Add family members first</p>
             )}
           </div>
         )}
@@ -725,33 +725,33 @@ function ChoreColumn({
               key={chore.id}
               className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
                 editingChoreId === chore.id
-                  ? 'bg-neutral-700/50 border-neutral-600'
-                  : 'bg-neutral-800/40 hover:bg-neutral-800/70 border-transparent hover:border-neutral-700/50'
+                  ? 'bg-hs-hover border-hs-border-strong'
+                  : 'bg-hs-hover hover:bg-hs-card/70 border-transparent hover:border-hs-border-strong/50'
               }`}
             >
-              <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-neutral-300">
+              <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-hs-text-secondary">
                 {chore.emoji ? (
                   <ChoreIcon value={chore.emoji} size={18} color="currentColor" />
                 ) : (
-                  <span className="w-4 h-4 rounded bg-neutral-700" />
+                  <span className="w-4 h-4 rounded bg-hs-card" />
                 )}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-neutral-200 truncate">
+                <div className="text-sm font-medium text-hs-text-body truncate">
                   {chore.name}
                 </div>
-                <div className="text-[11px] text-neutral-400 mt-0.5">
+                <div className="text-[11px] text-hs-text-muted mt-0.5">
                   {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
                   &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
                   &middot; {chore.points}pt{chore.points !== 1 ? 's' : ''}
                 </div>
-                <div className="text-[11px] text-neutral-400 mt-0.5">
+                <div className="text-[11px] text-hs-text-muted mt-0.5">
                   &rarr;{' '}
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}
                   {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
-                    <span className="text-neutral-600">
+                    <span className="text-hs-text-faint">
                       {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : 'rotate weekly'})
                     </span>
                   )}
@@ -764,7 +764,7 @@ function ChoreColumn({
                     setEditingChoreId(chore.id);
                     setShowAddChore(false);
                   }}
-                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700 transition-colors text-xs"
+                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
                   aria-label={`Edit ${chore.name}`}
                 >
                   &#9998;
@@ -772,7 +772,7 @@ function ChoreColumn({
                 <button
                   type="button"
                   onClick={() => deleteChore(chore.id)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors text-xs"
+                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
                   aria-label={`Delete ${chore.name}`}
                 >
                   &times;
@@ -815,8 +815,8 @@ function PreviewColumn({
 }: PreviewColumnProps) {
   return (
     <div className={`${showAddChore || editingChoreId ? 'w-[450px]' : 'w-[280px]'} flex flex-col transition-all duration-200`}>
-      <div className="px-3 py-2 border-b border-neutral-700/50">
-        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+      <div className="px-3 py-2 border-b border-hs-border-strong/50">
+        <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
           {showAddChore ? 'New Chore' : editingChoreId ? 'Edit Chore' : "This Week\u2019s Schedule"}
         </span>
       </div>
@@ -840,7 +840,7 @@ function PreviewColumn({
           />
         ) : chores.length === 0 || members.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
-            <p className="text-xs text-neutral-500 text-center">
+            <p className="text-xs text-hs-text-faint text-center">
               Add members and chores to see the weekly schedule
             </p>
           </div>
@@ -958,7 +958,7 @@ export default function ChoreChartModal({
       onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
       {loadError && (
-        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-red-900/40 border border-red-700/50 text-red-300 text-xs">
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
           Failed to load chore data — changes won&apos;t be saved.
         </div>
       )}

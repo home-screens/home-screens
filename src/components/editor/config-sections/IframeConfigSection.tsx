@@ -19,7 +19,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">URL</span>
+        <span className="text-xs text-hs-text-muted">URL</span>
         <input
           type="url"
           value={c.url || ''}
@@ -28,12 +28,12 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           placeholder="https://example.com"
         />
         {urlError && (
-          <span className="text-[10px] text-red-400 mt-0.5">{urlError}</span>
+          <span className="text-[10px] text-hs-danger mt-0.5">{urlError}</span>
         )}
       </label>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Title (accessibility)</span>
+        <span className="text-xs text-hs-text-muted">Title (accessibility)</span>
         <input
           type="text"
           value={c.title || ''}
@@ -44,7 +44,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       </label>
 
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Auto-Refresh (seconds, 0 = off)</span>
+        <span className="text-xs text-hs-text-muted">Auto-Refresh (seconds, 0 = off)</span>
         <input
           type="number"
           min={0}
@@ -61,7 +61,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           onChange={(e) => set({ scrollable: e.target.checked })}
           className="accent-cyan-500"
         />
-        <span className="text-xs text-neutral-300">Allow scrolling</span>
+        <span className="text-xs text-hs-text-secondary">Allow scrolling</span>
       </label>
 
       <label className="flex items-center gap-2 cursor-pointer">
@@ -71,12 +71,12 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           onChange={(e) => set({ sandboxEnabled: e.target.checked })}
           className="accent-cyan-500"
         />
-        <span className="text-xs text-neutral-300">Enable sandbox</span>
+        <span className="text-xs text-hs-text-secondary">Enable sandbox</span>
       </label>
 
       {c.sandboxEnabled && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Sandbox permissions</span>
+          <span className="text-xs text-hs-text-muted">Sandbox permissions</span>
           <input
             type="text"
             value={c.sandbox || ''}
@@ -85,16 +85,16 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             placeholder="allow-scripts allow-forms"
           />
           {sandboxResult?.dangerousCombination && (
-            <span className="text-[10px] text-red-400 mt-0.5">
+            <span className="text-[10px] text-hs-danger mt-0.5">
               Combining allow-same-origin and allow-scripts effectively disables the sandbox.
             </span>
           )}
           {sandboxResult && sandboxResult.unknownTokens.length > 0 && (
-            <span className="text-[10px] text-amber-400 mt-0.5">
+            <span className="text-[10px] text-hs-warning mt-0.5">
               Unknown token{sandboxResult.unknownTokens.length > 1 ? 's' : ''}: {sandboxResult.unknownTokens.join(', ')}
             </span>
           )}
-          <span className="text-[10px] text-neutral-500 mt-0.5">
+          <span className="text-[10px] text-hs-text-faint mt-0.5">
             Space-separated tokens. Leave empty for maximum restriction.
           </span>
         </label>

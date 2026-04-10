@@ -32,15 +32,15 @@ export default function HomeScreensLogo({
 
       <div className="flex min-w-0 items-center gap-2.5 leading-none">
         <div className="flex items-baseline gap-2 whitespace-nowrap">
-          <span className="text-[0.95rem] font-semibold tracking-[0.16em] text-cyan-300/90 uppercase">
+          <span className="text-[0.95rem] font-semibold tracking-[0.16em] uppercase text-hs-logo-wordmark">
             Home
           </span>
-          <span className="text-[1.05rem] font-semibold tracking-[0.08em] text-neutral-50">
+          <span className="text-[1.05rem] font-semibold tracking-[0.08em] text-hs-text-primary">
             Screens
           </span>
         </div>
         {contextLabel && (
-          <span className="hidden rounded-full border border-neutral-700 bg-neutral-900/80 px-2 py-1 text-[0.6rem] font-medium uppercase tracking-[0.18em] text-neutral-400 xl:inline-flex">
+          <span className="hidden rounded-full border border-hs-border-strong bg-hs-panel/80 px-2 py-1 text-[0.6rem] font-medium uppercase tracking-[0.18em] text-hs-text-muted xl:inline-flex">
             {contextLabel}
           </span>
         )}

@@ -190,13 +190,13 @@ export default function MealsSection() {
 
   if (loading) {
     return (
-      <div className="text-sm text-neutral-500">Loading meal settings...</div>
+      <div className="text-sm text-hs-text-faint">Loading meal settings...</div>
     );
   }
 
   if (!settings) {
     return (
-      <div className="text-sm text-red-400">{error ?? 'Unable to load meal settings.'}</div>
+      <div className="text-sm text-hs-danger">{error ?? 'Unable to load meal settings.'}</div>
     );
   }
 
@@ -206,24 +206,24 @@ export default function MealsSection() {
     <div className="space-y-6">
       {/* Status row — mirrors the parent page's "Saved" indicator */}
       <div className="flex items-center justify-between">
-        <p className="text-xs text-neutral-500 leading-relaxed">
+        <p className="text-xs text-hs-text-faint leading-relaxed">
           Shared meal-planner settings. These also appear in the{' '}
-          <a href="/remote" className="text-blue-400 hover:text-blue-300 underline">remote</a>{' '}
+          <a href="/remote" className="text-hs-accent hover:text-hs-accent-hover underline">remote</a>{' '}
           settings drawer — edits from either surface stay in sync.
         </p>
         <div className="flex items-center gap-2 text-xs">
-          {saving && <span className="text-neutral-500">Saving...</span>}
-          {!saving && saveMessage && <span className="text-green-400">{saveMessage}</span>}
-          {!saving && error && <span className="text-red-400">{error}</span>}
+          {saving && <span className="text-hs-text-faint">Saving...</span>}
+          {!saving && saveMessage && <span className="text-hs-success">{saveMessage}</span>}
+          {!saving && error && <span className="text-hs-danger">{error}</span>}
         </div>
       </div>
 
       {/* ── Meal Slots ── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Meal Slots
         </h3>
-        <p className="text-xs text-neutral-500 mb-3">
+        <p className="text-xs text-hs-text-faint mb-3">
           Which meals does your household plan? Affects every meal-planner module across all screens.
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -238,8 +238,8 @@ export default function MealsSection() {
                 disabled={saving}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md border text-left transition ${
                   isEnabled
-                    ? 'bg-neutral-800 border-neutral-600'
-                    : 'bg-neutral-900 border-neutral-700 hover:border-neutral-600'
+                    ? 'bg-hs-card border-hs-border-strong'
+                    : 'bg-hs-panel border-hs-border-strong hover:border-hs-text-faint'
                 }`}
                 aria-pressed={isEnabled}
               >
@@ -247,16 +247,16 @@ export default function MealsSection() {
                   className="w-4 h-4 rounded shrink-0 flex items-center justify-center"
                   style={{
                     backgroundColor: isEnabled ? meta.color : 'transparent',
-                    border: `1.5px solid ${isEnabled ? meta.color : '#525252'}`,
+                    border: `1.5px solid ${isEnabled ? meta.color : 'var(--hs-border-strong)'}`,
                   }}
                 >
                   {isEnabled && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </div>
-                <span className="text-sm font-medium text-neutral-200">{meta.label}</span>
+                <span className="text-sm font-medium text-hs-text-body">{meta.label}</span>
               </button>
             );
           })}
@@ -265,7 +265,7 @@ export default function MealsSection() {
 
       {/* ── Week Start ── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Week Starts On
         </h3>
         <div className="grid grid-cols-2 gap-2">
@@ -279,8 +279,8 @@ export default function MealsSection() {
                 disabled={saving}
                 className={`px-3 py-2.5 rounded-md border text-sm font-medium capitalize transition ${
                   isSelected
-                    ? 'bg-blue-500/10 border-blue-500/40 text-blue-300'
-                    : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200'
+                    ? 'bg-hs-accent-soft border-hs-accent/40 text-hs-accent-hover'
+                    : 'bg-hs-panel border-hs-border-strong text-hs-text-muted hover:border-hs-text-faint hover:text-hs-text-body'
                 }`}
                 aria-pressed={isSelected}
               >
@@ -293,10 +293,10 @@ export default function MealsSection() {
 
       {/* ── Time Format ── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Time Format
         </h3>
-        <p className="text-xs text-neutral-500 mb-3">
+        <p className="text-xs text-hs-text-faint mb-3">
           Applies to every meal display across the kiosk and the remote.
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -311,8 +311,8 @@ export default function MealsSection() {
                 disabled={saving}
                 className={`flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-md border transition ${
                   isSelected
-                    ? 'bg-blue-500/10 border-blue-500/40 text-blue-300'
-                    : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200'
+                    ? 'bg-hs-accent-soft border-hs-accent/40 text-hs-accent-hover'
+                    : 'bg-hs-panel border-hs-border-strong text-hs-text-muted hover:border-hs-text-faint hover:text-hs-text-body'
                 }`}
                 aria-pressed={isSelected}
               >
@@ -326,10 +326,10 @@ export default function MealsSection() {
 
       {/* ── Default Serving Times ── */}
       <section>
-        <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           Default Serving Times
         </h3>
-        <p className="text-xs text-neutral-500 mb-3">
+        <p className="text-xs text-hs-text-faint mb-3">
           Used when a planned meal doesn&apos;t have its own time. Leave blank for slots that vary day-to-day.
         </p>
         <div className="space-y-2">
@@ -340,7 +340,7 @@ export default function MealsSection() {
             return (
               <div
                 key={slot}
-                className="rounded-md border border-neutral-700 bg-neutral-900 p-3"
+                className="rounded-md border border-hs-border-strong bg-hs-panel p-3"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold" style={{ color: meta.color }}>
@@ -351,7 +351,7 @@ export default function MealsSection() {
                       type="button"
                       onClick={() => setDefaultTime(slot, undefined)}
                       disabled={saving}
-                      className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-300 px-2 py-0.5 rounded border border-neutral-700 hover:border-neutral-600 transition"
+                      className="text-[11px] font-semibold text-hs-text-faint hover:text-hs-text-secondary px-2 py-0.5 rounded border border-hs-border-strong transition"
                       aria-label={`Clear default time for ${meta.label}`}
                     >
                       Clear
@@ -364,7 +364,7 @@ export default function MealsSection() {
                     value={currentTime ?? ''}
                     onChange={(e) => setDefaultTime(slot, e.target.value || undefined)}
                     disabled={saving}
-                    className="flex-1 rounded-md bg-neutral-800 border border-neutral-600 px-2.5 py-1.5 text-sm text-neutral-200 focus:border-blue-500 focus:outline-none"
+                    className="flex-1 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
                     style={{ colorScheme: 'dark' }}
                     aria-label={`Default time for ${meta.label}`}
                   />
@@ -380,7 +380,7 @@ export default function MealsSection() {
                           className={`px-2 py-1 rounded text-[11px] font-semibold tabular-nums transition ${
                             isSelected
                               ? 'border'
-                              : 'border border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:border-neutral-600'
+                              : 'border border-hs-border-strong text-hs-text-muted hover:text-hs-text-body hover:border-hs-text-faint'
                           }`}
                           style={isSelected ? {
                             color: meta.color,
@@ -398,7 +398,7 @@ export default function MealsSection() {
             );
           })}
           {settings.enabledSlots.length === 0 && (
-            <p className="text-xs text-neutral-600 italic">Enable at least one slot above to set default times.</p>
+            <p className="text-xs text-hs-text-faint italic">Enable at least one slot above to set default times.</p>
           )}
         </div>
       </section>
@@ -421,7 +421,7 @@ export default function MealsSection() {
         >
           Reset to defaults
         </Button>
-        <p className="text-xs text-neutral-600 mt-2">
+        <p className="text-xs text-hs-text-faint mt-2">
           Restores breakfast/lunch/dinner, Sunday week start, 12-hour format, and clears all default times.
         </p>
       </section>

@@ -23,8 +23,8 @@ import AlertFormFields, {
  * "Clear all alerts" button hitting the legacy default queue, which
  * is the original single-display behavior.
  *
- * Phase 5 inlined the legacy `AlertSection` wrapper. The form rows now
- * live in the shared `AlertFormFields` component.
+ * The legacy `AlertSection` wrapper was inlined. The form rows now live
+ * in the shared `AlertFormFields` component.
  */
 interface DefaultAlertsSectionProps {
   config: ScreenConfiguration;
@@ -42,17 +42,17 @@ export default function DefaultAlertsSection({ config, values, onChange }: Defau
   return (
     <>
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
           Defaults → Alerts
         </div>
-        <h1 className="text-xl font-semibold text-neutral-100">Default alert settings</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-xl font-semibold text-hs-text-primary">Default alert settings</h1>
+        <p className="text-sm text-hs-text-faint mt-1">
           Default position, size, and duration for the alert overlay on every display. A specific
           display can override the whole alerts block from its own page.
         </p>
       </div>
       <DefaultsBacklinkBanner overrides={overrides} pageLabel="this page" />
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-4">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <AlertFormFields values={values} onChange={onChange} />
       </div>
     </>

@@ -14,11 +14,11 @@ export default function AccordionSection({ title, defaultOpen = true, children }
         className="flex items-center gap-1.5 w-full py-1.5 text-left group"
       >
         <ChevronRight
-          className={`w-3 h-3 text-neutral-500 transition-transform duration-200 ${
+          className={`w-3 h-3 text-hs-text-faint transition-transform duration-200 ${
             open ? 'rotate-90' : ''
           }`}
         />
-        <span className="text-xs font-semibold text-neutral-500 uppercase">{title}</span>
+        <span className="text-xs font-semibold text-hs-text-faint uppercase">{title}</span>
       </button>
       <AnimatePresence initial={false}>
         {open && (

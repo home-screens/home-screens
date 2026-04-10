@@ -23,7 +23,7 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
       />
       <Slider label="Months to Show" value={c.monthCount ?? 3} min={1} max={6} step={1} onChange={(v) => set({ monthCount: v })} />
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Week Starts On</span>
+        <span className="text-xs text-hs-text-muted">Week Starts On</span>
         <select
           value={c.startDay ?? 'sunday'}
           onChange={(e) => set({ startDay: e.target.value })}

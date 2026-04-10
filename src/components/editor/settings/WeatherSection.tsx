@@ -153,23 +153,23 @@ export default function WeatherSection({ values, onChange }: Props) {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         Weather
       </h3>
       <div className="space-y-3">
         {!hasLocation && (
-          <div className="rounded-md bg-amber-900/30 border border-amber-700/50 px-3 py-2">
-            <p className="text-xs text-amber-400">
+          <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2">
+            <p className="text-xs text-hs-warning">
               Set your location for weather to work. Enter a zip code or city name, or use Detect.
             </p>
           </div>
         )}
         <label className="block">
-          <span className="text-xs text-neutral-400">Provider</span>
+          <span className="text-xs text-hs-text-muted">Provider</span>
           <select
             value={provider}
             onChange={(e) => onChange({ provider: e.target.value })}
-            className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             <option value="open-meteo">Open-Meteo (free, no key, global)</option>
             <option value="weatherapi">WeatherAPI.com (free, no credit card)</option>
@@ -182,20 +182,20 @@ export default function WeatherSection({ values, onChange }: Props) {
         {needsApiKey(provider) ? (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-neutral-400">
+              <span className="text-xs text-hs-text-muted">
                 API Key
                 {provider === 'weatherapi' && (
-                  <span className="text-neutral-500 ml-1">
+                  <span className="text-hs-text-faint ml-1">
                     — get one free at weatherapi.com
                   </span>
                 )}
                 {provider === 'openweathermap' && (
-                  <span className="text-neutral-500 ml-1">
+                  <span className="text-hs-text-faint ml-1">
                     — requires One Call 3.0 subscription
                   </span>
                 )}
                 {provider === 'pirateweather' && (
-                  <span className="text-neutral-500 ml-1">
+                  <span className="text-hs-text-faint ml-1">
                     — free at pirateweather.net
                   </span>
                 )}
@@ -206,17 +206,17 @@ export default function WeatherSection({ values, onChange }: Props) {
                     <span className="flex items-center gap-1.5 text-xs">
                       <span
                         className={`w-1.5 h-1.5 rounded-full inline-block ${
-                          keyConfigured ? 'bg-green-400' : 'bg-neutral-600'
+                          keyConfigured ? 'bg-hs-success' : 'bg-hs-card'
                         }`}
                       />
-                      <span className={keyConfigured ? 'text-green-400' : 'text-neutral-500'}>
+                      <span className={keyConfigured ? 'text-hs-success' : 'text-hs-text-faint'}>
                         {keyConfigured ? 'Configured' : 'Not configured'}
                       </span>
                     </span>
                     {keyConfigured && (
                       <button
                         onClick={handleDeleteKey}
-                        className="text-xs text-neutral-500 hover:text-red-400 transition-colors"
+                        className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
                       >
                         Remove
                       </button>
@@ -231,7 +231,7 @@ export default function WeatherSection({ values, onChange }: Props) {
                 value={apiKey}
                 onChange={(e) => { setApiKey(e.target.value); setSaveStatus('idle'); }}
                 placeholder="Paste your API key here"
-                className="flex-1 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
               />
               <Button
                 variant="secondary"
@@ -243,14 +243,14 @@ export default function WeatherSection({ values, onChange }: Props) {
               </Button>
             </div>
             {saveStatus === 'saved' && (
-              <span className="text-xs text-green-400">Key saved successfully</span>
+              <span className="text-xs text-hs-success">Key saved successfully</span>
             )}
             {saveStatus === 'error' && (
-              <span className="text-xs text-red-400">{saveError}</span>
+              <span className="text-xs text-hs-danger">{saveError}</span>
             )}
           </div>
         ) : (
-          <p className="text-xs text-green-400/80">
+          <p className="text-xs text-hs-success/80">
             {provider === 'noaa'
               ? 'No API key required — NOAA data is free and public (US only).'
               : 'No API key required — Open-Meteo is free and open-source with global coverage.'}
@@ -258,11 +258,11 @@ export default function WeatherSection({ values, onChange }: Props) {
         )}
 
         <label className="block">
-          <span className="text-xs text-neutral-400">Units</span>
+          <span className="text-xs text-hs-text-muted">Units</span>
           <select
             value={units}
             onChange={(e) => onChange({ units: e.target.value })}
-            className="mt-1 block w-full rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             <option value="imperial">Imperial (°F, mph)</option>
             <option value="metric">Metric (°C, km/h)</option>
@@ -274,7 +274,7 @@ export default function WeatherSection({ values, onChange }: Props) {
             Test Weather Connection
           </Button>
           {testStatus && (
-            <span className={`text-xs ${testStatus.startsWith('Working') ? 'text-green-400' : testStatus.startsWith('Error') || testStatus.startsWith('Failed') ? 'text-red-400' : 'text-neutral-400'}`}>
+            <span className={`text-xs ${testStatus.startsWith('Working') ? 'text-hs-success' : testStatus.startsWith('Error') || testStatus.startsWith('Failed') ? 'text-hs-danger' : 'text-hs-text-muted'}`}>
               {testStatus}
             </span>
           )}

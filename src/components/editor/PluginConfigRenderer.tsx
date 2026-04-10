@@ -59,7 +59,7 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
       {/* Grouped fields with section headers */}
       {[...groups.entries()].map(([groupName, fields]) => (
         <div key={groupName} className="space-y-3">
-          <div className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider pt-2 border-t border-neutral-700/50">
+          <div className="text-[10px] font-semibold text-hs-text-faint uppercase tracking-wider pt-2 border-t border-hs-border-strong/50">
             {groupName}
           </div>
           {fields.map(([key, prop]) => (
@@ -110,15 +110,15 @@ interface WidgetProps {
 }
 
 function Desc({ text }: { text?: string }) {
-  return text ? <span className="text-[10px] text-neutral-500">{text}</span> : null;
+  return text ? <span className="text-[10px] text-hs-text-faint">{text}</span> : null;
 }
 
 function ToggleWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
     <div className="flex flex-col gap-0.5">
       <label className="flex items-center justify-between gap-2">
-        <span className="text-xs text-neutral-400">{label}</span>
-        <input type="checkbox" checked={Boolean(value ?? prop.default)} onChange={(e) => onChange(e.target.checked)} className="accent-blue-500" />
+        <span className="text-xs text-hs-text-muted">{label}</span>
+        <input type="checkbox" checked={Boolean(value ?? prop.default)} onChange={(e) => onChange(e.target.checked)} className="accent-hs-accent" />
       </label>
       <Desc text={description} />
     </div>
@@ -137,7 +137,7 @@ function SliderWidget({ label, value, prop, onChange, description }: WidgetProps
 function NumberWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <input type="number" value={Number(value ?? prop.default ?? 0)} min={prop.minimum} max={prop.maximum} step={prop['ui:step']} onChange={(e) => onChange(Number(e.target.value))} className={INPUT_CLASS} placeholder={placeholder} />
       <Desc text={description} />
     </label>
@@ -147,7 +147,7 @@ function NumberWidget({ label, value, prop, onChange, description, placeholder }
 function SelectWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <select value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(prop.type === 'number' ? Number(e.target.value) : e.target.value)} className={INPUT_CLASS}>
         {(prop.enum ?? []).map((opt, i) => (
           <option key={String(opt)} value={String(opt)}>{prop.enumLabels?.[i] ?? String(opt)}</option>
@@ -170,7 +170,7 @@ function ColorWidget({ label, value, prop, onChange, description }: WidgetProps)
 function TextareaWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <textarea rows={4} value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS + ' resize-y'} placeholder={placeholder} />
       <Desc text={description} />
     </label>
@@ -181,12 +181,12 @@ function MultiselectWidget({ label, value, prop, onChange, description }: Widget
   const resolved = Array.isArray(value) ? value : Array.isArray(prop.default) ? prop.default as (string | number)[] : [];
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <div className="grid grid-cols-2 gap-1">
         {(prop.enum ?? []).map((opt, i) => {
           const selected = resolved.includes(opt);
           return (
-            <label key={String(opt)} className="flex items-center gap-1.5 text-xs text-neutral-300">
+            <label key={String(opt)} className="flex items-center gap-1.5 text-xs text-hs-text-secondary">
               <input
                 type="checkbox"
                 checked={selected}
@@ -196,7 +196,7 @@ function MultiselectWidget({ label, value, prop, onChange, description }: Widget
                   else { const idx = current.indexOf(opt); if (idx >= 0) current.splice(idx, 1); }
                   onChange(current);
                 }}
-                className="accent-blue-500"
+                className="accent-hs-accent"
               />
               {prop.enumLabels?.[i] ?? String(opt)}
             </label>
@@ -211,7 +211,7 @@ function MultiselectWidget({ label, value, prop, onChange, description }: Widget
 function TimeWidget({ label, value, prop, onChange, description }: WidgetProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <input type="time" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} />
       <Desc text={description} />
     </label>
@@ -229,7 +229,7 @@ function ObjectWidget({ label, value, prop, onChange, description }: WidgetProps
 function TextWidget({ label, value, prop, onChange, description, placeholder }: WidgetProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <input type="text" value={String(value ?? prop.default ?? '')} onChange={(e) => onChange(e.target.value)} className={INPUT_CLASS} placeholder={placeholder} />
       <Desc text={description} />
     </label>
@@ -335,14 +335,14 @@ function ArrayEditor({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-neutral-400">{label}</span>
-      {description && <span className="text-[10px] text-neutral-500">{description}</span>}
+      <span className="text-xs text-hs-text-muted">{label}</span>
+      {description && <span className="text-[10px] text-hs-text-faint">{description}</span>}
       <div className="space-y-1.5">
         {items.map((item, i) => (
           <div key={keys[i]} className="flex items-start gap-1">
             <div className="flex-1 min-w-0">
               {itemSchema?.type === 'object' && itemSchema.properties ? (
-                <div className="pl-2 border-l-2 border-neutral-700 space-y-2">
+                <div className="pl-2 border-l-2 border-hs-border-strong space-y-2">
                   {Object.entries(itemSchema.properties).map(([subKey, subProp]) => (
                     <ConditionalField key={subKey} prop={subProp} config={item as Record<string, unknown>} schemaProperties={itemSchema.properties}>
                       <ConfigField
@@ -376,7 +376,7 @@ function ArrayEditor({
             <button
               type="button"
               onClick={() => removeItem(i)}
-              className="p-1 text-neutral-500 hover:text-red-400 transition-colors flex-shrink-0 mt-0.5"
+              className="p-1 text-hs-text-faint hover:text-hs-danger transition-colors flex-shrink-0 mt-0.5"
               title="Remove"
             >
               <X className="w-3.5 h-3.5" />
@@ -388,7 +388,7 @@ function ArrayEditor({
         <button
           type="button"
           onClick={addItem}
-          className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-200 transition-colors mt-0.5"
+          className="flex items-center gap-1 text-xs text-hs-text-muted hover:text-hs-text-body transition-colors mt-0.5"
         >
           <Plus className="w-3 h-3" />
           Add
@@ -418,9 +418,9 @@ function ObjectEditor({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-neutral-400">{label}</span>
-      {description && <span className="text-[10px] text-neutral-500">{description}</span>}
-      <div className="pl-2 border-l-2 border-neutral-700 space-y-2">
+      <span className="text-xs text-hs-text-muted">{label}</span>
+      {description && <span className="text-[10px] text-hs-text-faint">{description}</span>}
+      <div className="pl-2 border-l-2 border-hs-border-strong space-y-2">
         {Object.entries(properties).map(([subKey, subProp]) => (
           <ConditionalField key={subKey} prop={subProp} config={obj} schemaProperties={properties}>
             <ConfigField

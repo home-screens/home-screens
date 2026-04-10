@@ -12,7 +12,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Mode</span>
+        <span className="text-xs text-hs-text-muted">Mode</span>
         <select
           value={mode}
           onChange={(e) => set({ mode: e.target.value as QRCodeConfig['mode'] })}
@@ -26,7 +26,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       {mode === 'wifi' ? (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Network Name (SSID)</span>
+            <span className="text-xs text-hs-text-muted">Network Name (SSID)</span>
             <input
               type="text"
               value={c.ssid || ''}
@@ -36,7 +36,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             />
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Encryption</span>
+            <span className="text-xs text-hs-text-muted">Encryption</span>
             <select
               value={c.authType || 'WPA'}
               onChange={(e) => set({ authType: e.target.value as QRCodeConfig['authType'] })}
@@ -49,7 +49,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           </label>
           {(c.authType || 'WPA') !== 'nopass' && (
             <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-neutral-400">Password</span>
+              <span className="text-xs text-hs-text-muted">Password</span>
               <input
                 type="text"
                 value={c.password || ''}
@@ -66,7 +66,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
               onChange={(e) => set({ hiddenNetwork: e.target.checked })}
               className="accent-cyan-500"
             />
-            <span className="text-xs text-neutral-400">Hidden Network</span>
+            <span className="text-xs text-hs-text-muted">Hidden Network</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -75,7 +75,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
               onChange={(e) => set({ showNetworkName: e.target.checked })}
               className="accent-cyan-500"
             />
-            <span className="text-xs text-neutral-400">Show Network Name</span>
+            <span className="text-xs text-hs-text-muted">Show Network Name</span>
           </label>
           {(c.authType || 'WPA') !== 'nopass' && (
             <label className="flex items-center gap-2 cursor-pointer">
@@ -85,14 +85,14 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
                 onChange={(e) => set({ showPassword: e.target.checked })}
                 className="accent-cyan-500"
               />
-              <span className="text-xs text-neutral-400">Show Password</span>
+              <span className="text-xs text-hs-text-muted">Show Password</span>
             </label>
           )}
         </>
       ) : (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Data (URL or text)</span>
+            <span className="text-xs text-hs-text-muted">Data (URL or text)</span>
             <input
               type="text"
               value={c.data || ''}
@@ -102,7 +102,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             />
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Label</span>
+            <span className="text-xs text-hs-text-muted">Label</span>
             <input
               type="text"
               value={c.label || ''}

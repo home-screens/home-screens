@@ -57,7 +57,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Photo Source</span>
+          <span className="text-xs text-hs-text-muted">Photo Source</span>
           <select
             value={source}
             onChange={(e) => set({ source: e.target.value })}
@@ -75,9 +75,9 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
         <>
           {/* Folder picker */}
           <div>
-            <span className="text-xs text-neutral-400">Folder</span>
+            <span className="text-xs text-hs-text-muted">Folder</span>
             <div className="flex gap-1.5 mt-1">
-              <div className="flex-1 px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-300 truncate">
+              <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
                 {directory || 'All Photos (root)'}
               </div>
               <Button size="sm" onClick={() => setShowBrowser(true)}>
@@ -87,7 +87,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
             {/* Photo count + preview strip */}
             {photoCount > 0 && (
               <div className="mt-1.5">
-                <span className="text-[10px] text-neutral-500">
+                <span className="text-[10px] text-hs-text-faint">
                   {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
                 </span>
                 <div className="flex gap-1 mt-1 overflow-x-auto">
@@ -97,14 +97,14 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
                       src={img}
                       alt=""
                       loading="lazy"
-                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-neutral-700"
+                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"
                     />
                   ))}
                 </div>
               </div>
             )}
             {photoCount === 0 && (
-              <p className="text-[10px] text-neutral-500 mt-1">No photos in this folder</p>
+              <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
             )}
           </div>
         </>
@@ -121,7 +121,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
 
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Transition</span>
+          <span className="text-xs text-hs-text-muted">Transition</span>
           <select
             value={(c.transition as string) || 'fade'}
             onChange={(e) => set({ transition: e.target.value })}
@@ -132,7 +132,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Object Fit</span>
+          <span className="text-xs text-hs-text-muted">Object Fit</span>
           <select
             value={(c.objectFit as string) || 'cover'}
             onChange={(e) => set({ objectFit: e.target.value })}

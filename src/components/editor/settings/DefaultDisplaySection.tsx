@@ -136,17 +136,17 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
   return (
     <>
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
           Defaults → Display
         </div>
-        <h1 className="text-xl font-semibold text-neutral-100">Default display settings</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-xl font-semibold text-hs-text-primary">Default display settings</h1>
+        <p className="text-sm text-hs-text-faint mt-1">
           These values are used by every display until a specific one overrides them. Change anything
           here and every display that&apos;s <em>not</em> overriding that field picks up the new value.
         </p>
         {isMultiDisplay && (
-          <p className="text-xs text-neutral-500 mt-2">
-            Resolution, orientation, and flip are <strong className="text-neutral-300">per display</strong>{' '}
+          <p className="text-xs text-hs-text-faint mt-2">
+            Resolution, orientation, and flip are <strong className="text-hs-text-secondary">per display</strong>{' '}
             — edit them on each display&apos;s own page under <em>Per display</em>.
           </p>
         )}
@@ -160,11 +160,11 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           the user edit values nothing reads. */}
       {!isMultiDisplay && (
         <div className="mb-5">
-          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Canvas</div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
+          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Canvas</div>
+          <div className="rounded-lg border border-hs-border bg-hs-panel/40">
             <FieldRow>
               <FieldLabel>Orientation</FieldLabel>
-              <div className="flex rounded-md overflow-hidden border border-neutral-700">
+              <div className="flex rounded-md overflow-hidden border border-hs-border-strong">
                 {(['portrait', 'landscape'] as const).map((o) => (
                   <button
                     key={o}
@@ -172,8 +172,8 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                     onClick={() => setOrientation(o)}
                     className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                       orientation === o
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700'
+                        ? 'bg-hs-accent text-white'
+                        : 'bg-hs-card text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover'
                     }`}
                   >
                     {o === 'portrait' ? 'Portrait' : 'Landscape'}
@@ -195,7 +195,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                   const p = RESOLUTION_PRESETS.find((r) => String(r.short) === e.target.value);
                   if (p) applyPreset(p.short, p.long, orientation, flipped);
                 }}
-                className="block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+                className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
               >
                 {RESOLUTION_PRESETS.map((p) => {
                   const w = orientation === 'portrait' ? p.short : p.long;
@@ -219,10 +219,10 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                       const w = parseInt(e.target.value, 10);
                       if (w > 0) onChange({ displayWidth: w });
                     }}
-                    className="block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+                    className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
                     placeholder="Width"
                   />
-                  <span className="text-neutral-500 text-sm">×</span>
+                  <span className="text-hs-text-faint text-sm">×</span>
                   <input
                     type="number"
                     value={displayHeight}
@@ -232,7 +232,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                       const h = parseInt(e.target.value, 10);
                       if (h > 0) onChange({ displayHeight: h });
                     }}
-                    className="block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500 tabular-nums"
+                    className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
                     placeholder="Height"
                   />
                 </div>
@@ -249,9 +249,9 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                   type="checkbox"
                   checked={flipped}
                   onChange={(e) => setFlipped(e.target.checked)}
-                  className="rounded bg-neutral-800 border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                  className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                 />
-                <span className="text-sm text-neutral-300">Inverted mount</span>
+                <span className="text-sm text-hs-text-secondary">Inverted mount</span>
               </label>
               <FieldHelp>
                 Enable if your monitor is mounted upside-down. Rotates the display 180° from its base
@@ -265,7 +265,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
       {/* Inheritable defaults — these are what every per-display
           OverrideRow links back to. Mockup-aligned: single rounded
           container with border-b separated rows, no <h3>/<hr> dividers. */}
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <FieldRow>
           <FieldLabel>Screen rotation interval</FieldLabel>
           <Slider
@@ -289,9 +289,9 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               type="checkbox"
               checked={pauseEnabled}
               onChange={(e) => onChange({ pauseEnabled: e.target.checked })}
-              className="rounded bg-neutral-800 border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
             />
-            <span className="text-sm text-neutral-300">Enabled</span>
+            <span className="text-sm text-hs-text-secondary">Enabled</span>
           </label>
           <FieldHelp>
             Double-tap the active pagination dot to pause screen rotation. Double-tap again to resume.
@@ -320,7 +320,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           <select
             value={transitionEffect}
             onChange={(e) => onChange({ transitionEffect: e.target.value })}
-            className="block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             {TRANSITION_OPTIONS.map((t) => (
               <option key={t.value} value={t.value}>
@@ -380,12 +380,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                 onClick={() => onChange({ fullscreenTheme: t.id })}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
                   fullscreenTheme === t.id
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-neutral-700 bg-neutral-800 hover:bg-neutral-750 hover:border-neutral-600'
+                    ? 'border-hs-accent bg-hs-accent-soft'
+                    : 'border-hs-border-strong bg-hs-card hover:bg-hs-hover'
                 }`}
               >
                 <div
-                  className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-neutral-600"
+                  className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-hs-border-strong"
                   style={{ background: t.tokens.bg }}
                 >
                   <div style={{ height: '60%', background: t.tokens.bg }} />
@@ -394,12 +394,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                 <div>
                   <div
                     className={`text-xs font-semibold ${
-                      fullscreenTheme === t.id ? 'text-blue-400' : 'text-neutral-200'
+                      fullscreenTheme === t.id ? 'text-hs-accent-hover' : 'text-hs-text-body'
                     }`}
                   >
                     {t.name}
                   </div>
-                  <div className="text-[10px] text-neutral-500 capitalize">{t.group}</div>
+                  <div className="text-[10px] text-hs-text-faint capitalize">{t.group}</div>
                 </div>
               </button>
             ))}
@@ -422,14 +422,14 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
  */
 function FieldRow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-4 py-3.5 border-b border-neutral-800 last:border-b-0">{children}</div>
+    <div className="px-4 py-3.5 border-b border-hs-border last:border-b-0">{children}</div>
   );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <div className="text-xs text-neutral-400 mb-2">{children}</div>;
+  return <div className="text-xs text-hs-text-muted mb-2">{children}</div>;
 }
 
 function FieldHelp({ children }: { children: React.ReactNode }) {
-  return <p className="text-[11px] text-neutral-500 mt-1.5">{children}</p>;
+  return <p className="text-[11px] text-hs-text-faint mt-1.5">{children}</p>;
 }

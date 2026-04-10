@@ -94,7 +94,7 @@ function MemberFormOverlay({
             color: '#fff',
             border: 'none',
             cursor: canSave ? 'pointer' : 'default',
-            background: canSave ? color : '#525252',
+            background: canSave ? color : 'var(--hs-text-faint)',
             opacity: canSave ? 1 : 0.5,
             transition: 'all 0.15s',
           }}
@@ -113,8 +113,8 @@ function MemberFormOverlay({
               borderRadius: 12,
               fontSize: 15,
               fontWeight: 600,
-              background: 'rgba(239,68,68,0.12)',
-              color: '#ef4444',
+              background: 'color-mix(in srgb, var(--hs-danger) 12%, transparent)',
+              color: 'var(--hs-danger)',
               border: 'none',
               cursor: 'pointer',
               marginTop: 12,
@@ -284,9 +284,9 @@ function ChoreFormOverlay({
                     fontSize: 13,
                     fontWeight: 600,
                     flexShrink: 0,
-                    border: `1px solid ${isOn ? 'rgba(255,255,255,0.2)' : '#2a2a2a'}`,
-                    background: isOn ? 'rgba(255,255,255,0.12)' : '#1a1a1a',
-                    color: isOn ? '#e5e5e5' : '#525252',
+                    border: `1px solid ${isOn ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
+                    background: isOn ? 'var(--hs-bg-active)' : 'var(--hs-bg-panel)',
+                    color: isOn ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -301,7 +301,7 @@ function ChoreFormOverlay({
         {/* Assignees */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>Assign to</div>
-          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
             {members.map((m, i) => {
               const isAssigned = assigneeIds.includes(m.id);
               return (
@@ -316,9 +316,9 @@ function ChoreFormOverlay({
                     gap: 12,
                     padding: '12px 16px',
                     minHeight: 48,
-                    background: '#141414',
+                    background: 'var(--hs-bg-panel)',
                     border: 'none',
-                    borderBottom: i < members.length - 1 ? '1px solid #1a1a1a' : 'none',
+                    borderBottom: i < members.length - 1 ? '1px solid var(--hs-border)' : 'none',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     color: 'inherit',
@@ -334,7 +334,7 @@ function ChoreFormOverlay({
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      border: isAssigned ? 'none' : '2px solid #333',
+                      border: isAssigned ? 'none' : '2px solid var(--hs-border-strong)',
                       background: isAssigned ? m.color : 'transparent',
                     }}
                   >
@@ -358,7 +358,7 @@ function ChoreFormOverlay({
                       <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>
                     )}
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: '#e5e5e5', flex: 1 }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1 }}>
                     {m.name}
                   </span>
                 </button>
@@ -385,7 +385,7 @@ function ChoreFormOverlay({
 
         {/* Validation hint */}
         {validationHint && (
-          <p style={{ fontSize: 13, color: '#fbbf24', textAlign: 'center', margin: '0 0 8px' }}>
+          <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
             {validationHint}
           </p>
         )}
@@ -405,7 +405,7 @@ function ChoreFormOverlay({
             color: '#fff',
             border: 'none',
             cursor: canSave ? 'pointer' : 'default',
-            background: canSave ? '#f59e0b' : '#525252',
+            background: canSave ? '#f59e0b' : 'var(--hs-text-faint)',
             opacity: canSave ? 1 : 0.5,
             transition: 'all 0.15s',
           }}
@@ -425,8 +425,8 @@ function ChoreFormOverlay({
               borderRadius: 12,
               fontSize: 15,
               fontWeight: 600,
-              background: 'rgba(239,68,68,0.12)',
-              color: '#ef4444',
+              background: 'color-mix(in srgb, var(--hs-danger) 12%, transparent)',
+              color: 'var(--hs-danger)',
               border: 'none',
               cursor: 'pointer',
               marginTop: 12,
@@ -519,7 +519,7 @@ export default function ChoresManageView({
           display: 'flex',
           gap: 2,
           padding: 3,
-          background: 'rgba(255,255,255,0.04)',
+          background: 'var(--hs-bg-card)',
           borderRadius: 10,
           marginBottom: 16,
         }}
@@ -541,8 +541,8 @@ export default function ChoresManageView({
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                color: isActive ? '#e5e5e5' : '#525252',
+                background: isActive ? 'var(--hs-bg-hover)' : 'transparent',
+                color: isActive ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -559,7 +559,7 @@ export default function ChoresManageView({
                   height: 20,
                   padding: '0 6px',
                   borderRadius: 999,
-                  background: 'rgba(255,255,255,0.08)',
+                  background: 'var(--hs-bg-hover)',
                   fontSize: 11,
                   fontWeight: 600,
                 }}
@@ -576,8 +576,8 @@ export default function ChoresManageView({
         <div>
           {members.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <p style={{ fontSize: 14, color: '#525252', marginBottom: 4 }}>No members yet</p>
-              <p style={{ fontSize: 12, color: '#404040' }}>Add family members to get started</p>
+              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No members yet</p>
+              <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add family members to get started</p>
             </div>
           )}
 
@@ -593,7 +593,7 @@ export default function ChoresManageView({
                 alignItems: 'center',
                 gap: 12,
                 padding: '14px 16px',
-                background: 'rgba(255,255,255,0.05)',
+                background: 'var(--hs-bg-card)',
                 borderRadius: 14,
                 marginBottom: 8,
                 border: '1px solid transparent',
@@ -622,8 +622,8 @@ export default function ChoresManageView({
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#e5e5e5' }}>{member.name}</div>
-                <div style={{ fontSize: 12, color: '#525252', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{member.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span
                     style={{
                       width: 8,
@@ -636,7 +636,7 @@ export default function ChoresManageView({
                   {memberChoreCount(member.id)} chore{memberChoreCount(member.id) !== 1 ? 's' : ''} assigned
                 </div>
               </div>
-              <ChevronRight size={20} color="#404040" style={{ flexShrink: 0 }} />
+              <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
             </button>
           ))}
 
@@ -652,8 +652,8 @@ export default function ChoresManageView({
               padding: 14,
               minHeight: 48,
               borderRadius: 14,
-              border: '2px dashed #2a2a2a',
-              color: '#525252',
+              border: '2px dashed var(--hs-border)',
+              color: 'var(--hs-text-faint)',
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
@@ -673,11 +673,11 @@ export default function ChoresManageView({
         <div>
           {chores.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <p style={{ fontSize: 14, color: '#525252', marginBottom: 4 }}>No chores yet</p>
+              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No chores yet</p>
               {members.length === 0 ? (
-                <p style={{ fontSize: 12, color: '#404040' }}>Add family members first</p>
+                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add family members first</p>
               ) : (
-                <p style={{ fontSize: 12, color: '#404040' }}>Add chores and assign them to members</p>
+                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add chores and assign them to members</p>
               )}
             </div>
           )}
@@ -694,7 +694,7 @@ export default function ChoresManageView({
                 alignItems: 'center',
                 gap: 12,
                 padding: '14px 16px',
-                background: 'rgba(255,255,255,0.05)',
+                background: 'var(--hs-bg-card)',
                 borderRadius: 14,
                 marginBottom: 8,
                 border: '1px solid transparent',
@@ -713,23 +713,23 @@ export default function ChoresManageView({
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  background: 'rgba(255,255,255,0.06)',
+                  background: 'var(--hs-bg-hover)',
                 }}
               >
                 {chore.emoji ? (
-                  <ChoreIcon value={chore.emoji} size={20} color="#a3a3a3" />
+                  <ChoreIcon value={chore.emoji} size={20} color="var(--hs-text-muted)" />
                 ) : (
-                  <span style={{ fontSize: 14, color: '#525252' }}>?</span>
+                  <span style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>?</span>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#e5e5e5' }}>{chore.name}</div>
-                <div style={{ fontSize: 12, color: '#525252', marginTop: 2 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                   {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}
                   {' \u00b7 '}{TIME_OF_DAY_META[chore.timeOfDay].label}
                   {' \u00b7 '}{chore.points}pt{chore.points !== 1 ? 's' : ''}
                 </div>
-                <div style={{ fontSize: 11, color: '#404040', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                   &rarr;{' '}
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
@@ -739,7 +739,7 @@ export default function ChoresManageView({
                   )}
                 </div>
               </div>
-              <ChevronRight size={20} color="#404040" style={{ flexShrink: 0 }} />
+              <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
             </button>
           ))}
 
@@ -758,8 +758,8 @@ export default function ChoresManageView({
               padding: 14,
               minHeight: 48,
               borderRadius: 14,
-              border: '2px dashed #2a2a2a',
-              color: members.length === 0 ? '#333' : '#525252',
+              border: '2px dashed var(--hs-border)',
+              color: members.length === 0 ? 'var(--hs-border-strong)' : 'var(--hs-text-faint)',
               fontSize: 14,
               fontWeight: 600,
               cursor: members.length === 0 ? 'not-allowed' : 'pointer',

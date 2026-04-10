@@ -62,37 +62,37 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-neutral-700 bg-neutral-900 p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-neutral-100 mb-4">Export Layout</h2>
+      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-4">Export Layout</h2>
 
         {/* Name */}
-        <label className="block text-sm text-neutral-400 mb-1">Name</label>
+        <label className="block text-sm text-hs-text-muted mb-1">Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-blue-500 mb-4"
+          className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-4"
           placeholder="My Layout"
         />
 
         {/* Description */}
-        <label className="block text-sm text-neutral-400 mb-1">Description (optional)</label>
+        <label className="block text-sm text-hs-text-muted mb-1">Description (optional)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-blue-500 mb-4 resize-none"
+          className="w-full rounded-md bg-hs-card border border-hs-border-strong px-3 py-2 text-sm text-hs-text-body focus:outline-none focus:border-hs-accent mb-4 resize-none"
           placeholder="Family dashboard with weather and calendar"
         />
 
         {/* Screen selection */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-neutral-400">Screens to include</span>
+            <span className="text-sm text-hs-text-muted">Screens to include</span>
             {screens.length > 1 && (
               <button
                 onClick={toggleAll}
-                className="text-xs text-blue-400 hover:text-blue-300"
+                className="text-xs text-hs-accent hover:text-hs-accent-hover"
               >
                 {selectedScreenIds.size === screens.length ? 'Deselect all' : 'Select all'}
               </button>
@@ -102,16 +102,16 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
             {screens.map((screen) => (
               <label
                 key={screen.id}
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-neutral-800 cursor-pointer transition-colors"
+                className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-hs-card cursor-pointer transition-colors"
               >
                 <input
                   type="checkbox"
                   checked={selectedScreenIds.has(screen.id)}
                   onChange={() => toggleScreen(screen.id)}
-                  className="accent-blue-500"
+                  className="accent-hs-accent"
                 />
-                <span className="text-sm text-neutral-200">{screen.name}</span>
-                <span className="text-xs text-neutral-500 ml-auto">
+                <span className="text-sm text-hs-text-body">{screen.name}</span>
+                <span className="text-xs text-hs-text-faint ml-auto">
                   {screen.modules.length} module{screen.modules.length !== 1 ? 's' : ''}
                 </span>
               </label>

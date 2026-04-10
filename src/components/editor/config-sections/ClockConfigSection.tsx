@@ -182,7 +182,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {has('dateFormat') && (
         <div className="flex flex-col gap-1">
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Date Format</span>
+            <span className="text-xs text-hs-text-muted">Date Format</span>
             <select
               value={showCustomDate ? '__custom__' : dateFormatVal}
               onChange={(e) => {
@@ -210,7 +210,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               className={INPUT_CLASS}
             />
           )}
-          <span className="text-xs text-neutral-500">{datePreview}</span>
+          <span className="text-xs text-hs-text-faint">{datePreview}</span>
         </div>
       )}
 
@@ -244,14 +244,14 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* World: timezone list */}
       {has('worldZones') && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-neutral-400">Time Zones ({worldZones.length}/3)</span>
+          <span className="text-xs text-hs-text-muted">Time Zones ({worldZones.length}/3)</span>
           {worldZones.map((zone, i) => (
-            <div key={i} className="flex items-center gap-1 text-xs bg-neutral-800 rounded p-1.5">
-              <span className="flex-1 text-neutral-300">{zone.label} — {zone.timezone}</span>
+            <div key={i} className="flex items-center gap-1 text-xs bg-hs-card rounded p-1.5">
+              <span className="flex-1 text-hs-text-secondary">{zone.label} — {zone.timezone}</span>
               <button
                 type="button"
                 onClick={() => removeZone(i)}
-                className="text-neutral-500 hover:text-red-400 shrink-0"
+                className="text-hs-text-faint hover:text-hs-danger shrink-0"
               >
                 &times;
               </button>
@@ -276,7 +276,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {has('referenceTime') && (
         <>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Reference Time</span>
+            <span className="text-xs text-hs-text-muted">Reference Time</span>
             <input
               type="datetime-local"
               value={c.referenceTime ?? ''}
@@ -285,7 +285,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             />
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">Label</span>
+            <span className="text-xs text-hs-text-muted">Label</span>
             <input
               type="text"
               value={c.referenceLabel ?? ''}

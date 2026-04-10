@@ -215,10 +215,11 @@ interface ChoreIconProps {
 export default function ChoreIcon({ value, size = 24, color, className, bare }: ChoreIconProps) {
   if (!value) return null;
 
-  if (isLucideIcon(value)) {
-    const name = lucideIconName(value);
-    const def = ICON_MAP[name];
-    if (!def) return null;
+  // Support both "lucide:gift" prefixed values and bare names like "gift"
+  const resolvedName = isLucideIcon(value) ? lucideIconName(value) : null;
+  const def = resolvedName ? ICON_MAP[resolvedName] : ICON_MAP[value];
+
+  if (def) {
     const Icon = def.component;
     const badgeColor = color ?? def.defaultColor;
     const iconSize = Math.round(size * 0.6);

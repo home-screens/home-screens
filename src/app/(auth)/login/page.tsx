@@ -67,7 +67,7 @@ function LoginForm() {
 
   if (checking) {
     return (
-      <div className="h-screen flex items-center justify-center text-neutral-500 text-sm">
+      <div className="h-screen flex items-center justify-center text-hs-text-faint text-sm">
         Checking authentication...
       </div>
     );
@@ -78,7 +78,7 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <HomeScreensLogo className="mb-4" />
-          <p className="text-sm text-neutral-500">Enter your password to continue</p>
+          <p className="text-sm text-hs-text-faint">Enter your password to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,7 +90,7 @@ function LoginForm() {
               onChange={(e) => { setPassword(e.target.value); setError(null); }}
               placeholder="Password"
               autoComplete="current-password"
-              className="w-full rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-100 px-4 py-3 text-sm focus:outline-none focus:border-blue-500 placeholder:text-neutral-600"
+              className="w-full rounded-lg bg-hs-input border border-hs-border-strong text-hs-text-body px-4 py-3 text-sm focus:outline-none focus:border-hs-accent placeholder:text-hs-text-faint"
             />
           </div>
 
@@ -99,19 +99,19 @@ function LoginForm() {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="accent-blue-500 rounded"
+              className="accent-hs-accent rounded"
             />
-            <span className="text-sm text-neutral-400">Remember me for 90 days</span>
+            <span className="text-sm text-hs-text-muted">Remember me for 90 days</span>
           </label>
 
           {error && (
-            <p className="text-sm text-red-400 text-center">{error}</p>
+            <p className="text-sm text-hs-danger text-center">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={!password.trim() || loading}
-            className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-hs-accent hover:bg-hs-accent-hover text-white font-medium py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Unlock'}
           </button>
@@ -120,7 +120,7 @@ function LoginForm() {
         <div className="text-center mt-6">
           <Link
             href="/display"
-            className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors"
+            className="text-xs text-hs-text-secondary hover:text-hs-text-muted transition-colors"
           >
             Back to display
           </Link>
@@ -134,7 +134,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen flex items-center justify-center text-neutral-500 text-sm">
+        <div className="h-screen flex items-center justify-center text-hs-text-faint text-sm">
           Loading...
         </div>
       }

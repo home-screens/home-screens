@@ -47,14 +47,14 @@ export default function BottomTabBar({ activeTab, onChange, hasChores, hasMeals,
   if (tabs.length < 2) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/85 backdrop-blur-xl border-t border-white/[0.06] pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-center">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={`flex-1 max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 transition-colors ${
-              activeTab === tab.id ? 'text-blue-500' : 'text-neutral-500'
+              activeTab === tab.id ? 'text-hs-accent' : 'text-hs-text-faint'
             }`}
             aria-label={tab.label}
             aria-current={activeTab === tab.id ? 'page' : undefined}

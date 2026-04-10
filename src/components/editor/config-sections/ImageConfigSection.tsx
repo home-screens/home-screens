@@ -47,12 +47,12 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     <>
       {/* Tab toggle */}
       <div>
-        <span className="text-xs text-neutral-400">Image Source</span>
-        <div className="flex gap-1 bg-neutral-800 rounded-md p-0.5 mt-1">
+        <span className="text-xs text-hs-text-muted">Image Source</span>
+        <div className="flex gap-1 bg-hs-card rounded-md p-0.5 mt-1">
           <button
             onClick={() => setTab('url')}
             className={`flex-1 text-xs py-1 rounded ${
-              tab === 'url' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+              tab === 'url' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
             URL
@@ -60,7 +60,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           <button
             onClick={() => setTab('library')}
             className={`flex-1 text-xs py-1 rounded ${
-              tab === 'library' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+              tab === 'library' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
             Library
@@ -70,7 +70,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {tab === 'url' ? (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Image URL</span>
+          <span className="text-xs text-hs-text-muted">Image URL</span>
           <input
             type="text"
             value={(c.src as string) || ''}
@@ -90,15 +90,15 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               {uploading ? 'Uploading...' : 'Upload Image'}
             </Button>
           </div>
-          {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
+          {uploadError && <p className="text-xs text-hs-danger">{uploadError}</p>}
         </div>
       )}
 
       {/* Preview */}
       {c.src && (
         <div>
-          <span className="text-xs text-neutral-400">Preview</span>
-          <div className="mt-1 rounded-md overflow-hidden border border-neutral-700">
+          <span className="text-xs text-hs-text-muted">Preview</span>
+          <div className="mt-1 rounded-md overflow-hidden border border-hs-border-strong">
             <img
               src={c.src as string}
               alt={(c.alt as string) || ''}
@@ -110,7 +110,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Object Fit</span>
+          <span className="text-xs text-hs-text-muted">Object Fit</span>
           <select
             value={(c.objectFit as string) || 'cover'}
             onChange={(e) => set({ objectFit: e.target.value })}
@@ -122,7 +122,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-neutral-400">Alt Text</span>
+          <span className="text-xs text-hs-text-muted">Alt Text</span>
           <input
             type="text"
             value={(c.alt as string) || ''}

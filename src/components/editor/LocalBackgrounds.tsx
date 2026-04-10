@@ -95,8 +95,8 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
       <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         <button
           onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
-          className={`aspect-[9/16] rounded border text-xs text-neutral-500 ${
-            !currentScreen.backgroundImage ? 'border-blue-500' : 'border-neutral-600'
+          className={`aspect-[9/16] rounded border text-xs text-hs-text-faint ${
+            !currentScreen.backgroundImage ? 'border-hs-accent' : 'border-hs-border-strong'
           }`}
         >
           None
@@ -112,7 +112,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
                 updateScreen(selectedScreenId, updates);
               }}
               className={`aspect-[9/16] w-full rounded border overflow-hidden ${
-                currentScreen.backgroundImage === bg ? 'border-blue-500' : 'border-neutral-600'
+                currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
               }`}
             >
               <img src={bg} alt="" className="w-full h-full object-cover" />
@@ -120,7 +120,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
             <button
               onClick={() => handleDelete(bg)}
               disabled={deleting === bg}
-              className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-neutral-300 hover:bg-red-600 hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               title="Delete"
             >
               {deleting === bg ? '...' : '\u00d7'}
@@ -129,7 +129,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         ))}
       </div>
       {uploadError && (
-        <p className="text-xs text-red-400">{uploadError}</p>
+        <p className="text-xs text-hs-danger">{uploadError}</p>
       )}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full">

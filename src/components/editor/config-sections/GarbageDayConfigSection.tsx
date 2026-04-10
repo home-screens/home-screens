@@ -35,9 +35,9 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
   return (
     <>
       {wasteTypes.map(({ key, label, day, freq, start, color }) => (
-        <div key={key} className="space-y-1.5 pb-2 border-b border-neutral-800 last:border-0">
+        <div key={key} className="space-y-1.5 pb-2 border-b border-hs-border last:border-0">
           <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">{label} Day</span>
+            <span className="text-xs text-hs-text-muted">{label} Day</span>
             <select className={INPUT_CLASS} value={day ?? -1} onChange={(e) => set({ [`${key}Day`]: Number(e.target.value) })}>
               {dayOptions.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
             </select>
@@ -45,7 +45,7 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
           {(day ?? -1) >= 0 && (
             <>
               <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-neutral-400">Frequency</span>
+                <span className="text-xs text-hs-text-muted">Frequency</span>
                 <select className={INPUT_CLASS} value={freq ?? 'weekly'} onChange={(e) => set({ [`${key}Frequency`]: e.target.value })}>
                   <option value="weekly">Every week</option>
                   <option value="biweekly">Every other week</option>
@@ -53,9 +53,9 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
               </label>
               {freq === 'biweekly' && (
                 <label className="flex flex-col gap-0.5">
-                  <span className="text-xs text-neutral-400">A known {label.toLowerCase()} date</span>
+                  <span className="text-xs text-hs-text-muted">A known {label.toLowerCase()} date</span>
                   <input type="date" className={INPUT_CLASS} value={start ?? ''} onChange={(e) => set({ [`${key}StartDate`]: e.target.value })} />
-                  <span className="text-[10px] text-neutral-500">Pick any date when {label.toLowerCase()} was/will be collected</span>
+                  <span className="text-[10px] text-hs-text-faint">Pick any date when {label.toLowerCase()} was/will be collected</span>
                 </label>
               )}
               <ColorPicker label="Icon Color" value={color || defaultColors[key]} onChange={(v) => set({ [`${key}Color`]: v })} />
@@ -65,12 +65,12 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
       ))}
       {(c.customDay ?? -1) >= 0 && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-neutral-400">Custom Category Name</span>
+          <span className="text-xs text-hs-text-muted">Custom Category Name</span>
           <input type="text" className={INPUT_CLASS} value={c.customLabel ?? 'Yard Waste'} onChange={(e) => set({ customLabel: e.target.value })} />
         </label>
       )}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Highlight When</span>
+        <span className="text-xs text-hs-text-muted">Highlight When</span>
         <select className={INPUT_CLASS} value={c.highlightMode ?? 'day-before'} onChange={(e) => set({ highlightMode: e.target.value })}>
           <option value="day-before">Day Before (put bins out)</option>
           <option value="day-of">Day Of (collection day)</option>

@@ -700,7 +700,7 @@ describe('findScreenById', () => {
   });
 });
 
-/* ─── Per-display settings overrides (Phase 1) ─── */
+/* ─── Per-display settings overrides ─── */
 
 describe('filterConfigForDisplay — per-display overrides', () => {
   it('fullscreenTheme override beats the global value', () => {

@@ -33,7 +33,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">{symbolsLabel}</span>
+        <span className="text-xs text-hs-text-muted">{symbolsLabel}</span>
         <input
           type="text"
           value={symbolsValue}

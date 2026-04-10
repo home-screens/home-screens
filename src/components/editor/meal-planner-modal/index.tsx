@@ -309,9 +309,9 @@ export default function MealPlannerModal({
     >
       <div className="flex flex-1 min-h-0">
         {/* ── Sidebar ── */}
-        <div className="w-[400px] border-r border-neutral-700 flex flex-col shrink-0 bg-neutral-950">
+        <div className="w-[400px] border-r border-hs-border-strong flex flex-col shrink-0 bg-hs-body">
           {/* Tab bar */}
-          <div className="flex border-b border-neutral-700">
+          <div className="flex border-b border-hs-border-strong">
             {(['library', 'detail', 'grocery'] as const).map((tab) => (
               <button
                 key={tab}
@@ -319,7 +319,7 @@ export default function MealPlannerModal({
                 className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                   sidebarTab === tab
                     ? 'text-amber-500 border-amber-500'
-                    : 'text-neutral-500 border-transparent hover:text-neutral-400'
+                    : 'text-hs-text-faint border-transparent hover:text-hs-text-muted'
                 }`}
               >
                 {TAB_LABELS[tab]}
@@ -390,7 +390,7 @@ export default function MealPlannerModal({
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2.5 px-4 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-400 text-xs font-medium shadow-xl">
+        <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2.5 px-4 py-2 rounded-lg bg-hs-card border border-hs-border-strong text-hs-text-muted text-xs font-medium shadow-xl">
           <span>{toast.message}</span>
           {toast.undo && (
             <button

@@ -73,26 +73,26 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
               {dims.width} × {dims.height}
             </span>
           ) : (
-            <span className="text-neutral-500">—</span>
+            <span className="text-hs-text-faint">—</span>
           )}
         </KvCard>
         <KvCard label="Active profile">
-          {activeProfile?.name ?? heartbeat?.status?.activeProfile ?? <span className="text-neutral-500">None</span>}
+          {activeProfile?.name ?? heartbeat?.status?.activeProfile ?? <span className="text-hs-text-faint">None</span>}
         </KvCard>
         <KvCard label="Screens">{screenCount}</KvCard>
       </div>
 
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-4">
-        <div className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
+        <div className="text-xs font-semibold text-hs-text-secondary uppercase tracking-wider mb-3">
           Overrides for {display.name}
         </div>
         {myOverrides && myOverrides.overriddenFields.length > 0 ? (
           <>
-            <div className="text-sm text-neutral-400 mb-3">
+            <div className="text-sm text-hs-text-muted mb-3">
               {display.name} uses the{' '}
               <Link
                 href="?section=defaults&page=display"
-                className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
+                className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
                 Defaults
               </Link>{' '}
@@ -110,11 +110,11 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             </div>
           </>
         ) : (
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-hs-text-faint">
             {display.name} uses the{' '}
             <Link
               href="?section=defaults&page=display"
-              className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
+              className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               Defaults
             </Link>{' '}
@@ -128,9 +128,9 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
 
 function KvCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 px-4 py-3.5">
-      <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">{label}</div>
-      <div className="text-base text-neutral-100 font-medium">{children}</div>
+    <div className="rounded-lg border border-hs-border bg-hs-panel/40 px-4 py-3.5">
+      <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1.5">{label}</div>
+      <div className="text-base text-hs-text-primary font-medium">{children}</div>
     </div>
   );
 }
@@ -158,7 +158,7 @@ function OverrideChip({
   const formatted = formatOverrideComparison(field, overrides, settings);
 
   return (
-    <span className="text-[11px] text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1 rounded-full">
+    <span className="text-[11px] text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/30 px-2.5 py-1 rounded-full">
       {formatted}
     </span>
   );

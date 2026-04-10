@@ -19,7 +19,7 @@ export default function ViewSelect<T extends string>({
 }: ViewSelectProps<T>) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
+      <span className="text-xs text-hs-text-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}

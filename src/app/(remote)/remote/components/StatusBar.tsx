@@ -12,16 +12,16 @@ export default function StatusBar({ isConnected, onSettingsOpen }: HeaderProps) 
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
             isConnected
-              ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]'
-              : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
+              ? 'bg-hs-success shadow-[0_0_8px_rgba(34,197,94,0.4)]'
+              : 'bg-hs-danger shadow-[0_0_8px_rgba(239,68,68,0.4)]'
           }`}
         />
-        <h1 className="text-xl font-bold tracking-tight text-white">Remote</h1>
+        <h1 className="text-xl font-bold tracking-tight text-hs-text-primary">Remote</h1>
       </div>
 
       <button
         onClick={onSettingsOpen}
-        className="w-11 h-11 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-neutral-400 transition-colors active:bg-white/[0.08]"
+        className="w-11 h-11 rounded-full bg-hs-card border border-hs-border-strong flex items-center justify-center text-hs-text-muted transition-colors active:bg-hs-hover"
         aria-label="Settings"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]">

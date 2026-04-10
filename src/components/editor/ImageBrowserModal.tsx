@@ -150,19 +150,19 @@ export default function ImageBrowserModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-3xl h-[85vh] flex flex-col">
+      <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-3xl h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-neutral-100">
+            <h2 className="text-sm font-semibold text-hs-text-primary">
               Image Library
             </h2>
             {showTabs && (
-              <div className="flex gap-0.5 bg-neutral-800 rounded-md p-0.5">
+              <div className="flex gap-0.5 bg-hs-card rounded-md p-0.5">
                 <button
                   onClick={() => setTab('local')}
                   className={`text-xs px-2.5 py-1 rounded ${
-                    tab === 'local' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+                    tab === 'local' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
                   }`}
                 >
                   Local
@@ -170,7 +170,7 @@ export default function ImageBrowserModal({
                 <button
                   onClick={() => setTab('unsplash')}
                   className={`text-xs px-2.5 py-1 rounded ${
-                    tab === 'unsplash' ? 'bg-neutral-700 text-neutral-100' : 'text-neutral-400 hover:text-neutral-300'
+                    tab === 'unsplash' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
                   }`}
                 >
                   Unsplash
@@ -180,7 +180,7 @@ export default function ImageBrowserModal({
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-200 text-lg leading-none"
+            className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
           >
             &times;
           </button>
@@ -242,7 +242,7 @@ export default function ImageBrowserModal({
 
         {/* Footer — only show for local tab */}
         {tab === 'local' && (
-          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-neutral-700">
+          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
             <Button size="sm" onClick={onClose}>
               Cancel
             </Button>
@@ -291,10 +291,10 @@ function DirectorySidebar({
   newFolderInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
-    <div className="w-[180px] border-r border-neutral-700 flex flex-col">
+    <div className="w-[180px] border-r border-hs-border-strong flex flex-col">
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {loadingDirs ? (
-          <p className="text-xs text-neutral-500 p-2">Loading...</p>
+          <p className="text-xs text-hs-text-faint p-2">Loading...</p>
         ) : (
           <>
             {/* Root (All Photos) */}
@@ -321,7 +321,7 @@ function DirectorySidebar({
       </div>
 
       {/* New Folder */}
-      <div className="p-2 border-t border-neutral-700">
+      <div className="p-2 border-t border-hs-border-strong">
         {showNewFolder ? (
           <div className="flex gap-1">
             <input
@@ -338,11 +338,11 @@ function DirectorySidebar({
                 }
               }}
               placeholder="Folder name"
-              className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-200"
+              className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body"
             />
             <button
               onClick={onCreateFolder}
-              className="px-1.5 py-0.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded"
+              className="px-1.5 py-0.5 text-xs bg-hs-accent hover:bg-hs-accent text-white rounded"
             >
               OK
             </button>
@@ -350,7 +350,7 @@ function DirectorySidebar({
         ) : (
           <button
             onClick={() => setShowNewFolder(true)}
-            className="w-full text-xs text-neutral-400 hover:text-neutral-200 py-1"
+            className="w-full text-xs text-hs-text-muted hover:text-hs-text-body py-1"
           >
             + New Folder
           </button>
@@ -396,11 +396,11 @@ function ImageGrid({
   return (
     <div className="flex-1 flex flex-col min-w-0">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-neutral-800">
-        <span className="text-xs text-neutral-400 flex-1">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-hs-border">
+        <span className="text-xs text-hs-text-muted flex-1">
           {currentDirName}
           {!loadingImages && (
-            <span className="text-neutral-500 ml-1">
+            <span className="text-hs-text-faint ml-1">
               ({images.length} {images.length === 1 ? 'photo' : 'photos'})
             </span>
           )}
@@ -436,11 +436,11 @@ function ImageGrid({
       <div className="flex-1 overflow-y-auto p-3">
         {loadingImages ? (
           <div className="flex items-center justify-center h-32">
-            <p className="text-xs text-neutral-500">Loading images...</p>
+            <p className="text-xs text-hs-text-faint">Loading images...</p>
           </div>
         ) : images.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 gap-2">
-            <p className="text-xs text-neutral-500">No photos yet. Upload some!</p>
+            <p className="text-xs text-hs-text-faint">No photos yet. Upload some!</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -450,8 +450,8 @@ function ImageGrid({
                   onClick={() => onSelectImage(img)}
                   className={`aspect-square w-full rounded-md overflow-hidden border-2 transition-colors ${
                     selectedImage === img
-                      ? 'border-blue-500'
-                      : 'border-transparent hover:border-neutral-600'
+                      ? 'border-hs-accent'
+                      : 'border-transparent hover:border-hs-border-strong'
                   }`}
                 >
                   <img
@@ -468,7 +468,7 @@ function ImageGrid({
                     onDeleteImage(img);
                   }}
                   disabled={deletingImage === img}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-neutral-300 hover:bg-red-600 hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                   title="Delete"
                 >
                   {deletingImage === img ? '...' : '\u00d7'}
@@ -481,7 +481,7 @@ function ImageGrid({
 
       {error && (
         <div className="px-3 pb-2">
-          <p className="text-xs text-red-400">{error}</p>
+          <p className="text-xs text-hs-danger">{error}</p>
         </div>
       )}
     </div>
@@ -508,14 +508,14 @@ function DirectoryButton({
       onClick={onClick}
       className={`w-full text-left text-xs px-2 py-1 rounded transition-colors truncate ${
         selected
-          ? 'bg-blue-600/20 text-blue-400'
-          : 'text-neutral-300 hover:bg-neutral-800'
+          ? 'bg-hs-accent/20 text-hs-accent-hover'
+          : 'text-hs-text-secondary hover:bg-hs-card'
       }`}
       style={{ paddingLeft: `${8 + depth * 12}px` }}
       title={`${name} (${imageCount})`}
     >
       <span className="truncate">{name}</span>
-      <span className="text-neutral-500 ml-1 text-[10px]">{imageCount}</span>
+      <span className="text-hs-text-faint ml-1 text-[10px]">{imageCount}</span>
     </button>
   );
 }

@@ -82,14 +82,14 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
   };
 
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900/40">
-      <div className="px-4 py-3.5 border-b border-neutral-800">
+    <div className="rounded-lg border border-hs-border bg-hs-panel/40">
+      <div className="px-4 py-3.5 border-b border-hs-border">
         <label className="block">
-          <span className="text-xs text-neutral-400">Active profile</span>
+          <span className="text-xs text-hs-text-muted">Active profile</span>
           <select
             value={activeProfileId}
             onChange={(e) => handleActiveProfileChange(e.target.value)}
-            className="mt-1.5 block w-full rounded-md bg-neutral-800 border border-neutral-700 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             <option value="">— None —</option>
             {selectablePool.map((p) => (
@@ -98,11 +98,11 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
               </option>
             ))}
           </select>
-          <p className="text-[11px] text-neutral-500 mt-1.5">
+          <p className="text-[11px] text-hs-text-faint mt-1.5">
             Which profile {display.name} is currently displaying. Profile definitions live on{' '}
             <Link
               href="?section=defaults&page=profiles"
-              className="text-blue-400 hover:text-blue-300 underline decoration-dashed underline-offset-2"
+              className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               Defaults → Profiles
             </Link>
@@ -112,24 +112,24 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
       </div>
       {!ownsProfiles && (
         <div className="px-4 py-3.5">
-          <span className="text-xs text-neutral-400">Allowed profiles</span>
-          <p className="text-[11px] text-neutral-500 mt-1 mb-2.5">
+          <span className="text-xs text-hs-text-muted">Allowed profiles</span>
+          <p className="text-[11px] text-hs-text-faint mt-1 mb-2.5">
             Restrict which shared profiles {display.name} can switch to. Leave them all checked to
             allow every profile.
           </p>
           {profilePool.length === 0 ? (
-            <div className="text-xs text-neutral-500 italic">No profiles defined yet.</div>
+            <div className="text-xs text-hs-text-faint italic">No profiles defined yet.</div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {profilePool.map((p) => {
                 const checked = allowedProfileIds == null || allowedProfileIds.includes(p.id);
                 return (
-                  <label key={p.id} className="flex items-center gap-2 text-sm text-neutral-300">
+                  <label key={p.id} className="flex items-center gap-2 text-sm text-hs-text-secondary">
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleAllowed(p.id)}
-                      className="rounded border-neutral-600 bg-neutral-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                      className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                     />
                     {p.name}
                   </label>

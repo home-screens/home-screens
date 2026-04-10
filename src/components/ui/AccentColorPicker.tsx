@@ -36,10 +36,10 @@ export default function AccentColorPicker({ value, onChange }: AccentColorPicker
   return (
     <div className="flex flex-col gap-2">
       <label className="flex items-center justify-between gap-2">
-        <span className="text-xs text-neutral-400">Accent Color</span>
+        <span className="text-xs text-hs-text-muted">Accent Color</span>
         <div className="flex items-center gap-2">
           <span
-            className="w-5 h-5 rounded border border-neutral-600 shrink-0"
+            className="w-5 h-5 rounded border border-hs-border-strong shrink-0"
             style={{ backgroundColor: value }}
           />
           <select
@@ -53,7 +53,7 @@ export default function AccentColorPicker({ value, onChange }: AccentColorPicker
                 onChange(v);
               }
             }}
-            className="px-2 py-1 text-xs bg-neutral-800 border border-neutral-600 rounded text-neutral-200"
+            className="px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body"
           >
             {PRESETS.map((p) => (
               <option key={p.label} value={p.value}>{p.label}</option>

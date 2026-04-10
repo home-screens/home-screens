@@ -70,7 +70,7 @@ function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: str
           { label: 'Y', value: mod.position.y, key: 'y' },
         ].map(({ label, value, key }) => (
           <label key={key} className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">{label}</span>
+            <span className="text-xs text-hs-text-muted">{label}</span>
             <input
               type="number"
               value={value}
@@ -89,7 +89,7 @@ function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: str
           { label: 'H', value: mod.size.h, key: 'h' },
         ].map(({ label, value, key }) => (
           <label key={key} className="flex flex-col gap-0.5">
-            <span className="text-xs text-neutral-400">{label}</span>
+            <span className="text-xs text-hs-text-muted">{label}</span>
             <input
               type="number"
               value={value}
@@ -126,7 +126,7 @@ function StyleSection({ mod, screenId }: { mod: ModuleInstance; screenId: string
       <ColorPicker label="Border Color" value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
       <ColorPicker label="Text Color" value={s.textColor} onChange={(v) => set({ textColor: v })} />
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Font Family</span>
+        <span className="text-xs text-hs-text-muted">Font Family</span>
         <select
           value={s.fontFamily}
           onChange={(e) => set({ fontFamily: e.target.value })}
@@ -193,8 +193,8 @@ export default function PropertyPanel() {
 
   if (!selectedModule || !selectedScreenId) {
     return (
-      <div className="w-72 flex-shrink-0 bg-neutral-900 border-l border-neutral-700 p-4 overflow-y-auto">
-        <div className="flex flex-col items-center gap-2 py-6 text-neutral-500 mb-5">
+      <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
+        <div className="flex flex-col items-center gap-2 py-6 text-hs-text-faint mb-5">
           <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
           <p className="text-sm">Select a module to edit</p>
         </div>
@@ -217,14 +217,14 @@ export default function PropertyPanel() {
     ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1));
 
   return (
-    <div className="w-72 flex-shrink-0 bg-neutral-900 border-l border-neutral-700 p-4 overflow-y-auto">
+    <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
       <div className="space-y-5">
         <div>
-          <h3 className="text-sm font-semibold text-neutral-200 mb-3">
+          <h3 className="text-sm font-semibold text-hs-text-body mb-3">
             {moduleLabel} Module
           </h3>
           {isPlugin && !loadedPlugin && (
-            <p className="text-xs text-amber-400 mb-2">Plugin not installed or failed to load</p>
+            <p className="text-xs text-hs-warning mb-2">Plugin not installed or failed to load</p>
           )}
         </div>
 
@@ -280,7 +280,7 @@ export default function PropertyPanel() {
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
 
-        <div className="pt-3 border-t border-neutral-700">
+        <div className="pt-3 border-t border-hs-border-strong">
           <Button
             variant="danger"
             className="w-full"
@@ -294,7 +294,7 @@ export default function PropertyPanel() {
           </Button>
         </div>
 
-        <div className="pt-3 border-t border-neutral-700">
+        <div className="pt-3 border-t border-hs-border-strong">
           <BackgroundPicker />
         </div>
       </div>

@@ -25,7 +25,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   return (
     <>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Latitude (0 = global)</span>
+        <span className="text-xs text-hs-text-muted">Latitude (0 = global)</span>
         <input
           type="number"
           step="0.01"
@@ -35,7 +35,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Longitude (0 = global)</span>
+        <span className="text-xs text-hs-text-muted">Longitude (0 = global)</span>
         <input
           type="number"
           step="0.01"
@@ -53,7 +53,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       <Toggle label="Show Timestamp" checked={c.showTimestamp !== false} onChange={(v) => set({ showTimestamp: v })} />
       <Toggle label="Show Timeline" checked={c.showTimeline !== false} onChange={(v) => set({ showTimeline: v })} />
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Map Style</span>
+        <span className="text-xs text-hs-text-muted">Map Style</span>
         <select
           value={c.mapStyle ?? 'dark'}
           onChange={(e) => set({ mapStyle: e.target.value })}
@@ -64,7 +64,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         </select>
       </label>
       <Slider label="Refresh (minutes)" value={(c.refreshIntervalMs ?? 600000) / 60000} min={5} max={30} step={5} onChange={(v) => set({ refreshIntervalMs: v * 60000 })} />
-      <p className="text-xs text-neutral-500">Uses location from global settings when lat/lon are 0.</p>
+      <p className="text-xs text-hs-text-faint">Uses location from global settings when lat/lon are 0.</p>
     </>
   );
 }

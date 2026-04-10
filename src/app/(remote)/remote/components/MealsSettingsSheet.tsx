@@ -95,7 +95,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
       <div
         style={{
           position: 'relative',
-          background: '#0a0a0a',
+          background: 'var(--hs-bg-body)',
           borderRadius: '16px 16px 0 0',
           maxHeight: '85vh',
           display: 'flex',
@@ -105,7 +105,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
       >
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#525252' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
         </div>
 
         {/* Header */}
@@ -115,10 +115,10 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '8px 16px 12px',
-            borderBottom: '1px solid #262626',
+            borderBottom: '1px solid var(--hs-border)',
           }}
         >
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fafafa', margin: 0 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>
             Meal Settings
           </h3>
           <button
@@ -130,9 +130,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
               fontSize: 13,
               fontWeight: 600,
               borderRadius: 8,
-              border: '1px solid #262626',
+              border: '1px solid var(--hs-border)',
               background: 'transparent',
-              color: '#a3a3a3',
+              color: 'var(--hs-text-muted)',
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -152,13 +152,13 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 fontWeight: 700,
                 textTransform: 'uppercase' as const,
                 letterSpacing: '0.06em',
-                color: '#737373',
+                color: 'var(--hs-text-faint)',
                 margin: '0 0 8px',
               }}
             >
               Meal Slots
             </h4>
-            <p style={{ fontSize: 12, color: '#525252', margin: '0 0 12px' }}>
+            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
               Which meals do you plan? Affects the editor and all displayed modules.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -179,8 +179,8 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       borderRadius: 10,
                       border: isEnabled
                         ? `1px solid ${meta.color}40`
-                        : '1px solid #262626',
-                      background: isEnabled ? `${meta.color}12` : '#171717',
+                        : '1px solid var(--hs-border)',
+                      background: isEnabled ? `${meta.color}12` : 'var(--hs-bg-panel)',
                       color: 'inherit',
                       cursor: 'pointer',
                       textAlign: 'left' as const,
@@ -194,7 +194,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                         width: 20,
                         height: 20,
                         borderRadius: 4,
-                        border: `2px solid ${isEnabled ? meta.color : '#525252'}`,
+                        border: `2px solid ${isEnabled ? meta.color : 'var(--hs-text-faint)'}`,
                         background: isEnabled ? meta.color : 'transparent',
                         display: 'flex',
                         alignItems: 'center',
@@ -203,12 +203,12 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       }}
                     >
                       {isEnabled && (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: '#fafafa' }}>
+                    <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--hs-text-primary)' }}>
                       {meta.label}
                     </span>
                   </button>
@@ -225,7 +225,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 fontWeight: 700,
                 textTransform: 'uppercase' as const,
                 letterSpacing: '0.06em',
-                color: '#737373',
+                color: 'var(--hs-text-faint)',
                 margin: '0 0 8px',
               }}
             >
@@ -243,9 +243,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       padding: '12px',
                       minHeight: 48,
                       borderRadius: 10,
-                      border: isSelected ? '1px solid #f59e0b' : '1px solid #262626',
-                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : '#171717',
-                      color: isSelected ? '#f59e0b' : '#a3a3a3',
+                      border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
+                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
+                      color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
                       fontSize: 14,
                       fontWeight: 600,
                       textTransform: 'capitalize' as const,
@@ -269,13 +269,13 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 fontWeight: 700,
                 textTransform: 'uppercase' as const,
                 letterSpacing: '0.06em',
-                color: '#737373',
+                color: 'var(--hs-text-faint)',
                 margin: '0 0 8px',
               }}
             >
               Time Format
             </h4>
-            <p style={{ fontSize: 12, color: '#525252', margin: '0 0 12px' }}>
+            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
               Applies to every meal display across the kiosk and this remote.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -291,9 +291,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       padding: '12px',
                       minHeight: 56,
                       borderRadius: 10,
-                      border: isSelected ? '1px solid #f59e0b' : '1px solid #262626',
-                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : '#171717',
-                      color: isSelected ? '#f59e0b' : '#a3a3a3',
+                      border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
+                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
+                      color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
                       cursor: 'pointer',
                       fontFamily: 'inherit',
                       display: 'flex',
@@ -319,13 +319,13 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 fontWeight: 700,
                 textTransform: 'uppercase' as const,
                 letterSpacing: '0.06em',
-                color: '#737373',
+                color: 'var(--hs-text-faint)',
                 margin: '0 0 8px',
               }}
             >
               Default Serving Times
             </h4>
-            <p style={{ fontSize: 12, color: '#525252', margin: '0 0 12px' }}>
+            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
               Used when a planned meal doesn&apos;t have its own time. Leave blank for slots that vary.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -339,8 +339,8 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                     style={{
                       padding: 12,
                       borderRadius: 10,
-                      border: '1px solid #262626',
-                      background: '#171717',
+                      border: '1px solid var(--hs-border)',
+                      background: 'var(--hs-bg-panel)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -355,9 +355,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                             minHeight: 28,
                             padding: '4px 10px',
                             borderRadius: 6,
-                            border: '1px solid #262626',
+                            border: '1px solid var(--hs-border)',
                             background: 'transparent',
-                            color: '#a3a3a3',
+                            color: 'var(--hs-text-muted)',
                             fontSize: 11,
                             fontWeight: 600,
                             cursor: 'pointer',
@@ -378,9 +378,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                         padding: '10px 12px',
                         minHeight: 44,
                         borderRadius: 8,
-                        border: '1px solid #262626',
-                        background: '#0a0a0a',
-                        color: '#fafafa',
+                        border: '1px solid var(--hs-border)',
+                        background: 'var(--hs-bg-body)',
+                        color: 'var(--hs-text-primary)',
                         fontSize: 15,
                         fontFamily: 'inherit',
                         colorScheme: 'dark',
@@ -400,9 +400,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                               padding: '8px',
                               minHeight: 36,
                               borderRadius: 6,
-                              border: isSelected ? `1px solid ${meta.color}` : '1px solid #262626',
-                              background: isSelected ? `${meta.color}15` : '#0a0a0a',
-                              color: isSelected ? meta.color : '#a3a3a3',
+                              border: isSelected ? `1px solid ${meta.color}` : '1px solid var(--hs-border)',
+                              background: isSelected ? `${meta.color}15` : 'var(--hs-bg-body)',
+                              color: isSelected ? meta.color : 'var(--hs-text-muted)',
                               fontSize: 12,
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -430,8 +430,8 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
             left: 0,
             right: 0,
             padding: '12px 16px 24px',
-            background: 'linear-gradient(to top, #0a0a0a 60%, transparent)',
-            borderTop: '1px solid #262626',
+            background: 'linear-gradient(to top, var(--hs-bg-body) 60%, transparent)',
+            borderTop: '1px solid var(--hs-border)',
           }}
         >
           {saveError && (
@@ -440,9 +440,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 marginBottom: 8,
                 padding: '8px 12px',
                 borderRadius: 8,
-                background: 'rgba(239, 68, 68, 0.12)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#fca5a5',
+                background: 'color-mix(in srgb, var(--hs-danger) 12%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)',
+                color: 'var(--hs-danger)',
                 fontSize: 12,
                 fontWeight: 500,
               }}
@@ -461,7 +461,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
               minHeight: 48,
               borderRadius: 10,
               border: 'none',
-              background: saving ? '#78716c' : '#f59e0b',
+              background: saving ? 'var(--hs-text-faint)' : '#f59e0b',
               color: '#000',
               fontSize: 15,
               fontWeight: 700,

@@ -33,7 +33,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     <>
       {/* Theme Override */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Theme</span>
+        <span className="text-xs text-hs-text-muted">Theme</span>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -48,7 +48,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
       {/* Density */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Density</span>
+        <span className="text-xs text-hs-text-muted">Density</span>
         <select
           value={c.density ?? 'cozy'}
           onChange={(e) => set({ density: e.target.value as 'cozy' | 'snug' })}
@@ -61,7 +61,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
       {/* Typography Size */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Typography Size</span>
+        <span className="text-xs text-hs-text-muted">Typography Size</span>
         <select
           value={c.typographySize ?? 'medium'}
           onChange={(e) => set({ typographySize: e.target.value as typeof TYPOGRAPHY_SIZES[number]['value'] })}
@@ -75,7 +75,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
       {/* Week Start */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Week Starts On</span>
+        <span className="text-xs text-hs-text-muted">Week Starts On</span>
         <select
           value={c.weekStartDay ?? 'monday'}
           onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
@@ -116,8 +116,8 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       />
 
       {/* Open Modal */}
-      <div className="pt-1 border-t border-neutral-700 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
           <span>{counts.members} members</span>
           <span>&middot;</span>
           <span>{counts.chores} chores</span>
@@ -132,9 +132,9 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       </div>
 
       {/* Mobile hint */}
-      <p className="text-[11px] text-neutral-600 leading-relaxed">
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
         Family members can check off chores on the touchscreen or from their phone via the Chores tab at{' '}
-        <span className="text-neutral-400">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
+        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 
       {/* Modal */}

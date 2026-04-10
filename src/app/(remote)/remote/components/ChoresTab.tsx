@@ -323,8 +323,8 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
     <div>
       {/* Day header */}
       <div style={{ padding: '12px 0 4px' }}>
-        <div style={{ fontSize: 12, color: '#525252' }}>{dayName}</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fafafa' }}>Chores</h2>
+        <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{dayName}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>Chores</h2>
       </div>
 
       {/* Sub-nav: Today / Manage / Rewards */}
@@ -333,7 +333,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           display: 'flex',
           gap: 2,
           padding: 3,
-          background: 'rgba(255,255,255,0.04)',
+          background: 'var(--hs-bg-card)',
           borderRadius: 10,
           marginTop: 12,
           marginBottom: 16,
@@ -353,8 +353,8 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               border: 'none',
               cursor: 'pointer',
               transition: 'all 0.15s',
-              background: subView === v ? 'rgba(255,255,255,0.08)' : 'transparent',
-              color: subView === v ? '#e5e5e5' : '#525252',
+              background: subView === v ? 'var(--hs-bg-hover)' : 'transparent',
+              color: subView === v ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
             }}
           >
             {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -374,9 +374,9 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
       ) : members.length === 0 || chores.length === 0 ? (
         /* Empty state */
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
-          <Settings size={40} color="#333" style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: 15, color: '#737373', marginBottom: 4 }}>No chores set up yet</p>
-          <p style={{ fontSize: 13, color: '#525252', marginBottom: 20 }}>
+          <Settings size={40} color="var(--hs-border-strong)" style={{ marginBottom: 16 }} />
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No chores set up yet</p>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
             Switch to Manage to add family members and chores.
           </p>
           <button
@@ -408,12 +408,12 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                 alignItems: 'flex-start',
                 gap: 10,
                 padding: '12px 14px',
-                background: 'rgba(239, 68, 68, 0.10)',
-                border: '1px solid rgba(239, 68, 68, 0.30)',
+                background: 'color-mix(in srgb, var(--hs-danger) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)',
                 borderRadius: 10,
                 marginBottom: 10,
                 fontSize: 13,
-                color: '#fca5a5',
+                color: 'var(--hs-danger)',
                 lineHeight: 1.4,
               }}
             >
@@ -425,7 +425,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#fca5a5',
+                  color: 'var(--hs-danger)',
                   cursor: 'pointer',
                   fontSize: 16,
                   lineHeight: 1,
@@ -460,12 +460,12 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                 alignItems: 'center',
                 gap: 8,
                 padding: '10px 12px',
-                background: 'rgba(245, 158, 11, 0.10)',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                background: 'color-mix(in srgb, var(--hs-warning) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--hs-warning) 25%, transparent)',
                 borderRadius: 10,
                 marginBottom: 10,
                 fontSize: 12,
-                color: '#fbbf24',
+                color: 'var(--hs-warning)',
                 lineHeight: 1.4,
               }}
             >
@@ -483,12 +483,12 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                 alignItems: 'center',
                 gap: 8,
                 padding: '10px 12px',
-                background: 'rgba(115, 115, 115, 0.10)',
-                border: '1px solid rgba(115, 115, 115, 0.25)',
+                background: 'var(--hs-bg-hover)',
+                border: '1px solid var(--hs-border)',
                 borderRadius: 10,
                 marginBottom: 10,
                 fontSize: 12,
-                color: '#a3a3a3',
+                color: 'var(--hs-text-muted)',
                 lineHeight: 1.4,
               }}
             >
@@ -519,8 +519,8 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                     minHeight: 44,
                     borderRadius: 999,
                     border: `2px solid ${isActive ? member.color : 'transparent'}`,
-                    background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
-                    color: isActive ? member.color : 'rgba(255,255,255,0.6)',
+                    background: isActive ? `color-mix(in srgb, ${member.color} 15%, transparent)` : 'var(--hs-bg-card)',
+                    color: isActive ? member.color : 'var(--hs-text-muted)',
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -530,7 +530,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                   }}
                 >
                   {member.emoji ? (
-                    <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'rgba(255,255,255,0.6)'} />
+                    <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} />
                   ) : (
                     <span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>
                   )}
@@ -544,14 +544,14 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           {/* Progress */}
           <div style={{ padding: '0 0 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, color: '#737373' }}>
+              <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
                 {totalDone}/{totalCount} complete
               </span>
               {totalCount > 0 && totalDone === totalCount && (
-                <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 500 }}>All done!</span>
+                <span style={{ fontSize: 13, color: 'var(--hs-success)', fontWeight: 500 }}>All done!</span>
               )}
             </div>
-            <div style={{ height: 8, background: '#262626', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 8, background: 'var(--hs-border)', borderRadius: 4, overflow: 'hidden' }}>
               <div
                 style={{
                   height: '100%',
@@ -568,7 +568,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           <div style={{ paddingBottom: 80 }}>
             {myAssignments.length === 0 && (
               <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                <p style={{ fontSize: 14, color: '#525252' }}>No chores today!</p>
+                <p style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>No chores today!</p>
               </div>
             )}
 
@@ -585,20 +585,20 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                 <div key={section} style={{ marginBottom: 16 }}>
                   {/* Section header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-                    <TodIcon size={16} color={isCurrent ? accentColor : '#525252'} strokeWidth={2} />
+                    <TodIcon size={16} color={isCurrent ? accentColor : 'var(--hs-text-faint)'} strokeWidth={2} />
                     <span
                       style={{
                         fontSize: 11,
                         fontWeight: 600,
                         textTransform: 'uppercase' as const,
                         letterSpacing: '0.08em',
-                        color: isCurrent ? accentColor : '#525252',
+                        color: isCurrent ? accentColor : 'var(--hs-text-faint)',
                       }}
                     >
                       {meta.label}
                     </span>
                     {sectionAllDone && (
-                      <span style={{ marginLeft: 'auto', fontSize: 12, color: '#22c55e' }}>&#10003;</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-success)' }}>&#10003;</span>
                     )}
                   </div>
 
@@ -615,7 +615,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                       alignItems: 'center',
                       gap: 12,
                       padding: '14px 16px',
-                      background: done ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+                      background: done ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
                       borderRadius: 12,
                       marginBottom: 6,
                       cursor: readOnly ? ('default' as const) : ('pointer' as const),
@@ -637,16 +637,16 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          background: done ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                          border: done ? 'none' : '1px dashed rgba(255,255,255,0.18)',
-                          color: '#737373',
+                          background: done ? 'var(--hs-bg-hover)' : 'var(--hs-bg-card)',
+                          border: done ? 'none' : '1px dashed var(--hs-border-strong)',
+                          color: 'var(--hs-text-faint)',
                         }}
                         aria-hidden="true"
                       >
                         {done ? (
-                          <Check size={16} color="#a3a3a3" strokeWidth={2.5} />
+                          <Check size={16} color="var(--hs-text-muted)" strokeWidth={2.5} />
                         ) : (
-                          <Lock size={12} color="#737373" strokeWidth={2.25} />
+                          <Lock size={12} color="var(--hs-text-faint)" strokeWidth={2.25} />
                         )}
                       </div>
                     ) : (
@@ -661,7 +661,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                           flexShrink: 0,
                           transition: 'all 0.15s',
                           background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
-                          border: done ? 'none' : '2px solid rgba(255,255,255,0.2)',
+                          border: done ? 'none' : '2px solid var(--hs-border-strong)',
                         }}
                       >
                         {done && <Check size={16} color="white" strokeWidth={2.5} />}
@@ -675,7 +675,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                         {/* Icon */}
                         {assignment.choreEmoji && (
                           <span style={{ flexShrink: 0 }}>
-                            <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? '#525252' : '#a3a3a3'} />
+                            <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? 'var(--hs-text-faint)' : 'var(--hs-text-muted)'} />
                           </span>
                         )}
 
@@ -686,7 +686,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                             fontSize: 15,
                             fontWeight: 500,
                             textDecoration: done ? 'line-through' : 'none',
-                            color: done ? '#525252' : '#e5e5e5',
+                            color: done ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
                           }}
                         >
                           {assignment.choreName}
@@ -700,8 +700,8 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                               flexShrink: 0,
                               padding: '2px 8px',
                               borderRadius: 999,
-                              background: 'rgba(255,255,255,0.08)',
-                              color: '#525252',
+                              background: 'var(--hs-bg-hover)',
+                              color: 'var(--hs-text-faint)',
                               opacity: done ? 0.3 : 1,
                             }}
                           >

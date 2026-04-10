@@ -89,13 +89,13 @@ function SecretField({
   return (
     <div className="min-w-0">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-neutral-400">{label}</span>
+        <span className="text-xs text-hs-text-muted">{label}</span>
         <div className="flex items-center gap-2 shrink-0">
           <StatusDot configured={status} />
           {status && (
             <button
               onClick={handleDelete}
-              className="text-xs text-neutral-500 hover:text-red-400 transition-colors"
+              className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
             >
               Remove
             </button>
@@ -108,7 +108,7 @@ function SecretField({
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
           placeholder={placeholder}
-          className="flex-1 min-w-0 rounded-md bg-neutral-800 border border-neutral-600 text-sm text-neutral-200 px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
         <Button
           variant="secondary"
@@ -120,12 +120,12 @@ function SecretField({
         </Button>
       </div>
       {saveStatus === 'saved' && (
-        <span className="text-xs text-green-400">Saved successfully</span>
+        <span className="text-xs text-hs-success">Saved successfully</span>
       )}
       {saveStatus === 'error' && (
-        <span className="text-xs text-red-400">{errorMsg}</span>
+        <span className="text-xs text-hs-danger">{errorMsg}</span>
       )}
-      <p className="text-xs text-neutral-500 mt-1">{helpText}</p>
+      <p className="text-xs text-hs-text-faint mt-1">{helpText}</p>
     </div>
   );
 }
@@ -155,20 +155,20 @@ function IntegrationCard({
 
   const pillClasses =
     statusType === 'none'
-      ? 'bg-neutral-700/30 text-neutral-500'
+      ? 'bg-hs-card/30 text-hs-text-faint'
       : statusType === 'partial'
-        ? 'bg-amber-400/10 text-amber-400'
-        : 'bg-green-400/10 text-green-400';
+        ? 'bg-hs-warning/10 text-hs-warning'
+        : 'bg-hs-success/10 text-hs-success';
 
   const dotClasses =
     statusType === 'none'
-      ? 'bg-neutral-600'
+      ? 'bg-hs-card'
       : statusType === 'partial'
-        ? 'bg-amber-400'
-        : 'bg-green-400';
+        ? 'bg-hs-warning'
+        : 'bg-hs-success';
 
   return (
-    <div className="mb-2.5 border border-neutral-700/80 rounded-[10px] bg-neutral-800/60 overflow-hidden hover:border-neutral-600 transition-colors">
+    <div className="mb-2.5 border border-hs-border-strong/80 rounded-[10px] bg-hs-card/60 overflow-hidden hover:border-hs-text-faint transition-colors">
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -183,8 +183,8 @@ function IntegrationCard({
             {icon}
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-medium text-neutral-200">{name}</div>
-            <div className="text-xs text-neutral-500">{description}</div>
+            <div className="text-sm font-medium text-hs-text-body">{name}</div>
+            <div className="text-xs text-hs-text-faint">{description}</div>
           </div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0 ml-3">
@@ -193,13 +193,13 @@ function IntegrationCard({
             <span className="hidden lg:inline">{statusLabel}</span>
           </span>
           <ChevronDown
-            className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-hs-text-faint transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           />
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-neutral-700/60 px-4 py-4">
+        <div className="border-t border-hs-border-strong/60 px-4 py-4">
           {children}
         </div>
       )}
@@ -290,7 +290,7 @@ export default function IntegrationsSection() {
   if (loading) {
     return (
       <section>
-        <p className="text-xs text-neutral-500">Loading integration status...</p>
+        <p className="text-xs text-hs-text-faint">Loading integration status...</p>
       </section>
     );
   }
@@ -311,24 +311,24 @@ export default function IntegrationsSection() {
     <section>
       {/* Header */}
       <div className="mb-7">
-        <h2 className="text-lg font-semibold text-neutral-100 mb-1.5">Integrations</h2>
-        <p className="text-[13px] text-neutral-500">
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">Integrations</h2>
+        <p className="text-[13px] text-hs-text-faint">
           Connect external services to unlock additional modules and features. API keys are stored locally and never leave your device.
         </p>
       </div>
 
       {/* Summary bar */}
-      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-800/50 border border-neutral-700/60 rounded-lg mb-7">
-        <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-green-400' : 'bg-neutral-600'}`} />
-        <span className="text-[13px] text-neutral-400">
-          <strong className="text-neutral-300">{configuredCount}</strong> of{' '}
-          <strong className="text-neutral-300">{INTEGRATIONS.length}</strong> integrations configured
+      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-hs-hover border border-hs-border-strong/60 rounded-lg mb-7">
+        <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-hs-success' : 'bg-hs-card'}`} />
+        <span className="text-[13px] text-hs-text-muted">
+          <strong className="text-hs-text-secondary">{configuredCount}</strong> of{' '}
+          <strong className="text-hs-text-secondary">{INTEGRATIONS.length}</strong> integrations configured
         </span>
       </div>
 
       {/* Google — full width */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
           Google Ecosystem
         </div>
         <IntegrationCard
@@ -358,7 +358,7 @@ export default function IntegrationsSection() {
               onSaved={fetchStatus}
             />
           </div>
-          <div className="border-t border-neutral-700/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
+          <div className="border-t border-hs-border-strong/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
             <SecretField
               label="Maps API Key"
               secretKey="google_maps_key"
@@ -373,7 +373,7 @@ export default function IntegrationsSection() {
 
       {/* Photos & Backgrounds — 2-col masonry */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
           Photos &amp; Backgrounds
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
@@ -445,7 +445,7 @@ export default function IntegrationsSection() {
 
       {/* Services — 2-col masonry */}
       <div className="mb-6">
-        <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2.5">
+        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
           Services
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
@@ -493,7 +493,7 @@ export default function IntegrationsSection() {
             statusLabel={github.label}
             statusType={github.type}
           >
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[11px] mb-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-hs-accent-soft text-hs-accent-hover text-[11px] mb-3">
               Optional
             </div>
             <SecretField

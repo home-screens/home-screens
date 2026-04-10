@@ -156,10 +156,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       <div className="space-y-6">
         {/* Share Layout */}
         <section>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             Share Layout
           </h3>
-          <p className="text-xs text-neutral-500 mb-3">
+          <p className="text-xs text-hs-text-faint mb-3">
             Export your screen layout (screens, modules, visual settings) without personal data like location, calendar IDs, or device settings. Safe to share with others.
           </p>
           <div className="flex items-center gap-3">
@@ -174,10 +174,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
         {/* Templates */}
         <section>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             Templates
           </h3>
-          <p className="text-xs text-neutral-500 mb-3">
+          <p className="text-xs text-hs-text-faint mb-3">
             Start from a pre-built template. Your existing settings (location, calendars, etc.) are preserved.
           </p>
           <Button variant="secondary" onClick={() => setShowTemplatePicker(true)}>
@@ -187,10 +187,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
         {/* Full Backup */}
         <section>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             Full Backup
           </h3>
-          <p className="text-xs text-neutral-500 mb-3">
+          <p className="text-xs text-hs-text-faint mb-3">
             Export or restore the entire configuration including all settings, chore data, and completion history. For backup and device migration. Does not include API keys.
           </p>
           <div className="flex items-center gap-3">
@@ -205,10 +205,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
         {/* Backup Reminder */}
         <section>
-          <h3 className="text-sm font-medium text-neutral-300 mb-3 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             Backup Reminder
           </h3>
-          <p className="text-xs text-neutral-500 mb-3">
+          <p className="text-xs text-hs-text-faint mb-3">
             Get a notification in the editor when you haven&apos;t backed up for a while.
           </p>
           <div className="space-y-3">
@@ -219,11 +219,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             />
             {reminder?.enabled && (
               <label className="flex items-center justify-between gap-2">
-                <span className="text-xs text-neutral-400">Remind after</span>
+                <span className="text-xs text-hs-text-muted">Remind after</span>
                 <select
                   value={reminder.intervalDays ?? 7}
                   onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
-                  className="bg-neutral-800 border border-neutral-700 rounded-md text-xs text-neutral-200 px-2 py-1"
+                  className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
                 >
                   {INTERVAL_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -231,7 +231,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                 </select>
               </label>
             )}
-            <p className="text-xs text-neutral-600">
+            <p className="text-xs text-hs-text-faint">
               {lastBackupDate
                 ? `Last backup: ${new Date(lastBackupDate).toLocaleDateString()}`
                 : 'No backups recorded yet'}

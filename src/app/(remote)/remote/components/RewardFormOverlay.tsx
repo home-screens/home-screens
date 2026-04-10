@@ -27,7 +27,7 @@ export default function RewardFormOverlay({
 }: RewardFormOverlayProps) {
   const isEdit = reward !== null;
   const [name, setName] = useState(reward?.name ?? '');
-  const [emoji, setEmoji] = useState(reward?.emoji ?? 'gift');
+  const [emoji, setEmoji] = useState(reward?.emoji ?? 'lucide:gift');
   const [costStr, setCostStr] = useState(String(reward?.cost ?? 10));
   const [description, setDescription] = useState(reward?.description ?? '');
   const [memberIds, setMemberIds] = useState<string[]>(reward?.memberIds ?? []);
@@ -74,8 +74,8 @@ export default function RewardFormOverlay({
                 fontSize: 16,
                 fontWeight: 600,
                 cursor: name.trim() ? 'pointer' : 'default',
-                background: name.trim() ? '#f59e0b' : '#333',
-                color: name.trim() ? '#000' : '#666',
+                background: name.trim() ? '#f59e0b' : 'var(--hs-border-strong)',
+                color: name.trim() ? '#000' : 'var(--hs-text-faint)',
                 transition: 'all 0.15s',
               }}
             >
@@ -95,7 +95,7 @@ export default function RewardFormOverlay({
                   fontWeight: 600,
                   cursor: 'pointer',
                   background: 'transparent',
-                  color: '#ef4444',
+                  color: 'var(--hs-danger)',
                   marginTop: 8,
                 }}
               >
@@ -156,7 +156,7 @@ export default function RewardFormOverlay({
                   width: 44,
                   height: 26,
                   borderRadius: 13,
-                  background: enabled ? '#f59e0b' : '#333',
+                  background: enabled ? '#f59e0b' : 'var(--hs-border-strong)',
                   position: 'relative',
                   transition: 'background 0.15s',
                   flexShrink: 0,
@@ -176,7 +176,7 @@ export default function RewardFormOverlay({
                   }}
                 />
               </div>
-              <span style={{ fontSize: 14, color: '#a3a3a3' }}>
+              <span style={{ fontSize: 14, color: 'var(--hs-text-muted)' }}>
                 {enabled ? 'Visible' : 'Hidden'}
               </span>
             </button>
@@ -209,8 +209,8 @@ export default function RewardFormOverlay({
                 fontWeight: 500,
                 cursor: 'pointer',
                 border: isEveryone ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
-                background: isEveryone ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
-                color: isEveryone ? '#f59e0b' : '#525252',
+                background: isEveryone ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-card)',
+                color: isEveryone ? '#f59e0b' : 'var(--hs-text-faint)',
                 transition: 'all 0.15s',
               }}
             >
@@ -230,8 +230,8 @@ export default function RewardFormOverlay({
                     fontWeight: 500,
                     cursor: 'pointer',
                     border: isSelected ? `1px solid ${m.color}40` : '1px solid transparent',
-                    background: isSelected ? `color-mix(in srgb, ${m.color} 15%, transparent)` : 'rgba(255,255,255,0.05)',
-                    color: isSelected ? m.color : '#525252',
+                    background: isSelected ? `color-mix(in srgb, ${m.color} 15%, transparent)` : 'var(--hs-bg-card)',
+                    color: isSelected ? m.color : 'var(--hs-text-faint)',
                     transition: 'all 0.15s',
                   }}
                 >

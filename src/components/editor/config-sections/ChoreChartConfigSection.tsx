@@ -56,7 +56,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
       {/* Week Start */}
       <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-neutral-400">Week Starts On</span>
+        <span className="text-xs text-hs-text-muted">Week Starts On</span>
         <select
           value={c.weekStartDay ?? 'monday'}
           onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
@@ -97,8 +97,8 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       />
 
       {/* Open Modal */}
-      <div className="pt-1 border-t border-neutral-700 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
           <span>{counts.members} members</span>
           <span>&middot;</span>
           <span>{counts.chores} chores</span>
@@ -113,9 +113,9 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       </div>
 
       {/* Mobile hint */}
-      <p className="text-[11px] text-neutral-600 leading-relaxed">
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
         Family members can check off chores from their phone via the Chores tab at{' '}
-        <span className="text-neutral-400">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
+        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 
       {/* Modal */}

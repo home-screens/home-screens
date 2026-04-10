@@ -32,7 +32,7 @@ export default function FormOverlay({
         position: 'fixed',
         inset: 0,
         zIndex: 55,
-        backgroundColor: '#0a0a0a',
+        backgroundColor: 'var(--hs-bg-body)',
         display: 'flex',
         flexDirection: 'column',
         transform: visible ? 'translateY(0)' : 'translateY(100%)',
@@ -45,7 +45,7 @@ export default function FormOverlay({
           alignItems: 'center',
           padding: '12px 16px',
           paddingTop: 'max(12px, env(safe-area-inset-top))',
-          borderBottom: '1px solid #1a1a1a',
+          borderBottom: '1px solid var(--hs-border)',
           gap: 12,
         }}
       >
@@ -57,7 +57,7 @@ export default function FormOverlay({
             gap: 4,
             minWidth: 44,
             minHeight: 44,
-            color: '#a3a3a3',
+            color: 'var(--hs-text-muted)',
             fontSize: 14,
             fontWeight: 500,
             border: 'none',
@@ -72,7 +72,7 @@ export default function FormOverlay({
           style={{
             fontSize: 17,
             fontWeight: 700,
-            color: '#fafafa',
+            color: 'var(--hs-text-primary)',
             flex: 1,
             textAlign: 'center',
             paddingRight: 44,
@@ -96,7 +96,7 @@ export default function FormOverlay({
         {children}
       </div>
       {footer && (
-        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid #1a1a1a' }}>
+        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
           {footer}
         </div>
       )}

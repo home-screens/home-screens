@@ -34,7 +34,7 @@ export default function ConfirmSheet({
       <div
         style={{
           width: '100%',
-          background: '#1a1a1a',
+          background: 'var(--hs-bg-panel)',
           borderRadius: '20px 20px 0 0',
           padding: '24px 16px',
           paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
@@ -45,10 +45,10 @@ export default function ConfirmSheet({
         {icon && (
           <div style={{ marginBottom: 12 }}>{icon}</div>
         )}
-        <div style={{ fontSize: 17, fontWeight: 700, color: '#fafafa', marginBottom: 8 }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--hs-text-primary)', marginBottom: 8 }}>
           {title}
         </div>
-        <div style={{ fontSize: 14, color: '#737373', lineHeight: 1.5, marginBottom: 24 }}>
+        <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', lineHeight: 1.5, marginBottom: 24 }}>
           {description}
         </div>
         <button
@@ -61,7 +61,7 @@ export default function ConfirmSheet({
             borderRadius: 12,
             fontSize: 15,
             fontWeight: 700,
-            background: confirmColor ?? '#ef4444',
+            background: confirmColor ?? 'var(--hs-danger)',
             color: '#fff',
             border: 'none',
             cursor: 'pointer',
@@ -80,8 +80,8 @@ export default function ConfirmSheet({
             borderRadius: 12,
             fontSize: 15,
             fontWeight: 600,
-            background: 'rgba(255,255,255,0.08)',
-            color: '#e5e5e5',
+            background: 'var(--hs-bg-hover)',
+            color: 'var(--hs-text-body)',
             border: 'none',
             cursor: 'pointer',
           }}
