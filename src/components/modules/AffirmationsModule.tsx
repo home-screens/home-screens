@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useTypewriter } from '@/hooks/useTypewriter';
 import type { AffirmationsConfig, AffirmationsCategory, AffirmationsView, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
+import { useEventBus } from '@/hooks/useEventBus';
 import ModuleWrapper from './ModuleWrapper';
 import { BUILT_IN, type AffirmationEntry as Entry } from './affirmations-data';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -65,6 +66,7 @@ function useAffirmationRotation(
   timeAware: boolean,
   now: Date,
   latitude: number,
+  weatherCondition: string | null,
 ): { entry: Entry; key: number } | null {
   const [index, setIndex] = useState(0);
   const [order, setOrder] = useState<number[]>([]);
@@ -94,6 +96,9 @@ function useAffirmationRotation(
         // Season bonus
         if (entry.season === season) score += 2;
         else if (entry.season && entry.season !== season) score = 0; // wrong season = hide
+
+        // Weather affinity bonus — boosts matching entries, never hides non-matching
+        if (weatherCondition && entry.weather === weatherCondition) score += 2;
       }
 
       return { index: i, score };
@@ -113,7 +118,7 @@ function useAffirmationRotation(
     }
     setOrder(result);
     setIndex(0);
-  }, [entries, timeAware, timeOfDay, dayOfWeek, season, latitude]);
+  }, [entries, timeAware, timeOfDay, dayOfWeek, season, latitude, weatherCondition]);
 
   // Rotation timer — depends on full `order` reference so it restarts on any reshuffle
   useEffect(() => {
@@ -258,6 +263,7 @@ const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> 
 
 export default function AffirmationsModule({ config, style, timezone, latitude }: AffirmationsModuleProps) {
   const now = useTZClock(timezone, 60_000);
+  const weather = useEventBus('weather.conditions');
 
   const view = config.view ?? 'elegant';
   const rotationMs = config.rotationIntervalMs ?? 15000;
@@ -280,7 +286,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
     return [...builtIn, ...custom];
   }, [config.categories, config.customEntries]);
 
-  const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0);
+  const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0, weather?.condition ?? null);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
 
   if (!result) {
