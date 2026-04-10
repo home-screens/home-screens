@@ -72,7 +72,7 @@ describe('validateConfig', () => {
   describe('top-level structure', () => {
     it('errors when version is missing', () => {
       const config = validConfig();
-      delete (config as Record<string, unknown>).version;
+      delete (config as unknown as Record<string, unknown>).version;
       const result = validateConfig(config);
       expect(findByCode(result, 'MISSING_VERSION')).toBeDefined();
       expect(findByCode(result, 'MISSING_VERSION')!.severity).toBe('error');
@@ -80,21 +80,21 @@ describe('validateConfig', () => {
 
     it('errors when settings is missing', () => {
       const config = validConfig();
-      delete (config as Record<string, unknown>).settings;
+      delete (config as unknown as Record<string, unknown>).settings;
       const result = validateConfig(config);
       expect(findByCode(result, 'MISSING_SETTINGS')).toBeDefined();
     });
 
     it('errors when screens is missing', () => {
       const config = validConfig();
-      delete (config as Record<string, unknown>).screens;
+      delete (config as unknown as Record<string, unknown>).screens;
       const result = validateConfig(config);
       expect(findByCode(result, 'MISSING_SCREENS')).toBeDefined();
     });
 
     it('errors when screens is not an array', () => {
       const config = validConfig();
-      (config as Record<string, unknown>).screens = 'not-an-array';
+      (config as unknown as Record<string, unknown>).screens = 'not-an-array';
       const result = validateConfig(config);
       expect(findByCode(result, 'MISSING_SCREENS')).toBeDefined();
     });
@@ -165,7 +165,7 @@ describe('validateConfig', () => {
   describe('screen structure', () => {
     it('errors when a screen has no id', () => {
       const config = validConfig();
-      delete (config.screens[0] as Record<string, unknown>).id;
+      delete (config.screens[0] as unknown as Record<string, unknown>).id;
       const result = validateConfig(config);
       expect(findByCode(result, 'SCREEN_MISSING_ID')).toBeDefined();
     });
@@ -179,7 +179,7 @@ describe('validateConfig', () => {
 
     it('errors when a screen has no name', () => {
       const config = validConfig();
-      delete (config.screens[0] as Record<string, unknown>).name;
+      delete (config.screens[0] as unknown as Record<string, unknown>).name;
       const result = validateConfig(config);
       expect(findByCode(result, 'SCREEN_MISSING_NAME')).toBeDefined();
     });
@@ -190,14 +190,14 @@ describe('validateConfig', () => {
   describe('module structure', () => {
     it('errors when a module has no id', () => {
       const config = validConfig();
-      delete (config.screens[0].modules[0] as Record<string, unknown>).id;
+      delete (config.screens[0].modules[0] as unknown as Record<string, unknown>).id;
       const result = validateConfig(config);
       expect(findByCode(result, 'MODULE_MISSING_ID')).toBeDefined();
     });
 
     it('errors when a module has no type', () => {
       const config = validConfig();
-      delete (config.screens[0].modules[0] as Record<string, unknown>).type;
+      delete (config.screens[0].modules[0] as unknown as Record<string, unknown>).type;
       const result = validateConfig(config);
       expect(findByCode(result, 'MODULE_MISSING_TYPE')).toBeDefined();
     });

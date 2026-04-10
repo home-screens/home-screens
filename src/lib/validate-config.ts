@@ -43,7 +43,7 @@ const LATEST_SCHEMA_VERSION = 3;
  */
 export function validateConfig(config: ScreenConfiguration): ConfigDiagnostic[] {
   const diags: ConfigDiagnostic[] = [];
-  const raw = config as Record<string, unknown>;
+  const raw = config as unknown as Record<string, unknown>;
 
   // ── Top-level structure ────────────────────────────────────────────
 
