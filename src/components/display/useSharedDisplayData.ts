@@ -8,6 +8,9 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { useFetchData } from '@/hooks/useFetchData';
 import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS } from '@/lib/constants';
 import { pluginEventBus } from '@/lib/plugin-events';
+import { eventBus } from '@/lib/event-bus';
+import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
+import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
 export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings): SharedDisplayData {
@@ -59,6 +62,34 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const [pirateData] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
   const [noaaData] = useFetchData(weatherUrl('noaa'), WEATHER_REFRESH_MS);
   const [openMeteoData] = useFetchData(weatherUrl('open-meteo'), WEATHER_REFRESH_MS);
+
+  // Resolve which provider's data represents the global weather state for the event bus
+  const globalWeatherData = useMemo(() => {
+    switch (globalProvider) {
+      case 'openweathermap': return owmData;
+      case 'weatherapi': return wapiData;
+      case 'pirateweather': return pirateData;
+      case 'noaa': return noaaData;
+      case 'open-meteo': return openMeteoData;
+      default: return null;
+    }
+  }, [globalProvider, owmData, wapiData, pirateData, noaaData, openMeteoData]);
+
+  // Publish derived weather events to the bus
+  useEffect(() => {
+    if (!globalWeatherData) return;
+    const raw = globalWeatherData as Record<string, unknown>;
+    const units = settings.weather.units as 'imperial' | 'metric';
+
+    const conditions = deriveWeatherConditions(
+      (raw.hourly as HourlyWeather[] | undefined) ?? [],
+      units,
+    );
+    if (conditions) eventBus.publish('weather.conditions', conditions);
+
+    const alertsEvent = deriveWeatherAlerts(raw.alerts as WeatherAlert[] | undefined);
+    if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
+  }, [globalWeatherData, settings.weather.units]);
 
   const calendarIdList = settings.calendar.googleCalendarIds?.length
     ? settings.calendar.googleCalendarIds
