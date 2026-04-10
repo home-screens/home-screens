@@ -19,6 +19,8 @@ import { displayCache } from '@/lib/display-cache';
 import { getHostSettings } from '@/lib/plugin-host-settings';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { displayFetch } from '@/lib/display-fetch';
+import { eventBus } from '@/lib/event-bus';
+import type { EventMap } from '@/lib/event-bus';
 
 /**
  * Simple loading/error state component for plugins.
@@ -86,6 +88,15 @@ export default function PluginGlobals() {
 
       // Event emitter — plugin → host communication
       emit: pluginEventBus.emit,
+
+      // Event bus — subscribe to host-published data events (weather, time)
+      on: (channel: string, handler: (data: unknown) => void): (() => void) => {
+        return eventBus.subscribe(
+          channel as keyof EventMap,
+          handler as (data: EventMap[keyof EventMap]) => void,
+          { replay: true },
+        );
+      },
 
       // Server-side proxy — fetch external APIs with injected secrets
       pluginFetch: async (
