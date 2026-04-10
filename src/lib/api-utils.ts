@@ -44,6 +44,20 @@ export function isTransientError(status: number): boolean {
 }
 
 /**
+ * Parses a `Retry-After` header value (delay-seconds only, not HTTP-date).
+ * Returns the delay in milliseconds, clamped to 60s to prevent an upstream
+ * from stalling us indefinitely. Returns null if the header is absent or unparseable.
+ */
+const MAX_RETRY_AFTER_MS = 60_000;
+
+export function parseRetryAfter(header: string | null): number | null {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (!Number.isFinite(seconds) || seconds < 0) return null;
+  return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
+}
+
+/**
  * Reads lat/lon from config (with weather settings fallback),
  * allowing override from searchParams. Returns null if missing.
  */

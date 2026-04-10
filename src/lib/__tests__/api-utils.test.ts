@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays, isTransientError } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays, isTransientError, parseRetryAfter } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -1041,5 +1041,35 @@ describe('isTransientError', () => {
 
   it('returns false for 200', () => {
     expect(isTransientError(200)).toBe(false);
+  });
+});
+
+describe('parseRetryAfter', () => {
+  it('returns null for null header', () => {
+    expect(parseRetryAfter(null)).toBeNull();
+  });
+
+  it('returns null for empty string', () => {
+    expect(parseRetryAfter('')).toBeNull();
+  });
+
+  it('parses integer seconds (30 → 30_000ms)', () => {
+    expect(parseRetryAfter('30')).toBe(30_000);
+  });
+
+  it('parses zero seconds (0 → 0ms)', () => {
+    expect(parseRetryAfter('0')).toBe(0);
+  });
+
+  it('returns null for negative values', () => {
+    expect(parseRetryAfter('-5')).toBeNull();
+  });
+
+  it('returns null for non-numeric strings (HTTP-date format)', () => {
+    expect(parseRetryAfter('Thu, 01 Dec 2025 16:00:00 GMT')).toBeNull();
+  });
+
+  it('clamps to 60 seconds max (120 → 60_000ms)', () => {
+    expect(parseRetryAfter('120')).toBe(60_000);
   });
 });
