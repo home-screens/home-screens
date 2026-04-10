@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays, isTransientError } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -1017,5 +1017,29 @@ describe('assertOptionalArrays', () => {
     expect(result).toBeInstanceOf(NextResponse);
     const json = await (result as NextResponse).json();
     expect(json.error).toBe('plan must be an array');
+  });
+});
+
+describe('isTransientError', () => {
+  it('returns true for 500, 502, 503, 504', () => {
+    expect(isTransientError(500)).toBe(true);
+    expect(isTransientError(502)).toBe(true);
+    expect(isTransientError(503)).toBe(true);
+    expect(isTransientError(504)).toBe(true);
+  });
+
+  it('returns true for 429 (rate limited)', () => {
+    expect(isTransientError(429)).toBe(true);
+  });
+
+  it('returns false for 400, 401, 403, 404', () => {
+    expect(isTransientError(400)).toBe(false);
+    expect(isTransientError(401)).toBe(false);
+    expect(isTransientError(403)).toBe(false);
+    expect(isTransientError(404)).toBe(false);
+  });
+
+  it('returns false for 200', () => {
+    expect(isTransientError(200)).toBe(false);
   });
 });

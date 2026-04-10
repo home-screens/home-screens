@@ -36,6 +36,14 @@ export function fetchWithTimeout(
 }
 
 /**
+ * Returns true for HTTP status codes that indicate a transient failure
+ * worth retrying: 429 (rate-limited) and 5xx (server errors).
+ */
+export function isTransientError(status: number): boolean {
+  return status === 429 || (status >= 500 && status < 600);
+}
+
+/**
  * Reads lat/lon from config (with weather settings fallback),
  * allowing override from searchParams. Returns null if missing.
  */
