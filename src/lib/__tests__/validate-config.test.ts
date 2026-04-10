@@ -57,10 +57,6 @@ function findByCode(diagnostics: ConfigDiagnostic[], code: string): ConfigDiagno
   return diagnostics.find((d) => d.code === code);
 }
 
-function hasSeverity(diagnostics: ConfigDiagnostic[], severity: 'error' | 'warning'): ConfigDiagnostic[] {
-  return diagnostics.filter((d) => d.severity === severity);
-}
-
 describe('validateConfig', () => {
   it('returns no diagnostics for a valid config', () => {
     const result = validateConfig(validConfig());
