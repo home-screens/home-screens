@@ -894,7 +894,7 @@ export interface DateConfig {
 // Chore chart module config
 export type ChoreChartView = 'board' | 'star-chart' | 'today' | 'progress' | 'compact';
 export type ChoreTimeOfDay = 'morning' | 'afternoon' | 'evening' | 'anytime';
-export type ChoreRotation = 'fixed' | 'rotate-daily' | 'rotate-weekly';
+export type ChoreRotation = 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule';
 export type ChoreResetFrequency = 'daily' | 'weekly' | 'biweekly';
 
 export interface ChoreMember {
@@ -914,6 +914,7 @@ export interface ChoreDefinition {
   timeOfDay: ChoreTimeOfDay;
   assigneeIds: string[];
   rotation: ChoreRotation;
+  schedule?: Record<string, number[]>;
 }
 
 export interface ChoreCompletion {

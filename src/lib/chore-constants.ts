@@ -12,6 +12,7 @@ export const CHORE_ROTATIONS: { value: ChoreRotation; label: string }[] = [
   { value: 'fixed', label: 'Fixed (all do it)' },
   { value: 'rotate-daily', label: 'Rotate Daily' },
   { value: 'rotate-weekly', label: 'Rotate Weekly' },
+  { value: 'schedule', label: 'Schedule' },
 ];
 
 // ── Reward icon presets ────

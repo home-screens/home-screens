@@ -244,6 +244,48 @@ function ChoreForm({
   const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
+  const [schedule, setSchedule] = useState<Record<string, number[]>>(
+    initial?.schedule ?? {}
+  );
+
+  const switchToSchedule = () => {
+    setRotation('schedule');
+    if (Object.keys(schedule).length === 0) {
+      const seeded: Record<string, number[]> = {};
+      for (const id of assigneeIds) {
+        seeded[id] = [...daysOfWeek];
+      }
+      setSchedule(seeded);
+    }
+  };
+
+  const switchFromSchedule = (newRotation: ChoreRotation) => {
+    const ids = Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id);
+    const days = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
+    if (ids.length > 0) setAssigneeIds(ids);
+    if (days.length > 0) setDaysOfWeek(days);
+    setRotation(newRotation);
+  };
+
+  const toggleScheduleDay = (memberId: string, day: number) => {
+    setSchedule((prev) => {
+      const current = prev[memberId] ?? [];
+      const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day];
+      if (next.length === 0) {
+        const { [memberId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [memberId]: next };
+    });
+  };
+
+  const addMemberToSchedule = (memberId: string) => {
+    setSchedule((prev) => ({ ...prev, [memberId]: [] }));
+  };
+
+  const scheduleMembers = Object.keys(schedule);
+  const scheduleDays = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
+  const unscheduledMembers = members.filter((m) => !scheduleMembers.includes(m.id));
 
   const toggleDay = (d: number) => {
     setDaysOfWeek((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
@@ -253,24 +295,38 @@ function ChoreForm({
     setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  const canSave = name.trim().length > 0 && assigneeIds.length > 0;
+  const scheduleHasAssignment = rotation === 'schedule'
+    ? Object.values(schedule).some((days) => days.length > 0)
+    : true;
+  const canSave = name.trim().length > 0
+    && (rotation === 'schedule' ? scheduleHasAssignment : assigneeIds.length > 0);
   const validationHint = !name.trim()
     ? 'Enter a chore name'
-    : assigneeIds.length === 0
-      ? 'Select at least one person'
-      : null;
+    : rotation === 'schedule' && !scheduleHasAssignment
+      ? 'Add at least one person to the schedule'
+      : rotation !== 'schedule' && assigneeIds.length === 0
+        ? 'Select at least one person'
+        : null;
 
   const submit = () => {
     if (!canSave) return;
+    const isSchedule = rotation === 'schedule';
+    const finalAssigneeIds = isSchedule
+      ? Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id)
+      : assigneeIds;
+    const finalDaysOfWeek = isSchedule
+      ? [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b)
+      : daysOfWeek;
     onSubmit({
       name: name.trim(),
       emoji,
       points: parseInt(points) || 1,
       frequency,
-      daysOfWeek,
+      daysOfWeek: finalDaysOfWeek,
       timeOfDay,
-      assigneeIds,
-      rotation: assigneeIds.length <= 1 ? 'fixed' : rotation,
+      assigneeIds: finalAssigneeIds,
+      rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
+      ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
     });
   };
 
@@ -333,56 +389,141 @@ function ChoreForm({
         </label>
       </div>
 
-      {/* Days of week */}
-      <div className="space-y-1.5">
-        <span className="text-xs text-hs-text-muted">Days</span>
-        <div className="flex gap-1">
-          {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => toggleDay(d)}
-              className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
-                daysOfWeek.includes(d)
-                  ? 'bg-hs-accent-soft text-hs-accent'
-                  : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-              }`}
-            >
-              {DAY_NAMES_SHORT[d][0]}
-            </button>
-          ))}
-        </div>
-      </div>
+      {rotation !== 'schedule' && (
+        <>
+          {/* Days of week */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-hs-text-muted">Days</span>
+            <div className="flex gap-1">
+              {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => toggleDay(d)}
+                  className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
+                    daysOfWeek.includes(d)
+                      ? 'bg-hs-accent-soft text-hs-accent'
+                      : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
+                  }`}
+                >
+                  {DAY_NAMES_SHORT[d][0]}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Assignees */}
-      <div className="space-y-1.5">
-        <span className="text-xs text-hs-text-muted">Assign to</span>
-        <div className="flex flex-wrap gap-1.5">
-          {members.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => toggleAssignee(m.id)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all ${
-                assigneeIds.includes(m.id)
-                  ? 'bg-hs-accent-soft text-hs-accent ring-1 ring-hs-accent/30'
-                  : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-              }`}
-            >
-              {m.emoji && <ChoreIcon value={m.emoji} size={14} color="currentColor" />}
-              <span>{m.name}</span>
-            </button>
-          ))}
+          {/* Assignees */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-hs-text-muted">Assign to</span>
+            <div className="flex flex-wrap gap-1.5">
+              {members.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => toggleAssignee(m.id)}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all ${
+                    assigneeIds.includes(m.id)
+                      ? 'bg-hs-accent-soft text-hs-accent ring-1 ring-hs-accent/30'
+                      : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
+                  }`}
+                >
+                  {m.emoji && <ChoreIcon value={m.emoji} size={14} color="currentColor" />}
+                  <span>{m.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Schedule grid (when rotation = schedule) */}
+      {rotation === 'schedule' && (
+        <div className="space-y-1.5">
+          <span className="text-xs text-hs-text-muted">Weekly Schedule</span>
+          {/* Day headers */}
+          <div className="flex gap-0.5" style={{ paddingLeft: 72 }}>
+            {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+              <div key={d} className="flex-1 text-center text-[10px] font-semibold text-hs-text-faint">
+                {DAY_NAMES_SHORT[d][0]}
+              </div>
+            ))}
+          </div>
+          {/* Member rows */}
+          <div className="rounded-lg border border-hs-border-strong overflow-hidden">
+            {scheduleMembers.map((memberId) => {
+              const member = members.find((m) => m.id === memberId);
+              if (!member) return null;
+              const memberDays = schedule[memberId] ?? [];
+              return (
+                <div key={memberId} className="flex items-center gap-1.5 px-2 py-1.5 border-b border-hs-border last:border-b-0">
+                  <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                    style={{ background: member.color }}
+                  >
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={14} color="white" /> : member.name[0]}
+                  </div>
+                  <span className="text-xs font-medium text-hs-text-body w-12 truncate shrink-0">{member.name}</span>
+                  <div className="flex gap-0.5 flex-1">
+                    {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                      const isOn = memberDays.includes(d);
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => toggleScheduleDay(memberId, d)}
+                          className={`flex-1 aspect-square rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                            isOn ? '' : 'bg-hs-card text-hs-text-faint'
+                          }`}
+                          style={isOn ? { background: member.color, color: 'white' } : undefined}
+                        >
+                          {DAY_NAMES_SHORT[d][0]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Add member buttons */}
+          {unscheduledMembers.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {unscheduledMembers.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => addMemberToSchedule(m.id)}
+                  className="flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-hs-card text-hs-text-faint hover:bg-hs-hover border border-dashed border-hs-border transition-all"
+                >
+                  <span>+</span> {m.name}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Coverage summary */}
+          <div className="text-[11px] text-hs-text-faint flex items-center gap-1.5">
+            <span>Coverage: {scheduleDays.length} of 7 days</span>
+            {scheduleDays.length < 7 && (
+              <span className="text-hs-warning/70">
+                · {[0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => DAY_NAMES_SHORT[d]).join(', ')} uncovered
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Rotation (only when 2+ assignees) */}
-      {assigneeIds.length >= 2 && (
+      {(assigneeIds.length >= 2 || rotation === 'schedule') && (
         <label className="flex flex-col gap-0.5">
           <span className="text-xs text-hs-text-muted">Rotation</span>
           <select
             value={rotation}
-            onChange={(e) => setRotation(e.target.value as ChoreRotation)}
+            onChange={(e) => {
+              const val = e.target.value as ChoreRotation;
+              if (val === 'schedule') switchToSchedule();
+              else if (rotation === 'schedule') switchFromSchedule(val);
+              else setRotation(val);
+            }}
             className={MODAL_INPUT_CLASS}
           >
             {CHORE_ROTATIONS.map((r) => (
@@ -750,9 +891,9 @@ function ChoreColumn({
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}
-                  {chore.rotation !== 'fixed' && chore.assigneeIds.length > 1 && (
+                  {((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') && (
                     <span className="text-hs-text-faint">
-                      {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : 'rotate weekly'})
+                      {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : chore.rotation === 'rotate-weekly' ? 'rotate weekly' : 'schedule'})
                     </span>
                   )}
                 </div>

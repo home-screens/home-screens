@@ -247,6 +247,44 @@ describe('resolveAssignee', () => {
     const week1 = resolveAssignee(chore, '2024-01-08');
     expect(week0[0]).not.toBe(week1[0]);
   });
+
+  it('returns scheduled members for the matching day of week', () => {
+    const chore = makeChore({
+      rotation: 'schedule',
+      assigneeIds: ['alice', 'bob'],
+      schedule: { alice: [1, 2], bob: [3, 4] }, // alice Mon/Tue, bob Wed/Thu
+    });
+    // 2026-03-16 is a Monday (dow=1)
+    expect(resolveAssignee(chore, '2026-03-16')).toEqual(['alice']);
+    // 2026-03-18 is a Wednesday (dow=3)
+    expect(resolveAssignee(chore, '2026-03-18')).toEqual(['bob']);
+  });
+
+  it('returns multiple members when both are scheduled on the same day', () => {
+    const chore = makeChore({
+      rotation: 'schedule',
+      assigneeIds: ['alice', 'bob'],
+      schedule: { alice: [1], bob: [1] }, // both on Monday
+    });
+    // 2026-03-16 is a Monday
+    expect(resolveAssignee(chore, '2026-03-16')).toEqual(['alice', 'bob']);
+  });
+
+  it('returns empty array for schedule when no one is assigned that day', () => {
+    const chore = makeChore({
+      rotation: 'schedule',
+      assigneeIds: ['alice'],
+      schedule: { alice: [1] }, // only Monday
+    });
+    // 2026-03-17 is a Tuesday
+    expect(resolveAssignee(chore, '2026-03-17')).toEqual([]);
+  });
+
+  it('returns empty array when schedule is undefined (defensive)', () => {
+    const chore = makeChore({ rotation: 'schedule', assigneeIds: ['alice'] });
+    // no schedule field at all
+    expect(resolveAssignee(chore, '2026-03-16')).toEqual([]);
+  });
 });
 
 describe('choreAppliesToday', () => {
@@ -421,6 +459,63 @@ describe('cascadeDeleteMember', () => {
     const chores = [makeChore({ id: 'c1', assigneeIds: ['b'] })];
     const result = cascadeDeleteMember(members, chores, 'a');
     expect(result.chores).toEqual(chores);
+  });
+
+  it('removes the member from schedule when rotation is schedule', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
+    const chores = [makeChore({
+      id: 'c1',
+      assigneeIds: ['a', 'b', 'c'],
+      rotation: 'schedule',
+      schedule: { a: [1, 2], b: [3, 4], c: [5, 6] },
+    })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.chores[0].schedule).toEqual({ b: [3, 4], c: [5, 6] });
+    expect(result.chores[0].assigneeIds).toEqual(['b', 'c']);
+  });
+
+  it('falls back to fixed rotation when schedule becomes empty after cascade', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
+    const chores = [makeChore({
+      id: 'c1',
+      assigneeIds: ['a'],
+      rotation: 'schedule',
+      schedule: { a: [1, 2] },
+    })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    // Chore has no assignees → gets deleted entirely
+    expect(result.chores).toHaveLength(0);
+  });
+
+  it('falls back to fixed when schedule has one member left after cascade', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
+    const chores = [makeChore({
+      id: 'c1',
+      assigneeIds: ['a', 'b'],
+      rotation: 'schedule',
+      schedule: { a: [1], b: [3] },
+    })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    expect(result.chores[0].rotation).toBe('fixed');
+    expect(result.chores[0].schedule).toBeUndefined();
+    expect(result.chores[0].assigneeIds).toEqual(['b']);
+    // daysOfWeek must be recalculated to only Bob's days, not the old union
+    expect(result.chores[0].daysOfWeek).toEqual([3]);
+  });
+
+  it('recalculates daysOfWeek when removing a member from a multi-member schedule', () => {
+    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
+    const chores = [makeChore({
+      id: 'c1',
+      assigneeIds: ['a', 'b', 'c'],
+      rotation: 'schedule',
+      schedule: { a: [1, 2], b: [3, 4], c: [5] },
+      daysOfWeek: [1, 2, 3, 4, 5],
+    })];
+    const result = cascadeDeleteMember(members, chores, 'a');
+    // Schedule should only have Bob and Charlie's days now
+    expect(result.chores[0].schedule).toEqual({ b: [3, 4], c: [5] });
+    expect(result.chores[0].daysOfWeek).toEqual([3, 4, 5]);
   });
 });
 
