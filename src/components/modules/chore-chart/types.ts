@@ -132,6 +132,13 @@ export function resolveAssignee(
   chore: ChoreDefinition,
   date: string,
 ): string[] {
+  if (chore.rotation === 'schedule') {
+    const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+    return Object.entries(chore.schedule ?? {})
+      .filter(([, days]) => days.includes(dayOfWeek))
+      .map(([memberId]) => memberId);
+  }
+
   if (chore.rotation === 'fixed' || chore.assigneeIds.length <= 1) {
     return chore.assigneeIds;
   }
@@ -278,7 +285,23 @@ export function cascadeDeleteMember(
   return {
     members: members.filter((m) => m.id !== memberId),
     chores: chores
-      .map((c) => ({ ...c, assigneeIds: c.assigneeIds.filter((a) => a !== memberId) }))
+      .map((c) => {
+        const updated = { ...c, assigneeIds: c.assigneeIds.filter((a) => a !== memberId) };
+        if (updated.schedule) {
+          const { [memberId]: _, ...rest } = updated.schedule;
+          const remaining = Object.keys(rest).length;
+          if (remaining === 0) {
+            updated.schedule = undefined;
+            updated.rotation = 'fixed';
+          } else if (remaining === 1 && updated.rotation === 'schedule') {
+            updated.schedule = undefined;
+            updated.rotation = 'fixed';
+          } else {
+            updated.schedule = rest;
+          }
+        }
+        return updated;
+      })
       .filter((c) => c.assigneeIds.length > 0),
   };
 }
