@@ -240,7 +240,7 @@ function ChoreFormOverlay({
     onSubmit({
       name: name.trim(),
       emoji,
-      points: parseInt(points) || 1,
+      points: Number.isNaN(parseInt(points)) ? 1 : parseInt(points),
       frequency,
       daysOfWeek: finalDaysOfWeek,
       timeOfDay,
@@ -284,7 +284,7 @@ function ChoreFormOverlay({
               value={points}
               onChange={(e) => setPoints(e.target.value)}
               inputMode="numeric"
-              min={1}
+              min={0}
               style={{ ...INPUT_STYLE, textAlign: 'center' }}
             />
           </div>

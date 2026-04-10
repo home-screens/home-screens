@@ -320,7 +320,7 @@ function ChoreForm({
     onSubmit({
       name: name.trim(),
       emoji,
-      points: parseInt(points) || 1,
+      points: Number.isNaN(parseInt(points)) ? 1 : parseInt(points),
       frequency,
       daysOfWeek: finalDaysOfWeek,
       timeOfDay,
@@ -358,7 +358,7 @@ function ChoreForm({
             value={points}
             onChange={(e) => setPoints(e.target.value)}
             className={MODAL_INPUT_CLASS}
-            min={1}
+            min={0}
           />
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
