@@ -923,6 +923,22 @@ export interface ChoreCompletion {
   completedAt: string;
 }
 
+/** Request body for POST /api/chores — toggles a single completion on or off. */
+export interface ChoreToggleRequest {
+  choreId: string;
+  memberId: string;
+  /** YYYY-MM-DD; must be within the retention window (last 90 days through today). */
+  date: string;
+}
+
+/** Response body for GET and POST /api/chores. */
+export interface ChoreToggleResponse {
+  completions: ChoreCompletion[];
+  /** Set when an admin un-completes a chore whose points were already spent —
+   *  the balance went negative as a result. UI should surface a warning. */
+  warning?: string;
+}
+
 export interface ChoreChartConfig {
   view: ChoreChartView;
   members: ChoreMember[];

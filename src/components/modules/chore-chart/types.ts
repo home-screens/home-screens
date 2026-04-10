@@ -30,7 +30,21 @@ export interface WeekDayData {
   memberStars: Record<string, boolean>; // memberId → earned star
 }
 
+/** A single day in the chore history strip — date plus the day's earned/total fraction. */
+export interface DayEntry {
+  date: string;       // YYYY-MM-DD
+  dayOfWeek: number;  // 0–6
+  dayOfMonth: number;
+  earned: number;
+  total: number;
+}
+
 // ── Constants ──────────────────────────────────────────────────────
+
+/** How many days of chore-completion history to surface (and retain server-side).
+ *  Single source of truth — the `/api/chores` PURGE_DAYS and the history strip
+ *  both reference this so they cannot drift. */
+export const CHORE_HISTORY_DAYS = 90;
 
 export { DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/lib/meal-constants';
 
@@ -72,6 +86,45 @@ export function dateNDaysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return localDateStr(d);
+}
+
+/** Add (or subtract) days from a YYYY-MM-DD string. Local-time calendar arithmetic. */
+export function addDaysISO(iso: string, n: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  // Parse as local midnight; setDate walks the local calendar correctly across month/year/DST.
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + n);
+  return localDateStr(date);
+}
+
+/** Return the 7 dates (YYYY-MM-DD) for the week containing `reference`,
+ *  starting from the configured week start day. */
+export function getWeekDatesFor(
+  reference: Date | string,
+  weekStartDay: 'sunday' | 'monday',
+): string[] {
+  const refDate =
+    typeof reference === 'string'
+      ? (() => {
+          const [y, m, d] = reference.split('-').map(Number);
+          return new Date(y, m - 1, d);
+        })()
+      : new Date(reference.getFullYear(), reference.getMonth(), reference.getDate());
+
+  const startDow = weekStartDay === 'monday' ? 1 : 0;
+  const refDow = refDate.getDay();
+  const daysBack = (refDow - startDow + 7) % 7;
+
+  const weekStart = new Date(refDate);
+  weekStart.setDate(weekStart.getDate() - daysBack);
+
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    dates.push(localDateStr(d));
+  }
+  return dates;
 }
 
 /** Resolve rotation — which member is assigned a chore on a given date */
@@ -141,6 +194,76 @@ export function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay {
 /** Build a completion lookup key */
 export function completionKey(choreId: string, memberId: string, date: string): string {
   return `${choreId}-${memberId}-${date}`;
+}
+
+/** Parse a YYYY-MM-DD string as a local-midnight Date. */
+export function parseISO(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Jump a YYYY-MM-DD date by ±N months, clamped to [earliest, latest].
+ *  Handles JS month overflow (e.g. Jan 31 + 1 month → Feb 28/29 not Mar 3). */
+export function addMonthsClamped(
+  iso: string,
+  delta: number,
+  earliest: string,
+  latest: string,
+): string {
+  const d = parseISO(iso);
+  const targetMonth = d.getMonth() + delta;
+  // Try to preserve day-of-month; JS overflow handles shorter months gracefully.
+  const candidate = new Date(d.getFullYear(), targetMonth, d.getDate());
+  // If JS overflowed (e.g. Jan 31 + 1mo → Mar 3), walk back to the last day of the intended month.
+  if (candidate.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+    candidate.setDate(0); // jumps to the last day of the previous (= intended) month
+  }
+  const iso2 = localDateStr(candidate);
+  if (iso2 < earliest) return earliest;
+  if (iso2 > latest) return latest;
+  return iso2;
+}
+
+/** Build per-day earned/total entries for a date range.
+ *  - `total` counts members who had any chores assigned that day (vacation days skipped).
+ *  - `earned` counts members who completed all their assigned chores that day. */
+export function computeDayEntries(
+  earliestDate: string,
+  latestDate: string,
+  members: ChoreMember[],
+  chores: ChoreDefinition[],
+  completionSet: Set<string>,
+): DayEntry[] {
+  const list: DayEntry[] = [];
+  let cursor = earliestDate;
+  while (cursor <= latestDate) {
+    const parsed = parseISO(cursor);
+    const dow = parsed.getDay();
+
+    let total = 0;
+    let earned = 0;
+    for (const member of members) {
+      const assigned = chores.filter((c) => {
+        if (!choreAppliesToday(c, dow, cursor)) return false;
+        return resolveAssignee(c, cursor).includes(member.id);
+      });
+      if (assigned.length === 0) continue; // vacation days aren't punished
+      total += 1;
+      if (assigned.every((c) => completionSet.has(completionKey(c.id, member.id, cursor)))) {
+        earned += 1;
+      }
+    }
+
+    list.push({
+      date: cursor,
+      dayOfWeek: dow,
+      dayOfMonth: parsed.getDate(),
+      earned,
+      total,
+    });
+    cursor = addDaysISO(cursor, 1);
+  }
+  return list;
 }
 
 /**

@@ -99,7 +99,8 @@ export function creditPoints(memberId: string, points: number): Promise<RewardDa
   }));
 }
 
-/** Subtract points from a member's balance, flooring at 0. */
+/** Subtract points from a member's balance, flooring at 0.
+ *  Used for admin manual balance adjustments where going negative isn't desired. */
 export function debitPoints(memberId: string, points: number): Promise<RewardData> {
   return enqueueOp((data) => ({
     ...data,
@@ -108,6 +109,37 @@ export function debitPoints(memberId: string, points: number): Promise<RewardDat
       [memberId]: Math.max(0, (data.balances[memberId] ?? 0) - points),
     },
   }));
+}
+
+export interface DebitExactResult {
+  data: RewardData;
+  /** Final balance after the debit (may be negative). */
+  balance: number;
+  /** True if the balance went negative — caller should surface a warning. */
+  wentNegative: boolean;
+}
+
+/** Subtract points from a member's balance EXACTLY, allowing negative balances.
+ *  Used when un-completing a chore whose points were already spent — the
+ *  resulting negative balance is real accounting and must be earned back before
+ *  the next reward can be redeemed. `redeemReward` already gates redemptions on
+ *  `balance >= cost` so a negative balance can't be drained further. */
+export async function debitPointsExact(
+  memberId: string,
+  points: number,
+): Promise<DebitExactResult> {
+  let balance = 0;
+  let wentNegative = false;
+  const data = await enqueueOp((current) => {
+    const before = current.balances[memberId] ?? 0;
+    balance = before - points;
+    wentNegative = balance < 0;
+    return {
+      ...current,
+      balances: { ...current.balances, [memberId]: balance },
+    };
+  });
+  return { data, balance, wentNegative };
 }
 
 /** Record a redemption and debit the cost from the member's balance. */

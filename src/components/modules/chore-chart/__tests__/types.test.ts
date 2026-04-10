@@ -9,7 +9,13 @@ import {
   completionKey,
   todayStr,
   dateNDaysAgo,
+  addDaysISO,
+  getWeekDatesFor,
   cascadeDeleteMember,
+  parseISO,
+  addMonthsClamped,
+  computeDayEntries,
+  CHORE_HISTORY_DAYS,
   type ResolvedAssignment,
 } from '../types';
 import type { ChoreDefinition, ChoreMember } from '@/types/config';
@@ -74,6 +80,117 @@ describe('dateNDaysAgo', () => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
     expect(result).toBe(localDateStr(d));
+  });
+});
+
+describe('addDaysISO', () => {
+  it('adds positive days within the same month', () => {
+    expect(addDaysISO('2026-03-15', 5)).toBe('2026-03-20');
+  });
+
+  it('subtracts days within the same month', () => {
+    expect(addDaysISO('2026-03-15', -5)).toBe('2026-03-10');
+  });
+
+  it('handles crossing into the next month', () => {
+    expect(addDaysISO('2026-03-30', 5)).toBe('2026-04-04');
+  });
+
+  it('handles crossing into the previous month', () => {
+    expect(addDaysISO('2026-03-02', -5)).toBe('2026-02-25');
+  });
+
+  it('handles crossing into the next year', () => {
+    expect(addDaysISO('2025-12-30', 5)).toBe('2026-01-04');
+  });
+
+  it('handles crossing into the previous year', () => {
+    expect(addDaysISO('2026-01-02', -5)).toBe('2025-12-28');
+  });
+
+  it('handles a full 90-day walk backward', () => {
+    // Round trip check — walking 90 days back then 90 days forward returns the same ISO.
+    const start = '2026-04-09';
+    const back = addDaysISO(start, -90);
+    expect(addDaysISO(back, 90)).toBe(start);
+  });
+
+  it('handles leap-year February', () => {
+    expect(addDaysISO('2024-02-28', 1)).toBe('2024-02-29');
+    expect(addDaysISO('2024-02-29', 1)).toBe('2024-03-01');
+  });
+
+  it('returns n=0 unchanged', () => {
+    expect(addDaysISO('2026-03-15', 0)).toBe('2026-03-15');
+  });
+});
+
+describe('getWeekDatesFor', () => {
+  it('returns 7 dates starting on Sunday for "sunday" weekStartDay', () => {
+    // 2026-04-09 is a Thursday. Sunday-start week = 2026-04-05..2026-04-11.
+    const dates = getWeekDatesFor('2026-04-09', 'sunday');
+    expect(dates).toEqual([
+      '2026-04-05',
+      '2026-04-06',
+      '2026-04-07',
+      '2026-04-08',
+      '2026-04-09',
+      '2026-04-10',
+      '2026-04-11',
+    ]);
+  });
+
+  it('returns 7 dates starting on Monday for "monday" weekStartDay', () => {
+    // 2026-04-09 is a Thursday. Monday-start week = 2026-04-06..2026-04-12.
+    const dates = getWeekDatesFor('2026-04-09', 'monday');
+    expect(dates).toEqual([
+      '2026-04-06',
+      '2026-04-07',
+      '2026-04-08',
+      '2026-04-09',
+      '2026-04-10',
+      '2026-04-11',
+      '2026-04-12',
+    ]);
+  });
+
+  it('handles a Sunday reference with sunday start (no backtrack)', () => {
+    // 2026-04-05 is a Sunday.
+    const dates = getWeekDatesFor('2026-04-05', 'sunday');
+    expect(dates[0]).toBe('2026-04-05');
+    expect(dates[6]).toBe('2026-04-11');
+  });
+
+  it('handles a Sunday reference with monday start (backtracks 6 days)', () => {
+    // 2026-04-05 Sunday should pull back to 2026-03-30 Monday.
+    const dates = getWeekDatesFor('2026-04-05', 'monday');
+    expect(dates[0]).toBe('2026-03-30');
+    expect(dates[6]).toBe('2026-04-05');
+  });
+
+  it('accepts a Date object and a string reference equivalently', () => {
+    const asString = getWeekDatesFor('2026-04-09', 'monday');
+    const asDate = getWeekDatesFor(new Date(2026, 3, 9), 'monday');
+    expect(asString).toEqual(asDate);
+  });
+
+  it('walks backward across a month boundary', () => {
+    // 2026-05-02 is a Saturday; monday-start week = 2026-04-27..2026-05-03.
+    const dates = getWeekDatesFor('2026-05-02', 'monday');
+    expect(dates[0]).toBe('2026-04-27');
+    expect(dates[6]).toBe('2026-05-03');
+  });
+
+  it('walks backward across a year boundary', () => {
+    // 2026-01-02 is a Friday; sunday-start week = 2025-12-28..2026-01-03.
+    const dates = getWeekDatesFor('2026-01-02', 'sunday');
+    expect(dates[0]).toBe('2025-12-28');
+    expect(dates[6]).toBe('2026-01-03');
+  });
+
+  it('always returns exactly 7 dates', () => {
+    const dates = getWeekDatesFor('2026-04-09', 'sunday');
+    expect(dates).toHaveLength(7);
   });
 });
 
@@ -304,5 +421,133 @@ describe('cascadeDeleteMember', () => {
     const chores = [makeChore({ id: 'c1', assigneeIds: ['b'] })];
     const result = cascadeDeleteMember(members, chores, 'a');
     expect(result.chores).toEqual(chores);
+  });
+});
+
+describe('CHORE_HISTORY_DAYS', () => {
+  it('is 90 days (single source of truth for client + server)', () => {
+    expect(CHORE_HISTORY_DAYS).toBe(90);
+  });
+});
+
+describe('parseISO', () => {
+  it('returns a local-midnight Date for a YYYY-MM-DD string', () => {
+    const d = parseISO('2026-04-09');
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(3); // April = 3
+    expect(d.getDate()).toBe(9);
+    expect(d.getHours()).toBe(0);
+  });
+});
+
+describe('addMonthsClamped', () => {
+  it('walks one month forward within the same year', () => {
+    expect(addMonthsClamped('2026-03-15', 1, '2025-01-01', '2026-12-31')).toBe('2026-04-15');
+  });
+
+  it('walks one month backward within the same year', () => {
+    expect(addMonthsClamped('2026-03-15', -1, '2025-01-01', '2026-12-31')).toBe('2026-02-15');
+  });
+
+  it('handles JS month overflow — Jan 31 + 1 month → Feb 28 (non-leap)', () => {
+    expect(addMonthsClamped('2025-01-31', 1, '2024-01-01', '2026-12-31')).toBe('2025-02-28');
+  });
+
+  it('handles JS month overflow — Jan 31 + 1 month → Feb 29 (leap year)', () => {
+    expect(addMonthsClamped('2024-01-31', 1, '2023-01-01', '2026-12-31')).toBe('2024-02-29');
+  });
+
+  it('handles JS month overflow — Mar 31 - 1 month → Feb 28 (non-leap)', () => {
+    expect(addMonthsClamped('2025-03-31', -1, '2024-01-01', '2026-12-31')).toBe('2025-02-28');
+  });
+
+  it('clamps to earliest when target falls below the window', () => {
+    expect(addMonthsClamped('2026-03-15', -6, '2026-01-01', '2026-12-31')).toBe('2026-01-01');
+  });
+
+  it('clamps to latest when target rises above the window', () => {
+    expect(addMonthsClamped('2026-10-15', 6, '2026-01-01', '2026-12-31')).toBe('2026-12-31');
+  });
+
+  it('crosses the year boundary going forward', () => {
+    expect(addMonthsClamped('2025-12-15', 1, '2024-01-01', '2026-12-31')).toBe('2026-01-15');
+  });
+
+  it('crosses the year boundary going backward', () => {
+    expect(addMonthsClamped('2026-01-15', -1, '2024-01-01', '2026-12-31')).toBe('2025-12-15');
+  });
+});
+
+describe('computeDayEntries', () => {
+  const alice: ChoreMember = { id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
+  const bob: ChoreMember = { id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
+
+  it('returns one entry per day in the inclusive range', () => {
+    const entries = computeDayEntries('2026-04-05', '2026-04-09', [], [], new Set());
+    expect(entries).toHaveLength(5);
+    expect(entries[0].date).toBe('2026-04-05');
+    expect(entries[4].date).toBe('2026-04-09');
+  });
+
+  it('counts each member with assigned chores once toward total', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice', 'bob'], rotation: 'fixed' });
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [alice, bob], [chore], new Set());
+    expect(entries[0].total).toBe(2);
+    expect(entries[0].earned).toBe(0);
+  });
+
+  it('marks earned only when ALL the member\'s assigned chores are completed', () => {
+    const c1 = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+    const c2 = makeChore({ id: 'c2', assigneeIds: ['alice'] });
+    const set = new Set<string>();
+    set.add(completionKey('c1', 'alice', '2026-04-09'));
+    // c2 not completed
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [alice], [c1, c2], set);
+    expect(entries[0].total).toBe(1);
+    expect(entries[0].earned).toBe(0);
+  });
+
+  it('marks earned when every assigned chore is in the completion set', () => {
+    const c1 = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+    const c2 = makeChore({ id: 'c2', assigneeIds: ['alice'] });
+    const set = new Set<string>();
+    set.add(completionKey('c1', 'alice', '2026-04-09'));
+    set.add(completionKey('c2', 'alice', '2026-04-09'));
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [alice], [c1, c2], set);
+    expect(entries[0].total).toBe(1);
+    expect(entries[0].earned).toBe(1);
+  });
+
+  it('skips members with no assigned chores (vacation days are not punished)', () => {
+    // Bob has no chores at all; total should not include him.
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [alice, bob], [chore], new Set());
+    expect(entries[0].total).toBe(1); // only alice counts
+  });
+
+  it('skips a day entirely when no member has any assigned chores', () => {
+    // No members assigned at all on this day -> total=0, earned=0
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], daysOfWeek: [0] }); // Sunday only
+    // 2026-04-09 is a Thursday — chore doesn't apply
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [alice], [chore], new Set());
+    expect(entries[0].total).toBe(0);
+    expect(entries[0].earned).toBe(0);
+  });
+
+  it('populates dayOfWeek and dayOfMonth from the cursor date', () => {
+    // 2026-04-09 is a Thursday (dow=4)
+    const entries = computeDayEntries('2026-04-09', '2026-04-09', [], [], new Set());
+    expect(entries[0].dayOfWeek).toBe(4);
+    expect(entries[0].dayOfMonth).toBe(9);
+  });
+
+  it('walks month boundaries correctly', () => {
+    const entries = computeDayEntries('2026-03-30', '2026-04-02', [], [], new Set());
+    expect(entries.map((e) => e.date)).toEqual([
+      '2026-03-30',
+      '2026-03-31',
+      '2026-04-01',
+      '2026-04-02',
+    ]);
   });
 });

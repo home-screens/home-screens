@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Sunrise, Sun, Sunset, Clock, Check, Settings } from 'lucide-react';
-import type { ChoreChartConfig, ChoreMember, ChoreDefinition, ChoreCompletion, ChoreTimeOfDay } from '@/types/config';
+import { Sunrise, Sun, Sunset, Clock, Check, Settings, Lock } from 'lucide-react';
+import type {
+  ChoreChartConfig,
+  ChoreMember,
+  ChoreDefinition,
+  ChoreCompletion,
+  ChoreTimeOfDay,
+  ChoreToggleRequest,
+  ChoreToggleResponse,
+} from '@/types/config';
 import {
   resolveAssignee,
   choreAppliesToday,
@@ -12,8 +20,26 @@ import {
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
+
+/** Format a YYYY-MM-DD string as a friendly long date for banner copy. */
+const LONG_DATE = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+});
+function formatLongDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return LONG_DATE.format(new Date(y, m - 1, d));
+}
+function daysBetween(from: string, to: string): number {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  const msPerDay = 86_400_000;
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / msPerDay);
+}
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -84,6 +110,19 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
   const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
+  // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete).
+  // Rendered as a dismissible banner so the admin gets in-UI feedback without DevTools.
+  const [lastWarning, setLastWarning] = useState<string | null>(null);
+
+  // Track mounted state so in-flight fetches don't setState after unmount.
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Each new poll cancels the previous in-flight poll.
+  const fetchAbortRef = useRef<AbortController | null>(null);
 
   // Keep selectedMemberId valid when members change
   useEffect(() => {
@@ -94,30 +133,62 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
 
   // Fetch completions
   const fetchCompletions = useCallback(async () => {
+    // Cancel any prior in-flight poll
+    fetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
     try {
-      const res = await fetch('/api/chores');
+      const res = await fetch('/api/chores', { signal: controller.signal });
       if (!res.ok) return;
       const data = await res.json();
-      setCompletions(data.completions ?? []);
-    } catch { /* silent */ }
+      if (!isMountedRef.current || controller.signal.aborted) return;
+      setCompletions((prev) => {
+        const next: ChoreCompletion[] = data.completions ?? [];
+        if (
+          prev.length === next.length &&
+          prev.every((c, i) => {
+            const n = next[i];
+            return c.choreId === n.choreId && c.memberId === n.memberId && c.date === n.date;
+          })
+        ) {
+          return prev; // identity-stable when content unchanged
+        }
+        return next;
+      });
+    } catch { /* silent (includes AbortError) */ }
   }, []);
 
   useEffect(() => {
     fetchCompletions();
     const interval = setInterval(fetchCompletions, 15_000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      fetchAbortRef.current?.abort();
+    };
   }, [fetchCompletions]);
 
-  // Re-render at midnight
-  const [dateKey, setDateKey] = useState(todayStr);
+  // Re-render at midnight and advance the viewing window if the user is on "today"
+  // Both initial values come from a single snapshot so they can't straddle midnight.
+  const initialDate = useRef(todayStr()).current;
+  const [dateKey, setDateKey] = useState(initialDate);
+  const [viewingDate, setViewingDate] = useState<string>(initialDate);
   useEffect(() => {
     const check = () => {
       const now = todayStr();
-      if (now !== dateKey) setDateKey(now);
+      if (now !== dateKey) {
+        setDateKey(now);
+        // If the user was parked on what used to be today, walk them forward.
+        // If they're explicitly viewing a past day, leave them alone.
+        setViewingDate((prev) => (prev === dateKey ? now : prev));
+      }
     };
     const timer = setInterval(check, 30_000);
     return () => clearInterval(timer);
   }, [dateKey]);
+
+  const realToday = dateKey;
+  const isViewingPast = viewingDate !== realToday;
+  const canEdit = !isViewingPast || isAdmin;
 
   // Completion lookup
   const completionSet = useMemo(() => {
@@ -128,15 +199,15 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
     return set;
   }, [completions]);
 
-  // Today's assignments for the selected member
+  // Assignments for the selected member on the currently-viewed date
   const myAssignments = useMemo(() => {
-    const today = dateKey;
-    const dayOfWeek = new Date(today + 'T00:00:00').getDay();
+    const day = viewingDate;
+    const dayOfWeek = new Date(day + 'T00:00:00').getDay();
     const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean }[] = [];
 
     for (const chore of chores) {
-      if (!choreAppliesToday(chore, dayOfWeek, today)) continue;
-      const assignees = resolveAssignee(chore, today);
+      if (!choreAppliesToday(chore, dayOfWeek, day)) continue;
+      const assignees = resolveAssignee(chore, day);
       if (!assignees.includes(selectedMemberId)) continue;
 
       assignments.push({
@@ -145,7 +216,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
         choreEmoji: chore.emoji,
         timeOfDay: chore.timeOfDay,
         points: chore.points,
-        isCompleted: completionSet.has(completionKey(chore.id, selectedMemberId, today)),
+        isCompleted: completionSet.has(completionKey(chore.id, selectedMemberId, day)),
       });
     }
 
@@ -156,7 +227,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
       return 0;
     });
-  }, [chores, dateKey, selectedMemberId, completionSet]);
+  }, [chores, viewingDate, selectedMemberId, completionSet]);
 
   // Group by time of day
   const grouped = useMemo(() => {
@@ -172,64 +243,80 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
   const totalDone = myAssignments.filter((a) => a.isCompleted).length;
   const totalCount = myAssignments.length;
 
-  // Per-member completion counts for tabs
+  // Per-member completion counts for tabs (on the currently-viewed date)
   const memberTabStats = useMemo(() => {
-    const today = dateKey;
-    const dayOfWeek = new Date(today + 'T00:00:00').getDay();
+    const day = viewingDate;
+    const dayOfWeek = new Date(day + 'T00:00:00').getDay();
     const stats: Record<string, { total: number; done: number }> = {};
     for (const member of members) {
       let total = 0;
       let done = 0;
       for (const c of chores) {
-        if (!choreAppliesToday(c, dayOfWeek, today)) continue;
-        if (!resolveAssignee(c, today).includes(member.id)) continue;
+        if (!choreAppliesToday(c, dayOfWeek, day)) continue;
+        if (!resolveAssignee(c, day).includes(member.id)) continue;
         total++;
-        if (completionSet.has(completionKey(c.id, member.id, today))) done++;
+        if (completionSet.has(completionKey(c.id, member.id, day))) done++;
       }
       stats[member.id] = { total, done };
     }
     return stats;
-  }, [members, chores, dateKey, completionSet]);
+  }, [members, chores, viewingDate, completionSet]);
 
-  // Toggle completion
+  // Toggle completion — accepts the viewing date so backdated edits hit the right day
   const toggle = async (choreId: string) => {
-    const today = todayStr();
-    const key = completionKey(choreId, selectedMemberId, today);
+    if (!canEdit) return; // kids viewing a past day can't edit
+    const day = viewingDate;
+    const key = completionKey(choreId, selectedMemberId, day);
     setToggling((prev) => new Set(prev).add(key));
 
     // Optimistic update
     setCompletions((prev) => {
       const idx = prev.findIndex(
-        (c) => c.choreId === choreId && c.memberId === selectedMemberId && c.date === today,
+        (c) => c.choreId === choreId && c.memberId === selectedMemberId && c.date === day,
       );
       if (idx >= 0) {
         return prev.filter((_, i) => i !== idx);
       }
-      return [...prev, { choreId, memberId: selectedMemberId, date: today, completedAt: new Date().toISOString() }];
+      return [...prev, { choreId, memberId: selectedMemberId, date: day, completedAt: new Date().toISOString() }];
     });
 
     try {
+      const reqBody: ChoreToggleRequest = {
+        choreId,
+        memberId: selectedMemberId,
+        date: day,
+      };
       const res = await fetch('/api/chores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choreId, memberId: selectedMemberId, date: today }),
+        body: JSON.stringify(reqBody),
       });
       if (!res.ok) throw new Error('Failed to toggle');
-        const data = await res.json();
-        setCompletions(data.completions ?? []);
+      const data: ChoreToggleResponse = await res.json();
+      if (!isMountedRef.current) return;
+      setCompletions(data.completions ?? []);
+      if (data.warning) {
+        console.warn('[chores]', data.warning);
+        setLastWarning(data.warning);
+      }
     } catch {
-      fetchCompletions();
+      if (isMountedRef.current) fetchCompletions();
     } finally {
-      setToggling((prev) => {
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
-      });
+      if (isMountedRef.current) {
+        setToggling((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      }
     }
   };
 
   const selectedMember = members.find((m) => m.id === selectedMemberId);
-  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const dayName = (() => {
+    const [y, m, d] = viewingDate.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long' });
+  })();
   const currentTimeOfDay = getCurrentTimeOfDay(new Date().getHours());
 
   return (
@@ -311,6 +398,106 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
         </div>
       ) : (
         <>
+          {/* Server-side warning banner — e.g. balance went negative after an un-complete.
+              Dismissible so admins acknowledge it explicitly. */}
+          {lastWarning && (
+            <div
+              role="alert"
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+                padding: '12px 14px',
+                background: 'rgba(239, 68, 68, 0.10)',
+                border: '1px solid rgba(239, 68, 68, 0.30)',
+                borderRadius: 10,
+                marginBottom: 10,
+                fontSize: 13,
+                color: '#fca5a5',
+                lineHeight: 1.4,
+              }}
+            >
+              <span style={{ flex: 1 }}>{lastWarning}</span>
+              <button
+                type="button"
+                onClick={() => setLastWarning(null)}
+                aria-label="Dismiss warning"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fca5a5',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  lineHeight: 1,
+                  padding: '0 4px',
+                  fontWeight: 700,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {/* Day history strip */}
+          <ChoreHistoryNav
+            viewingDate={viewingDate}
+            realToday={realToday}
+            members={members}
+            chores={chores}
+            completionSet={completionSet}
+            accentColor={accentColor}
+            onSelect={setViewingDate}
+          />
+
+          {/* History banner — visible only when the user has navigated away from today */}
+          {isViewingPast && (() => {
+            const daysAgo = Math.max(1, daysBetween(viewingDate, realToday));
+            return canEdit ? (
+            <div
+              role="status"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 12px',
+                background: 'rgba(245, 158, 11, 0.10)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: 10,
+                marginBottom: 10,
+                fontSize: 12,
+                color: '#fbbf24',
+                lineHeight: 1.4,
+              }}
+            >
+              <span>
+                Editing <strong style={{ fontWeight: 700 }}>{formatLongDate(viewingDate)}</strong>
+                {' '}({daysAgo} day{daysAgo === 1 ? '' : 's'} ago) — points add to today&apos;s balance.
+                {' '}Note: today&apos;s chore list is shown for past days, so chores added recently may appear missed.
+              </span>
+            </div>
+          ) : (
+            <div
+              role="status"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 12px',
+                background: 'rgba(115, 115, 115, 0.10)',
+                border: '1px solid rgba(115, 115, 115, 0.25)',
+                borderRadius: 10,
+                marginBottom: 10,
+                fontSize: 12,
+                color: '#a3a3a3',
+                lineHeight: 1.4,
+              }}
+            >
+              <Lock size={14} strokeWidth={2.25} aria-hidden="true" />
+              <span>Ask a grown-up to add chores you missed.</span>
+            </div>
+          );
+          })()}
+
           {/* Member pills */}
           <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
             {members.map((member) => {
@@ -391,7 +578,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
 
               const meta = TIME_OF_DAY_META[section];
               const TodIcon = TOD_ICONS[section];
-              const isCurrent = section === currentTimeOfDay;
+              const isCurrent = !isViewingPast && section === currentTimeOfDay;
               const sectionAllDone = items.every((a) => a.isCompleted);
 
               return (
@@ -417,51 +604,73 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
 
                   {/* Chore cards */}
                   {items.map((assignment) => {
-                    const key = completionKey(assignment.choreId, selectedMemberId, dateKey);
+                    const key = completionKey(assignment.choreId, selectedMemberId, viewingDate);
                     const isToggling = toggling.has(key);
                     const done = assignment.isCompleted;
+                    const readOnly = !canEdit;
 
-                    return (
-                      <button
-                        key={assignment.choreId}
-                        className="press-scale"
-                        onClick={() => toggle(assignment.choreId)}
-                        disabled={isToggling}
-                        aria-label={`${done ? 'Completed' : 'Mark complete'}: ${assignment.choreName}`}
+                    const rowStyle = {
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '14px 16px',
+                      background: done ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+                      borderRadius: 12,
+                      marginBottom: 6,
+                      cursor: readOnly ? ('default' as const) : ('pointer' as const),
+                      transition: 'all 0.15s',
+                      border: 'none',
+                      color: 'inherit',
+                      textAlign: 'left' as const,
+                      opacity: isToggling ? 0.6 : 1,
+                    };
+
+                    const checkbox = readOnly ? (
+                      // Locked chip: kid-viewing-past — visually distinct, not interactive
+                      <div
                         style={{
-                          width: '100%',
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 12,
-                          padding: '14px 16px',
-                          background: done ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
-                          borderRadius: 12,
-                          marginBottom: 6,
-                          cursor: 'pointer',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          background: done ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                          border: done ? 'none' : '1px dashed rgba(255,255,255,0.18)',
+                          color: '#737373',
+                        }}
+                        aria-hidden="true"
+                      >
+                        {done ? (
+                          <Check size={16} color="#a3a3a3" strokeWidth={2.5} />
+                        ) : (
+                          <Lock size={12} color="#737373" strokeWidth={2.25} />
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
                           transition: 'all 0.15s',
-                          border: 'none',
-                          color: 'inherit',
-                          textAlign: 'left' as const,
-                          opacity: isToggling ? 0.6 : 1,
+                          background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
+                          border: done ? 'none' : '2px solid rgba(255,255,255,0.2)',
                         }}
                       >
-                        {/* Checkbox */}
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 8,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            transition: 'all 0.15s',
-                            background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
-                            border: done ? 'none' : '2px solid rgba(255,255,255,0.2)',
-                          }}
-                        >
-                          {done && <Check size={16} color="white" strokeWidth={2.5} />}
-                        </div>
+                        {done && <Check size={16} color="white" strokeWidth={2.5} />}
+                      </div>
+                    );
+
+                    const rowInner = (
+                      <>
+                        {checkbox}
 
                         {/* Icon */}
                         {assignment.choreEmoji && (
@@ -484,7 +693,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                         </span>
 
                         {/* Points */}
-                        {config.showPoints && assignment.points > 1 && (
+                        {config.showPoints && assignment.points > 0 && (
                           <span
                             style={{
                               fontSize: 11,
@@ -499,6 +708,28 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                             {assignment.points}pt
                           </span>
                         )}
+                      </>
+                    );
+
+                    if (readOnly) {
+                      // Non-interactive row: not a button, no press-scale, not announced as clickable.
+                      return (
+                        <div key={assignment.choreId} style={rowStyle}>
+                          {rowInner}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={assignment.choreId}
+                        className="press-scale"
+                        onClick={() => toggle(assignment.choreId)}
+                        disabled={isToggling}
+                        aria-label={`${done ? 'Completed' : 'Mark complete'}: ${assignment.choreName}`}
+                        style={rowStyle}
+                      >
+                        {rowInner}
                       </button>
                     );
                   })}

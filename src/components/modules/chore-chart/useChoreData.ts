@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ChoreMember, ChoreDefinition, ChoreCompletion } from '@/types/config';
+import type { ChoreMember, ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayFetch } from '@/lib/display-fetch';
 import { choresUrl, choresDataUrl, rewardsUrl } from '@/lib/fetch-keys';
@@ -16,6 +16,7 @@ import {
   resolveAssignee,
   choreAppliesToday,
   completionKey,
+  getWeekDatesFor,
 } from './types';
 
 /** Display-only settings accepted by useChoreData — no members/chores,
@@ -53,27 +54,6 @@ interface ChoreDataState {
   isLoading: boolean;
   error: string | null;
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
-}
-
-/** Return the 7 dates (as YYYY-MM-DD) for the current week, starting from
- *  the configured week start day. If today is before the week start day
- *  has rolled around, the week includes future dates up to the end of the week. */
-function getWeekDates(weekStartDay: 'sunday' | 'monday'): string[] {
-  const startDow = weekStartDay === 'monday' ? 1 : 0;
-  const now = new Date();
-  const todayDow = now.getDay();
-  // How many days back to the start of this week?
-  const daysBack = (todayDow - startDow + 7) % 7;
-  const weekStart = new Date(now);
-  weekStart.setDate(weekStart.getDate() - daysBack);
-
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    dates.push(localDateStr(d));
-  }
-  return dates;
 }
 
 export function useChoreData(config: ChoreDataConfig): ChoreDataState {
@@ -136,7 +116,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       const total = myAssignments.length;
 
       // Weekly points — aligned to configured week start day
-      const weekDates = getWeekDates(config.weekStartDay);
+      const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
       let weeklyPoints = 0;
       let weeklyPointsTotal = 0;
       for (const date of weekDates) {
@@ -212,7 +192,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const weekData = useMemo(() => {
     const days: WeekDayData[] = [];
     const today = todayStr();
-    const weekDates = getWeekDates(config.weekStartDay);
+    const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
 
     for (const date of weekDates) {
       const d = new Date(date + 'T00:00:00');
@@ -267,14 +247,21 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     });
 
     try {
+      const reqBody: ChoreToggleRequest = { choreId, memberId, date: today };
       const res = await displayFetch(choresUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choreId, memberId, date: today }),
+        body: JSON.stringify(reqBody),
       });
       if (!res.ok) throw new Error('Failed to toggle');
-      const data = await res.json();
+      const data: ChoreToggleResponse = await res.json();
       setCompletions(data.completions ?? []);
+      // Surface server warnings (e.g. balance went negative on un-complete) so they're
+      // at least visible in the kiosk console — display modules don't have a UI for
+      // these alerts, but the admin viewing dev tools can see them.
+      if (data.warning) {
+        console.warn('[chores]', data.warning);
+      }
     } catch {
       // Revert optimistic update on error
       setCompletions(snapshot);

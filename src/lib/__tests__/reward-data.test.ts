@@ -190,6 +190,37 @@ describe('debitPoints', () => {
   });
 });
 
+describe('debitPointsExact', () => {
+  it('subtracts from an existing balance', async () => {
+    await mod.creditPoints('alice', 10);
+    const result = await mod.debitPointsExact('alice', 3);
+    expect(result.balance).toBe(7);
+    expect(result.wentNegative).toBe(false);
+    expect(result.data.balances.alice).toBe(7);
+  });
+
+  it('allows the balance to go negative and signals it', async () => {
+    await mod.creditPoints('alice', 2);
+    const result = await mod.debitPointsExact('alice', 5);
+    expect(result.balance).toBe(-3);
+    expect(result.wentNegative).toBe(true);
+    expect(result.data.balances.alice).toBe(-3);
+  });
+
+  it('treats a missing member as a zero starting balance', async () => {
+    const result = await mod.debitPointsExact('ghost', 5);
+    expect(result.balance).toBe(-5);
+    expect(result.wentNegative).toBe(true);
+    expect(result.data.balances.ghost).toBe(-5);
+  });
+
+  it('blocks redemptions while the balance is negative', async () => {
+    await mod.creditPoints('alice', 2);
+    await mod.debitPointsExact('alice', 10); // alice now at -8
+    await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
+  });
+});
+
 describe('redeemReward', () => {
   it('throws Insufficient balance when the member cannot afford it', async () => {
     await mod.creditPoints('alice', 3);
