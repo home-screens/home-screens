@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "config:check": "node scripts/check-config.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
