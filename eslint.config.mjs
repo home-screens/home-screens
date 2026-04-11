@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Website build artifacts (separate Next.js app)
     "website/.next/**",
     "website/out/**",
+    // Isolated feature worktrees (gitignored; may contain nested build artifacts)
+    ".worktrees/**",
     // Installed plugin build artifacts (minified bundles, not source)
     "data/plugins/**",
     // Test coverage reports
