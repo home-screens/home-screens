@@ -41,6 +41,7 @@ function computeScoredOrder(
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night',
   dayOfWeek: number,
   season: 'spring' | 'summer' | 'fall' | 'winter',
+  weatherCondition: string | null = null,
 ): number[] {
   if (entries.length === 0) return [];
 
@@ -56,6 +57,9 @@ function computeScoredOrder(
 
       if (entry.season === season) score += 2;
       else if (entry.season && entry.season !== season) score = 0;
+
+      // Weather affinity bonus — boosts matching entries, never hides non-matching
+      if (weatherCondition && entry.weather === weatherCondition) score += 2;
     }
 
     return { index: i, score };
@@ -394,6 +398,47 @@ describe('computeScoredOrder (scoring & rotation)', () => {
     // Day is Tuesday (2), season is summer — both entries should get score=0
     const result = computeScoredOrder(entries, true, 'morning', 2, 'summer');
     expect(result).toHaveLength(0);
+  });
+
+  it('gives weather bonus to entries matching the current condition', () => {
+    const entries = [
+      makeEntry({ text: 'rainy', time: 'anytime', weather: 'rain' }),
+      makeEntry({ text: 'no weather', time: 'anytime' }),
+    ];
+
+    // rainy: base(1) + anytime(1) + weather(2) = 4
+    // no weather: base(1) + anytime(1) = 2
+    for (let i = 0; i < 10; i++) {
+      const result = computeScoredOrder(entries, true, 'morning', 0, 'spring', 'rain');
+      expect(result.indexOf(0)).toBeLessThan(result.indexOf(1));
+    }
+  });
+
+  it('does not boost entries with non-matching weather', () => {
+    const entries = [
+      makeEntry({ text: 'rainy', time: 'anytime', weather: 'rain' }),
+      makeEntry({ text: 'no weather', time: 'anytime' }),
+    ];
+
+    // When condition is 'clear', rainy entry gets no bonus:
+    // rainy: base(1) + anytime(1) = 2
+    // no weather: base(1) + anytime(1) = 2
+    // Both same tier — order is shuffled, both present
+    const result = computeScoredOrder(entries, true, 'morning', 0, 'spring', 'clear');
+    expect(result).toHaveLength(2);
+    expect(result.sort()).toEqual([0, 1]);
+  });
+
+  it('null weatherCondition behaves identically to no bonus', () => {
+    const entries = [
+      makeEntry({ text: 'rainy', time: 'anytime', weather: 'rain' }),
+      makeEntry({ text: 'no weather', time: 'anytime' }),
+    ];
+
+    // Both entries same tier when weatherCondition is null
+    const result = computeScoredOrder(entries, true, 'morning', 0, 'spring', null);
+    expect(result).toHaveLength(2);
+    expect(result.sort()).toEqual([0, 1]);
   });
 
   it('produces valid permutation indices (no out-of-bounds)', () => {

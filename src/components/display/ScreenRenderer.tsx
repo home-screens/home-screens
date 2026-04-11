@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import type { Screen, GlobalSettings, ModuleType } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -9,6 +9,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';
+import { eventBus } from '@/lib/event-bus';
 
 export interface SharedDisplayData {
   owmData: unknown;
@@ -44,6 +45,13 @@ const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
   noaa: 'noaaData',
   'open-meteo': 'openMeteoData',
 };
+
+function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 17) return 'afternoon';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night';
+}
 
 function buildModuleProps(
   mod: { type: ModuleType; config: Record<string, unknown> },
@@ -99,6 +107,20 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
 
   // Minute-resolution timezone-aware clock for module scheduling
   const now = useTZClock(settings.timezone);
+
+  // Publish time period transitions to the event bus (fires at most 4x/day)
+  const hour = now.getHours();
+  const timePeriod = getTimePeriod(hour);
+  useEffect(() => {
+    eventBus.publish('time.period', {
+      period: timePeriod,
+      hour,
+      timezone: settings.timezone ?? 'UTC',
+    });
+    // `hour` is intentionally excluded — we only want to fire on period transitions,
+    // not every hour. The closure captures the correct hour at each transition.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timePeriod, settings.timezone]);
 
   const visibleModules = useMemo(
     () => screen.modules.filter((mod) => isModuleVisible(mod.schedule, now)),

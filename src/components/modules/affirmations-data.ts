@@ -1,4 +1,5 @@
 import type { AffirmationsCategory } from '@/types/config';
+import type { WeatherCondition } from '@/lib/event-bus';
 
 export interface AffirmationEntry {
   text: string;
@@ -10,6 +11,8 @@ export interface AffirmationEntry {
   days?: number[];
   /** Season affinity */
   season?: 'spring' | 'summer' | 'fall' | 'winter';
+  /** Weather condition affinity — boosts score when conditions match */
+  weather?: WeatherCondition;
 }
 
 // ---------------------------------------------------------------------------
@@ -26,9 +29,9 @@ export const BUILT_IN: AffirmationEntry[] = [
   { text: 'I choose peace over perfection.', category: 'affirmations', time: 'anytime' },
   { text: 'I am allowed to take up space.', category: 'affirmations', time: 'anytime' },
   { text: 'I am enough, exactly as I am.', category: 'affirmations', time: 'anytime' },
-  { text: 'I attract positive energy into my life.', category: 'affirmations', time: 'morning' },
+  { text: 'I attract positive energy into my life.', category: 'affirmations', time: 'morning', weather: 'clear' },
   { text: 'I am resilient, strong, and brave.', category: 'affirmations', time: 'anytime' },
-  { text: 'I give myself permission to rest.', category: 'affirmations', time: 'evening' },
+  { text: 'I give myself permission to rest.', category: 'affirmations', time: 'evening', weather: 'rain' },
   { text: 'I honor my own boundaries.', category: 'affirmations', time: 'anytime' },
   { text: 'Every setback is a setup for a comeback.', category: 'affirmations', time: 'anytime' },
   { text: 'I am at peace with who I am.', category: 'affirmations', time: 'night' },
@@ -36,7 +39,7 @@ export const BUILT_IN: AffirmationEntry[] = [
   { text: 'I welcome abundance in all its forms.', category: 'affirmations', time: 'morning' },
   { text: 'I am deserving of the good things in my life.', category: 'affirmations', time: 'anytime' },
   { text: 'I forgive myself for past mistakes. They helped me grow.', category: 'affirmations', time: 'evening' },
-  { text: 'My body is healthy, my mind is sharp, my spirit is calm.', category: 'affirmations', time: 'morning' },
+  { text: 'My body is healthy, my mind is sharp, my spirit is calm.', category: 'affirmations', time: 'morning', weather: 'clear' },
   { text: 'I radiate confidence and self-respect.', category: 'affirmations', time: 'morning' },
   { text: 'I am open to new adventures and experiences.', category: 'affirmations', time: 'morning' },
   { text: 'I let go of comparison. My path is my own.', category: 'affirmations', time: 'anytime' },
@@ -48,6 +51,8 @@ export const BUILT_IN: AffirmationEntry[] = [
   { text: 'Today I will be kind to myself.', category: 'affirmations', time: 'morning' },
   { text: 'I am stronger than my doubts.', category: 'affirmations', time: 'anytime' },
   { text: 'My happiness is my responsibility, and I embrace it.', category: 'affirmations', time: 'anytime' },
+  { text: 'The rain washes away what I no longer need.', category: 'affirmations', time: 'anytime', weather: 'rain' },
+  { text: 'I find beauty in every kind of sky.', category: 'affirmations', time: 'anytime', weather: 'clouds' },
 
   // ── Compliments ───────────────────────────────────────────────
   { text: 'You light up every room you walk into.', category: 'compliments', time: 'anytime' },
@@ -160,6 +165,8 @@ export const BUILT_IN: AffirmationEntry[] = [
   { text: 'A grateful heart is a magnet for wonderful things.', category: 'gratitude', time: 'morning' },
   { text: 'What simple pleasure did you enjoy today?', category: 'gratitude', time: 'evening' },
   { text: 'Remember: someone out there is inspired by you.', category: 'gratitude', time: 'anytime' },
+  { text: 'I am grateful for sunny days that lift my spirits.', category: 'gratitude', time: 'anytime', weather: 'clear' },
+  { text: 'I am grateful for rainy days that nourish the earth.', category: 'gratitude', time: 'anytime', weather: 'rain' },
 
   // ── Mindfulness ───────────────────────────────────────────────
   { text: 'Take a deep breath. You are exactly where you need to be.', category: 'mindfulness', time: 'anytime' },
@@ -190,6 +197,9 @@ export const BUILT_IN: AffirmationEntry[] = [
   { text: 'Nothing in nature blooms all year. Be patient with yourself.', category: 'mindfulness', time: 'anytime' },
   { text: 'Stillness is not laziness. It is how your soul catches up.', category: 'mindfulness', time: 'evening' },
   { text: 'You are allowed to outgrow spaces that no longer fit.', category: 'mindfulness', time: 'anytime' },
+  { text: 'Listen to the rain. Let it quiet your thoughts.', category: 'mindfulness', time: 'anytime', weather: 'rain' },
+  { text: 'The snow reminds me to slow down and be still.', category: 'mindfulness', time: 'anytime', weather: 'snow' },
+  { text: 'Feel the warmth of the sun on your skin. You are here.', category: 'mindfulness', time: 'anytime', weather: 'clear' },
 
   // ── Season-aware entries ──────────────────────────────────────
   { text: 'Spring reminds us that new beginnings are always possible.', category: 'affirmations', time: 'anytime', season: 'spring' },
