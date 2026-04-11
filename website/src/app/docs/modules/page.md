@@ -484,12 +484,13 @@ A colored note card for freeform text.
 
 ### Greeting
 
-Displays a time-aware greeting (Good morning/afternoon/evening).
+Displays a time-aware greeting (Good morning/afternoon/evening). When weather-aware mode is enabled and location is configured, the greeting also shows a short contextual subtitle like "Rainy day ahead" or "Storm rolling in."
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `name` | string | `"Friend"` | Name to greet (e.g. "Good morning, Bryan") |
 | `accentColor` | string | `"#000000"` | Accent color for the greeting text |
+| `weatherAware` | boolean | `true` | Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it had before the event bus. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Greeting config section if location is missing. |
 
 ### Garbage Day
 
@@ -516,7 +517,7 @@ Supports up to 3 collection types: trash, recycling, and a customizable third ty
 
 ### Affirmations
 
-Displays rotating positive affirmations with multiple visual styles. Time-aware selection adjusts messages based on time of day, day of week, and season.
+Displays rotating positive affirmations with multiple visual styles. Time-aware selection adjusts messages based on time of day, day of week, and season. Weather-aware scoring quietly boosts entries that match the current conditions without hiding anything, so a rainy morning is more likely to surface a cozy gratitude entry and a snow day is more likely to surface a mindfulness entry tagged `snow`.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -525,6 +526,7 @@ Displays rotating positive affirmations with multiple visual styles. Time-aware 
 | `rotationIntervalMs` | number | `15000` | How often to rotate to the next affirmation (15 sec) |
 | `showCategoryLabel` | boolean | `false` | Show the category label below the affirmation |
 | `timeAware` | boolean | `true` | Select affirmations based on time of day, day of week, and season |
+| `weatherAware` | boolean | `true` | Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Affirmations config section if location is missing. |
 | `customEntries` | array | `[]` | Custom affirmations, each with `id`, `text`, and optional `attribution` |
 | `accentColor` | string | `"#a78bfa"` | Accent color for card/typewriter views |
 
@@ -566,7 +568,7 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 |---|---|---|---|
 | `view` | string | `"board"` | Display style: `board`, `star-chart`, `today`, `progress`, or `compact` |
 | `members` | array | `[]` | Household members, each with `id`, `name`, `emoji`, and `color` |
-| `chores` | array | `[]` | Chore definitions with `id`, `name`, `emoji`, `points`, `frequency`, `daysOfWeek`, `timeOfDay`, `assigneeIds`, and `rotation` |
+| `chores` | array | `[]` | Chore definitions with `id`, `name`, `emoji`, `points`, `frequency`, `daysOfWeek`, `timeOfDay`, `assigneeIds`, `rotation`, and (when `rotation === "schedule"`) a `schedule` map of memberId → days-of-week |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `showPoints` | boolean | `true` | Show point values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
@@ -581,6 +583,17 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 - **today** — Today's chores only, grouped by time of day.
 - **progress** — Progress bars showing completion rates per member.
 - **compact** — Condensed view for small widget sizes.
+
+**Rotation modes:**
+
+Each chore has a `rotation` field that controls how the `assigneeIds` list is resolved each day.
+
+- **fixed** — Everyone in `assigneeIds` is responsible for the chore every time it appears. Use this for chores a single person always owns.
+- **rotate-daily** — Cycles through `assigneeIds` one day at a time, so Alice handles it today, Bob handles it tomorrow, and so on.
+- **rotate-weekly** — Same as daily rotation but the handoff happens at the start of each week.
+- **schedule** — Per-day assignment via a `schedule` map of `memberId → number[]` (days-of-week, 0 = Sunday through 6 = Saturday). Lets you say "Alice on Mon/Wed, Bob on Tue/Thu, everyone on Fri–Sun" without creating separate chores. The editor and the remote both render a weekly grid UI for editing the schedule, and any day not covered by the schedule simply has no one assigned. A chore in schedule mode also shows a small **(schedule)** label in the board when resolved to a single assignee, so you can tell it apart from a fixed one-person chore at a glance.
+
+Chore points can be any non-negative integer — `0` is allowed and is useful for tracking routines that do not earn rewards.
 
 ---
 

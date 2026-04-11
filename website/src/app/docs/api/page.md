@@ -164,7 +164,7 @@ Pass the `countries` query parameter (no value needed) to get the list of suppor
 
 ### GET /api/chores
 
-Returns chore completion records. Automatically purges entries older than 30 days.
+Returns chore completion records. Automatically purges entries older than 90 days. Public on the LAN with no authentication so the kid-facing `/chores` view works even when the editor password is set.
 
 **Response:**
 ```json
@@ -182,7 +182,7 @@ Returns chore completion records. Automatically purges entries older than 30 day
 
 ### POST /api/chores
 
-Toggles a chore completion. If the completion already exists for the given choreId + memberId + date, it is removed; otherwise it is added. Requires a valid session.
+Toggles a chore completion. If the completion already exists for the given choreId + memberId + date, it is removed; otherwise it is added. Public on the LAN (no session required) so kids can mark chores done from the `/chores` view.
 
 **Body:**
 ```json
@@ -193,9 +193,9 @@ Toggles a chore completion. If the completion already exists for the given chore
 }
 ```
 
-The `date` field must be in `YYYY-MM-DD` format.
+The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 days. Future dates, invalid calendar dates (e.g. `2026-02-30`), and dates outside the retention window are rejected with `400`. Toggling a chore with a non-zero point value also credits or debits the member's reward balance; if removing a past completion would drive the balance negative, the response includes a `warning` string explaining the deficit.
 
-**Response:** `{ "completions": [...] }` (the full updated completions list)
+**Response:** `{ "completions": [...], "warning"?: "..." }`
 
 ### GET /api/chores/data
 
@@ -305,7 +305,7 @@ Toggles a grocery item's checked state. If the item is already checked, it is un
 
 ### GET /api/rewards
 
-Returns reward definitions, point balances, and redemption history from `data/rewards.json`. Accessible by the display (display token auth).
+Returns reward definitions, point balances, and redemption history from `data/rewards.json`. Public on the LAN with no authentication so the `/chores` kid view can display balances and redemption history.
 
 **Response:**
 ```json
@@ -322,7 +322,7 @@ Returns reward definitions, point balances, and redemption history from `data/re
 
 ### POST /api/rewards
 
-Redeems a reward for a member. Checks eligibility (member restriction) and sufficient point balance. Accessible by the display (display token auth).
+Redeems a reward for a member. Checks eligibility (member restriction) and sufficient point balance. Public on the LAN so the `/chores` view can redeem rewards without a session. Editing reward definitions and manual balance adjustments still live at `/api/rewards/data` and remain session-gated.
 
 **Body:**
 ```json
@@ -369,12 +369,14 @@ Positive amounts credit points; negative amounts debit. Amount must be non-zero.
 
 ### GET /api/auth/status
 
-Returns whether password authentication is enabled and whether the current session is authenticated.
+Returns whether password authentication is enabled, whether the current session is authenticated, and whether the caller is blocked by the optional IP allowlist.
 
 **Response:**
 ```json
-{ "authEnabled": true, "authenticated": true }
+{ "authEnabled": true, "authenticated": true, "ipRestricted": false }
 ```
+
+The `ipRestricted` field is `true` when the **Restrict access by IP** toggle is on and the caller's IP is not in the configured allowlist. The login page uses this to show an explanatory banner instead of a sign-in form, since no amount of correct credentials would let the caller through.
 
 ### POST /api/auth/login
 
@@ -432,6 +434,38 @@ Regenerates the display token. The previous token is immediately invalidated —
 Revokes all active sessions by bumping the session epoch. All users (including the caller) will need to log in again. Requires a valid session.
 
 **Response:** `{ "ok": true }`
+
+### GET /api/auth/ip-allowlist
+
+Returns the current IP allowlist configuration along with the caller's detected IP (useful so an admin can see which address they should add before saving). Requires a valid session.
+
+**Response:**
+```json
+{
+  "ipAllowlist": ["192.168.1.0/24", "10.0.0.5/32"],
+  "ipBypassAuth": true,
+  "ipRestrictAccess": false,
+  "callerIp": "192.168.1.42"
+}
+```
+
+IPv4-mapped IPv6 addresses are normalized to IPv4 before being returned in `callerIp` (so `::ffff:127.0.0.1` becomes `127.0.0.1`). The feature is IPv4-only; IPv6 callers see their raw address and the restriction will block them.
+
+### PUT /api/auth/ip-allowlist
+
+Updates the IP allowlist configuration. Requires a valid session. Validates every entry as CIDR notation (`a.b.c.d/prefix`, prefix 0–32) and rejects leading-zero octets to match Node's `net.isIPv4()` behavior. If **Restrict access by IP** is being enabled and the caller's own IP is not in the list, the route returns `409 Conflict` **without saving** so the UI can show a lockout warning; the admin can resubmit with `force: true` to override.
+
+**Body:**
+```json
+{
+  "ipAllowlist": ["192.168.1.0/24"],
+  "ipBypassAuth": true,
+  "ipRestrictAccess": true,
+  "force": false
+}
+```
+
+**Response:** `{ "ok": true }` on success. On lockout: `409 { "error": "...", "reason": "your_ip_not_in_allowlist", "callerIp": "..." }`. An `ip_allowlist_change` audit event is emitted on every successful save.
 
 ---
 

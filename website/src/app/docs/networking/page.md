@@ -309,10 +309,30 @@ No inbound ports beyond the web server port are required. All external service c
 Set a password in the editor under **Settings > Security**. When enabled:
 
 - The editor (`/editor`) requires login
-- All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie
+- All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie — **except** the chore-toggle endpoint (`POST /api/chores`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
 - The display view (`/display`) remains accessible without login
+- The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
 - Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
+
+Password protection is the right default for most LANs. If you want to lock things down further — including the kid view and the display itself — add an IP allowlist on top as described below.
+
+### Restrict access by IP
+
+In addition to (or instead of) a password, Home Screens can gate every route on the server by the caller's IP address. The editor surfaces this under **Settings > Security > IP Allowlist** and it has two independent toggles, both opt-in and both off by default.
+
+**Bypass authentication for trusted IPs.** Add your LAN subnets (for example `192.168.1.0/24`) and check the first toggle. Any request coming from an allowlisted IP skips the password prompt and the session-cookie check, so family members on the couch don't have to type a password every time they open the editor, while a phone on cellular data still gets the login form. Display-auth routes (the ~14 cached proxy endpoints the kiosk polls, plus `requireDisplayAuth`-wrapped routes) also accept the bypass, so a trusted LAN can drive the display without a display token.
+
+**Restrict access to allowlisted IPs only.** The second toggle is the harder wall. When enabled, Home Screens blocks every non-allowlisted IP from every route except `/login` and `/api/auth/status`; API callers receive `403 JSON`, browsers are redirected to a dedicated "Access is restricted by IP" banner on the login page. The check runs before the password gate, so an attacker who somehow knows the password still can't get in. Enabling the toggle from a client whose own IP is not in the allowlist returns `409 Conflict` without saving — the UI then shows a lockout warning and a **Save Anyway** button for the rare case where you really want to lock yourself out immediately.
+
+**CIDR entries.** Every entry is CIDR-validated: `a.b.c.d/prefix`, prefix between `0` and `32`, no leading-zero octets (so `01.168.1.0/24` is rejected, matching Node's `net.isIPv4()` behavior). Garbage entries in a hand-edited `data/auth.json` are skipped rather than matched — bad data fails safe instead of silently matching `0.0.0.0/24`.
+
+**Scope and caveats.**
+- **IPv4 only.** Home Screens normalizes IPv4-mapped IPv6 (`::ffff:127.0.0.1` → `127.0.0.1`) before matching but cannot match raw IPv6 addresses like `::1` or `fe80::...`. If your clients connect over IPv6, the allowlist will block them and the editor shows a dedicated warning so you know to switch the client to IPv4 (or leave the restriction off). The caller's detected IP is always displayed in the settings panel so you can verify what the server sees.
+- **The `x-forwarded-for` header is trusted.** If Home Screens sits behind a reverse proxy or a CDN that does not strip or overwrite client-supplied `x-forwarded-for` headers, an attacker on the public internet can spoof an allowlisted IP. Either run Home Screens without a proxy or configure the proxy to rewrite XFF before passing the request through.
+- **Lockout recovery.** If you lock yourself out (e.g. your router handed you a new DHCP lease and the old IP was the only one in the list), SSH into the server and either edit `data/auth.json` to add your new IP, or delete the `ipAllowlist` array entirely — the feature fails open when the list is empty.
+- **Allowlist survives password changes.** Setting, changing, clearing, or disabling the editor password no longer drops the IP allowlist — the restriction stays in force even during a password reset.
+- **Audit logged.** Every change to the allowlist or either toggle emits an `ip_allowlist_change` audit event so you can spot unexpected edits in the audit log.
 
 ### Keep API keys server-side
 

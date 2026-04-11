@@ -123,6 +123,10 @@ A **backup reminder banner** appears on the Control tab when you haven't backed 
 
 Settings **requires authentication**. The data is fetched on demand when you open the sheet, not continuously polled.
 
+### Theme
+
+The Settings sheet also has a **theme toggle** that cycles between **Dark**, **Light**, and **System** (follow the device preference). Your choice is stored on the phone (`localStorage`) and applied before the remote renders, so returning to the bookmark never flashes the wrong theme. The remote's theme is independent from the editor's — changing it on your phone does not change the editor on your laptop.
+
 ---
 
 ## Power controls
@@ -169,6 +173,12 @@ The **Chores** tab provides a mobile interface for tracking household chores. It
 
 The Chores tab has three sub-views, selectable via a segmented control: **Today**, **Manage**, and **Rewards**.
 
+{% callout title="The /chores kid view" %}
+In addition to the `/remote` Chores tab (which admins use to manage chores, members, and rewards), Home Screens exposes a kid-friendly `/chores` page at `http://<pi-ip>:3000/chores`. It reuses the Today sub-view but hides Manage, Rewards, members-list edits, and the history strip — the only thing a kid can do is check off today's chores.
+
+The `/chores` page stays **accessible even when the editor password is set**, and it reads/writes chore completions and reward balances over the LAN without needing a display token. This is intentional: bookmarking `/chores` on a kid's tablet gives them a simple "mark chores done" screen without exposing admin controls or requiring them to log in.
+{% /callout %}
+
 ### Today
 
 #### Member selection
@@ -177,7 +187,7 @@ Colored pill buttons across the top show each family member (with emoji avatar).
 
 #### Today's chores
 
-Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, point value, and a toggle button to mark it complete.
+Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, point value (including 1-point chores, which show a single-point pill so kids can see the reward), and a toggle button to mark it complete.
 
 Tapping a chore toggles its completion with an optimistic update -- the UI updates immediately without waiting for the server response. The data is polled every 15 seconds for live updates across devices.
 
@@ -187,9 +197,19 @@ Tapping a chore toggles its completion with an optimistic update -- the UI updat
 - When all assigned chores are complete, a "All done!" message appears
 - The view automatically refreshes at midnight to show the new day's chores
 
+#### History and backdating
+
+Below today's chores, a **90-day history strip** lets an adult browse any of the last 90 days and check off chores the kid forgot to mark done at the time. Tap a day in the strip to swap the chore list to that day's view; today is always highlighted. The strip is read-only for the kid view — only the remote's Chores tab exposes backdating.
+
+Backdating a chore that carries points credits the member's reward balance just like a same-day completion, and **un-checking a past completion** exact-debits the points that were originally credited. If un-checking would drive the member's balance below zero (for example, because the points have already been spent on a reward), the remote shows a warning like "Alice's balance is now -10 — they'll need to earn 10 points before redeeming again" so you aren't silently erasing already-spent points.
+
+Dates outside the 90-day window are rejected, as are invalid calendar dates (e.g. `2026-02-30`) and any future date.
+
 ### Manage
 
-The Manage sub-view lets you add, edit, and organize chore definitions and household members directly from the remote — the same management features available in the editor.
+The Manage sub-view lets you add, edit, and organize chore definitions and household members directly from the remote — the same management features available in the editor. Each chore supports four rotation modes when you have more than one assignee: **fixed**, **rotate daily**, **rotate weekly**, and **schedule**. Choosing **schedule** reveals a weekly grid with one row per member and seven day columns — tap a cell to assign that member to that day of the week, with a coverage summary underneath showing which days (if any) still have no one assigned. An "add member" picker lets you attach more members to the grid without leaving the form.
+
+When a scheduled chore resolves to a single assignee on a given day, the board and history views show a small **(schedule)** label next to the name so you can tell a scheduled chore apart from a fixed one-person chore at a glance. Removing a member from the household automatically cleans the deleted member out of every schedule grid, and a chore left without any schedule entries falls back to the `fixed` rotation with the current day's assignees.
 
 ### Rewards
 

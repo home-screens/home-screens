@@ -17,6 +17,10 @@ The editor has four main areas:
 - **Property Panel** (right sidebar) — configure the selected module's settings and appearance
 - **Screen Tabs** (top) — manage multiple screens
 
+## Appearance
+
+The editor has a **theme toggle** in the settings header that cycles through **Dark**, **Light**, and **System** (follow the OS preference). The choice is stored in `localStorage` and applied before first paint so reloads do not flash the wrong theme. The editor and the remote each remember their theme independently — setting the editor to Light does not affect what the remote looks like on your phone.
+
 ## Display Switcher (multi-display)
 
 When the hub has more than one display registered, a **Display Switcher** pill appears in the editor toolbar showing the current display name and dimensions. Click it to drop down to any registered display — the canvas, screen tabs, and property panel all switch to that display's content. The pill is hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
@@ -285,6 +289,18 @@ The editor can be protected with a password to prevent unauthorized access. Once
 - **Revoke All Sessions** — invalidate all active sessions immediately (useful if a device is lost or compromised)
 - **Log Out** — end the current session
 - **Password Reset** — if you forget your password, delete `data/auth.json` on the device to reset
+
+#### IP Allowlist
+
+Below the password controls, the Security section has an **IP Allowlist** panel with two independent toggles and a shared CIDR list. Your current IP is displayed above the list so you know what to add before enabling a toggle.
+
+- **Allow these IPs to bypass authentication** — trusted IPs (e.g. your LAN subnet) can access the editor and write APIs without entering the password. The password form still works for anyone coming in from outside the list.
+- **Restrict access to these IPs** — blocks any non-allowlisted IP from reaching every route except `/login` and `/api/auth/status`. Enabling this toggle with your own IP outside the list triggers a lockout warning and is rejected until you either add your IP or click **Save Anyway**.
+- **Add / Remove CIDR entries** — each entry is a CIDR block like `192.168.1.0/24` or `10.0.0.5/32`. Invalid entries (including leading-zero octets) are rejected inline.
+
+Two things to know before enabling restriction:
+1. IP matching is **IPv4-only**. If your server sees your client as an IPv6 address (`::1`, `fe80::...`), add an IPv4 entry that would match your actual address and make sure the client is reaching the server over IPv4. The panel shows a warning in this case.
+2. The feature trusts the `x-forwarded-for` header. If Home Screens sits behind a reverse proxy that does not strip client-supplied XFF headers, a clever attacker can spoof an allowlisted IP. Either run without a proxy or configure the proxy to overwrite XFF.
 
 ### Data
 

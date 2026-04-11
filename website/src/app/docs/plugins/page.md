@@ -264,6 +264,7 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `displayCache` | object | `{ get, set, prefetch }` — client-side data cache |
 | `getHostSettings` | function | Returns `{ timezone, units, latitude, longitude, displayWidth, displayHeight, appVersion }` |
 | `emit` | function | Emit events to the host (see [Plugin Events](#plugin-events)) |
+| `on` | function | Subscribe to host-published events such as `weather.conditions`, `weather.alerts`, and `time.period` (see [Subscribing to Host Events](#subscribing-to-host-events)) |
 | `pluginFetch` | function | Server-side proxy for API calls (see [API Proxy](#plugin-api-proxy)) |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |
@@ -477,9 +478,9 @@ The GET endpoint only returns whether each declared secret has a value configure
 
 ## Plugin Events
 
-Plugins can communicate with the host application through a one-way event bus. Events flow from plugins to the host only; the host never pushes events back to plugins.
+Plugins can communicate with the host application through an event bus. Two-way traffic is allowed but asymmetric: plugins use `emit` to send commands to the host (navigate, refresh, log) and `on` to subscribe to read-only data channels the host publishes (weather, time-of-day). Plugins **cannot** publish to the subscription channels — those are write-only for the host.
 
-### Emitting Events
+#### Emitting Events
 
 ```tsx
 const { emit } = window.__HS_SDK__;
@@ -497,7 +498,7 @@ emit({ type: 'refresh' });
 emit({ type: 'log', level: 'info', message: 'Data loaded successfully' });
 ```
 
-### Event Types
+#### Event Types
 
 | Type | Fields | Description |
 |---|---|---|
@@ -506,6 +507,34 @@ emit({ type: 'log', level: 'info', message: 'Data loaded successfully' });
 | `log` | `level`: `"info"`, `"warn"`, or `"error"`; `message`: string | Log a message to the browser console |
 
 Unknown event types are silently dropped. Event handlers are wrapped in try-catch to ensure a misbehaving plugin can never crash the host.
+
+#### Subscribing to Host Events
+
+Plugins can subscribe to data the host publishes through `window.__HS_SDK__.on(channel, handler)`. The call returns an unsubscribe function that you should call from your component's cleanup effect to avoid leaking handlers across plugin reloads.
+
+```tsx
+const { on } = window.__HS_SDK__;
+
+useEffect(() => {
+  const unsubscribe = on('weather.conditions', (event) => {
+    // event: { condition, temp, units, icon, summary, humidity?, feelsLike? }
+    console.log('Current weather:', event.condition, event.temp);
+  });
+  return unsubscribe;
+}, []);
+```
+
+The subscription replays the **last cached value** immediately when you subscribe, so a plugin that mounts after the first weather fetch still sees the current state right away. If the host has never published to the channel yet, the handler simply waits for the next event.
+
+**Channels:**
+
+| Channel | Event shape | When it fires |
+|---|---|---|
+| `weather.conditions` | `{ condition, temp, units, icon, summary, humidity?, feelsLike? }` where `condition` is one of `clear`, `clouds`, `rain`, `drizzle`, `snow`, `thunderstorm`, `fog`, `wind` | Whenever the host's global weather provider returns a new fetch. The host also publishes from the editor's preview fetch so weather-aware plugins work in the editor preview, not just on the display. |
+| `weather.alerts` | `{ alerts: Array<{ headline, severity, event, expires? }> }` where `severity` is `minor`, `moderate`, `severe`, or `extreme` | Whenever the weather provider returns alerts. An empty array is published when alerts clear. |
+| `time.period` | `{ period: 'morning' \| 'afternoon' \| 'evening' \| 'night', hour, timezone }` | On the display side at each period transition (4×/day), not every hour. |
+
+Handlers run in insertion order and are isolated from each other — an exception thrown by one handler does not prevent later handlers from running. The host never pushes an event back to `emit`, so plugins cannot use the subscription API to hear their own messages.
 
 ---
 

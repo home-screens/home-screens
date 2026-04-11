@@ -595,6 +595,10 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 {
   name: string
   accentColor?: string         // Accent color for the greeting text
+  weatherAware?: boolean       // Default true. Shows a contextual subtitle
+                               // like "Rainy day ahead" when weather data
+                               // is available. Requires location configured
+                               // in Settings > Weather.
 }
 ```
 
@@ -843,7 +847,7 @@ Tracks collection schedules for trash, recycling, and a custom bin. Supports wee
 
 ### AffirmationsConfig
 
-Rotating positive affirmations with 4 visual styles and 5 categories. Supports time-aware selection.
+Rotating positive affirmations with 4 visual styles and 5 categories. Supports time-aware selection and optional weather-aware scoring.
 
 ```typescript
 {
@@ -852,6 +856,11 @@ Rotating positive affirmations with 4 visual styles and 5 categories. Supports t
   rotationIntervalMs: number
   showCategoryLabel: boolean
   timeAware: boolean           // Adjust messages based on time of day, day of week, season
+  weatherAware?: boolean       // Default true. Boosts entries tagged with
+                               // a matching weather condition (+2 score)
+                               // without hiding non-matching entries.
+                               // Requires location configured in
+                               // Settings > Weather.
   customEntries: { id: string; text: string; attribution?: string }[]
   accentColor: string          // Accent color for card/typewriter views
 }
@@ -966,12 +975,17 @@ Family chore tracking with 5 views, point system, and rotation support.
     id: string
     name: string
     emoji: string
-    points: number
+    points: number            // 0 or greater (a 0-point chore has no reward impact)
     frequency: 'daily' | 'weekly' | 'biweekly'
     daysOfWeek: number[]
     timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
     assigneeIds: string[]
-    rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly'
+    rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule'
+    schedule?: Record<string, number[]>  // memberId → days-of-week (0–6).
+                                          // Only used when rotation === 'schedule'.
+                                          // Lets you assign different members to
+                                          // different days, e.g. Alice Mon/Wed,
+                                          // Bob Tue/Thu, everyone Fri–Sun.
   }[]
   weekStartDay: 'sunday' | 'monday'
   showPoints: boolean
@@ -1014,6 +1028,16 @@ Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size
 ## Config Migrations
 
 Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load.
+
+## Validation CLI
+
+Home Screens ships a standalone validator for `data/config.json` that you can run without starting the dev server. It checks the schema version, module types, screen and module structure, profile references, multi-display registry constraints, and settings bounds, then reports a typed list of diagnostics with colored output.
+
+```bash
+npm run config:check
+```
+
+A clean config exits with status `0` and a "No issues found" summary. Any errors — unknown module types, duplicate screen IDs, profile references to non-existent screens, out-of-range display dimensions, etc. — exit with a non-zero status and a list of diagnostic entries, making the CLI safe to wire into a pre-commit hook or CI step on a server that mounts `data/`. The same validation rules are exposed programmatically from `src/lib/validate-config.ts` if you want to reuse them from your own tooling.
 
 ## Backup & Restore
 
