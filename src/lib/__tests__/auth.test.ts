@@ -20,6 +20,8 @@ import {
   clearAuthCache,
   getSessionMaxAge,
   revokeAllSessions,
+  getIpAllowlistConfig,
+  setIpAllowlistConfig,
 } from '../auth';
 
 const AUTH_PATH = path.join(process.cwd(), 'data', 'auth.json');
@@ -68,6 +70,13 @@ describe('readAuthState', () => {
     await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
     await fs.writeFile(AUTH_PATH, 'not json!!!');
     await expect(readAuthState()).rejects.toThrow();
+  });
+
+  it('returns empty allowlist fields on default state', async () => {
+    const state = await readAuthState();
+    expect(state.ipAllowlist).toBeUndefined();
+    expect(state.ipBypassAuth).toBeUndefined();
+    expect(state.ipRestrictAccess).toBeUndefined();
   });
 });
 
@@ -594,5 +603,41 @@ describe('session epoch revocation', () => {
 
     const epochAfter = (await readAuthState()).sessionEpoch;
     expect(epochAfter).toBe(epochBefore);
+  });
+});
+
+describe('getIpAllowlistConfig', () => {
+  it('returns empty defaults when no config exists', async () => {
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({ allowlist: [], bypassAuth: false, restrictAccess: false });
+  });
+
+  it('persists allowlist config and reads it back', async () => {
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+  });
+
+  it('preserves existing auth state when setting allowlist', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+    // Verify auth state still works
+    expect(await isAuthEnabled()).toBe(true);
+    expect(await verifyPassword('testpassword123')).toBe(true);
+    // Verify allowlist was saved
+    const config = await getIpAllowlistConfig();
+    expect(config.allowlist).toEqual(['192.168.1.0/24']);
   });
 });

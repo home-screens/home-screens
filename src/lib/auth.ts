@@ -10,6 +10,12 @@ interface AuthState {
   displayToken?: string | null;
   /** Epoch timestamp (seconds). Sessions issued before this are rejected. */
   sessionEpoch?: number;
+  /** CIDR entries for the IP allowlist. Empty array = feature inactive. */
+  ipAllowlist?: string[];
+  /** When true, requests from allowlisted IPs skip display auth. */
+  ipBypassAuth?: boolean;
+  /** When true, non-allowlisted IPs are blocked (except /login and /api/auth/status). */
+  ipRestrictAccess?: boolean;
 }
 
 interface SessionPayload {
@@ -136,6 +142,35 @@ export function verifySession(cookie: string, cookieSecret: string, sessionEpoch
 export async function isAuthEnabled(): Promise<boolean> {
   const state = await getCachedAuthState();
   return state.passwordHash !== null;
+}
+
+/** Returns the IP allowlist configuration. Used by middleware and auth bypass. */
+export async function getIpAllowlistConfig(): Promise<{
+  allowlist: string[];
+  bypassAuth: boolean;
+  restrictAccess: boolean;
+}> {
+  const state = await getCachedAuthState();
+  return {
+    allowlist: state.ipAllowlist ?? [],
+    bypassAuth: state.ipBypassAuth ?? false,
+    restrictAccess: state.ipRestrictAccess ?? false,
+  };
+}
+
+/** Update IP allowlist configuration. Preserves all other auth state. */
+export async function setIpAllowlistConfig(config: {
+  allowlist: string[];
+  bypassAuth: boolean;
+  restrictAccess: boolean;
+}): Promise<void> {
+  const state = await readAuthState();
+  await writeAuthState({
+    ...state,
+    ipAllowlist: config.allowlist,
+    ipBypassAuth: config.bypassAuth,
+    ipRestrictAccess: config.restrictAccess,
+  });
 }
 
 export function createSessionCookie(cookieSecret: string, rememberMe = false, sessionEpoch?: number): string {
