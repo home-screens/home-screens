@@ -1167,10 +1167,13 @@ describe('fetchWithRetry', () => {
       .mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
     const promise = fetchWithRetry('https://example.com', { retries: 2, baseDelayMs: 100 });
+    // Attach the rejection handler before advancing timers so the promise
+    // rejection is never transiently unhandled.
+    const assertion = expect(promise).rejects.toThrow('Failed to fetch');
     await vi.advanceTimersByTimeAsync(100);
     await vi.advanceTimersByTimeAsync(200);
 
-    await expect(promise).rejects.toThrow('Failed to fetch');
+    await assertion;
     expect(fetchSpy).toHaveBeenCalledTimes(3);
   });
 
@@ -1265,11 +1268,14 @@ describe('fetchWithRetry', () => {
       baseDelayMs: 100,
     });
 
+    // Attach the rejection handler before aborting so the promise rejection
+    // is never transiently unhandled.
+    const assertion = expect(promise).rejects.toThrow();
     // Abort during the backoff delay — delay rejects before the second fetch fires
     controller.abort();
     await vi.advanceTimersByTimeAsync(100);
 
-    await expect(promise).rejects.toThrow();
+    await assertion;
     // Only the first fetch was made; the abort cancelled the delay before retry
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
