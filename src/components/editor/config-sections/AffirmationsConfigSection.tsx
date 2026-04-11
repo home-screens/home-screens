@@ -8,6 +8,7 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useEditorStore } from '@/stores/editor-store';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, AffirmationsView, AffirmationsCategory, CustomAffirmation } from '@/types/config';
 
@@ -104,8 +105,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         checked={c.timeAware ?? true}
         onChange={(v) => set({ timeAware: v })}
       />
-      <Toggle
-        label="Weather-Aware Content"
+      <WeatherAwareToggle
         checked={c.weatherAware ?? true}
         onChange={(v) => set({ weatherAware: v })}
       />
@@ -159,6 +159,23 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
           Add Entry
         </Button>
       </div>
+    </>
+  );
+}
+
+function WeatherAwareToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  const lat = useEditorStore((s) => s.config?.settings?.latitude ?? s.config?.settings?.weather?.latitude);
+  const lon = useEditorStore((s) => s.config?.settings?.longitude ?? s.config?.settings?.weather?.longitude);
+  const hasLocation = lat != null && lon != null && !(lat === 0 && lon === 0);
+
+  return (
+    <>
+      <Toggle label="Weather-Aware Content" checked={checked} onChange={onChange} />
+      {checked && !hasLocation && (
+        <p className="text-xs text-hs-warning">
+          Set your location in Settings &gt; Weather to enable weather-aware content.
+        </p>
+      )}
     </>
   );
 }
