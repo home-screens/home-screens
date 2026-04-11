@@ -36,7 +36,8 @@ type AuditEvent =
   | { action: 'plugin_install'; pluginId: string; version: string }
   | { action: 'plugin_uninstall'; pluginId: string }
   | { action: 'plugin_proxy'; pluginId: string; domain: string; method: string; status: number }
-  | { action: 'session_revoke_all' };
+  | { action: 'session_revoke_all' }
+  | { action: 'ip_allowlist_change'; ip: string; entryCount: number };
 
 type AuditEntry = AuditEvent & { ts: string }; // ISO 8601
 
