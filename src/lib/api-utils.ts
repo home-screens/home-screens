@@ -262,7 +262,7 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
 
   const GET = async (request: NextRequest) => {
     try {
-      if (config.auth === 'display') await requireDisplayAuth(request);
+      if (config.auth === 'display') await requireDisplayAuth(request, getClientIP(request));
       else if (config.auth === 'session') await requireSession(request);
 
       let result: T | NextResponse;

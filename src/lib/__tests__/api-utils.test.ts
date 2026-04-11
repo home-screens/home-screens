@@ -690,7 +690,7 @@ describe('cachedProxyRoute', () => {
     const request = new NextRequest('http://localhost/api/test');
     await GET(request);
 
-    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request, 'unknown');
     expect(mockRequireSession).not.toHaveBeenCalled();
   });
 
