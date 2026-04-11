@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isAuthEnabled, readAuthState, verifySession, getDisplayToken } from '@/lib/auth';
-import { errorResponse } from '@/lib/api-utils';
+import { isAuthEnabled, readAuthState, verifySession, getDisplayToken, getIpAllowlistConfig } from '@/lib/auth';
+import { errorResponse, getClientIP } from '@/lib/api-utils';
+import { isIpAllowed } from '@/lib/ip-allowlist';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,16 @@ export async function GET(request: NextRequest) {
     }
 
     const hasDisplayToken = authEnabled ? !!(await getDisplayToken()) : false;
-    return NextResponse.json({ authEnabled, authenticated, hasDisplayToken });
+
+    // Check if caller is restricted by IP allowlist
+    let ipRestricted = false;
+    const ipConfig = await getIpAllowlistConfig();
+    if (ipConfig.restrictAccess && ipConfig.allowlist.length > 0) {
+      const callerIp = getClientIP(request);
+      ipRestricted = !isIpAllowed(callerIp, ipConfig.allowlist);
+    }
+
+    return NextResponse.json({ authEnabled, authenticated, hasDisplayToken, ipRestricted });
   } catch (error) {
     return errorResponse(error, 'Failed to check auth status');
   }

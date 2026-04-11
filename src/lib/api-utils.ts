@@ -323,7 +323,7 @@ export function withDisplayAuth<C = unknown>(
 ) {
   return async (request: NextRequest, context?: C): Promise<Response> => {
     try {
-      await requireDisplayAuth(request);
+      await requireDisplayAuth(request, getClientIP(request));
       return await handler(request, context as C);
     } catch (error) {
       if (error instanceof Response) return error;
@@ -383,7 +383,7 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
 
   const GET = async (request: NextRequest) => {
     try {
-      if (config.auth === 'display') await requireDisplayAuth(request);
+      if (config.auth === 'display') await requireDisplayAuth(request, getClientIP(request));
       else if (config.auth === 'session') await requireSession(request);
 
       let result: T | NextResponse;

@@ -10,6 +10,12 @@ interface AuthState {
   displayToken?: string | null;
   /** Epoch timestamp (seconds). Sessions issued before this are rejected. */
   sessionEpoch?: number;
+  /** CIDR entries for the IP allowlist. Empty array = feature inactive. */
+  ipAllowlist?: string[];
+  /** When true, requests from allowlisted IPs skip display auth. */
+  ipBypassAuth?: boolean;
+  /** When true, non-allowlisted IPs are blocked (except /login and /api/auth/status). */
+  ipRestrictAccess?: boolean;
 }
 
 interface SessionPayload {
@@ -138,6 +144,35 @@ export async function isAuthEnabled(): Promise<boolean> {
   return state.passwordHash !== null;
 }
 
+/** Returns the IP allowlist configuration. Used by middleware and auth bypass. */
+export async function getIpAllowlistConfig(): Promise<{
+  allowlist: string[];
+  bypassAuth: boolean;
+  restrictAccess: boolean;
+}> {
+  const state = await getCachedAuthState();
+  return {
+    allowlist: state.ipAllowlist ?? [],
+    bypassAuth: state.ipBypassAuth ?? false,
+    restrictAccess: state.ipRestrictAccess ?? false,
+  };
+}
+
+/** Update IP allowlist configuration. Preserves all other auth state. */
+export async function setIpAllowlistConfig(config: {
+  allowlist: string[];
+  bypassAuth: boolean;
+  restrictAccess: boolean;
+}): Promise<void> {
+  const state = await readAuthState();
+  await writeAuthState({
+    ...state,
+    ipAllowlist: config.allowlist,
+    ipBypassAuth: config.bypassAuth,
+    ipRestrictAccess: config.restrictAccess,
+  });
+}
+
 export function createSessionCookie(cookieSecret: string, rememberMe = false, sessionEpoch?: number): string {
   const now = Math.floor(Date.now() / 1000);
   const maxAge = rememberMe ? SESSION_REMEMBER_ME_AGE : SESSION_MAX_AGE;
@@ -158,13 +193,29 @@ export async function setPassword(newPassword: string): Promise<string> {
   const cookieSecret = crypto.randomBytes(32).toString('hex');
   // Preserve existing display token, or auto-generate one on first password set
   const displayToken = existing.displayToken ?? generateDisplayToken();
-  const sessionEpoch = existing.sessionEpoch; // preserve epoch across password changes
-  await writeAuthState({ passwordHash: hash, salt, cookieSecret, displayToken, sessionEpoch });
-  return createSessionCookie(cookieSecret, false, sessionEpoch);
+  // Spread existing state so optional fields (ipAllowlist, ipBypassAuth,
+  // ipRestrictAccess, sessionEpoch) survive password changes. Only the
+  // password-specific fields are overwritten.
+  await writeAuthState({
+    ...existing,
+    passwordHash: hash,
+    salt,
+    cookieSecret,
+    displayToken,
+  });
+  return createSessionCookie(cookieSecret, false, existing.sessionEpoch);
 }
 
 export async function clearPassword(): Promise<void> {
-  await writeAuthState(DISABLED_STATE);
+  // Preserve IP allowlist config across password-disable, consistent with
+  // setPassword. A user may want "no password, but LAN-only" as a valid mode.
+  const existing = await readAuthState();
+  await writeAuthState({
+    ...DISABLED_STATE,
+    ipAllowlist: existing.ipAllowlist,
+    ipBypassAuth: existing.ipBypassAuth,
+    ipRestrictAccess: existing.ipRestrictAccess,
+  });
 }
 
 /* ─── Display Token ─────────────────────────── */
@@ -235,9 +286,15 @@ export async function requireSession(request: Request): Promise<void> {
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
  * and neither credential is valid.
  */
-export async function requireDisplayAuth(request: Request): Promise<void> {
+export async function requireDisplayAuth(request: Request, clientIp?: string): Promise<void> {
   let state = await getCachedAuthState();
   if (!state.passwordHash) return; // auth disabled
+
+  // IP bypass: trusted IPs skip display auth entirely
+  if (clientIp && state.ipBypassAuth && state.ipAllowlist?.length) {
+    const { isIpAllowed } = await import('./ip-allowlist');
+    if (isIpAllowed(clientIp, state.ipAllowlist)) return;
+  }
 
   // Auto-migrate: generate display token for existing installations that
   // enabled auth before the display token feature was added.

@@ -3,27 +3,41 @@ import type { NextRequest } from 'next/server';
 import { readFileSync } from 'fs';
 import path from 'path';
 
-/* ─── Cached auth-enabled check ──────────────── */
+/* ─── Cached auth config ─────────────────────── */
 
-let authEnabledCache: { value: boolean; at: number } | null = null;
+interface AuthConfig {
+  enabled: boolean;
+  ipAllowlist: string[];
+  ipRestrictAccess: boolean;
+}
+
+let authConfigCache: { value: AuthConfig; at: number } | null = null;
 const AUTH_CACHE_TTL = 5_000; // 5 seconds
 
 /**
- * Check if auth is enabled by reading data/auth.json.
- * Cached with a short TTL so password changes take effect quickly.
+ * Read auth config from data/auth.json with a short TTL cache.
  * Uses synchronous read since Next.js proxy must return synchronously.
+ * Returns auth-enabled flag plus IP allowlist state for access restriction.
  */
-function isAuthEnabled(): boolean {
+function getAuthConfig(): AuthConfig {
   const now = Date.now();
-  if (authEnabledCache && now - authEnabledCache.at < AUTH_CACHE_TTL) {
-    return authEnabledCache.value;
+  if (authConfigCache && now - authConfigCache.at < AUTH_CACHE_TTL) {
+    return authConfigCache.value;
   }
 
   let enabled = false;
+  let ipAllowlist: string[] = [];
+  let ipRestrictAccess = false;
   try {
     const filePath = path.join(process.cwd(), 'data', 'auth.json');
     const data = JSON.parse(readFileSync(filePath, 'utf-8'));
     enabled = data.passwordHash !== null && data.passwordHash !== undefined;
+    if (Array.isArray(data.ipAllowlist)) {
+      ipAllowlist = data.ipAllowlist.filter((e: unknown): e is string => typeof e === 'string');
+    }
+    if (typeof data.ipRestrictAccess === 'boolean') {
+      ipRestrictAccess = data.ipRestrictAccess;
+    }
   } catch (e: unknown) {
     // ENOENT = file doesn't exist → auth disabled (default state)
     // Any other error (corrupt JSON, permission denied) → fail closed
@@ -34,8 +48,69 @@ function isAuthEnabled(): boolean {
     }
   }
 
-  authEnabledCache = { value: enabled, at: now };
-  return enabled;
+  const value: AuthConfig = { enabled, ipAllowlist, ipRestrictAccess };
+  authConfigCache = { value, at: now };
+  return value;
+}
+
+/* ─── IP allowlist helpers ───────────────────── */
+
+/** Extract client IP from proxy headers. Mirrors getClientIP in api-utils.ts. */
+function extractIp(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
+/**
+ * Inline IPv4 CIDR match. Mirrors isIpAllowed in ip-allowlist.ts.
+ * Duplicated rather than imported to keep the proxy runtime lightweight
+ * (avoids pulling in the `net` module which may not be available in Edge).
+ *
+ * Fails safe: garbage entries are skipped, never treated as match-all.
+ * IPv6 addresses (including ::1 and fe80::...) always return false — see
+ * the IPv6 warning in SecuritySection.tsx.
+ */
+function ipMatchesAllowlist(ip: string, allowlist: string[]): boolean {
+  // Normalize IPv4-mapped IPv6
+  const normalized = ip.replace(/^::ffff:/i, '');
+  if (!isValidIPv4(normalized)) return false;
+
+  const parts = normalized.split('.');
+  const ipNum = ((+parts[0]) << 24 | (+parts[1]) << 16 | (+parts[2]) << 8 | (+parts[3])) >>> 0;
+
+  for (const entry of allowlist) {
+    const [cidrIp, prefixStr] = entry.split('/');
+    if (!isValidIPv4(cidrIp)) continue; // fail-safe: skip garbage
+
+    const prefix = prefixStr != null ? +prefixStr : 32;
+    if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) continue;
+
+    const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+    const cidrParts = cidrIp.split('.');
+    const cidrNum = ((+cidrParts[0]) << 24 | (+cidrParts[1]) << 16 | (+cidrParts[2]) << 8 | (+cidrParts[3])) >>> 0;
+
+    if ((ipNum & mask) === (cidrNum & mask)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * IPv4 validator that actually checks octet ranges (regex isn't enough).
+ * Matches the behavior of Node's `net.isIPv4()` used by the library version,
+ * including rejection of leading zeros ("01.168.1.0" is invalid per RFC).
+ */
+function isValidIPv4(s: string): boolean {
+  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(s)) return false;
+  const parts = s.split('.');
+  return parts.every((p) => {
+    if (p.length > 1 && p[0] === '0') return false; // no leading zeros
+    const n = +p;
+    return n >= 0 && n <= 255;
+  });
 }
 
 /* ─── Route classification ───────────────────── */
@@ -108,16 +183,45 @@ function isProtectedRoute(pathname: string, method: string): boolean {
 /* ─── Proxy ──────────────────────────────────── */
 
 /**
- * Next.js 16 proxy — cookie-presence gate.
- * Only enforced when auth is enabled (passwordHash set in auth.json).
- * Real session validation happens in requireSession() inside route handlers.
+ * Next.js 16 proxy.
+ *
+ * Two responsibilities:
+ * 1. IP access restriction — blocks non-allowlisted IPs from all routes
+ *    except /login and /api/auth/status (when enabled via settings).
+ * 2. Cookie-presence auth gate — enforces session cookie on protected routes
+ *    (only when auth is enabled). Real validation happens in requireSession()
+ *    inside route handlers.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
+  const config = getAuthConfig();
+
+  // ─── IP access restriction ─────────────────
+  // Runs before auth checks so non-allowlisted IPs can't even reach the login page
+  // via a protected route. /login and /api/auth/status are always exempt so the
+  // login page can render its "IP restricted" note.
+  if (config.ipRestrictAccess && config.ipAllowlist.length > 0) {
+    if (pathname !== '/login' && pathname !== '/api/auth/status') {
+      const clientIp = extractIp(request);
+      if (!ipMatchesAllowlist(clientIp, config.ipAllowlist)) {
+        if (pathname.startsWith('/api/')) {
+          return Response.json(
+            { error: 'Access denied', reason: 'ip_restricted' },
+            { status: 403 },
+          );
+        }
+        // Page routes → redirect to /login (where the note explains the situation)
+        const loginUrl = new URL('/login', request.url);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
+  }
+
+  // ─── Auth cookie gate ───────────────────────
   // If auth is not enabled, let everything through
-  if (!isAuthEnabled()) return NextResponse.next();
+  if (!config.enabled) return NextResponse.next();
 
   if (!isProtectedRoute(pathname, method)) return NextResponse.next();
 
@@ -144,9 +248,8 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match editor, remote, and all API routes (skip static assets, display, login)
-    '/editor/:path*',
-    '/remote/:path*',
-    '/api/:path*',
+    // IP restriction needs to cover ALL routes, not just auth-protected ones,
+    // so we use a broad matcher that excludes only static assets.
+    '/((?!_next/static|_next/image|favicon\\.ico|manifest|icons/|\\.well-known).*)',
   ],
 };

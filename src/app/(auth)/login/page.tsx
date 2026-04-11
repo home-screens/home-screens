@@ -15,15 +15,21 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [ipRestricted, setIpRestricted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // If already authenticated or auth is disabled, redirect immediately
+  // If already authenticated or auth is disabled, redirect immediately.
+  // IMPORTANT: check ipRestricted BEFORE the authenticated redirect — otherwise
+  // an authenticated user whose IP just got restricted would infinite-loop
+  // between /editor and /login.
   useEffect(() => {
     async function checkStatus() {
       try {
         const res = await fetch('/api/auth/status');
         const data = await res.json();
-        if (!data.authEnabled || data.authenticated) {
+        if (data.ipRestricted) {
+          setIpRestricted(true);
+        } else if (!data.authEnabled || data.authenticated) {
           window.location.href = from;
           return;
         }
@@ -78,10 +84,23 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <HomeScreensLogo className="mb-4" />
-          <p className="text-sm text-hs-text-faint">Enter your password to continue</p>
+          <p className="text-sm text-hs-text-faint">
+            {ipRestricted ? 'Your IP address is blocked' : 'Enter your password to continue'}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {ipRestricted && (
+          <div className="rounded-lg bg-hs-danger/10 border border-hs-danger/30 px-4 py-3 mb-4">
+            <p className="text-sm font-medium text-hs-danger">Access restricted</p>
+            <p className="text-xs text-hs-text-muted mt-1">
+              Your IP address is not in the allowed list. Signing in won&apos;t help —
+              the server will still reject every request from your address. Contact an
+              administrator to add your IP to the allowlist, or sign in from a permitted network.
+            </p>
+          </div>
+        )}
+
+        {!ipRestricted && <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
               ref={inputRef}
@@ -115,7 +134,7 @@ function LoginForm() {
           >
             {loading ? 'Signing in...' : 'Unlock'}
           </button>
-        </form>
+        </form>}
 
         <div className="text-center mt-6">
           <Link

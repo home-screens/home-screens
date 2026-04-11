@@ -25,13 +25,22 @@ type ProxyFn = (request: unknown) => unknown;
 /** Create a minimal request object matching what proxy expects from NextRequest */
 function makeRequest(
   pathname: string,
-  opts?: { method?: string; cookie?: string; search?: string; authorization?: string },
+  opts?: {
+    method?: string;
+    cookie?: string;
+    search?: string;
+    authorization?: string;
+    xForwardedFor?: string;
+    xRealIp?: string;
+  },
 ) {
   const method = opts?.method ?? 'GET';
   const search = opts?.search ?? '';
   const url = `http://localhost:3000${pathname}${search}`;
   const cookieHeader = opts?.cookie ?? null;
   const authorizationHeader = opts?.authorization ?? null;
+  const xForwardedFor = opts?.xForwardedFor ?? null;
+  const xRealIp = opts?.xRealIp ?? null;
 
   // Build a cookie store from the header
   const cookieStore = new Map<string, { name: string; value: string }>();
@@ -49,7 +58,10 @@ function makeRequest(
     url,
     headers: {
       get(name: string) {
-        if (name.toLowerCase() === 'authorization') return authorizationHeader;
+        const lower = name.toLowerCase();
+        if (lower === 'authorization') return authorizationHeader;
+        if (lower === 'x-forwarded-for') return xForwardedFor;
+        if (lower === 'x-real-ip') return xRealIp;
         return null;
       },
     },
@@ -784,5 +796,223 @@ describe('proxy — security boundaries', () => {
     for (const p of ['/editor', '/editor/', '/editor/screens', '/editor/screens/abc/modules']) {
       expect(isRedirect(proxy(makeRequest(p)))).not.toBeNull();
     }
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// IP access restriction
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * Load the proxy with a custom auth.json payload — used for IP restriction tests.
+ * Caller provides the exact JSON shape they want readFileSync to return.
+ */
+async function loadProxyWithConfig(config: Record<string, unknown>): Promise<ProxyFn> {
+  vi.resetModules();
+
+  mockReadFileSync = vi.fn().mockReturnValue(JSON.stringify(config));
+
+  vi.doMock('fs', () => ({
+    readFileSync: mockReadFileSync,
+  }));
+
+  vi.doMock('next/server', () => ({
+    NextResponse: {
+      next: () => ({ _type: 'next' }),
+      redirect: (url: URL) => ({ _type: 'redirect', url }),
+    },
+  }));
+
+  const mod = await import('@/proxy');
+  return mod.proxy as ProxyFn;
+}
+
+/** Assert result is a Response with status 403 and the ip_restricted reason. */
+async function is403IpRestricted(result: unknown): Promise<boolean> {
+  if (!(result instanceof Response)) return false;
+  if (result.status !== 403) return false;
+  const body = await result.json();
+  return body.error === 'Access denied' && body.reason === 'ip_restricted';
+}
+
+describe('proxy — IP access restriction (feature inactive)', () => {
+  it('passes through when restrictAccess is false, even with non-matching IP', async () => {
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['192.168.1.0/24'],
+      ipRestrictAccess: false,
+    });
+    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+  });
+
+  it('passes through when allowlist is empty, even if restrictAccess is true', async () => {
+    // Guards against accidental total lockout from a checked-in blank list.
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: [],
+      ipRestrictAccess: true,
+    });
+    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+  });
+
+  it('passes through when ipAllowlist field is missing entirely', async () => {
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipRestrictAccess: true, // enabled but no allowlist → effectively off
+    });
+    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+  });
+});
+
+describe('proxy — IP access restriction (allowlisted IPs)', () => {
+  let proxy: ProxyFn;
+
+  beforeEach(async () => {
+    proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['192.168.1.0/24', '10.0.0.5/32'],
+      ipRestrictAccess: true,
+    });
+  });
+
+  it('allowlisted IP in a /24 subnet passes through to /editor', () => {
+    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '192.168.1.42' })))).toBe(true);
+  });
+
+  it('allowlisted single-host /32 passes through', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/weather', { xForwardedFor: '10.0.0.5' })))).toBe(true);
+  });
+
+  it('IPv4-mapped IPv6 ::ffff:192.168.1.50 is normalized and matches the /24', () => {
+    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '::ffff:192.168.1.50' })))).toBe(true);
+  });
+
+  it('accepts first IP from a multi-value x-forwarded-for chain', () => {
+    expect(
+      isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '192.168.1.10, 10.0.0.254' }))),
+    ).toBe(true);
+  });
+
+  it('falls back to x-real-ip when x-forwarded-for is absent', () => {
+    expect(isPassThrough(proxy(makeRequest('/editor', { xRealIp: '192.168.1.99' })))).toBe(true);
+  });
+});
+
+describe('proxy — IP access restriction (blocked IPs)', () => {
+  let proxy: ProxyFn;
+
+  beforeEach(async () => {
+    proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['192.168.1.0/24'],
+      ipRestrictAccess: true,
+    });
+  });
+
+  it('non-allowlisted IP gets 403 with ip_restricted reason on /api/*', async () => {
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '10.0.0.99' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('non-allowlisted IP gets redirected to /login on page routes', () => {
+    const result = proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.99' }));
+    const redirect = isRedirect(result);
+    expect(redirect).not.toBeNull();
+    expect(redirect?.pathname).toBe('/login');
+  });
+
+  it('IPv6 loopback ::1 is blocked (IPv4-only enforcement)', async () => {
+    // The IPv6 warning in the UI documents this limitation.
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '::1' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('link-local IPv6 (fe80::...) is blocked', async () => {
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: 'fe80::1234' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('"unknown" IP (no headers) is blocked', async () => {
+    const result = proxy(makeRequest('/api/weather'));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+});
+
+describe('proxy — IP access restriction (exempt paths)', () => {
+  let proxy: ProxyFn;
+
+  beforeEach(async () => {
+    proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['192.168.1.0/24'],
+      ipRestrictAccess: true,
+    });
+  });
+
+  it('/login is exempt even for blocked IPs (so the banner can render)', () => {
+    expect(isPassThrough(proxy(makeRequest('/login', { xForwardedFor: '10.0.0.99' })))).toBe(true);
+  });
+
+  it('/api/auth/status is exempt even for blocked IPs (login page fetches it)', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/auth/status', { xForwardedFor: '10.0.0.99' })))).toBe(true);
+  });
+
+  it('/api/auth/login is NOT exempt — POST from blocked IP is 403', async () => {
+    // Even though /api/auth/login is in PUBLIC_AUTH_ROUTES for the auth gate,
+    // the IP restriction runs first and doesn't exempt it. This prevents a
+    // blocked client from even attempting credentials.
+    const result = proxy(makeRequest('/api/auth/login', { method: 'POST', xForwardedFor: '10.0.0.99' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+});
+
+describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
+  it('garbage CIDR entry does not match any IP', async () => {
+    // Hand-edited auth.json with a typo shouldn't accidentally grant access.
+    // "foo/24" would previously coerce +"foo" to NaN → 0 and match 0.0.0.0/24.
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['foo/24'],
+      ipRestrictAccess: true,
+    });
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '0.0.0.1' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('mixed valid + invalid entries still matches valid ones', () => {
+    const proxy = loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['foo/24', '192.168.1.0/24', 'bar/8'],
+      ipRestrictAccess: true,
+    });
+    return proxy.then((p) => {
+      expect(isPassThrough(p(makeRequest('/api/weather', { xForwardedFor: '192.168.1.50' })))).toBe(true);
+    });
+  });
+
+  it('prefix > 32 in hand-edited entry is skipped, not treated as /32', async () => {
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['192.168.1.0/99'],
+      ipRestrictAccess: true,
+    });
+    // The /99 entry is invalid and skipped. No other entries → blocked.
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '192.168.1.50' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('leading-zero octets are rejected (matches net.isIPv4 behavior)', async () => {
+    // RFC says 01.168.1.0 is not a valid IPv4 literal. Node's net.isIPv4
+    // rejects it, so the library's isIpAllowed rejects it. The proxy's
+    // inline matcher must match that behavior to avoid divergence between
+    // the proxy gate and the auth-layer bypass.
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['01.168.1.0/24'],
+      ipRestrictAccess: true,
+    });
+    // Entry is invalid and skipped. Caller at 1.168.1.50 should NOT match.
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '1.168.1.50' }));
+    expect(await is403IpRestricted(result)).toBe(true);
   });
 });

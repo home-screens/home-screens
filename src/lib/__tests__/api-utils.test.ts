@@ -712,7 +712,7 @@ describe('cachedProxyRoute', () => {
     const request = new NextRequest('http://localhost/api/test');
     await GET(request);
 
-    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request, 'unknown');
     expect(mockRequireSession).not.toHaveBeenCalled();
   });
 
@@ -882,7 +882,7 @@ describe('withDisplayAuth', () => {
     const response = await wrapped(request);
     const json = await response.json();
 
-    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request, 'unknown');
     expect(handler).toHaveBeenCalledWith(request, undefined);
     expect(json).toEqual({ ok: true });
   });

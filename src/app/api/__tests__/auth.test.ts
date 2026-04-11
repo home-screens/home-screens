@@ -20,6 +20,8 @@ vi.mock('@/lib/auth', () => ({
   regenerateDisplayToken: vi.fn(),
   revokeAllSessions: vi.fn(),
   getSessionMaxAge: vi.fn().mockReturnValue(30 * 24 * 60 * 60),
+  getIpAllowlistConfig: vi.fn().mockResolvedValue({ allowlist: [], bypassAuth: false, restrictAccess: false }),
+  setIpAllowlistConfig: vi.fn(),
 }));
 
 vi.mock('@/lib/audit', () => ({

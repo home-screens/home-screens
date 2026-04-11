@@ -20,6 +20,8 @@ import {
   clearAuthCache,
   getSessionMaxAge,
   revokeAllSessions,
+  getIpAllowlistConfig,
+  setIpAllowlistConfig,
 } from '../auth';
 
 const AUTH_PATH = path.join(process.cwd(), 'data', 'auth.json');
@@ -68,6 +70,13 @@ describe('readAuthState', () => {
     await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
     await fs.writeFile(AUTH_PATH, 'not json!!!');
     await expect(readAuthState()).rejects.toThrow();
+  });
+
+  it('returns empty allowlist fields on default state', async () => {
+    const state = await readAuthState();
+    expect(state.ipAllowlist).toBeUndefined();
+    expect(state.ipBypassAuth).toBeUndefined();
+    expect(state.ipRestrictAccess).toBeUndefined();
   });
 });
 
@@ -594,5 +603,146 @@ describe('session epoch revocation', () => {
 
     const epochAfter = (await readAuthState()).sessionEpoch;
     expect(epochAfter).toBe(epochBefore);
+  });
+});
+
+describe('requireDisplayAuth with IP bypass', () => {
+  it('bypasses auth for allowlisted IP when ipBypassAuth is true', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    // Request from allowlisted IP with no credentials should succeed
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    // Should not throw
+    await expect(requireDisplayAuth(request, '192.168.1.50')).resolves.toBeUndefined();
+  });
+
+  it('still requires auth for non-allowlisted IP', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '10.0.0.1')).rejects.toBeInstanceOf(Response);
+  });
+
+  it('does not bypass when ipBypassAuth is false', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: false,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '192.168.1.50')).rejects.toBeInstanceOf(Response);
+  });
+
+  it('does not bypass when allowlist is empty', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: [],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '192.168.1.50')).rejects.toBeInstanceOf(Response);
+  });
+});
+
+describe('getIpAllowlistConfig', () => {
+  it('returns empty defaults when no config exists', async () => {
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({ allowlist: [], bypassAuth: false, restrictAccess: false });
+  });
+
+  it('persists allowlist config and reads it back', async () => {
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+  });
+
+  it('preserves existing auth state when setting allowlist', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+    // Verify auth state still works
+    expect(await isAuthEnabled()).toBe(true);
+    expect(await verifyPassword('testpassword123')).toBe(true);
+    // Verify allowlist was saved
+    const config = await getIpAllowlistConfig();
+    expect(config.allowlist).toEqual(['192.168.1.0/24']);
+  });
+
+  it('preserves IP allowlist across password changes', async () => {
+    // Set up: password + allowlist config
+    await setPassword('original-password');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+
+    // Change password
+    await setPassword('new-password');
+
+    // Allowlist config must survive the password change
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+  });
+
+  it('preserves IP allowlist across clearPassword', async () => {
+    // Set up: password + allowlist config
+    await setPassword('original-password');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+
+    // Disable auth (admin clicks "Disable Authentication")
+    await clearPassword();
+
+    // Password state cleared
+    expect(await isAuthEnabled()).toBe(false);
+
+    // But IP allowlist config must survive — "no password, LAN-only" is a valid mode
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
   });
 });
