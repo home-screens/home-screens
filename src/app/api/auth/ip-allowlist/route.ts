@@ -19,7 +19,7 @@ export const GET = withAuth(async (request: NextRequest) => {
 
 export const PUT = withAuth(async (request: NextRequest) => {
   const body = await request.json();
-  const { allowlist, bypassAuth, restrictAccess } = body;
+  const { allowlist, bypassAuth, restrictAccess, force } = body;
 
   // Validate types
   if (!Array.isArray(allowlist) || typeof bypassAuth !== 'boolean' || typeof restrictAccess !== 'boolean') {
@@ -37,18 +37,26 @@ export const PUT = withAuth(async (request: NextRequest) => {
     }
   }
 
+  // Lockout pre-check: if the caller would lock themselves out by enabling
+  // restriction with an allowlist that excludes their IP, return 409 without
+  // saving. The UI can re-submit with `force: true` after the user confirms.
+  const callerIp = getClientIP(request);
+  if (restrictAccess && allowlist.length > 0 && !isIpAllowed(callerIp, allowlist) && force !== true) {
+    return NextResponse.json(
+      {
+        error: 'Lockout warning',
+        reason: 'your_ip_not_in_allowlist',
+        callerIp,
+      },
+      { status: 409 },
+    );
+  }
+
   // Save
   await setIpAllowlistConfig({ allowlist, bypassAuth, restrictAccess });
 
   // Audit
-  const callerIp = getClientIP(request);
   audit({ action: 'ip_allowlist_change', ip: callerIp, entryCount: allowlist.length });
 
-  // Lockout warning
-  let warning: string | undefined;
-  if (restrictAccess && allowlist.length > 0 && !isIpAllowed(callerIp, allowlist)) {
-    warning = 'your_ip_not_in_allowlist';
-  }
-
-  return NextResponse.json({ saved: true, ...(warning && { warning }) });
+  return NextResponse.json({ saved: true });
 }, 'Failed to update IP allowlist');

@@ -286,10 +286,10 @@ export default function SecuritySection() {
     setIpDirty(true);
   }
 
-  async function handleSaveIpAllowlist() {
+  async function handleSaveIpAllowlist(force = false) {
     setIpSaving(true);
     setIpMessage(null);
-    setIpLockoutConfirm(false);
+    if (!force) setIpLockoutConfirm(false);
     try {
       const res = await editorFetch('/api/auth/ip-allowlist', {
         method: 'PUT',
@@ -298,17 +298,20 @@ export default function SecuritySection() {
           allowlist: ipAllowlist,
           bypassAuth: ipBypassAuth,
           restrictAccess: ipRestrictAccess,
+          force,
         }),
       });
       const data = await res.json();
+      // 409 Conflict = server detected lockout risk, ask user to confirm
+      if (res.status === 409 && data.reason === 'your_ip_not_in_allowlist') {
+        setIpLockoutConfirm(true);
+        return;
+      }
       if (!res.ok) {
         setIpMessage(data.error || 'Failed to save');
         return;
       }
-      if (data.warning === 'your_ip_not_in_allowlist') {
-        setIpLockoutConfirm(true);
-        return;
-      }
+      setIpLockoutConfirm(false);
       setIpMessage('Saved');
       setIpDirty(false);
       setTimeout(() => setIpMessage(null), 2000);
@@ -564,20 +567,8 @@ export default function SecuritySection() {
                   Your current IP ({ipCallerIp}) is not in the allowlist. If access restriction is enabled, you&apos;ll lose access to this editor.
                 </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Button variant="danger" size="sm" onClick={async () => {
-                    setIpLockoutConfirm(false);
-                    setIpSaving(true);
-                    try {
-                      const res = await editorFetch('/api/auth/ip-allowlist', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ allowlist: ipAllowlist, bypassAuth: ipBypassAuth, restrictAccess: ipRestrictAccess }),
-                      });
-                      if (res.ok) { setIpMessage('Saved'); setIpDirty(false); setTimeout(() => setIpMessage(null), 2000); }
-                    } catch { setIpMessage('Network error'); }
-                    finally { setIpSaving(false); }
-                  }}>
-                    Save Anyway
+                  <Button variant="danger" size="sm" onClick={() => handleSaveIpAllowlist(true)} disabled={ipSaving}>
+                    {ipSaving ? 'Saving...' : 'Save Anyway'}
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setIpLockoutConfirm(false)}>
                     Cancel
@@ -588,7 +579,7 @@ export default function SecuritySection() {
 
             {/* Save button */}
             {ipDirty && !ipLockoutConfirm && (
-              <Button variant="primary" size="sm" onClick={handleSaveIpAllowlist} disabled={ipSaving}>
+              <Button variant="primary" size="sm" onClick={() => handleSaveIpAllowlist(false)} disabled={ipSaving}>
                 {ipSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             )}
@@ -601,6 +592,11 @@ export default function SecuritySection() {
 
             <p className="text-xs text-hs-text-faint">
               If locked out, edit <code className="text-hs-text-faint">data/auth.json</code> on the device to disable.
+            </p>
+            <p className="text-xs text-hs-text-faint">
+              <strong className="text-hs-warning">Note:</strong> IP restriction reads the <code className="text-hs-text-faint">X-Forwarded-For</code> header.
+              If Home Screens is exposed directly to the internet without a trusted reverse proxy, this setting can be spoofed.
+              Use on trusted networks only.
             </p>
           </div>
         </div>
