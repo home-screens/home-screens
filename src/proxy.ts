@@ -134,6 +134,22 @@ function isDisplayAccessiblePost(pathname: string): boolean {
   return pathname.startsWith('/api/plugins/proxy/');
 }
 
+/**
+ * POST routes the unauthenticated /chores kid view needs:
+ *   /api/chores  → toggle a chore completion
+ *   /api/rewards → redeem a reward
+ *
+ * Exact match (not prefix) — the admin-only sub-paths /api/chores/data and
+ * /api/rewards/data must stay protected, since reward editing and manual
+ * balance adjustments live there. Both handlers do their own input
+ * validation and (for redemptions) balance checks.
+ */
+const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/rewards']);
+
+function isKidViewPost(pathname: string): boolean {
+  return KID_VIEW_POST_ROUTES.has(pathname);
+}
+
 function isPublicAuthRoute(pathname: string): boolean {
   return PUBLIC_AUTH_ROUTES.some((r) => pathname === r);
 }
@@ -162,10 +178,12 @@ function isProtectedRoute(pathname: string, method: string): boolean {
   // Editor and remote pages — always protected
   if (pathname.startsWith('/editor') || pathname.startsWith('/remote')) return true;
 
-  // API write operations — protected (except public auth routes and display-accessible POSTs)
+  // API write operations — protected (except public auth routes, display-accessible
+  // POSTs, and the LAN-public kid-view POSTs the /chores route depends on)
   if (pathname.startsWith('/api/') && ['PUT', 'POST', 'DELETE'].includes(method)) {
     if (isPublicAuthRoute(pathname)) return false;
     if (method === 'POST' && isDisplayAccessiblePost(pathname)) return false;
+    if (method === 'POST' && isKidViewPost(pathname)) return false;
     return true;
   }
 

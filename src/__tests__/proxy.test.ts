@@ -386,6 +386,48 @@ describe('proxy — auth enabled: API write operations require authentication', 
   }
 });
 
+describe('proxy — auth enabled: /chores kid view POSTs are LAN-public', () => {
+  // The /chores route is the unauthenticated kid view (no login). Its two
+  // mutation endpoints (`POST /api/chores` to toggle a completion, `POST
+  // /api/rewards` to redeem a reward) must reach their handlers without a
+  // session cookie. The handlers themselves do their own input validation.
+  // The admin-only sub-paths (/api/chores/data, /api/rewards/data) stay
+  // protected — that's where reward editing and balance adjustments live.
+  let proxy: ProxyFn;
+
+  beforeEach(async () => {
+    proxy = await loadProxyWithAuth('enabled');
+  });
+
+  it('POST /api/chores passes through without a cookie', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/chores', { method: 'POST' })))).toBe(true);
+  });
+
+  it('POST /api/rewards passes through without a cookie', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/rewards', { method: 'POST' })))).toBe(true);
+  });
+
+  it('POST /api/chores/data still requires a cookie (admin-only)', async () => {
+    expect(await is401(proxy(makeRequest('/api/chores/data', { method: 'POST' })))).toBe(true);
+  });
+
+  it('PUT /api/chores/data still requires a cookie (admin-only)', async () => {
+    expect(await is401(proxy(makeRequest('/api/chores/data', { method: 'PUT' })))).toBe(true);
+  });
+
+  it('POST /api/rewards/data still requires a cookie (admin-only balance adjust)', async () => {
+    expect(await is401(proxy(makeRequest('/api/rewards/data', { method: 'POST' })))).toBe(true);
+  });
+
+  it('PUT /api/rewards/data still requires a cookie (admin-only reward edits)', async () => {
+    expect(await is401(proxy(makeRequest('/api/rewards/data', { method: 'PUT' })))).toBe(true);
+  });
+
+  it('GET /chores page is not caught by /editor or /remote page protection', () => {
+    expect(isPassThrough(proxy(makeRequest('/chores')))).toBe(true);
+  });
+});
+
 describe('proxy — auth enabled: protected GET routes require authentication', () => {
   let proxy: ProxyFn;
 
