@@ -611,7 +611,7 @@ describe('sports API route', () => {
         vi.fn(() =>
           Promise.resolve({
             ok: false,
-            status: 503,
+            status: 400,
             json: () => Promise.resolve({}),
           }),
         ),

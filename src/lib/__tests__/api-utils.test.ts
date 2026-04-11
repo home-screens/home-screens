@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -132,6 +132,28 @@ describe('fetchWithTimeout', () => {
 
     expect(timeoutSpy).toHaveBeenCalledWith(3000);
     timeoutSpy.mockRestore();
+  });
+
+  it('retries transient failures by default (delegates to fetchWithRetry)', async () => {
+    vi.useFakeTimers();
+    fetchSpy
+      .mockResolvedValueOnce(new Response('down', { status: 503 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithTimeout('https://example.com');
+    await vi.advanceTimersByTimeAsync(500); // default baseDelayMs
+    const res = await promise;
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it('allows disabling retries with retries: 0', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+    const res = await fetchWithTimeout('https://example.com', { retries: 0 });
+    expect(res.status).toBe(503);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1017,5 +1039,266 @@ describe('assertOptionalArrays', () => {
     expect(result).toBeInstanceOf(NextResponse);
     const json = await (result as NextResponse).json();
     expect(json.error).toBe('plan must be an array');
+  });
+});
+
+describe('isTransientError', () => {
+  it('returns true for 500, 502, 503, 504', () => {
+    expect(isTransientError(500)).toBe(true);
+    expect(isTransientError(502)).toBe(true);
+    expect(isTransientError(503)).toBe(true);
+    expect(isTransientError(504)).toBe(true);
+  });
+
+  it('returns true for 429 (rate limited)', () => {
+    expect(isTransientError(429)).toBe(true);
+  });
+
+  it('returns false for 400, 401, 403, 404', () => {
+    expect(isTransientError(400)).toBe(false);
+    expect(isTransientError(401)).toBe(false);
+    expect(isTransientError(403)).toBe(false);
+    expect(isTransientError(404)).toBe(false);
+  });
+
+  it('returns false for 200', () => {
+    expect(isTransientError(200)).toBe(false);
+  });
+});
+
+describe('parseRetryAfter', () => {
+  it('returns null for null header', () => {
+    expect(parseRetryAfter(null)).toBeNull();
+  });
+
+  it('returns null for empty string', () => {
+    expect(parseRetryAfter('')).toBeNull();
+  });
+
+  it('parses integer seconds (30 → 30_000ms)', () => {
+    expect(parseRetryAfter('30')).toBe(30_000);
+  });
+
+  it('parses zero seconds (0 → 0ms)', () => {
+    expect(parseRetryAfter('0')).toBe(0);
+  });
+
+  it('returns null for negative values', () => {
+    expect(parseRetryAfter('-5')).toBeNull();
+  });
+
+  it('returns null for non-numeric strings (HTTP-date format)', () => {
+    expect(parseRetryAfter('Thu, 01 Dec 2025 16:00:00 GMT')).toBeNull();
+  });
+
+  it('clamps to 60 seconds max (120 → 60_000ms)', () => {
+    expect(parseRetryAfter('120')).toBe(60_000);
+  });
+});
+
+describe('fetchWithRetry', () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('returns the response on first success', async () => {
+    fetchSpy.mockResolvedValue(new Response('ok', { status: 200 }));
+    const res = await fetchWithRetry('https://example.com');
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on 4xx errors', async () => {
+    fetchSpy.mockResolvedValue(new Response('bad', { status: 400 }));
+    const res = await fetchWithRetry('https://example.com');
+    expect(res.status).toBe(400);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on 401', async () => {
+    fetchSpy.mockResolvedValue(new Response('unauth', { status: 401 }));
+    const res = await fetchWithRetry('https://example.com');
+    expect(res.status).toBe(401);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries on 503 then succeeds', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(new Response('down', { status: 503 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 2, baseDelayMs: 100 });
+    await vi.advanceTimersByTimeAsync(100);
+    const res = await promise;
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on 429 then succeeds', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(new Response('slow down', { status: 429 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 1, baseDelayMs: 100 });
+    await vi.advanceTimersByTimeAsync(100);
+    const res = await promise;
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on network error (TypeError) then succeeds', async () => {
+    fetchSpy
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 1, baseDelayMs: 100 });
+    await vi.advanceTimersByTimeAsync(100);
+    const res = await promise;
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns the last failed response when retries are exhausted', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 2, baseDelayMs: 100 });
+    await vi.advanceTimersByTimeAsync(100); // first retry
+    await vi.advanceTimersByTimeAsync(200); // second retry (exponential)
+    const res = await promise;
+
+    expect(res.status).toBe(503);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+  });
+
+  it('throws the last error when retries are exhausted on network errors', async () => {
+    fetchSpy
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 2, baseDelayMs: 100 });
+    // Attach the rejection handler before advancing timers so the promise
+    // rejection is never transiently unhandled.
+    const assertion = expect(promise).rejects.toThrow('Failed to fetch');
+    await vi.advanceTimersByTimeAsync(100);
+    await vi.advanceTimersByTimeAsync(200);
+
+    await assertion;
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+  });
+
+  it('uses exponential backoff: 100ms, 200ms, 400ms', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 3, baseDelayMs: 100 });
+
+    await vi.advanceTimersByTimeAsync(99);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+
+    await vi.advanceTimersByTimeAsync(400);
+    expect(fetchSpy).toHaveBeenCalledTimes(4);
+
+    await promise;
+  });
+
+  it('caps backoff delay at maxDelayMs', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+
+    const promise = fetchWithRetry('https://example.com', {
+      retries: 3,
+      baseDelayMs: 1000,
+      maxDelayMs: 1500,
+    });
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(fetchSpy).toHaveBeenCalledTimes(4);
+
+    await promise;
+  });
+
+  it('respects Retry-After header over exponential backoff', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(
+        new Response('slow', { status: 429, headers: { 'Retry-After': '2' } }),
+      )
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithRetry('https://example.com', { retries: 1, baseDelayMs: 100 });
+
+    await vi.advanceTimersByTimeAsync(100);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1900);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    const res = await promise;
+    expect(res.status).toBe(200);
+  });
+
+  it('skips retry when retries is 0', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+    const res = await fetchWithRetry('https://example.com', { retries: 0 });
+    expect(res.status).toBe(503);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates caller abort signal', async () => {
+    const controller = new AbortController();
+    fetchSpy.mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+
+    controller.abort();
+    await expect(
+      fetchWithRetry('https://example.com', { signal: controller.signal, retries: 2 }),
+    ).rejects.toThrow('Aborted');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on caller abort between retries', async () => {
+    const controller = new AbortController();
+    fetchSpy
+      .mockResolvedValueOnce(new Response('down', { status: 503 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithRetry('https://example.com', {
+      signal: controller.signal,
+      retries: 2,
+      baseDelayMs: 100,
+    });
+
+    // Attach the rejection handler before aborting so the promise rejection
+    // is never transiently unhandled.
+    const assertion = expect(promise).rejects.toThrow();
+    // Abort during the backoff delay — delay rejects before the second fetch fires
+    controller.abort();
+    await vi.advanceTimersByTimeAsync(100);
+
+    await assertion;
+    // Only the first fetch was made; the abort cancelled the delay before retry
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -176,7 +176,7 @@ describe('requestDeviceCode', () => {
 
   it('throws with fallback message when neither error field is present', async () => {
     setupCredentials();
-    globalThis.fetch = mockFetchResponse({}, false, 500);
+    globalThis.fetch = mockFetchResponse({}, false, 400);
 
     await expect(requestDeviceCode()).rejects.toThrow('Failed to request device code');
   });

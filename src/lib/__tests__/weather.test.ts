@@ -217,9 +217,9 @@ describe('OpenMeteoProvider', () => {
     });
 
     it('throws on API error', async () => {
-      fetchSpy.mockResolvedValueOnce(new Response('Rate limited', { status: 429 }));
+      fetchSpy.mockResolvedValue(new Response('Rate limited', { status: 400 }));
       const provider = new OpenMeteoProvider();
-      await expect(provider.getHourly(40.7, -74.0, 'imperial')).rejects.toThrow('Open-Meteo API error 429');
+      await expect(provider.getHourly(40.7, -74.0, 'imperial')).rejects.toThrow('Open-Meteo API error 400');
     });
 
     it('handles night-time icons via is_day field', async () => {
@@ -293,9 +293,9 @@ describe('OpenMeteoProvider', () => {
     });
 
     it('throws on API error', async () => {
-      fetchSpy.mockResolvedValueOnce(new Response('Server error', { status: 500 }));
+      fetchSpy.mockResolvedValue(new Response('Server error', { status: 400 }));
       const provider = new OpenMeteoProvider();
-      await expect(provider.getForecast(40.7, -74.0, 'imperial')).rejects.toThrow('Open-Meteo API error 500');
+      await expect(provider.getForecast(40.7, -74.0, 'imperial')).rejects.toThrow('Open-Meteo API error 400');
     });
   });
 });

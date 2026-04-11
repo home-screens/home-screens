@@ -150,7 +150,7 @@ describe('GET /api/history', () => {
               ),
           });
         }
-        return Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({}) });
+        return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
       }),
     );
 

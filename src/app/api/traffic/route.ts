@@ -27,6 +27,7 @@ async function fetchGoogle(routes: RouteInput[], apiKey: string) {
         'https://routes.googleapis.com/directions/v2:computeRoutes',
         {
           method: 'POST',
+          retries: 0,
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
