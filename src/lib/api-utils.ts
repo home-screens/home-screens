@@ -27,7 +27,7 @@ export function errorResponse(
  */
 export function fetchWithTimeout(
   url: string | URL | Request,
-  init?: RequestInit & FetchRetryOptions,
+  init?: FetchRetryOptions,
 ): Promise<Response> {
   return fetchWithRetry(url, init);
 }
