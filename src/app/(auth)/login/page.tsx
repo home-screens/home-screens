@@ -15,6 +15,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [ipRestricted, setIpRestricted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // If already authenticated or auth is disabled, redirect immediately
@@ -26,6 +27,9 @@ function LoginForm() {
         if (!data.authEnabled || data.authenticated) {
           window.location.href = from;
           return;
+        }
+        if (data.ipRestricted) {
+          setIpRestricted(true);
         }
       } catch {
         // If status check fails, show the login form
@@ -80,6 +84,16 @@ function LoginForm() {
           <HomeScreensLogo className="mb-4" />
           <p className="text-sm text-hs-text-faint">Enter your password to continue</p>
         </div>
+
+        {ipRestricted && (
+          <div className="rounded-lg bg-hs-danger/10 border border-hs-danger/30 px-4 py-3 mb-4">
+            <p className="text-sm font-medium text-hs-danger">Access restricted</p>
+            <p className="text-xs text-hs-text-muted mt-1">
+              Your IP address is not in the allowed list. Even with the correct password,
+              you won&apos;t be able to access this system. Contact an administrator to add your IP.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
