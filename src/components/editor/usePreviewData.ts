@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
+import { eventBus } from '@/lib/event-bus';
+import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
+import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 interface ProviderWeatherData {
   hourly: unknown[] | null;
@@ -129,6 +132,22 @@ export function usePreviewData(): PreviewData {
       controller.abort();
     };
   }, [providers, provider, latitude, longitude, units]);
+
+  // Publish weather events to the event bus so editor modules using
+  // useEventBus('weather.conditions') see the same data as the display.
+  const globalProvider = provider ?? 'weatherapi';
+  const globalWeather = previewData.weatherByProvider[globalProvider];
+  useEffect(() => {
+    if (!globalWeather) return;
+    const conditions = deriveWeatherConditions(
+      (globalWeather.hourly as HourlyWeather[] | undefined) ?? [],
+      (units as 'imperial' | 'metric') ?? 'imperial',
+    );
+    if (conditions) eventBus.publish('weather.conditions', conditions);
+
+    const alertsEvent = deriveWeatherAlerts(globalWeather.alerts as WeatherAlert[] | undefined);
+    if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
+  }, [globalWeather, units]);
 
   return previewData;
 }
