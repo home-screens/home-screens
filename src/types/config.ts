@@ -540,6 +540,7 @@ export interface StickyNoteConfig {
 export interface GreetingConfig {
   name: string;
   accentColor?: string;
+  weatherAware?: boolean;
 }
 
 // News module config
@@ -786,6 +787,7 @@ export interface AffirmationsConfig {
   rotationIntervalMs: number;
   showCategoryLabel: boolean;
   timeAware: boolean;
+  weatherAware?: boolean;
   customEntries: CustomAffirmation[];
   accentColor: string;
 }

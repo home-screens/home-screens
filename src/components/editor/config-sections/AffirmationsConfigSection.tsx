@@ -33,6 +33,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
     rotationIntervalMs?: number;
     showCategoryLabel?: boolean;
     timeAware?: boolean;
+    weatherAware?: boolean;
     customEntries?: CustomAffirmation[];
     accentColor?: string;
   }>(mod, screenId);
@@ -102,6 +103,11 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         label="Time-Aware Content"
         checked={c.timeAware ?? true}
         onChange={(v) => set({ timeAware: v })}
+      />
+      <Toggle
+        label="Weather-Aware Content"
+        checked={c.weatherAware ?? true}
+        onChange={(v) => set({ weatherAware: v })}
       />
       <Toggle
         label="Show Category Label"

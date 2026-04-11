@@ -1,12 +1,13 @@
 'use client';
 
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
+import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance } from '@/types/config';
 
 export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ name?: string; accentColor?: string }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ name?: string; accentColor?: string; weatherAware?: boolean }>(mod, screenId);
 
   return (
     <>
@@ -22,6 +23,11 @@ export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       <AccentColorPicker
         value={c.accentColor ?? '#000000'}
         onChange={(v) => set({ accentColor: v })}
+      />
+      <Toggle
+        label="Weather-Aware Greeting"
+        checked={c.weatherAware ?? true}
+        onChange={(v) => set({ weatherAware: v })}
       />
     </>
   );

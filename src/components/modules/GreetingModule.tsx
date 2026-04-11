@@ -48,7 +48,8 @@ export default function GreetingModule({ config, style, timezone }: GreetingModu
   const name = config.name ?? 'Friend';
   const greeting = getGreeting(now.getHours());
   const accent = getTimeAccent(now.getHours(), config.accentColor);
-  const suffix = weather ? getWeatherSuffix(weather.condition) : null;
+  const weatherAware = config.weatherAware ?? true;
+  const suffix = weatherAware && weather ? getWeatherSuffix(weather.condition) : null;
 
   return (
     <ModuleWrapper style={style}>

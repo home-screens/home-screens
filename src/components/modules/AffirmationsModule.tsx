@@ -269,6 +269,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   const rotationMs = config.rotationIntervalMs ?? 15000;
   const showCategory = config.showCategoryLabel ?? false;
   const timeAware = config.timeAware ?? true;
+  const weatherAware = config.weatherAware ?? true;
   const accentColor = config.accentColor ?? '#a78bfa';
 
   // Merge built-in (filtered by category) + custom entries (always included)
@@ -286,7 +287,8 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
     return [...builtIn, ...custom];
   }, [config.categories, config.customEntries]);
 
-  const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0, weather?.condition ?? null);
+  const weatherCondition = weatherAware ? (weather?.condition ?? null) : null;
+  const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0, weatherCondition);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
 
   if (!result) {
