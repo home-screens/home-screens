@@ -617,6 +617,8 @@ ExecStartPre=/bin/bash -c '[ -d ${APP_DIR} ] || [ ! -d ${APP_DIR}.rollback ] || 
 ExecStart=${EXEC_START}
 Restart=on-failure
 RestartSec=5
+TimeoutStopSec=15
+KillMode=mixed
 Environment=NODE_ENV=production
 Environment=PORT=${PORT}
 
