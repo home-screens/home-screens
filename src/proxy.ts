@@ -98,11 +98,16 @@ function ipMatchesAllowlist(ip: string, allowlist: string[]): boolean {
   return false;
 }
 
-/** IPv4 validator that actually checks octet ranges (regex isn't enough). */
+/**
+ * IPv4 validator that actually checks octet ranges (regex isn't enough).
+ * Matches the behavior of Node's `net.isIPv4()` used by the library version,
+ * including rejection of leading zeros ("01.168.1.0" is invalid per RFC).
+ */
 function isValidIPv4(s: string): boolean {
   if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(s)) return false;
   const parts = s.split('.');
   return parts.every((p) => {
+    if (p.length > 1 && p[0] === '0') return false; // no leading zeros
     const n = +p;
     return n >= 0 && n <= 255;
   });

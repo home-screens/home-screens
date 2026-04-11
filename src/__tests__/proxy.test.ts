@@ -1000,4 +1000,19 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
     const result = proxy(makeRequest('/api/weather', { xForwardedFor: '192.168.1.50' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
+
+  it('leading-zero octets are rejected (matches net.isIPv4 behavior)', async () => {
+    // RFC says 01.168.1.0 is not a valid IPv4 literal. Node's net.isIPv4
+    // rejects it, so the library's isIpAllowed rejects it. The proxy's
+    // inline matcher must match that behavior to avoid divergence between
+    // the proxy gate and the auth-layer bypass.
+    const proxy = await loadProxyWithConfig({
+      passwordHash: null,
+      ipAllowlist: ['01.168.1.0/24'],
+      ipRestrictAccess: true,
+    });
+    // Entry is invalid and skipped. Caller at 1.168.1.50 should NOT match.
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '1.168.1.50' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
 });
