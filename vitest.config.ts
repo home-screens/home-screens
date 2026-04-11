@@ -16,6 +16,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    exclude: ['.worktrees/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
