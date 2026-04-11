@@ -8,6 +8,7 @@ const columns = [
       { label: 'Features', href: '#features' },
       { label: 'Modules', href: '#modules' },
       { label: 'Templates', href: '#templates' },
+      { label: 'vs MagicMirror / Dakboard', href: '/vs' },
     ],
   },
   {
