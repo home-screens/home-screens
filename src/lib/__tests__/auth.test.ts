@@ -721,4 +721,28 @@ describe('getIpAllowlistConfig', () => {
       restrictAccess: true,
     });
   });
+
+  it('preserves IP allowlist across clearPassword', async () => {
+    // Set up: password + allowlist config
+    await setPassword('original-password');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+
+    // Disable auth (admin clicks "Disable Authentication")
+    await clearPassword();
+
+    // Password state cleared
+    expect(await isAuthEnabled()).toBe(false);
+
+    // But IP allowlist config must survive — "no password, LAN-only" is a valid mode
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+  });
 });

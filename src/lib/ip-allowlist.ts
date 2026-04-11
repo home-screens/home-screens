@@ -43,6 +43,12 @@ function ipToInt(ip: string): number {
 /**
  * Check if an IP address matches any entry in a CIDR allowlist.
  * Normalizes IPv4-mapped IPv6 before matching. Bare IPs are treated as /32.
+ *
+ * Fails safe: garbage entries (non-IPv4, out-of-range prefix) are skipped,
+ * never treated as match-all. Entries passed through validateCidr() in the
+ * PUT handler are guaranteed clean, but a hand-edited auth.json with a typo
+ * like "foo/24" would otherwise match any IP in 0.0.0.0/24 (because +"foo"
+ * coerces to NaN which becomes 0 under bitwise).
  */
 export function isIpAllowed(ip: string, allowlist: string[]): boolean {
   const normalized = normalizeIp(ip);
@@ -52,7 +58,11 @@ export function isIpAllowed(ip: string, allowlist: string[]): boolean {
 
   for (const entry of allowlist) {
     const [cidrIp, prefixStr] = entry.split('/');
+    if (!net.isIPv4(cidrIp)) continue; // fail-safe: skip garbage
+
     const prefix = prefixStr != null ? +prefixStr : 32;
+    if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) continue;
+
     const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
     const networkNum = ipToInt(cidrIp);
 

@@ -207,7 +207,15 @@ export async function setPassword(newPassword: string): Promise<string> {
 }
 
 export async function clearPassword(): Promise<void> {
-  await writeAuthState(DISABLED_STATE);
+  // Preserve IP allowlist config across password-disable, consistent with
+  // setPassword. A user may want "no password, but LAN-only" as a valid mode.
+  const existing = await readAuthState();
+  await writeAuthState({
+    ...DISABLED_STATE,
+    ipAllowlist: existing.ipAllowlist,
+    ipBypassAuth: existing.ipBypassAuth,
+    ipRestrictAccess: existing.ipRestrictAccess,
+  });
 }
 
 /* ─── Display Token ─────────────────────────── */

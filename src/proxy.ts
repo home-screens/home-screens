@@ -64,27 +64,48 @@ function extractIp(request: NextRequest): string {
   );
 }
 
-/** Inline IPv4 CIDR match. Duplicates logic from ip-allowlist.ts to avoid importing it (keeps proxy lightweight). */
+/**
+ * Inline IPv4 CIDR match. Mirrors isIpAllowed in ip-allowlist.ts.
+ * Duplicated rather than imported to keep the proxy runtime lightweight
+ * (avoids pulling in the `net` module which may not be available in Edge).
+ *
+ * Fails safe: garbage entries are skipped, never treated as match-all.
+ * IPv6 addresses (including ::1 and fe80::...) always return false — see
+ * the IPv6 warning in SecuritySection.tsx.
+ */
 function ipMatchesAllowlist(ip: string, allowlist: string[]): boolean {
   // Normalize IPv4-mapped IPv6
   const normalized = ip.replace(/^::ffff:/i, '');
-  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(normalized)) return false;
+  if (!isValidIPv4(normalized)) return false;
 
   const parts = normalized.split('.');
   const ipNum = ((+parts[0]) << 24 | (+parts[1]) << 16 | (+parts[2]) << 8 | (+parts[3])) >>> 0;
 
   for (const entry of allowlist) {
     const [cidrIp, prefixStr] = entry.split('/');
+    if (!isValidIPv4(cidrIp)) continue; // fail-safe: skip garbage
+
     const prefix = prefixStr != null ? +prefixStr : 32;
+    if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) continue;
+
     const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
     const cidrParts = cidrIp.split('.');
-    if (cidrParts.length !== 4) continue;
     const cidrNum = ((+cidrParts[0]) << 24 | (+cidrParts[1]) << 16 | (+cidrParts[2]) << 8 | (+cidrParts[3])) >>> 0;
 
     if ((ipNum & mask) === (cidrNum & mask)) return true;
   }
 
   return false;
+}
+
+/** IPv4 validator that actually checks octet ranges (regex isn't enough). */
+function isValidIPv4(s: string): boolean {
+  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(s)) return false;
+  const parts = s.split('.');
+  return parts.every((p) => {
+    const n = +p;
+    return n >= 0 && n <= 255;
+  });
 }
 
 /* ─── Route classification ───────────────────── */

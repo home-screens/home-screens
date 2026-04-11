@@ -513,7 +513,7 @@ export default function SecuritySection() {
               </div>
             </label>
 
-            {ipAllowlist.length === 0 && (ipBypassAuth || ipRestrictAccess) === false && (
+            {ipAllowlist.length === 0 && (
               <p className="text-xs text-hs-text-faint">Add at least one IP range to enable these options.</p>
             )}
 
@@ -594,9 +594,14 @@ export default function SecuritySection() {
               If locked out, edit <code className="text-hs-text-faint">data/auth.json</code> on the device to disable.
             </p>
             <p className="text-xs text-hs-text-faint">
-              <strong className="text-hs-warning">Note:</strong> IP restriction reads the <code className="text-hs-text-faint">X-Forwarded-For</code> header.
+              <strong className="text-hs-warning">IPv4 only.</strong> IPv6 clients (including dual-stack Pis reporting
+              <code className="text-hs-text-faint mx-1">::1</code>or <code className="text-hs-text-faint mx-1">fe80::…</code>)
+              do not match any allowlist entry and will be blocked when restriction is enabled. Check &quot;Your IP&quot; above —
+              if it starts with a colon, this feature will block you.
+            </p>
+            <p className="text-xs text-hs-text-faint">
+              <strong className="text-hs-warning">Trusted networks only.</strong> IP restriction reads the <code className="text-hs-text-faint">X-Forwarded-For</code> header.
               If Home Screens is exposed directly to the internet without a trusted reverse proxy, this setting can be spoofed.
-              Use on trusted networks only.
             </p>
           </div>
         </div>
