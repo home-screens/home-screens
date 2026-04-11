@@ -32,8 +32,12 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const lon = settings.longitude ?? settings.weather.longitude;
   const baseParams = `lat=${lat}&lon=${lon}&units=${settings.weather.units}`;
 
+  const hasLocation = lat != null && lon != null && !(lat === 0 && lon === 0);
+
   const neededProviders = useMemo(() => {
     const needed = new Set<string>();
+    // Always fetch global-provider weather for the event bus when location is configured
+    if (hasLocation) needed.add(globalProvider);
     for (const screen of screens) {
       for (const mod of screen.modules) {
         // Fetch weather for built-in weather modules
@@ -48,7 +52,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
       }
     }
     return needed;
-  }, [screens, globalProvider]);
+  }, [screens, globalProvider, hasLocation]);
 
   // Append refresh epoch to URLs so useFetchData re-runs on force refresh.
   // Epoch 0 is omitted to keep URLs clean during normal operation.

@@ -109,13 +109,17 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   const now = useTZClock(settings.timezone);
 
   // Publish time period transitions to the event bus (fires at most 4x/day)
-  const timePeriod = getTimePeriod(now.getHours());
+  const hour = now.getHours();
+  const timePeriod = getTimePeriod(hour);
   useEffect(() => {
     eventBus.publish('time.period', {
       period: timePeriod,
-      hour: now.getHours(),
+      hour,
       timezone: settings.timezone ?? 'UTC',
     });
+    // `hour` is intentionally excluded — we only want to fire on period transitions,
+    // not every hour. The closure captures the correct hour at each transition.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timePeriod, settings.timezone]);
 
   const visibleModules = useMemo(

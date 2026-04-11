@@ -35,6 +35,14 @@ describe('deriveWeatherConditions', () => {
     expect(result?.condition).toBe('thunderstorm');
   });
 
+  it('maps "snowstorm" to snow, not thunderstorm', () => {
+    const result = deriveWeatherConditions(
+      [makeHourly({ description: 'Heavy Snowstorm' })],
+      'imperial',
+    );
+    expect(result?.condition).toBe('snow');
+  });
+
   it('maps drizzle descriptions', () => {
     const result = deriveWeatherConditions(
       [makeHourly({ description: 'Light drizzle' })],

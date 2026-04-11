@@ -8,7 +8,7 @@ import type { WeatherConditionsEvent, WeatherAlertsEvent, WeatherCondition } fro
  */
 function mapDescriptionToCondition(description: string): WeatherCondition {
   const d = description.toLowerCase();
-  if (d.includes('thunder') || d.includes('storm')) return 'thunderstorm';
+  if (d.includes('thunder')) return 'thunderstorm';
   if (d.includes('drizzle')) return 'drizzle';
   if (d.includes('rain') || d.includes('shower')) return 'rain';
   if (d.includes('snow') || d.includes('sleet') || d.includes('blizzard') || d.includes('flurr')) return 'snow';

@@ -1,4 +1,5 @@
 import type { AffirmationsCategory } from '@/types/config';
+import type { WeatherCondition } from '@/lib/event-bus';
 
 export interface AffirmationEntry {
   text: string;
@@ -11,7 +12,7 @@ export interface AffirmationEntry {
   /** Season affinity */
   season?: 'spring' | 'summer' | 'fall' | 'winter';
   /** Weather condition affinity — boosts score when conditions match */
-  weather?: 'clear' | 'rain' | 'snow' | 'clouds';
+  weather?: WeatherCondition;
 }
 
 // ---------------------------------------------------------------------------
