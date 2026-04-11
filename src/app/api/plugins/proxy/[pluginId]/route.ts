@@ -257,6 +257,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       body: isBodyMethod ? currentBody : undefined,
       timeout: PROXY_TIMEOUT_MS,
       redirect: 'manual',
+      retries: 0, // Retries belong on the client's request, not per redirect hop
     });
     // 3xx with no Location header is treated as the final response
     if (upstreamRes.status < 300 || upstreamRes.status >= 400) break;
