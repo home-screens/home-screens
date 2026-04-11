@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 
 const REPO_URL = 'https://github.com/home-screens/home-screens';
+const WEBSITE_URL = 'https://homescreens.dev';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import {
@@ -335,7 +336,30 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
  */
 function SidebarFooter() {
   return (
-    <div className="flex justify-end border-t border-hs-border px-3.5 py-2">
+    <div className="flex items-center justify-end gap-3 border-t border-hs-border px-3.5 py-2">
+      <a
+        href={WEBSITE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
+        title="homescreens.dev"
+        aria-label="Visit homescreens.dev"
+      >
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 11 12 4 21 11" />
+          <rect x="5" y="11" width="14" height="9" rx="2" />
+          <line x1="9" y1="15" x2="14" y2="15" />
+        </svg>
+      </a>
       <a
         href={REPO_URL}
         target="_blank"
