@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, getClientIP } from '@/lib/api-utils';
 import { getIpAllowlistConfig, setIpAllowlistConfig } from '@/lib/auth';
-import { validateCidr, isIpAllowed } from '@/lib/ip-allowlist';
+import { validateCidr, isIpAllowed, normalizeIp } from '@/lib/ip-allowlist';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withAuth(async (request: NextRequest) => {
   const config = await getIpAllowlistConfig();
-  const callerIp = getClientIP(request);
+  // Normalize before returning so the UI shows what the matcher actually uses
+  // (e.g. ::ffff:127.0.0.1 → 127.0.0.1). Otherwise users see the mapped form
+  // and mistakenly think the IPv6 warning applies to them.
+  const callerIp = normalizeIp(getClientIP(request));
   return NextResponse.json({
     allowlist: config.allowlist,
     bypassAuth: config.bypassAuth,
@@ -40,7 +43,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // Lockout pre-check: if the caller would lock themselves out by enabling
   // restriction with an allowlist that excludes their IP, return 409 without
   // saving. The UI can re-submit with `force: true` after the user confirms.
-  const callerIp = getClientIP(request);
+  // Normalize caller IP so the UI dialog shows the same form as the matcher uses.
+  const callerIp = normalizeIp(getClientIP(request));
   if (restrictAccess && allowlist.length > 0 && !isIpAllowed(callerIp, allowlist) && force !== true) {
     return NextResponse.json(
       {

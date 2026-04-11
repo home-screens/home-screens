@@ -88,6 +88,35 @@ describe('GET /api/auth/ip-allowlist', () => {
     expect(json.callerIp).toBe('192.168.1.42');
   });
 
+  it('normalizes IPv4-mapped IPv6 callerIp before returning', async () => {
+    // The UI displays callerIp in the "Your IP" field and uses it to decide
+    // whether the "IPv6 only" warning applies. We must normalize ::ffff:X to
+    // plain IPv4 so users don't see the mapped form and panic.
+    vi.mocked(getIpAllowlistConfig).mockResolvedValue({
+      allowlist: [],
+      bypassAuth: false,
+      restrictAccess: false,
+    });
+
+    const res = await ipAllowlistRoute.GET(makeGetRequest('::ffff:127.0.0.1'));
+    const json = await res.json();
+
+    expect(json.callerIp).toBe('127.0.0.1');
+  });
+
+  it('returns true IPv6 addresses unchanged (so warning applies correctly)', async () => {
+    vi.mocked(getIpAllowlistConfig).mockResolvedValue({
+      allowlist: [],
+      bypassAuth: false,
+      restrictAccess: false,
+    });
+
+    const res = await ipAllowlistRoute.GET(makeGetRequest('::1'));
+    const json = await res.json();
+
+    expect(json.callerIp).toBe('::1');
+  });
+
   it('returns 401 when session auth fails', async () => {
     vi.mocked(requireSession).mockRejectedValue(
       new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401 }),
