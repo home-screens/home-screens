@@ -108,7 +108,7 @@ export async function fetchWithRetry(
 
       // Transient error — schedule a retry
       lastResponse = response;
-      const retryAfterMs = parseRetryAfter(response.headers.get('Retry-After'));
+      const retryAfterMs = parseRetryAfter(response.headers?.get('Retry-After') ?? null);
       const backoffMs = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
       const delayMs = retryAfterMs ?? backoffMs;
 
