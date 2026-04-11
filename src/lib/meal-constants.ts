@@ -16,6 +16,7 @@ export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string 
   { value: 'extra-large', label: 'Extra Large' },
   { value: '2x-large', label: '2X Large' },
   { value: '3x-large', label: '3X Large' },
+  { value: '4x-large', label: '4X Large' },
 ];
 
 /**

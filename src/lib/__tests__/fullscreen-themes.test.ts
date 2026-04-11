@@ -140,6 +140,7 @@ describe('getTypoMultiplier', () => {
     expect(getTypoMultiplier('extra-large')).toBe(1.35);
     expect(getTypoMultiplier('2x-large')).toBe(1.6);
     expect(getTypoMultiplier('3x-large')).toBe(1.85);
+    expect(getTypoMultiplier('4x-large')).toBe(2.15);
   });
 
   it('returns 1.0 for unknown size strings', () => {

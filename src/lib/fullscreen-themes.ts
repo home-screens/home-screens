@@ -170,6 +170,7 @@ const TYPO_MULTIPLIERS: Record<FullscreenTypographySize, number> = {
   'extra-large': 1.35,
   '2x-large': 1.6,
   '3x-large': 1.85,
+  '4x-large': 2.15,
 };
 
 export function getTypoMultiplier(size: FullscreenTypographySize | string): number {

@@ -113,6 +113,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           <option value="extra-large">Extra Large</option>
           <option value="2x-large">2X Large</option>
           <option value="3x-large">3X Large</option>
+          <option value="4x-large">4X Large</option>
         </select>
       </label>
 

@@ -365,7 +365,7 @@ export interface ClockConfig {
 export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda';
 export type CalendarDensity = 'cozy' | 'snug';
 export type FullscreenTypographySize =
-  | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large';
+  | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large';
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
