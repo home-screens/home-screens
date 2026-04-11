@@ -700,4 +700,25 @@ describe('getIpAllowlistConfig', () => {
     const config = await getIpAllowlistConfig();
     expect(config.allowlist).toEqual(['192.168.1.0/24']);
   });
+
+  it('preserves IP allowlist across password changes', async () => {
+    // Set up: password + allowlist config
+    await setPassword('original-password');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+
+    // Change password
+    await setPassword('new-password');
+
+    // Allowlist config must survive the password change
+    const config = await getIpAllowlistConfig();
+    expect(config).toEqual({
+      allowlist: ['192.168.1.0/24', '10.0.0.0/8'],
+      bypassAuth: true,
+      restrictAccess: true,
+    });
+  });
 });

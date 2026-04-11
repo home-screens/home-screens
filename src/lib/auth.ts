@@ -193,9 +193,17 @@ export async function setPassword(newPassword: string): Promise<string> {
   const cookieSecret = crypto.randomBytes(32).toString('hex');
   // Preserve existing display token, or auto-generate one on first password set
   const displayToken = existing.displayToken ?? generateDisplayToken();
-  const sessionEpoch = existing.sessionEpoch; // preserve epoch across password changes
-  await writeAuthState({ passwordHash: hash, salt, cookieSecret, displayToken, sessionEpoch });
-  return createSessionCookie(cookieSecret, false, sessionEpoch);
+  // Spread existing state so optional fields (ipAllowlist, ipBypassAuth,
+  // ipRestrictAccess, sessionEpoch) survive password changes. Only the
+  // password-specific fields are overwritten.
+  await writeAuthState({
+    ...existing,
+    passwordHash: hash,
+    salt,
+    cookieSecret,
+    displayToken,
+  });
+  return createSessionCookie(cookieSecret, false, existing.sessionEpoch);
 }
 
 export async function clearPassword(): Promise<void> {
