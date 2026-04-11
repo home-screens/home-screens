@@ -18,21 +18,18 @@ export function errorResponse(
 }
 
 /**
- * Fetch wrapper that enforces a timeout on external API calls.
- * Prevents hung upstream services from blocking requests indefinitely.
+ * Fetch wrapper that enforces a timeout and retries transient failures.
+ * All external HTTP calls in the codebase flow through this function,
+ * so adding retry here gives automatic resilience to every API route.
+ *
+ * Backwards-compatible: existing callers that only pass `timeout` keep working.
+ * New callers can pass `retries`, `baseDelayMs`, `maxDelayMs` to customize.
  */
-const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
-
 export function fetchWithTimeout(
   url: string | URL | Request,
-  init?: RequestInit & { timeout?: number },
+  init?: RequestInit & FetchRetryOptions,
 ): Promise<Response> {
-  const { timeout = DEFAULT_FETCH_TIMEOUT_MS, ...rest } = init ?? {};
-  const timeoutSignal = AbortSignal.timeout(timeout);
-  const signal = rest.signal
-    ? AbortSignal.any([rest.signal, timeoutSignal])
-    : timeoutSignal;
-  return fetch(url, { ...rest, signal });
+  return fetchWithRetry(url, init);
 }
 
 /**
@@ -68,6 +65,7 @@ export interface FetchRetryOptions extends RequestInit {
   maxDelayMs?: number;
 }
 
+const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 const DEFAULT_RETRIES = 2;
 const DEFAULT_BASE_DELAY_MS = 500;
 const DEFAULT_MAX_DELAY_MS = 5_000;

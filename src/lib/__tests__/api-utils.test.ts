@@ -133,6 +133,28 @@ describe('fetchWithTimeout', () => {
     expect(timeoutSpy).toHaveBeenCalledWith(3000);
     timeoutSpy.mockRestore();
   });
+
+  it('retries transient failures by default (delegates to fetchWithRetry)', async () => {
+    vi.useFakeTimers();
+    fetchSpy
+      .mockResolvedValueOnce(new Response('down', { status: 503 }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 }));
+
+    const promise = fetchWithTimeout('https://example.com');
+    await vi.advanceTimersByTimeAsync(500); // default baseDelayMs
+    const res = await promise;
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it('allows disabling retries with retries: 0', async () => {
+    fetchSpy.mockResolvedValue(new Response('down', { status: 503 }));
+    const res = await fetchWithTimeout('https://example.com', { retries: 0 });
+    expect(res.status).toBe(503);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('createTTLCache', () => {
