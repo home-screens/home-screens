@@ -36,6 +36,18 @@ export default function SecuritySection() {
   const [revoking, setRevoking] = useState(false);
   const [revokeMessage, setRevokeMessage] = useState<string | null>(null);
 
+  // IP Allowlist state
+  const [ipAllowlist, setIpAllowlist] = useState<string[]>([]);
+  const [ipBypassAuth, setIpBypassAuth] = useState(false);
+  const [ipRestrictAccess, setIpRestrictAccess] = useState(false);
+  const [ipCallerIp, setIpCallerIp] = useState<string>('');
+  const [ipNewEntry, setIpNewEntry] = useState('');
+  const [ipEntryError, setIpEntryError] = useState<string | null>(null);
+  const [ipSaving, setIpSaving] = useState(false);
+  const [ipMessage, setIpMessage] = useState<string | null>(null);
+  const [ipDirty, setIpDirty] = useState(false);
+  const [ipLockoutConfirm, setIpLockoutConfirm] = useState(false);
+
   useEffect(() => {
     async function check() {
       try {
@@ -49,6 +61,19 @@ export default function SecuritySection() {
             if (tokenRes.ok) {
               const { displayToken: token } = await tokenRes.json();
               setDisplayToken(token);
+            }
+            // Fetch IP allowlist state if authenticated
+            try {
+              const ipRes = await editorFetch('/api/auth/ip-allowlist');
+              if (ipRes.ok) {
+                const ipData = await ipRes.json();
+                setIpAllowlist(ipData.allowlist);
+                setIpBypassAuth(ipData.bypassAuth);
+                setIpRestrictAccess(ipData.restrictAccess);
+                setIpCallerIp(ipData.callerIp);
+              }
+            } catch (err) {
+              console.debug('Failed to fetch IP allowlist:', err);
             }
           }
         }
@@ -235,6 +260,65 @@ export default function SecuritySection() {
     }
   }
 
+  function handleAddIpEntry() {
+    const entry = ipNewEntry.trim();
+    if (!entry) return;
+
+    // Client-side validation: basic format check (full validation on server)
+    const parts = entry.split('/');
+    if (parts.length > 2) { setIpEntryError('Invalid CIDR format'); return; }
+    const ipPart = parts[0];
+    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ipPart)) { setIpEntryError('Invalid IP address'); return; }
+    if (parts.length === 2) {
+      const prefix = Number(parts[1]);
+      if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) { setIpEntryError('Prefix length must be 0-32'); return; }
+    }
+    if (ipAllowlist.includes(entry)) { setIpEntryError('Already in the list'); return; }
+
+    setIpAllowlist([...ipAllowlist, entry]);
+    setIpNewEntry('');
+    setIpEntryError(null);
+    setIpDirty(true);
+  }
+
+  function handleRemoveIpEntry(index: number) {
+    setIpAllowlist(ipAllowlist.filter((_, i) => i !== index));
+    setIpDirty(true);
+  }
+
+  async function handleSaveIpAllowlist() {
+    setIpSaving(true);
+    setIpMessage(null);
+    setIpLockoutConfirm(false);
+    try {
+      const res = await editorFetch('/api/auth/ip-allowlist', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          allowlist: ipAllowlist,
+          bypassAuth: ipBypassAuth,
+          restrictAccess: ipRestrictAccess,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setIpMessage(data.error || 'Failed to save');
+        return;
+      }
+      if (data.warning === 'your_ip_not_in_allowlist') {
+        setIpLockoutConfirm(true);
+        return;
+      }
+      setIpMessage('Saved');
+      setIpDirty(false);
+      setTimeout(() => setIpMessage(null), 2000);
+    } catch {
+      setIpMessage('Network error');
+    } finally {
+      setIpSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <section>
@@ -388,6 +472,139 @@ export default function SecuritySection() {
             )}
           </div>
         )}
+
+      {/* IP Allowlist */}
+      {status?.authEnabled && (
+        <div className="mt-6 pt-6 border-t border-hs-border">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+            IP Allowlist
+          </h3>
+
+          <div className="space-y-4">
+            {/* Toggles */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ipBypassAuth}
+                onChange={(e) => { setIpBypassAuth(e.target.checked); setIpDirty(true); }}
+                disabled={ipAllowlist.length === 0}
+                className="mt-0.5 accent-hs-accent rounded"
+              />
+              <div>
+                <span className="text-sm text-hs-text-body">Skip authentication for trusted IPs</span>
+                <p className="text-xs text-hs-text-faint">Displays on these networks won&apos;t need a token</p>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ipRestrictAccess}
+                onChange={(e) => { setIpRestrictAccess(e.target.checked); setIpDirty(true); }}
+                disabled={ipAllowlist.length === 0}
+                className="mt-0.5 accent-hs-accent rounded"
+              />
+              <div>
+                <span className="text-sm text-hs-text-body">Restrict access to trusted IPs</span>
+                <p className="text-xs text-hs-text-faint">Block all other IPs from reaching the system (except the login page)</p>
+              </div>
+            </label>
+
+            {ipAllowlist.length === 0 && (ipBypassAuth || ipRestrictAccess) === false && (
+              <p className="text-xs text-hs-text-faint">Add at least one IP range to enable these options.</p>
+            )}
+
+            {/* Entry list */}
+            <div className="space-y-1.5">
+              {ipAllowlist.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-hs-text-secondary font-mono">
+                    {entry}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveIpEntry(i)}
+                    className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors px-1"
+                    aria-label={`Remove ${entry}`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add entry */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={ipNewEntry}
+                onChange={(e) => { setIpNewEntry(e.target.value); setIpEntryError(null); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddIpEntry(); } }}
+                placeholder="192.168.1.0/24"
+                className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-1.5 font-mono focus:outline-none focus:border-hs-accent"
+              />
+              <Button variant="secondary" size="sm" onClick={handleAddIpEntry}>
+                Add
+              </Button>
+            </div>
+            {ipEntryError && <p className="text-xs text-hs-danger">{ipEntryError}</p>}
+
+            {/* Caller IP info */}
+            {ipCallerIp && (
+              <p className="text-xs text-hs-text-faint">
+                Your IP: <code className="text-hs-text-secondary font-mono">{ipCallerIp}</code>
+              </p>
+            )}
+
+            {/* Lockout warning dialog */}
+            {ipLockoutConfirm && (
+              <div className="rounded-lg bg-hs-warning/10 border border-hs-warning/30 px-4 py-3">
+                <p className="text-sm text-hs-warning font-medium">You may lock yourself out</p>
+                <p className="text-xs text-hs-text-muted mt-1">
+                  Your current IP ({ipCallerIp}) is not in the allowlist. If access restriction is enabled, you&apos;ll lose access to this editor.
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Button variant="danger" size="sm" onClick={async () => {
+                    setIpLockoutConfirm(false);
+                    setIpSaving(true);
+                    try {
+                      const res = await editorFetch('/api/auth/ip-allowlist', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ allowlist: ipAllowlist, bypassAuth: ipBypassAuth, restrictAccess: ipRestrictAccess }),
+                      });
+                      if (res.ok) { setIpMessage('Saved'); setIpDirty(false); setTimeout(() => setIpMessage(null), 2000); }
+                    } catch { setIpMessage('Network error'); }
+                    finally { setIpSaving(false); }
+                  }}>
+                    Save Anyway
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setIpLockoutConfirm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Save button */}
+            {ipDirty && !ipLockoutConfirm && (
+              <Button variant="primary" size="sm" onClick={handleSaveIpAllowlist} disabled={ipSaving}>
+                {ipSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
+
+            {ipMessage && (
+              <p className={`text-xs ${ipMessage === 'Saved' ? 'text-hs-success' : 'text-hs-danger'}`}>
+                {ipMessage}
+              </p>
+            )}
+
+            <p className="text-xs text-hs-text-faint">
+              If locked out, edit <code className="text-hs-text-faint">data/auth.json</code> on the device to disable.
+            </p>
+          </div>
+        </div>
+      )}
 
         <p className="text-xs text-hs-text-faint">
           Forgot your password? Delete <code className="text-hs-text-faint">data/auth.json</code> on the device to reset.
