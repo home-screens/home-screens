@@ -860,7 +860,7 @@ describe('withDisplayAuth', () => {
     const response = await wrapped(request);
     const json = await response.json();
 
-    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request);
+    expect(mockRequireDisplayAuth).toHaveBeenCalledWith(request, 'unknown');
     expect(handler).toHaveBeenCalledWith(request, undefined);
     expect(json).toEqual({ ok: true });
   });

@@ -270,9 +270,15 @@ export async function requireSession(request: Request): Promise<void> {
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
  * and neither credential is valid.
  */
-export async function requireDisplayAuth(request: Request): Promise<void> {
+export async function requireDisplayAuth(request: Request, clientIp?: string): Promise<void> {
   let state = await getCachedAuthState();
   if (!state.passwordHash) return; // auth disabled
+
+  // IP bypass: trusted IPs skip display auth entirely
+  if (clientIp && state.ipBypassAuth && state.ipAllowlist?.length) {
+    const { isIpAllowed } = await import('./ip-allowlist');
+    if (isIpAllowed(clientIp, state.ipAllowlist)) return;
+  }
 
   // Auto-migrate: generate display token for existing installations that
   // enabled auth before the display token feature was added.

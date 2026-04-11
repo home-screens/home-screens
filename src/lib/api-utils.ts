@@ -202,7 +202,7 @@ export function withDisplayAuth<C = unknown>(
 ) {
   return async (request: NextRequest, context?: C): Promise<Response> => {
     try {
-      await requireDisplayAuth(request);
+      await requireDisplayAuth(request, getClientIP(request));
       return await handler(request, context as C);
     } catch (error) {
       if (error instanceof Response) return error;

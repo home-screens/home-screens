@@ -606,6 +606,66 @@ describe('session epoch revocation', () => {
   });
 });
 
+describe('requireDisplayAuth with IP bypass', () => {
+  it('bypasses auth for allowlisted IP when ipBypassAuth is true', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    // Request from allowlisted IP with no credentials should succeed
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    // Should not throw
+    await expect(requireDisplayAuth(request, '192.168.1.50')).resolves.toBeUndefined();
+  });
+
+  it('still requires auth for non-allowlisted IP', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '10.0.0.1')).rejects.toBeInstanceOf(Response);
+  });
+
+  it('does not bypass when ipBypassAuth is false', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: ['192.168.1.0/24'],
+      bypassAuth: false,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '192.168.1.50')).rejects.toBeInstanceOf(Response);
+  });
+
+  it('does not bypass when allowlist is empty', async () => {
+    await setPassword('testpassword123');
+    await setIpAllowlistConfig({
+      allowlist: [],
+      bypassAuth: true,
+      restrictAccess: false,
+    });
+
+    const request = new Request('http://localhost/api/config', {
+      headers: {},
+    });
+    await expect(requireDisplayAuth(request, '192.168.1.50')).rejects.toBeInstanceOf(Response);
+  });
+});
+
 describe('getIpAllowlistConfig', () => {
   it('returns empty defaults when no config exists', async () => {
     const config = await getIpAllowlistConfig();
