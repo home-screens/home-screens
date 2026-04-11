@@ -233,15 +233,7 @@ export interface MyModuleConfig {
 }
 ```
 
-### 3. Add default size
-
-In `src/lib/constants.ts`, add to `DEFAULT_MODULE_SIZES`:
-
-```typescript
-'my-module': { w: 400, h: 300 }
-```
-
-### 4. Register the module
+### 3. Register the module
 
 In `src/lib/module-registry.ts`:
 
@@ -254,12 +246,12 @@ registerModule({
   icon: Sparkles,
   category: 'Personal',
   defaultConfig: { myOption: 'Hello' },
-  defaultSize: DEFAULT_MODULE_SIZES['my-module'],
+  defaultSize: { w: 400, h: 300 },
   // defaultStyle: { fontSize: 26 },  // optional
 })
 ```
 
-### 5. Add the dynamic import
+### 4. Add the dynamic import
 
 In `src/lib/module-components.ts`:
 
@@ -267,7 +259,7 @@ In `src/lib/module-components.ts`:
 'my-module': dynamic(() => import('@/components/modules/MyModule')),
 ```
 
-### 6. Add editor controls
+### 5. Add editor controls
 
 In `src/components/editor/PropertyPanel.tsx`, add a section for your module's config options:
 
@@ -283,7 +275,7 @@ In `src/components/editor/PropertyPanel.tsx`, add a section for your module's co
 )}
 ```
 
-### 7. Add an API route (optional)
+### 6. Add an API route (optional)
 
 If your module needs external data, create a route:
 

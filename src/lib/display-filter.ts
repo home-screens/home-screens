@@ -261,10 +261,38 @@ export function pruneDanglingScreenRefs(
   return next;
 }
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
-const MAX_DISPLAY_ID_LEN = 64;
+/**
+ * URL-safe slug rule for display IDs. Exported so in-memory maps
+ * (`display-commands.ts`), API routes, and client-side form validators can
+ * reject the same inputs the config validator rejects — previous audits
+ * found this regex duplicated in 4 places with "kept in lockstep" comments.
+ */
+export const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+
+/** Hard upper bound on a display ID length. */
+export const MAX_DISPLAY_ID_LEN = 64;
+
+/**
+ * Hard upper bound on per-display canvas dimensions. 16384 is well past
+ * any plausible physical display and matches the WebGL / browser texture
+ * limits on commodity hardware, so any value beyond this is almost
+ * certainly a typo. Exported so the form validators and the config
+ * validator agree on the cap.
+ */
+export const MAX_DISPLAY_DIMENSION = 16384;
+
 const MAX_DISPLAYS = 64;
 const MAX_SCREENS_PER_DISPLAY = 256;
+
+/**
+ * True when `id` is a non-empty, URL-safe slug within the length cap.
+ * Shared by both the in-memory command queues and the config validator
+ * so a display ID rejected at one layer is rejected at every layer.
+ */
+export function isValidDisplayId(id: string | undefined | null): boolean {
+  if (!id) return false;
+  return id.length <= MAX_DISPLAY_ID_LEN && SLUG_RE.test(id);
+}
 
 /** Context shared between per-display sub-validators. */
 interface DisplayValidationCtx {
@@ -275,7 +303,7 @@ interface DisplayValidationCtx {
 }
 
 function validateDisplayId(display: DisplayNode, seen: Set<string>): string | null {
-  if (!display.id || !SLUG_RE.test(display.id) || display.id.length > MAX_DISPLAY_ID_LEN) {
+  if (!isValidDisplayId(display.id)) {
     return `Invalid display id "${display.id}": must be lowercase letters, digits, and hyphens (e.g. "kitchen", "bedroom-tv"), max ${MAX_DISPLAY_ID_LEN} chars`;
   }
   if (seen.has(display.id)) {
@@ -388,8 +416,8 @@ function validateDisplayActiveProfile(
 function validateDisplayDimensions(display: DisplayNode): string | null {
   for (const field of ['displayWidth', 'displayHeight'] as const) {
     const value = display[field];
-    if (value != null && (!Number.isInteger(value) || value <= 0 || value > 16384)) {
-      return `Display "${display.id}" ${field} must be a positive integer ≤ 16384`;
+    if (value != null && (!Number.isInteger(value) || value <= 0 || value > MAX_DISPLAY_DIMENSION)) {
+      return `Display "${display.id}" ${field} must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}`;
     }
   }
   return null;

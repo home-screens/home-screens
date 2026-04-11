@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { uuid } from '@/lib/uuid';
 import { displayCache } from '@/lib/display-cache';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
@@ -24,6 +23,11 @@ import {
   choreAppliesToday,
   localDateStr,
   cascadeDeleteMember,
+  addMemberToList,
+  updateMemberInList,
+  addChoreToList,
+  updateChoreInList,
+  removeChoreFromList,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon, {
   MEMBER_ICONS,
@@ -1061,12 +1065,12 @@ export default function ChoreChartModal({
 
   // ── Member CRUD ──
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
-    setMembers((prev) => [...prev, { ...data, id: uuid() }]);
+    setMembers((prev) => addMemberToList(prev, data));
     setShowAddMember(false);
   };
 
   const updateMember = (id: string, data: Omit<ChoreMember, 'id'>) => {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...data, id } : m)));
+    setMembers((prev) => updateMemberInList(prev, id, data));
     setEditingMemberId(null);
   };
 
@@ -1078,17 +1082,17 @@ export default function ChoreChartModal({
 
   // ── Chore CRUD ──
   const addChore = (data: Omit<ChoreDefinition, 'id'>) => {
-    setChores((prev) => [...prev, { ...data, id: uuid() }]);
+    setChores((prev) => addChoreToList(prev, data));
     setShowAddChore(false);
   };
 
   const updateChore = (id: string, data: Omit<ChoreDefinition, 'id'>) => {
-    setChores((prev) => prev.map((c) => (c.id === id ? { ...data, id } : c)));
+    setChores((prev) => updateChoreInList(prev, id, data));
     setEditingChoreId(null);
   };
 
   const deleteChore = (id: string) => {
-    setChores((prev) => prev.filter((c) => c.id !== id));
+    setChores((prev) => removeChoreFromList(prev, id));
   };
 
   return (

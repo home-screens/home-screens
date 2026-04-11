@@ -7,6 +7,7 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { COMMON_TIMEZONES } from '@/lib/timezone';
 import type { ModuleInstance, ClockView, WorldClockZone } from '@/types/config';
 
 const VIEWS: { value: ClockView; label: string }[] = [
@@ -41,41 +42,7 @@ const DATE_PRESETS: { label: string; value: string }[] = [
   { label: 'Monday', value: 'EEEE' },
 ];
 
-const TIMEZONE_OPTIONS: { label: string; value: string }[] = [
-  { label: 'New York', value: 'America/New_York' },
-  { label: 'Chicago', value: 'America/Chicago' },
-  { label: 'Denver', value: 'America/Denver' },
-  { label: 'Los Angeles', value: 'America/Los_Angeles' },
-  { label: 'Anchorage', value: 'America/Anchorage' },
-  { label: 'Honolulu', value: 'Pacific/Honolulu' },
-  { label: 'Toronto', value: 'America/Toronto' },
-  { label: 'Vancouver', value: 'America/Vancouver' },
-  { label: 'Mexico City', value: 'America/Mexico_City' },
-  { label: 'São Paulo', value: 'America/Sao_Paulo' },
-  { label: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
-  { label: 'London', value: 'Europe/London' },
-  { label: 'Paris', value: 'Europe/Paris' },
-  { label: 'Berlin', value: 'Europe/Berlin' },
-  { label: 'Amsterdam', value: 'Europe/Amsterdam' },
-  { label: 'Rome', value: 'Europe/Rome' },
-  { label: 'Madrid', value: 'Europe/Madrid' },
-  { label: 'Zurich', value: 'Europe/Zurich' },
-  { label: 'Stockholm', value: 'Europe/Stockholm' },
-  { label: 'Moscow', value: 'Europe/Moscow' },
-  { label: 'Istanbul', value: 'Europe/Istanbul' },
-  { label: 'Dubai', value: 'Asia/Dubai' },
-  { label: 'Mumbai', value: 'Asia/Kolkata' },
-  { label: 'Bangkok', value: 'Asia/Bangkok' },
-  { label: 'Singapore', value: 'Asia/Singapore' },
-  { label: 'Hong Kong', value: 'Asia/Hong_Kong' },
-  { label: 'Shanghai', value: 'Asia/Shanghai' },
-  { label: 'Tokyo', value: 'Asia/Tokyo' },
-  { label: 'Seoul', value: 'Asia/Seoul' },
-  { label: 'Sydney', value: 'Australia/Sydney' },
-  { label: 'Melbourne', value: 'Australia/Melbourne' },
-  { label: 'Auckland', value: 'Pacific/Auckland' },
-  { label: 'UTC', value: 'UTC' },
-];
+// Shared across every timezone picker in the app — see `src/lib/timezone.ts`.
 
 /** Which config fields are relevant for each view */
 const VIEW_FIELDS: Record<ClockView, Set<string>> = {
@@ -139,13 +106,13 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
   // Filter out already-selected timezones from the dropdown
   const availableZones = useMemo(
-    () => TIMEZONE_OPTIONS.filter((tz) => !worldZones.some((wz) => wz.timezone === tz.value)),
+    () => COMMON_TIMEZONES.filter((tz) => !worldZones.some((wz) => wz.timezone === tz.value)),
     [worldZones],
   );
 
   const addZone = (tzValue: string) => {
     if (!tzValue || worldZones.length >= 3) return;
-    const option = TIMEZONE_OPTIONS.find((tz) => tz.value === tzValue);
+    const option = COMMON_TIMEZONES.find((tz) => tz.value === tzValue);
     if (!option) return;
     set({ worldZones: [...worldZones, { label: option.label, timezone: option.value }] });
   };

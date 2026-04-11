@@ -11,6 +11,11 @@ import {
   dateNDaysAgo,
   addDaysISO,
   getWeekDatesFor,
+  addMemberToList,
+  updateMemberInList,
+  addChoreToList,
+  updateChoreInList,
+  removeChoreFromList,
   cascadeDeleteMember,
   parseISO,
   addMonthsClamped,
@@ -406,6 +411,119 @@ describe('getCurrentTimeOfDay', () => {
 describe('completionKey', () => {
   it('builds a hyphen-separated key', () => {
     expect(completionKey('chore-1', 'alice', '2026-03-15')).toBe('chore-1-alice-2026-03-15');
+  });
+});
+
+// ── Pure CRUD helpers (shared by ChoreChartModal + ChoresManageView) ──
+//
+// These tests lock in the contract the two UIs rely on so they can't drift
+// apart again: id generation on add, id preservation on update, referential
+// freshness on remove, and no input mutation.
+
+describe('addMemberToList', () => {
+  const template: Omit<ChoreMember, 'id'> = { name: 'Bob', emoji: '', color: '#60a5fa' };
+
+  it('appends a new member with a generated id', () => {
+    const existing: ChoreMember[] = [
+      { id: 'a', name: 'Alice', emoji: '', color: '#f472b6' },
+    ];
+    const result = addMemberToList(existing, template);
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(existing[0]);
+    expect(result[1]).toMatchObject(template);
+    expect(result[1].id).toBeTruthy();
+    expect(result[1].id).not.toBe('a');
+  });
+
+  it('returns a new array and leaves the original untouched', () => {
+    const existing: ChoreMember[] = [];
+    const result = addMemberToList(existing, template);
+    expect(existing).toEqual([]);
+    expect(result).not.toBe(existing);
+  });
+});
+
+describe('updateMemberInList', () => {
+  const members: ChoreMember[] = [
+    { id: 'a', name: 'Alice', emoji: '', color: '#f472b6' },
+    { id: 'b', name: 'Bob', emoji: '', color: '#60a5fa' },
+  ];
+
+  it('replaces the matching member and preserves its id', () => {
+    const result = updateMemberInList(members, 'a', {
+      name: 'Alicia',
+      emoji: 'star',
+      color: '#fbbf24',
+    });
+    expect(result[0]).toEqual({ id: 'a', name: 'Alicia', emoji: 'star', color: '#fbbf24' });
+    expect(result[1]).toEqual(members[1]);
+  });
+
+  it('returns a fresh array when the id is missing, without mutating', () => {
+    const result = updateMemberInList(members, 'missing', {
+      name: 'Ghost',
+      emoji: '',
+      color: '#000',
+    });
+    expect(result).toEqual(members);
+    expect(result).not.toBe(members);
+  });
+});
+
+describe('addChoreToList', () => {
+  it('appends a new chore with a generated id', () => {
+    const { id: _drop, ...data } = makeChore({ name: 'Vacuum' });
+    const result = addChoreToList([], data);
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Vacuum');
+    expect(result[0].id).toBeTruthy();
+  });
+
+  it('does not mutate the input array', () => {
+    const existing: ChoreDefinition[] = [makeChore({ id: 'c1' })];
+    const { id: _drop, ...data } = makeChore({ name: 'Vacuum' });
+    addChoreToList(existing, data);
+    expect(existing).toHaveLength(1);
+    expect(existing[0].id).toBe('c1');
+  });
+});
+
+describe('updateChoreInList', () => {
+  it('replaces the matching chore and preserves its id', () => {
+    const chores = [
+      makeChore({ id: 'c1', name: 'Dishes' }),
+      makeChore({ id: 'c2', name: 'Vacuum' }),
+    ];
+    const { id: _drop, ...data } = makeChore({ name: 'Wash dishes', points: 5 });
+    const result = updateChoreInList(chores, 'c1', data);
+    expect(result[0].id).toBe('c1');
+    expect(result[0].name).toBe('Wash dishes');
+    expect(result[0].points).toBe(5);
+    expect(result[1]).toEqual(chores[1]);
+  });
+
+  it('returns a fresh array when the id is missing, without mutating', () => {
+    const chores = [makeChore({ id: 'c1' })];
+    const { id: _drop, ...data } = makeChore({ name: 'Ghost' });
+    const result = updateChoreInList(chores, 'missing', data);
+    expect(result).toEqual(chores);
+    expect(result).not.toBe(chores);
+  });
+});
+
+describe('removeChoreFromList', () => {
+  it('filters out the chore with the matching id', () => {
+    const chores = [makeChore({ id: 'c1' }), makeChore({ id: 'c2' })];
+    const result = removeChoreFromList(chores, 'c1');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('c2');
+  });
+
+  it('returns a fresh array when the id is missing, without mutating', () => {
+    const chores = [makeChore({ id: 'c1' })];
+    const result = removeChoreFromList(chores, 'missing');
+    expect(result).toEqual(chores);
+    expect(result).not.toBe(chores);
   });
 });
 

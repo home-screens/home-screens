@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { COMMON_TIMEZONES } from '@/lib/timezone';
 
 interface LocationSettings {
   lat: string;
@@ -159,11 +160,8 @@ export default function LocationSection({ values, onChange }: Props) {
                   <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
                 ));
               } catch {
-                return ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-                  'America/Anchorage', 'Pacific/Honolulu', 'Europe/London', 'Europe/Paris',
-                  'Europe/Berlin', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney',
-                  'UTC'].map((tz) => (
-                  <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+                return COMMON_TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>{tz.value.replace(/_/g, ' ')}</option>
                 ));
               }
             })()}

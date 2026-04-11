@@ -1,11 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { validateConfig, type ConfigDiagnostic } from '../validate-config';
+import { getLatestSchemaVersion } from '../migrations';
 import type { ScreenConfiguration } from '@/types/config';
 
-/** Minimal valid config for testing. */
+/** Minimal valid config for testing.
+ *  `version` tracks `getLatestSchemaVersion()` so the fixture stays in lockstep
+ *  with production when a new migration is added — otherwise the "does not
+ *  warn when version is current" assertion would start failing. */
 function validConfig(overrides?: Partial<ScreenConfiguration>): ScreenConfiguration {
   return {
-    version: 3,
+    version: getLatestSchemaVersion(),
     settings: {
       rotationIntervalMs: 30000,
       displayWidth: 1080,

@@ -65,11 +65,12 @@ function applyMainDisplayNormalization(config: ScreenConfiguration): ScreenConfi
   return { ...config, displays: nextDisplays };
 }
 
-// DEFAULT_CONFIG must track the latest schema version. When you add a new
-// migration, bump this and add any new required fields. Otherwise fresh
-// installs will trigger an unnecessary migrate-on-boot write.
+// DEFAULT_CONFIG must track the latest schema version. `version` pulls from
+// `getLatestSchemaVersion()` so adding a new migration automatically updates
+// fresh installs — otherwise they'd trigger an unnecessary migrate-on-boot
+// write on first read. Any new required fields still need to be added here.
 const DEFAULT_CONFIG: ScreenConfiguration = {
-  version: 3,
+  version: getLatestSchemaVersion(),
   settings: {
     rotationIntervalMs: 30000,
     displayWidth: 1080,

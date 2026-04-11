@@ -8,7 +8,6 @@ import {
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3,
 } from 'lucide-react';
-import { DEFAULT_MODULE_SIZES } from './constants';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
 
@@ -150,7 +149,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       agendaDaysAhead: 14,
       agendaHideEmptyDays: false,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['fullscreen-calendar'],
+    defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
     fillsCanvas: true,
     dataRequirements: ['calendar', 'weather'],
@@ -171,7 +170,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       typographySize: 'medium',
       accentColor: DEFAULT_ACCENT_COLOR,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['fullscreen-chore-chart'],
+    defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
     fillsCanvas: true,
   },
@@ -190,7 +189,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showEmoji: true,
       showDifficulty: false,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['fullscreen-meal-planner'],
+    defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
     fillsCanvas: true,
   },
@@ -209,7 +208,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showClock: true,
       kenBurns: false,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['fullscreen-photo'],
+    defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
     fillsCanvas: true,
   },
@@ -236,7 +235,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       referenceLabel: '',
       countUp: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.clock,
+    defaultSize: { w: 400, h: 200 },
   },
   {
     type: 'calendar',
@@ -252,7 +251,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showWeekNumbers: false,
       accentColor: '#3b82f6',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.calendar,
+    defaultSize: { w: 500, h: 600 },
   },
   {
     type: 'countdown',
@@ -265,7 +264,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       scale: 1,
       view: 'all',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.countdown,
+    defaultSize: { w: 500, h: 500 },
   },
   {
     type: 'date',
@@ -281,7 +280,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDayOfYear: false,
       accentColor: '#22d3ee',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.date,
+    defaultSize: { w: 400, h: 200 },
   },
   {
     type: 'year-progress',
@@ -296,7 +295,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showPercentage: true,
       accentColor: '#000000',
     },
-    defaultSize: DEFAULT_MODULE_SIZES['year-progress'],
+    defaultSize: { w: 400, h: 300 },
   },
   {
     type: 'multi-month',
@@ -311,7 +310,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       highlightWeekends: true,
       showAdjacentDays: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['multi-month'],
+    defaultSize: { w: 400, h: 700 },
     defaultStyle: { fontSize: 26 },
   },
 
@@ -335,7 +334,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showWind: false,
       hideWhenNoAlerts: false,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.weather,
+    defaultSize: { w: 600, h: 300 },
   },
   {
     type: 'moon-phase',
@@ -346,7 +345,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showIllumination: true,
       showMoonTimes: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['moon-phase'],
+    defaultSize: { w: 300, h: 350 },
     dataRequirements: ['location'],
   },
   {
@@ -359,7 +358,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDayLength: true,
       showGoldenHour: false,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['sunrise-sunset'],
+    defaultSize: { w: 400, h: 200 },
     dataRequirements: ['location'],
   },
   {
@@ -372,7 +371,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showPollutants: false,
       refreshIntervalMs: 900000,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['air-quality'],
+    defaultSize: { w: 350, h: 250 },
   },
   {
     type: 'rain-map',
@@ -394,7 +393,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       refreshIntervalMs: 600000,
       mapStyle: 'dark',
     },
-    defaultSize: DEFAULT_MODULE_SIZES['rain-map'],
+    defaultSize: { w: 500, h: 500 },
     dataRequirements: ['location'],
   },
 
@@ -415,7 +414,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       tickerSpeed: 5,
       accentColor: undefined,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.news,
+    defaultSize: { w: 500, h: 400 },
   },
   {
     type: 'stock-ticker',
@@ -428,7 +427,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'cards',
       tickerSpeed: 5,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['stock-ticker'],
+    defaultSize: { w: 400, h: 300 },
   },
   {
     type: 'crypto',
@@ -441,7 +440,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'cards',
       tickerSpeed: 5,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.crypto,
+    defaultSize: { w: 400, h: 250 },
   },
   {
     type: 'sports',
@@ -453,7 +452,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       leagues: ['nba', 'nfl'],
       refreshIntervalMs: 60000,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.sports,
+    defaultSize: { w: 500, h: 300 },
   },
   {
     type: 'standings',
@@ -469,7 +468,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       rotationIntervalMs: 10000,
       refreshIntervalMs: 300000,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.standings,
+    defaultSize: { w: 500, h: 500 },
   },
 
   // -- Knowledge & Fun --
@@ -483,7 +482,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '#000000',
       showDividers: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['dad-joke'],
+    defaultSize: { w: 500, h: 200 },
   },
   {
     type: 'quote',
@@ -494,7 +493,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       refreshIntervalMs: 300000,
       accentColor: '#000000',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.quote,
+    defaultSize: { w: 500, h: 200 },
   },
   {
     type: 'word-of-day',
@@ -505,7 +504,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '#000000',
       showDividers: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['word-of-day'],
+    defaultSize: { w: 450, h: 200 },
   },
   {
     type: 'history',
@@ -518,7 +517,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '#000000',
       showDividers: true,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.history,
+    defaultSize: { w: 500, h: 200 },
   },
 
   // -- Personal --
@@ -532,7 +531,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       items: [],
       accentColor: '#000000',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.todo,
+    defaultSize: { w: 350, h: 400 },
   },
   {
     type: 'sticky-note',
@@ -543,7 +542,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       content: 'Write something here...',
       noteColor: '#fef08a',
     },
-    defaultSize: DEFAULT_MODULE_SIZES['sticky-note'],
+    defaultSize: { w: 300, h: 250 },
   },
   {
     type: 'greeting',
@@ -554,7 +553,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       name: 'Friend',
       accentColor: '#000000',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.greeting,
+    defaultSize: { w: 500, h: 150 },
   },
   {
     type: 'todoist',
@@ -576,7 +575,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       refreshIntervalMs: 300000,
       title: 'Todoist',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.todoist,
+    defaultSize: { w: 400, h: 550 },
   },
   {
     type: 'garbage-day',
@@ -599,7 +598,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       customLabel: 'Yard Waste',
       highlightMode: 'day-before',
     },
-    defaultSize: DEFAULT_MODULE_SIZES['garbage-day'],
+    defaultSize: { w: 350, h: 320 },
   },
   {
     type: 'affirmations',
@@ -615,7 +614,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       customEntries: [],
       accentColor: '#a78bfa',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.affirmations,
+    defaultSize: { w: 500, h: 200 },
     dataRequirements: ['location'],
   },
   {
@@ -630,7 +629,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTags: true,
       accentColor: DEFAULT_ACCENT_COLOR,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['meal-planner'],
+    defaultSize: { w: 500, h: 600 },
   },
   {
     type: 'chore-chart',
@@ -646,7 +645,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       allowDisplayComplete: true,
       accentColor: DEFAULT_ACCENT_COLOR,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['chore-chart'],
+    defaultSize: { w: 500, h: 650 },
     defaultStyle: { fontSize: 24 },
   },
 
@@ -668,7 +667,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       gradientTo: '#22d3ee',
       gradientAngle: 90,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.text,
+    defaultSize: { w: 400, h: 150 },
   },
   {
     type: 'image',
@@ -680,7 +679,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       objectFit: 'cover',
       alt: '',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.image,
+    defaultSize: { w: 400, h: 300 },
   },
   {
     type: 'photo-slideshow',
@@ -695,7 +694,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       objectFit: 'cover',
       refreshIntervalMs: 600000,
     },
-    defaultSize: DEFAULT_MODULE_SIZES['photo-slideshow'],
+    defaultSize: { w: 500, h: 400 },
   },
   {
     type: 'qr-code',
@@ -715,7 +714,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       fgColor: '#ffffff',
       bgColor: 'transparent',
     },
-    defaultSize: DEFAULT_MODULE_SIZES['qr-code'],
+    defaultSize: { w: 300, h: 350 },
   },
   {
     type: 'iframe',
@@ -730,7 +729,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       sandbox: 'allow-scripts allow-forms allow-popups',
       title: '',
     },
-    defaultSize: DEFAULT_MODULE_SIZES.iframe,
+    defaultSize: { w: 500, h: 400 },
     defaultStyle: { padding: 0 },
   },
 
@@ -744,7 +743,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       routes: [],
       refreshIntervalMs: 300000,
     },
-    defaultSize: DEFAULT_MODULE_SIZES.traffic,
+    defaultSize: { w: 450, h: 300 },
   },
 ];
 

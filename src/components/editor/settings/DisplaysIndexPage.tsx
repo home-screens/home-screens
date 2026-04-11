@@ -6,11 +6,13 @@ import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
-import { isMainDisplay } from '@/lib/display-filter';
+import {
+  isMainDisplay,
+  isValidDisplayId,
+  MAX_DISPLAY_DIMENSION,
+} from '@/lib/display-filter';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
-
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 interface ReportedViewport {
   width: number;
@@ -231,7 +233,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       setError('Name is required');
       return;
     }
-    if (!id || !SLUG_RE.test(id)) {
+    if (!isValidDisplayId(id)) {
       setError('ID must be lowercase letters, digits, and hyphens (e.g. "kitchen")');
       return;
     }
@@ -239,12 +241,12 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       setError(`A display with ID "${id}" already exists`);
       return;
     }
-    if (!Number.isInteger(width) || width <= 0 || width > 16384) {
-      setError('Width must be a positive integer ≤ 16384');
+    if (!Number.isInteger(width) || width <= 0 || width > MAX_DISPLAY_DIMENSION) {
+      setError(`Width must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}`);
       return;
     }
-    if (!Number.isInteger(height) || height <= 0 || height > 16384) {
-      setError('Height must be a positive integer ≤ 16384');
+    if (!Number.isInteger(height) || height <= 0 || height > MAX_DISPLAY_DIMENSION) {
+      setError(`Height must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}`);
       return;
     }
 
@@ -344,7 +346,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             <input
               type="number"
               min={1}
-              max={16384}
+              max={MAX_DISPLAY_DIMENSION}
               value={width}
               onChange={(e) => setWidth(Number(e.target.value) || 0)}
               className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
@@ -355,7 +357,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             <input
               type="number"
               min={1}
-              max={16384}
+              max={MAX_DISPLAY_DIMENSION}
               value={height}
               onChange={(e) => setHeight(Number(e.target.value) || 0)}
               className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"

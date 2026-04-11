@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { ChevronRight, Plus, Check } from 'lucide-react';
-import { uuid } from '@/lib/uuid';
 import type {
   ChoreMember,
   ChoreDefinition,
@@ -15,6 +14,11 @@ import {
   DAY_NAMES_SHORT,
   TIME_OF_DAY_META,
   cascadeDeleteMember,
+  addMemberToList,
+  updateMemberInList,
+  addChoreToList,
+  updateChoreInList,
+  removeChoreFromList,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon, {
   MEMBER_ICONS,
@@ -649,12 +653,12 @@ export default function ChoresManageView({
   // ── CRUD helpers ──
 
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
-    onMembersChange([...members, { ...data, id: uuid() }]);
+    onMembersChange(addMemberToList(members, data));
     setOverlay(null);
   };
 
   const updateMember = (id: string, data: Omit<ChoreMember, 'id'>) => {
-    onMembersChange(members.map((m) => (m.id === id ? { ...data, id } : m)));
+    onMembersChange(updateMemberInList(members, id, data));
     setOverlay(null);
   };
 
@@ -666,17 +670,17 @@ export default function ChoresManageView({
   };
 
   const addChore = (data: Omit<ChoreDefinition, 'id'>) => {
-    onChoresChange([...chores, { ...data, id: uuid() }]);
+    onChoresChange(addChoreToList(chores, data));
     setOverlay(null);
   };
 
   const updateChore = (id: string, data: Omit<ChoreDefinition, 'id'>) => {
-    onChoresChange(chores.map((c) => (c.id === id ? { ...data, id } : c)));
+    onChoresChange(updateChoreInList(chores, id, data));
     setOverlay(null);
   };
 
   const deleteChore = (id: string) => {
-    onChoresChange(chores.filter((c) => c.id !== id));
+    onChoresChange(removeChoreFromList(chores, id));
     setOverlay(null);
   };
 

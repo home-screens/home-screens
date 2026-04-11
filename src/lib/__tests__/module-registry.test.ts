@@ -7,7 +7,6 @@ import {
   getAllModuleDefinitions,
   getModulesByCategory,
 } from '@/lib/module-registry';
-import { DEFAULT_MODULE_SIZES } from '@/lib/constants';
 import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
 const ALL_MODULE_TYPES: ModuleType[] = [
@@ -382,11 +381,12 @@ describe('Data correctness spot checks', () => {
 // ---------------------------------------------------------------------------
 // Cross-wiring contract tests
 //
-// These verify that the 4 places a module must be registered stay in sync:
-//   1. module-registry.ts  (the source of truth)
+// These verify that the 3 places a module must be registered stay in sync:
+//   1. module-registry.ts  (the source of truth — also owns `defaultSize`,
+//      which the TypeScript interface marks required so a missing size is
+//      a compile error, not a runtime surprise)
 //   2. module-components.ts (dynamic import map)
-//   3. constants.ts         (DEFAULT_MODULE_SIZES)
-//   4. PropertyPanel.tsx    (CONFIG_SECTIONS)
+//   3. PropertyPanel.tsx    (CONFIG_SECTIONS)
 // ---------------------------------------------------------------------------
 
 /** Extract keys from a `const NAME ... = { key: ..., 'key': ... }` object in source. */
@@ -445,9 +445,15 @@ describe('Cross-wiring contract: every registered module is wired in all 4 place
     }
   });
 
-  it('every built-in module has a default size in constants.ts', () => {
+  it('every built-in module has a non-zero default size on its registry entry', () => {
+    // `defaultSize` is required on the `ModuleDefinition` interface, so a
+    // missing field is a compile error. This test just guards against
+    // someone writing `{ w: 0, h: 0 }` by accident, which would silently
+    // spawn zero-sized drops from the palette.
     for (const type of builtinTypes) {
-      expect(DEFAULT_MODULE_SIZES[type], `${type} missing from DEFAULT_MODULE_SIZES`).toBeDefined();
+      const def = getModuleDefinition(type)!;
+      expect(def.defaultSize.w, `${type} has zero width`).toBeGreaterThan(0);
+      expect(def.defaultSize.h, `${type} has zero height`).toBeGreaterThan(0);
     }
   });
 

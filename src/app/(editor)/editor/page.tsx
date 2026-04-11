@@ -16,7 +16,7 @@ import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
-import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, DEFAULT_MODULE_SIZES, snapToGrid } from '@/lib/constants';
+import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, snapToGrid } from '@/lib/constants';
 import { getModuleDefinition } from '@/lib/module-registry';
 import type { ModuleType } from '@/types/config';
 
@@ -102,8 +102,12 @@ export default function EditorPage() {
 
       if (data?.source === 'palette' && over.id === 'canvas-drop') {
         const scale = canvasScaleRef.current;
-        const moduleType = data.moduleType as string;
-        const defaultSize = DEFAULT_MODULE_SIZES[moduleType] || { w: 200, h: 200 };
+        const moduleType = data.moduleType as ModuleType;
+        // Resolve through the registry so plugin-registered modules use their
+        // own declared `defaultSize` instead of falling through to the generic
+        // 200×200 guard. The fallback only kicks in for truly unregistered
+        // types (e.g. a stale palette entry).
+        const defaultSize = getModuleDefinition(moduleType)?.defaultSize ?? { w: 200, h: 200 };
         // Use a live DOM rect instead of over.rect, which can be stale after
         // window resize (dnd-kit caches droppable rects with optimized frequency)
         const pointerEvent = activatorEvent as PointerEvent;

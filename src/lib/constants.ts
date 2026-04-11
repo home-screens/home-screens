@@ -41,47 +41,11 @@ export function snapToGrid(value: number): number {
   return Math.round(value / GRID_SIZE) * GRID_SIZE;
 }
 
-// Default module sizes
-export const DEFAULT_MODULE_SIZES: Record<string, { w: number; h: number }> = {
-  clock: { w: 400, h: 200 },
-  calendar: { w: 500, h: 600 },
-  weather: { w: 600, h: 300 },
-  countdown: { w: 500, h: 500 },
-  'dad-joke': { w: 500, h: 200 },
-  text: { w: 400, h: 150 },
-  image: { w: 400, h: 300 },
-  quote: { w: 500, h: 200 },
-  todo: { w: 350, h: 400 },
-  'sticky-note': { w: 300, h: 250 },
-  greeting: { w: 500, h: 150 },
-  news: { w: 500, h: 400 },
-  'stock-ticker': { w: 400, h: 300 },
-  crypto: { w: 400, h: 250 },
-  'word-of-day': { w: 450, h: 200 },
-  history: { w: 500, h: 200 },
-  'moon-phase': { w: 300, h: 350 },
-  'sunrise-sunset': { w: 400, h: 200 },
-  'photo-slideshow': { w: 500, h: 400 },
-  'qr-code': { w: 300, h: 350 },
-  'year-progress': { w: 400, h: 300 },
-  traffic: { w: 450, h: 300 },
-  sports: { w: 500, h: 300 },
-  'air-quality': { w: 350, h: 250 },
-  todoist: { w: 400, h: 550 },
-  'rain-map': { w: 500, h: 500 },
-  'multi-month': { w: 400, h: 700 },
-  'garbage-day': { w: 350, h: 320 },
-  standings: { w: 500, h: 500 },
-  affirmations: { w: 500, h: 200 },
-  date: { w: 400, h: 200 },
-  'meal-planner': { w: 500, h: 600 },
-  iframe: { w: 500, h: 400 },
-  'chore-chart': { w: 500, h: 650 },
-  'fullscreen-calendar': { w: 1080, h: 1920 },
-  'fullscreen-chore-chart': { w: 1080, h: 1920 },
-  'fullscreen-meal-planner': { w: 1080, h: 1920 },
-  'fullscreen-photo': { w: 1080, h: 1920 },
-};
+// Default module sizes live on each entry in the module registry
+// (`src/lib/module-registry.ts`) — call `getModuleDefinition(type).defaultSize`.
+// Moved out of this file so there's one source of truth per module, and so
+// plugin-registered modules participate in the same lookup without an extra
+// carve-out.
 
 // Semantic text opacity tiers for consistent visual hierarchy across modules.
 // 5-tier system: primary → heading → secondary → dim → tertiary

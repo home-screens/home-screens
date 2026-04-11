@@ -8,6 +8,60 @@
  */
 
 /**
+ * Curated list of common IANA zones used as the shared source of truth for
+ * every timezone picker UI — both the clock module's world-zones selector
+ * and the settings-page fallback when `Intl.supportedValuesOf('timeZone')`
+ * is unavailable. Keeping both surfaces on one list avoids the "clock has
+ * Sydney but settings doesn't" drift a previous audit caught.
+ *
+ * Consumers that need an unfiltered picker (location settings) prefer
+ * `Intl.supportedValuesOf('timeZone')` when the runtime supports it and
+ * fall back to this list otherwise.
+ */
+export interface TimezoneOption {
+  /** Friendly label shown in the picker (e.g. "New York"). */
+  label: string;
+  /** IANA zone identifier (e.g. "America/New_York"). */
+  value: string;
+}
+
+export const COMMON_TIMEZONES: readonly TimezoneOption[] = [
+  { label: 'New York', value: 'America/New_York' },
+  { label: 'Chicago', value: 'America/Chicago' },
+  { label: 'Denver', value: 'America/Denver' },
+  { label: 'Los Angeles', value: 'America/Los_Angeles' },
+  { label: 'Anchorage', value: 'America/Anchorage' },
+  { label: 'Honolulu', value: 'Pacific/Honolulu' },
+  { label: 'Toronto', value: 'America/Toronto' },
+  { label: 'Vancouver', value: 'America/Vancouver' },
+  { label: 'Mexico City', value: 'America/Mexico_City' },
+  { label: 'São Paulo', value: 'America/Sao_Paulo' },
+  { label: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
+  { label: 'London', value: 'Europe/London' },
+  { label: 'Paris', value: 'Europe/Paris' },
+  { label: 'Berlin', value: 'Europe/Berlin' },
+  { label: 'Amsterdam', value: 'Europe/Amsterdam' },
+  { label: 'Rome', value: 'Europe/Rome' },
+  { label: 'Madrid', value: 'Europe/Madrid' },
+  { label: 'Zurich', value: 'Europe/Zurich' },
+  { label: 'Stockholm', value: 'Europe/Stockholm' },
+  { label: 'Moscow', value: 'Europe/Moscow' },
+  { label: 'Istanbul', value: 'Europe/Istanbul' },
+  { label: 'Dubai', value: 'Asia/Dubai' },
+  { label: 'Mumbai', value: 'Asia/Kolkata' },
+  { label: 'Bangkok', value: 'Asia/Bangkok' },
+  { label: 'Singapore', value: 'Asia/Singapore' },
+  { label: 'Hong Kong', value: 'Asia/Hong_Kong' },
+  { label: 'Shanghai', value: 'Asia/Shanghai' },
+  { label: 'Tokyo', value: 'Asia/Tokyo' },
+  { label: 'Seoul', value: 'Asia/Seoul' },
+  { label: 'Sydney', value: 'Australia/Sydney' },
+  { label: 'Melbourne', value: 'Australia/Melbourne' },
+  { label: 'Auckland', value: 'Pacific/Auckland' },
+  { label: 'UTC', value: 'UTC' },
+];
+
+/**
  * Create a Date whose local-time methods (getHours, getMonth, etc.) reflect
  * the given IANA timezone. Works by extracting date parts via Intl and
  * reconstructing a local Date from them.

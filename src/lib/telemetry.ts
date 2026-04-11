@@ -315,7 +315,7 @@ export async function buildBeaconPayload(
 
 let sending = false;
 
-export async function sendBeacon(payload: TelemetryBeacon): Promise<boolean> {
+async function sendBeacon(payload: TelemetryBeacon): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BEACON_TIMEOUT_MS);
   try {

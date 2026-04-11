@@ -48,7 +48,7 @@ export function autoScheduleDays(width: number, density: string): number {
   return Math.min(7, Math.max(1, Math.floor((width - gutterWidth) / scaledMin)));
 }
 
-export function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): CalendarEvent[] {
+function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): CalendarEvent[] {
   if (!sourceFilter || sourceFilter.length === 0) return events;
   return events.filter(ev => {
     if (ev.sourceId && sourceFilter.includes(ev.sourceId)) return true;
@@ -99,7 +99,7 @@ function brightenForDark(color: string): string {
   return `rgb(${Math.min(255, Math.round(r * 1.15))},${Math.min(255, Math.round(g * 1.15))},${Math.min(255, Math.round(b * 1.15))})`;
 }
 
-export function getHeaderTitle(view: string, today: Date, scheduleDays?: number): string {
+function getHeaderTitle(view: string, today: Date, scheduleDays?: number): string {
   switch (view) {
     case 'schedule': {
       const endDay = addDays(today, (scheduleDays ?? 7) - 1);

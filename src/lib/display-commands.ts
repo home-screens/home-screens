@@ -27,6 +27,7 @@
  */
 
 import type { CacheStats } from './display-cache';
+import { isValidDisplayId } from './display-filter';
 
 export type DisplayCommandType =
   | 'wake'
@@ -71,17 +72,13 @@ export interface DisplayStatus {
 const DEFAULT_DISPLAY_KEY = '__default__';
 
 /**
- * URL-safe slug rule. Mirrored from `display-filter.ts` so the in-memory
- * maps reject any ID that the config validator would reject. Without this
- * gate, an attacker passing `?display=<random>` to the drain endpoint could
- * grow `knownDisplays`/`statusMap` indefinitely and inflate every broadcast.
- */
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
-
-/**
  * Hard cap on the number of displays the hub will track in memory. Far
  * larger than any plausible household — present only as a backstop in
- * case validation is bypassed by some future caller.
+ * case validation is bypassed by some future caller. The slug-shape gate
+ * is shared with the config validator via `isValidDisplayId` (imported
+ * above) so any ID rejected by one is rejected by both — without that
+ * gate, an attacker passing `?display=<random>` to the drain endpoint
+ * could grow `knownDisplays`/`statusMap` indefinitely.
  */
 const MAX_KNOWN_DISPLAYS = 64;
 
@@ -99,11 +96,6 @@ const MAX_KNOWN_DISPLAYS = 64;
  * mistakenly-configured Pi is taken off the LAN.
  */
 const UNADOPTED_STALENESS_MS = 2 * 60 * 1000;
-
-/** True for any ID safe to use as a queue/status/heartbeat key. */
-function isValidDisplayId(id: string): boolean {
-  return id.length > 0 && id.length <= 64 && SLUG_RE.test(id);
-}
 
 const commandQueues = new Map<string, DisplayCommand[]>();
 const statusMap = new Map<string, DisplayStatus>();
@@ -206,7 +198,7 @@ function pushTo(queueId: string, command: DisplayCommand): void {
  *
  * - `displayId` undefined → enqueue to `__default__` (single-display mode)
  * - `displayId === 'all'`  → broadcast to every known display + `__default__`
- * - `displayId === <slug>` → enqueue to that display's queue (must match SLUG_RE)
+ * - `displayId === <slug>` → enqueue to that display's queue (must pass `isValidDisplayId`)
  *
  * Invalid slugs are silently dropped to keep the in-memory maps clean — the
  * route layer is responsible for surfacing 400s to the user before this is
@@ -237,7 +229,7 @@ export function enqueueCommand(
  * Side effect: tracks `displayId` in `knownDisplays` (so future broadcasts
  * fan out to it) and updates the heartbeat in `statusMap`.
  *
- * Invalid slugs (anything that doesn't match `SLUG_RE`, including the
+ * Invalid slugs (anything that fails `isValidDisplayId`, including the
  * literal `'all'` which is only valid in the broadcast meaning of
  * `enqueueCommand`) drain the legacy default queue and do **not** pollute
  * `knownDisplays`. This stops a probe loop like

@@ -2,7 +2,7 @@
  * Shared test utilities for common mocking patterns.
  *
  * Usage:
- *   import { mockFetch, mockConsole, mockReadConfig } from '@/test-utils';
+ *   import { mockFetch, mockFetchError, silenceConsole, useFakeTimers } from '@/test-utils';
  */
 import { vi, beforeEach, afterEach } from 'vitest';
 
@@ -10,10 +10,13 @@ import { vi, beforeEach, afterEach } from 'vitest';
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-/** Create a mock fetch that resolves with `{ ok: true, json: () => data }`. */
-export function createMockFetch(data: unknown = {}) {
+/**
+ * Stub `globalThis.fetch` for the current test and return the spy.
+ * Automatically cleaned up by `vi.restoreAllMocks()`.
+ */
+export function mockFetch(data: unknown = {}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return vi.fn((..._args: any[]) =>
+  const spy = vi.fn((..._args: any[]) =>
     Promise.resolve({
       ok: true,
       json: () => Promise.resolve(data),
@@ -21,14 +24,6 @@ export function createMockFetch(data: unknown = {}) {
       status: 200,
     }),
   );
-}
-
-/**
- * Stub `globalThis.fetch` for the current test and return the spy.
- * Automatically cleaned up by `vi.restoreAllMocks()`.
- */
-export function mockFetch(data: unknown = {}) {
-  const spy = createMockFetch(data);
   vi.stubGlobal('fetch', spy);
   return spy;
 }
@@ -81,35 +76,5 @@ export function useFakeTimers() {
   });
   afterEach(() => {
     vi.useRealTimers();
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Next.js request helpers (for API route tests)
-// ---------------------------------------------------------------------------
-
-/** Build a minimal Request object for API route testing. */
-export function createRequest(
-  url: string,
-  init?: RequestInit,
-): Request {
-  return new Request(url.startsWith('http') ? url : `http://localhost${url}`, init);
-}
-
-/** Shorthand for a GET Request. */
-export function createGetRequest(url: string) {
-  return createRequest(url, { method: 'GET' });
-}
-
-/** Shorthand for a PUT/POST Request with JSON body. */
-export function createJsonRequest(
-  url: string,
-  body: unknown,
-  method: 'PUT' | 'POST' = 'PUT',
-) {
-  return createRequest(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   });
 }

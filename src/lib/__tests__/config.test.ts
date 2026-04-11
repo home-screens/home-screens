@@ -38,14 +38,14 @@ describe('readConfig', () => {
     const custom = {
       // Use the current schema version so readConfig doesn't auto-migrate.
       // (When this is older than the latest, readConfig bumps it transparently.)
-      version: 3,
+      version: getLatestSchemaVersion(),
       settings: { rotationIntervalMs: 5000, weather: {}, calendar: {} },
       screens: [{ id: 'custom', name: 'My Screen', backgroundImage: '', modules: [] }],
     };
     await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(custom));
 
     const config = await readConfig();
-    expect(config.version).toBe(3);
+    expect(config.version).toBe(getLatestSchemaVersion());
     expect(config.screens[0].id).toBe('custom');
   });
 
@@ -138,7 +138,7 @@ describe('writeConfig', () => {
     const config = {
       // Pin to the current latest schema version so readConfig doesn't apply
       // a migration on the way back out and bump the value past what we wrote.
-      version: 3,
+      version: getLatestSchemaVersion(),
       settings: {
         rotationIntervalMs: 15000,
         displayWidth: 1080,
@@ -487,11 +487,13 @@ describe('writeConfig / readConfig — error recovery', () => {
 // normalization is invisible from outside the module otherwise.
 // ---------------------------------------------------------------------------
 describe('readConfig — main display normalization', () => {
-  // Build a complete v3 config so readConfig doesn't trigger an upgrade write
-  // and the test only exercises the post-migration normalization path.
+  // Build a complete current-schema config so readConfig doesn't trigger an
+  // upgrade write and the test only exercises the post-migration normalization
+  // path. Tracks getLatestSchemaVersion() so adding a new migration doesn't
+  // silently route these tests through the migrate-on-read path.
   function makeMultiDisplayConfig(mainDisplayOverrides: Record<string, unknown> = {}) {
     return {
-      version: 3,
+      version: getLatestSchemaVersion(),
       settings: {
         rotationIntervalMs: 30000,
         displayWidth: 1080,
@@ -564,10 +566,10 @@ describe('readConfig — main display normalization', () => {
   });
 
   it('is a no-op when no displays registry exists (legacy single-display)', async () => {
-    // Legacy v3 install with no displays array — normalization must not
-    // synthesize one or otherwise touch the config shape.
+    // Legacy current-schema install with no displays array — normalization
+    // must not synthesize one or otherwise touch the config shape.
     await writeRaw({
-      version: 3,
+      version: getLatestSchemaVersion(),
       settings: {
         rotationIntervalMs: 30000,
         displayWidth: 1080,

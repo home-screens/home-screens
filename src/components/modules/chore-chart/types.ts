@@ -3,6 +3,7 @@ import type {
   ChoreDefinition,
   ChoreTimeOfDay,
 } from '@/types/config';
+import { uuid } from '@/lib/uuid';
 
 // ── Resolved assignment (chore + who's assigned today) ────────────
 
@@ -271,6 +272,57 @@ export function computeDayEntries(
     cursor = addDaysISO(cursor, 1);
   }
   return list;
+}
+
+/**
+ * Pure CRUD helpers for the chore-chart members and chores arrays.
+ *
+ * Both `ChoreChartModal` (editor, stateful) and `ChoresManageView` (/remote,
+ * controlled-by-parent) need the same mutation semantics. They have
+ * different state-ownership models, so these helpers are plain array
+ * functions rather than a hook — each caller plugs them into its own
+ * setState / callback flow. An earlier audit found the identical
+ * body-inline mutations at two sites that could drift.
+ *
+ * Uses the shared `uuid()` helper (not `crypto.randomUUID` directly)
+ * because /remote runs over plain HTTP on the LAN, where
+ * `crypto.randomUUID` is unavailable in insecure contexts.
+ */
+export function addMemberToList(
+  members: ChoreMember[],
+  data: Omit<ChoreMember, 'id'>,
+): ChoreMember[] {
+  return [...members, { ...data, id: uuid() }];
+}
+
+export function updateMemberInList(
+  members: ChoreMember[],
+  id: string,
+  data: Omit<ChoreMember, 'id'>,
+): ChoreMember[] {
+  return members.map((m) => (m.id === id ? { ...data, id } : m));
+}
+
+export function addChoreToList(
+  chores: ChoreDefinition[],
+  data: Omit<ChoreDefinition, 'id'>,
+): ChoreDefinition[] {
+  return [...chores, { ...data, id: uuid() }];
+}
+
+export function updateChoreInList(
+  chores: ChoreDefinition[],
+  id: string,
+  data: Omit<ChoreDefinition, 'id'>,
+): ChoreDefinition[] {
+  return chores.map((c) => (c.id === id ? { ...data, id } : c));
+}
+
+export function removeChoreFromList(
+  chores: ChoreDefinition[],
+  id: string,
+): ChoreDefinition[] {
+  return chores.filter((c) => c.id !== id);
 }
 
 /**

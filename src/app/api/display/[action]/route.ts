@@ -9,7 +9,7 @@ import {
   type DisplayCommandType,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
-import { getDisplayProfiles } from '@/lib/display-filter';
+import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
 import { requireSession } from '@/lib/auth';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 
@@ -26,9 +26,6 @@ const SIMPLE_COMMANDS = new Set<DisplayCommandType>([
 ]);
 
 type RouteContext = { params: Promise<{ action: string }> };
-
-/** URL-safe slug rule — kept in lockstep with display-filter.ts and display-commands.ts. */
-const DISPLAY_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 /** Validate a target string. Returns the value or a 400 NextResponse. */
 function validateDisplayTarget(
@@ -48,7 +45,7 @@ function validateDisplayTarget(
       { status: 400 },
     );
   }
-  if (value.length > 64 || !DISPLAY_ID_RE.test(value)) {
+  if (!isValidDisplayId(value)) {
     return NextResponse.json(
       { error: `Invalid display id "${value}": must be lowercase letters, digits, hyphens (e.g. kitchen, bedroom-tv)` },
       { status: 400 },
@@ -113,6 +110,10 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
  * The optional `displayId` field on the body targets a specific display.
  * Falling back to the query string lets simple URL-based clients
  * (Home Assistant, curl) target displays without needing a JSON body.
+ *
+ * Each action dispatches to a focused handler below so the branch bodies
+ * can be read (and tested) without the surrounding switch noise. The
+ * dispatch itself is intentionally tiny.
  */
 export const POST = withDisplayAuth<RouteContext>(async (request, { params }) => {
   const { action } = await params;
@@ -131,191 +132,14 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
   }
 
   switch (action) {
-    case 'brightness': {
-      const body = await safeJson(request);
-      const value = typeof body?.value === 'number' ? body.value : null;
-      if (value === null || value < 0 || value > 100) {
-        return NextResponse.json(
-          { error: 'value must be a number 0-100' },
-          { status: 400 },
-        );
-      }
-      const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
-      if (displayId instanceof NextResponse) return displayId;
-      enqueueCommand(displayId, 'brightness', { value });
-      return NextResponse.json({ ok: true, command: 'brightness', value });
-    }
-
-    case 'profile': {
-      try {
-        await requireSession(request);
-      } catch (error) {
-        if (error instanceof Response) return error;
-        return errorResponse(error, 'Unauthorized');
-      }
-      const body = await safeJson(request);
-      const profile = body?.profile;
-      if (typeof profile !== 'string') {
-        return NextResponse.json(
-          { error: 'profile must be a string' },
-          { status: 400 },
-        );
-      }
-      const displayIdRaw = pickDisplayId(body, queryDisplayId, { allowBroadcast: false });
-      if (displayIdRaw instanceof NextResponse) return displayIdRaw;
-      const displayId = displayIdRaw;
-      try {
-        // Atomic read-modify-write — without this the editor's PUT /api/config
-        // can land between our read and write and lose unrelated edits.
-        //
-        // Validation errors are captured into `validationError` and returned
-        // outside the mutator. The mutator returns the original `config`
-        // reference unchanged on validation failure; `updateConfigAtomic`
-        // detects the no-op (mutated === current) and skips the disk write,
-        // so failed validations don't trigger spurious serialize+fsync work
-        // or extend the critical section. The happy path returns a NEW
-        // config object (immutable update) so the reference comparison
-        // correctly identifies it as a real write.
-        let validationError: NextResponse | null = null;
-        await updateConfigAtomic((config) => {
-          // Per-display profile: write display.activeProfile on the matching node.
-          // Legacy mode (no displayId or 'all'): mutate settings.activeProfile.
-          if (displayId && displayId !== 'all') {
-            const display = config.displays?.find((d) => d.id === displayId);
-            if (!display) {
-              validationError = NextResponse.json(
-                { error: `Unknown display: ${displayId}` },
-                { status: 404 },
-              );
-              return config;
-            }
-            // Resolve the effective profile pool for this display:
-            //   - owned profiles (display.profiles), OR
-            //   - global pool filtered by display.profileIds, OR
-            //   - the unrestricted global pool
-            // `getDisplayProfiles` implements that precedence in one place —
-            // using the raw `display.profiles ?? config.profiles` fallback
-            // silently accepts profiles excluded by `profileIds`, which
-            // would then fail `validateDisplays` on the next save.
-            if (profile) {
-              const pool = getDisplayProfiles(display, config.profiles);
-              if (!pool.some((p) => p.id === profile)) {
-                validationError = NextResponse.json(
-                  { error: `Unknown profile: ${profile}` },
-                  { status: 404 },
-                );
-                return config;
-              }
-            }
-            const updatedDisplay = { ...display, activeProfile: profile || undefined };
-            return {
-              ...config,
-              displays: config.displays!.map((d) => (d.id === displayId ? updatedDisplay : d)),
-            };
-          }
-          if (profile && !config.profiles?.some((p) => p.id === profile)) {
-            validationError = NextResponse.json(
-              { error: `Unknown profile: ${profile}` },
-              { status: 404 },
-            );
-            return config;
-          }
-          return {
-            ...config,
-            settings: { ...config.settings, activeProfile: profile || undefined },
-          };
-        });
-        if (validationError) return validationError;
-        return NextResponse.json({ ok: true, profile, displayId });
-      } catch (error) {
-        return errorResponse(error, 'Failed to update profile');
-      }
-    }
-
-    case 'alert': {
-      const body = await safeJson(request);
-      if (!body?.title && !body?.message) {
-        return NextResponse.json(
-          { error: 'title or message required' },
-          { status: 400 },
-        );
-      }
-      const VALID_ALERT_TYPES = new Set(['info', 'warning', 'urgent']);
-      const alertType = VALID_ALERT_TYPES.has(body.type as string) ? body.type : 'info';
-      const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
-      if (displayId instanceof NextResponse) return displayId;
-      enqueueCommand(displayId, 'alert', {
-        type: alertType,
-        title: body.title ?? '',
-        message: body.message ?? '',
-        duration: body.duration,
-        icon: body.icon,
-        dismissible: body.dismissible,
-      });
-      return NextResponse.json({ ok: true, command: 'alert' });
-    }
-
-    case 'status': {
-      const body = await safeJson(request);
-      if (
-        !body?.currentScreen ||
-        typeof body.currentScreen !== 'object' ||
-        typeof (body.currentScreen as Record<string, unknown>).id !== 'string' ||
-        typeof body.displayState !== 'string' ||
-        typeof body.timestamp !== 'number'
-      ) {
-        return NextResponse.json(
-          { error: 'Invalid status: requires currentScreen, displayState, timestamp' },
-          { status: 400 },
-        );
-      }
-      // Strip displayId and clientId out of the persisted status so the
-      // body shape stays the same as before (the in-memory keying is
-      // handled by setDisplayStatus / recordViewportReport).
-      const {
-        displayId: bodyDisplayId,
-        clientId: bodyClientId,
-        ...statusPayload
-      } = body as Record<string, unknown>;
-      const rawDisplayId =
-        typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
-      // Validate the body field too — `pickDisplayId` only validates the body
-      // when `validateDisplayTarget` is invoked, so do it here for status reports.
-      const validatedStatus = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
-      if (validatedStatus instanceof NextResponse) return validatedStatus;
-      setDisplayStatus(
-        statusPayload as unknown as Parameters<typeof setDisplayStatus>[0],
-        validatedStatus,
-      );
-
-      // Track viewport per-client so the editor can surface "N things are
-      // reporting with this display ID" instead of silently flapping between
-      // whichever client POSTed most recently. We also stash the source IP
-      // so the user can trace a phantom reporter back to its device on the
-      // LAN (critical when the Pi they *think* is posting is actually off).
-      const viewport = (body as { reportedViewport?: unknown }).reportedViewport;
-      if (
-        validatedStatus
-        && typeof bodyClientId === 'string'
-        && bodyClientId.length > 0
-        && viewport
-        && typeof viewport === 'object'
-      ) {
-        const v = viewport as { width?: unknown; height?: unknown };
-        if (typeof v.width === 'number' && typeof v.height === 'number') {
-          recordViewportReport(
-            validatedStatus,
-            bodyClientId,
-            v.width,
-            v.height,
-            getClientIP(request),
-          );
-        }
-      }
-
-      return NextResponse.json({ ok: true });
-    }
-
+    case 'brightness':
+      return handleBrightness(request, queryDisplayId);
+    case 'profile':
+      return handleProfile(request, queryDisplayId);
+    case 'alert':
+      return handleAlert(request, queryDisplayId);
+    case 'status':
+      return handleStatus(request, queryDisplayId);
     default:
       return NextResponse.json(
         { error: `Unknown action: ${action}` },
@@ -323,6 +147,205 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       );
   }
 }, 'Display command failed');
+
+async function handleBrightness(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const value = typeof body?.value === 'number' ? body.value : null;
+  if (value === null || value < 0 || value > 100) {
+    return NextResponse.json(
+      { error: 'value must be a number 0-100' },
+      { status: 400 },
+    );
+  }
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+  enqueueCommand(displayId, 'brightness', { value });
+  return NextResponse.json({ ok: true, command: 'brightness', value });
+}
+
+async function handleProfile(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<Response> {
+  try {
+    await requireSession(request);
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return errorResponse(error, 'Unauthorized');
+  }
+  const body = await safeJson(request);
+  const profile = body?.profile;
+  if (typeof profile !== 'string') {
+    return NextResponse.json(
+      { error: 'profile must be a string' },
+      { status: 400 },
+    );
+  }
+  const displayIdRaw = pickDisplayId(body, queryDisplayId, { allowBroadcast: false });
+  if (displayIdRaw instanceof NextResponse) return displayIdRaw;
+  const displayId = displayIdRaw;
+  try {
+    // Atomic read-modify-write — without this the editor's PUT /api/config
+    // can land between our read and write and lose unrelated edits.
+    //
+    // Validation errors are captured into `validationError` and returned
+    // outside the mutator. The mutator returns the original `config`
+    // reference unchanged on validation failure; `updateConfigAtomic`
+    // detects the no-op (mutated === current) and skips the disk write,
+    // so failed validations don't trigger spurious serialize+fsync work
+    // or extend the critical section. The happy path returns a NEW
+    // config object (immutable update) so the reference comparison
+    // correctly identifies it as a real write.
+    let validationError: NextResponse | null = null;
+    await updateConfigAtomic((config) => {
+      // Per-display profile: write display.activeProfile on the matching node.
+      // Legacy single-display mode (no displayId): mutate settings.activeProfile.
+      // Broadcast ('all') is rejected upstream via allowBroadcast: false, so
+      // displayId is either a specific slug or undefined here.
+      if (displayId) {
+        const display = config.displays?.find((d) => d.id === displayId);
+        if (!display) {
+          validationError = NextResponse.json(
+            { error: `Unknown display: ${displayId}` },
+            { status: 404 },
+          );
+          return config;
+        }
+        // Resolve the effective profile pool for this display:
+        //   - owned profiles (display.profiles), OR
+        //   - global pool filtered by display.profileIds, OR
+        //   - the unrestricted global pool
+        // `getDisplayProfiles` implements that precedence in one place —
+        // using the raw `display.profiles ?? config.profiles` fallback
+        // silently accepts profiles excluded by `profileIds`, which
+        // would then fail `validateDisplays` on the next save.
+        if (profile) {
+          const pool = getDisplayProfiles(display, config.profiles);
+          if (!pool.some((p) => p.id === profile)) {
+            validationError = NextResponse.json(
+              { error: `Unknown profile: ${profile}` },
+              { status: 404 },
+            );
+            return config;
+          }
+        }
+        const updatedDisplay = { ...display, activeProfile: profile || undefined };
+        return {
+          ...config,
+          displays: config.displays!.map((d) => (d.id === displayId ? updatedDisplay : d)),
+        };
+      }
+      if (profile && !config.profiles?.some((p) => p.id === profile)) {
+        validationError = NextResponse.json(
+          { error: `Unknown profile: ${profile}` },
+          { status: 404 },
+        );
+        return config;
+      }
+      return {
+        ...config,
+        settings: { ...config.settings, activeProfile: profile || undefined },
+      };
+    });
+    if (validationError) return validationError;
+    return NextResponse.json({ ok: true, profile, displayId });
+  } catch (error) {
+    return errorResponse(error, 'Failed to update profile');
+  }
+}
+
+async function handleAlert(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  if (!body?.title && !body?.message) {
+    return NextResponse.json(
+      { error: 'title or message required' },
+      { status: 400 },
+    );
+  }
+  const VALID_ALERT_TYPES = new Set(['info', 'warning', 'urgent']);
+  const alertType = VALID_ALERT_TYPES.has(body.type as string) ? body.type : 'info';
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+  enqueueCommand(displayId, 'alert', {
+    type: alertType,
+    title: body.title ?? '',
+    message: body.message ?? '',
+    duration: body.duration,
+    icon: body.icon,
+    dismissible: body.dismissible,
+  });
+  return NextResponse.json({ ok: true, command: 'alert' });
+}
+
+async function handleStatus(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  if (
+    !body?.currentScreen ||
+    typeof body.currentScreen !== 'object' ||
+    typeof (body.currentScreen as Record<string, unknown>).id !== 'string' ||
+    typeof body.displayState !== 'string' ||
+    typeof body.timestamp !== 'number'
+  ) {
+    return NextResponse.json(
+      { error: 'Invalid status: requires currentScreen, displayState, timestamp' },
+      { status: 400 },
+    );
+  }
+  // Strip displayId and clientId out of the persisted status so the
+  // body shape stays the same as before (the in-memory keying is
+  // handled by setDisplayStatus / recordViewportReport).
+  const {
+    displayId: bodyDisplayId,
+    clientId: bodyClientId,
+    ...statusPayload
+  } = body as Record<string, unknown>;
+  const rawDisplayId =
+    typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
+  // Validate the body field too — `pickDisplayId` only validates the body
+  // when `validateDisplayTarget` is invoked, so do it here for status reports.
+  const validatedStatus = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
+  if (validatedStatus instanceof NextResponse) return validatedStatus;
+  setDisplayStatus(
+    statusPayload as unknown as Parameters<typeof setDisplayStatus>[0],
+    validatedStatus,
+  );
+
+  // Track viewport per-client so the editor can surface "N things are
+  // reporting with this display ID" instead of silently flapping between
+  // whichever client POSTed most recently. We also stash the source IP
+  // so the user can trace a phantom reporter back to its device on the
+  // LAN (critical when the Pi they *think* is posting is actually off).
+  const viewport = (body as { reportedViewport?: unknown }).reportedViewport;
+  if (
+    validatedStatus
+    && typeof bodyClientId === 'string'
+    && bodyClientId.length > 0
+    && viewport
+    && typeof viewport === 'object'
+  ) {
+    const v = viewport as { width?: unknown; height?: unknown };
+    if (typeof v.width === 'number' && typeof v.height === 'number') {
+      recordViewportReport(
+        validatedStatus,
+        bodyClientId,
+        v.width,
+        v.height,
+        getClientIP(request),
+      );
+    }
+  }
+
+  return NextResponse.json({ ok: true });
+}
 
 /**
  * Body field overrides query string when both are provided. Returns the

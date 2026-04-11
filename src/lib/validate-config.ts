@@ -7,6 +7,7 @@
 
 import type { ScreenConfiguration, Screen, ModuleInstance, BuiltinModuleType } from '@/types/config';
 import { validateDisplays } from './display-filter';
+import { getLatestSchemaVersion } from './migrations';
 
 export interface ConfigDiagnostic {
   /** Machine-readable code, e.g. 'UNKNOWN_MODULE_TYPE'. */
@@ -34,8 +35,9 @@ function isKnownModuleType(type: string): boolean {
   return BUILTIN_MODULE_TYPES.has(type) || type.startsWith('plugin:');
 }
 
-// Latest schema version. Bump when migrations/index.ts adds a new migration.
-const LATEST_SCHEMA_VERSION = 3;
+// Latest schema version. Derived from migrations/index.ts so there's nothing
+// to bump here — the latest migration's version wins.
+const LATEST_SCHEMA_VERSION = getLatestSchemaVersion();
 
 /**
  * Validate a parsed ScreenConfiguration object. Returns an empty array when

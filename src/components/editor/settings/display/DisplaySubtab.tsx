@@ -9,6 +9,7 @@ import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
 import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
+import { MAX_DISPLAY_DIMENSION } from '@/lib/display-filter';
 import type {
   DisplayNode,
   ScreenConfiguration,
@@ -72,7 +73,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   );
 
   // On blur / Enter, commit the parsed draft back to the store if it's
-  // a valid positive integer within the 16384 dimension cap. Invalid or
+  // a valid positive integer within the MAX_DISPLAY_DIMENSION cap. Invalid or
   // empty input snaps the visible draft back to the last committed value
   // rather than silently discarding the edit — without this, clearing
   // the field leaves the input blank while the store still holds the
@@ -88,7 +89,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   const commitWidth = async () => {
     const n = parseInt(widthDraft, 10);
     const current = display.displayWidth ?? settings.displayWidth ?? 1080;
-    if (Number.isFinite(n) && n > 0 && n <= 16384) {
+    if (Number.isFinite(n) && n > 0 && n <= MAX_DISPLAY_DIMENSION) {
       if (n !== current) {
         updateDisplay(display.id, { displayWidth: n });
         await saveConfig();
@@ -100,7 +101,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   const commitHeight = async () => {
     const n = parseInt(heightDraft, 10);
     const current = display.displayHeight ?? settings.displayHeight ?? 1920;
-    if (Number.isFinite(n) && n > 0 && n <= 16384) {
+    if (Number.isFinite(n) && n > 0 && n <= MAX_DISPLAY_DIMENSION) {
       if (n !== current) {
         updateDisplay(display.id, { displayHeight: n });
         await saveConfig();
@@ -195,7 +196,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 type="number"
                 value={widthDraft}
                 min={1}
-                max={16384}
+                max={MAX_DISPLAY_DIMENSION}
                 onChange={(e) => setWidthDraft(e.target.value)}
                 onBlur={commitWidth}
                 className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
@@ -204,7 +205,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 type="number"
                 value={heightDraft}
                 min={1}
-                max={16384}
+                max={MAX_DISPLAY_DIMENSION}
                 onChange={(e) => setHeightDraft(e.target.value)}
                 onBlur={commitHeight}
                 className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
