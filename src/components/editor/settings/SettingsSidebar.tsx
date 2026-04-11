@@ -9,6 +9,7 @@ import {
   Calendar,
   CloudSun,
   Database,
+  Github,
   Layers,
   LayoutGrid,
   MapPin,
@@ -21,6 +22,8 @@ import {
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
+
+const REPO_URL = 'https://github.com/home-screens/home-screens';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import {
@@ -220,29 +223,33 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     // means if someone deep-links to a specific display's detail page the
     // sidebar still shows the right active row.
     return (
-      <nav className="w-52 shrink-0 border-r border-hs-border py-3 overflow-y-auto bg-hs-panel/40">
-        {DEFAULT_PAGES.map((p) => (
+      <nav className="w-52 shrink-0 border-r border-hs-border bg-hs-panel/40 flex flex-col">
+        <div className="flex-1 overflow-y-auto py-3">
+          {DEFAULT_PAGES.map((p) => (
+            <SidebarItem
+              key={p.id}
+              icon={p.icon}
+              label={p.label}
+              active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
+              onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+            />
+          ))}
+          <div className="mx-3.5 my-2 border-t border-hs-border" />
           <SidebarItem
-            key={p.id}
-            icon={p.icon}
-            label={p.label}
-            active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-            onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+            icon={LayoutGrid}
+            label="Displays"
+            active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
+            onClick={() => navigate('?section=displays')}
           />
-        ))}
-        <div className="mx-3.5 my-2 border-t border-hs-border" />
-        <SidebarItem
-          icon={LayoutGrid}
-          label="Displays"
-          active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
-          onClick={() => navigate('?section=displays')}
-        />
+        </div>
+        <SidebarFooter />
       </nav>
     );
   }
 
   return (
-    <nav className="w-60 shrink-0 border-r border-hs-border py-3 overflow-y-auto bg-hs-panel/40">
+    <nav className="w-60 shrink-0 border-r border-hs-border bg-hs-panel/40 flex flex-col">
+      <div className="flex-1 overflow-y-auto py-3">
       {/* DEFAULTS group */}
       <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
         Defaults
@@ -314,7 +321,32 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           </button>
         );
       })}
+      </div>
+      <SidebarFooter />
     </nav>
+  );
+}
+
+/**
+ * Pinned footer row rendered at the bottom of the sidebar in both
+ * legacy and multi-display modes. The parent `<nav>` is a flex column
+ * with a `flex-1 overflow-y-auto` body above this, so the footer stays
+ * visible regardless of how far the Defaults / Per display lists scroll.
+ */
+function SidebarFooter() {
+  return (
+    <div className="flex justify-end border-t border-hs-border px-3.5 py-2">
+      <a
+        href={REPO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
+        title="View on GitHub"
+        aria-label="View on GitHub"
+      >
+        <Github className="w-4 h-4" />
+      </a>
+    </div>
   );
 }
 
