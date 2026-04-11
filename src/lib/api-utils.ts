@@ -57,6 +57,107 @@ export function parseRetryAfter(header: string | null): number | null {
   return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
 }
 
+export interface FetchRetryOptions extends RequestInit {
+  /** Per-attempt timeout in ms (passed to AbortSignal.timeout). Default: 10_000. */
+  timeout?: number;
+  /** Number of retries after the initial attempt. 0 = no retries. Default: 2. */
+  retries?: number;
+  /** Initial backoff delay in ms. Doubles each retry. Default: 500. */
+  baseDelayMs?: number;
+  /** Maximum backoff delay in ms. Default: 5_000. */
+  maxDelayMs?: number;
+}
+
+const DEFAULT_RETRIES = 2;
+const DEFAULT_BASE_DELAY_MS = 500;
+const DEFAULT_MAX_DELAY_MS = 5_000;
+
+/**
+ * Fetch with timeout + automatic retry on transient failures.
+ *
+ * Retries on 5xx, 429, network errors (TypeError), and timeouts.
+ * Does NOT retry on 4xx (client errors) or caller-initiated aborts.
+ * Respects the `Retry-After` response header when present.
+ * Uses exponential backoff: baseDelayMs * 2^attempt, capped at maxDelayMs.
+ */
+export async function fetchWithRetry(
+  url: string | URL | Request,
+  init?: FetchRetryOptions,
+): Promise<Response> {
+  const {
+    timeout = DEFAULT_FETCH_TIMEOUT_MS,
+    retries = DEFAULT_RETRIES,
+    baseDelayMs = DEFAULT_BASE_DELAY_MS,
+    maxDelayMs = DEFAULT_MAX_DELAY_MS,
+    ...rest
+  } = init ?? {};
+
+  let lastResponse: Response | undefined;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const timeoutSignal = AbortSignal.timeout(timeout);
+      const signal = rest.signal
+        ? AbortSignal.any([rest.signal, timeoutSignal])
+        : timeoutSignal;
+
+      const response = await fetch(url, { ...rest, signal });
+
+      if (!isTransientError(response.status) || attempt === retries) {
+        return response;
+      }
+
+      // Transient error — schedule a retry
+      lastResponse = response;
+      const retryAfterMs = parseRetryAfter(response.headers.get('Retry-After'));
+      const backoffMs = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
+      const delayMs = retryAfterMs ?? backoffMs;
+
+      await delay(delayMs, rest.signal);
+    } catch (error) {
+      // Caller-initiated abort — don't retry
+      if (rest.signal?.aborted) throw error;
+
+      // Network errors (TypeError) and timeouts are retryable
+      const isRetryable =
+        error instanceof TypeError ||
+        (error instanceof DOMException && error.name === 'TimeoutError');
+
+      if (!isRetryable || attempt === retries) {
+        throw error;
+      }
+
+      lastError = error;
+      const backoffMs = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
+      await delay(backoffMs, rest.signal);
+    }
+  }
+
+  // Should be unreachable, but satisfy TypeScript
+  if (lastResponse) return lastResponse;
+  throw lastError;
+}
+
+/** Promise-based delay that rejects early if the signal is aborted. */
+function delay(ms: number, signal?: AbortSignal | null): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(signal.reason);
+      },
+      { once: true },
+    );
+  });
+}
+
 /**
  * Reads lat/lon from config (with weather settings fallback),
  * allowing override from searchParams. Returns null if missing.
