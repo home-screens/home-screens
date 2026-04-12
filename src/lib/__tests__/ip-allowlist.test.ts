@@ -122,4 +122,44 @@ describe('isIpAllowed', () => {
     expect(isIpAllowed('192.168.1.1', ['192.168.1.1/32'])).toBe(true);
     expect(isIpAllowed('192.168.1.2', ['192.168.1.1/32'])).toBe(false);
   });
+
+  // Fail-safe behavior: garbage in the allowlist must never match any IP.
+  // A hand-edited auth.json with a typo like "foo/24" should not silently
+  // grant access — it should be skipped as an invalid entry.
+  describe('fail-safe: garbage entries are skipped', () => {
+    it('skips non-IP entries without matching anything', () => {
+      expect(isIpAllowed('192.168.1.1', ['foo/24'])).toBe(false);
+      expect(isIpAllowed('0.0.0.1', ['foo/24'])).toBe(false);
+    });
+
+    it('skips empty string entries', () => {
+      expect(isIpAllowed('192.168.1.1', ['', '192.168.1.0/24'])).toBe(true);
+      expect(isIpAllowed('10.0.0.1', [''])).toBe(false);
+    });
+
+    it('skips entries with out-of-range prefix lengths', () => {
+      expect(isIpAllowed('192.168.1.1', ['192.168.1.0/33'])).toBe(false);
+      expect(isIpAllowed('192.168.1.1', ['192.168.1.0/99'])).toBe(false);
+    });
+
+    it('skips entries with negative prefix lengths', () => {
+      expect(isIpAllowed('192.168.1.1', ['192.168.1.0/-1'])).toBe(false);
+    });
+
+    it('skips entries with non-numeric prefix', () => {
+      expect(isIpAllowed('192.168.1.1', ['192.168.1.0/abc'])).toBe(false);
+    });
+
+    it('still matches valid entries when garbage entries exist alongside them', () => {
+      expect(isIpAllowed('192.168.1.50', ['garbage', '192.168.1.0/24', 'also-bad/16'])).toBe(true);
+    });
+
+    it('returns false for non-IPv4 client address', () => {
+      expect(isIpAllowed('::1', ['0.0.0.0/0'])).toBe(false);
+    });
+
+    it('skips entries with floating-point prefix', () => {
+      expect(isIpAllowed('192.168.1.1', ['192.168.1.0/24.5'])).toBe(false);
+    });
+  });
 });

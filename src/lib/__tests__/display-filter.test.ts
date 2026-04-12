@@ -3,6 +3,7 @@ import {
   filterConfigForDisplay,
   validateDisplays,
   findScreenById,
+  getDisplayScreens,
   getDisplayProfiles,
   findMainDisplay,
   isMainDisplay,
@@ -1093,5 +1094,136 @@ describe('pruneDanglingScreenRefs', () => {
     });
     const result = pruneDanglingScreenRefs(config, 'k-s1', 'nonexistent');
     expect(result.displays![0].profiles![0].screenIds).toEqual(['k-s1']);
+  });
+});
+
+/* ─── getDisplayScreens ──────────────────────────── */
+
+describe('getDisplayScreens', () => {
+  it('returns owned screens when display has screens array', () => {
+    const owned = [makeScreen('o1'), makeScreen('o2')];
+    const display = { id: 'kitchen', name: 'Kitchen', screens: owned } as import('@/types/config').DisplayNode;
+    const pool = [makeScreen('p1'), makeScreen('p2')];
+    expect(getDisplayScreens(display, pool)).toEqual(owned);
+  });
+
+  it('ignores pool when display has owned screens', () => {
+    const owned = [makeScreen('o1')];
+    const display = { id: 'kitchen', name: 'Kitchen', screens: owned } as import('@/types/config').DisplayNode;
+    const pool = [makeScreen('o1'), makeScreen('p1')];
+    // Returns the owned array, not the pool entry with same ID
+    expect(getDisplayScreens(display, pool)).toBe(owned);
+  });
+
+  it('filters pool by screenIds when display has no owned screens', () => {
+    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's3'] } as import('@/types/config').DisplayNode;
+    const pool = [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')];
+    const result = getDisplayScreens(display, pool);
+    expect(result.map((s) => s.id)).toEqual(['s1', 's3']);
+  });
+
+  it('returns empty array when display has neither screens nor screenIds', () => {
+    const display = { id: 'kitchen', name: 'Kitchen' } as import('@/types/config').DisplayNode;
+    expect(getDisplayScreens(display, [makeScreen('s1')])).toEqual([]);
+  });
+
+  it('returns empty array when screenIds reference nonexistent screens', () => {
+    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['ghost'] } as import('@/types/config').DisplayNode;
+    expect(getDisplayScreens(display, [makeScreen('s1')])).toEqual([]);
+  });
+
+  it('preserves pool order (not screenIds order) for legacy mode', () => {
+    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['s3', 's1'] } as import('@/types/config').DisplayNode;
+    const pool = [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')];
+    const result = getDisplayScreens(display, pool);
+    // Pool iteration order: s1, s3 (s2 excluded)
+    expect(result.map((s) => s.id)).toEqual(['s1', 's3']);
+  });
+
+  it('returns empty owned screens array as-is (not falling through to pool)', () => {
+    const display = { id: 'kitchen', name: 'Kitchen', screens: [] } as import('@/types/config').DisplayNode;
+    const pool = [makeScreen('s1')];
+    expect(getDisplayScreens(display, pool)).toEqual([]);
+  });
+});
+
+/* ─── findScreenById ─────────────────────────────── */
+
+describe('findScreenById', () => {
+  it('finds a screen in the global pool (no displays)', () => {
+    const config = makeConfig({ screens: [makeScreen('s1', 'Main Screen')] });
+    const result = findScreenById(config, 's1');
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe('s1');
+    expect(result!.name).toBe('Main Screen');
+  });
+
+  it('returns null when screen does not exist anywhere', () => {
+    const config = makeConfig({ screens: [makeScreen('s1')] });
+    expect(findScreenById(config, 'nonexistent')).toBeNull();
+  });
+
+  it('finds a screen in display-owned screens', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1', 'Kitchen Screen')],
+      }],
+    });
+    const result = findScreenById(config, 'k-s1');
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe('Kitchen Screen');
+  });
+
+  it('owned screens take precedence over global pool (same ID)', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1', 'Global Version')],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('s1', 'Owned Version')],
+      }],
+    });
+    const result = findScreenById(config, 's1');
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe('Owned Version');
+  });
+
+  it('searches across multiple displays', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k-s1')] },
+        { id: 'bedroom', name: 'Bedroom', screens: [makeScreen('b-s1')] },
+      ],
+    });
+    expect(findScreenById(config, 'k-s1')).not.toBeNull();
+    expect(findScreenById(config, 'b-s1')).not.toBeNull();
+  });
+
+  it('falls back to global pool when displays exist but lack owned screens', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1', 'Global')],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] }],
+    });
+    // Display uses legacy screenIds (no owned screens array), so
+    // findScreenById should fall through to the global pool
+    const result = findScreenById(config, 's1');
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe('Global');
+  });
+
+  it('returns null when all displays have owned screens but none match', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k-s1')],
+      }],
+    });
+    expect(findScreenById(config, 'nonexistent')).toBeNull();
   });
 });
