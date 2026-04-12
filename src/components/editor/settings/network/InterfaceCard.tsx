@@ -38,13 +38,22 @@ interface InterfaceCardProps {
   iface: NetworkInterface;
   onDisconnect: (connectionUuid: string, iface: NetworkInterface) => void;
   disconnecting?: boolean;
+  ipSettingsOpen?: boolean;
+  onToggleIPSettings?: (device: string) => void;
 }
 
 /* ─── Component ────────────────────────────── */
 
-export default function InterfaceCard({ iface, onDisconnect, disconnecting }: InterfaceCardProps) {
+export default function InterfaceCard({
+  iface,
+  onDisconnect,
+  disconnecting,
+  ipSettingsOpen,
+  onToggleIPSettings,
+}: InterfaceCardProps) {
   const isConnected = iface.state === 'connected';
   const canDisconnect = isConnected && iface.type === 'wifi' && iface.connectionUuid;
+  const canConfigureIP = iface.connectionUuid !== undefined;
 
   return (
     <div className="rounded-lg bg-hs-card border border-hs-border p-3">
@@ -67,8 +76,18 @@ export default function InterfaceCard({ iface, onDisconnect, disconnecting }: In
             mgmt
           </span>
         )}
-        {canDisconnect && (
-          <div className="ml-auto shrink-0">
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          {canConfigureIP && onToggleIPSettings && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onToggleIPSettings(iface.device)}
+              aria-expanded={ipSettingsOpen}
+            >
+              IP Settings
+            </Button>
+          )}
+          {canDisconnect && (
             <Button
               variant="secondary"
               size="sm"
@@ -77,8 +96,8 @@ export default function InterfaceCard({ iface, onDisconnect, disconnecting }: In
             >
               {disconnecting ? 'Disconnecting...' : 'Disconnect'}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Secondary line */}

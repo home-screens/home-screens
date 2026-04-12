@@ -8,6 +8,8 @@ import WifiConnectModal from './network/WifiConnectModal';
 import ManagementWarningModal from './network/ManagementWarningModal';
 import RollbackOverlay from './network/RollbackOverlay';
 import SavedNetworksSection from './network/SavedNetworksSection';
+import HostnameSection from './network/HostnameSection';
+import IPSettingsPanel from './network/IPSettingsPanel';
 import type { NetworkOverview, NetworkInterface, WifiNetwork } from './network/types';
 
 /* ─── Constants ────────────────────────────── */
@@ -35,6 +37,9 @@ export default function NetworkSection() {
   const [rollbackId, setRollbackId] = useState<string | null>(null);
   const [disconnectingUuid, setDisconnectingUuid] = useState<string | null>(null);
   const [savedRefreshKey, setSavedRefreshKey] = useState(0);
+
+  // IP settings panel: track which device's panel is open (one at a time)
+  const [openIPDevice, setOpenIPDevice] = useState<string | null>(null);
 
   /* ── Fetch overview ────────────────────────── */
 
@@ -169,6 +174,12 @@ export default function NetworkSection() {
     [handleDisconnect],
   );
 
+  /* ── IP settings panel toggle ──────────────── */
+
+  const handleToggleIPSettings = useCallback((device: string) => {
+    setOpenIPDevice((prev) => (prev === device ? null : device));
+  }, []);
+
   /* ── Loading state ─────────────────────────── */
 
   if (loading) {
@@ -215,14 +226,10 @@ export default function NetworkSection() {
     <>
       <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
         {/* Hostname */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Hostname
-          </h3>
-          <p className="text-sm text-hs-text-primary font-mono">
-            {overview.hostname}
-          </p>
-        </section>
+        <HostnameSection
+          currentHostname={overview.hostname ?? ''}
+          onSaved={fetchOverview}
+        />
 
         {/* Interfaces */}
         <section>
@@ -234,12 +241,29 @@ export default function NetworkSection() {
           ) : (
             <div className="space-y-2">
               {interfaces.map((iface) => (
-                <InterfaceCard
-                  key={iface.device}
-                  iface={iface}
-                  onDisconnect={handleDisconnectClick}
-                  disconnecting={disconnectingUuid === iface.connectionUuid}
-                />
+                <div key={iface.device}>
+                  <InterfaceCard
+                    iface={iface}
+                    onDisconnect={handleDisconnectClick}
+                    disconnecting={disconnectingUuid === iface.connectionUuid}
+                    ipSettingsOpen={openIPDevice === iface.device}
+                    onToggleIPSettings={iface.connectionUuid ? handleToggleIPSettings : undefined}
+                  />
+                  {openIPDevice === iface.device && iface.connectionUuid && (
+                    <IPSettingsPanel
+                      device={iface.device}
+                      connectionName={iface.connection}
+                      connectionUuid={iface.connectionUuid}
+                      currentIPv4={iface.ipv4}
+                      isManagementInterface={iface.isManagementInterface}
+                      onConfirmationRequired={(warning, onConfirm) => {
+                        setManagementWarning({ warning, onProceed: () => { setManagementWarning(null); onConfirm(); } });
+                      }}
+                      onRollbackStarted={(id) => setRollbackId(id)}
+                      onApplied={fetchOverview}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}
