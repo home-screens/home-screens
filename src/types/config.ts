@@ -897,7 +897,7 @@ export interface DateConfig {
 export type ChoreChartView = 'board' | 'star-chart' | 'today' | 'progress' | 'compact';
 export type ChoreTimeOfDay = 'morning' | 'afternoon' | 'evening' | 'anytime';
 export type ChoreRotation = 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule';
-export type ChoreResetFrequency = 'daily' | 'weekly' | 'biweekly';
+export type ChoreResetFrequency = 'daily' | 'weekly' | 'biweekly' | 'once';
 
 export interface ChoreMember {
   id: string;
@@ -913,6 +913,7 @@ export interface ChoreDefinition {
   points: number;
   frequency: ChoreResetFrequency;
   daysOfWeek: number[];
+  specificDate?: string;            // YYYY-MM-DD — required when frequency is 'once'
   timeOfDay: ChoreTimeOfDay;
   assigneeIds: string[];
   rotation: ChoreRotation;

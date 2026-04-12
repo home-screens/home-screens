@@ -6,6 +6,7 @@ export const CHORE_FREQUENCIES: { value: ChoreResetFrequency; label: string }[] 
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'biweekly', label: 'Every Other Week' },
+  { value: 'once', label: 'One Time' },
 ];
 
 export const CHORE_ROTATIONS: { value: ChoreRotation; label: string }[] = [
