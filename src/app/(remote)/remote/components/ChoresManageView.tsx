@@ -19,6 +19,7 @@ import {
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
+  todayStr,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon, {
   MEMBER_ICONS,
@@ -163,6 +164,7 @@ function ChoreFormOverlay({
   const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
   const [frequency, setFrequency] = useState<ChoreResetFrequency>(initial?.frequency ?? 'daily');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [specificDate, setSpecificDate] = useState<string>(initial?.specificDate ?? todayStr());
   const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
@@ -251,6 +253,7 @@ function ChoreFormOverlay({
       assigneeIds: finalAssigneeIds,
       rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
       ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
+      ...(frequency === 'once' ? { specificDate } : {}),
     });
   };
 
@@ -324,40 +327,49 @@ function ChoreFormOverlay({
 
         {rotation !== 'schedule' && (
           <>
-            {/* Days of week */}
+            {/* Days — date picker for one-time, day-of-week toggles for recurring */}
             <div style={{ marginBottom: 24 }}>
-              <div style={LABEL_STYLE}>Days</div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[0, 1, 2, 3, 4, 5, 6].map((d) => {
-                  const isOn = daysOfWeek.includes(d);
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      className="press-scale-xs"
-                      onClick={() => toggleDay(d)}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        flexShrink: 0,
-                        border: `1px solid ${isOn ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
-                        background: isOn ? 'var(--hs-bg-active)' : 'var(--hs-bg-panel)',
-                        color: isOn ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      {DAY_NAMES_SHORT[d][0]}
-                    </button>
-                  );
-                })}
-              </div>
+              <div style={LABEL_STYLE}>{frequency === 'once' ? 'Date' : 'Days'}</div>
+              {frequency === 'once' ? (
+                <input
+                  type="date"
+                  value={specificDate}
+                  onChange={(e) => setSpecificDate(e.target.value)}
+                  style={INPUT_STYLE}
+                />
+              ) : (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                    const isOn = daysOfWeek.includes(d);
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        className="press-scale-xs"
+                        onClick={() => toggleDay(d)}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          flexShrink: 0,
+                          border: `1px solid ${isOn ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
+                          background: isOn ? 'var(--hs-bg-active)' : 'var(--hs-bg-panel)',
+                          color: isOn ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {DAY_NAMES_SHORT[d][0]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Assignees */}
@@ -540,7 +552,7 @@ function ChoreFormOverlay({
         )}
 
         {/* Rotation */}
-        {(assigneeIds.length >= 2 || rotation === 'schedule') && (
+        {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
           <div style={{ marginBottom: 24 }}>
             <div style={LABEL_STYLE}>Rotation</div>
             <select
@@ -902,7 +914,7 @@ export default function ChoresManageView({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}
+                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : chore.frequency === 'once' ? `One time \u00b7 ${chore.specificDate ?? ''}` : 'Weekly'}
                   {' \u00b7 '}{TIME_OF_DAY_META[chore.timeOfDay].label}
                   {' \u00b7 '}{chore.points} ticket{chore.points !== 1 ? 's' : ''}
                 </div>
