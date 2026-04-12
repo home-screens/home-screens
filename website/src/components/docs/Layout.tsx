@@ -11,6 +11,7 @@ import { MobileNavigation } from '@/components/docs/MobileNavigation'
 import { Navigation } from '@/components/docs/Navigation'
 import { Search } from '@/components/docs/Search'
 import { ThemeSelector } from '@/components/docs/ThemeSelector'
+import { siteNavLinks } from '@/lib/site-navigation'
 
 function GitHubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -37,33 +38,44 @@ function Header() {
   return (
     <header
       className={clsx(
-        'sticky top-0 z-50 flex flex-none flex-wrap items-center justify-between bg-white px-4 py-5 shadow-md shadow-slate-900/5 transition duration-500 sm:px-6 lg:px-8 dark:shadow-none',
+        'sticky top-0 z-50 flex-none bg-white shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none',
         isScrolled
           ? 'dark:bg-slate-900/95 dark:backdrop-blur-sm dark:[@supports(backdrop-filter:blur(0))]:bg-slate-900/75'
           : 'dark:bg-transparent',
       )}
     >
-      <div className="mr-6 flex lg:hidden">
-        <MobileNavigation />
-      </div>
-      <div className="relative flex grow basis-0 items-center">
-        <Link href="/" aria-label="Home page">
-          <DocsLogomark className="h-9 w-9 lg:hidden" />
-          <DocsLogo className="hidden lg:flex" />
-        </Link>
-      </div>
-      <div className="-my-5 mr-6 sm:mr-8 md:mr-0">
-        <Search />
-      </div>
-      <div className="relative flex basis-0 justify-end gap-6 sm:gap-8 md:grow">
-        <ThemeSelector className="relative z-10" />
-        <Link
-          href="https://github.com/home-screens/home-screens"
-          className="group"
-          aria-label="GitHub"
-        >
-          <GitHubIcon className="h-6 w-6 fill-slate-400 group-hover:fill-slate-500 dark:group-hover:fill-slate-300" />
-        </Link>
+      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mr-6 flex lg:hidden">
+          <MobileNavigation />
+        </div>
+        <div className="flex items-center gap-12">
+          <Link href="/" aria-label="Home page">
+            <DocsLogomark className="h-9 w-9 lg:hidden" />
+            <DocsLogo className="hidden lg:flex" />
+          </Link>
+          <nav className="hidden lg:flex items-center gap-8">
+            {siteNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="flex items-center gap-6 sm:gap-8">
+          <Search />
+          <ThemeSelector className="relative z-10" />
+          <Link
+            href="https://github.com/home-screens/home-screens"
+            className="group"
+            aria-label="GitHub"
+          >
+            <GitHubIcon className="h-6 w-6 fill-slate-400 group-hover:fill-slate-500 dark:group-hover:fill-slate-300" />
+          </Link>
+        </div>
       </div>
     </header>
   )
@@ -84,7 +96,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="absolute inset-y-0 right-0 w-[50vw] bg-slate-50 dark:hidden" />
           <div className="absolute top-16 right-0 bottom-0 hidden h-12 w-px bg-linear-to-t from-slate-800 dark:block" />
           <div className="absolute top-28 right-0 bottom-0 hidden w-px bg-slate-800 dark:block" />
-          <div className="sticky top-19 -ml-0.5 h-[calc(100vh-4.75rem)] w-64 overflow-x-hidden overflow-y-auto py-16 pr-8 pl-0.5 xl:w-72 xl:pr-16">
+          <div className="sticky top-[4.25rem] -ml-0.5 h-[calc(100vh-4.25rem)] w-64 overflow-x-hidden overflow-y-auto py-16 pr-8 pl-0.5 xl:w-72 xl:pr-16">
             <Navigation />
           </div>
         </div>

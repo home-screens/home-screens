@@ -7,6 +7,7 @@ import { Dialog, DialogPanel } from '@headlessui/react'
 
 import { DocsLogomark } from '@/components/docs/DocsLogo'
 import { Navigation } from '@/components/docs/Navigation'
+import { siteNavLinks } from '@/lib/site-navigation'
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -95,7 +96,23 @@ export function MobileNavigation() {
               <DocsLogomark className="h-9 w-9" />
             </Link>
           </div>
-          <Navigation className="mt-5 px-1" onLinkClick={onLinkClick} />
+          <nav className="mt-5 px-1">
+            <ul className="space-y-2">
+              {siteNavLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={onLinkClick}
+                    className="block text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
+          <Navigation className="px-1" onLinkClick={onLinkClick} />
         </DialogPanel>
       </Dialog>
     </>

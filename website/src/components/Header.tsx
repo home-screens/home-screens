@@ -13,15 +13,7 @@ import { Menu, ChevronUp, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
 import { Logo } from '@/components/Logo';
-
-const navLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'Modules', href: '#modules' },
-  { label: 'Templates', href: '#templates' },
-  { label: 'Docs', href: '/docs' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Changelog', href: '/changelog' },
-];
+import { siteNavLinks } from '@/lib/site-navigation';
 
 function MobileNavLink({
   href,
@@ -48,7 +40,7 @@ export function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <nav>
-        <Container className="flex items-center justify-between py-4">
+        <Container className="flex h-[4.25rem] items-center justify-between">
           {/* Frosted glass background */}
           <div className="absolute inset-0 -z-10 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/[0.04]" />
 
@@ -57,7 +49,7 @@ export function Header() {
               <Logo />
             </Link>
             <div className="hidden items-center gap-8 lg:flex">
-              {navLinks.map((link) => (
+              {siteNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -124,7 +116,7 @@ export function Header() {
                           className="absolute inset-x-0 top-0 z-0 origin-top rounded-b-2xl bg-[#161616] px-6 pb-6 pt-24 shadow-2xl"
                         >
                           <div className="space-y-4">
-                            {navLinks.map((link) => (
+                            {siteNavLinks.map((link) => (
                               <MobileNavLink key={link.href} href={link.href}>
                                 {link.label}
                               </MobileNavLink>
