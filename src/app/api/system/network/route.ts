@@ -33,6 +33,7 @@ interface NetworkInterface {
   type: string;
   state: string;
   connection: string;
+  connectionUuid?: string;
   hwAddress: string;
   ipv4?: IPv4Info;
   wifi?: WifiInfo;
@@ -148,7 +149,25 @@ export const GET = withAuth(async (request: NextRequest) => {
   const clientIP = getClientIP(request);
   const managementIface = await getManagementInterface(clientIP);
 
-  // Step 5: Get details per interface (in parallel)
+  // Step 5: Build UUID map for active connections
+  const connectionUuids = new Map<string, string>();
+  try {
+    const activeOutput = await nmcli([
+      '-t', '-f', 'UUID,DEVICE',
+      'connection', 'show', '--active',
+    ]);
+    for (const line of activeOutput.split('\n')) {
+      if (!line.trim()) continue;
+      const fields = parseTerseFields(line);
+      if (fields.length >= 2 && fields[0] && fields[1]) {
+        connectionUuids.set(fields[1], fields[0]);
+      }
+    }
+  } catch {
+    // Best-effort — UUIDs will be omitted
+  }
+
+  // Step 6: Get details per interface (in parallel)
   const interfaces: NetworkInterface[] = await Promise.all(
     interfaceEntries.map(async (entry) => {
       const [showOutput, driver] = await Promise.all([
@@ -235,11 +254,13 @@ export const GET = withAuth(async (request: NextRequest) => {
         }
       }
 
+      const uuid = connectionUuids.get(entry.device);
       const iface: NetworkInterface = {
         device: entry.device,
         type: entry.type,
         state: entry.state,
         connection: entry.connection,
+        ...(uuid && { connectionUuid: uuid }),
         hwAddress,
         isManagementInterface: entry.device === managementIface,
       };
