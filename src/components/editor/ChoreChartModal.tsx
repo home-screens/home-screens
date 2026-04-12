@@ -22,6 +22,7 @@ import {
   resolveAssignee,
   choreAppliesToday,
   localDateStr,
+  todayStr,
   cascadeDeleteMember,
   addMemberToList,
   updateMemberInList,
@@ -245,6 +246,7 @@ function ChoreForm({
   const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
   const [frequency, setFrequency] = useState<ChoreResetFrequency>(initial?.frequency ?? 'daily');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [specificDate, setSpecificDate] = useState<string>(initial?.specificDate ?? todayStr());
   const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
@@ -331,6 +333,7 @@ function ChoreForm({
       assigneeIds: finalAssigneeIds,
       rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
       ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
+      ...(frequency === 'once' ? { specificDate } : {}),
     });
   };
 
@@ -395,25 +398,34 @@ function ChoreForm({
 
       {rotation !== 'schedule' && (
         <>
-          {/* Days of week */}
+          {/* Days — date picker for one-time, day-of-week toggles for recurring */}
           <div className="space-y-1.5">
-            <span className="text-xs text-hs-text-muted">Days</span>
-            <div className="flex gap-1">
-              {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => toggleDay(d)}
-                  className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
-                    daysOfWeek.includes(d)
-                      ? 'bg-hs-accent-soft text-hs-accent'
-                      : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-                  }`}
-                >
-                  {DAY_NAMES_SHORT[d][0]}
-                </button>
-              ))}
-            </div>
+            <span className="text-xs text-hs-text-muted">{frequency === 'once' ? 'Date' : 'Days'}</span>
+            {frequency === 'once' ? (
+              <input
+                type="date"
+                value={specificDate}
+                onChange={(e) => setSpecificDate(e.target.value)}
+                className={MODAL_INPUT_CLASS}
+              />
+            ) : (
+              <div className="flex gap-1">
+                {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => toggleDay(d)}
+                    className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
+                      daysOfWeek.includes(d)
+                        ? 'bg-hs-accent-soft text-hs-accent'
+                        : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
+                    }`}
+                  >
+                    {DAY_NAMES_SHORT[d][0]}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Assignees */}
@@ -516,8 +528,8 @@ function ChoreForm({
         </div>
       )}
 
-      {/* Rotation (only when 2+ assignees) */}
-      {(assigneeIds.length >= 2 || rotation === 'schedule') && (
+      {/* Rotation (only when 2+ assignees and not a one-time chore) */}
+      {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
         <label className="flex flex-col gap-0.5">
           <span className="text-xs text-hs-text-muted">Rotation</span>
           <select
@@ -886,7 +898,7 @@ function ChoreColumn({
                   {chore.name}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
+                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : chore.frequency === 'once' ? `One time \u00b7 ${chore.specificDate ?? ''}` : 'Weekly'}{' '}
                   &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
                   &middot; {chore.points} ticket{chore.points !== 1 ? 's' : ''}
                 </div>
