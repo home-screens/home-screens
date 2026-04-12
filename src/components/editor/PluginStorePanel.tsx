@@ -71,7 +71,10 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Request failed (${res.status})`);
+        const msg = data.detail
+          ? `${data.error}: ${data.detail}`
+          : (data.error ?? `Request failed (${res.status})`);
+        throw new Error(msg);
       }
       await fetchData();
       usePluginStore.getState().loadPlugins();

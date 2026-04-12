@@ -22,34 +22,34 @@ const mockRequireDisplayAuth = vi.mocked(requireDisplayAuth);
 describe('errorResponse', () => {
   silenceConsole();
 
-  it('always returns the fallback message, even for Error instances', async () => {
+  it('returns fallback message with error detail for Error instances', async () => {
     const response = errorResponse(new Error('something broke'), 'fallback');
     const json = await response.json();
-    expect(json).toEqual({ error: 'fallback' });
+    expect(json).toEqual({ error: 'fallback', detail: 'something broke' });
   });
 
   it('uses fallbackMessage for non-Error string', async () => {
     const response = errorResponse('not an error object', 'fallback message');
     const json = await response.json();
-    expect(json).toEqual({ error: 'fallback message' });
+    expect(json).toEqual({ error: 'fallback message', detail: undefined });
   });
 
   it('uses fallbackMessage for null', async () => {
     const response = errorResponse(null, 'fallback message');
     const json = await response.json();
-    expect(json).toEqual({ error: 'fallback message' });
+    expect(json).toEqual({ error: 'fallback message', detail: undefined });
   });
 
   it('uses fallbackMessage for undefined', async () => {
     const response = errorResponse(undefined, 'fallback message');
     const json = await response.json();
-    expect(json).toEqual({ error: 'fallback message' });
+    expect(json).toEqual({ error: 'fallback message', detail: undefined });
   });
 
   it('uses fallbackMessage for a number', async () => {
     const response = errorResponse(42, 'fallback message');
     const json = await response.json();
-    expect(json).toEqual({ error: 'fallback message' });
+    expect(json).toEqual({ error: 'fallback message', detail: undefined });
   });
 
   it('defaults to status 500', () => {
@@ -483,7 +483,7 @@ describe('withAuth', () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Custom error message' });
+    expect(json).toEqual({ error: 'Custom error message', detail: 'something broke' });
   });
 
   it('passes the request object through to the handler', async () => {
@@ -695,7 +695,7 @@ describe('cachedProxyRoute', () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Something went wrong' });
+    expect(json).toEqual({ error: 'Something went wrong', detail: 'Network error' });
   });
 
   it('calls requireDisplayAuth when auth is "display"', async () => {
@@ -915,7 +915,7 @@ describe('withDisplayAuth', () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Something broke' });
+    expect(json).toEqual({ error: 'Something broke', detail: 'disk I/O' });
     expect(handler).not.toHaveBeenCalled();
   });
 

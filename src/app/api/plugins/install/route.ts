@@ -26,9 +26,21 @@ export const POST = withAuth(async (request: NextRequest) => {
   }
 
   // Download the tarball
-  const res = await fetchWithTimeout(versionEntry.downloadUrl, { timeout: 60_000 });
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(versionEntry.downloadUrl, { timeout: 60_000 });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : 'network error';
+    return NextResponse.json(
+      { error: 'Failed to download plugin', detail: `Could not reach ${versionEntry.downloadUrl} — ${detail}` },
+      { status: 502 },
+    );
+  }
   if (!res.ok) {
-    return NextResponse.json({ error: 'Failed to download plugin' }, { status: 502 });
+    return NextResponse.json(
+      { error: 'Failed to download plugin', detail: `${versionEntry.downloadUrl} returned HTTP ${res.status}` },
+      { status: 502 },
+    );
   }
   const buffer = Buffer.from(await res.arrayBuffer());
 

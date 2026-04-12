@@ -13,8 +13,9 @@ export function errorResponse(
   fallbackMessage: string,
   status = 500,
 ): NextResponse {
+  const detail = error instanceof Error ? error.message : undefined;
   console.error(fallbackMessage, error);
-  return NextResponse.json({ error: fallbackMessage }, { status });
+  return NextResponse.json({ error: fallbackMessage, detail }, { status });
 }
 
 /**

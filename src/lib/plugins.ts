@@ -109,17 +109,32 @@ export async function installPlugin(
       try {
         await execFileAsync('tar', ['-xzf', tmpTarPath, '-C', tmpDir, '--strip-components=1']);
 
-        // Validate manifest in temp directory before promoting
+        // Validate extracted contents
         const manifestPath = path.join(tmpDir, 'manifest.json');
+        const bundlePath = path.join(tmpDir, 'dist', 'bundle.js');
         let manifest: PluginManifest;
         try {
           const raw = await fs.readFile(manifestPath, 'utf-8');
           manifest = JSON.parse(raw);
         } catch {
-          throw new Error('Plugin manifest is missing or unreadable');
+          throw new Error(
+            'Plugin manifest.json is missing after extraction — the tarball may be flat '
+            + '(expected a root directory wrapping manifest.json and dist/)',
+          );
         }
         if (!validateManifest(manifest)) {
-          throw new Error('Plugin manifest is invalid');
+          const missing = ['id', 'name', 'version', 'moduleType', 'category']
+            .filter((k) => !(manifest as Record<string, unknown>)[k]);
+          throw new Error(
+            `Plugin manifest is invalid${missing.length ? `: missing ${missing.join(', ')}` : ''}`,
+          );
+        }
+        try {
+          await fs.access(bundlePath);
+        } catch {
+          throw new Error(
+            'Plugin bundle is missing at dist/bundle.js — the tarball must contain a dist/ directory with bundle.js',
+          );
         }
 
         // Validation passed — atomically promote to final location
