@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   },
   description:
     'An open-source smart display system for Raspberry Pi. 38 built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.',
+  alternates: {
+    types: {
+      'application/rss+xml': '/feed.xml',
+    },
+  },
   openGraph: {
     siteName: 'Home Screens',
     type: 'website',

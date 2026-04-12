@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import fs from 'node:fs'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
+import { getAllPosts } from '@/lib/blog'
 import { navigation } from '@/lib/docs-navigation'
 import { getChangelog } from '@/lib/changelog'
 
@@ -81,6 +82,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: docPageLastModified(href),
       changeFrequency: 'monthly' as const,
       priority: 0.8,
+    })),
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    ...getAllPosts().map((post) => ({
+      url: `${baseUrl}${post.href}`,
+      lastModified: getFileLastModified(
+        path.join(APP_DIR, '(marketing)', 'blog', post.slug, 'page.md'),
+      ),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
     })),
   ]
 }

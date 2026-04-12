@@ -16,8 +16,8 @@ const columns = [
     links: [
       { label: 'Documentation', href: '/docs' },
       { label: 'Quick Start', href: '/docs/getting-started' },
+      { label: 'Blog', href: '/blog' },
       { label: 'Changelog', href: '/changelog' },
-      { label: 'GitHub Releases', href: 'https://github.com/home-screens/home-screens/releases' },
     ],
   },
   {
