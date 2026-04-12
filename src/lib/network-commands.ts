@@ -175,13 +175,16 @@ function executeRollback(
     }
   }
 
-  // Fire-and-forget: apply the modify, then bring the connection up
+  // Fire-and-forget: apply the modify, then bring the connection up, then clean up watchdog
   nmcliSudo(args)
     .then(() => nmcliSudo(['connection', 'up', connectionId]))
+    .then(() => uninhibitWatchdog())
     .catch((err) => {
       // Best-effort rollback — if this fails, the network is already broken.
       // Log for operational visibility on headless Pi devices.
       console.error('[network-commands] rollback failed:', err?.message ?? err);
+      // Still try to uninhibit watchdog so it can resume recovery
+      uninhibitWatchdog().catch(() => {});
     });
 }
 

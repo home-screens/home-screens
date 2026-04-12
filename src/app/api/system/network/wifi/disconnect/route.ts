@@ -49,15 +49,26 @@ export const POST = withAuth(async (request: NextRequest) => {
       }
     }
   } catch {
-    // Could not look up active connections — proceed without
-    // management interface check (safe default: allow disconnect)
+    // Could not look up active connections — fail-closed: require confirmation
+    // since we can't determine if this is the management interface
+    if (!confirmed) {
+      return NextResponse.json({
+        requiresConfirmation: true,
+        warning:
+          'Unable to determine if this connection serves your current session. ' +
+          'Disconnecting may make this device unreachable.',
+      });
+    }
   }
 
   // 3. Check if disconnecting the management interface
   if (activeDevice) {
     const clientIP = getClientIP(request);
     const managementIface = await getManagementInterface(clientIP);
-    const isManagement = managementIface === activeDevice;
+    // Fail-closed: if management detection fails, assume worst case
+    const isManagement = managementIface !== null
+      ? managementIface === activeDevice
+      : true;
 
     if (isManagement && !confirmed) {
       return NextResponse.json({

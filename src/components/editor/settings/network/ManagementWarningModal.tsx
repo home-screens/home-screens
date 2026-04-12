@@ -44,7 +44,7 @@ export default function ManagementWarningModal({
 
         <p className="text-sm text-hs-text-muted mb-5">
           If this change breaks connectivity, it will be automatically reverted
-          after 30 seconds.
+          after 60 seconds.
         </p>
 
         <div className="flex justify-end gap-2">

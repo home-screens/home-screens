@@ -10,6 +10,7 @@ import RollbackOverlay from './network/RollbackOverlay';
 import SavedNetworksSection from './network/SavedNetworksSection';
 import HostnameSection from './network/HostnameSection';
 import IPSettingsPanel from './network/IPSettingsPanel';
+import DiagnosticsSection from './network/DiagnosticsSection';
 import type { NetworkOverview, NetworkInterface, WifiNetwork } from './network/types';
 
 /* ─── Constants ────────────────────────────── */
@@ -91,9 +92,8 @@ export default function NetworkSection() {
 
   const handleManagementWarning = useCallback(
     (warning: string, retryWithConfirm: () => void) => {
-      // Close the connect modal, show the warning
-      setConnectModalOpen(false);
-      setHiddenNetworkOpen(false);
+      // Keep the connect modal mounted (but visually behind the warning overlay)
+      // so the retry callback and its state setters remain valid
       setManagementWarning({
         warning,
         onProceed: () => {
@@ -296,6 +296,9 @@ export default function NetworkSection() {
         {hasWifi && (
           <SavedNetworksSection refreshKey={savedRefreshKey} />
         )}
+
+        {/* Diagnostics */}
+        <DiagnosticsSection />
       </div>
 
       {/* ── Modals & Overlays ────────────────── */}

@@ -6,6 +6,7 @@ import {
   nmcli,
   getManagementInterface,
   inhibitWatchdog,
+  uninhibitWatchdog,
   scheduleRollback,
 } from '@/lib/network-commands';
 import {
@@ -122,9 +123,11 @@ export const POST = withAuth(async (request: NextRequest) => {
   }
 
   // 4. Check if targeting management interface
+  // Fail-closed: if we can't determine management interface, assume the target
+  // could be management to avoid silently skipping safety guards
   const clientIP = getClientIP(request);
   const managementIface = await getManagementInterface(clientIP);
-  const isManagement = managementIface === iface;
+  const isManagement = managementIface !== null ? managementIface === iface : true;
 
   // 5. Require confirmation for management interface changes
   if (isManagement && !confirmed) {
@@ -172,6 +175,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       ...(rollbackId && { rollbackId }),
     });
   } catch (err: unknown) {
+    if (isManagement) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()

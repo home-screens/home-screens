@@ -6,7 +6,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 /* ─── Constants ────────────────────────────── */
 
 const POLL_INTERVAL_MS = 2000;
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 60_000;
 
 /* ─── Props ────────────────────────────────── */
 

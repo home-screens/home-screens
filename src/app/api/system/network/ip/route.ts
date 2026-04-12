@@ -6,6 +6,7 @@ import {
   nmcliSudo,
   getManagementInterface,
   inhibitWatchdog,
+  uninhibitWatchdog,
   scheduleRollback,
 } from '@/lib/network-commands';
 import {
@@ -77,14 +78,14 @@ async function captureCurrentSettings(
 async function getDeviceForConnection(connectionId: string): Promise<string | null> {
   try {
     const output = await nmcli([
-      '-t', '-f', 'DEVICE',
+      '-t', '-f', 'GENERAL.IP-IFACE',
       'connection', 'show', connectionId,
     ]);
 
     for (const line of output.split('\n')) {
       if (!line.trim()) continue;
       const fields = parseTerseFields(line);
-      // The -f DEVICE output just gives us DEVICE:<value>
+      // Keyed format: "GENERAL.IP-IFACE:<device>"
       if (fields.length >= 2 && fields[0] === 'GENERAL.IP-IFACE') {
         return fields[1] || null;
       }
@@ -152,6 +153,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
       return NextResponse.json({ error: `gateway: ${gatewayResult.error}` }, { status: 400 });
     }
 
+    if (dns !== undefined && !Array.isArray(dns)) {
+      return NextResponse.json({ error: 'dns must be an array of IP addresses' }, { status: 400 });
+    }
     if (dns && Array.isArray(dns)) {
       for (let i = 0; i < dns.length; i++) {
         const dnsResult = validateIPv4(dns[i]);
@@ -171,7 +175,11 @@ export const PUT = withAuth(async (request: NextRequest) => {
 
   // Get the device associated with this connection to compare
   const connectionDevice = await getDeviceForConnection(connectionId);
-  const isManagement = connectionDevice !== null && connectionDevice === managementIface;
+  // Fail-closed: if we can't determine the device or management interface,
+  // treat it as potentially management to avoid silently skipping safety guards
+  const isManagement = managementIface !== null
+    ? connectionDevice === managementIface
+    : connectionDevice !== null; // can't determine mgmt iface → assume worst case
 
   // 5. Require confirmation for management interface changes
   if (isManagement && !confirmed) {
@@ -218,6 +226,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await nmcliSudo(modifyArgs);
   } catch (err: unknown) {
+    if (isManagement) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()
@@ -230,6 +239,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await nmcliSudo(['connection', 'down', connectionId]);
     await nmcliSudo(['connection', 'up', connectionId]);
   } catch (err: unknown) {
+    if (isManagement) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()
