@@ -179,6 +179,10 @@ journalctl -u home-screens -f
 sudo systemctl restart home-screens
 ```
 
+### Service stop behavior
+
+The systemd unit uses `TimeoutStopSec=15` and `KillMode=mixed` so that `systemctl stop home-screens` completes in at most 15 seconds. Without these settings, the npm wrapper can take up to 90 seconds to stop because it does not forward `SIGTERM` to its Node.js child. The `mixed` kill mode sends a polite `SIGTERM` to the main process, then escalates to `SIGKILL` on the entire cgroup if it hasn't exited within the timeout — ensuring no orphan processes survive a restart.
+
 ### Manual start
 
 To run without the background service (useful for debugging):

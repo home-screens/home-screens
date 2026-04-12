@@ -176,9 +176,9 @@ The **Chores** tab provides a mobile interface for tracking household chores. It
 The Chores tab has three sub-views, selectable via a segmented control: **Today**, **Manage**, and **Rewards**.
 
 {% callout title="The /chores kid view" %}
-In addition to the `/remote` Chores tab (which admins use to manage chores, members, and rewards), Home Screens exposes a kid-friendly `/chores` page at `http://<pi-ip>:3000/chores`. It reuses the Today sub-view but hides Manage, Rewards, members-list edits, and the history strip — the only thing a kid can do is check off today's chores.
+In addition to the `/remote` Chores tab (which admins use to manage chores, members, and rewards), Home Screens exposes a kid-friendly `/chores` page at `http://<pi-ip>:3000/chores`. It reuses the Today sub-view but hides Manage, Rewards, members-list edits, and the history strip — the only things a kid can do are check off today's chores and redeem rewards.
 
-The `/chores` page stays **accessible even when the editor password is set**, and it reads/writes chore completions and reward balances over the LAN without needing a display token. This is intentional: bookmarking `/chores` on a kid's tablet gives them a simple "mark chores done" screen without exposing admin controls or requiring them to log in.
+The `/chores` page stays **accessible even when the editor password is set**, and it reads/writes chore completions and reward redemptions over the LAN without needing a display token. This is intentional: bookmarking `/chores` on a kid's tablet gives them a simple "mark chores done and spend tickets" screen without exposing admin controls or requiring them to log in.
 {% /callout %}
 
 ### Today
@@ -189,7 +189,7 @@ Colored pill buttons across the top show each family member (with emoji avatar).
 
 #### Today's chores
 
-Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, point value (including 1-point chores, which show a single-point pill so kids can see the reward), and a toggle button to mark it complete.
+Chores are grouped by time of day (morning, afternoon, evening, anytime). The current time-of-day section is highlighted with the accent color. Each chore shows its emoji, name, ticket value (including 1-ticket chores, which show a single-ticket pill so kids can see the reward), and a toggle button to mark it complete.
 
 Tapping a chore toggles its completion with an optimistic update -- the UI updates immediately without waiting for the server response. The data is polled every 15 seconds for live updates across devices.
 
@@ -215,14 +215,14 @@ When a scheduled chore resolves to a single assignee on a given day, the board a
 
 ### Rewards
 
-The Rewards sub-view provides a points-based reward system:
+The Rewards sub-view provides a ticket-based reward system:
 
-- **Redeem** — select a member and browse available rewards; each reward has a point cost and members can only redeem if they have enough points
-- **Rewards** — define rewards (name, emoji, point cost, description) and restrict them to specific members or make them available to all
-- **Balances** — view each member's current point balance with options for manual adjustments
+- **Redeem** — select a member and browse available rewards; each reward has a ticket cost and members can only redeem if they have enough tickets
+- **Rewards** — define rewards (name, emoji, ticket cost, description) and restrict them to specific members or make them available to all
+- **Balances** — view each member's current ticket balance with options for manual adjustments
 - **History** — chronological log of all redemptions
 
-Points are earned automatically when chores are marked complete (based on each chore's configured point value). Reward definitions and redemption data are stored in `data/rewards.json`.
+Tickets are earned automatically when chores are marked complete (based on each chore's configured ticket value). Reward definitions and redemption data are stored in `data/rewards.json`.
 
 ---
 

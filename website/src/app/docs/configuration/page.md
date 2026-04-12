@@ -434,7 +434,7 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 {
   view: 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
   density: 'cozy' | 'snug'
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large'
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
   accentColor: string
   dimPastEvents: boolean
   shadeWeekends: boolean
@@ -1004,13 +1004,15 @@ Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size
 
 ```typescript
 {
+  view: 'chores' | 'rewards-store'
+  showRewardsButton: boolean
   weekStartDay: 'sunday' | 'monday'
   showPoints: boolean
   showStreaks: boolean
   showTimeOfDay: boolean
   darkMode: boolean
   density: 'cozy' | 'snug'
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large'
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
   accentColor: string
 }
 ```

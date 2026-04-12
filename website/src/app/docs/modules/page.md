@@ -22,7 +22,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 |---|---|---|---|
 | `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
 | `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
 | `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
@@ -56,19 +56,25 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| `view` | string | `"chores"` | Display mode: `chores` (daily chore board) or `rewards-store` (browse and redeem rewards) |
+| `showRewardsButton` | boolean | `true` | Show a toggle button in the chore board header to switch to the rewards store view |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
-| `showPoints` | boolean | `true` | Show point values for chores |
+| `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
 | `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
 
 **Layout details:**
 
 - **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking.
 - **Landscape** — Top bar with date and member chips, three-column layout for morning/afternoon/evening, and a horizontal star chart in the footer.
+
+**Rewards store view:**
+
+The `rewards-store` view displays a fullscreen rewards browsing and redemption interface. A member picker at the top shows each member's ticket balance. The main area shows a grid of available rewards with ticket costs and eligibility indicators. Members can redeem rewards directly from the display when they have enough tickets. When `showRewardsButton` is enabled, a toggle button in the chore board header lets users switch between the chore board and rewards store without changing the module config.
 
 ### Full-Screen Meal Planner
 
@@ -78,7 +84,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 |---|---|---|---|
 | `view` | string | `"week"` | Display style: `week`, `today`, `menu-board`, or `next-meal` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, or `3x-large` |
+| `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `slots` | array | `["breakfast", "lunch", "dinner"]` | Enabled meal slots (options: `breakfast`, `lunch`, `dinner`, `snack`) |
@@ -564,7 +570,7 @@ Meal data (saved meals and weekly plan) is stored in `data/meals.json` via the `
 
 ### Chore Chart
 
-A chore tracking widget for families or housemates. Assign chores to members with points, streaks, rotation schedules, and multiple visual layouts. Includes a **rewards system** where members earn points from completed chores and can redeem them for parent-defined rewards (managed via the remote's Chores tab).
+A chore tracking widget for families or housemates. Assign chores to members with tickets, streaks, rotation schedules, and multiple visual layouts. Includes a **rewards system** where members earn tickets from completed chores and can redeem them for parent-defined rewards (managed via the remote's Chores tab).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -572,7 +578,7 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 | `members` | array | `[]` | Household members, each with `id`, `name`, `emoji`, and `color` |
 | `chores` | array | `[]` | Chore definitions with `id`, `name`, `emoji`, `points`, `frequency`, `daysOfWeek`, `timeOfDay`, `assigneeIds`, `rotation`, and (when `rotation === "schedule"`) a `schedule` map of memberId → days-of-week |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
-| `showPoints` | boolean | `true` | Show point values for chores |
+| `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Show time-of-day labels (morning, afternoon, evening) |
 | `allowDisplayComplete` | boolean | `true` | Allow marking chores complete from the display view |
@@ -581,7 +587,7 @@ A chore tracking widget for families or housemates. Assign chores to members wit
 **View details:**
 
 - **board** — Kanban-style board grouping chores by status or member.
-- **star-chart** — Kid-friendly star chart showing earned points per member.
+- **star-chart** — Kid-friendly star chart showing earned tickets per member.
 - **today** — Today's chores only, grouped by time of day.
 - **progress** — Progress bars showing completion rates per member.
 - **compact** — Condensed view for small widget sizes.
@@ -595,7 +601,7 @@ Each chore has a `rotation` field that controls how the `assigneeIds` list is re
 - **rotate-weekly** — Same as daily rotation but the handoff happens at the start of each week.
 - **schedule** — Per-day assignment via a `schedule` map of `memberId → number[]` (days-of-week, 0 = Sunday through 6 = Saturday). Lets you say "Alice on Mon/Wed, Bob on Tue/Thu, everyone on Fri–Sun" without creating separate chores. The editor and the remote both render a weekly grid UI for editing the schedule, and any day not covered by the schedule simply has no one assigned. A chore in schedule mode also shows a small **(schedule)** label in the board when resolved to a single assignee, so you can tell it apart from a fixed one-person chore at a glance.
 
-Chore points can be any non-negative integer — `0` is allowed and is useful for tracking routines that do not earn rewards.
+Chore ticket values can be any non-negative integer — `0` is allowed and is useful for tracking routines that do not earn rewards.
 
 ---
 
