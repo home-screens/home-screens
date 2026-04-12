@@ -19,6 +19,7 @@ const navLinks = [
   { label: 'Modules', href: '#modules' },
   { label: 'Templates', href: '#templates' },
   { label: 'Docs', href: '/docs' },
+  { label: 'Changelog', href: '/changelog' },
 ];
 
 function MobileNavLink({
