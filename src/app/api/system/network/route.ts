@@ -5,6 +5,7 @@ import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { nmcli, getManagementInterface } from '@/lib/network-commands';
 import { withAuth, getClientIP } from '@/lib/api-utils';
+import { parseTerseFields } from '@/lib/network-parse';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,32 +48,6 @@ interface NetworkOverview {
 }
 
 /* ─── Helpers ───────────────────────────────── */
-
-/**
- * Parse nmcli terse output, handling escaped colons (`\:`).
- * Returns an array of fields for a single line.
- */
-function parseTerseFields(line: string): string[] {
-  const fields: string[] = [];
-  let current = '';
-
-  for (let i = 0; i < line.length; i++) {
-    if (line[i] === '\\' && i + 1 < line.length && line[i + 1] === ':') {
-      // Escaped colon — include the literal colon
-      current += ':';
-      i++; // skip the next character
-    } else if (line[i] === ':') {
-      fields.push(current);
-      current = '';
-    } else {
-      current += line[i];
-    }
-  }
-
-  // Push the last field
-  fields.push(current);
-  return fields;
-}
 
 /**
  * Parse `nmcli -t device show <iface>` output into a key-value map.
