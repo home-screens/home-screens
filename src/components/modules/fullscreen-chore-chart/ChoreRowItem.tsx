@@ -53,7 +53,7 @@ export default function ChoreRowItem({
         {row.choreName}
         {showPoints && row.points > 1 && (
           <span style={{ fontSize: fontSize * 0.7, color: 'var(--fcc-text-2)', fontWeight: 600, marginLeft: fontSize * 0.3 }}>
-            {row.points}pt
+            {row.points} ticket{row.points !== 1 ? 's' : ''}
           </span>
         )}
       </span>

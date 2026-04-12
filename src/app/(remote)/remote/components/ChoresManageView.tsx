@@ -282,7 +282,7 @@ function ChoreFormOverlay({
         {/* Points & Frequency */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
-            <div style={LABEL_STYLE}>Points</div>
+            <div style={LABEL_STYLE}>Tickets</div>
             <input
               type="number"
               value={points}
@@ -904,7 +904,7 @@ export default function ChoresManageView({
                 <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                   {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}
                   {' \u00b7 '}{TIME_OF_DAY_META[chore.timeOfDay].label}
-                  {' \u00b7 '}{chore.points}pt{chore.points !== 1 ? 's' : ''}
+                  {' \u00b7 '}{chore.points} ticket{chore.points !== 1 ? 's' : ''}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                   &rarr;{' '}

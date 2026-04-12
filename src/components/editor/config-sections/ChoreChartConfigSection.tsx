@@ -69,7 +69,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
       {/* Display Toggles */}
       <Toggle
-        label="Show Points"
+        label="Show Tickets"
         checked={c.showPoints ?? true}
         onChange={(v) => set({ showPoints: v })}
       />

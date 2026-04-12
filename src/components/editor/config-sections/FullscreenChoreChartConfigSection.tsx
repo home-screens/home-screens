@@ -22,15 +22,44 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const [showModal, setShowModal] = useState(false);
   const [counts, setCounts] = useState({ members: 0, chores: 0 });
 
+  const isChoreBoard = (c.view ?? 'chores') === 'chores';
+
   useEffect(() => {
     editorFetch('/api/chores/data')
       .then((r) => r.json())
       .then((d) => setCounts({ members: d.members?.length ?? 0, chores: d.chores?.length ?? 0 }))
       .catch(() => {});
-  }, [showModal]); // re-fetch when modal closes
+  }, [showModal]);
 
   return (
     <>
+      {/* View */}
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-hs-text-muted">View</span>
+        <select
+          value={c.view ?? 'chores'}
+          onChange={(e) => set({ view: e.target.value as 'chores' | 'rewards-store' })}
+          className={INPUT_CLASS}
+        >
+          <option value="chores">Chore Board</option>
+          <option value="rewards-store">Rewards Store</option>
+        </select>
+      </label>
+
+      {/* Show Rewards Button — only relevant on chore board */}
+      {isChoreBoard && (
+        <>
+          <Toggle
+            label="Show Rewards Button"
+            checked={c.showRewardsButton ?? false}
+            onChange={(v) => set({ showRewardsButton: v })}
+          />
+          <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
+            Adds a button on the chore board so kids can switch to the rewards store. Best for touch-enabled displays.
+          </p>
+        </>
+      )}
+
       {/* Theme Override */}
       <label className="flex flex-col gap-0.5">
         <span className="text-xs text-hs-text-muted">Theme</span>
@@ -73,41 +102,6 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         </select>
       </label>
 
-      {/* Week Start */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Week Starts On</span>
-        <select
-          value={c.weekStartDay ?? 'monday'}
-          onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
-          className={INPUT_CLASS}
-        >
-          <option value="sunday">Sunday</option>
-          <option value="monday">Monday</option>
-        </select>
-      </label>
-
-      {/* Display Toggles */}
-      <Toggle
-        label="Show Points"
-        checked={c.showPoints ?? true}
-        onChange={(v) => set({ showPoints: v })}
-      />
-      <Toggle
-        label="Show Streaks"
-        checked={c.showStreaks ?? true}
-        onChange={(v) => set({ showStreaks: v })}
-      />
-      <Toggle
-        label="Show Time of Day"
-        checked={c.showTimeOfDay ?? true}
-        onChange={(v) => set({ showTimeOfDay: v })}
-      />
-      <Toggle
-        label="Tap to Complete (Display)"
-        checked={c.allowDisplayComplete ?? true}
-        onChange={(v) => set({ allowDisplayComplete: v })}
-      />
-
       {/* Accent Color */}
       <ColorPicker
         label="Accent Color"
@@ -115,27 +109,67 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         onChange={(v) => set({ accentColor: v })}
       />
 
-      {/* Open Modal */}
-      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{counts.members} members</span>
-          <span>&middot;</span>
-          <span>{counts.chores} chores</span>
-        </div>
-        <Button
-          variant="primary"
-          className="w-full text-xs"
-          onClick={() => setShowModal(true)}
-        >
-          Edit Chore Chart
-        </Button>
-      </div>
+      {/* ── Chore Board-only settings ── */}
+      {isChoreBoard && (
+        <>
+          {/* Week Start */}
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-hs-text-muted">Week Starts On</span>
+            <select
+              value={c.weekStartDay ?? 'monday'}
+              onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
+              className={INPUT_CLASS}
+            >
+              <option value="sunday">Sunday</option>
+              <option value="monday">Monday</option>
+            </select>
+          </label>
 
-      {/* Mobile hint */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        Family members can check off chores on the touchscreen or from their phone via the Chores tab at{' '}
-        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
-      </p>
+          {/* Display Toggles */}
+          <Toggle
+            label="Show Tickets"
+            checked={c.showPoints ?? true}
+            onChange={(v) => set({ showPoints: v })}
+          />
+          <Toggle
+            label="Show Streaks"
+            checked={c.showStreaks ?? true}
+            onChange={(v) => set({ showStreaks: v })}
+          />
+          <Toggle
+            label="Show Time of Day"
+            checked={c.showTimeOfDay ?? true}
+            onChange={(v) => set({ showTimeOfDay: v })}
+          />
+          <Toggle
+            label="Tap to Complete (Display)"
+            checked={c.allowDisplayComplete ?? true}
+            onChange={(v) => set({ allowDisplayComplete: v })}
+          />
+
+          {/* Open Modal */}
+          <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+            <div className="flex items-center gap-2 text-xs text-hs-text-faint">
+              <span>{counts.members} members</span>
+              <span>&middot;</span>
+              <span>{counts.chores} chores</span>
+            </div>
+            <Button
+              variant="primary"
+              className="w-full text-xs"
+              onClick={() => setShowModal(true)}
+            >
+              Edit Chore Chart
+            </Button>
+          </div>
+
+          {/* Mobile hint */}
+          <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            Family members can check off chores on the touchscreen or from their phone via the Chores tab at{' '}
+            <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
+          </p>
+        </>
+      )}
 
       {/* Modal */}
       {showModal && (

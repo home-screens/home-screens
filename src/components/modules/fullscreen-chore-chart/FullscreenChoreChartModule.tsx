@@ -12,6 +12,7 @@ import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';
 import MemberStrip from './MemberStrip';
 import StarChart from './StarChart';
+import { RewardsStoreView } from './RewardsStoreView';
 import {
   type ChoreRow,
   type ToggleParams,
@@ -53,7 +54,7 @@ export default function FullscreenChoreChartModule({
     isDark: theme.isDark,
   }), [dims, config.density, config.typographySize, theme.isDark]);
 
-  const { todayAssignments, memberStats, weekData, members, recentRedemptions, toggleComplete } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
   // configured IANA timezone — used by `getCurrentTimeOfDay`/DAY_NAMES_FULL
@@ -99,6 +100,19 @@ export default function FullscreenChoreChartModule({
       }]);
     }
   }, [recentRedemptions, members]);
+
+  // ── Rewards Store view switching ──
+  const [showRewardsOverride, setShowRewardsOverride] = useState(false);
+
+  const effectiveView = showRewardsOverride ? 'rewards-store' : (config.view ?? 'chores');
+
+  const rewardBalances = useMemo(() => {
+    const b: Record<string, number> = {};
+    for (const [id, stats] of memberStats) {
+      b[id] = stats.rewardBalance;
+    }
+    return b;
+  }, [memberStats]);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -189,6 +203,19 @@ export default function FullscreenChoreChartModule({
         }
       `}</style>
 
+      {effectiveView === 'rewards-store' ? (
+        <RewardsStoreView
+          members={members}
+          rewards={rewards}
+          balances={rewardBalances}
+          redemptions={recentRedemptions}
+          scale={s}
+          isLandscape={isLandscape}
+          onBack={showRewardsOverride ? () => setShowRewardsOverride(false) : undefined}
+          idleTimeoutMs={showRewardsOverride ? 60_000 : undefined}
+        />
+      ) : (
+        <>
       {/* ── Header + Members ── */}
       {isLandscape ? (
         <div style={{ display: 'flex', alignItems: 'stretch', padding: `${s * 1}px ${pad}px`, gap: s * 1.4, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }}>
@@ -206,6 +233,25 @@ export default function FullscreenChoreChartModule({
               <div style={{ fontSize: s * 1.1, fontWeight: 800, color: 'var(--fcc-accent)', flexShrink: 0 }}>
                 {overallPct}%
               </div>
+              {config.showRewardsButton && (
+                <button
+                  onClick={() => setShowRewardsOverride(true)}
+                  style={{
+                    padding: `${s * 0.3}px ${s * 0.8}px`,
+                    borderRadius: s * 1,
+                    border: '1px solid var(--fcc-border)',
+                    background: 'var(--fcc-surface)',
+                    color: 'var(--fcc-accent)',
+                    fontSize: s * 0.65,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: 'var(--fcc-card-shadow)',
+                    flexShrink: 0,
+                  }}
+                >
+                  ★ Rewards
+                </button>
+              )}
             </div>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
@@ -224,13 +270,32 @@ export default function FullscreenChoreChartModule({
                   {dateStr}
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <div style={{ fontSize: s * 2.5, fontWeight: 800, color: 'var(--fcc-accent)', lineHeight: 1 }}>
                   {overallPct}<span style={{ fontSize: s * 1.2, color: 'var(--fcc-text-2)' }}>%</span>
                 </div>
                 <div style={{ fontSize: s * 0.85, fontWeight: 500, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Complete
                 </div>
+                {config.showRewardsButton && (
+                  <button
+                    onClick={() => setShowRewardsOverride(true)}
+                    style={{
+                      marginTop: s * 0.6,
+                      padding: `${s * 0.35}px ${s * 1}px`,
+                      borderRadius: s * 1.5,
+                      border: '1px solid var(--fcc-border)',
+                      background: 'var(--fcc-surface)',
+                      color: 'var(--fcc-accent)',
+                      fontSize: s * 0.8,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: 'var(--fcc-card-shadow)',
+                    }}
+                  >
+                    ★ Rewards
+                  </button>
+                )}
               </div>
             </div>
             <div style={{ height: s * 0.35, background: 'var(--fcc-border-sub)', borderRadius: s * 0.2, overflow: 'hidden' }}>
@@ -307,7 +372,7 @@ export default function FullscreenChoreChartModule({
         }}>
           {config.showPoints && (
             <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-3)', fontWeight: 500 }}>
-              Weekly points: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
+              Weekly tickets: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
                 {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0)} / {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPointsTotal, 0)}
               </span>
             </div>
@@ -329,7 +394,10 @@ export default function FullscreenChoreChartModule({
         </div>
       </div>
 
-      {/* Touch completion toasts */}
+    </>
+      )}
+
+      {/* Touch completion toasts — always rendered */}
       {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} />}
     </div>
   );

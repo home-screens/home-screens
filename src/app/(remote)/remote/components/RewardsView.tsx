@@ -245,8 +245,8 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
             </div>
           }
           title={`Redeem ${redeemTarget.reward.name}?`}
-          description={`This will use ${redeemTarget.reward.cost} points from ${selectedMember?.name ?? 'this member'}'s balance. Remaining: ${Math.max(0, balance - redeemTarget.reward.cost)} pts`}
-          confirmLabel={`Redeem — ${redeemTarget.reward.cost} pts`}
+          description={`This will use ${redeemTarget.reward.cost} tickets from ${selectedMember?.name ?? 'this member'}'s balance. Remaining: ${Math.max(0, balance - redeemTarget.reward.cost)} tickets`}
+          confirmLabel={`Redeem — ${redeemTarget.reward.cost} tickets`}
           confirmColor={selectedColor}
           onConfirm={handleRedeem}
           onCancel={() => setRedeemTarget(null)}
@@ -344,7 +344,7 @@ function RedeemSection({
             {balance}
           </div>
           <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', fontWeight: 500, marginTop: 4 }}>
-            points available
+            tickets available
           </div>
         </div>
         <div
@@ -432,7 +432,7 @@ function RedeemSection({
                 color: canAfford ? selectedColor : 'var(--hs-text-muted)',
               }}
             >
-              {reward.cost} pts
+              {reward.cost} tickets
             </div>
           </button>
         );
@@ -501,7 +501,7 @@ function RewardsManageSection({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
             <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
-              {reward.cost} pts · {reward.memberIds.length === 0 ? 'Everyone' : reward.enabled ? `${reward.memberIds.length} member${reward.memberIds.length !== 1 ? 's' : ''}` : 'Disabled'}
+              {reward.cost} tickets · {reward.memberIds.length === 0 ? 'Everyone' : reward.enabled ? `${reward.memberIds.length} member${reward.memberIds.length !== 1 ? 's' : ''}` : 'Disabled'}
             </div>
           </div>
           <div style={{ color: 'var(--hs-border-strong)', fontSize: 18 }}>›</div>
@@ -550,7 +550,7 @@ function BalancesSection({
     <>
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
-        Point Balances
+        Ticket Balances
       </div>
 
       {members.map((member) => (
@@ -587,7 +587,7 @@ function BalancesSection({
             {member.name}
           </div>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
-            {data?.balances[member.id] ?? 0} pts
+            {data?.balances[member.id] ?? 0} tickets
           </div>
           <button
             className="press-scale-xs"
@@ -678,7 +678,7 @@ function HistorySection({
             <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.memberName}</strong>
             {' redeemed '}
             <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.rewardName}</strong>
-            {' — '}{r.cost} pts
+            {' — '}{r.cost} tickets
           </div>
           <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
             {formatTimeAgo(r.redeemedAt)}

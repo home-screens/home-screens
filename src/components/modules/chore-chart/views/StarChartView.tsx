@@ -105,7 +105,7 @@ export function StarChartView({ config, data }: StarChartViewProps) {
             const stats = memberStats.get(m.id);
             return (
               <span key={m.id} className="inline-flex items-center gap-1">
-                {m.emoji ? <ChoreIcon value={m.emoji} size={12} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {stats?.weeklyPoints ?? 0} pts
+                {m.emoji ? <ChoreIcon value={m.emoji} size={12} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {stats?.weeklyPoints ?? 0} tickets
               </span>
             );
           })}

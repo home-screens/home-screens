@@ -471,7 +471,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
             >
               <span>
                 Editing <strong style={{ fontWeight: 700 }}>{formatLongDate(viewingDate)}</strong>
-                {' '}({daysAgo} day{daysAgo === 1 ? '' : 's'} ago) — points add to today&apos;s balance.
+                {' '}({daysAgo} day{daysAgo === 1 ? '' : 's'} ago) — tickets add to today&apos;s balance.
                 {' '}Note: today&apos;s chore list is shown for past days, so chores added recently may appear missed.
               </span>
             </div>
@@ -705,7 +705,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                               opacity: done ? 0.3 : 1,
                             }}
                           >
-                            {assignment.points}pt
+                            {assignment.points} ticket{assignment.points !== 1 ? 's' : ''}
                           </span>
                         )}
                       </>

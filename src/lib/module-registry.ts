@@ -160,6 +160,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: ClipboardList,
     category: 'Full Screen',
     defaultConfig: {
+      view: 'chores',
+      showRewardsButton: false,
       weekStartDay: 'monday',
       showPoints: true,
       showStreaks: true,

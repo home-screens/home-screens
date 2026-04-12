@@ -5,7 +5,7 @@ import type { ChoreMember, ChoreDefinition, ChoreCompletion, ChoreToggleRequest,
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayFetch } from '@/lib/display-fetch';
 import { choresUrl, choresDataUrl, rewardsUrl } from '@/lib/fetch-keys';
-import type { RewardRedemption } from '@/lib/reward-data';
+import type { RewardRedemption, RewardDefinition } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
   type MemberStats,
@@ -39,6 +39,7 @@ interface ChoreDataResponse {
 }
 
 interface RewardsResponse {
+  rewards?: RewardDefinition[];
   balances: Record<string, number>;
   redemptions?: RewardRedemption[];
 }
@@ -46,6 +47,7 @@ interface RewardsResponse {
 interface ChoreDataState {
   members: ChoreMember[];
   chores: ChoreDefinition[];
+  rewards: RewardDefinition[];
   todayAssignments: ResolvedAssignment[];
   completionSet: Set<string>;
   memberStats: Map<string, MemberStats>;
@@ -279,6 +281,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   return {
     members,
     chores,
+    rewards: fetchedRewards?.rewards ?? [],
     todayAssignments,
     completionSet,
     memberStats,

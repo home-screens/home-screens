@@ -954,7 +954,11 @@ export interface ChoreChartConfig {
   accentColor: string;
 }
 
+export type FullscreenChoreChartView = 'chores' | 'rewards-store';
+
 export interface FullscreenChoreChartConfig {
+  view: FullscreenChoreChartView;
+  showRewardsButton: boolean;
   weekStartDay: 'sunday' | 'monday';
   showPoints: boolean;
   showStreaks: boolean;

@@ -147,7 +147,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
         >
           {showPoints && (
             <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
-              <span>&#11088; Total points</span>
+              <span>&#11088; Total tickets</span>
               <span style={{ fontWeight: 600 }}>{totalWeeklyPoints}</span>
             </div>
           )}
@@ -166,7 +166,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
               <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
               <div className="flex items-center justify-between" style={{ color: '#a78bfa' }}>
                 <span>🎟️ Reward balances</span>
-                <span style={{ fontWeight: 600 }}>{totalRewardBalance} pts</span>
+                <span style={{ fontWeight: 600 }}>{totalRewardBalance} tickets</span>
               </div>
             </>
           )}

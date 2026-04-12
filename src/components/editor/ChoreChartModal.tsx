@@ -356,7 +356,7 @@ function ChoreForm({
       {/* Points & Frequency */}
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 w-20">
-          <span className="text-xs text-hs-text-muted">Points</span>
+          <span className="text-xs text-hs-text-muted">Tickets</span>
           <input
             type="number"
             value={points}
@@ -671,7 +671,7 @@ function WeeklyPreview({
               {m.emoji && <ChoreIcon value={m.emoji} size={11} color="currentColor" />}
               <span className="text-hs-text-secondary">{m.name}:</span>
               <span className="text-hs-text-muted">
-                {t?.chores ?? 0} chores, {t?.points ?? 0} pts
+                {t?.chores ?? 0} chores, {t?.points ?? 0} tickets
               </span>
             </div>
           );
@@ -888,7 +888,7 @@ function ChoreColumn({
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
                   {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : 'Weekly'}{' '}
                   &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
-                  &middot; {chore.points}pt{chore.points !== 1 ? 's' : ''}
+                  &middot; {chore.points} ticket{chore.points !== 1 ? 's' : ''}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
                   &rarr;{' '}
