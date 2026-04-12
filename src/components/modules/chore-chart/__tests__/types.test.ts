@@ -326,6 +326,30 @@ describe('choreAppliesToday', () => {
     // Without a date, biweekly check is skipped
     expect(choreAppliesToday(chore, 3)).toBe(true);
   });
+
+  it('applies on the exact specificDate for once-frequency chores', () => {
+    const chore = makeChore({ frequency: 'once', specificDate: '2026-04-15' });
+    // 2026-04-15 is a Wednesday (dayOfWeek=3)
+    expect(choreAppliesToday(chore, 3, '2026-04-15')).toBe(true);
+  });
+
+  it('does not apply on a different date for once-frequency chores', () => {
+    const chore = makeChore({ frequency: 'once', specificDate: '2026-04-15' });
+    // 2026-04-16 is a Thursday (dayOfWeek=4)
+    expect(choreAppliesToday(chore, 4, '2026-04-16')).toBe(false);
+  });
+
+  it('does not apply when date is not provided for once-frequency chores', () => {
+    const chore = makeChore({ frequency: 'once', specificDate: '2026-04-15' });
+    // Without a date, we can't match — should return false
+    expect(choreAppliesToday(chore, 3)).toBe(false);
+  });
+
+  it('ignores daysOfWeek for once-frequency chores', () => {
+    // Even if daysOfWeek says Monday only, the chore should appear on its specificDate (a Wednesday)
+    const chore = makeChore({ frequency: 'once', specificDate: '2026-04-15', daysOfWeek: [1] });
+    expect(choreAppliesToday(chore, 3, '2026-04-15')).toBe(true);
+  });
 });
 
 describe('sortChores', () => {

@@ -162,8 +162,12 @@ export function resolveAssignee(
 }
 
 /** Check if a chore applies on a given day.
- *  For biweekly chores, `date` (YYYY-MM-DD) is needed to determine odd/even week. */
+ *  For biweekly chores, `date` (YYYY-MM-DD) is needed to determine odd/even week.
+ *  For once-frequency chores, `date` is matched against `specificDate`. */
 export function choreAppliesToday(chore: ChoreDefinition, dayOfWeek: number, date?: string): boolean {
+  if (chore.frequency === 'once') {
+    return !!date && date === chore.specificDate;
+  }
   if (chore.daysOfWeek.length > 0 && !chore.daysOfWeek.includes(dayOfWeek)) {
     return false;
   }
