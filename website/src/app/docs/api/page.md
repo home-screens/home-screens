@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: API Reference
     description: Complete API reference for Home Screens endpoints.
+    alternates:
+      canonical: /docs/api
 ---
 
 All API routes are served under `/api/`. They act as server-side proxies to protect API keys and avoid CORS issues. API keys and credentials are managed through the editor UI (Settings > Integrations) and stored server-side; no `.env.local` file is needed.

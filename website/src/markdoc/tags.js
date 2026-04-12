@@ -20,10 +20,12 @@ const tags = {
       src: { type: String },
       alt: { type: String },
       caption: { type: String },
+      width: { type: Number },
+      height: { type: Number },
     },
-    render: ({ src, alt = '', caption }) => (
+    render: ({ src, alt = '', caption, width, height }) => (
       <figure>
-        <img src={src} alt={alt} />
+        <img src={src} alt={alt} width={width} height={height} />
         <figcaption>{caption}</figcaption>
       </figure>
     ),

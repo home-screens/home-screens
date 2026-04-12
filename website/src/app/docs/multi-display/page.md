@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Multi-display
     description: Run multiple Raspberry Pi displays from one Home Screens hub.
+    alternates:
+      canonical: /docs/multi-display
 ---
 
 Home Screens supports a hub-and-spoke deployment where one Next.js server (the **hub**) drives any number of Raspberry Pi displays (the **spokes**). Each display owns its own screens, layout, dimensions, rotation, and active profile, all served from the single `data/config.json` on the hub. A portrait kitchen touchscreen and a landscape living-room TV can coexist on the same hub without either of them squashing the other's layout.

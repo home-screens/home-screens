@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Modules Reference
     description: All 38 built-in modules in Home Screens — clocks, weather, calendars, sports, news, and more for your Raspberry Pi smart display.
+    alternates:
+      canonical: /docs/modules
 ---
 
 Home Screens includes 38 built-in modules organized into 8 categories. Each module can be dragged onto the canvas from the module palette in the editor.

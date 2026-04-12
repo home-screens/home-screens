@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Editor Guide
     description: Drag-and-drop visual editor for Home Screens — add modules, customize styles, manage screens, and configure schedules.
+    alternates:
+      canonical: /docs/editor
 ---
 
 The editor is the main interface for designing your display screens. Access it at `/editor`.

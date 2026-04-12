@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Development Guide
     description: How to develop and contribute to Home Screens.
+    alternates:
+      canonical: /docs/development
 ---
 
 ## Project Structure

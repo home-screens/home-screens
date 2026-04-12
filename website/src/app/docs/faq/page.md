@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Frequently Asked Questions
     description: Common questions about Home Screens — hardware requirements, Raspberry Pi setup, customization, MagicMirror comparison, and more.
+    alternates:
+      canonical: /docs/faq
 ---
 
 ## General

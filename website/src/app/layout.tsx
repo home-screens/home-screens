@@ -22,22 +22,11 @@ const lexend = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL('https://homescreens.dev'),
   title: {
-    template: '%s - Home Screens',
+    template: '%s — Home Screens',
     default: 'Home Screens — Smart Display for Your Home',
   },
   description:
     'An open-source smart display system for Raspberry Pi. 38 built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.',
-  keywords: [
-    'smart display',
-    'raspberry pi',
-    'magicmirror alternative',
-    'dakboard alternative',
-    'digital signage',
-    'home dashboard',
-    'kiosk display',
-    'open source',
-    'self-hosted',
-  ],
   openGraph: {
     siteName: 'Home Screens',
     type: 'website',
@@ -52,7 +41,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/images/og-home.jpg'],
   },
 }
 
@@ -80,6 +68,25 @@ export default function RootLayout({
               applicationCategory: 'UtilitiesApplication',
               operatingSystem: 'Linux',
               url: 'https://homescreens.dev',
+              author: {
+                '@type': 'Organization',
+                name: 'Home Screens',
+                url: 'https://homescreens.dev',
+              },
+              softwareVersion: '1.1.0',
+              datePublished: '2026-03-07',
+              dateModified: '2026-04-11',
+              downloadUrl:
+                'https://github.com/home-screens/home-screens/releases',
+              softwareRequirements: 'Raspberry Pi 4 or 5, 2 GB+ RAM',
+              screenshot: [
+                'https://homescreens.dev/images/display-1.jpg',
+                'https://homescreens.dev/images/display-2.jpg',
+                'https://homescreens.dev/images/display-3.jpg',
+                'https://homescreens.dev/images/display-4.jpg',
+                'https://homescreens.dev/images/display-5.jpg',
+                'https://homescreens.dev/images/display-6.jpg',
+              ],
               offers: {
                 '@type': 'Offer',
                 price: '0',

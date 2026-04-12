@@ -64,11 +64,16 @@ export function EditorExperience() {
 
           {/* Right: editor screenshot */}
           <div className="overflow-hidden rounded-2xl border border-[#222] bg-[#111]">
-            <img
-              src="/images/editor-1.jpg"
-              alt="Home Screens visual editor showing drag and drop interface"
-              className="w-full"
-            />
+            <picture>
+              <source srcSet="/images/editor-1.webp" type="image/webp" />
+              <img
+                src="/images/editor-1.jpg"
+                alt="Home Screens visual editor showing drag and drop interface"
+                width={1400}
+                height={780}
+                className="w-full"
+              />
+            </picture>
           </div>
         </motion.div>
       </Container>

@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Troubleshooting
     description: Common issues and solutions for Home Screens.
+    alternates:
+      canonical: /docs/troubleshooting
 ---
 
 Solutions for common issues you may encounter running Home Screens.

@@ -1,0 +1,242 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { ImageResponse } from 'next/og'
+
+import { navigation } from './docs-navigation'
+
+export const ogSize = { width: 1200, height: 630 }
+export const ogContentType = 'image/png'
+
+const fontsDir = join(process.cwd(), 'src', 'fonts')
+const interRegularData = readFileSync(
+  join(fontsDir, 'inter-latin-400-normal.woff'),
+)
+const interBoldData = readFileSync(
+  join(fontsDir, 'inter-latin-700-normal.woff'),
+)
+
+function findPageInfo(slug: string): { title: string; section: string } {
+  const href = slug ? `/docs/${slug}` : '/docs'
+  for (const group of navigation) {
+    for (const link of group.links) {
+      if (link.href === href) {
+        return { title: link.title, section: group.title }
+      }
+    }
+  }
+  return { title: 'Documentation', section: '' }
+}
+
+export function docsOgAlt(slug: string): string {
+  const { title } = findPageInfo(slug)
+  return `Home Screens Documentation — ${title}`
+}
+
+export function createDocsOgImage(slug: string) {
+  const { title, section } = findPageInfo(slug)
+  const fontSize = title.length > 24 ? 52 : title.length > 16 ? 60 : 68
+
+  return async function OgImage() {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: 'Inter',
+            backgroundImage:
+              'linear-gradient(160deg, #0A0E14 0%, #0F1720 50%, #0A1628 100%)',
+          }}
+        >
+          {/* Top accent line */}
+          <div
+            style={{
+              width: '100%',
+              height: '4px',
+              backgroundImage:
+                'linear-gradient(90deg, #0891B2, #67E8F9, #0891B2)',
+            }}
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              padding: '48px 64px',
+            }}
+          >
+            {/* Brand header */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 48 48"
+                fill="none"
+              >
+                <path
+                  d="M9 21.5L24 10L39 21.5"
+                  stroke="#A5F3FC"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <rect
+                  x="11.5"
+                  y="20.5"
+                  width="25"
+                  height="16"
+                  rx="5"
+                  fill="#082F49"
+                  stroke="#67E8F9"
+                  strokeWidth={2.5}
+                />
+                <rect
+                  x="17"
+                  y="25"
+                  width="14"
+                  height="2.5"
+                  rx="1.25"
+                  fill="#A5F3FC"
+                  fillOpacity={0.95}
+                />
+                <rect
+                  x="17"
+                  y="29.5"
+                  width="9"
+                  height="2.5"
+                  rx="1.25"
+                  fill="#CFFAFE"
+                  fillOpacity={0.85}
+                />
+              </svg>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  marginLeft: '14px',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#67E8F9',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                  }}
+                >
+                  HOME
+                </span>
+                <span
+                  style={{
+                    color: '#F5F5F5',
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    marginLeft: '6px',
+                  }}
+                >
+                  Screens
+                </span>
+              </div>
+              <span
+                style={{
+                  color: '#334155',
+                  fontSize: '20px',
+                  margin: '0 12px',
+                }}
+              >
+                |
+              </span>
+              <span
+                style={{
+                  color: '#64748B',
+                  fontSize: '17px',
+                  fontWeight: 400,
+                }}
+              >
+                Documentation
+              </span>
+            </div>
+
+            {/* Title */}
+            <div
+              style={{
+                display: 'flex',
+                flex: 1,
+                alignItems: 'center',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: `${fontSize}px`,
+                  fontWeight: 700,
+                  color: '#F1F5F9',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {title}
+              </span>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              {section ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    padding: '7px 18px',
+                    borderRadius: '9999px',
+                    backgroundColor: 'rgba(103, 232, 249, 0.08)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'rgba(103, 232, 249, 0.2)',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: '#A5F3FC',
+                      fontSize: '15px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {section}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex' }} />
+              )}
+              <span
+                style={{
+                  color: 'rgba(103, 232, 249, 0.45)',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                homescreens.dev
+              </span>
+            </div>
+          </div>
+        </div>
+      ),
+      {
+        ...ogSize,
+        fonts: [
+          { name: 'Inter', data: interRegularData, weight: 400, style: 'normal' },
+          { name: 'Inter', data: interBoldData, weight: 700, style: 'normal' },
+        ],
+      },
+    )
+  }
+}

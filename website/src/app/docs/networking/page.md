@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Networking
     description: Set up remote access, reverse proxies, and multi-display deployments.
+    alternates:
+      canonical: /docs/networking
 ---
 
 Home Screens runs as a local web server on your network. This guide covers how to access it from other devices, set up remote access, and secure your deployment.

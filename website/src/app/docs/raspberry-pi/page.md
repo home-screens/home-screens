@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Raspberry Pi Deployment
     description: Deploy Home Screens as a fullscreen kiosk display on Raspberry Pi. Turnkey install with auto-start, OTA updates, and rollback.
+    alternates:
+      canonical: /docs/raspberry-pi
 ---
 
 Home Screens is designed to run as a dedicated kiosk display on a Raspberry Pi. The install script handles the full setup from a fresh Raspberry Pi OS installation.

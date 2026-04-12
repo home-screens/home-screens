@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Backgrounds
     description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, Immich, and auto-rotation.
+    alternates:
+      canonical: /docs/backgrounds
 ---
 
 Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, and optionally enable auto-rotation to keep things fresh.

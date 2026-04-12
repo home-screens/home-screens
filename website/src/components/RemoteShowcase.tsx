@@ -30,18 +30,24 @@ const phones = [
   {
     src: '/images/remote-control.jpg',
     alt: 'Remote control interface with screen navigation, brightness slider, and profile switching',
+    width: 347,
+    height: 750,
     rotate: -6,
     z: 1,
   },
   {
     src: '/images/remote-chores.jpg',
     alt: 'Chores tab showing family member progress and daily task checklist',
+    width: 338,
+    height: 750,
     rotate: 0,
     z: 3,
   },
   {
     src: '/images/remote-meals.jpg',
     alt: 'Meals tab showing weekly meal plan with emoji and prep times',
+    width: 354,
+    height: 750,
     rotate: 6,
     z: 2,
   },
@@ -50,12 +56,16 @@ const phones = [
 function PhoneFrame({
   src,
   alt,
+  width,
+  height,
   rotate,
   z,
   delay,
 }: {
   src: string;
   alt: string;
+  width: number;
+  height: number;
   rotate: number;
   z: number;
   delay: number;
@@ -90,11 +100,16 @@ function PhoneFrame({
         <div className="relative overflow-hidden rounded-[18px] bg-black">
           {/* Notch */}
           <div className="absolute top-0 left-1/2 z-10 h-[14px] w-[60px] -translate-x-1/2 rounded-b-xl bg-black" />
-          <img
-            src={src}
-            alt={alt}
-            className="relative block w-full"
-          />
+          <picture>
+            <source srcSet={src.replace('.jpg', '.webp')} type="image/webp" />
+            <img
+              src={src}
+              alt={alt}
+              width={width}
+              height={height}
+              className="relative block w-full"
+            />
+          </picture>
           {/* Glass reflection */}
           <div
             className="pointer-events-none absolute inset-0"

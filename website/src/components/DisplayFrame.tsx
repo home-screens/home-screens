@@ -65,16 +65,26 @@ export function DisplayFrame({
           {/* OLED screen */}
           <div className="relative h-full w-full bg-black">
             <AnimatePresence mode="wait">
-              <motion.img
+              <motion.picture
                 key={screens[index].src}
-                src={screens[index].src}
-                alt={screens[index].alt}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8, ease: 'easeInOut' }}
-                className="absolute inset-0 h-full w-full object-cover object-top"
-              />
+                className="absolute inset-0 h-full w-full"
+              >
+                <source
+                  srcSet={screens[index].src.replace('.jpg', '.webp')}
+                  type="image/webp"
+                />
+                <img
+                  src={screens[index].src}
+                  alt={screens[index].alt}
+                  width={340}
+                  height={600}
+                  className="h-full w-full object-cover object-top"
+                />
+              </motion.picture>
             </AnimatePresence>
 
             {/* Glass reflection */}

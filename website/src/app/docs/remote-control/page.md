@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Remote Control
     description: Control your display from a phone with the built-in mobile remote.
+    alternates:
+      canonical: /docs/remote-control
 ---
 
 Control your display from any phone or tablet on the same network. The remote control is a mobile-friendly page that lets you navigate screens, adjust brightness, switch profiles, send alerts, manage chores, and manage the system -- all from your pocket. {% .lead %}

@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Configuration
     description: Complete configuration reference for Home Screens.
+    alternates:
+      canonical: /docs/configuration
 ---
 
 Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database — every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.

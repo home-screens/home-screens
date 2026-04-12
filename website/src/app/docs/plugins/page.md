@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Plugins
     description: Build and install plugins for Home Screens — runtime-loaded modules with SDK, API proxy, and config UI. Extend your smart display without modifying core code.
+    alternates:
+      canonical: /docs/plugins
 ---
 
 Plugins let you add new module types to Home Screens without modifying the core codebase. A plugin is a self-contained bundle that provides a React component, a manifest describing its metadata and configuration, and optionally a custom editor panel. Once installed, a plugin's module appears in the editor palette alongside built-in modules and can be placed on any screen.

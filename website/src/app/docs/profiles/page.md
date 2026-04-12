@@ -4,6 +4,8 @@ nextjs:
   metadata:
     title: Profiles & Scheduling
     description: Automate your smart display with time-based profiles, screen rotation, and per-module day/time schedules. Free alternative to Dakboard Screen Loops.
+    alternates:
+      canonical: /docs/profiles
 ---
 
 Profiles let you show different screens at different times of day, on different days of the week, or on demand. Combined with module-level scheduling and sleep settings, you can fully automate what your display shows and when.
