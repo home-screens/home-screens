@@ -70,11 +70,12 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
         title={config.title || 'Embedded content'}
         className="w-full h-full border-0"
         style={{
+          display: 'block',
           borderRadius: `${style.borderRadius}px`,
           overflow: 'hidden',
         }}
         scrolling={config.scrollable ? 'yes' : 'no'}
-        loading="lazy"
+        loading="eager"
         allow="fullscreen"
         referrerPolicy="strict-origin-when-cross-origin"
         {...(safeSandbox !== undefined ? { sandbox: safeSandbox } : {})}
