@@ -51,6 +51,7 @@ export interface SavedNetwork {
   ssid: string;
   autoconnect: boolean;
   lastUsed: string;
+  password?: string;
 }
 
 export interface RollbackState {

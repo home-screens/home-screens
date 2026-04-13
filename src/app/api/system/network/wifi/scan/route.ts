@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { nmcli } from '@/lib/network-commands';
+import { nmcli, nmcliSudo } from '@/lib/network-commands';
 import { validateInterfaceRegex } from '@/lib/network-validation';
 import { withAuth } from '@/lib/api-utils';
 import { parseTerseFields } from '@/lib/network-parse';
@@ -45,14 +45,26 @@ export const GET = withAuth(async (request: NextRequest) => {
     return NextResponse.json(cached.results);
   }
 
-  // Run WiFi scan and get saved connections in parallel
+  // Trigger a fresh scan, wait for the driver to complete it, then list results.
+  // The brcmfmac driver on Pi 5 needs ~4-5s after a rescan trigger before
+  // results appear in `wifi list`. Using `--rescan yes` alone is insufficient
+  // as it doesn't wait long enough for the hardware scan to complete.
   let scanOutput: string;
   let savedOutput: string;
 
   try {
+    // Trigger rescan (requires sudo for polkit authorization)
+    await nmcliSudo(['device', 'wifi', 'rescan', 'ifname', iface]).catch(() => {
+      // Rescan may fail if one is already in progress — that's fine
+    });
+
+    // Wait for hardware scan to complete
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    // List results + saved connections in parallel
     [scanOutput, savedOutput] = await Promise.all([
       nmcli([
-        '-t', '-f', 'SSID,BSSID,SIGNAL,SECURITY,FREQ,IN-USE',
+        '--get-values', 'SSID,BSSID,SIGNAL,SECURITY,FREQ,IN-USE',
         'device', 'wifi', 'list', 'ifname', iface,
       ]),
       nmcli(['-t', '-f', 'NAME,TYPE', 'connection', 'show']),

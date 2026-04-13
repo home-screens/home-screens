@@ -32,12 +32,14 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   const [error, setError] = useState<string | null>(null);
   const [forgettingId, setForgettingId] = useState<string | null>(null);
   const [confirmForgetId, setConfirmForgetId] = useState<string | null>(null);
+  const [showPasswords, setShowPasswords] = useState(false);
 
   /* ── Fetch saved networks ──────────────────── */
 
-  const fetchSaved = useCallback(async () => {
+  const fetchSaved = useCallback(async (withPasswords = false) => {
     try {
-      const res = await editorFetch('/api/system/network/wifi/saved');
+      const qs = withPasswords ? '?showPasswords=true' : '';
+      const res = await editorFetch(`/api/system/network/wifi/saved${qs}`);
       if (res.ok) {
         const data: SavedNetwork[] = await res.json();
         setNetworks(data);
@@ -53,8 +55,8 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   }, []);
 
   useEffect(() => {
-    fetchSaved();
-  }, [fetchSaved, refreshKey]);
+    fetchSaved(showPasswords);
+  }, [fetchSaved, refreshKey, showPasswords]);
 
   /* ── Forget a network ──────────────────────── */
 
@@ -115,9 +117,18 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Saved Networks
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
+          Saved Networks
+        </h3>
+        <button
+          type="button"
+          onClick={() => setShowPasswords(!showPasswords)}
+          className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
+        >
+          {showPasswords ? 'Hide passwords' : 'Show passwords'}
+        </button>
+      </div>
       <div className="space-y-1">
         {networks.map((network) => (
           <div
@@ -138,6 +149,11 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
                   </>
                 )}
               </div>
+              {showPasswords && network.password && (
+                <div className="mt-1 text-xs font-mono text-hs-text-muted bg-hs-bg px-2 py-0.5 rounded inline-block">
+                  {network.password}
+                </div>
+              )}
             </div>
 
             {/* Forget button / confirmation */}

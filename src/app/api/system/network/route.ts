@@ -230,7 +230,7 @@ export const GET = withAuth(async (request: NextRequest) => {
         const ssid = details.get('GENERAL.CONNECTION') ?? entry.connection;
         try {
           const wifiOutput = await nmcli([
-            '-t', '-f', 'SSID,SIGNAL,SECURITY,FREQ,IN-USE',
+            '--get-values', 'SSID,SIGNAL,SECURITY,FREQ,IN-USE',
             'device', 'wifi', 'list', 'ifname', entry.device,
           ]);
           // Find the row with IN-USE=* (the connected network)

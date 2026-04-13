@@ -72,7 +72,8 @@ export const GET = withAuth(async (request: NextRequest) => {
       await Promise.all(
         savedNetworks.map(async (network) => {
           try {
-            const pskOutput = await nmcli([
+            // Reading secrets requires sudo — non-root users get an empty value
+            const pskOutput = await nmcliSudo([
               '-s', '-t', '-f', '802-11-wireless-security.psk',
               'connection', 'show', network.id,
             ]);
