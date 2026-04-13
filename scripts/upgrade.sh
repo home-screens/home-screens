@@ -738,6 +738,11 @@ if [ -f "${CHROME_PREFS}" ]; then
   sed -i '"'"'s/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/'"'"' "${CHROME_PREFS}"
 fi
 
+# Purge session restore data so Chromium does not re-open the previous
+# session'"'"'s app window alongside the new --app window.  Without this, every
+# reboot produces a duplicate tab that silently drains the command queue.
+rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
+
 # Wait for the Next.js server before launching Chromium (defense in depth —
 # on first boot the server may be delayed by firstboot tasks).
 for _i in $(seq 1 120); do
@@ -796,6 +801,14 @@ exec chromium \
     if [ ! -f "${LABWC_DIR}/rc.xml" ] || [ "$(cat "${LABWC_DIR}/rc.xml")" != "${DESIRED_RC}" ]; then
       echo "${DESIRED_RC}" > "${LABWC_DIR}/rc.xml"
       changed="${changed}labwc-rc,"
+    fi
+
+    # 8c. Remove stale Chromium launch from labwc autostart (if present).
+    #     Legacy installs launched Chromium from autostart AND kiosk-launcher.sh,
+    #     causing two page targets that race on the display command queue.
+    if [ -f "${LABWC_DIR}/autostart" ] && grep -q 'chromium' "${LABWC_DIR}/autostart"; then
+      sed -i '/chromium/d' "${LABWC_DIR}/autostart"
+      changed="${changed}labwc-autostart,"
     fi
 
     # Fix ownership when running as root during image build

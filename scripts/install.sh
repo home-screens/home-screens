@@ -269,6 +269,11 @@ if [ -f "${CHROME_PREFS}" ]; then
   sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${CHROME_PREFS}"
 fi
 
+# Purge session restore data so Chromium does not re-open the previous
+# session's app window alongside the new --app window.  Without this, every
+# reboot produces a duplicate tab that silently drains the command queue.
+rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
+
 HEALTH_URL="${BACKEND_URL:-${DISPLAY_URL%/display/*}}/api/system/build-id"
 SPLASH_URL="file://${APP_DIR}/share/connecting.html"
 
@@ -327,6 +332,11 @@ LAUNCHER_EOF
   </keyboard>
 </labwc_config>
 RC_EOF
+
+  # 8b. Remove stale Chromium launch from labwc autostart (if present).
+  if [ -f "${LABWC_DIR}/autostart" ] && grep -q 'chromium' "${LABWC_DIR}/autostart"; then
+    sed -i '/chromium/d' "${LABWC_DIR}/autostart"
+  fi
 
   # 9. Boot to console + autologin on TTY1
   CURRENT_DEFAULT=$(systemctl get-default 2>/dev/null || echo "unknown")
