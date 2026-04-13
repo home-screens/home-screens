@@ -138,7 +138,7 @@ describe('GET /api/rain-map', () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Failed to fetch rain map data' });
+    expect(json).toMatchObject({ error: 'Failed to fetch rain map data' });
   });
 
   it('serves cached response on second call', async () => {

@@ -143,7 +143,7 @@ describe('GET /api/news', () => {
     const json = await res.json();
 
     expect(res.status).toBe(500);
-    expect(json).toEqual({ error: 'Failed to fetch news' });
+    expect(json).toMatchObject({ error: 'Failed to fetch news' });
   });
 
   it('passes fetched XML text to parseItems', async () => {

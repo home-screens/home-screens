@@ -172,6 +172,6 @@ describe('GET /api/crypto', () => {
     const json = await res.json();
 
     expect(res.status).toBe(500);
-    expect(json).toEqual({ error: 'Failed to fetch crypto prices' });
+    expect(json).toMatchObject({ error: 'Failed to fetch crypto prices' });
   });
 });

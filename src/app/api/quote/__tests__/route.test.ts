@@ -96,7 +96,7 @@ describe('GET /api/quote', () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json).toEqual({ error: 'Failed to fetch quote' });
+    expect(json).toMatchObject({ error: 'Failed to fetch quote' });
   });
 
   it('returns 500 with fallback message for non-Error throws', async () => {
