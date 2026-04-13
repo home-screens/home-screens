@@ -17,12 +17,14 @@ type Config = Partial<FullscreenPhotoConfig>;
 export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showBrowser, setShowBrowser] = useState(false);
+  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [photoCount, setPhotoCount] = useState(0);
   const [hasImmichKey, setHasImmichKey] = useState(false);
 
   const source = (c.source as string) || 'local';
   const directory = (c.directory as string) || '';
+  const isSinglePhoto = c.file !== undefined;
 
   useEffect(() => {
     editorFetch('/api/secrets').then(async (res) => {
@@ -52,8 +54,8 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   }, []);
 
   useEffect(() => {
-    if (source === 'local') fetchPreviews(directory);
-  }, [directory, fetchPreviews, source]);
+    if (source === 'local' && !isSinglePhoto) fetchPreviews(directory);
+  }, [directory, fetchPreviews, source, isSinglePhoto]);
 
   return (
     <>
@@ -91,67 +93,115 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
       ) : (
         <>
-          {/* Folder picker */}
-          <div>
-            <span className="text-xs text-hs-text-muted">Photo Folder</span>
-            <div className="flex gap-1.5 mt-1">
-              <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
-                {directory || 'All Photos (root)'}
-              </div>
-              <Button size="sm" onClick={() => setShowBrowser(true)}>
-                Browse...
-              </Button>
-            </div>
-            {photoCount > 0 && (
-              <div className="mt-1.5">
-                <span className="text-[10px] text-hs-text-faint">
-                  {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
-                </span>
-                <div className="flex gap-1 mt-1 overflow-x-auto">
-                  {previewImages.map((img) => (
-                    <img
-                      key={img}
-                      src={img}
-                      alt=""
-                      loading="lazy"
-                      className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"
-                    />
-                  ))}
+          {/* Mode toggle: Slideshow vs Single Photo */}
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-hs-text-muted">Mode</span>
+            <select
+              value={isSinglePhoto ? 'single' : 'slideshow'}
+              onChange={(e) => {
+                if (e.target.value === 'single') {
+                  set({ file: '', directory: '' });
+                } else {
+                  set({ file: undefined });
+                }
+              }}
+              className={INPUT_CLASS}
+            >
+              <option value="slideshow">Slideshow</option>
+              <option value="single">Single Photo</option>
+            </select>
+          </label>
+
+          {isSinglePhoto ? (
+            /* Single photo picker */
+            <div>
+              <span className="text-xs text-hs-text-muted">Photo</span>
+              <div className="flex gap-1.5 mt-1">
+                <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
+                  {c.file ? c.file.replace(/.*[/\\]/, '').replace(/\.[^.]+$/, '') : 'None selected'}
                 </div>
+                <Button size="sm" onClick={() => setShowPhotoPicker(true)}>
+                  Choose...
+                </Button>
               </div>
-            )}
-            {photoCount === 0 && (
-              <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
-            )}
-          </div>
+              {c.file && (
+                <div className="mt-1.5">
+                  <img
+                    src={c.file}
+                    alt=""
+                    loading="lazy"
+                    className="w-full max-h-32 rounded object-cover border border-hs-border-strong"
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Folder picker (existing slideshow UI) */
+            <div>
+              <span className="text-xs text-hs-text-muted">Photo Folder</span>
+              <div className="flex gap-1.5 mt-1">
+                <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
+                  {directory || 'All Photos (root)'}
+                </div>
+                <Button size="sm" onClick={() => setShowBrowser(true)}>
+                  Browse...
+                </Button>
+              </div>
+              {photoCount > 0 && (
+                <div className="mt-1.5">
+                  <span className="text-[10px] text-hs-text-faint">
+                    {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
+                  </span>
+                  <div className="flex gap-1 mt-1 overflow-x-auto">
+                    {previewImages.map((img) => (
+                      <img
+                        key={img}
+                        src={img}
+                        alt=""
+                        loading="lazy"
+                        className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {photoCount === 0 && (
+                <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
+              )}
+            </div>
+          )}
         </>
       )}
 
-      {/* Slide interval */}
-      <Slider
-        label="Slide Interval (seconds)"
-        value={(c.intervalMs ?? 30000) / 1000}
-        min={5}
-        max={300}
-        step={5}
-        onChange={(v) => set({ intervalMs: v * 1000 })}
-      />
+      {/* Slide interval — only for slideshow mode */}
+      {!isSinglePhoto && (
+        <Slider
+          label="Slide Interval (seconds)"
+          value={(c.intervalMs ?? 30000) / 1000}
+          min={5}
+          max={300}
+          step={5}
+          onChange={(v) => set({ intervalMs: v * 1000 })}
+        />
+      )}
 
       {/* Transition & Object Fit row */}
       <div className="flex gap-2">
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Transition</span>
-          <select
-            value={c.transition ?? 'fade'}
-            onChange={(e) => set({ transition: e.target.value as FullscreenPhotoConfig['transition'] })}
-            className={INPUT_CLASS}
-          >
-            <option value="fade">Fade</option>
-            <option value="slide">Slide</option>
-            <option value="zoom">Zoom</option>
-            <option value="none">None</option>
-          </select>
-        </label>
+        {!isSinglePhoto && (
+          <label className="flex flex-col gap-0.5 flex-1">
+            <span className="text-xs text-hs-text-muted">Transition</span>
+            <select
+              value={c.transition ?? 'fade'}
+              onChange={(e) => set({ transition: e.target.value as FullscreenPhotoConfig['transition'] })}
+              className={INPUT_CLASS}
+            >
+              <option value="fade">Fade</option>
+              <option value="slide">Slide</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+        )}
         <label className="flex flex-col gap-0.5 flex-1">
           <span className="text-xs text-hs-text-muted">Object Fit</span>
           <select
@@ -167,11 +217,13 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       </div>
 
       {/* Toggles */}
-      <Toggle
-        label="Shuffle Order"
-        checked={c.shuffle ?? false}
-        onChange={(v) => set({ shuffle: v })}
-      />
+      {!isSinglePhoto && (
+        <Toggle
+          label="Shuffle Order"
+          checked={c.shuffle ?? false}
+          onChange={(v) => set({ shuffle: v })}
+        />
+      )}
       <Toggle
         label="Ken Burns Effect"
         checked={c.kenBurns ?? false}
@@ -198,6 +250,17 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
             fetchPreviews(dir);
           }}
           onClose={() => setShowBrowser(false)}
+        />
+      )}
+
+      {showPhotoPicker && (
+        <ImageBrowserModal
+          mode="pick-image"
+          initialDirectory={directory}
+          onSelectImage={(serveUrl) => {
+            set({ file: serveUrl });
+          }}
+          onClose={() => setShowPhotoPicker(false)}
         />
       )}
     </>

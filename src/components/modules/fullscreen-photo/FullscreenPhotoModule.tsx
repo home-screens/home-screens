@@ -203,12 +203,18 @@ interface FullscreenPhotoModuleProps {
 export default function FullscreenPhotoModule({ config, fullscreenTheme }: FullscreenPhotoModuleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch photo list (reuses same API as photo-slideshow)
-  const [data] = useFetchData<string[]>(photoSlideshowUrl(config), 600000);
+  const isSinglePhoto = config.file !== undefined;
+
+  // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo
+  const [data] = useFetchData<string[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), 600000);
   const files = data ?? [];
 
   const intervalMs = config.intervalMs ?? 30000;
-  const photoIndex = useShuffledRotatingIndex(files.length, intervalMs, config.shuffle ?? false);
+  const photoIndex = useShuffledRotatingIndex(
+    isSinglePhoto ? 0 : files.length,
+    intervalMs,
+    config.shuffle ?? false,
+  );
 
   // Dual-layer crossfade state
   const [activeLayer, setActiveLayer] = useState(0);
@@ -216,7 +222,7 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
   const prevIndexRef = useRef(photoIndex);
 
   useEffect(() => {
-    if (files.length === 0) return;
+    if (isSinglePhoto || files.length === 0) return;
     const src = files[photoIndex];
 
     if (prevIndexRef.current !== photoIndex) {
@@ -232,11 +238,51 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
       setSources([src, src]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
-  }, [photoIndex, files]);
+  }, [photoIndex, files, isSinglePhoto]);
 
   // Theme
   const themeId = config.theme ?? fullscreenTheme ?? 'midnight';
   const theme = getThemeTokens(themeId);
+
+  // Single photo mode — render directly, no fetch or rotation needed
+  if (isSinglePhoto) {
+    if (!config.file) {
+      // Mode is set but no photo chosen yet
+      return (
+        <div
+          ref={containerRef}
+          className="w-full h-full flex items-center justify-center"
+          style={{ backgroundColor: theme.bg, color: theme.textSecondary }}
+        >
+          <div className="text-center space-y-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+            </svg>
+            <p className="text-lg font-medium" style={{ color: theme.text }}>No photo selected</p>
+            <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
+              Choose a photo in the editor panel.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ backgroundColor: '#000' }}>
+        {config.kenBurns && <style>{KEN_BURNS_CSS}</style>}
+        <SlideLayer
+          src={config.file}
+          active
+          objectFit={config.objectFit}
+          transition="none"
+          kenBurns={config.kenBurns ?? false}
+          layerIndex={0}
+        />
+        {config.showClock && (
+          <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" />
+        )}
+      </div>
+    );
+  }
 
   // Empty state
   if (data !== null && files.length === 0) {

@@ -992,6 +992,7 @@ export type FullscreenPhotoTransition = 'fade' | 'slide' | 'zoom' | 'none';
 
 export interface FullscreenPhotoConfig {
   directory: string;
+  file?: string;
   intervalMs: number;
   transition: FullscreenPhotoTransition;
   objectFit: 'cover' | 'contain' | 'fill';
