@@ -87,7 +87,7 @@ export default function RainMapModule({
   const [data, error] = useFetchData<RainViewerData>(rainMapUrl(), refreshMs);
 
   const [displayIndex, setDisplayIndex] = useState(0);
-  const [imagesReady, setImagesReady] = useState(false);
+  const [_imagesReady, setImagesReady] = useState(false);
   const indexRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const preloadedRef = useRef<Set<string>>(new Set());
@@ -161,7 +161,7 @@ export default function RainMapModule({
       if (!data?.host) return '';
       return `${data.host}${frame.path}/${TILE_SIZE}/${radarZoom}/${tile.x}/${tile.y}/${colorScheme}/${smooth}_${snow}.png`;
     },
-    [data?.host, radarZoom, colorScheme, smooth, snow],
+    [data, radarZoom, colorScheme, smooth, snow],
   );
 
   // Preload a single frame's radar tiles, returning a promise that resolves
