@@ -38,7 +38,6 @@ fi
 # Clean up bootstrap temp dir if we were re-launched by the guard above.
 if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
   trap 'rm -rf "${_HS_BOOTSTRAP_TMP}"' EXIT
-  unset _HS_BOOTSTRAP_TMP
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
