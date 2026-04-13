@@ -50,13 +50,18 @@ Home Screens includes a remote control panel at that turns any phone or tablet i
 
 ## Getting started
 
-Home Screens runs on any Raspberry Pi 4 or 5 with 2GB+ RAM. Installation takes about five minutes:
+Home Screens runs on any Raspberry Pi 4 or 5 with 2GB+ RAM. Installation takes about five minutes and you can one-shot the install like:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash
+
+```
+
+Or clone the repo first if you prefer to inspect the script before running it:
+
+```
 sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
-
-# Raspberry Pi OS Lite (default)
 ~/home-screens/scripts/install.sh
 ```
 
