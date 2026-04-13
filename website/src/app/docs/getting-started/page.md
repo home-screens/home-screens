@@ -106,7 +106,7 @@ If you prefer to install on an existing Raspberry Pi OS setup — or need a patc
 ### Requirements
 
 - Raspberry Pi 4 or 5 (2 GB+ RAM recommended); RPI5 has significant performance improvements over RPI4 when it comes to larger displays and animations.
-- [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) recommended (Desktop also supported)
+- [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) recommended (Desktop also supported). In Raspberry Pi Imager, look under **Raspberry Pi OS (other)** to find the Lite image.
 - A display connected via HDMI
 - Network connection (Ethernet or Wi-Fi)
 

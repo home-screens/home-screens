@@ -53,7 +53,7 @@ A spoke install skips Node.js and the release tarball entirely. It installs only
 
 ### Prerequisites
 
-- A Raspberry Pi running [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) (Desktop also supported with `--desktop`)
+- A Raspberry Pi running [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/) (Desktop also supported with `--desktop`). In Raspberry Pi Imager, look under **Raspberry Pi OS (other)** to find the Lite image.
 - Network access to the hub
 - The hub URL (e.g. `http://192.168.1.100:3000`)
 
