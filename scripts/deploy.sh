@@ -53,12 +53,22 @@ done
 HOST="${HOST:-$DEFAULT_HOST}"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# --- SSH multiplexing (single login for all ssh/rsync calls) ---
+SSH_SOCK="/tmp/deploy-ssh-$$"
+SSH_OPTS="-o ControlMaster=auto -o ControlPath=${SSH_SOCK} -o ControlPersist=yes"
+export RSYNC_RSH="ssh ${SSH_OPTS}"
+ssh_cmd() { ssh ${SSH_OPTS} "$HOST" "$@"; }
+
+# Open the master connection once, clean up on exit
+ssh ${SSH_OPTS} -MNf "$HOST"
+trap 'ssh ${SSH_OPTS} -O exit "$HOST" 2>/dev/null; rm -f "${SSH_SOCK}"' EXIT
+
 info "Deploying to ${HOST}:${REMOTE_DIR}"
 
 # --- Restart only ---
 if [ "$RESTART_ONLY" = true ]; then
   step "Restarting service..."
-  ssh "$HOST" "sudo systemctl restart home-screens"
+  ssh_cmd "sudo systemctl restart home-screens"
   info "Service restarted."
   exit 0
 fi
@@ -98,29 +108,29 @@ rsync -azP --delete \
 # --- Install dependencies ---
 if [ "$SKIP_INSTALL" = false ]; then
   step "Installing dependencies..."
-  ssh "$HOST" "cd $REMOTE_DIR && npm install --omit=dev"
+  ssh_cmd "cd $REMOTE_DIR && npm install --omit=dev"
 fi
 
 # --- Apply system config ---
 step "Applying system configuration..."
-ssh "$HOST" "cd $REMOTE_DIR && bash scripts/upgrade.sh setup-system"
+ssh_cmd "cd $REMOTE_DIR && bash scripts/upgrade.sh setup-system"
 
 # --- Restart service ---
 step "Restarting service..."
-ssh "$HOST" "sudo systemctl restart home-screens"
+ssh_cmd "sudo systemctl restart home-screens"
 
 # --- Verify ---
 step "Verifying..."
 info "Kiosk browser will auto-reload when it detects the new build."
-if ssh "$HOST" "systemctl is-active --quiet home-screens"; then
+if ssh_cmd "systemctl is-active --quiet home-screens"; then
   echo ""
   REMOTE_IP="${HOST#*@}"
-  REMOTE_PORT=$(ssh "$HOST" "cat ${REMOTE_DIR}/data/port.conf 2>/dev/null || echo 3000" | tr -d '[:space:]')
+  REMOTE_PORT=$(ssh_cmd "cat ${REMOTE_DIR}/data/port.conf 2>/dev/null || echo 3000" | tr -d '[:space:]')
   info "Deploy complete!"
   echo -e "  ${DIM}Display:${NC}  http://${REMOTE_IP}:${REMOTE_PORT}/display"
   echo -e "  ${DIM}Editor:${NC}   http://${REMOTE_IP}:${REMOTE_PORT}/editor"
   echo ""
 else
   warn "Service may not have started correctly."
-  ssh "$HOST" "journalctl -u home-screens -n 20 --no-pager"
+  ssh_cmd "journalctl -u home-screens -n 20 --no-pager"
 fi
