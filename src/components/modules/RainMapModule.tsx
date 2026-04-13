@@ -45,8 +45,15 @@ const TILE_SIZE = 256;
 const MAX_RADAR_ZOOM = 7;
 
 const BASE_TILE_URLS: Record<string, string> = {
-  dark: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+  dark: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
   standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+};
+
+// Background colors that match each map theme's dominant tile color,
+// so any gap from a slow-loading tile is invisible.
+const MAP_BG: Record<string, string> = {
+  dark: '#090909',
+  standard: '#f2efe9',
 };
 
 function formatFrameTime(unixTime: number): string {
@@ -66,7 +73,7 @@ export default function RainMapModule({
   const lat = config.latitude || latitude || 40;
   const lon = config.longitude || longitude || -74;
   const zoom = config.zoom ?? 6;
-  const animationSpeedMs = config.animationSpeedMs ?? 500;
+  const animationSpeedMs = Math.max(500, config.animationSpeedMs ?? 500);
   const extraDelayLastFrameMs = config.extraDelayLastFrameMs ?? 2000;
   const smooth = config.smooth !== false ? 1 : 0;
   const snow = config.showSnow !== false ? 1 : 0;
@@ -105,19 +112,18 @@ export default function RainMapModule({
     const offsetY = (centerTileY - tileY) * TILE_SIZE;
 
     const gridRadius = 2;
+    const totalSize = (gridRadius * 2 + 1) * TILE_SIZE;
     const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
     for (let dy = -gridRadius; dy <= gridRadius; dy++) {
       for (let dx = -gridRadius; dx <= gridRadius; dx++) {
         tiles.push({
           x: tileX + dx,
           y: tileY + dy,
-          px: (dx + gridRadius) * TILE_SIZE - offsetX,
-          py: (dy + gridRadius) * TILE_SIZE - offsetY,
+          px: totalSize / 2 - offsetX + dx * TILE_SIZE,
+          py: totalSize / 2 - offsetY + dy * TILE_SIZE,
         });
       }
     }
-
-    const totalSize = (gridRadius * 2 + 1) * TILE_SIZE;
     return { tiles, totalSize };
   }, [lat, lon, zoom]);
 
@@ -130,22 +136,22 @@ export default function RainMapModule({
     const offsetX = (centerTileX - tileX) * TILE_SIZE * radarScale;
     const offsetY = (centerTileY - tileY) * TILE_SIZE * radarScale;
 
-    // Fewer radar tiles needed since each one covers a larger area when scaled
-    const gridRadius = Math.ceil(2 / radarScale) + 1;
+    // Match the base map's gridRadius — the extra +1 padding was causing
+    // 49 tiles/frame instead of 25, which overwhelms RainViewer's rate limit.
+    const gridRadius = Math.max(2, Math.ceil(2 / radarScale));
+    const scaledSize = TILE_SIZE * radarScale;
+    const totalSize = (gridRadius * 2 + 1) * scaledSize;
     const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
     for (let dy = -gridRadius; dy <= gridRadius; dy++) {
       for (let dx = -gridRadius; dx <= gridRadius; dx++) {
         tiles.push({
           x: tileX + dx,
           y: tileY + dy,
-          px: (dx + gridRadius) * TILE_SIZE * radarScale - offsetX,
-          py: (dy + gridRadius) * TILE_SIZE * radarScale - offsetY,
+          px: totalSize / 2 - offsetX + dx * scaledSize,
+          py: totalSize / 2 - offsetY + dy * scaledSize,
         });
       }
     }
-
-    const scaledSize = TILE_SIZE * radarScale;
-    const totalSize = (gridRadius * 2 + 1) * scaledSize;
     return { tiles, totalSize, scaledSize };
   }, [lat, lon, radarZoom, radarScale]);
 
@@ -158,70 +164,69 @@ export default function RainMapModule({
     [data?.host, radarZoom, colorScheme, smooth, snow],
   );
 
-  // Preload all radar tile images
+  // Preload a single frame's radar tiles, returning a promise that resolves
+  // when all tiles for that frame have loaded (or errored). Skips tiles
+  // that were already loaded in a previous cycle.
+  const preloadFrame = useCallback(
+    (frame: RainFrame) => {
+      const promises = radarTileGrid.tiles.map((tile) => {
+        const url = getRadarUrl(frame, tile);
+        if (!url || preloadedRef.current.has(url)) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = img.onerror = () => {
+            preloadedRef.current.add(url);
+            resolve();
+          };
+          img.src = url;
+        });
+      });
+      return Promise.all(promises);
+    },
+    [radarTileGrid.tiles, getRadarUrl],
+  );
+
+  // Preload the first frame, then start the animation loop.
+  // Each animation step preloads the next frame before advancing.
   useEffect(() => {
     if (!frames.length || !data?.host || !radarTileGrid.tiles.length) return;
 
-    const urls = new Set<string>();
-    for (const frame of frames) {
-      for (const tile of radarTileGrid.tiles) {
-        urls.add(getRadarUrl(frame, tile));
-      }
-    }
-
-    // Only preload new URLs
-    const newUrls = [...urls].filter((u) => u && !preloadedRef.current.has(u));
-    if (newUrls.length === 0) {
-      setImagesReady(true);
-      return;
-    }
-
-    let loaded = 0;
-    const total = newUrls.length;
-
-    for (const url of newUrls) {
-      const img = new Image();
-      img.onload = img.onerror = () => {
-        preloadedRef.current.add(url);
-        loaded++;
-        if (loaded >= total) setImagesReady(true);
-      };
-      img.src = url;
-    }
-  }, [frames, data?.host, radarTileGrid.tiles, getRadarUrl]);
-
-  // Animation loop — uses ref to avoid re-render cascades
-  useEffect(() => {
-    if (!frames.length || !imagesReady) return;
-
-    // Reset to start when frames change
+    let cancelled = false;
     indexRef.current = 0;
     setDisplayIndex(0);
+    setImagesReady(false);
 
-    let cancelled = false;
-
-    function scheduleNext() {
+    // Preload just the first frame, then start animating
+    preloadFrame(frames[0]).then(() => {
       if (cancelled) return;
-      const current = indexRef.current;
-      const next = (current + 1) % frames.length;
-      const isLooping = next === 0;
-      const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
+      setImagesReady(true);
 
-      timerRef.current = setTimeout(() => {
+      function scheduleNext() {
         if (cancelled) return;
-        indexRef.current = next;
-        setDisplayIndex(next);
-        scheduleNext();
-      }, delay);
-    }
+        const current = indexRef.current;
+        const next = (current + 1) % frames.length;
+        const isLooping = next === 0;
+        const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
 
-    scheduleNext();
+        // Preload the next frame's tiles during the current frame's display time
+        preloadFrame(frames[next]);
+
+        timerRef.current = setTimeout(() => {
+          if (cancelled) return;
+          indexRef.current = next;
+          setDisplayIndex(next);
+          scheduleNext();
+        }, delay);
+      }
+
+      scheduleNext();
+    });
 
     return () => {
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [frames, imagesReady, animationSpeedMs, extraDelayLastFrameMs]);
+  }, [frames, data?.host, radarTileGrid.tiles, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
 
   if (data === null) {
     return <ModuleLoadingState style={style} message="Loading rain map…" error={error} />;
@@ -238,7 +243,10 @@ export default function RainMapModule({
 
   return (
     <ModuleWrapper style={style}>
-      <div className="relative w-full h-full overflow-hidden rounded-lg">
+      <div
+        className="relative w-full h-full overflow-hidden rounded-lg"
+        style={{ backgroundColor: MAP_BG[mapStyle] ?? MAP_BG.dark }}
+      >
         {/* Base map tiles */}
         <div
           className="absolute"
