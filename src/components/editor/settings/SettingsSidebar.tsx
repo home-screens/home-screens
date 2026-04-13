@@ -20,6 +20,7 @@ import {
   Server,
   Shield,
   UtensilsCrossed,
+  Wifi,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -103,6 +104,7 @@ const PAGE_META: Record<DefaultPageId, { label: string; icon: LucideIcon }> = {
   data: { label: 'Data', icon: Database },
   stats: { label: 'Stats', icon: Activity },
   system: { label: 'System', icon: Server },
+  network: { label: 'Network', icon: Wifi },
   docs: { label: 'Docs', icon: BookOpen },
 };
 

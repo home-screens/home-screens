@@ -22,6 +22,7 @@ import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
 import ProfilesSection from '@/components/editor/settings/ProfilesSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
+import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
 import DataSection from '@/components/editor/settings/DataSection';
@@ -61,6 +62,7 @@ type TabId =
   | 'data'
   | 'stats'
   | 'system'
+  | 'network'
   | 'docs';
 
 /* ─── Settings state ──────────────────────────────── */
@@ -743,6 +745,10 @@ function SettingsPageContent() {
                 onUpgrade={(tag) => setUpgradeTarget(tag)}
                 onRollback={(tag) => setRollbackTarget(tag)}
               />
+            )}
+
+            {activeTab === 'network' && (
+              <NetworkSection />
             )}
 
             {activeTab === 'docs' && (

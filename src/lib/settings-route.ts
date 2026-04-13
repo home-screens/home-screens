@@ -34,6 +34,7 @@ export const DEFAULT_PAGE_IDS = [
   'data',
   'stats',
   'system',
+  'network',
   'docs',
 ] as const;
 
@@ -87,6 +88,7 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   data: { kind: 'defaults', page: 'data' },
   stats: { kind: 'defaults', page: 'stats' },
   system: { kind: 'defaults', page: 'system' },
+  network: { kind: 'defaults', page: 'network' },
   docs: { kind: 'defaults', page: 'docs' },
   displays: { kind: 'displays' },
   // Hidden routes that briefly existed — bookmarks of those collapse to
