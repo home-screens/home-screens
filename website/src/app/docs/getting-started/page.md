@@ -113,6 +113,12 @@ If you prefer to install on an existing Raspberry Pi OS setup — or need a patc
 ### Install
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash
+```
+
+Or clone the repo first if you prefer to inspect the script before running it:
+
+```bash
 sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh

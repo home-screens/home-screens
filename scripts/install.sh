@@ -15,6 +15,31 @@ set -euo pipefail
 #   ~/home-screens/scripts/install.sh --display-only --backend http://192.168.1.100:3000
 #   ~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
 
+# --- Self-download guard (enables: curl -fsSL <url> | bash) ─────────────
+# When running standalone without companion files (lib/common.sh, boot-splash/),
+# download them from GitHub to a temp directory and re-launch from there.
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd 2>/dev/null || echo "")"
+if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/lib/common.sh" ]; then
+  _TMP="$(mktemp -d)"
+  _REPO="home-screens/home-screens"
+  _BRANCH="main"
+  _BASE="https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/scripts"
+  printf '\n  Downloading installer files...\n\n'
+  mkdir -p "${_TMP}/lib" "${_TMP}/boot-splash"
+  curl -fsSL "${_BASE}/install.sh" -o "${_TMP}/install.sh"
+  curl -fsSL "${_BASE}/lib/common.sh" -o "${_TMP}/lib/common.sh"
+  for _f in home-screens.plymouth home-screens.script logo.png dot.png; do
+    curl -fsSL "${_BASE}/boot-splash/${_f}" -o "${_TMP}/boot-splash/${_f}"
+  done
+  _HS_BOOTSTRAP_TMP="${_TMP}" exec bash "${_TMP}/install.sh" "$@"
+fi
+
+# Clean up bootstrap temp dir if we were re-launched by the guard above.
+if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
+  trap 'rm -rf "${_HS_BOOTSTRAP_TMP}"' EXIT
+  unset _HS_BOOTSTRAP_TMP
+fi
+
 INSTALL_BASE="/opt/home-screens"
 APP_DIR="${INSTALL_BASE}/current"
 REPO="home-screens/home-screens"
@@ -383,9 +408,11 @@ EOF
 fi
 
 # --- Step 1: Bootstrap packages ---
-info "Installing bootstrap packages..."
+info "Updating system packages..."
 sudo apt-get update -qq
-sudo apt-get install -y -qq curl
+sudo apt-get upgrade -y -qq
+info "Installing bootstrap packages..."
+sudo apt-get install -y -qq curl vim
 
 # --- Step 2: Node.js ---
 install_node "${NODE_MAJOR}"

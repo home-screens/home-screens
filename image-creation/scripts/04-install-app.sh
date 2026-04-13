@@ -138,6 +138,29 @@ else
         exit 1
     fi
 
+    # Verify SHA-256 checksum if a sidecar is published
+    CHECKSUM_NAME="${ASSET_NAME}.sha256"
+    CHECKSUM_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${CHECKSUM_NAME}"
+    CHECKSUM_FILE=$(mktemp /tmp/home-screens-checksum.XXXXXX)
+    if curl -fsSL --max-time 30 -o "${CHECKSUM_FILE}" "${CHECKSUM_URL}" 2>/dev/null; then
+        log_info "Verifying checksum..."
+        TARBALL_DIR=$(dirname "${TARBALL}")
+        TARBALL_BASE=$(basename "${TARBALL}")
+        # Rewrite the checksum file to reference our temp filename
+        EXPECTED_HASH=$(awk '{print $1}' "${CHECKSUM_FILE}")
+        echo "${EXPECTED_HASH}  ${TARBALL_BASE}" > "${CHECKSUM_FILE}"
+        if (cd "${TARBALL_DIR}" && sha256sum -c "${CHECKSUM_FILE}" >/dev/null 2>&1); then
+            log_info "Checksum OK"
+        else
+            rm -f "${TARBALL}" "${CHECKSUM_FILE}"
+            log_error "Checksum verification FAILED for ${ASSET_NAME}"
+            exit 1
+        fi
+    else
+        log_warn "No checksum sidecar for ${LATEST_TAG} — skipping verification"
+    fi
+    rm -f "${CHECKSUM_FILE}"
+
     # Extract to staging, then swap into place
     STAGING_DIR=$(mktemp -d /tmp/home-screens-staging.XXXXXX)
     trap 'rm -f "${TARBALL}" 2>/dev/null; rm -rf "${STAGING_DIR}" 2>/dev/null' EXIT

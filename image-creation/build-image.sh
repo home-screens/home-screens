@@ -1,13 +1,45 @@
 #!/bin/bash
 # Home Screens - Raspberry Pi Image Builder
 #
-# Usage: sudo ./build-image.sh [--img]
-#   --img  Build for distribution (includes final cleanup)
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/image-creation/build-image.sh | sudo bash
+#   curl -fsSL <url> | sudo bash -s -- --img
+#
+#   Or from a clone:
+#     sudo ./build-image.sh [--img]
 #
 # This script must be run ON the Raspberry Pi that will become the image.
 # Start with a fresh Raspberry Pi OS Lite (64-bit) installation.
 
 set -e
+
+# --- Self-download guard (enables: curl -fsSL <url> | sudo bash) ────────
+# When running standalone without stage scripts, download them from GitHub
+# to a temp directory and re-launch from there.
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd 2>/dev/null || echo "")"
+if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/scripts/01-base-setup.sh" ]; then
+  # Ensure curl is available (bare Trixie Lite may not have it)
+  if ! command -v curl &>/dev/null; then
+    apt-get update -qq && apt-get install -y -qq curl
+  fi
+  _TMP="$(mktemp -d)"
+  _REPO="home-screens/home-screens"
+  _BRANCH="main"
+  _BASE="https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/image-creation"
+  printf '\n  Downloading image builder files...\n\n'
+  mkdir -p "${_TMP}/scripts"
+  curl -fsSL "${_BASE}/build-image.sh" -o "${_TMP}/build-image.sh"
+  for _f in 01-base-setup.sh 02-package-cleanup.sh 03-install-deps.sh 04-install-app.sh 05-configure.sh 99-finalize.sh; do
+    curl -fsSL "${_BASE}/scripts/${_f}" -o "${_TMP}/scripts/${_f}"
+  done
+  _HS_BOOTSTRAP_TMP="${_TMP}" exec bash "${_TMP}/build-image.sh" "$@"
+fi
+
+# Clean up bootstrap temp dir if we were re-launched by the guard above.
+if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
+  trap 'rm -rf "${_HS_BOOTSTRAP_TMP}"' EXIT
+  unset _HS_BOOTSTRAP_TMP
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HS_VERSION="${HS_VERSION:-dev}"
@@ -108,6 +140,18 @@ main() {
         log_error "Unknown platform. This script must run on a Raspberry Pi."
         exit 1
     fi
+
+    # Ensure base system is fully up to date before building.
+    # Trixie Lite ships without git/vim — install prerequisites here so
+    # the README clone step works on a bare image.
+    echo ""
+    echo "=============================================="
+    log_info "Updating base system"
+    echo "=============================================="
+    apt-get update
+    apt-get -y upgrade
+    apt-get -y install --no-install-recommends git vim curl
+    log_info "Base system updated"
 
     # Export variables for stage scripts
     export SCRIPT_DIR

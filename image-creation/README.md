@@ -17,18 +17,21 @@ This directory contains scripts for building a custom Raspberry Pi image pre-loa
 # SSH into your Pi
 ssh pi@raspberrypi.local
 
-# Make sure git is installed
-sudo apt install git
-
-# Clone the repo (or just the image-creation directory)
-git clone https://github.com/home-screens/home-screens.git
-cd home-screens/image-creation
+# Distribution build (one-liner, no clone needed)
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/image-creation/build-image.sh | sudo bash -s -- --img
 
 # Development build (keeps build tools, good for testing)
-sudo ./build-image.sh
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/image-creation/build-image.sh | sudo bash
+```
 
-# Distribution build (cleans up for smaller image)
-sudo ./build-image.sh --img
+Or clone the repo first if you want to inspect scripts or use `HS_LOCAL`:
+
+```bash
+# Install prerequisites (bare Trixie Lite doesn't include git)
+sudo apt update && sudo apt install -y git
+
+git clone https://github.com/home-screens/home-screens.git
+cd home-screens/image-creation
 
 # Build from a specific release tag
 sudo HS_BRANCH=v1.0.0 ./build-image.sh --img
@@ -45,7 +48,7 @@ sudo HS_LOCAL=true ./build-image.sh
 | 02 | `02-package-cleanup.sh` | Remove unnecessary packages, disable services |
 | 03 | `03-install-deps.sh` | Node.js, Chromium, labwc, fonts, Plymouth |
 | 04 | `04-install-app.sh` | Download release tarball, install, configure |
-| 05 | `05-configure.sh` | OS-level optimizations (journal, swap, tmpfs) |
+| 05 | `05-configure.sh` | Service restart (optimizations handled by setup-system in stage 04) |
 | 99 | `99-finalize.sh` | Distribution cleanup (`--img` only) |
 
 ## How It Works

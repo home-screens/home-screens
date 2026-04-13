@@ -49,6 +49,7 @@ VERSION_FLAG=""
 KEEP_VM=false
 NO_CACHE=false
 VERBOSE=false
+CURL_INSTALL=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -58,6 +59,7 @@ while [[ $# -gt 0 ]]; do
     --keep)       KEEP_VM=true; shift ;;
     --no-cache)   NO_CACHE=true; shift ;;
     --verbose)    VERBOSE=true; shift ;;
+    --curl)       CURL_INSTALL=true; shift ;;
     -h|--help)
       echo "Usage: $(basename "$0") [options]"
       echo ""
@@ -68,6 +70,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --keep           Don't destroy VM after tests (SSH in to debug)"
       echo "  --no-cache       Re-download the base image"
       echo "  --verbose        Show all SSH command output"
+      echo "  --curl           Test curl|bash install path (instead of git clone)"
       echo "  -h, --help       Show this help"
       echo ""
       echo "Prerequisites: brew install qemu cdrtools"
@@ -76,6 +79,7 @@ while [[ $# -gt 0 ]]; do
       echo "  $0                          # test latest release"
       echo "  $0 --version v0.20.0        # test specific version"
       echo "  $0 --keep --verbose         # debug mode"
+      echo "  $0 --curl                       # test curl|bash install"
       echo "  ssh -i .emulate/work/id_ed25519 -p 2222 hs@localhost  # SSH in (with --keep)"
       exit 0 ;;
     *) echo -e "${RED}[x]${NC} Unknown option: $1"; exit 1 ;;
@@ -408,36 +412,48 @@ run_install() {
 
   # Ensure packages are available
   info "Ensuring packages are available..."
-  ssh_cmd "sudo apt-get update -qq && sudo apt-get install -y -qq git vim curl" || {
+  ssh_cmd "sudo apt-get update -qq && sudo apt-get install -y -qq curl" || {
     err "Failed to install prerequisite packages."
     exit 1
   }
 
-  # Clone the repo (install.sh sources lib/common.sh relative to its path)
-  info "Cloning home-screens repo..."
-  ssh_cmd "git clone --depth 1 https://github.com/home-screens/home-screens.git ~/home-screens" || {
-    err "Failed to clone repository."
-    exit 1
-  }
-
-  # Build the install command
-  local install_cmd="~/home-screens/scripts/install.sh --non-interactive"
+  # Build the install flags
+  local install_flags="--non-interactive"
   if [ -n "${VERSION_FLAG}" ]; then
-    install_cmd="${install_cmd} --version ${VERSION_FLAG}"
+    install_flags="${install_flags} --version ${VERSION_FLAG}"
     info "Installing version ${VERSION_FLAG}..."
   else
     info "Installing latest release..."
   fi
 
-  # Run install.sh
+  if [ "${CURL_INSTALL}" = true ]; then
+    # Pipe install: curl | bash (tests the self-download guard)
+    info "Testing curl | bash install path..."
+    local curl_url="https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh"
+    local install_cmd="curl -fsSL ${curl_url} | bash -s -- ${install_flags}"
+  else
+    # Clone install: traditional path
+    info "Cloning home-screens repo..."
+    ssh_cmd "sudo apt-get install -y -qq git" || {
+      err "Failed to install git."
+      exit 1
+    }
+    ssh_cmd "git clone --depth 1 https://github.com/home-screens/home-screens.git ~/home-screens" || {
+      err "Failed to clone repository."
+      exit 1
+    }
+    local install_cmd="bash ~/home-screens/scripts/install.sh ${install_flags}"
+  fi
+
+  # Run install
   if [ "${VERBOSE}" = true ]; then
-    ssh_cmd "bash ${install_cmd}" || {
+    ssh_cmd "${install_cmd}" || {
       err "install.sh failed. See output above."
       exit 1
     }
   else
     local install_output
-    if install_output=$(ssh_cmd "bash ${install_cmd}" 2>&1); then
+    if install_output=$(ssh_cmd "${install_cmd}" 2>&1); then
       info "install.sh completed successfully."
     else
       err "install.sh failed. Output:"

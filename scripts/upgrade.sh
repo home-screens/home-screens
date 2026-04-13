@@ -529,7 +529,7 @@ case "${action}" in
     changed=""
 
     # 0. Ensure required system packages are installed
-    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji plymouth plymouth-themes"
+    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji plymouth plymouth-themes vim"
     missing=""
     for pkg in ${REQUIRED_PACKAGES}; do
       if ! dpkg -s "${pkg}" &>/dev/null; then
@@ -958,6 +958,175 @@ WantedBy=timers.target"
       sudo systemctl start wifi-watchdog.timer 2>/dev/null || true
       changed="${changed}wifi-watchdog-timer,"
     fi
+
+    # 17. Volatile journal — keep logs in RAM to reduce SD card writes.
+    _JOURNALD_DIR="/etc/systemd/journald.conf.d"
+    _JOURNALD_CONF="${_JOURNALD_DIR}/home-screens.conf"
+    _DESIRED_JOURNALD="[Journal]
+Storage=volatile
+RuntimeMaxUse=16M
+RuntimeMaxFileSize=4M
+SyncIntervalSec=5min"
+    if [ ! -f "${_JOURNALD_CONF}" ] || [ "$(sudo cat "${_JOURNALD_CONF}")" != "${_DESIRED_JOURNALD}" ]; then
+      sudo mkdir -p "${_JOURNALD_DIR}"
+      echo "${_DESIRED_JOURNALD}" | sudo tee "${_JOURNALD_CONF}" > /dev/null
+      sudo systemctl restart systemd-journald 2>/dev/null || true
+      changed="${changed}journald,"
+    fi
+
+    # 18. Swap optimization — low swappiness + reduced cache pressure for kiosk.
+    _ZRAM_SYSCTL="/etc/sysctl.d/99-home-screens-zram.conf"
+    _DESIRED_ZRAM_SYSCTL="vm.swappiness=10
+vm.vfs_cache_pressure=50"
+    if [ ! -f "${_ZRAM_SYSCTL}" ] || [ "$(sudo cat "${_ZRAM_SYSCTL}")" != "${_DESIRED_ZRAM_SYSCTL}" ]; then
+      echo "${_DESIRED_ZRAM_SYSCTL}" | sudo tee "${_ZRAM_SYSCTL}" > /dev/null
+      changed="${changed}zram-sysctl,"
+    fi
+
+    # Purge zram-tools if present (conflicts with native zram-generator)
+    if dpkg -s zram-tools &>/dev/null; then
+      sudo apt-get purge -y -qq zram-tools 2>/dev/null || true
+      changed="${changed}purge-zram-tools,"
+    fi
+
+    # Stop/disable/purge dphys-swapfile and remove /var/swap if present
+    if dpkg -s dphys-swapfile &>/dev/null; then
+      sudo systemctl stop dphys-swapfile 2>/dev/null || true
+      sudo systemctl disable dphys-swapfile 2>/dev/null || true
+      sudo apt-get purge -y -qq dphys-swapfile 2>/dev/null || true
+      changed="${changed}purge-dphys-swapfile,"
+    fi
+    if [ -f /var/swap ]; then
+      sudo swapoff /var/swap 2>/dev/null || true
+      sudo rm -f /var/swap
+      changed="${changed}remove-swapfile,"
+    fi
+
+    # 19. Disable unnecessary services — reduce background activity and SD wear.
+    _DISABLE_SVCS="apt-daily.service apt-daily-upgrade.service apt-daily.timer apt-daily-upgrade.timer man-db.timer dpkg-db-backup.timer rsyslog.service syslog.service bluetooth.service hciuart.service bthelper@.service ModemManager.service triggerhappy.service triggerhappy.socket systemd-journal-flush.service smartmontools.service smartd.service serial-getty@ttyAMA0.service serial-getty@ttyS0.service"
+    _disabled_any=0
+    for _svc in ${_DISABLE_SVCS}; do
+      # Skip if the unit doesn't exist on this system
+      if ! systemctl list-unit-files "${_svc}" &>/dev/null; then
+        continue
+      fi
+      _state=$(systemctl is-enabled "${_svc}" 2>/dev/null || echo "missing")
+      if [ "${_state}" != "masked" ] && [ "${_state}" != "disabled" ] && [ "${_state}" != "missing" ] && [ "${_state}" != "indirect" ]; then
+        sudo systemctl disable "${_svc}" 2>/dev/null || true
+        sudo systemctl stop "${_svc}" 2>/dev/null || true
+        _disabled_any=1
+      fi
+    done
+    [ "${_disabled_any}" = "1" ] && changed="${changed}disable-services,"
+
+    # Mask services that package installs or deps might re-enable
+    _MASK_SVCS="rsyslog.service ModemManager.service bluetooth.service"
+    _masked_any=0
+    for _svc in ${_MASK_SVCS}; do
+      _state=$(systemctl is-enabled "${_svc}" 2>/dev/null || echo "missing")
+      if [ "${_state}" != "masked" ] && [ "${_state}" != "missing" ]; then
+        sudo systemctl mask "${_svc}" 2>/dev/null || true
+        _masked_any=1
+      fi
+    done
+    [ "${_masked_any}" = "1" ] && changed="${changed}mask-services,"
+
+    # 20. Storage-specific optimizations — adapt trim/scrub to disk type.
+    _ROOT_PART=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
+    _ROOT_DEV=$(lsblk -no PKNAME "${_ROOT_PART}" 2>/dev/null || echo "")
+    if [ -n "${_ROOT_DEV}" ]; then
+      case "${_ROOT_DEV}" in
+        mmcblk*)
+          # SD card — no TRIM support, disable timers
+          for _tmr in fstrim.timer e2scrub_all.timer; do
+            _state=$(systemctl is-enabled "${_tmr}" 2>/dev/null || echo "missing")
+            if [ "${_state}" != "masked" ] && [ "${_state}" != "disabled" ] && [ "${_state}" != "missing" ]; then
+              sudo systemctl disable "${_tmr}" 2>/dev/null || true
+              sudo systemctl stop "${_tmr}" 2>/dev/null || true
+              changed="${changed}disable-${_tmr},"
+            fi
+          done
+          ;;
+        *)
+          # SSD/NVMe — enable TRIM and scrub
+          for _tmr in fstrim.timer e2scrub_all.timer; do
+            _state=$(systemctl is-enabled "${_tmr}" 2>/dev/null || echo "missing")
+            if [ "${_state}" = "disabled" ]; then
+              sudo systemctl enable "${_tmr}" 2>/dev/null || true
+              sudo systemctl start "${_tmr}" 2>/dev/null || true
+              changed="${changed}enable-${_tmr},"
+            fi
+          done
+          ;;
+      esac
+    fi
+
+    # 21. File descriptor limits — Chromium and Next.js benefit from higher limits.
+    _LIMITS_CONF="/etc/security/limits.d/99-home-screens.conf"
+    _DESIRED_LIMITS="${USER} soft nofile 65536
+${USER} hard nofile 65536"
+    if [ ! -f "${_LIMITS_CONF}" ] || [ "$(sudo cat "${_LIMITS_CONF}")" != "${_DESIRED_LIMITS}" ]; then
+      echo "${_DESIRED_LIMITS}" | sudo tee "${_LIMITS_CONF}" > /dev/null
+      changed="${changed}fd-limits,"
+    fi
+
+    # 22. tmpfs mounts — reduce SD card writes for temp files.
+    _FSTAB_MARKER="# Home Screens tmpfs"
+    if ! grep -q "${_FSTAB_MARKER}" /etc/fstab 2>/dev/null; then
+      sudo tee -a /etc/fstab > /dev/null <<TMPFS_EOF
+${_FSTAB_MARKER}
+tmpfs /tmp tmpfs defaults,noatime,nosuid,nodev,size=256M,mode=1777 0 0
+tmpfs /var/tmp tmpfs defaults,noatime,nosuid,nodev,size=128M,mode=1777 0 0
+TMPFS_EOF
+      changed="${changed}tmpfs-mounts,"
+    fi
+
+    # 23. WiFi autoconnect dispatcher — set infinite retries and disable powersave
+    #     on any WiFi connection that comes up, including new SSIDs.
+    _DISPATCHER="/etc/NetworkManager/dispatcher.d/99-wifi-autoconnect"
+    _DESIRED_DISPATCHER='#!/bin/bash
+# Home Screens — ensure WiFi connections always reconnect and stay awake.
+# Runs on any NM connection "up" event; $CONNECTION_UUID is set by NM.
+[ "$2" != "up" ] && exit 0
+CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CONN_TYPE" != "802-11-wireless" ] && exit 0
+CURRENT=$(nmcli -g connection.autoconnect-retries connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CURRENT" = "0" ] && exit 0
+nmcli connection modify "$CONNECTION_UUID" connection.autoconnect-retries 0 2>/dev/null
+nmcli connection modify "$CONNECTION_UUID" 802-11-wireless.powersave 2 2>/dev/null'
+    if [ ! -f "${_DISPATCHER}" ] || [ "$(sudo cat "${_DISPATCHER}")" != "${_DESIRED_DISPATCHER}" ]; then
+      echo "${_DESIRED_DISPATCHER}" | sudo tee "${_DISPATCHER}" > /dev/null
+      sudo chmod +x "${_DISPATCHER}"
+      changed="${changed}wifi-dispatcher,"
+    fi
+
+    # 24. Boot speed — disable services that block boot waiting for network.
+    for _svc in systemd-networkd-wait-online.service NetworkManager-wait-online.service; do
+      _state=$(systemctl is-enabled "${_svc}" 2>/dev/null || echo "missing")
+      if [ "${_state}" != "masked" ] && [ "${_state}" != "disabled" ] && [ "${_state}" != "missing" ]; then
+        sudo systemctl disable "${_svc}" 2>/dev/null || true
+        changed="${changed}disable-${_svc},"
+      fi
+    done
+    # If dhcpcd is enabled but NetworkManager is also enabled, disable dhcpcd (redundant)
+    _dhcpcd_state=$(systemctl is-enabled dhcpcd 2>/dev/null || echo "missing")
+    _nm_state=$(systemctl is-enabled NetworkManager 2>/dev/null || echo "missing")
+    if [ "${_dhcpcd_state}" = "enabled" ] && [ "${_nm_state}" = "enabled" ]; then
+      sudo systemctl disable dhcpcd 2>/dev/null || true
+      sudo systemctl stop dhcpcd 2>/dev/null || true
+      changed="${changed}disable-dhcpcd,"
+    fi
+
+    # 25. Kernel parameter tuning — raise inotify watch limit for Next.js file watching.
+    _SYSCTL_CONF="/etc/sysctl.d/99-home-screens.conf"
+    _DESIRED_SYSCTL="fs.inotify.max_user_watches=524288"
+    if [ ! -f "${_SYSCTL_CONF}" ] || [ "$(sudo cat "${_SYSCTL_CONF}")" != "${_DESIRED_SYSCTL}" ]; then
+      echo "${_DESIRED_SYSCTL}" | sudo tee "${_SYSCTL_CONF}" > /dev/null
+      changed="${changed}sysctl-inotify,"
+    fi
+
+    # Apply all sysctl changes
+    sudo sysctl --system > /dev/null 2>&1 || true
 
     # Remove trailing comma
     changed="${changed%,}"

@@ -25,7 +25,11 @@ For the fastest setup, consider using a [pre-built image](/docs/getting-started#
 
 ### Raspberry Pi OS Lite (recommended)
 
-Clone the repo and run the install script:
+```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash
+```
+
+Or clone the repo first if you prefer to inspect the script before running it:
 
 ```bash
 sudo apt install git
@@ -38,10 +42,33 @@ git clone https://github.com/home-screens/home-screens.git
 If you're running the full Desktop image, pass the `--desktop` flag:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --desktop
+```
+
+Or with git clone:
+
+```bash
 sudo apt install git
 git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh --desktop
 ```
+
+### Passing flags with curl
+
+Use `bash -s --` to pass flags when piping through curl:
+
+```bash
+# Skip all prompts and use defaults
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --non-interactive
+
+# Desktop mode
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --desktop
+
+# Display-only spoke pointing at an existing hub
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --display-only --backend http://hub:3000
+```
+
+See the [Installer flags](#installer-flags) reference for all available options.
 
 ## Post-Install
 

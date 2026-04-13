@@ -26,6 +26,7 @@ apt-get update
 PACKAGES_CORE="
     curl
     git
+    vim
     ca-certificates
     cloud-guest-utils
     e2fsprogs

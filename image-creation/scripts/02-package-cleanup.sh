@@ -12,11 +12,7 @@ log_warn() {
     echo "[WARN] $1"
 }
 
-log_info "Updating package lists"
-apt-get update
-
-log_info "Upgrading existing packages"
-apt-get -y upgrade
+# apt-get update and upgrade are handled by build-image.sh before stages run.
 
 log_info "Removing unnecessary packages"
 
