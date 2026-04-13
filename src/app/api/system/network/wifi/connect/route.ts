@@ -8,6 +8,8 @@ import {
   inhibitWatchdog,
   uninhibitWatchdog,
   scheduleRollback,
+  hasActiveRollback,
+  ensureSourceRouting,
 } from '@/lib/network-commands';
 import {
   validateSSID,
@@ -129,7 +131,15 @@ export const POST = withAuth(async (request: NextRequest) => {
   const managementIface = await getManagementInterface(clientIP);
   const isManagement = managementIface !== null ? managementIface === iface : true;
 
-  // 5. Require confirmation for management interface changes
+  // 5. Reject if a rollback is already in progress
+  if (isManagement && hasActiveRollback()) {
+    return NextResponse.json(
+      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.' },
+      { status: 409 },
+    );
+  }
+
+  // 6. Require confirmation for management interface changes
   if (isManagement && !confirmed) {
     return NextResponse.json({
       requiresConfirmation: true,
@@ -144,8 +154,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     ? await captureCurrentConnection(iface)
     : null;
 
-  // 7. Inhibit watchdog if targeting management interface
-  if (isManagement) {
+  // 7. Only inhibit watchdog when we can actually schedule a rollback
+  const canRollback = isManagement && previousConnection !== null;
+  if (canRollback) {
     await inhibitWatchdog();
   }
 
@@ -160,12 +171,15 @@ export const POST = withAuth(async (request: NextRequest) => {
   try {
     const stdout = await nmcliSudo(args);
 
-    // 10. Schedule rollback if management interface
+    // 10. Ensure source-based routing so both interfaces remain reachable
+    await ensureSourceRouting();
+
+    // 11. Schedule rollback if management interface with prior connection
     let rollbackId: string | undefined;
-    if (isManagement && previousConnection) {
+    if (canRollback) {
       rollbackId = scheduleRollback(
-        previousConnection.connectionId,
-        previousConnection.settings,
+        previousConnection!.connectionId,
+        previousConnection!.settings,
       );
     }
 
@@ -175,7 +189,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       ...(rollbackId && { rollbackId }),
     });
   } catch (err: unknown) {
-    if (isManagement) await uninhibitWatchdog();
+    if (canRollback) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()

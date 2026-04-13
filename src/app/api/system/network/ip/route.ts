@@ -8,6 +8,8 @@ import {
   inhibitWatchdog,
   uninhibitWatchdog,
   scheduleRollback,
+  hasActiveRollback,
+  ensureSourceRouting,
 } from '@/lib/network-commands';
 import {
   validateUUID,
@@ -181,7 +183,15 @@ export const PUT = withAuth(async (request: NextRequest) => {
     ? connectionDevice === managementIface
     : connectionDevice !== null; // can't determine mgmt iface → assume worst case
 
-  // 5. Require confirmation for management interface changes
+  // 5. Reject if a rollback is already in progress
+  if (isManagement && hasActiveRollback()) {
+    return NextResponse.json(
+      { error: 'A network change is already pending confirmation. Wait for it to complete or be reverted.' },
+      { status: 409 },
+    );
+  }
+
+  // 6. Require confirmation for management interface changes
   if (isManagement && !confirmed) {
     return NextResponse.json({
       requiresConfirmation: true,
@@ -197,8 +207,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
     ? await captureCurrentSettings(connectionId)
     : null;
 
-  // 7. Inhibit watchdog before making changes
-  if (isManagement) {
+  // 7. Only inhibit watchdog when we can actually schedule a rollback
+  const canRollback = isManagement && previousSettings !== null;
+  if (canRollback) {
     await inhibitWatchdog();
   }
 
@@ -226,7 +237,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await nmcliSudo(modifyArgs);
   } catch (err: unknown) {
-    if (isManagement) await uninhibitWatchdog();
+    if (canRollback) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()
@@ -238,8 +249,11 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await nmcliSudo(['connection', 'down', connectionId]);
     await nmcliSudo(['connection', 'up', connectionId]);
+
+    // Refresh source routing after IP change
+    await ensureSourceRouting();
   } catch (err: unknown) {
-    if (isManagement) await uninhibitWatchdog();
+    if (canRollback) await uninhibitWatchdog();
     const message =
       err && typeof err === 'object' && 'stderr' in err
         ? String((err as { stderr: unknown }).stderr).trim()
@@ -249,8 +263,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
 
   // 11. Schedule rollback for management interface changes
   let rollbackId: string | undefined;
-  if (isManagement && previousSettings) {
-    rollbackId = scheduleRollback(connectionId, previousSettings);
+  if (canRollback) {
+    rollbackId = scheduleRollback(connectionId, previousSettings!);
   }
 
   return NextResponse.json({

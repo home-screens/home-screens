@@ -206,6 +206,14 @@ export function confirmRollback(rollbackId: string): boolean {
 }
 
 /**
+ * Check whether a rollback is currently pending.
+ * Used to reject concurrent management-interface changes.
+ */
+export function hasActiveRollback(): boolean {
+  return pendingRollback !== null && !pendingRollback.confirmed;
+}
+
+/**
  * Check the current rollback state for UI polling.
  *
  * @returns The rollback ID and remaining timeout, or `null`.
@@ -291,6 +299,133 @@ export async function getManagementInterface(clientIP: string): Promise<string |
   }
 }
 
+/* ─── Source-based routing ───────────────────── */
+
+/**
+ * Routing table range reserved for per-interface source routing.
+ * Tables 100–119 are used (one per connected interface, max 20).
+ */
+const SOURCE_ROUTE_TABLE_BASE = 100;
+const SOURCE_ROUTE_TABLE_MAX = 119;
+
+/** Serializes source-routing updates (separate from the nmcli writeMutex) */
+let sourceRouteMutex: Promise<void> = Promise.resolve();
+
+/** Snapshot of the last topology we configured, to skip no-op runs */
+let lastRouteSnapshot = '';
+
+/**
+ * Ensure source-based routing for all connected interfaces.
+ *
+ * When multiple interfaces are active on different subnets, the kernel
+ * picks one default route for all outbound traffic. Packets arriving on
+ * the non-default interface get responses sent out the wrong interface.
+ * This breaks SSH, HTTP, and everything else on the secondary interface.
+ *
+ * The fix: for each connected interface, add a policy routing rule that
+ * says "packets originating from this IP use a dedicated routing table."
+ *
+ * Always cleans stale rules first (even when topology shrinks to 1
+ * interface), then re-adds only when ≥2 interfaces are active.
+ * Serialized through its own mutex to prevent races with concurrent calls.
+ */
+export async function ensureSourceRouting(): Promise<void> {
+  const task = sourceRouteMutex.then(() => _ensureSourceRoutingImpl());
+  sourceRouteMutex = task.catch(() => {});
+  return task;
+}
+
+async function _ensureSourceRoutingImpl(): Promise<void> {
+  try {
+    const { stdout: routeOutput } = await execFileAsync('ip', ['route', 'show'], {
+      timeout: NMCLI_TIMEOUT_MS,
+      env: EXEC_ENV,
+    });
+
+    // Parse connected interfaces from the routing table.
+    // Step 1: Find default routes (gateway + device). The `src` field is
+    // optional — many systems omit it from default route lines.
+    // Step 2: Get each interface's IP and subnet from kernel scope-link lines
+    // which always include `src`.
+    const gateways = new Map<string, string>(); // dev → gateway
+    const ifaceIPs = new Map<string, { ip: string; subnet: string }>(); // dev → { ip, subnet }
+
+    for (const line of routeOutput.split('\n')) {
+      // Default route: "default via 192.168.86.1 dev wlan0 ..."
+      const defaultMatch = line.match(/^default via (\S+) dev (\S+)/);
+      if (defaultMatch) {
+        const [, gateway, dev] = defaultMatch;
+        if (!gateways.has(dev)) gateways.set(dev, gateway);
+      }
+      // Subnet route: "192.168.86.0/24 dev wlan0 ... src 192.168.86.187"
+      const subnetMatch = line.match(/^(\S+\/\d+) dev (\S+).*src (\S+)/);
+      if (subnetMatch) {
+        const [, subnet, dev, ip] = subnetMatch;
+        if (!ifaceIPs.has(dev)) ifaceIPs.set(dev, { ip, subnet });
+      }
+    }
+
+    // Merge: only interfaces with both a default route AND a known IP
+    const interfaces = new Map<string, { ip: string; gateway: string; subnet: string }>();
+    for (const [dev, gateway] of gateways) {
+      const ipInfo = ifaceIPs.get(dev);
+      if (ipInfo) {
+        interfaces.set(dev, { ip: ipInfo.ip, gateway, subnet: ipInfo.subnet });
+      }
+    }
+
+    // Build a snapshot to detect topology changes — skip if unchanged
+    const snapshot = [...interfaces.entries()]
+      .map(([dev, info]) => `${dev}:${info.ip}:${info.gateway}:${info.subnet}`)
+      .sort()
+      .join('|');
+    if (snapshot === lastRouteSnapshot) return;
+    lastRouteSnapshot = snapshot;
+
+    // Always clean stale rules (even when shrinking to 1 interface)
+    for (let t = SOURCE_ROUTE_TABLE_BASE; t <= SOURCE_ROUTE_TABLE_MAX; t++) {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          await execFileAsync('sudo', ['ip', 'rule', 'del', 'table', String(t)], {
+            timeout: NMCLI_TIMEOUT_MS,
+          });
+        } catch {
+          break;
+        }
+      }
+      await execFileAsync('sudo', ['ip', 'route', 'flush', 'table', String(t)], {
+        timeout: NMCLI_TIMEOUT_MS,
+      }).catch(() => {});
+    }
+
+    // Only add rules when multiple interfaces need them
+    if (interfaces.size < 2) return;
+
+    let tableNum = SOURCE_ROUTE_TABLE_BASE;
+    for (const [dev, info] of interfaces) {
+      if (!info.ip || !info.gateway || tableNum > SOURCE_ROUTE_TABLE_MAX) continue;
+
+      await execFileAsync('sudo', [
+        'ip', 'rule', 'add', 'from', info.ip, 'table', String(tableNum),
+      ], { timeout: NMCLI_TIMEOUT_MS }).catch(() => {});
+
+      await execFileAsync('sudo', [
+        'ip', 'route', 'replace', 'default',
+        'via', info.gateway, 'table', String(tableNum),
+      ], { timeout: NMCLI_TIMEOUT_MS }).catch(() => {});
+
+      await execFileAsync('sudo', [
+        'ip', 'route', 'replace', info.subnet,
+        'dev', dev, 'table', String(tableNum),
+      ], { timeout: NMCLI_TIMEOUT_MS }).catch(() => {});
+
+      tableNum++;
+    }
+  } catch (err) {
+    console.error('[network-commands] ensureSourceRouting failed:', err);
+  }
+}
+
 /* ─── Test helpers ───────────────────────────── */
 
 /**
@@ -304,4 +439,6 @@ export function __resetForTests(): void {
   pendingRollback = null;
   pendingRollbackStartTime = 0;
   writeMutex = Promise.resolve();
+  sourceRouteMutex = Promise.resolve();
+  lastRouteSnapshot = '';
 }

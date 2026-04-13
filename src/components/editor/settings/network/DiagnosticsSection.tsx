@@ -149,7 +149,41 @@ export default function DiagnosticsSection() {
           </div>
         )}
 
-        {/* Test button */}
+        {/* Results */}
+        {result?.available && (
+          <div className="space-y-2">
+            {result.gateway && (
+              <HostRow
+                label="Gateway"
+                ip={result.gateway.ip}
+                reachable={result.gateway.reachable}
+                latencyMs={result.gateway.latencyMs}
+              />
+            )}
+            {result.internet && (
+              <HostRow
+                label="Internet"
+                ip={result.internet.ip}
+                reachable={result.internet.reachable}
+                latencyMs={result.internet.latencyMs}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Not available */}
+        {result && !result.available && (
+          <p className="text-xs text-hs-text-muted">
+            Diagnostics are not available on this device.
+          </p>
+        )}
+
+        {/* Error */}
+        {error && (
+          <p className="text-xs text-hs-danger">{error}</p>
+        )}
+
+        {/* Test button — at the bottom so content flows naturally */}
         <div>
           <Button
             variant="secondary"
@@ -185,40 +219,6 @@ export default function DiagnosticsSection() {
             )}
           </Button>
         </div>
-
-        {/* Error */}
-        {error && (
-          <p className="text-xs text-hs-danger">{error}</p>
-        )}
-
-        {/* Results */}
-        {result?.available && (
-          <div className="space-y-2 pt-1">
-            {result.gateway && (
-              <HostRow
-                label="Gateway"
-                ip={result.gateway.ip}
-                reachable={result.gateway.reachable}
-                latencyMs={result.gateway.latencyMs}
-              />
-            )}
-            {result.internet && (
-              <HostRow
-                label="Internet"
-                ip={result.internet.ip}
-                reachable={result.internet.reachable}
-                latencyMs={result.internet.latencyMs}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Not available */}
-        {result && !result.available && (
-          <p className="text-xs text-hs-text-muted">
-            Diagnostics are not available on this device.
-          </p>
-        )}
       </div>
     </section>
   );

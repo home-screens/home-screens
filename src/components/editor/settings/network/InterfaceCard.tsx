@@ -73,13 +73,13 @@ export default function InterfaceCard({
         </span>
         {iface.isManagementInterface && (
           <span className="text-[10px] uppercase tracking-wider bg-hs-warning/20 text-hs-warning px-1.5 py-0.5 rounded shrink-0">
-            mgmt
+            Your Connection
           </span>
         )}
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
           {canConfigureIP && onToggleIPSettings && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => onToggleIPSettings(iface.device)}
               aria-expanded={ipSettingsOpen}
