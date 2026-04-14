@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Shield, Code2, Loader2, PackageSearch } from 'lucide-react';
+import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
+import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
+import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
 import { usePluginStore } from '@/stores/plugin-store';
 import Button from '@/components/ui/Button';
@@ -15,14 +18,6 @@ interface PluginStorePanelProps {
 
 type Tab = 'browse' | 'installed' | 'updates' | 'developer';
 
-/** Human-readable labels for permission declarations */
-const PERMISSION_LABELS: Record<PluginPermission, string> = {
-  network: 'Network access',
-  secrets: 'Secret storage',
-  events: 'Host events',
-  storage: 'Local storage',
-};
-
 export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const [tab, setTab] = useState<Tab>('browse');
   const [registry, setRegistry] = useState<RegistryPlugin[]>([]);
@@ -32,6 +27,8 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [confirmPlugin, setConfirmPlugin] = useState<RegistryPlugin | null>(null);
+  const [installFromUrlOpen, setInstallFromUrlOpen] = useState(false);
+  const [updatingExternal, setUpdatingExternal] = useState<InstalledPlugin | null>(null);
   const pluginErrors = usePluginStore((s) => s.errors);
 
   const fetchData = useCallback(async () => {
@@ -172,6 +169,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               search={search}
               onSearchChange={setSearch}
               onInstall={handleInstallRequest}
+              onInstallFromUrl={() => setInstallFromUrlOpen(true)}
               actionInProgress={actionInProgress}
             />
           ) : tab === 'installed' ? (
@@ -181,6 +179,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onUninstall={handleUninstall}
               onToggle={handleToggle}
               actionInProgress={actionInProgress}
+              onUpdateExternal={(plugin) => setUpdatingExternal(plugin)}
             />
           ) : tab === 'updates' ? (
             <UpdatesTab
@@ -204,6 +203,29 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           actionInProgress={actionInProgress}
         />
       )}
+
+      {/* Install from URL modal */}
+      {installFromUrlOpen && (
+        <InstallFromUrlModal
+          onClose={() => setInstallFromUrlOpen(false)}
+          onInstalled={() => {
+            fetchData();
+            usePluginStore.getState().loadPlugins();
+          }}
+        />
+      )}
+
+      {/* External plugin update modal */}
+      {updatingExternal && (
+        <ExternalUpdateModal
+          plugin={updatingExternal}
+          onClose={() => setUpdatingExternal(null)}
+          onUpdated={() => {
+            fetchData();
+            usePluginStore.getState().loadPlugins();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -218,6 +240,7 @@ function BrowseTab({
   search,
   onSearchChange,
   onInstall,
+  onInstallFromUrl,
   actionInProgress,
 }: {
   plugins: RegistryPlugin[];
@@ -225,17 +248,23 @@ function BrowseTab({
   search: string;
   onSearchChange: (s: string) => void;
   onInstall: (plugin: RegistryPlugin) => void;
+  onInstallFromUrl: () => void;
   actionInProgress: string | null;
 }) {
   return (
     <div className="space-y-3">
-      <input
-        type="text"
-        placeholder="Search plugins..."
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Search plugins..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="flex-1 px-3 py-2 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint"
+        />
+        <Button variant="secondary" size="sm" onClick={onInstallFromUrl}>
+          Install from URL…
+        </Button>
+      </div>
       {plugins.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-10 text-hs-text-faint">
           <PackageSearch size={32} strokeWidth={1.5} className="opacity-30" />
@@ -295,12 +324,14 @@ function InstalledTab({
   onUninstall,
   onToggle,
   actionInProgress,
+  onUpdateExternal,
 }: {
   installed: InstalledPlugin[];
   errors: Map<string, { message: string }>;
   onUninstall: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
   actionInProgress: string | null;
+  onUpdateExternal: (plugin: InstalledPlugin) => void;
 }) {
   if (installed.length === 0) {
     return <p className="text-sm text-hs-text-faint text-center py-8">No plugins installed</p>;
@@ -316,6 +347,11 @@ function InstalledTab({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
                 <span className="text-xs text-hs-text-muted">v{plugin.version}</span>
+                {plugin.source === 'external' && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-hs-warning rounded">
+                    External
+                  </span>
+                )}
               </div>
               {error && (
                 <div className="flex items-center gap-1 mt-1">
@@ -324,6 +360,18 @@ function InstalledTab({
                 </div>
               )}
             </div>
+            {plugin.source === 'external' && (
+              <button
+                type="button"
+                onClick={() => onUpdateExternal(plugin)}
+                disabled={actionInProgress === plugin.id}
+                className="p-1 text-hs-text-muted hover:text-hs-accent-hover"
+                title="Check for update"
+                aria-label={`Check for update to ${plugin.id}`}
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onToggle(plugin.id, !plugin.enabled)}
@@ -572,72 +620,18 @@ function InstallConfirmModal({
   return (
     <div className="fixed inset-0 z-nested flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-base font-semibold text-hs-text-primary">Install Plugin</h3>
-          {plugin.verified && (
-            <span title="Verified"><CheckCircle className="w-4 h-4 text-hs-accent-hover" /></span>
-          )}
-        </div>
+        <h3 className="text-base font-semibold text-hs-text-primary mb-3">Install Plugin</h3>
 
-        <div className="space-y-3">
-          {/* Plugin info */}
-          <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
-            <div className="text-sm font-medium text-hs-text-primary">{plugin.name}</div>
-            <p className="text-xs text-hs-text-muted mt-0.5">{plugin.description}</p>
-            <div className="flex items-center gap-3 mt-2 text-[11px] text-hs-text-muted">
-              <span>{plugin.author}</span>
-              <span>v{latest?.version}</span>
-              <span>{plugin.license}</span>
-            </div>
-          </div>
-
-          {/* Unverified warning */}
-          {!plugin.verified && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50">
-              <AlertTriangle className="w-4 h-4 text-hs-warning shrink-0 mt-0.5" />
-              <div>
-                <div className="text-xs font-medium text-hs-warning">Unverified Plugin</div>
-                <p className="text-[11px] text-hs-warning/80 mt-0.5">
-                  This plugin has not been reviewed by the Home Screens team. Install at your own discretion.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Permissions */}
-          {manifestPermissions.length > 0 && (
-            <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Shield className="w-3.5 h-3.5 text-hs-text-muted" />
-                <span className="text-xs font-medium text-hs-text-secondary">Permissions requested</span>
-              </div>
-              <div className="space-y-1">
-                {manifestPermissions.map((perm) => (
-                  <div key={perm} className="flex items-center gap-2 text-xs text-hs-text-muted">
-                    <span className="w-1 h-1 rounded-full bg-hs-text-faint" />
-                    {PERMISSION_LABELS[perm] || perm}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Required secrets */}
-          {manifestSecrets.length > 0 && (
-            <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
-              <div className="text-xs font-medium text-hs-text-secondary mb-2">API keys required</div>
-              <div className="space-y-1">
-                {manifestSecrets.map((s) => (
-                  <div key={s.key} className="flex items-center gap-2 text-xs text-hs-text-muted">
-                    <span className="w-1 h-1 rounded-full bg-hs-text-faint" />
-                    {s.label}
-                    {s.required && <span className="text-[10px] text-hs-warning">(required)</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <PluginInstallPreview
+          name={plugin.name}
+          description={plugin.description}
+          author={plugin.author}
+          version={latest?.version ?? '?'}
+          license={plugin.license}
+          verified={plugin.verified}
+          permissions={manifestPermissions}
+          secrets={manifestSecrets}
+        />
 
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-4">

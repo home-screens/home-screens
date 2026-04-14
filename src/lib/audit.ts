@@ -34,6 +34,7 @@ type AuditEvent =
   | { action: 'password_disable'; ip: string }
   | { action: 'display_token_regenerate' }
   | { action: 'plugin_install'; pluginId: string; version: string }
+  | { action: 'plugin_install_external'; pluginId: string; version: string; tarballUrl: string }
   | { action: 'plugin_uninstall'; pluginId: string }
   | { action: 'plugin_proxy'; pluginId: string; domain: string; method: string; status: number }
   | { action: 'session_revoke_all' }

@@ -86,6 +86,10 @@ export interface InstalledPlugin {
   moduleType: string; // raw type from manifest (without "plugin:" prefix)
   /** Set during update — the version being replaced, cleared after config migration */
   previousVersion?: string;
+  /** Where the plugin came from. Undefined ⇒ 'marketplace' (legacy entries). */
+  source?: 'marketplace' | 'external';
+  /** For source === 'external': the URL the tarball was downloaded from (with {version} intact). */
+  externalUrl?: string;
 }
 
 export interface InstalledPluginsFile {

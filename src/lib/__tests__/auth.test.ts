@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
 import {
   readAuthState,
   isAuthEnabled,
@@ -24,32 +25,23 @@ import {
   setIpAllowlistConfig,
 } from '../auth';
 
-const AUTH_PATH = path.join(process.cwd(), 'data', 'auth.json');
-const AUTH_TMP = AUTH_PATH + '.tmp';
-
-// Save and restore original auth.json around tests
-let originalContent: string | null = null;
+// Per-test filesystem isolation: each test gets its own tmp cwd so writes to
+// data/auth.json never touch the real project directory. This is safe under
+// parallel test runs and survives test failures without leaving corrupt state.
+const origCwd = process.cwd();
+let tmpCwd: string;
 
 beforeEach(async () => {
+  tmpCwd = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-auth-cwd-'));
+  await fs.mkdir(path.join(tmpCwd, 'data'), { recursive: true });
+  process.chdir(tmpCwd);
   clearAuthCache();
-  try {
-    originalContent = await fs.readFile(AUTH_PATH, 'utf-8');
-  } catch {
-    originalContent = null;
-  }
-  // Remove auth file for clean test state
-  try { await fs.unlink(AUTH_PATH); } catch { /* ok */ }
-  try { await fs.unlink(AUTH_TMP); } catch { /* ok */ }
 });
 
 afterEach(async () => {
+  process.chdir(origCwd);
   clearAuthCache();
-  try { await fs.unlink(AUTH_PATH); } catch { /* ok */ }
-  try { await fs.unlink(AUTH_TMP); } catch { /* ok */ }
-  if (originalContent !== null) {
-    await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
-    await fs.writeFile(AUTH_PATH, originalContent, 'utf-8');
-  }
+  await fs.rm(tmpCwd, { recursive: true, force: true });
 });
 
 describe('readAuthState', () => {
@@ -60,15 +52,13 @@ describe('readAuthState', () => {
 
   it('reads valid auth state', async () => {
     const data = { passwordHash: 'hash', salt: 'salt', cookieSecret: 'secret' };
-    await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
-    await fs.writeFile(AUTH_PATH, JSON.stringify(data));
+    await fs.writeFile(path.join(tmpCwd, 'data', 'auth.json'), JSON.stringify(data));
     const state = await readAuthState();
     expect(state).toEqual(data);
   });
 
   it('throws on corrupt JSON (fail closed)', async () => {
-    await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
-    await fs.writeFile(AUTH_PATH, 'not json!!!');
+    await fs.writeFile(path.join(tmpCwd, 'data', 'auth.json'), 'not json!!!');
     await expect(readAuthState()).rejects.toThrow();
   });
 
@@ -348,8 +338,7 @@ describe('display token', () => {
 
   it('getDisplayToken auto-generates token for pre-display-token auth.json (upgrade path)', async () => {
     // Simulate an auth.json from before the display token feature was added
-    await fs.mkdir(path.dirname(AUTH_PATH), { recursive: true });
-    await fs.writeFile(AUTH_PATH, JSON.stringify({
+    await fs.writeFile(path.join(tmpCwd, 'data', 'auth.json'), JSON.stringify({
       passwordHash: 'abc',
       salt: 'def',
       cookieSecret: 'ghi',

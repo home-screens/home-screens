@@ -69,8 +69,71 @@ export function getPluginBundlePath(pluginId: string): string {
 
 // --- Install/uninstall ---
 
+/**
+ * Extract a plugin tarball into a temp directory with safety checks.
+ * - Rejects tarballs containing `..` path entries (path traversal).
+ * - Uses `--strip-components=1` to unwrap the top-level directory.
+ *
+ * Caller owns cleanup of both the tarball file and the tmp directory.
+ */
+async function extractPluginTarball(tarPath: string, tmpDir: string): Promise<void> {
+  const { stdout } = await execFileAsync('tar', ['-tzf', tarPath]);
+  if (stdout.split('\n').some((entry) => entry.split('/').includes('..'))) {
+    throw new Error('Tarball contains path traversal entries');
+  }
+  await fs.rm(tmpDir, { recursive: true, force: true });
+  await fs.mkdir(tmpDir, { recursive: true });
+  await execFileAsync('tar', ['-xzf', tarPath, '-C', tmpDir, '--strip-components=1']);
+}
+
+/**
+ * Read and validate the manifest + bundle inside an extracted plugin directory.
+ * Returns the parsed manifest, or throws a user-friendly error describing
+ * exactly what's missing or malformed.
+ */
+async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> {
+  const manifestPath = path.join(tmpDir, 'manifest.json');
+  const bundlePath = path.join(tmpDir, 'dist', 'bundle.js');
+
+  let manifest: PluginManifest;
+  try {
+    const raw = await fs.readFile(manifestPath, 'utf-8');
+    manifest = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      'Plugin manifest.json is missing after extraction — the tarball may be flat '
+      + '(expected a root directory wrapping manifest.json and dist/)',
+    );
+  }
+  if (!validateManifest(manifest)) {
+    const missing = ['id', 'name', 'version', 'moduleType', 'category']
+      .filter((k) => !(manifest as Record<string, unknown>)[k]);
+    throw new Error(
+      `Plugin manifest is invalid${missing.length ? `: missing ${missing.join(', ')}` : ''}`,
+    );
+  }
+  try {
+    await fs.access(bundlePath);
+  } catch {
+    throw new Error(
+      'Plugin bundle is missing at dist/bundle.js — the tarball must contain a dist/ directory with bundle.js',
+    );
+  }
+  return manifest;
+}
+
+/** Atomically move an extracted+validated plugin into its final location. */
+async function promotePluginDir(tmpDir: string, pluginId: string): Promise<void> {
+  const dir = pluginDir(pluginId);
+  await fs.rm(dir, { recursive: true, force: true });
+  await fs.rename(tmpDir, dir);
+}
+
 /** Track in-progress installs to prevent concurrent installs of the same plugin */
 const installing = new Set<string>();
+
+/** Track in-progress external installs to prevent concurrent installs of the same URL */
+const installingExternal = new Set<string>();
 
 export async function installPlugin(
   registryEntry: RegistryPlugin,
@@ -95,52 +158,11 @@ export async function installPlugin(
     await fs.writeFile(tmpTarPath, downloadBuffer);
 
     try {
-      // Pre-flight: reject tarballs containing path traversal entries
-      const { stdout } = await execFileAsync('tar', ['-tzf', tmpTarPath]);
-      if (stdout.split('\n').some((entry) => entry.split('/').includes('..'))) {
-        throw new Error('Tarball contains path traversal entries');
-      }
-
-      // Extract to temp directory first — only promote after validation
       const tmpDir = path.join(pluginsDir(), `.tmp-${safeId}`);
-      await fs.rm(tmpDir, { recursive: true, force: true });
-      await fs.mkdir(tmpDir, { recursive: true });
-
       try {
-        await execFileAsync('tar', ['-xzf', tmpTarPath, '-C', tmpDir, '--strip-components=1']);
-
-        // Validate extracted contents
-        const manifestPath = path.join(tmpDir, 'manifest.json');
-        const bundlePath = path.join(tmpDir, 'dist', 'bundle.js');
-        let manifest: PluginManifest;
-        try {
-          const raw = await fs.readFile(manifestPath, 'utf-8');
-          manifest = JSON.parse(raw);
-        } catch {
-          throw new Error(
-            'Plugin manifest.json is missing after extraction — the tarball may be flat '
-            + '(expected a root directory wrapping manifest.json and dist/)',
-          );
-        }
-        if (!validateManifest(manifest)) {
-          const missing = ['id', 'name', 'version', 'moduleType', 'category']
-            .filter((k) => !(manifest as Record<string, unknown>)[k]);
-          throw new Error(
-            `Plugin manifest is invalid${missing.length ? `: missing ${missing.join(', ')}` : ''}`,
-          );
-        }
-        try {
-          await fs.access(bundlePath);
-        } catch {
-          throw new Error(
-            'Plugin bundle is missing at dist/bundle.js — the tarball must contain a dist/ directory with bundle.js',
-          );
-        }
-
-        // Validation passed — atomically promote to final location
-        const dir = pluginDir(registryEntry.id);
-        await fs.rm(dir, { recursive: true, force: true });
-        await fs.rename(tmpDir, dir);
+        await extractPluginTarball(tmpTarPath, tmpDir);
+        await validateExtractedPlugin(tmpDir);
+        await promotePluginDir(tmpDir, registryEntry.id);
       } catch (err) {
         await fs.rm(tmpDir, { recursive: true, force: true });
         throw err;
@@ -180,6 +202,94 @@ export async function installPlugin(
     await saveInstalledPlugins(installed);
   } finally {
     installing.delete(registryEntry.id);
+  }
+}
+
+export async function installExternalPlugin(
+  tarballUrl: string,
+  downloadBuffer: Buffer,
+): Promise<{ pluginId: string; version: string }> {
+  if (installingExternal.has(tarballUrl)) {
+    throw new Error(`An install from ${tarballUrl} is already in progress`);
+  }
+  installingExternal.add(tarballUrl);
+
+  const tmpSuffix = crypto.randomBytes(8).toString('hex');
+  const tmpTarPath = path.join(pluginsDir(), `.tmp-ext-${tmpSuffix}.tar.gz`);
+  const tmpDir = path.join(pluginsDir(), `.tmp-ext-${tmpSuffix}`);
+
+  try {
+    await fs.mkdir(pluginsDir(), { recursive: true });
+    await fs.writeFile(tmpTarPath, downloadBuffer);
+
+    try {
+      await extractPluginTarball(tmpTarPath, tmpDir);
+      const manifest = await validateExtractedPlugin(tmpDir);
+
+      // Fast-fail collision guard before extraction completes its side-effects
+      // (the fresh recheck below is what actually protects against overwrites).
+      const earlyInstalled = await getInstalledPlugins();
+      const earlyExisting = earlyInstalled.plugins.find((p) => p.id === manifest.id);
+      if (earlyExisting && earlyExisting.source !== 'external') {
+        throw new Error(
+          `A marketplace plugin with ID '${manifest.id}' is already installed. `
+          + `Uninstall it first to replace with an external version.`,
+        );
+      }
+
+      // Acquire the ID-based lock now that we know the ID
+      if (installing.has(manifest.id)) {
+        throw new Error(`Plugin ${manifest.id} is already being installed`);
+      }
+      installing.add(manifest.id);
+
+      try {
+        // Re-read installed.json AFTER acquiring the ID lock to close a TOCTOU
+        // race: a concurrent marketplace install of the same ID could have
+        // completed between the early check and the lock acquisition.
+        const installed = await getInstalledPlugins();
+        const existing = installed.plugins.find((p) => p.id === manifest.id);
+        if (existing && existing.source !== 'external') {
+          throw new Error(
+            `A marketplace plugin with ID '${manifest.id}' is already installed. `
+            + `Uninstall it first to replace with an external version.`,
+          );
+        }
+
+        await promotePluginDir(tmpDir, manifest.id);
+
+        const entry: InstalledPlugin = {
+          id: manifest.id,
+          version: manifest.version,
+          installedAt: new Date().toISOString(),
+          enabled: true,
+          moduleType: manifest.moduleType,
+          source: 'external',
+          externalUrl: tarballUrl,
+        };
+        if (existing && existing.version !== manifest.version) {
+          entry.previousVersion = existing.version;
+        }
+
+        const idx = installed.plugins.findIndex((p) => p.id === manifest.id);
+        if (idx >= 0) {
+          installed.plugins[idx] = entry;
+        } else {
+          installed.plugins.push(entry);
+        }
+        await saveInstalledPlugins(installed);
+
+        return { pluginId: manifest.id, version: manifest.version };
+      } finally {
+        installing.delete(manifest.id);
+      }
+    } catch (err) {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+      throw err;
+    }
+  } finally {
+    await fs.unlink(tmpTarPath).catch(() => {});
+    installingExternal.delete(tarballUrl);
   }
 }
 
