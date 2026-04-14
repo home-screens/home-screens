@@ -34,6 +34,8 @@ export default async function DisplayPage({
     return <DisplayNotFound displayId={displayId} displayToken={displayToken ?? null} />;
   }
 
+  const availableDisplays = config.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
+
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#000' }}>
       <ScreenRotator
@@ -42,6 +44,7 @@ export default async function DisplayPage({
         profiles={filtered.profiles}
         displayToken={displayToken}
         displayId={displayId}
+        initialDisplays={availableDisplays}
       />
     </div>
   );

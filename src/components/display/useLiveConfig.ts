@@ -7,6 +7,9 @@ import { displayFetch } from '@/lib/display-fetch';
 import { filterConfigForDisplay } from '@/lib/display-filter';
 import { usePluginStore } from '@/stores/plugin-store';
 
+/** Minimal display descriptor surfaced to modules that need to target displays */
+export type DisplayDescriptor = { id: string; name: string };
+
 /** How often the display polls for config changes (ms) */
 const CONFIG_POLL_MS = 3_000;
 
@@ -25,10 +28,12 @@ export function useLiveConfig(
   initialSettings: GlobalSettings,
   initialProfiles?: Profile[],
   displayId?: string,
+  initialDisplays?: DisplayDescriptor[],
 ) {
   const [screens, setScreens] = useState(initialScreens);
   const [settings, setSettings] = useState(initialSettings);
   const [profiles, setProfiles] = useState(initialProfiles);
+  const [displays, setDisplays] = useState<DisplayDescriptor[]>(initialDisplays ?? []);
   const configJsonRef = useRef<string>('');
   const buildIdRef = useRef<string>('');
   const pluginHashRef = useRef<string>('');
@@ -63,6 +68,10 @@ export function useLiveConfig(
           displayCache.clear(); // invalidate client cache on config change
           const cfg: ScreenConfiguration = JSON.parse(text);
           if (cfg.screens && cfg.settings) {
+            // Update the displays registry for any module that needs it (e.g. display-control)
+            setDisplays(
+              cfg.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [],
+            );
             if (displayId) {
               // Multi-display mode: filter through the same pure function the
               // server's per-display page uses, so the two cannot drift.
@@ -125,5 +134,5 @@ export function useLiveConfig(
     };
   }, [displayId]);
 
-  return { screens, settings, profiles };
+  return { screens, settings, profiles, displays };
 }

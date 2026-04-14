@@ -38,6 +38,7 @@ const builtinComponents = {
   standings: dynamic(() => import('@/components/modules/standings/StandingsModule')),
   affirmations: dynamic(() => import('@/components/modules/AffirmationsModule')),
   date: dynamic(() => import('@/components/modules/date/DateModule')),
+  'display-control': dynamic(() => import('@/components/modules/DisplayControlModule')),
   'meal-planner': dynamic(() => import('@/components/modules/meal-planner/MealPlannerModule')),
   iframe: dynamic(() => import('@/components/modules/IframeModule')),
   'chore-chart': dynamic(() => import('@/components/modules/chore-chart/ChoreChartModule')),

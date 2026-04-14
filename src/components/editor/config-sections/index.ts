@@ -35,3 +35,4 @@ export { FullscreenChoreChartConfigSection } from './FullscreenChoreChartConfigS
 export { FullscreenMealPlannerConfigSection } from './FullscreenMealPlannerConfigSection';
 export { FullscreenPhotoConfigSection } from './FullscreenPhotoConfigSection';
 export { WordOfDayConfigSection } from './WordOfDayConfigSection';
+export { DisplayControlConfigSection } from './DisplayControlConfigSection';

@@ -24,6 +24,8 @@ export const dynamic = 'force-dynamic';
 export default async function DisplayPage() {
   const [config, displayToken] = await Promise.all([readConfig(), getDisplayToken()]);
 
+  const availableDisplays = config.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
+
   const target = findMainDisplay(config.displays);
   if (target) {
     const filtered = filterConfigForDisplay(config, target.id);
@@ -38,6 +40,7 @@ export default async function DisplayPage() {
           profiles={filtered.profiles}
           displayToken={displayToken}
           displayId={target.id}
+          initialDisplays={availableDisplays}
         />
       </div>
     );
@@ -50,6 +53,7 @@ export default async function DisplayPage() {
         settings={config.settings}
         profiles={config.profiles}
         displayToken={displayToken}
+        initialDisplays={availableDisplays}
       />
     </div>
   );

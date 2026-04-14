@@ -28,6 +28,8 @@ interface ScreenRendererProps {
   displayW: number;
   displayH: number;
   scale: number;
+  /** Registered displays for display-control module target picker. Empty = legacy mode. */
+  availableDisplays?: Array<{ id: string; name: string }>;
 }
 
 export function resolveProvider(mod: { type: string; config: Record<string, unknown> }, globalProvider: string): string {
@@ -102,7 +104,7 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
   );
 }
 
-function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale }: ScreenRendererProps) {
+function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [] }: ScreenRendererProps) {
   const { overrideBackground } = usePageBackground();
 
   // Minute-resolution timezone-aware clock for module scheduling
@@ -195,6 +197,11 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         }
 
         const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
+
+        // Type-specific extra props: thread availableDisplays into display-control only
+        if (mod.type === 'display-control') {
+          (extraProps as Record<string, unknown>).availableDisplays = availableDisplays;
+        }
 
         return (
           <div

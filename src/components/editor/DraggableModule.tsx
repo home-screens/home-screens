@@ -77,6 +77,11 @@ function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; pr
     extraProps.events = previewData.calendarEvents;
   }
 
+  // Pass empty availableDisplays for display-control (editor preview is non-interactive)
+  if (mod.type === 'display-control') {
+    extraProps.availableDisplays = [];
+  }
+
   return <Component config={mod.config} style={mod.style} {...extraProps} />;
 }
 

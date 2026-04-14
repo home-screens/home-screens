@@ -30,6 +30,7 @@ export type BuiltinModuleType =
   | 'standings'
   | 'affirmations'
   | 'date'
+  | 'display-control'
   | 'meal-planner'
   | 'iframe'
   | 'chore-chart'
@@ -891,6 +892,19 @@ export interface DateConfig {
   showWeekNumber: boolean;
   showDayOfYear: boolean;
   accentColor: string;
+}
+
+// Display control module config
+export interface DisplayControlConfig {
+  layout: 'bar' | 'pad' | 'panel';
+  /**
+   * Target at mount time. 'self' resolves to the display this module renders
+   * on (via useDisplayId). 'all' broadcasts. A display id targets that queue;
+   * an unknown id falls back to 'self'.
+   */
+  defaultTarget: 'all' | 'self' | string;
+  /** When false, the in-module picker is hidden even in multi-display mode. */
+  allowRetargeting: boolean;
 }
 
 // Chore chart module config

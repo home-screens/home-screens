@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -39,6 +41,7 @@
     "@vitest/coverage-v8": "^4.1.2",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.1.6",
+    "jsdom": "^29.0.2",
     "tailwindcss": "^4",
     "typescript": "^6.0.2",
     "vitest": "^4.0.18"

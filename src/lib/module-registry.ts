@@ -6,7 +6,7 @@ import {
   Newspaper, TrendingUp, Bitcoin, BookOpen, History,
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
-  Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3,
+  Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
@@ -733,6 +733,18 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     },
     defaultSize: { w: 500, h: 400 },
     defaultStyle: { padding: 0 },
+  },
+  {
+    type: 'display-control',
+    label: 'Display Control',
+    icon: LayoutGrid,
+    category: 'Media & Display',
+    defaultConfig: {
+      layout: 'panel',
+      defaultTarget: 'self',
+      allowRetargeting: true,
+    },
+    defaultSize: { w: 680, h: 320 },
   },
 
   // -- Travel --

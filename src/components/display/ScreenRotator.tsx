@@ -9,7 +9,7 @@ import AlertOverlay from './AlertOverlay';
 import NetworkIndicator from './NetworkIndicator';
 import { useDisplayControl } from './useDisplayControl';
 import { useBackgroundRotation } from './useBackgroundRotation';
-import { useLiveConfig } from './useLiveConfig';
+import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -34,6 +34,12 @@ interface ScreenRotatorProps {
    * targets this display's queue. Undefined = legacy single-display mode.
    */
   displayId?: string;
+  /**
+   * Registered displays derived from `config.displays`. Passed through to
+   * the display-control module so its target picker shows real display names.
+   * Empty array = legacy single-display mode (no display registry).
+   */
+  initialDisplays?: DisplayDescriptor[];
 }
 
 // ---- View Transitions API integration ----
@@ -84,11 +90,11 @@ function startScreenTransition(
 
 // ---- Main component ----
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken, displayId }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken, displayId, initialDisplays }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, profiles } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId);
+  const { screens: allScreens, settings, profiles, displays } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId, initialDisplays);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
@@ -310,7 +316,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
       boxSizing: 'border-box',
     }}>
-      <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} />
+      <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} />
 
       {screens.length > 1 && (
         <div

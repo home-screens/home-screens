@@ -54,6 +54,7 @@ import {
   FullscreenMealPlannerConfigSection,
   FullscreenPhotoConfigSection,
   WordOfDayConfigSection,
+  DisplayControlConfigSection,
 } from '@/components/editor/config-sections';
 
 // Shared input classes — single source of truth lives in ui/input-classes.ts
@@ -181,6 +182,7 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
   'fullscreen-chore-chart': FullscreenChoreChartConfigSection,
   'fullscreen-meal-planner': FullscreenMealPlannerConfigSection,
   'fullscreen-photo': FullscreenPhotoConfigSection,
+  'display-control': DisplayControlConfigSection,
 };
 
 export default function PropertyPanel() {
