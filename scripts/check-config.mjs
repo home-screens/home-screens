@@ -17,6 +17,9 @@ import { resolve } from 'path';
 
 // ── Known module types ──────────────────────────────────────────────────
 
+// Keep in sync with BuiltinModuleType in src/types/config.ts — CLI can't import TS,
+// but the TS validator uses an exhaustive Record<BuiltinModuleType, true> so that
+// surface at least catches drift at compile time.
 const BUILTIN_MODULE_TYPES = new Set([
   'clock', 'calendar', 'weather', 'countdown', 'dad-joke', 'text',
   'image', 'quote', 'todo', 'sticky-note', 'greeting', 'news',
@@ -24,8 +27,9 @@ const BUILTIN_MODULE_TYPES = new Set([
   'sunrise-sunset', 'photo-slideshow', 'qr-code', 'year-progress',
   'traffic', 'sports', 'air-quality', 'todoist', 'rain-map',
   'multi-month', 'garbage-day', 'standings', 'affirmations', 'date',
-  'meal-planner', 'iframe', 'chore-chart', 'fullscreen-calendar',
-  'fullscreen-chore-chart', 'fullscreen-meal-planner', 'fullscreen-photo',
+  'display-control', 'meal-planner', 'iframe', 'chore-chart',
+  'fullscreen-calendar', 'fullscreen-chore-chart',
+  'fullscreen-meal-planner', 'fullscreen-photo',
 ]);
 
 const LATEST_SCHEMA_VERSION = 3;

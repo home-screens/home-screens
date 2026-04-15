@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
+import { formatUptime } from '@/lib/time-format';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -15,17 +16,6 @@ interface SystemStats {
   memory: { total: number; free: number; used: number };
   disk: { total: number; used: number; free: number };
   app: { screens: number; modules: number; profiles: number };
-}
-
-function formatUptime(seconds: number): string {
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const parts: string[] = [];
-  if (d > 0) parts.push(`${d}d`);
-  if (h > 0) parts.push(`${h}h`);
-  parts.push(`${m}m`);
-  return parts.join(' ');
 }
 
 function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {

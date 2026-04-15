@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ExternalLink, LayoutGrid } from 'lucide-react';
-import { useEditorStore, orientDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { orientDimensions } from '@/lib/display-filter';
+import { formatLastSeen } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, type PerDisplaySubtab } from '@/lib/settings-route';
@@ -65,15 +67,6 @@ interface DisplayApiEntry {
 
 interface DisplaysApiResponse {
   displays: DisplayApiEntry[];
-}
-
-function formatLastSeen(lastSeen: number | null): string {
-  if (!lastSeen) return '—';
-  const diff = Date.now() - lastSeen;
-  if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s ago`;
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`;
-  return `${Math.round(diff / 86_400_000)}d ago`;
 }
 
 function statusColor(lastSeen: number | null): { bg: string; text: string; dot: string; label: string } {

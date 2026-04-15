@@ -19,17 +19,22 @@ export interface ConfigDiagnostic {
   path?: string;
 }
 
-// Keep in sync with BuiltinModuleType in src/types/config.ts.
-const BUILTIN_MODULE_TYPES: ReadonlySet<string> = new Set<BuiltinModuleType>([
-  'clock', 'calendar', 'weather', 'countdown', 'dad-joke', 'text',
-  'image', 'quote', 'todo', 'sticky-note', 'greeting', 'news',
-  'stock-ticker', 'crypto', 'word-of-day', 'history', 'moon-phase',
-  'sunrise-sunset', 'photo-slideshow', 'qr-code', 'year-progress',
-  'traffic', 'sports', 'air-quality', 'todoist', 'rain-map',
-  'multi-month', 'garbage-day', 'standings', 'affirmations', 'date',
-  'meal-planner', 'iframe', 'chore-chart', 'fullscreen-calendar',
-  'fullscreen-chore-chart', 'fullscreen-meal-planner', 'fullscreen-photo',
-]);
+// Exhaustive record over BuiltinModuleType — TS errors if the union grows
+// without adding the matching key, so this set stays aligned automatically.
+const BUILTIN_MODULE_TYPE_MAP: Record<BuiltinModuleType, true> = {
+  'clock': true, 'calendar': true, 'weather': true, 'countdown': true,
+  'dad-joke': true, 'text': true, 'image': true, 'quote': true,
+  'todo': true, 'sticky-note': true, 'greeting': true, 'news': true,
+  'stock-ticker': true, 'crypto': true, 'word-of-day': true, 'history': true,
+  'moon-phase': true, 'sunrise-sunset': true, 'photo-slideshow': true,
+  'qr-code': true, 'year-progress': true, 'traffic': true, 'sports': true,
+  'air-quality': true, 'todoist': true, 'rain-map': true, 'multi-month': true,
+  'garbage-day': true, 'standings': true, 'affirmations': true, 'date': true,
+  'display-control': true, 'meal-planner': true, 'iframe': true,
+  'chore-chart': true, 'fullscreen-calendar': true, 'fullscreen-chore-chart': true,
+  'fullscreen-meal-planner': true, 'fullscreen-photo': true,
+};
+const BUILTIN_MODULE_TYPES: ReadonlySet<string> = new Set(Object.keys(BUILTIN_MODULE_TYPE_MAP));
 
 function isKnownModuleType(type: string): boolean {
   return BUILTIN_MODULE_TYPES.has(type) || type.startsWith('plugin:');

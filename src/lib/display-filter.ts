@@ -39,6 +39,25 @@ export function isMainDisplay(id: string | undefined | null): boolean {
 }
 
 /**
+ * Sort a `(width, height)` pair so the canvas orientation matches the
+ * rotation the user selected. Shared by the editor canvas and the server-side
+ * per-display filter so the two can never drift — a mismatch produced an
+ * "upside-down" canvas in an earlier release.
+ */
+export function orientDimensions(
+  width: number,
+  height: number,
+  transform: 'normal' | '90' | '180' | '270' | undefined,
+): { width: number; height: number } {
+  const isPortrait = transform === '90' || transform === '270';
+  const long = Math.max(width, height);
+  const short = Math.min(width, height);
+  return isPortrait
+    ? { width: short, height: long }
+    : { width: long, height: short };
+}
+
+/**
  * Find the main display in a list, preferring the canonical `main` id and
  * falling back to the first registered display. Returns `undefined` when
  * the list is empty. Used by the legacy single-display redirect and by any
@@ -177,18 +196,10 @@ export function filterConfigForDisplay(
     ...(display.displayTransform != null ? { displayTransform: display.displayTransform } : {}),
   };
 
-  // Rotation is authoritative for orientation: sort the (width, height) pair
-  // so the canvas long edge points along the landscape axis when the rotation
-  // is normal/180 and along the portrait axis when it's 90/270, regardless of
-  // how the user typed them into the form.
-  const rawW = merged.displayWidth;
-  const rawH = merged.displayHeight;
-  if (rawW && rawH) {
-    const isPortrait = merged.displayTransform === '90' || merged.displayTransform === '270';
-    const long = Math.max(rawW, rawH);
-    const short = Math.min(rawW, rawH);
-    merged.displayWidth = isPortrait ? short : long;
-    merged.displayHeight = isPortrait ? long : short;
+  if (merged.displayWidth && merged.displayHeight) {
+    const oriented = orientDimensions(merged.displayWidth, merged.displayHeight, merged.displayTransform);
+    merged.displayWidth = oriented.width;
+    merged.displayHeight = oriented.height;
   }
 
   if (display.activeProfile !== undefined) {

@@ -22,7 +22,6 @@ import {
   resolveAssignee,
   choreAppliesToday,
   localDateStr,
-  todayStr,
   cascadeDeleteMember,
   addMemberToList,
   updateMemberInList,
@@ -36,6 +35,7 @@ import ChoreIcon, {
   getIconDef,
   toLucideValue,
 } from '@/components/modules/chore-chart/ChoreIcon';
+import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 
 // ── Icon Picker ───────────────────────────────────────────────────
@@ -153,30 +153,24 @@ function MemberForm({
   onSubmit: (data: Omit<ChoreMember, 'id'>) => void;
   onCancel: () => void;
 }) {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [emoji, setEmoji] = useState(initial?.emoji ?? '');
-  const [color, setColor] = useState(initial?.color ?? MEMBER_COLORS[0]);
-
-  const submit = () => {
-    if (!name.trim()) return;
-    onSubmit({ name: name.trim(), emoji, color });
-  };
+  const f = useMemberForm(initial);
+  const submit = () => f.submit(onSubmit);
 
   return (
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
       <input
         type="text"
         placeholder="Name..."
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={f.name}
+        onChange={(e) => f.setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
         className={MODAL_INPUT_CLASS}
         autoFocus
       />
 
       <IconPicker
-        value={emoji}
-        onChange={setEmoji}
+        value={f.emoji}
+        onChange={f.setEmoji}
         icons={MEMBER_ICONS}
         label="Avatar"
       />
@@ -189,25 +183,25 @@ function MemberForm({
             <button
               key={c}
               type="button"
-              onClick={() => setColor(c)}
+              onClick={() => f.setColor(c)}
               className={`w-6 h-6 rounded-full transition-all ${
-                color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-hs-panel scale-110' : ''
+                f.color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-hs-panel scale-110' : ''
               }`}
               style={{ backgroundColor: c }}
             />
           ))}
           <label
             className="w-6 h-6 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 border-dashed border-hs-border-strong hover:border-hs-text-secondary relative"
-            style={!MEMBER_COLORS.includes(color) ? { backgroundColor: color, borderStyle: 'solid', borderColor: 'white' } : undefined}
+            style={!MEMBER_COLORS.includes(f.color) ? { backgroundColor: f.color, borderStyle: 'solid', borderColor: 'white' } : undefined}
             title="Pick custom color"
           >
-            {MEMBER_COLORS.includes(color) && (
+            {MEMBER_COLORS.includes(f.color) && (
               <span className="text-hs-text-faint text-[10px] font-bold leading-none">+</span>
             )}
             <input
               type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
+              value={f.color}
+              onChange={(e) => f.setColor(e.target.value)}
               className="opacity-0 w-0 h-0 absolute"
             />
           </label>
@@ -241,101 +235,17 @@ function ChoreForm({
   onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void;
   onCancel: () => void;
 }) {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [emoji, setEmoji] = useState(initial?.emoji ?? '');
-  const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
-  const [frequency, setFrequency] = useState<ChoreResetFrequency>(initial?.frequency ?? 'daily');
-  const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6]);
-  const [specificDate, setSpecificDate] = useState<string>(initial?.specificDate ?? todayStr());
-  const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
-  const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
-  const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
-  const [schedule, setSchedule] = useState<Record<string, number[]>>(
-    initial?.schedule ?? {}
-  );
-
-  const switchToSchedule = () => {
-    setRotation('schedule');
-    if (Object.keys(schedule).length === 0) {
-      const seeded: Record<string, number[]> = {};
-      for (const id of assigneeIds) {
-        seeded[id] = [...daysOfWeek];
-      }
-      setSchedule(seeded);
-    }
-  };
-
-  const switchFromSchedule = (newRotation: ChoreRotation) => {
-    const ids = Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id);
-    const days = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
-    if (ids.length > 0) setAssigneeIds(ids);
-    if (days.length > 0) setDaysOfWeek(days);
-    setRotation(newRotation);
-  };
-
-  const toggleScheduleDay = (memberId: string, day: number) => {
-    setSchedule((prev) => {
-      const current = prev[memberId] ?? [];
-      const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day];
-      if (next.length === 0) {
-        const { [memberId]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [memberId]: next };
-    });
-  };
-
-  const addMemberToSchedule = (memberId: string) => {
-    setSchedule((prev) => ({ ...prev, [memberId]: [] }));
-  };
-
-  const scheduleMembers = Object.keys(schedule);
-  const scheduleDays = [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b);
-  const unscheduledMembers = members.filter((m) => !scheduleMembers.includes(m.id));
-
-  const toggleDay = (d: number) => {
-    setDaysOfWeek((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
-  };
-
-  const toggleAssignee = (id: string) => {
-    setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  const scheduleHasAssignment = rotation === 'schedule'
-    ? Object.values(schedule).some((days) => days.length > 0)
-    : true;
-  const canSave = name.trim().length > 0
-    && (rotation === 'schedule' ? scheduleHasAssignment : assigneeIds.length > 0);
-  const validationHint = !name.trim()
-    ? 'Enter a chore name'
-    : rotation === 'schedule' && !scheduleHasAssignment
-      ? 'Add at least one person to the schedule'
-      : rotation !== 'schedule' && assigneeIds.length === 0
-        ? 'Select at least one person'
-        : null;
-
-  const submit = () => {
-    if (!canSave) return;
-    const isSchedule = rotation === 'schedule';
-    const finalAssigneeIds = isSchedule
-      ? Object.entries(schedule).filter(([, d]) => d.length > 0).map(([id]) => id)
-      : assigneeIds;
-    const finalDaysOfWeek = isSchedule
-      ? [...new Set(Object.values(schedule).flat())].sort((a, b) => a - b)
-      : daysOfWeek;
-    onSubmit({
-      name: name.trim(),
-      emoji,
-      points: Number.isNaN(parseInt(points)) ? 1 : parseInt(points),
-      frequency,
-      daysOfWeek: finalDaysOfWeek,
-      timeOfDay,
-      assigneeIds: finalAssigneeIds,
-      rotation: finalAssigneeIds.length <= 1 && !isSchedule ? 'fixed' : rotation,
-      ...(isSchedule ? { schedule: Object.fromEntries(Object.entries(schedule).filter(([, d]) => d.length > 0)) } : {}),
-      ...(frequency === 'once' ? { specificDate } : {}),
-    });
-  };
+  const f = useChoreForm(initial, members);
+  const {
+    name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
+    assigneeIds, rotation, schedule,
+    setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,
+    switchToSchedule, switchFromSchedule, setRotation,
+    toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
+    scheduleMembers, scheduleDays, unscheduledMembers,
+    canSave, validationHint,
+  } = f;
+  const submit = () => f.submit(onSubmit);
 
   return (
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">

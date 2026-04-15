@@ -17,7 +17,13 @@ import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { editorFetch } from '@/lib/editor-fetch';
-import { MAIN_DISPLAY_ID, findMainDisplay, isMainDisplay, pruneDanglingScreenRefs } from '@/lib/display-filter';
+import {
+  MAIN_DISPLAY_ID,
+  findMainDisplay,
+  isMainDisplay,
+  orientDimensions,
+  pruneDanglingScreenRefs,
+} from '@/lib/display-filter';
 import type { LayoutExport } from '@/types/layout-export';
 import {
   createLayoutExport,
@@ -188,23 +194,9 @@ export function getActiveDimensions(
   return orientDimensions(rawWidth, rawHeight, transform);
 }
 
-/**
- * Sort a `(width, height)` pair so the canvas orientation matches the
- * rotation the user selected. Called by both the editor canvas and the
- * filter used by the per-display route so the two can't drift.
- */
-export function orientDimensions(
-  width: number,
-  height: number,
-  transform: 'normal' | '90' | '180' | '270' | undefined,
-): { width: number; height: number } {
-  const isPortrait = transform === '90' || transform === '270';
-  const long = Math.max(width, height);
-  const short = Math.min(width, height);
-  return isPortrait
-    ? { width: short, height: long }
-    : { width: long, height: short };
-}
+// `orientDimensions` now lives in `@/lib/display-filter` so the server-side
+// per-display filter can share it. Re-exported here for existing callers.
+export { orientDimensions } from '@/lib/display-filter';
 
 /**
  * Decide where a profile mutation should land.
@@ -248,6 +240,78 @@ function updateModuleInConfig(
       : s,
   );
   return withActiveScreens(config, selectedDisplayId, screens);
+}
+
+/**
+ * When the first display added is NOT `main`, promote the pre-multi-display
+ * global screens/profiles/dimensions into a sibling `main` display so the hub
+ * kiosk keeps rendering what it rendered before the user turned multi-display
+ * on. The legacy shared profile pool is deep-cloned — in multi-display mode
+ * profiles are per-display.
+ */
+function buildBootstrapMain(config: ScreenConfiguration): DisplayNode {
+  return {
+    id: MAIN_DISPLAY_ID,
+    name: 'Main Display',
+    screens: structuredClone(config.screens),
+    profiles: structuredClone(config.profiles ?? []),
+    ...(config.settings.activeProfile
+      ? { activeProfile: config.settings.activeProfile }
+      : {}),
+    displayWidth: config.settings.displayWidth,
+    displayHeight: config.settings.displayHeight,
+    ...(config.settings.displayTransform
+      ? { displayTransform: config.settings.displayTransform }
+      : {}),
+  };
+}
+
+/**
+ * Assemble the DisplayNode for a brand-new display. `inheritFromGlobal` is
+ * true only for the "add main as the very first display" bootstrap path —
+ * that display then inherits the legacy global screens/profiles/activeProfile,
+ * since there can only be one `main` and we can't seed a sibling.
+ *
+ * Everyone else starts with an empty screens list (fresh display designed at
+ * its own resolution) and an empty profiles list — unless the caller passed
+ * `profileIds` (legacy shared-pool mode, still supported for back-compat).
+ */
+function buildNewDisplay(
+  display: { id: string; name: string } & Partial<Omit<DisplayNode, 'id' | 'name'>>,
+  config: ScreenConfiguration,
+  inheritFromGlobal: boolean,
+): DisplayNode {
+  const initialProfiles: Profile[] | undefined = display.profileIds
+    ? undefined
+    : inheritFromGlobal
+      ? structuredClone(config.profiles ?? [])
+      : [];
+  const inheritedActiveProfile = inheritFromGlobal
+    ? config.settings.activeProfile
+    : undefined;
+
+  return {
+    id: display.id,
+    name: display.name,
+    ...(inheritFromGlobal
+      ? { screens: structuredClone(config.screens) }
+      : display.screens
+        ? { screens: display.screens }
+        : display.screenIds
+          ? { screenIds: display.screenIds }
+          : { screens: [] }),
+    ...(initialProfiles !== undefined ? { profiles: initialProfiles } : {}),
+    ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
+    ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
+    ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),
+    ...(display.profileIds ? { profileIds: display.profileIds } : {}),
+    ...(display.activeProfile
+      ? { activeProfile: display.activeProfile }
+      : inheritedActiveProfile
+        ? { activeProfile: inheritedActiveProfile }
+        : {}),
+    ...(display.settings ? { settings: display.settings } : {}),
+  };
 }
 
 export const useEditorStore = create<EditorState>((set, get) => {
@@ -748,121 +812,37 @@ export const useEditorStore = create<EditorState>((set, get) => {
   },
 
   addDisplay: (display) => {
-    // When no displays exist yet, adding one also auto-creates a "main"
-    // display for the hub Pi itself — the existing `config.screens` layout
-    // becomes Main's owned screens and the hub's kiosk (loading /display,
-    // which redirects to /display/main) keeps showing the original screens
-    // instead of getting routed to whatever new display was just added.
+    // Multi-display bootstrap has two paths, both handled below via
+    // `buildBootstrapMain` / `buildNewDisplay`:
+    //   1. First display added is non-main → auto-seed a sibling `main` from
+    //      the existing global screens + profiles so the hub's kiosk keeps
+    //      showing what it was showing before multi-display turned on.
+    //   2. First display added IS `main` without its own screens → that new
+    //      display itself inherits global screens/profiles (can't sibling-seed
+    //      because there can only be one `main`).
     //
-    // Two paths bootstrap "main":
-    //   1. User adds a non-main display first → we auto-create a sibling
-    //      'main' that inherits the existing global screens + profiles.
-    //   2. User adds 'main' explicitly as the first display → the new
-    //      display itself inherits the existing global screens + profiles
-    //      (we can't auto-create a duplicate sibling — there can only be
-    //      one 'main').
-    //
-    // In multi-display mode, profiles are ALWAYS per-display. The legacy
-    // `config.profiles` shared pool is a single-display concept — it can't
-    // cleanly generalize because profiles reference screen IDs and screen
-    // IDs become display-specific once displays own their own screens. So
-    // on bootstrap we deep-clone `config.profiles` onto Main's own list
-    // (alongside screens) and every new non-main display starts with an
-    // empty profiles list, just like it starts with empty screens. There's
-    // no runtime "switch to per-display profiles" choice any more — that
-    // choice is implicit the moment the user enters multi-display mode.
-    //
-    // New displays other than "main" start with an EMPTY screens list so
-    // they can be designed for their own resolution rather than inheriting
-    // a landscape layout that won't translate to portrait (or vice versa).
+    // Profiles are per-display in multi-display mode; we deep-clone the legacy
+    // shared pool only onto the bootstrapped main, and every subsequent display
+    // starts with an empty profile list alongside its empty screens list.
     mutateConfig((config) => {
       const existingDisplays = config.displays ?? [];
-      const nextDisplays = [...existingDisplays];
-      let newSelectedId = get().selectedDisplayId;
-
       const isFirstDisplay = existingDisplays.length === 0;
       const hasMain = existingDisplays.some((d) => isMainDisplay(d.id));
       const userAddingMainAsFirst = isFirstDisplay && isMainDisplay(display.id);
       const userDidNotSpecifyScreens = !display.screens && !display.screenIds;
-
-      if (isFirstDisplay && !hasMain && !isMainDisplay(display.id)) {
-        // Path 1: user added a non-main display first. Seed the Main
-        // display with the existing global screens + profiles + current
-        // global dimensions so the hub's kiosk keeps rendering what it was
-        // rendering before multi-display got turned on.
-        nextDisplays.push({
-          id: MAIN_DISPLAY_ID,
-          name: 'Main Display',
-          screens: structuredClone(config.screens),
-          profiles: structuredClone(config.profiles ?? []),
-          ...(config.settings.activeProfile
-            ? { activeProfile: config.settings.activeProfile }
-            : {}),
-          displayWidth: config.settings.displayWidth,
-          displayHeight: config.settings.displayHeight,
-          ...(config.settings.displayTransform
-            ? { displayTransform: config.settings.displayTransform }
-            : {}),
-        });
-      }
-
-      // Path 2: user explicitly added 'main' as the very first display
-      // without providing its own screens — inherit the existing global
-      // screens + profiles so the hub's kiosk survives the promotion to
-      // multi-display. Respect user-provided dims/transform from the
-      // form; only inherit global values for fields the caller left unset.
       const inheritFromGlobal = userAddingMainAsFirst && userDidNotSpecifyScreens;
 
-      // Decide the new display's profile list:
-      //   - Legacy callers (tests, external) that explicitly passed
-      //     `profileIds` → keep the shared-pool subset reference; runtime
-      //     still supports it for backward compat.
-      //   - Main-as-first inheriting screens → deep-clone the legacy pool
-      //     (screen IDs coincide with Main's owned screens at bootstrap).
-      //   - Everything else → own an empty list. Profiles are per-display
-      //     in multi-display mode, and a fresh display designed for its
-      //     own resolution has no meaningful starting profiles.
-      const initialProfiles: Profile[] | undefined = display.profileIds
-        ? undefined
-        : inheritFromGlobal
-          ? structuredClone(config.profiles ?? [])
-          : [];
-      // Main-as-first also inherits the global activeProfile; other new
-      // displays start with none.
-      const inheritedActiveProfile = inheritFromGlobal
-        ? config.settings.activeProfile
-        : undefined;
+      const nextDisplays = [...existingDisplays];
 
-      const newDisplay: DisplayNode = {
-        id: display.id,
-        name: display.name,
-        // Own an empty screens list by default (designed at this display's
-        // resolution). Callers can still pass `screenIds` explicitly for the
-        // legacy shared-pool flow, or `screens` for pre-built layouts.
-        ...(inheritFromGlobal
-          ? { screens: structuredClone(config.screens) }
-          : display.screens
-            ? { screens: display.screens }
-            : display.screenIds
-              ? { screenIds: display.screenIds }
-              : { screens: [] }),
-        ...(initialProfiles !== undefined ? { profiles: initialProfiles } : {}),
-        ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
-        ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
-        ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),
-        ...(display.profileIds ? { profileIds: display.profileIds } : {}),
-        ...(display.activeProfile
-          ? { activeProfile: display.activeProfile }
-          : inheritedActiveProfile
-            ? { activeProfile: inheritedActiveProfile }
-            : {}),
-        ...(display.settings ? { settings: display.settings } : {}),
-      };
-      nextDisplays.push(newDisplay);
+      if (isFirstDisplay && !hasMain && !isMainDisplay(display.id)) {
+        nextDisplays.push(buildBootstrapMain(config));
+      }
 
-      // When bootstrapping multi-display mode, keep the editor focused on
-      // "main" so the user's existing screens stay visible until they
-      // explicitly switch to the newly-added display.
+      nextDisplays.push(buildNewDisplay(display, config, inheritFromGlobal));
+
+      // Keep the editor focused on "main" so the user's existing screens stay
+      // visible until they explicitly switch to the newly-added display.
+      let newSelectedId = get().selectedDisplayId;
       if (newSelectedId === null && nextDisplays.length > 0) {
         newSelectedId = findMainDisplay(nextDisplays)!.id;
       }

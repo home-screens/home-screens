@@ -8,17 +8,7 @@ import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklin
 import Slider from '@/components/ui/Slider';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-
-const TRANSITION_OPTIONS = [
-  { value: 'fade', label: 'Fade' },
-  { value: 'slide', label: 'Slide Left' },
-  { value: 'slide-up', label: 'Slide Up' },
-  { value: 'zoom', label: 'Zoom' },
-  { value: 'flip', label: '3D Flip' },
-  { value: 'blur', label: 'Blur' },
-  { value: 'crossfade', label: 'Crossfade (overlap)' },
-  { value: 'none', label: 'None (instant)' },
-] as const;
+import { TRANSITION_OPTIONS } from '@/lib/transitions';
 
 interface DefaultDisplayValues {
   displayWidth: number;

@@ -177,20 +177,21 @@ function formatRotationInterval(ms: number): string {
   return `${Math.round(ms / 1000)}s`;
 }
 
+// Shortened labels — the chip has no room for the parenthetical clarifiers
+// that `TRANSITION_OPTIONS` in @/lib/transitions uses in dropdowns.
+const CHIP_LABELS: Record<string, string> = {
+  fade: 'Fade',
+  slide: 'Slide Left',
+  'slide-up': 'Slide Up',
+  zoom: 'Zoom',
+  flip: '3D Flip',
+  blur: 'Blur',
+  crossfade: 'Crossfade',
+  none: 'None',
+};
+
 function formatTransitionEffect(effect: string): string {
-  // Mirror `TRANSITION_OPTIONS` in DisplaySubtab — kept inline here
-  // because the chip never needs the slug, only the user-facing label.
-  const labels: Record<string, string> = {
-    fade: 'Fade',
-    slide: 'Slide Left',
-    'slide-up': 'Slide Up',
-    zoom: 'Zoom',
-    flip: '3D Flip',
-    blur: 'Blur',
-    crossfade: 'Crossfade',
-    none: 'None',
-  };
-  return labels[effect] ?? effect;
+  return CHIP_LABELS[effect] ?? effect;
 }
 
 function formatTransitionDuration(seconds: number): string {

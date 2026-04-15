@@ -3,14 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
-import { useEditorStore, orientDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import {
   isMainDisplay,
   isValidDisplayId,
   MAX_DISPLAY_DIMENSION,
+  orientDimensions,
 } from '@/lib/display-filter';
+import { formatLastSeen } from '@/lib/time-format';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
 
@@ -54,16 +56,6 @@ interface DisplayApiEntry {
 interface DisplaysApiResponse {
   displays: DisplayApiEntry[];
   unadopted: UnadoptedDisplay[];
-}
-
-/** "5s ago", "3m ago", "2h ago", "—" */
-function formatLastSeen(lastSeen: number | null): string {
-  if (!lastSeen) return '—';
-  const diff = Date.now() - lastSeen;
-  if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s ago`;
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`;
-  return `${Math.round(diff / 86_400_000)}d ago`;
 }
 
 /**

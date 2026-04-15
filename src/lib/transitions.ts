@@ -1,5 +1,22 @@
 import type { TransitionEffect } from '@/types/config';
 
+export interface TransitionOption {
+  value: TransitionEffect;
+  label: string;
+}
+
+/** Dropdown choices for the transition-effect picker (Defaults + per-display). */
+export const TRANSITION_OPTIONS: readonly TransitionOption[] = [
+  { value: 'fade', label: 'Fade' },
+  { value: 'slide', label: 'Slide Left' },
+  { value: 'slide-up', label: 'Slide Up' },
+  { value: 'zoom', label: 'Zoom' },
+  { value: 'flip', label: '3D Flip' },
+  { value: 'blur', label: 'Blur' },
+  { value: 'crossfade', label: 'Crossfade (overlap)' },
+  { value: 'none', label: 'None (instant)' },
+];
+
 export interface TransitionConfig {
   /** Duration in seconds */
   duration: number;

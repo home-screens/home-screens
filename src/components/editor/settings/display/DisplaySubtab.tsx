@@ -9,7 +9,8 @@ import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
 import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
-import { MAX_DISPLAY_DIMENSION } from '@/lib/display-filter';
+import { MAX_DISPLAY_DIMENSION, orientDimensions } from '@/lib/display-filter';
+import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import type {
   DisplayNode,
   ScreenConfiguration,
@@ -20,17 +21,6 @@ interface DisplaySubtabProps {
   config: ScreenConfiguration;
   display: DisplayNode;
 }
-
-const TRANSITION_OPTIONS: { value: TransitionEffect; label: string }[] = [
-  { value: 'fade', label: 'Fade' },
-  { value: 'slide', label: 'Slide Left' },
-  { value: 'slide-up', label: 'Slide Up' },
-  { value: 'zoom', label: 'Zoom' },
-  { value: 'flip', label: '3D Flip' },
-  { value: 'blur', label: 'Blur' },
-  { value: 'crossfade', label: 'Crossfade (overlap)' },
-  { value: 'none', label: 'None (instant)' },
-];
 
 const DEFAULTS_HREF = '?section=defaults&page=display';
 const DEFAULTS_LABEL = 'Defaults → Display';
@@ -112,16 +102,9 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   };
 
   const handleTransform = async (next: 'normal' | '90' | '180' | '270') => {
-    // Auto-swap dims so the canvas long edge always lines up with the
-    // rotation label. Mirrors the same rule in editor-store.orientDimensions
-    // and the DisplayForm in DisplaysSection.
-    const wantPortrait = next === '90' || next === '270';
     const w = display.displayWidth ?? settings.displayWidth ?? 1080;
     const h = display.displayHeight ?? settings.displayHeight ?? 1920;
-    const long = Math.max(w, h);
-    const short = Math.min(w, h);
-    const finalW = wantPortrait ? short : long;
-    const finalH = wantPortrait ? long : short;
+    const { width: finalW, height: finalH } = orientDimensions(w, h, next);
     updateDisplay(display.id, {
       displayTransform: next,
       displayWidth: finalW,
