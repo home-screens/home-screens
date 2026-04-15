@@ -9,6 +9,7 @@ import { BrightnessPopover } from './BrightnessPopover';
 export function BarLayout(props: LayoutProps) {
   const { allowRetargeting, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, onPrev, onNext, onSleep, onBrightness } = props;
   const [brightnessOpen, setBrightnessOpen] = useState(false);
+  const [brightness, setBrightness] = useState(50);
 
   const showPicker = allowRetargeting && !isLegacyMode;
 
@@ -48,8 +49,9 @@ export function BarLayout(props: LayoutProps) {
         {brightnessOpen && (
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20">
             <BrightnessPopover
-              initial={50}
+              initial={brightness}
               onCommit={(v) => {
+                setBrightness(v);
                 onBrightness(v);
                 setBrightnessOpen(false);
               }}

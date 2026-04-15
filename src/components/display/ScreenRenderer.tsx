@@ -30,6 +30,10 @@ interface ScreenRendererProps {
   scale: number;
   /** Registered displays for display-control module target picker. Empty = legacy mode. */
   availableDisplays?: Array<{ id: string; name: string }>;
+  /** Display id this page is rendering as — needed because the legacy /display route
+   *  renders its main display inline rather than redirecting, so the URL doesn't carry
+   *  the id. The display-control module uses this to resolve `defaultTarget: 'self'`. */
+  displayId?: string;
 }
 
 export function resolveProvider(mod: { type: string; config: Record<string, unknown> }, globalProvider: string): string {
@@ -104,7 +108,7 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
   );
 }
 
-function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [] }: ScreenRendererProps) {
+function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [], displayId }: ScreenRendererProps) {
   const { overrideBackground } = usePageBackground();
 
   // Minute-resolution timezone-aware clock for module scheduling
@@ -198,9 +202,12 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
 
         const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
 
-        // Type-specific extra props: thread availableDisplays into display-control only
+        // Type-specific extra props: thread availableDisplays + displayId into display-control only.
+        // displayId is the authoritative render-as id; the URL alone is unreliable because
+        // the legacy /display route renders a multi-display main inline without redirecting.
         if (mod.type === 'display-control') {
           (extraProps as Record<string, unknown>).availableDisplays = availableDisplays;
+          (extraProps as Record<string, unknown>).renderDisplayId = displayId;
         }
 
         return (

@@ -40,11 +40,15 @@ export function HoldConfirmButton({
       type="button"
       disabled={disabled}
       aria-label={ariaLabel}
+      draggable={false}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
       onPointerDown={disabled ? undefined : onPointerDown}
       onPointerUp={disabled ? undefined : onPointerUp}
       onPointerCancel={disabled ? undefined : onPointerCancel}
       onPointerLeave={disabled ? undefined : onPointerUp}
       className={`relative overflow-hidden select-none touch-none ${className}`}
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
     >
       <span
         aria-hidden="true"

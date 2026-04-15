@@ -1,7 +1,12 @@
 import type { DisplayCommandType } from '@/lib/display-commands';
+import { displayFetch } from '@/lib/display-fetch';
 
 /**
- * Fire a command at the hub's display-command queue. Fire-and-forget:
+ * Fire a command at the hub's display-command queue. Fire-and-forget.
+ *
+ * Uses `displayFetch` so the display's Bearer token auto-attaches when this
+ * runs inside the display page; elsewhere (editor, /remote) it falls through
+ * to plain `fetch` and relies on the session cookie.
  *
  * - `target === undefined | '' | 'self'` → no `?display=` param → dispatches
  *   to the legacy `__default__` queue. `'self'` is treated as unresolved on
@@ -17,8 +22,23 @@ export async function dispatchDisplayCommand(
   type: DisplayCommandType,
   payload?: Record<string, unknown>,
 ): Promise<void> {
-  const url = buildDisplayCommandUrl(type, target, payload);
-  await fetch(url, { method: 'GET' }).catch(() => {});
+  // Commands carrying a payload (brightness, alert) require POST with a JSON
+  // body — the API route reads `value`/`displayId` from the body, not the
+  // query string. Simple commands (sleep, wake, next-screen, prev-screen,
+  // reload, clear-alerts) are enqueued via GET with `?display=` so they stay
+  // bookmarkable from phones / Home Assistant / curl.
+  if (payload && Object.keys(payload).length > 0) {
+    const body: Record<string, unknown> = { ...payload };
+    if (target && target !== 'self') body.displayId = target;
+    await displayFetch(`/api/display/${type}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).catch(() => {});
+    return;
+  }
+  const url = buildDisplayCommandUrl(type, target);
+  await displayFetch(url, { method: 'GET' }).catch(() => {});
 }
 
 export function buildDisplayCommandUrl(

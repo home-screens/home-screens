@@ -316,7 +316,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
       boxSizing: 'border-box',
     }}>
-      <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} />
+      <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
 
       {screens.length > 1 && (
         <div

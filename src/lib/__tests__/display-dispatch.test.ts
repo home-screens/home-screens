@@ -21,9 +21,26 @@ describe('dispatchDisplayCommand', () => {
     expect(fetch).toHaveBeenCalledWith('/api/display/sleep?display=kitchen', expect.any(Object));
   });
 
-  it('includes brightness value in the query string', async () => {
+  it('POSTs brightness with value and displayId in a JSON body', async () => {
     await dispatchDisplayCommand('kitchen', 'brightness', { value: 42 });
-    expect(fetch).toHaveBeenCalledWith('/api/display/brightness?display=kitchen&value=42', expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/display/brightness',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ value: 42, displayId: 'kitchen' }),
+      }),
+    );
+  });
+
+  it('POSTs brightness without displayId when target is undefined', async () => {
+    await dispatchDisplayCommand(undefined, 'brightness', { value: 80 });
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/display/brightness',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ value: 80 }),
+      }),
+    );
   });
 
   it('treats "self" as unresolved and omits the display param', async () => {

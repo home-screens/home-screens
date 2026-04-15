@@ -14,13 +14,20 @@ export interface DisplayControlModuleProps {
   config: DisplayControlConfig;
   /** Optional injection for tests; normal usage reads from config. */
   availableDisplays?: Array<{ id: string; name: string }>;
+  /** Authoritative render-as display id, threaded down from ScreenRenderer.
+   *  Preferred over the URL-based useDisplayId() because the legacy /display
+   *  route renders multi-display main inline without redirecting, so
+   *  usePathname() returns "/display" rather than "/display/<id>" for that case. */
+  renderDisplayId?: string;
 }
 
 export default function DisplayControlModule({
   config,
   availableDisplays = [],
+  renderDisplayId: renderDisplayIdProp,
 }: DisplayControlModuleProps) {
-  const renderDisplayId = useDisplayId();
+  const urlDisplayId = useDisplayId();
+  const renderDisplayId = renderDisplayIdProp ?? urlDisplayId;
   const isLegacyMode = availableDisplays.length === 0;
 
   const [currentTarget, setCurrentTarget] = useState<string | undefined>(() =>
