@@ -51,8 +51,7 @@ function resolvePreset(width: number, height: number) {
  * single-display installs because that's the only mode where the global
  * `config.settings.displayWidth/Height/Transform` is actually read by a
  * display. In multi-display mode every `DisplayNode` owns its own copy on
- * the node itself (edited from `Per display → <X> → Display`) and
- * `applyMainDisplayNormalization` keeps `displays[main]` in sync — so the
+ * the node itself (edited from `Per display → <X> → Display`) — so the
  * global fields become vestigial and exposing them here would let users
  * edit values nothing reads.
  */
