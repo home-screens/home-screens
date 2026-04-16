@@ -102,6 +102,13 @@ export interface Screen {
   backgroundImage: string;
   backgroundRotation?: BackgroundRotation;
   modules: ModuleInstance[];
+  /**
+   * Optional override for auto-rotation duration, in milliseconds.
+   * - undefined (default): inherit settings.rotationIntervalMs (after any display override).
+   * - 0: sticky — auto-rotation is disabled on this screen (manual advance only).
+   * - positive integer: this screen auto-advances after exactly this many ms.
+   */
+  rotationDurationMs?: number;
 }
 
 export interface WeatherSettings {
