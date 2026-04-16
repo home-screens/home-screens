@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, DateView } from '@/types/config';
 
 const VIEWS: { value: DateView; label: string }[] = [
@@ -78,8 +79,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {/* Date Format (only for minimal view) */}
       {has('dateFormat') && (
         <div className="flex flex-col gap-1">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Date Format</span>
+          <LabeledField label="Date Format">
             <select
               value={showCustomDate ? '__custom__' : dateFormatVal}
               onChange={(e) => {
@@ -97,7 +97,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
               ))}
               <option value="__custom__">Custom...</option>
             </select>
-          </label>
+          </LabeledField>
           {showCustomDate && (
             <input
               type="text"

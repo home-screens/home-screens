@@ -1,9 +1,9 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
 
 type FinancialView = StockTickerView | CryptoView;
@@ -32,15 +32,11 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">{symbolsLabel}</span>
-        <input
-          type="text"
-          value={symbolsValue}
-          onChange={(e) => set({ [symbolsField]: e.target.value })}
-          className={INPUT_CLASS}
-        />
-      </label>
+      <LabeledInput
+        label={symbolsLabel}
+        value={symbolsValue}
+        onChange={(v) => set({ [symbolsField]: v })}
+      />
       <ViewSelect
         value={view}
         onChange={(v) => set({ view: v })}

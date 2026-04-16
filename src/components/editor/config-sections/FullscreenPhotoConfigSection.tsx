@@ -4,15 +4,40 @@ import { useState, useEffect, useCallback } from 'react';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
-import type { ModuleInstance, FullscreenPhotoConfig } from '@/types/config';
+import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
 
 type Config = Partial<FullscreenPhotoConfig>;
+
+const SOURCE_OPTIONS = [
+  { value: 'local', label: 'Local Photos' },
+  { value: 'immich', label: 'Immich' },
+] as const;
+
+const MODE_OPTIONS = [
+  { value: 'slideshow', label: 'Slideshow' },
+  { value: 'single', label: 'Single Photo' },
+] as const;
+
+const TRANSITION_OPTIONS: { value: FullscreenPhotoTransition; label: string }[] = [
+  { value: 'fade', label: 'Fade' },
+  { value: 'slide', label: 'Slide' },
+  { value: 'zoom', label: 'Zoom' },
+  { value: 'none', label: 'None' },
+];
+
+const OBJECT_FIT_OPTIONS: { value: 'cover' | 'contain' | 'fill'; label: string }[] = [
+  { value: 'cover', label: 'Cover' },
+  { value: 'contain', label: 'Contain' },
+  { value: 'fill', label: 'Fill' },
+];
 
 export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
@@ -60,8 +85,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   return (
     <>
       {/* Theme Override */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Theme</span>
+      <LabeledField label="Theme">
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -72,21 +96,16 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
             <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
           ))}
         </select>
-      </label>
+      </LabeledField>
 
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Photo Source</span>
-          <select
-            value={source}
-            onChange={(e) => set({ source: e.target.value })}
-            className={INPUT_CLASS}
-          >
-            <option value="local">Local Photos</option>
-            <option value="immich">Immich</option>
-          </select>
-        </label>
+        <LabeledSelect
+          label="Photo Source"
+          value={source as 'local' | 'immich'}
+          onChange={(v) => set({ source: v })}
+          options={SOURCE_OPTIONS}
+        />
       )}
 
       {source === 'immich' ? (
@@ -94,23 +113,18 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       ) : (
         <>
           {/* Mode toggle: Slideshow vs Single Photo */}
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Mode</span>
-            <select
-              value={isSinglePhoto ? 'single' : 'slideshow'}
-              onChange={(e) => {
-                if (e.target.value === 'single') {
-                  set({ file: '', directory: '' });
-                } else {
-                  set({ file: undefined });
-                }
-              }}
-              className={INPUT_CLASS}
-            >
-              <option value="slideshow">Slideshow</option>
-              <option value="single">Single Photo</option>
-            </select>
-          </label>
+          <LabeledSelect
+            label="Mode"
+            value={isSinglePhoto ? 'single' : 'slideshow'}
+            onChange={(v) => {
+              if (v === 'single') {
+                set({ file: '', directory: '' });
+              } else {
+                set({ file: undefined });
+              }
+            }}
+            options={MODE_OPTIONS}
+          />
 
           {isSinglePhoto ? (
             /* Single photo picker */
@@ -188,32 +202,21 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Transition & Object Fit row */}
       <div className="flex gap-2">
         {!isSinglePhoto && (
-          <label className="flex flex-col gap-0.5 flex-1">
-            <span className="text-xs text-hs-text-muted">Transition</span>
-            <select
-              value={c.transition ?? 'fade'}
-              onChange={(e) => set({ transition: e.target.value as FullscreenPhotoConfig['transition'] })}
-              className={INPUT_CLASS}
-            >
-              <option value="fade">Fade</option>
-              <option value="slide">Slide</option>
-              <option value="zoom">Zoom</option>
-              <option value="none">None</option>
-            </select>
-          </label>
+          <LabeledSelect
+            label="Transition"
+            value={c.transition ?? 'fade'}
+            onChange={(v) => set({ transition: v })}
+            options={TRANSITION_OPTIONS}
+            fieldClassName="flex-1"
+          />
         )}
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Object Fit</span>
-          <select
-            value={c.objectFit ?? 'cover'}
-            onChange={(e) => set({ objectFit: e.target.value as 'cover' | 'contain' | 'fill' })}
-            className={INPUT_CLASS}
-          >
-            <option value="cover">Cover</option>
-            <option value="contain">Contain</option>
-            <option value="fill">Fill</option>
-          </select>
-        </label>
+        <LabeledSelect
+          label="Object Fit"
+          value={c.objectFit ?? 'cover'}
+          onChange={(v) => set({ objectFit: v })}
+          options={OBJECT_FIT_OPTIONS}
+          fieldClassName="flex-1"
+        />
       </div>
 
       {/* Toggles */}

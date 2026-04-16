@@ -2,9 +2,10 @@
 
 import Button from '@/components/ui/Button';
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
+import LabeledInput from '@/components/ui/LabeledInput';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
-import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, TodoItem } from '@/types/config';
 
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -20,15 +21,11 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
   return (
     <div className="space-y-2">
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Title</span>
-        <input
-          type="text"
-          value={(c.title as string) || 'To Do'}
-          onChange={(e) => set({ title: e.target.value })}
-          className={INPUT_CLASS}
-        />
-      </label>
+      <LabeledInput
+        label="Title"
+        value={(c.title as string) || 'To Do'}
+        onChange={(v) => set({ title: v })}
+      />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">Items</span>
         <Button size="sm" onClick={addItem}>Add</Button>

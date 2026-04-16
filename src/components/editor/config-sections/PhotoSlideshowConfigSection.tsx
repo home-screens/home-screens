@@ -3,12 +3,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import type { ModuleInstance } from '@/types/config';
+
+const PHOTO_SOURCES = [
+  { value: 'local', label: 'Local Photos' },
+  { value: 'immich', label: 'Immich' },
+] as const;
+
+const TRANSITIONS = [
+  { value: 'fade', label: 'Fade' },
+  { value: 'none', label: 'None' },
+] as const;
+
+const OBJECT_FITS = [
+  { value: 'cover', label: 'Cover' },
+  { value: 'contain', label: 'Contain' },
+  { value: 'fill', label: 'Fill' },
+] as const;
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ source?: string; directory?: string; intervalMs?: number; transition?: string; objectFit?: string }>(mod, screenId);
@@ -56,17 +72,12 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
     <>
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Photo Source</span>
-          <select
-            value={source}
-            onChange={(e) => set({ source: e.target.value })}
-            className={INPUT_CLASS}
-          >
-            <option value="local">Local Photos</option>
-            <option value="immich">Immich</option>
-          </select>
-        </label>
+        <LabeledSelect
+          label="Photo Source"
+          value={source}
+          onChange={(v) => set({ source: v })}
+          options={PHOTO_SOURCES}
+        />
       )}
 
       {source === 'immich' ? (
@@ -120,29 +131,20 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
       />
 
       <div className="flex gap-2">
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Transition</span>
-          <select
-            value={(c.transition as string) || 'fade'}
-            onChange={(e) => set({ transition: e.target.value })}
-            className={INPUT_CLASS}
-          >
-            <option value="fade">Fade</option>
-            <option value="none">None</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Object Fit</span>
-          <select
-            value={(c.objectFit as string) || 'cover'}
-            onChange={(e) => set({ objectFit: e.target.value })}
-            className={INPUT_CLASS}
-          >
-            <option value="cover">Cover</option>
-            <option value="contain">Contain</option>
-            <option value="fill">Fill</option>
-          </select>
-        </label>
+        <LabeledSelect
+          label="Transition"
+          value={(c.transition as string) || 'fade'}
+          onChange={(v) => set({ transition: v })}
+          options={TRANSITIONS}
+          fieldClassName="flex-1"
+        />
+        <LabeledSelect
+          label="Object Fit"
+          value={(c.objectFit as string) || 'cover'}
+          onChange={(v) => set({ objectFit: v })}
+          options={OBJECT_FITS}
+          fieldClassName="flex-1"
+        />
       </div>
 
       {showBrowser && (

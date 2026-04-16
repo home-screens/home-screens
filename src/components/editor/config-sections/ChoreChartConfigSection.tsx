@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ViewSelect from '@/components/editor/ViewSelect';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import type {
@@ -33,6 +33,11 @@ const VIEWS: { value: ChoreChartView; label: string }[] = [
   { value: 'compact', label: 'Compact (Dense Grid)' },
 ];
 
+const WEEK_START_OPTIONS = [
+  { value: 'sunday', label: 'Sunday' },
+  { value: 'monday', label: 'Monday' },
+] as const;
+
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
@@ -55,17 +60,12 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       />
 
       {/* Week Start */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Week Starts On</span>
-        <select
-          value={c.weekStartDay ?? 'monday'}
-          onChange={(e) => set({ weekStartDay: e.target.value as 'sunday' | 'monday' })}
-          className={INPUT_CLASS}
-        >
-          <option value="sunday">Sunday</option>
-          <option value="monday">Monday</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Week Starts On"
+        value={c.weekStartDay ?? 'monday'}
+        onChange={(v) => set({ weekStartDay: v })}
+        options={WEEK_START_OPTIONS}
+      />
 
       {/* Display Toggles */}
       <Toggle

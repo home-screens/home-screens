@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
+import LabeledField from '@/components/ui/LabeledField';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 
 interface ImmichAlbum {
   id: string;
@@ -121,8 +122,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
       {status?.authenticated && (
         <>
           {/* Album picker */}
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Album</span>
+          <LabeledField label="Album">
             <select
               value={albumId}
               onChange={(e) => set({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
@@ -135,11 +135,10 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
                 </option>
               ))}
             </select>
-          </label>
+          </LabeledField>
 
           {/* Person filter */}
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Person</span>
+          <LabeledField label="Person">
             <div className="flex gap-1.5 items-center">
               <select
                 value={personId}
@@ -159,7 +158,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
                 />
               )}
             </div>
-          </label>
+          </LabeledField>
 
           {/* Favorites toggle */}
           <Toggle

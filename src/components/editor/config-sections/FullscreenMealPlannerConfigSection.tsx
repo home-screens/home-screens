@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
@@ -32,6 +34,11 @@ const VIEWS = [
   { value: 'today', label: 'Today' },
   { value: 'menu-board', label: 'Menu Board' },
   { value: 'next-meal', label: 'Next Meal' },
+] as const;
+
+const DENSITY_OPTIONS = [
+  { value: 'cozy', label: 'Cozy' },
+  { value: 'snug', label: 'Snug' },
 ] as const;
 
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -116,8 +123,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   return (
     <>
       {/* Theme Override */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Theme</span>
+      <LabeledField label="Theme">
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -128,48 +134,31 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
             <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
           ))}
         </select>
-      </label>
+      </LabeledField>
 
       {/* View */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">View</span>
-        <select
-          value={c.view ?? 'week'}
-          onChange={(e) => set({ view: e.target.value as FullscreenMealPlannerConfig['view'] })}
-          className={INPUT_CLASS}
-        >
-          {VIEWS.map((v) => (
-            <option key={v.value} value={v.value}>{v.label}</option>
-          ))}
-        </select>
-      </label>
+      <LabeledSelect
+        label="View"
+        value={c.view ?? 'week'}
+        onChange={(v) => set({ view: v })}
+        options={VIEWS}
+      />
 
       {/* Density */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Density</span>
-        <select
-          value={c.density ?? 'cozy'}
-          onChange={(e) => set({ density: e.target.value as 'cozy' | 'snug' })}
-          className={INPUT_CLASS}
-        >
-          <option value="cozy">Cozy</option>
-          <option value="snug">Snug</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Density"
+        value={c.density ?? 'cozy'}
+        onChange={(v) => set({ density: v })}
+        options={DENSITY_OPTIONS}
+      />
 
       {/* Typography Size */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Typography Size</span>
-        <select
-          value={c.typographySize ?? 'medium'}
-          onChange={(e) => set({ typographySize: e.target.value as typeof TYPOGRAPHY_SIZES[number]['value'] })}
-          className={INPUT_CLASS}
-        >
-          {TYPOGRAPHY_SIZES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-      </label>
+      <LabeledSelect
+        label="Typography Size"
+        value={c.typographySize ?? 'medium'}
+        onChange={(v) => set({ typographySize: v })}
+        options={TYPOGRAPHY_SIZES}
+      />
 
       {/* Display Toggles */}
       <Toggle label="Show Emoji" checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />

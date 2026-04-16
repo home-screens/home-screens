@@ -3,10 +3,17 @@
 import { useState, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import Button from '@/components/ui/Button';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import type { ModuleInstance } from '@/types/config';
+
+const OBJECT_FIT_OPTIONS = [
+  { value: 'cover', label: 'Cover' },
+  { value: 'contain', label: 'Contain' },
+  { value: 'fill', label: 'Fill' },
+] as const;
 
 export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
@@ -69,16 +76,12 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       </div>
 
       {tab === 'url' ? (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Image URL</span>
-          <input
-            type="text"
-            value={(c.src as string) || ''}
-            onChange={(e) => set({ src: e.target.value })}
-            className={INPUT_CLASS}
-            placeholder="https://example.com/photo.jpg"
-          />
-        </label>
+        <LabeledInput
+          label="Image URL"
+          value={(c.src as string) || ''}
+          onChange={(v) => set({ src: v })}
+          placeholder="https://example.com/photo.jpg"
+        />
       ) : (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-1.5">
@@ -109,27 +112,19 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       )}
 
       <div className="flex gap-2">
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Object Fit</span>
-          <select
-            value={(c.objectFit as string) || 'cover'}
-            onChange={(e) => set({ objectFit: e.target.value })}
-            className={INPUT_CLASS}
-          >
-            <option value="cover">Cover</option>
-            <option value="contain">Contain</option>
-            <option value="fill">Fill</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Alt Text</span>
-          <input
-            type="text"
-            value={(c.alt as string) || ''}
-            onChange={(e) => set({ alt: e.target.value })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledSelect
+          label="Object Fit"
+          value={((c.objectFit as string) || 'cover') as 'cover' | 'contain' | 'fill'}
+          onChange={(v) => set({ objectFit: v })}
+          options={OBJECT_FIT_OPTIONS}
+          fieldClassName="flex-1"
+        />
+        <LabeledInput
+          label="Alt Text"
+          value={(c.alt as string) || ''}
+          onChange={(v) => set({ alt: v })}
+          fieldClassName="flex-1"
+        />
       </div>
 
       {showBrowser && (

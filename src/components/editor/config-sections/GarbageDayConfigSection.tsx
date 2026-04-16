@@ -1,9 +1,22 @@
 'use client';
 
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance } from '@/types/config';
+
+const FREQUENCY_OPTIONS = [
+  { value: 'weekly', label: 'Every week' },
+  { value: 'biweekly', label: 'Every other week' },
+] as const;
+
+const HIGHLIGHT_OPTIONS = [
+  { value: 'day-before', label: 'Day Before (put bins out)' },
+  { value: 'day-of', label: 'Day Of (collection day)' },
+] as const;
 
 export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{
@@ -36,27 +49,24 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
     <>
       {wasteTypes.map(({ key, label, day, freq, start, color }) => (
         <div key={key} className="space-y-1.5 pb-2 border-b border-hs-border last:border-0">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">{label} Day</span>
+          <LabeledField label={`${label} Day`}>
             <select className={INPUT_CLASS} value={day ?? -1} onChange={(e) => set({ [`${key}Day`]: Number(e.target.value) })}>
               {dayOptions.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
             </select>
-          </label>
+          </LabeledField>
           {(day ?? -1) >= 0 && (
             <>
-              <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">Frequency</span>
-                <select className={INPUT_CLASS} value={freq ?? 'weekly'} onChange={(e) => set({ [`${key}Frequency`]: e.target.value })}>
-                  <option value="weekly">Every week</option>
-                  <option value="biweekly">Every other week</option>
-                </select>
-              </label>
+              <LabeledSelect
+                label="Frequency"
+                value={freq ?? 'weekly'}
+                onChange={(v) => set({ [`${key}Frequency`]: v })}
+                options={FREQUENCY_OPTIONS}
+              />
               {freq === 'biweekly' && (
-                <label className="flex flex-col gap-0.5">
-                  <span className="text-xs text-hs-text-muted">A known {label.toLowerCase()} date</span>
+                <LabeledField label={`A known ${label.toLowerCase()} date`}>
                   <input type="date" className={INPUT_CLASS} value={start ?? ''} onChange={(e) => set({ [`${key}StartDate`]: e.target.value })} />
                   <span className="text-[10px] text-hs-text-faint">Pick any date when {label.toLowerCase()} was/will be collected</span>
-                </label>
+                </LabeledField>
               )}
               <ColorPicker label="Icon Color" value={color || defaultColors[key]} onChange={(v) => set({ [`${key}Color`]: v })} />
             </>
@@ -64,18 +74,18 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
         </div>
       ))}
       {(c.customDay ?? -1) >= 0 && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Custom Category Name</span>
-          <input type="text" className={INPUT_CLASS} value={c.customLabel ?? 'Yard Waste'} onChange={(e) => set({ customLabel: e.target.value })} />
-        </label>
+        <LabeledInput
+          label="Custom Category Name"
+          value={c.customLabel ?? 'Yard Waste'}
+          onChange={(v) => set({ customLabel: v })}
+        />
       )}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Highlight When</span>
-        <select className={INPUT_CLASS} value={c.highlightMode ?? 'day-before'} onChange={(e) => set({ highlightMode: e.target.value })}>
-          <option value="day-before">Day Before (put bins out)</option>
-          <option value="day-of">Day Of (collection day)</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Highlight When"
+        value={c.highlightMode ?? 'day-before'}
+        onChange={(v) => set({ highlightMode: v })}
+        options={HIGHLIGHT_OPTIONS}
+      />
     </>
   );
 }

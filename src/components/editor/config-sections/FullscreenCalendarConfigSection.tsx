@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import type { FullscreenTypographySize } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 interface CalendarSource {
@@ -23,6 +26,29 @@ interface GoogleCalendar {
   backgroundColor: string;
   primary: boolean;
 }
+
+const VIEW_OPTIONS: { value: FullscreenCalendarView; label: string }[] = [
+  { value: 'schedule', label: 'Schedule (Column Grid)' },
+  { value: 'week-list', label: 'Week List' },
+  { value: 'month-grid', label: 'Month Grid' },
+  { value: 'day-timeline', label: 'Day Timeline' },
+  { value: 'agenda', label: 'Agenda' },
+];
+
+const DENSITY_OPTIONS: { value: CalendarDensity; label: string }[] = [
+  { value: 'cozy', label: 'Cozy (distance reading)' },
+  { value: 'snug', label: 'Snug (more events)' },
+];
+
+const TYPOGRAPHY_OPTIONS: { value: FullscreenTypographySize; label: string }[] = [
+  { value: 'small', label: 'Small' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'large', label: 'Large' },
+  { value: 'extra-large', label: 'Extra Large' },
+  { value: '2x-large', label: '2X Large' },
+  { value: '3x-large', label: '3X Large' },
+  { value: '4x-large', label: '4X Large' },
+];
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
@@ -83,43 +109,31 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   return (
     <>
       {/* View Mode */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">View</span>
-        <select value={view} onChange={(e) => set({ view: e.target.value })} className={INPUT_CLASS}>
-          <option value="schedule">Schedule (Column Grid)</option>
-          <option value="week-list">Week List</option>
-          <option value="month-grid">Month Grid</option>
-          <option value="day-timeline">Day Timeline</option>
-          <option value="agenda">Agenda</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="View"
+        value={view}
+        onChange={(v) => set({ view: v })}
+        options={VIEW_OPTIONS}
+      />
 
       {/* Density */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Density</span>
-        <select value={c.density ?? 'cozy'} onChange={(e) => set({ density: e.target.value })} className={INPUT_CLASS}>
-          <option value="cozy">Cozy (distance reading)</option>
-          <option value="snug">Snug (more events)</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Density"
+        value={c.density ?? 'cozy'}
+        onChange={(v) => set({ density: v })}
+        options={DENSITY_OPTIONS}
+      />
 
       {/* Typography Size */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Typography Size</span>
-        <select value={c.typographySize ?? 'medium'} onChange={(e) => set({ typographySize: e.target.value as FullscreenTypographySize })} className={INPUT_CLASS}>
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="extra-large">Extra Large</option>
-          <option value="2x-large">2X Large</option>
-          <option value="3x-large">3X Large</option>
-          <option value="4x-large">4X Large</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Typography Size"
+        value={c.typographySize ?? 'medium'}
+        onChange={(v) => set({ typographySize: v })}
+        options={TYPOGRAPHY_OPTIONS}
+      />
 
       {/* Theme Override */}
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Theme</span>
+      <LabeledField label="Theme">
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -130,7 +144,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
           ))}
         </select>
-      </label>
+      </LabeledField>
 
       {/* Accent Color */}
       <ColorPicker label="Accent Color" value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
@@ -166,37 +180,34 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* View-specific settings */}
       {(view === 'schedule' || view === 'day-timeline') && (
         <>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Start Hour</span>
-            <input
-              type="number" min={0} max={23}
-              value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
-              onChange={(e) => set(view === 'schedule' ? { scheduleHourStart: Number(e.target.value) } : { dayHourStart: Number(e.target.value) })}
-              className={INPUT_CLASS}
-            />
-          </label>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">End Hour</span>
-            <input
-              type="number" min={1} max={24}
-              value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
-              onChange={(e) => set(view === 'schedule' ? { scheduleHourEnd: Number(e.target.value) } : { dayHourEnd: Number(e.target.value) })}
-              className={INPUT_CLASS}
-            />
-          </label>
+          <LabeledInput
+            label="Start Hour"
+            type="number"
+            min={0}
+            max={23}
+            value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
+            onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
+          />
+          <LabeledInput
+            label="End Hour"
+            type="number"
+            min={1}
+            max={24}
+            value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
+            onChange={(v) => set(view === 'schedule' ? { scheduleHourEnd: Number(v) } : { dayHourEnd: Number(v) })}
+          />
         </>
       )}
 
       {view === 'schedule' && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Days to Show (0 = auto)</span>
-          <input
-            type="number" min={0} max={7}
-            value={c.scheduleDaysToShow ?? 0}
-            onChange={(e) => set({ scheduleDaysToShow: Number(e.target.value) })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Days to Show (0 = auto)"
+          type="number"
+          min={0}
+          max={7}
+          value={c.scheduleDaysToShow ?? 0}
+          onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
+        />
       )}
 
       {view === 'week-list' && (
@@ -206,15 +217,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {view === 'month-grid' && (
         <>
           <Toggle label="Show Week Numbers" checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Max Events per Cell (0 = auto)</span>
-            <input
-              type="number" min={0} max={8}
-              value={c.monthMaxEventsPerCell ?? 0}
-              onChange={(e) => set({ monthMaxEventsPerCell: Number(e.target.value) })}
-              className={INPUT_CLASS}
-            />
-          </label>
+          <LabeledInput
+            label="Max Events per Cell (0 = auto)"
+            type="number"
+            min={0}
+            max={8}
+            value={c.monthMaxEventsPerCell ?? 0}
+            onChange={(v) => set({ monthMaxEventsPerCell: Number(v) })}
+          />
         </>
       )}
 
@@ -224,15 +234,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {view === 'agenda' && (
         <>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Days Ahead</span>
-            <input
-              type="number" min={7} max={30}
-              value={c.agendaDaysAhead ?? 14}
-              onChange={(e) => set({ agendaDaysAhead: Number(e.target.value) })}
-              className={INPUT_CLASS}
-            />
-          </label>
+          <LabeledInput
+            label="Days Ahead"
+            type="number"
+            min={7}
+            max={30}
+            value={c.agendaDaysAhead ?? 14}
+            onChange={(v) => set({ agendaDaysAhead: Number(v) })}
+          />
           <Toggle label="Hide Empty Days" checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
         </>
       )}

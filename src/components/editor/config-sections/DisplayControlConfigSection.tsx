@@ -2,6 +2,7 @@
 
 import { useEditorStore } from '@/stores/editor-store';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import LabeledField from '@/components/ui/LabeledField';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, DisplayControlConfig } from '@/types/config';
 
@@ -33,8 +34,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
         </div>
       </div>
 
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Default target</span>
+      <LabeledField label="Default target">
         <select
           value={c.defaultTarget}
           onChange={(e) => set({ defaultTarget: e.target.value })}
@@ -54,7 +54,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
             Only one display registered — target is locked to this display.
           </p>
         )}
-      </label>
+      </LabeledField>
 
       <label className="flex items-center gap-2 cursor-pointer">
         <input

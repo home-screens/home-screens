@@ -3,6 +3,8 @@
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
@@ -41,8 +43,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Feed Source</span>
+      <LabeledField label="Feed Source">
         <select
           value={isCustom ? '__custom__' : feedUrl}
           onChange={(e) => {
@@ -56,18 +57,14 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           ))}
           <option value="__custom__">Custom URL…</option>
         </select>
-      </label>
+      </LabeledField>
       {isCustom && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Custom RSS Feed URL</span>
-          <input
-            type="text"
-            value={feedUrl}
-            onChange={(e) => set({ feedUrl: e.target.value })}
-            placeholder="https://example.com/feed.xml"
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Custom RSS Feed URL"
+          value={feedUrl}
+          onChange={(v) => set({ feedUrl: v })}
+          placeholder="https://example.com/feed.xml"
+        />
       )}
       <ViewSelect
         value={view}

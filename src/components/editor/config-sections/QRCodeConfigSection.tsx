@@ -1,9 +1,21 @@
 'use client';
 
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, QRCodeConfig } from '@/types/config';
+
+const MODE_OPTIONS = [
+  { value: 'custom', label: 'Custom (URL / Text)' },
+  { value: 'wifi', label: 'WiFi Password' },
+] as const;
+
+const AUTH_OPTIONS = [
+  { value: 'WPA', label: 'WPA / WPA2 / WPA3' },
+  { value: 'WEP', label: 'WEP' },
+  { value: 'nopass', label: 'None (Open)' },
+] as const;
 
 export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<QRCodeConfig>(mod, screenId);
@@ -11,53 +23,34 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Mode</span>
-        <select
-          value={mode}
-          onChange={(e) => set({ mode: e.target.value as QRCodeConfig['mode'] })}
-          className={INPUT_CLASS}
-        >
-          <option value="custom">Custom (URL / Text)</option>
-          <option value="wifi">WiFi Password</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="Mode"
+        value={mode}
+        onChange={(v) => set({ mode: v as QRCodeConfig['mode'] })}
+        options={MODE_OPTIONS}
+      />
 
       {mode === 'wifi' ? (
         <>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Network Name (SSID)</span>
-            <input
-              type="text"
-              value={c.ssid || ''}
-              onChange={(e) => set({ ssid: e.target.value })}
-              placeholder="MyNetwork"
-              className={INPUT_CLASS}
-            />
-          </label>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Encryption</span>
-            <select
-              value={c.authType || 'WPA'}
-              onChange={(e) => set({ authType: e.target.value as QRCodeConfig['authType'] })}
-              className={INPUT_CLASS}
-            >
-              <option value="WPA">WPA / WPA2 / WPA3</option>
-              <option value="WEP">WEP</option>
-              <option value="nopass">None (Open)</option>
-            </select>
-          </label>
+          <LabeledInput
+            label="Network Name (SSID)"
+            value={c.ssid || ''}
+            onChange={(v) => set({ ssid: v })}
+            placeholder="MyNetwork"
+          />
+          <LabeledSelect
+            label="Encryption"
+            value={c.authType || 'WPA'}
+            onChange={(v) => set({ authType: v as QRCodeConfig['authType'] })}
+            options={AUTH_OPTIONS}
+          />
           {(c.authType || 'WPA') !== 'nopass' && (
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">Password</span>
-              <input
-                type="text"
-                value={c.password || ''}
-                onChange={(e) => set({ password: e.target.value })}
-                placeholder="WiFi password"
-                className={INPUT_CLASS}
-              />
-            </label>
+            <LabeledInput
+              label="Password"
+              value={c.password || ''}
+              onChange={(v) => set({ password: v })}
+              placeholder="WiFi password"
+            />
           )}
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -91,25 +84,17 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         </>
       ) : (
         <>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Data (URL or text)</span>
-            <input
-              type="text"
-              value={c.data || ''}
-              onChange={(e) => set({ data: e.target.value })}
-              placeholder="https://example.com"
-              className={INPUT_CLASS}
-            />
-          </label>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Label</span>
-            <input
-              type="text"
-              value={c.label || ''}
-              onChange={(e) => set({ label: e.target.value })}
-              className={INPUT_CLASS}
-            />
-          </label>
+          <LabeledInput
+            label="Data (URL or text)"
+            value={c.data || ''}
+            onChange={(v) => set({ data: v })}
+            placeholder="https://example.com"
+          />
+          <LabeledInput
+            label="Label"
+            value={c.label || ''}
+            onChange={(v) => set({ label: v })}
+          />
         </>
       )}
 

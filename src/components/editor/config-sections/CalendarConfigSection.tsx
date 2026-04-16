@@ -3,11 +3,19 @@
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance } from '@/types/config';
+
+const VIEW_MODES = [
+  { value: 'daily', label: 'Daily Columns' },
+  { value: 'agenda', label: 'Agenda List' },
+  { value: 'week', label: 'Week Grid' },
+  { value: 'month', label: 'Month Grid' },
+] as const;
 
 interface GoogleCalendar {
   id: string;
@@ -112,19 +120,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">View Mode</span>
-        <select
-          value={viewMode}
-          onChange={(e) => set({ viewMode: e.target.value })}
-          className={INPUT_CLASS}
-        >
-          <option value="daily">Daily Columns</option>
-          <option value="agenda">Agenda List</option>
-          <option value="week">Week Grid</option>
-          <option value="month">Month Grid</option>
-        </select>
-      </label>
+      <LabeledSelect
+        label="View Mode"
+        value={viewMode}
+        onChange={(v) => set({ viewMode: v })}
+        options={VIEW_MODES}
+      />
 
       {googleAuthError && googleCalendarIds.length > 0 && (
         <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
@@ -165,30 +166,24 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
 
       {viewMode === 'daily' && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Days to Show</span>
-          <input
-            type="number"
-            min={1}
-            max={14}
-            value={c.daysToShow ?? 3}
-            onChange={(e) => set({ daysToShow: Number(e.target.value) })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Days to Show"
+          type="number"
+          min={1}
+          max={14}
+          value={c.daysToShow ?? 3}
+          onChange={(v) => set({ daysToShow: Number(v) })}
+        />
       )}
       {viewMode === 'agenda' && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Max Events</span>
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={c.maxEvents ?? 20}
-            onChange={(e) => set({ maxEvents: Number(e.target.value) })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Max Events"
+          type="number"
+          min={1}
+          max={100}
+          value={c.maxEvents ?? 20}
+          onChange={(v) => set({ maxEvents: Number(v) })}
+        />
       )}
       {(viewMode === 'daily' || viewMode === 'agenda') && (
         <>

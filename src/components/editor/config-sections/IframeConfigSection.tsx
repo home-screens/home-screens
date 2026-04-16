@@ -2,7 +2,9 @@
 
 import { useMemo } from 'react';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
 import type { ModuleInstance, IframeConfig } from '@/types/config';
 
@@ -18,8 +20,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">URL</span>
+      <LabeledField label="URL">
         <input
           type="url"
           value={c.url || ''}
@@ -30,29 +31,22 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         {urlError && (
           <span className="text-[10px] text-hs-danger mt-0.5">{urlError}</span>
         )}
-      </label>
+      </LabeledField>
 
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Title (accessibility)</span>
-        <input
-          type="text"
-          value={c.title || ''}
-          onChange={(e) => set({ title: e.target.value })}
-          className={INPUT_CLASS}
-          placeholder="e.g. Home Assistant Dashboard"
-        />
-      </label>
+      <LabeledInput
+        label="Title (accessibility)"
+        value={c.title || ''}
+        onChange={(v) => set({ title: v })}
+        placeholder="e.g. Home Assistant Dashboard"
+      />
 
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Auto-Refresh (seconds, 0 = off)</span>
-        <input
-          type="number"
-          min={0}
-          value={Math.round((c.refreshIntervalMs || 0) / 1000)}
-          onChange={(e) => set({ refreshIntervalMs: Math.max(0, Number(e.target.value)) * 1000 })}
-          className={INPUT_CLASS}
-        />
-      </label>
+      <LabeledInput
+        label="Auto-Refresh (seconds, 0 = off)"
+        type="number"
+        min={0}
+        value={Math.round((c.refreshIntervalMs || 0) / 1000)}
+        onChange={(v) => set({ refreshIntervalMs: Math.max(0, Number(v)) * 1000 })}
+      />
 
       <label className="flex items-center gap-2 cursor-pointer">
         <input
@@ -75,8 +69,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       </label>
 
       {c.sandboxEnabled && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Sandbox permissions</span>
+        <LabeledField label="Sandbox permissions">
           <input
             type="text"
             value={c.sandbox || ''}
@@ -97,7 +90,7 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           <span className="text-[10px] text-hs-text-faint mt-0.5">
             Space-separated tokens. Leave empty for maximum restriction.
           </span>
-        </label>
+        </LabeledField>
       )}
     </>
   );

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
+import LabeledField from '@/components/ui/LabeledField';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import ViewSelect from '@/components/editor/ViewSelect';
@@ -64,8 +65,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         <Toggle label="Show Past Events" checked={!!c.showPastEvents} onChange={(v) => set({ showPastEvents: v })} />
       )}
 
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Scale ({((c.scale ?? 1) * 100).toFixed(0)}%)</span>
+      <LabeledField label={`Scale (${((c.scale ?? 1) * 100).toFixed(0)}%)`}>
         <input
           type="range"
           min="0.5"
@@ -75,7 +75,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
           onChange={(e) => set({ scale: Number(e.target.value) })}
           className="w-full accent-hs-accent"
         />
-      </label>
+      </LabeledField>
 
       {/* Events header with Add + Browse Holidays */}
       <div className="flex items-center justify-between">

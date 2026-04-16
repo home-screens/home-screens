@@ -4,9 +4,11 @@ import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
 import type { ModuleInstance, ClockView, WorldClockZone } from '@/types/config';
 
@@ -148,8 +150,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Date Format (preset dropdown + custom input + live preview) */}
       {has('dateFormat') && (
         <div className="flex flex-col gap-1">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Date Format</span>
+          <LabeledField label="Date Format">
             <select
               value={showCustomDate ? '__custom__' : dateFormatVal}
               onChange={(e) => {
@@ -167,7 +168,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               ))}
               <option value="__custom__">Custom...</option>
             </select>
-          </label>
+          </LabeledField>
           {showCustomDate && (
             <input
               type="text"
@@ -242,25 +243,18 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Elapsed: reference time config */}
       {has('referenceTime') && (
         <>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Reference Time</span>
-            <input
-              type="datetime-local"
-              value={c.referenceTime ?? ''}
-              onChange={(e) => set({ referenceTime: e.target.value })}
-              className={INPUT_CLASS}
-            />
-          </label>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Label</span>
-            <input
-              type="text"
-              value={c.referenceLabel ?? ''}
-              onChange={(e) => set({ referenceLabel: e.target.value })}
-              placeholder="e.g. market open"
-              className={INPUT_CLASS}
-            />
-          </label>
+          <LabeledInput
+            label="Reference Time"
+            type="datetime-local"
+            value={c.referenceTime ?? ''}
+            onChange={(v) => set({ referenceTime: v })}
+          />
+          <LabeledInput
+            label="Label"
+            value={c.referenceLabel ?? ''}
+            onChange={(v) => set({ referenceLabel: v })}
+            placeholder="e.g. market open"
+          />
           <Toggle
             label="Count Up (elapsed)"
             checked={c.countUp !== false}

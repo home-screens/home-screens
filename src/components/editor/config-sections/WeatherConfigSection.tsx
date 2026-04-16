@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
+import LabeledField from '@/components/ui/LabeledField';
+import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
+import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
+
+const ICON_SETS: { value: WeatherIconSet; label: string }[] = [
+  { value: 'outline', label: 'Outline' },
+  { value: 'color', label: 'Color' },
+];
 
 // Provider capabilities — controls which toggles and views are visible
 const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean }> = {
@@ -118,21 +126,15 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         <Toggle label="Hide When No Alerts" checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
       )}
       {showsStats && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Icon Style</span>
-          <select
-            value={c.iconSet ?? 'color'}
-            onChange={(e) => set({ iconSet: e.target.value as WeatherIconSet })}
-            className={INPUT_CLASS}
-          >
-            <option value="outline">Outline</option>
-            <option value="color">Color</option>
-          </select>
-        </label>
+        <LabeledSelect
+          label="Icon Style"
+          value={c.iconSet ?? 'color'}
+          onChange={(v) => set({ iconSet: v })}
+          options={ICON_SETS}
+        />
       )}
       {filteredProviders.length > 0 && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Data Provider</span>
+        <LabeledField label="Data Provider">
           <select
             value={c.provider ?? 'global'}
             onChange={(e) => set({ provider: e.target.value as WeatherProviderOption })}
@@ -155,29 +157,23 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
               <option value="open-meteo">Open-Meteo (free, global)</option>
             )}
           </select>
-        </label>
+        </LabeledField>
       )}
       {showsHours && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Hours to Show</span>
-          <input
-            type="number"
-            value={c.hoursToShow ?? 8}
-            onChange={(e) => set({ hoursToShow: Number(e.target.value) })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Hours to Show"
+          type="number"
+          value={c.hoursToShow ?? 8}
+          onChange={(v) => set({ hoursToShow: Number(v) })}
+        />
       )}
       {showsDays && (
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Days to Show</span>
-          <input
-            type="number"
-            value={c.daysToShow ?? 5}
-            onChange={(e) => set({ daysToShow: Number(e.target.value) })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        <LabeledInput
+          label="Days to Show"
+          type="number"
+          value={c.daysToShow ?? 5}
+          onChange={(v) => set({ daysToShow: Number(v) })}
+        />
       )}
       {showsCurrent && (
         <Toggle label="Feels Like" checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />

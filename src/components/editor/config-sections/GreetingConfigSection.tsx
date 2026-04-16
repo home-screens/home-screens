@@ -2,9 +2,9 @@
 
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import Toggle from '@/components/ui/Toggle';
+import LabeledInput from '@/components/ui/LabeledInput';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance } from '@/types/config';
 
 export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -16,15 +16,11 @@ export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; 
 
   return (
     <>
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Name</span>
-        <input
-          type="text"
-          value={(c.name as string) || 'Friend'}
-          onChange={(e) => set({ name: e.target.value })}
-          className={INPUT_CLASS}
-        />
-      </label>
+      <LabeledInput
+        label="Name"
+        value={(c.name as string) || 'Friend'}
+        onChange={(v) => set({ name: v })}
+      />
       <AccentColorPicker
         value={c.accentColor ?? '#000000'}
         onChange={(v) => set({ accentColor: v })}
