@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import type { TextConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
@@ -106,6 +105,12 @@ const MARQUEE_CSS = `
 @keyframes _marqueeUp    { from { transform: translateY(100%);  } to { transform: translateY(-100%);  } }
 @keyframes _marqueeDown  { from { transform: translateY(-100%); } to { transform: translateY(100%);  } }
 `;
+
+const FADE_IN_CSS = `
+@keyframes _textFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}`;
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -242,6 +247,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   if (effect === 'gradient-sweep' && gradientOn) needsCSS.push(GRADIENT_SWEEP_CSS);
   if (effect === 'glow') needsCSS.push(GLOW_CSS);
   if (config.marquee) needsCSS.push(MARQUEE_CSS);
+  if (effect === 'fade-in') needsCSS.push(FADE_IN_CSS);
 
   // --- Alignment → CSS ---
   const justifyH =
@@ -316,36 +322,15 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     return inner;
   };
 
-  // Wrap with animation if fade-in or rotation
-  const useFadeAnimation = effect === 'fade-in' || (config.rotationEnabled && contentItems.length > 1);
-
-  const animatedContent = useFadeAnimation ? (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={`rot-${rotationIndex}`}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.5, ease: 'easeInOut' }}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: justifyH === 'flex-start' ? 'flex-start' : justifyH === 'flex-end' ? 'flex-end' : 'center',
-          gap: config.showDividers ? 8 : 0,
-        }}
-      >
-        {divider}
-        {contentBlock(displayText, true)}
-        {divider}
-      </motion.div>
-    </AnimatePresence>
-  ) : (
+  const animatedContent = (
     <div
+      key={`rot-${rotationIndex}`}
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: justifyH === 'flex-start' ? 'flex-start' : justifyH === 'flex-end' ? 'flex-end' : 'center',
         gap: config.showDividers ? 8 : 0,
+        animation: effect === 'fade-in' ? '_textFadeIn 0.5s ease-in-out' : undefined,
       }}
     >
       {divider}

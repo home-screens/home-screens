@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useTypewriter } from '@/hooks/useTypewriter';
 import type { AffirmationsConfig, AffirmationsCategory, AffirmationsView, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -226,20 +225,11 @@ function TypewriterView({ entry, accentColor, showCategory }: { entry: Entry; ac
           <span className="animate-pulse" style={{ color: accentColor }}>|</span>
         )}
       </p>
-      <AnimatePresence>
-        {done && entry.attribution && (
-          <motion.p
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 0.5, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="font-light"
-            style={{ fontSize: '0.7em' }}
-          >
-            &mdash; {entry.attribution}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {done && entry.attribution && (
+        <p className="font-light" style={{ fontSize: '0.7em', opacity: 0.5 }}>
+          &mdash; {entry.attribution}
+        </p>
+      )}
     </div>
   );
 }
@@ -307,18 +297,9 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   return (
     <ModuleWrapper style={style}>
       <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${key}-${entry.text}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
-          className="h-full"
-        >
+        <div key={`${key}-${entry.text}`} className="h-full">
           <ViewComponent entry={entry} accentColor={accentColor} showCategory={showCategory} />
-        </motion.div>
-      </AnimatePresence>
+        </div>
       </div>
     </ModuleWrapper>
   );

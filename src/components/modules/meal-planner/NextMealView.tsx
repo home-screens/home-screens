@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
@@ -47,16 +46,11 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
         {meta.label}
       </span>
 
-      <AnimatePresence mode="wait">
-        {meal ? (
-          <motion.div
-            key={`${mealDate}-${slot}-${meal.name}`}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4 }}
-            className="flex flex-col items-center gap-2"
-          >
+      {meal ? (
+        <div
+          key={`${mealDate}-${slot}-${meal.name}`}
+          className="flex flex-col items-center gap-2"
+        >
             {/* Emoji */}
             {(config.showEmoji ?? true) && meal.emoji && (
               <span style={{ fontSize: '2.5em', lineHeight: 1 }}>{meal.emoji}</span>
@@ -115,19 +109,15 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
                 {meal.notes}
               </p>
             )}
-          </motion.div>
-        ) : (
-          <motion.p
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.25 }}
-            className="italic"
-            style={{ fontSize: '0.8em' }}
-          >
-            Nothing planned
-          </motion.p>
-        )}
-      </AnimatePresence>
+        </div>
+      ) : (
+        <p
+          className="italic"
+          style={{ fontSize: '0.8em', opacity: 0.25 }}
+        >
+          Nothing planned
+        </p>
+      )}
 
       {/* Bottom accent line */}
       <div
