@@ -24,6 +24,7 @@ export interface PreviewSettings {
 }
 
 function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
+  const displays = useEditorStore((s) => s.config?.displays);
   const Component = getModuleComponent(mod.type);
   if (!Component) {
     if (mod.type.startsWith('plugin:')) {
@@ -77,9 +78,10 @@ function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; pr
     extraProps.events = previewData.calendarEvents;
   }
 
-  // Pass empty availableDisplays for display-control (editor preview is non-interactive)
+  // TargetPicker footprint matters for sizing; empty here would hide the picker
+  // behind isLegacyMode even when allowRetargeting is on.
   if (mod.type === 'display-control') {
-    extraProps.availableDisplays = [];
+    extraProps.availableDisplays = displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
   }
 
   return <Component config={mod.config} style={mod.style} {...extraProps} />;
