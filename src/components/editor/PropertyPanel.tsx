@@ -7,6 +7,8 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import BackgroundPicker from '@/components/editor/BackgroundPicker';
 import ScreenSettingsSection from './ScreenSettingsSection';
+import SectionDivider from './SectionDivider';
+import PropertyGroup from './PropertyGroup';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import type { ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -65,48 +67,54 @@ export { INPUT_CLASS, NESTED_INPUT_CLASS };
 function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { moveModule, resizeModule } = useEditorStore();
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        {[
-          { label: 'X', value: mod.position.x, key: 'x' },
-          { label: 'Y', value: mod.position.y, key: 'y' },
-        ].map(({ label, value, key }) => (
-          <label key={key} className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">{label}</span>
-            <input
-              type="number"
-              value={value}
-              onChange={(e) =>
-                moveModule(screenId, mod.id, {
-                  ...mod.position,
-                  [key]: Number(e.target.value),
-                })
-              }
-              className={INPUT_CLASS}
-            />
-          </label>
-        ))}
-        {[
-          { label: 'W', value: mod.size.w, key: 'w' },
-          { label: 'H', value: mod.size.h, key: 'h' },
-        ].map(({ label, value, key }) => (
-          <label key={key} className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">{label}</span>
-            <input
-              type="number"
-              value={value}
-              onChange={(e) =>
-                resizeModule(screenId, mod.id, {
-                  ...mod.size,
-                  [key]: Number(e.target.value),
-                })
-              }
-              className={INPUT_CLASS}
-            />
-          </label>
-        ))}
-      </div>
-    </div>
+    <>
+      <PropertyGroup title="Position" accent={1}>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: 'X', value: mod.position.x, key: 'x' as const },
+            { label: 'Y', value: mod.position.y, key: 'y' as const },
+          ].map(({ label, value, key }) => (
+            <label key={key} className="flex flex-col gap-0.5">
+              <span className="text-xs text-hs-text-muted">{label}</span>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) =>
+                  moveModule(screenId, mod.id, {
+                    ...mod.position,
+                    [key]: Number(e.target.value),
+                  })
+                }
+                className={INPUT_CLASS}
+              />
+            </label>
+          ))}
+        </div>
+      </PropertyGroup>
+      <PropertyGroup title="Size" accent={2}>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: 'W', value: mod.size.w, key: 'w' as const },
+            { label: 'H', value: mod.size.h, key: 'h' as const },
+          ].map(({ label, value, key }) => (
+            <label key={key} className="flex flex-col gap-0.5">
+              <span className="text-xs text-hs-text-muted">{label}</span>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) =>
+                  resizeModule(screenId, mod.id, {
+                    ...mod.size,
+                    [key]: Number(e.target.value),
+                  })
+                }
+                className={INPUT_CLASS}
+              />
+            </label>
+          ))}
+        </div>
+      </PropertyGroup>
+    </>
   );
 }
 
@@ -116,31 +124,50 @@ function StyleSection({ mod, screenId }: { mod: ModuleInstance; screenId: string
   const set = (updates: Partial<typeof s>) => updateModuleStyle(screenId, mod.id, updates);
 
   return (
-    <div className="space-y-3">
-      <Slider label="Opacity" value={s.opacity} min={0} max={1} step={0.05} onChange={(v) => set({ opacity: v })} />
-      <Slider label="Border Radius" value={s.borderRadius} min={0} max={50} onChange={(v) => set({ borderRadius: v })} />
-      <Slider label="Padding" value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
-      <Slider label="Font Size" value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
-      <Slider label="Backdrop Blur" value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
-      <Slider label="Border Width" value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
-      <Slider label="Shadow Size" value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
-      <ColorPicker label="Background" value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
-      <ColorPicker label="Border Color" value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
-      <ColorPicker label="Text Color" value={s.textColor} onChange={(v) => set({ textColor: v })} />
-      <label className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">Font Family</span>
-        <select
-          value={s.fontFamily}
-          onChange={(e) => set({ fontFamily: e.target.value })}
-          className={INPUT_CLASS}
-        >
-          <option value="Inter, system-ui, sans-serif">Inter</option>
-          <option value="Georgia, serif">Georgia</option>
-          <option value="monospace">Monospace</option>
-          <option value="system-ui, sans-serif">System UI</option>
-        </select>
-      </label>
-    </div>
+    <>
+      <PropertyGroup title="Shape" accent={1}>
+        <div className="space-y-3">
+          <Slider label="Border Radius" value={s.borderRadius} min={0} max={50} onChange={(v) => set({ borderRadius: v })} />
+          <Slider label="Padding" value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
+          <Slider label="Border Width" value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
+        </div>
+      </PropertyGroup>
+
+      <PropertyGroup title="Effects" accent={2}>
+        <div className="space-y-3">
+          <Slider label="Opacity" value={s.opacity} min={0} max={1} step={0.05} onChange={(v) => set({ opacity: v })} />
+          <Slider label="Backdrop Blur" value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
+          <Slider label="Shadow Size" value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
+        </div>
+      </PropertyGroup>
+
+      <PropertyGroup title="Color" accent={3}>
+        <div className="space-y-3">
+          <ColorPicker label="Background" value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
+          <ColorPicker label="Border Color" value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
+          <ColorPicker label="Text Color" value={s.textColor} onChange={(v) => set({ textColor: v })} />
+        </div>
+      </PropertyGroup>
+
+      <PropertyGroup title="Text" accent={4}>
+        <div className="space-y-3">
+          <Slider label="Font Size" value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-hs-text-muted">Font Family</span>
+            <select
+              value={s.fontFamily}
+              onChange={(e) => set({ fontFamily: e.target.value })}
+              className={INPUT_CLASS}
+            >
+              <option value="Inter, system-ui, sans-serif">Inter</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="monospace">Monospace</option>
+              <option value="system-ui, sans-serif">System UI</option>
+            </select>
+          </label>
+        </div>
+      </PropertyGroup>
+    </>
   );
 }
 
@@ -201,11 +228,10 @@ export default function PropertyPanel() {
           <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
           <p className="text-sm">Select a module to edit</p>
         </div>
-        <div className="space-y-3">
+        <div>
           <ScreenSettingsSection />
-          <div className="pt-3 border-t border-hs-border-strong">
-            <BackgroundPicker />
-          </div>
+          <SectionDivider />
+          <BackgroundPicker />
         </div>
       </div>
     );
@@ -237,7 +263,7 @@ export default function PropertyPanel() {
         </div>
 
         {!moduleDef?.fillsCanvas && (
-          <AccordionSection title="Position & Size">
+          <AccordionSection title="Position & Size" defaultOpen={false}>
             <PositionSection mod={selectedModule} screenId={selectedScreenId} />
           </AccordionSection>
         )}
@@ -249,46 +275,60 @@ export default function PropertyPanel() {
 
         {BuiltinConfigSection && (
           <AccordionSection title="Config">
-            <BuiltinConfigSection mod={selectedModule} screenId={selectedScreenId} />
+            <PropertyGroup title="Settings" accent={1}>
+              <div className="space-y-3">
+                <BuiltinConfigSection mod={selectedModule} screenId={selectedScreenId} />
+              </div>
+            </PropertyGroup>
           </AccordionSection>
         )}
         {pluginConfigSection && (() => {
           const PluginConfig = pluginConfigSection;
           return (
             <AccordionSection title="Config">
-              <PluginConfig
-                config={selectedModule.config}
-                onChange={(updates: Record<string, unknown>) =>
-                  updateModule(selectedScreenId, selectedModule.id, {
-                    config: { ...selectedModule.config, ...updates },
-                  })
-                }
-                moduleId={selectedModule.id}
-                screenId={selectedScreenId}
-              />
+              <PropertyGroup title="Settings" accent={1}>
+                <div className="space-y-3">
+                  <PluginConfig
+                    config={selectedModule.config}
+                    onChange={(updates: Record<string, unknown>) =>
+                      updateModule(selectedScreenId, selectedModule.id, {
+                        config: { ...selectedModule.config, ...updates },
+                      })
+                    }
+                    moduleId={selectedModule.id}
+                    screenId={selectedScreenId}
+                  />
+                </div>
+              </PropertyGroup>
             </AccordionSection>
           );
         })()}
         {hasSchemaFallback && (
           <AccordionSection title="Config">
-            <PluginConfigRenderer mod={selectedModule} screenId={selectedScreenId} schema={pluginDef!.configSchema!} />
+            <PropertyGroup title="Settings" accent={1}>
+              <div className="space-y-3">
+                <PluginConfigRenderer mod={selectedModule} screenId={selectedScreenId} schema={pluginDef!.configSchema!} />
+              </div>
+            </PropertyGroup>
           </AccordionSection>
         )}
 
         {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (
           <AccordionSection title="Secrets" defaultOpen={false}>
-            <PluginSecretsSection
-              pluginId={loadedPlugin.manifest.id}
-              secrets={loadedPlugin.manifest.secrets}
-            />
+            <PropertyGroup title="Credentials" accent={2}>
+              <div className="space-y-3">
+                <PluginSecretsSection
+                  pluginId={loadedPlugin.manifest.id}
+                  secrets={loadedPlugin.manifest.secrets}
+                />
+              </div>
+            </PropertyGroup>
           </AccordionSection>
         )}
 
         <AccordionSection title="Schedule" defaultOpen={false}>
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
-
-        <ScreenSettingsSection />
 
         <div className="pt-3 border-t border-hs-border-strong">
           <Button

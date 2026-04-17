@@ -167,10 +167,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     easingRef.current = tc.easing;
   }, [settings.transitionEffect, tc.duration, tc.easing]);
 
-  // Navigation wrapped in View Transitions
+  // Navigation wrapped in View Transitions.
+  // Timer reset is handled by the `[safeIndex]` effect below — no explicit
+  // epoch bump needed here (would otherwise fire twice per nav).
   const goToScreen = useCallback((index: number) => {
     startScreenTransition(
-      () => { setCurrentIndex(index); setRotationEpoch((e) => e + 1); },
+      () => { setCurrentIndex(index); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
   }, []);

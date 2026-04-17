@@ -2,6 +2,7 @@
 
 import { useEditorStore } from '@/stores/editor-store';
 import Toggle from '@/components/ui/Toggle';
+import PropertyGroup from './PropertyGroup';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, ModuleSchedule } from '@/types/config';
 
@@ -38,13 +39,13 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
 
   return (
     <div className="space-y-3">
-      <Toggle label="Enable Schedule" checked={enabled} onChange={toggleEnabled} />
+      <PropertyGroup title="Status" accent={1}>
+        <Toggle label="Enable Schedule" checked={enabled} onChange={toggleEnabled} />
+      </PropertyGroup>
 
       {enabled && (
         <>
-          {/* Days of week */}
-          <div>
-            <span className="text-xs text-hs-text-muted mb-1 block">Days</span>
+          <PropertyGroup title="Days" accent={2}>
             <div className="flex gap-1">
               {DAYS.map((label, i) => {
                 const days = schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
@@ -65,36 +66,38 @@ export function ScheduleSection({ mod, screenId }: { mod: ModuleInstance; screen
                 );
               })}
             </div>
-          </div>
+          </PropertyGroup>
 
-          {/* Time window */}
-          <div className="grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">From</span>
-              <input
-                type="time"
-                value={schedule?.startTime ?? ''}
-                onChange={(e) => setSchedule({ startTime: e.target.value || undefined })}
-                className={INPUT_CLASS}
-              />
-            </label>
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">Until</span>
-              <input
-                type="time"
-                value={schedule?.endTime ?? ''}
-                onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
-                className={INPUT_CLASS}
-              />
-            </label>
-          </div>
+          <PropertyGroup title="Time window" accent={3}>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-0.5">
+                <span className="text-xs text-hs-text-muted">From</span>
+                <input
+                  type="time"
+                  value={schedule?.startTime ?? ''}
+                  onChange={(e) => setSchedule({ startTime: e.target.value || undefined })}
+                  className={INPUT_CLASS}
+                />
+              </label>
+              <label className="flex flex-col gap-0.5">
+                <span className="text-xs text-hs-text-muted">Until</span>
+                <input
+                  type="time"
+                  value={schedule?.endTime ?? ''}
+                  onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
+                  className={INPUT_CLASS}
+                />
+              </label>
+            </div>
+          </PropertyGroup>
 
-          {/* Invert toggle */}
-          <Toggle
-            label="Invert (hide during window)"
-            checked={!!schedule?.invert}
-            onChange={(v) => setSchedule({ invert: v || undefined })}
-          />
+          <PropertyGroup title="Behavior" accent={4}>
+            <Toggle
+              label="Invert (hide during window)"
+              checked={!!schedule?.invert}
+              onChange={(v) => setSchedule({ invert: v || undefined })}
+            />
+          </PropertyGroup>
         </>
       )}
     </div>

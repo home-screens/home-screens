@@ -9,6 +9,8 @@ import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
 import ImmichBrowser from './ImmichBrowser';
 import AccordionSection from './AccordionSection';
+import PropertyGroup from './PropertyGroup';
+import Toggle from '@/components/ui/Toggle';
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -104,119 +106,114 @@ export default function BackgroundPicker() {
 
   if (!currentScreen || !selectedScreenId) return null;
 
+  const rotationEnabled = currentScreen?.backgroundRotation?.enabled ?? false;
+  const anySourceAvailable = hasUnsplashKey || hasNasaKey || hasImmichKey;
+
+  const setRotationEnabled = (enabled: boolean) => {
+    if (!selectedScreenId) return;
+    const current = currentScreen?.backgroundRotation;
+    const updated: BackgroundRotation = {
+      enabled,
+      source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : 'immich'),
+      query: current?.query || 'nature landscape',
+      intervalMinutes: current?.intervalMinutes || 60,
+    };
+    updateScreen(selectedScreenId, { backgroundRotation: updated });
+  };
+
+  const rotationFieldClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
+
   return (
     <AccordionSection title="Background">
-      {/* Auto-rotation controls — only show when at least one source is available */}
-      {(hasUnsplashKey || hasNasaKey || hasImmichKey) && <div className="bg-hs-hover rounded-md p-2.5 space-y-2">
-        <label className="flex items-center justify-between gap-2 cursor-pointer">
-          <span className="text-xs text-hs-text-muted">Auto-rotate background</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={currentScreen?.backgroundRotation?.enabled ?? false}
-            onClick={() => {
-              if (!selectedScreenId) return;
-              const current = currentScreen?.backgroundRotation;
-              const updated: BackgroundRotation = {
-                enabled: !current?.enabled,
-                source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : 'immich'),
-                query: current?.query || 'nature landscape',
-                intervalMinutes: current?.intervalMinutes || 60,
-              };
-              updateScreen(selectedScreenId, { backgroundRotation: updated });
-            }}
-            className={`relative w-9 h-5 rounded-full transition-colors ${
-              currentScreen?.backgroundRotation?.enabled ? 'bg-hs-accent' : 'bg-hs-card'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                currentScreen?.backgroundRotation?.enabled ? 'translate-x-4' : ''
-              }`}
-            />
-          </button>
-        </label>
-        {currentScreen?.backgroundRotation?.enabled && (
-          <div className="space-y-2">
-            <label className="block">
-              <span className="text-[10px] text-hs-text-faint">Source</span>
-              <select
-                value={rotationSource}
-                onChange={(e) => {
-                  if (!selectedScreenId) return;
-                  const source = e.target.value as BackgroundRotation['source'];
-                  updateScreen(selectedScreenId, {
-                    backgroundRotation: {
-                      ...currentScreen.backgroundRotation!,
-                      source,
-                      query: source === 'nasa-apod' || source === 'immich' ? '' : (currentScreen.backgroundRotation!.query || 'nature landscape'),
-                      intervalMinutes: source === 'nasa-apod' ? 240 : (currentScreen.backgroundRotation!.intervalMinutes || 60),
-                    },
-                  });
-                }}
-                className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
-              >
-                {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
-                {hasNasaKey && <option value="nasa-apod">NASA Picture of the Day</option>}
-                {hasImmichKey && <option value="immich">Immich</option>}
-              </select>
-            </label>
-            {rotationSource === 'unsplash' && (
-              <label className="block">
-                <span className="text-[10px] text-hs-text-faint">Search query</span>
-                <input
-                  type="text"
-                  value={currentScreen.backgroundRotation!.query}
-                  onChange={(e) => {
-                    if (!selectedScreenId) return;
-                    updateScreen(selectedScreenId, {
-                      backgroundRotation: { ...currentScreen.backgroundRotation!, query: e.target.value },
-                    });
-                  }}
-                  placeholder="nature landscape"
-                  className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
-                />
-              </label>
-            )}
-            {rotationSource === 'immich' && (
-              <ImmichRotationFields
-                rotation={currentScreen.backgroundRotation!}
-                onChange={(updates) => {
-                  if (!selectedScreenId) return;
-                  updateScreen(selectedScreenId, {
-                    backgroundRotation: { ...currentScreen.backgroundRotation!, ...updates },
-                  });
-                }}
-              />
-            )}
-            <label className="block">
-              <span className="text-[10px] text-hs-text-faint">Rotate every</span>
-              <select
-                value={currentScreen.backgroundRotation!.intervalMinutes}
-                onChange={(e) => {
-                  if (!selectedScreenId) return;
-                  updateScreen(selectedScreenId, {
-                    backgroundRotation: { ...currentScreen.backgroundRotation!, intervalMinutes: Number(e.target.value) },
-                  });
-                }}
-                className="mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent"
-              >
-                <option value={15}>15 minutes</option>
-                <option value={30}>30 minutes</option>
-                <option value={60}>1 hour</option>
-                <option value={120}>2 hours</option>
-                <option value={240}>4 hours</option>
-                <option value={480}>8 hours</option>
-              </select>
-            </label>
-            {rotationSource === 'nasa-apod' && (
-              <p className="text-[10px] text-hs-text-faint">
-                NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.
-              </p>
-            )}
-          </div>
-        )}
-      </div>}
+      {anySourceAvailable && (
+        <>
+          <PropertyGroup title="Status" accent={1}>
+            <Toggle label="Auto-rotate" checked={rotationEnabled} onChange={setRotationEnabled} />
+          </PropertyGroup>
+          {rotationEnabled && (
+            <PropertyGroup title="Rotation" accent={2}>
+              <div className="space-y-2">
+                <label className="block">
+                  <span className="text-[10px] text-hs-text-faint">Source</span>
+                  <select
+                    value={rotationSource}
+                    onChange={(e) => {
+                      if (!selectedScreenId) return;
+                      const source = e.target.value as BackgroundRotation['source'];
+                      updateScreen(selectedScreenId, {
+                        backgroundRotation: {
+                          ...currentScreen.backgroundRotation!,
+                          source,
+                          query: source === 'nasa-apod' || source === 'immich' ? '' : (currentScreen.backgroundRotation!.query || 'nature landscape'),
+                          intervalMinutes: source === 'nasa-apod' ? 240 : (currentScreen.backgroundRotation!.intervalMinutes || 60),
+                        },
+                      });
+                    }}
+                    className={rotationFieldClass}
+                  >
+                    {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
+                    {hasNasaKey && <option value="nasa-apod">NASA Picture of the Day</option>}
+                    {hasImmichKey && <option value="immich">Immich</option>}
+                  </select>
+                </label>
+                {rotationSource === 'unsplash' && (
+                  <label className="block">
+                    <span className="text-[10px] text-hs-text-faint">Search query</span>
+                    <input
+                      type="text"
+                      value={currentScreen.backgroundRotation!.query}
+                      onChange={(e) => {
+                        if (!selectedScreenId) return;
+                        updateScreen(selectedScreenId, {
+                          backgroundRotation: { ...currentScreen.backgroundRotation!, query: e.target.value },
+                        });
+                      }}
+                      placeholder="nature landscape"
+                      className={rotationFieldClass}
+                    />
+                  </label>
+                )}
+                {rotationSource === 'immich' && (
+                  <ImmichRotationFields
+                    rotation={currentScreen.backgroundRotation!}
+                    onChange={(updates) => {
+                      if (!selectedScreenId) return;
+                      updateScreen(selectedScreenId, {
+                        backgroundRotation: { ...currentScreen.backgroundRotation!, ...updates },
+                      });
+                    }}
+                  />
+                )}
+                <label className="block">
+                  <span className="text-[10px] text-hs-text-faint">Rotate every</span>
+                  <select
+                    value={currentScreen.backgroundRotation!.intervalMinutes}
+                    onChange={(e) => {
+                      if (!selectedScreenId) return;
+                      updateScreen(selectedScreenId, {
+                        backgroundRotation: { ...currentScreen.backgroundRotation!, intervalMinutes: Number(e.target.value) },
+                      });
+                    }}
+                    className={rotationFieldClass}
+                  >
+                    <option value={15}>15 minutes</option>
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>1 hour</option>
+                    <option value={120}>2 hours</option>
+                    <option value={240}>4 hours</option>
+                    <option value={480}>8 hours</option>
+                  </select>
+                </label>
+                {rotationSource === 'nasa-apod' && (
+                  <p className="text-[10px] text-hs-text-faint">
+                    NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.
+                  </p>
+                )}
+              </div>
+            </PropertyGroup>
+          )}
+        </>
+      )}
 
       <div className="flex gap-1 bg-hs-card rounded-md p-0.5">
         <button

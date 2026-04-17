@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import AccordionSection from './AccordionSection';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
+import PropertyGroup from './PropertyGroup';
 
 /**
  * Shown in the right property panel when a screen is selected but no module
@@ -43,6 +43,9 @@ export default function ScreenSettingsSection() {
   };
 
   const handleChangeSeconds = (secondsText: string) => {
+    // Ignore empty input so clearing the field mid-edit doesn't silently
+    // flip the screen into sticky mode (Number('') === 0).
+    if (secondsText.trim() === '') return;
     const n = Number(secondsText);
     if (!Number.isFinite(n) || n < 0) return;
     updateScreen(screen.id, { rotationDurationMs: Math.round(n * 1000) });
@@ -58,10 +61,10 @@ export default function ScreenSettingsSection() {
           </span>
         </div>
 
-        <div className="border-t border-hs-border-strong pt-3">
+        <PropertyGroup title="Rotation" accent={1}>
           <div className="flex items-center justify-between mb-2">
             <label htmlFor="screen-rotation-duration" className="text-xs text-hs-text-muted">
-              Rotation duration
+              Duration
             </label>
             {isOverridden ? (
               <button
@@ -93,7 +96,7 @@ export default function ScreenSettingsSection() {
                   step={1}
                   value={Math.round((overrideMs ?? 0) / 1000)}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
-                  className={INPUT_CLASS + ' w-20 text-right'}
+                  className="pl-2 pr-1 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body w-24"
                 />
                 <span className="text-xs text-hs-text-muted">sec</span>
                 {isSticky && (
@@ -111,7 +114,7 @@ export default function ScreenSettingsSection() {
               Inherits the default: <strong className="text-hs-text-secondary">{defaultSec}s</strong>.
             </p>
           )}
-        </div>
+        </PropertyGroup>
       </div>
     </AccordionSection>
   );
