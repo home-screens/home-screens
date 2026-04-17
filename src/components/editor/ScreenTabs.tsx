@@ -30,6 +30,29 @@ import TemplatePicker from './TemplatePicker';
 
 /* ─── Sortable tab ──────────────────────────── */
 
+function DurationBadge({ ms }: { ms: number }) {
+  if (ms === 0) {
+    return (
+      <span
+        className="ml-1 text-[9px] font-semibold tracking-wide text-hs-warning bg-hs-warning/15 border border-hs-warning/35 rounded-full px-1.5 py-[1px]"
+        aria-hidden
+      >
+        0s
+      </span>
+    );
+  }
+  const sec = Math.round(ms / 1000);
+  const label = sec < 1 ? `${ms}ms` : `${sec}s`;
+  return (
+    <span
+      className="ml-1 text-[9px] font-semibold tracking-wide text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 rounded-full px-1.5 py-[1px]"
+      aria-hidden
+    >
+      {label}
+    </span>
+  );
+}
+
 interface SortableTabProps {
   screen: Screen;
   isSelected: boolean;
@@ -94,7 +117,13 @@ function SortableTab({
       ref={setNodeRef}
       style={style}
       data-active={isSelected}
-      title={isDisabled ? `${screen.name} (disabled — not shown on display)` : screen.name}
+      title={(() => {
+        const parts: string[] = [screen.name];
+        if (screen.rotationDurationMs === 0) parts.push('sticky — manual advance only');
+        else if (screen.rotationDurationMs != null) parts.push(`${Math.round(screen.rotationDurationMs / 1000)}s`);
+        if (isDisabled) parts.push('disabled — not shown on display');
+        return parts.join(' · ');
+      })()}
       className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
         isSelected
           ? 'bg-hs-card text-hs-text-primary'
@@ -123,6 +152,7 @@ function SortableTab({
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
+          {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} />}
           {isDisabled && <span className="ml-0.5 text-[10px] text-hs-text-faint">⊘</span>}
           {isSelected && (
             <button
