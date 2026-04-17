@@ -60,7 +60,9 @@ export default function ScreenSettingsSection() {
 
         <div className="border-t border-hs-border-strong pt-3">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-hs-text-muted">Rotation duration</label>
+            <label htmlFor="screen-rotation-duration" className="text-xs text-hs-text-muted">
+              Rotation duration
+            </label>
             {isOverridden ? (
               <button
                 type="button"
@@ -84,13 +86,14 @@ export default function ScreenSettingsSection() {
             <div>
               <div className="flex items-center gap-2">
                 <input
+                  id="screen-rotation-duration"
                   type="number"
                   min={0}
+                  max={86400}
                   step={1}
                   value={Math.round((overrideMs ?? 0) / 1000)}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
                   className={INPUT_CLASS + ' w-20 text-right'}
-                  aria-label="Rotation duration, seconds"
                 />
                 <span className="text-xs text-hs-text-muted">sec</span>
                 {isSticky && (
