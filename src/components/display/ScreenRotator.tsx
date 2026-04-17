@@ -12,6 +12,8 @@ import { useBackgroundRotation } from './useBackgroundRotation';
 import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
+import { useScreenRotationTimer } from './useScreenRotationTimer';
+import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { useTZClock } from '@/hooks/useTZClock';
 import { resolveProfileScreens } from '@/lib/schedule';
 import { getTransitionConfig, getViewTransitionKeyframes } from '@/lib/transitions';
@@ -150,6 +152,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Compute safeIndex early so display control hook can use it
   const safeIndex = (currentIndex >= 0 && currentIndex < screens.length) ? currentIndex : 0;
   const currentScreen = screens[safeIndex];
+  const currentDuration = currentScreen
+    ? resolveScreenDuration(currentScreen, settings)
+    : settings.rotationIntervalMs;
 
   // Transition config — stored in refs so callbacks don't recreate on config changes
   const tc = getTransitionConfig(settings.transitionEffect, settings.transitionDuration);
@@ -254,13 +259,21 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     if (prev === 'asleep' && displayState !== 'asleep') setPaused(false);
   }, [displayState]);
 
-  // Pause screen rotation when display is asleep or user has paused via double-tap.
-  // rotationEpoch resets the timer after manual navigation (dot click, remote command).
+  // Rotation timer: schedules a single setTimeout per screen using the
+  // screen's resolved duration. Sticky screens (0) skip scheduling entirely.
+  // rotationEpoch resets the timer after manual navigation or on current-screen changes.
+  useScreenRotationTimer({
+    durationMs: currentDuration,
+    onAdvance: nextScreen,
+    active: screens.length > 1 && displayState !== 'asleep' && !paused,
+    resetKey: rotationEpoch,
+  });
+
+  // Restart the rotation timer whenever the current screen changes so the
+  // new screen gets its full dwell time (not the residual from the previous).
   useEffect(() => {
-    if (screens.length <= 1 || displayState === 'asleep' || paused) return;
-    const interval = setInterval(nextScreen, settings.rotationIntervalMs);
-    return () => clearInterval(interval);
-  }, [nextScreen, settings.rotationIntervalMs, screens.length, displayState, rotationEpoch, paused]);
+    setRotationEpoch((e) => e + 1);
+  }, [safeIndex]);
 
   // Clear pause if the feature is disabled via live config reload
   useEffect(() => {
