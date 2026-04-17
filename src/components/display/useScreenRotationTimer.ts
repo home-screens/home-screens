@@ -31,6 +31,10 @@ interface UseScreenRotationTimerArgs {
  *
  * Using `setTimeout` (not `setInterval`) means the period can change when
  * the current screen changes, matching the per-screen duration model.
+ *
+ * Callers MUST pass a stable `onAdvance` (via `useCallback` or a top-level
+ * function). An inline lambda would change identity every render and re-arm
+ * the effect, preventing the dwell window from ever completing.
  */
 export function useScreenRotationTimer({
   durationMs,

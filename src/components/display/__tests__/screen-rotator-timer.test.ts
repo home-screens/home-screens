@@ -1,3 +1,4 @@
+// jsdom (not node) because @testing-library/react/renderHook needs document/window.
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
@@ -74,6 +75,21 @@ describe('useScreenRotationTimer', () => {
     );
     vi.advanceTimersByTime(20_000);
     rerender({ durationMs: 5000, resetKey: 1 });
+    vi.advanceTimersByTime(4999);
+    expect(onAdvance).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-arms with the same duration on resetKey bump alone (manual nav case)', () => {
+    const onAdvance = vi.fn();
+    const { rerender } = renderHook(
+      ({ durationMs, resetKey }) =>
+        useScreenRotationTimer({ durationMs, onAdvance, active: true, resetKey }),
+      { initialProps: { durationMs: 5000, resetKey: 0 } },
+    );
+    vi.advanceTimersByTime(4000); // 1000ms left on the original dwell
+    rerender({ durationMs: 5000, resetKey: 1 }); // manual nav: restart full 5000ms
     vi.advanceTimersByTime(4999);
     expect(onAdvance).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
