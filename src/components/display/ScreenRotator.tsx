@@ -241,7 +241,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   }, [settings]);
 
   // Prefetch next screen's API data before rotation fires
-  usePrefetchNextScreen(screens, screenKey, currentIndex, settings.rotationIntervalMs, displayState);
+  usePrefetchNextScreen(screens, screenKey, currentIndex, currentDuration, displayState);
 
   // Reset currentIndex and pause state when the active screen set changes
   // (handles both length changes and same-length profile switches with
