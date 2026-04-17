@@ -171,6 +171,19 @@ function validateScreenList(
       diags.push({ code: 'SCREEN_MISSING_NAME', severity: 'error', message: `Screen "${screen.id ?? '?'}" is missing "name"`, path: screenPath });
     }
 
+    if (screen.rotationDurationMs != null) {
+      const d = screen.rotationDurationMs;
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+      if (!Number.isInteger(d) || d < 0 || d > ONE_DAY_MS) {
+        diags.push({
+          code: 'INVALID_SCREEN_ROTATION_DURATION',
+          severity: 'error',
+          message: `Screen "${screen.id ?? '?'}" rotationDurationMs must be a non-negative integer ≤ ${ONE_DAY_MS} ms, got ${d}`,
+          path: `${screenPath}.rotationDurationMs`,
+        });
+      }
+    }
+
     if (Array.isArray(screen.modules)) {
       const seenModuleIds = new Set<string>();
       for (const mod of screen.modules) {

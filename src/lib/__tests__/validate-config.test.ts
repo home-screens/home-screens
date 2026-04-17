@@ -183,6 +183,40 @@ describe('validateConfig', () => {
       const result = validateConfig(config);
       expect(findByCode(result, 'SCREEN_MISSING_NAME')).toBeDefined();
     });
+
+    it('flags negative rotationDurationMs on a screen', () => {
+      const config = validConfig();
+      (config.screens[0] as unknown as Record<string, unknown>).rotationDurationMs = -1;
+      const result = validateConfig(config);
+      const diag = findByCode(result, 'INVALID_SCREEN_ROTATION_DURATION');
+      expect(diag).toBeDefined();
+      expect(diag!.severity).toBe('error');
+    });
+
+    it('flags non-integer rotationDurationMs on a screen', () => {
+      const config = validConfig();
+      (config.screens[0] as unknown as Record<string, unknown>).rotationDurationMs = 1500.5;
+      const result = validateConfig(config);
+      const diag = findByCode(result, 'INVALID_SCREEN_ROTATION_DURATION');
+      expect(diag).toBeDefined();
+      expect(diag!.severity).toBe('error');
+    });
+
+    it('flags excessively large rotationDurationMs (> 1 day)', () => {
+      const config = validConfig();
+      (config.screens[0] as unknown as Record<string, unknown>).rotationDurationMs = 24 * 60 * 60 * 1000 + 1;
+      const result = validateConfig(config);
+      const diag = findByCode(result, 'INVALID_SCREEN_ROTATION_DURATION');
+      expect(diag).toBeDefined();
+      expect(diag!.severity).toBe('error');
+    });
+
+    it('accepts 0 (sticky) on a screen', () => {
+      const config = validConfig();
+      (config.screens[0] as unknown as Record<string, unknown>).rotationDurationMs = 0;
+      const result = validateConfig(config);
+      expect(findByCode(result, 'INVALID_SCREEN_ROTATION_DURATION')).toBeUndefined();
+    });
   });
 
   // ── Module structure ─────────────────────────────────────────────────
