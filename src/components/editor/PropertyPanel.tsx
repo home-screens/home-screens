@@ -300,9 +300,6 @@ export default function PropertyPanel() {
           </Button>
         </div>
 
-        <div className="pt-3 border-t border-hs-border-strong">
-          <BackgroundPicker />
-        </div>
       </div>
     </div>
   );
