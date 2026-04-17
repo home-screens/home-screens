@@ -203,7 +203,9 @@ export default function PropertyPanel() {
         </div>
         <div className="space-y-3">
           <ScreenSettingsSection />
-          <BackgroundPicker />
+          <div className="pt-3 border-t border-hs-border-strong">
+            <BackgroundPicker />
+          </div>
         </div>
       </div>
     );
@@ -285,6 +287,8 @@ export default function PropertyPanel() {
         <AccordionSection title="Schedule" defaultOpen={false}>
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
+
+        <ScreenSettingsSection />
 
         <div className="pt-3 border-t border-hs-border-strong">
           <Button
