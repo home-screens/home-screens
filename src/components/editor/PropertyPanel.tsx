@@ -6,6 +6,7 @@ import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import BackgroundPicker from '@/components/editor/BackgroundPicker';
+import ScreenSettingsSection from './ScreenSettingsSection';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import type { ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -200,7 +201,10 @@ export default function PropertyPanel() {
           <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
           <p className="text-sm">Select a module to edit</p>
         </div>
-        <BackgroundPicker />
+        <div className="space-y-3">
+          <ScreenSettingsSection />
+          <BackgroundPicker />
+        </div>
       </div>
     );
   }
