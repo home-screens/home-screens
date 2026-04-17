@@ -8,6 +8,7 @@ import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
 import ImmichBrowser from './ImmichBrowser';
+import AccordionSection from './AccordionSection';
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -104,9 +105,7 @@ export default function BackgroundPicker() {
   if (!currentScreen || !selectedScreenId) return null;
 
   return (
-    <div className="space-y-3">
-      <h4 className="text-xs font-semibold text-hs-text-faint uppercase">Background</h4>
-
+    <AccordionSection title="Background">
       {/* Auto-rotation controls — only show when at least one source is available */}
       {(hasUnsplashKey || hasNasaKey || hasImmichKey) && <div className="bg-hs-hover rounded-md p-2.5 space-y-2">
         <label className="flex items-center justify-between gap-2 cursor-pointer">
@@ -271,6 +270,6 @@ export default function BackgroundPicker() {
       {tab === 'local' && (
         <LocalBackgrounds selectedScreenId={selectedScreenId} />
       )}
-    </div>
+    </AccordionSection>
   );
 }
