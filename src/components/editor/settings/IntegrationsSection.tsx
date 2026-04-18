@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
+import { useEditorStore } from '@/stores/editor-store';
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -72,6 +73,7 @@ function getStatusInfo(
 export default function IntegrationsSection() {
   const [status, setStatus] = useState<SecretStatus>({});
   const [loading, setLoading] = useState(true);
+  const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -99,7 +101,10 @@ export default function IntegrationsSection() {
     );
   }
 
-  const configuredCount = INTEGRATIONS.filter((i) =>
+  const visibleIntegrations = advancedMode
+    ? INTEGRATIONS
+    : INTEGRATIONS.filter((i) => i.name !== 'GitHub');
+  const configuredCount = visibleIntegrations.filter((i) =>
     i.keys.some((k) => !!status[k]),
   ).length;
 
@@ -126,7 +131,7 @@ export default function IntegrationsSection() {
         <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-hs-success' : 'bg-hs-card'}`} />
         <span className="text-[13px] text-hs-text-muted">
           <strong className="text-hs-text-secondary">{configuredCount}</strong> of{' '}
-          <strong className="text-hs-text-secondary">{INTEGRATIONS.length}</strong> integrations configured
+          <strong className="text-hs-text-secondary">{visibleIntegrations.length}</strong> integrations configured
         </span>
       </div>
 
@@ -289,26 +294,28 @@ export default function IntegrationsSection() {
             />
           </IntegrationCard>
 
-          <IntegrationCard
-            icon={<GitHubIcon />}
-            iconBg="#24292e"
-            name="GitHub"
-            description="Higher rate limit for version checks"
-            statusLabel={github.label}
-            statusType={github.type}
-          >
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-hs-accent-soft text-hs-accent-hover text-[11px] mb-3">
-              Optional
-            </div>
-            <SecretField
-              label="Personal Access Token"
-              secretKey="github_token"
-              placeholder="Paste your GitHub token"
-              helpText="Increases rate limit from 60 to 5,000 req/hr. Create at github.com/settings/tokens (no scopes needed)."
-              status={!!status.github_token}
-              onSaved={fetchStatus}
-            />
-          </IntegrationCard>
+          {advancedMode && (
+            <IntegrationCard
+              icon={<GitHubIcon />}
+              iconBg="#24292e"
+              name="GitHub"
+              description="Higher rate limit for version checks"
+              statusLabel={github.label}
+              statusType={github.type}
+            >
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-hs-accent-soft text-hs-accent-hover text-[11px] mb-3">
+                Optional
+              </div>
+              <SecretField
+                label="Personal Access Token"
+                secretKey="github_token"
+                placeholder="Paste your GitHub token"
+                helpText="Increases rate limit from 60 to 5,000 req/hr. Create at github.com/settings/tokens (no scopes needed)."
+                status={!!status.github_token}
+                onSaved={fetchStatus}
+              />
+            </IntegrationCard>
+          )}
         </div>
       </div>
     </section>

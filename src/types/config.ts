@@ -207,6 +207,7 @@ export interface GlobalSettings {
   transitionEffect?: TransitionEffect;
   transitionDuration?: number;
   updateChannel?: 'stable' | 'dev';
+  advancedMode?: boolean;
   alerts?: AlertSettings;
   telemetryEnabled?: boolean;
   fullscreenTheme?: string;

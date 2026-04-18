@@ -8,6 +8,7 @@ import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
 import { usePluginStore } from '@/stores/plugin-store';
+import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import type { RegistryPlugin, InstalledPlugin, PluginRegistry, PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import type { DevPlugin } from '@/lib/plugin-loader';
@@ -30,6 +31,12 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const [installFromUrlOpen, setInstallFromUrlOpen] = useState(false);
   const [updatingExternal, setUpdatingExternal] = useState<InstalledPlugin | null>(null);
   const pluginErrors = usePluginStore((s) => s.errors);
+  const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
+
+  // If advanced mode is turned off while the Developer tab is active, snap back to Browse.
+  useEffect(() => {
+    if (!advancedMode && tab === 'developer') setTab('browse');
+  }, [advancedMode, tab]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -127,7 +134,10 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
         {/* Tabs */}
         <div className="flex gap-1 px-5 pt-3">
-          {(['browse', 'installed', 'updates', 'developer'] as const).map((t) => (
+          {(advancedMode
+            ? (['browse', 'installed', 'updates', 'developer'] as const)
+            : (['browse', 'installed', 'updates'] as const)
+          ).map((t) => (
             <button
               key={t}
               type="button"
@@ -188,9 +198,9 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onInstall={(id, version) => runAction(id, 'POST', { pluginId: id, version })}
               actionInProgress={actionInProgress}
             />
-          ) : (
+          ) : tab === 'developer' && advancedMode ? (
             <DeveloperTab onError={setActionError} />
-          )}
+          ) : null}
         </div>
       </div>
 

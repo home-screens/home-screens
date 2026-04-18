@@ -62,6 +62,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     const cfg = useEditorStore.getState().config;
     return cfg?.settings?.updateChannel === 'dev' ? 'dev' : 'stable';
   });
+  const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
 
   const fetchAll = useCallback(async (forceCheck = false) => {
     try {
@@ -121,6 +122,15 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     const next = channel === 'stable' ? 'dev' : 'stable';
     setChannel(next);
     updateSettings({ updateChannel: next });
+    try {
+      await saveConfig();
+    } catch {
+      // Store is updated in-memory; config will be saved on next successful write
+    }
+  }
+
+  async function handleToggleAdvanced() {
+    updateSettings({ advancedMode: !advancedMode });
     try {
       await saveConfig();
     } catch {
@@ -236,6 +246,36 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   return (
     <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+      {/* Advanced mode */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          Advanced
+        </h3>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-hs-text-primary">Show advanced options</p>
+            <p className="text-xs text-hs-text-faint mt-0.5">
+              Reveals developer-facing controls: pre-release channel, GitHub token, and plugin developer mode.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={advancedMode}
+            onClick={handleToggleAdvanced}
+            className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                advancedMode ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </section>
+
       {/* Current Version */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
@@ -253,13 +293,17 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
               {versionInfo.installedVia === 'git'
                 ? `Branch: ${versionInfo.channel}`
                 : 'Installed from release'}
-              {' · '}
-              <button
-                onClick={handleToggleChannel}
-                className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-              >
-                {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
-              </button>
+              {advancedMode && (
+                <>
+                  {' · '}
+                  <button
+                    onClick={handleToggleChannel}
+                    className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                  >
+                    {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
+                  </button>
+                </>
+              )}
             </p>
           </div>
           <Button
