@@ -83,3 +83,24 @@ export function getChangelog(): ChangelogEntry[] {
   entries.sort((a, b) => compareVersions(a.version, b.version));
   return entries;
 }
+
+export interface LatestImageRelease {
+  tag: string;
+  version: string;
+  imageUrl: string;
+  releaseUrl: string;
+}
+
+// Pre-built SD card images ship only for major/minor releases (patch === 0).
+// Returns null when no qualifying release exists yet.
+export function getLatestImageRelease(): LatestImageRelease | null {
+  const latest = getChangelog().find((entry) => entry.version.endsWith('.0'));
+  if (!latest) return null;
+  const asset = `home-screens-${latest.tag}.img.xz`;
+  return {
+    tag: latest.tag,
+    version: latest.version,
+    imageUrl: `https://github.com/home-screens/home-screens/releases/download/${latest.tag}/${asset}`,
+    releaseUrl: `https://github.com/home-screens/home-screens/releases/tag/${latest.tag}`,
+  };
+}

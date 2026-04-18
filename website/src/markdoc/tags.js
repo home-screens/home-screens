@@ -1,4 +1,5 @@
 import { Callout } from '@/components/docs/Callout'
+import { LatestImageLink } from '@/components/docs/LatestImageLink'
 import { QuickLink, QuickLinks } from '@/components/docs/QuickLinks'
 
 const tags = {
@@ -29,6 +30,13 @@ const tags = {
         <figcaption>{caption}</figcaption>
       </figure>
     ),
+  },
+  'latest-image-link': {
+    selfClosing: true,
+    attributes: {
+      label: { type: String },
+    },
+    render: LatestImageLink,
   },
   'quick-links': {
     render: QuickLinks,

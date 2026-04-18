@@ -37,8 +37,8 @@ Pre-built images are published for **major and minor releases** (e.g. v1.0.0, v1
 
 ### Download and flash
 
-1. Go to the [Home Screens releases page](https://github.com/home-screens/home-screens/releases) and find the latest release that has an image file attached (e.g. `home-screens-v1.0.0.img.xz`)
-2. Download the `.img.xz` file — you do not need to decompress it
+1. {% latest-image-link /%} (you do not need to decompress it). Pre-built images ship for major and minor releases only — see all versions on the [Home Screens releases page](https://github.com/home-screens/home-screens/releases).
+2. Keep the `.img.xz` file somewhere you can find it
 3. Open **Raspberry Pi Imager**
 4. Click **Choose Device** and select your Raspberry Pi model
 5. Click **Choose OS**, scroll to the bottom, and select **Use custom**
