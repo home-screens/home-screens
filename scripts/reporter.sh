@@ -3,7 +3,7 @@
 #
 # Runs under a systemd timer (home-screens-reporter.timer, ticks every 30s).
 # Reads hardware snapshots from /sys, /proc, vcgencmd, free, df, assembles a
-# JSON payload, and curls it to the hub's POST /api/display/status endpoint.
+# JSON payload, and curls it to the hub's POST /api/display/hw-stats endpoint.
 #
 # Fields are OMITTED (jq null) when the underlying source isn't readable —
 # that keeps the script safe on dev macOS and non-Pi Linux hosts without
@@ -11,9 +11,17 @@
 # removed from the payload.
 #
 # Configuration (via /etc/default/home-screens-reporter or env):
-#   HOME_SCREENS_DISPLAY_ID         — display slug (e.g. "main", "kitchen")
+#   HOME_SCREENS_DISPLAY_ID         — display slug (e.g. "kitchen")
 #   HOME_SCREENS_HUB_URL            — hub base URL (e.g. "http://192.168.1.2:3000")
-#   HOME_SCREENS_REPORTER_TOKEN     — bearer token matching data/secrets.json:reporter_token
+#
+# Authorization:
+#   The hub's /api/display/hw-stats endpoint is gated only by adoption — the
+#   displayId must appear in config.displays (or be 'main' in legacy single-
+#   display mode). No bearer token is required. The LAN is the trust
+#   boundary, same as the display-page SSR the browser already relies on.
+#
+#   Before adoption: hub returns 403 (harmless; reporter retries next tick).
+#   After adoption:  posts succeed and hwStats flow to the Stats page.
 #
 # Dev-loop flags:
 #   REPORTER_DRY_RUN=1              — print payload to stdout, don't POST
@@ -26,7 +34,6 @@ CONF=/etc/default/home-screens-reporter
 
 DISPLAY_ID="${HOME_SCREENS_DISPLAY_ID:-}"
 HUB_URL="${HOME_SCREENS_HUB_URL:-}"
-TOKEN="${HOME_SCREENS_REPORTER_TOKEN:-}"
 
 if [ -z "${DISPLAY_ID}" ] || [ -z "${HUB_URL}" ]; then
   logger -t home-screens-reporter "missing DISPLAY_ID or HUB_URL — skipping tick" 2>/dev/null || true
@@ -108,10 +115,6 @@ DISK_FREE=${DISK_FREE:-0}
 
 # --- Assemble payload -------------------------------------------------------
 NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
-# Unix epoch seconds (portable across GNU + BSD date — %3N only works on GNU).
-# We multiply to milliseconds in jq below so the server receives the same
-# Date.now()-shaped timestamp the browser client posts.
-NOW_EPOCH=$(date -u +%s)
 
 HW_JSON=$(jq -n \
   --arg piModel "${PI_MODEL}" \
@@ -135,23 +138,13 @@ HW_JSON=$(jq -n \
      reportedAt: $reportedAt
    }')
 
-# NB: the status POST body expects the full DisplayStatus shape at the top
-# level. We send a stub (currentScreen/screenCount/displayState/timestamp)
-# plus hwStats — the server's setDisplayStatus path merges these without
-# clobbering the real rotator status, thanks to the isStubHeartbeat guard.
+# /api/display/hw-stats accepts just { displayId, hwStats } — no stub
+# DisplayStatus fields, no bearer token. The adoption gate on the server
+# replaces withDisplayAuth for this path.
 BODY=$(jq -n \
   --arg displayId "${DISPLAY_ID}" \
   --argjson hwStats "${HW_JSON}" \
-  --argjson tsMs "$(( NOW_EPOCH * 1000 ))" \
-  '{
-     displayId: $displayId,
-     currentScreen: { index: 0, id: "", name: "" },
-     screenCount: 0,
-     activeProfile: null,
-     displayState: "active",
-     timestamp: $tsMs,
-     hwStats: $hwStats
-   }')
+  '{ displayId: $displayId, hwStats: $hwStats }')
 
 if [ "${REPORTER_DRY_RUN:-0}" = "1" ]; then
   echo "${BODY}"
@@ -163,11 +156,10 @@ HTTP=$(curl -fsS --max-time 10 \
   -o /tmp/home-screens-reporter-resp.$$ \
   -w "%{http_code}" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
   -d "${BODY}" \
-  "${HUB_URL}/api/display/status?display=${DISPLAY_ID}" || echo "000")
+  "${HUB_URL}/api/display/hw-stats" || echo "000")
 rm -f /tmp/home-screens-reporter-resp.$$
 
 if [ "${HTTP}" != "200" ]; then
-  logger -t home-screens-reporter "POST /api/display/status failed (HTTP ${HTTP})" 2>/dev/null || true
+  logger -t home-screens-reporter "POST /api/display/hw-stats failed (HTTP ${HTTP})" 2>/dev/null || true
 fi

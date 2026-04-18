@@ -40,19 +40,11 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/secrets', () => ({
-  getSecret: vi.fn(async () => null),
-  setSecret: vi.fn(),
-  readSecrets: vi.fn(async () => ({})),
-  writeSecrets: vi.fn(),
-  isValidSecretKey: vi.fn(() => true),
-}));
-
 import { GET, POST } from '@/app/api/display/[action]/route';
 import { enqueueCommand, drainCommands, getDisplayStatus, setDisplayStatus } from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
-import { getSecret } from '@/lib/secrets';
+import { __resetAdoptedCacheForTests } from '@/lib/adopted-display-cache';
 
 function makeParams(action: string) {
   return { params: Promise.resolve({ action }) };
@@ -71,6 +63,10 @@ function makeRequest(body?: Record<string, unknown>): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The adopted-id cache is a module-level singleton with a 1.5s TTL. Tests
+  // mutate readConfig's return between cases, so without a reset one test's
+  // config would linger into the next via a cache hit.
+  __resetAdoptedCacheForTests();
 });
 
 // ------- GET tests -------
@@ -563,8 +559,13 @@ describe('POST /api/display/status', () => {
     expect(res.status).toBe(400);
   });
 
-  it('accepts hwStats when a valid reporter token is provided', async () => {
-    vi.mocked(getSecret).mockResolvedValue('rpt-test-token');
+  it('silently drops hwStats on the status endpoint (moved to /api/display/hw-stats)', async () => {
+    // Old reporter builds may still POST hwStats to /status. The new handler
+    // strips that field and persists only the browser-heartbeat portion —
+    // no 400/403, no attempt to record hardware data from this path.
+    vi.mocked(readConfig).mockResolvedValue({
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
+    } as never);
     const body = {
       displayId: 'kitchen',
       currentScreen: { index: 0, id: '', name: '' },
@@ -573,43 +574,8 @@ describe('POST /api/display/status', () => {
       displayState: 'active',
       timestamp: Date.now(),
       hwStats: {
-        piModel: 'Raspberry Pi 4', cpuModel: 'ARMv8', cpuCores: 4,
+        piModel: 'Pi 4', cpuModel: 'ARMv8', cpuCores: 4,
         cpuTempC: 42.0, load1: 0.1, load5: 0.1, load15: 0.1,
-        throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
-        reportedAt: new Date().toISOString(),
-      },
-    };
-    const req = new NextRequest('http://localhost/api/display/status', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer rpt-test-token',
-      },
-      body: JSON.stringify(body),
-    });
-
-    const res = await POST(req, makeParams('status'));
-    expect(res.status).toBe(200);
-
-    // Verify that the stats were forwarded into setDisplayStatus
-    expect(setDisplayStatus).toHaveBeenCalled();
-    const [statusArg, displayIdArg] = vi.mocked(setDisplayStatus).mock.calls[0];
-    expect(displayIdArg).toBe('kitchen');
-    expect((statusArg as { hwStats?: { cpuCores?: number } }).hwStats?.cpuCores).toBe(4);
-  });
-
-  it('rejects hwStats without a reporter token', async () => {
-    vi.mocked(getSecret).mockResolvedValue('rpt-test-token');
-    const body = {
-      displayId: 'kitchen',
-      currentScreen: { index: 0, id: '', name: '' },
-      screenCount: 0,
-      activeProfile: null,
-      displayState: 'active',
-      timestamp: Date.now(),
-      hwStats: {
-        piModel: null, cpuModel: null, cpuCores: 1,
-        cpuTempC: null, load1: 0, load5: 0, load15: 0,
         throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
         reportedAt: new Date().toISOString(),
       },
@@ -620,35 +586,11 @@ describe('POST /api/display/status', () => {
       body: JSON.stringify(body),
     });
     const res = await POST(req, makeParams('status'));
-    expect(res.status).toBe(401);
-  });
+    expect(res.status).toBe(200);
 
-  it('rejects hwStats when reporter_token is not configured', async () => {
-    vi.mocked(getSecret).mockResolvedValue(null);
-    const body = {
-      displayId: 'kitchen',
-      currentScreen: { index: 0, id: '', name: '' },
-      screenCount: 0,
-      activeProfile: null,
-      displayState: 'active',
-      timestamp: Date.now(),
-      hwStats: {
-        piModel: null, cpuModel: null, cpuCores: 1,
-        cpuTempC: null, load1: 0, load5: 0, load15: 0,
-        throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
-        reportedAt: new Date().toISOString(),
-      },
-    };
-    const req = new NextRequest('http://localhost/api/display/status', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer whatever',
-      },
-      body: JSON.stringify(body),
-    });
-    const res = await POST(req, makeParams('status'));
-    expect(res.status).toBe(401);
+    expect(setDisplayStatus).toHaveBeenCalled();
+    const [statusArg] = vi.mocked(setDisplayStatus).mock.calls[0];
+    expect((statusArg as { hwStats?: unknown }).hwStats).toBeUndefined();
   });
 });
 

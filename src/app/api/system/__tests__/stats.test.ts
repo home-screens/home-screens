@@ -18,6 +18,13 @@ vi.mock('@/lib/telemetry', () => ({
   readTelemetryData: vi.fn(),
 }));
 
+// Mock the in-process hardware collector so tests don't spawn vcgencmd,
+// read /proc, or inherit the module-level 5s cache across test files.
+vi.mock('@/lib/hardware-stats-server', () => ({
+  getLocalHardwareStats: vi.fn(),
+  __resetHardwareStatsCacheForTests: vi.fn(),
+}));
+
 // Mock fs — vi.hoisted ensures the object exists when the hoisted vi.mock factory runs
 const mockFs = vi.hoisted(() => ({
   statfs: vi.fn(),
@@ -35,6 +42,7 @@ import { requireSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
 import { getSecretStatus } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
+import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 
 function makeRequest(): NextRequest {
   return new NextRequest('http://localhost/api/system/stats', { method: 'GET' });
@@ -69,7 +77,6 @@ beforeEach(() => {
     github_token: false,
     immich_url: false,
     immich_api_key: false,
-    reporter_token: false,
   });
 
   // Default: no telemetry data
@@ -79,6 +86,23 @@ beforeEach(() => {
   mockFs.statfs.mockResolvedValue({ bsize: 4096, blocks: 1000000, bavail: 500000 });
   mockFs.stat.mockRejectedValue(new Error('ENOENT')); // files don't exist by default
   mockFs.readdir.mockRejectedValue(new Error('ENOENT')); // dirs don't exist by default
+
+  // Default: collector returns a valid hardware-stats payload
+  vi.mocked(getLocalHardwareStats).mockResolvedValue({
+    piModel: 'Raspberry Pi 4 Model B',
+    cpuModel: 'ARMv8 Processor',
+    cpuCores: 4,
+    cpuTempC: 48.3,
+    load1: 0.1,
+    load5: 0.2,
+    load15: 0.3,
+    throttled: null,
+    memoryTotal: 4_000_000_000,
+    memoryFree: 2_000_000_000,
+    diskTotal: 32_000_000_000,
+    diskFree: 16_000_000_000,
+    reportedAt: '2026-04-17T00:00:00.000Z',
+  });
 });
 
 // ------- Auth -------
@@ -235,7 +259,6 @@ describe('GET /api/system/stats - app stats', () => {
       github_token: false,
       immich_url: false,
       immich_api_key: false,
-      reporter_token: false,
     });
 
     const res = await GET(makeRequest());
@@ -270,6 +293,29 @@ describe('GET /api/system/stats - os and memory', () => {
     }));
     expect(data.memory.total).toBeGreaterThan(0);
     expect(data.memory.used).toBe(data.memory.total - data.memory.free);
+  });
+});
+
+// ------- Hardware -------
+
+describe('GET /api/system/stats - hardware', () => {
+  it('surfaces the collector payload in the response body', async () => {
+    const res = await GET(makeRequest());
+    const data = await res.json();
+    expect(data.hardware).toEqual(expect.objectContaining({
+      piModel: 'Raspberry Pi 4 Model B',
+      cpuCores: 4,
+      cpuTempC: 48.3,
+    }));
+  });
+
+  it('returns hardware=null when the collector throws', async () => {
+    vi.mocked(getLocalHardwareStats).mockRejectedValueOnce(new Error('proc unavailable'));
+    const res = await GET(makeRequest());
+    const data = await res.json();
+    expect(data.hardware).toBeNull();
+    // Route must still succeed — hardware is best-effort, not load-bearing.
+    expect(res.status).toBe(200);
   });
 });
 

@@ -6,6 +6,7 @@ import { withAuth } from '@/lib/api-utils';
 import { readConfig } from '@/lib/config';
 import { getSecretStatus } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
+import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,7 @@ export const GET = withAuth(async () => {
     config,
     secretStatus,
     telemetryData,
+    hardware,
   ] = await Promise.all([
     fileSize(path.join(dataDir, 'config.json')),
     dirSize(path.join(dataDir, 'backups')),
@@ -62,6 +64,7 @@ export const GET = withAuth(async () => {
     readConfig().catch(() => null),
     getSecretStatus().catch(() => ({} as Record<string, boolean>)),
     readTelemetryData().catch(() => null),
+    getLocalHardwareStats().catch(() => null),
   ]);
 
   // Count modules across all screens
@@ -121,6 +124,7 @@ export const GET = withAuth(async () => {
       lastBeaconAt: telemetryData?.lastBeaconAt ?? null,
       enabled: config?.settings?.telemetryEnabled !== false,
     },
+    hardware,
   });
 }, 'Failed to gather system stats');
 

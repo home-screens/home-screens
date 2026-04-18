@@ -632,12 +632,50 @@ WantedBy=multi-user.target"
       changed="${changed}service,"
     fi
 
-    # 2b. Hardware reporter — keep /usr/local/bin/home-screens-reporter.sh
-    #     and the accompanying systemd unit files current across upgrades.
-    #     The per-Pi token lives in /etc/default/home-screens-reporter and
-    #     is NOT touched here; only the executable and unit files are
-    #     refreshed so script fixes (new fields, bug fixes) ship with each
-    #     release instead of being frozen at install time.
+    # 2b. Hardware reporter — the hub reads its own /proc in-process (see
+    #     src/lib/hardware-stats-server.ts), so hub Pis don't need the bash
+    #     reporter. It's only meaningful on display-only Pis that don't run
+    #     Node. Three concerns in priority order:
+    #       a) Tear down any self-looping timer left over from RC installs
+    #          that enabled it on the hub. One-shot, idempotent.
+    #       b) Keep the reporter files (binary + unit files + env file) fresh
+    #          on whatever Pi is running this script, so a display-only Pi
+    #          upgraded via rsync gets the newest reporter logic.
+    #       c) Leave the timer's enable/disable state alone if the user has
+    #          deliberately enabled it (e.g. for diagnosis on a hub).
+    if systemctl is-enabled home-screens-reporter.timer >/dev/null 2>&1 \
+       && [ ! -f /etc/default/home-screens-reporter ]; then
+      # Timer was enabled without an env file — that's the v1.2.0-rc.0
+      # footgun. It cannot succeed (DISPLAY_ID/HUB_URL unset); disable it so
+      # the hub stops spawning the tick-every-30s process and emitting
+      # "missing DISPLAY_ID" journal entries on every firing.
+      sudo systemctl disable --now home-screens-reporter.timer 2>/dev/null || true
+      info "Disabled misconfigured home-screens-reporter.timer (env file missing — was never able to post)."
+      changed="${changed}reporter-cleanup,"
+    fi
+
+    # v1.2.0-rc.0/rc.1 wrote a `reporter_token` into data/secrets.json for
+    # the shared-secret auth model that no longer exists. Remove it on any
+    # install that still has it — it's dead weight and might confuse a
+    # future operator who sees it in the secrets file. Idempotent: no-op
+    # when the key is absent.
+    SECRETS_FILE="${APP_DIR}/data/secrets.json"
+    if [ -f "${SECRETS_FILE}" ] && grep -q '"reporter_token"' "${SECRETS_FILE}" 2>/dev/null; then
+      node -e "
+        const fs = require('fs');
+        const path = process.argv[1];
+        try {
+          const s = JSON.parse(fs.readFileSync(path, 'utf-8'));
+          if ('reporter_token' in s) {
+            delete s.reporter_token;
+            fs.writeFileSync(path, JSON.stringify(s, null, 2) + '\n', { mode: 0o600 });
+          }
+        } catch { /* leave file alone if unreadable — not our problem to fix */ }
+      " "${SECRETS_FILE}" 2>/dev/null || true
+      info "Removed stale reporter_token from secrets.json."
+      changed="${changed}reporter-secret-cleanup,"
+    fi
+
     REPORTER_SRC_DIR="${APP_DIR}/scripts"
     REPORTER_BIN="/usr/local/bin/home-screens-reporter.sh"
     REPORTER_SERVICE="/etc/systemd/system/home-screens-reporter.service"
@@ -660,9 +698,9 @@ WantedBy=multi-user.target"
       fi
       if [ "${reporter_changed}" = "1" ]; then
         sudo systemctl daemon-reload
-        # Only restart the timer if it's already enabled — preserves the
-        # opt-in posture from install.sh (install-time prompt generates the
-        # env file, not this path).
+        # Restart the timer only if it has the config it needs AND the
+        # admin has opted in by enabling it. The hub path never falls here
+        # because install.sh no longer enables the reporter for hubs.
         if [ -f /etc/default/home-screens-reporter ] && \
            systemctl is-enabled home-screens-reporter.timer >/dev/null 2>&1; then
           sudo systemctl restart home-screens-reporter.timer 2>/dev/null || true

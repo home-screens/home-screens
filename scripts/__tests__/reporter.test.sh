@@ -14,7 +14,6 @@ echo "Test 1: dry-run emits valid JSON with required keys"
 out=$(REPORTER_DRY_RUN=1 \
      HOME_SCREENS_DISPLAY_ID=main \
      HOME_SCREENS_HUB_URL=http://localhost:3000 \
-     HOME_SCREENS_REPORTER_TOKEN=test-token \
      bash reporter.sh)
 echo "$out" | jq -e '.displayId == "main"' >/dev/null || { echo "FAIL: missing displayId"; exit 1; }
 echo "$out" | jq -e '.hwStats | has("cpuCores")'   >/dev/null || { echo "FAIL: missing cpuCores"; exit 1; }

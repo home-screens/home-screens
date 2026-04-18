@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { timingSafeEqual } from 'crypto';
 import {
   enqueueCommand,
   drainCommands,
@@ -13,8 +12,7 @@ import { updateConfigAtomic } from '@/lib/config';
 import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
 import { requireSession } from '@/lib/auth';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
-import { validateHardwareStats, validateBrowserStats } from '@/lib/hardware-stats';
-import { getSecret } from '@/lib/secrets';
+import { validateBrowserStats } from '@/lib/hardware-stats';
 
 export const dynamic = 'force-dynamic';
 
@@ -316,35 +314,25 @@ async function handleStatus(
   // Strip displayId and clientId out of the persisted status so the
   // body shape stays the same as before (the in-memory keying is
   // handled by setDisplayStatus / recordViewportReport).
+  //
+  // hwStats is no longer accepted on this endpoint — reporters post to
+  // `/api/display/hw-stats` (adoption-gated, no display auth). Any `hwStats`
+  // field in a browser-heartbeat body is silently dropped here to keep old
+  // client builds safe if they straggle an upgrade.
   const {
     displayId: bodyDisplayId,
     clientId: bodyClientId,
-    hwStats: bodyHwStats,
+    hwStats: _droppedHwStats,
     browserStats: bodyBrowserStats,
     ...statusPayload
   } = body as Record<string, unknown>;
+  void _droppedHwStats;
   const rawDisplayId =
     typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
   // Validate the body field too — `pickDisplayId` only validates the body
   // when `validateDisplayTarget` is invoked, so do it here for status reports.
   const validatedStatus = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
   if (validatedStatus instanceof NextResponse) return validatedStatus;
-
-  // Parse optional hwStats / browserStats. Either, both, or neither may be
-  // present. hwStats is reporter-only (Pi-side bash script), browserStats
-  // comes from the display client's heartbeat.
-  let hwStats: ReturnType<typeof validateHardwareStats> | undefined;
-  if (bodyHwStats !== undefined) {
-    // hwStats is gated behind the reporter token. A display-token holder
-    // cannot forge Pi-side hardware data.
-    const authErr = await requireReporterToken(request);
-    if (authErr) return authErr;
-    const parsed = validateHardwareStats(bodyHwStats);
-    if (!parsed) {
-      return NextResponse.json({ error: 'Invalid hwStats' }, { status: 400 });
-    }
-    hwStats = parsed;
-  }
 
   let browserStats: ReturnType<typeof validateBrowserStats> | undefined;
   if (bodyBrowserStats !== undefined) {
@@ -369,7 +357,6 @@ async function handleStatus(
   setDisplayStatus(
     {
       ...statusPayload,
-      ...(hwStats ? { hwStats } : {}),
       ...(browserStats ? { browserStats } : {}),
       ...(synthesizedViewport ? { reportedViewport: synthesizedViewport } : {}),
     } as unknown as Parameters<typeof setDisplayStatus>[0],
@@ -435,33 +422,6 @@ function pickDisplayId(
     return validateDisplayTarget(fromBody, opts);
   }
   return fallback;
-}
-
-/**
- * Reporter posts include `hwStats` and MUST carry a Bearer token matching
- * secrets.json:reporter_token. Browser heartbeats use the existing display
- * token via withDisplayAuth — this extra check gates only the hw path.
- *
- * Returns null on success, a 401 NextResponse on failure.
- */
-async function requireReporterToken(request: NextRequest): Promise<NextResponse | null> {
-  const expected = await getSecret('reporter_token');
-  if (!expected) {
-    return NextResponse.json({ error: 'reporter_token is not configured' }, { status: 401 });
-  }
-  const auth = request.headers.get('authorization') ?? '';
-  const match = /^Bearer\s+(.+)$/.exec(auth);
-  const provided = match?.[1] ?? '';
-  // Constant-time comparison avoids leaking the token one byte at a time
-  // through response-latency side-channels. The length-mismatch short-circuit
-  // below is unavoidable (timingSafeEqual requires equal-length buffers) but
-  // the hex-encoded token is a known-length string so it doesn't help a probe.
-  const a = Buffer.from(provided, 'utf8');
-  const b = Buffer.from(expected, 'utf8');
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return NextResponse.json({ error: 'Invalid reporter token' }, { status: 401 });
-  }
-  return null;
 }
 
 async function safeJson(

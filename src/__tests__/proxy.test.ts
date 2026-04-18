@@ -428,6 +428,34 @@ describe('proxy — auth enabled: /chores kid view POSTs are LAN-public', () => 
   });
 });
 
+describe('proxy — auth enabled: /api/display/hw-stats is LAN-public', () => {
+  // The reporter on a display-only Pi posts to this endpoint without a
+  // session cookie or bearer token. Route-side auth (requireAdoptedDisplay)
+  // enforces that only adopted displays can inject hw data, so the proxy
+  // needs to pass the request through — otherwise it 401s before ever
+  // reaching the adoption check.
+  let proxy: ProxyFn;
+
+  beforeEach(async () => {
+    proxy = await loadProxyWithAuth('enabled');
+  });
+
+  it('POST /api/display/hw-stats passes through without a cookie', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/display/hw-stats', { method: 'POST' })))).toBe(true);
+  });
+
+  it('POST /api/display/hw-stats/extra still requires auth (no prefix match)', async () => {
+    // Exact-match only: the bypass is the literal path. A future sub-path
+    // wouldn't inherit the exemption, which is correct — if a new sub-path
+    // is added it should opt into the exemption explicitly.
+    expect(await is401(proxy(makeRequest('/api/display/hw-stats/extra', { method: 'POST' })))).toBe(true);
+  });
+
+  it('PUT /api/display/hw-stats still requires auth (POST-only bypass)', async () => {
+    expect(await is401(proxy(makeRequest('/api/display/hw-stats', { method: 'PUT' })))).toBe(true);
+  });
+});
+
 describe('proxy — auth enabled: protected GET routes require authentication', () => {
   let proxy: ProxyFn;
 

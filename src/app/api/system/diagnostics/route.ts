@@ -26,6 +26,7 @@ import { getSecretStatus, readSecrets } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { redactConfig } from '@/lib/config-redactor';
+import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import {
   clearConsoleLog,
   enqueueCommand,
@@ -205,6 +206,7 @@ export const GET = withAuth(async (request) => {
     telemetryRecent,
     journal,
     plugins,
+    hubHardware,
   ] = await Promise.all([
     Promise.resolve(getAllDisplayStatuses()),
     solicitConsoleLogs(displayIds),
@@ -221,6 +223,7 @@ export const GET = withAuth(async (request) => {
     readTelemetryData().catch(() => null),
     runJournalctl(),
     loadPlugins(),
+    getLocalHardwareStats().catch(() => null),
   ]);
 
   const knownSecretValues = Object.values(secretsResolved).filter(
@@ -228,13 +231,20 @@ export const GET = withAuth(async (request) => {
   );
   const redactedConfig = redactConfig(config, { knownSecretValues });
 
+  // The first display (or "main" in legacy mode) typically runs on the hub
+  // itself, so fall back to the in-process hub hardware snapshot when its
+  // reporter hasn't posted. Remote display-only Pis keep strict reporter-or-
+  // null semantics — we can't read their /proc from here.
+  const hubDisplayId = displayIds[0];
   const displays: BundleDisplayEntry[] = displayIds.map((id) => {
     const status: DisplayStatus | null = statuses.get(id) ?? null;
     const log = consoleLogs[id];
+    const hwStats =
+      status?.hwStats ?? (id === hubDisplayId ? hubHardware : null);
     return {
       id,
       status,
-      hwStats: status?.hwStats ?? null,
+      hwStats,
       browserStats: status?.browserStats ?? null,
       consoleLog: log ?? null,
       consoleLogNote: log ? null : '[timeout] Display did not respond within 5s',

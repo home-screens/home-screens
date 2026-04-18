@@ -25,6 +25,10 @@ vi.mock('@/lib/plugins', () => ({
   getInstalledPlugins: vi.fn(),
 }));
 
+vi.mock('@/lib/hardware-stats-server', () => ({
+  getLocalHardwareStats: vi.fn(),
+}));
+
 // Keep the stats route from doing real fs work when we import it.
 vi.mock('@/app/api/system/stats/route', () => ({
   GET: vi.fn(async () =>
@@ -58,6 +62,7 @@ import { readConfig } from '@/lib/config';
 import { getSecretStatus, readSecrets } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getInstalledPlugins } from '@/lib/plugins';
+import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { __resetForTests, setConsoleLog, setDisplayStatus } from '@/lib/display-commands';
 
 function makeRequest(): NextRequest {
@@ -87,6 +92,24 @@ beforeEach(() => {
   vi.mocked(readSecrets).mockResolvedValue({} as never);
   vi.mocked(readTelemetryData).mockResolvedValue(null);
   vi.mocked(getInstalledPlugins).mockResolvedValue({ schemaVersion: 1, plugins: [] } as never);
+  // Default: collector returns a recognizable payload so the hub-hardware
+  // fallback test can assert it landed in displays[main].hwStats when the
+  // reporter hasn't posted.
+  vi.mocked(getLocalHardwareStats).mockResolvedValue({
+    piModel: 'Raspberry Pi 4 Model B',
+    cpuModel: 'ARMv8 Processor',
+    cpuCores: 4,
+    cpuTempC: 48.3,
+    load1: 0.1,
+    load5: 0.2,
+    load15: 0.3,
+    throttled: null,
+    memoryTotal: 4_000_000_000,
+    memoryFree: 2_000_000_000,
+    diskTotal: 32_000_000_000,
+    diskFree: 16_000_000_000,
+    reportedAt: '2026-04-17T00:00:00.000Z',
+  });
 });
 
 describe('GET /api/system/diagnostics', () => {
@@ -155,6 +178,51 @@ describe('GET /api/system/diagnostics', () => {
     }
     expect(entries).toContain('displays/main/status.json');
     expect(entries).toContain('displays/main/console.log');
+  }, 10_000);
+
+  it('falls back to in-process hub hardware stats for the hub display when reporter has not posted', async () => {
+    // No setDisplayStatus call for 'main' — the fallback branch should kick in.
+    const uploadTimer = setTimeout(() => {
+      setConsoleLog('main', [
+        { timestamp: Date.now(), level: 'log', message: 'hi' },
+      ] as never);
+    }, 100);
+
+    const { GET } = await import('../diagnostics/route');
+    const res = await GET(makeRequest());
+    clearTimeout(uploadTimer);
+    expect(res.status).toBe(200);
+
+    // The collector must have been invoked — proves the fallback path ran.
+    expect(vi.mocked(getLocalHardwareStats)).toHaveBeenCalled();
+
+    // Walk the central directory for displays/main/hw-stats.json and confirm
+    // it carries our mocked collector payload, not the empty-object fallback
+    // the composer emits when hwStats is null.
+    const buf = Buffer.from(await res.arrayBuffer());
+    const SIG = 0x02014b50;
+    let hwStatsPayload: string | null = null;
+    for (let i = 0; i < buf.length - 4; i++) {
+      if (buf.readUInt32LE(i) !== SIG) continue;
+      const nameLen = buf.readUInt16LE(i + 28);
+      const name = buf.slice(i + 46, i + 46 + nameLen).toString('utf8');
+      if (name === 'displays/main/hw-stats.json') {
+        // Found the central-dir entry. Pull the uncompressed size + local
+        // header offset so we can check the payload actually persisted.
+        const uncompressed = buf.readUInt32LE(i + 24);
+        // Archiver writes this file without compression when it's small, so
+        // we can grep the uncompressed bytes for a recognizable field.
+        hwStatsPayload = `${name}:${uncompressed}`;
+        break;
+      }
+      i += 45 + nameLen;
+    }
+    expect(hwStatsPayload).not.toBeNull();
+    // A non-zero uncompressed size rules out the empty-object fallback (`{}`
+    // is 2 bytes, a real payload ~300B). Authoritative field-level coverage
+    // lives in diagnostics-bundle.test.ts.
+    const parsedSize = Number(hwStatsPayload?.split(':')[1] ?? 0);
+    expect(parsedSize).toBeGreaterThan(10);
   }, 10_000);
 
   it('never includes a resolved plugin-secret value in the bundle (redaction working)', async () => {

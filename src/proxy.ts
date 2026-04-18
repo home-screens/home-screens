@@ -126,12 +126,21 @@ const PUBLIC_AUTH_ROUTES = [
 ];
 
 /**
- * POST routes accessible without auth — used by display-side plugins.
- * The plugin proxy validates that the plugin is installed and enabled,
- * and enforces its own domain allowlist + rate limiting.
+ * POST routes accessible without auth — used by display-side plugins and
+ * display-only Pi reporters.
+ *
+ * - /api/plugins/proxy/… — display-side plugin network proxy. The plugin
+ *   proxy validates the plugin is installed + enabled and enforces its own
+ *   domain allowlist + rate limiting.
+ * - /api/display/hw-stats — the per-Pi bash reporter's endpoint. Gated
+ *   route-side by requireAdoptedDisplay (displayId must appear in
+ *   config.displays), which replaces password auth for this one path. The
+ *   reporter runs on a display-only Pi with no session and no bearer token.
  */
 function isDisplayAccessiblePost(pathname: string): boolean {
-  return pathname.startsWith('/api/plugins/proxy/');
+  if (pathname.startsWith('/api/plugins/proxy/')) return true;
+  if (pathname === '/api/display/hw-stats') return true;
+  return false;
 }
 
 /**

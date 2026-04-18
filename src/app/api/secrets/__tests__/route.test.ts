@@ -82,7 +82,6 @@ describe('GET /api/secrets', () => {
       github_token: false,
       immich_url: false,
       immich_api_key: false,
-      reporter_token: false,
     };
     vi.mocked(getSecretStatus).mockResolvedValue(mockStatus);
 
