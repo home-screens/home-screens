@@ -443,7 +443,13 @@ function SettingsPageContent() {
               <DisplaysIndexPage />
             </div>
           ) : (
-          <div className={`mx-auto px-6 py-6 ${activeTab === 'integrations' ? 'max-w-4xl' : 'max-w-2xl'}`}>
+          <div className={`mx-auto px-6 py-6 ${
+            activeTab === 'stats'
+              ? 'max-w-6xl'
+              : activeTab === 'integrations'
+                ? 'max-w-4xl'
+                : 'max-w-2xl'
+          }`}>
             {activeTab === 'display' && config && (
               <DefaultDisplaySection
                 config={config}

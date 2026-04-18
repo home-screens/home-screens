@@ -24,7 +24,7 @@ export default function Button({
   return (
     <button
       className={clsx(
-        'rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+        'rounded-md font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed',
         variantStyles[variant],
         size === 'sm' ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm',
         className,
