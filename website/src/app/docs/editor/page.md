@@ -80,7 +80,14 @@ Categories in the palette are collapsible. Click a category header to expand or 
 
 ## Configuring Modules
 
-Select a module to open its settings in the **Property Panel** on the right. The panel has two sections:
+Select a module to open its settings in the **Property Panel** on the right. Related fields are grouped into `PropertyGroup` blocks (labeled rows sharing a visual container) so the panel stays scannable even on dense modules like the clock or chore chart. Style-heavy sections roll up into collapsible `AccordionSection` blocks — Style, Schedule, Background — so the panel shows only what you're actively editing.
+
+### Property Panel
+
+The panel has two operating states:
+
+- **Module selected** — the module's config section at the top, followed by Style, Schedule, and (where relevant) module-specific accordion sections. The background picker stays hidden while a module is selected so the panel stays focused on the module's own fields.
+- **No module selected** — the panel shows **Screen Settings** (rotation duration, transition effect) followed by the Background picker accordion for the current screen. You can tweak rotation and backgrounds without first dropping a module on the canvas.
 
 ### Module Settings
 
@@ -91,8 +98,9 @@ Each module type has its own configuration options. For example:
 - **To-Do** — add/edit/check off items
 - **News** — set the RSS feed URL
 - **Stock Ticker** — enter comma-separated stock symbols
+- **Display Control** — pick layout (bar / pad / panel), default target (self / all / specific display), allow runtime retargeting
 
-See the [Modules Reference](/docs/modules) for all available options.
+See the [Module Reference](/docs/module-reference) for all available options.
 
 ### Style Settings
 
@@ -139,7 +147,13 @@ Right-click a screen tab and choose **Delete** from the context menu. You must h
 
 ### Screen Rotation
 
-Set the rotation interval in **Settings > Display**. Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
+The global rotation interval lives in **Settings → Display** (or the property panel's **Screen** section when no module is selected — see [Property Panel](#property-panel) below). Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
+
+Any individual screen can **override** the global interval via its `rotationDurationMs` field. Click an empty area of the canvas to deselect any module, then use the property panel's **Screen Settings** section to set a custom duration for the current screen, or clear it to inherit the global default. When a screen has a custom value, a small **duration pill** appears on its tab (e.g. `10s`) so you can see the override at a glance.
+
+Setting the duration to **0** on a screen makes it **sticky** — the display pauses rotation on that screen entirely. The tab shows an amber `0s` pill as a warning, and the screen must be advanced manually (via `/api/display/next-screen`, the display-control module, or another touch). Useful for one-off "stay on this screen until I say otherwise" surfaces like a dinner timer or a guest-mode photo frame.
+
+Per-screen durations also feed into module prefetch timing. Modules that pre-render their next rotation (e.g. `fullscreen-photo`) pick up the resolved duration from `resolveScreenDuration()`, so a screen with a 60 s override prefetches ~60 s ahead instead of ~30 s.
 
 ### Screen Transitions
 
@@ -258,10 +272,10 @@ Profiles let you define named groups of screens that activate based on a schedul
 
 ### Calendar
 
-- **Google Calendar** — OAuth device flow sign-in; requires OAuth credentials configured in Integrations first
-- **Calendar Selection** — choose which Google calendars to display (multi-select with color indicators)
-- **iCal / ICS Feeds** — add external calendar feeds by URL (works with any iCal-compatible service)
-- **Public Holidays** — select a country to show public holidays on calendar widgets (data from Nager.Date)
+- **iCal / ICS Feeds** — add calendar feeds by URL. Works with Google Calendar's [private iCal address](https://support.google.com/calendar/answer/37648?hl=en), Apple iCloud, Outlook, Fastmail, and anything else that publishes ICS. Simplest path — no credentials needed.
+- **Google Calendar (OAuth)** — optional advanced path: sign in with Google via OAuth device flow to get native multi-calendar selection and Google's own color-coding. Requires OAuth credentials in Integrations first.
+- **Calendar Selection** — after OAuth sign-in, choose which Google calendars to display (multi-select with color indicators)
+- **Public Holidays** — select a country to show public holidays on calendar modules (data from Nager.Date)
 - **Max Events** — limit the number of events shown (1–100, default 10)
 - **Days Ahead** — how far ahead to look for events (1–90, default 7)
 
@@ -271,7 +285,7 @@ The **Integrations** tab is where you configure all API keys and external servic
 
 - **Google OAuth Client ID** — required for Google Calendar (create at Google Cloud Console, type: TVs and Limited Input devices)
 - **Google OAuth Client Secret** — the client secret from the same OAuth credential
-- **Google Maps API Key** — optional, for the traffic/commute widget (requires Routes API)
+- **Google Maps API Key** — optional, for the traffic/commute module (requires Routes API)
 - **Unsplash Access Key** — enables browsing HD photos in the background picker (free at unsplash.com/developers)
 - **NASA API Key** — enables Astronomy Picture of the Day browsing and rotation (free at api.nasa.gov)
 - **Todoist API Token** — for the Todoist task integration
@@ -323,7 +337,7 @@ The Stats tab provides a live dashboard of system health and application state:
 - **Configuration** — screen count, module count, profiles, and a breakdown of module types in use
 - **Integrations** — which API keys are configured at a glance
 - **Server** — hostname, platform, Node.js version, uptime, and memory usage
-- **Anonymous Telemetry** — opt-in toggle for anonymous usage statistics; expandable "What we collect" section
+- **Anonymous Telemetry** — on by default, with an opt-out toggle for anonymous usage statistics; expandable "What we collect" section lists exactly what's sent (install ID, app version, platform, display counts, module-type histogram, plugin list). No PII, one beacon per 24 hours.
 
 ### System
 
@@ -372,7 +386,7 @@ Individual modules can be shown or hidden based on a schedule:
 3. Set the days of week and time window
 4. Optionally toggle **Invert** to hide the module during the window instead of showing it
 
-This is useful for showing a commute widget only on weekday mornings or a sports scores widget only on game days.
+This is useful for showing a commute module only on weekday mornings or a sports scores module only on game days.
 
 ## Saving
 

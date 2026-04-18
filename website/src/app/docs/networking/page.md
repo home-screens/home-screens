@@ -83,6 +83,38 @@ The `data/port.conf` file is preserved across upgrades and deployments.
 
 ---
 
+## Network settings (Settings → Network)
+
+The editor has a **Network** page under **Settings** that configures WiFi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi — Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
+
+Every network change that touches the **management interface** — the one your browser is currently talking to the Pi over — uses a two-phase commit. The editor asks you to confirm the warning, the server applies the change with a **60-second auto-rollback** scheduled against the previous settings, and the editor polls `GET /api/system/network/confirm` to prompt you when the new connection is working. If you don't confirm within 60 seconds (because the change cut off your session), the Pi reverts automatically. A connectivity watchdog timer (`wifi-watchdog.timer`) is paused during this window so it doesn't race the rollback.
+
+### WiFi
+
+- **Scan nearby networks** — lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
+- **Connect** — click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`).
+- **Saved networks** — list, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
+- **Forget** — `DELETE /api/system/network/wifi/saved` drops a saved profile.
+- **Disconnect** — brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`).
+
+### IP address
+
+Each interface can be toggled between **DHCP (auto)** and **static (manual)**. Manual mode requires `address`, `prefix` (CIDR bits), `gateway`, and optional `dns` array. Changes go through the same management-interface confirmation + 60 s rollback as WiFi.
+
+### Hostname
+
+Sets the system hostname via `hostnamectl`, rewrites the `127.0.1.1` line in `/etc/hosts`, and restarts `avahi-daemon` so mDNS re-advertises under the new name. After this runs, your Pi is reachable at `http://<new-hostname>.local:3000`.
+
+### Diagnostics
+
+The **Diagnostics** panel pings the default gateway and `1.1.1.1`, and reports whether the `wifi-watchdog.timer` systemd unit is active. Useful first check when a display goes dark — gateway reachable + internet reachable narrows the problem to the Home Screens server; both unreachable points at the physical connection.
+
+### Source-based routing
+
+When a Pi has **two WiFi interfaces** (common with USB adapters for range), Home Screens configures source-based routing so both interfaces remain reachable simultaneously. The hub refreshes the routing rules after every WiFi or IP change via `ensureSourceRouting()`. Without this, Linux's default-route picking would hide one interface whenever both are up.
+
+---
+
 ## Reverse proxy setup (nginx)
 
 If you want to access Home Screens through a domain name or add HTTPS, place a reverse proxy in front of it. Here is an example nginx configuration:
@@ -210,11 +242,13 @@ Response:
   "screenCount": 3,
   "activeProfile": null,
   "displayState": "active",
-  "timestamp": 1711300000000
+  "timestamp": 1711300000000,
+  "reportedViewport": { "width": 1080, "height": 1920 },
+  "hwStats": { "cpuUsagePercent": 14.2, "cpuTemperatureC": 52.1, "memoryUsagePercent": 46.0, "uptimeSeconds": 86400, "model": "..." }
 }
 ```
 
-The `displayState` field is one of: `active`, `dimmed`, or `asleep`.
+The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` is present only when a per-Pi reporter is posting to the hub. Display-only spoke Pis run `scripts/reporter.sh` on a 30-second systemd timer and POST to `/api/display/hw-stats` (adoption-gated — no bearer token, the spoke just has to appear in the hub's displays registry).
 
 ### Home Assistant integration
 

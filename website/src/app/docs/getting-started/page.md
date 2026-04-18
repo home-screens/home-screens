@@ -8,9 +8,17 @@ nextjs:
       canonical: /docs/getting-started
 ---
 
-## Choose your install method
+## Overview
 
-Home Screens can be deployed as a dedicated kiosk display on a Raspberry Pi, or run locally on your own machine for development and testing.
+Most people install Home Screens on a Raspberry Pi using our pre-built image. **Start there** — it takes about 30 minutes end-to-end. If you already have a Pi running Raspberry Pi OS, the install script is a quicker path. If you just want to poke around on a laptop first, skip to [Local development](#local-development).
+
+| Method | When to use | Time |
+|---|---|---|
+| **Pre-built image** (recommended) | Fresh Pi, fastest path to a working display | ~30 min |
+| **Install script** | You already have a Pi running Raspberry Pi OS | ~15 min |
+| **Local development** | You want to run it on your laptop to try it out or contribute | ~5 min |
+
+Need hardware? See the [shopping list on the docs index](/docs) — total cost is around $90 plus a display.
 
 ---
 
@@ -36,10 +44,10 @@ Pre-built images are published for **major and minor releases** (e.g. v1.0.0, v1
 5. Click **Choose OS**, scroll to the bottom, and select **Use custom**
 6. Select the downloaded `.img.xz` file
 7. Click **Choose Storage** and select your microSD card
-8. Click **Next**, then **No** when asked to apply OS customization settings — the image is already configured
+8. Click **Next**. When Imager asks about applying OS customization, click **NO** — the image is already configured
 
 {% callout type="warning" %}
-Raspberry Pi Imager hides its OS customization screen for custom images, so you cannot configure WiFi or SSH through the Imager UI. Use the `wifi.txt` method below for wireless connections instead. Ethernet works immediately with no configuration.
+**Do not click "Edit Settings" in Imager.** Imager hides its customization screen for custom images anyway, but if you click Edit Settings you'll be stuck. The "No" button skips it correctly. Ethernet works immediately with no configuration; use the `wifi.txt` method below for wireless.
 {% /callout %}
 
 ### WiFi setup
@@ -70,14 +78,37 @@ On first boot the Pi reads `wifi.txt`, connects to your network, and **deletes t
 
 ### First boot
 
-Insert the microSD card into your Pi and power it on. The first boot takes a minute or two while the system:
+Insert the microSD card into your Pi and power it on. **What you'll see:**
 
-- Expands the filesystem to fill the SD card
-- Detects your display's native resolution
-- Connects to WiFi (if configured)
-- Starts the Home Screens server and kiosk
+1. **Black screen** for 30–90 seconds while the Pi initializes
+2. **Raspberry Pi rainbow splash** briefly
+3. **Brief console text** while the filesystem expands and WiFi connects
+4. **Home Screens starts rotating** — you're done booting
 
-Once booted, configure your screens by visiting `http://<pi-ip>:3000/editor` from another device on your network. To find your Pi's IP address, check your router's admin page or connected device list.
+Total time: 2–3 minutes. If the screen is still black after 5 minutes, see [Troubleshooting](/docs/troubleshooting).
+
+The first boot performs:
+
+- Filesystem expansion to fill the SD card
+- Display resolution detection
+- WiFi connection (if configured)
+- Home Screens server + kiosk startup
+
+### Finding your Pi on the network
+
+From any Mac, Linux, or Windows machine on the same network, open a terminal and run:
+
+```bash
+ping home-screens.local
+```
+
+That gives you the IP address. Then open the editor from any phone or laptop:
+
+```
+http://home-screens.local:3000/editor
+```
+
+If `home-screens.local` doesn't resolve (some routers don't support mDNS), check your router's admin page for a device named `home-screens` and use that IP instead.
 
 ### Default SSH credentials
 
@@ -173,8 +204,8 @@ The following integrations can be configured through the editor:
 
 | Integration | Description | Required |
 |---|---|---|
-| Google Calendar | OAuth client ID and secret for calendar sync | For calendar module |
-| iCal feeds | Subscribe to any iCal/ICS URL (Outlook, Apple, etc.) | For calendar module |
+| iCal feeds | Subscribe to any iCal/ICS URL (Google, Apple, Outlook, Fastmail, etc.) | For calendar module (simplest path) |
+| Google Calendar OAuth | OAuth client ID and secret for the calendar picker + native color-coding | Optional — only if you want OAuth instead of an iCal URL |
 | OpenWeatherMap | Weather data provider | Optional (one of five weather providers) |
 | WeatherAPI | Weather data provider | Optional (one of five weather providers) |
 | Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of five weather providers) |
@@ -191,13 +222,38 @@ The editor supports optional password protection. Set a password in **Settings >
 
 The editor includes a system management panel under **Settings > System** for upgrade, rollback, backups, and power control -- particularly useful when running on a Raspberry Pi.
 
-## Calendar Setup
+## Calendar setup
 
-The calendar module supports two types of sources: **Google Calendar** (via OAuth) and **iCal feeds** (any standard ICS URL).
+The calendar module has **one input — iCal feeds — and two ways to use it with Google Calendar**. Apple iCloud, Outlook, Fastmail, and most other services are just iCal URLs. Google Calendar works the same way (via its [private iCal address](https://support.google.com/calendar/answer/37648?hl=en)) **or** via OAuth if you want multi-calendar selection with native color-coding.
 
-### Google Calendar
+### Which Google option should I pick?
 
-Google Calendar uses **OAuth 2.0 Device Flow**, which means you can authorize from any device on your network -- no redirect URI or public domain required. This is ideal for headless displays.
+| | **iCal URL** (simple) | **OAuth** (advanced) |
+|---|---|---|
+| Setup time | ~2 min | ~10 min (Google Cloud project) |
+| Credentials needed | None — just a URL | OAuth Client ID + Secret |
+| Multi-calendar selection in editor | Add one URL per calendar | Pick-list of all your calendars |
+| Native Google color-coding | No — you pick a color per feed | Yes |
+| Refresh latency | Google caches ~hours | Near real-time |
+| Works for shared / family calendars | Yes, if owner exposes the URL | Yes, after grant |
+| Write access (future) | Never | Possible |
+
+**Rule of thumb:** start with iCal. Only move to OAuth if you want the Google color-coding or the multi-calendar picker.
+
+### Option 1 — iCal feeds (works for Google Calendar, Apple, Outlook, Fastmail, …)
+
+1. Grab the iCal/ICS URL from your calendar provider.
+   - **Google:** Calendar settings → *Settings for my calendars* → pick a calendar → **Secret address in iCal format** ([Google's guide](https://support.google.com/calendar/answer/37648?hl=en))
+   - **Apple iCloud:** Calendar → right-click calendar → *Share Calendar* → *Public Calendar*
+   - **Outlook/Microsoft 365:** Settings → *Shared calendars* → *Publish a calendar* → ICS link
+2. In the editor, go to **Settings > Calendar > iCal Feeds**
+3. Paste the URL, give it a name, pick a color — done
+
+Repeat once per calendar you want displayed.
+
+### Option 2 — Google OAuth (device flow)
+
+OAuth uses Google's **Device Flow**, so you can authorize from any phone or laptop on your network — no redirect URI or public domain required. Ideal for headless displays.
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) > **APIs & Services > Credentials**
 2. Click **Create Credentials > OAuth Client ID**
@@ -205,17 +261,12 @@ Google Calendar uses **OAuth 2.0 Device Flow**, which means you can authorize fr
 4. Name it anything (e.g. "Home Screen Display")
 5. Copy the **Client ID** and **Client Secret** into **Settings > Integrations** in the editor
 6. Enable the **Google Calendar API** at APIs & Services > Library
-7. In the editor, go to **Settings > Google Calendar > Sign in with Google**
-8. You'll see a code and a link to `google.com/device` -- enter the code on your phone or computer and grant access
+7. In the editor, go to **Settings > Calendar > Sign in with Google**
+8. You'll see a code and a link to `google.com/device` — enter the code on your phone or computer and grant access
 
-### iCal Feeds
+### Zero-config defaults
 
-You can subscribe to any calendar that provides an iCal/ICS URL -- including Outlook, Apple iCloud, Fastmail, or any other calendar service that publishes a `.ics` feed.
-
-1. In the editor, go to **Settings > Calendar > iCal Feeds**
-2. Add a feed by pasting the ICS URL
-3. Give it a name and choose a color
-4. Events from all configured iCal feeds appear alongside Google Calendar events in the calendar module
+Out of the box, **weather works worldwide with no setup** (Open-Meteo). You only need API keys if you want a specific provider (OpenWeatherMap, Pirate Weather, etc.) or extras like Immich photos, Todoist, or traffic routing.
 
 ## Update Channel
 
@@ -227,4 +278,4 @@ You can switch to the **Dev** channel in **Settings > System** to get pre-releas
 
 - [Raspberry Pi guide](/docs/raspberry-pi) -- full deployment details, orientation, troubleshooting
 - [Editor Guide](/docs/editor) -- learn how to build your screens
-- [Modules Reference](/docs/modules) -- see all 38 available modules
+- [Module Reference](/docs/module-reference) -- every option for all 39 modules

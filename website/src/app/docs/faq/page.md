@@ -12,11 +12,27 @@ nextjs:
 
 ### What is Home Screens?
 
-Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, 38 built-in modules, and a fullscreen kiosk mode.
+Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, 39 built-in modules, and a fullscreen kiosk mode.
 
 ### Is it free?
 
 Yes. Home Screens is free and open source under the MIT license. There are no subscriptions, no cloud accounts, and no usage limits. It will always be free.
+
+### Does Home Screens collect any data?
+
+Home Screens ships with **anonymous telemetry on by default**. It sends one beacon per 24 hours containing:
+
+- A random install ID (not tied to you, no account)
+- App version and update channel
+- Platform (e.g. "linux-arm64")
+- How many displays, screens, and modules you have (counts only, no content)
+- Which module types and plugins are installed (names, no settings)
+
+It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Stats > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
+
+### How do I give my kids access to check off chores?
+
+Home Screens has a separate kid-friendly view at `/chores` that is **not password-protected**, even when the editor requires a password. Bookmark `http://<your-pi>:3000/chores` on a kid's tablet or old phone — they can mark today's chores complete and see their rewards, but can't change settings, backdate, or manage anything. The admin-only chore management lives at `/remote`. (Pre-built-image users can use `http://home-screens.local:3000/chores`; install-script users should use their Pi's hostname or IP.)
 
 ### What hardware do I need?
 
@@ -40,15 +56,11 @@ The default is **portrait at 1080x1920**, which works well for wall-mounted disp
 
 ### How do I update to the latest version?
 
-There are two ways:
+Go to **Settings > System > Check for Updates** in the editor and click **Upgrade**. The upgrade downloads a pre-built release from GitHub, swaps the application directory, and restarts the service. No build step is needed on the Pi.
 
-1. **From the editor** --- go to **Settings > System > Check for Updates** and click upgrade.
-2. **From the command line** --- send a POST request:
-   ```bash
-   curl -X POST http://localhost:3000/api/system/upgrade
-   ```
-
-The upgrade downloads a pre-built release from GitHub, swaps the application directory, and restarts the service. No build step is needed on the Pi.
+{% callout type="note" %}
+From the command line: `curl -X POST http://localhost:3000/api/system/upgrade`.
+{% /callout %}
 
 ### How do I rollback after a bad update?
 
@@ -81,7 +93,7 @@ Delete (or rename) the `data/config.json` file and restart the server. Home Scre
 ```bash
 # On a Raspberry Pi
 sudo systemctl stop home-screens
-mv /opt/home-screens/data/config.json /opt/home-screens/data/config.json.bak
+mv /opt/home-screens/current/data/config.json /opt/home-screens/current/data/config.json.bak
 sudo systemctl start home-screens
 ```
 
@@ -91,17 +103,48 @@ Yes. Home Screens supports a hub-and-spoke deployment where one Next.js server (
 
 ### How do I change the port?
 
-If you used the install script, pass the `--port` flag:
+Most users don't need to. Home Screens runs on port 3000 and is accessed at `http://<your-pi>:3000/editor` (or `http://home-screens.local:3000/editor` if you used the pre-built image). If port 3000 is already taken on your network, pass `--port 8080` when running the installer, or see [Advanced Networking](/docs/networking#custom-port-configuration) for other options.
+
+---
+
+## First-boot problems
+
+### I flashed the SD card but the screen is still black after 5 minutes
+
+A few things to check:
+
+1. **HDMI cable** — Pi 5 uses **micro-HDMI**, not full-size. A regular HDMI cable won't fit. Try a micro-HDMI-to-HDMI adapter or cable.
+2. **Power supply** — Pi 5 needs a 27 W USB-C PSU. Cheaper phone chargers cause under-voltage warnings and may not boot.
+3. **SD card** — try re-flashing with a fresh copy of the image. A bad write is common with cheap or old cards.
+4. **Wait longer** — on a slow SD card, first boot can take up to 5 minutes. If you see the rainbow splash but then it goes black, it's probably still working.
+
+### WiFi didn't connect on first boot
+
+If you used `wifi.txt` but the Pi never came online:
+
+1. Re-insert the SD card in your computer. Is `wifi.txt` still there (not deleted)? If so, the Pi never read it — check the filename (it needs to be exactly `wifi.txt`, not `wifi.txt.txt`, a common Windows trap).
+2. Double-check the `SSID=` and `PASSWORD=` lines for typos. Passwords with special characters should not be quoted.
+3. **Try Ethernet as a fallback** — plug in a network cable, boot, then configure WiFi from the editor's **Settings > Network** page.
+
+### I can't find my Pi on the network
+
+If you used the **pre-built image**, the hostname is baked in as `home-screens`:
 
 ```bash
-~/home-screens/scripts/install.sh --port 8080
+ping home-screens.local
 ```
 
-For manual setups, set the port when starting the server:
+If you used the **install script**, the Pi keeps whatever hostname Raspberry Pi OS was set up with (usually `raspberrypi`, or whatever you entered in Imager's advanced options):
 
 ```bash
-PORT=8080 npm run start
+ping raspberrypi.local
 ```
+
+If mDNS doesn't resolve at all (some ISP routers disable it), check your router's admin page for the device and use its IP directly: `http://<pi-ip>:3000/editor`.
+
+### The screen is rotated the wrong way
+
+Go to **Settings > Display > Rotation** in the editor, or see [Troubleshooting > Screen rotation issues](/docs/troubleshooting#screen-rotation-issues) for the command-line fix.
 
 ---
 
@@ -121,7 +164,7 @@ The most common cause is a missing or invalid API key. Check the following:
 
 1. Open the editor and go to **Settings > Integrations**
 2. Verify that the relevant API key is entered and correct
-3. For Google Calendar, make sure you've completed the OAuth sign-in flow at **Settings > Calendar**
+3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth, confirm the sign-in flow has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for the two options.
 4. Check the browser console or server logs for error messages
 
 Some modules also have a refresh interval --- data won't update more frequently than the configured interval.
@@ -175,7 +218,7 @@ Yes. The `/api/display` endpoints let you control the display from any device on
 
 - **Wake/Sleep** --- `POST /api/display/wake` and `POST /api/display/sleep`
 - **Brightness** --- `POST /api/display/brightness` with a value from 0 to 100
-- **Navigation** --- `POST /api/display/navigate` to jump to a specific screen
+- **Navigation** --- `POST /api/display/next-screen` and `POST /api/display/prev-screen` to step through screens
 - **Profiles** --- `POST /api/display/profile` to activate a named profile
 - **Alerts** --- `POST /api/display/alert` to push a notification to the screen
 

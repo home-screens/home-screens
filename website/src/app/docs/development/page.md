@@ -17,7 +17,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 38 module components + ModuleWrapper
+    modules/                 # All 39 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -45,7 +45,7 @@ The app uses Next.js route groups to separate concerns:
 
 ### Module System
 
-There are currently **38 modules** organized into 8 categories:
+There are currently **39 modules** organized into 8 categories:
 
 | Category | Modules |
 |---|---|
@@ -55,7 +55,7 @@ There are currently **38 modules** organized into 8 categories:
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
 | **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart |
-| **Media & Display** | text, image, photo-slideshow, qr-code, iframe |
+| **Media & Display** | text, image, photo-slideshow, qr-code, iframe, display-control |
 | **Travel** | traffic |
 
 The module system follows a registry pattern. Each module is a self-contained unit:
@@ -161,7 +161,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 
 | Category | Routes | Purpose |
 |---|---|---|
-| **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/display-token`, `auth/revoke-sessions`, `auth/google` | Authentication, session management, display token |
+| **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/display-token`, `auth/revoke-sessions`, `auth/google`, `auth/ip-allowlist` | Authentication, session management, display token, IP allowlist |
 | **System** | `system/status`, `system/version`, `system/build-id`, `system/changelog`, `system/power`, `system/upgrade`, `system/rollback`, `system/backups` | Server management and deployment |
 | **Config** | `config`, `secrets` | Read/write config and manage API keys |
 | **Weather** | `weather`, `rain-map` | Weather data (5 providers) and rain radar tiles |

@@ -83,15 +83,31 @@ If you cannot reach the editor from another device on your network:
 
 ---
 
-## Google Calendar not syncing
+## Calendar not syncing
 
-If calendar events are missing or stale:
+The calendar module pulls from two kinds of sources: **iCal/ICS feeds** (simple URL subscriptions, including Google's private iCal address) and **Google Calendar via OAuth**. The failure modes differ — skim the relevant section below. See [Calendar setup](/docs/getting-started#calendar-setup) for the full story on both paths.
 
-1. **Re-authenticate** — The OAuth device flow token may have expired. Go to the editor, open Settings > Integrations > Google Calendar, and re-run the device flow.
-2. **Check token expiry** — Tokens expire after a period of inactivity. If the refresh token is revoked, you must re-authenticate.
-3. **Verify the API is enabled** — In the [Google Cloud Console](https://console.cloud.google.com/), ensure the Google Calendar API is enabled for your project.
-4. **Check selected calendars** — In the editor, make sure you have selected which calendars to display. The module only shows events from calendars you have explicitly chosen.
-5. **Test the endpoint** — Visit `http://localhost:3000/api/calendar` to check for error messages.
+First, **test the merged endpoint** to isolate which source is failing:
+
+```bash
+curl http://localhost:3000/api/calendar
+```
+
+A 400 with "No calendars configured" means nothing is set up. A 200 with events from one source but not another points to a per-source issue below.
+
+### iCal / ICS feed issues
+
+1. **Open the URL in a browser** — if it doesn't download an `.ics` file, the URL is wrong, requires auth, or the provider revoked it. Regenerate the link from your calendar provider's sharing settings.
+2. **Google "secret address" regenerated** — if you reset the secret iCal address in Google Calendar settings, the old URL stops working immediately. Paste the new URL in **Settings > Calendar > iCal Feeds**.
+3. **Stale events** — Google caches public iCal output for up to ~8 hours, Apple and Outlook similar. New events may not appear immediately. If you need real-time sync, use OAuth instead.
+4. **Feed is disabled** — confirm the feed toggle is on in **Settings > Calendar > iCal Feeds**.
+
+### Google Calendar OAuth issues
+
+1. **Re-authenticate** — the OAuth device flow token may have expired. Go to **Settings > Integrations > Google Calendar** and re-run the device flow.
+2. **Check token expiry** — tokens expire after a period of inactivity. If the refresh token is revoked, you must re-authenticate.
+3. **Verify the API is enabled** — in the [Google Cloud Console](https://console.cloud.google.com/), ensure the Google Calendar API is enabled for your project.
+4. **Check selected calendars** — in the editor, make sure you've selected which calendars to display. The module only shows events from calendars you've explicitly chosen.
 
 ---
 
@@ -214,6 +230,51 @@ Last seen 1s ago · from 192.168.86.187
 ```
 
 If two browser tabs at the same URL on the same Pi report under one display ID, they collapse into a single row with a `×2 tabs` badge. If two distinct IPs report under one display ID, they show as separate rows — a useful signal that you accidentally pointed two Pis at the same display URL. To split them, reinstall one of the Pis with a different `--display-id`.
+
+---
+
+## Display row is missing CPU/temperature
+
+Adopted displays report hardware stats (CPU, temperature, memory, uptime) to the hub every 5 minutes via a systemd timer running `scripts/reporter.sh`. If a display card on **Settings > Per display > All displays** is missing these stats:
+
+1. **Check the timer on the spoke** — SSH to the Pi and run:
+   ```bash
+   systemctl status home-screens-reporter.timer
+   systemctl list-timers | grep reporter
+   ```
+2. **Check the last run** — errors show up in the service logs:
+   ```bash
+   journalctl -u home-screens-reporter.service -n 20 --no-pager
+   ```
+3. **Confirm the spoke is adopted** — `/api/display/hw-stats` only accepts reports from display IDs present in `config.displays` on the hub. Unadopted displays silently drop their reports. Adopt the display under **Settings > Per display > All displays > Unadopted Displays**.
+4. **Run the reporter manually** to see the error inline:
+   ```bash
+   /opt/home-screens/current/scripts/reporter.sh
+   ```
+
+---
+
+## Getting a diagnostics bundle
+
+For hard-to-reproduce issues, Home Screens can export a redacted diagnostics bundle you can attach to a GitHub issue:
+
+1. In the editor, go to **Settings > System > Diagnostics** and click **Download bundle**.
+2. Or from a shell: `curl -O http://home-screens.local:3000/api/system/diagnostics-bundle`
+
+The bundle includes recent service logs, system info, module counts, and error traces. API keys, OAuth tokens, session secrets, your config URL, and other secrets are redacted before the archive is built — it's safe to attach to a public issue. If you're unsure, unzip it and check before uploading.
+
+---
+
+## Config seems broken after manual edits
+
+If you hand-edited `data/config.json` and the display won't load or shows errors, run the built-in validator:
+
+```bash
+cd /opt/home-screens/current
+npm run config:check
+```
+
+It reports schema violations with file paths and line hints. If the config is beyond repair, see [How do I reset to factory defaults?](/docs/faq#how-do-i-reset-to-factory-defaults) to start fresh while keeping a backup of the broken file.
 
 ---
 

@@ -82,7 +82,7 @@ The `minutely` and `alerts` fields are included when the provider supports them 
 
 ### GET /api/calendar
 
-Fetches events from Google Calendar. Requires OAuth to be configured.
+Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars **and** iCal/ICS feeds — plus optional public holidays. Returns 400 if no source is configured.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -106,7 +106,7 @@ Fetches events from Google Calendar. Requires OAuth to be configured.
 
 ### GET /api/calendars
 
-Lists the authenticated user's Google Calendars.
+Lists the authenticated user's Google Calendars (OAuth only — used by the editor's calendar picker).
 
 **Response:**
 ```json
@@ -203,7 +203,7 @@ The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 da
 
 ### GET /api/chores/data
 
-Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart widget, fullscreen chore chart module, and the remote Chores tab.
+Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart module, the fullscreen chore chart module, and the remote Chores tab.
 
 **Response:**
 ```json
@@ -249,7 +249,7 @@ Both `members` and `chores` must be arrays. The full set replaces the existing d
 
 ### GET /api/meals/data
 
-Returns saved meals, weekly plan, and grocery checked state from `data/meals.json`. Accessible by the display (display token auth).
+Returns saved meals, weekly plan, grocery checked state, and shared meal-planner settings from `data/meals.json`. Accessible by the display (display token auth).
 
 **Response:**
 ```json
@@ -260,7 +260,13 @@ Returns saved meals, weekly plan, and grocery checked state from `data/meals.jso
   "plan": [
     { "date": "2026-04-04", "slot": "dinner", "mealId": "meal-1" }
   ],
-  "groceryChecked": ["tortillas"]
+  "groceryChecked": ["tortillas"],
+  "settings": {
+    "enabledSlots": ["breakfast", "lunch", "dinner"],
+    "weekStartDay": "monday",
+    "defaultSlotTimes": { "breakfast": "07:30", "lunch": "12:00", "dinner": "18:00" },
+    "timeFormat": "12h"
+  }
 }
 ```
 
@@ -268,21 +274,24 @@ The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week supp
 
 ### PUT /api/meals/data
 
-Updates saved meals and weekly plan. Requires a valid session.
+Partial update — every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session.
 
-**Body:**
+The entire read-modify-write cycle runs inside the meal-data store queue, so cross-surface writers (editor settings sheet, `/remote`, grocery checks) cannot interleave and silently lose each other's edits.
+
+**Body (all fields optional):**
 ```json
 {
   "savedMeals": [ ... ],
   "plan": [ ... ],
   "groceryChecked": [ ... ],
+  "settings": { "enabledSlots": ["breakfast", "lunch", "dinner"], "weekStartDay": "monday", "defaultSlotTimes": { "dinner": "18:00" }, "timeFormat": "12h" },
   "force": false
 }
 ```
 
-Both `savedMeals` and `plan` must be arrays. The `groceryChecked` field is optional (preserves existing if omitted). Set `force: true` to allow overwriting with empty arrays (safety guard against accidental wipes).
+When present, `savedMeals`, `plan`, and `groceryChecked` must be arrays. An empty-overwrite guard fires whenever `savedMeals` OR `plan` is being written as `[]` against non-empty existing data — set `force: true` to override. Settings-only and grocery-only writes skip the guard.
 
-**Response:** The saved `{ savedMeals, plan, groceryChecked }` object.
+**Response:** The full `{ savedMeals, plan, groceryChecked, settings }` object after the write.
 
 ### GET /api/meals/grocery
 
@@ -399,7 +408,7 @@ Authenticates with a password. Sets a session cookie on success. Rate-limited to
 
 Clears the session cookie.
 
-**Response:** `{ "success": true }` (with `Set-Cookie` header clearing the session)
+**Response:** `{ "ok": true }` (with `Set-Cookie` header clearing the session)
 
 ### POST /api/auth/password
 
@@ -1237,11 +1246,21 @@ Returns the list of installed plugins and a hash for cache invalidation.
 
 ### POST /api/plugins/install
 
-Installs a plugin from the registry. Downloads the tarball, verifies its SHA-256 checksum, and extracts it. Requires a valid session.
+Installs a plugin from the registry. Downloads the tarball, verifies its SHA-256 checksum against the registry entry, and extracts it into `data/plugins/<pluginId>/`. Requires a valid session.
 
 **Body:** `{ "pluginId": "example-plugin", "version": "1.0.0" }`
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
+
+### POST /api/plugins/install-external
+
+Installs a plugin from any HTTPS tarball URL — for private plugins, pre-release builds, or forks that aren't in the public registry. Runs through the same extract / validate pipeline as the registry install and cannot overwrite an ID already installed from the marketplace (the collision check is re-run after acquiring the per-ID lock to close a TOCTOU window). Requires a valid session.
+
+**Body:** `{ "tarballUrl": "https://example.com/my-plugin-{version}.tgz", "version": "1.2.0" }`
+
+`version` is optional; when omitted, the URL must not contain a `{version}` placeholder or the server returns `400`. When present, `{version}` in the URL is substituted before download.
+
+**Response:** `{ "ok": true }`. Query-string tokens on the tarball URL are stripped from all error messages and audit-log entries.
 
 ### DELETE /api/plugins/install
 
@@ -1249,7 +1268,7 @@ Uninstalls a plugin. Requires a valid session.
 
 **Body:** `{ "pluginId": "example-plugin" }`
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
 
 ### PATCH /api/plugins/install
 
@@ -1266,7 +1285,7 @@ Updates a plugin's state (enable/disable or clear previous version after config 
 
 Both `enabled` and `clearPrevVersion` are optional.
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
 
 ### GET /api/plugins/manifest/:pluginId
 
@@ -1331,7 +1350,7 @@ Saves a secret value for a plugin. Requires a valid session.
 
 **Body:** `{ "key": "api_key", "value": "abc123..." }`
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
 
 ### DELETE /api/plugins/secrets/:pluginId
 
@@ -1339,7 +1358,7 @@ Deletes a secret for a plugin. Requires a valid session.
 
 **Body:** `{ "key": "api_key" }`
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
 
 ### POST /api/plugins/dev
 
@@ -1347,7 +1366,7 @@ Registers a development plugin on the server. Called automatically by the client
 
 **Body:** `{ "manifest": { ... } }` (full `PluginManifest` object)
 
-**Response:** `{ "success": true }`
+**Response:** `{ "ok": true }`
 
 ---
 
@@ -1433,7 +1452,9 @@ The `restart-service` action requires the app to be managed by systemd (as the `
 
 ### GET /api/system/stats
 
-Returns system statistics including disk usage, OS info, memory usage, app configuration summary, and telemetry status. Requires a valid session.
+Returns system statistics including disk usage, OS info, memory usage, app configuration summary, telemetry status, and a snapshot of the **hub's own hardware** (CPU usage/temperature, memory, disk, uptime). Requires a valid session.
+
+The top-level `hardware` field is gathered in-process via `getLocalHardwareStats()` — this is the hub's own hardware, not that of remote display-only Pis. Per-Pi hardware for spokes lives on `/api/displays` → each display's `hwStats` (posted by `scripts/reporter.sh` to `/api/display/hw-stats`).
 
 **Response:**
 ```json
@@ -1473,9 +1494,32 @@ Returns system statistics including disk usage, OS info, memory usage, app confi
     "installId": "a1b2c3d4...",
     "lastBeaconAt": "2026-03-08T00:00:00Z",
     "enabled": true
+  },
+  "hardware": {
+    "cpuUsagePercent": 14.2,
+    "cpuTemperatureC": 52.1,
+    "memoryUsagePercent": 46.0,
+    "uptimeSeconds": 86400,
+    "model": "Raspberry Pi 5 Model B Rev 1.0"
   }
 }
 ```
+
+`hardware` is `null` on hosts where the local collector cannot read `/proc`/`/sys` (e.g. non-Linux dev machines).
+
+### GET /api/system/diagnostics
+
+Streams a ZIP bundle containing everything you'd want for triaging an install: a redacted copy of `config.json`, a per-key map of which secrets are present (no values), a snapshot of `/api/system/stats`, per-display `hwStats` / `browserStats` / `currentScreen`, the last 500 lines of `journalctl -u home-screens`, installed plugin manifests (URL fields stripped), recent telemetry metadata, and a grepped error summary. Requires a valid session.
+
+Before composing the bundle, the hub broadcasts `dump-console-log` to every adopted display and polls for 5 seconds so displays that are currently online can upload their browser console buffer. Displays that don't respond within the window are annotated `[timeout]` in the archive.
+
+**Response:** `application/zip` download (`home-screens-diagnostics-<iso-ts>.zip`).
+
+### GET/POST /api/backup
+
+Full household backup bundle — exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker. POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+
+Secrets in `data/secrets.json` are **not** included; you'll re-enter API keys after restore. This is what **Settings > Data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
 ### GET /api/system/backups
 
@@ -1499,6 +1543,116 @@ Restores a configuration backup. Requires a valid session.
 **Body:** `{ "name": "config-v0.9.0-20260308-120000.json" }`
 
 **Response:** `{ "ok": true }`
+
+---
+
+## Network
+
+Read and write the Pi's network configuration — WiFi, static IP, hostname, and diagnostics. All endpoints require a valid session and shell out to `nmcli` / `hostnamectl` on the host. Every write that touches the **management interface** (the one the request arrived on) has a two-phase commit: the hub inhibits the connectivity watchdog, schedules a 60-second auto-rollback, applies the change, and waits for the client to POST `/api/system/network/confirm` before discarding the rollback. If the client never confirms (because the change broke connectivity), the original settings are restored automatically.
+
+### GET /api/system/network
+
+Returns a snapshot of every non-loopback network interface, including wired/wireless type, link state, assigned connection, IPv4 configuration (including whether `ipv4.method` is `auto` or `manual`), WiFi association details when connected, detected kernel driver, and which interface the request arrived on (`isManagementInterface: true`). When `nmcli` is not installed the endpoint returns `{ "available": false, "reason": "..." }`.
+
+### GET /api/system/network/wifi/scan
+
+Triggers a fresh WiFi scan on the given interface and returns the nearby networks. Rate-limited to one scan per interface every 15 seconds (cached results are returned inside the window).
+
+**Query:** `?iface=wlan0` (required — validated against an interface-name regex)
+
+**Response:** Array of `{ ssid, bssid, signal (0–100), frequency, security, inUse, saved }`. Hidden SSIDs are filtered. When `nmcli` is unavailable, returns `[]` rather than an error so the UI can render "no networks found."
+
+### POST /api/system/network/wifi/connect
+
+Connects the given interface to an SSID. When the target interface is the management interface, the call is two-phase: the first request returns `{ requiresConfirmation: true, warning: "..." }` and the client must resubmit with `confirmed: true`. A 60-second rollback is scheduled automatically on the management-interface path.
+
+**Body:**
+```json
+{ "ssid": "MyNetwork", "password": "secret", "iface": "wlan0", "confirmed": false }
+```
+
+`password` is optional for open networks. `confirmed` is required when changing the management interface.
+
+**Response:** `{ "ok": true, "connection": "wifi-home-ssid", "rollbackId": "<uuid>" }`. `rollbackId` is only present when a rollback was scheduled.
+
+### POST /api/system/network/wifi/disconnect
+
+Brings down a saved WiFi connection by UUID. Like `connect`, management-interface disconnects require `confirmed: true`.
+
+**Body:** `{ "connectionId": "<uuid>", "confirmed": false }`
+
+**Response:** `{ "ok": true }`
+
+### GET /api/system/network/wifi/saved
+
+Lists saved WiFi connection profiles with last-used timestamps. Pass `?showPasswords=true` to include the PSK — only honored when editor auth is enabled and the host can read NetworkManager secrets via sudo.
+
+**Response:** Array of `{ id, name, ssid, autoconnect, lastUsed, password? }`.
+
+### DELETE /api/system/network/wifi/saved
+
+Deletes a saved WiFi profile.
+
+**Body:** `{ "connectionId": "<uuid>" }`
+
+**Response:** `{ "ok": true }`
+
+### PUT /api/system/network/hostname
+
+Sets the system hostname via `hostnamectl`, rewrites the matching line in `/etc/hosts`, and restarts `avahi-daemon` so mDNS re-advertises under the new name. Hostname is validated (RFC-952/RFC-1123 style). `/etc/hosts` and avahi restart are best-effort — hostname change still succeeds even if those steps fail.
+
+**Body:** `{ "hostname": "kitchen-display" }`
+
+**Response:** `{ "ok": true, "hostname": "kitchen-display" }`
+
+### PUT /api/system/network/ip
+
+Switches a connection between DHCP and static IP, then cycles the connection to apply the change. Like WiFi changes, management-interface edits require `confirmed: true` and schedule a 60-second rollback.
+
+**Body (auto / DHCP):** `{ "connectionId": "<uuid>", "method": "auto", "confirmed": false }`
+
+**Body (manual / static):**
+```json
+{
+  "connectionId": "<uuid>",
+  "method": "manual",
+  "address": "192.168.1.50",
+  "prefix": 24,
+  "gateway": "192.168.1.1",
+  "dns": ["1.1.1.1", "8.8.8.8"],
+  "confirmed": false
+}
+```
+
+**Response:** `{ "ok": true, "rollbackId": "<uuid>" }` (`rollbackId` only when scheduled).
+
+### GET /api/system/network/diagnostics
+
+Pings the default gateway and `1.1.1.1`, and reports the status + last run of the `wifi-watchdog.timer` systemd unit.
+
+**Response:**
+```json
+{
+  "available": true,
+  "gateway": { "ip": "192.168.1.1", "reachable": true, "latencyMs": 1.2 },
+  "internet": { "ip": "1.1.1.1", "reachable": true, "latencyMs": 14.3 },
+  "watchdog": { "active": true, "lastRun": "2026-04-18T02:00:00Z" }
+}
+```
+
+### GET /api/system/network/confirm
+
+Returns whether a management-interface change is pending confirmation and how many milliseconds remain on the rollback timer.
+
+**Response:** `{ "pending": true, "rollbackId": "<uuid>", "remainingMs": 42000 }` or `{ "pending": false }`.
+
+### POST /api/system/network/confirm
+
+Confirms a pending network change. Cancels the 60-second auto-revert timer and uninhibits the connectivity watchdog.
+
+**Body:** `{ "rollbackId": "<uuid>" }`
+
+**Response:** `{ "ok": true }` (404 if no matching rollback is pending).
 
 ---
 
@@ -1579,22 +1733,29 @@ Returns and drains all pending commands from the queue. The display polls this e
 
 ### GET /api/display/status
 
-Returns the last-known display status as reported by the display client.
+Returns the last-known display status as reported by the display client. Accepts `?display=<id>` for the multi-display case — without a target, the legacy default queue's status is returned.
 
 **Response:**
 ```json
 {
-  "currentScreen": { "id": "abc-123", "name": "Main" },
+  "currentScreen": { "index": 0, "id": "abc-123", "name": "Main" },
+  "screenCount": 3,
   "activeProfile": "evening",
   "displayState": "active",
-  "brightness": 100,
-  "timestamp": 1709913600000
+  "timestamp": 1709913600000,
+  "lastSeen": 1709913600000,
+  "reportedViewport": { "width": 1080, "height": 1920 },
+  "hwStats": { "cpuUsagePercent": 14.2, "cpuTemperatureC": 52.1, "memoryUsagePercent": 46.0, "uptimeSeconds": 86400, "model": "..." },
+  "browserStats": { "viewportWidth": 1080, "viewportHeight": 1920, "userAgent": "...", "timezone": "America/Chicago" }
 }
 ```
 
-### GET /api/display/:command
+`hwStats` is present only when the per-Pi reporter has posted to `/api/display/hw-stats`. `browserStats` is present once the display has sent at least one heartbeat from a modern client; older clients omit it.
 
-Simple commands via GET -- bookmarkable from a phone or browser. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`, `clear-alerts`.
+### GET /api/display/:command
+### POST /api/display/:command
+
+Simple commands — bookmarkable via GET or scripted via POST. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`, `clear-alerts`. Pass `?display=<id>` or include `displayId` in a POST body to target a specific display; `?display=all` broadcasts.
 
 **Response:** `{ "ok": true, "command": "wake" }`
 
@@ -1608,11 +1769,11 @@ Sets the display brightness.
 
 ### POST /api/display/profile
 
-Switches the active profile. Persists the selection to the config file. Requires a valid session.
+Switches the active profile. Persists the selection to the config file. Requires a valid session. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
 
-**Body:** `{ "profile": "profile-id" }`
+**Body:** `{ "profile": "profile-id", "displayId": "kitchen" }` (`displayId` optional)
 
-**Response:** `{ "ok": true, "profile": "profile-id" }`
+**Response:** `{ "ok": true, "profile": "profile-id", "displayId": "kitchen" }`
 
 ### POST /api/display/alert
 
@@ -1636,21 +1797,60 @@ The `type` field accepts `info`, `warning`, or `urgent`. The `icon`, `duration`,
 
 ### POST /api/display/status
 
-Reports the current display state. Called by the display client every 30 seconds.
+Reports the current display state. Called by the browser display client every 30 seconds (and on any state change). Goes through `withDisplayAuth` — the kiosk sends a display bearer token on every request.
 
 **Body:**
 ```json
 {
-  "currentScreen": { "id": "abc-123", "name": "Main" },
+  "displayId": "kitchen",
+  "clientId": "tab-a1b2",
+  "currentScreen": { "index": 0, "id": "abc-123", "name": "Main" },
+  "screenCount": 3,
+  "activeProfile": null,
   "displayState": "active",
-  "brightness": 100,
-  "timestamp": 1709913600000
+  "timestamp": 1709913600000,
+  "browserStats": {
+    "viewportWidth": 1080,
+    "viewportHeight": 1920,
+    "userAgent": "Mozilla/5.0 ...",
+    "timezone": "America/Chicago"
+  }
 }
 ```
 
-Required fields: `currentScreen` (object with `id` string), `displayState` (string), and `timestamp` (number).
+Required fields: `currentScreen` (object with `id` string), `displayState` (one of `active` / `dimmed` / `asleep` — anything else is rejected), and `timestamp` (number). `displayId` is the display-registry ID; omit it in legacy single-display mode. `clientId` distinguishes multiple tabs reporting under the same display ID so the editor can surface "which tab is phantom-heartbeating."
+
+`browserStats` is optional — when present, its `viewportWidth`/`viewportHeight` are also mirrored into a legacy top-level `reportedViewport` field so older consumers keep working. Any `hwStats` field sent to this endpoint is silently dropped — hardware telemetry now posts to `/api/display/hw-stats` instead.
 
 **Response:** `{ "ok": true }`
+
+### POST /api/display/hw-stats
+
+Accepts a hardware-stats snapshot from a display Pi's bash reporter (`scripts/reporter.sh`, on a systemd timer). Adoption IS authorization: the endpoint is **not** wrapped in `withDisplayAuth` because the reporter runs on a separate Pi that can't reasonably carry a display bearer token. Instead, the `displayId` must appear in `config.displays` (or be the literal `main` in legacy single-display mode). The LAN is the trust boundary.
+
+**Body:** `{ "displayId": "kitchen", "hwStats": { "cpuUsagePercent": 14.2, "cpuTemperatureC": 52.1, "memoryUsagePercent": 46.0, "uptimeSeconds": 86400, "model": "Raspberry Pi 5 Model B Rev 1.0" } }`
+
+**Response:** `{ "ok": true }`. Returns `403` with `Display '<id>' is not adopted` when the displayId isn't in the registry.
+
+### POST /api/display/console-log
+
+Uploads a batch of browser console entries for a display. Called by the kiosk in response to a `dump-console-log` command (which `/api/system/diagnostics` broadcasts before composing its bundle). Goes through `withDisplayAuth`.
+
+**Body:**
+```json
+{
+  "displayId": "kitchen",
+  "entries": [
+    { "level": "log", "message": "...", "timestamp": 1709913600000 },
+    { "level": "warn", "message": "...", "timestamp": 1709913601000 },
+    { "level": "error", "message": "...", "timestamp": 1709913602000 }
+  ]
+}
+```
+
+Entries are capped at 500 per request and messages at 2 000 characters each (longer messages are truncated). Only the three log levels `log` / `warn` / `error` are accepted; anything else is silently dropped.
+
+**Response:** `{ "ok": true, "stored": 42 }`
 
 ---
 

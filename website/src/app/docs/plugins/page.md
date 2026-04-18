@@ -185,13 +185,22 @@ Behind the scenes, the install process:
 5. Validates the extracted `manifest.json`
 6. Records the installation in `data/plugins/installed.json`
 
+### From a URL
+
+You can also install a plugin directly from any HTTPS tarball URL — useful for private plugins, pre-release builds, or forks that are not in the public registry. Click **Install from URL…** in the plugin browser's Browse tab and paste the tarball URL.
+
+- The URL may include a `{version}` placeholder (e.g. `https://example.com/my-plugin-{version}.tgz`) so the editor can swap versions on later updates without asking you to re-enter the full URL.
+- Externally installed plugins show an **External** pill in the Installed tab and get a per-plugin **Update** button that re-downloads from the stored URL.
+- URL installs run through the same extract/validate pipeline as marketplace installs. They **cannot overwrite** a plugin ID already installed from the marketplace (checked again after acquiring the per-ID lock to close the TOCTOU race).
+
 ### API Endpoints
 
 | Endpoint | Method | Description |
 |---|---|---|
 | `/api/plugins/registry` | GET | Fetch the plugin registry (cached 5 minutes) |
 | `/api/plugins/installed` | GET | List installed plugins with a content hash for change detection |
-| `/api/plugins/install` | POST | Install a plugin (`{ pluginId, version }`) |
+| `/api/plugins/install` | POST | Install a plugin from the registry (`{ pluginId, version }`) |
+| `/api/plugins/install-external` | POST | Install a plugin from any HTTPS tarball URL (`{ tarballUrl, version? }`) — the URL may include a `{version}` placeholder |
 | `/api/plugins/install` | DELETE | Uninstall a plugin (`{ pluginId }`) |
 | `/api/plugins/install` | PATCH | Enable/disable a plugin or clear migration state (`{ pluginId, enabled?, clearPrevVersion? }`) |
 | `/api/plugins/manifest/<id>` | GET | Read a plugin's manifest |

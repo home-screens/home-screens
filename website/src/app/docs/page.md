@@ -8,70 +8,73 @@ nextjs:
       canonical: /docs
 ---
 
-An open-source smart display system for Raspberry Pi. 38 modules, visual editor, 5 weather providers. Free forever. {% .lead %}
-
-{% quick-links %}
-
-{% quick-link title="Installation" icon="installation" href="/docs/getting-started" description="Step-by-step guide to getting Home Screens up and running on your machine." /%}
-
-{% quick-link title="Modules" icon="presets" href="/docs/modules" description="Explore all built-in modules — from clocks and weather to calendars and sports." /%}
-
-{% quick-link title="Editor Guide" icon="plugins" href="/docs/editor" description="Learn how to design your screens with the drag-and-drop visual editor." /%}
-
-{% quick-link title="API Reference" icon="theming" href="/docs/api" description="Complete reference for all API endpoints — weather, calendar, stocks, and more." /%}
-
-{% /quick-links %}
+A free, open-source smart display for your kitchen, hallway, or family command center. Runs on a Raspberry Pi, configured from your phone, with 39 built-in modules. **About 30–45 minutes from unboxing to first screen.** {% .lead %}
 
 ---
 
-## What is Home Screens?
+## Your weekend project
 
-Home Screens is a custom smart display system that replaces services like Dakboard and MagicMirror. It's web-based, runs on a Raspberry Pi in Chromium kiosk mode, and renders on a portrait 1080×1920 display.
+1. **Buy the hardware** — about $200 if you're starting from scratch, or ~$90 if you already have a monitor lying around. [Shopping list below](#what-to-buy).
+2. **Flash the SD card** — download our ready-to-boot image, flash with Raspberry Pi Imager, insert into your Pi. **~10 minutes**.
+3. **First boot** — plug in the Pi, wait 2–3 minutes for it to come up. **Don't click "Edit Settings" in Imager** — the image is pre-configured.
+4. **Open the editor from your browser** — `http://home-screens.local:3000/editor` (pre-built image) or `http://<pi-ip>:3000/editor` (install script). Drag a clock onto the canvas, save. **~5 minutes**.
 
-### Key features
+[**Start here → Installation guide**](/docs/getting-started)
 
-- **38 modules** — clock, weather, calendar, news, stocks, sports, and more
-- **Visual editor** — drag-and-drop interface to design your screens
-- **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo
-- **Google Calendar** — OAuth device flow, works on headless displays
-- **Profile system** — named screen groups with schedule-based auto-activation
-- **No cloud required** — all data stored locally as JSON, no accounts needed
+---
 
-### Tech stack
+## What to buy
 
-Home Screens is built with Next.js 16, React 19, and Tailwind CSS. Configuration is stored as a single JSON file — no database required.
+If you're buying fresh, you'll want:
 
-### Quick start
+| Item | Notes | Approx. cost |
+|---|---|---|
+| **Raspberry Pi 5 (4 GB)** | Pi 4 also works; Pi 5 is noticeably smoother with animations and larger displays | $60 |
+| **Official 27 W USB-C power supply** | Pi 5 needs this — generic phone chargers don't deliver enough power | $12 |
+| **SanDisk Ultra 32 GB A1 microSD** | Any 16 GB+ A1-class card works | $8 |
+| **Micro-HDMI-to-HDMI cable** | **Pi 5 uses micro-HDMI**, not full-size — your old cable won't fit | $8 |
+| **HDMI display** | Any TV or monitor works. A portrait-oriented 1080×1920 panel is ideal for the default layout, but rotating any 1080p display vertically is fine. | varies |
 
-**Pre-built image** (easiest) — download a ready-to-boot SD card image from [GitHub Releases](https://github.com/home-screens/home-screens/releases), flash it with [Raspberry Pi Imager](https://www.raspberrypi.com/software/), and power on. Images are available for major and minor releases.
+Total: **~$90** plus a display. Budget tip: a repurposed old monitor or a small TV works great for a kitchen wall.
 
-**Install script** — run the install script on a fresh Raspberry Pi OS:
+---
 
-```bash
-sudo apt install git
-git clone https://github.com/home-screens/home-screens.git
-~/home-screens/scripts/install.sh
-```
+## Privacy & safety
 
-**Local development** — run on your own machine for development or testing:
+- **All your data stays on your Pi.** No cloud accounts, no database, no required servers.
+- **The pre-built image has a default username and SSH password** (`hs` / `screens`). Change it with `passwd` on first login, or leave SSH disabled if you don't need shell access.
+- **You can always roll back.** Every upgrade keeps the previous version on disk for instant rollback from Settings > System.
 
-```bash
-git clone https://github.com/home-screens/home-screens.git
-cd home-screens
-npm install
-npm run dev
-```
+---
 
-After setup, configure your screens at `http://<pi-ip>:3000/editor` from another device on your network.
+## Key features
 
-See the [Installation guide](/docs/getting-started) for full details including WiFi setup for pre-built images.
+- **39 modules** — clock, weather, calendar, news, stocks, sports, chore chart, meal planner, photos, and more
+- **Visual drag-and-drop editor** — no JSON required
+- **5 weather providers** — Open-Meteo works zero-config worldwide; NOAA is free for US; OpenWeatherMap, WeatherAPI, and Pirate Weather are also supported
+- **Google Calendar + iCal** — two paths to Google (iCal URL or OAuth); iCal also works with Apple, Outlook, Fastmail, and anything else that publishes ICS
+- **Profile system** — different screens at different times of day (morning vs. evening, weekdays vs. weekends)
+- **Multi-display** — one server, many Pis, each with its own layout
+
+Built with Next.js 16, React 19, and Tailwind CSS. Configuration is a single JSON file — no database.
 
 ---
 
 ## Getting help
 
-If you run into issues or have questions:
-
 - [GitHub Issues](https://github.com/home-screens/home-screens/issues) — report bugs or request features
 - [GitHub Discussions](https://github.com/home-screens/home-screens/discussions) — ask questions and share your setup
 - [Releases](https://github.com/home-screens/home-screens/releases) — check for the latest version
+- [FAQ](/docs/faq) — common questions and failure modes
+
+{% quick-links %}
+
+{% quick-link title="Installation" icon="installation" href="/docs/getting-started" description="Step-by-step guide to getting Home Screens up and running." /%}
+
+{% quick-link title="Editor Guide" icon="plugins" href="/docs/editor" description="Design your screens with drag-and-drop." /%}
+
+{% quick-link title="Modules" icon="presets" href="/docs/modules" description="Tour all 39 built-in modules." /%}
+
+{% quick-link title="FAQ" icon="theming" href="/docs/faq" description="Common questions and troubleshooting." /%}
+
+{% /quick-links %}

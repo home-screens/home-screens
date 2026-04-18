@@ -185,20 +185,6 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
     error "Invalid --display-id '${DISPLAY_NODE_ID}': max length is 64 characters (got ${#DISPLAY_NODE_ID})"
   fi
 
-  # Prompt for a hub display token when running interactively. The token is
-  # required when the hub has a password configured AND this Pi's IP isn't on
-  # the allowlist — without it, hwStats POSTs 401 on every 30s tick. Leave
-  # blank when the hub has no password set; reporter.sh omits the header in
-  # that case. A non-interactive install relies on --display-token.
-  if [ -z "${DISPLAY_TOKEN}" ] && [ "${NON_INTERACTIVE:-false}" != "true" ]; then
-    echo ""
-    echo "  Does the hub require a password? If yes, paste the display token"
-    echo "  from the hub's Settings → Displays page (used to authorize the"
-    echo "  hardware reporter). Otherwise leave blank."
-    echo ""
-    read -rp "  Display token [none]: " DISPLAY_TOKEN
-  fi
-
   info "Display-only install — backend ${BACKEND_URL}, display ${DISPLAY_NODE_ID}"
 
   # 1. Install only the kiosk-side packages. No Node, no Next.js.

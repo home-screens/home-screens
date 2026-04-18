@@ -100,7 +100,7 @@ The alert section lets you push notifications to the display:
 3. **Pick a duration** -- 10s, 30s, 1 min, 5 min, or Persistent
 4. Tap **Send Alert**
 
-Alerts appear as overlays on the display. You can clear all active alerts by sending a `clear-alerts` command via the [API](/docs/api#get-apidisplaycommand).
+Alerts appear as overlays on the display. You can clear all active alerts by sending a `clear-alerts` command via the [API](/docs/api#get-apidisplaycommands).
 
 ---
 
@@ -171,7 +171,7 @@ You can also append `?token=TOKEN` to bookmarked command URLs (e.g., wake/sleep)
 
 ## Chores tab
 
-The **Chores** tab provides a mobile interface for tracking household chores. It uses the same shared data as the chore chart widget and fullscreen chore chart module. The tab appears when any chore chart module exists in your configuration.
+The **Chores** tab provides a mobile interface for tracking household chores. It uses the same shared data as the chore chart module and the fullscreen chore chart module. The tab appears when any chore chart module exists in your configuration.
 
 The Chores tab has three sub-views, selectable via a segmented control: **Today**, **Manage**, and **Rewards**.
 

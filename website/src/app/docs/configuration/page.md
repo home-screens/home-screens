@@ -8,9 +8,11 @@ nextjs:
       canonical: /docs/configuration
 ---
 
-Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database — every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.
+{% callout type="note" %}
+**This page is a reference for power users.** Home Screens stores everything as JSON files, but you almost never need to touch them — the [editor](/docs/editor) manages all of this for you. This page exists to document the schema for scripting, external tooling, or debugging.
+{% /callout %}
 
-**In general you should never have to interact with the raw configuration files unless you are a power user. All settings can be managed in the web editor and get written automatically.**
+Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database — every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.
 
 ## Data files
 
@@ -131,7 +133,9 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
     intervalDays: number          // Days between reminders (default 7)
   }
 
-  telemetryEnabled?: boolean      // Enable anonymous usage telemetry
+  telemetryEnabled?: boolean      // Enable anonymous usage telemetry (on by default)
+
+  fullscreenTheme?: string        // Global preset for fullscreen modules (e.g. "lavender", "sunset")
 }
 ```
 
@@ -310,7 +314,7 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 
 ### ModuleType
 
-There are 38 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are 39 built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -345,6 +349,7 @@ type BuiltinModuleType =
   | 'standings'
   | 'affirmations'
   | 'date'
+  | 'display-control'
   | 'meal-planner'
   | 'iframe'
   | 'chore-chart'
@@ -679,6 +684,7 @@ Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weath
 
 ```typescript
 {
+  view: 'default' | 'arc'   // 'default' text layout, or arc-shaped day diagram
   showDayLength: boolean
   showGoldenHour: boolean
 }
@@ -978,7 +984,8 @@ Family chore tracking with 5 views, point system, and rotation support.
     name: string
     emoji: string
     points: number            // 0 or greater (a 0-point chore has no reward impact)
-    frequency: 'daily' | 'weekly' | 'biweekly'
+    frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
+    specificDate?: string     // Only used when frequency === 'once'. ISO YYYY-MM-DD.
     daysOfWeek: number[]
     timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
     assigneeIds: string[]

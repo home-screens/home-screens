@@ -63,10 +63,9 @@ curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scri
 
 # Desktop mode
 curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --desktop
-
-# Display-only spoke pointing at an existing hub
-curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --display-only --backend http://hub:3000
 ```
+
+Running a multi-display setup? `--display-only` turns this Pi into a spoke pointing at an existing hub — see the [Multi-display guide](/docs/multi-display) for the full walkthrough.
 
 See the [Installer flags](#installer-flags) reference for all available options.
 
@@ -181,13 +180,15 @@ After install and reboot, the spoke contacts the hub and appears in the editor's
 
 ### What the installer does
 
-1. **Node.js** — installs the runtime needed to run the server
-2. **Latest release** — downloads the pre-built app from GitHub
+1. **Node.js** — installs the runtime needed to run the server (full install only; display-only spokes skip this)
+2. **Latest release** — downloads the pre-built app from GitHub (full install only)
 3. **Browser** — installs Chromium and the labwc Wayland compositor for fullscreen kiosk display with proper cursor hiding on touchscreens
-4. **Background service** — sets up Home Screens to start automatically on boot
+4. **Background service** — sets up `home-screens.service` to start automatically on boot (full install only)
 5. **Autologin** — configures the Pi to log in and launch the display without interaction
-6. **Boot splash** — shows a clean loading screen instead of terminal text during startup
+6. **Plymouth boot splash** — installs the Home Screens-branded theme so the Pi boots through a clean splash instead of the Raspberry rainbow → black-screen → kiosk transition. The display-only install path invokes the same helper so spokes get the splash too
 7. **WiFi hardening** — applies reliability fixes for headless displays (infinite reconnect retries, connectivity watchdog, disabled suspend; see [Networking > WiFi reliability](/docs/networking#wifi-reliability))
+8. **systemd-journal group** — adds the service user to `systemd-journal` so `journalctl -u home-screens` works without sudo and the diagnostics bundle can capture logs
+9. **Hardware reporter** (display-only spokes only) — installs `/usr/local/bin/home-screens-reporter.sh`, the `home-screens-reporter.service` unit, and a 30-second timer that POSTs CPU/temperature/memory/disk/uptime to the hub's `/api/display/hw-stats` endpoint. No token — the hub authorizes by checking the spoke's display ID against `config.displays`
 
 ### Managing services
 
@@ -222,10 +223,14 @@ bash scripts/start-display.sh
 
 ```bash
 # Upgrade to a specific version
-curl -X POST http://localhost:3000/api/system/upgrade -H 'Content-Type: application/json' -d '{"tag":"v0.14.0"}'
+curl -X POST http://localhost:3000/api/system/upgrade \
+  -H 'Content-Type: application/json' \
+  -d '{"tag":"v1.2.0"}'
 
-# Roll back to the previous version
-curl -X POST http://localhost:3000/api/system/rollback
+# Roll back to a previously-installed version (tag required)
+curl -X POST http://localhost:3000/api/system/rollback \
+  -H 'Content-Type: application/json' \
+  -d '{"tag":"v1.1.0"}'
 ```
 
 ### Changing orientation via command line

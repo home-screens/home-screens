@@ -10,6 +10,10 @@ nextjs:
 
 Profiles let you show different screens at different times of day, on different days of the week, or on demand. Combined with module-level scheduling and sleep settings, you can fully automate what your display shows and when.
 
+{% callout type="note" %}
+**Running multi-display?** In multi-display mode profiles are scoped per display — each display owns its own profile list and `screenIds` reference that display's own screens, not a shared pool. See [Multi-display > Per-display profiles](/docs/multi-display#per-display-profiles) for the scoping rules.
+{% /callout %}
+
 ---
 
 ## What are profiles?
@@ -117,7 +121,7 @@ The **Invert** toggle reverses the schedule logic: instead of activating the pro
 
 ## Module-level scheduling
 
-Individual modules can be shown or hidden based on their own schedule, independent of profiles. This lets you keep the same screen layout but change which widgets are visible throughout the day.
+Individual modules can be shown or hidden based on their own schedule, independent of profiles. This lets you keep the same screen layout but change which modules are visible throughout the day.
 
 ### Setting a module schedule
 
@@ -193,9 +197,13 @@ When a profile (or the default view) includes multiple screens, the display auto
 
 ### Rotation interval
 
-Set the rotation interval in **Settings > Display > Screen Rotation**. The slider ranges from 5 to 120 seconds (default: 30 seconds). Each screen is shown for this duration before cycling to the next.
+Set the global rotation interval in **Settings > Display > Screen Rotation**. The slider ranges from 5 to 120 seconds (default: 30 seconds). Each screen is shown for this duration before cycling to the next.
 
 Rotation pauses automatically when the display is asleep -- no point cycling through screens nobody can see.
+
+### Per-screen override (`rotationDurationMs`)
+
+Any individual screen can override the global rotation interval — useful for dinner-prep displays, guest-mode timers, or a hero screen that needs to linger. In the editor, select a screen tab and open its properties to set a per-screen duration. Set the override to **0** to pin the screen indefinitely (no rotation until manually advanced). Screens without an override inherit the global interval.
 
 ### Transition effects
 
@@ -289,7 +297,7 @@ Outside these windows, the manually set active profile (or all screens) is shown
 
 The weekday profile should be listed first so it takes priority on weekdays. On weekends, it won't match, and the weekend profile activates instead.
 
-### Hide commute widget on weekends
+### Hide commute module on weekends
 
 Instead of creating separate profiles, use a module-level schedule on the traffic/commute module:
 
@@ -298,7 +306,7 @@ Instead of creating separate profiles, use a module-level schedule on the traffi
 - From: 06:00, Until: 09:30
 - Invert: off (show only during this window)
 
-The commute widget appears only on weekday mornings. The rest of the screen stays the same all week.
+The commute module appears only on weekday mornings. The rest of the screen stays the same all week.
 
 ### Office hours display vs. after-hours
 
