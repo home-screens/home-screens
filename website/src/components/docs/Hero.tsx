@@ -56,7 +56,7 @@ export function Hero() {
                 Your home. Your data. Your display.
               </p>
               <p className="mt-3 text-2xl tracking-tight text-slate-400">
-                An open-source smart display system for Raspberry Pi. 35
+                An open-source smart display system for Raspberry Pi. 39
                 modules, visual editor, 5 weather providers. Free forever.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">

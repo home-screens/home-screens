@@ -15,17 +15,19 @@ set -euo pipefail
 #   ./scripts/release.sh --no-push minor  # commit + tag, but don't push
 
 NO_PUSH=false
+ASSUME_YES=false
 BUMP=""
 
 for arg in "$@"; do
   case "$arg" in
     --no-push) NO_PUSH=true ;;
+    --yes|-y) ASSUME_YES=true ;;
     *) BUMP="$arg" ;;
   esac
 done
 
 if [[ -z "$BUMP" || ! "$BUMP" =~ ^(patch|minor|major|prepatch|preminor|premajor|prerelease)$ ]]; then
-  echo "Usage: $0 [--no-push] <patch|minor|major|prepatch|preminor|premajor|prerelease>"
+  echo "Usage: $0 [--no-push] [--yes] <patch|minor|major|prepatch|preminor|premajor|prerelease>"
   exit 1
 fi
 
@@ -65,6 +67,7 @@ NEXT_VERSION=$(node -p "require('./package.json').version")
 echo "Preparing release v${NEXT_VERSION}..."
 
 # Generate release notes via Claude CLI
+NOTES_FILE="RELEASE_NOTES/v${NEXT_VERSION}.md"
 if command -v claude &>/dev/null; then
   echo "Generating release notes..."
   mkdir -p RELEASE_NOTES
@@ -73,6 +76,36 @@ if command -v claude &>/dev/null; then
     || echo "Warning: release notes generation failed, continuing without them"
 else
   echo "Skipping release notes (claude CLI not installed)"
+fi
+
+# Pause for the human to review (and optionally edit) the release notes
+# before we commit, tag, and push.
+if ! $ASSUME_YES; then
+  echo ""
+  if [ -f "$NOTES_FILE" ]; then
+    echo "Release notes written to: $NOTES_FILE"
+    echo "Review/edit the file now, then continue."
+  else
+    echo "No release notes file found at $NOTES_FILE."
+    echo "You can still continue without notes, or abort to investigate."
+  fi
+  echo ""
+  printf "Proceed with commit, tag%s? [y/N] " "$($NO_PUSH && echo "" || echo ", and push")"
+  REPLY=""
+  # Read from the terminal so a piped stdin (e.g. CI) doesn't auto-answer.
+  if [ -t 0 ]; then
+    read -r REPLY
+  else
+    read -r REPLY </dev/tty || REPLY=""
+  fi
+  case "$REPLY" in
+    y|Y|yes|YES) ;;
+    *)
+      echo "Aborted. Version bump left in package.json; release notes (if any) left at $NOTES_FILE."
+      echo "To undo the version bump: git checkout -- package.json package-lock.json"
+      exit 1
+      ;;
+  esac
 fi
 
 # Stage version bump and release notes
