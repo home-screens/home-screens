@@ -23,6 +23,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { setDisplayToken } from '@/lib/display-fetch';
+import { installConsoleBuffer } from '@/lib/console-buffer';
 import type { TransitionEffect } from '@/types/config';
 
 interface ScreenRotatorProps {
@@ -104,6 +105,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // Load plugins on mount
   useEffect(() => { loadPlugins(); }, [loadPlugins]);
+
+  // Install the console ring buffer so the `dump-console-log` command
+  // can return recent browser logs as part of a diagnostics bundle.
+  useEffect(() => {
+    const uninstall = installConsoleBuffer();
+    return () => uninstall();
+  }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
   // Bumped on manual navigation to reset the auto-rotation timer
   const [rotationEpoch, setRotationEpoch] = useState(0);

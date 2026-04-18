@@ -1,0 +1,14 @@
+[Unit]
+Description=Home Screens hardware reporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/home-screens-reporter
+ExecStart=/usr/local/bin/home-screens-reporter.sh
+# Lock down the service — it needs only /sys, /proc, jq, curl, date.
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true

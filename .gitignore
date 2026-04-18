@@ -29,6 +29,7 @@
 !.claude/commands/
 tailwind/*
 mockups/*
+plans/*
 
 # debug
 npm-debug.log*

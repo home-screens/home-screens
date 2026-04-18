@@ -5,6 +5,8 @@ import type { DisplayCommand } from '@/lib/display-commands';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
+import { snapshotConsoleBuffer } from '@/lib/console-buffer';
+import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore } from '@/stores/alert-store';
 import type { AlertType } from '@/types/config';
 
@@ -15,6 +17,55 @@ export interface CommandHandlers {
   prevScreen: () => void;
   setBrightness: (value: number) => void;
   reload: () => void;
+}
+
+/** Extract the Chromium version from a UA string, or null if not Chromium. */
+function parseChromiumVersion(ua: string): string | null {
+  const m = /Chrome\/([0-9.]+)/.exec(ua);
+  return m ? m[1] : null;
+}
+
+// Module-level cache for the WebGL renderer string. It's static for the
+// lifetime of a Chromium tab, and Chromium caps live WebGL contexts at ~16 —
+// a 30s reporter cadence would churn through the cap over hours and could
+// start returning null renderer strings on a long-running kiosk.
+let cachedWebglRenderer: string | null | undefined;
+
+function queryWebglRenderer(): string | null {
+  if (cachedWebglRenderer !== undefined) return cachedWebglRenderer;
+  let renderer: string | null = null;
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+    if (gl) {
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      if (ext) {
+        const r = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+        if (typeof r === 'string') renderer = r;
+      }
+    }
+  } catch {
+    /* WebGL unavailable — leave null */
+  }
+  cachedWebglRenderer = renderer;
+  return renderer;
+}
+
+function currentBrowserStats(): BrowserStats | undefined {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return undefined;
+  const webglRenderer = queryWebglRenderer();
+  const nav = navigator as Navigator & { deviceMemory?: number; hardwareConcurrency?: number };
+  return {
+    userAgent: nav.userAgent ?? 'unknown',
+    chromiumVersion: parseChromiumVersion(nav.userAgent ?? ''),
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+    devicePixelRatio: window.devicePixelRatio || 1,
+    hardwareConcurrency: nav.hardwareConcurrency ?? null,
+    deviceMemory: nav.deviceMemory ?? null,
+    webglRenderer,
+    reportedAt: new Date().toISOString(),
+  };
 }
 
 const COMMAND_POLL_MS = 3_000;
@@ -93,6 +144,18 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
                   dismissible: typeof p.dismissible === 'boolean' ? p.dismissible : undefined,
                 });
               }
+              break;
+            }
+            case 'dump-console-log': {
+              const entries = snapshotConsoleBuffer();
+              displayFetch('/api/display/console-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  displayId: displayId ?? 'main',
+                  entries,
+                }),
+              }).catch(() => {});
               break;
             }
           }
@@ -174,18 +237,14 @@ function reportStatus(s: {
   displayState: string;
   displayId?: string;
 }) {
-  // Self-report the viewport so the hub can pre-fill per-display dimensions
-  // in the editor. `innerWidth`/`innerHeight` are post-rotation, so a
-  // portrait-rotated 1920×1080 panel reports as 1080×1920 directly.
+  // Viewport is carried implicitly inside `browserStats` (viewportWidth /
+  // viewportHeight). The server derives the per-client report from those
+  // fields, so we don't duplicate the data at the top level.
   //
   // The per-tab `clientId` lets the hub distinguish "two things reporting
   // with the same display ID" from "one thing reporting consistently", so
   // the editor can surface a multi-client conflict instead of silently
   // flapping between whichever tab POSTed last.
-  const viewport =
-    typeof window !== 'undefined'
-      ? { width: window.innerWidth, height: window.innerHeight }
-      : undefined;
   const clientId = getDisplayClientId();
   displayFetch('/api/display/status', {
     method: 'POST',
@@ -202,7 +261,7 @@ function reportStatus(s: {
       timestamp: Date.now(),
       cacheStats: displayCache.getStats(),
       clientId,
-      ...(viewport ? { reportedViewport: viewport } : {}),
+      browserStats: currentBrowserStats(),
       // Stripped server-side before storage; lets the hub key the report
       // under the right per-display slot in `statusMap`.
       ...(s.displayId ? { displayId: s.displayId } : {}),

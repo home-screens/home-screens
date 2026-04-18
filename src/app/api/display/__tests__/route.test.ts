@@ -40,10 +40,19 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
+vi.mock('@/lib/secrets', () => ({
+  getSecret: vi.fn(async () => null),
+  setSecret: vi.fn(),
+  readSecrets: vi.fn(async () => ({})),
+  writeSecrets: vi.fn(),
+  isValidSecretKey: vi.fn(() => true),
+}));
+
 import { GET, POST } from '@/app/api/display/[action]/route';
 import { enqueueCommand, drainCommands, getDisplayStatus, setDisplayStatus } from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
+import { getSecret } from '@/lib/secrets';
 
 function makeParams(action: string) {
   return { params: Promise.resolve({ action }) };
@@ -552,6 +561,94 @@ describe('POST /api/display/status', () => {
       makeParams('status'),
     );
     expect(res.status).toBe(400);
+  });
+
+  it('accepts hwStats when a valid reporter token is provided', async () => {
+    vi.mocked(getSecret).mockResolvedValue('rpt-test-token');
+    const body = {
+      displayId: 'kitchen',
+      currentScreen: { index: 0, id: '', name: '' },
+      screenCount: 0,
+      activeProfile: null,
+      displayState: 'active',
+      timestamp: Date.now(),
+      hwStats: {
+        piModel: 'Raspberry Pi 4', cpuModel: 'ARMv8', cpuCores: 4,
+        cpuTempC: 42.0, load1: 0.1, load5: 0.1, load15: 0.1,
+        throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
+        reportedAt: new Date().toISOString(),
+      },
+    };
+    const req = new NextRequest('http://localhost/api/display/status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer rpt-test-token',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const res = await POST(req, makeParams('status'));
+    expect(res.status).toBe(200);
+
+    // Verify that the stats were forwarded into setDisplayStatus
+    expect(setDisplayStatus).toHaveBeenCalled();
+    const [statusArg, displayIdArg] = vi.mocked(setDisplayStatus).mock.calls[0];
+    expect(displayIdArg).toBe('kitchen');
+    expect((statusArg as { hwStats?: { cpuCores?: number } }).hwStats?.cpuCores).toBe(4);
+  });
+
+  it('rejects hwStats without a reporter token', async () => {
+    vi.mocked(getSecret).mockResolvedValue('rpt-test-token');
+    const body = {
+      displayId: 'kitchen',
+      currentScreen: { index: 0, id: '', name: '' },
+      screenCount: 0,
+      activeProfile: null,
+      displayState: 'active',
+      timestamp: Date.now(),
+      hwStats: {
+        piModel: null, cpuModel: null, cpuCores: 1,
+        cpuTempC: null, load1: 0, load5: 0, load15: 0,
+        throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
+        reportedAt: new Date().toISOString(),
+      },
+    };
+    const req = new NextRequest('http://localhost/api/display/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const res = await POST(req, makeParams('status'));
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects hwStats when reporter_token is not configured', async () => {
+    vi.mocked(getSecret).mockResolvedValue(null);
+    const body = {
+      displayId: 'kitchen',
+      currentScreen: { index: 0, id: '', name: '' },
+      screenCount: 0,
+      activeProfile: null,
+      displayState: 'active',
+      timestamp: Date.now(),
+      hwStats: {
+        piModel: null, cpuModel: null, cpuCores: 1,
+        cpuTempC: null, load1: 0, load5: 0, load15: 0,
+        throttled: null, memoryTotal: 1, memoryFree: 1, diskTotal: 1, diskFree: 1,
+        reportedAt: new Date().toISOString(),
+      },
+    };
+    const req = new NextRequest('http://localhost/api/display/status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer whatever',
+      },
+      body: JSON.stringify(body),
+    });
+    const res = await POST(req, makeParams('status'));
+    expect(res.status).toBe(401);
   });
 });
 

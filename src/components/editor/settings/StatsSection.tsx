@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
+import { useConfirmStore } from '@/stores/confirm-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { formatAge, formatUptime } from '@/lib/time-format';
 import Button from '@/components/ui/Button';
@@ -121,6 +122,12 @@ export default function StatsSection() {
   const [error, setError] = useState<string | null>(null);
   const [showCacheDetails, setShowCacheDetails] = useState(false);
   const [showTelemetryDetails, setShowTelemetryDetails] = useState(false);
+  const [bundleState, setBundleState] = useState<'idle' | 'generating' | 'error'>('idle');
+  const [bundleError, setBundleError] = useState<string | null>(null);
+  const [reporterToken, setReporterToken] = useState<string | null>(null);
+  const [reporterTokenVisible, setReporterTokenVisible] = useState(false);
+  const [reporterTokenBusy, setReporterTokenBusy] = useState(false);
+  const [reporterTokenCopied, setReporterTokenCopied] = useState(false);
   const { config, updateSettings, saveConfig, isSaving, selectedDisplayId, setSelectedDisplay } = useEditorStore();
   const displays = config?.displays ?? [];
   const isMultiDisplay = displays.length > 0;
@@ -151,6 +158,78 @@ export default function StatsSection() {
     }
   }, []);
 
+  const generateBundle = useCallback(async () => {
+    setBundleState('generating');
+    setBundleError(null);
+    try {
+      const res = await editorFetch('/api/system/diagnostics');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      a.href = url;
+      a.download = `home-screens-diagnostics-${ts}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Defer the revoke by a beat — a.click() starts the download async,
+      // and Safari will abort an in-flight download if the object URL is
+      // revoked before the save dialog opens. Chromium doesn't care, but
+      // the editor is used outside kiosk mode too.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setBundleState('idle');
+    } catch (e) {
+      setBundleState('error');
+      setBundleError(e instanceof Error ? e.message : String(e));
+    }
+  }, []);
+
+  const fetchReporterToken = useCallback(async () => {
+    try {
+      const res = await editorFetch('/api/system/reporter-token');
+      if (res.ok) {
+        const data = await res.json();
+        setReporterToken(typeof data?.token === 'string' ? data.token : null);
+      }
+    } catch {
+      // Leave reporterToken null; the UI renders a "not configured" note.
+    }
+  }, []);
+
+  const rotateReporterToken = useCallback(async () => {
+    const confirmed = await useConfirmStore.getState().confirm({
+      title: 'Rotate the reporter token?',
+      message:
+        'Every display-only Pi will stop posting hardware stats until you paste the new token into /etc/default/home-screens-reporter on each Pi.',
+      confirmLabel: 'Rotate',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    setReporterTokenBusy(true);
+    try {
+      const res = await editorFetch('/api/system/reporter-token', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setReporterToken(typeof data?.token === 'string' ? data.token : null);
+        setReporterTokenVisible(true);
+      }
+    } finally {
+      setReporterTokenBusy(false);
+    }
+  }, []);
+
+  const copyReporterToken = useCallback(async () => {
+    if (!reporterToken) return;
+    try {
+      await navigator.clipboard.writeText(reporterToken);
+      setReporterTokenCopied(true);
+      setTimeout(() => setReporterTokenCopied(false), 1500);
+    } catch {
+      // Clipboard blocked (e.g. insecure context); user can still select the text.
+    }
+  }, [reporterToken]);
+
   const fetchDisplayStatus = useCallback(async () => {
     try {
       const url = selectedDisplayId
@@ -170,11 +249,12 @@ export default function StatsSection() {
   useEffect(() => {
     fetchStats();
     fetchDisplayStatus();
+    fetchReporterToken();
     // Poll display status every 5s — display reports every 30s (and on state changes),
     // so the editor may see the same cached value between reports
     const id = setInterval(fetchDisplayStatus, 5_000);
     return () => clearInterval(id);
-  }, [fetchStats, fetchDisplayStatus]);
+  }, [fetchStats, fetchDisplayStatus, fetchReporterToken]);
 
   // When the user switches displays, drop the previously-cached status so
   // we don't briefly show the wrong display's cache stats / screen index
@@ -296,6 +376,46 @@ export default function StatsSection() {
         )}
       </section>
 
+      {/* ─── Display Hardware ────────────────── */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          Display Hardware
+        </h3>
+        {displayStatus?.browserStats ? (
+          <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div className="text-hs-text-faint">Chromium</div>
+              <div className="text-hs-text-secondary font-mono">
+                {displayStatus.browserStats.chromiumVersion ?? 'Not Chromium'}
+              </div>
+              <div className="text-hs-text-faint">Viewport</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.browserStats.viewportWidth}×{displayStatus.browserStats.viewportHeight} @ {displayStatus.browserStats.devicePixelRatio}×
+              </div>
+              <div className="text-hs-text-faint">GPU</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.browserStats.webglRenderer ?? 'WebGL unavailable'}
+              </div>
+              <div className="text-hs-text-faint">CPU cores</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.browserStats.hardwareConcurrency ?? 'Unknown'}
+              </div>
+              <div className="text-hs-text-faint">Device memory</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.browserStats.deviceMemory !== null
+                  ? `${displayStatus.browserStats.deviceMemory} GB`
+                  : 'Unknown'}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-hs-text-faint">
+            Browser info is reported by the display client. No display connected
+            {activeDisplay ? <> for <span className="text-hs-text-secondary">{activeDisplay.name}</span></> : null}.
+          </p>
+        )}
+      </section>
+
       {/* ─── Data Cache ──────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -377,6 +497,49 @@ export default function StatsSection() {
           <p className="text-xs text-hs-text-faint">
             Cache stats are reported by the display client. No display connected
             {activeDisplay ? <> for <span className="text-hs-text-secondary">{activeDisplay.name}</span></> : null}.
+          </p>
+        )}
+      </section>
+
+      {/* ─── CPU & Thermal ────────────────────── */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          CPU &amp; Thermal
+        </h3>
+        {displayStatus?.hwStats ? (
+          <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div className="text-hs-text-faint">Pi model</div>
+              <div className="text-hs-text-secondary">{displayStatus.hwStats.piModel ?? 'Unavailable'}</div>
+              <div className="text-hs-text-faint">CPU</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.hwStats.cpuModel ?? 'Unknown'} &middot; {displayStatus.hwStats.cpuCores} cores
+              </div>
+              <div className="text-hs-text-faint">Temperature</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.hwStats.cpuTempC !== null
+                  ? `${displayStatus.hwStats.cpuTempC.toFixed(1)}°C`
+                  : 'Temperature unavailable'}
+              </div>
+              <div className="text-hs-text-faint">Load</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.hwStats.load1.toFixed(2)} / {displayStatus.hwStats.load5.toFixed(2)} / {displayStatus.hwStats.load15.toFixed(2)}
+              </div>
+              <div className="text-hs-text-faint">Throttling</div>
+              <div className="text-hs-text-secondary">
+                {displayStatus.hwStats.throttled
+                  ? (displayStatus.hwStats.throttled.active
+                      ? `Active (${displayStatus.hwStats.throttled.raw})`
+                      : displayStatus.hwStats.throttled.previouslyThrottled
+                        ? `Previously throttled (${displayStatus.hwStats.throttled.raw})`
+                        : 'OK')
+                  : 'Throttling data unavailable'}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-hs-text-faint">
+            No hardware stats reported yet. Ensure home-screens-reporter.timer is enabled on this Pi.
           </p>
         )}
       </section>
@@ -481,10 +644,25 @@ export default function StatsSection() {
           <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             Server
           </h3>
-          <Button variant="secondary" size="sm" onClick={fetchStats}>
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={generateBundle}
+              disabled={bundleState === 'generating'}
+            >
+              {bundleState === 'generating' ? 'Generating…' : 'Generate diagnostics bundle'}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={fetchStats}>
+              Refresh
+            </Button>
+          </div>
         </div>
+        {bundleState === 'error' && bundleError && (
+          <p className="text-xs text-hs-danger mb-2">
+            Bundle generation failed: {bundleError}
+          </p>
+        )}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             <div className="text-hs-text-faint">Hostname</div>
@@ -505,6 +683,62 @@ export default function StatsSection() {
           <p className="text-xs text-hs-text-faint">
             {memPercent.toFixed(1)}% used &middot; {formatBytes(stats.memory.free)} free
           </p>
+        </div>
+      </section>
+
+      {/* ─── Reporter Token ──────────────────── */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          Reporter Token
+        </h3>
+        <div className="space-y-3">
+          <p className="text-xs text-hs-text-muted leading-relaxed">
+            Display-only Pis post hardware stats back to the hub with this token.
+            Paste it into{' '}
+            <span className="font-mono text-hs-text-secondary">
+              install.sh --display-only
+            </span>{' '}
+            when prompted, or write it to{' '}
+            <span className="font-mono text-hs-text-secondary">
+              /etc/default/home-screens-reporter
+            </span>{' '}
+            as{' '}
+            <span className="font-mono text-hs-text-secondary">
+              HOME_SCREENS_REPORTER_TOKEN
+            </span>
+            .
+          </p>
+          <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3 flex items-center gap-2">
+            <code className="flex-1 text-xs font-mono text-hs-text-body break-all">
+              {reporterToken
+                ? reporterTokenVisible
+                  ? reporterToken
+                  : '•'.repeat(Math.min(reporterToken.length, 32))
+                : 'Not configured — click Rotate to generate one.'}
+            </code>
+            {reporterToken && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setReporterTokenVisible((v) => !v)}
+              >
+                {reporterTokenVisible ? 'Hide' : 'Show'}
+              </Button>
+            )}
+            {reporterToken && (
+              <Button variant="secondary" size="sm" onClick={copyReporterToken}>
+                {reporterTokenCopied ? 'Copied' : 'Copy'}
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={rotateReporterToken}
+              disabled={reporterTokenBusy}
+            >
+              {reporterTokenBusy ? 'Rotating…' : 'Rotate'}
+            </Button>
+          </div>
         </div>
       </section>
 

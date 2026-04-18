@@ -632,6 +632,45 @@ WantedBy=multi-user.target"
       changed="${changed}service,"
     fi
 
+    # 2b. Hardware reporter — keep /usr/local/bin/home-screens-reporter.sh
+    #     and the accompanying systemd unit files current across upgrades.
+    #     The per-Pi token lives in /etc/default/home-screens-reporter and
+    #     is NOT touched here; only the executable and unit files are
+    #     refreshed so script fixes (new fields, bug fixes) ship with each
+    #     release instead of being frozen at install time.
+    REPORTER_SRC_DIR="${APP_DIR}/scripts"
+    REPORTER_BIN="/usr/local/bin/home-screens-reporter.sh"
+    REPORTER_SERVICE="/etc/systemd/system/home-screens-reporter.service"
+    REPORTER_TIMER="/etc/systemd/system/home-screens-reporter.timer"
+    if [ -f "${REPORTER_SRC_DIR}/reporter.sh" ]; then
+      reporter_changed=0
+      if [ ! -f "${REPORTER_BIN}" ] || ! sudo cmp -s "${REPORTER_SRC_DIR}/reporter.sh" "${REPORTER_BIN}"; then
+        sudo install -m 0755 "${REPORTER_SRC_DIR}/reporter.sh" "${REPORTER_BIN}"
+        reporter_changed=1
+      fi
+      if [ -f "${REPORTER_SRC_DIR}/home-screens-reporter.service" ] && \
+         ( [ ! -f "${REPORTER_SERVICE}" ] || ! sudo cmp -s "${REPORTER_SRC_DIR}/home-screens-reporter.service" "${REPORTER_SERVICE}" ); then
+        sudo install -m 0644 "${REPORTER_SRC_DIR}/home-screens-reporter.service" "${REPORTER_SERVICE}"
+        reporter_changed=1
+      fi
+      if [ -f "${REPORTER_SRC_DIR}/home-screens-reporter.timer" ] && \
+         ( [ ! -f "${REPORTER_TIMER}" ] || ! sudo cmp -s "${REPORTER_SRC_DIR}/home-screens-reporter.timer" "${REPORTER_TIMER}" ); then
+        sudo install -m 0644 "${REPORTER_SRC_DIR}/home-screens-reporter.timer" "${REPORTER_TIMER}"
+        reporter_changed=1
+      fi
+      if [ "${reporter_changed}" = "1" ]; then
+        sudo systemctl daemon-reload
+        # Only restart the timer if it's already enabled — preserves the
+        # opt-in posture from install.sh (install-time prompt generates the
+        # env file, not this path).
+        if [ -f /etc/default/home-screens-reporter ] && \
+           systemctl is-enabled home-screens-reporter.timer >/dev/null 2>&1; then
+          sudo systemctl restart home-screens-reporter.timer 2>/dev/null || true
+        fi
+        changed="${changed}reporter,"
+      fi
+    fi
+
     # 3. Boot to console (required for labwc kiosk)
     CURRENT_DEFAULT=$(systemctl get-default 2>/dev/null || echo "unknown")
     if [ "${CURRENT_DEFAULT}" != "multi-user.target" ]; then

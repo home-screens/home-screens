@@ -1,0 +1,11 @@
+[Unit]
+Description=Home Screens hardware reporter tick (30s)
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Unit=home-screens-reporter.service
+
+[Install]
+WantedBy=timers.target

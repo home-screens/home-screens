@@ -28,6 +28,7 @@
 
 import type { CacheStats } from './display-cache';
 import { isValidDisplayId } from './display-filter';
+import type { HardwareStats, BrowserStats, ConsoleLogEntry } from './hardware-stats';
 
 export type DisplayCommandType =
   | 'wake'
@@ -37,7 +38,8 @@ export type DisplayCommandType =
   | 'brightness'
   | 'reload'
   | 'alert'
-  | 'clear-alerts';
+  | 'clear-alerts'
+  | 'dump-console-log';
 
 export interface DisplayCommand {
   type: DisplayCommandType;
@@ -66,6 +68,10 @@ export interface DisplayStatus {
    * `displayWidth`/`displayHeight` from this when the user clicks "Adopt".
    */
   reportedViewport?: { width: number; height: number };
+  /** Per-Pi hardware snapshot posted by the systemd-timer reporter. */
+  hwStats?: HardwareStats;
+  /** Per-display browser info posted on the standard heartbeat. */
+  browserStats?: BrowserStats;
 }
 
 /** Sentinel queue key for displays that poll without an explicit `displayId`. */
@@ -120,6 +126,62 @@ export interface ViewportReport {
 const VIEWPORT_REPORT_TTL_MS = 60_000;
 const MAX_CLIENTS_PER_DISPLAY = 16;
 const viewportReports = new Map<string, Map<string, ViewportReport>>();
+
+/**
+ * Per-display Chromium console ring buffer, uploaded on demand when the
+ * bundle endpoint broadcasts `dump-console-log`. TTL-evicted alongside
+ * status entries — a display that hasn't responded in 5 minutes loses its
+ * buffer on the next read.
+ */
+const CONSOLE_LOG_TTL_MS = 5 * 60 * 1000;
+/**
+ * Hard cap on the number of per-display console buffers retained in memory.
+ * Each buffer is already capped at MAX_ENTRIES (500) by the upload route,
+ * so this ceiling bounds the total entries at 64 × 500 = 32 000 — comfortable
+ * even for a noisy install, and matches MAX_KNOWN_DISPLAYS above so a hub
+ * that's at the display cap can't also hit an orthogonal console cap.
+ */
+const MAX_CONSOLE_LOG_BUFFERS = 64;
+interface ConsoleLogRecord {
+  entries: ConsoleLogEntry[];
+  uploadedAt: number;
+}
+/**
+ * Map iteration order is insertion order, so the first entry is always the
+ * oldest — used below for FIFO eviction when we hit the buffer cap.
+ */
+const consoleLogMap = new Map<string, ConsoleLogRecord>();
+
+export function setConsoleLog(displayId: string, entries: ConsoleLogEntry[]): void {
+  if (!isValidDisplayId(displayId)) return;
+  // Delete-then-insert so a re-uploading display moves to the tail of the
+  // insertion-order queue and survives the next FIFO eviction.
+  consoleLogMap.delete(displayId);
+  if (consoleLogMap.size >= MAX_CONSOLE_LOG_BUFFERS) {
+    const oldest = consoleLogMap.keys().next().value;
+    if (oldest !== undefined) consoleLogMap.delete(oldest);
+  }
+  consoleLogMap.set(displayId, { entries, uploadedAt: Date.now() });
+}
+
+export function getConsoleLog(displayId: string): ConsoleLogEntry[] | null {
+  const rec = consoleLogMap.get(displayId);
+  if (!rec) return null;
+  if (Date.now() - rec.uploadedAt > CONSOLE_LOG_TTL_MS) {
+    consoleLogMap.delete(displayId);
+    return null;
+  }
+  return rec.entries;
+}
+
+/**
+ * Evict a cached console log. Called by the diagnostics endpoint just
+ * before broadcasting `dump-console-log` so the subsequent poll-and-wait
+ * loop doesn't return a previous bundle's stale entries instantly.
+ */
+export function clearConsoleLog(displayId: string): void {
+  consoleLogMap.delete(displayId);
+}
 
 function pruneStaleClients(perClient: Map<string, ViewportReport>): void {
   const cutoff = Date.now() - VIEWPORT_REPORT_TTL_MS;
@@ -324,13 +386,32 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
   const existing = statusMap.get(id);
   const incomingViewport = sanitizeViewport(status.reportedViewport);
 
-  // Stub heartbeat + we already have a real status → only refresh the
-  // liveness fields (lastSeen + reportedViewport) and preserve the real
-  // currentScreen/screenCount/activeProfile that the rotator reported.
-  if (existing && !isStubHeartbeat(existing) && isStubHeartbeat(status)) {
+  // Stub heartbeat handling — the reporter's systemd timer posts every 30s
+  // with `currentScreen: {id:'',name:''}, screenCount: 0`. We must never let
+  // that shape promote into the authoritative status for a display, or the
+  // editor's Stats page shows "screen (empty)" until the display client
+  // posts its first real heartbeat.
+  if (isStubHeartbeat(status)) {
+    if (existing && !isStubHeartbeat(existing)) {
+      // Existing real status → only refresh liveness + hw/browser extras.
+      statusMap.set(id, {
+        ...existing,
+        reportedViewport: incomingViewport ?? existing.reportedViewport,
+        hwStats: status.hwStats ?? existing.hwStats,
+        browserStats: status.browserStats ?? existing.browserStats,
+        lastSeen: Date.now(),
+      });
+      return;
+    }
+    // No prior real status yet. Store only the liveness fields (+ any
+    // hw/browser extras) — leave currentScreen/screenCount empty so
+    // getDisplayStatus callers can tell "not yet reported" from "reported
+    // an empty screen".
     statusMap.set(id, {
-      ...existing,
-      reportedViewport: incomingViewport ?? existing.reportedViewport,
+      ...(existing ?? makeEmptyStatus()),
+      hwStats: status.hwStats ?? existing?.hwStats,
+      browserStats: status.browserStats ?? existing?.browserStats,
+      reportedViewport: incomingViewport ?? existing?.reportedViewport,
       lastSeen: Date.now(),
     });
     return;
@@ -342,6 +423,8 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
   statusMap.set(id, {
     ...status,
     reportedViewport: incomingViewport ?? existing?.reportedViewport,
+    hwStats: status.hwStats ?? existing?.hwStats,
+    browserStats: status.browserStats ?? existing?.browserStats,
     // Heartbeat is "now" — when the report arrives. Math.max with the
     // previous lastSeen would be redundant since Date.now() is monotonic.
     lastSeen: Date.now(),
@@ -406,4 +489,5 @@ export function __resetForTests(): void {
   statusMap.clear();
   knownDisplays.clear();
   viewportReports.clear();
+  consoleLogMap.clear();
 }

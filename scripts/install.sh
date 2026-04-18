@@ -31,6 +31,13 @@ if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/lib/common.sh" ]; then
   for _f in home-screens.plymouth home-screens.script logo.png dot.png; do
     curl -fsSL "${_BASE}/boot-splash/${_f}" -o "${_TMP}/boot-splash/${_f}"
   done
+  # Reporter files — required so display-only installs run via `curl | bash`
+  # can install the hardware reporter. Without these the install_reporter()
+  # call below falls through to its "Reporter script not found" warning and
+  # the Pi silently skips hw-stats posting, contradicting the adoption UI.
+  for _f in reporter.sh home-screens-reporter.service home-screens-reporter.timer; do
+    curl -fsSL "${_BASE}/${_f}" -o "${_TMP}/${_f}"
+  done
   _HS_BOOTSTRAP_TMP="${_TMP}" exec bash "${_TMP}/install.sh" "$@"
 fi
 
@@ -78,6 +85,61 @@ while [[ $# -gt 0 ]]; do
     *)      error "Unknown option: $1" ;;
   esac
 done
+
+# --- Reporter helpers (shared between display-only and full install) ---
+# Installs /usr/local/bin/home-screens-reporter.sh + systemd unit files +
+# /etc/default/home-screens-reporter. Takes arguments:
+#   $1 = display ID (e.g. "main" or "kitchen")
+#   $2 = hub base URL (e.g. "http://localhost:3000")
+#   $3 = reporter token (hex string)
+install_reporter() {
+  local display_id="$1"
+  local hub_url="$2"
+  local token="$3"
+  local script_src="${APP_DIR}/scripts/reporter.sh"
+
+  # --display-only Pis don't have APP_DIR/scripts/reporter.sh yet — fall back
+  # to the repo clone (or bootstrap temp dir) where the installer actually ran.
+  if [ ! -f "${script_src}" ]; then
+    script_src="$(cd "$(dirname "$0")" && pwd)/reporter.sh"
+  fi
+
+  if [ ! -f "${script_src}" ]; then
+    warn "Reporter script not found at ${script_src} — skipping reporter install."
+    return 1
+  fi
+
+  sudo install -m 0755 "${script_src}" /usr/local/bin/home-screens-reporter.sh
+
+  sudo install -m 0644 "$(dirname "${script_src}")/home-screens-reporter.service" \
+    /etc/systemd/system/home-screens-reporter.service
+  sudo install -m 0644 "$(dirname "${script_src}")/home-screens-reporter.timer" \
+    /etc/systemd/system/home-screens-reporter.timer
+
+  sudo tee /etc/default/home-screens-reporter >/dev/null <<EOF
+HOME_SCREENS_DISPLAY_ID=${display_id}
+HOME_SCREENS_HUB_URL=${hub_url}
+HOME_SCREENS_REPORTER_TOKEN=${token}
+EOF
+  sudo chmod 0600 /etc/default/home-screens-reporter
+
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now home-screens-reporter.timer
+}
+
+# Generate a 16-byte hex token. We read fixed-size bytes (no pipe to head) so
+# `set -euo pipefail` can't smuggle the weak $RANDOM fallback into the output
+# via a SIGPIPE-propagated failure. xxd is shipped with the vim package that
+# install.sh already requires; the openssl fallback covers minimal images.
+generate_reporter_token() {
+  if command -v xxd >/dev/null 2>&1; then
+    head -c 16 /dev/urandom | xxd -p -c 32 | tr -d '\n'
+  elif command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 16
+  else
+    printf '%016x%016x\n' $RANDOM$RANDOM $RANDOM$RANDOM
+  fi
+}
 
 # --- Preflight ---
 ensure_tty
@@ -403,6 +465,28 @@ EOF
     echo "  Log:          ${LOGFILE}"
     echo ""
   fi
+
+  # Install the hardware reporter. Token is supplied by the hub operator via
+  # the adoption workflow — here we read it from a prompt (interactive) or
+  # a pre-set env var REPORTER_TOKEN (non-interactive automation).
+  if [ -z "${REPORTER_TOKEN:-}" ]; then
+    if [ "${NON_INTERACTIVE}" = "true" ]; then
+      warn "REPORTER_TOKEN not provided — skipping reporter install."
+      warn "  Hardware stats from this Pi will not appear in the hub's Stats page."
+      warn "  To install later: REPORTER_TOKEN=<token> bash scripts/install.sh --display-only ..."
+    else
+      echo ""
+      echo "  The reporter posts CPU/thermal stats to the hub every 30s."
+      echo "  Get the token from the hub: Settings → Stats → Reporter token"
+      read -rp "  Reporter token (paste here, leave blank to skip): " REPORTER_TOKEN
+    fi
+  fi
+  if [ -n "${REPORTER_TOKEN:-}" ]; then
+    if install_reporter "${DISPLAY_NODE_ID}" "${BACKEND_URL}" "${REPORTER_TOKEN}"; then
+      info "Hardware reporter installed (timer: home-screens-reporter.timer)."
+    fi
+  fi
+
   exit 0
 fi
 
@@ -619,6 +703,46 @@ info "Display settings saved to config.json."
 # --- Step 6: System setup (services, kiosk, boot target, autologin) ---
 info "Configuring system..."
 bash "${APP_DIR}/scripts/upgrade.sh" setup-system
+
+# --- Step 6b: Hardware reporter ---
+# Generate (or reuse) reporter_token in data/secrets.json, then install the
+# reporter locally so the hub reports its own hardware as displayId=main.
+REPORTER_TOKEN_FILE="${APP_DIR}/data/secrets.json"
+EXISTING_TOKEN=""
+if [ -r "${REPORTER_TOKEN_FILE}" ]; then
+  EXISTING_TOKEN=$(node -e "
+    try {
+      const s = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf-8'));
+      process.stdout.write(s.reporter_token || '');
+    } catch { /* file missing or empty */ }
+  " "${REPORTER_TOKEN_FILE}" || echo "")
+fi
+if [ -z "${EXISTING_TOKEN}" ]; then
+  EXISTING_TOKEN=$(generate_reporter_token)
+  node -e "
+    const fs = require('fs');
+    const file = process.argv[1];
+    const token = process.argv[2];
+    let s = {};
+    try { s = JSON.parse(fs.readFileSync(file, 'utf-8')); } catch {}
+    s.reporter_token = token;
+    fs.writeFileSync(file, JSON.stringify(s, null, 2));
+    fs.chmodSync(file, 0o600);
+  " "${REPORTER_TOKEN_FILE}" "${EXISTING_TOKEN}"
+  info "Generated reporter token."
+fi
+if install_reporter "main" "http://localhost:${PORT:-3000}" "${EXISTING_TOKEN}"; then
+  info "Hardware reporter installed (timer: home-screens-reporter.timer)."
+fi
+
+# Grant the home-screens service user access to the systemd journal so the
+# diagnostics endpoint can shell out to `journalctl -u home-screens` without
+# sudo. This is idempotent and a no-op if the user is already in the group.
+if getent group systemd-journal >/dev/null 2>&1 \
+   && ! id -nG "${USER}" 2>/dev/null | grep -qw systemd-journal; then
+  sudo usermod -aG systemd-journal "${USER}"
+  info "Added ${USER} to systemd-journal group (requires re-login to take effect)."
+fi
 
 # --- Done ---
 echo ""

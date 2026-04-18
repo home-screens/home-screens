@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import {
   enqueueCommand,
   drainCommands,
@@ -12,6 +13,8 @@ import { updateConfigAtomic } from '@/lib/config';
 import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
 import { requireSession } from '@/lib/auth';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
+import { validateHardwareStats, validateBrowserStats } from '@/lib/hardware-stats';
+import { getSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
 
@@ -300,12 +303,24 @@ async function handleStatus(
       { status: 400 },
     );
   }
+  // Gate displayState on the documented enum — the store has several
+  // consumers (editor UI, StatsSection dot color) that branch on the
+  // literal values, and a future or misbehaving client sending garbage
+  // would silently render as "asleep" (the fallback color) forever.
+  if (body.displayState !== 'active' && body.displayState !== 'dimmed' && body.displayState !== 'asleep') {
+    return NextResponse.json(
+      { error: 'displayState must be one of: active, dimmed, asleep' },
+      { status: 400 },
+    );
+  }
   // Strip displayId and clientId out of the persisted status so the
   // body shape stays the same as before (the in-memory keying is
   // handled by setDisplayStatus / recordViewportReport).
   const {
     displayId: bodyDisplayId,
     clientId: bodyClientId,
+    hwStats: bodyHwStats,
+    browserStats: bodyBrowserStats,
     ...statusPayload
   } = body as Record<string, unknown>;
   const rawDisplayId =
@@ -314,8 +329,50 @@ async function handleStatus(
   // when `validateDisplayTarget` is invoked, so do it here for status reports.
   const validatedStatus = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
   if (validatedStatus instanceof NextResponse) return validatedStatus;
+
+  // Parse optional hwStats / browserStats. Either, both, or neither may be
+  // present. hwStats is reporter-only (Pi-side bash script), browserStats
+  // comes from the display client's heartbeat.
+  let hwStats: ReturnType<typeof validateHardwareStats> | undefined;
+  if (bodyHwStats !== undefined) {
+    // hwStats is gated behind the reporter token. A display-token holder
+    // cannot forge Pi-side hardware data.
+    const authErr = await requireReporterToken(request);
+    if (authErr) return authErr;
+    const parsed = validateHardwareStats(bodyHwStats);
+    if (!parsed) {
+      return NextResponse.json({ error: 'Invalid hwStats' }, { status: 400 });
+    }
+    hwStats = parsed;
+  }
+
+  let browserStats: ReturnType<typeof validateBrowserStats> | undefined;
+  if (bodyBrowserStats !== undefined) {
+    const parsed = validateBrowserStats(bodyBrowserStats);
+    if (!parsed) {
+      return NextResponse.json({ error: 'Invalid browserStats' }, { status: 400 });
+    }
+    browserStats = parsed;
+  }
+
+  // Synthesize `reportedViewport` from browserStats so downstream
+  // consumers (/api/displays, editor panels, tests) keep reading from a
+  // single top-level field even though the client now sends the data
+  // only once (inside browserStats).
+  const synthesizedViewport =
+    browserStats &&
+    typeof browserStats.viewportWidth === 'number' &&
+    typeof browserStats.viewportHeight === 'number'
+      ? { width: browserStats.viewportWidth, height: browserStats.viewportHeight }
+      : undefined;
+
   setDisplayStatus(
-    statusPayload as unknown as Parameters<typeof setDisplayStatus>[0],
+    {
+      ...statusPayload,
+      ...(hwStats ? { hwStats } : {}),
+      ...(browserStats ? { browserStats } : {}),
+      ...(synthesizedViewport ? { reportedViewport: synthesizedViewport } : {}),
+    } as unknown as Parameters<typeof setDisplayStatus>[0],
     validatedStatus,
   );
 
@@ -324,24 +381,41 @@ async function handleStatus(
   // whichever client POSTed most recently. We also stash the source IP
   // so the user can trace a phantom reporter back to its device on the
   // LAN (critical when the Pi they *think* is posting is actually off).
-  const viewport = (body as { reportedViewport?: unknown }).reportedViewport;
+  //
+  // The viewport is carried inside `browserStats` on the wire (the client
+  // stopped sending a separate `reportedViewport` field to avoid on-wire
+  // duplication). We still accept a top-level `reportedViewport` as a
+  // legacy fallback so older display clients keep working through an
+  // upgrade window.
+  let viewportWidth: number | undefined;
+  let viewportHeight: number | undefined;
+  if (browserStats) {
+    viewportWidth = browserStats.viewportWidth;
+    viewportHeight = browserStats.viewportHeight;
+  } else {
+    const legacy = (body as { reportedViewport?: unknown }).reportedViewport;
+    if (legacy && typeof legacy === 'object') {
+      const v = legacy as { width?: unknown; height?: unknown };
+      if (typeof v.width === 'number' && typeof v.height === 'number') {
+        viewportWidth = v.width;
+        viewportHeight = v.height;
+      }
+    }
+  }
   if (
     validatedStatus
     && typeof bodyClientId === 'string'
     && bodyClientId.length > 0
-    && viewport
-    && typeof viewport === 'object'
+    && typeof viewportWidth === 'number'
+    && typeof viewportHeight === 'number'
   ) {
-    const v = viewport as { width?: unknown; height?: unknown };
-    if (typeof v.width === 'number' && typeof v.height === 'number') {
-      recordViewportReport(
-        validatedStatus,
-        bodyClientId,
-        v.width,
-        v.height,
-        getClientIP(request),
-      );
-    }
+    recordViewportReport(
+      validatedStatus,
+      bodyClientId,
+      viewportWidth,
+      viewportHeight,
+      getClientIP(request),
+    );
   }
 
   return NextResponse.json({ ok: true });
@@ -361,6 +435,33 @@ function pickDisplayId(
     return validateDisplayTarget(fromBody, opts);
   }
   return fallback;
+}
+
+/**
+ * Reporter posts include `hwStats` and MUST carry a Bearer token matching
+ * secrets.json:reporter_token. Browser heartbeats use the existing display
+ * token via withDisplayAuth — this extra check gates only the hw path.
+ *
+ * Returns null on success, a 401 NextResponse on failure.
+ */
+async function requireReporterToken(request: NextRequest): Promise<NextResponse | null> {
+  const expected = await getSecret('reporter_token');
+  if (!expected) {
+    return NextResponse.json({ error: 'reporter_token is not configured' }, { status: 401 });
+  }
+  const auth = request.headers.get('authorization') ?? '';
+  const match = /^Bearer\s+(.+)$/.exec(auth);
+  const provided = match?.[1] ?? '';
+  // Constant-time comparison avoids leaking the token one byte at a time
+  // through response-latency side-channels. The length-mismatch short-circuit
+  // below is unavoidable (timingSafeEqual requires equal-length buffers) but
+  // the hex-encoded token is a known-length string so it doesn't help a probe.
+  const a = Buffer.from(provided, 'utf8');
+  const b = Buffer.from(expected, 'utf8');
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return NextResponse.json({ error: 'Invalid reporter token' }, { status: 401 });
+  }
+  return null;
 }
 
 async function safeJson(
