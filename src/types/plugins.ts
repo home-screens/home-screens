@@ -41,8 +41,12 @@ export interface PluginManifest {
 
 export type PluginDataRequirement = 'location' | 'weather' | 'calendar';
 
-/** Declared plugin capabilities — transparency for users, not runtime-enforced */
-export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage';
+/** Declared plugin capabilities.
+ *  Most are transparency-only ('network', 'secrets', 'events', 'storage').
+ *  'localNetwork' is RUNTIME-ENFORCED: without it, the proxy rejects URLs
+ *  that resolve to RFC1918 / mDNS / link-local addresses. With it, the
+ *  relaxed check is applied — still blocks loopback and cloud-metadata IPs. */
+export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage' | 'localNetwork';
 
 /** JSON Schema with UI widget annotations for declarative config rendering */
 export interface PluginConfigSchema {

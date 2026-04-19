@@ -35,6 +35,10 @@ vi.mock('@/lib/url-safety', async (importOriginal) => {
   return {
     ...actual,
     isSafeExternalUrl: vi.fn().mockResolvedValue(true),
+    // isSafeLocalOrExternalUrl — relaxed variant used when a plugin declares
+    // the localNetwork permission. Stubbed the same way so tests exercise the
+    // proxy route logic, not SSRF internals (which have their own unit tests).
+    isSafeLocalOrExternalUrl: vi.fn().mockResolvedValue(true),
   };
 });
 
@@ -1130,7 +1134,7 @@ describe('POST /api/plugins/proxy/[pluginId] — redirect SSRF re-validation', (
     const json = await res.json();
 
     expect(res.status).toBe(403);
-    expect(json.error).toMatch(/private or unreachable address/);
+    expect(json.error).toMatch(/blocked address/);
   });
 
   it('rejects a redirect chain longer than the hop cap', async () => {
@@ -1192,6 +1196,64 @@ describe('POST /api/plugins/proxy/[pluginId] — redirect SSRF re-validation', (
     const secondCall = calls[1][1] as RequestInit;
     expect(secondCall.method).toBe('POST');
     expect(secondCall.body).toBe('{"data":"value"}');
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// localNetwork permission — LAN access for self-hosted services
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('POST /api/plugins/proxy/[pluginId] — localNetwork permission', () => {
+  it('rejects wildcard allowedDomains without the localNetwork permission', async () => {
+    setupPlugin({
+      allowedDomains: ['*'],
+      permissions: ['network'],
+    });
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: 'http://anything.example.com/',
+    });
+    const res = await POST(req, ctx);
+    const json = await res.json();
+    expect(res.status).toBe(403);
+    expect(json.error).toMatch(/localNetwork/);
+  });
+
+  it('allows public URLs with wildcard + localNetwork', async () => {
+    setupPlugin({
+      allowedDomains: ['*'],
+      permissions: ['network', 'localNetwork'],
+    });
+    mockUpstreamFetch('{"ok":true}');
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: 'https://api.public-service.example.com/data',
+    });
+    const res = await POST(req, ctx);
+    expect(res.status).toBe(200);
+  });
+
+  it('allows loopback with localNetwork — single-box HA + HS install', async () => {
+    setupPlugin({
+      allowedDomains: ['*'],
+      permissions: ['network', 'localNetwork'],
+    });
+    mockUpstreamFetch('{"ok":true}');
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: 'http://127.0.0.1:8123/api/',
+    });
+    const res = await POST(req, ctx);
+    expect(res.status).toBe(200);
+  });
+
+  it('still blocks AWS metadata IP even with localNetwork', async () => {
+    setupPlugin({
+      allowedDomains: ['*'],
+      permissions: ['network', 'localNetwork'],
+    });
+    const [req, ctx] = makeProxyRequest('test-plugin', {
+      url: 'http://169.254.169.254/latest/meta-data/',
+    });
+    const res = await POST(req, ctx);
+    expect(res.status).toBe(403);
   });
 });
 

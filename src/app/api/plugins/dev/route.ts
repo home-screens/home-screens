@@ -17,10 +17,14 @@ export const POST = withAuth(async (request) => {
     return NextResponse.json({ error: 'Invalid manifest' }, { status: 400 });
   }
 
-  // Reject wildcard allowedDomains in dev plugins — require explicit domains
-  if (manifest.allowedDomains?.includes('*')) {
+  // Reject wildcard allowedDomains unless the plugin declares localNetwork.
+  // That permission opts into a user-configured LAN target (e.g. Home Assistant
+  // at homeassistant.local or 192.168.x.x); without it, "*" is meaningless
+  // anyway because SSRF defense rejects every realistic private target.
+  const allowLan = manifest.permissions?.includes('localNetwork') ?? false;
+  if (manifest.allowedDomains?.includes('*') && !allowLan) {
     return NextResponse.json(
-      { error: 'Dev plugins must declare explicit allowedDomains (wildcard "*" is not permitted)' },
+      { error: 'Wildcard allowedDomains requires the "localNetwork" permission' },
       { status: 400 },
     );
   }

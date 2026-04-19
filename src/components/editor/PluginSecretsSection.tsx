@@ -85,13 +85,14 @@ function PluginSecretField({
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
           placeholder={decl.placeholder ?? `Enter ${decl.label.toLowerCase()}`}
-          className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+          className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
         <Button
           variant="secondary"
           size="sm"
           onClick={handleSave}
           disabled={!value.trim() || saveStatus === 'saving'}
+          className="flex-shrink-0"
         >
           {saveStatus === 'saving' ? '...' : 'Save'}
         </Button>

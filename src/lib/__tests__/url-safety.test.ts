@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isBlockedHost, isSafeExternalUrl } from '@/lib/url-safety';
+import { isBlockedHost, isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { promises as dns } from 'dns';
 
 afterEach(() => {
@@ -191,5 +191,92 @@ describe('isSafeExternalUrl', () => {
     expect(await isSafeExternalUrl('https://repeated.example.com/')).toBe(true);
     expect(await isSafeExternalUrl('https://repeated.example.com/other')).toBe(true);
     expect(lookupSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('isSafeLocalOrExternalUrl (localNetwork permission)', () => {
+  function mockResolve(addresses: string[]) {
+    vi.spyOn(dns, 'lookup').mockResolvedValue(
+      addresses.map((address) => ({ address, family: address.includes(':') ? 6 : 4 })) as never,
+    );
+  }
+
+  it('allows public hosts (same as strict check)', async () => {
+    mockResolve(['203.0.113.10']);
+    expect(await isSafeLocalOrExternalUrl('https://api.example.com/data')).toBe(true);
+  });
+
+  it('allows RFC1918 10/8 hosts — the whole point of the relaxed check', async () => {
+    // homeassistant.local style — literal private IP
+    expect(await isSafeLocalOrExternalUrl('http://10.0.0.5:8123/api/')).toBe(true);
+  });
+
+  it('allows RFC1918 192.168/16 hosts', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://192.168.1.50:8123/api/config')).toBe(true);
+  });
+
+  it('allows RFC1918 172.16/12 hosts', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://172.20.10.5:8123/')).toBe(true);
+  });
+
+  it('allows link-local / APIPA (169.254.x.x) EXCEPT the metadata IP', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://169.254.10.5/')).toBe(true);
+    expect(await isSafeLocalOrExternalUrl('http://169.254.1.1/')).toBe(true);
+  });
+
+  it('allows mDNS-style hostname resolving to a private IP', async () => {
+    // The whole point: homeassistant.local usually resolves to 192.168.x.x
+    mockResolve(['192.168.1.50']);
+    expect(await isSafeLocalOrExternalUrl('http://homeassistant.local:8123/api/')).toBe(true);
+  });
+
+  it('allows IPv6 ULA (fc00::/7) — HA over IPv6 LAN', async () => {
+    mockResolve(['fd12:3456:789a::1']);
+    expect(await isSafeLocalOrExternalUrl('http://ha.v6.local/')).toBe(true);
+  });
+
+  // ── Allowed because localNetwork means "trusted local box too" ──────────
+
+  it('allows loopback 127/8 — single-box installs (HA + HS on same host)', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://127.0.0.1:8123/')).toBe(true);
+    expect(await isSafeLocalOrExternalUrl('http://localhost:8123/')).toBe(true);
+  });
+
+  it('allows IPv6 loopback ::1', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://[::1]:8123/')).toBe(true);
+    mockResolve(['::1']);
+    expect(await isSafeLocalOrExternalUrl('http://v6loop.example/')).toBe(true);
+  });
+
+  // ── Still blocked even with the relaxed check ────────────────────────────
+
+  it('still blocks AWS/GCP/Azure metadata 169.254.169.254', async () => {
+    expect(await isSafeLocalOrExternalUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
+  });
+
+  it('still blocks public hostname that resolves to the metadata IP (DNS rebinding)', async () => {
+    mockResolve(['169.254.169.254']);
+    expect(await isSafeLocalOrExternalUrl('http://evil.example/')).toBe(false);
+  });
+
+  it('still blocks AWS IPv6 metadata', async () => {
+    mockResolve(['fd00:ec2::254']);
+    expect(await isSafeLocalOrExternalUrl('http://v6meta.example/')).toBe(false);
+  });
+
+  it('still blocks non-http protocols', async () => {
+    expect(await isSafeLocalOrExternalUrl('file:///etc/passwd')).toBe(false);
+    expect(await isSafeLocalOrExternalUrl('ftp://192.168.1.1/')).toBe(false);
+  });
+
+  it('returns false on DNS failure (same posture as strict check)', async () => {
+    vi.spyOn(dns, 'lookup').mockRejectedValue(new Error('ENOTFOUND'));
+    expect(await isSafeLocalOrExternalUrl('http://nonexistent.local/')).toBe(false);
+  });
+
+  it('re-validates every resolved address (multi-A response)', async () => {
+    // First public, second is the cloud metadata IP — must reject
+    mockResolve(['8.8.8.8', '169.254.169.254']);
+    expect(await isSafeLocalOrExternalUrl('http://mixed.example/')).toBe(false);
   });
 });

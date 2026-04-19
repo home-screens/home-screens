@@ -8,6 +8,7 @@ const PERMISSION_LABELS: Record<PluginPermission, string> = {
   secrets: 'Secret storage',
   events: 'Host events',
   storage: 'Local storage',
+  localNetwork: 'Local network (LAN)',
 };
 
 export interface PluginInstallPreviewProps {

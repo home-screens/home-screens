@@ -135,3 +135,95 @@ export async function isSafeExternalUrl(url: string): Promise<boolean> {
   }
   return true;
 }
+
+// ── Relaxed variant: LAN-allowed (localNetwork permission) ───────────────
+//
+// The strict blocklist above is right for plugins that talk to public SaaS
+// APIs. Self-hosted LAN services (Home Assistant, Plex, Proxmox, Octoprint)
+// live on RFC1918 addresses, so those plugins would never succeed. A plugin
+// that declares the `localNetwork` permission opts into this relaxed path:
+//
+//   Still blocked:
+//     - AWS/GCP/Azure cloud metadata endpoints (169.254.169.254, fd00:ec2::254)
+//     - Unspecified addresses (0.0.0.0, ::) — routable to anything
+//     - Invalid / empty hosts
+//
+//   Now allowed (user consented via `localNetwork` permission):
+//     - Loopback (127/8, ::1) — single-box installs (HA + HS on same host)
+//     - RFC1918 private (10/8, 172.16/12, 192.168/16)
+//     - Link-local / APIPA (169.254/16, except the metadata IP)
+//     - IPv6 ULA (fc00::/7) and link-local (fe80::/10)
+//
+// DNS-rebinding defense still applies: every resolved address is re-checked.
+function isBlockedHostForLan(hostname: string): boolean {
+  if (hostname === '' || hostname === '0.0.0.0') return true;
+  // Bracketed or bare IPv6
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    return isBlockedIPv6ForLan(hostname);
+  }
+  if (hostname.includes(':')) {
+    return isBlockedIPv6ForLan(hostname);
+  }
+  const parts = hostname.split('.').map(Number);
+  if (parts.length === 4 && parts.every((n) => !isNaN(n))) {
+    // Cloud metadata — always blocked regardless of permission
+    if (parts[0] === 169 && parts[1] === 254 && parts[2] === 169 && parts[3] === 254) return true;
+  }
+  return false;
+}
+
+function isBlockedIPv6ForLan(addr: string): boolean {
+  let v = addr.toLowerCase();
+  if (v.startsWith('[') && v.endsWith(']')) v = v.slice(1, -1);
+  const zoneIdx = v.indexOf('%');
+  if (zoneIdx >= 0) v = v.slice(0, zoneIdx);
+
+  if (v === '') return true;
+  if (v === '::' || v === '0:0:0:0:0:0:0:0') return true;    // unspecified
+  // AWS IPv6 metadata
+  if (v === 'fd00:ec2::254' || v === 'fd00:ec2:0:0:0:0:0:254') return true;
+  // IPv4-mapped: check embedded IPv4 under the same LAN rules
+  const v4Mapped = v.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (v4Mapped) return isBlockedHostForLan(v4Mapped[1]);
+  const v4Compat = v.match(/^::(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (v4Compat) return isBlockedHostForLan(v4Compat[1]);
+  return false;
+}
+
+/**
+ * Relaxed variant of `isSafeExternalUrl` — allows RFC1918 / mDNS / link-local
+ * addresses, still blocks loopback and cloud-metadata endpoints.
+ *
+ * ONLY the plugin proxy should call this, and ONLY for plugins that declare
+ * the `localNetwork` permission in their manifest. Every other caller of
+ * user-supplied URLs should continue using `isSafeExternalUrl`.
+ */
+export async function isSafeLocalOrExternalUrl(url: string): Promise<boolean> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+
+  if (isBlockedHostForLan(parsed.hostname)) return false;
+
+  const hostForLookup = parsed.hostname.startsWith('[') && parsed.hostname.endsWith(']')
+    ? parsed.hostname.slice(1, -1)
+    : parsed.hostname;
+
+  let addresses: string[];
+  try {
+    const results = await dns.lookup(hostForLookup, { all: true, verbatim: true });
+    addresses = results.map((r) => r.address);
+  } catch {
+    return false;
+  }
+  if (addresses.length === 0) return false;
+
+  for (const addr of addresses) {
+    if (isBlockedHostForLan(addr)) return false;
+  }
+  return true;
+}

@@ -5,7 +5,7 @@ import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { audit } from '@/lib/audit';
-import { isBlockedHost, isSafeExternalUrl } from '@/lib/url-safety';
+import { isBlockedHost, isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,11 +43,17 @@ function matchesDomain(hostname: string, pattern: string): boolean {
   return hostname === pattern;
 }
 
-function isAllowedDomain(url: string, allowedDomains: string[]): boolean {
+function isAllowedDomain(url: string, allowedDomains: string[], allowLan: boolean): boolean {
   try {
     const { hostname } = new URL(url);
-    // Block internal/metadata hosts unconditionally — no manifest can override this
-    if (isBlockedHost(hostname)) return false;
+    // Without allowLan, apply the strict SSRF blocklist (rejects all private
+    // ranges and loopback). With allowLan, reject only the targets that are
+    // dangerous regardless of permission: cloud metadata + unspecified.
+    if (!allowLan && isBlockedHost(hostname)) return false;
+    if (allowLan) {
+      const lit = hostname.toLowerCase();
+      if (lit === '0.0.0.0' || lit === '169.254.169.254') return false;
+    }
     return allowedDomains.some((pattern) => matchesDomain(hostname, pattern));
   } catch {
     return false;
@@ -189,17 +195,27 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       { status: 403 },
     );
   }
-  if (!isAllowedDomain(body.url, allowedDomains)) {
+  const allowLan = manifest.permissions?.includes('localNetwork') ?? false;
+  // Wildcard "*" is only meaningful with localNetwork (otherwise SSRF defense
+  // would block the realistic targets anyway). Pair the two explicitly.
+  if (allowedDomains.includes('*') && !allowLan) {
+    return NextResponse.json(
+      { error: 'Wildcard allowedDomains requires the "localNetwork" permission' },
+      { status: 403 },
+    );
+  }
+  if (!isAllowedDomain(body.url, allowedDomains, allowLan)) {
     return NextResponse.json(
       { error: 'Upstream domain not in plugin allowedDomains' },
       { status: 403 },
     );
   }
-  // SSRF defense-in-depth: even if the manifest allows the domain, refuse
-  // if it resolves to a private/loopback address (DNS rebinding protection).
-  if (!(await isSafeExternalUrl(body.url))) {
+  // SSRF defense-in-depth: always DNS-resolve and re-check. With localNetwork,
+  // allow RFC1918 / mDNS but still block loopback + cloud-metadata IPs.
+  const safeCheck = allowLan ? isSafeLocalOrExternalUrl : isSafeExternalUrl;
+  if (!(await safeCheck(body.url))) {
     return NextResponse.json(
-      { error: 'Upstream URL resolves to a private or unreachable address' },
+      { error: 'Upstream URL resolves to a blocked address' },
       { status: 403 },
     );
   }
@@ -280,15 +296,15 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       );
     }
     // Re-run the same validation we applied to the initial URL
-    if (!isAllowedDomain(nextUrl, allowedDomains)) {
+    if (!isAllowedDomain(nextUrl, allowedDomains, allowLan)) {
       return NextResponse.json(
         { error: 'Redirect target not in plugin allowedDomains' },
         { status: 403 },
       );
     }
-    if (!(await isSafeExternalUrl(nextUrl))) {
+    if (!(await safeCheck(nextUrl))) {
       return NextResponse.json(
-        { error: 'Redirect target resolves to a private or unreachable address' },
+        { error: 'Redirect target resolves to a blocked address' },
         { status: 403 },
       );
     }
