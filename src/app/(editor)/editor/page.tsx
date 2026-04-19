@@ -189,7 +189,12 @@ export default function EditorPage() {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => window.open('/display', '_blank')}
+              onClick={() => {
+                const displays = config?.displays ?? [];
+                const active = displays.find((d) => d.id === selectedDisplayId) ?? displays[0];
+                const url = active ? `/display/${active.id}` : '/display';
+                window.open(url, '_blank');
+              }}
             >
               Preview
             </Button>

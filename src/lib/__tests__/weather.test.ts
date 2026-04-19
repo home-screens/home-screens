@@ -1928,9 +1928,12 @@ describe('SMHIProvider', () => {
 
   describe('parsing API response', () => {
     let fetchSpy: ReturnType<typeof vi.spyOn>;
-    const now = new Date();
-    const t0 = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
-    const t1 = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+    // Pin to mid-day UTC so t0/t1 always share a UTC date (forecast bucketing)
+    // and stay inside the provider's `now - 1h` freshness window (hourly path).
+    // Without a fake clock, runs near UTC midnight straddled the day boundary.
+    const FAKE_NOW = new Date('2026-01-15T12:00:00.000Z');
+    const t0 = new Date(FAKE_NOW.getTime() + 60 * 60 * 1000).toISOString();
+    const t1 = new Date(FAKE_NOW.getTime() + 2 * 60 * 60 * 1000).toISOString();
 
     const smhiResponse = {
       timeSeries: [
@@ -1961,11 +1964,14 @@ describe('SMHIProvider', () => {
     };
 
     beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(FAKE_NOW);
       fetchSpy = vi.spyOn(globalThis, 'fetch');
     });
 
     afterEach(() => {
       fetchSpy.mockRestore();
+      vi.useRealTimers();
     });
 
     it('hits the lon-then-lat URL path SMHI requires', async () => {
