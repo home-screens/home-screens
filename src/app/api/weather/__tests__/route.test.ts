@@ -328,13 +328,13 @@ describe('GET /api/weather', () => {
     }
   });
 
-  it('does NOT return 400 for keyless providers (noaa, open-meteo)', async () => {
+  it('does NOT return 400 for keyless providers (noaa, open-meteo, yr, smhi)', async () => {
     setupDefaults();
     mockGetSecret.mockClear();
     const provider = makeMockProvider();
     mockCreateWeatherProvider.mockReturnValue(provider as never);
 
-    for (const p of ['noaa', 'open-meteo']) {
+    for (const p of ['noaa', 'open-meteo', 'yr', 'smhi']) {
       const req = makeRequest({ provider: p });
       const res = await GET(req);
       expect(res.status).toBe(200);

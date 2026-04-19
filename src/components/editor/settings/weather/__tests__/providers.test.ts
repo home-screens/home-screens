@@ -46,19 +46,21 @@ describe('getProviderStatus', () => {
 });
 
 describe('WEATHER_PROVIDERS metadata', () => {
-  it('contains exactly the five known providers in fixed order', () => {
+  it('contains exactly the seven known providers in fixed order', () => {
     expect(WEATHER_PROVIDERS.map((p) => p.id)).toEqual([
       'open-meteo',
       'weatherapi',
       'openweathermap',
       'pirateweather',
       'noaa',
+      'yr',
+      'smhi',
     ]);
   });
 
   it('marks free providers with secretKey === null', () => {
     const free = WEATHER_PROVIDERS.filter((p) => p.secretKey === null).map((p) => p.id);
-    expect(free.sort()).toEqual(['noaa', 'open-meteo']);
+    expect(free.sort()).toEqual(['noaa', 'open-meteo', 'smhi', 'yr']);
   });
 
   it('gives every paid provider a unique secretKey', () => {

@@ -17,6 +17,8 @@ export interface SharedDisplayData {
   pirateData: unknown;
   noaaData: unknown;
   openMeteoData: unknown;
+  yrData: unknown;
+  smhiData: unknown;
   calendarData: unknown;
 }
 
@@ -50,6 +52,8 @@ const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
   pirateweather: 'pirateData',
   noaa: 'noaaData',
   'open-meteo': 'openMeteoData',
+  yr: 'yrData',
+  smhi: 'smhiData',
 };
 
 function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {

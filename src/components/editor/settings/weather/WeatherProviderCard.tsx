@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, CloudSun, Cloud, Compass, Flag } from 'lucide-react';
+import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import IntegrationCard from '../shared/IntegrationCard';
@@ -14,6 +14,8 @@ const ICONS: Record<WeatherProviderId, React.ReactNode> = {
   openweathermap: <Cloud className="w-[18px] h-[18px] text-white" />,
   pirateweather: <Compass className="w-[18px] h-[18px] text-white" />,
   noaa: <Flag className="w-[18px] h-[18px] text-white" />,
+  yr: <Sunrise className="w-[18px] h-[18px] text-white" />,
+  smhi: <Wind className="w-[18px] h-[18px] text-white" />,
 };
 
 interface Props {

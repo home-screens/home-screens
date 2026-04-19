@@ -50,7 +50,7 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
 
     const { lat, lon } = location;
 
-    // NOAA and Open-Meteo require no API key — skip the secret lookup
+    // Keyless providers (NOAA, Open-Meteo, Yr.no, SMHI) skip the secret lookup
     const secretKey = secretKeyMap[provider];
     let apiKey: string | undefined;
     if (secretKey) {

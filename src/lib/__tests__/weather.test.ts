@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OpenWeatherMapProvider, WeatherAPIProvider, OpenMeteoProvider, createWeatherProvider } from '../weather';
+import { OpenWeatherMapProvider, WeatherAPIProvider, OpenMeteoProvider, YrProvider, SMHIProvider, createWeatherProvider } from '../weather';
+import { symbolToIcon, symbolDescription } from '../weather/yr';
+import { wsymb2ToIcon } from '../weather/smhi';
 
 describe('createWeatherProvider', () => {
   it('creates OpenWeatherMap provider', () => {
@@ -15,6 +17,16 @@ describe('createWeatherProvider', () => {
   it('creates Open-Meteo provider', () => {
     const provider = createWeatherProvider('open-meteo');
     expect(provider).toBeInstanceOf(OpenMeteoProvider);
+  });
+
+  it('creates Yr.no provider', () => {
+    const provider = createWeatherProvider('yr');
+    expect(provider).toBeInstanceOf(YrProvider);
+  });
+
+  it('creates SMHI provider', () => {
+    const provider = createWeatherProvider('smhi');
+    expect(provider).toBeInstanceOf(SMHIProvider);
   });
 
   it('throws on unknown provider', () => {
@@ -1639,5 +1651,399 @@ describe('PirateWeatherProvider — edge cases', () => {
 
     const url2 = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1][0] as string;
     expect(url2).toContain('units=ca');
+  });
+});
+
+// ── Yr.no provider ───────────────────────────────────────────────────
+
+describe('YrProvider', () => {
+  describe('symbol_code → icon mapping', () => {
+    it('maps clear-sky day/night', () => {
+      expect(symbolToIcon('clearsky_day')).toBe('sun');
+      expect(symbolToIcon('clearsky_night')).toBe('moon');
+      expect(symbolToIcon('clearsky_polartwilight')).toBe('moon');
+    });
+
+    it('maps fair (partly cloudy) day/night', () => {
+      expect(symbolToIcon('fair_day')).toBe('cloud-sun');
+      expect(symbolToIcon('fair_night')).toBe('cloud-moon');
+      expect(symbolToIcon('partlycloudy_day')).toBe('cloud-sun');
+      expect(symbolToIcon('partlycloudy_night')).toBe('cloud-moon');
+    });
+
+    it('maps rain variants', () => {
+      expect(symbolToIcon('rain')).toBe('cloud-rain');
+      expect(symbolToIcon('lightrain')).toBe('cloud-drizzle');
+      expect(symbolToIcon('heavyrain')).toBe('cloud-rain');
+      expect(symbolToIcon('rainshowers_day')).toBe('cloud-rain');
+    });
+
+    it('maps snow and sleet', () => {
+      expect(symbolToIcon('snow')).toBe('snowflake');
+      expect(symbolToIcon('lightsnow')).toBe('snowflake');
+      expect(symbolToIcon('sleet')).toBe('cloud-hail');
+      expect(symbolToIcon('lightsleetshowers_day')).toBe('cloud-hail');
+    });
+
+    it('maps thunder variants to lightning', () => {
+      expect(symbolToIcon('rainandthunder')).toBe('cloud-lightning');
+      expect(symbolToIcon('heavyrainshowersandthunder_day')).toBe('cloud-lightning');
+      expect(symbolToIcon('snowandthunder')).toBe('cloud-lightning');
+    });
+
+    it('falls back for unknown symbols', () => {
+      expect(symbolToIcon(undefined)).toBe('thermometer');
+      expect(symbolToIcon('nonsense')).toBe('thermometer');
+    });
+  });
+
+  describe('symbol_code → description', () => {
+    it('returns empty string for missing code', () => {
+      expect(symbolDescription(undefined)).toBe('');
+      expect(symbolDescription('')).toBe('');
+    });
+
+    it('capitalizes simple base symbols', () => {
+      expect(symbolDescription('snow')).toBe('Snow');
+      expect(symbolDescription('fog')).toBe('Fog');
+      expect(symbolDescription('cloudy')).toBe('Cloudy');
+      expect(symbolDescription('fair')).toBe('Fair');
+    });
+
+    it('splits compound bases into readable phrases', () => {
+      expect(symbolDescription('clearsky_day')).toBe('Clear sky');
+      expect(symbolDescription('partlycloudy_night')).toBe('Partly cloudy');
+      expect(symbolDescription('lightrain')).toBe('Light rain');
+      expect(symbolDescription('heavysnow')).toBe('Heavy snow');
+      expect(symbolDescription('rainshowers_day')).toBe('Rain showers');
+      expect(symbolDescription('lightrainshowers_night')).toBe('Light rain showers');
+    });
+
+    it('splits "andthunder" and "showersandthunder" into separate words', () => {
+      // Regression: previously produced "Heavy rain showersandthunder" / "Light snow andthunder"
+      expect(symbolDescription('rainandthunder')).toBe('Rain and thunder');
+      expect(symbolDescription('lightsnowandthunder')).toBe('Light snow and thunder');
+      expect(symbolDescription('heavyrainshowersandthunder')).toBe('Heavy rain showers and thunder');
+      expect(symbolDescription('sleetshowersandthunder')).toBe('Sleet showers and thunder');
+      expect(symbolDescription('lightsleetshowersandthunder_day')).toBe('Light sleet showers and thunder');
+    });
+
+    it('strips daypart suffix before formatting', () => {
+      expect(symbolDescription('clearsky_polartwilight')).toBe('Clear sky');
+      expect(symbolDescription('rain_day')).toBe('Rain');
+    });
+  });
+
+  describe('parsing API response', () => {
+    let fetchSpy: ReturnType<typeof vi.spyOn>;
+    const now = new Date();
+    const t0 = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const t1 = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+    const yrResponse = {
+      properties: {
+        timeseries: [
+          {
+            time: t0,
+            data: {
+              instant: {
+                details: {
+                  air_temperature: 20,
+                  relative_humidity: 60,
+                  wind_speed: 5,
+                  air_pressure_at_sea_level: 1013.4,
+                },
+              },
+              next_1_hours: {
+                summary: { symbol_code: 'partlycloudy_day' },
+                details: { precipitation_amount: 0, probability_of_precipitation: 10 },
+              },
+              next_6_hours: {
+                summary: { symbol_code: 'rain' },
+                details: { precipitation_amount: 2.5, probability_of_precipitation: 80 },
+              },
+            },
+          },
+          {
+            time: t1,
+            data: {
+              instant: {
+                details: { air_temperature: 18, wind_speed: 7 },
+              },
+              next_1_hours: {
+                summary: { symbol_code: 'rain' },
+                details: { precipitation_amount: 1, probability_of_precipitation: 60 },
+              },
+              next_6_hours: {
+                summary: { symbol_code: 'rain' },
+                details: { precipitation_amount: 1.5 },
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    beforeEach(() => {
+      fetchSpy = vi.spyOn(globalThis, 'fetch');
+      // Clear the static per-location cache so each test re-fetches
+      (YrProvider as unknown as { cache: Map<string, unknown> }).cache.clear();
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
+    });
+
+    it('sends a User-Agent header (MET Norway requires identification)', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+      await provider.getHourly(60.1, 9.58, 'metric');
+
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      const headers = init.headers as Record<string, string>;
+      expect(headers['User-Agent']).toMatch(/home-screens/);
+    });
+
+    it('returns Celsius temps when units=metric', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+      const hourly = await provider.getHourly(60.1, 9.58, 'metric');
+
+      expect(hourly[0].temp).toBe(20);
+    });
+
+    it('converts Celsius to Fahrenheit when units=imperial', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+      const hourly = await provider.getHourly(60.1, 9.58, 'imperial');
+
+      // 20°C → 68°F
+      expect(hourly[0].temp).toBe(68);
+    });
+
+    it('converts m/s wind to km/h for metric and mph for imperial', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+
+      const metric = await provider.getHourly(60.1, 9.58, 'metric');
+      // 5 m/s × 3.6 = 18 km/h
+      expect(metric[0].windSpeed).toBe(18);
+
+      (YrProvider as unknown as { cache: Map<string, unknown> }).cache.clear();
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+
+      const imperial = await provider.getHourly(60.1, 9.58, 'imperial');
+      // 5 m/s × 2.23694 ≈ 11.18 → round → 11
+      expect(imperial[0].windSpeed).toBe(11);
+    });
+
+    it('caches per-location for ≥10 minutes (MET Norway throttle)', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+
+      await provider.getHourly(60.1, 9.58, 'metric');
+      await provider.getHourly(60.1, 9.58, 'metric');
+      await provider.getForecast(60.1, 9.58, 'metric');
+
+      // Three logical calls but only one network fetch
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the correct symbol for the dominant 6-hour block in forecast', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(yrResponse), { status: 200 }));
+      const provider = new YrProvider();
+
+      const forecast = await provider.getForecast(60.1, 9.58, 'metric');
+
+      // Both timeseries entries have next_6_hours.symbol_code === 'rain'
+      expect(forecast[0].icon).toBe('cloud-rain');
+    });
+  });
+});
+
+// ── SMHI provider ────────────────────────────────────────────────────
+
+describe('SMHIProvider', () => {
+  describe('Wsymb2 → icon mapping', () => {
+    it('maps clear sky day/night', () => {
+      expect(wsymb2ToIcon(1, true)).toBe('sun');
+      expect(wsymb2ToIcon(1, false)).toBe('moon');
+    });
+
+    it('maps partly-cloudy variants day/night', () => {
+      expect(wsymb2ToIcon(2, true)).toBe('cloud-sun');
+      expect(wsymb2ToIcon(3, false)).toBe('cloud-moon');
+      expect(wsymb2ToIcon(4, true)).toBe('cloud-sun');
+    });
+
+    it('maps cloudy/overcast', () => {
+      expect(wsymb2ToIcon(5, true)).toBe('cloud');
+      expect(wsymb2ToIcon(6, true)).toBe('cloud');
+    });
+
+    it('maps fog', () => {
+      expect(wsymb2ToIcon(7, true)).toBe('cloud-fog');
+    });
+
+    it('maps rain (light is drizzle)', () => {
+      expect(wsymb2ToIcon(8, true)).toBe('cloud-rain');
+      expect(wsymb2ToIcon(18, true)).toBe('cloud-drizzle');
+      expect(wsymb2ToIcon(19, true)).toBe('cloud-rain');
+      expect(wsymb2ToIcon(20, true)).toBe('cloud-rain');
+    });
+
+    it('maps thunder', () => {
+      expect(wsymb2ToIcon(11, true)).toBe('cloud-lightning');
+      expect(wsymb2ToIcon(21, true)).toBe('cloud-lightning');
+    });
+
+    it('maps sleet to cloud-hail', () => {
+      expect(wsymb2ToIcon(12, true)).toBe('cloud-hail');
+      expect(wsymb2ToIcon(22, true)).toBe('cloud-hail');
+    });
+
+    it('maps snow', () => {
+      expect(wsymb2ToIcon(15, true)).toBe('snowflake');
+      expect(wsymb2ToIcon(25, true)).toBe('snowflake');
+    });
+
+    it('falls back for unknown codes', () => {
+      expect(wsymb2ToIcon(999, true)).toBe('thermometer');
+    });
+  });
+
+  describe('parsing API response', () => {
+    let fetchSpy: ReturnType<typeof vi.spyOn>;
+    const now = new Date();
+    const t0 = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const t1 = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+    const smhiResponse = {
+      timeSeries: [
+        {
+          validTime: t0,
+          parameters: [
+            { name: 't', values: [10] },
+            { name: 'r', values: [70] },
+            { name: 'ws', values: [4] },
+            { name: 'msl', values: [1015.2] },
+            { name: 'Wsymb2', values: [3] },
+            { name: 'pcat', values: [3] },
+            { name: 'pmean', values: [0.4] },
+          ],
+        },
+        {
+          validTime: t1,
+          parameters: [
+            { name: 't', values: [9] },
+            { name: 'r', values: [75] },
+            { name: 'ws', values: [5] },
+            { name: 'Wsymb2', values: [3] },
+            { name: 'pcat', values: [0] },
+            { name: 'pmean', values: [0] },
+          ],
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      fetchSpy = vi.spyOn(globalThis, 'fetch');
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
+    });
+
+    it('hits the lon-then-lat URL path SMHI requires', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+      await provider.getHourly(59.3, 18.07, 'metric');
+
+      const url = fetchSpy.mock.calls[0][0] as string;
+      // SMHI requires /lon/{lon}/lat/{lat}/ path order
+      expect(url).toMatch(/\/lon\/18\.\d+\/lat\/59\.\d+\//);
+    });
+
+    it('returns Celsius temps when units=metric', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+      const hourly = await provider.getHourly(59.3, 18.07, 'metric');
+
+      expect(hourly[0].temp).toBe(10);
+    });
+
+    it('converts to Fahrenheit when units=imperial', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+      const hourly = await provider.getHourly(59.3, 18.07, 'imperial');
+
+      // 10°C → 50°F
+      expect(hourly[0].temp).toBe(50);
+    });
+
+    it('derives binary precipProbability from pcat', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+      const hourly = await provider.getHourly(59.3, 18.07, 'metric');
+
+      // First entry pcat=3 → 100, second pcat=0 → 0
+      expect(hourly[0].precipProbability).toBe(100);
+      expect(hourly[1].precipProbability).toBe(0);
+    });
+
+    it('exposes pressure in hPa', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+      const hourly = await provider.getHourly(59.3, 18.07, 'metric');
+
+      // 1015.2 → round → 1015
+      expect(hourly[0].pressure).toBe(1015);
+    });
+
+    it('aggregates daily precip and picks dominant symbol in forecast', async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+
+      const forecast = await provider.getForecast(59.3, 18.07, 'metric');
+
+      // Both entries are on the same date → one day in the forecast
+      expect(forecast.length).toBe(1);
+      // pmean: 0.4 + 0 = 0.4 mm
+      expect(forecast[0].precipAmount).toBeCloseTo(0.4, 2);
+      // Dominant Wsymb2 = 3 → variable cloudiness
+      expect(forecast[0].icon).toBe('cloud-sun');
+    });
+
+    it('emits binary precipProbability in daily forecast (regression)', async () => {
+      // Ensures the precip stat icon stays visible on daily/table/combined views.
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+
+      const forecast = await provider.getForecast(59.3, 18.07, 'metric');
+
+      // First entry has pcat=3 → day flagged as having precip → 100
+      expect(forecast[0].precipProbability).toBe(100);
+    });
+
+    it('reports precipProbability=0 when no hour has precipitation', async () => {
+      const dryResponse = {
+        timeSeries: [
+          {
+            validTime: t0,
+            parameters: [
+              { name: 't', values: [10] },
+              { name: 'Wsymb2', values: [1] },
+              { name: 'pcat', values: [0] },
+              { name: 'pmean', values: [0] },
+            ],
+          },
+        ],
+      };
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(dryResponse), { status: 200 }));
+      const provider = new SMHIProvider();
+
+      const forecast = await provider.getForecast(59.3, 18.07, 'metric');
+      expect(forecast[0].precipProbability).toBe(0);
+    });
   });
 });

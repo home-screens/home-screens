@@ -5,7 +5,9 @@ export type WeatherProviderId =
   | 'weatherapi'
   | 'openweathermap'
   | 'pirateweather'
-  | 'noaa';
+  | 'noaa'
+  | 'yr'
+  | 'smhi';
 
 export type WeatherSecretKey = Extract<
   SecretKey,
@@ -81,6 +83,26 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     keyHint: '',
     placeholder: '',
     iconBg: '#1d4ed8',
+  },
+  {
+    id: 'yr',
+    name: 'Yr.no / MET Norway',
+    tagline: 'Free · global · no key',
+    helperText: 'No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon — e.g. Oslo (59.9139, 10.7522) — for the densest coverage.',
+    secretKey: null,
+    keyHint: '',
+    placeholder: '',
+    iconBg: '#0369a1',
+  },
+  {
+    id: 'smhi',
+    name: 'SMHI',
+    tagline: 'Free · Nordic only · no key',
+    helperText: 'No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only — to test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region.',
+    secretKey: null,
+    keyHint: '',
+    placeholder: '',
+    iconBg: '#005293',
   },
 ];
 
