@@ -7,11 +7,12 @@ export type WeatherProviderId =
   | 'pirateweather'
   | 'noaa'
   | 'yr'
-  | 'smhi';
+  | 'smhi'
+  | 'metoffice';
 
 export type WeatherSecretKey = Extract<
   SecretKey,
-  'weatherapi_key' | 'openweathermap_key' | 'pirateweather_key'
+  'weatherapi_key' | 'openweathermap_key' | 'pirateweather_key' | 'metoffice_key'
 >;
 
 export type ProviderStatusType =
@@ -103,6 +104,16 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     keyHint: '',
     placeholder: '',
     iconBg: '#005293',
+  },
+  {
+    id: 'metoffice',
+    name: 'UK Met Office',
+    tagline: 'Freemium · UK focus · requires key',
+    helperText: 'Requires a Weather DataHub API key from datahub.metoffice.gov.uk. The free tier allows only 360 calls/day — Home Screens caches every response for 30 minutes and hard-caps at 320/day to stay under quota. Best accuracy inside the UK — to test, try London (51.5074, -0.1278).',
+    secretKey: 'metoffice_key',
+    keyHint: 'Sign up at datahub.metoffice.gov.uk and subscribe to the Site-Specific API to get a key.',
+    placeholder: 'Paste your Met Office DataHub API key',
+    iconBg: '#262626',
   },
 ];
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OpenWeatherMapProvider, WeatherAPIProvider, OpenMeteoProvider, YrProvider, SMHIProvider, createWeatherProvider } from '../weather';
+import { OpenWeatherMapProvider, WeatherAPIProvider, OpenMeteoProvider, YrProvider, SMHIProvider, MetOfficeProvider, createWeatherProvider } from '../weather';
 import { symbolToIcon, symbolDescription } from '../weather/yr';
 import { wsymb2ToIcon } from '../weather/smhi';
 
@@ -27,6 +27,15 @@ describe('createWeatherProvider', () => {
   it('creates SMHI provider', () => {
     const provider = createWeatherProvider('smhi');
     expect(provider).toBeInstanceOf(SMHIProvider);
+  });
+
+  it('creates Met Office provider when apiKey is provided', () => {
+    const provider = createWeatherProvider('metoffice', 'test-key');
+    expect(provider).toBeInstanceOf(MetOfficeProvider);
+  });
+
+  it('throws when Met Office is created without an API key', () => {
+    expect(() => createWeatherProvider('metoffice')).toThrow(/requires an API key/);
   });
 
   it('throws on unknown provider', () => {

@@ -19,6 +19,7 @@ export interface SharedDisplayData {
   openMeteoData: unknown;
   yrData: unknown;
   smhiData: unknown;
+  metofficeData: unknown;
   calendarData: unknown;
 }
 
@@ -54,6 +55,7 @@ const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
   'open-meteo': 'openMeteoData',
   yr: 'yrData',
   smhi: 'smhiData',
+  metoffice: 'metofficeData',
 };
 
 function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {

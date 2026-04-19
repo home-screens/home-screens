@@ -20,7 +20,8 @@ export type SecretKey =
   // Weather provider keys
   | 'weatherapi_key'
   | 'openweathermap_key'
-  | 'pirateweather_key';
+  | 'pirateweather_key'
+  | 'metoffice_key';
 
 export type SecretStatus = Partial<Record<SecretKey, boolean>>;
 

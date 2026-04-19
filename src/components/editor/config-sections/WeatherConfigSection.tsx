@@ -77,6 +77,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           if (data.openweathermap_key) providers.push('openweathermap');
           if (data.weatherapi_key) providers.push('weatherapi');
           if (data.pirateweather_key) providers.push('pirateweather');
+          if (data.metoffice_key) providers.push('metoffice');
           providers.push('noaa'); // NOAA always available (no key needed)
           providers.push('open-meteo'); // Open-Meteo always available (no key needed)
           providers.push('yr'); // Yr.no always available (no key needed)
@@ -165,6 +166,9 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
             )}
             {filteredProviders.includes('smhi') && (
               <option value="smhi">SMHI (free, Nordic only)</option>
+            )}
+            {filteredProviders.includes('metoffice') && (
+              <option value="metoffice">UK Met Office (UK focus)</option>
             )}
           </select>
         </LabeledField>

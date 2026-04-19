@@ -46,7 +46,7 @@ describe('getProviderStatus', () => {
 });
 
 describe('WEATHER_PROVIDERS metadata', () => {
-  it('contains exactly the seven known providers in fixed order', () => {
+  it('contains exactly the eight known providers in fixed order', () => {
     expect(WEATHER_PROVIDERS.map((p) => p.id)).toEqual([
       'open-meteo',
       'weatherapi',
@@ -55,6 +55,7 @@ describe('WEATHER_PROVIDERS metadata', () => {
       'noaa',
       'yr',
       'smhi',
+      'metoffice',
     ]);
   });
 

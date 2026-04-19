@@ -123,6 +123,7 @@ const INTEGRATION_META: Record<string, IntegrationMeta> = {
   openweathermap_key: { label: 'OpenWeatherMap', initials: 'OW' },
   weatherapi_key:     { label: 'WeatherAPI',     initials: 'WA' },
   pirateweather_key:  { label: 'Pirate Weather', initials: 'PW' },
+  metoffice_key:      { label: 'Met Office',     initials: 'MO' },
   unsplash_access_key:{ label: 'Unsplash',       initials: 'UN' },
   nasa_api_key:       { label: 'NASA',           initials: 'NA' },
   todoist_token:      { label: 'Todoist',        initials: 'TD' },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind } from 'lucide-react';
+import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind, Umbrella } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import IntegrationCard from '../shared/IntegrationCard';
@@ -16,6 +16,7 @@ const ICONS: Record<WeatherProviderId, React.ReactNode> = {
   noaa: <Flag className="w-[18px] h-[18px] text-white" />,
   yr: <Sunrise className="w-[18px] h-[18px] text-white" />,
   smhi: <Wind className="w-[18px] h-[18px] text-white" />,
+  metoffice: <Umbrella className="w-[18px] h-[18px] text-white" />,
 };
 
 interface Props {
@@ -73,7 +74,8 @@ export default function WeatherProviderCard({
         }
       } else {
         const err = await res.json();
-        setTestStatus(`Error: ${err.error}`);
+        const msg = err.detail ? `${err.error}: ${err.detail}` : err.error;
+        setTestStatus(`Error: ${msg}`);
       }
     } catch (e) {
       setTestStatus(`Failed: ${e instanceof Error ? e.message : 'Unknown error'}`);

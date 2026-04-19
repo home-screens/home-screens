@@ -5,10 +5,11 @@ import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/ap
 
 export const dynamic = 'force-dynamic';
 
-const secretKeyMap: Record<string, 'openweathermap_key' | 'weatherapi_key' | 'pirateweather_key'> = {
+const secretKeyMap: Record<string, 'openweathermap_key' | 'weatherapi_key' | 'pirateweather_key' | 'metoffice_key'> = {
   openweathermap: 'openweathermap_key',
   weatherapi: 'weatherapi_key',
   pirateweather: 'pirateweather_key',
+  metoffice: 'metoffice_key',
 };
 
 interface WeatherParams {
@@ -50,7 +51,8 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
 
     const { lat, lon } = location;
 
-    // Keyless providers (NOAA, Open-Meteo, Yr.no, SMHI) skip the secret lookup
+    // Keyless providers (NOAA, Open-Meteo, Yr.no, SMHI) skip the secret lookup;
+    // keyed providers (OWM, WeatherAPI, Pirate Weather, Met Office) require one.
     const secretKey = secretKeyMap[provider];
     let apiKey: string | undefined;
     if (secretKey) {
