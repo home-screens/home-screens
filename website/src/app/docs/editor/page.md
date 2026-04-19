@@ -260,12 +260,16 @@ Profiles let you define named groups of screens that activate based on a schedul
 ### Weather
 
 - **Units** — metric (°C, km/h) or imperial (°F, mph), displayed as a segmented control at the top of the section
-- **Provider cards** — each of the five weather providers appears as its own card showing its name, a status pill (Default, Ready, Free, Key Required, Not Configured, or Key Saved), and inline actions:
+- **Provider cards** — each of the nine weather providers appears as its own card showing its name, a status pill (Default, Ready, Free, Key Required, Not Configured, or Key Saved), and inline actions:
   - **Open-Meteo** — free, no API key required, global coverage (default)
   - **WeatherAPI** — free tier, no credit card required
   - **OpenWeatherMap** — requires One Call 3.0 subscription
   - **Pirate Weather** — free Dark Sky replacement
   - **NOAA / NWS** — free, no API key required, US only
+  - **Yr.no** — free, no API key required, global (Norwegian Meteorological Institute)
+  - **SMHI** — free, no API key required, Nordic coverage (Swedish Meteorological and Hydrological Institute)
+  - **Met Office** — free, no API key required, UK coverage
+  - **Environment Canada** — free, no API key required, Canadian cities (ECCC citypage feeds)
 - **Set as default** — make a provider the active weather source for all weather modules
 - **Test** — verify your weather setup with a live API call
 - **API Key** — manage the API key inline on each card (not needed for Open-Meteo or NOAA)

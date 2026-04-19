@@ -72,7 +72,7 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/lib/module-registry.ts` — module definitions (type, label, icon, category, defaults)
 - `src/lib/module-components.ts` — dynamic imports mapping ModuleType → React component
 - `src/lib/config.ts` — config file read/write (also exposes `updateConfigAtomic` for queued read-modify-write)
-- `src/lib/weather/` — 5 weather providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo) with shared types and factory
+- `src/lib/weather/` — 9 weather providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada) with shared types and factory
 - `src/lib/google-calendar.ts` — Google Calendar integration (OAuth device flow)
 - `src/lib/meal-data.ts` — shared meal-planner store (`data/meals.json`), atomic writes, settings + savedMeals + plan + groceryChecked
 - `src/stores/editor-store.ts` — Zustand store for all editor state and actions; multi-display helpers (`selectedDisplayId`, `getActiveScreens`, `getActiveDimensions`, `withActiveScreens`, `addDisplay`, `orientDimensions`)

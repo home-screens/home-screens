@@ -7,6 +7,7 @@ export { OpenMeteoProvider } from './open-meteo';
 export { YrProvider } from './yr';
 export { SMHIProvider } from './smhi';
 export { MetOfficeProvider } from './metoffice';
+export { EnvCanadaProvider } from './envcanada';
 
 import type { WeatherProvider } from './types';
 import { OpenWeatherMapProvider } from './openweathermap';
@@ -17,6 +18,7 @@ import { OpenMeteoProvider } from './open-meteo';
 import { YrProvider } from './yr';
 import { SMHIProvider } from './smhi';
 import { MetOfficeProvider } from './metoffice';
+import { EnvCanadaProvider } from './envcanada';
 
 export function createWeatherProvider(provider: string, apiKey?: string): WeatherProvider {
   switch (provider) {
@@ -36,6 +38,8 @@ export function createWeatherProvider(provider: string, apiKey?: string): Weathe
       return new SMHIProvider();
     case 'metoffice':
       return new MetOfficeProvider(apiKey);
+    case 'envcanada':
+      return new EnvCanadaProvider();
     default:
       throw new Error(`Unknown weather provider: ${provider}`);
   }

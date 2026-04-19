@@ -12,6 +12,11 @@ export function msToWindUnit(ms: number, isMetric: boolean): number {
   return isMetric ? ms * 3.6 : ms * 2.23694;
 }
 
+/** km/h → km/h (metric) or mph (imperial). For providers (e.g. ECCC) that already report km/h. */
+export function kmhToWindUnit(kmh: number, isMetric: boolean): number {
+  return isMetric ? kmh : kmh * 0.621371;
+}
+
 /** mm → mm (metric) or inches (imperial). */
 export function mmToPrecipUnit(mm: number, isMetric: boolean): number {
   return isMetric ? mm : mm * 0.0393701;

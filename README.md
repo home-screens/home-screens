@@ -20,7 +20,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Drag-and-drop editor** — visually arrange modules on a configurable canvas
 - **Multi-screen rotation** — cycle through screens with 8 transition effects
 - **Multi-display hub-and-spoke** — one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
-- **5 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free), and Open-Meteo (free)
+- **9 weather providers** — OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA (free, US), Open-Meteo (free, global), Yr.no (free, global), SMHI (free, Nordic), Met Office (free, UK), Environment Canada (free, Canada)
 - **Plugin system** — extend with custom modules via runtime-loaded plugins, installable from a URL or uploaded bundle ([template](https://github.com/home-screens/home-screens-plugin-template), [example](https://github.com/home-screens/home-screens-plugin-standings))
 - **Profile system** — named screen groups with schedule-based auto-activation
 - **Remote display control** — wake, sleep, brightness, navigation, and alerts via HTTP

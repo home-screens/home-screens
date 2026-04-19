@@ -8,7 +8,8 @@ export type WeatherProviderId =
   | 'noaa'
   | 'yr'
   | 'smhi'
-  | 'metoffice';
+  | 'metoffice'
+  | 'envcanada';
 
 export type WeatherSecretKey = Extract<
   SecretKey,
@@ -114,6 +115,16 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     keyHint: 'Sign up at datahub.metoffice.gov.uk and subscribe to the Site-Specific API to get a key.',
     placeholder: 'Paste your Met Office DataHub API key',
     iconBg: '#262626',
+  },
+  {
+    id: 'envcanada',
+    name: 'Environment Canada',
+    tagline: 'Free · Canada only · no key',
+    helperText: 'No API key required. Provided by Environment and Climate Change Canada — the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207).',
+    secretKey: null,
+    keyHint: '',
+    placeholder: '',
+    iconBg: '#d62718',
   },
 ];
 

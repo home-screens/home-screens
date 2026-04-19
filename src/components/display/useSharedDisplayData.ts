@@ -69,6 +69,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const [yrData] = useFetchData(weatherUrl('yr'), WEATHER_REFRESH_MS);
   const [smhiData] = useFetchData(weatherUrl('smhi'), WEATHER_REFRESH_MS);
   const [metofficeData] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
+  const [envcanadaData] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
 
   // Resolve which provider's data represents the global weather state for the event bus
   const globalWeatherData = useMemo(() => {
@@ -81,9 +82,10 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
       case 'yr': return yrData;
       case 'smhi': return smhiData;
       case 'metoffice': return metofficeData;
+      case 'envcanada': return envcanadaData;
       default: return null;
     }
-  }, [globalProvider, owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData]);
+  }, [globalProvider, owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData]);
 
   // Publish derived weather events to the bus
   useEffect(() => {
@@ -113,5 +115,5 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     : '';
   const [calendarData] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
 
-  return { owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, calendarData };
+  return { owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData };
 }

@@ -171,17 +171,21 @@ Some modules also have a refresh interval --- data won't update more frequently 
 
 ### Which weather provider should I choose?
 
-Home Screens supports five weather providers. Here's a comparison:
+Home Screens supports nine weather providers. Here's a comparison:
 
 | Provider | API Key Required | Cost | Coverage | Features |
 |---|---|---|---|---|
 | **Open-Meteo** | No | Free | Global | Good general-purpose option, no signup needed |
 | **NOAA** | No | Free | US only | Reliable for US locations, no signup needed |
+| **Yr.no** | No | Free | Global | Norwegian Meteorological Institute, high-quality global forecasts |
+| **SMHI** | No | Free | Nordic | Swedish Meteorological and Hydrological Institute, Nordic coverage |
+| **Met Office** | No | Free | UK | UK Met Office DataHub, UK coverage |
+| **Environment Canada** | No | Free | Canada | Official ECCC citypage feeds for Canadian cities |
 | **OpenWeatherMap** | Yes | Free tier available | Global | Most popular, includes air quality and UV data |
 | **WeatherAPI** | Yes | Free tier available | Global | Good accuracy, generous free tier |
 | **Pirate Weather** | Yes | Free tier available | Global | Dark Sky replacement, includes minutely precipitation and alerts |
 
-If you're in the US and want zero setup, **NOAA** is the easiest choice. For global coverage without an API key, use **Open-Meteo**. If you want the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
+Regional free providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the highest-accuracy option within their coverage area. For zero-setup global coverage, use **Open-Meteo**. For the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
 
 ### What photo sources are supported?
 

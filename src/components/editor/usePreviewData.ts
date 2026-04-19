@@ -24,8 +24,8 @@ export interface PreviewData {
  *  that the editor preview feels responsive. */
 const REFETCH_DEBOUNCE_MS = 500;
 
-const ALL_PROVIDERS = ['openweathermap', 'weatherapi', 'pirateweather', 'noaa', 'open-meteo', 'yr', 'smhi', 'metoffice'];
-const NO_KEY_NEEDED = new Set(['noaa', 'open-meteo', 'yr', 'smhi']);
+const ALL_PROVIDERS = ['openweathermap', 'weatherapi', 'pirateweather', 'noaa', 'open-meteo', 'yr', 'smhi', 'metoffice', 'envcanada'];
+const NO_KEY_NEEDED = new Set(['noaa', 'open-meteo', 'yr', 'smhi', 'envcanada']);
 const PROVIDER_KEY_MAP: Record<string, string> = {
   openweathermap: 'openweathermap_key',
   weatherapi: 'weatherapi_key',

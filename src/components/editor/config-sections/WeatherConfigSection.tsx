@@ -26,6 +26,7 @@ const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pres
   'open-meteo': { pressure: true, dewPoint: true },
   yr: { pressure: true },
   smhi: { pressure: true },
+  envcanada: {},
 };
 
 // Which provider capability a view requires (omit = available for all providers)
@@ -82,6 +83,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           providers.push('open-meteo'); // Open-Meteo always available (no key needed)
           providers.push('yr'); // Yr.no always available (no key needed)
           providers.push('smhi'); // SMHI always available (no key needed)
+          providers.push('envcanada'); // Environment Canada always available (no key needed)
           setConfiguredProviders(providers);
         }
       } catch { /* ignore */ }
@@ -169,6 +171,9 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
             )}
             {filteredProviders.includes('metoffice') && (
               <option value="metoffice">UK Met Office (UK focus)</option>
+            )}
+            {filteredProviders.includes('envcanada') && (
+              <option value="envcanada">Environment Canada (Canada only)</option>
             )}
           </select>
         </LabeledField>

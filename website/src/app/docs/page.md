@@ -51,7 +51,7 @@ Total: **~$90** plus a display. Budget tip: a repurposed old monitor or a small 
 
 - **39 modules** — clock, weather, calendar, news, stocks, sports, chore chart, meal planner, photos, and more
 - **Visual drag-and-drop editor** — no JSON required
-- **5 weather providers** — Open-Meteo works zero-config worldwide; NOAA is free for US; OpenWeatherMap, WeatherAPI, and Pirate Weather are also supported
+- **9 weather providers** — Open-Meteo works zero-config worldwide; NOAA (US), Yr.no (global), SMHI (Nordic), Met Office (UK), and Environment Canada (Canada) are also free with no key; OpenWeatherMap, WeatherAPI, and Pirate Weather round out the key-required options
 - **Google Calendar + iCal** — two paths to Google (iCal URL or OAuth); iCal also works with Apple, Outlook, Fastmail, and anything else that publishes ICS
 - **Profile system** — different screens at different times of day (morning vs. evening, weekdays vs. weekends)
 - **Multi-display** — one server, many Pis, each with its own layout

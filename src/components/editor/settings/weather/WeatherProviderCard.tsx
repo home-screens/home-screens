@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind, Umbrella } from 'lucide-react';
+import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind, Umbrella, Leaf } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import IntegrationCard from '../shared/IntegrationCard';
@@ -17,6 +17,7 @@ const ICONS: Record<WeatherProviderId, React.ReactNode> = {
   yr: <Sunrise className="w-[18px] h-[18px] text-white" />,
   smhi: <Wind className="w-[18px] h-[18px] text-white" />,
   metoffice: <Umbrella className="w-[18px] h-[18px] text-white" />,
+  envcanada: <Leaf className="w-[18px] h-[18px] text-white" />,
 };
 
 interface Props {
