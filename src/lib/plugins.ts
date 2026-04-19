@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
-import { deleteAllPluginSecrets } from '@/lib/plugin-secrets';
+import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest } from '@/lib/plugin-utils';
 
 const execFileAsync = promisify(execFile);
@@ -125,6 +125,9 @@ async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> 
 /** Atomically move an extracted+validated plugin into its final location. */
 async function promotePluginDir(tmpDir: string, pluginId: string): Promise<void> {
   const dir = pluginDir(pluginId);
+  // Rescue any pre-fix secrets.json sitting inside the plugin dir before the
+  // recursive rm takes it out. Safe no-op once every install has migrated.
+  await migrateLegacyPluginSecrets(pluginId);
   await fs.rm(dir, { recursive: true, force: true });
   await fs.rename(tmpDir, dir);
 }
@@ -294,7 +297,9 @@ export async function installExternalPlugin(
 }
 
 export async function uninstallPlugin(pluginId: string): Promise<void> {
-  // Delete plugin secrets before removing the directory (secrets file lives inside it)
+  // Secrets live outside the plugin directory, but we still clear them
+  // explicitly so an uninstall doesn't leave per-plugin credentials behind.
+  // (Also removes any leftover legacy in-plugin-dir secrets.json.)
   await deleteAllPluginSecrets(pluginId);
 
   const dir = pluginDir(pluginId);
