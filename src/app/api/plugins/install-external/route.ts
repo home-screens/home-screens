@@ -5,8 +5,32 @@ import { installExternalPlugin } from '@/lib/plugins';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { resolveTarballUrl, validateExternalUrl, urlForAudit } from '@/lib/external-plugins';
+import { isSafeExternalUrl } from '@/lib/url-safety';
 
 export const dynamic = 'force-dynamic';
+
+const MAX_REDIRECT_HOPS = 5;
+const DOWNLOAD_TIMEOUT_MS = 60_000;
+
+/**
+ * SSRF guard for a resolved tarball URL. `validateExternalUrl` only checks
+ * the URL scheme; this adds DNS-resolved IP filtering so `https://evil.com`
+ * that resolves to `192.168.1.1` (or `169.254.169.254`, or a ULA IPv6) is
+ * rejected before we reach fetch. `http://localhost` / `http://127.0.0.1`
+ * are pinned to their literal form by the scheme check and don't need
+ * further validation.
+ */
+async function guardFetchUrl(url: string): Promise<string | null> {
+  try {
+    validateExternalUrl(url);
+  } catch (err) {
+    return err instanceof Error ? err.message : 'Invalid URL';
+  }
+  if (url.startsWith('https://') && !(await isSafeExternalUrl(url))) {
+    return 'URL resolves to a blocked address (internal network, loopback, or cloud metadata).';
+  }
+  return null;
+}
 
 /** Install a plugin from a user-provided tarball URL (outside the marketplace). */
 export const POST = withAuth(async (request: NextRequest) => {
@@ -37,14 +61,52 @@ export const POST = withAuth(async (request: NextRequest) => {
     );
   }
 
-  // Strip query-string before showing the URL in errors/logs, so any token
-  // embedded in the query (e.g. GitHub release download token) never reaches
-  // the client response body or the audit log.
+  const initialGuardError = await guardFetchUrl(resolvedUrl);
+  if (initialGuardError) {
+    return NextResponse.json({ error: initialGuardError }, { status: 400 });
+  }
+
   const displayUrl = urlForAudit(resolvedUrl);
 
-  let res: Response;
+  // Follow redirects manually so every hop is re-validated. Letting fetch
+  // follow redirects automatically would let an allowed public host 302 to
+  // http://169.254.169.254/ or https://10.0.0.5/, defeating the DNS check.
+  let currentUrl = resolvedUrl;
+  let res!: Response;
   try {
-    res = await fetchWithTimeout(resolvedUrl, { timeout: 60_000 });
+    for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
+      res = await fetchWithTimeout(currentUrl, {
+        timeout: DOWNLOAD_TIMEOUT_MS,
+        redirect: 'manual',
+        retries: 0,
+      });
+      if (res.status < 300 || res.status >= 400) break;
+      const location = res.headers.get('location');
+      if (!location) break;
+      if (hop === MAX_REDIRECT_HOPS) {
+        return NextResponse.json(
+          { error: `${displayUrl} returned too many redirects.` },
+          { status: 502 },
+        );
+      }
+      let nextUrl: string;
+      try {
+        nextUrl = new URL(location, currentUrl).toString();
+      } catch {
+        return NextResponse.json(
+          { error: `${displayUrl} returned an invalid redirect Location.` },
+          { status: 502 },
+        );
+      }
+      const redirectGuardError = await guardFetchUrl(nextUrl);
+      if (redirectGuardError) {
+        return NextResponse.json(
+          { error: `Redirect blocked: ${redirectGuardError}` },
+          { status: 400 },
+        );
+      }
+      currentUrl = nextUrl;
+    }
   } catch (err) {
     const detail = err instanceof Error ? err.message : 'network error';
     return NextResponse.json(

@@ -25,22 +25,25 @@ describe('sanitizePluginId', () => {
     expect(sanitizePluginId('CamelCase123')).toBe('CamelCase123');
   });
 
-  it('strips directory traversal characters', () => {
-    expect(sanitizePluginId('../etc/passwd')).toBe('etcpasswd');
-    expect(sanitizePluginId('../../secret')).toBe('secret');
+  // Reject (don't strip) — silent stripping let `foo/bar` collide with `foobar`
+  // and overwrite a sibling plugin's directory during install.
+  it('rejects directory traversal characters', () => {
+    expect(() => sanitizePluginId('../etc/passwd')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('../../secret')).toThrow('Invalid plugin ID');
   });
 
-  it('strips slashes and dots', () => {
-    expect(sanitizePluginId('plugin/../../hack')).toBe('pluginhack');
-    expect(sanitizePluginId('a.b.c')).toBe('abc');
+  it('rejects slashes and dots', () => {
+    expect(() => sanitizePluginId('plugin/../../hack')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('foo/bar')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('a.b.c')).toThrow('Invalid plugin ID');
   });
 
-  it('strips spaces and special characters', () => {
-    expect(sanitizePluginId('my plugin!')).toBe('myplugin');
-    expect(sanitizePluginId('test@#$%^&*')).toBe('test');
+  it('rejects spaces and special characters', () => {
+    expect(() => sanitizePluginId('my plugin!')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('test@#$%^&*')).toThrow('Invalid plugin ID');
   });
 
-  it('throws on empty result', () => {
+  it('rejects empty input', () => {
     expect(() => sanitizePluginId('')).toThrow('Invalid plugin ID');
     expect(() => sanitizePluginId('...')).toThrow('Invalid plugin ID');
     expect(() => sanitizePluginId('////')).toThrow('Invalid plugin ID');
@@ -58,8 +61,8 @@ describe('pluginDir', () => {
     expect(pluginDir('my-plugin')).toBe(path.join(tmpDir, 'data', 'plugins', 'my-plugin'));
   });
 
-  it('sanitizes dangerous IDs', () => {
-    expect(pluginDir('../etc')).toBe(path.join(tmpDir, 'data', 'plugins', 'etc'));
+  it('rejects dangerous IDs', () => {
+    expect(() => pluginDir('../etc')).toThrow('Invalid plugin ID');
   });
 });
 

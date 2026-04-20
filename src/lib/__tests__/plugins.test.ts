@@ -13,29 +13,31 @@ describe('sanitizePluginId', () => {
     expect(sanitizePluginId('my_plugin_123')).toBe('my_plugin_123');
   });
 
-  it('strips directory traversal characters', () => {
-    expect(sanitizePluginId('../../etc/passwd')).toBe('etcpasswd');
-    expect(sanitizePluginId('../foo')).toBe('foo');
+  // Reject (don't strip) — `foo/bar` and `foobar` must not resolve to the same
+  // on-disk directory or a malicious manifest can overwrite a sibling plugin.
+  it('rejects directory traversal characters', () => {
+    expect(() => sanitizePluginId('../../etc/passwd')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('../foo')).toThrow('Invalid plugin ID');
   });
 
-  it('strips slashes', () => {
-    expect(sanitizePluginId('foo/bar')).toBe('foobar');
-    expect(sanitizePluginId('foo\\bar')).toBe('foobar');
+  it('rejects slashes', () => {
+    expect(() => sanitizePluginId('foo/bar')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('foo\\bar')).toThrow('Invalid plugin ID');
   });
 
-  it('strips dots', () => {
-    expect(sanitizePluginId('foo.bar')).toBe('foobar');
+  it('rejects dots', () => {
+    expect(() => sanitizePluginId('foo.bar')).toThrow('Invalid plugin ID');
   });
 
-  it('throws on input that sanitizes to empty string', () => {
+  it('rejects empty input', () => {
     expect(() => sanitizePluginId('...')).toThrow('Invalid plugin ID');
     expect(() => sanitizePluginId('')).toThrow('Invalid plugin ID');
     expect(() => sanitizePluginId('///')).toThrow('Invalid plugin ID');
   });
 
-  it('strips special characters', () => {
-    expect(sanitizePluginId('hello world!')).toBe('helloworld');
-    expect(sanitizePluginId('plugin@1.0')).toBe('plugin10');
+  it('rejects special characters', () => {
+    expect(() => sanitizePluginId('hello world!')).toThrow('Invalid plugin ID');
+    expect(() => sanitizePluginId('plugin@1.0')).toThrow('Invalid plugin ID');
   });
 });
 
@@ -76,6 +78,17 @@ describe('validateManifest', () => {
   it('rejects missing id', () => {
     expect(validateManifest({ ...validManifest, id: '' })).toBe(false);
     expect(validateManifest({ ...validManifest, id: undefined })).toBe(false);
+  });
+
+  // Regression: a manifest ID containing slashes/dots used to pass validation,
+  // then collide with another plugin's directory after sanitizePluginId stripped
+  // the unsafe chars. validateManifest now enforces the on-disk format directly.
+  it('rejects ids with characters that would collide after sanitization', () => {
+    expect(validateManifest({ ...validManifest, id: 'foo/bar' })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: 'foo.bar' })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: '../etc/passwd' })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: 'foo bar' })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: 'foo!' })).toBe(false);
   });
 
   it('rejects missing name', () => {
@@ -213,6 +226,45 @@ describe('installExternalPlugin', () => {
     await expect(
       installExternalPlugin('https://example.com/p.tar.gz', buf),
     ).rejects.toThrow(/manifest is invalid/i);
+  });
+
+  // Security regression: a manifest ID like "foo/bar" must NOT silently install
+  // over a legitimate "foobar" plugin's directory. Before the fix, validateManifest
+  // accepted any non-empty string ID, the early collision check used the raw ID
+  // (so "foo/bar" didn't match installed "foobar"), and then promotePluginDir
+  // sanitized to "foobar" and `fs.rm`'d the legitimate plugin's files.
+  it('rejects a manifest whose ID would collide with another plugin after sanitization', async () => {
+    // Seed a legitimate plugin's directory + installed.json entry.
+    const legitDir = path.join(tmpCwd, 'data', 'plugins', 'foobar');
+    await fs.mkdir(path.join(legitDir, 'dist'), { recursive: true });
+    await fs.writeFile(path.join(legitDir, 'manifest.json'), JSON.stringify({ ...baseManifest, id: 'foobar' }));
+    await fs.writeFile(path.join(legitDir, 'dist', 'bundle.js'), '/* legit */');
+
+    const installedPath = path.join(tmpCwd, 'data', 'plugins', 'installed.json');
+    await fs.writeFile(installedPath, JSON.stringify({
+      schemaVersion: 1,
+      plugins: [{
+        id: 'foobar', version: '1.0.0', installedAt: new Date().toISOString(),
+        enabled: true, moduleType: 'foobar', source: 'external',
+        externalUrl: 'https://example.com/orig.tar.gz',
+      }],
+    }));
+
+    // Attacker ships a tarball whose manifest declares id "foo/bar".
+    const attackerBuf = await makePluginTarball({ ...baseManifest, id: 'foo/bar' });
+    await expect(
+      installExternalPlugin('https://attacker.com/evil.tar.gz', attackerBuf),
+    ).rejects.toThrow(/manifest is invalid/i);
+
+    // The legitimate plugin's bundle must still be on disk untouched.
+    const bundle = await fs.readFile(path.join(legitDir, 'dist', 'bundle.js'), 'utf-8');
+    expect(bundle).toBe('/* legit */');
+
+    // installed.json must be unchanged: only the legitimate entry remains.
+    const installed = await getInstalledPlugins();
+    expect(installed.plugins).toHaveLength(1);
+    expect(installed.plugins[0].id).toBe('foobar');
+    expect(installed.plugins[0].externalUrl).toBe('https://example.com/orig.tar.gz');
   });
 
   it('rejects non-gzip data', async () => {

@@ -8,11 +8,22 @@ export function pluginsDir(): string {
   return path.join(process.cwd(), PLUGINS_DIR);
 }
 
-/** Sanitize plugin ID to prevent directory traversal. Throws if result is empty. */
+export const PLUGIN_ID_PATTERN = /^[a-z0-9_-]+$/i;
+
+/**
+ * Validate a plugin ID. Throws on empty or unsafe input.
+ *
+ * Rejects (rather than strips) unsafe characters so two distinct IDs like
+ * `foo/bar` and `foobar` can never resolve to the same on-disk directory.
+ * Silent stripping let a malicious external plugin overwrite another plugin's
+ * files via a manifest ID that survived `validateManifest` but collided after
+ * sanitization.
+ */
 export function sanitizePluginId(pluginId: string): string {
-  const safeId = pluginId.replace(/[^a-z0-9_-]/gi, '');
-  if (!safeId) throw new Error('Invalid plugin ID');
-  return safeId;
+  if (typeof pluginId !== 'string' || !PLUGIN_ID_PATTERN.test(pluginId)) {
+    throw new Error('Invalid plugin ID');
+  }
+  return pluginId;
 }
 
 export function pluginDir(pluginId: string): string {

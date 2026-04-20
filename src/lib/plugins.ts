@@ -5,7 +5,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
-import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest } from '@/lib/plugin-utils';
+import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
 
 const execFileAsync = promisify(execFile);
 
@@ -380,7 +380,11 @@ export async function getPluginHash(): Promise<string> {
 export function validateManifest(manifest: unknown): manifest is PluginManifest {
   if (!manifest || typeof manifest !== 'object') return false;
   const m = manifest as Record<string, unknown>;
-  if (typeof m.id !== 'string' || !m.id) return false;
+  // ID must match the on-disk-directory format. Without this check, a manifest
+  // ID like "foo/bar" would survive validation, then collide with "foobar"
+  // after sanitizePluginId — letting an external install overwrite another
+  // plugin's directory inside promotePluginDir.
+  if (typeof m.id !== 'string' || !PLUGIN_ID_PATTERN.test(m.id)) return false;
   if (typeof m.name !== 'string' || !m.name) return false;
   if (typeof m.version !== 'string') return false;
   if (typeof m.moduleType !== 'string' || !m.moduleType) return false;

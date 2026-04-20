@@ -9,9 +9,10 @@ vi.mock('@/lib/plugins', () => ({
 
 vi.mock('@/lib/plugin-utils', () => ({
   sanitizePluginId: vi.fn((id: string) => {
-    const safe = id.replace(/[^a-z0-9_-]/gi, '');
-    if (!safe) throw new Error('Invalid plugin ID');
-    return safe;
+    if (typeof id !== 'string' || !/^[a-z0-9_-]+$/i.test(id)) {
+      throw new Error('Invalid plugin ID');
+    }
+    return id;
   }),
   getPluginManifest: vi.fn(),
 }));
@@ -1274,14 +1275,15 @@ describe('POST /api/plugins/proxy/[pluginId] — plugin ID sanitization', () => 
   });
 
   it('rejects directory traversal attempts in plugin ID', async () => {
-    // sanitizePluginId strips slashes and dots, so "../../../etc/passwd"
-    // becomes "etcpasswd" which won't match any installed plugin.
+    // sanitizePluginId now throws on any unsafe input (slashes, dots, etc.)
+    // rather than silently stripping them, so the wrapper turns it into a 500.
     vi.mocked(getInstalledPlugins).mockResolvedValue(makeInstalled([]));
 
     const [req, ctx] = makeProxyRequest('../../../etc/passwd', { url: uniqueUrl() });
     const res = await POST(req, ctx);
 
-    // "etcpasswd" doesn't match any installed plugin => 404
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.error).toBe('Plugin proxy request failed');
   });
 });

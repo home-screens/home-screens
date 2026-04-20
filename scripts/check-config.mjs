@@ -34,6 +34,14 @@ const BUILTIN_MODULE_TYPES = new Set([
 
 const LATEST_SCHEMA_VERSION = 3;
 
+// Keep in sync with display-filter.ts — hard caps that the runtime
+// validateDisplays() enforces on a config before it is written.
+const MAX_DISPLAYS = 64;
+const MAX_SCREENS_PER_DISPLAY = 256;
+const MAX_DISPLAY_DIMENSION = 16384;
+const MAX_DISPLAY_ID_LEN = 64;
+const DISPLAY_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
+
 function isKnownModuleType(type) {
   return BUILTIN_MODULE_TYPES.has(type) || type.startsWith('plugin:');
 }
@@ -105,28 +113,131 @@ function validate(config) {
 
   // Displays
   if (Array.isArray(config.displays)) {
-    const slugRe = /^[a-z0-9][a-z0-9-]*$/;
+    if (config.displays.length > MAX_DISPLAYS) {
+      diags.push({ severity: 'error', message: `Too many displays: ${config.displays.length} (max ${MAX_DISPLAYS})` });
+    }
+
+    const globalProfileIds = new Set((config.profiles ?? []).map((p) => p.id));
     const seenDisplayIds = new Set();
     for (const display of config.displays) {
-      if (!display.id || !slugRe.test(display.id) || display.id.length > 64) {
-        diags.push({ severity: 'error', message: `Invalid display id "${display.id}": must be lowercase letters, digits, hyphens, max 64 chars` });
-      } else if (seenDisplayIds.has(display.id)) {
-        diags.push({ severity: 'error', message: `Duplicate display id "${display.id}"` });
-      }
-      seenDisplayIds.add(display.id);
-
-      // Validate modules inside display-owned screens
-      if (Array.isArray(display.screens)) {
-        const displayScreenIds = new Set();
-        validateScreenList(display.screens, `displays[${display.id}].screens`, displayScreenIds, diags);
-      }
-    }
-    if (config.displays.length > 64) {
-      diags.push({ severity: 'error', message: `Too many displays: ${config.displays.length} (max 64)` });
+      validateDisplay(display, { allScreenIds, globalProfileIds, seenDisplayIds }, diags);
     }
   }
 
   return diags;
+}
+
+// ── Per-display validator (mirrors validateDisplays in display-filter.ts) ──
+
+function validateDisplay(display, ctx, diags) {
+  validateDisplayId(display, ctx.seenDisplayIds, diags);
+  const ownedScreenIds = validateDisplayScreenRefs(display, ctx.allScreenIds, diags);
+  const ownedProfileIds = validateDisplayProfileRefs(display, ctx.globalProfileIds, ownedScreenIds, diags);
+  validateDisplayActiveProfile(display, ctx.globalProfileIds, ownedProfileIds, diags);
+  validateDisplayDimensions(display, diags);
+}
+
+function validateDisplayId(display, seen, diags) {
+  if (!display.id || !DISPLAY_ID_RE.test(display.id) || display.id.length > MAX_DISPLAY_ID_LEN) {
+    diags.push({ severity: 'error', message: `Invalid display id "${display.id}": must be lowercase letters, digits, hyphens, max ${MAX_DISPLAY_ID_LEN} chars` });
+  } else if (seen.has(display.id)) {
+    diags.push({ severity: 'error', message: `Duplicate display id "${display.id}"` });
+  }
+  seen.add(display.id);
+}
+
+/**
+ * Validates owned `screens` (shape + count cap) and legacy `screenIds`
+ * (count cap + cross-reference into the global pool). Returns the set of
+ * owned screen ids so owned-profile validation can resolve refs against it.
+ */
+function validateDisplayScreenRefs(display, allScreenIds, diags) {
+  const ownedScreenIds = new Set();
+
+  if (Array.isArray(display.screens)) {
+    if (display.screens.length > MAX_SCREENS_PER_DISPLAY) {
+      diags.push({ severity: 'error', message: `Display "${display.id}" has too many screens: ${display.screens.length} (max ${MAX_SCREENS_PER_DISPLAY})` });
+    }
+    validateScreenList(display.screens, `displays[${display.id}].screens`, ownedScreenIds, diags);
+  }
+
+  if (Array.isArray(display.screenIds)) {
+    if (display.screenIds.length > MAX_SCREENS_PER_DISPLAY) {
+      diags.push({ severity: 'error', message: `Display "${display.id}" has too many screens: ${display.screenIds.length} (max ${MAX_SCREENS_PER_DISPLAY})` });
+    }
+    // Legacy screenIds only matter when the display doesn't have owned screens;
+    // when both exist, owned screens win at runtime, so the ref check is moot.
+    if (!display.screens) {
+      for (const sid of display.screenIds) {
+        if (!allScreenIds.has(sid)) {
+          diags.push({ severity: 'error', message: `Display "${display.id}" references unknown screen "${sid}"` });
+        }
+      }
+    }
+  }
+
+  return ownedScreenIds;
+}
+
+/**
+ * Returns the set of owned profile ids when `display.profiles` is set,
+ * otherwise null (caller distinguishes owned from shared-pool resolution).
+ */
+function validateDisplayProfileRefs(display, globalProfileIds, ownedScreenIds, diags) {
+  if (display.profiles && display.profileIds) {
+    diags.push({ severity: 'error', message: `Display "${display.id}" sets both "profiles" and "profileIds" — pick one` });
+  }
+
+  if (Array.isArray(display.profileIds)) {
+    for (const pid of display.profileIds) {
+      if (!globalProfileIds.has(pid)) {
+        diags.push({ severity: 'error', message: `Display "${display.id}" references unknown profile "${pid}"` });
+      }
+    }
+  }
+
+  if (!Array.isArray(display.profiles)) return null;
+
+  const ownedProfileIds = new Set();
+  for (const profile of display.profiles) {
+    if (ownedProfileIds.has(profile.id)) {
+      diags.push({ severity: 'error', message: `Display "${display.id}" has duplicate profile id "${profile.id}"` });
+    }
+    ownedProfileIds.add(profile.id);
+    for (const sid of profile.screenIds ?? []) {
+      if (!ownedScreenIds.has(sid)) {
+        diags.push({ severity: 'error', message: `Display "${display.id}" profile "${profile.id}" references unknown screen "${sid}"` });
+      }
+    }
+  }
+  return ownedProfileIds;
+}
+
+function validateDisplayActiveProfile(display, globalProfileIds, ownedProfileIds, diags) {
+  if (!display.activeProfile) return;
+
+  if (ownedProfileIds) {
+    if (!ownedProfileIds.has(display.activeProfile)) {
+      diags.push({ severity: 'error', message: `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"` });
+    }
+    return;
+  }
+
+  if (!globalProfileIds.has(display.activeProfile)) {
+    diags.push({ severity: 'error', message: `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"` });
+  }
+  if (Array.isArray(display.profileIds) && !display.profileIds.includes(display.activeProfile)) {
+    diags.push({ severity: 'error', message: `Display "${display.id}" activeProfile "${display.activeProfile}" is not in its profileIds list` });
+  }
+}
+
+function validateDisplayDimensions(display, diags) {
+  for (const field of ['displayWidth', 'displayHeight']) {
+    const value = display[field];
+    if (value != null && (!Number.isInteger(value) || value <= 0 || value > MAX_DISPLAY_DIMENSION)) {
+      diags.push({ severity: 'error', message: `Display "${display.id}" ${field} must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}` });
+    }
+  }
 }
 
 function validateScreenList(screens, pathPrefix, screenIdCollector, diags) {

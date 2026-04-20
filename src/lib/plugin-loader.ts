@@ -4,6 +4,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { registerPluginModule } from '@/lib/module-registry';
 import { registerFetchKey } from '@/lib/fetch-keys';
 import { compareSemver } from '@/lib/semver';
+import { displayFetch } from '@/lib/display-fetch';
 
 // ---------------------------------------------------------------------------
 // Dev-mode state — local plugin loading from dev server URLs
@@ -305,7 +306,7 @@ export async function loadAllPlugins(): Promise<void> {
   // Fetch installed plugins list
   let plugins: InstalledPlugin[];
   try {
-    const res = await fetch('/api/plugins/installed');
+    const res = await displayFetch('/api/plugins/installed');
     if (!res.ok) return;
     const data = await res.json();
     plugins = (data.plugins ?? []).filter((p: InstalledPlugin) => p.enabled);
@@ -368,7 +369,7 @@ async function loadSinglePlugin(
 
   try {
     // 1. Fetch manifest
-    const manifestRes = await fetch(`/api/plugins/manifest/${plugin.id}`);
+    const manifestRes = await displayFetch(`/api/plugins/manifest/${plugin.id}`);
     if (!manifestRes.ok) {
       throw new Error(`Manifest fetch failed: ${manifestRes.status}`);
     }
@@ -383,7 +384,7 @@ async function loadSinglePlugin(
     }
 
     // 3. Fetch bundle (version-stamped URL for cache busting)
-    const bundleRes = await fetch(`/api/plugins/bundle/${plugin.id}?v=${plugin.version}`);
+    const bundleRes = await displayFetch(`/api/plugins/bundle/${plugin.id}?v=${plugin.version}`);
     if (!bundleRes.ok) {
       throw new Error(`Bundle fetch failed: ${bundleRes.status}`);
     }

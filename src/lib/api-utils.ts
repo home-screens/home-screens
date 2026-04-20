@@ -4,9 +4,20 @@ import { requireSession, requireDisplayAuth } from '@/lib/auth';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 /**
  * Standardized error response for API routes.
- * Always returns the generic fallbackMessage to clients to avoid leaking
- * internal details (file paths, upstream API info, stack traces).
- * The real error is logged server-side for debugging.
+ *
+ * Returns `{ error: fallbackMessage, detail: error.message }`. `detail` is
+ * deliberately surfaced to clients — the Plugin Store and other admin UIs
+ * render it as diagnostic text so operators can see what actually failed
+ * (e.g. "flat tarball", "invalid manifest", upstream HTTP status). The full
+ * error is also logged server-side.
+ *
+ * Threat model: every route using this helper is behind admin auth
+ * (`withAuth` / `withDisplayAuth`) except `/api/auth/login`, which only
+ * throws on infra failures (e.g. config read errors) — not on bad
+ * credentials. `error.message` from Node builtins can include file paths,
+ * upstream URLs, or command stderr, which is acceptable for authenticated
+ * admin-only surfaces. Do NOT use this helper on unauthenticated public
+ * endpoints; return a bare `{ error }` there instead.
  */
 export function errorResponse(
   error: unknown,

@@ -8,6 +8,8 @@ import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth } from '@/lib/api-utils';
+import { validateDisplays } from '@/lib/display-filter';
+import type { ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,31 +66,84 @@ export const GET = withAuth(async () => {
   return NextResponse.json(bundle);
 }, 'Failed to create backup');
 
-// POST — restore from a backup bundle (or a legacy config-only file)
+// Shape + displays validation — mirror /api/config PUT so a restore can't
+// persist a config that the editor would reject. Without this gate, a
+// malformed bundle (missing screens, duplicate display IDs, non-URL-safe
+// slugs, etc.) would be written to config.json as-is and could break
+// rendering or invalidate cross-references.
+function validateRestoredConfig(config: unknown): string | null {
+  if (!config || typeof config !== 'object') {
+    return 'Invalid config: must be an object';
+  }
+  const c = config as Partial<ScreenConfiguration>;
+  if (!Array.isArray(c.screens) || !c.settings) {
+    return 'Invalid config: must include screens array and settings';
+  }
+  return validateDisplays(config as ScreenConfiguration);
+}
+
+// POST — restore from a backup bundle (or a legacy config-only file).
+//
+// Two safety properties beyond the raw writes:
+//  1. Validate any incoming config (shape + displays) BEFORE any disk write,
+//     so a bad bundle can't clobber config.json past the point of no return.
+//  2. Snapshot the current on-disk state of every file we're about to touch,
+//     run writes sequentially, and on any failure roll back the writes that
+//     already landed. Each individual write is already atomic via tmp+rename
+//     (json-store), but there's no cross-file transaction — without rollback
+//     a mid-bundle failure leaves mixed old/new data across config, chores,
+//     meals, rewards.
 export const POST = withAuth(async (request: NextRequest) => {
   const body = await request.json();
 
   // New bundle format
   if (body._type === 'home-screens-backup') {
-    const promises: Promise<unknown>[] = [];
-
-    if (body.config) {
-      promises.push(writeConfig(body.config));
-    }
-    if (body.chores) {
-      promises.push(writeChoreData(body.chores));
-    }
-    if (body.choreCompletions) {
-      promises.push(writeCompletions(body.choreCompletions));
-    }
-    if (body.meals) {
-      promises.push(writeMealData(body.meals));
-    }
-    if (body.rewards) {
-      promises.push(writeRewardData(body.rewards));
+    if (body.config !== undefined) {
+      const err = validateRestoredConfig(body.config);
+      if (err) return NextResponse.json({ error: err }, { status: 400 });
     }
 
-    await Promise.all(promises);
+    // Snapshot current state of every file we're about to touch BEFORE any
+    // write, so we can roll back to a consistent pre-restore state on failure.
+    const snapshots = {
+      config: body.config ? await readConfig() : null,
+      chores: body.chores ? await readChoreData() : null,
+      completions: body.choreCompletions ? await readCompletions() : null,
+      meals: body.meals ? await readMealData() : null,
+      rewards: body.rewards ? await readRewardData() : null,
+    };
+
+    // Track which writes actually landed (post-await) so rollback only
+    // reverts files that were actually mutated — the failing write itself
+    // either completed the rename or didn't touch the file.
+    const rollbacks: Array<() => Promise<void>> = [];
+    try {
+      if (body.config) {
+        await writeConfig(body.config);
+        rollbacks.push(() => writeConfig(snapshots.config!));
+      }
+      if (body.chores) {
+        await writeChoreData(body.chores);
+        rollbacks.push(() => writeChoreData(snapshots.chores!));
+      }
+      if (body.choreCompletions) {
+        await writeCompletions(body.choreCompletions);
+        rollbacks.push(() => writeCompletions(snapshots.completions!));
+      }
+      if (body.meals) {
+        await writeMealData(body.meals);
+        rollbacks.push(() => writeMealData(snapshots.meals!));
+      }
+      if (body.rewards) {
+        await writeRewardData(body.rewards);
+        rollbacks.push(() => writeRewardData(snapshots.rewards!));
+      }
+    } catch (err) {
+      // Best-effort rollback in reverse order. allSettled so one failed
+      // revert doesn't block the others — surface the original error either way.
+      await Promise.allSettled(rollbacks.reverse().map((fn) => fn()));
+      throw err;
+    }
 
     return NextResponse.json({
       restored: {
@@ -103,6 +158,8 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   // Legacy format: raw ScreenConfiguration object
   if (body.screens && Array.isArray(body.screens) && body.settings) {
+    const err = validateRestoredConfig(body);
+    if (err) return NextResponse.json({ error: err }, { status: 400 });
     await writeConfig(body);
     return NextResponse.json({ restored: { config: true } });
   }
