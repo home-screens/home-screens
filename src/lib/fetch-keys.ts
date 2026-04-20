@@ -121,8 +121,12 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
   'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
-  'chore-chart':             { buildUrl: choresUrl, ttlMs: 30_000 },            // server: no cache
-  'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 30_000 },            // shared useChoreData hook
+  // 5s poll (instead of 30s) so cross-device toggles — e.g. a kid checks off a
+  // chore on their phone's /chores page — surface on the wall dashboard within
+  // ~5s instead of 30s. The same-device case is already instant because
+  // useChoreData's POST response overwrites local state directly.
+  'chore-chart':             { buildUrl: choresUrl, ttlMs: 5_000 },             // server: no cache
+  'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 5_000 },             // shared useChoreData hook
   'meal-planner':            { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
   'fullscreen-meal-planner': { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
 };

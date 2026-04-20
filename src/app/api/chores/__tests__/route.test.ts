@@ -113,10 +113,17 @@ beforeEach(() => {
   fakeFs.clear();
 
   vi.mocked(readChoreData).mockResolvedValue(choreDataFixture as never);
-  vi.mocked(creditPoints).mockResolvedValue({} as never);
+  // Mutations return the post-write RewardData from the shared opQueue —
+  // the route embeds this snapshot in the POST response so clients can
+  // update balances instantly without a second read (which would race).
+  vi.mocked(creditPoints).mockResolvedValue({
+    rewards: [],
+    balances: { 'kid-1': 5 },
+    redemptions: [],
+  });
   vi.mocked(debitPointsExact).mockResolvedValue({
-    data: {} as never,
-    balance: 10,
+    data: { rewards: [], balances: { 'kid-1': 5 }, redemptions: [] },
+    balance: 5,
     wentNegative: false,
   });
 });
@@ -403,6 +410,82 @@ describe('POST /api/chores', () => {
     expect(json.warning).toBeDefined();
     expect(typeof json.warning).toBe('string');
     expect(json.warning).toContain('-3');
+  });
+
+  it('embeds the post-write rewards snapshot from creditPoints in the POST response', async () => {
+    // Route must surface creditPoints' return value directly — not re-read — so
+    // the snapshot is race-free against concurrent toggles from another kid.
+    vi.mocked(creditPoints).mockResolvedValue({
+      rewards: [],
+      balances: { 'kid-1': 42 },
+      redemptions: [],
+    });
+
+    const res = await POST(
+      makePostRequest({
+        choreId: 'chore-pts5',
+        memberId: 'kid-1',
+        date: daysAgo(0),
+      }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.rewards).toBeDefined();
+    expect(json.rewards.balances['kid-1']).toBe(42);
+  });
+
+  it('embeds the post-write rewards snapshot from debitPointsExact on un-complete', async () => {
+    vi.mocked(debitPointsExact).mockResolvedValue({
+      data: { rewards: [], balances: { 'kid-1': 7 }, redemptions: [] },
+      balance: 7,
+      wentNegative: false,
+    });
+    const today = daysAgo(0);
+
+    // First add to create the completion, then remove to trigger the debit.
+    await POST(
+      makePostRequest({ choreId: 'chore-pts5', memberId: 'kid-1', date: today }),
+    );
+    const res = await POST(
+      makePostRequest({ choreId: 'chore-pts5', memberId: 'kid-1', date: today }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.rewards.balances['kid-1']).toBe(7);
+  });
+
+  it('OMITS rewards from the response when no credit/debit happened (0-point chore)', async () => {
+    // A 0-point chore doesn't touch balances, so there's no reason to make the
+    // client overwrite its rewards cache — omitting the field is correct.
+    const res = await POST(
+      makePostRequest({
+        choreId: 'chore-free',
+        memberId: 'kid-1',
+        date: daysAgo(0),
+      }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.rewards).toBeUndefined();
+    expect(creditPoints).not.toHaveBeenCalled();
+    expect(debitPointsExact).not.toHaveBeenCalled();
+  });
+
+  it('OMITS rewards from the response when the chore is not found', async () => {
+    const res = await POST(
+      makePostRequest({
+        choreId: 'chore-unknown',
+        memberId: 'kid-1',
+        date: daysAgo(0),
+      }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.rewards).toBeUndefined();
   });
 
   it('does NOT include a warning when balance stayed non-negative', async () => {

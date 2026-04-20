@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ChoreMember, ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { displayFetch } from '@/lib/display-fetch';
-import { choresUrl, choresDataUrl, rewardsUrl } from '@/lib/fetch-keys';
+import { displayCache } from '@/lib/display-cache';
+import { choresUrl, choresDataUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { RewardRedemption, RewardDefinition } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
@@ -59,10 +60,23 @@ interface ChoreDataState {
 }
 
 export function useChoreData(config: ChoreDataConfig): ChoreDataState {
-  const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), 30_000);
+  // TTLs come from the shared registry so the prefetch system and the hook
+  // stay in lockstep — see fetch-keys.ts. Drops to 5s give phone→wall
+  // cross-device toggles a 5s worst-case lag.
+  const choreChartTtl = FETCH_KEY_REGISTRY['chore-chart']?.ttlMs ?? 5_000;
+  const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), choreChartTtl);
   const [fetchedChoreData] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
-  const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), 30_000);
+  const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
+  // Mirror fetchedRewards into local state so toggleComplete can overwrite it
+  // from the POST response for instant balance updates on the same device.
+  const [rewards, setRewards] = useState<RewardsResponse | null>(null);
+  // Timestamp of the last server-truth rewards write we applied from a POST
+  // response. A /api/rewards GET isn't serialized with the rewards opQueue, so
+  // a poll launched before our toggle can arrive AFTER the toggle response and
+  // carry a pre-credit balance. We silence those stale polls during an
+  // override window just long enough for the next poll to catch up.
+  const rewardsOverrideUntil = useRef<number>(0);
 
   // Members and chores from shared data file
   const members = useMemo(() => fetchedChoreData?.members ?? [], [fetchedChoreData]);
@@ -72,6 +86,13 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   useEffect(() => {
     if (fetchedCompletions) setCompletions(fetchedCompletions.completions ?? []);
   }, [fetchedCompletions]);
+  useEffect(() => {
+    if (!fetchedRewards) return;
+    // Drop polls that land inside the override window — they may be replies
+    // to in-flight fetches that predate the current server-truth balance.
+    if (Date.now() < rewardsOverrideUntil.current) return;
+    setRewards(fetchedRewards);
+  }, [fetchedRewards]);
 
   const isLoading = (!fetchedCompletions && !completionsError) || !fetchedChoreData;
   const error = completionsError;
@@ -183,12 +204,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         streak,
         weeklyPoints,
         weeklyPointsTotal,
-        rewardBalance: fetchedRewards?.balances?.[member.id] ?? 0,
+        rewardBalance: rewards?.balances?.[member.id] ?? 0,
       });
     }
 
     return stats;
-  }, [members, chores, todayAssignments, completionSet, config.weekStartDay, fetchedRewards]);
+  }, [members, chores, todayAssignments, completionSet, config.weekStartDay, rewards]);
 
   // Week data for star chart — aligned to configured week start day
   const weekData = useMemo(() => {
@@ -258,6 +279,17 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       if (!res.ok) throw new Error('Failed to toggle');
       const data: ChoreToggleResponse = await res.json();
       setCompletions(data.completions ?? []);
+      // Update rewards from the POST response so ticket balances reflect the
+      // new credit/debit instantly — without waiting for the next rewards poll.
+      // Also prime the shared cache so sibling module instances (e.g. a
+      // dashboard tab that mounts later) don't re-read stale data, and set the
+      // override window so a stale in-flight poll can't flash the old balance
+      // back until the next poll returns a fresh snapshot.
+      if (data.rewards) {
+        setRewards(data.rewards);
+        displayCache.set(rewardsUrl(), data.rewards, choreChartTtl);
+        rewardsOverrideUntil.current = Date.now() + choreChartTtl;
+      }
       // Surface server warnings (e.g. balance went negative on un-complete) so they're
       // at least visible in the kiosk console — display modules don't have a UI for
       // these alerts, but the admin viewing dev tools can see them.
@@ -268,20 +300,20 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       // Revert optimistic update on error
       setCompletions(snapshot);
     }
-  }, []);
+  }, [choreChartTtl]);
 
   // Recent redemptions (last 5 minutes) for display toasts
   const recentRedemptions = useMemo(() => {
-    const list = fetchedRewards?.redemptions;
+    const list = rewards?.redemptions;
     if (!list || list.length === 0) return [];
     const cutoff = Date.now() - 5 * 60_000;
     return list.filter((r) => new Date(r.redeemedAt).getTime() >= cutoff);
-  }, [fetchedRewards]);
+  }, [rewards]);
 
   return {
     members,
     chores,
-    rewards: fetchedRewards?.rewards ?? [],
+    rewards: rewards?.rewards ?? [],
     todayAssignments,
     completionSet,
     memberStats,

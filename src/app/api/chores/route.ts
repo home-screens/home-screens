@@ -6,6 +6,7 @@ import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
 import { errorResponse } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
+import type { RewardData } from '@/lib/reward-data';
 import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 
 export const dynamic = 'force-dynamic';
@@ -155,11 +156,18 @@ export const POST = async (request: NextRequest) => {
   const choreData = await choreDataPromise;
   const chore = choreData.chores.find((c) => c.id === choreId);
   let warning: string | undefined;
+  // Capture the post-write RewardData from the mutation itself rather than
+  // re-reading from disk. Both creditPoints and debitPointsExact resolve only
+  // AFTER their write commits through reward-data.ts's shared opQueue, so the
+  // returned snapshot is race-free — a concurrent toggle from another kid
+  // can't interleave between the write and our read.
+  let rewards: RewardData | undefined;
   if (chore && chore.points > 0) {
     if (wasAdded) {
-      await creditPoints(memberId, chore.points);
+      rewards = await creditPoints(memberId, chore.points);
     } else {
       const debitResult = await debitPointsExact(memberId, chore.points);
+      rewards = debitResult.data;
       if (debitResult.wentNegative) {
         const memberName = choreData.members.find((m) => m.id === memberId)?.name ?? 'They';
         warning = `${memberName}'s balance is now ${debitResult.balance} — they'll need to earn ${Math.abs(debitResult.balance)} points before redeeming again.`;
@@ -167,7 +175,14 @@ export const POST = async (request: NextRequest) => {
     }
   }
 
-  return NextResponse.json({ completions: result.completions, ...(warning ? { warning } : {}) });
+  // When no credit/debit happened (0-point chore or chore-not-found) we omit
+  // `rewards` — balances didn't change, so the client has no reason to refresh
+  // its rewards cache from this response.
+  return NextResponse.json({
+    completions: result.completions,
+    ...(rewards ? { rewards } : {}),
+    ...(warning ? { warning } : {}),
+  });
   } catch (error) {
     return errorResponse(error, 'Failed to update chore completions');
   }

@@ -1,3 +1,5 @@
+import type { RewardData } from '@/lib/reward-data';
+
 export type BuiltinModuleType =
   | 'clock'
   | 'calendar'
@@ -962,6 +964,9 @@ export interface ChoreToggleRequest {
 /** Response body for GET and POST /api/chores. */
 export interface ChoreToggleResponse {
   completions: ChoreCompletion[];
+  /** Present on POST responses so the client can update its rewards cache
+   *  instantly after toggling, instead of waiting for the next rewards poll. */
+  rewards?: RewardData;
   /** Set when an admin un-completes a chore whose points were already spent —
    *  the balance went negative as a result. UI should surface a warning. */
   warning?: string;
