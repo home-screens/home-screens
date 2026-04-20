@@ -1,31 +1,33 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
 import { audit, writeQueue } from '../audit';
 
-const AUDIT_PATH = path.join(process.cwd(), 'data', 'audit.log');
-const ROTATED_PATH = AUDIT_PATH + '.1';
-
-let originalContent: string | null = null;
-let originalRotated: string | null = null;
+// Each test gets its own tmp cwd so parallel workers can't race the real
+// data/audit.log. The audit module resolves its path lazily via process.cwd(),
+// so overriding cwd before each test redirects all writes into the tmp dir.
+let tmpDir: string;
+let origCwd: () => string;
+let AUDIT_PATH: string;
 
 beforeEach(async () => {
-  try { originalContent = await fs.readFile(AUDIT_PATH, 'utf-8'); } catch { originalContent = null; }
-  try { originalRotated = await fs.readFile(ROTATED_PATH, 'utf-8'); } catch { originalRotated = null; }
-  try { await fs.unlink(AUDIT_PATH); } catch { /* ok */ }
-  try { await fs.unlink(ROTATED_PATH); } catch { /* ok */ }
+  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'home-screens-audit-test-'));
+  origCwd = process.cwd;
+  process.cwd = () => tmpDir;
+  // Pre-create data/ because audit.ts caches its mkdir at module scope
+  // (`dirEnsured`) — without this, runs after the first test would skip the
+  // mkdir and ENOENT on appendFile.
+  await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true });
+  AUDIT_PATH = path.join(tmpDir, 'data', 'audit.log');
 });
 
 afterEach(async () => {
-  try { await fs.unlink(AUDIT_PATH); } catch { /* ok */ }
-  try { await fs.unlink(ROTATED_PATH); } catch { /* ok */ }
-  if (originalContent !== null) {
-    await fs.mkdir(path.dirname(AUDIT_PATH), { recursive: true });
-    await fs.writeFile(AUDIT_PATH, originalContent, 'utf-8');
-  }
-  if (originalRotated !== null) {
-    await fs.writeFile(ROTATED_PATH, originalRotated, 'utf-8');
-  }
+  // Drain in-flight writes before swapping cwd, otherwise queued writes would
+  // resolve their path against the next test's tmpDir.
+  try { await writeQueue; } catch { /* ok */ }
+  process.cwd = origCwd;
+  await fs.rm(tmpDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 });
 
 // Helper: wait for the write queue to drain by awaiting the internal promise chain.

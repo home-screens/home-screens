@@ -17,11 +17,6 @@ export default defineConfig({
   test: {
     environment: 'node',
     exclude: ['.worktrees/**', '**/node_modules/**'],
-    // Several tests read/write real files under data/ (audit.log,
-    // telemetry.json, config.json). Parallel workers race those writes
-    // and produce flaky failures. Run files serially; tests within a
-    // file still execute in-order.
-    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

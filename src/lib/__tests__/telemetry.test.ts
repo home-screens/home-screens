@@ -1,33 +1,29 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
 import type { ScreenConfiguration } from '@/types/config';
 
-const TELEMETRY_PATH = path.join(process.cwd(), 'data', 'telemetry.json');
-const TELEMETRY_TMP = TELEMETRY_PATH + '.tmp';
-
-// Save and restore original telemetry.json around tests
-let originalContent: string | null = null;
+// Each test gets its own tmp cwd so parallel workers can't race the real
+// data/telemetry.json. The json-store backing telemetry resolves its path
+// lazily via process.cwd(), so overriding cwd before each test redirects all
+// reads/writes into the tmp dir.
+let tmpDir: string;
+let origCwd: () => string;
+let TELEMETRY_PATH: string;
 
 beforeEach(async () => {
   vi.restoreAllMocks();
-  try {
-    originalContent = await fs.readFile(TELEMETRY_PATH, 'utf-8');
-  } catch {
-    originalContent = null;
-  }
-  try { await fs.unlink(TELEMETRY_PATH); } catch { /* ok */ }
-  try { await fs.unlink(TELEMETRY_TMP); } catch { /* ok */ }
+  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'home-screens-telemetry-test-'));
+  origCwd = process.cwd;
+  process.cwd = () => tmpDir;
+  TELEMETRY_PATH = path.join(tmpDir, 'data', 'telemetry.json');
 });
 
 afterEach(async () => {
   vi.restoreAllMocks();
-  try { await fs.unlink(TELEMETRY_PATH); } catch { /* ok */ }
-  try { await fs.unlink(TELEMETRY_TMP); } catch { /* ok */ }
-  if (originalContent !== null) {
-    await fs.mkdir(path.dirname(TELEMETRY_PATH), { recursive: true });
-    await fs.writeFile(TELEMETRY_PATH, originalContent, 'utf-8');
-  }
+  process.cwd = origCwd;
+  await fs.rm(tmpDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 });
 
 /* ─── Helpers ────────────────────────────────── */
