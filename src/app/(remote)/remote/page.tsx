@@ -1,5 +1,6 @@
 import { readConfig } from '@/lib/config';
 import { readChoreData } from '@/lib/chore-data';
+import { getDisplayProfiles } from '@/lib/display-filter';
 import type { ChoreChartConfig } from '@/types/config';
 import RemoteClient from './RemoteClient';
 
@@ -17,6 +18,22 @@ export default async function RemotePage() {
   const profiles = (config.profiles ?? []).map((p) => ({ id: p.id, name: p.name }));
   const activeProfile = config.settings.activeProfile;
   const displays = (config.displays ?? []).map((d) => ({ id: d.id, name: d.name }));
+
+  // Per-display resolved profile pools. `getDisplayProfiles` applies the
+  // owned → profileIds → global precedence, matching the server-side
+  // `/api/display/profile` validator so the picker can never show an option
+  // the API would reject. `activeProfile` falls back to the global setting
+  // only when the display hasn't pinned its own.
+  const displayProfiles: Record<
+    string,
+    { profiles: Array<{ id: string; name: string }>; activeProfile?: string }
+  > = {};
+  for (const d of config.displays ?? []) {
+    displayProfiles[d.id] = {
+      profiles: getDisplayProfiles(d, config.profiles).map((p) => ({ id: p.id, name: p.name })),
+      activeProfile: d.activeProfile ?? config.settings.activeProfile,
+    };
+  }
 
   // Find display settings from the first chore module in config
   let modConfig: Record<string, unknown> | null = null;
@@ -74,7 +91,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles }}
     />
   );
 }

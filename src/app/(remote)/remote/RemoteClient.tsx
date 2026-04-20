@@ -24,7 +24,9 @@ import PhotosTab from './components/PhotosTab';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
+  /** Global profile pool — used for the All target and legacy single-display installs. */
   profiles: Array<{ id: string; name: string }>;
+  /** Global active profile — used for the All target and legacy single-display installs. */
   activeProfile: string | undefined;
   choreConfig: ChoreChartConfig | null;
   hasMeals: boolean;
@@ -33,6 +35,16 @@ interface RemoteInitialData {
   backupReminder: { enabled: boolean; intervalDays: number };
   /** Multi-display registry. Empty in single-display installs. */
   displays: Array<{ id: string; name: string }>;
+  /**
+   * Per-display resolved profile pool + active profile, keyed by displayId.
+   * Needed because a display can own its own `profiles` or restrict the
+   * global pool via `profileIds` — the global list is the wrong one to show
+   * when a specific display is selected.
+   */
+  displayProfiles: Record<
+    string,
+    { profiles: Array<{ id: string; name: string }>; activeProfile?: string }
+  >;
 }
 
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
@@ -145,6 +157,17 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   // controls when broadcasting.
   const showSingleDisplayControls = displayTarget !== 'all';
 
+  // When a specific display is targeted, show that display's resolved
+  // profile pool (which may be owned or allowlist-restricted). The global
+  // pool is only correct for the All/legacy case.
+  const targetProfileData =
+    displayTarget && displayTarget !== 'all'
+      ? initialData.displayProfiles[displayTarget]
+      : undefined;
+  const effectiveProfiles = targetProfileData?.profiles ?? initialData.profiles;
+  const effectiveInitialActiveProfile =
+    targetProfileData?.activeProfile ?? initialData.activeProfile ?? null;
+
   return (
     <DisplayTargetContext.Provider value={targetCtx}>
       <div className="min-h-dvh bg-hs-body text-hs-text-body">
@@ -165,10 +188,10 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
             {showSingleDisplayControls && <ScreenNav status={effectiveStatus} onNav={handleNav} />}
             <QuickActions isAsleep={isAsleep} onSleepWake={handleSleepWake} onAlertOpen={() => setAlertOpen(true)} />
             <BrightnessCard />
-            {showSingleDisplayControls && initialData.profiles.length > 0 && (
+            {showSingleDisplayControls && effectiveProfiles.length > 0 && (
               <ProfileSwitcher
-                profiles={initialData.profiles}
-                activeProfile={status?.activeProfile ?? initialData.activeProfile ?? null}
+                profiles={effectiveProfiles}
+                activeProfile={status?.activeProfile ?? effectiveInitialActiveProfile}
               />
             )}
 
