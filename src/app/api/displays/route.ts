@@ -68,17 +68,16 @@ export const GET = withDisplayAuth(async (request) => {
     displays: registered.map((d) => {
       const status = statuses.get(d.id);
       const viewportReports = getViewportReports(d.id);
-      // Return a precomputed screen count rather than the full `screens` /
-      // `screenIds` arrays. The editor's Displays tab only renders the
-      // count, and the full `screens` array would include every module's
-      // config (potentially ~100KB per poll, every 5s, and potentially
-      // containing plugin-configured secrets).
-      const screenCount = d.screens?.length ?? d.screenIds?.length ?? 0;
+      // Return a precomputed screen count rather than the full `screens`
+      // array. The editor's Displays tab only renders the count, and the
+      // full `screens` array would include every module's config
+      // (potentially ~100KB per poll, every 5s, and potentially containing
+      // plugin-configured secrets).
+      const screenCount = d.screens.length;
       return {
         id: d.id,
         name: d.name,
         screenCount,
-        profileIds: d.profileIds,
         activeProfile: d.activeProfile,
         settings: d.settings,
         displayWidth: d.displayWidth,

@@ -100,7 +100,7 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
-  addDisplay: (display: Omit<DisplayNode, 'screenIds' | 'screens'> & { screenIds?: string[]; screens?: Screen[] }) => void;
+  addDisplay: (display: Omit<DisplayNode, 'screens'> & { screens?: Screen[] }) => void;
   updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
   removeDisplay: (id: string) => void;
   importConfig: (json: string) => void;
@@ -132,9 +132,7 @@ export function getActiveScreens(
 
 /**
  * Returns a new `ScreenConfiguration` with the active screens replaced.
- * Sibling displays and the legacy global pool are untouched. Setting a
- * display's owned `screens` also clears its deprecated `screenIds` field
- * so the two fields can never disagree.
+ * Sibling displays and the legacy global pool are untouched.
  */
 function withActiveScreens(
   config: ScreenConfiguration,
@@ -147,9 +145,7 @@ function withActiveScreens(
   const idx = displays.findIndex((d) => d.id === selectedDisplayId);
   if (idx === -1) return { ...config, screens };
   const nextDisplays = [...displays];
-  const { screenIds: _legacy, ...rest } = nextDisplays[idx];
-  void _legacy;
-  nextDisplays[idx] = { ...rest, screens };
+  nextDisplays[idx] = { ...nextDisplays[idx], screens };
   return { ...config, displays: nextDisplays };
 }
 
@@ -273,38 +269,32 @@ function buildBootstrapMain(config: ScreenConfiguration): DisplayNode {
  * since there can only be one `main` and we can't seed a sibling.
  *
  * Everyone else starts with an empty screens list (fresh display designed at
- * its own resolution) and an empty profiles list — unless the caller passed
- * `profileIds` (legacy shared-pool mode, still supported for back-compat).
+ * its own resolution) and an empty profiles list.
  */
 function buildNewDisplay(
-  display: { id: string; name: string } & Partial<Omit<DisplayNode, 'id' | 'name'>>,
+  display: { id: string; name: string } & Partial<Omit<DisplayNode, 'id' | 'name' | 'screens'>> & { screens?: Screen[] },
   config: ScreenConfiguration,
   inheritFromGlobal: boolean,
 ): DisplayNode {
-  const initialProfiles: Profile[] | undefined = display.profileIds
-    ? undefined
-    : inheritFromGlobal
-      ? structuredClone(config.profiles ?? [])
-      : [];
+  const initialProfiles: Profile[] = inheritFromGlobal
+    ? structuredClone(config.profiles ?? [])
+    : [];
   const inheritedActiveProfile = inheritFromGlobal
     ? config.settings.activeProfile
     : undefined;
 
+  const screens: Screen[] = inheritFromGlobal
+    ? structuredClone(config.screens)
+    : display.screens ?? [];
+
   return {
     id: display.id,
     name: display.name,
-    ...(inheritFromGlobal
-      ? { screens: structuredClone(config.screens) }
-      : display.screens
-        ? { screens: display.screens }
-        : display.screenIds
-          ? { screenIds: display.screenIds }
-          : { screens: [] }),
-    ...(initialProfiles !== undefined ? { profiles: initialProfiles } : {}),
+    screens,
+    profiles: initialProfiles,
     ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
     ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
     ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),
-    ...(display.profileIds ? { profileIds: display.profileIds } : {}),
     ...(display.activeProfile
       ? { activeProfile: display.activeProfile }
       : inheritedActiveProfile
@@ -736,11 +726,10 @@ export const useEditorStore = create<EditorState>((set, get) => {
       const settings = config.settings.activeProfile === id
         ? { ...config.settings, activeProfile: undefined }
         : config.settings;
-      // Strip the removed profile from any display profileIds and clear it
-      // from per-display activeProfile so the writeConfig validator stays happy.
+      // Clear the removed profile from per-display activeProfile so the
+      // writeConfig validator stays happy.
       const displays = config.displays?.map((d) => ({
         ...d,
-        ...(d.profileIds ? { profileIds: d.profileIds.filter((pid) => pid !== id) } : {}),
         ...(d.activeProfile === id ? { activeProfile: undefined } : {}),
       }));
       return { config: { ...config, profiles, settings, displays } };
@@ -829,7 +818,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       const isFirstDisplay = existingDisplays.length === 0;
       const hasMain = existingDisplays.some((d) => isMainDisplay(d.id));
       const userAddingMainAsFirst = isFirstDisplay && isMainDisplay(display.id);
-      const userDidNotSpecifyScreens = !display.screens && !display.screenIds;
+      const userDidNotSpecifyScreens = !display.screens;
       const inheritFromGlobal = userAddingMainAsFirst && userDidNotSpecifyScreens;
 
       const nextDisplays = [...existingDisplays];

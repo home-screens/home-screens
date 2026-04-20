@@ -579,7 +579,6 @@ describe('editor store', () => {
 
       const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
       expect(kitchen.screens).toEqual([]);
-      expect(kitchen.screenIds).toBeUndefined();
     });
 
     it('auto-migrates the legacy profile pool onto Main on first addDisplay', () => {
@@ -717,8 +716,9 @@ describe('editor store', () => {
   describe('updateDisplay', () => {
     it('merges partial updates into the matching display', () => {
       const store = useEditorStore;
+      const existingScreen = { id: 's1', name: 'S1', backgroundImage: '', modules: [] };
       const config = makeConfig({
-        displays: [{ id: 'kitchen', name: 'Old name', screenIds: ['s1'] }],
+        displays: [{ id: 'kitchen', name: 'Old name', screens: [existingScreen] }],
       });
       store.setState({ config });
 
@@ -726,15 +726,15 @@ describe('editor store', () => {
 
       const display = store.getState().config!.displays![0];
       expect(display.name).toBe('Kitchen');
-      expect(display.screenIds).toEqual(['s1']);
+      expect(display.screens).toEqual([existingScreen]);
     });
 
     it('does not affect other displays', () => {
       const store = useEditorStore;
       const config = makeConfig({
         displays: [
-          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
-          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+          { id: 'kitchen', name: 'Kitchen', screens: [] },
+          { id: 'bedroom', name: 'Bedroom', screens: [] },
         ],
       });
       store.setState({ config });
@@ -749,7 +749,7 @@ describe('editor store', () => {
     it('sets a new override on a display with no existing settings', () => {
       const store = useEditorStore;
       const config = makeConfig({
-        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+        displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
       });
       store.setState({ config });
 
@@ -765,7 +765,7 @@ describe('editor store', () => {
         displays: [{
           id: 'kitchen',
           name: 'Kitchen',
-          screenIds: [],
+          screens: [],
           settings: { cursorHideSeconds: 10 },
         }],
       });
@@ -791,7 +791,7 @@ describe('editor store', () => {
         displays: [{
           id: 'kitchen',
           name: 'Kitchen',
-          screenIds: [],
+          screens: [],
           settings: { cursorHideSeconds: 10, rotationIntervalMs: 60_000 },
         }],
       });
@@ -811,7 +811,7 @@ describe('editor store', () => {
         displays: [{
           id: 'kitchen',
           name: 'Kitchen',
-          screenIds: [],
+          screens: [],
           settings: { cursorHideSeconds: 10 },
         }],
       });
@@ -826,7 +826,7 @@ describe('editor store', () => {
     it('does nothing when the display does not exist', () => {
       const store = useEditorStore;
       const config = makeConfig({
-        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+        displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
       });
       store.setState({ config, isDirty: false });
 
@@ -852,8 +852,8 @@ describe('editor store', () => {
       const store = useEditorStore;
       const config = makeConfig({
         displays: [
-          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
-          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+          { id: 'kitchen', name: 'Kitchen', screens: [] },
+          { id: 'bedroom', name: 'Bedroom', screens: [] },
         ],
       });
       store.setState({ config });
@@ -871,8 +871,8 @@ describe('editor store', () => {
       const store = useEditorStore;
       const config = makeConfig({
         displays: [
-          { id: 'kitchen', name: 'Kitchen', screenIds: [] },
-          { id: 'bedroom', name: 'Bedroom', screenIds: [] },
+          { id: 'kitchen', name: 'Kitchen', screens: [] },
+          { id: 'bedroom', name: 'Bedroom', screens: [] },
         ],
       });
       store.setState({ config });
@@ -890,7 +890,7 @@ describe('editor store', () => {
       // multi-display state that later code could misinterpret.
       const store = useEditorStore;
       const config = makeConfig({
-        displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+        displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
       });
       store.setState({ config });
 
@@ -957,34 +957,8 @@ describe('editor store', () => {
 
   /* ─── cascade prune of display references ─────── */
 
-  describe('removeScreen prunes display references', () => {
-    it('removes deleted screen ID from each display.screenIds', () => {
-      // This path exists specifically so the writeConfig validator
-      // (validateDisplays) does not reject saves after a screen deletion.
-      // A regression here only surfaces as a 400 on next save.
-      const store = useEditorStore;
-      const config = makeConfig({
-        screens: [
-          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
-          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
-        ],
-        displays: [
-          { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's2'] },
-          { id: 'bedroom', name: 'Bedroom', screenIds: ['s2'] },
-        ],
-      });
-      store.setState({ config, selectedScreenId: 's1' });
-
-      store.getState().removeScreen('s2');
-
-      const displays = store.getState().config!.displays!;
-      expect(displays[0].screenIds).toEqual(['s1']);
-      expect(displays[1].screenIds).toEqual([]);
-    });
-  });
-
   describe('removeProfile prunes display references', () => {
-    it('strips the deleted profile from display.profileIds and clears matching activeProfile', () => {
+    it('clears matching per-display activeProfile when a shared-pool profile is removed', () => {
       const store = useEditorStore;
       const config = makeConfig({
         profiles: [
@@ -995,15 +969,13 @@ describe('editor store', () => {
           {
             id: 'kitchen',
             name: 'Kitchen',
-            screenIds: [],
-            profileIds: ['day', 'night'],
+            screens: [],
             activeProfile: 'day',
           },
           {
             id: 'bedroom',
             name: 'Bedroom',
-            screenIds: [],
-            profileIds: ['night'],
+            screens: [],
             activeProfile: 'night',
           },
         ],
@@ -1013,11 +985,9 @@ describe('editor store', () => {
       store.getState().removeProfile('day');
 
       const displays = store.getState().config!.displays!;
-      expect(displays[0].profileIds).toEqual(['night']);
       // activeProfile was 'day' on kitchen — should now be undefined
       expect(displays[0].activeProfile).toBeUndefined();
-      // bedroom only had 'night' — should be untouched
-      expect(displays[1].profileIds).toEqual(['night']);
+      // bedroom had 'night' — should be untouched
       expect(displays[1].activeProfile).toBe('night');
     });
   });
@@ -2014,22 +1984,6 @@ describe('editor store', () => {
         }],
       });
       expect(mod.getActiveScreens(config, 'kitchen').map((s) => s.id)).toEqual(['k1']);
-    });
-
-    it('resolves legacy screenIds against config.screens when the display uses the shared-pool model', async () => {
-      const mod = await import('@/stores/editor-store');
-      const config = makeConfig({
-        screens: [
-          { id: 's1', name: 'A', backgroundImage: '', modules: [] },
-          { id: 's2', name: 'B', backgroundImage: '', modules: [] },
-        ],
-        displays: [{
-          id: 'kitchen',
-          name: 'K',
-          screenIds: ['s2'],
-        }],
-      });
-      expect(mod.getActiveScreens(config, 'kitchen').map((s) => s.id)).toEqual(['s2']);
     });
 
     it('falls back to config.screens when the selected display ID is unknown', async () => {

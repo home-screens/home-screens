@@ -14,10 +14,16 @@ const TELEMETRY_FILE = 'data/telemetry.json';
 const BEACON_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const BEACON_TIMEOUT_MS = 5_000;
 // v2 (2026-04-08) — added multi-display fields: displayCount, displays[],
-// hasOwnedScreens, hasLegacyScreenIds, hasOwnedProfiles, hasSettingsOverride.
-// sleepEnabled and alertsEnabled semantics widened to "any rendered surface
-// will actually use this", evaluated against per-display effective settings.
-const BEACON_VERSION = 2;
+// hasOwnedProfiles, hasSettingsOverride. sleepEnabled and alertsEnabled
+// semantics widened to "any rendered surface will actually use this",
+// evaluated against per-display effective settings.
+// v3 (2026-04-19) — removed hasLegacyScreenIds and hasOwnedScreens. Both
+// tracked migration progress for a refactor that is now complete; every
+// DisplayNode owns its `screens` list by type definition.
+// v3 (2026-04-19) — DisplayNode.screenIds and DisplayNode.profileIds were
+// removed from the schema. `hasLegacyScreenIds` (both on the beacon and each
+// per-display entry) is gone because the legacy shape no longer exists.
+const BEACON_VERSION = 3;
 
 const TELEMETRY_ENDPOINT = 'https://home-screens-telemetry.agent462.workers.dev/beacon';
 
@@ -44,10 +50,6 @@ interface DisplayBeaconEntry {
   transform: 'normal' | '90' | '180' | '270';
   screenCount: number;
   moduleCount: number;
-  /** True when this display owns its own `screens` list (preferred shape) */
-  hasOwnedScreens: boolean;
-  /** True when this display still references the deprecated `screenIds` pool */
-  hasLegacyScreenIds: boolean;
   /** True when this display owns its own `profiles` list */
   hasOwnedProfiles: boolean;
   /** True when any DisplayNodeSettings override is present on this display */
@@ -79,10 +81,6 @@ interface TelemetryBeacon {
   displayCount: number;
   /** Per-display breakdown; empty array in legacy single-display mode */
   displays: DisplayBeaconEntry[];
-  /** True when any display in the registry uses owned `screens` */
-  hasOwnedScreens: boolean;
-  /** True when any display still uses the deprecated `screenIds`-from-pool shape */
-  hasLegacyScreenIds: boolean;
   /** True when any display uses owned `profiles` */
   hasOwnedProfiles: boolean;
   /** True when any display carries a non-empty `settings` override block */
@@ -174,8 +172,6 @@ export async function buildBeaconPayload(
   const displayEntries: DisplayBeaconEntry[] = [];
   let anyDisplaySleep = false;
   let anyDisplayAlerts = false;
-  let hasOwnedScreens = false;
-  let hasLegacyScreenIds = false;
   let hasOwnedProfiles = false;
   let hasSettingsOverride = false;
 
@@ -208,16 +204,12 @@ export async function buildBeaconPayload(
       if (filtered.settings.sleep?.enabled) anyDisplaySleep = true;
       if (filtered.settings.alerts?.enabled) anyDisplayAlerts = true;
 
-      const displayOwned = display.screens !== undefined;
-      const displayLegacy = display.screens === undefined && display.screenIds !== undefined;
       const displayOwnedProfiles = display.profiles !== undefined;
       // Treat an empty {} settings block as no override — nobody writes
       // empty override objects on purpose, and counting them would inflate
       // the "uses per-display overrides" rollup.
       const displayHasOverride =
         display.settings !== undefined && Object.keys(display.settings).length > 0;
-      if (displayOwned) hasOwnedScreens = true;
-      if (displayLegacy) hasLegacyScreenIds = true;
       if (displayOwnedProfiles) hasOwnedProfiles = true;
       if (displayHasOverride) hasSettingsOverride = true;
 
@@ -230,8 +222,6 @@ export async function buildBeaconPayload(
         transform: filtered.settings.displayTransform ?? '90',
         screenCount: filtered.screens.length,
         moduleCount: displayModuleCount,
-        hasOwnedScreens: displayOwned,
-        hasLegacyScreenIds: displayLegacy,
         hasOwnedProfiles: displayOwnedProfiles,
         hasSettingsOverride: displayHasOverride,
       });
@@ -243,8 +233,6 @@ export async function buildBeaconPayload(
   }
 
   // Profile count aggregates the global pool + each display's owned profiles.
-  // Displays that only use `profileIds` reference pool entries and would be
-  // double-counted, so they're excluded from the sum.
   const ownedProfileSum = displays.reduce(
     (acc, d) => acc + (d.profiles?.length ?? 0),
     0,
@@ -302,8 +290,6 @@ export async function buildBeaconPayload(
     pluginCount: installedPlugins.plugins.length,
     displayCount: displays.length,
     displays: displayEntries,
-    hasOwnedScreens,
-    hasLegacyScreenIds,
     hasOwnedProfiles,
     hasSettingsOverride,
     beaconVersion: BEACON_VERSION,

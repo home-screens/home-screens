@@ -72,6 +72,16 @@ const migrations: Migration[] = [
     up: (config) => ({ ...config, version: 3 }),
     down: (config) => ({ ...config, version: 2 }),
   },
+  // Migration 004: `DisplayNode.screenIds` / `DisplayNode.profileIds` removed
+  // from the schema. Telemetry confirmed zero installs on the legacy shape,
+  // so no runtime data migration is needed — just a version bump to mark the
+  // cutover.
+  {
+    version: 4,
+    description: 'Owned screens/profiles required (screenIds/profileIds removed)',
+    up: (config) => ({ ...config, version: 4 }),
+    down: (config) => ({ ...config, version: 3 }),
+  },
 ];
 
 /** @internal Get all migrations sorted by version */

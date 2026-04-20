@@ -217,12 +217,8 @@ async function handleProfile(
         }
         // Resolve the effective profile pool for this display:
         //   - owned profiles (display.profiles), OR
-        //   - global pool filtered by display.profileIds, OR
         //   - the unrestricted global pool
-        // `getDisplayProfiles` implements that precedence in one place —
-        // using the raw `display.profiles ?? config.profiles` fallback
-        // silently accepts profiles excluded by `profileIds`, which
-        // would then fail `validateDisplays` on the next save.
+        // `getDisplayProfiles` implements that precedence in one place.
         if (profile) {
           const pool = getDisplayProfiles(display, config.profiles);
           if (!pool.some((p) => p.id === profile)) {

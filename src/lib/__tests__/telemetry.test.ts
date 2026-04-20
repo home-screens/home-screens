@@ -131,7 +131,7 @@ describe('buildBeaconPayload', () => {
     // Identity
     expect(payload.installId).toBe('payload-test-uuid');
     expect(payload.appVersion).toMatch(/^\d+\.\d+\.\d+/);
-    expect(payload.beaconVersion).toBe(2);
+    expect(payload.beaconVersion).toBe(3);
     expect(payload.sentAt).toBeTruthy();
 
     // Platform
@@ -287,10 +287,8 @@ describe('buildBeaconPayload', () => {
     const payload = await buildBeaconPayload(config, telemetryData);
     expect(payload.displayCount).toBe(0);
     expect(payload.displays).toEqual([]);
-    expect(payload.hasOwnedScreens).toBe(false);
-    expect(payload.hasLegacyScreenIds).toBe(false);
     expect(payload.hasOwnedProfiles).toBe(false);
-    expect(payload.beaconVersion).toBe(2);
+    expect(payload.beaconVersion).toBe(3);
     // Legacy screen/module counts still read from config.screens
     expect(payload.screenCount).toBe(1);
     expect(payload.moduleCount).toBe(2);
@@ -353,12 +351,10 @@ describe('buildBeaconPayload', () => {
     expect(payload.displays[0]).toMatchObject({
       screenCount: 1,
       moduleCount: 2,
-      hasOwnedScreens: true,
     });
     expect(payload.displays[1]).toMatchObject({
       screenCount: 1,
       moduleCount: 3,
-      hasOwnedScreens: true,
     });
   });
 
@@ -417,25 +413,23 @@ describe('buildBeaconPayload', () => {
     expect(payload.sleepEnabled).toBe(true);
   });
 
-  it('tracks hasOwnedScreens, hasLegacyScreenIds, and hasOwnedProfiles independently', async () => {
+  it('tracks hasOwnedProfiles per display', async () => {
     const { buildBeaconPayload } = await import('../telemetry');
     const config = makeConfig({
-      screens: [
-        {
-          id: 'pool-s1',
-          name: 'Pool',
-          modules: [{ id: 'pm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} }],
-        },
-      ] as unknown as ScreenConfiguration['screens'],
-      profiles: [{ id: 'p1', name: 'Default', screenIds: ['pool-s1'] }],
+      profiles: [{ id: 'p1', name: 'Default', screenIds: [] }],
       displays: [
         {
-          // Legacy shape — references pool screens by ID, no owned screens/profiles
-          id: 'legacy',
-          name: 'Legacy',
-          screenIds: ['pool-s1'],
-          profileIds: ['p1'],
-          activeProfile: 'p1',
+          // Display owning screens but without owned profiles — relies on
+          // the shared pool.
+          id: 'shared-profiles',
+          name: 'Shared',
+          screens: [
+            {
+              id: 's-s1',
+              name: 'S1',
+              modules: [{ id: 'sm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} }],
+            },
+          ],
         },
         {
           // Owned shape — self-contained screens and profiles
@@ -455,18 +449,12 @@ describe('buildBeaconPayload', () => {
     const telemetryData = { installId: 'mixed-test', firstSeenAt: '', lastBeaconAt: null };
 
     const payload = await buildBeaconPayload(config, telemetryData);
-    expect(payload.hasOwnedScreens).toBe(true);
-    expect(payload.hasLegacyScreenIds).toBe(true);
     expect(payload.hasOwnedProfiles).toBe(true);
     // Per-display flags
     expect(payload.displays[0]).toMatchObject({
-      hasOwnedScreens: false,
-      hasLegacyScreenIds: true,
       hasOwnedProfiles: false,
     });
     expect(payload.displays[1]).toMatchObject({
-      hasOwnedScreens: true,
-      hasLegacyScreenIds: false,
       hasOwnedProfiles: true,
     });
     // Profile aggregation: global pool (1) + modern's owned profile (1)
@@ -735,45 +723,6 @@ describe('buildBeaconPayload', () => {
     expect(payload.displays[0].h).toBe(2160);
   });
 
-  it('skips a display whose filterConfigForDisplay throws, without dropping the beacon', async () => {
-    // A malformed display config (here, a non-iterable `screenIds`) makes
-    // `new Set(...)` throw inside getDisplayScreens. The per-display
-    // try/catch in buildBeaconPayload should isolate the failure so the
-    // rest of the beacon still goes out — better than the entire beacon
-    // disappearing because of one bad display row.
-    const { buildBeaconPayload } = await import('../telemetry');
-    const config = makeConfig({
-      displays: [
-        {
-          id: 'broken',
-          name: 'Broken',
-          // Number is not iterable — `new Set(42)` throws TypeError inside
-          // getDisplayScreens, which propagates out of filterConfigForDisplay.
-          screenIds: 42 as unknown as string[],
-        },
-        {
-          id: 'fine',
-          name: 'Fine',
-          screens: [
-            {
-              id: 'fine-s1',
-              name: 'F1',
-              modules: [{ id: 'fm1', type: 'clock', x: 0, y: 0, w: 100, h: 100, config: {} }],
-            },
-          ],
-        },
-      ],
-    } as unknown as Partial<ScreenConfiguration>);
-    const telemetryData = { installId: 'broken-display', firstSeenAt: '', lastBeaconAt: null };
-
-    const payload = await buildBeaconPayload(config, telemetryData);
-    // displayCount still reflects the registry size — bookkeeping is honest
-    expect(payload.displayCount).toBe(2);
-    // …but only the healthy display contributes to displays[] / screen / module counts
-    expect(payload.displays).toHaveLength(1);
-    expect(payload.screenCount).toBe(1);
-    expect(payload.moduleCount).toBe(1);
-  });
 });
 
 describe('maybeSendBeacon', () => {

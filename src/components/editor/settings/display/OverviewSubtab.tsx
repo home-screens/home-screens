@@ -40,11 +40,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
   const dims = display.displayWidth && display.displayHeight
     ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
-  const screenCount = display.screens
-    ? display.screens.length
-    : display.screenIds
-      ? display.screenIds.length
-      : 0;
+  const screenCount = display.screens.length;
   // Active profile resolution: the per-display field wins over global,
   // matching `filterConfigForDisplay`'s rule.
   const activeProfileId = display.activeProfile ?? config.settings.activeProfile;

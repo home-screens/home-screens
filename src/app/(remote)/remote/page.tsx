@@ -20,7 +20,7 @@ export default async function RemotePage() {
   const displays = (config.displays ?? []).map((d) => ({ id: d.id, name: d.name }));
 
   // Per-display resolved profile pools. `getDisplayProfiles` applies the
-  // owned → profileIds → global precedence, matching the server-side
+  // owned → global precedence, matching the server-side
   // `/api/display/profile` validator so the picker can never show an option
   // the API would reject. `activeProfile` falls back to the global setting
   // only when the display hasn't pinned its own.

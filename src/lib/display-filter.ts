@@ -69,69 +69,42 @@ export function findMainDisplay(displays: DisplayNode[] | undefined): DisplayNod
 }
 
 /**
- * Pick the effective screen list for a display:
- *
- *   1. `display.screens` — owned screens, designed at this display's resolution (preferred)
- *   2. `display.screenIds` over `config.screens` — legacy shared-pool references
- *   3. empty list
+ * Pick the effective screen list for a display. Always returns the display's
+ * owned `screens` array — every display owns its own screens.
  *
  * Most modern code paths should only need to read this; the editor store
  * uses it as a single source of truth for "what is this display showing?".
+ * The `pool` parameter is retained for call-site compatibility but ignored.
  */
 export function getDisplayScreens(
   display: DisplayNode,
-  pool: Screen[],
+  _pool: Screen[],
 ): Screen[] {
-  if (display.screens) return display.screens;
-  if (display.screenIds) {
-    const set = new Set(display.screenIds);
-    return pool.filter((s) => set.has(s.id));
-  }
-  return [];
-}
-
-/**
- * Internal precedence resolver. Preserves `undefined` in the "nothing
- * set anywhere" case so `filterConfigForDisplay` can keep a legacy
- * signal — the exported `getDisplayProfiles` wraps this with `?? []`
- * for UI callers that always want an iterable.
- */
-function resolveDisplayProfiles(
-  display: DisplayNode,
-  pool: Profile[] | undefined,
-): Profile[] | undefined {
-  if (display.profiles) return display.profiles;
-  if (display.profileIds) {
-    const set = new Set(display.profileIds);
-    return pool?.filter((p) => set.has(p.id));
-  }
-  return pool;
+  return display.screens;
 }
 
 /**
  * Pick the effective profile list for a display:
  *
  *   1. `display.profiles` — owned profiles, scoped to this display's screens (preferred)
- *   2. `display.profileIds` over `pool` — legacy shared-pool references
- *   3. the full `pool` (or empty list if `pool` is undefined)
+ *   2. the full shared `pool` (or empty list if `pool` is undefined)
  *
- * Owned profiles win over `profileIds` for the same reason owned screens win
- * over `screenIds`: a display that has migrated to owned profiles is
- * self-contained and the shared-pool list is no longer relevant to it.
+ * Owned profiles are self-contained, so the shared pool is ignored for any
+ * display that has its own list.
  */
 export function getDisplayProfiles(
   display: DisplayNode,
   pool: Profile[] | undefined,
 ): Profile[] {
-  return resolveDisplayProfiles(display, pool) ?? [];
+  return display.profiles ?? pool ?? [];
 }
 
 /**
  * Find a screen by ID across every place it might live: each display's
- * owned `screens`, the legacy global `config.screens` pool, or both.
+ * owned `screens` or the legacy global `config.screens` pool.
  * Server-side routes that only know a `screenId` (e.g. the background
  * rotation endpoint) need this because screens are no longer guaranteed
- * to live in `config.screens` once the user adopts owned-screens displays.
+ * to live in `config.screens` once the user adopts multi-display mode.
  *
  * Returns `null` when the screen can't be found anywhere.
  */
@@ -143,10 +116,8 @@ export function findScreenById(
   // pool for any display that has migrated.
   if (config.displays) {
     for (const display of config.displays) {
-      if (display.screens) {
-        const owned = display.screens.find((s) => s.id === screenId);
-        if (owned) return owned;
-      }
+      const owned = display.screens.find((s) => s.id === screenId);
+      if (owned) return owned;
     }
   }
   // Fall through to the legacy global pool.
@@ -176,12 +147,13 @@ export function filterConfigForDisplay(
 
   const screens = getDisplayScreens(display, config.screens);
 
-  // Use the undefined-preserving resolver so a legacy config with no
-  // profiles anywhere still surfaces as `FilteredDisplayConfig.profiles
-  // === undefined`, matching legacy single-display behavior. The
-  // exported `getDisplayProfiles` collapses that to `[]` for UI callers
-  // that always want an iterable.
-  const profiles = resolveDisplayProfiles(display, config.profiles);
+  // Preserve `undefined` in the "nothing set anywhere" case so a legacy
+  // config with no profiles anywhere still surfaces as
+  // `FilteredDisplayConfig.profiles === undefined`, matching legacy
+  // single-display behavior. UI callers that want an iterable should
+  // use `getDisplayProfiles` which collapses to `[]`.
+  const profiles =
+    display.profiles ?? config.profiles;
 
   // Merge per-display settings over global settings. Per-display values win.
   // We thread the per-display activeProfile through `settings.activeProfile`
@@ -216,8 +188,8 @@ export function filterConfigForDisplay(
 
 /**
  * Remove every reference to a deleted screen id across every place it can
- * live: the global profile pool, each `display.screenIds` (legacy shared-pool
- * mode), and each `display.profiles[*].screenIds` (owned-profiles mode).
+ * live: the global profile pool and each `display.profiles[*].screenIds`
+ * (owned-profiles mode).
  *
  * Takes a config that already has the screen removed from
  * `config.screens` / the active display's owned screens, and returns a
@@ -226,7 +198,7 @@ export function filterConfigForDisplay(
  *
  * The `selectedDisplayId` argument chooses which display to scan for
  * owned-profile pruning. When it's `null` (legacy single-display mode),
- * the shared-pool cascade runs across every display instead.
+ * no display-level pruning runs — only the global profile pool is touched.
  */
 export function pruneDanglingScreenRefs(
   config: ScreenConfiguration,
@@ -245,27 +217,19 @@ export function pruneDanglingScreenRefs(
     next = { ...next, profiles: prunedProfiles };
   }
 
-  // Display-level cascade has two branches:
-  //   1. Multi-display with a selected display that OWNS its profiles —
-  //      prune the deleted id from its owned profiles only.
-  //   2. Legacy (no selected display) — prune the deleted id from every
-  //      display's shared-pool `screenIds` list.
-  if (next.displays) {
-    const updatedDisplays = selectedDisplayId
-      ? next.displays.map((d) => {
-          if (d.id !== selectedDisplayId || !d.profiles) return d;
-          return {
-            ...d,
-            profiles: d.profiles.map((p) => ({
-              ...p,
-              screenIds: p.screenIds.filter((sid) => sid !== deletedScreenId),
-            })),
-          };
-        })
-      : next.displays.map((d) => ({
-          ...d,
-          ...(d.screenIds ? { screenIds: d.screenIds.filter((sid) => sid !== deletedScreenId) } : {}),
-        }));
+  // When a specific display is selected in the editor and it owns its own
+  // profile list, prune the deleted id from that display's owned profiles.
+  if (next.displays && selectedDisplayId) {
+    const updatedDisplays = next.displays.map((d) => {
+      if (d.id !== selectedDisplayId || !d.profiles) return d;
+      return {
+        ...d,
+        profiles: d.profiles.map((p) => ({
+          ...p,
+          screenIds: p.screenIds.filter((sid) => sid !== deletedScreenId),
+        })),
+      };
+    });
     next = { ...next, displays: updatedDisplays };
   }
 
@@ -307,9 +271,7 @@ export function isValidDisplayId(id: string | undefined | null): boolean {
 
 /** Context shared between per-display sub-validators. */
 interface DisplayValidationCtx {
-  /** Global screen-id set for legacy `screenIds` checks. */
-  globalScreenIds: Set<string>;
-  /** Global profile-id set for legacy `profileIds` / activeProfile checks. */
+  /** Global profile-id set for the activeProfile cross-reference check. */
   globalProfileIds: Set<string>;
 }
 
@@ -324,23 +286,9 @@ function validateDisplayId(display: DisplayNode, seen: Set<string>): string | nu
   return null;
 }
 
-function validateDisplayScreens(display: DisplayNode, ctx: DisplayValidationCtx): string | null {
-  // Screen count caps apply to whichever form is in use.
-  if (display.screens && display.screens.length > MAX_SCREENS_PER_DISPLAY) {
+function validateDisplayScreens(display: DisplayNode): string | null {
+  if (display.screens.length > MAX_SCREENS_PER_DISPLAY) {
     return `Display "${display.id}" has too many screens: ${display.screens.length} (max ${MAX_SCREENS_PER_DISPLAY})`;
-  }
-  if (display.screenIds && display.screenIds.length > MAX_SCREENS_PER_DISPLAY) {
-    return `Display "${display.id}" has too many screens: ${display.screenIds.length} (max ${MAX_SCREENS_PER_DISPLAY})`;
-  }
-
-  // Legacy screenIds must resolve to real global screens; owned `screens`
-  // are self-contained and have already been sanitized by the editor store.
-  if (display.screenIds && !display.screens) {
-    for (const sid of display.screenIds) {
-      if (!ctx.globalScreenIds.has(sid)) {
-        return `Display "${display.id}" references unknown screen "${sid}"`;
-      }
-    }
   }
   return null;
 }
@@ -357,23 +305,7 @@ type DisplayProfilesResult =
  */
 function validateDisplayProfiles(
   display: DisplayNode,
-  ctx: DisplayValidationCtx,
 ): DisplayProfilesResult {
-  // Owned profiles and the legacy `profileIds` reference are mutually
-  // exclusive — a display either references the shared pool or owns its
-  // own list, never both. Mirrors the owned-vs-`screenIds` rule.
-  if (display.profiles && display.profileIds) {
-    return { kind: 'error', message: `Display "${display.id}" sets both "profiles" and "profileIds" — pick one` };
-  }
-
-  if (display.profileIds) {
-    for (const pid of display.profileIds) {
-      if (!ctx.globalProfileIds.has(pid)) {
-        return { kind: 'error', message: `Display "${display.id}" references unknown profile "${pid}"` };
-      }
-    }
-  }
-
   if (!display.profiles) {
     return { kind: 'ok', ownedProfileIds: null };
   }
@@ -382,7 +314,7 @@ function validateDisplayProfiles(
   // screenIds must resolve within this display's own screens (NOT the
   // global pool). IDs must be unique within the owned list.
   const ownedProfileIds = new Set<string>();
-  const ownedScreenIds = new Set((display.screens ?? []).map((s) => s.id));
+  const ownedScreenIds = new Set(display.screens.map((s) => s.id));
   for (const profile of display.profiles) {
     if (ownedProfileIds.has(profile.id)) {
       return { kind: 'error', message: `Display "${display.id}" has duplicate profile id "${profile.id}"` };
@@ -416,11 +348,6 @@ function validateDisplayActiveProfile(
   if (!ctx.globalProfileIds.has(display.activeProfile)) {
     return `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"`;
   }
-  // When profileIds restricts the display, activeProfile must be in that set —
-  // otherwise the merged settings select a profile the filtered list won't contain.
-  if (display.profileIds && !display.profileIds.includes(display.activeProfile)) {
-    return `Display "${display.id}" activeProfile "${display.activeProfile}" is not in its profileIds list`;
-  }
   return null;
 }
 
@@ -443,14 +370,11 @@ function validateDisplayDimensions(display: DisplayNode): string | null {
  *   and ≤ 64 characters (mirrors the in-memory map's `MAX_KNOWN_DISPLAYS` keying)
  * - IDs must be unique
  * - At most 64 displays per config (the broadcast loop iterates them — caps cost)
- * - Each display must provide either owned `screens` or legacy `screenIds`
- *   (zero screens is allowed — an empty list just renders "no screens configured")
- * - Each display.screens / screenIds is at most 256 entries
- * - Every legacy `screenIds` entry must reference an existing global screen
+ * - Each display must own a `screens` array (zero screens is allowed — an empty
+ *   list just renders "no screens configured")
+ * - Each display.screens is at most 256 entries
  * - Owned screens are self-contained and validated separately
- * - Every `profileIds` entry must reference an existing profile
- * - `activeProfile`, when set, must reference an existing profile AND
- *   (when `profileIds` is set) be a member of `profileIds`
+ * - `activeProfile`, when set, must reference an existing profile
  * - Per-display dimensions, when set, must be positive integers
  *
  * Internally this dispatches to a set of focused sub-validators so each
@@ -466,7 +390,6 @@ export function validateDisplays(config: ScreenConfiguration): string | null {
   }
 
   const ctx: DisplayValidationCtx = {
-    globalScreenIds: new Set(config.screens.map((s) => s.id)),
     globalProfileIds: new Set((config.profiles ?? []).map((p) => p.id)),
   };
   const seen = new Set<string>();
@@ -475,10 +398,10 @@ export function validateDisplays(config: ScreenConfiguration): string | null {
     const idError = validateDisplayId(display, seen);
     if (idError) return idError;
 
-    const screensError = validateDisplayScreens(display, ctx);
+    const screensError = validateDisplayScreens(display);
     if (screensError) return screensError;
 
-    const profileResult = validateDisplayProfiles(display, ctx);
+    const profileResult = validateDisplayProfiles(display);
     if (profileResult.kind === 'error') return profileResult.message;
 
     const activeError = validateDisplayActiveProfile(display, ctx, profileResult.ownedProfileIds);

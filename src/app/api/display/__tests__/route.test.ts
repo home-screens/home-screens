@@ -323,10 +323,10 @@ describe('POST /api/display/profile', () => {
 
   it('writes per-display activeProfile when displayId is provided', async () => {
     vi.mocked(requireSession).mockResolvedValue(undefined as never);
-    const display: { id: string; name: string; screenIds: string[]; activeProfile?: string } = {
+    const display: { id: string; name: string; screens: never[]; activeProfile?: string } = {
       id: 'kitchen',
       name: 'Kitchen',
-      screenIds: [],
+      screens: [],
     };
     vi.mocked(readConfig).mockResolvedValue({
       version: 3,
@@ -378,13 +378,13 @@ describe('POST /api/display/profile', () => {
     const display: {
       id: string;
       name: string;
-      screenIds: string[];
+      screens: never[];
       profiles: Array<{ id: string; name: string; screenIds: string[] }>;
       activeProfile?: string;
     } = {
       id: 'kitchen',
       name: 'Kitchen',
-      screenIds: [],
+      screens: [],
       profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: [] }],
     };
     vi.mocked(readConfig).mockResolvedValue({
@@ -423,7 +423,7 @@ describe('POST /api/display/profile', () => {
       displays: [{
         id: 'kitchen',
         name: 'Kitchen',
-        screenIds: [],
+        screens: [],
         profiles: [{ id: 'owned-day', name: 'Owned Day', screenIds: [] }],
       }],
     });

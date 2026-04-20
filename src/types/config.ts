@@ -279,18 +279,9 @@ export interface DisplayNode {
   name: string;
   /**
    * Screens owned by this display. Each display has its own independent list,
-   * laid out at this display's resolution. When present, `screenIds` is
-   * ignored and the display renders these screens directly.
+   * laid out at this display's resolution.
    */
-  screens?: Screen[];
-  /**
-   * Legacy screen-pool reference — pick screens from the parent
-   * `ScreenConfiguration.screens` list by ID. Kept for backward compat with
-   * early multi-display configs that predated owned screens. New displays
-   * should use `screens` directly.
-   * @deprecated prefer `screens`
-   */
-  screenIds?: string[];
+  screens: Screen[];
   /** Canvas width in pixels (overrides GlobalSettings.displayWidth) */
   displayWidth?: number;
   /** Canvas height in pixels (overrides GlobalSettings.displayHeight) */
@@ -298,18 +289,9 @@ export interface DisplayNode {
   /** wlr-randr transform applied at boot on the display-only Pi (informational on the hub side) */
   displayTransform?: 'normal' | '90' | '180' | '270';
   /**
-   * Legacy profile-pool reference — pick profiles from the parent
-   * `ScreenConfiguration.profiles` list by ID. Mutually exclusive with
-   * the owned `profiles` field below: a display either references the
-   * shared pool or owns its own list, never both.
-   * @deprecated prefer owned `profiles`
-   */
-  profileIds?: string[];
-  /**
-   * Profiles owned by this display. When present, this display ignores
-   * both `profileIds` and the global `config.profiles` pool — analogous to
-   * how `screens` overrides the legacy `screenIds`-from-pool model. Owned
-   * profile `screenIds` reference this display's own `screens`.
+   * Profiles owned by this display. When present, this display ignores the
+   * global `config.profiles` pool. Owned profile `screenIds` reference this
+   * display's own `screens`.
    */
   profiles?: Profile[];
   /** Per-display active profile (falls back to GlobalSettings.activeProfile) */

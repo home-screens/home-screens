@@ -184,12 +184,8 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
     ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
 
-  // Number of screens this display owns (or pulls from the legacy pool).
-  const screenCount = display.screens
-    ? display.screens.length
-    : display.screenIds
-      ? display.screenIds.length
-      : 0;
+  // Number of screens this display owns.
+  const screenCount = display.screens.length;
 
   const handleEditScreens = () => {
     setSelectedDisplay(display.id);

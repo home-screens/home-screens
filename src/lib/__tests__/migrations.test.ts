@@ -70,8 +70,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 3', () => {
-    expect(getLatestSchemaVersion()).toBe(3);
+  it('getLatestSchemaVersion returns 4', () => {
+    expect(getLatestSchemaVersion()).toBe(4);
   });
 });
 

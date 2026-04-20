@@ -39,7 +39,7 @@ describe('GET /api/displays?id=<id>', () => {
       version: 3,
       screens: [],
       settings: {} as never,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     });
     const res = await GET(makeRequest('?id=kitchen'));
     const json = await res.json();
@@ -52,7 +52,7 @@ describe('GET /api/displays?id=<id>', () => {
       version: 3,
       screens: [],
       settings: {} as never,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     });
     const res = await GET(makeRequest('?id=bedroom'));
     const json = await res.json();
@@ -104,8 +104,8 @@ describe('GET /api/displays (full list)', () => {
       screens: [],
       settings: {} as never,
       displays: [
-        { id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] },
-        { id: 'bedroom', name: 'Bedroom', screenIds: ['s2'] },
+        { id: 'kitchen', name: 'Kitchen', screens: [{ id: 's1', name: 'S1', backgroundImage: '', modules: [] }] },
+        { id: 'bedroom', name: 'Bedroom', screens: [{ id: 's2', name: 'S2', backgroundImage: '', modules: [] }] },
       ],
     });
     const status: DisplayStatus = {
@@ -142,7 +142,7 @@ describe('GET /api/displays (full list)', () => {
       version: 3,
       screens: [],
       settings: {} as never,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     });
     vi.mocked(getUnadoptedDisplays).mockReturnValue(['garage']);
     vi.mocked(getAllDisplayStatuses).mockReturnValue(
@@ -223,7 +223,7 @@ describe('GET /api/displays caching', () => {
       version: 3,
       screens: [],
       settings: {} as never,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     });
     await GET(makeRequest('?id=kitchen'));
     await GET(makeRequest('?id=bedroom'));

@@ -62,8 +62,8 @@ function makeConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfigu
 describe('filterConfigForDisplay', () => {
   it('returns null for an unknown display ID', () => {
     const config = makeConfig({
-      screens: [makeScreen('s1')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] }],
+      screens: [],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('s1')] }],
     });
     expect(filterConfigForDisplay(config, 'bedroom')).toBeNull();
   });
@@ -73,49 +73,27 @@ describe('filterConfigForDisplay', () => {
     expect(filterConfigForDisplay(config, 'kitchen')).toBeNull();
   });
 
-  it('filters screens to those listed in display.screenIds', () => {
+  it('returns owned screens unchanged', () => {
     const config = makeConfig({
-      screens: [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's3'] }],
-    });
-    const filtered = filterConfigForDisplay(config, 'kitchen');
-    expect(filtered?.screens.map((s) => s.id)).toEqual(['s1', 's3']);
-  });
-
-  it('preserves config.screens order, not display.screenIds order', () => {
-    // Documents the actual behavior (Array.filter walks config.screens) so
-    // a future refactor doesn't accidentally change ordering semantics.
-    const config = makeConfig({
-      screens: [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s3', 's1'] }],
-    });
-    const filtered = filterConfigForDisplay(config, 'kitchen');
-    expect(filtered?.screens.map((s) => s.id)).toEqual(['s1', 's3']);
-  });
-
-  it('returns all profiles when display.profileIds is undefined', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1')],
-      profiles: [makeProfile('day'), makeProfile('night')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] }],
-    });
-    const filtered = filterConfigForDisplay(config, 'kitchen');
-    expect(filtered?.profiles?.map((p) => p.id)).toEqual(['day', 'night']);
-  });
-
-  it('filters profiles when display.profileIds is set', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1')],
-      profiles: [makeProfile('day'), makeProfile('night'), makeProfile('weekend')],
+      screens: [],
       displays: [{
         id: 'kitchen',
         name: 'Kitchen',
-        screenIds: ['s1'],
-        profileIds: ['day', 'weekend'],
+        screens: [makeScreen('s1'), makeScreen('s3')],
       }],
     });
     const filtered = filterConfigForDisplay(config, 'kitchen');
-    expect(filtered?.profiles?.map((p) => p.id)).toEqual(['day', 'weekend']);
+    expect(filtered?.screens.map((s) => s.id)).toEqual(['s1', 's3']);
+  });
+
+  it('returns the shared pool of profiles when display.profiles is undefined', () => {
+    const config = makeConfig({
+      screens: [],
+      profiles: [makeProfile('day'), makeProfile('night')],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('s1')] }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.profiles?.map((p) => p.id)).toEqual(['day', 'night']);
   });
 
   it('shallow-merges per-display settings over global settings', () => {
@@ -128,11 +106,11 @@ describe('filterConfigForDisplay', () => {
         displayHeight: 1920,
         displayTransform: '90',
       }),
-      screens: [makeScreen('s1')],
+      screens: [],
       displays: [{
         id: 'kitchen',
         name: 'Kitchen',
-        screenIds: ['s1'],
+        screens: [makeScreen('s1')],
         settings: { rotationIntervalMs: 60_000 },
       }],
     });
@@ -162,11 +140,11 @@ describe('filterConfigForDisplay', () => {
     };
     const config = makeConfig({
       settings: makeSettings({ sleep: globalSleep }),
-      screens: [makeScreen('s1')],
+      screens: [],
       displays: [{
         id: 'kitchen',
         name: 'Kitchen',
-        screenIds: ['s1'],
+        screens: [makeScreen('s1')],
         settings: { sleep: overrideSleep },
       }],
     });
@@ -179,12 +157,12 @@ describe('filterConfigForDisplay', () => {
   it('per-display activeProfile overrides settings.activeProfile', () => {
     const config = makeConfig({
       settings: makeSettings({ activeProfile: 'day' }),
-      screens: [makeScreen('s1')],
+      screens: [],
       profiles: [makeProfile('day'), makeProfile('night')],
       displays: [{
         id: 'kitchen',
         name: 'Kitchen',
-        screenIds: ['s1'],
+        screens: [makeScreen('s1')],
         activeProfile: 'night',
       }],
     });
@@ -196,19 +174,19 @@ describe('filterConfigForDisplay', () => {
   it('falls back to settings.activeProfile when display.activeProfile is undefined', () => {
     const config = makeConfig({
       settings: makeSettings({ activeProfile: 'day' }),
-      screens: [makeScreen('s1')],
+      screens: [],
       profiles: [makeProfile('day')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('s1')] }],
     });
     const filtered = filterConfigForDisplay(config, 'kitchen');
     expect(filtered?.settings.activeProfile).toBe('day');
     expect(filtered?.activeProfile).toBeUndefined();
   });
 
-  it('returns the empty screens list when display.screenIds is empty', () => {
+  it('returns an empty screens list when the display owns no screens', () => {
     const config = makeConfig({
-      screens: [makeScreen('s1'), makeScreen('s2')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: [] }],
+      screens: [],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     });
     const filtered = filterConfigForDisplay(config, 'kitchen');
     expect(filtered?.screens).toEqual([]);
@@ -228,17 +206,16 @@ describe('validateDisplays', () => {
 
   it('accepts a fully valid registry', () => {
     const config = makeConfig({
-      screens: [makeScreen('s1'), makeScreen('s2')],
+      screens: [],
       profiles: [makeProfile('day'), makeProfile('night')],
       displays: [
         {
           id: 'kitchen',
           name: 'Kitchen',
-          screenIds: ['s1'],
-          profileIds: ['day'],
+          screens: [makeScreen('s1')],
           activeProfile: 'day',
         },
-        { id: 'bedroom-tv', name: 'Bedroom TV', screenIds: ['s2'] },
+        { id: 'bedroom-tv', name: 'Bedroom TV', screens: [makeScreen('s2')] },
       ],
     });
     expect(validateDisplays(config)).toBeNull();
@@ -257,7 +234,7 @@ describe('validateDisplays', () => {
       it(`rejects ${why}: "${bad}"`, () => {
         const config = makeConfig({
           screens: [],
-          displays: [{ id: bad, name: 'X', screenIds: [] } as DisplayNode],
+          displays: [{ id: bad, name: 'X', screens: [] } as DisplayNode],
         });
         const err = validateDisplays(config);
         expect(err).toBeTruthy();
@@ -271,7 +248,7 @@ describe('validateDisplays', () => {
       // digits" change would have to update this and force a code review.
       const config = makeConfig({
         screens: [],
-        displays: [{ id: '1st-floor', name: 'First Floor', screenIds: [] }],
+        displays: [{ id: '1st-floor', name: 'First Floor', screens: [] }],
       });
       expect(validateDisplays(config)).toBeNull();
     });
@@ -280,7 +257,7 @@ describe('validateDisplays', () => {
       const longId = 'a'.repeat(65);
       const config = makeConfig({
         screens: [],
-        displays: [{ id: longId, name: 'X', screenIds: [] }],
+        displays: [{ id: longId, name: 'X', screens: [] }],
       });
       expect(validateDisplays(config)).toMatch(/Invalid display id/);
     });
@@ -290,85 +267,35 @@ describe('validateDisplays', () => {
     const config = makeConfig({
       screens: [],
       displays: [
-        { id: 'kitchen', name: 'A', screenIds: [] },
-        { id: 'kitchen', name: 'B', screenIds: [] },
+        { id: 'kitchen', name: 'A', screens: [] },
+        { id: 'kitchen', name: 'B', screens: [] },
       ],
     });
     expect(validateDisplays(config)).toMatch(/Duplicate display id "kitchen"/);
   });
 
-  it('rejects unknown screen reference', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1')],
-      displays: [{ id: 'kitchen', name: 'K', screenIds: ['ghost'] }],
-    });
-    expect(validateDisplays(config)).toMatch(/unknown screen "ghost"/);
-  });
-
-  it('rejects unknown profile reference', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1')],
-      profiles: [makeProfile('day')],
-      displays: [{
-        id: 'kitchen',
-        name: 'K',
-        screenIds: ['s1'],
-        profileIds: ['phantom'],
-      }],
-    });
-    expect(validateDisplays(config)).toMatch(/unknown profile "phantom"/);
-  });
-
   it('rejects activeProfile not in global profiles', () => {
     const config = makeConfig({
-      screens: [makeScreen('s1')],
+      screens: [],
       profiles: [makeProfile('day')],
       displays: [{
         id: 'kitchen',
         name: 'K',
-        screenIds: ['s1'],
+        screens: [makeScreen('s1')],
         activeProfile: 'night',
       }],
     });
     expect(validateDisplays(config)).toMatch(/unknown activeProfile "night"/);
   });
 
-  it('rejects activeProfile that is global but not in display.profileIds', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1')],
-      profiles: [makeProfile('day'), makeProfile('night')],
-      displays: [{
-        id: 'kitchen',
-        name: 'K',
-        screenIds: ['s1'],
-        profileIds: ['day'],
-        activeProfile: 'night',
-      }],
-    });
-    expect(validateDisplays(config)).toMatch(/not in its profileIds list/);
-  });
-
   it('rejects too many displays', () => {
-    const displays = Array.from({ length: 65 }, (_, i) => ({
+    const displays: DisplayNode[] = Array.from({ length: 65 }, (_, i) => ({
       id: `display-${i}`,
       name: `Display ${i}`,
-      screenIds: [],
+      screens: [],
     }));
     const config = makeConfig({ screens: [], displays });
     expect(validateDisplays(config)).toMatch(/Too many displays/);
-  });
-
-  it('rejects too many screens per display', () => {
-    const screens = Array.from({ length: 257 }, (_, i) => makeScreen(`s${i}`));
-    const config = makeConfig({
-      screens,
-      displays: [{
-        id: 'mega',
-        name: 'Mega',
-        screenIds: screens.map((s) => s.id),
-      }],
-    });
-    expect(validateDisplays(config)).toMatch(/too many screens/);
   });
 
   it('rejects too many owned screens per display', () => {
@@ -470,21 +397,6 @@ describe('filterConfigForDisplay — owned screens', () => {
     });
     const filtered = filterConfigForDisplay(config, 'kitchen');
     expect(filtered?.screens.map((s) => s.id)).toEqual(['owned-a', 'owned-b']);
-  });
-
-  it('prefers owned screens over legacy screenIds when both are set', () => {
-    const config = makeConfig({
-      screens: [makeScreen('pool-1')],
-      displays: [{
-        id: 'kitchen',
-        name: 'Kitchen',
-        // Legacy field left in — owned screens should win
-        screenIds: ['pool-1'],
-        screens: [makeScreen('owned-x')],
-      }],
-    });
-    const filtered = filterConfigForDisplay(config, 'kitchen');
-    expect(filtered?.screens.map((s) => s.id)).toEqual(['owned-x']);
   });
 
   it('merges per-display displayWidth/Height/Transform into settings', () => {
@@ -821,34 +733,7 @@ describe('getDisplayProfiles', () => {
     expect(result.map((p) => p.id)).toEqual(['display-day', 'display-night']);
   });
 
-  it('owned profiles win even when legacy profileIds is also set', () => {
-    // Validator rejects this shape, but the resolver still has a
-    // deterministic precedence so a misconfigured file never returns
-    // the wrong list silently.
-    const owned = [makeProfile('owned-1')];
-    const pool = [makeProfile('pool-1')];
-    const display: DisplayNode = {
-      id: 'kitchen',
-      name: 'Kitchen',
-      screens: [],
-      profiles: owned,
-      profileIds: ['pool-1'],
-    };
-    expect(getDisplayProfiles(display, pool).map((p) => p.id)).toEqual(['owned-1']);
-  });
-
-  it('filters the pool by profileIds when owned profiles are not set', () => {
-    const pool = [makeProfile('day'), makeProfile('night'), makeProfile('weekend')];
-    const display: DisplayNode = {
-      id: 'kitchen',
-      name: 'Kitchen',
-      screens: [],
-      profileIds: ['day', 'weekend'],
-    };
-    expect(getDisplayProfiles(display, pool).map((p) => p.id)).toEqual(['day', 'weekend']);
-  });
-
-  it('returns the full pool when neither owned nor profileIds is set', () => {
+  it('returns the full pool when nothing is owned', () => {
     const pool = [makeProfile('day'), makeProfile('night')];
     const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: [] };
     expect(getDisplayProfiles(display, pool)).toBe(pool);
@@ -893,21 +778,6 @@ describe('validateDisplays — owned profiles', () => {
       }],
     });
     expect(validateDisplays(config)).toBeNull();
-  });
-
-  it('rejects a display that sets both "profiles" and "profileIds"', () => {
-    const config = makeConfig({
-      profiles: [makeProfile('day')],
-      screens: [],
-      displays: [{
-        id: 'kitchen',
-        name: 'Kitchen',
-        screens: [makeScreen('k-s1')],
-        profiles: [makeProfile('owned', ['k-s1'])],
-        profileIds: ['day'],
-      }],
-    });
-    expect(validateDisplays(config)).toMatch(/both "profiles" and "profileIds"/);
   });
 
   it('rejects an owned profile whose screenIds reference a global-pool screen', () => {
@@ -973,17 +843,17 @@ describe('findMainDisplay', () => {
     // The legacy /display redirect depends on this precedence — main wins
     // even when other displays come first in the array.
     const displays: DisplayNode[] = [
-      { id: 'kitchen', name: 'Kitchen' },
-      { id: MAIN_DISPLAY_ID, name: 'Main' },
-      { id: 'bedroom', name: 'Bedroom' },
+      { id: 'kitchen', name: 'Kitchen', screens: [] },
+      { id: MAIN_DISPLAY_ID, name: 'Main', screens: [] },
+      { id: 'bedroom', name: 'Bedroom', screens: [] },
     ];
     expect(findMainDisplay(displays)?.id).toBe(MAIN_DISPLAY_ID);
   });
 
   it('falls back to the first display when no canonical main is present', () => {
     const displays: DisplayNode[] = [
-      { id: 'kitchen', name: 'Kitchen' },
-      { id: 'bedroom', name: 'Bedroom' },
+      { id: 'kitchen', name: 'Kitchen', screens: [] },
+      { id: 'bedroom', name: 'Bedroom', screens: [] },
     ];
     expect(findMainDisplay(displays)?.id).toBe('kitchen');
   });
@@ -1024,7 +894,7 @@ describe('pruneDanglingScreenRefs', () => {
   it('is a no-op (returns shallow-equal config) when nothing references the deleted id', () => {
     const config = makeConfig({
       profiles: [makeProfile('day', ['other'])],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['other'] }],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('other')] }],
     });
     const result = pruneDanglingScreenRefs(config, 'never-existed', null);
     // Pruner unconditionally maps profiles/displays so the result is a new
@@ -1043,18 +913,6 @@ describe('pruneDanglingScreenRefs', () => {
     const result = pruneDanglingScreenRefs(config, 's2', null);
     expect(result.profiles![0].screenIds).toEqual(['s1', 's3']);
     expect(result.profiles![1].screenIds).toEqual(['s4']);
-  });
-
-  it('prunes legacy display.screenIds across ALL displays in legacy mode (selectedDisplayId=null)', () => {
-    const config = makeConfig({
-      displays: [
-        { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's2'] },
-        { id: 'bedroom', name: 'Bedroom', screenIds: ['s2', 's3'] },
-      ],
-    });
-    const result = pruneDanglingScreenRefs(config, 's2', null);
-    expect(result.displays![0].screenIds).toEqual(['s1']);
-    expect(result.displays![1].screenIds).toEqual(['s3']);
   });
 
   it('prunes only the selected display\'s owned profiles in multi-display mode', () => {
@@ -1102,46 +960,21 @@ describe('pruneDanglingScreenRefs', () => {
 describe('getDisplayScreens', () => {
   it('returns owned screens when display has screens array', () => {
     const owned = [makeScreen('o1'), makeScreen('o2')];
-    const display = { id: 'kitchen', name: 'Kitchen', screens: owned } as import('@/types/config').DisplayNode;
+    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: owned };
     const pool = [makeScreen('p1'), makeScreen('p2')];
     expect(getDisplayScreens(display, pool)).toEqual(owned);
   });
 
   it('ignores pool when display has owned screens', () => {
     const owned = [makeScreen('o1')];
-    const display = { id: 'kitchen', name: 'Kitchen', screens: owned } as import('@/types/config').DisplayNode;
+    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: owned };
     const pool = [makeScreen('o1'), makeScreen('p1')];
     // Returns the owned array, not the pool entry with same ID
     expect(getDisplayScreens(display, pool)).toBe(owned);
   });
 
-  it('filters pool by screenIds when display has no owned screens', () => {
-    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['s1', 's3'] } as import('@/types/config').DisplayNode;
-    const pool = [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')];
-    const result = getDisplayScreens(display, pool);
-    expect(result.map((s) => s.id)).toEqual(['s1', 's3']);
-  });
-
-  it('returns empty array when display has neither screens nor screenIds', () => {
-    const display = { id: 'kitchen', name: 'Kitchen' } as import('@/types/config').DisplayNode;
-    expect(getDisplayScreens(display, [makeScreen('s1')])).toEqual([]);
-  });
-
-  it('returns empty array when screenIds reference nonexistent screens', () => {
-    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['ghost'] } as import('@/types/config').DisplayNode;
-    expect(getDisplayScreens(display, [makeScreen('s1')])).toEqual([]);
-  });
-
-  it('preserves pool order (not screenIds order) for legacy mode', () => {
-    const display = { id: 'kitchen', name: 'Kitchen', screenIds: ['s3', 's1'] } as import('@/types/config').DisplayNode;
-    const pool = [makeScreen('s1'), makeScreen('s2'), makeScreen('s3')];
-    const result = getDisplayScreens(display, pool);
-    // Pool iteration order: s1, s3 (s2 excluded)
-    expect(result.map((s) => s.id)).toEqual(['s1', 's3']);
-  });
-
-  it('returns empty owned screens array as-is (not falling through to pool)', () => {
-    const display = { id: 'kitchen', name: 'Kitchen', screens: [] } as import('@/types/config').DisplayNode;
+  it('returns empty owned screens array as-is', () => {
+    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: [] };
     const pool = [makeScreen('s1')];
     expect(getDisplayScreens(display, pool)).toEqual([]);
   });
@@ -1201,18 +1034,6 @@ describe('findScreenById', () => {
     });
     expect(findScreenById(config, 'k-s1')).not.toBeNull();
     expect(findScreenById(config, 'b-s1')).not.toBeNull();
-  });
-
-  it('falls back to global pool when displays exist but lack owned screens', () => {
-    const config = makeConfig({
-      screens: [makeScreen('s1', 'Global')],
-      displays: [{ id: 'kitchen', name: 'Kitchen', screenIds: ['s1'] }],
-    });
-    // Display uses legacy screenIds (no owned screens array), so
-    // findScreenById should fall through to the global pool
-    const result = findScreenById(config, 's1');
-    expect(result).not.toBeNull();
-    expect(result!.name).toBe('Global');
   });
 
   it('returns null when all displays have owned screens but none match', () => {

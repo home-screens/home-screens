@@ -37,9 +37,9 @@ interface RemoteInitialData {
   displays: Array<{ id: string; name: string }>;
   /**
    * Per-display resolved profile pool + active profile, keyed by displayId.
-   * Needed because a display can own its own `profiles` or restrict the
-   * global pool via `profileIds` — the global list is the wrong one to show
-   * when a specific display is selected.
+   * Needed because a display can own its own `profiles` — the global list is
+   * the wrong one to show when a specific display with owned profiles is
+   * selected.
    */
   displayProfiles: Record<
     string,

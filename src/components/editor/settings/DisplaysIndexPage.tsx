@@ -134,11 +134,9 @@ function slugify(input: string): string {
     .replace(/^-|-$/g, '');
 }
 
-/** Returns the screen count for a display, transparently handling both owned screens and the legacy screenIds-from-pool model. */
+/** Returns the screen count for a display. */
 function displayScreenCount(display: DisplayNode): number {
-  if (display.screens) return display.screens.length;
-  if (display.screenIds) return display.screenIds.length;
-  return 0;
+  return display.screens.length;
 }
 
 /* ─── Add / edit form ──────────────────────────────── */
@@ -251,24 +249,16 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     const finalWidth = wantPortrait ? short : long;
     const finalHeight = wantPortrait ? long : short;
 
-    // Edits: preserve the existing screen-ownership shape (either `screens`
-    // or legacy `screenIds`) via the `...initial` spread. The explicit
-    // followups below nail down the intent — this form doesn't know or
-    // care which model the display uses, and we shouldn't quietly drop one
-    // on submit just because the form only has inputs for name/dims.
-    // Creates: no `initial`, so neither branch fires and the store's
-    // `addDisplay` defaults `screens: []` for a fresh owned-screens display.
+    // Edits: preserve the existing screens list via the `...initial` spread.
+    // Creates: no `initial`, so the store's `addDisplay` defaults
+    // `screens: []` for a fresh display.
     onSubmit({
-      ...initial,
+      ...(initial ?? { screens: [] }),
       id,
       name: trimmedName,
       displayWidth: finalWidth,
       displayHeight: finalHeight,
       displayTransform: transform,
-      ...(initial?.screens ? { screens: initial.screens } : {}),
-      ...(initial?.screenIds && !initial?.screens
-        ? { screenIds: initial.screenIds }
-        : {}),
     });
   };
 
