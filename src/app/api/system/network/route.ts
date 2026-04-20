@@ -6,47 +6,16 @@ import { promisify } from 'util';
 import { nmcli, getManagementInterface } from '@/lib/network-commands';
 import { withAuth, getClientIP } from '@/lib/api-utils';
 import { parseTerseFields } from '@/lib/network-parse';
+import type {
+  IPv4Info,
+  WifiInfo,
+  NetworkInterface,
+  NetworkOverview,
+} from '@/lib/network-types';
 
 export const dynamic = 'force-dynamic';
 
 const execFileAsync = promisify(execFileCb);
-
-/* ─── Types ─────────────────────────────────── */
-
-interface IPv4Info {
-  address: string;
-  prefix: number;
-  gateway: string;
-  dns: string[];
-  method: 'auto' | 'manual';
-}
-
-interface WifiInfo {
-  ssid: string;
-  signal: number;
-  frequency: number;
-  security: string;
-}
-
-interface NetworkInterface {
-  device: string;
-  type: string;
-  state: string;
-  connection: string;
-  connectionUuid?: string;
-  hwAddress: string;
-  ipv4?: IPv4Info;
-  wifi?: WifiInfo;
-  driver?: string;
-  isManagementInterface: boolean;
-}
-
-interface NetworkOverview {
-  available: boolean;
-  reason?: string;
-  hostname?: string;
-  interfaces?: NetworkInterface[];
-}
 
 /* ─── Helpers ───────────────────────────────── */
 

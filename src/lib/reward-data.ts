@@ -39,24 +39,6 @@ const store = createJsonStore<RewardData>({
   errorHandling: 'throw-corrupt',
 });
 
-// ── Serialized operation queue ───────────────────────────────────────
-// Prevents lost-update races on read-modify-write cycles.
-// Same pattern as chore completions (src/app/api/chores/route.ts).
-// Lives here (not in the route) so all callers share one queue.
-
-let opQueue: Promise<RewardData> = Promise.resolve(EMPTY);
-
-function enqueueOp(fn: (data: RewardData) => RewardData | Promise<RewardData>): Promise<RewardData> {
-  const next = opQueue.then(async () => {
-    const data = await store.read();
-    const result = await fn(data);
-    await store.write(result);
-    return result;
-  });
-  opQueue = next.catch(() => EMPTY);
-  return next;
-}
-
 // ── Purge ────────────────────────────────────────────────────────────
 
 const PURGE_DAYS = 90;
@@ -85,12 +67,12 @@ export async function writeRewardData(data: RewardData): Promise<void> {
 
 /** Replace reward definitions atomically (preserves balances/redemptions). */
 export function updateRewardDefinitions(rewards: RewardDefinition[]): Promise<RewardData> {
-  return enqueueOp((data) => ({ ...purgeOldRedemptions(data), rewards }));
+  return store.updateAtomic((data) => ({ ...purgeOldRedemptions(data), rewards }));
 }
 
 /** Add points to a member's balance (called on chore completion). */
 export function creditPoints(memberId: string, points: number): Promise<RewardData> {
-  return enqueueOp((data) => ({
+  return store.updateAtomic((data) => ({
     ...data,
     balances: {
       ...data.balances,
@@ -102,7 +84,7 @@ export function creditPoints(memberId: string, points: number): Promise<RewardDa
 /** Subtract points from a member's balance, flooring at 0.
  *  Used for admin manual balance adjustments where going negative isn't desired. */
 export function debitPoints(memberId: string, points: number): Promise<RewardData> {
-  return enqueueOp((data) => ({
+  return store.updateAtomic((data) => ({
     ...data,
     balances: {
       ...data.balances,
@@ -130,7 +112,7 @@ export async function debitPointsExact(
 ): Promise<DebitExactResult> {
   let balance = 0;
   let wentNegative = false;
-  const data = await enqueueOp((current) => {
+  const data = await store.updateAtomic((current) => {
     const before = current.balances[memberId] ?? 0;
     balance = before - points;
     wentNegative = balance < 0;
@@ -148,7 +130,7 @@ export function redeemReward(
   memberId: string,
   memberName: string,
 ): Promise<RewardData> {
-  return enqueueOp((data) => {
+  return store.updateAtomic((data) => {
     const balance = data.balances[memberId] ?? 0;
     if (balance < reward.cost) throw new Error('Insufficient balance');
 
@@ -176,7 +158,7 @@ export function redeemReward(
 /** Remove a member's balance and strip them from reward memberIds.
  *  Redemption history is preserved (denormalized names). */
 export function rewardCascadeDeleteMember(memberId: string): Promise<RewardData> {
-  return enqueueOp((data) => {
+  return store.updateAtomic((data) => {
     const { [memberId]: _, ...remainingBalances } = data.balances;
     return {
       ...data,

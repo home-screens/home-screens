@@ -1,39 +1,14 @@
-/* Shared types for network settings sub-components */
+/* UI-only types for network settings sub-components. Wire-format types
+ * (IPv4Info, WifiInfo, NetworkInterface, NetworkOverview) live in
+ * `@/lib/network-types` and are re-exported here so existing call sites
+ * don't have to change. */
 
-export interface IPv4Info {
-  address: string;
-  prefix: number;
-  gateway: string;
-  dns: string[];
-  method: 'auto' | 'manual';
-}
-
-export interface WifiInfo {
-  ssid: string;
-  signal: number;
-  frequency: number;
-  security: string;
-}
-
-export interface NetworkInterface {
-  device: string;
-  type: string;
-  state: string;
-  connection: string;
-  connectionUuid?: string;
-  hwAddress: string;
-  ipv4?: IPv4Info;
-  wifi?: WifiInfo;
-  driver?: string;
-  isManagementInterface: boolean;
-}
-
-export interface NetworkOverview {
-  available: boolean;
-  reason?: string;
-  hostname?: string;
-  interfaces?: NetworkInterface[];
-}
+export type {
+  IPv4Info,
+  WifiInfo,
+  NetworkInterface,
+  NetworkOverview,
+} from '@/lib/network-types';
 
 export interface WifiNetwork {
   ssid: string;
@@ -52,10 +27,4 @@ export interface SavedNetwork {
   autoconnect: boolean;
   lastUsed: string;
   password?: string;
-}
-
-export interface RollbackState {
-  pending: boolean;
-  rollbackId?: string;
-  remainingMs?: number;
 }

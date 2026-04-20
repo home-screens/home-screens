@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
 import { errorResponse } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
+import { createJsonStore } from '@/lib/json-store';
 import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 
 export const dynamic = 'force-dynamic';
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'chore-completions.json');
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** True iff `s` is a YYYY-MM-DD string AND the components are a real calendar date.
@@ -32,39 +30,10 @@ function localDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-async function readCompletions(): Promise<CompletionsData> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8');
-    return JSON.parse(raw) as CompletionsData;
-  } catch {
-    return { completions: [] };
-  }
-}
-
-// Serialize all read-modify-write operations to prevent races.
-// Both GET (purge) and POST (toggle) go through this queue so
-// concurrent requests can't read stale data. Callbacks may return `null` to
-// signal "no change — skip the write" so a quiescent GET on each 15s poll
-// doesn't churn the disk unnecessarily.
-let opQueue: Promise<CompletionsData> = Promise.resolve({ completions: [] });
-
-function enqueueOp(
-  fn: (data: CompletionsData) => Promise<CompletionsData | null>,
-): Promise<CompletionsData> {
-  const next = opQueue.then(async () => {
-    const data = await readCompletions();
-    const result = await fn(data);
-    if (result === null) return data; // no-op — skip the write
-    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    const tmp = DATA_FILE + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(result, null, 2), 'utf-8');
-    await fs.rename(tmp, DATA_FILE);
-    return result;
-  });
-  // Advance queue even on failure so it doesn't block forever
-  opQueue = next.catch(() => ({ completions: [] }));
-  return next;
-}
+const store = createJsonStore<CompletionsData>({
+  path: 'data/chore-completions.json',
+  defaultValue: { completions: [] },
+});
 
 /** Remove completions older than CHORE_HISTORY_DAYS days */
 function purgeOld(completions: ChoreCompletion[]): ChoreCompletion[] {
@@ -79,12 +48,13 @@ function purgeOld(completions: ChoreCompletion[]): ChoreCompletion[] {
 // /remote sits behind its own page-level auth and protects mutations there.
 export const GET = async () => {
   try {
-    // Always go through the queue (so we observe in-flight POST writes), but
+    // Always go through updateAtomic (so we observe in-flight POST writes), but
     // only persist when purgeOld actually evicted something — otherwise a
     // quiescent display polling every 15s would churn the disk forever.
-    const result = await enqueueOp(async (data) => {
+    // Returning the same reference signals "no-op, skip the write".
+    const result = await store.updateAtomic((data) => {
       const cleaned = purgeOld(data.completions);
-      if (cleaned.length === data.completions.length) return null; // nothing to purge
+      if (cleaned.length === data.completions.length) return data; // nothing to purge
       return { completions: cleaned };
     });
     return NextResponse.json({ completions: result.completions });
@@ -128,23 +98,28 @@ export const POST = async (request: NextRequest) => {
   // Read chore data in parallel with toggle (needed for point value lookup)
   const choreDataPromise = readChoreData();
 
-  const result = await enqueueOp(async (data) => {
+  const result = await store.updateAtomic((data) => {
     const existing = data.completions.findIndex(
       (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
     );
 
-    if (existing >= 0) {
-      data.completions.splice(existing, 1);
-    } else {
-      data.completions.push({
-        choreId,
-        memberId,
-        date,
-        completedAt: new Date().toISOString(),
-      });
-    }
+    // Return a new object so updateAtomic's reference-equality check sees a
+    // change and persists the write. Mutating `data` in-place would look like
+    // a no-op to the store.
+    const completions =
+      existing >= 0
+        ? data.completions.filter((_, i) => i !== existing)
+        : [
+            ...data.completions,
+            {
+              choreId,
+              memberId,
+              date,
+              completedAt: new Date().toISOString(),
+            },
+          ];
 
-    return data;
+    return { completions };
   });
 
   const wasAdded = result.completions.some(
