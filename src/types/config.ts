@@ -706,6 +706,8 @@ export interface TodoistConfig {
   maxTasks: number;
   refreshIntervalMs: number;
   title: string;
+  // When true, tapping a task on a touchscreen closes it via Todoist's API.
+  allowComplete?: boolean;
 }
 
 // Air quality module config

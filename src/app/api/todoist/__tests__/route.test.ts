@@ -153,6 +153,60 @@ describe('GET /api/todoist', () => {
     expect(task.priority).toBe(4);
   });
 
+  it('strips markdown from content and description', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    mockTodoistAPI({
+      tasks: [
+        // Mirrors Todoist's default "getting started" tasks which embed [text](url) links.
+        makeTodoistTask({
+          id: 'a',
+          content: 'All about tasks ([Watch](https://youtu.be/abc))',
+          description: 'See **bold**, *italic*, ~~strike~~, `code`, and ![img](https://x/y.png) handling.',
+        }),
+        makeTodoistTask({
+          id: 'b',
+          content: '__Underline bold__ and _emphasis_',
+          description: 'snake_case_var should survive italic stripping',
+        }),
+      ],
+      projects: [makeTodoistProject()],
+      sections: [],
+      labels: [],
+    });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(json.tasks[0].content).toBe('All about tasks (Watch)');
+    expect(json.tasks[0].description).toBe('See bold, italic, strike, code, and img handling.');
+    expect(json.tasks[1].content).toBe('Underline bold and emphasis');
+    expect(json.tasks[1].description).toBe('snake_case_var should survive italic stripping');
+  });
+
+  it('caps markdown stripping input at 4 KB to prevent pathological-regex stalls', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    // 10k unmatched `[` chars would trigger quadratic scan in the link regex.
+    // The cap forces input down to 4096, bounding worst-case work.
+    const huge = '['.repeat(10_000) + 'tail';
+    mockTodoistAPI({
+      tasks: [makeTodoistTask({ content: huge })],
+      projects: [makeTodoistProject()],
+      sections: [],
+      labels: [],
+    });
+
+    const start = Date.now();
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const elapsed = Date.now() - start;
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    // Truncated to the 4 KB cap — `tail` sat at char 10k, so it's dropped.
+    expect(json.tasks[0].content.length).toBeLessThanOrEqual(4096);
+    // Sanity: even a punishing input completes in well under a second.
+    expect(elapsed).toBeLessThan(500);
+  });
+
   it('resolveColor maps named colors to hex (berry_red -> #b8255f)', async () => {
     vi.mocked(getSecret).mockResolvedValue('test-token');
     mockTodoistAPI({

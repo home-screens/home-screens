@@ -19,11 +19,13 @@ export function TaskRow({
   config,
   now,
   depth = 0,
+  onComplete,
 }: {
   task: TaskNode;
   config: TodoistConfig;
   now: Date;
   depth?: number;
+  onComplete?: (taskId: string) => void;
 }) {
   const t = task.task;
   const dueInfo = formatDueDate(t.due, now);
@@ -31,6 +33,7 @@ export function TaskRow({
     ? daysBetween(new Date(t.due.datetime ?? t.due.date + 'T23:59:59'), now) < 0
     : false;
   const priorityColor = PRIORITY_COLORS[t.priority];
+  const visiblePriorityColor = priorityColor === 'transparent' ? 'rgba(255,255,255,0.4)' : priorityColor;
 
   return (
     <>
@@ -43,14 +46,32 @@ export function TaskRow({
           marginLeft: depth * 20,
         }}
       >
-        {/* Priority bar */}
-        <div
-          className="w-[3px] self-stretch rounded-full shrink-0 mt-0.5"
-          style={{
-            backgroundColor: priorityColor,
-            minHeight: 16,
-          }}
-        />
+        {/* Tap-to-complete circle replaces the priority bar when enabled.
+            Uses the priority color as the border so urgency stays visible. */}
+        {onComplete ? (
+          <button
+            type="button"
+            onClick={() => onComplete(t.id)}
+            className="rounded-full shrink-0 mt-0.5 transition-colors hover:bg-white/10 active:bg-white/20"
+            style={{
+              width: 22,
+              height: 22,
+              borderWidth: 2,
+              borderStyle: 'solid',
+              borderColor: visiblePriorityColor,
+              backgroundColor: 'transparent',
+            }}
+            aria-label={`Complete: ${t.content}`}
+          />
+        ) : (
+          <div
+            className="w-[3px] self-stretch rounded-full shrink-0 mt-0.5"
+            style={{
+              backgroundColor: priorityColor,
+              minHeight: 16,
+            }}
+          />
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -144,6 +165,7 @@ export function TaskRow({
             config={config}
             now={now}
             depth={depth + 1}
+            onComplete={onComplete}
           />
         ))}
     </>
@@ -156,10 +178,12 @@ export default function ListView({
   tasks,
   config,
   now,
+  onComplete,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
+  onComplete?: (taskId: string) => void;
 }) {
   const groups = useMemo(
     () => groupTasks(tasks, config.groupBy, now),
@@ -210,6 +234,7 @@ export default function ListView({
                   task={node}
                   config={config}
                   now={now}
+                  onComplete={onComplete}
                 />
               ))}
             </div>

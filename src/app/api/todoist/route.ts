@@ -38,6 +38,24 @@ function resolveColor(color: string | undefined | null): string {
   return TODOIST_COLORS[color] ?? '#808080';
 }
 
+// Todoist returns Markdown in `content`/`description`. The kiosk has no input
+// device, so links/formatting can't be interacted with — collapse to visible text.
+// Input is capped at 4 KB: the link/image patterns are O(n²) on pathological
+// bracket soup, and Todoist's real field limits sit well under this cap.
+const STRIP_MARKDOWN_MAX = 4096;
+function stripMarkdown(s: string): string {
+  if (!s) return s;
+  const input = s.length > STRIP_MARKDOWN_MAX ? s.slice(0, STRIP_MARKDOWN_MAX) : s;
+  return input
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')             // ![alt](url) → alt
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')               // [text](url) → text
+    .replace(/(\*\*|__)(.+?)\1/g, '$2')                    // **bold** / __bold__
+    .replace(/~~(.+?)~~/g, '$1')                           // ~~strike~~
+    .replace(/`([^`]+)`/g, '$1')                           // `code`
+    .replace(/(?<![*\w])\*([^*\n]+)\*(?!\w)/g, '$1')       // *italic*
+    .replace(/(?<![_\w])_([^_\n]+)_(?!\w)/g, '$1');        // _italic_ (skips snake_case)
+}
+
 // ─── Field accessors ───
 // The v1 API may return snake_case (raw) or camelCase (if proxied through SDK).
 
@@ -158,8 +176,8 @@ const { GET, cache } = cachedProxyRoute<unknown>({
 
       return {
         id: str(t, 'id'),
-        content: str(t, 'content'),
-        description: str(t, 'description'),
+        content: stripMarkdown(str(t, 'content')),
+        description: stripMarkdown(str(t, 'description')),
         priority: num(t, 'priority'),
         due,
         labels,

@@ -88,6 +88,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     showDescription?: boolean;
     maxTasks?: number;
     refreshIntervalMs?: number;
+    allowComplete?: boolean;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'list';
 
@@ -136,6 +137,11 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       <Toggle label="Show Project" checked={c.showProject !== false} onChange={(v) => set({ showProject: v })} />
       <Toggle label="Show Description" checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
       <Toggle label="Show No-Date Tasks" checked={c.showNoDueDate !== false} onChange={(v) => set({ showNoDueDate: v })} />
+      <Toggle
+        label="Tap to Complete (touchscreen)"
+        checked={!!c.allowComplete}
+        onChange={(v) => set({ allowComplete: v })}
+      />
       <LabeledInput
         label="Max Tasks"
         type="number"

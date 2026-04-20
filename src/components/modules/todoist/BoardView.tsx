@@ -15,10 +15,12 @@ export default function BoardView({
   tasks,
   config,
   now,
+  onComplete,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
+  onComplete?: (taskId: string) => void;
 }) {
   const groupBy = config.groupBy === 'none' ? 'project' : config.groupBy;
   const allGroups = useMemo(
@@ -73,6 +75,8 @@ export default function BoardView({
                     now,
                   ) < 0
                 : false;
+              const priorityColor = PRIORITY_COLORS[t.priority];
+              const visiblePriorityColor = priorityColor === 'transparent' ? 'rgba(255,255,255,0.4)' : priorityColor;
               return (
                 <div
                   key={t.id}
@@ -83,13 +87,30 @@ export default function BoardView({
                       : 'rgba(255,255,255,0.05)',
                   }}
                 >
-                  <div
-                    className="w-[3px] self-stretch rounded-full shrink-0"
-                    style={{
-                      backgroundColor: PRIORITY_COLORS[t.priority],
-                      minHeight: 14,
-                    }}
-                  />
+                  {onComplete ? (
+                    <button
+                      type="button"
+                      onClick={() => onComplete(t.id)}
+                      className="rounded-full shrink-0 transition-colors hover:bg-white/10 active:bg-white/20"
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderWidth: 2,
+                        borderStyle: 'solid',
+                        borderColor: visiblePriorityColor,
+                        backgroundColor: 'transparent',
+                      }}
+                      aria-label={`Complete: ${t.content}`}
+                    />
+                  ) : (
+                    <div
+                      className="w-[3px] self-stretch rounded-full shrink-0"
+                      style={{
+                        backgroundColor: priorityColor,
+                        minHeight: 14,
+                      }}
+                    />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p
                       className="leading-tight font-medium truncate"

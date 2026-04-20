@@ -11,10 +11,12 @@ export default function FocusView({
   allTasks,
   config,
   now,
+  onComplete,
 }: {
   allTasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
+  onComplete?: (taskId: string) => void;
 }) {
   // Show only today + overdue tasks
   const focusTasks = useMemo(() => {
@@ -98,6 +100,7 @@ export default function FocusView({
                       task={node}
                       config={config}
                       now={now}
+                      onComplete={onComplete}
                     />
                   ))}
               </div>
@@ -131,6 +134,7 @@ export default function FocusView({
                       task={node}
                       config={config}
                       now={now}
+                      onComplete={onComplete}
                     />
                   ))}
               </div>
