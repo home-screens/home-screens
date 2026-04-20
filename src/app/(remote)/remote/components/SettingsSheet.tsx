@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
+import { editorFetch } from '@/lib/editor-fetch';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -121,8 +122,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/system/stats');
-      if (res.status === 401) { setError('Sign in required'); return; }
+      const res = await editorFetch('/api/system/stats');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStats(await res.json());
     } catch {
@@ -180,12 +180,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
     clearTimeout(restoreTimerRef.current);
     setRestoreState('busy');
     try {
-      const res = await fetch('/api/backup', {
+      const res = await editorFetch('/api/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: restoreDataRef.current,
       });
-      if (res.status === 401) { setRestoreState('restore-failed'); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setRestoreState('done');
       restoreDataRef.current = null;
@@ -196,7 +195,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
   const sendPower = async (action: 'restart-service' | 'reboot') => {
     try {
-      await fetch('/api/system/power', {
+      await editorFetch('/api/system/power', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),

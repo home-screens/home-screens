@@ -958,25 +958,15 @@ describe('pruneDanglingScreenRefs', () => {
 /* ─── getDisplayScreens ──────────────────────────── */
 
 describe('getDisplayScreens', () => {
-  it('returns owned screens when display has screens array', () => {
+  it('returns the display\'s owned screens array', () => {
     const owned = [makeScreen('o1'), makeScreen('o2')];
     const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: owned };
-    const pool = [makeScreen('p1'), makeScreen('p2')];
-    expect(getDisplayScreens(display, pool)).toEqual(owned);
-  });
-
-  it('ignores pool when display has owned screens', () => {
-    const owned = [makeScreen('o1')];
-    const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: owned };
-    const pool = [makeScreen('o1'), makeScreen('p1')];
-    // Returns the owned array, not the pool entry with same ID
-    expect(getDisplayScreens(display, pool)).toBe(owned);
+    expect(getDisplayScreens(display)).toBe(owned);
   });
 
   it('returns empty owned screens array as-is', () => {
     const display: DisplayNode = { id: 'kitchen', name: 'Kitchen', screens: [] };
-    const pool = [makeScreen('s1')];
-    expect(getDisplayScreens(display, pool)).toEqual([]);
+    expect(getDisplayScreens(display)).toEqual([]);
   });
 });
 

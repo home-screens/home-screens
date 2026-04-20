@@ -45,7 +45,9 @@ function purgeOld(completions: ChoreCompletion[]): ChoreCompletion[] {
 
 // Public on the LAN — no auth wrapper. The /chores route is the unauthenticated
 // kid view, so its data endpoint must be readable/writable without a session.
-// /remote sits behind its own page-level auth and protects mutations there.
+// The /remote surface is also unauthenticated at the page level; admin-only
+// endpoints it calls (system/stats, backup, system/power) enforce auth via
+// their own `withAuth` wrappers, not via anything gating /remote itself.
 export const GET = async () => {
   try {
     // Always go through updateAtomic (so we observe in-flight POST writes), but

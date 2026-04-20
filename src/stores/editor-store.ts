@@ -127,7 +127,7 @@ export function getActiveScreens(
   if (!selectedDisplayId) return config.screens;
   const display = config.displays?.find((d) => d.id === selectedDisplayId);
   if (!display) return config.screens;
-  return getDisplayScreens(display, config.screens);
+  return getDisplayScreens(display);
 }
 
 /**

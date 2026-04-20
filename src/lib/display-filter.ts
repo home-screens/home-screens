@@ -74,12 +74,8 @@ export function findMainDisplay(displays: DisplayNode[] | undefined): DisplayNod
  *
  * Most modern code paths should only need to read this; the editor store
  * uses it as a single source of truth for "what is this display showing?".
- * The `pool` parameter is retained for call-site compatibility but ignored.
  */
-export function getDisplayScreens(
-  display: DisplayNode,
-  _pool: Screen[],
-): Screen[] {
+export function getDisplayScreens(display: DisplayNode): Screen[] {
   return display.screens;
 }
 
@@ -145,7 +141,7 @@ export function filterConfigForDisplay(
   const display = config.displays?.find((d) => d.id === displayId);
   if (!display) return null;
 
-  const screens = getDisplayScreens(display, config.screens);
+  const screens = getDisplayScreens(display);
 
   // Preserve `undefined` in the "nothing set anywhere" case so a legacy
   // config with no profiles anywhere still surfaces as
