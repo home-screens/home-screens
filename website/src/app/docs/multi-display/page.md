@@ -146,8 +146,6 @@ Each display owns its own profile list. Profile activation through the API or re
 
 In multi-display mode profiles are always per-display. When the first additional display is added, `config.profiles` and `config.settings.activeProfile` are migrated onto the auto-created `main` display alongside its screens; subsequent displays start with an empty owned profile list so they build fresh against their own screens. Owned profile `screenIds` reference the display's own `screens`, never the global pool — this is the same owned-vs-pool rule that applies to screens, and for the same reason: a pool profile's screen references would silently diverge from each display's owned screens as soon as either one was edited.
 
-The deprecated `profileIds` pool reference is still honored for backward compatibility with early multi-display configs, but new displays should use owned `profiles` instead. A display cannot set both `profiles` and `profileIds` at the same time.
-
 ---
 
 ## Remote control
@@ -278,10 +276,10 @@ The multi-display registry lives on `ScreenConfiguration.displays`. When this fi
 
 ```typescript
 {
-  version: 3,
+  version: 4,
   settings: { /* global defaults */ },
-  screens: [ /* legacy screen pool, used by main display in mixed mode */ ],
-  profiles: [ /* shared profiles */ ],
+  screens: [ /* only used in single-display mode; ignored when displays is set */ ],
+  profiles: [ /* only used in single-display mode; ignored when displays is set */ ],
   displays: [
     {
       id: "kitchen",

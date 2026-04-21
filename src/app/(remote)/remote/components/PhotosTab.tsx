@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 
 interface DirectoryInfo {
   name: string;
@@ -27,7 +28,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
   // Fetch directories
   const fetchDirectories = useCallback(async () => {
     try {
-      const res = await fetch('/api/backgrounds/directories');
+      const res = await editorFetch('/api/backgrounds/directories');
       if (res.ok) {
         const data = await res.json();
         setDirectories(data.directories ?? []);
@@ -44,7 +45,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
       const url = dir
         ? `/api/backgrounds?directory=${encodeURIComponent(dir)}`
         : '/api/backgrounds';
-      const res = await fetch(url);
+      const res = await editorFetch(url);
       if (id !== fetchIdRef.current) return;
       if (res.ok) {
         const data = await res.json();
@@ -85,7 +86,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
       if (selectedDir) formData.append('directory', selectedDir);
 
       try {
-        const res = await fetch('/api/backgrounds', { method: 'POST', body: formData });
+        const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
         if (!res.ok) {
           const data = await res.json();
           setError(data.error || `Upload failed for ${fileList[i].name}`);
@@ -93,6 +94,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           succeeded++;
         }
       } catch (err) {
+        if (isSessionExpired(err)) return;
         setError(err instanceof Error ? err.message : 'Upload failed');
       }
     }
@@ -120,7 +122,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
 
     setDeletingImage(imageUrl);
     try {
-      const res = await fetch('/api/backgrounds', {
+      const res = await editorFetch('/api/backgrounds', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file: basename, directory: directory || undefined }),
@@ -139,7 +141,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
   const handleCreateFolder = useCallback(async () => {
     if (!newFolderName.trim()) return;
     try {
-      const res = await fetch('/api/backgrounds/directories', {
+      const res = await editorFetch('/api/backgrounds/directories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newFolderName.trim(), parent: selectedDir || undefined }),
@@ -155,7 +157,8 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         const data = await res.json();
         setError(data.error || 'Failed to create folder');
       }
-    } catch {
+    } catch (err) {
+      if (isSessionExpired(err)) return;
       setError('Failed to create folder');
     }
   }, [newFolderName, selectedDir, fetchDirectories, showSuccess]);

@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import type { SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
 import { DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from '@/lib/meal-constants';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 
 export function useMealsData() {
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
@@ -15,7 +16,7 @@ export function useMealsData() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/meals/data');
+      const res = await editorFetch('/api/meals/data');
       if (!res.ok) return;
       const data = await res.json();
       setSavedMeals(Array.isArray(data.savedMeals) ? data.savedMeals : []);
@@ -38,7 +39,7 @@ export function useMealsData() {
     grocery?: string[],
   ): Promise<boolean> => {
     try {
-      const res = await fetch('/api/meals/data', {
+      const res = await editorFetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -53,7 +54,8 @@ export function useMealsData() {
         return false;
       }
       return true;
-    } catch {
+    } catch (err) {
+      if (isSessionExpired(err)) return false;
       setSaveError('Network error. Please try again.');
       return false;
     }
@@ -68,7 +70,7 @@ export function useMealsData() {
    */
   const saveSettingsOnly = useCallback(async (next: MealSettings): Promise<boolean> => {
     try {
-      const res = await fetch('/api/meals/data', {
+      const res = await editorFetch('/api/meals/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings: next }),
@@ -78,7 +80,8 @@ export function useMealsData() {
         return false;
       }
       return true;
-    } catch {
+    } catch (err) {
+      if (isSessionExpired(err)) return false;
       setSaveError('Network error. Please try again.');
       return false;
     }
@@ -93,7 +96,7 @@ export function useMealsData() {
       return [...prev, lower];
     });
     try {
-      const res = await fetch('/api/meals/grocery', {
+      const res = await editorFetch('/api/meals/grocery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item: lower }),

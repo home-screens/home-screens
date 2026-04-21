@@ -1,5 +1,6 @@
 'use client';
 
+import { editorFetch } from '@/lib/editor-fetch';
 import { useCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
 
@@ -18,7 +19,7 @@ export default function ProfileSwitcher({ profiles, activeProfile }: ProfileSwit
     // to the global profile (no displayId) so every display follows it.
     const displayId = target && target !== 'all' ? target : undefined;
     await execute(() =>
-      fetch('/api/display/profile', {
+      editorFetch('/api/display/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile: id, ...(displayId ? { displayId } : {}) }),

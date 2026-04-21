@@ -20,6 +20,7 @@ import {
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { editorFetch } from '@/lib/editor-fetch';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
@@ -76,7 +77,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
     if (!isDirtyRef.current) return;
     const m = membersRef.current;
     const c = choresRef.current;
-    fetch('/api/chores/data', {
+    editorFetch('/api/chores/data', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -138,7 +139,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
     const controller = new AbortController();
     fetchAbortRef.current = controller;
     try {
-      const res = await fetch('/api/chores', { signal: controller.signal });
+      const res = await editorFetch('/api/chores', { signal: controller.signal });
       if (!res.ok) return;
       const data = await res.json();
       if (!isMountedRef.current || controller.signal.aborted) return;
@@ -286,7 +287,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
         memberId: selectedMemberId,
         date: day,
       };
-      const res = await fetch('/api/chores', {
+      const res = await editorFetch('/api/chores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reqBody),

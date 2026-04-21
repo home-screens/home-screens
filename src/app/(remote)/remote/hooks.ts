@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +30,13 @@ export function useCommand() {
       timeoutRef.current = setTimeout(() => setState('idle'), 1000);
       return res;
     } catch (e) {
+      // editorFetch already kicked off a /login redirect; don't flash an error UI
+      // on the way out the door. Reset state so the calling button doesn't stay
+      // visually pending during the redirect window.
+      if (isSessionExpired(e)) {
+        setState('idle');
+        return null;
+      }
       const msg = e instanceof Error ? e.message : 'Failed';
       setError(msg);
       setState('error');
@@ -59,7 +67,7 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
       const url = displayId
         ? `/api/display/status?display=${encodeURIComponent(displayId)}`
         : '/api/display/status';
-      const res = await fetch(url);
+      const res = await editorFetch(url);
       if (res.ok) {
         const data: DisplayStatus = await res.json();
         setStatus(data);
@@ -71,7 +79,10 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
         setIsConnected(true);
         setStatus(null);
       }
-    } catch {
+    } catch (e) {
+      // 401 already triggered a /login redirect; don't count it as a network
+      // failure or the "disconnected" banner would flash on the way out.
+      if (isSessionExpired(e)) return;
       failuresRef.current++;
       if (failuresRef.current >= 3) setIsConnected(false);
     }

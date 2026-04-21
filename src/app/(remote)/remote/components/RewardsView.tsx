@@ -5,6 +5,7 @@ import { Plus, Minus } from 'lucide-react';
 import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { editorFetch } from '@/lib/editor-fetch';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
 import { formatTimeAgo } from '@/lib/chore-constants';
@@ -38,7 +39,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
   // ── Fetch ──
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/rewards');
+      const res = await editorFetch('/api/rewards');
       if (!res.ok) return;
       const json = await res.json();
       setData(json);
@@ -80,7 +81,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
   const handleRedeem = async () => {
     if (!redeemTarget) return;
     try {
-      const res = await fetch('/api/rewards', {
+      const res = await editorFetch('/api/rewards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId }),
@@ -106,7 +107,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
     setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [] }));
     setEditingReward(null);
     try {
-      await fetch('/api/rewards/data', {
+      await editorFetch('/api/rewards/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rewards: updated }),
@@ -119,7 +120,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
     setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [] }));
     setEditingReward(null);
     try {
-      await fetch('/api/rewards/data', {
+      await editorFetch('/api/rewards/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rewards: updated }),
@@ -143,7 +144,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
       };
     });
     try {
-      const res = await fetch('/api/rewards/data', {
+      const res = await editorFetch('/api/rewards/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId, amount }),

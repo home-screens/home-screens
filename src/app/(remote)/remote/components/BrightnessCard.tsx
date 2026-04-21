@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useDisplayTarget } from '../display-target';
 
 export default function BrightnessCard() {
@@ -14,7 +15,7 @@ export default function BrightnessCard() {
     setBrightness(value);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      fetch('/api/display/brightness', {
+      editorFetch('/api/display/brightness', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value, ...(target ? { displayId: target } : {}) }),

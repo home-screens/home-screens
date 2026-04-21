@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
 
@@ -45,7 +46,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
   const send = async () => {
     const res = await execute(() =>
-      fetch('/api/display/alert', {
+      editorFetch('/api/display/alert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { ChoreChartConfig } from '@/types/config';
 import { useRemoteStatus } from './hooks';
@@ -136,7 +137,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
       `/api/display/${direction === 'next' ? 'next-screen' : 'prev-screen'}`,
       displayTarget,
     );
-    fetch(url).catch(() => {});
+    editorFetch(url).catch(() => {});
   }, [nudge, status, optimistic.screenIndex, displayTarget]);
 
   const handleSleepWake = useCallback(() => {
@@ -147,7 +148,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
       `/api/display/${isAsleep ? 'wake' : 'sleep'}`,
       displayTarget,
     );
-    fetch(url).catch(() => {});
+    editorFetch(url).catch(() => {});
   }, [nudge, status, optimistic.displayState, displayTarget]);
 
   const isAsleep = (optimistic.displayState ?? effectiveStatus?.displayState) === 'asleep';

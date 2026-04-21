@@ -256,13 +256,11 @@ A named display device. Each display owns its own list of screens, designed at i
 {
   id: string                       // URL-safe slug used as the route segment: /display/<id>
   name: string                     // Human-readable label shown in the editor
-  screens?: Screen[]               // Owned screens for this display, designed at its resolution
-  screenIds?: string[]             // @deprecated — legacy reference to global screens by ID
+  screens: Screen[]                // Owned screens for this display, designed at its resolution
   displayWidth?: number            // Canvas width in pixels (overrides GlobalSettings.displayWidth)
   displayHeight?: number           // Canvas height in pixels (overrides GlobalSettings.displayHeight)
   displayTransform?: 'normal' | '90' | '180' | '270'  // Per-display rotation
-  profiles?: Profile[]             // Owned profiles for this display. Mutually exclusive with profileIds.
-  profileIds?: string[]            // @deprecated — legacy reference to global profiles by ID
+  profiles?: Profile[]             // Owned profiles for this display
   activeProfile?: string           // Per-display active profile (falls back to settings.activeProfile)
   settings?: DisplayNodeSettings   // Per-display setting overrides
 }
@@ -305,12 +303,9 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 | Maximum displays | 64 per config |
 | Maximum screens per display | 256 |
 | Dimensions | Positive integers, ≤ 16384 |
-| `screenIds` references | Must reference an existing global screen (legacy mode only) |
-| `profiles` vs `profileIds` | Mutually exclusive — a display either owns its profile list or references the pool, never both |
 | Owned profile IDs | Must be unique within the display's `profiles` list |
 | Owned profile `screenIds` | Must reference the display's own `screens` (not the global pool) |
-| `profileIds` references | Must reference an existing global profile |
-| `activeProfile` references | When owned profiles are present, must be a member of `profiles`; otherwise must be a member of `profileIds` (if set) and of the global profile list |
+| `activeProfile` references | When owned profiles are present, must be a member of `profiles`; otherwise must reference the global profile list |
 
 ### ModuleType
 
@@ -1061,7 +1056,7 @@ A clean config exits with status `0` and a "No issues found" summary. Any errors
 
 ```json
 {
-  "version": 3,
+  "version": 4,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 
 /**
  * Tests for the editor-wide fetch wrapper that redirects to /login on 401.
@@ -98,5 +98,25 @@ describe('editorFetch', () => {
     mockFetch.mockResolvedValue(new Response('', { status: 401 }));
     const promise = editorFetch('/api/config');
     await expect(promise).rejects.toBeInstanceOf(Error);
+  });
+});
+
+describe('isSessionExpired', () => {
+  // Round-trip: the throw site and the consumer must stay in sync. If this
+  // test fails, both hooks.ts catch guards silently regress to flashing the
+  // "disconnected"/"error" UI during the /login redirect window.
+  it('returns true for the error editorFetch throws on 401', async () => {
+    mockFetch.mockResolvedValue(new Response('', { status: 401 }));
+    let caught: unknown;
+    try { await editorFetch('/api/config'); } catch (e) { caught = e; }
+    expect(isSessionExpired(caught)).toBe(true);
+  });
+
+  it('returns false for any other error', () => {
+    expect(isSessionExpired(new Error('Network failure'))).toBe(false);
+    expect(isSessionExpired(new TypeError('bad arg'))).toBe(false);
+    expect(isSessionExpired('Session expired')).toBe(false);
+    expect(isSessionExpired(null)).toBe(false);
+    expect(isSessionExpired(undefined)).toBe(false);
   });
 });
