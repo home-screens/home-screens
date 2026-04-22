@@ -15,7 +15,7 @@ import { usePrefetchNextScreen } from './usePrefetchNextScreen';
 import { useScreenRotationTimer } from './useScreenRotationTimer';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { useTZClock } from '@/hooks/useTZClock';
-import { resolveProfileScreens } from '@/lib/schedule';
+import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
 import { getTransitionConfig, getViewTransitionKeyframes } from '@/lib/transitions';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { useIdleCursor } from '@/hooks/useIdleCursor';
@@ -146,9 +146,19 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // Re-evaluate profile schedule every minute (timezone-aware)
   const now = useTZClock(settings.timezone, 60_000);
+
+  // Filter out screens whose schedule excludes "now".
+  // Falls back to enabledScreens when the filter leaves nothing — better to
+  // show something than a blank kiosk. Mirrors resolveProfileScreens'
+  // "no match → all screens" safety.
+  const scheduledScreens = useMemo(() => {
+    const filtered = enabledScreens.filter((s) => isModuleVisible(s.schedule, now));
+    return filtered.length > 0 ? filtered : enabledScreens;
+  }, [enabledScreens, now]);
+
   const screens = useMemo(
-    () => resolveProfileScreens(enabledScreens, profiles, settings.activeProfile, now),
-    [enabledScreens, profiles, settings.activeProfile, now],
+    () => resolveProfileScreens(scheduledScreens, profiles, settings.activeProfile, now),
+    [scheduledScreens, profiles, settings.activeProfile, now],
   );
 
   // Only poll background rotation for screens visible under the active profile

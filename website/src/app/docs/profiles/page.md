@@ -119,6 +119,42 @@ The **Invert** toggle reverses the schedule logic: instead of activating the pro
 
 ---
 
+## Screen-level scheduling
+
+Individual screens can be filtered out of the rotation pool based on their own schedule, independent of profiles and modules. This lets you build screens that only exist at certain times -- a weekend chore chart, a school-morning dashboard, a late-night clock -- without threading them through a profile.
+
+### Setting a screen schedule
+
+1. Select a screen tab in the editor (the horizontal tab strip at the top of the canvas)
+2. Open the **Screen settings** panel (the right-hand property panel when no module is selected)
+3. Scroll to the **Schedule** section
+4. Toggle **Enable Schedule**
+5. Select active **days** and set the **From** / **Until** time window
+6. Optionally toggle **Invert** to hide the screen during the window instead of showing it
+
+When a schedule is defined, the screen tab shows a small clock icon badge (parallel to the rotation-duration badge).
+
+Screen schedules use the same `ModuleSchedule` format as profile and module schedules:
+
+```typescript
+{
+  daysOfWeek?: number[]    // 0=Sun, 1=Mon, ... 6=Sat (omit = every day)
+  startTime?: string       // "06:00" (omit = from midnight)
+  endTime?: string         // "09:00" (omit = until midnight)
+  invert?: boolean         // if true, HIDE during this window instead of show
+}
+```
+
+### How screen visibility is evaluated
+
+Screen schedules are re-evaluated every minute, piggybacking on the same timezone-aware clock used by profile and module schedules. Evaluation happens **before profile resolution**, so a scheduled-off screen never enters the candidate set -- even if the active profile explicitly references it. Manual navigation respects this too: scheduled-off screens are pulled out of the rotation pool entirely, so `nextScreen`/`prevScreen` skip them.
+
+{% callout type="note" %}
+**Empty-after-filter safety.** If every screen has a schedule and none of them currently match, the display falls back to showing all enabled screens rather than going blank. A scheduled display should never become an empty kiosk.
+{% /callout %}
+
+---
+
 ## Module-level scheduling
 
 Individual modules can be shown or hidden based on their own schedule, independent of profiles. This lets you keep the same screen layout but change which modules are visible throughout the day.
@@ -167,6 +203,8 @@ Within the resolved set of screens, **module-level schedules** are evaluated ind
 ```
 Time check (every minute)
   |
+  +--> Filter screens by their own schedules (scheduled-off screens drop out)
+  |
   +--> Any scheduled profile match? --yes--> Use that profile's screens
   |         |
   |         no
@@ -187,6 +225,7 @@ Time check (every minute)
 | Scheduled "Morning" profile matches AND manual active is "Default" | Morning wins (schedules beat manual) |
 | Two scheduled profiles both match | First one in the list wins (drag to reorder) |
 | Scheduled profile matches but its screens were deleted | Falls through to next match or manual active |
+| A screen's schedule hides it right now | That screen is excluded from the rotation pool, even if the active profile includes it |
 | No profiles exist | All screens shown, as if profiles are disabled |
 
 ---
@@ -307,6 +346,19 @@ Instead of creating separate profiles, use a module-level schedule on the traffi
 - Invert: off (show only during this window)
 
 The commute module appears only on weekday mornings. The rest of the screen stays the same all week.
+
+### Weekend-only chore chart screen
+
+You want a full-screen chore chart that only exists on Saturdays and Sundays -- on weekdays the display should rotate through the remaining screens as if the chore screen weren't there at all.
+
+- Create a screen and add the `fullscreen-chore-chart` module
+- Select the screen tab and open its **Schedule** section
+- Enable Schedule
+- Days: Sat, Sun
+- From/Until: leave blank (active all day on those days)
+- Invert: off
+
+Monday through Friday the screen is filtered out of the rotation pool before profile resolution, so it never appears regardless of which profile is active. On weekends it joins the rotation automatically.
 
 ### Office hours display vs. after-hours
 

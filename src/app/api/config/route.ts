@@ -4,7 +4,7 @@ import { readConfig, writeConfig } from '@/lib/config';
 import { syncKioskConf, applyDisplaySettings } from '@/lib/kiosk';
 import { withAuth, withDisplayAuth } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
-import { validateDisplays } from '@/lib/display-filter';
+import { validateDisplays, validateAllSchedules } from '@/lib/display-filter';
 import type { ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -30,6 +30,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
   const displayError = validateDisplays(config);
   if (displayError) {
     return NextResponse.json({ error: displayError }, { status: 400 });
+  }
+
+  // Validate every screen and module schedule so a malformed schedule is
+  // rejected at write time instead of silently misbehaving at runtime.
+  const scheduleError = validateAllSchedules(config);
+  if (scheduleError) {
+    return NextResponse.json({ error: scheduleError }, { status: 400 });
   }
   const prev = await readConfig().catch(() => null);
   await writeConfig(config);

@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { LayoutExport } from '@/types/layout-export';
@@ -121,6 +121,7 @@ function SortableTab({
         const parts: string[] = [screen.name];
         if (screen.rotationDurationMs === 0) parts.push('sticky — manual advance only');
         else if (screen.rotationDurationMs != null) parts.push(`${Math.round(screen.rotationDurationMs / 1000)}s`);
+        if (screen.schedule) parts.push('scheduled');
         if (isDisabled) parts.push('disabled — not shown on display');
         return parts.join(' · ');
       })()}
@@ -153,6 +154,12 @@ function SortableTab({
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
           {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} />}
+          {screen.schedule && (
+            <Clock
+              className="ml-0.5 h-3 w-3 text-hs-text-faint"
+              aria-hidden="true"
+            />
+          )}
           {isDisabled && <span className="ml-0.5 text-[10px] text-hs-text-faint">⊘</span>}
           {isSelected && (
             <button

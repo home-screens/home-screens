@@ -111,6 +111,8 @@ export interface Screen {
    * - positive integer: this screen auto-advances after exactly this many ms.
    */
   rotationDurationMs?: number;
+  /** When present, screen only rotates in during matching days/times. */
+  schedule?: ModuleSchedule;
 }
 
 export interface WeatherSettings {

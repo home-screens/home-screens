@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   filterConfigForDisplay,
   validateDisplays,
+  validateAllSchedules,
+  validateModuleSchedule,
   findScreenById,
   getDisplayScreens,
   getDisplayProfiles,
@@ -1036,5 +1038,107 @@ describe('findScreenById', () => {
       }],
     });
     expect(findScreenById(config, 'nonexistent')).toBeNull();
+  });
+});
+
+/* ─── validateModuleSchedule ─────────────────────── */
+
+describe('validateModuleSchedule', () => {
+  it('returns null for an undefined schedule (always-visible default)', () => {
+    expect(validateModuleSchedule(undefined, 'screen X')).toBeNull();
+  });
+
+  it('returns null for a fully valid schedule', () => {
+    expect(
+      validateModuleSchedule(
+        { daysOfWeek: [1, 2, 3, 4, 5], startTime: '06:00', endTime: '09:00', invert: false },
+        'screen X',
+      ),
+    ).toBeNull();
+  });
+
+  it('rejects daysOfWeek with out-of-range values', () => {
+    expect(validateModuleSchedule({ daysOfWeek: [7] }, 'screen X')).toMatch(/daysOfWeek/);
+    expect(validateModuleSchedule({ daysOfWeek: [-1] }, 'screen X')).toMatch(/daysOfWeek/);
+  });
+
+  it('rejects daysOfWeek with non-integer values', () => {
+    expect(validateModuleSchedule({ daysOfWeek: [1.5] }, 'screen X')).toMatch(/daysOfWeek/);
+  });
+
+  it('rejects malformed time strings', () => {
+    expect(validateModuleSchedule({ startTime: '6:00' }, 'screen X')).toMatch(/startTime/);
+    expect(validateModuleSchedule({ endTime: '25:00' }, 'screen X')).toMatch(/endTime/);
+    expect(validateModuleSchedule({ startTime: '12:60' }, 'screen X')).toMatch(/startTime/);
+  });
+
+  it('includes the context label in the error message', () => {
+    const err = validateModuleSchedule({ daysOfWeek: [9] }, 'display "kitchen" screen "k-s1"');
+    expect(err).toContain('display "kitchen" screen "k-s1"');
+  });
+});
+
+/* ─── validateAllSchedules ───────────────────────── */
+
+describe('validateAllSchedules', () => {
+  it('returns null for a config with no schedules anywhere', () => {
+    const config = makeConfig({ screens: [makeScreen('s1')] });
+    expect(validateAllSchedules(config)).toBeNull();
+  });
+
+  it('catches a malformed schedule on a legacy global screen', () => {
+    const screen = makeScreen('s1');
+    screen.schedule = { daysOfWeek: [9] };
+    const config = makeConfig({ screens: [screen] });
+    expect(validateAllSchedules(config)).toMatch(/screen "s1"/);
+  });
+
+  it('catches a malformed schedule on a display-owned screen', () => {
+    const screen = makeScreen('k-s1');
+    screen.schedule = { startTime: 'noon' };
+    const config = makeConfig({
+      screens: [],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [screen] }],
+    });
+    expect(validateAllSchedules(config)).toMatch(/display "kitchen".*screen "k-s1"/);
+  });
+
+  it('catches a malformed schedule on a module nested inside a screen', () => {
+    const screen = makeScreen('s1');
+    screen.modules = [{
+      id: 'mod1',
+      type: 'clock',
+      position: { x: 0, y: 0 },
+      size: { w: 1, h: 1 },
+      zIndex: 0,
+      config: {},
+      style: {
+        opacity: 1, borderRadius: 0, padding: 0, backgroundColor: '',
+        textColor: '', fontFamily: '', fontSize: 12, backdropBlur: 0,
+        borderWidth: 0, borderColor: '', shadowSize: 0,
+      },
+      schedule: { endTime: '99:00' },
+    }];
+    const config = makeConfig({ screens: [screen] });
+    expect(validateAllSchedules(config)).toMatch(/screen "s1" module "mod1"/);
+  });
+
+  it('returns the first error and stops walking', () => {
+    // Two bad schedules in different displays. Result should reference the
+    // first one encountered (kitchen) deterministically.
+    const s1 = makeScreen('k-s1');
+    s1.schedule = { daysOfWeek: [9] };
+    const s2 = makeScreen('b-s1');
+    s2.schedule = { startTime: 'bad' };
+    const config = makeConfig({
+      screens: [],
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screens: [s1] },
+        { id: 'bedroom', name: 'Bedroom', screens: [s2] },
+      ],
+    });
+    const err = validateAllSchedules(config);
+    expect(err).toMatch(/kitchen/);
+    expect(err).not.toMatch(/bedroom/);
   });
 });

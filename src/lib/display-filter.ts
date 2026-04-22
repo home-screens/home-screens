@@ -10,6 +10,8 @@
 
 import type {
   GlobalSettings,
+  ModuleInstance,
+  ModuleSchedule,
   Profile,
   Screen,
   ScreenConfiguration,
@@ -344,6 +346,89 @@ function validateDisplayActiveProfile(
   if (!ctx.globalProfileIds.has(display.activeProfile)) {
     return `Display "${display.id}" has unknown activeProfile "${display.activeProfile}"`;
   }
+  return null;
+}
+
+/**
+ * Validate a single `ModuleSchedule` value. Returns an error string when the
+ * schedule is structurally malformed, or `null` when OK (including for an
+ * `undefined` schedule, which means "always visible").
+ *
+ * `parseTime` in `schedule.ts` already silently rejects out-of-range values
+ * at runtime, so a bad schedule won't crash anything — it just silently
+ * misbehaves. Catching the same conditions at the config-write boundary
+ * means a typo in the editor surfaces as a save error instead of a screen
+ * that mysteriously never appears (or, worse, never disappears).
+ *
+ * Used by both `Screen.schedule` and `ModuleInstance.schedule` so the two
+ * surfaces can't drift in what they accept.
+ */
+export function validateModuleSchedule(
+  schedule: ModuleSchedule | undefined,
+  context: string,
+): string | null {
+  if (!schedule) return null;
+
+  if (schedule.daysOfWeek !== undefined) {
+    if (!Array.isArray(schedule.daysOfWeek)) {
+      return `${context}: schedule.daysOfWeek must be an array`;
+    }
+    for (const day of schedule.daysOfWeek) {
+      if (!Number.isInteger(day) || day < 0 || day > 6) {
+        return `${context}: schedule.daysOfWeek values must be integers 0–6 (got ${day})`;
+      }
+    }
+  }
+
+  for (const field of ['startTime', 'endTime'] as const) {
+    const value = schedule[field];
+    if (value === undefined) continue;
+    if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) {
+      return `${context}: schedule.${field} must be "HH:MM" (got ${JSON.stringify(value)})`;
+    }
+    const [h, m] = value.split(':').map(Number);
+    if (h < 0 || h > 23 || m < 0 || m > 59) {
+      return `${context}: schedule.${field} hours must be 0–23 and minutes 0–59 (got "${value}")`;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Walk every screen and every module on every screen in a config and validate
+ * each schedule. Covers both single-display mode (config.screens) and
+ * multi-display mode (each display.screens) so a malformed schedule cannot
+ * sneak in via either surface.
+ *
+ * Returns the first error encountered, or `null` when everything validates.
+ */
+export function validateAllSchedules(config: ScreenConfiguration): string | null {
+  const checkScreen = (screen: Screen, where: string): string | null => {
+    const screenError = validateModuleSchedule(screen.schedule, `${where} screen "${screen.id}"`);
+    if (screenError) return screenError;
+    for (const mod of screen.modules ?? []) {
+      const modError = validateModuleSchedule(
+        (mod as ModuleInstance).schedule,
+        `${where} screen "${screen.id}" module "${mod.id}"`,
+      );
+      if (modError) return modError;
+    }
+    return null;
+  };
+
+  for (const screen of config.screens ?? []) {
+    const err = checkScreen(screen, 'config');
+    if (err) return err;
+  }
+
+  for (const display of config.displays ?? []) {
+    for (const screen of display.screens ?? []) {
+      const err = checkScreen(screen, `display "${display.id}"`);
+      if (err) return err;
+    }
+  }
+
   return null;
 }
 

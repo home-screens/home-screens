@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
+import { ScreenScheduleSection } from './ScreenScheduleSection';
 
 /**
  * Shown in the right property panel when a screen is selected but no module
@@ -115,6 +116,15 @@ export default function ScreenSettingsSection() {
             </p>
           )}
         </PropertyGroup>
+
+        {/*
+          ScreenScheduleSection delegates to ScheduleEditor, which renders its
+          own four PropertyGroups (Status / Days / Time window / Behavior).
+          Wrapping it in another PropertyGroup nests groups inside groups —
+          the design system isn't built for that, so we render the inner
+          groups directly here just like ModuleSection does for ScheduleSection.
+        */}
+        <ScreenScheduleSection screenId={screen.id} schedule={screen.schedule} />
       </div>
     </AccordionSection>
   );
