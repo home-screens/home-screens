@@ -90,7 +90,7 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `prefetchUrl` | string | URL to prefetch on the display for faster initial load. Registered with a 5-minute TTL. |
 | `secrets` | array | API keys and credentials the plugin requires (see [Plugin Secrets](#plugin-secrets)). |
 | `allowedDomains` | array | Domains the plugin proxy can reach (e.g., `["api.example.com", "*.openweathermap.org"]`). Required for `pluginFetch` to work. |
-| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`. Informational for users. |
+| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"localNetwork"`. The first four are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
 | `configMigrations` | object | Version-keyed migration rules for renaming or adding config fields on update. |
 
 ### Config Schema
@@ -441,7 +441,7 @@ For example, if a plugin declares a secret with key `api_key` and the user has c
 
 ## Plugin Secrets
 
-Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk in the plugin's own directory (`data/plugins/<pluginId>/secrets.json`), separate from the main app secrets.
+Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk at `data/plugin-secrets/<pluginId>.json` (mode `0700`), outside the plugin's installation directory so plugin upgrades don't wipe them. Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated automatically the next time the plugin is updated.
 
 ### Declaring Secrets
 
@@ -603,7 +603,7 @@ PATCH /api/plugins/install
 
 ### Uninstall
 
-1. All plugin secrets are deleted from `data/plugins/<pluginId>/secrets.json`
+1. All plugin secrets are deleted from `data/plugin-secrets/<pluginId>.json` (and any legacy `data/plugins/<pluginId>/secrets.json`)
 2. The plugin directory `data/plugins/<pluginId>/` is removed
 3. The entry is removed from `data/plugins/installed.json`
 4. The module is unregistered from the module registry and Zustand store
@@ -643,9 +643,24 @@ Every plugin must declare the external domains it needs to reach in `allowedDoma
 
 A plugin with an empty or missing `allowedDomains` array cannot make any proxy requests.
 
+### LAN access (`localNetwork`)
+
+By default, the plugin proxy hardens itself against SSRF by rejecting any URL whose hostname resolves to a private (RFC1918), loopback, link-local, or mDNS address. This protects routers, internal admin pages, and the host machine itself from a malicious or buggy plugin.
+
+Plugins that legitimately need to talk to a LAN device (a Hue bridge, Home Assistant, a Plex server, a smart printer, etc.) must declare the `"localNetwork"` permission. With it, the proxy applies a relaxed check: RFC1918 and `.local` mDNS targets are allowed, but loopback (`127.0.0.0/8`, `::1`) and cloud metadata endpoints (`169.254.169.254`, `fd00:ec2::254`) are still blocked, and only `http(s)` schemes are permitted.
+
+```json
+{
+  "permissions": ["network", "localNetwork"],
+  "allowedDomains": ["hue-bridge.local", "192.168.1.50"]
+}
+```
+
+The `"*"` wildcard in `allowedDomains` is treated as "any LAN host" and **requires** the `localNetwork` permission — the proxy returns HTTP 403 otherwise. Plugins without `localNetwork` can still use specific public-domain entries in `allowedDomains` as before; the strict SSRF check applies to those.
+
 ### Secret Isolation
 
-Each plugin's secrets are stored in its own directory (`data/plugins/<pluginId>/secrets.json`), separate from other plugins and the main app's secrets. A plugin can only access secrets that are declared in its own manifest. The secrets API validates every key against the manifest before allowing reads or writes.
+Each plugin's secrets are stored in its own file at `data/plugin-secrets/<pluginId>.json` (directory `0700`), separate from other plugins and the main app's secrets. The file lives outside the plugin's installation directory so it survives upgrades. A plugin can only access secrets that are declared in its own manifest. The secrets API validates every key against the manifest before allowing reads or writes.
 
 Secret values are never sent to the client. The proxy resolves `{{placeholder}}` templates server-side and only the final HTTP response reaches the browser.
 
@@ -653,7 +668,7 @@ Secret values are never sent to the client. The proxy resolves `{{placeholder}}`
 
 Plugin bundles execute in the browser's main thread via inline `<script>` injection. They share the same JavaScript context as the host application. The host reads the plugin's exports from `window.__HS_PLUGIN__` immediately after execution and then cleans up the global.
 
-Plugins have access to the full browser environment but should only interact with the host through the documented SDK (`window.__HS_SDK__`). The `permissions` field in the manifest is informational -- it tells users what capabilities a plugin uses but is not runtime-enforced.
+Plugins have access to the full browser environment but should only interact with the host through the documented SDK (`window.__HS_SDK__`). The `permissions` field in the manifest is mostly informational — `"network"`, `"secrets"`, `"events"`, and `"storage"` exist for transparency so users see at a glance what a plugin does. The exception is `"localNetwork"`, which **is runtime-enforced**: without it, the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local IPs. See [LAN access (`localNetwork`)](#lan-access-localnetwork) below.
 
 ### Rate Limiting
 

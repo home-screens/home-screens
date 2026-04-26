@@ -116,6 +116,8 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   transitionEffect?: TransitionEffect  // Screen transition effect
   transitionDuration?: number     // Transition duration in seconds (default: 0.6)
   updateChannel?: 'stable' | 'dev'    // Update channel for system upgrades
+  advancedMode?: boolean              // Reveal developer surfaces (release-channel switcher,
+                                       // GitHub PAT card, Plugins → Developer tab). Default false.
 
   alerts?: {                      // Display alert overlay settings
     enabled: boolean
@@ -143,7 +145,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
 
 ```typescript
 {
-  provider: 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo'
+  provider: 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo' | 'yr' | 'smhi' | 'metoffice' | 'envcanada'
   latitude: number            // Weather-specific latitude (overrides global)
   longitude: number           // Weather-specific longitude (overrides global)
   units: 'metric' | 'imperial'
@@ -468,13 +470,13 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 
 ### WeatherConfig
 
-Five providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather** (a Dark Sky replacement with minutely precipitation and alerts), **NOAA** (free, no API key, US only), and **Open-Meteo** (free, no API key, global coverage). Eight views are available.
+Nine providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather** (a Dark Sky replacement with minutely precipitation and alerts), **NOAA** (free, no API key, US only), **Open-Meteo** (free, no API key, global coverage), **Yr.no** (free, no API key, Norwegian Meteorological Institute, global coverage), **SMHI** (free, no API key, Swedish Meteorological and Hydrological Institute, Nordic coverage), **Met Office** (free, no API key, UK coverage), and **Environment Canada** (free, no API key, Canadian cities via ECCC citypage feeds). Eight views are available.
 
 ```typescript
 {
   view: 'current' | 'hourly' | 'daily' | 'combined' | 'compact' | 'table' | 'precipitation' | 'alerts'
   iconSet: 'outline' | 'color'
-  provider: 'global' | 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo'
+  provider: 'global' | 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo' | 'yr' | 'smhi' | 'metoffice' | 'envcanada'
   hoursToShow: number
   showFeelsLike: boolean
   daysToShow: number

@@ -296,7 +296,7 @@ The **Integrations** tab is where you configure all API keys and external servic
 - **Immich Server URL** — your Immich server address (e.g. `http://192.168.1.50:2283`) for self-hosted photo library integration
 - **Immich API Key** — generated from your Immich account settings (Account Settings → API Keys); enables Immich as a photo source for slideshows, fullscreen photo, and background rotation
 - **TomTom API Key** — alternative to Google Maps for traffic data (free at developer.tomtom.com)
-- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour
+- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour. Only shown when **Advanced Mode** is enabled in System settings.
 
 ### Security
 
@@ -346,12 +346,13 @@ The Stats tab provides a live dashboard of system health and application state:
 ### System
 
 - **Version** — current app version with commit hash and installation method (git or release)
-- **Update Channel** — switch between Stable and Pre-release (dev) channels
+- **Update Channel** — switch between Stable and Pre-release (dev) channels. Only shown when **Advanced Mode** is enabled.
 - **Check for Updates** — query GitHub for new releases
 - **Upgrade** — download and install a newer version (with confirmation dialog)
 - **Changelog** — expandable view of recent release notes
 - **Version History** — list of installed versions with rollback option for each
 - **Config Backups** — auto-created before each upgrade, with download and restore options
+- **Advanced Mode** — toggle that exposes developer surfaces. When on, you'll see the Update Channel switcher (above), the GitHub Personal Access Token card in Integrations, and the Developer tab in the Plugins panel. Off by default — turn it on if you're contributing plugins, testing pre-release builds, or want a higher GitHub rate limit for version checks.
 - **Power** — restart the Home Screens service, or reboot the entire Raspberry Pi
 
 ### Docs

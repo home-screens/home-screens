@@ -244,7 +244,7 @@ Unified weather module with 8 views and 5 provider options.
 |---|---|---|---|
 | `view` | string | `"hourly"` | Which view to render (see list above) |
 | `iconSet` | string | `"color"` | Icon style: `outline` or `color` |
-| `provider` | string | `"global"` | Weather provider: `global` (use global setting), `openweathermap`, `weatherapi`, `pirateweather`, `noaa`, or `open-meteo` |
+| `provider` | string | `"global"` | Weather provider: `global` (use global setting), `openweathermap`, `weatherapi`, `pirateweather`, `noaa`, `open-meteo`, `yr`, `smhi`, `metoffice`, or `envcanada` |
 | `hoursToShow` | number | `8` | Number of hours to display (hourly view) |
 | `showFeelsLike` | boolean | `true` | Show "feels like" temperature |
 | `daysToShow` | number | `5` | Number of forecast days (daily view) |
@@ -476,9 +476,10 @@ Displays tasks from the Todoist API with filtering, grouping, and multiple view 
 | `showDescription` | boolean | `false` | Show task description text |
 | `maxTasks` | number | `30` | Maximum number of tasks to display |
 | `refreshIntervalMs` | number | `300000` | How often to fetch tasks (5 min) |
+| `allowComplete` | boolean | `false` | Show a tappable circle on each task. Tapping marks the task complete in Todoist (optimistic, with cache invalidation so the task disappears immediately). When off, the priority bar is shown instead. |
 | `title` | string | `"Todoist"` | Module header title |
 
-Requires a Todoist API token in settings.
+Requires a Todoist API token in settings. Markdown formatting in task content and descriptions (links, bold, italic, code, images) is stripped before rendering so kiosks don't show raw `[Watch](url)` syntax.
 
 **View details:**
 

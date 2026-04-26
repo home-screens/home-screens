@@ -51,7 +51,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 
 ### Weather & Environment
 
-- **Weather** — 8 views (current, forecast, hourly, etc.) across 5 providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo)
+- **Weather** — 8 views (current, forecast, hourly, etc.) across 9 providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada)
 - **Moon Phase** · **Sunrise / Sunset** · **Air Quality** · **Rain Map**
 
 ### News & Finance
