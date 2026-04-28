@@ -259,7 +259,7 @@ graph TB
     end
 
     subgraph "External Services"
-        Weather["Weather Providers<br/>(OWM, WeatherAPI,<br/>Pirate Weather, NOAA, Open-Meteo)"]
+        Weather["Weather Providers<br/>(OWM, WeatherAPI, Pirate Weather,<br/>NOAA, Open-Meteo, Yr.no, SMHI,<br/>Met Office, Environment Canada)"]
         ESPN["ESPN<br/>(scores, standings)"]
         Google["Google<br/>(Calendar, Routes)"]
         Other["RSS, CoinGecko,<br/>Yahoo Finance, etc."]
@@ -298,7 +298,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/config` | GET, PUT | Read/write screen configuration |
 | `/api/calendar` | GET | Google Calendar / iCal event proxy |
 | `/api/calendars` | GET | List available Google Calendars |
-| `/api/weather` | GET | Weather data (5 providers) |
+| `/api/weather` | GET | Weather data (9 providers) |
 | `/api/geocode` | GET | Location geocoding |
 | `/api/jokes` | GET | Dad jokes proxy |
 | `/api/quote` | GET | ZenQuotes daily quote |

@@ -188,13 +188,15 @@ An authentication layer (`src/lib/auth.ts`) protects the editor and API routes. 
 
 ### Profile & Schedule System
 
-Profiles group screens together and can activate on a schedule. Individual modules also support per-module scheduling to show/hide by day and time.
+Profiles group screens together and can activate on a schedule. Individual screens and modules also support their own scheduling so they can show/hide by day and time independent of profiles.
 
 **Profile structure:** Each profile has an `id`, `name`, a list of `screenIds`, and an optional `schedule` (with `daysOfWeek`, `startTime`, `endTime`, and `invert` fields).
 
+**Screen schedule:** Each screen can define an optional `schedule` (same `ModuleSchedule` shape as profiles and modules). Scheduled-off screens are filtered out of the rotation pool *before* profile resolution, so a profile that explicitly references a hidden screen still skips it. If every screen has a schedule and none currently match, the rotator falls back to all enabled screens so the kiosk never goes blank.
+
 **Module schedule:** Each module can define a schedule with `daysOfWeek` (0=Sun through 6=Sat), `startTime`, `endTime`, and an `invert` flag (hide during the window if true).
 
-**Screen resolution order:** If an active profile override is set, those screens are used. Otherwise, if a scheduled profile matches the current time, the first matching profile's screens are used. If no profile matches, all screens are shown.
+**Screen resolution order:** Screens are first filtered by their own schedules, then profile resolution runs against the remaining set. If a scheduled profile matches the current time, the first matching profile wins; otherwise the manually selected `activeProfile` is used; otherwise all (schedule-filtered) screens rotate. Within each visible screen, modules are then filtered by their individual schedules.
 
 ## Adding a New Module
 

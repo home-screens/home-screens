@@ -738,7 +738,7 @@ The `verified` flag on a registry plugin indicates it has been reviewed. The reg
 
 ## File Layout
 
-Installed plugins live under `data/plugins/`:
+Installed plugins live under `data/plugins/`. Plugin secrets are stored separately under `data/plugin-secrets/` so they survive plugin upgrades and uninstalls without ever sitting in the bundle directory:
 
 ```
 data/plugins/
@@ -747,13 +747,17 @@ data/plugins/
     manifest.json                # Plugin manifest
     dist/
       bundle.js                  # IIFE JavaScript bundle
-    secrets.json                 # Plugin-specific secrets (never committed)
   another-plugin/
     manifest.json
     dist/
       bundle.js
-    secrets.json
+
+data/plugin-secrets/             # Mode 0700, separate from the bundles
+  my-plugin.json                 # Per-plugin secret store (never committed)
+  another-plugin.json
 ```
+
+Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated to `data/plugin-secrets/<pluginId>.json` automatically the next time the plugin is updated.
 
 The `installed.json` file tracks installation state:
 

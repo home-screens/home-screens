@@ -87,6 +87,8 @@ If you have [profiles](/docs/profiles) configured, they appear as horizontal pil
 - **Tap a profile** to activate it -- the display will switch to showing only that profile's screens
 - **Tap the active profile** again to deactivate it -- the display returns to showing all screens
 
+In multi-display installs, the profile pills follow the **Display Picker**: pick a specific display and the pills show that display's owned profile pool and currently active profile (matching the precedence the `/api/display/profile` validator applies). Pick **All** to broadcast against the global profile pool instead.
+
 Profile switching **requires authentication** when a password is set. If you're not logged in, you'll see a "Sign in to switch profiles" link that takes you to the login page and returns you to the remote afterward.
 
 ---
