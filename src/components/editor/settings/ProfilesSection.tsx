@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import {
   DndContext,
   closestCenter,
@@ -429,36 +430,18 @@ export default function ProfilesSection() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  // Auto-save: watch the slice of config this section can mutate and
-  // debounce-save whenever it changes. `config.profiles` is the shared
-  // pool, `config.displays` covers per-display owned profiles (the
-  // actual storage target in multi-display installs), and
-  // `config.settings.activeProfile` is the global active field. The
-  // first-render ref skips the initial load so we don't save config-
-  // to-itself immediately after the page mounts. Debounced 500ms so
-  // rapid drag reorders or schedule-day toggles collapse into a
-  // single PUT.
-  //
-  // This replaces the old explicit "Save Profiles" button — every
-  // profile mutation now persists automatically, matching the rest
-  // of the settings page.
-  const initializedRef = useRef(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      return;
-    }
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      saveConfig().catch((err) => {
-        console.error('Profile auto-save failed:', err);
-      });
-    }, 500);
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [config?.profiles, config?.displays, config?.settings.activeProfile, saveConfig]);
+  // Auto-save the slice of config this section can mutate. `config.profiles`
+  // is the shared pool, `config.displays` covers per-display owned profiles
+  // (the actual storage target in multi-display installs), and
+  // `config.settings.activeProfile` is the global active field. Debounced
+  // 500ms so rapid drag reorders or schedule-day toggles collapse into a
+  // single PUT. Replaces the old explicit "Save Profiles" button.
+  useDebouncedSave({
+    values: [config?.profiles, config?.displays, config?.settings.activeProfile],
+    debounceMs: 500,
+    save: () => saveConfig(),
+    onError: (err) => console.error('Profile auto-save failed:', err),
+  });
 
   if (!config) return null;
 
@@ -609,9 +592,9 @@ export default function ProfilesSection() {
           Add Profile
         </Button>
         {/* Save button removed — auto-save means every profile mutation
-            persists via the useEffect at the top of this component.
-            Status feedback lives in the parent settings page's header
-            indicator which subscribes to the store's `isSaving` flag. */}
+            persists via the useDebouncedSave hook at the top of this
+            component. Status feedback lives in the parent settings page's
+            header indicator which subscribes to the store's `isSaving` flag. */}
       </div>
     </section>
   );

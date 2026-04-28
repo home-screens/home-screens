@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Sunrise, Sun, Sunset, Clock, Check, Settings, Lock } from 'lucide-react';
 import type {
   ChoreChartConfig,
@@ -62,50 +63,24 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
-  // ── Debounced auto-save ──
-  // Only saves if the user actually made changes (dirty flag prevents
-  // unconditional writes on unmount from overwriting server data).
-  const isDirtyRef = useRef(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const membersRef = useRef(members);
-  const choresRef = useRef(chores);
-  useEffect(() => { membersRef.current = members; }, [members]);
-  useEffect(() => { choresRef.current = chores; }, [chores]);
-
-  const flushSave = useCallback(() => {
-    clearTimeout(saveTimerRef.current);
-    if (!isDirtyRef.current) return;
-    const m = membersRef.current;
-    const c = choresRef.current;
-    editorFetch('/api/chores/data', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        members: m,
-        chores: c,
-        force: m.length === 0 && c.length === 0,
+  // Debounced auto-save. `skipInitial` skips the first effect run after mount
+  // (initial state comes from props), and `flushOnUnmount` ensures any pending
+  // save in the debounce window runs before the component unmounts.
+  useDebouncedSave({
+    values: [members, chores],
+    flushOnUnmount: true,
+    save: () =>
+      editorFetch('/api/chores/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          members,
+          chores,
+          force: members.length === 0 && chores.length === 0,
+        }),
       }),
-    }).catch(() => {});
-  }, []);
+  });
 
-  // Wrap setters to mark dirty
-  const handleMembersChange = useCallback((next: ChoreMember[]) => {
-    isDirtyRef.current = true;
-    setMembers(next);
-  }, []);
-  const handleChoresChange = useCallback((next: ChoreDefinition[]) => {
-    isDirtyRef.current = true;
-    setChores(next);
-  }, []);
-
-  useEffect(() => {
-    if (!isDirtyRef.current) return;
-    clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(flushSave, 400);
-  }, [members, chores, flushSave]);
-
-  // Flush pending save on unmount (no-op if not dirty)
-  useEffect(() => () => { flushSave(); }, [flushSave]);
 
   // ── Today view state ──
   const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
@@ -369,8 +344,8 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
         <ChoresManageView
           members={members}
           chores={chores}
-          onMembersChange={handleMembersChange}
-          onChoresChange={handleChoresChange}
+          onMembersChange={setMembers}
+          onChoresChange={setChores}
         />
       ) : members.length === 0 || chores.length === 0 ? (
         /* Empty state */

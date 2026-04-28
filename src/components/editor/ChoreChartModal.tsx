@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -863,34 +864,18 @@ export default function ChoreChartModal({
       .catch(() => setLoadError(true));
   }, []);
 
-  // Persist changes to shared file (debounced, skip until initial load completes)
-  const isFirstChange = useRef(true);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const loadedRef = useRef(false);
-  const membersRef = useRef(members);
-  const choresRef = useRef(chores);
-  useEffect(() => { loadedRef.current = loaded; }, [loaded]);
-  useEffect(() => { membersRef.current = members; }, [members]);
-  useEffect(() => { choresRef.current = chores; }, [chores]);
-
-  const flushSave = useCallback(() => {
-    if (!loadedRef.current) return;
-    clearTimeout(saveTimerRef.current);
-    editorFetch('/api/chores/data', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ members: membersRef.current, chores: choresRef.current }),
-    }).then(() => {
-      displayCache.invalidate('/api/chores/data');
-    }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    if (isFirstChange.current) { isFirstChange.current = false; return; }
-    clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(flushSave, 400);
-  }, [members, chores, loaded, flushSave]);
+  const { flush: flushSave } = useDebouncedSave({
+    values: [members, chores],
+    enabled: loaded,
+    save: () =>
+      editorFetch('/api/chores/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ members, chores }),
+      }).then(() => {
+        displayCache.invalidate('/api/chores/data');
+      }),
+  });
 
   // ── Member CRUD ──
   const addMember = (data: Omit<ChoreMember, 'id'>) => {
