@@ -6,6 +6,7 @@ import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3, LayoutDashboard } fro
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
+import { getLocation } from '@/lib/location';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import type { ModuleInstance } from '@/types/config';
@@ -151,9 +152,10 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     }
   }, [effectiveScale, onScaleChange, isDragging]);
 
+  const previewLocation = config ? getLocation(config.settings) : null;
   const previewSettings: PreviewSettings | null = config ? {
-    latitude: config.settings.latitude ?? config.settings.weather.latitude,
-    longitude: config.settings.longitude ?? config.settings.weather.longitude,
+    latitude: previewLocation?.lat,
+    longitude: previewLocation?.lon,
     timezone: config.settings.timezone,
     globalProvider: config.settings.weather.provider,
     units: config.settings.weather.units,

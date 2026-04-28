@@ -5,13 +5,14 @@ import Toggle from '@/components/ui/Toggle';
 import LabeledInput from '@/components/ui/LabeledInput';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
+import { hasValidLocation } from '@/lib/location';
 import type { ModuleInstance } from '@/types/config';
 
 export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ name?: string; accentColor?: string; weatherAware?: boolean }>(mod, screenId);
   const lat = useEditorStore((s) => s.config?.settings?.latitude ?? s.config?.settings?.weather?.latitude);
   const lon = useEditorStore((s) => s.config?.settings?.longitude ?? s.config?.settings?.weather?.longitude);
-  const hasLocation = lat != null && lon != null && !(lat === 0 && lon === 0);
+  const hasLocation = hasValidLocation(lat, lon);
   const weatherAware = c.weatherAware ?? true;
 
   return (

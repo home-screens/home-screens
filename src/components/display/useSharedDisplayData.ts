@@ -10,6 +10,7 @@ import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS } from '@/lib/constants';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
+import { getLocation } from '@/lib/location';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
@@ -28,11 +29,11 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   }, [forceRefresh]);
 
   const globalProvider = settings.weather.provider;
-  const lat = settings.latitude ?? settings.weather.latitude;
-  const lon = settings.longitude ?? settings.weather.longitude;
-  const baseParams = `lat=${lat}&lon=${lon}&units=${settings.weather.units}`;
-
-  const hasLocation = lat != null && lon != null && !(lat === 0 && lon === 0);
+  const location = getLocation(settings);
+  const hasLocation = location != null;
+  const baseParams = location
+    ? `lat=${location.lat}&lon=${location.lon}&units=${settings.weather.units}`
+    : '';
 
   const neededProviders = useMemo(() => {
     const needed = new Set<string>();

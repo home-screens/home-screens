@@ -58,9 +58,7 @@ function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; pr
   // Inject weather data for weather modules or plugins declaring the requirement
   const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
   if (needsWeather) {
-    const lat = settings?.latitude;
-    const lon = settings?.longitude;
-    if (lat == null || lon == null || (lat === 0 && lon === 0)) {
+    if (settings?.latitude == null || settings?.longitude == null) {
       extraProps.locationMissing = true;
     }
     if (wd) {

@@ -10,6 +10,7 @@ import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';
 import { eventBus } from '@/lib/event-bus';
+import { getLocation } from '@/lib/location';
 
 export interface SharedDisplayData {
   owmData: unknown;
@@ -80,8 +81,11 @@ function buildModuleProps(
 
   const def = getModuleDefinition(mod.type);
   if (def?.dataRequirements?.includes('location')) {
-    props.latitude = settings.latitude ?? settings.weather.latitude;
-    props.longitude = settings.longitude ?? settings.weather.longitude;
+    const location = getLocation(settings);
+    if (location) {
+      props.latitude = location.lat;
+      props.longitude = location.lon;
+    }
   }
 
   const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
@@ -149,9 +153,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   // (plain <img> tags don't carry Authorization headers)
   const backgroundImage = useAuthImage(rawBackground || undefined) || '';
 
-  const lat = settings.latitude ?? settings.weather.latitude;
-  const lon = settings.longitude ?? settings.weather.longitude;
-  const locationMissing = lat == null || lon == null || (lat === 0 && lon === 0);
+  const locationMissing = getLocation(settings) == null;
 
   return (
     <div

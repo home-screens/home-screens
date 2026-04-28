@@ -5,6 +5,7 @@ import AccordionSection from '@/components/editor/AccordionSection';
 import { useEditorStore } from '@/stores/editor-store';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
+import { getLocation } from '@/lib/location';
 
 /**
  * Convenience hook for plugin ConfigSection components.
@@ -75,13 +76,12 @@ export default function PluginGlobalsEditor() {
   // Keep host settings in sync with editor config
   useLayoutEffect(() => {
     if (!settings) return;
-    const lat = settings.latitude ?? settings.weather?.latitude ?? null;
-    const lon = settings.longitude ?? settings.weather?.longitude ?? null;
+    const location = getLocation(settings);
     setHostSettings({
       timezone: settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
       units: settings.weather?.units ?? 'imperial',
-      latitude: lat,
-      longitude: lon,
+      latitude: location?.lat ?? null,
+      longitude: location?.lon ?? null,
       displayWidth: settings.displayWidth || DEFAULT_DISPLAY_WIDTH,
       displayHeight: settings.displayHeight || DEFAULT_DISPLAY_HEIGHT,
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? '',

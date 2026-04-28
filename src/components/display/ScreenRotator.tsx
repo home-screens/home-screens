@@ -18,6 +18,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
 import { getTransitionConfig, getViewTransitionKeyframes } from '@/lib/transitions';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
+import { getLocation } from '@/lib/location';
 import { useIdleCursor } from '@/hooks/useIdleCursor';
 import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
@@ -247,13 +248,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Push host settings so plugins can read them via getHostSettings().
   // useLayoutEffect ensures settings are available before plugins render.
   useLayoutEffect(() => {
-    const lat = settings.latitude ?? settings.weather?.latitude ?? null;
-    const lon = settings.longitude ?? settings.weather?.longitude ?? null;
+    const location = getLocation(settings);
     setHostSettings({
       timezone: settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
       units: settings.weather?.units ?? 'imperial',
-      latitude: lat,
-      longitude: lon,
+      latitude: location?.lat ?? null,
+      longitude: location?.lon ?? null,
       displayWidth: settings.displayWidth || DEFAULT_DISPLAY_WIDTH,
       displayHeight: settings.displayHeight || DEFAULT_DISPLAY_HEIGHT,
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? '',
