@@ -32,105 +32,10 @@ import {
 import ChoreIcon, {
   MEMBER_ICONS,
   CHORE_ICONS,
-  getIconDef,
-  toLucideValue,
 } from '@/components/modules/chore-chart/ChoreIcon';
+import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
-
-// ── Icon Picker ───────────────────────────────────────────────────
-
-function IconPicker({
-  value,
-  onChange,
-  icons,
-  label,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  icons: string[];
-  label: string;
-}) {
-  const [search, setSearch] = useState('');
-  const showSearch = icons.length > 20;
-
-  const filtered = search
-    ? icons.filter((name) => {
-        const def = getIconDef(name);
-        if (!def) return false;
-        const q = search.toLowerCase();
-        return name.toLowerCase().includes(q) || def.label.toLowerCase().includes(q);
-      })
-    : icons;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-hs-text-muted">{label}</span>
-        {value ? (
-          <ChoreIcon value={value} size={22} />
-        ) : (
-          <span className="text-xs text-hs-text-faint">None</span>
-        )}
-        {value && (
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary ml-auto"
-            aria-label={`Clear ${label.toLowerCase()}`}
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
-      {showSearch && (
-        <input
-          type="text"
-          placeholder="Filter icons..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={MODAL_INPUT_CLASS}
-        />
-      )}
-
-      <div className="flex flex-wrap gap-1.5">
-        {filtered.map((name) => {
-          const def = getIconDef(name);
-          if (!def) return null;
-          const lucideVal = toLucideValue(name);
-          const isSelected = value === lucideVal;
-          const Icon = def.component;
-          return (
-            <button
-              key={name}
-              type="button"
-              onClick={() => onChange(lucideVal)}
-              className={`flex flex-col items-center gap-0.5 rounded-lg transition-all px-1.5 py-1.5 ${
-                isSelected
-                  ? 'ring-2 ring-white ring-offset-1 ring-offset-hs-panel scale-105'
-                  : 'hover:scale-105 hover:brightness-125'
-              }`}
-              style={{
-                backgroundColor: `${def.defaultColor}${isSelected ? '30' : '15'}`,
-                color: def.defaultColor,
-                width: 52,
-              }}
-            >
-              <Icon size={22} strokeWidth={1.75} />
-              <span className="text-[9px] leading-tight text-hs-text-muted truncate w-full text-center">
-                {def.label}
-              </span>
-            </button>
-          );
-        })}
-        {search && filtered.length === 0 && (
-          <span className="text-xs text-hs-text-faint py-2">No matching icons</span>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ── Props ─────────────────────────────────────────────────────────
 
@@ -173,6 +78,7 @@ function MemberForm({
         onChange={f.setEmoji}
         icons={MEMBER_ICONS}
         label="Avatar"
+        variant="desktop"
       />
 
       {/* Color picker */}
@@ -264,6 +170,7 @@ function ChoreForm({
         onChange={setEmoji}
         icons={CHORE_ICONS}
         label="Icon"
+        variant="desktop"
       />
 
       {/* Points & Frequency */}

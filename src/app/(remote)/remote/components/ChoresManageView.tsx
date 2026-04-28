@@ -23,10 +23,10 @@ import ChoreIcon, {
   MEMBER_ICONS,
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
+import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
-import MobileIconPicker from './MobileIconPicker';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
@@ -68,11 +68,12 @@ function MemberFormOverlay({
           />
         </div>
 
-        <MobileIconPicker
+        <IconPicker
           value={emoji}
           onChange={setEmoji}
           icons={MEMBER_ICONS}
           label="Avatar"
+          variant="mobile"
         />
 
         <MobileColorPicker value={color} onChange={setColor} />
@@ -183,11 +184,12 @@ function ChoreFormOverlay({
         </div>
 
         {/* Icon */}
-        <MobileIconPicker
+        <IconPicker
           value={emoji}
           onChange={setEmoji}
           icons={CHORE_ICONS}
           label="Icon"
+          variant="mobile"
         />
 
         {/* Points & Frequency */}

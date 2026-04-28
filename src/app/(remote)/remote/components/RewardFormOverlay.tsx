@@ -6,7 +6,7 @@ import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
-import MobileIconPicker from './MobileIconPicker';
+import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
 
@@ -106,11 +106,12 @@ export default function RewardFormOverlay({
         }
       >
         {/* Icon */}
-        <MobileIconPicker
+        <IconPicker
           value={emoji}
           onChange={setEmoji}
           icons={[...REWARD_ICONS]}
           label="Icon"
+          variant="mobile"
         />
 
         {/* Name */}
