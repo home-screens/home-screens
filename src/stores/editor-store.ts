@@ -41,9 +41,31 @@ import {
   MAX_HISTORY,
   COALESCE_WINDOW_MS,
   createPendingResave,
+  snapshotState,
+  applyHistoryStep,
   type HistoryEntry,
   type PendingResave,
 } from '@/stores/editor-save';
+
+/**
+ * Update the editor URL search params in place. Pass a string to set, null
+ * to delete, undefined to leave a key unchanged. No-op on the server. Used
+ * by every selection/CRUD/history action that the user expects to be able
+ * to refresh without losing context.
+ */
+function syncEditorUrl({ screen, display }: { screen?: string | null; display?: string | null }): void {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (screen !== undefined) {
+    if (screen !== null) url.searchParams.set('screen', screen);
+    else url.searchParams.delete('screen');
+  }
+  if (display !== undefined) {
+    if (display !== null) url.searchParams.set('display', display);
+    else url.searchParams.delete('display');
+  }
+  window.history.replaceState(null, '', url.toString());
+}
 
 // Re-export pure multi-display helpers so existing consumers that import
 // them from `@/stores/editor-store` keep working after the split.
@@ -132,12 +154,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     if (actionKey && actionKey === state._lastHistoryActionKey && state._past.length > 0 && (now - state._lastHistoryTime) < COALESCE_WINDOW_MS) {
       newPast = state._past;
     } else {
-      newPast = [...state._past, {
-        config: structuredClone(config),
-        selectedDisplayId: state.selectedDisplayId,
-        selectedScreenId: state.selectedScreenId,
-        selectedModuleId: state.selectedModuleId,
-      }];
+      newPast = [...state._past, snapshotState({ ...state, config })];
       if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
     }
 
@@ -146,6 +163,23 @@ export const useEditorStore = create<EditorState>((set, get) => {
       _past: newPast, _future: [], _lastHistoryTime: now, _lastHistoryActionKey: actionKey,
       ...fn(config),
     });
+  };
+
+  const stepHistory = (direction: 'undo' | 'redo') => {
+    const state = get();
+    if (!state.config) return;
+    const result = applyHistoryStep(state as Parameters<typeof applyHistoryStep>[0], direction);
+    if (!result) return;
+    set(result.next);
+    if (
+      result.next.selectedScreenId !== result.previousSelectedScreenId
+      || result.next.selectedDisplayId !== result.previousSelectedDisplayId
+    ) {
+      syncEditorUrl({
+        screen: result.next.selectedScreenId ?? null,
+        display: result.next.selectedDisplayId ?? null,
+      });
+    }
   };
 
   return {
@@ -216,18 +250,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       selectedModuleId: null,
     });
     // Sync the URL so refreshes land back on the same display.
-    const url = new URL(window.location.href);
-    if (id) {
-      url.searchParams.set('display', id);
-    } else {
-      url.searchParams.delete('display');
-    }
-    if (firstId) {
-      url.searchParams.set('screen', firstId);
-    } else {
-      url.searchParams.delete('screen');
-    }
-    window.history.replaceState(null, '', url.toString());
+    syncEditorUrl({ display: id ?? null, screen: firstId ?? null });
   },
 
   saveConfig: async () => {
@@ -286,9 +309,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
   selectScreen: (id) => {
     set({ selectedScreenId: id, selectedModuleId: null });
-    const url = new URL(window.location.href);
-    url.searchParams.set('screen', id);
-    window.history.replaceState(null, '', url.toString());
+    syncEditorUrl({ screen: id });
   },
 
   selectModule: (id) => set({ selectedModuleId: id }),
@@ -389,9 +410,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       selectedScreenId: newScreen.id,
       selectedModuleId: null,
     }));
-    const url = new URL(window.location.href);
-    url.searchParams.set('screen', newScreen.id);
-    window.history.replaceState(null, '', url.toString());
+    syncEditorUrl({ screen: newScreen.id });
   },
 
   removeScreen: (id) => {
@@ -417,9 +436,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       selectedModuleId: null,
     }));
     if (newSelectedId) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('screen', newSelectedId);
-      window.history.replaceState(null, '', url.toString());
+      syncEditorUrl({ screen: newSelectedId });
     }
   },
 
@@ -714,13 +731,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     const state = get();
     let newPast = state._past;
     if (state.config) {
-      const snapshot: HistoryEntry = {
-        config: structuredClone(state.config),
-        selectedDisplayId: state.selectedDisplayId,
-        selectedScreenId: state.selectedScreenId,
-        selectedModuleId: state.selectedModuleId,
-      };
-      newPast = [...state._past, snapshot];
+      newPast = [...state._past, snapshotState(state as Parameters<typeof snapshotState>[0])];
       if (newPast.length > MAX_HISTORY) newPast = newPast.slice(newPast.length - MAX_HISTORY);
     }
     const nextDisplayId = findMainDisplay(parsed.displays)?.id ?? null;
@@ -735,9 +746,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       _past: newPast, _future: [], _lastHistoryTime: 0, _lastHistoryActionKey: '',
     });
     if (firstId) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('screen', firstId);
-      window.history.replaceState(null, '', url.toString());
+      syncEditorUrl({ screen: firstId });
     }
   },
 
@@ -827,9 +836,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       };
     });
     if (firstNewId) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('screen', firstNewId);
-      window.history.replaceState(null, '', url.toString());
+      syncEditorUrl({ screen: firstNewId });
     }
   },
 
@@ -852,79 +859,6 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
   toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
 
-  undo: () => {
-    const state = get();
-    if (state._past.length === 0 || !state.config) return;
-
-    const newPast = state._past.slice(0, -1);
-    const entry = state._past[state._past.length - 1];
-
-    const currentSnapshot: HistoryEntry = {
-      config: structuredClone(state.config),
-      selectedDisplayId: state.selectedDisplayId,
-      selectedScreenId: state.selectedScreenId,
-      selectedModuleId: state.selectedModuleId,
-    };
-
-    const newFuture = [...state._future, currentSnapshot];
-    set({
-      config: entry.config,
-      selectedDisplayId: entry.selectedDisplayId,
-      selectedScreenId: entry.selectedScreenId,
-      selectedModuleId: entry.selectedModuleId,
-      isDirty: true,
-      saveError: null,
-      _past: newPast,
-      _future: newFuture.length > MAX_HISTORY ? newFuture.slice(newFuture.length - MAX_HISTORY) : newFuture,
-      _lastHistoryTime: 0,
-      _lastHistoryActionKey: '',
-    });
-
-    if (entry.selectedScreenId !== state.selectedScreenId || entry.selectedDisplayId !== state.selectedDisplayId) {
-      const url = new URL(window.location.href);
-      if (entry.selectedScreenId) url.searchParams.set('screen', entry.selectedScreenId);
-      else url.searchParams.delete('screen');
-      if (entry.selectedDisplayId) url.searchParams.set('display', entry.selectedDisplayId);
-      else url.searchParams.delete('display');
-      window.history.replaceState(null, '', url.toString());
-    }
-  },
-
-  redo: () => {
-    const state = get();
-    if (state._future.length === 0 || !state.config) return;
-
-    const newFuture = state._future.slice(0, -1);
-    const entry = state._future[state._future.length - 1];
-
-    const currentSnapshot: HistoryEntry = {
-      config: structuredClone(state.config),
-      selectedDisplayId: state.selectedDisplayId,
-      selectedScreenId: state.selectedScreenId,
-      selectedModuleId: state.selectedModuleId,
-    };
-
-    const newPast = [...state._past, currentSnapshot];
-    set({
-      config: entry.config,
-      selectedDisplayId: entry.selectedDisplayId,
-      selectedScreenId: entry.selectedScreenId,
-      selectedModuleId: entry.selectedModuleId,
-      isDirty: true,
-      saveError: null,
-      _past: newPast.length > MAX_HISTORY ? newPast.slice(newPast.length - MAX_HISTORY) : newPast,
-      _future: newFuture,
-      _lastHistoryTime: 0,
-      _lastHistoryActionKey: '',
-    });
-
-    if (entry.selectedScreenId !== state.selectedScreenId || entry.selectedDisplayId !== state.selectedDisplayId) {
-      const url = new URL(window.location.href);
-      if (entry.selectedScreenId) url.searchParams.set('screen', entry.selectedScreenId);
-      else url.searchParams.delete('screen');
-      if (entry.selectedDisplayId) url.searchParams.set('display', entry.selectedDisplayId);
-      else url.searchParams.delete('display');
-      window.history.replaceState(null, '', url.toString());
-    }
-  },
+  undo: () => stepHistory('undo'),
+  redo: () => stepHistory('redo'),
 }});
