@@ -58,13 +58,13 @@ const featuresRight: Feature[] = [
   {
     icon: CloudOff,
     title: 'Zero Cloud',
-    description: 'Runs entirely on your network. No accounts, no telemetry, no phoning home.',
+    description: 'Runs entirely on your network. No accounts, no PII, opt-out anonymous telemetry.',
   },
   {
     icon: CloudSun,
     title: 'Weather Providers',
-    stat: '5',
-    description: 'OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, or Open-Meteo.',
+    stat: '9',
+    description: 'Open-Meteo, NOAA, Yr.no, SMHI, Met Office, Environment Canada, OpenWeatherMap, WeatherAPI, Pirate Weather.',
   },
   {
     icon: ArrowUpCircle,

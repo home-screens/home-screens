@@ -213,7 +213,7 @@ If you delete a display from the editor's **Settings > Per display > All display
 
 When the hub already has other registered displays, the waiting room displays a visible 60-second countdown and a **Go to default display now** button:
 
-1. Wait for the countdown to expire — the spoke auto-navigates to `/display`, which redirects to the current default display
+1. Wait for the countdown to expire — the spoke auto-navigates to `/display`, which loads the current default display
 2. Or click the button to go immediately
 3. No power cycle is needed
 
@@ -235,7 +235,7 @@ If two browser tabs at the same URL on the same Pi report under one display ID, 
 
 ## Display row is missing CPU/temperature
 
-Adopted displays report hardware stats (CPU, temperature, memory, uptime) to the hub every 5 minutes via a systemd timer running `scripts/reporter.sh`. If a display card on **Settings > Per display > All displays** is missing these stats:
+Adopted displays report hardware stats (CPU, temperature, memory, uptime) to the hub every 30 seconds via a systemd timer (`home-screens-reporter.timer`) running `scripts/reporter.sh`. If a display card on **Settings > Per display > All displays** is missing these stats:
 
 1. **Check the timer on the spoke** — SSH to the Pi and run:
    ```bash

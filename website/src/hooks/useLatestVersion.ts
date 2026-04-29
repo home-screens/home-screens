@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 const VERSION_URL =
   'https://home-screens-version.agent462.workers.dev/version';
-const FALLBACK_VERSION = 'v0.19.2';
+const FALLBACK_VERSION = 'v1.3.0';
 
 export function useLatestVersion(): string {
   const [version, setVersion] = useState(FALLBACK_VERSION);

@@ -119,7 +119,7 @@ The canvas always renders at the active display's resolution and rotation, so a 
 
 ### Main display
 
-When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens, profiles, and dimensions. (If instead your very first `addDisplay` call names the new display `main`, the globals migrate onto it directly — no sibling is seeded.) The legacy `/display` URL redirects to `/display/main` whenever a display with that ID exists (which is the normal case), and falls back to the first display in the registry otherwise — so the existing kiosk keeps showing its current layout and active profile even if `main` was renamed or removed by hand. `main` is now a regular display node that owns its own resolution and rotation — you edit them on its **Per display > Main > Display** page like any other display. Removing `main` through the editor is hard-blocked at the store layer because it would orphan the hub's screens.
+When you add the first additional display to a single-display install, the editor automatically creates a `main` display from your existing global screens, profiles, and dimensions. (If instead your very first `addDisplay` call names the new display `main`, the globals migrate onto it directly — no sibling is seeded.) The legacy `/display` URL **renders the main display inline** — it resolves the target display server-side and renders the rotator directly with that `displayId`, without a redirect. (We avoid a redirect because Chromium `--app` mode duplicates its window when following a 307 with an RSC body.) When no display is named `main`, it falls back to the first display in the registry, so the existing kiosk keeps showing its current layout and active profile even if `main` was renamed or removed by hand. `main` is now a regular display node that owns its own resolution and rotation — you edit them on its **Per display > Main > Display** page like any other display. Removing `main` through the editor is hard-blocked at the store layer because it would orphan the hub's screens.
 
 Second and later displays start with an empty screen list and an empty owned profile list, so you design fresh for the new resolution.
 
@@ -310,7 +310,7 @@ Rotation is authoritative for canvas orientation. The hub sorts the (width, heig
 
 ## Stranded displays
 
-If you delete a display from the editor while a spoke is still pointed at the deleted URL, the spoke lands on a **DisplayNotFound** waiting-room screen. When the hub already has other registered displays, the waiting room shows a visible 60-second countdown and a "Go to default display now" button. Once the countdown hits zero (or the user clicks the button) the spoke navigates to `/display`, which redirects to the current default display. No power cycle is needed.
+If you delete a display from the editor while a spoke is still pointed at the deleted URL, the spoke lands on a **DisplayNotFound** waiting-room screen. When the hub already has other registered displays, the waiting room shows a visible 60-second countdown and a "Go to default display now" button. Once the countdown hits zero (or the user clicks the button) the spoke navigates to `/display`, which loads the current default display. No power cycle is needed.
 
 A bootstrap install with no other displays registered (i.e. waiting for its first adoption) skips the countdown and waits indefinitely for the editor to adopt it.
 

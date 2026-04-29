@@ -145,15 +145,19 @@ Module components use the `useFetchData` hook to call API routes (e.g., `/api/we
 
 Weather data comes from a pluggable provider system in `src/lib/weather/`.
 
-The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. Five implementations exist:
+The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. Nine implementations exist:
 
+- **OpenMeteoProvider** — free, no API key, global coverage; provides hourly and forecast data (the default)
+- **NOAAProvider** — free, no API key, US only; provides hourly, forecast, and alerts
+- **YrProvider** — free, no API key, global; provides hourly and forecast data (Norwegian Meteorological Institute)
+- **SMHIProvider** — free, no API key, Nordic coverage; provides hourly and forecast data (Swedish Meteorological and Hydrological Institute)
+- **MetOfficeProvider** — free, no API key, UK coverage; provides hourly and forecast data
+- **EnvCanadaProvider** — free, no API key, Canadian cities; provides hourly and forecast data (ECCC citypage feeds)
 - **OpenWeatherMapProvider** — requires API key; provides hourly and forecast data
 - **WeatherAPIProvider** — requires API key; provides hourly and forecast data
-- **PirateWeatherProvider** — requires API key; provides hourly, forecast, minutely precipitation, and alerts
-- **NOAAProvider** — free, no API key, US only; provides hourly, forecast, and alerts
-- **OpenMeteoProvider** — free, no API key, global coverage; provides hourly and forecast data
+- **PirateWeatherProvider** — requires API key; provides hourly, forecast, minutely precipitation, and alerts (Dark Sky replacement)
 
-The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. Pirate Weather (a Dark Sky replacement) additionally supports minutely precipitation data and weather alerts. NOAA uses the National Weather Service API — it's free and requires no API key, but is limited to US locations. Open-Meteo is free, requires no API key, and provides global coverage.
+The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. The six free, key-less providers cover most use cases: Open-Meteo is the global default; NOAA, Yr.no, SMHI, Met Office, and Environment Canada provide higher-accuracy regional forecasts within their coverage areas. The three key-required providers (OpenWeatherMap, WeatherAPI, Pirate Weather) round out the options when a user wants a specific data source — Pirate Weather is the only one that provides minutely precipitation data.
 
 ### API Routes
 

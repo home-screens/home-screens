@@ -204,6 +204,13 @@ type TransitionEffect =
     immichFavoritesOnly?: boolean  // Only use Immich favorites
   }
   modules: ModuleInstance[]     // Modules on this screen
+  rotationDurationMs?: number   // Per-screen override of settings.rotationIntervalMs.
+                                // undefined = inherit; 0 = sticky (no auto-rotation,
+                                // manual advance only); positive = exact ms.
+  schedule?: ModuleSchedule     // Optional show/hide schedule for the whole screen.
+                                // Filtered out of the rotation pool before profile
+                                // resolution; falls back to all enabled screens if
+                                // no scheduled screen currently matches.
 }
 ```
 

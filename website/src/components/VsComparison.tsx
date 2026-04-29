@@ -126,7 +126,7 @@ const groups: Group[] = [
         note: 'Modules that ship with a default install, before adding anything',
         magicMirror: { kind: 'text', label: '7' },
         dakboard: { kind: 'text', label: 'Not published' },
-        homeScreens: { kind: 'text', label: '38' },
+        homeScreens: { kind: 'text', label: '39' },
       },
       {
         feature: 'Community modules',
@@ -140,7 +140,7 @@ const groups: Group[] = [
         note: 'Providers supported by the built-in weather module',
         magicMirror: { kind: 'text', label: '11' },
         dakboard: { kind: 'text', label: '4' },
-        homeScreens: { kind: 'text', label: '5' },
+        homeScreens: { kind: 'text', label: '9' },
       },
     ],
   },
@@ -222,7 +222,7 @@ const positioning = [
   {
     name: 'Home Screens',
     tagline: 'The middle path',
-    copy: 'Open source + visual editor. Runs entirely on your Pi — no account, no cloud. 38 built-in modules, a plugin SDK, and remote control from your phone.',
+    copy: 'Open source + visual editor. Runs entirely on your Pi — no account, no cloud. 39 built-in modules, a plugin SDK, and remote control from your phone.',
     accent: 'cyan' as const,
   },
 ];
@@ -251,7 +251,7 @@ const tradeoffs = [
     title: 'Pick Home Screens if…',
     items: [
       'You want Dakboard-style editing without the cloud.',
-      'You want 38 built-in modules out of the box.',
+      'You want 39 built-in modules out of the box.',
       'You want dedicated fullscreen calendar, chore, meal, and photo-frame modes — not just shrunk-down widgets.',
       'Portrait or landscape, you want something the family will use daily.',
       'You want a plugin SDK and multi-display from one hub.',

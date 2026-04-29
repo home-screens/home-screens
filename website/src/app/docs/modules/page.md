@@ -35,7 +35,7 @@ Each category in the palette groups related modules. Click a category header to 
 
 Ambient, always-on displays that fill the entire canvas. Position, size, and style controls are hidden because these modules always occupy the whole display.
 
-- **Fullscreen Calendar** — five views (month, week, day, agenda, multi-month), Skylight-inspired
+- **Fullscreen Calendar** — five views (schedule, week-list, month-grid, day-timeline, agenda), Skylight-inspired
 - **Fullscreen Chore Chart** — kid-friendly ambient chore surface
 - **Fullscreen Meal Planner** — four views for the weekly meal plan
 - **Fullscreen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich support, and a single-photo "static wallpaper" mode

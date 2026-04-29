@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     default: 'Home Screens — Smart Display for Your Home',
   },
   description:
-    'An open-source smart display system for Raspberry Pi. 38 built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.',
+    'An open-source smart display system for Raspberry Pi. 39 built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.',
   alternates: {
     types: {
       'application/rss+xml': '/feed.xml',
@@ -69,7 +69,7 @@ export default function RootLayout({
               '@type': 'SoftwareApplication',
               name: 'Home Screens',
               description:
-                'An open-source smart display system for Raspberry Pi with 38 built-in modules, a drag-and-drop visual editor, and a plugin system.',
+                'An open-source smart display system for Raspberry Pi with 39 built-in modules, a drag-and-drop visual editor, and a plugin system.',
               applicationCategory: 'UtilitiesApplication',
               operatingSystem: 'Linux',
               url: 'https://homescreens.dev',
@@ -78,7 +78,7 @@ export default function RootLayout({
                 name: 'Home Screens',
                 url: 'https://homescreens.dev',
               },
-              softwareVersion: '1.1.0',
+              softwareVersion: '1.3.0',
               datePublished: '2026-03-07',
               dateModified: '2026-04-11',
               downloadUrl:

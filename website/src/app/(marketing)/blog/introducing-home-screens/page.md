@@ -22,13 +22,13 @@ We built Home Screens because the existing options for smart home displays felt 
 
 So we built our own.  That's the image above.  The larger display is a Samsung Frame TV and flips through all the main screens.  The smaller display underneath is a touchscreen panel so the kids can interact and complete their chores and redeem rewards.
 
-We believe Home Screens is different. It's a free, self-hosted web app that runs on a Raspberry Pi and turns any monitor into a smart display - with a drag-and-drop editor, 38 built-in modules, and beautiful full-screen dashboards.
+We believe Home Screens is different. It's a free, self-hosted web app that runs on a Raspberry Pi and turns any monitor into a smart display - with a drag-and-drop editor, 39 built-in modules, and beautiful full-screen dashboards.
 
 ## What makes it different
 
 **A real visual editor.** Drag modules onto a canvas, resize them, rearrange them. No config files, no terminal. The editor runs in your browser and saves changes instantly.
 
-**38 built-in modules.** Weather (with 5 providers), calendars, clocks, news, sports scores, stock tickers, meal planners, chore charts, photo slideshows, and more. Each module has multiple views — the clock alone has 18 different styles.
+**39 built-in modules.** Weather (with 9 providers), calendars, clocks, news, sports scores, stock tickers, meal planners, chore charts, photo slideshows, and more. Each module has multiple views — the clock alone has 18 different styles.
 
 **Your data stays local.** No cloud accounts, no telemetry you can't disable, no subscriptions. Everything is stored in a single JSON file on your Pi. You own your data completely.
 
@@ -38,11 +38,11 @@ We believe Home Screens is different. It's a free, self-hosted web app that runs
 
 ## Control everything from your phone
 
-Home Screens includes a remote control panel at that turns any phone or tablet into a command center for your displays. No app to install — just open the URL in your browser when on your home network.
+Home Screens includes a remote control panel at `/remote` that turns any phone or tablet into a command center for your displays. No app to install — just open the URL in your browser when on your home network.
 
 **Display control.** Switch screens, change profiles, reload displays, and trigger commands from across the house. If you're running multiple displays, you can target individual ones or broadcast to all of them.
 
-**Chore management.** Create chores, assign them to family members, set daily or weekly schedules, and track completion. Kids get their own simplified view at where they can check off today's tasks without needing a login. Parents manage everything — members, chores, rewards — from the remote panel.
+**Chore management.** Create chores, assign them to family members, set daily or weekly schedules, and track completion. Kids get their own simplified view at `/chores` where they can check off today's tasks without needing a login. Parents manage everything — members, chores, rewards — from the remote panel.
 
 **Meal planning.** Plan the week's meals, build a recipe library, and generate grocery lists. The meal planner syncs across all displays and the remote panel, so anyone in the family can update the plan from their phone while they're at the store.
 

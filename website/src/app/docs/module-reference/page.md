@@ -59,7 +59,7 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"chores"` | Display mode: `chores` (daily chore board) or `rewards-store` (browse and redeem rewards) |
-| `showRewardsButton` | boolean | `true` | Show a toggle button in the chore board header to switch to the rewards store view |
+| `showRewardsButton` | boolean | `false` | Show a toggle button in the chore board header to switch to the rewards store view |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
