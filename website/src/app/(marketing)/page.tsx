@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { FeaturesBento } from '@/components/FeaturesBento';
 import { ModuleShowcase } from '@/components/ModuleShowcase';
+import { FeaturedPlugin } from '@/components/FeaturedPlugin';
 import { EditorExperience } from '@/components/EditorExperience';
 import { RemoteShowcase } from '@/components/RemoteShowcase';
 import { TemplatesGallery } from '@/components/TemplatesGallery';
@@ -35,6 +36,7 @@ export default function Home() {
         <Hero />
         <FeaturesBento />
         <ModuleShowcase />
+        <FeaturedPlugin />
         <EditorExperience />
         <RemoteShowcase />
         <TemplatesGallery />

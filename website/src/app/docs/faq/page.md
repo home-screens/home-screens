@@ -154,6 +154,20 @@ Go to **Settings > Display > Rotation** in the editor, or see [Troubleshooting >
 
 There is no hard limit. In practice, performance depends on your hardware. A Raspberry Pi 4 with 2 GB RAM handles 10--15 modules per screen comfortably. More powerful hardware can handle more. If you notice sluggishness, try reducing the number of modules that make frequent API calls (weather, stocks, news).
 
+### Does it work with Home Assistant?
+
+Yes. Home Screens ships an official **Home Assistant plugin** that displays your HA entities directly on the wall. It supports lights, climate, media players, covers, locks, sensors, switches, and more — auto-rendered as type-aware cards (gauges for sensors, dials for thermostats, toggles for switches), not rows in a table. You can also interact with entities: tap a light to toggle it, nudge a thermostat, play/pause media, lock a door — all from the display.
+
+To set it up:
+
+1. In Home Assistant, go to **Profile > Security > Long-Lived Access Tokens** and create a token (valid for 10 years).
+2. In the Home Screens editor, open the plugin browser, install **Home Assistant**, and paste your HA URL and the token in the plugin's settings.
+3. Pick the entities or area you want to show — no Jinja2 templates, no YAML, no manual icon mapping.
+
+The plugin runs every request through Home Screens' server-side proxy, so your token never reaches the browser. See the [Plugins reference](/docs/plugins) for how plugins, secrets, and the LAN proxy work.
+
+If you want HA to drive the *display itself* (wake/sleep, switch screens, push alerts), the [remote-control API](/docs/remote-control#home-assistant-integration) works the other direction — HA calls Home Screens via RESTful Command.
+
 ### Can I create custom modules?
 
 Yes. Home Screens uses a module registry pattern. To add a new module, you create a React component, register it in the module registry, and add its configuration to the property panel. See the [Development Guide](/docs/development) for a walkthrough of the full process.
