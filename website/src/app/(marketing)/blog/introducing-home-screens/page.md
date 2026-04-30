@@ -5,6 +5,7 @@ date: '2026-04-11'
 category: Updates
 author: Bryan
 image: /images/blog/home-display.webp
+slug: introducing-home-screens
 layout: blog
 nextjs:
   metadata:

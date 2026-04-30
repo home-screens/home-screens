@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { Prose } from '@/components/docs/Prose'
 import { TableOfContents } from '@/components/docs/TableOfContents'
 import { collectSections } from '@/lib/sections'
+import {
+  buildArticleSchema,
+  buildBreadcrumbSchema,
+  buildFaqSchema,
+  extractFaqEntries,
+} from '@/lib/structured-data'
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
@@ -23,10 +29,35 @@ export function BlogPostLayout({
   nodes: Array<Node>
 }) {
   const tableOfContents = collectSections(nodes)
-  const { title, date, category, author, image } = frontmatter
+  const { title, date, category, author, image, description, slug } =
+    frontmatter
+
+  const structuredData: Array<Record<string, unknown>> = []
+  if (title && date && slug) {
+    structuredData.push(
+      buildArticleSchema({
+        title,
+        description: description ?? '',
+        date,
+        author: author ?? 'Bryan',
+        image,
+        slug,
+      }),
+    )
+    structuredData.push(buildBreadcrumbSchema(title, slug))
+    const faq = buildFaqSchema(extractFaqEntries(nodes))
+    if (faq) structuredData.push(faq)
+  }
 
   return (
     <div className="relative mx-auto flex w-full max-w-7xl justify-center px-4 sm:px-6 lg:px-8">
+      {structuredData.map((data, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+        />
+      ))}
       <div className="min-w-0 max-w-3xl flex-auto py-16 xl:pr-16">
         <article>
           <header className="mb-10">

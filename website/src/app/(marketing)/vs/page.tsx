@@ -6,24 +6,24 @@ import { VsComparison } from '@/components/VsComparison';
 export const metadata: Metadata = {
   title: {
     absolute:
-      'Home Screens vs MagicMirror vs Dakboard — Smart Display Comparison',
+      'MagicMirror vs Dakboard (2026): Honest Comparison + Free Alternative',
   },
   description:
-    'An honest side-by-side of the three main smart display options for Raspberry Pi: MagicMirror (open, DIY), Dakboard (polished, cloud), and Home Screens (open + visual editor, self-hosted).',
+    'Compare MagicMirror (free, DIY) and Dakboard ($6/mo for 2 screens, cloud) on price, features, and setup. Plus a self-hosted middle path with a visual editor and no subscription.',
   alternates: {
     canonical: 'https://homescreens.dev/vs',
   },
   openGraph: {
-    title: 'Home Screens vs MagicMirror vs Dakboard',
+    title: 'MagicMirror vs Dakboard (2026): Honest Comparison',
     description:
-      'MagicMirror is free but DIY. Dakboard is polished but cloud + subscription. Home Screens is the middle path — open source with a visual editor, self-hosted on your Pi.',
+      'MagicMirror is free but DIY. Dakboard is polished but cloud + subscription. Home Screens is the middle path — open source, visual editor, self-hosted on your Pi.',
     url: 'https://homescreens.dev/vs',
     type: 'article',
   },
   twitter: {
-    title: 'Home Screens vs MagicMirror vs Dakboard',
+    title: 'MagicMirror vs Dakboard (2026): Honest Comparison',
     description:
-      'An honest comparison of the three main Raspberry Pi smart display options — price, features, hosting, and where each one genuinely wins.',
+      'Free DIY vs $6/mo cloud (2 screens) — full side-by-side on price, features, and setup, plus a self-hosted alternative with a visual editor.',
   },
 };
 
