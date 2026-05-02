@@ -3,6 +3,7 @@
 import type { ModuleStyle } from '@/types/config';
 import type { ReactNode } from 'react';
 import { buildModuleShadow, colorWithAlpha } from '@/lib/module-style';
+import { resolveFontStack } from '@/lib/font-registry';
 
 interface ModuleWrapperProps {
   style: ModuleStyle;
@@ -31,7 +32,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
         padding: `${style.padding}px`,
         backgroundColor: bg,
         color: style.textColor,
-        fontFamily: style.fontFamily,
+        fontFamily: resolveFontStack(style.fontFamily) ?? style.fontFamily,
         fontSize: `${style.fontSize}px`,
         backdropFilter: hasBlur ? `blur(${style.backdropBlur}px)` : undefined,
         WebkitBackdropFilter: hasBlur ? `blur(${style.backdropBlur}px)` : undefined,

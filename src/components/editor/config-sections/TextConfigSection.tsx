@@ -8,7 +8,15 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import LabeledTextarea from '@/components/ui/LabeledTextarea';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import type { ModuleInstance, TextConfig } from '@/types/config';
+import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
+import type {
+  ModuleInstance,
+  TextConfig,
+  TextEffect,
+  TextDecoration,
+  TextRevealOnRotation,
+  TextWrapMode,
+} from '@/types/config';
 
 const ORIENTATION_OPTIONS: { value: 'horizontal' | 'vertical' | 'sideways'; label: string }[] = [
   { value: 'horizontal', label: 'Horizontal' },
@@ -35,12 +43,42 @@ const TEXT_TRANSFORM_OPTIONS: { value: 'none' | 'uppercase' | 'lowercase' | 'cap
   { value: 'capitalize', label: 'Capitalize' },
 ];
 
-const EFFECT_OPTIONS: { value: 'none' | 'typewriter' | 'fade-in' | 'gradient-sweep' | 'glow'; label: string }[] = [
+const EFFECT_OPTIONS: { value: TextEffect; label: string }[] = [
   { value: 'none', label: 'None' },
   { value: 'typewriter', label: 'Typewriter' },
   { value: 'fade-in', label: 'Fade In' },
   { value: 'gradient-sweep', label: 'Gradient Sweep' },
   { value: 'glow', label: 'Glow / Pulse' },
+  { value: 'outline', label: 'Outline' },
+  { value: 'shadow', label: 'Drop Shadow' },
+  { value: '3d', label: '3D / Extruded' },
+  { value: 'neon', label: 'Neon' },
+  { value: 'wave', label: 'Wave (per-character)' },
+  { value: 'bounce', label: 'Bounce (per-character)' },
+  { value: 'shake', label: 'Shake (per-character)' },
+  { value: 'color-cycle', label: 'Color Cycle' },
+];
+
+const DECORATION_OPTIONS: { value: TextDecoration; label: string }[] = [
+  { value: 'none', label: 'None' },
+  { value: 'underline', label: 'Underline' },
+  { value: 'overline', label: 'Overline' },
+  { value: 'line-through', label: 'Strikethrough' },
+];
+
+const REVEAL_OPTIONS: { value: TextRevealOnRotation; label: string }[] = [
+  { value: 'none', label: 'None (instant swap)' },
+  { value: 'fade', label: 'Fade' },
+  { value: 'slide-up', label: 'Slide up' },
+  { value: 'slide-down', label: 'Slide down' },
+  { value: 'zoom', label: 'Zoom' },
+];
+
+const WRAP_OPTIONS: { value: TextWrapMode; label: string }[] = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'nowrap', label: 'No wrap (single line)' },
+  { value: 'balance', label: 'Balanced (multi-line)' },
+  { value: 'pretty', label: 'Pretty (avoid orphans)' },
 ];
 
 const MARQUEE_DIRECTION_OPTIONS: { value: 'left' | 'right' | 'up' | 'down'; label: string }[] = [
@@ -53,10 +91,11 @@ const MARQUEE_DIRECTION_OPTIONS: { value: 'left' | 'right' | 'up' | 'down'; labe
 export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<TextConfig>(mod, screenId);
 
-  const effect = (c.effect as string) || 'none';
+  const effect = (c.effect as TextEffect) || 'none';
   const gradientOn = !!c.gradientEnabled;
   const rotationOn = !!c.rotationEnabled;
   const marqueeOn = !!c.marquee;
+  const decoration = (c.textDecoration as TextDecoration) || 'none';
 
   return (
     <div className="space-y-2">
@@ -94,6 +133,35 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {/* ── Typography ── */}
       <SectionHeading>Typography</SectionHeading>
 
+      <FontFamilyPicker
+        label="Font (override)"
+        value={c.fontFamily as string | undefined}
+        onChange={(v) => set({ fontFamily: v || undefined })}
+        allowInherit
+      />
+
+      <Slider
+        label="Font Weight"
+        value={c.fontWeight ?? 400}
+        min={100}
+        max={900}
+        step={100}
+        displayValue={`${c.fontWeight ?? 400}`}
+        onChange={(v) => set({ fontWeight: v })}
+      />
+
+      <Toggle label="Italic" checked={!!c.italic} onChange={(v) => set({ italic: v })} />
+
+      <Slider
+        label="Line Height"
+        value={c.lineHeight ?? 1.2}
+        min={0.8}
+        max={3}
+        step={0.05}
+        displayValue={`${(c.lineHeight ?? 1.2).toFixed(2)}`}
+        onChange={(v) => set({ lineHeight: v })}
+      />
+
       <LabeledSelect
         label="Text Transform"
         value={(c.textTransform as 'none' | 'uppercase' | 'lowercase' | 'capitalize') || 'none'}
@@ -104,11 +172,45 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       <Slider
         label="Letter Spacing"
         value={c.letterSpacing ?? 0}
-        min={0}
+        min={-5}
         max={20}
         displayValue={`${c.letterSpacing ?? 0}px`}
         onChange={(v) => set({ letterSpacing: v })}
       />
+
+      <Slider
+        label="Word Spacing"
+        value={c.wordSpacing ?? 0}
+        min={-10}
+        max={40}
+        displayValue={`${c.wordSpacing ?? 0}px`}
+        onChange={(v) => set({ wordSpacing: v })}
+      />
+
+      <LabeledSelect
+        label="Decoration"
+        value={decoration}
+        onChange={(v) => set({ textDecoration: v })}
+        options={DECORATION_OPTIONS}
+      />
+
+      {decoration !== 'none' && (
+        <>
+          <ColorPicker
+            label="Decoration Color"
+            value={(c.textDecorationColor as string) || '#ffffff'}
+            onChange={(v) => set({ textDecorationColor: v })}
+          />
+          <Slider
+            label="Decoration Thickness"
+            value={c.textDecorationThickness ?? 2}
+            min={1}
+            max={10}
+            displayValue={`${c.textDecorationThickness ?? 2}px`}
+            onChange={(v) => set({ textDecorationThickness: v })}
+          />
+        </>
+      )}
 
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center justify-between">
@@ -168,10 +270,83 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <LabeledSelect
         label="Effect"
-        value={effect as 'none' | 'typewriter' | 'fade-in' | 'gradient-sweep' | 'glow'}
+        value={effect}
         onChange={(v) => set({ effect: v })}
         options={EFFECT_OPTIONS}
       />
+
+      {(effect === 'wave' || effect === 'bounce' || effect === 'shake' ||
+        effect === 'glow' || effect === 'neon' || effect === 'gradient-sweep' ||
+        effect === 'color-cycle') && (
+        <Slider
+          label="Animation Speed"
+          value={c.animationSpeed ?? 2}
+          min={0.5}
+          max={10}
+          step={0.5}
+          displayValue={`${(c.animationSpeed ?? 2).toFixed(1)}s`}
+          onChange={(v) => set({ animationSpeed: v })}
+        />
+      )}
+
+      {effect === 'outline' && (
+        <>
+          <Slider
+            label="Outline Width"
+            value={c.outlineWidth ?? 2}
+            min={1}
+            max={10}
+            displayValue={`${c.outlineWidth ?? 2}px`}
+            onChange={(v) => set({ outlineWidth: v })}
+          />
+          <ColorPicker
+            label="Outline Color"
+            value={(c.outlineColor as string) || '#000000'}
+            onChange={(v) => set({ outlineColor: v })}
+          />
+        </>
+      )}
+
+      {effect === 'shadow' && (
+        <>
+          <Slider
+            label="Shadow X"
+            value={c.shadowOffsetX ?? 2}
+            min={-20}
+            max={20}
+            displayValue={`${c.shadowOffsetX ?? 2}px`}
+            onChange={(v) => set({ shadowOffsetX: v })}
+          />
+          <Slider
+            label="Shadow Y"
+            value={c.shadowOffsetY ?? 2}
+            min={-20}
+            max={20}
+            displayValue={`${c.shadowOffsetY ?? 2}px`}
+            onChange={(v) => set({ shadowOffsetY: v })}
+          />
+          <Slider
+            label="Shadow Blur"
+            value={c.shadowBlur ?? 4}
+            min={0}
+            max={40}
+            displayValue={`${c.shadowBlur ?? 4}px`}
+            onChange={(v) => set({ shadowBlur: v })}
+          />
+          <ColorPicker
+            label="Shadow Color"
+            value={(c.shadowColor as string) || 'rgba(0,0,0,0.5)'}
+            onChange={(v) => set({ shadowColor: v })}
+          />
+        </>
+      )}
+
+      {effect === 'color-cycle' && (
+        <ColorPalette
+          palette={c.colorCyclePalette ?? ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7']}
+          onChange={(palette) => set({ colorCyclePalette: palette })}
+        />
+      )}
 
       {/* ── Gradient ── */}
       <SectionHeading>Gradient</SectionHeading>
@@ -202,6 +377,61 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         </>
       )}
 
+      {/* ── Layout polish ── */}
+      <SectionHeading>Layout</SectionHeading>
+
+      <Slider
+        label="Max Width"
+        value={c.maxWidth ?? 0}
+        min={0}
+        max={2000}
+        step={10}
+        displayValue={c.maxWidth ? `${c.maxWidth}px` : 'No limit'}
+        onChange={(v) => set({ maxWidth: v })}
+      />
+
+      <LabeledSelect
+        label="Wrap"
+        value={(c.wrapMode as TextWrapMode) || 'normal'}
+        onChange={(v) => set({ wrapMode: v })}
+        options={WRAP_OPTIONS}
+      />
+
+      <Toggle label="Drop Cap" checked={!!c.dropCap} onChange={(v) => set({ dropCap: v })} />
+      {c.dropCap && (
+        <ColorPicker
+          label="Drop Cap Color"
+          value={(c.dropCapColor as string) || (c.accentColor as string) || '#ffffff'}
+          onChange={(v) => set({ dropCapColor: v })}
+        />
+      )}
+
+      <ColorPicker
+        label="Text Background"
+        value={(c.textBackground as string) || 'transparent'}
+        onChange={(v) => set({ textBackground: v && v !== 'transparent' ? v : undefined })}
+      />
+      {c.textBackground && (
+        <>
+          <Slider
+            label="BG Padding"
+            value={c.textBackgroundPadding ?? 4}
+            min={0}
+            max={32}
+            displayValue={`${c.textBackgroundPadding ?? 4}px`}
+            onChange={(v) => set({ textBackgroundPadding: v })}
+          />
+          <Slider
+            label="BG Radius"
+            value={c.textBackgroundRadius ?? 4}
+            min={0}
+            max={32}
+            displayValue={`${c.textBackgroundRadius ?? 4}px`}
+            onChange={(v) => set({ textBackgroundRadius: v })}
+          />
+        </>
+      )}
+
       {/* ── Rotation ── */}
       <SectionHeading>Rotation</SectionHeading>
 
@@ -224,6 +454,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             label="Separator"
             value={(c.rotationSeparator as string) || '---'}
             onChange={(v) => set({ rotationSeparator: v })}
+          />
+          <LabeledSelect
+            label="Reveal animation"
+            value={(c.revealOnRotation as TextRevealOnRotation) || 'none'}
+            onChange={(v) => set({ revealOnRotation: v })}
+            options={REVEAL_OPTIONS}
           />
         </>
       )}
@@ -263,6 +499,55 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         value={(c.accentColor as string) || '#ffffff'}
         onChange={(v) => set({ accentColor: v })}
       />
+    </div>
+  );
+}
+
+function ColorPalette({
+  palette,
+  onChange,
+}: {
+  palette: string[];
+  onChange: (palette: string[]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-hs-text-muted">Color Cycle Palette</span>
+        <button
+          type="button"
+          onClick={() => onChange([...palette, '#ffffff'])}
+          className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
+        >
+          + Add
+        </button>
+      </div>
+      <div className="space-y-1">
+        {palette.map((color, idx) => (
+          <div key={idx} className="flex items-center gap-1">
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => {
+                const next = [...palette];
+                next[idx] = e.target.value;
+                onChange(next);
+              }}
+              className="h-7 w-10 rounded border border-hs-border cursor-pointer"
+            />
+            <span className="text-[10px] text-hs-text-muted flex-1">{color}</span>
+            {palette.length > 1 && (
+              <button
+                type="button"
+                onClick={() => onChange(palette.filter((_, i) => i !== idx))}
+                className="text-[10px] text-hs-text-faint hover:text-red-400 px-1"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

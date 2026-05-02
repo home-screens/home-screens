@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useId } from 'react';
 import type { TextConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { useTypewriter } from '@/hooks/useTypewriter';
 import { resolveTemplateVariables, parseMarkdown, splitRotationContent } from '@/lib/text-utils';
+import { resolveFontStack } from '@/lib/font-registry';
 
 interface TextModuleProps {
   config: TextConfig;
@@ -99,6 +100,14 @@ const GLOW_CSS = `
   50% { filter: brightness(1.3); }
 }`;
 
+const NEON_CSS = `
+@keyframes _textNeonFlicker {
+  0%, 100% { opacity: 1; }
+  41% { opacity: 1; }
+  42% { opacity: 0.85; }
+  43% { opacity: 1; }
+}`;
+
 const MARQUEE_CSS = `
 @keyframes _marqueeLeft  { from { transform: translateX(100%);  } to { transform: translateX(-100%);  } }
 @keyframes _marqueeRight { from { transform: translateX(-100%); } to { transform: translateX(100%);  } }
@@ -112,6 +121,52 @@ const FADE_IN_CSS = `
   to   { opacity: 1; transform: translateY(0); }
 }`;
 
+const WAVE_CSS = `
+@keyframes _textWave {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-0.4em); }
+}`;
+
+const BOUNCE_CSS = `
+@keyframes _textBounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-0.5em); }
+}`;
+
+const SHAKE_CSS = `
+@keyframes _textShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px) rotate(-1deg); }
+  40% { transform: translateX(2px) rotate(1deg); }
+  60% { transform: translateX(-2px) rotate(-0.5deg); }
+  80% { transform: translateX(2px) rotate(0.5deg); }
+}`;
+
+const REVEAL_CSS = `
+@keyframes _textRevealFade   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes _textRevealUp     { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes _textRevealDown   { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes _textRevealZoom   { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+`;
+
+// Per-instance color-cycle keyframes (palette is dynamic, so we build the rule)
+function buildColorCycleCss(name: string, palette: string[]): string {
+  if (palette.length === 0) return '';
+  const stops = palette
+    .map((c, i) => {
+      const pct = (i / palette.length) * 100;
+      return `${pct.toFixed(2)}% { color: ${c}; }`;
+    })
+    .concat([`100% { color: ${palette[0]}; }`])
+    .join(' ');
+  return `@keyframes ${name} { ${stops} }`;
+}
+
+const PER_CHAR_EFFECTS = new Set<string>(['wave', 'bounce', 'shake']);
+/** Above this many code points, per-char effects fall back to whole-string animation
+ *  to avoid spawning hundreds of GPU-animated spans on a Pi. */
+const PER_CHAR_MAX_LENGTH = 200;
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -119,6 +174,7 @@ const FADE_IN_CSS = `
 export default function TextModule({ config, style, timezone }: TextModuleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
+  const cycleId = useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const orientation = config.orientation ?? 'horizontal';
   const isVerticalLayout = orientation === 'vertical' || orientation === 'sideways';
@@ -133,6 +189,10 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   const letterSpacing = config.letterSpacing ?? 0;
   const verticalAlign = config.verticalAlign ?? 'center';
   const autoFit = config.autoFit ?? false;
+  const animSeconds = config.animationSpeed ?? 2;
+  const reveal = config.revealOnRotation ?? 'none';
+  const wrapMode = config.wrapMode ?? 'normal';
+  const isPerChar = PER_CHAR_EFFECTS.has(effect);
 
   // --- 1. Split content for rotation ---
   const separator = config.rotationSeparator || '---';
@@ -167,6 +227,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   const toHtml = (text: string) => (config.markdown ? parseMarkdown(text) : null);
 
   // --- 5. Auto-fit (measures full text, not typewriter partial) ---
+  const fontStack = resolveFontStack(config.fontFamily) ?? resolveFontStack(style.fontFamily) ?? style.fontFamily;
   const { scale: autoFitScale, measuredWidth, measuredHeight } = useAutoFit(containerRef, measureRef, autoFit, [
     resolvedContent,
     config.icon,
@@ -175,7 +236,11 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     isVerticalLayout,
     config.markdown,
     style.fontSize,
-    style.fontFamily,
+    fontStack,
+    config.fontWeight,
+    config.italic,
+    config.lineHeight,
+    config.wordSpacing,
   ]);
 
   // --- Build text inline styles ---
@@ -183,8 +248,37 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     textAlign: isVerticalLayout ? undefined : config.alignment,
     textTransform: textTransform !== 'none' ? textTransform : undefined,
     letterSpacing: letterSpacing ? `${letterSpacing}px` : undefined,
+    wordSpacing: config.wordSpacing ? `${config.wordSpacing}px` : undefined,
+    fontFamily: config.fontFamily ? fontStack : undefined,
+    fontWeight: config.fontWeight,
+    fontStyle: config.italic ? 'italic' : undefined,
+    lineHeight: config.lineHeight,
     ...writingModeStyles,
   };
+
+  // Decoration
+  const decoration = config.textDecoration ?? 'none';
+  if (decoration !== 'none') {
+    textStyle.textDecorationLine = decoration;
+    if (config.textDecorationColor) textStyle.textDecorationColor = config.textDecorationColor;
+    if (config.textDecorationThickness) textStyle.textDecorationThickness = `${config.textDecorationThickness}px`;
+  }
+
+  // Wrap mode (text-wrap is wired through a long-hand prop set via inline string)
+  if (wrapMode === 'nowrap') {
+    textStyle.whiteSpace = 'nowrap';
+  } else if (wrapMode === 'balance' || wrapMode === 'pretty') {
+    (textStyle as Record<string, unknown>).textWrap = wrapMode;
+  }
+
+  // Text background — paint behind glyphs without affecting wrapper
+  if (config.textBackground) {
+    textStyle.backgroundColor = config.textBackground;
+    textStyle.padding = `${config.textBackgroundPadding ?? 4}px ${(config.textBackgroundPadding ?? 4) * 1.5}px`;
+    textStyle.borderRadius = `${config.textBackgroundRadius ?? 4}px`;
+    textStyle.boxDecorationBreak = 'clone';
+    textStyle.WebkitBoxDecorationBreak = 'clone';
+  }
 
   // Gradient text (clip properties applied via <style> rule to avoid React reconciliation issues)
   const gradientOn = config.gradientEnabled && config.gradientFrom && config.gradientTo;
@@ -193,21 +287,89 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     textStyle.backgroundImage = `linear-gradient(${angle}deg, ${config.gradientFrom}, ${config.gradientTo})`;
     if (effect === 'gradient-sweep') {
       textStyle.backgroundSize = '200% 200%';
-      textStyle.animation = '_textGradientSweep 3s ease infinite';
+      textStyle.animation = `_textGradientSweep ${animSeconds * 1.5}s ease infinite`;
     }
   }
 
-  // Glow effect
+  // Visual effects
   if (effect === 'glow') {
     const c = config.accentColor || style.textColor;
     textStyle.textShadow = `0 0 10px ${c}, 0 0 20px ${c}, 0 0 40px ${c}80`;
-    textStyle.animation = '_textGlow 2s ease-in-out infinite alternate';
+    textStyle.animation = `_textGlow ${animSeconds}s ease-in-out infinite alternate`;
   }
+  if (effect === 'neon') {
+    const c = config.accentColor || '#22d3ee';
+    textStyle.color = '#fff';
+    textStyle.textShadow = [
+      `0 0 4px ${c}`,
+      `0 0 10px ${c}`,
+      `0 0 20px ${c}`,
+      `0 0 40px ${c}`,
+    ].join(', ');
+    textStyle.animation = `_textNeonFlicker ${animSeconds * 1.5}s linear infinite`;
+  }
+  if (effect === 'shadow') {
+    const x = config.shadowOffsetX ?? 2;
+    const y = config.shadowOffsetY ?? 2;
+    const blur = config.shadowBlur ?? 4;
+    const c = config.shadowColor ?? 'rgba(0,0,0,0.5)';
+    textStyle.textShadow = `${x}px ${y}px ${blur}px ${c}`;
+  }
+  if (effect === '3d') {
+    const c = config.accentColor || 'rgba(0,0,0,0.5)';
+    textStyle.textShadow = [1, 2, 3, 4, 5, 6].map((n) => `${n}px ${n}px 0 ${c}`).join(', ');
+  }
+  if (effect === 'outline') {
+    const w = config.outlineWidth ?? 2;
+    const c = config.outlineColor ?? '#000';
+    (textStyle as Record<string, unknown>).WebkitTextStrokeWidth = `${w}px`;
+    (textStyle as Record<string, unknown>).WebkitTextStrokeColor = c;
+  }
+
+  // Color cycle — dynamic keyframes per instance
+  const colorCycleName = `_textColorCycle_${cycleId}`;
+  const colorCyclePalette = config.colorCyclePalette && config.colorCyclePalette.length > 0
+    ? config.colorCyclePalette
+    : ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
+  if (effect === 'color-cycle') {
+    textStyle.animation = `${colorCycleName} ${animSeconds * 2}s linear infinite`;
+  }
+
+  // --- Per-char animation: wrap each char in its own span with staggered delay ---
+  const renderPerCharText = (text: string, animName: string) => {
+    const stagger = 0.05;
+    return Array.from(text).map((ch, i) => (
+      <span
+        key={i}
+        style={{
+          display: 'inline-block',
+          whiteSpace: 'pre',
+          animation: `${animName} ${animSeconds}s ease-in-out infinite`,
+          animationDelay: `${i * stagger}s`,
+        }}
+      >
+        {ch}
+      </span>
+    ));
+  };
 
   // --- Render helpers ---
   const renderText = (text: string) => {
     const html = toHtml(text);
     const gradientAttr = gradientOn ? { 'data-text-gradient': '' } : {};
+
+    // Per-char animations cannot use markdown; html mode short-circuits to whole-string animation.
+    // Long text also falls back to whole-string animation to avoid GPU thrash from 100s of spans.
+    if (isPerChar && !html && text.length <= PER_CHAR_MAX_LENGTH) {
+      const animName =
+        effect === 'wave' ? '_textWave' : effect === 'bounce' ? '_textBounce' : '_textShake';
+      return (
+        <span {...gradientAttr} style={textStyle}>
+          {renderPerCharText(text, animName)}
+        </span>
+      );
+    }
+
     if (html) {
       return <span {...gradientAttr} style={textStyle} dangerouslySetInnerHTML={{ __html: html }} />;
     }
@@ -246,13 +408,49 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   if (gradientOn) needsCSS.push(GRADIENT_TEXT_CSS);
   if (effect === 'gradient-sweep' && gradientOn) needsCSS.push(GRADIENT_SWEEP_CSS);
   if (effect === 'glow') needsCSS.push(GLOW_CSS);
+  if (effect === 'neon') needsCSS.push(NEON_CSS);
+  if (effect === 'wave') needsCSS.push(WAVE_CSS);
+  if (effect === 'bounce') needsCSS.push(BOUNCE_CSS);
+  if (effect === 'shake') needsCSS.push(SHAKE_CSS);
+  if (effect === 'color-cycle') needsCSS.push(buildColorCycleCss(colorCycleName, colorCyclePalette));
   if (config.marquee) needsCSS.push(MARQUEE_CSS);
   if (effect === 'fade-in') needsCSS.push(FADE_IN_CSS);
+  if (config.rotationEnabled && reveal !== 'none') needsCSS.push(REVEAL_CSS);
+
+  // --- Drop cap CSS (uses ::first-letter, scoped to a generated class) ---
+  const dropCapClass = `_dc_${cycleId}`;
+  if (config.dropCap) {
+    const dcColor = config.dropCapColor ?? config.accentColor ?? 'inherit';
+    needsCSS.push(`
+.${dropCapClass}::first-letter {
+  font-size: 2.5em;
+  font-weight: 700;
+  float: left;
+  line-height: 0.9;
+  margin-right: 0.08em;
+  margin-top: 0.05em;
+  color: ${dcColor};
+}`);
+  }
 
   // --- Alignment → CSS ---
   const justifyH =
     config.alignment === 'left' ? 'flex-start' : config.alignment === 'right' ? 'flex-end' : 'center';
   const alignV = verticalAlign === 'top' ? 'flex-start' : verticalAlign === 'bottom' ? 'flex-end' : 'center';
+
+  // --- Reveal-on-rotation (only when rotation enabled) ---
+  const revealAnim =
+    config.rotationEnabled && reveal !== 'none'
+      ? reveal === 'fade'
+        ? '_textRevealFade 0.5s ease-out'
+        : reveal === 'slide-up'
+          ? '_textRevealUp 0.5s ease-out'
+          : reveal === 'slide-down'
+            ? '_textRevealDown 0.5s ease-out'
+            : '_textRevealZoom 0.5s ease-out'
+      : effect === 'fade-in'
+        ? '_textFadeIn 0.5s ease-in-out'
+        : undefined;
 
   // =====================================================================
   // MARQUEE LAYOUT (early return)
@@ -294,12 +492,14 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   const contentBlock = (text: string, includeAutoFitTransform: boolean) => {
     const inner = (
       <div
+        className={config.dropCap ? dropCapClass : undefined}
         style={{
           display: 'inline-flex',
           flexDirection: isVerticalLayout ? 'column' : 'row',
           alignItems: 'center',
           gap: '0.4em',
           whiteSpace: autoFit ? 'nowrap' : undefined,
+          maxWidth: config.maxWidth && config.maxWidth > 0 ? `${config.maxWidth}px` : undefined,
         }}
       >
         {iconEl}
@@ -330,7 +530,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
         flexDirection: 'column',
         alignItems: justifyH === 'flex-start' ? 'flex-start' : justifyH === 'flex-end' ? 'flex-end' : 'center',
         gap: config.showDividers ? 8 : 0,
-        animation: effect === 'fade-in' ? '_textFadeIn 0.5s ease-in-out' : undefined,
+        animation: revealAnim,
       }}
     >
       {divider}

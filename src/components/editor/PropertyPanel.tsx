@@ -17,6 +17,7 @@ import PluginConfigRenderer from './PluginConfigRenderer';
 import PluginSecretsSection from './PluginSecretsSection';
 import { MousePointerClick } from 'lucide-react';
 import AccordionSection from './AccordionSection';
+import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 
 import {
   ClockConfigSection,
@@ -152,24 +153,13 @@ function StyleSection({ mod, screenId }: { mod: ModuleInstance; screenId: string
       <PropertyGroup title="Text" accent={4}>
         <div className="space-y-3">
           <Slider label="Font Size" value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
-          <label className="flex flex-col gap-0.5">
-            <span className="text-xs text-hs-text-muted">Font Family</span>
-            <select
-              value={s.fontFamily}
-              onChange={(e) => set({ fontFamily: e.target.value })}
-              className={INPUT_CLASS}
-            >
-              <option value="Inter, system-ui, sans-serif">Inter</option>
-              <option value="Georgia, serif">Georgia</option>
-              <option value="monospace">Monospace</option>
-              <option value="system-ui, sans-serif">System UI</option>
-            </select>
-          </label>
+          <FontFamilyPicker value={s.fontFamily} onChange={(v) => set({ fontFamily: v })} />
         </div>
       </PropertyGroup>
     </>
   );
 }
+
 
 const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: string }>> = {
   clock: ClockConfigSection,

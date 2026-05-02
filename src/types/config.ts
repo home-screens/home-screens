@@ -318,7 +318,7 @@ export const DEFAULT_MODULE_STYLE: ModuleStyle = {
   padding: 16,
   backgroundColor: 'rgba(0, 0, 0, 0.4)',
   textColor: '#ffffff',
-  fontFamily: 'Inter, system-ui, sans-serif',
+  fontFamily: 'inter',
   fontSize: 16,
   backdropBlur: 12,
   borderWidth: 1,
@@ -463,6 +463,25 @@ export interface DadJokeConfig {
 }
 
 // Text module config
+export type TextEffect =
+  | 'none'
+  | 'typewriter'
+  | 'fade-in'
+  | 'gradient-sweep'
+  | 'glow'
+  | 'outline'
+  | 'shadow'
+  | '3d'
+  | 'neon'
+  | 'wave'
+  | 'bounce'
+  | 'shake'
+  | 'color-cycle';
+
+export type TextDecoration = 'none' | 'underline' | 'overline' | 'line-through';
+export type TextRevealOnRotation = 'none' | 'fade' | 'slide-up' | 'slide-down' | 'zoom';
+export type TextWrapMode = 'normal' | 'nowrap' | 'balance' | 'pretty';
+
 export interface TextConfig {
   content: string;
   alignment: 'left' | 'center' | 'right';
@@ -473,7 +492,7 @@ export interface TextConfig {
   // Auto-fit to container
   autoFit?: boolean;
   // Text effects
-  effect?: 'none' | 'typewriter' | 'fade-in' | 'gradient-sweep' | 'glow';
+  effect?: TextEffect;
   // Content rotation (split by separator)
   rotationEnabled?: boolean;
   rotationIntervalMs?: number;
@@ -486,6 +505,14 @@ export interface TextConfig {
   // Typography
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   letterSpacing?: number;
+  /** Font registry id (or raw CSS stack) overriding the module's global font. */
+  fontFamily?: string;
+  /** Numeric weight 100–900. */
+  fontWeight?: number;
+  italic?: boolean;
+  /** Unitless line-height multiplier. */
+  lineHeight?: number;
+  wordSpacing?: number;
   // Icon prefix (emoji or short text)
   icon?: string;
   // Dynamic template variables ({{time}}, {{date}}, {{greeting}}, etc.)
@@ -494,6 +521,33 @@ export interface TextConfig {
   marquee?: boolean;
   marqueeSpeed?: number;
   marqueeDirection?: 'left' | 'right' | 'up' | 'down';
+  // Visual effect knobs (only applied when matching `effect` is selected)
+  outlineWidth?: number;
+  outlineColor?: string;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  shadowBlur?: number;
+  shadowColor?: string;
+  // Text decoration
+  textDecoration?: TextDecoration;
+  textDecorationColor?: string;
+  textDecorationThickness?: number;
+  // Animation knobs
+  animationSpeed?: number;        // seconds per cycle
+  /** Palette for color-cycle effect. */
+  colorCyclePalette?: string[];
+  /** Reveal animation when rotation advances (only used when rotationEnabled). */
+  revealOnRotation?: TextRevealOnRotation;
+  // Layout polish
+  /** Max width in px (0 or undefined = no limit). */
+  maxWidth?: number;
+  wrapMode?: TextWrapMode;
+  dropCap?: boolean;
+  dropCapColor?: string;
+  /** Background color drawn behind the text glyphs (separate from module wrapper). */
+  textBackground?: string;
+  textBackgroundPadding?: number;
+  textBackgroundRadius?: number;
   // Decorative
   showDividers?: boolean;
   accentColor?: string;

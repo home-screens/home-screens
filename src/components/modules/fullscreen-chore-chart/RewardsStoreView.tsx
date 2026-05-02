@@ -153,7 +153,7 @@ export function RewardsStoreView({
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--fcc-bg)',

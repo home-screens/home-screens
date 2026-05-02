@@ -69,7 +69,7 @@ function DriftingClock({ timezone }: { timezone?: string }) {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: '4rem',
         fontWeight: 200,
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
         letterSpacing: '0.05em',
         userSelect: 'none',
         pointerEvents: 'none',

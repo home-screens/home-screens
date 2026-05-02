@@ -191,7 +191,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
         justifyContent: 'center',
         backgroundColor: '#0a0a0a',
         color: '#e5e5e5',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
         padding: 32,
         textAlign: 'center',
       }}
