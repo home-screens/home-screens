@@ -1,0 +1,70 @@
+name: Feature request
+description: Propose a new capability or an improvement to an existing one. (For new modules, use the "Module request" template.)
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. The strongest feature requests start with a *problem*, not a *solution* — that lets us consider alternatives that might fit better than the one you first imagined.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched [existing issues](https://github.com/home-screens/home-screens/issues?q=is%3Aissue) and [discussions](https://github.com/home-screens/home-screens/discussions) and didn't find this idea already proposed.
+          required: true
+        - label: I checked the [docs](https://homescreens.dev/docs) — this isn't already supported under a different name.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation, who it affects, and how often. Skip the proposed solution for now.
+      placeholder: 'My photo-slideshow module rotates through an Immich album in the same order every cycle. After a few days the household has the order memorized and the surprise is gone.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you'd like to see. Concrete is better than abstract.
+      placeholder: 'A "shuffle" toggle on the photo-slideshow module that picks the next image randomly within an album, without repeats until the album has cycled through.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Other solutions you thought about and why they didn't fit. This helps us avoid suggesting them back.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this touch?
+      options:
+        - Display kiosk
+        - Editor
+        - Remote control / chores
+        - Install / upgrade
+        - Hub API / data layer
+        - Plugin SDK
+        - Documentation
+        - Multi-display / hub-and-spoke
+        - Cross-cutting / I'm not sure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you interested in contributing this?
+      options:
+        - label: I'd like to send a PR myself if maintainers agree on the approach.
+        - label: I can help test on real hardware if someone else builds it.

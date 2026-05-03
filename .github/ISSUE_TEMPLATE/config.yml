@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://homescreens.dev/docs
+    about: Setup, module reference, plugin SDK, and troubleshooting guides. Please skim before filing — most "how do I…" questions are answered here.
+  - name: Plugin development
+    url: https://github.com/home-screens/home-screens-plugin-template
+    about: Use the plugin template instead of filing a "please add module X" issue if you're comfortable shipping it as a plugin.

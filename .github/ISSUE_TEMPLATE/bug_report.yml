@@ -1,0 +1,164 @@
+name: Bug report
+description: Something is broken or behaving unexpectedly.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. A few notes before you start:
+
+        - One bug per issue, please. If you've found two, file two — they almost always have different root causes.
+        - Paste the *full* log when you can. Partial output usually hides the real error a few lines above or below.
+        - Capture logs *before* restarting or reinstalling. Once the bad state is gone, it's much harder to pin down what caused it.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight
+      description: Quick checks before filing.
+      options:
+        - label: I searched [existing issues](https://github.com/home-screens/home-screens/issues?q=is%3Aissue) and didn't find a duplicate.
+          required: true
+        - label: I checked the [docs](https://homescreens.dev/docs) for the area I'm reporting against.
+          required: true
+        - label: I'm running a recent build (within the last few releases). Older builds may have already-fixed bugs.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where are you seeing this?
+      description: Pick the area where the bug appears. If it spans more than one, pick the one closest to the root cause.
+      options:
+        - Editor (`/editor`)
+        - Remote control (`/remote`)
+        - Chore chart kid view (`/chores`)
+        - Display (`/display`)
+        - Hub API (`/api/*`)
+        - Specific module (please name it in the description)
+        - Plugin (please name the plugin)
+        - Install or upgrade
+        - Documentation site (homescreens.dev)
+        - Other / I'm not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_type
+    attributes:
+      label: Install type
+      options:
+        - Full install (scripts/install.sh)
+        - Display-only install (scripts/install.sh --display-only)
+        - Local development (npm run dev)
+        - Production build run manually (npm run build && npm start)
+        - Docker / other container
+        - Not yet installed (problem during install itself)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / build ID
+      description: |
+        If your hub is running, paste the result of:
+        `curl -s http://<host>:3000/api/system/build-id`
+        Otherwise paste the git commit SHA you installed from.
+      placeholder: 'e.g. 2026.05.01-abc1234, or git SHA 613de17'
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Device
+      description: The device where you observe the bug.
+      placeholder: 'e.g. MacBook Pro 14" M2 / iPhone 15 / Raspberry Pi 5 8 GB'
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / version
+      description: Operating system and version on the device above.
+      placeholder: 'e.g. macOS 14.5 / iOS 17.2 / Raspberry Pi OS Bookworm Lite 64-bit'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser (if applicable)
+      multiple: false
+      options:
+        - Chrome / Chromium (desktop)
+        - Safari (desktop)
+        - Safari (iOS)
+        - Firefox
+        - Chrome (Android)
+        - Other
+        - Not applicable (this bug isn't in a browser)
+    validations:
+      required: false
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What did you observe? Be specific — "doesn't work" is not enough for us to act on.
+      placeholder: 'In the editor, dragging a Clock module while the canvas is zoomed past 150% drops it one column to the left of the cell I aimed at.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: 'The module should snap to the cell directly under the cursor, regardless of zoom level.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps from a fresh state. If the bug needs specific config, paste the relevant slice of `data/config.json` (redact API keys).
+      placeholder: |
+        1. Open the editor at /editor on a fresh config.
+        2. Add a Clock module to screen 1.
+        3. Use Cmd-+ (or Ctrl-+) to zoom the canvas to 175%.
+        4. Drag the Clock module from cell (2,3) toward cell (4,5).
+        5. Release: it lands at (3,5) instead of (4,5).
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / console output
+      description: |
+        Paste anything relevant. Browser DevTools console + Network tab covers most editor / remote / chores / display bugs. For install or upgrade issues, paste the full install or upgrade log. Wrap large blobs in `<details>...</details>` to keep the issue readable.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, related issues, the slice of `data/config.json` that triggers it, hardware peripherals, network setup — whatever you think is relevant.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: Have you already tried?
+      options:
+        - label: Hard-refreshed the page (Cmd-Shift-R / Ctrl-Shift-R) to bypass cached JS.
+        - label: Reproduced in a second browser, or on a second device.
+        - label: Restarted the device where the bug occurs.
+        - label: Checked the same area against a fresh `data/config.json` (rename the existing one, restart, and retry).

@@ -1,0 +1,102 @@
+name: Module request
+description: Suggest a new built-in widget (clock view, weather provider, news source, integration, etc.).
+title: "[module] "
+labels: ["module-request", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Home Screens currently ships many built-in module types. Before requesting a new one, consider:
+
+        - **Could this be a plugin instead?** Plugins extend the module system at runtime without a core release. Start from the [plugin template](https://github.com/home-screens/home-screens-plugin-template) — it's the right home for niche or service-specific widgets.
+        - **Is this a *view* of an existing module?** Many modules already have multiple layouts (e.g. clock has 18 views). A new view is much smaller scope than a new module type.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I checked the [module reference](https://homescreens.dev/docs) and this isn't already shipped.
+          required: true
+        - label: I considered building this as a plugin and concluded it belongs in core. (Optional — if you didn't, that's fine, we'll discuss.)
+
+  - type: input
+    id: name
+    attributes:
+      label: Proposed module name
+      placeholder: 'e.g. "tide-times", "school-bus-tracker"'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Existing module categories. Pick the closest fit, or "New category" if it genuinely doesn't fit.
+      options:
+        - Time & Date
+        - Weather & Environment
+        - News & Finance
+        - Knowledge & Fun
+        - Personal
+        - Media & Display
+        - Travel
+        - Full Screen (fillsCanvas)
+        - New category (explain below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: data_source
+    attributes:
+      label: Data source
+      description: |
+        Where does the data come from? Include:
+        - URL of the API or data provider.
+        - Whether it requires an API key, OAuth, or is public.
+        - Rate limits or pricing tiers, if known.
+        - Terms of service notes — is API use allowed for self-hosted personal projects?
+      placeholder: |
+        Source: https://api.tidetimes.example.com/v1/
+        Auth: Free API key (50 req/day on free tier, 1000 req/day on $5/mo tier)
+        ToS: Personal/non-commercial use is allowed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: views
+    attributes:
+      label: Proposed views / layouts
+      description: How should this module render? List one or more layouts. A mockup or sketch is golden.
+      placeholder: |
+        - "Compact": single-line "next high tide in 2h 14m"
+        - "Chart": 24h tide curve
+        - "Detail": next 4 high/low tides as a list
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration fields
+      description: What does the user need to configure? (Location, account, refresh interval, units, etc.)
+    validations:
+      required: false
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Who is this for?
+      description: A concrete user story helps us evaluate whether this belongs in core vs. as a plugin.
+      placeholder: 'Coastal residents who want to see tide times on a kitchen display before heading out.'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you interested in building it?
+      options:
+        - label: I'd like to send a PR for this module myself.
+        - label: I can publish this as a plugin instead if maintainers prefer.
+        - label: I can provide an API key / test account for development.
