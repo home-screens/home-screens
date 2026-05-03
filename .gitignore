@@ -66,3 +66,6 @@ infrastructure/telemetry-worker/.wrangler
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Font Awesome assets — regenerated on `npm install` by scripts/copy-font-awesome.mjs
+/public/font-awesome/

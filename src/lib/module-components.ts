@@ -41,6 +41,7 @@ const builtinComponents = {
   'display-control': dynamic(() => import('@/components/modules/DisplayControlModule')),
   'meal-planner': dynamic(() => import('@/components/modules/meal-planner/MealPlannerModule')),
   iframe: dynamic(() => import('@/components/modules/IframeModule')),
+  icon: dynamic(() => import('@/components/modules/IconModule')),
   'chore-chart': dynamic(() => import('@/components/modules/chore-chart/ChoreChartModule')),
   'fullscreen-calendar': dynamic(() => import('@/components/modules/fullscreen-calendar/FullscreenCalendarModule')),
   'fullscreen-chore-chart': dynamic(() => import('@/components/modules/fullscreen-chore-chart/FullscreenChoreChartModule')),

@@ -35,6 +35,7 @@ export type BuiltinModuleType =
   | 'display-control'
   | 'meal-planner'
   | 'iframe'
+  | 'icon'
   | 'chore-chart'
   | 'fullscreen-calendar'
   | 'fullscreen-chore-chart'
@@ -919,6 +920,48 @@ export interface MealPlannerConfig {
   showPrepTime: boolean;
   showTags: boolean;
   accentColor: string;
+}
+
+// Icon module config (Font Awesome)
+export type IconStyle = 'solid' | 'regular' | 'brands';
+export type IconAnimation =
+  | 'none'
+  | 'spin'
+  | 'spin-pulse'
+  | 'spin-reverse'
+  | 'beat'
+  | 'fade'
+  | 'beat-fade'
+  | 'bounce'
+  | 'shake'
+  | 'flip';
+export type IconFlip = 'none' | 'horizontal' | 'vertical' | 'both';
+export type IconRotation = 0 | 90 | 180 | 270;
+
+export interface IconConfig {
+  /**
+   * Icon name without the `fa-` prefix (e.g. "house", "cloud-sun", "github").
+   * If the user pastes a full class string (anything containing a space or
+   * starting with `fa-`), it is used verbatim and `style` is ignored.
+   */
+  iconName: string;
+  /** Free Font Awesome style: solid, regular, or brands. */
+  style: IconStyle;
+  color: string;
+  /** Background tint behind the icon glyph (separate from module wrapper bg). */
+  iconBackground?: string;
+  rotation: IconRotation;
+  flip: IconFlip;
+  animation: IconAnimation;
+  /** Animation duration in seconds (Font Awesome --fa-animation-duration). */
+  animationDuration: number;
+  /**
+   * Icon size as a fraction of the smaller container dimension (cqmin units).
+   * 1.0 = fills the box, 0.5 = half. Ignored when `autoFit` is true.
+   */
+  scale: number;
+  /** When true, scale is locked to 0.85 to leave a comfortable breathing margin. */
+  autoFit: boolean;
 }
 
 // iFrame / Web embed module config

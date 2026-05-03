@@ -19,7 +19,7 @@ const ALL_MODULE_TYPES: ModuleType[] = [
   'multi-month', 'garbage-day', 'standings', 'affirmations',
   'date', 'meal-planner', 'iframe', 'chore-chart',
   'fullscreen-calendar', 'fullscreen-chore-chart', 'fullscreen-meal-planner',
-  'fullscreen-photo', 'display-control',
+  'fullscreen-photo', 'display-control', 'icon',
 ];
 
 describe('MODULE_CATEGORIES', () => {
@@ -38,7 +38,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 39 module types', () => {
+  it('registers all 40 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -158,7 +158,7 @@ describe('getModuleDefinition', () => {
 
 describe('getAllModuleDefinitions', () => {
   it('returns an array of length 39', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(39);
+    expect(getAllModuleDefinitions()).toHaveLength(40);
   });
 
   it('all items have required fields', () => {
@@ -286,8 +286,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(39);
-    expect(allTypes.size).toBe(39);
+    expect(total).toBe(40);
+    expect(allTypes.size).toBe(40);
   });
 });
 

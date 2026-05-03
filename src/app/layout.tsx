@@ -14,6 +14,11 @@ import {
 import PluginGlobals from '@/components/PluginGlobals';
 import ThemeListener from '@/components/ThemeListener';
 import './globals.css';
+// Self-hosted Font Awesome 7 free. Importing the package CSS lets Next process
+// its `@font-face` URLs through the asset pipeline — the woff2 fonts are
+// bundled, hashed, and served alongside the build output. No CDN, no postinstall
+// copy step for the CSS/fonts (the slim search manifest still needs the postinstall).
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const inter = Inter({
   subsets: ['latin'],

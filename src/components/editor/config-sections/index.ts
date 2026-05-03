@@ -29,6 +29,7 @@ export { AffirmationsConfigSection } from './AffirmationsConfigSection';
 export { DateConfigSection } from './DateConfigSection';
 export { MealPlannerConfigSection } from './MealPlannerConfigSection';
 export { IframeConfigSection } from './IframeConfigSection';
+export { IconConfigSection } from './IconConfigSection';
 export { ChoreChartConfigSection } from './ChoreChartConfigSection';
 export { FullscreenCalendarConfigSection } from './FullscreenCalendarConfigSection';
 export { FullscreenChoreChartConfigSection } from './FullscreenChoreChartConfigSection';

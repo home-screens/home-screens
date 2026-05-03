@@ -7,6 +7,7 @@ import {
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
+  Star,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
@@ -733,6 +734,30 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     },
     defaultSize: { w: 500, h: 400 },
     defaultStyle: { padding: 0 },
+  },
+  {
+    type: 'icon',
+    label: 'Icon',
+    icon: Star,
+    category: 'Media & Display',
+    // `style: 'solid'` + `iconName: 'star'` is guaranteed to render against
+    // fa-solid-900.woff2. Do not change `style` to 'regular' here without
+    // first confirming the chosen icon ships in fa-regular-400.woff2 — a
+    // mismatched style/icon combo renders the codepoint as fallback text.
+    defaultConfig: {
+      iconName: 'star',
+      style: 'solid',
+      color: '#fbbf24',
+      iconBackground: 'transparent',
+      rotation: 0,
+      flip: 'none',
+      animation: 'none',
+      animationDuration: 2,
+      scale: 0.7,
+      autoFit: true,
+    },
+    defaultSize: { w: 240, h: 240 },
+    defaultStyle: { padding: 12, backgroundColor: 'transparent', backdropBlur: 0, borderWidth: 0, shadowSize: 0 },
   },
   {
     type: 'display-control',
