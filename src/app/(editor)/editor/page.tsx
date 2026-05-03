@@ -57,6 +57,13 @@ export default function EditorPage() {
   const router = useRouter();
   const canvasScaleRef = useRef(0.4);
   const canvasElRef = useRef<HTMLDivElement | null>(null);
+  // dnd-kit's event.delta on a DragEndEvent is the translate applied to the
+  // active node (including scroll-offset compensation), NOT the raw pointer
+  // delta. Adding it to activatorEvent.clientXY yields the wrong drop point
+  // whenever a scrollable ancestor (e.g., the palette's own scroller, or any
+  // layout-shift compensation dnd-kit performs) changes scroll during the
+  // drag. So we track the live pointer ourselves while the drag is active.
+  const livePointerRef = useRef<{ x: number; y: number } | null>(null);
   const handleScaleChange = useCallback((s: number) => { canvasScaleRef.current = s; }, []);
 
   const sensors = useSensors(
@@ -81,6 +88,18 @@ export default function EditorPage() {
     if (data?.source === 'palette') {
       setActivePaletteType(data.moduleType as string);
     }
+  }, []);
+
+  useEffect(() => {
+    // Always-on pointer tracker. Cheap (one ref write per move) and avoids
+    // the install/remove dance that would otherwise have to thread through
+    // every drag-cancel / drag-end / unmount path. Pointer position is only
+    // read inside drag handlers, so the ref outside a drag is harmless.
+    function track(e: PointerEvent) {
+      livePointerRef.current = { x: e.clientX, y: e.clientY };
+    }
+    document.addEventListener('pointermove', track, { passive: true });
+    return () => document.removeEventListener('pointermove', track);
   }, []);
 
   const handleDragEnd = useCallback(
@@ -108,11 +127,20 @@ export default function EditorPage() {
         // 200×200 guard. The fallback only kicks in for truly unregistered
         // types (e.g. a stale palette entry).
         const defaultSize = getModuleDefinition(moduleType)?.defaultSize ?? { w: 200, h: 200 };
+        // dnd-kit's event.delta is the translate applied to the active node
+        // (with scroll-offset compensation baked in), not the raw pointer
+        // delta — using it for drop position breaks whenever a scrollable
+        // ancestor of the palette item changes scroll during the drag. We
+        // track the real pointer in livePointerRef and fall back to the
+        // activator + delta heuristic only if the pointer was never tracked
+        // (e.g., keyboard-driven drag).
+        const ae = activatorEvent as PointerEvent | undefined;
+        const fallbackX = (ae?.clientX ?? 0) + delta.x;
+        const fallbackY = (ae?.clientY ?? 0) + delta.y;
+        const pointerX = livePointerRef.current?.x ?? fallbackX;
+        const pointerY = livePointerRef.current?.y ?? fallbackY;
         // Use a live DOM rect instead of over.rect, which can be stale after
         // window resize (dnd-kit caches droppable rects with optimized frequency)
-        const pointerEvent = activatorEvent as PointerEvent;
-        const pointerX = pointerEvent.clientX + delta.x;
-        const pointerY = pointerEvent.clientY + delta.y;
         const canvasRect = canvasElRef.current?.getBoundingClientRect() ?? over.rect;
         const rawX = (pointerX - canvasRect.left) / scale - defaultSize.w / 2;
         const rawY = (pointerY - canvasRect.top) / scale - defaultSize.h / 2;
@@ -127,9 +155,18 @@ export default function EditorPage() {
         if (!mod) return;
 
         const scale = canvasScaleRef.current;
-
-        const rawX = mod.position.x + delta.x / scale;
-        const rawY = mod.position.y + delta.y / scale;
+        // Same dnd-kit `delta` caveat as the palette branch: derive the true
+        // pointer delta from (livePointer - activator) so any scrollable
+        // ancestor scrolling during the drag doesn't poison the result.
+        const ae = activatorEvent as PointerEvent | undefined;
+        const movedX = livePointerRef.current && ae
+          ? livePointerRef.current.x - ae.clientX
+          : delta.x;
+        const movedY = livePointerRef.current && ae
+          ? livePointerRef.current.y - ae.clientY
+          : delta.y;
+        const rawX = mod.position.x + movedX / scale;
+        const rawY = mod.position.y + movedY / scale;
         const newX = align(Math.max(0, Math.min(displayW - mod.size.w, rawX)));
         const newY = align(Math.max(0, Math.min(displayH - mod.size.h, rawY)));
         moveModule(selectedScreenId, moduleId, { x: newX, y: newY });
