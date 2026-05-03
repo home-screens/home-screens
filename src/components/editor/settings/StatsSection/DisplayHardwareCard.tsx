@@ -1,6 +1,6 @@
 'use client';
 
-import { Chrome } from 'lucide-react';
+import { Monitor } from 'lucide-react';
 import type { DisplayNode } from '@/types/config';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { SectionHeading } from './shared/SectionHeading';
@@ -14,7 +14,7 @@ export function DisplayHardwareCard({
 }) {
   return (
     <section>
-      <SectionHeading icon={Chrome} title="Display Hardware" />
+      <SectionHeading icon={Monitor} title="Display Hardware" />
       {displayStatus?.browserStats ? (
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-md bg-hs-hover border border-hs-border-strong px-3 py-2.5">

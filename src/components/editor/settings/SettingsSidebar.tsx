@@ -9,7 +9,6 @@ import {
   Calendar,
   CloudSun,
   Database,
-  Github,
   Layers,
   LayoutGrid,
   MapPin,
@@ -370,7 +369,7 @@ function SidebarFooter() {
         title="View on GitHub"
         aria-label="View on GitHub"
       >
-        <Github className="w-4 h-4" />
+        <i className="fa-brands fa-github text-base leading-none" aria-hidden="true" />
       </a>
     </div>
   );
