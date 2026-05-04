@@ -36,6 +36,7 @@ export type BuiltinModuleType =
   | 'meal-planner'
   | 'iframe'
   | 'icon'
+  | 'shape'
   | 'chore-chart'
   | 'fullscreen-calendar'
   | 'fullscreen-chore-chart'
@@ -962,6 +963,92 @@ export interface IconConfig {
   scale: number;
   /** When true, scale is locked to 0.85 to leave a comfortable breathing margin. */
   autoFit: boolean;
+}
+
+// Shape & Divider module config
+export type ShapeView =
+  | 'divider'
+  | 'double-line'
+  | 'wave'
+  | 'zigzag'
+  | 'dotted-row'
+  | 'rectangle'
+  | 'circle'
+  | 'triangle'
+  | 'polygon'
+  | 'star'
+  | 'arrow'
+  | 'glow'
+  | 'gradient'
+  | 'grid'
+  | 'frame';
+
+export type ShapeFillMode = 'solid' | 'gradient';
+export type ShapeOrientation = 'horizontal' | 'vertical' | 'diagonal';
+export type ShapeLineStyle = 'solid' | 'dashed' | 'dotted';
+export type ShapeEndStyle = 'flat' | 'fade' | 'rounded';
+export type ShapeArrowDirection = 'up' | 'right' | 'down' | 'left';
+export type ShapeGridPattern = 'dots' | 'lines' | 'cross';
+export type ShapeFrameStyle = 'rectangle' | 'brackets';
+
+export interface ShapeConfig {
+  view: ShapeView;
+
+  // Fill & color (shared)
+  fillMode: ShapeFillMode;
+  color: string;
+  gradientFrom: string;
+  gradientTo: string;
+  gradientAngle: number;
+
+  // Line variants (divider, double-line, wave, zigzag, dotted-row)
+  orientation: ShapeOrientation;
+  thickness: number;
+  lineStyle: ShapeLineStyle;
+  /** Edge treatment for divider lines: flat ends, fade-to-transparent, or rounded caps. */
+  endStyle: ShapeEndStyle;
+  /** Wave/zigzag amplitude as % of viewBox height (0-50). */
+  waveAmplitude: number;
+  /** Number of full wave/zigzag cycles across the width. */
+  waveFrequency: number;
+  /** Number of dots in the dotted-row view. */
+  dotCount: number;
+  /** Dot radius in px for dotted-row. */
+  dotSize: number;
+  /** Pixel gap between the two parallel lines in double-line view. */
+  doubleLineGap: number;
+
+  // Geometric (rectangle, circle, triangle, polygon, star, arrow)
+  outline: boolean;
+  strokeWidth: number;
+  cornerRadius: number;
+  /** Polygon side count (3-12). */
+  sides: number;
+  /** Star point count (3-12). */
+  starPoints: number;
+  /** Star inner-to-outer radius ratio (0.2-0.8). Lower = pointier. */
+  starInnerRatio: number;
+  /** Rotation in degrees applied to geometric shapes. */
+  rotation: number;
+  arrowDirection: ShapeArrowDirection;
+  /** Arrow head length as ratio of total length (0.1-0.6). */
+  arrowHeadRatio: number;
+
+  // Atmospheric (glow, gradient, grid)
+  /** Glow gradient falloff: 0 = hard edge, 1 = soft edge. */
+  softness: number;
+  /** Glow center max alpha (0-1). */
+  intensity: number;
+  gridPattern: ShapeGridPattern;
+  /** Grid spacing in px. */
+  gridSpacing: number;
+  /** Grid dot/line thickness in px. */
+  gridDotSize: number;
+
+  // Frame
+  frameStyle: ShapeFrameStyle;
+  /** Bracket length as % of side length (5-50). */
+  bracketLength: number;
 }
 
 // iFrame / Web embed module config

@@ -7,7 +7,7 @@ import {
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
-  Star,
+  Star, Shapes,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
@@ -758,6 +758,57 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     },
     defaultSize: { w: 240, h: 240 },
     defaultStyle: { padding: 12, backgroundColor: 'transparent', backdropBlur: 0, borderWidth: 0, shadowSize: 0 },
+  },
+  {
+    type: 'shape',
+    label: 'Shape & Divider',
+    icon: Shapes,
+    category: 'Media & Display',
+    defaultConfig: {
+      view: 'divider',
+
+      fillMode: 'solid',
+      color: '#ffffff',
+      gradientFrom: '#a78bfa',
+      gradientTo: '#22d3ee',
+      gradientAngle: 90,
+
+      orientation: 'horizontal',
+      thickness: 2,
+      lineStyle: 'solid',
+      endStyle: 'fade',
+      waveAmplitude: 18,
+      waveFrequency: 4,
+      dotCount: 5,
+      dotSize: 4,
+      doubleLineGap: 6,
+
+      outline: false,
+      strokeWidth: 2,
+      cornerRadius: 12,
+      sides: 6,
+      starPoints: 5,
+      starInnerRatio: 0.4,
+      rotation: 0,
+      arrowDirection: 'right',
+      arrowHeadRatio: 0.35,
+
+      softness: 0.55,
+      intensity: 0.55,
+      gridPattern: 'dots',
+      gridSpacing: 24,
+      gridDotSize: 2,
+
+      frameStyle: 'rectangle',
+      bracketLength: 25,
+    },
+    // 400×80 gives a comfortable 80px grab target on the editor canvas (the
+    // grid is 20px; anything smaller than 2-3 cells is hard to drop accurately
+    // and hard to drag once placed). The divider line renders thin at
+    // `thickness: 2` inside the box — matches how Notion-style HRs work
+    // (generous hit area, thin visible glyph).
+    defaultSize: { w: 400, h: 80 },
+    defaultStyle: { padding: 0, backgroundColor: 'transparent', backdropBlur: 0, borderWidth: 0, shadowSize: 0 },
   },
   {
     type: 'display-control',

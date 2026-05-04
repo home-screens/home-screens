@@ -30,6 +30,7 @@ export { DateConfigSection } from './DateConfigSection';
 export { MealPlannerConfigSection } from './MealPlannerConfigSection';
 export { IframeConfigSection } from './IframeConfigSection';
 export { IconConfigSection } from './IconConfigSection';
+export { ShapeConfigSection } from './ShapeConfigSection';
 export { ChoreChartConfigSection } from './ChoreChartConfigSection';
 export { FullscreenCalendarConfigSection } from './FullscreenCalendarConfigSection';
 export { FullscreenChoreChartConfigSection } from './FullscreenChoreChartConfigSection';

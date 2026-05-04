@@ -68,7 +68,7 @@ body:
         Otherwise paste the git commit SHA you installed from.
       placeholder: 'e.g. 2026.05.01-abc1234, or git SHA 613de17'
     validations:
-      required: true
+      required: false
 
   - type: input
     id: hardware
