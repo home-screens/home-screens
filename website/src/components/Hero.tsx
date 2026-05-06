@@ -7,6 +7,7 @@ import { Container } from '@/components/Container';
 import { DisplayFrame } from '@/components/DisplayFrame';
 import { Github } from 'lucide-react';
 import { useLatestVersion } from '@/hooks/useLatestVersion';
+import { MODULE_COUNT } from '@/lib/stats';
 
 const techStack = ['Next.js', 'React', 'Tailwind CSS', 'Raspberry Pi'];
 
@@ -51,7 +52,7 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-neutral-400">
-              A self-hosted smart display that runs on a Raspberry Pi. 39 modules, a
+              A self-hosted smart display that runs on a Raspberry Pi. {MODULE_COUNT} modules, a
               visual drag-and-drop editor, and zero cloud dependency.
             </p>
 

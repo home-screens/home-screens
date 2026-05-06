@@ -3,14 +3,14 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 39 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 41 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
 
 Exhaustive per-module option tables for every built-in module. If you're new to the module system, start with the [Modules guide](/docs/modules) — this page assumes you already know which module you want and are looking for the exact field names.
 
-Home Screens includes 39 built-in modules organized into 8 categories. Each module can be dragged onto the canvas from the module palette in the editor.
+Home Screens includes {% $stats.moduleCount %} built-in modules organized into {% $stats.categoryCount %} categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
 ## Full Screen
 
@@ -135,7 +135,7 @@ The Immich options only appear in the editor when both **Immich Server URL** and
 
 ### Clock
 
-Displays the current time with optional date information. Supports 18 visual styles.
+Displays the current time with optional date information. Supports {% $stats.clockViewCount %} visual styles.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -236,7 +236,7 @@ A dedicated date display module with multiple visual layouts and optional metada
 
 ### Weather
 
-Unified weather module with 8 views and 5 provider options.
+Unified weather module with {% $stats.weatherViewCount %} views and {% $stats.weatherProviderCount %} provider options.
 
 **Views:** `current`, `hourly`, `daily`, `combined`, `compact`, `table`, `precipitation`, `alerts`
 
@@ -389,7 +389,7 @@ League standings from the ESPN standings API with team logos and colors. Support
 | `rotationIntervalMs` | number | `10000` | How often to rotate between groups (10 sec) |
 | `refreshIntervalMs` | number | `300000` | Data refresh interval (5 min) |
 
-**Supported leagues (12):** NFL, NBA, MLB, NHL, WNBA, MLS, Premier League (EPL), La Liga, Bundesliga, Serie A, Ligue 1, Liga MX.
+**Supported leagues ({% $stats.standingsLeagueCount %}):** NFL, NBA, MLB, NHL, WNBA, MLS, Premier League (EPL), La Liga, Bundesliga, Serie A, Ligue 1, Liga MX.
 
 **View details:**
 
@@ -711,6 +711,67 @@ Embeds any web page or dashboard. Acts as a universal adapter for Home Assistant
 | `sandbox` | string | `"allow-scripts allow-forms allow-popups"` | Sandbox permission tokens (when enabled) |
 
 **Note:** Some websites (e.g. YouTube, Yahoo Finance, Twitter) set `frame-ancestors` or `X-Frame-Options` headers that prevent embedding. Self-hosted services, published Google Docs/Sheets, and sites that explicitly support embedding will work.
+
+### Icon
+
+A single Font Awesome 7 glyph rendered at any size with color, rotation, flip, and optional animation. Useful as a visual accent or status badge alongside other modules. Picker covers the full Free Font Awesome set (solid, regular, brands).
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `iconName` | string | `"star"` | Icon name without the `fa-` prefix (e.g. `"house"`, `"cloud-sun"`, `"github"`). A full class string with spaces is used verbatim and ignores `style` |
+| `style` | `'solid' \| 'regular' \| 'brands'` | `"solid"` | Free Font Awesome style. `solid` covers most icons; `brands` is required for logos like GitHub or Slack |
+| `color` | string | `"#fbbf24"` | Icon glyph color (CSS color) |
+| `iconBackground` | string | `"transparent"` | Background tint behind the glyph, separate from the module wrapper background |
+| `rotation` | `0 \| 90 \| 180 \| 270` | `0` | Rotate the icon in 90° increments |
+| `flip` | `'none' \| 'horizontal' \| 'vertical' \| 'both'` | `"none"` | Mirror the icon |
+| `animation` | string | `"none"` | One of `none`, `spin`, `spin-pulse`, `spin-reverse`, `beat`, `fade`, `beat-fade`, `bounce`, `shake`, `flip` |
+| `animationDuration` | number | `2` | Animation cycle length in seconds (Font Awesome `--fa-animation-duration`) |
+| `scale` | number | `0.7` | Glyph size as a fraction of the smaller container dimension (`cqmin`). Ignored when `autoFit` is true |
+| `autoFit` | boolean | `true` | When true, locks `scale` to `0.85` so the glyph has a comfortable margin on all sides |
+
+**Note:** `style: 'regular'` only renders icons that ship in the regular outline set. If a chosen icon is not in the regular set the codepoint falls back to text — keep `style: 'solid'` unless you've confirmed the icon ships in `fa-regular-400`.
+
+### Shape & Divider
+
+Decorative shapes and dividers for layout polish — the visual equivalent of a horizontal rule, a callout frame, or a star sticker. The `view` field switches between {% $stats.shapeViewCount %} distinct renderers; most options apply only to a subset of views (line variants vs. geometric vs. atmospheric vs. frame).
+
+**Views:** `divider`, `double-line`, `wave`, `zigzag`, `dotted-row`, `rectangle`, `circle`, `triangle`, `polygon`, `star`, `arrow`, `glow`, `gradient`, `grid`, `frame`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"divider"` | Which shape to render (see list above) |
+| `fillMode` | `'solid' \| 'gradient'` | `"solid"` | Use a flat color or a linear gradient between `gradientFrom` and `gradientTo` |
+| `color` | string | `"#ffffff"` | Solid fill color |
+| `gradientFrom` | string | `"#a78bfa"` | Gradient start color (used when `fillMode = "gradient"`) |
+| `gradientTo` | string | `"#22d3ee"` | Gradient end color |
+| `gradientAngle` | number | `90` | Gradient angle in degrees |
+| `orientation` | `'horizontal' \| 'vertical' \| 'diagonal'` | `"horizontal"` | Direction for line views (divider, double-line, wave, zigzag, dotted-row) |
+| `thickness` | number | `2` | Line thickness in px (line views) |
+| `lineStyle` | `'solid' \| 'dashed' \| 'dotted'` | `"solid"` | Stroke pattern for the divider line |
+| `endStyle` | `'flat' \| 'fade' \| 'rounded'` | `"fade"` | Edge treatment: flat ends, fade-to-transparent, or rounded caps |
+| `waveAmplitude` | number | `18` | Wave/zigzag amplitude as % of viewBox height (0–50) |
+| `waveFrequency` | number | `4` | Number of full wave/zigzag cycles across the width |
+| `dotCount` | number | `5` | Number of dots in the `dotted-row` view |
+| `dotSize` | number | `4` | Dot radius in px for `dotted-row` |
+| `doubleLineGap` | number | `6` | Pixel gap between the two parallel lines in `double-line` view |
+| `outline` | boolean | `false` | Render geometric shapes as outlines instead of filled |
+| `strokeWidth` | number | `2` | Outline stroke width in px |
+| `cornerRadius` | number | `12` | Corner radius in px for `rectangle` |
+| `sides` | number | `6` | Polygon side count (3–12) |
+| `starPoints` | number | `5` | Star point count (3–12) |
+| `starInnerRatio` | number | `0.4` | Star inner-to-outer radius ratio (0.2–0.8). Lower = pointier |
+| `rotation` | number | `0` | Rotation in degrees applied to geometric shapes |
+| `arrowDirection` | `'up' \| 'right' \| 'down' \| 'left'` | `"right"` | Arrow head direction |
+| `arrowHeadRatio` | number | `0.35` | Arrow head length as ratio of total length (0.1–0.6) |
+| `softness` | number | `0.55` | Glow gradient falloff (0 = hard edge, 1 = soft edge) |
+| `intensity` | number | `0.55` | Glow center max alpha (0–1) |
+| `gridPattern` | `'dots' \| 'lines' \| 'cross'` | `"dots"` | Pattern used by the `grid` view |
+| `gridSpacing` | number | `24` | Grid spacing in px |
+| `gridDotSize` | number | `2` | Grid dot/line thickness in px |
+| `frameStyle` | `'rectangle' \| 'brackets'` | `"rectangle"` | Frame border style |
+| `bracketLength` | number | `25` | Bracket length as % of side length (5–50) when `frameStyle = "brackets"` |
+
+**Sizing:** Default size is 400×80, which gives a comfortable touch/grab target on the editor canvas. The visible glyph (e.g. a 2-px divider line) renders inside that box — the wrapper provides hit area, the line stays thin.
 
 ### Display Control
 

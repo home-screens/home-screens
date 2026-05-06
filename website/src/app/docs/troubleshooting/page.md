@@ -121,7 +121,7 @@ If the weather module shows an error or no data:
    - **NOAA** is free but US-only.
 3. **Check your location** — Ensure latitude and longitude are set correctly in the module or global settings.
 4. **Test the endpoint** — Visit `http://localhost:3000/api/weather` to see the raw response and any error messages.
-5. **Try a different provider** — Home Screens supports 9 weather providers. If one is not working, switch to another in Settings > Integrations.
+5. **Try a different provider** — Home Screens supports {% $stats.weatherProviderCount %} weather providers. If one is not working, switch to another in Settings > Integrations.
 
 ---
 

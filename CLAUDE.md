@@ -36,7 +36,7 @@ npx vitest run src/lib/__tests__/config.test.ts  # Run a single test file
 - `(remote)` — remote control + chores at `/remote`
 
 ### Module System
-The codebase uses a **module registry pattern**. There are 39 built-in module types. Each requires:
+The codebase uses a **module registry pattern**. There are 41 built-in module types. Each requires:
 1. A React component in `src/components/modules/`
 2. A type in the `ModuleType` union (`src/types/config.ts`)
 3. A config interface in `src/types/config.ts`
@@ -64,7 +64,7 @@ The `display-control` module is a touch widget that dispatches hub commands (wak
 - Display reads config server-side and renders modules
 
 ### API Pattern
-All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (~82 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
+All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (~83 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
 
 ### Key Files
 - `src/types/config.ts` — all TypeScript types (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode)

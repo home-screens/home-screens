@@ -5,6 +5,7 @@ import { Highlight } from 'prism-react-renderer'
 
 import { Button } from '@/components/docs/Button'
 import { HeroBackground } from '@/components/docs/HeroBackground'
+import { MODULE_COUNT, WEATHER_PROVIDER_COUNT } from '@/lib/stats'
 import blurCyanImage from '@/images/blur-cyan.png'
 import blurIndigoImage from '@/images/blur-indigo.png'
 
@@ -56,8 +57,9 @@ export function Hero() {
                 Your home. Your data. Your display.
               </p>
               <p className="mt-3 text-2xl tracking-tight text-slate-400">
-                An open-source smart display system for Raspberry Pi. 39
-                modules, visual editor, 9 weather providers. Free forever.
+                An open-source smart display system for Raspberry Pi.{' '}
+                {MODULE_COUNT} modules, visual editor, {WEATHER_PROVIDER_COUNT}{' '}
+                weather providers. Free forever.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
                 <Button href="/docs/getting-started">Get started</Button>

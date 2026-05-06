@@ -16,7 +16,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Features
 
-- **39 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (5 views), chore chart (5 views), iframe, and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
+- **41 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (5 views), chore chart (5 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
 - **Drag-and-drop editor** — visually arrange modules on a configurable canvas
 - **Multi-screen rotation** — cycle through screens with 8 transition effects
 - **Multi-display hub-and-spoke** — one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
@@ -53,7 +53,7 @@ git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh --port 8080
 
 # Pin a specific release tag instead of the latest
-~/home-screens/scripts/install.sh --version v1.2.0
+~/home-screens/scripts/install.sh --version v1.3.0
 
 # Display-only spoke (no Node, kiosk only — points at a hub Pi)
 ~/home-screens/scripts/install.sh --display-only --backend http://home-screens.local:3000
@@ -221,7 +221,7 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 
 - [Getting Started](https://homescreens.dev/docs/getting-started) — installation and setup
 - [Editor Guide](https://homescreens.dev/docs/editor) — visual editor walkthrough
-- [Modules](https://homescreens.dev/docs/modules) — overview of the 39 built-in modules
+- [Modules](https://homescreens.dev/docs/modules) — overview of the 41 built-in modules
 - [Module Reference](https://homescreens.dev/docs/module-reference) — every setting, default value, and allowed option for each module
 - [Backgrounds](https://homescreens.dev/docs/backgrounds) — uploads, Unsplash, NASA APOD, rotation
 - [Profiles & Scheduling](https://homescreens.dev/docs/profiles) — automation and time-based layouts

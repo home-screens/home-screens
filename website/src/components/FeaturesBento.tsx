@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { WEATHER_PROVIDER_COUNT } from '@/lib/stats';
 
 interface Feature {
   icon: LucideIcon;
@@ -63,7 +64,7 @@ const featuresRight: Feature[] = [
   {
     icon: CloudSun,
     title: 'Weather Providers',
-    stat: '9',
+    stat: String(WEATHER_PROVIDER_COUNT),
     description: 'Open-Meteo, NOAA, Yr.no, SMHI, Met Office, Environment Canada, OpenWeatherMap, WeatherAPI, Pirate Weather.',
   },
   {

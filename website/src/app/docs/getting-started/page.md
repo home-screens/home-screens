@@ -206,15 +206,15 @@ The following integrations can be configured through the editor:
 |---|---|---|
 | iCal feeds | Subscribe to any iCal/ICS URL (Google, Apple, Outlook, Fastmail, etc.) | For calendar module (simplest path) |
 | Google Calendar OAuth | OAuth client ID and secret for the calendar picker + native color-coding | Optional — only if you want OAuth instead of an iCal URL |
-| OpenWeatherMap | Weather data provider | Optional (one of nine weather providers) |
-| WeatherAPI | Weather data provider | Optional (one of nine weather providers) |
-| Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of nine weather providers) |
-| NOAA | Free weather data (US only, no API key needed) | Optional (one of nine weather providers) |
-| Open-Meteo | Free weather data (global coverage, no API key needed) | Optional (one of nine weather providers) |
-| Yr.no | Free weather data (global, Norwegian Meteorological Institute, no API key needed) | Optional (one of nine weather providers) |
-| SMHI | Free weather data (Nordic coverage, Swedish Meteorological and Hydrological Institute, no API key needed) | Optional (one of nine weather providers) |
-| Met Office | Free weather data (UK coverage, no API key needed) | Optional (one of nine weather providers) |
-| Environment Canada | Free weather data (Canadian cities, ECCC citypage feeds, no API key needed) | Optional (one of nine weather providers) |
+| OpenWeatherMap | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| WeatherAPI | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| NOAA | Free weather data (US only, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| Open-Meteo | Free weather data (global coverage, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| Yr.no | Free weather data (global, Norwegian Meteorological Institute, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| SMHI | Free weather data (Nordic coverage, Swedish Meteorological and Hydrological Institute, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| Met Office | Free weather data (UK coverage, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
+| Environment Canada | Free weather data (Canadian cities, ECCC citypage feeds, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
 | Google Maps | Google Routes API key for traffic module | For traffic module |
 | TomTom | TomTom Routing API key (traffic fallback) | For traffic module |
 
@@ -282,4 +282,4 @@ You can switch to the **Dev** channel in **Settings > System** to get pre-releas
 
 - [Raspberry Pi guide](/docs/raspberry-pi) -- full deployment details, orientation, troubleshooting
 - [Editor Guide](/docs/editor) -- learn how to build your screens
-- [Module Reference](/docs/module-reference) -- every option for all 39 modules
+- [Module Reference](/docs/module-reference) -- every option for all {% $stats.moduleCount %} modules

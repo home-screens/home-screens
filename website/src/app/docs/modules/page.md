@@ -8,9 +8,9 @@ nextjs:
       canonical: /docs/modules
 ---
 
-A **module** is one widget on your display — a clock, a weather forecast, a calendar grid, a photo slideshow. Home Screens ships with 39 built-in modules across 8 categories, and you arrange them by dragging from the module palette onto the canvas in the editor. This page is a short tour of what's available and how to use it.
+A **module** is one widget on your display — a clock, a weather forecast, a calendar grid, a photo slideshow. Home Screens ships with {% $stats.moduleCount %} built-in modules across {% $stats.categoryCount %} categories, and you arrange them by dragging from the module palette onto the canvas in the editor. This page is a short tour of what's available and how to use it.
 
-Looking for every configuration option? Jump to the **[Module Reference](/docs/module-reference)** — every setting, default value, and allowed option for all 39 modules.
+Looking for every configuration option? Jump to the **[Module Reference](/docs/module-reference)** — every setting, default value, and allowed option for all {% $stats.moduleCount %} modules.
 
 ---
 
@@ -27,7 +27,7 @@ Modules persist in `data/config.json` and render the same way on the display as 
 
 ---
 
-## The 8 categories
+## The {% $stats.categoryCount %} categories
 
 Each category in the palette groups related modules. Click a category header to expand.
 
@@ -42,7 +42,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 
 ### Time & Date
 
-- **Clock** — 18 different visual styles (analog, digital, flip, word, etc.)
+- **Clock** — {% $stats.clockViewCount %} different visual styles (analog, digital, flip, word, etc.)
 - **Calendar** — compact Google/iCal event list
 - **Countdown** — days until a birthday, trip, or deadline
 - **Date** — 5 layouts
@@ -51,13 +51,13 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 
 ### Weather & Environment
 
-- **Weather** — 8 views (current, forecast, hourly, etc.) across 9 providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada)
+- **Weather** — {% $stats.weatherViewCount %} views (current, forecast, hourly, etc.) across {% $stats.weatherProviderCount %} providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada)
 - **Moon Phase** · **Sunrise / Sunset** · **Air Quality** · **Rain Map**
 
 ### News & Finance
 
 - **News** (RSS) · **Stock Ticker** (Yahoo Finance) · **Crypto** (CoinGecko)
-- **Sports Scores** and **Standings** (ESPN, 12 leagues)
+- **Sports Scores** and **Standings** (ESPN, {% $stats.standingsLeagueCount %} leagues)
 
 ### Knowledge & Fun
 
@@ -75,6 +75,8 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Text** — rich formatting, gradients, marquee
 - **Image** · **Photo Slideshow** · **QR Code** (custom or WiFi)
 - **iFrame** — embed any web page (Home Assistant, Grafana, Google Sheets, etc.)
+- **Icon** — a single Font Awesome 7 glyph with color, rotation, flip, and animation (spin, beat, bounce, shake)
+- **Shape & Divider** — {% $stats.shapeViewCount %} views (dividers, waves, dots, geometric shapes, frames, glow, gradients) for layout polish
 - **Display Control** — touch-friendly wake / sleep / brightness / navigation controls. Drop it on a touchscreen and family members can run the display without a phone
 
 ### Travel

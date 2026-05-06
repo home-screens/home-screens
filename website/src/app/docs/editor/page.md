@@ -260,7 +260,7 @@ Profiles let you define named groups of screens that activate based on a schedul
 ### Weather
 
 - **Units** — metric (°C, km/h) or imperial (°F, mph), displayed as a segmented control at the top of the section
-- **Provider cards** — each of the nine weather providers appears as its own card showing its name, a status pill (Default, Ready, Free, Key Required, Not Configured, or Key Saved), and inline actions:
+- **Provider cards** — each of the {% $stats.weatherProviderCount %} weather providers appears as its own card showing its name, a status pill (Default, Ready, Free, Key Required, Not Configured, or Key Saved), and inline actions:
   - **Open-Meteo** — free, no API key required, global coverage (default)
   - **WeatherAPI** — free tier, no credit card required
   - **OpenWeatherMap** — requires One Call 3.0 subscription

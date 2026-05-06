@@ -12,7 +12,7 @@ nextjs:
 
 ### What is Home Screens?
 
-Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, 39 built-in modules, and a fullscreen kiosk mode.
+Home Screens is an open-source smart display system that turns a Raspberry Pi and any HDMI monitor into a customizable information dashboard. It replaces commercial products like Dakboard and MagicMirror with a self-hosted, web-based solution featuring a drag-and-drop editor, {% $stats.moduleCount %} built-in modules, and a fullscreen kiosk mode.
 
 ### Is it free?
 
@@ -185,7 +185,7 @@ Some modules also have a refresh interval --- data won't update more frequently 
 
 ### Which weather provider should I choose?
 
-Home Screens supports nine weather providers. Here's a comparison:
+Home Screens supports {% $stats.weatherProviderCount %} weather providers. Here's a comparison:
 
 | Provider | API Key Required | Cost | Coverage | Features |
 |---|---|---|---|---|

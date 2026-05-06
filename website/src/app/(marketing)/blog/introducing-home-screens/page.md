@@ -23,13 +23,13 @@ We built Home Screens because the existing options for smart home displays felt 
 
 So we built our own.  That's the image above.  The larger display is a Samsung Frame TV and flips through all the main screens.  The smaller display underneath is a touchscreen panel so the kids can interact and complete their chores and redeem rewards.
 
-We believe Home Screens is different. It's a free, self-hosted web app that runs on a Raspberry Pi and turns any monitor into a smart display - with a drag-and-drop editor, 39 built-in modules, and beautiful full-screen dashboards.
+We believe Home Screens is different. It's a free, self-hosted web app that runs on a Raspberry Pi and turns any monitor into a smart display - with a drag-and-drop editor, {% $stats.moduleCount %} built-in modules, and beautiful full-screen dashboards.
 
 ## What makes it different
 
 **A real visual editor.** Drag modules onto a canvas, resize them, rearrange them. No config files, no terminal. The editor runs in your browser and saves changes instantly.
 
-**39 built-in modules.** Weather (with 9 providers), calendars, clocks, news, sports scores, stock tickers, meal planners, chore charts, photo slideshows, and more. Each module has multiple views — the clock alone has 18 different styles.
+**{% $stats.moduleCount %} built-in modules.** Weather (with {% $stats.weatherProviderCount %} providers), calendars, clocks, news, sports scores, stock tickers, meal planners, chore charts, photo slideshows, and more. Each module has multiple views — the clock alone has {% $stats.clockViewCount %} different styles.
 
 **Your data stays local.** No cloud accounts, no telemetry you can't disable, no subscriptions. Everything is stored in a single JSON file on your Pi. You own your data completely.
 

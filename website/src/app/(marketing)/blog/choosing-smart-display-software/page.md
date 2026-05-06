@@ -86,7 +86,7 @@ All three are extensible, but the bar to do so is different.
 | Dakboard   | Custom styling, embedded web pages, Zapier integrations | A little CSS for visual tweaks |
 | Home Screens | Drop in a custom plugin                      | Basic JavaScript; a [starter template](https://github.com/home-screens/home-screens-plugin-template) is provided |
 
-MagicMirror has the largest community module library — hundreds of third-party modules, though quality varies. Home Screens ships with [39 built-in modules](/docs/modules) covering most common needs (weather, calendars, news, sports, meal planning, chore charts) and a plugin system for the rest.
+MagicMirror has the largest community module library — hundreds of third-party modules, though quality varies. Home Screens ships with [{% $stats.moduleCount %} built-in modules](/docs/modules) covering most common needs (weather, calendars, news, sports, meal planning, chore charts) and a plugin system for the rest.
 
 ## What does each one do best?
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MODULE_COUNT } from '@/lib/stats';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { FeaturesBento } from '@/components/FeaturesBento';
@@ -14,14 +15,12 @@ import { Footer } from '@/components/Footer';
 export const metadata: Metadata = {
   openGraph: {
     title: 'Home Screens — Smart Display for Your Home',
-    description:
-      'An open-source smart display system for Raspberry Pi. 39 built-in modules, drag-and-drop editor, plugin system. Free forever.',
+    description: `An open-source smart display system for Raspberry Pi. ${MODULE_COUNT} built-in modules, drag-and-drop editor, plugin system. Free forever.`,
     url: 'https://homescreens.dev',
   },
   twitter: {
     title: 'Home Screens — Smart Display for Your Home',
-    description:
-      'An open-source smart display for Raspberry Pi. 39 modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.',
+    description: `An open-source smart display for Raspberry Pi. ${MODULE_COUNT} modules, drag-and-drop editor, plugin system. Free, self-hosted alternative to MagicMirror and Dakboard.`,
   },
   alternates: {
     canonical: 'https://homescreens.dev',

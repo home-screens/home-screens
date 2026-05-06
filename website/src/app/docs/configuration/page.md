@@ -318,7 +318,7 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 
 ### ModuleType
 
-There are 39 built-in module types. Plugin modules use the `plugin:<name>` format.
+There are {% $stats.moduleCount %} built-in module types. Plugin modules use the `plugin:<name>` format.
 
 ```typescript
 type BuiltinModuleType =
@@ -356,6 +356,8 @@ type BuiltinModuleType =
   | 'display-control'
   | 'meal-planner'
   | 'iframe'
+  | 'icon'
+  | 'shape'
   | 'chore-chart'
   | 'fullscreen-calendar'
   | 'fullscreen-chore-chart'
@@ -477,7 +479,7 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 
 ### WeatherConfig
 
-Nine providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather** (a Dark Sky replacement with minutely precipitation and alerts), **NOAA** (free, no API key, US only), **Open-Meteo** (free, no API key, global coverage), **Yr.no** (free, no API key, Norwegian Meteorological Institute, global coverage), **SMHI** (free, no API key, Swedish Meteorological and Hydrological Institute, Nordic coverage), **Met Office** (free, no API key, UK coverage), and **Environment Canada** (free, no API key, Canadian cities via ECCC citypage feeds). Eight views are available.
+{% $stats.weatherProviderCount %} providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather** (a Dark Sky replacement with minutely precipitation and alerts), **NOAA** (free, no API key, US only), **Open-Meteo** (free, no API key, global coverage), **Yr.no** (free, no API key, Norwegian Meteorological Institute, global coverage), **SMHI** (free, no API key, Swedish Meteorological and Hydrological Institute, Nordic coverage), **Met Office** (free, no API key, UK coverage), and **Environment Canada** (free, no API key, Canadian cities via ECCC citypage feeds). {% $stats.weatherViewCount %} views are available.
 
 ```typescript
 {
@@ -880,7 +882,7 @@ Rotating positive affirmations with 4 visual styles and 5 categories. Supports t
 
 ### StandingsConfig
 
-Displays league standings from ESPN. Supports 12 leagues with team colors. Three views: full table, compact, and conference.
+Displays league standings from ESPN. Supports {% $stats.standingsLeagueCount %} leagues with team colors. Three views: full table, compact, and conference.
 
 ```typescript
 {

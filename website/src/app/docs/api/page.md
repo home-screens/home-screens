@@ -50,7 +50,7 @@ Saves the screen configuration. Performs an atomic write (temp file + rename) to
 
 ### GET /api/weather
 
-Fetches weather data from the configured provider. Supports nine providers: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, and Environment Canada. Results are cached for 5 minutes.
+Fetches weather data from the configured provider. Supports {% $stats.weatherProviderCount %} providers: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, and Environment Canada. Results are cached for 5 minutes.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|

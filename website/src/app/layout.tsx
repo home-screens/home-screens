@@ -5,6 +5,7 @@ import Script from 'next/script'
 import clsx from 'clsx'
 
 import { Providers } from '@/app/providers'
+import { MODULE_COUNT } from '@/lib/stats'
 import './globals.css'
 
 const inter = Inter({
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     default: 'Home Screens — Smart Display for Your Home',
   },
   description:
-    'An open-source smart display system for Raspberry Pi. 39 built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.',
+    `An open-source smart display system for Raspberry Pi. ${MODULE_COUNT} built-in modules, drag-and-drop editor, plugin system. A free, self-hosted alternative to MagicMirror and Dakboard.`,
   alternates: {
     types: {
       'application/rss+xml': '/feed.xml',
@@ -68,8 +69,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'SoftwareApplication',
               name: 'Home Screens',
-              description:
-                'An open-source smart display system for Raspberry Pi with 39 built-in modules, a drag-and-drop visual editor, and a plugin system.',
+              description: `An open-source smart display system for Raspberry Pi with ${MODULE_COUNT} built-in modules, a drag-and-drop visual editor, and a plugin system.`,
               applicationCategory: 'UtilitiesApplication',
               operatingSystem: 'Linux',
               url: 'https://homescreens.dev',

@@ -8,11 +8,12 @@ import {
   Newspaper, TrendingUp, Bitcoin, Trophy, Medal,
   Laugh, Quote, BookOpen, History,
   ListTodo, StickyNote, HandMetal, ListChecks, Trash2, Sparkles, UtensilsCrossed, ClipboardList,
-  Type, ImageIcon, Image, QrCode, Globe, LayoutGrid,
+  Type, ImageIcon, Image, QrCode, Globe, LayoutGrid, Star, Shapes,
   Car,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { MODULE_COUNT } from '@/lib/stats';
 
 interface ModuleItem {
   icon: LucideIcon;
@@ -70,6 +71,8 @@ const categories: Record<string, ModuleItem[]> = {
     { icon: Image, label: 'Photo Slideshow' },
     { icon: QrCode, label: 'QR Code' },
     { icon: Globe, label: 'Web Embed' },
+    { icon: Star, label: 'Icon' },
+    { icon: Shapes, label: 'Shape & Divider' },
     { icon: LayoutGrid, label: 'Display Control' },
   ],
   'Travel': [
@@ -89,7 +92,7 @@ export function ModuleShowcase() {
       <Container>
         <div className="mb-12">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            <span className="font-mono text-cyan-400">39</span> modules and counting
+            <span className="font-mono text-cyan-400">{MODULE_COUNT}</span> modules and counting
           </h2>
           <p className="mt-3 max-w-2xl text-neutral-400">
             Everything from clocks and calendars to stocks, sports scores, and meal

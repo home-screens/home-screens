@@ -17,7 +17,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 39 module components + ModuleWrapper
+    modules/                 # All 41 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -45,7 +45,7 @@ The app uses Next.js route groups to separate concerns:
 
 ### Module System
 
-There are currently **39 modules** organized into 8 categories:
+There are currently **{% $stats.moduleCount %} modules** organized into {% $stats.categoryCount %} categories:
 
 | Category | Modules |
 |---|---|
@@ -55,7 +55,7 @@ There are currently **39 modules** organized into 8 categories:
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
 | **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart |
-| **Media & Display** | text, image, photo-slideshow, qr-code, iframe, display-control |
+| **Media & Display** | text, image, photo-slideshow, qr-code, iframe, icon, shape, display-control |
 | **Travel** | traffic |
 
 The module system follows a registry pattern. Each module is a self-contained unit:
@@ -145,7 +145,7 @@ Module components use the `useFetchData` hook to call API routes (e.g., `/api/we
 
 Weather data comes from a pluggable provider system in `src/lib/weather/`.
 
-The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. Nine implementations exist:
+The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. {% $stats.weatherProviderCount %} implementations exist:
 
 - **OpenMeteoProvider** — free, no API key, global coverage; provides hourly and forecast data (the default)
 - **NOAAProvider** — free, no API key, US only; provides hourly, forecast, and alerts
@@ -157,7 +157,7 @@ The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`
 - **WeatherAPIProvider** — requires API key; provides hourly and forecast data
 - **PirateWeatherProvider** — requires API key; provides hourly, forecast, minutely precipitation, and alerts (Dark Sky replacement)
 
-The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. The six free, key-less providers cover most use cases: Open-Meteo is the global default; NOAA, Yr.no, SMHI, Met Office, and Environment Canada provide higher-accuracy regional forecasts within their coverage areas. The three key-required providers (OpenWeatherMap, WeatherAPI, Pirate Weather) round out the options when a user wants a specific data source — Pirate Weather is the only one that provides minutely precipitation data.
+The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. The free, key-less providers cover most use cases: Open-Meteo is the global default; NOAA, Yr.no, SMHI, Met Office, and Environment Canada provide higher-accuracy regional forecasts within their coverage areas. The key-required providers — OpenWeatherMap, WeatherAPI, and Pirate Weather — round out the options when a user wants a specific data source. Pirate Weather is the only one that provides minutely precipitation data.
 
 ### API Routes
 
@@ -168,7 +168,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/display-token`, `auth/revoke-sessions`, `auth/google`, `auth/ip-allowlist` | Authentication, session management, display token, IP allowlist |
 | **System** | `system/status`, `system/version`, `system/build-id`, `system/changelog`, `system/power`, `system/upgrade`, `system/rollback`, `system/backups` | Server management and deployment |
 | **Config** | `config`, `secrets` | Read/write config and manage API keys |
-| **Weather** | `weather`, `rain-map` | Weather data (9 providers) and rain radar tiles |
+| **Weather** | `weather`, `rain-map` | Weather data ({% $stats.weatherProviderCount %} providers) and rain radar tiles |
 | **Calendar** | `calendar`, `calendars` | Google Calendar events and calendar list |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `standings`, `todoist`, `air-quality`, `traffic` | External data proxies |
 | **Display** | `display/[action]` | Remote control: wake, sleep, brightness, navigation, profiles, alerts |
