@@ -1,7 +1,17 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import {
+  SLOT_META,
+  SLOT_ORDER,
+  SLOT_WINDOWS,
+  formatMealTime,
+  resolvePlannedMealTime,
+  getLocalizedDayNames,
+  getMealSlotLabelKey,
+} from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealsViewProps } from './meals-shared';
 
 interface MealsWeekViewProps extends MealsViewProps {
@@ -18,20 +28,28 @@ export default function MealsWeekView({
   settings,
   setSubView,
 }: MealsWeekViewProps) {
+  const t = useTranslate('remote');
+  const tModules = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  const dayNamesFull = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'full'),
+    [formattingLocale],
+  );
   const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      {weekDates.map(({ date, label, shortDate }) => {
+      {weekDates.map(({ date, dayIndex, shortDate }) => {
         const isToday = date === todayISO;
         const isPast = date < todayISO;
+        const dayLabel = dayNamesFull[dayIndex];
 
         return (
           <div key={date} style={{ marginBottom: 16 }}>
             {/* Day header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
-                {label}
+                {dayLabel}
               </span>
               <span style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{shortDate}</span>
               {isToday && (
@@ -48,7 +66,7 @@ export default function MealsWeekView({
                     marginLeft: 'auto',
                   }}
                 >
-                  Today
+                  {t('mealsTab.weekView.todayBadge')}
                 </span>
               )}
             </div>
@@ -61,6 +79,7 @@ export default function MealsWeekView({
               // A slot is "past" today if its window has ended (currentHour >= window.end)
               const isPastSlot = isPast || (isToday && currentHour >= SLOT_WINDOWS[slot].end);
               const isCurrentSlot = isToday && slot === activeSlot;
+              const slotLabel = tModules(getMealSlotLabelKey(slot));
 
               if (!hasMeal) {
                 return (
@@ -79,7 +98,7 @@ export default function MealsWeekView({
                   >
                     <div style={{ width: 4, height: 28, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.3 }} />
                     <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-                      {SLOT_META[slot].label} - Not planned
+                      {t('mealsTab.weekView.notPlanned', { slot: slotLabel })}
                     </span>
                   </div>
                 );
@@ -106,7 +125,7 @@ export default function MealsWeekView({
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 10, color: 'var(--hs-text-faint)', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
-                        {SLOT_META[slot].label}{isCurrentSlot ? ' \u2022 Now' : ''}
+                        {slotLabel}{isCurrentSlot ? t('mealsTab.weekView.activeNowSuffix') : ''}
                       </span>
                       {time && (
                         <span style={{
@@ -125,7 +144,7 @@ export default function MealsWeekView({
                   </div>
                   {meal?.prepTime && (
                     <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-                      {meal.prepTime}m
+                      {t('mealsTab.weekView.prepTimeMin', { minutes: meal.prepTime })}
                     </span>
                   )}
                 </div>
@@ -137,9 +156,11 @@ export default function MealsWeekView({
 
       {plan.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No meals planned this week</p>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
+            {t('mealsTab.weekView.empty.title')}
+          </p>
           <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            Switch to Plan to start adding meals.
+            {t('mealsTab.weekView.empty.description')}
           </p>
           <button
             onClick={() => setSubView('plan')}
@@ -156,7 +177,7 @@ export default function MealsWeekView({
               fontFamily: 'inherit',
             }}
           >
-            Plan Meals
+            {t('mealsTab.weekView.empty.planButton')}
           </button>
         </div>
       )}

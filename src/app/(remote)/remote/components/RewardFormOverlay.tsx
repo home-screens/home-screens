@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
+import { useTranslate } from '@/i18n';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
@@ -25,6 +26,7 @@ export default function RewardFormOverlay({
   onDelete,
   onBack,
 }: RewardFormOverlayProps) {
+  const t = useTranslate('remote');
   const isEdit = reward !== null;
   const [name, setName] = useState(reward?.name ?? '');
   const [emoji, setEmoji] = useState(reward?.emoji ?? 'lucide:gift');
@@ -58,7 +60,7 @@ export default function RewardFormOverlay({
   return (
     <>
       <FormOverlay
-        title={isEdit ? 'Edit Reward' : 'Add Reward'}
+        title={isEdit ? t('rewardForm.titleEdit') : t('rewardForm.titleAdd')}
         onBack={onBack}
         footer={
           <div style={{ padding: '12px 16px' }}>
@@ -79,7 +81,7 @@ export default function RewardFormOverlay({
                 transition: 'all 0.15s',
               }}
             >
-              Save Reward
+              {t('rewardForm.saveButton')}
             </button>
             {isEdit && onDelete && (
               <button
@@ -99,7 +101,7 @@ export default function RewardFormOverlay({
                   marginTop: 8,
                 }}
               >
-                Delete Reward
+                {t('rewardForm.deleteButton')}
               </button>
             )}
           </div>
@@ -110,17 +112,17 @@ export default function RewardFormOverlay({
           value={emoji}
           onChange={setEmoji}
           icons={[...REWARD_ICONS]}
-          label="Icon"
+          label={t('rewardForm.iconLabel')}
           variant="mobile"
         />
 
         {/* Name */}
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Name</div>
+          <div style={LABEL_STYLE}>{t('rewardForm.nameLabel')}</div>
           <input
             style={INPUT_STYLE}
             type="text"
-            placeholder="e.g. Extra Screen Time"
+            placeholder={t('rewardForm.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -130,18 +132,18 @@ export default function RewardFormOverlay({
         {/* Cost + Enabled grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
-            <div style={LABEL_STYLE}>Ticket Cost</div>
+            <div style={LABEL_STYLE}>{t('rewardForm.ticketCostLabel')}</div>
             <input
               style={INPUT_STYLE}
               type="number"
               min={1}
-              placeholder="10"
+              placeholder={t('rewardForm.ticketCostPlaceholder')}
               value={costStr}
               onChange={(e) => setCostStr(e.target.value)}
             />
           </div>
           <div>
-            <div style={LABEL_STYLE}>Enabled</div>
+            <div style={LABEL_STYLE}>{t('rewardForm.enabledLabel')}</div>
             <button
               onClick={() => setEnabled((v) => !v)}
               style={{
@@ -178,7 +180,7 @@ export default function RewardFormOverlay({
                 />
               </div>
               <span style={{ fontSize: 14, color: 'var(--hs-text-muted)' }}>
-                {enabled ? 'Visible' : 'Hidden'}
+                {enabled ? t('rewardForm.visible') : t('rewardForm.hidden')}
               </span>
             </button>
           </div>
@@ -186,11 +188,11 @@ export default function RewardFormOverlay({
 
         {/* Description */}
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Description (optional)</div>
+          <div style={LABEL_STYLE}>{t('rewardForm.descriptionLabel')}</div>
           <input
             style={INPUT_STYLE}
             type="text"
-            placeholder="Short description..."
+            placeholder={t('rewardForm.descriptionPlaceholder')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -198,7 +200,7 @@ export default function RewardFormOverlay({
 
         {/* Available To */}
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Available To</div>
+          <div style={LABEL_STYLE}>{t('rewardForm.availableToLabel')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button
               className="press-scale-xs"
@@ -215,7 +217,7 @@ export default function RewardFormOverlay({
                 transition: 'all 0.15s',
               }}
             >
-              Everyone
+              {t('rewardForm.everyone')}
             </button>
             {members.map((m) => {
               const isSelected = memberIds.includes(m.id);
@@ -247,9 +249,9 @@ export default function RewardFormOverlay({
 
       {confirmDelete && (
         <ConfirmSheet
-          title="Delete Reward"
-          description={`Are you sure you want to delete "${reward?.name}"? Existing redemption history will be preserved.`}
-          confirmLabel="Delete"
+          title={t('rewardForm.deleteConfirm.title')}
+          description={t('rewardForm.deleteConfirm.description', { name: reward?.name ?? '' })}
+          confirmLabel={t('common.delete')}
           onConfirm={() => {
             setConfirmDelete(false);
             onDelete?.(reward!.id);

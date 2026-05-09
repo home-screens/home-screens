@@ -5,6 +5,7 @@ import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings } from '@/types
 import { generateGroceryList } from '@/lib/grocery-utils';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
 import { toISODate, filterPlanToWeek, replaceWeekInPlan, copyWeekEntries, alignToWeekStart } from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useMealsData } from '../hooks/useMealsData';
 import { useMealForm } from '../hooks/useMealForm';
 import { normalizeTag } from '@/lib/meal-constants';
@@ -17,6 +18,8 @@ import MealsSettingsSheet from './MealsSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
 
 export default function MealsTab() {
+  const locale = useFormattingLocale();
+  const t = useTranslate('remote');
   const {
     savedMeals,
     setSavedMeals,
@@ -164,9 +167,9 @@ export default function MealsTab() {
 
   const clearAllPlan = useCallback(() => {
     setConfirmAction({
-      title: 'Clear plan?',
-      description: 'This will remove all planned meals for this week.',
-      confirmLabel: 'Clear Week',
+      title: t('mealsTab.confirm.clearWeek.title'),
+      description: t('mealsTab.confirm.clearWeek.description'),
+      confirmLabel: t('mealsTab.confirm.clearWeek.confirmLabel'),
       onConfirm: async () => {
         const weekSet = new Set(weekDates.map((d) => d.date));
         const remaining = plan.filter((p) => !weekSet.has(p.date));
@@ -175,7 +178,7 @@ export default function MealsTab() {
         setConfirmAction(null);
       },
     });
-  }, [savedMeals, plan, weekDates, saveData, setPlan]);
+  }, [savedMeals, plan, weekDates, saveData, setPlan, t]);
 
   const suggestRandom = useCallback(async () => {
     if (savedMeals.length === 0) return;
@@ -244,9 +247,9 @@ export default function MealsTab() {
     if (form.editingMeal === 'new' || form.editingMeal === null) return;
     const mealToDelete = form.editingMeal;
     setConfirmAction({
-      title: `Delete "${mealToDelete.name}"?`,
-      description: 'This will also remove it from any planned slots.',
-      confirmLabel: 'Delete Meal',
+      title: t('mealsTab.confirm.deleteMeal.title', { name: mealToDelete.name }),
+      description: t('mealsTab.confirm.deleteMeal.description'),
+      confirmLabel: t('mealsTab.confirm.deleteMeal.confirmLabel'),
       onConfirm: async () => {
         const id = mealToDelete.id;
         const newMeals = savedMeals.filter((m) => m.id !== id);
@@ -302,7 +305,7 @@ export default function MealsTab() {
   if (loading) {
     return (
       <div style={{ padding: '48px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>Loading meals...</div>
+        <div style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>{t('mealsTab.loading')}</div>
       </div>
     );
   }
@@ -310,8 +313,8 @@ export default function MealsTab() {
   // Format week date range for header
   const startDate = new Date(weekDates[0].date + 'T12:00:00');
   const endDate = new Date(weekDates[6].date + 'T12:00:00');
-  const formatShort = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const weekLabel = isCurrentWeek ? 'This Week' : `${formatShort(startDate)} – ${formatShort(endDate)}`;
+  const formatShort = (d: Date) => d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  const weekLabel = isCurrentWeek ? t('mealsTab.weekLabel.thisWeek') : `${formatShort(startDate)} – ${formatShort(endDate)}`;
 
   return (
     <div>
@@ -319,9 +322,9 @@ export default function MealsTab() {
       <div style={{ padding: '12px 0 4px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+            {new Date().toLocaleDateString(locale, { weekday: 'long' })}
           </div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>Meals</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>{t('mealsTab.header')}</h2>
         </div>
         <button
           type="button"
@@ -339,8 +342,8 @@ export default function MealsTab() {
             justifyContent: 'center',
             fontFamily: 'inherit',
           }}
-          aria-label="Open meal settings"
-          title="Settings"
+          aria-label={t('mealsTab.settingsButtonAriaLabel')}
+          title={t('mealsTab.settingsButtonTitle')}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -364,9 +367,9 @@ export default function MealsTab() {
         {(['week', 'plan', 'library', 'grocery'] as const).map((view) => {
           const labels: Record<typeof view, string> = {
             week: weekLabel,
-            plan: 'Plan',
-            library: 'Library',
-            grocery: 'Grocery',
+            plan: t('mealsTab.subNav.plan'),
+            library: t('mealsTab.subNav.library'),
+            grocery: t('mealsTab.subNav.grocery'),
           };
           const icons: Record<typeof view, React.ReactNode> = {
             week: (
@@ -425,6 +428,7 @@ export default function MealsTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <button
             onClick={() => navigateWeek(-1)}
+            aria-label={t('mealsTab.weekNav.prevAriaLabel')}
             style={{
               width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
               background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
@@ -434,10 +438,11 @@ export default function MealsTab() {
             ‹
           </button>
           <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--hs-text-muted)' }}>
-            {isCurrentWeek ? 'This Week' : `${formatShort(startDate)} – ${formatShort(endDate)}`}
+            {isCurrentWeek ? t('mealsTab.weekLabel.thisWeek') : `${formatShort(startDate)} – ${formatShort(endDate)}`}
           </span>
           <button
             onClick={() => navigateWeek(1)}
+            aria-label={t('mealsTab.weekNav.nextAriaLabel')}
             style={{
               width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
               background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
@@ -455,7 +460,7 @@ export default function MealsTab() {
                 fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
-              Today
+              {t('mealsTab.weekNav.todayButton')}
             </button>
           )}
         </div>

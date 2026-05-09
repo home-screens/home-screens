@@ -1,6 +1,7 @@
 'use client';
 
 import type { DisplayStatus } from '@/lib/display-commands';
+import { useTranslate } from '@/i18n';
 
 interface ScreenNavProps {
   status: DisplayStatus | null;
@@ -8,6 +9,7 @@ interface ScreenNavProps {
 }
 
 export default function ScreenNav({ status, onNav }: ScreenNavProps) {
+  const t = useTranslate('remote');
   const screenCount = status?.screenCount ?? 0;
   const currentIndex = status?.currentScreen.index ?? 0;
 
@@ -17,7 +19,7 @@ export default function ScreenNav({ status, onNav }: ScreenNavProps) {
         onClick={() => onNav('prev')}
         disabled={screenCount === 0}
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
-        aria-label="Previous screen"
+        aria-label={t('screenControls.prevAriaLabel')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -41,7 +43,7 @@ export default function ScreenNav({ status, onNav }: ScreenNavProps) {
         onClick={() => onNav('next')}
         disabled={screenCount === 0}
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
-        aria-label="Next screen"
+        aria-label={t('screenControls.nextAriaLabel')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

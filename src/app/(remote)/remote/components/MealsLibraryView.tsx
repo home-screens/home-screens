@@ -3,7 +3,8 @@
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, CARD_STYLE } from './meals-shared';
-import { LIBRARY_FILTERS, formatTagLabel, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 
 interface MealsLibraryViewProps {
@@ -39,12 +40,14 @@ export default function MealsLibraryView({
   saving,
   saveError,
 }: MealsLibraryViewProps) {
+  const t = useTranslate('remote');
+  const tEditor = useTranslate('editor');
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* Search input */}
       <input
         type="text"
-        placeholder="Search meals..."
+        placeholder={t('mealsTab.library.searchPlaceholder')}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
@@ -57,11 +60,12 @@ export default function MealsLibraryView({
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' as const, paddingBottom: 12 }}>
         {LIBRARY_FILTERS.map((tag) => {
           const isActive = filterTag === tag;
+          const label = t(`mealsTab.library.filters.${tag}`);
           return (
             <button
               key={tag}
               onClick={() => setFilterTag(tag)}
-              aria-label={`Filter by ${formatTagLabel(tag)}`}
+              aria-label={t('mealsTab.library.filterByAriaLabel', { label })}
               aria-pressed={isActive}
               style={{
                 padding: '6px 14px',
@@ -78,7 +82,7 @@ export default function MealsLibraryView({
                 fontFamily: 'inherit',
               }}
             >
-              {formatTagLabel(tag)}
+              {label}
             </button>
           );
         })}
@@ -88,10 +92,14 @@ export default function MealsLibraryView({
       {filteredMeals.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
           <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {savedMeals.length === 0 ? 'No meals yet' : 'No matches'}
+            {savedMeals.length === 0
+              ? t('mealsTab.library.empty.titleNoMeals')
+              : t('mealsTab.library.empty.titleNoMatches')}
           </p>
           <p style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-            {savedMeals.length === 0 ? 'Tap the + button to add your first meal.' : 'Try a different search or filter.'}
+            {savedMeals.length === 0
+              ? t('mealsTab.library.empty.hintNoMeals')
+              : t('mealsTab.library.empty.hintNoMatches')}
           </p>
         </div>
       ) : (
@@ -121,8 +129,8 @@ export default function MealsLibraryView({
                 {meal.name}
               </div>
               <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
-                {meal.prepTime && <span>{meal.prepTime}m prep</span>}
-                {meal.difficulty && <span>{meal.difficulty}</span>}
+                {meal.prepTime && <span>{t('mealsTab.library.prepTimeMin', { minutes: meal.prepTime })}</span>}
+                {meal.difficulty && <span>{tEditor(`mealPlannerModal.difficulty.${meal.difficulty}`)}</span>}
               </div>
               {meal.tags && meal.tags.length > 0 && (
                 <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
@@ -137,7 +145,7 @@ export default function MealsLibraryView({
                         color: 'var(--hs-text-muted)',
                       }}
                     >
-                      {tag}
+                      {formatTagLabel(tag)}
                     </span>
                   ))}
                 </div>
@@ -152,7 +160,9 @@ export default function MealsLibraryView({
               }}
               role="button"
               tabIndex={0}
-              aria-label={meal.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={meal.isFavorite
+                ? t('mealsTab.library.favoriteRemoveAriaLabel')
+                : t('mealsTab.library.favoriteAddAriaLabel')}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); toggleFavorite(meal.id); } }}
               style={{
                 fontSize: 20,
@@ -176,6 +186,7 @@ export default function MealsLibraryView({
       {/* FAB */}
       <button
         onClick={openNewMealForm}
+        aria-label={t('mealsTab.library.fabAriaLabel')}
         style={{
           position: 'fixed',
           bottom: 80,

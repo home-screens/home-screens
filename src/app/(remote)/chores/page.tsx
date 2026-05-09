@@ -2,6 +2,7 @@ import { readConfig } from '@/lib/config';
 import { readChoreData } from '@/lib/chore-data';
 import type { ChoreChartConfig } from '@/types/config';
 import ChoresTab from '../remote/components/ChoresTab';
+import ChoresEmptyState from './ChoresEmptyState';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,11 +39,7 @@ export default async function ChoresPage() {
       : null;
 
   if (!choreConfig) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-hs-body text-hs-text-faint text-sm p-6 text-center">
-        No chores configured. Add a Chore Chart module in the editor to get started.
-      </div>
-    );
+    return <ChoresEmptyState />;
   }
 
   return (

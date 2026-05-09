@@ -11,7 +11,8 @@
 
 import { useState, useRef } from 'react';
 import type { MealSettings, MealSlotType } from '@/types/config';
-import { SLOT_ORDER, SLOT_META, formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
+import { SLOT_ORDER, SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 
 interface MealsSettingsSheetProps {
   settings: MealSettings;
@@ -22,6 +23,12 @@ interface MealsSettingsSheetProps {
 }
 
 export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsSettingsSheetProps) {
+  const t = useTranslate('remote');
+  // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
+  // so we need a second translator to resolve `getMealSlotLabelKey` against
+  // the dictionary that already ships those keys.
+  const tModules = useTranslate('modules');
+
   // Local working copy so the user can cancel without persisting partial edits.
   // Sync draft ONLY on mount (not on every settings prop change) — otherwise a
   // parent optimistic update during an in-flight save would silently overwrite
@@ -59,10 +66,10 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
       if (ok) {
         onClose();
       } else {
-        setSaveError('Failed to save. Please try again.');
+        setSaveError(t('mealsSettings.save.saveFailed'));
       }
     } catch {
-      setSaveError('Network error. Please try again.');
+      setSaveError(t('mealsSettings.save.networkError'));
     } finally {
       setSaving(false);
     }
@@ -79,7 +86,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
         justifyContent: 'flex-end',
       }}
       role="dialog"
-      aria-label="Meal settings"
+      aria-label={t('mealsSettings.ariaLabel')}
     >
       {/* Backdrop */}
       <div
@@ -119,7 +126,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
           }}
         >
           <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>
-            Meal Settings
+            {t('mealsSettings.title')}
           </h3>
           <button
             onClick={onClose}
@@ -136,9 +143,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
-            aria-label="Cancel and close"
+            aria-label={t('mealsSettings.cancelAriaLabel')}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
 
@@ -156,15 +163,16 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 margin: '0 0 8px',
               }}
             >
-              Meal Slots
+              {t('mealsSettings.slots.heading')}
             </h4>
             <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              Which meals do you plan? Affects the editor and all displayed modules.
+              {t('mealsSettings.slots.description')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {SLOT_ORDER.map((slot) => {
                 const isEnabled = draft.enabledSlots.includes(slot);
                 const meta = SLOT_META[slot];
+                const slotLabel = tModules(getMealSlotLabelKey(slot));
                 return (
                   <button
                     key={slot}
@@ -187,7 +195,11 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       fontFamily: 'inherit',
                     }}
                     aria-pressed={isEnabled}
-                    aria-label={`${meta.label}, ${isEnabled ? 'enabled' : 'disabled'}`}
+                    aria-label={
+                      isEnabled
+                        ? t('mealsSettings.slots.toggleAriaLabelEnabled', { label: slotLabel })
+                        : t('mealsSettings.slots.toggleAriaLabelDisabled', { label: slotLabel })
+                    }
                   >
                     <div
                       style={{
@@ -209,7 +221,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       )}
                     </div>
                     <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--hs-text-primary)' }}>
-                      {meta.label}
+                      {slotLabel}
                     </span>
                   </button>
                 );
@@ -229,7 +241,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 margin: '0 0 8px',
               }}
             >
-              Week Starts On
+              {t('mealsSettings.weekStart.heading')}
             </h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {(['sunday', 'monday'] as const).map((day) => {
@@ -248,13 +260,14 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                       color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
                       fontSize: 14,
                       fontWeight: 600,
-                      textTransform: 'capitalize' as const,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
                     }}
                     aria-pressed={isSelected}
                   >
-                    {day}
+                    {day === 'sunday'
+                      ? t('mealsSettings.weekStart.sunday')
+                      : t('mealsSettings.weekStart.monday')}
                   </button>
                 );
               })}
@@ -273,10 +286,10 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 margin: '0 0 8px',
               }}
             >
-              Time Format
+              {t('mealsSettings.timeFormat.heading')}
             </h4>
             <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              Applies to every meal display across the kiosk and this remote.
+              {t('mealsSettings.timeFormat.description')}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {(['12h', '24h'] as const).map((fmt) => {
@@ -303,7 +316,11 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                     }}
                     aria-pressed={isSelected}
                   >
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>{fmt === '12h' ? '12-hour' : '24-hour'}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>
+                      {fmt === '12h'
+                        ? t('mealsSettings.timeFormat.twelveHourLabel')
+                        : t('mealsSettings.timeFormat.twentyFourHourLabel')}
+                    </span>
                     <span style={{ fontSize: 11, fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>{sample}</span>
                   </button>
                 );
@@ -323,16 +340,17 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                 margin: '0 0 8px',
               }}
             >
-              Default Serving Times
+              {t('mealsSettings.defaultTimes.heading')}
             </h4>
             <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              Used when a planned meal doesn&apos;t have its own time. Leave blank for slots that vary.
+              {t('mealsSettings.defaultTimes.description')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {draft.enabledSlots.map((slot) => {
                 const meta = SLOT_META[slot];
                 const currentTime = draft.defaultSlotTimes[slot];
                 const presets = getSlotTimePresets(slot);
+                const slotLabel = tModules(getMealSlotLabelKey(slot));
                 return (
                   <div
                     key={slot}
@@ -345,7 +363,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 600, color: meta.color }}>
-                        {meta.label}
+                        {slotLabel}
                       </span>
                       {currentTime && (
                         <button
@@ -363,9 +381,9 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                             cursor: 'pointer',
                             fontFamily: 'inherit',
                           }}
-                          aria-label={`Clear default time for ${meta.label}`}
+                          aria-label={t('mealsSettings.defaultTimes.clearAriaLabel', { name: slotLabel })}
                         >
-                          Clear
+                          {t('mealsSettings.defaultTimes.clear')}
                         </button>
                       )}
                     </div>
@@ -386,7 +404,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
                         colorScheme: 'dark',
                         marginBottom: 8,
                       }}
-                      aria-label={`Default time for ${meta.label}`}
+                      aria-label={t('mealsSettings.defaultTimes.timeInputAriaLabel', { name: slotLabel })}
                     />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
                       {presets.map((preset) => {
@@ -471,7 +489,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
               transition: 'background 0.15s, opacity 0.15s',
             }}
           >
-            {saving ? 'Saving…' : 'Save Settings'}
+            {saving ? t('mealsSettings.save.saving') : t('mealsSettings.save.submit')}
           </button>
         </div>
       </div>

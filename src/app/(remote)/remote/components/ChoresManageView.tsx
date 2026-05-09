@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronRight, Plus, Check } from 'lucide-react';
 import type {
   ChoreMember,
@@ -10,15 +10,15 @@ import type {
   ChoreRotation,
 } from '@/types/config';
 import {
-  DAY_NAMES_SHORT,
-  TIME_OF_DAY_META,
   cascadeDeleteMember,
   addMemberToList,
   updateMemberInList,
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
+  getTimeOfDayLabelKey,
 } from '@/components/modules/chore-chart/types';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import ChoreIcon, {
   MEMBER_ICONS,
   CHORE_ICONS,
@@ -27,6 +27,7 @@ import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
+import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
@@ -46,20 +47,41 @@ function MemberFormOverlay({
   onDelete?: () => void;
   onBack: () => void;
 }) {
+  const t = useTranslate('remote');
   const f = useMemberForm(initial);
   const { name, emoji, color, setName, setEmoji, setColor, canSave } = f;
   const [showConfirm, setShowConfirm] = useState(false);
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
 
+  const memberDeleteDescription = (() => {
+    const displayName = name || t('choresManage.memberDelete.fallbackName');
+    if (!choreCount) {
+      return t('choresManage.memberDelete.descriptionNoChores', { name: displayName });
+    }
+    if (choreCount === 1) {
+      return t('choresManage.memberDelete.descriptionWithChoresSingular', {
+        name: displayName,
+        count: choreCount,
+      });
+    }
+    return t('choresManage.memberDelete.descriptionWithChoresPlural', {
+      name: displayName,
+      count: choreCount,
+    });
+  })();
+
   return (
     <>
-      <FormOverlay title={isEdit ? 'Edit Member' : 'New Member'} onBack={onBack}>
+      <FormOverlay
+        title={isEdit ? t('choresManage.memberForm.titleEdit') : t('choresManage.memberForm.titleNew')}
+        onBack={onBack}
+      >
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Name</div>
+          <div style={LABEL_STYLE}>{t('choresManage.memberForm.nameLabel')}</div>
           <input
             type="text"
-            placeholder="Enter name..."
+            placeholder={t('choresManage.memberForm.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
@@ -72,7 +94,7 @@ function MemberFormOverlay({
           value={emoji}
           onChange={setEmoji}
           icons={MEMBER_ICONS}
-          label="Avatar"
+          label={t('choresManage.memberForm.avatarLabel')}
           variant="mobile"
         />
 
@@ -97,7 +119,9 @@ function MemberFormOverlay({
             transition: 'all 0.15s',
           }}
         >
-          {isEdit ? 'Save Member' : 'Add Member'}
+          {isEdit
+            ? t('choresManage.memberForm.saveSubmit')
+            : t('choresManage.memberForm.addSubmit')}
         </button>
 
         {isEdit && onDelete && (
@@ -119,16 +143,16 @@ function MemberFormOverlay({
               transition: 'all 0.15s',
             }}
           >
-            Delete Member
+            {t('choresManage.memberForm.deleteButton')}
           </button>
         )}
       </FormOverlay>
 
       {showConfirm && onDelete && (
         <ConfirmSheet
-          title={`Delete "${name}"?`}
-          description={`This will remove ${name || 'them'} from${choreCount ? ` all ${choreCount}` : ''} assigned chore${choreCount !== 1 ? 's' : ''}. Chores with no remaining assignees will also be deleted.`}
-          confirmLabel="Delete Member"
+          title={t('choresManage.memberDelete.title', { name })}
+          description={memberDeleteDescription}
+          confirmLabel={t('choresManage.memberDelete.confirmLabel')}
           onConfirm={() => { onDelete(); }}
           onCancel={() => setShowConfirm(false)}
         />
@@ -138,6 +162,33 @@ function MemberFormOverlay({
 }
 
 // ── ChoreFormOverlay ──────────────────────────────────────────────
+
+/**
+ * Discriminated kind for the chore-form validation hint. We compute it
+ * locally inside the overlay (rather than reading the English literal
+ * from `form-hooks.ts`, which is out of i18n scope for this task) so
+ * the rendered hint always resolves through `t()`.
+ */
+type ChoreValidationHintKind =
+  | 'enterName'
+  | 'addPersonToSchedule'
+  | 'selectAtLeastOnePerson';
+
+function getChoreValidationHintKind(args: {
+  name: string;
+  rotation: ChoreRotation;
+  scheduleHasAssignment: boolean;
+  assigneeIdsLength: number;
+}): ChoreValidationHintKind | null {
+  if (!args.name.trim()) return 'enterName';
+  if (args.rotation === 'schedule' && !args.scheduleHasAssignment) {
+    return 'addPersonToSchedule';
+  }
+  if (args.rotation !== 'schedule' && args.assigneeIdsLength === 0) {
+    return 'selectAtLeastOnePerson';
+  }
+  return null;
+}
 
 function ChoreFormOverlay({
   initial,
@@ -152,6 +203,17 @@ function ChoreFormOverlay({
   onDelete?: () => void;
   onBack: () => void;
 }) {
+  const t = useTranslate('remote');
+  const tModules = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  // Day-of-week labels follow the formatting locale, not the UI language.
+  // Memoize so re-renders during day toggles don't redo seven
+  // `formatDateSync` calls each tick.
+  const dayNamesShort = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'short'),
+    [formattingLocale],
+  );
+
   const f = useChoreForm(initial, members);
   const {
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
@@ -160,21 +222,59 @@ function ChoreFormOverlay({
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
     scheduleMembers, scheduleDays, unscheduledMembers,
-    canSave, validationHint,
+    canSave,
   } = f;
   const [showConfirm, setShowConfirm] = useState(false);
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
 
+  // Compute the validation kind locally so the hint always resolves
+  // through `t()` rather than reading the English literal that
+  // `useChoreForm` returns.
+  const scheduleHasAssignment = rotation === 'schedule'
+    ? Object.values(schedule).some((days) => days.length > 0)
+    : true;
+  const validationHintKind = getChoreValidationHintKind({
+    name,
+    rotation,
+    scheduleHasAssignment,
+    assigneeIdsLength: assigneeIds.length,
+  });
+
+  // `t` is locale-stable per provider.tsx, so a `[t]` dep is the correct
+  // shape — the maps rebuild only when the active locale changes, not on
+  // every keystroke that re-renders ChoreFormOverlay.
+  const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
+    () => ({
+      daily: t('choresManage.frequency.daily'),
+      weekly: t('choresManage.frequency.weekly'),
+      biweekly: t('choresManage.frequency.biweekly'),
+      once: t('choresManage.frequency.once'),
+    }),
+    [t],
+  );
+  const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
+    () => ({
+      fixed: t('choresManage.rotation.fixed'),
+      'rotate-daily': t('choresManage.rotation.rotateDaily'),
+      'rotate-weekly': t('choresManage.rotation.rotateWeekly'),
+      schedule: t('choresManage.rotation.schedule'),
+    }),
+    [t],
+  );
+
   return (
     <>
-      <FormOverlay title={isEdit ? 'Edit Chore' : 'New Chore'} onBack={onBack}>
+      <FormOverlay
+        title={isEdit ? t('choresManage.choreForm.titleEdit') : t('choresManage.choreForm.titleNew')}
+        onBack={onBack}
+      >
         {/* Name */}
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Name</div>
+          <div style={LABEL_STYLE}>{t('choresManage.choreForm.nameLabel')}</div>
           <input
             type="text"
-            placeholder="Chore name..."
+            placeholder={t('choresManage.choreForm.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
@@ -188,14 +288,14 @@ function ChoreFormOverlay({
           value={emoji}
           onChange={setEmoji}
           icons={CHORE_ICONS}
-          label="Icon"
+          label={t('choresManage.choreForm.iconLabel')}
           variant="mobile"
         />
 
         {/* Points & Frequency */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
-            <div style={LABEL_STYLE}>Tickets</div>
+            <div style={LABEL_STYLE}>{t('choresManage.choreForm.ticketsLabel')}</div>
             <input
               type="number"
               value={points}
@@ -206,14 +306,14 @@ function ChoreFormOverlay({
             />
           </div>
           <div>
-            <div style={LABEL_STYLE}>Frequency</div>
+            <div style={LABEL_STYLE}>{t('choresManage.choreForm.frequencyLabel')}</div>
             <select
               value={frequency}
               onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
               style={SELECT_STYLE}
             >
-              {CHORE_FREQUENCIES.map((f) => (
-                <option key={f.value} value={f.value}>{f.label}</option>
+              {CHORE_FREQUENCIES.map((opt) => (
+                <option key={opt.value} value={opt.value}>{frequencyLabelMap[opt.value]}</option>
               ))}
             </select>
           </div>
@@ -221,15 +321,15 @@ function ChoreFormOverlay({
 
         {/* Time of Day */}
         <div style={{ marginBottom: 24 }}>
-          <div style={LABEL_STYLE}>Time of Day</div>
+          <div style={LABEL_STYLE}>{t('choresManage.choreForm.timeOfDayLabel')}</div>
           <select
             value={timeOfDay}
             onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
             style={SELECT_STYLE}
           >
-            {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((t) => (
-              <option key={t} value={t}>
-                {TIME_OF_DAY_META[t].label}
+            {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((tod) => (
+              <option key={tod} value={tod}>
+                {tModules(getTimeOfDayLabelKey(tod))}
               </option>
             ))}
           </select>
@@ -239,7 +339,11 @@ function ChoreFormOverlay({
           <>
             {/* Days — date picker for one-time, day-of-week toggles for recurring */}
             <div style={{ marginBottom: 24 }}>
-              <div style={LABEL_STYLE}>{frequency === 'once' ? 'Date' : 'Days'}</div>
+              <div style={LABEL_STYLE}>
+                {frequency === 'once'
+                  ? t('choresManage.choreForm.dateLabel')
+                  : t('choresManage.choreForm.daysLabel')}
+              </div>
               {frequency === 'once' ? (
                 <input
                   type="date"
@@ -274,7 +378,7 @@ function ChoreFormOverlay({
                           transition: 'all 0.15s',
                         }}
                       >
-                        {DAY_NAMES_SHORT[d][0]}
+                        {dayNamesShort[d][0]}
                       </button>
                     );
                   })}
@@ -284,7 +388,7 @@ function ChoreFormOverlay({
 
             {/* Assignees */}
             <div style={{ marginBottom: 24 }}>
-              <div style={LABEL_STYLE}>Assign to</div>
+              <div style={LABEL_STYLE}>{t('choresManage.choreForm.assignToLabel')}</div>
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
                 {members.map((m, i) => {
                   const isAssigned = assigneeIds.includes(m.id);
@@ -355,12 +459,12 @@ function ChoreFormOverlay({
 
         {rotation === 'schedule' && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>Weekly Schedule</div>
+            <div style={LABEL_STYLE}>{t('choresManage.choreForm.weeklyScheduleLabel')}</div>
             {/* Day headers */}
             <div style={{ display: 'flex', gap: 4, marginBottom: 4, paddingLeft: 70 }}>
               {[0, 1, 2, 3, 4, 5, 6].map((d) => (
                 <div key={d} style={{ width: 32, textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--hs-text-faint)', letterSpacing: '0.04em' }}>
-                  {DAY_NAMES_SHORT[d][0]}
+                  {dayNamesShort[d][0]}
                 </div>
               ))}
             </div>
@@ -418,7 +522,7 @@ function ChoreFormOverlay({
                               cursor: 'pointer', transition: 'all 0.15s',
                             }}
                           >
-                            {DAY_NAMES_SHORT[d][0]}
+                            {dayNamesShort[d][0]}
                           </button>
                         );
                       })}
@@ -451,10 +555,12 @@ function ChoreFormOverlay({
             )}
             {/* Coverage summary */}
             <div style={{ marginTop: 10, fontSize: 11, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>Coverage: {scheduleDays.length} of 7 days</span>
+              <span>{t('choresManage.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
               {scheduleDays.length < 7 && (
                 <span style={{ color: 'var(--hs-warning)', fontSize: 10 }}>
-                  · {[0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => DAY_NAMES_SHORT[d]).join(', ')} uncovered
+                  {t('choresManage.choreForm.coverageUncovered', {
+                    days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
+                  })}
                 </span>
               )}
             </div>
@@ -464,7 +570,7 @@ function ChoreFormOverlay({
         {/* Rotation */}
         {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
           <div style={{ marginBottom: 24 }}>
-            <div style={LABEL_STYLE}>Rotation</div>
+            <div style={LABEL_STYLE}>{t('choresManage.choreForm.rotationLabel')}</div>
             <select
               value={rotation}
               onChange={(e) => {
@@ -475,17 +581,17 @@ function ChoreFormOverlay({
               }}
               style={SELECT_STYLE}
             >
-              {CHORE_ROTATIONS.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
+              {CHORE_ROTATIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{rotationLabelMap[opt.value]}</option>
               ))}
             </select>
           </div>
         )}
 
         {/* Validation hint */}
-        {validationHint && (
+        {validationHintKind && (
           <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
-            {validationHint}
+            {t(`choresManage.choreForm.validation.${validationHintKind}`)}
           </p>
         )}
 
@@ -509,7 +615,9 @@ function ChoreFormOverlay({
             transition: 'all 0.15s',
           }}
         >
-          {isEdit ? 'Save Chore' : 'Add Chore'}
+          {isEdit
+            ? t('choresManage.choreForm.saveSubmit')
+            : t('choresManage.choreForm.addSubmit')}
         </button>
 
         {/* Delete */}
@@ -532,22 +640,51 @@ function ChoreFormOverlay({
               transition: 'all 0.15s',
             }}
           >
-            Delete Chore
+            {t('choresManage.choreForm.deleteButton')}
           </button>
         )}
       </FormOverlay>
 
       {showConfirm && onDelete && (
         <ConfirmSheet
-          title={`Delete "${name}"?`}
-          description="This chore and all its completion history will be removed."
-          confirmLabel="Delete Chore"
+          title={t('choresManage.choreDelete.title', { name })}
+          description={t('choresManage.choreDelete.description')}
+          confirmLabel={t('choresManage.choreDelete.confirmLabel')}
           onConfirm={() => { onDelete(); }}
           onCancel={() => setShowConfirm(false)}
         />
       )}
     </>
   );
+}
+
+// ── Chore summary line builder ────────────────────────────────────
+
+/**
+ * Compose the per-chore secondary line ("Daily · Morning · 2 tickets").
+ *
+ * Frequency, time-of-day, and ticket pluralization each route through
+ * `t()` independently; the joiner ("·") stays a verbatim glyph.
+ */
+function buildChoreSummaryLine(args: {
+  chore: ChoreDefinition;
+  t: TranslateFn;
+  tModules: TranslateFn;
+}): string {
+  const { chore, t, tModules } = args;
+  let frequencyLabel: string;
+  if (chore.frequency === 'daily') frequencyLabel = t('choresManage.chores.frequencyDaily');
+  else if (chore.frequency === 'biweekly') frequencyLabel = t('choresManage.chores.frequencyBiweekly');
+  else if (chore.frequency === 'once') {
+    frequencyLabel = t('choresManage.chores.frequencyOnce', { date: chore.specificDate ?? '' });
+  } else frequencyLabel = t('choresManage.chores.frequencyWeekly');
+
+  const timeOfDayLabel = tModules(getTimeOfDayLabelKey(chore.timeOfDay));
+  const ticketsLabel = chore.points === 1
+    ? t('choresManage.chores.ticketCountSingular', { n: chore.points })
+    : t('choresManage.chores.ticketCountPlural', { n: chore.points });
+
+  return `${frequencyLabel} · ${timeOfDayLabel} · ${ticketsLabel}`;
 }
 
 // ── Main Exported Component ───────────────────────────────────────
@@ -565,6 +702,8 @@ export default function ChoresManageView({
   onMembersChange,
   onChoresChange,
 }: ChoresManageViewProps) {
+  const t = useTranslate('remote');
+  const tModules = useTranslate('modules');
   const [section, setSection] = useState<'members' | 'chores'>('chores');
   const [overlay, setOverlay] = useState<
     | { type: 'member-form'; member?: ChoreMember }
@@ -648,7 +787,7 @@ export default function ChoresManageView({
                 gap: 6,
               }}
             >
-              {tab === 'chores' ? 'Chores' : 'Members'}
+              {t(`choresManage.tabs.${tab}`)}
               <span
                 style={{
                   display: 'inline-flex',
@@ -675,69 +814,78 @@ export default function ChoresManageView({
         <div>
           {members.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No members yet</p>
-              <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add family members to get started</p>
+              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
+                {t('choresManage.members.empty')}
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
+                {t('choresManage.members.emptyHint')}
+              </p>
             </div>
           )}
 
-          {members.map((member) => (
-            <button
-              key={member.id}
-              className="press-scale"
-              aria-label={`Edit ${member.name}`}
-              onClick={() => setOverlay({ type: 'member-form', member })}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '14px 16px',
-                background: 'var(--hs-bg-card)',
-                borderRadius: 14,
-                marginBottom: 8,
-                border: '1px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                textAlign: 'left' as const,
-                color: 'inherit',
-              }}
-            >
-              <div
+          {members.map((member) => {
+            const choreCount = memberChoreCount(member.id);
+            return (
+              <button
+                key={member.id}
+                className="press-scale"
+                aria-label={t('choresManage.members.editAriaLabel', { name: member.name })}
+                onClick={() => setOverlay({ type: 'member-form', member })}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
+                  width: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  background: `color-mix(in srgb, ${member.color} 15%, transparent)`,
+                  gap: 12,
+                  padding: '14px 16px',
+                  background: 'var(--hs-bg-card)',
+                  borderRadius: 14,
+                  marginBottom: 8,
+                  border: '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  textAlign: 'left' as const,
+                  color: 'inherit',
                 }}
               >
-                {member.emoji ? (
-                  <ChoreIcon value={member.emoji} size={20} color={member.color} />
-                ) : (
-                  <span style={{ fontSize: 16, fontWeight: 600, color: member.color }}>{member.name[0]}</span>
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{member.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: member.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  {memberChoreCount(member.id)} chore{memberChoreCount(member.id) !== 1 ? 's' : ''} assigned
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    background: `color-mix(in srgb, ${member.color} 15%, transparent)`,
+                  }}
+                >
+                  {member.emoji ? (
+                    <ChoreIcon value={member.emoji} size={20} color={member.color} />
+                  ) : (
+                    <span style={{ fontSize: 16, fontWeight: 600, color: member.color }}>{member.name[0]}</span>
+                  )}
                 </div>
-              </div>
-              <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
-            </button>
-          ))}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{member.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: member.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {choreCount === 1
+                      ? t('choresManage.members.choreCountSingular', { n: choreCount })
+                      : t('choresManage.members.choreCountPlural', { n: choreCount })}
+                  </div>
+                </div>
+                <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
+              </button>
+            );
+          })}
 
           <button
             className="press-scale"
@@ -762,7 +910,7 @@ export default function ChoresManageView({
             }}
           >
             <Plus size={18} />
-            Add Member
+            {t('choresManage.members.addButton')}
           </button>
         </div>
       )}
@@ -772,75 +920,87 @@ export default function ChoresManageView({
         <div>
           {chores.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No chores yet</p>
+              <p style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
+                {t('choresManage.chores.empty')}
+              </p>
               {members.length === 0 ? (
-                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add family members first</p>
+                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
+                  {t('choresManage.chores.emptyHintNoMembers')}
+                </p>
               ) : (
-                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>Add chores and assign them to members</p>
+                <p style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
+                  {t('choresManage.chores.emptyHintAddChores')}
+                </p>
               )}
             </div>
           )}
 
-          {chores.map((chore) => (
-            <button
-              key={chore.id}
-              className="press-scale"
-              aria-label={`Edit ${chore.name}`}
-              onClick={() => setOverlay({ type: 'chore-form', chore })}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '14px 16px',
-                background: 'var(--hs-bg-card)',
-                borderRadius: 14,
-                marginBottom: 8,
-                border: '1px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                textAlign: 'left' as const,
-                color: 'inherit',
-              }}
-            >
-              <div
+          {chores.map((chore) => {
+            let rotationLabel: string | null = null;
+            if ((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') {
+              if (chore.rotation === 'rotate-daily') rotationLabel = t('choresManage.chores.rotationDaily');
+              else if (chore.rotation === 'rotate-weekly') rotationLabel = t('choresManage.chores.rotationWeekly');
+              else rotationLabel = t('choresManage.chores.rotationSchedule');
+            }
+            return (
+              <button
+                key={chore.id}
+                className="press-scale"
+                aria-label={t('choresManage.chores.editAriaLabel', { name: chore.name })}
+                onClick={() => setOverlay({ type: 'chore-form', chore })}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
+                  width: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  background: 'var(--hs-bg-hover)',
+                  gap: 12,
+                  padding: '14px 16px',
+                  background: 'var(--hs-bg-card)',
+                  borderRadius: 14,
+                  marginBottom: 8,
+                  border: '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  textAlign: 'left' as const,
+                  color: 'inherit',
                 }}
               >
-                {chore.emoji ? (
-                  <ChoreIcon value={chore.emoji} size={20} color="var(--hs-text-muted)" />
-                ) : (
-                  <span style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>?</span>
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : chore.frequency === 'once' ? `One time \u00b7 ${chore.specificDate ?? ''}` : 'Weekly'}
-                  {' \u00b7 '}{TIME_OF_DAY_META[chore.timeOfDay].label}
-                  {' \u00b7 '}{chore.points} ticket{chore.points !== 1 ? 's' : ''}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                  &rarr;{' '}
-                  {chore.assigneeIds
-                    .map((id) => members.find((m) => m.id === id)?.name ?? '?')
-                    .join(', ')}
-                  {((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') && (
-                    <span> ({chore.rotation === 'rotate-daily' ? 'rotate daily' : chore.rotation === 'rotate-weekly' ? 'rotate weekly' : 'schedule'})</span>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    background: 'var(--hs-bg-hover)',
+                  }}
+                >
+                  {chore.emoji ? (
+                    <ChoreIcon value={chore.emoji} size={20} color="var(--hs-text-muted)" />
+                  ) : (
+                    <span style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>?</span>
                   )}
                 </div>
-              </div>
-              <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
-            </button>
-          ))}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
+                    {buildChoreSummaryLine({ chore, t, tModules })}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
+                    &rarr;{' '}
+                    {chore.assigneeIds
+                      .map((id) => members.find((m) => m.id === id)?.name ?? t('choresManage.chores.unknownAssignee'))
+                      .join(', ')}
+                    {rotationLabel && (
+                      <span> ({rotationLabel})</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
+              </button>
+            );
+          })}
 
           <button
             className="press-scale"
@@ -868,7 +1028,7 @@ export default function ChoresManageView({
             }}
           >
             <Plus size={18} />
-            Add Chore
+            {t('choresManage.chores.addButton')}
           </button>
         </div>
       )}

@@ -1,17 +1,20 @@
 import type { MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
-import { DAY_NAMES_FULL, toISODate, getActiveSlot, alignToWeekStart } from '@/lib/meal-constants';
+import { toISODate, getActiveSlot, alignToWeekStart } from '@/lib/meal-constants';
 
 /**
  * Compute the 7 dates of the week containing `referenceDate`, aligned to
- * the household's `weekStartDay`. Labels are derived from the actual day-of-week
- * of each date so they're correct regardless of week-start day.
+ * the household's `weekStartDay`. Returns each date plus its `dayIndex`
+ * (0=Sun…6=Sat) and a `shortDate` like "4/8". Callers that need a localized
+ * day-of-week name should look it up via `getLocalizedDayNames(locale)[dayIndex]`
+ * — keeping locale resolution out of this helper makes it usable from
+ * non-React code paths.
  */
 export function getWeekDates(
   referenceDate?: Date,
   weekStartDay: 'sunday' | 'monday' = 'sunday',
-): { date: string; dayIndex: number; label: string; shortDate: string }[] {
+): { date: string; dayIndex: number; shortDate: string }[] {
   const start = alignToWeekStart(referenceDate ?? new Date(), weekStartDay);
-  const result: { date: string; dayIndex: number; label: string; shortDate: string }[] = [];
+  const result: { date: string; dayIndex: number; shortDate: string }[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
@@ -19,7 +22,6 @@ export function getWeekDates(
     result.push({
       date: toISODate(d),
       dayIndex: dayIdx,
-      label: DAY_NAMES_FULL[dayIdx],
       shortDate: `${d.getMonth() + 1}/${d.getDate()}`,
     });
   }

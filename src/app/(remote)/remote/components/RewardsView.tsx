@@ -6,9 +6,10 @@ import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
-import { formatTimeAgo } from '@/lib/chore-constants';
+import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ type InnerView = 'redeem' | 'rewards' | 'balances' | 'history';
 // ── Component ────────────────────────────────────────────────────────
 
 export default function RewardsView({ members, accentColor, isAdmin = false }: RewardsViewProps) {
+  const t = useTranslate('remote');
   const [data, setData] = useState<RewardsData | null>(null);
   const [innerView, setInnerView] = useState<InnerView>('redeem');
   const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
@@ -173,6 +175,13 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
     history: '#a78bfa',
   };
 
+  const navLabels: Record<InnerView, string> = {
+    redeem: t('rewardsView.nav.redeem'),
+    rewards: t('rewardsView.nav.rewards'),
+    balances: t('rewardsView.nav.balances'),
+    history: t('rewardsView.nav.history'),
+  };
+
   // ── Render ──
   return (
     <div>
@@ -198,13 +207,14 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
               transition: 'all 0.15s',
             }}
           >
-            {v.charAt(0).toUpperCase() + v.slice(1)}
+            {navLabels[v]}
           </button>
         ))}
       </div>
 
       {innerView === 'redeem' && (
         <RedeemSection
+          t={t}
           members={members}
           selectedMemberId={selectedMemberId}
           onSelectMember={setSelectedMemberId}
@@ -217,6 +227,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
 
       {innerView === 'rewards' && (
         <RewardsManageSection
+          t={t}
           data={data}
           onEditReward={setEditingReward}
         />
@@ -224,6 +235,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
 
       {innerView === 'balances' && (
         <BalancesSection
+          t={t}
           data={data}
           members={members}
           onAdjust={handleAdjust}
@@ -232,27 +244,42 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
 
       {innerView === 'history' && (
         <HistorySection
+          t={t}
           redemptions={sortedRedemptions}
           memberColorMap={memberColorMap}
         />
       )}
 
       {/* Confirm redeem sheet */}
-      {redeemTarget && (
-        <ConfirmSheet
-          icon={
-            <div style={{ width: 56, height: 56, borderRadius: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: `color-mix(in srgb, ${selectedColor} 12%, transparent)` }}>
-              <ChoreIcon value={redeemTarget.reward.emoji} size={28} color={selectedColor} />
-            </div>
-          }
-          title={`Redeem ${redeemTarget.reward.name}?`}
-          description={`This will use ${redeemTarget.reward.cost} tickets from ${selectedMember?.name ?? 'this member'}'s balance. Remaining: ${Math.max(0, balance - redeemTarget.reward.cost)} tickets`}
-          confirmLabel={`Redeem — ${redeemTarget.reward.cost} tickets`}
-          confirmColor={selectedColor}
-          onConfirm={handleRedeem}
-          onCancel={() => setRedeemTarget(null)}
-        />
-      )}
+      {redeemTarget && (() => {
+        const cost = redeemTarget.reward.cost;
+        const remaining = Math.max(0, balance - cost);
+        const remainingTickets = remaining === 1
+          ? t('rewardsView.ticketCountSingular', { n: remaining })
+          : t('rewardsView.ticketCountPlural', { n: remaining });
+        const memberName = selectedMember?.name ?? t('rewardsView.redeem.memberFallback');
+        const description = cost === 1
+          ? t('rewardsView.redeem.confirmDescriptionSingular', { cost, memberName, remaining: remainingTickets })
+          : t('rewardsView.redeem.confirmDescriptionPlural', { cost, memberName, remaining: remainingTickets });
+        const confirmLabel = cost === 1
+          ? t('rewardsView.redeem.confirmLabelSingular', { cost })
+          : t('rewardsView.redeem.confirmLabelPlural', { cost });
+        return (
+          <ConfirmSheet
+            icon={
+              <div style={{ width: 56, height: 56, borderRadius: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: `color-mix(in srgb, ${selectedColor} 12%, transparent)` }}>
+                <ChoreIcon value={redeemTarget.reward.emoji} size={28} color={selectedColor} />
+              </div>
+            }
+            title={t('rewardsView.redeem.confirmTitle', { name: redeemTarget.reward.name })}
+            description={description}
+            confirmLabel={confirmLabel}
+            confirmColor={selectedColor}
+            onConfirm={handleRedeem}
+            onCancel={() => setRedeemTarget(null)}
+          />
+        );
+      })()}
 
       {/* Reward form overlay */}
       {editingReward !== null && (
@@ -271,6 +298,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
 // ── Redeem Section ───────────────────────────────────────────────────
 
 function RedeemSection({
+  t,
   members,
   selectedMemberId,
   onSelectMember,
@@ -279,6 +307,7 @@ function RedeemSection({
   rewards,
   onRedeem,
 }: {
+  t: ReturnType<typeof useTranslate>;
   members: ChoreMember[];
   selectedMemberId: string;
   onSelectMember: (id: string) => void;
@@ -345,7 +374,7 @@ function RedeemSection({
             {balance}
           </div>
           <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', fontWeight: 500, marginTop: 4 }}>
-            tickets available
+            {t('rewardsView.redeem.balanceLabel')}
           </div>
         </div>
         <div
@@ -367,12 +396,12 @@ function RedeemSection({
       {/* Available Rewards */}
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
-        Available Rewards
+        {t('rewardsView.redeem.availableHeading')}
       </div>
 
       {rewards.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
-          No rewards set up yet
+          {t('rewardsView.redeem.empty')}
         </div>
       )}
 
@@ -433,7 +462,9 @@ function RedeemSection({
                 color: canAfford ? selectedColor : 'var(--hs-text-muted)',
               }}
             >
-              {reward.cost} tickets
+              {reward.cost === 1
+                ? t('rewardsView.ticketCountSingular', { n: reward.cost })
+                : t('rewardsView.ticketCountPlural', { n: reward.cost })}
             </div>
           </button>
         );
@@ -445,9 +476,11 @@ function RedeemSection({
 // ── Manage Section ───────────────────────────────────────────────────
 
 function RewardsManageSection({
+  t,
   data,
   onEditReward,
 }: {
+  t: ReturnType<typeof useTranslate>;
   data: RewardsData | null;
   onEditReward: (reward: RewardDefinition | 'new') => void;
 }) {
@@ -457,9 +490,11 @@ function RewardsManageSection({
     <>
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
-        Rewards
+        {t('rewardsView.manage.heading')}
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-border-strong)', fontWeight: 500, textTransform: 'none' as const, letterSpacing: 0 }}>
-          {rewards.length} reward{rewards.length !== 1 ? 's' : ''}
+          {rewards.length === 1
+            ? t('rewardsView.manage.countSingular', { n: rewards.length })
+            : t('rewardsView.manage.countPlural', { n: rewards.length })}
         </span>
       </div>
 
@@ -502,7 +537,17 @@ function RewardsManageSection({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
             <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>
-              {reward.cost} tickets · {reward.memberIds.length === 0 ? 'Everyone' : reward.enabled ? `${reward.memberIds.length} member${reward.memberIds.length !== 1 ? 's' : ''}` : 'Disabled'}
+              {reward.cost === 1
+                ? t('rewardsView.ticketCountSingular', { n: reward.cost })
+                : t('rewardsView.ticketCountPlural', { n: reward.cost })}
+              {' · '}
+              {reward.memberIds.length === 0
+                ? t('rewardsView.manage.everyone')
+                : reward.enabled
+                  ? (reward.memberIds.length === 1
+                      ? t('rewardsView.manage.memberCountSingular', { n: reward.memberIds.length })
+                      : t('rewardsView.manage.memberCountPlural', { n: reward.memberIds.length }))
+                  : t('rewardsView.manage.disabled')}
             </div>
           </div>
           <div style={{ color: 'var(--hs-border-strong)', fontSize: 18 }}>›</div>
@@ -530,7 +575,7 @@ function RewardsManageSection({
           marginTop: 4,
         }}
       >
-        <Plus size={18} /> Add Reward
+        <Plus size={18} /> {t('rewardsView.manage.addButton')}
       </button>
     </>
   );
@@ -539,10 +584,12 @@ function RewardsManageSection({
 // ── Balances Section ─────────────────────────────────────────────────
 
 function BalancesSection({
+  t,
   data,
   members,
   onAdjust,
 }: {
+  t: ReturnType<typeof useTranslate>;
   data: RewardsData | null;
   members: ChoreMember[];
   onAdjust: (memberId: string, amount: number) => void;
@@ -551,7 +598,7 @@ function BalancesSection({
     <>
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <ChoreIcon value="lucide:gem" bare size={14} color="#a78bfa" />
-        Ticket Balances
+        {t('rewardsView.balances.heading')}
       </div>
 
       {members.map((member) => (
@@ -588,11 +635,17 @@ function BalancesSection({
             {member.name}
           </div>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--hs-text-muted)', marginRight: 8 }}>
-            {data?.balances[member.id] ?? 0} tickets
+            {(() => {
+              const n = data?.balances[member.id] ?? 0;
+              return n === 1
+                ? t('rewardsView.ticketCountSingular', { n })
+                : t('rewardsView.ticketCountPlural', { n });
+            })()}
           </div>
           <button
             className="press-scale-xs"
             onClick={() => onAdjust(member.id, -1)}
+            aria-label={t('rewardsView.balances.adjustDownAriaLabel', { name: member.name })}
             style={{
               width: 32,
               height: 32,
@@ -611,6 +664,7 @@ function BalancesSection({
           <button
             className="press-scale-xs"
             onClick={() => onAdjust(member.id, 1)}
+            aria-label={t('rewardsView.balances.adjustUpAriaLabel', { name: member.name })}
             style={{
               width: 32,
               height: 32,
@@ -635,22 +689,25 @@ function BalancesSection({
 // ── History Section ──────────────────────────────────────────────────
 
 function HistorySection({
+  t,
   redemptions,
   memberColorMap,
 }: {
+  t: ReturnType<typeof useTranslate>;
   redemptions: RewardRedemption[];
   memberColorMap: Map<string, string>;
 }) {
+  const tCore = useTranslate('core');
   return (
     <>
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>📜</span>
-        Recent Redemptions
+        {t('rewardsView.history.heading')}
       </div>
 
       {redemptions.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
-          No redemptions yet
+          {t('rewardsView.history.empty')}
         </div>
       )}
 
@@ -677,12 +734,14 @@ function HistorySection({
           />
           <div style={{ flex: 1, color: 'var(--hs-text-muted)' }}>
             <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.memberName}</strong>
-            {' redeemed '}
+            {t('rewardsView.history.entry.beforeReward')}
             <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.rewardName}</strong>
-            {' — '}{r.cost} tickets
+            {r.cost === 1
+              ? t('rewardsView.history.entry.afterRewardSingular', { n: r.cost })
+              : t('rewardsView.history.entry.afterRewardPlural', { n: r.cost })}
           </div>
           <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-            {formatTimeAgo(r.redeemedAt)}
+            {formatTimeAgoLocalized(r.redeemedAt, tCore)}
           </div>
         </div>
       ))}

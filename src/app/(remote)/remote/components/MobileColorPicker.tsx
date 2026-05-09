@@ -2,6 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
+import { useTranslate } from '@/i18n';
 import { LABEL_STYLE } from './chore-form-styles';
 
 export default function MobileColorPicker({
@@ -11,9 +12,10 @@ export default function MobileColorPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const t = useTranslate('remote');
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={LABEL_STYLE}>Color</div>
+      <div style={LABEL_STYLE}>{t('mobileColorPicker.colorLabel')}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         {MEMBER_COLORS.map((c) => (
           <button
@@ -49,7 +51,7 @@ export default function MobileColorPicker({
             backgroundColor: !MEMBER_COLORS.includes(value) ? value : 'transparent',
             position: 'relative',
           }}
-          title="Custom color"
+          title={t('mobileColorPicker.customColorTitle')}
         >
           {MEMBER_COLORS.includes(value) && (
             <Plus size={16} color="var(--hs-text-faint)" />
