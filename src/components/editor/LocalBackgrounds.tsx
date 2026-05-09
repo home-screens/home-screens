@@ -5,12 +5,14 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 interface Props {
   selectedScreenId: string;
 }
 
 export default function LocalBackgrounds({ selectedScreenId }: Props) {
+  const t = useTranslate('editor');
   const [localBackgrounds, setLocalBackgrounds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -45,7 +47,9 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setUploadError(data.error || `Upload failed (${res.status})`);
+        setUploadError(
+          data.error ?? t('settings.localBackgrounds.uploadFailedWithStatus', { status: res.status }),
+        );
       } else if (data.path) {
         setLocalBackgrounds((prev) => prev.includes(data.path) ? prev : [...prev, data.path]);
         const updates: Record<string, unknown> = { backgroundImage: data.path };
@@ -55,7 +59,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         updateScreen(selectedScreenId, updates);
       }
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      setUploadError(err instanceof Error ? err.message : t('settings.localBackgrounds.uploadFailed'));
     }
     setIsLoading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -68,7 +72,13 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
 
   const handleDelete = async (bg: string) => {
     const filename = filenameFromPath(bg);
-    if (!(await useConfirmStore.getState().confirm(`Delete "${filename}"?`))) return;
+    const confirmed = await useConfirmStore.getState().confirm({
+      title: t('settings.localBackgrounds.deleteTitle'),
+      message: t('settings.localBackgrounds.deleteMessage', { filename }),
+      confirmLabel: t('settings.localBackgrounds.deleteConfirmLabel'),
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     setDeleting(bg);
     try {
       const res = await editorFetch('/api/backgrounds', {
@@ -99,7 +109,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
             !currentScreen.backgroundImage ? 'border-hs-accent' : 'border-hs-border-strong'
           }`}
         >
-          None
+          {t('settings.localBackgrounds.none')}
         </button>
         {localBackgrounds.map((bg) => (
           <div key={bg} className="relative group">
@@ -121,9 +131,9 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
               onClick={() => handleDelete(bg)}
               disabled={deleting === bg}
               className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              title="Delete"
+              title={t('settings.localBackgrounds.deleteAriaLabel')}
             >
-              {deleting === bg ? '...' : '\u00d7'}
+              {deleting === bg ? '...' : '×'}
             </button>
           </div>
         ))}
@@ -133,7 +143,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
       )}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full">
-        {isLoading ? 'Uploading...' : 'Upload Background'}
+        {isLoading ? t('settings.localBackgrounds.uploadingButton') : t('settings.localBackgrounds.uploadButton')}
       </Button>
     </>
   );

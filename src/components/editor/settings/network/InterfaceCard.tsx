@@ -1,34 +1,38 @@
 'use client';
 
 import Button from '@/components/ui/Button';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import type { NetworkInterface } from './types';
 
 /* ─── Helpers ──────────────────────────────── */
 
-function getInterfaceTypeLabel(iface: NetworkInterface): string {
-  if (iface.type === 'ethernet') return 'Ethernet';
+function getInterfaceTypeLabel(iface: NetworkInterface, t: TranslateFn): string {
+  if (iface.type === 'ethernet') return t('settings.networkPage.interface.type.ethernet');
   if (iface.type === 'wifi') {
-    if (iface.driver === 'brcmfmac') return 'Built-in WiFi';
-    if (iface.driver) return `USB WiFi (${iface.driver})`;
-    return 'WiFi';
+    if (iface.driver === 'brcmfmac') return t('settings.networkPage.interface.type.wifiBuiltIn');
+    if (iface.driver) return t('settings.networkPage.interface.type.wifiUsb', { driver: iface.driver });
+    return t('settings.networkPage.interface.type.wifi');
   }
   return iface.type;
 }
 
-function getStateLabel(iface: NetworkInterface): string {
+function getStateLabel(iface: NetworkInterface, t: TranslateFn): string {
   if (iface.state === 'connected') {
-    const parts: string[] = ['Connected'];
-    if (iface.wifi?.ssid) {
-      parts[0] = `Connected to "${iface.wifi.ssid}"`;
-    }
+    const baseLabel = iface.wifi?.ssid
+      ? t('settings.networkPage.interface.state.connectedToSsid', { ssid: iface.wifi.ssid })
+      : t('settings.networkPage.interface.state.connected');
     if (iface.ipv4?.address) {
-      parts.push(`(${iface.ipv4.address})`);
+      return t('settings.networkPage.interface.state.connectedWithAddress', {
+        state: baseLabel,
+        address: iface.ipv4.address,
+      });
     }
-    return parts.join(' ');
+    return baseLabel;
   }
-  if (iface.state === 'disconnected') return 'Disconnected';
-  if (iface.state === 'unavailable') return 'Unavailable';
-  if (iface.state === 'unmanaged') return 'Unmanaged';
+  if (iface.state === 'disconnected') return t('settings.networkPage.interface.state.disconnected');
+  if (iface.state === 'unavailable') return t('settings.networkPage.interface.state.unavailable');
+  if (iface.state === 'unmanaged') return t('settings.networkPage.interface.state.unmanaged');
+  // Unknown state from system: show capitalized raw value (locale-agnostic system value).
   return iface.state.charAt(0).toUpperCase() + iface.state.slice(1);
 }
 
@@ -51,6 +55,7 @@ export default function InterfaceCard({
   ipSettingsOpen,
   onToggleIPSettings,
 }: InterfaceCardProps) {
+  const t = useTranslate('editor');
   const isConnected = iface.state === 'connected';
   const canDisconnect = isConnected && iface.type === 'wifi' && iface.connectionUuid;
   const canConfigureIP = iface.connectionUuid !== undefined;
@@ -69,11 +74,11 @@ export default function InterfaceCard({
         </span>
         <span className="text-sm text-hs-text-faint">&mdash;</span>
         <span className={`text-sm ${isConnected ? 'text-hs-text-body' : 'text-hs-text-muted'}`}>
-          {getStateLabel(iface)}
+          {getStateLabel(iface, t)}
         </span>
         {iface.isManagementInterface && (
           <span className="text-[10px] uppercase tracking-wider bg-hs-warning/20 text-hs-warning px-1.5 py-0.5 rounded shrink-0">
-            Your Connection
+            {t('settings.networkPage.interface.managementBadge')}
           </span>
         )}
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
@@ -84,7 +89,7 @@ export default function InterfaceCard({
               onClick={() => onToggleIPSettings(iface.device)}
               aria-expanded={ipSettingsOpen}
             >
-              IP Settings
+              {t('settings.networkPage.interface.ipSettingsButton')}
             </Button>
           )}
           {canDisconnect && (
@@ -94,7 +99,9 @@ export default function InterfaceCard({
               disabled={disconnecting}
               onClick={() => onDisconnect(iface.connectionUuid!, iface)}
             >
-              {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+              {disconnecting
+                ? t('settings.networkPage.interface.disconnectingButton')
+                : t('settings.networkPage.interface.disconnectButton')}
             </Button>
           )}
         </div>
@@ -102,17 +109,21 @@ export default function InterfaceCard({
 
       {/* Secondary line */}
       <div className="ml-4 mt-1 flex items-center gap-1.5 text-xs text-hs-text-muted">
-        <span>{getInterfaceTypeLabel(iface)}</span>
+        <span>{getInterfaceTypeLabel(iface, t)}</span>
         {iface.wifi && iface.wifi.signal > 0 && (
           <>
             <span className="text-hs-text-faint">&middot;</span>
-            <span>Signal {iface.wifi.signal}%</span>
+            <span>{t('settings.networkPage.interface.signalLabel', { percent: iface.wifi.signal })}</span>
           </>
         )}
         {iface.ipv4 && (
           <>
             <span className="text-hs-text-faint">&middot;</span>
-            <span>{iface.ipv4.method === 'manual' ? 'Static' : 'DHCP'}</span>
+            <span>
+              {iface.ipv4.method === 'manual'
+                ? t('settings.networkPage.interface.addressing.static')
+                : t('settings.networkPage.interface.addressing.dhcp')}
+            </span>
           </>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { Monitor, ChevronDown } from 'lucide-react';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 
 /**
  * Display picker for the editor toolbar. Shows which display the editor is
@@ -13,6 +14,7 @@ import { useEditorStore, orientDimensions } from '@/stores/editor-store';
  * care about multi-display.
  */
 export default function DisplaySwitcher() {
+  const t = useTranslate('editor');
   const { config, selectedDisplayId, setSelectedDisplay } = useEditorStore();
 
   const displays = config?.displays ?? [];
@@ -28,9 +30,9 @@ export default function DisplaySwitcher() {
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
 
   return (
-    <div className="relative shrink-0" title="Which display is this canvas editing? (Settings overrides live in Settings → Per display.)">
+    <div className="relative shrink-0" title={t('displaySwitcher.title')}>
       <label className="sr-only" htmlFor="editor-display-switcher">
-        Which display is this canvas editing?
+        {t('displaySwitcher.label')}
       </label>
       <div className="flex items-center gap-2 rounded-md border border-hs-border-strong bg-hs-card/70 px-2.5 py-1.5 text-xs text-hs-text-body hover:bg-hs-hover transition-colors">
         <Monitor className="w-3.5 h-3.5 text-hs-text-faint shrink-0" />
@@ -51,7 +53,7 @@ export default function DisplaySwitcher() {
           value={active.id}
           onChange={(e) => setSelectedDisplay(e.target.value)}
           className="absolute inset-0 opacity-0 cursor-pointer"
-          aria-label="Which display is this canvas editing?"
+          aria-label={t('displaySwitcher.label')}
         >
           {displays.map((d) => {
             // Apply the same orientation normalization as the pill so the
@@ -63,8 +65,13 @@ export default function DisplaySwitcher() {
               : null;
             return (
               <option key={d.id} value={d.id}>
-                {d.name}
-                {optDims ? ` (${optDims.width}×${optDims.height})` : ''}
+                {optDims
+                  ? t('displaySwitcher.optionWithDimensions', {
+                      name: d.name,
+                      width: optDims.width,
+                      height: optDims.height,
+                    })
+                  : d.name}
               </option>
             );
           })}

@@ -5,6 +5,7 @@ import { Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useTranslate } from '@/i18n';
 import type { InstalledPlugin } from '@/types/plugins';
 
 interface ExternalUpdateModalProps {
@@ -16,6 +17,7 @@ interface ExternalUpdateModalProps {
 type Step = 'entry' | 'working' | 'done' | 'error';
 
 export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: ExternalUpdateModalProps) {
+  const t = useTranslate('editor');
   const [url, setUrl] = useState(plugin.externalUrl ?? '');
   const [newVersion, setNewVersion] = useState(plugin.version);
   const [step, setStep] = useState<Step>('entry');
@@ -43,35 +45,45 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error ?? 'Update failed'));
+        const fallback = data.error ?? t('externalUpdateModal.updateFailed');
+        throw new Error(data.detail ? `${data.error}: ${data.detail}` : fallback);
       }
       setResult({ version: data.version, sha256: data.sha256 });
       setStep('done');
       onUpdated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      setError(err instanceof Error ? err.message : t('externalUpdateModal.updateFailed'));
       setStep('error');
     }
   }
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={`Update ${plugin.id}`}>
+    <div
+      className="fixed inset-0 z-modal flex items-center justify-center bg-black/60"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('externalUpdateModal.dialogAriaLabel', { id: plugin.id })}
+    >
       <div ref={trapRef} className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
-        <h2 className="text-base font-semibold text-hs-text-primary mb-3">Update {plugin.id}</h2>
+        <h2 className="text-base font-semibold text-hs-text-primary mb-3">{t('externalUpdateModal.title', { id: plugin.id })}</h2>
 
         {step === 'entry' && (
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong text-xs text-hs-text-muted">
-              Current version: <span className="text-hs-text-primary">v{plugin.version}</span>
+              {t('externalUpdateModal.currentVersionLabel')}{' '}
+              <span className="text-hs-text-primary">v{plugin.version}</span>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">Tarball URL</label>
+              <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">{t('externalUpdateModal.tarballUrlLabel')}</label>
               <p className="text-[11px] text-hs-text-muted mb-2">
-                Edit the URL to point at a new version, or replace the version with <code>{'{version}'}</code> so future updates only need a version number.
+                {t('externalUpdateModal.tarballUrlHelpPart1')}
+                <code>{'{version}'}</code>
+                {t('externalUpdateModal.tarballUrlHelpPart2')}
               </p>
               <p className="text-[11px] text-hs-text-muted mb-2">
-                Example: <code className="break-all">https://example.com/releases/download/v{'{version}'}/plugin.tar.gz</code>
+                {t('externalUpdateModal.exampleLabel')}{' '}
+                <code className="break-all">https://example.com/releases/download/v{'{version}'}/plugin.tar.gz</code>
               </p>
               <input
                 type="text"
@@ -84,7 +96,7 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
 
             {hasVersionPlaceholder && (
               <div>
-                <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">Version to install</label>
+                <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">{t('externalUpdateModal.versionLabel')}</label>
                 <input
                   type="text"
                   value={newVersion}
@@ -96,13 +108,13 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
             )}
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
               <Button
                 size="sm"
                 disabled={!canContinue}
                 onClick={handleUpdate}
               >
-                Install
+                {t('settings.pluginStorePanel.browse.installButton')}
               </Button>
             </div>
           </div>
@@ -111,7 +123,7 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
         {step === 'working' && (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Loader2 className="w-6 h-6 text-hs-text-muted animate-spin" />
-            <p className="text-sm text-hs-text-muted">Downloading and updating…</p>
+            <p className="text-sm text-hs-text-muted">{t('externalUpdateModal.workingMessage')}</p>
           </div>
         )}
 
@@ -120,15 +132,15 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
             <div className="flex items-start gap-2 p-3 rounded-lg bg-hs-success/10 border border-hs-success/30">
               <CheckCircle2 className="w-4 h-4 text-hs-success shrink-0 mt-0.5" />
               <div className="text-xs text-hs-success">
-                Updated to v{result.version}.
+                {t('externalUpdateModal.updatedToVersion', { version: result.version })}
               </div>
             </div>
             <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
-              <div className="text-xs font-medium text-hs-text-secondary mb-1.5">SHA-256</div>
+              <div className="text-xs font-medium text-hs-text-secondary mb-1.5">{t('settings.pluginInstallPreview.sha256Heading')}</div>
               <code className="text-[10px] text-hs-text-muted break-all font-mono">{result.sha256}</code>
             </div>
             <div className="flex justify-end pt-1">
-              <Button size="sm" onClick={onClose}>Done</Button>
+              <Button size="sm" onClick={onClose}>{t('externalUpdateModal.doneButton')}</Button>
             </div>
           </div>
         )}
@@ -140,8 +152,8 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
               <p className="text-xs text-hs-danger">{error}</p>
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>Close</Button>
-              <Button size="sm" onClick={() => setStep('entry')}>Try again</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.close')}</Button>
+              <Button size="sm" onClick={() => setStep('entry')}>{t('externalUpdateModal.tryAgainButton')}</Button>
             </div>
           </div>
         )}

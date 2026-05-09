@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useTranslate } from '@/i18n';
 import type { PluginManifest } from '@/types/plugins';
 
 interface InstallFromUrlModalProps {
@@ -17,6 +18,7 @@ interface InstallFromUrlModalProps {
 type Step = 'entry' | 'installing' | 'done' | 'error';
 
 export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFromUrlModalProps) {
+  const t = useTranslate('editor');
   const [step, setStep] = useState<Step>('entry');
   const [url, setUrl] = useState('');
   const [version, setVersion] = useState('');
@@ -46,7 +48,8 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error ?? 'Install failed'));
+        const fallback = data.error ?? t('installFromUrlModal.installFailed');
+        throw new Error(data.detail ? `${data.error}: ${data.detail}` : fallback);
       }
 
       // Fetch the manifest so we can show a post-install summary
@@ -57,25 +60,35 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
       setStep('done');
       onInstalled();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Install failed');
+      setError(err instanceof Error ? err.message : t('installFromUrlModal.installFailed'));
       setStep('error');
     }
   }
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Install plugin from URL">
+    <div
+      className="fixed inset-0 z-modal flex items-center justify-center bg-black/60"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('installFromUrlModal.dialogAriaLabel')}
+    >
       <div ref={trapRef} className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
-        <h2 className="text-base font-semibold text-hs-text-primary mb-3">Install Plugin from URL</h2>
+        <h2 className="text-base font-semibold text-hs-text-primary mb-3">{t('installFromUrlModal.title')}</h2>
 
         {step === 'entry' && (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">Tarball URL</label>
+              <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">{t('installFromUrlModal.tarballUrlLabel')}</label>
               <p className="text-[11px] text-hs-text-muted mb-2">
-                HTTPS URL to a <code>.tar.gz</code> plugin bundle. Replace the version with <code>{'{version}'}</code> if you want future updates to only need a version number.
+                {t('installFromUrlModal.tarballUrlHelpPart1')}
+                <code>.tar.gz</code>
+                {t('installFromUrlModal.tarballUrlHelpPart2')}
+                <code>{'{version}'}</code>
+                {t('installFromUrlModal.tarballUrlHelpPart3')}
               </p>
               <p className="text-[11px] text-hs-text-muted mb-2">
-                Example: <code className="break-all">https://example.com/releases/download/v{'{version}'}/plugin.tar.gz</code>
+                {t('installFromUrlModal.exampleLabel')}{' '}
+                <code className="break-all">https://example.com/releases/download/v{'{version}'}/plugin.tar.gz</code>
               </p>
               <input
                 type="text"
@@ -89,7 +102,7 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
 
             {hasVersionPlaceholder && (
               <div>
-                <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">Version to install</label>
+                <label className="block text-xs font-medium text-hs-text-secondary mb-1.5">{t('installFromUrlModal.versionLabel')}</label>
                 <input
                   type="text"
                   value={version}
@@ -103,13 +116,13 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50">
               <AlertTriangle className="w-4 h-4 text-hs-warning shrink-0 mt-0.5" />
               <p className="text-[11px] text-hs-warning/80">
-                You&apos;re installing from outside the plugin marketplace. Only install plugins from sources you trust.
+                {t('installFromUrlModal.externalSourceWarning')}
               </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
-              <Button size="sm" disabled={!canContinue} onClick={handleInstall}>Install</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
+              <Button size="sm" disabled={!canContinue} onClick={handleInstall}>{t('settings.pluginStorePanel.browse.installButton')}</Button>
             </div>
           </div>
         )}
@@ -117,14 +130,14 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
         {step === 'installing' && (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Loader2 className="w-6 h-6 text-hs-text-muted animate-spin" />
-            <p className="text-sm text-hs-text-muted">Downloading and installing…</p>
+            <p className="text-sm text-hs-text-muted">{t('installFromUrlModal.installingMessage')}</p>
           </div>
         )}
 
         {step === 'done' && result && (
           <div className="space-y-3">
             <PluginInstallPreview
-              name={result.manifest?.name ?? 'Plugin'}
+              name={result.manifest?.name ?? t('installFromUrlModal.pluginFallbackName')}
               description={result.manifest?.description ?? ''}
               author={result.manifest?.author ?? ''}
               version={result.manifest?.version ?? ''}
@@ -135,7 +148,7 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
               sha256={result.sha256}
             />
             <div className="flex justify-end pt-1">
-              <Button size="sm" onClick={onClose}>Done</Button>
+              <Button size="sm" onClick={onClose}>{t('installFromUrlModal.doneButton')}</Button>
             </div>
           </div>
         )}
@@ -147,8 +160,8 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
               <p className="text-xs text-hs-danger">{error}</p>
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>Close</Button>
-              <Button size="sm" onClick={() => setStep('entry')}>Try again</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.close')}</Button>
+              <Button size="sm" onClick={() => setStep('entry')}>{t('installFromUrlModal.tryAgainButton')}</Button>
             </div>
           </div>
         )}

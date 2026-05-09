@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -12,20 +12,25 @@ import Toggle from '@/components/ui/Toggle';
 import LayoutExportModal from '@/components/editor/LayoutExportModal';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplatePicker from '@/components/editor/TemplatePicker';
+import { useTranslate } from '@/i18n';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
 }
 
-const INTERVAL_OPTIONS = [
-  { value: 3, label: '3 days' },
-  { value: 7, label: '7 days' },
-  { value: 14, label: '14 days' },
-  { value: 30, label: '30 days' },
-];
-
 export default function DataSection({ onSettingsImported }: DataSectionProps) {
+  const t = useTranslate('editor');
   const { importConfig, config, updateSettings, saveConfig } = useEditorStore();
+
+  const intervalOptions = useMemo(
+    () => [
+      { value: 3, label: t('settings.dataPage.intervalOptions.threeDays') },
+      { value: 7, label: t('settings.dataPage.intervalOptions.sevenDays') },
+      { value: 14, label: t('settings.dataPage.intervalOptions.fourteenDays') },
+      { value: 30, label: t('settings.dataPage.intervalOptions.thirtyDays') },
+    ],
+    [t],
+  );
 
   const layoutInputRef = useRef<HTMLInputElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
@@ -69,18 +74,20 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         const validation = validateLayoutExport(data);
         if (!validation.valid) {
           useConfirmStore.getState().alert(
-            `Invalid layout file:\n${validation.errors.join('\n')}`,
+            t('settings.dataPage.alerts.invalidLayoutFile', {
+              errors: validation.errors.join('\n'),
+            }),
           );
           return;
         }
         setImportLayout(data as LayoutExport);
       } catch {
-        useConfirmStore.getState().alert('Invalid JSON file.');
+        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidJsonFile'));
       }
     };
     reader.readAsText(file);
     e.target.value = '';
-  }, []);
+  }, [t]);
 
   const handleBackupExport = useCallback(async () => {
     setBackupBusy(true);
@@ -97,11 +104,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       URL.revokeObjectURL(url);
       setLastBackupDate(new Date().toISOString());
     } catch {
-      useConfirmStore.getState().alert('Failed to export backup.');
+      useConfirmStore.getState().alert(t('settings.dataPage.alerts.exportBackupFailed'));
     } finally {
       setBackupBusy(false);
     }
-  }, []);
+  }, [t]);
 
   // Shared restore path for both legacy raw-config uploads and new bundle
   // uploads. POST the body, then reload the server-authoritative config and
@@ -139,12 +146,12 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         JSON.parse(reader.result as string);
         await postBackupAndReload(reader.result as string);
       } catch {
-        useConfirmStore.getState().alert('Invalid backup file.');
+        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
       }
     };
     reader.readAsText(file);
     e.target.value = '';
-  }, [postBackupAndReload]);
+  }, [postBackupAndReload, t]);
 
   const handleTemplateSelect = (layout: LayoutExport) => {
     setShowTemplatePicker(false);
@@ -157,17 +164,17 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         {/* Share Layout */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Share Layout
+            {t('settings.dataPage.shareLayout.heading')}
           </h3>
           <p className="text-xs text-hs-text-faint mb-3">
-            Export your screen layout (screens, modules, visual settings) without personal data like location, calendar IDs, or device settings. Safe to share with others.
+            {t('settings.dataPage.shareLayout.description')}
           </p>
           <div className="flex items-center gap-3">
             <Button variant="primary" onClick={() => setShowExportModal(true)}>
-              Export Layout
+              {t('settings.dataPage.shareLayout.exportButton')}
             </Button>
             <Button variant="secondary" onClick={() => layoutInputRef.current?.click()}>
-              Import Layout
+              {t('settings.dataPage.shareLayout.importButton')}
             </Button>
           </div>
         </section>
@@ -175,30 +182,30 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         {/* Templates */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Templates
+            {t('settings.dataPage.templates.heading')}
           </h3>
           <p className="text-xs text-hs-text-faint mb-3">
-            Start from a pre-built template. Your existing settings (location, calendars, etc.) are preserved.
+            {t('settings.dataPage.templates.description')}
           </p>
           <Button variant="secondary" onClick={() => setShowTemplatePicker(true)}>
-            Browse Templates
+            {t('settings.dataPage.templates.browseButton')}
           </Button>
         </section>
 
         {/* Full Backup */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Full Backup
+            {t('settings.dataPage.fullBackup.heading')}
           </h3>
           <p className="text-xs text-hs-text-faint mb-3">
-            Export or restore the entire configuration including all settings, chore data, and completion history. For backup and device migration. Does not include API keys.
+            {t('settings.dataPage.fullBackup.description')}
           </p>
           <div className="flex items-center gap-3">
             <Button variant="secondary" onClick={handleBackupExport} disabled={backupBusy}>
-              {backupBusy ? 'Working\u2026' : 'Backup All Data'}
+              {backupBusy ? t('settings.dataPage.fullBackup.working') : t('settings.dataPage.fullBackup.backupButton')}
             </Button>
             <Button variant="secondary" onClick={() => backupInputRef.current?.click()} disabled={backupBusy}>
-              Restore Backup
+              {t('settings.dataPage.fullBackup.restoreButton')}
             </Button>
           </div>
         </section>
@@ -206,26 +213,26 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         {/* Backup Reminder */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Backup Reminder
+            {t('settings.dataPage.backupReminder.heading')}
           </h3>
           <p className="text-xs text-hs-text-faint mb-3">
-            Get a notification in the editor when you haven&apos;t backed up for a while.
+            {t('settings.dataPage.backupReminder.description')}
           </p>
           <div className="space-y-3">
             <Toggle
-              label="Enable backup reminders"
+              label={t('settings.dataPage.backupReminder.enableLabel')}
               checked={reminder?.enabled ?? false}
               onChange={(enabled) => handleReminderChange({ enabled })}
             />
             {reminder?.enabled && (
               <label className="flex items-center justify-between gap-2">
-                <span className="text-xs text-hs-text-muted">Remind after</span>
+                <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
                 <select
                   value={reminder.intervalDays ?? 7}
                   onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
                   className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
                 >
-                  {INTERVAL_OPTIONS.map((opt) => (
+                  {intervalOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
@@ -233,8 +240,10 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             )}
             <p className="text-xs text-hs-text-faint">
               {lastBackupDate
-                ? `Last backup: ${new Date(lastBackupDate).toLocaleDateString()}`
-                : 'No backups recorded yet'}
+                ? t('settings.dataPage.backupReminder.lastBackup', {
+                    date: new Date(lastBackupDate).toLocaleDateString(),
+                  })
+                : t('settings.dataPage.backupReminder.noBackups')}
             </p>
           </div>
         </section>

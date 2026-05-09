@@ -1,9 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, DAY_NAMES_SHORT, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface WeekGridProps {
   plan: PlannedMeal[];
@@ -47,6 +49,10 @@ export default function WeekGrid({
   onNavigateWeek,
   onJumpToToday,
 }: WeekGridProps) {
+  const t = useTranslate('editor');
+  const tModules = useTranslate('modules');
+  const locale = useFormattingLocale();
+  const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
   const todayISO = toISODate(new Date());
   // Sort slots into chronological order regardless of config toggle order
   const orderedSlots = SLOT_ORDER.filter((s) => slots.includes(s));
@@ -54,7 +60,7 @@ export default function WeekGrid({
   // Format week date range for header
   const startDate = new Date(weekDates[0] + 'T12:00:00');
   const endDate = new Date(weekDates[6] + 'T12:00:00');
-  const formatShort = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatShort = (d: Date) => d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
   const dateRangeLabel = `${formatShort(startDate)} – ${formatShort(endDate)}`;
 
   const ghostBtn =
@@ -94,18 +100,18 @@ export default function WeekGrid({
             onClick={onJumpToToday}
             className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition"
           >
-            Today
+            {t('mealPlannerModal.weekGrid.todayChip')}
           </button>
         )}
         <div className="flex-1" />
         <button type="button" onClick={onSuggestRandom} className={ghostBtn}>
           <Shuffle className="w-3.5 h-3.5" />
-          Suggest
+          {t('mealPlannerModal.weekGrid.suggestButton')}
         </button>
         {hasPreviousWeek && (
           <button type="button" onClick={onCopyLastWeek} className={ghostBtn}>
             <Copy className="w-3.5 h-3.5" />
-            Copy Last Week
+            {t('mealPlannerModal.weekGrid.copyLastWeekButton')}
           </button>
         )}
         <button
@@ -114,7 +120,7 @@ export default function WeekGrid({
           className={`${ghostBtn} hover:text-hs-danger hover:border-hs-danger/50 hover:bg-hs-danger/8`}
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Clear
+          {t('mealPlannerModal.weekGrid.clearButton')}
         </button>
       </div>
 
@@ -135,7 +141,7 @@ export default function WeekGrid({
               className="text-center text-[10px] font-bold uppercase tracking-wider pb-2"
               style={{ color: SLOT_META[slot].color, opacity: 0.6 }}
             >
-              {SLOT_META[slot].label}
+              {tModules(getMealSlotLabelKey(slot))}
             </div>
           ))}
 
@@ -173,16 +179,16 @@ export default function WeekGrid({
                               className="text-sm font-semibold"
                               style={{ color: accentColor }}
                             >
-                              Today
+                              {t('mealPlannerModal.weekGrid.todayLabel')}
                             </div>
                             <div className="text-[10px] text-hs-text-faint">
-                              {DAY_NAMES_SHORT[dayIdx]} {shortDate}
+                              {dayNamesShort[dayIdx]} {shortDate}
                             </div>
                           </>
                         ) : (
                           <div>
                             <div className="text-sm text-hs-text-faint">
-                              {DAY_NAMES_SHORT[dayIdx]}
+                              {dayNamesShort[dayIdx]}
                             </div>
                             <div className="text-[10px] text-hs-text-faint">
                               {shortDate}
@@ -215,7 +221,7 @@ export default function WeekGrid({
                             </div>
                             {meal.prepTime != null && (
                               <div className="text-[10px] text-hs-text-faint">
-                                {meal.prepTime}m prep
+                                {t('mealPlannerModal.weekGrid.prepTimeMin', { minutes: meal.prepTime })}
                               </div>
                             )}
                           </div>

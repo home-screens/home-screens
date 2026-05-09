@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { getSupplementalHolidays } from '@/lib/supplemental-holidays';
 import type { CountdownEvent } from '@/types/config';
+import { useTranslate } from '@/i18n';
 
 interface HolidayInfo {
   id: string;
@@ -30,6 +31,7 @@ export default function HolidayPickerModal({
   onConfirm,
   onClose,
 }: HolidayPickerModalProps) {
+  const t = useTranslate('editor');
   const [countries, setCountries] = useState<Country[]>([]);
   const [country, setCountry] = useState(initialCountry ?? '');
   const [holidays, setHolidays] = useState<HolidayInfo[]>([]);
@@ -54,14 +56,14 @@ export default function HolidayPickerModal({
         if (res.ok) {
           setCountries(await res.json());
         } else {
-          setError('Failed to load countries');
+          setError(t('holidayPickerModal.errors.loadCountries'));
         }
       } catch {
-        setError('Failed to load countries');
+        setError(t('holidayPickerModal.errors.loadCountries'));
       }
     }
     load();
-  }, []);
+  }, [t]);
 
   // Fetch holidays when country changes (with stale-response guard)
   const tokenRef = useRef(0);
@@ -107,11 +109,11 @@ export default function HolidayPickerModal({
       }
       setSelectedIds(preSelected);
     } catch {
-      if (token === tokenRef.current) setError('Failed to load holidays');
+      if (token === tokenRef.current) setError(t('holidayPickerModal.errors.loadHolidays'));
     } finally {
       if (token === tokenRef.current) setLoading(false);
     }
-  }, [existingEvents]);
+  }, [existingEvents, t]);
 
   useEffect(() => {
     fetchHolidays(country);
@@ -147,6 +149,14 @@ export default function HolidayPickerModal({
     onClose();
   };
 
+  const allSelected = selectedIds.size === holidays.length && holidays.length > 0;
+  const addLabel =
+    selectedIds.size === 0
+      ? t('holidayPickerModal.addEmpty')
+      : selectedIds.size === 1
+        ? t('holidayPickerModal.addCountSingular', { count: 1 })
+        : t('holidayPickerModal.addCountPlural', { count: selectedIds.size });
+
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -156,8 +166,12 @@ export default function HolidayPickerModal({
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-md flex flex-col" style={{ maxHeight: '80vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
-          <h2 className="text-sm font-semibold text-hs-text-primary">Add Holidays</h2>
-          <button onClick={onClose} className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none">
+          <h2 className="text-sm font-semibold text-hs-text-primary">{t('holidayPickerModal.title')}</h2>
+          <button
+            onClick={onClose}
+            aria-label={t('modal.closeAriaLabel')}
+            className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
+          >
             &times;
           </button>
         </div>
@@ -166,13 +180,13 @@ export default function HolidayPickerModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Country selector */}
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-hs-text-muted">Country</span>
+            <span className="text-xs text-hs-text-muted">{t('holidayPickerModal.countryLabel')}</span>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               className="bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-sm text-hs-text-primary"
             >
-              <option value="">Select a country...</option>
+              <option value="">{t('holidayPickerModal.countryPlaceholder')}</option>
               {countries.map((c) => (
                 <option key={c.countryCode} value={c.countryCode}>
                   {c.name}
@@ -181,16 +195,21 @@ export default function HolidayPickerModal({
             </select>
           </label>
 
-          {loading && <p className="text-xs text-hs-text-faint">Loading holidays...</p>}
+          {loading && <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.loadingHolidays')}</p>}
 
           {!loading && holidays.length > 0 && (
             <>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-hs-text-muted">
-                  {selectedIds.size} of {holidays.length} selected
+                  {t('holidayPickerModal.selectionCount', {
+                    selected: selectedIds.size,
+                    total: holidays.length,
+                  })}
                 </span>
                 <button onClick={toggleAll} className="text-xs text-hs-accent hover:text-hs-accent-hover">
-                  {selectedIds.size === holidays.length ? 'Deselect All' : 'Select All'}
+                  {allSelected
+                    ? t('holidayPickerModal.deselectAll')
+                    : t('holidayPickerModal.selectAll')}
                 </button>
               </div>
               <div className="space-y-1">
@@ -218,15 +237,15 @@ export default function HolidayPickerModal({
           )}
 
           {!loading && !error && country && holidays.length === 0 && (
-            <p className="text-xs text-hs-text-faint">No upcoming holidays found.</p>
+            <p className="text-xs text-hs-text-faint">{t('holidayPickerModal.noHolidays')}</p>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
-          <Button size="sm" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button size="sm" variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
           <Button size="sm" onClick={handleConfirm} disabled={selectedIds.size === 0}>
-            Add {selectedIds.size > 0 ? `${selectedIds.size} Holidays` : 'Holidays'}
+            {addLabel}
           </Button>
         </div>
       </div>

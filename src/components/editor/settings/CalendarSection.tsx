@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import ICalFeedManager from './ICalFeedManager';
+import { useTranslate } from '@/i18n';
 
 interface HolidayCountry {
   countryCode: string;
@@ -29,6 +30,7 @@ interface Props {
 
 export default function CalendarSection({ values, onChange }: Props) {
   const { selectedCalendarIds, icalSources, maxEvents, daysAhead, holidayCountry } = values;
+  const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
 
@@ -87,29 +89,29 @@ export default function CalendarSection({ values, onChange }: Props) {
       {/* Google Calendar section */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Google Calendar
+          {t('settings.calendarPage.google.heading')}
         </h3>
         <div className="space-y-3">
           {googleLoading ? (
-            <p className="text-xs text-hs-text-faint">Checking connection...</p>
+            <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.google.checkingConnection')}</p>
           ) : googleConnected ? (
             <>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-hs-success flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
-                  Connected to Google
+                  {t('settings.calendarPage.google.connected')}
                 </span>
                 <button
                   onClick={disconnectGoogle}
                   className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
                 >
-                  Disconnect
+                  {t('settings.calendarPage.google.disconnect')}
                 </button>
               </div>
 
               {googleCalendars.length > 0 ? (
                 <div className="space-y-1">
-                  <span className="text-xs text-hs-text-muted">Select calendars to display</span>
+                  <span className="text-xs text-hs-text-muted">{t('settings.calendarPage.google.selectCalendars')}</span>
                   <div className="max-h-40 overflow-y-auto rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
                     {googleCalendars.map((cal) => (
                       <label
@@ -129,7 +131,7 @@ export default function CalendarSection({ values, onChange }: Props) {
                         <span className="text-sm text-hs-text-body truncate">
                           {cal.summary}
                           {cal.primary && (
-                            <span className="text-hs-text-faint ml-1 text-xs">(primary)</span>
+                            <span className="text-hs-text-faint ml-1 text-xs">{t('settings.calendarPage.google.primaryBadge')}</span>
                           )}
                         </span>
                       </label>
@@ -137,7 +139,7 @@ export default function CalendarSection({ values, onChange }: Props) {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-hs-text-faint">No calendars found.</p>
+                <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.google.noCalendars')}</p>
               )}
 
               {combinedError && (
@@ -147,17 +149,17 @@ export default function CalendarSection({ values, onChange }: Props) {
           ) : !credentialsConfigured ? (
             <div className="space-y-2">
               <p className="text-xs text-hs-text-muted">
-                Google OAuth credentials are required to connect your calendar.
+                {t('settings.calendarPage.google.credentialsRequired')}
               </p>
               <p className="text-xs text-hs-text-faint">
-                Set up your Client ID and Client Secret in{' '}
+                {t('settings.calendarPage.google.credentialsSetupPart1')}
                 <a
                   href="/editor/settings?tab=integrations"
                   className="text-hs-accent hover:text-hs-accent-hover underline"
                 >
-                  Settings &rarr; Integrations
+                  {t('settings.calendarPage.google.settingsIntegrationsLink')}
                 </a>
-                {' '}first.
+                {t('settings.calendarPage.google.credentialsSetupPart2')}
               </p>
             </div>
           ) : (
@@ -165,7 +167,7 @@ export default function CalendarSection({ values, onChange }: Props) {
               {deviceFlow.userCode && deviceFlow.verificationUrl ? (
                 <div className="space-y-3">
                   <p className="text-xs text-hs-text-muted">
-                    Open the link below on your phone or computer, then enter the code:
+                    {t('settings.calendarPage.google.deviceCodeIntro')}
                   </p>
                   <div className="flex items-center gap-3">
                     <a
@@ -183,7 +185,7 @@ export default function CalendarSection({ values, onChange }: Props) {
                     </code>
                     {deviceFlow.deviceFlowPolling && (
                       <span className="text-xs text-hs-text-faint animate-pulse">
-                        Waiting for authorization...
+                        {t('settings.calendarPage.google.waitingForAuthorization')}
                       </span>
                     )}
                   </div>
@@ -195,7 +197,7 @@ export default function CalendarSection({ values, onChange }: Props) {
                   onClick={deviceFlow.startDeviceFlow}
                   disabled={deviceFlow.deviceFlowPolling}
                 >
-                  Sign in with Google
+                  {t('settings.calendarPage.google.signIn')}
                 </Button>
               )}
               {deviceFlow.deviceFlowError && (
@@ -203,33 +205,33 @@ export default function CalendarSection({ values, onChange }: Props) {
                   <p className="text-xs text-hs-danger">{deviceFlow.deviceFlowError}</p>
                   {deviceFlow.clientIdHint && (
                     <p className="text-xs text-hs-text-faint">
-                      Using Client ID: <code className="text-hs-text-muted">{deviceFlow.clientIdHint}</code>
+                      {t('settings.calendarPage.google.usingClientIdLabel')}{' '}
+                      <code className="text-hs-text-muted">{deviceFlow.clientIdHint}</code>
                     </p>
                   )}
                   <p className="text-xs text-hs-text-faint">
-                    Verify your credentials in{' '}
+                    {t('settings.calendarPage.google.verifyCredentialsPart1')}
                     <a
                       href="/editor/settings?tab=integrations"
                       className="text-hs-accent hover:text-hs-accent-hover underline"
                     >
-                      Settings &rarr; Integrations
+                      {t('settings.calendarPage.google.settingsIntegrationsLink')}
                     </a>
-                    {', or check your '}
+                    {t('settings.calendarPage.google.verifyCredentialsPart2')}
                     <a
                       href="https://console.cloud.google.com/apis/credentials"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-hs-accent hover:text-hs-accent-hover underline"
                     >
-                      Google Cloud Console
+                      {t('settings.calendarPage.google.googleCloudConsoleLink')}
                     </a>
-                    .
+                    {t('settings.calendarPage.google.verifyCredentialsPart3')}
                   </p>
                 </div>
               )}
               <p className="text-xs text-hs-text-faint">
-                Sign in to automatically see your calendars. Requires a Google OAuth client
-                of type &quot;TVs and Limited Input devices&quot; in the Cloud Console.
+                {t('settings.calendarPage.google.signInHelp')}
               </p>
             </div>
           )}
@@ -242,7 +244,7 @@ export default function CalendarSection({ values, onChange }: Props) {
       {/* Public Holidays section */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Public Holidays
+          {t('settings.calendarPage.holidays.heading')}
         </h3>
         <div className="space-y-2">
           <select
@@ -250,7 +252,7 @@ export default function CalendarSection({ values, onChange }: Props) {
             onChange={(e) => onChange({ holidayCountry: e.target.value || undefined })}
             className="w-full rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
           >
-            <option value="">None</option>
+            <option value="">{t('settings.calendarPage.holidays.none')}</option>
             {availableCountries.map((c) => (
               <option key={c.countryCode} value={c.countryCode}>
                 {c.name}
@@ -258,7 +260,7 @@ export default function CalendarSection({ values, onChange }: Props) {
             ))}
           </select>
           <p className="text-xs text-hs-text-faint">
-            Show public holidays on calendar widgets. Data from Nager.Date.
+            {t('settings.calendarPage.holidays.help')}
           </p>
         </div>
       </section>
@@ -268,7 +270,7 @@ export default function CalendarSection({ values, onChange }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Slider
-              label="Max Events"
+              label={t('settings.calendarPage.shared.maxEventsLabel')}
               value={maxEvents}
               min={1}
               max={100}
@@ -277,7 +279,7 @@ export default function CalendarSection({ values, onChange }: Props) {
           </div>
           <div>
             <Slider
-              label="Days Ahead"
+              label={t('settings.calendarPage.shared.daysAheadLabel')}
               value={daysAhead}
               min={1}
               max={90}

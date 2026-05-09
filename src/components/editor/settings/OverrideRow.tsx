@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useTranslate } from '@/i18n';
 
 /**
  * The new visual primitive for a per-display field that may either inherit
@@ -70,6 +71,7 @@ export default function OverrideRow<T>({
   displayName,
   children,
 }: OverrideRowProps<T>) {
+  const t = useTranslate('editor');
   const isOverridden = override !== undefined;
   // The control reads from the override when set, otherwise from the
   // shared default. We never pass `undefined` down — the child always
@@ -103,7 +105,7 @@ export default function OverrideRow<T>({
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Reset to default
+            {t('settings.overrideRow.resetToDefault')}
           </button>
         ) : (
           <button
@@ -111,7 +113,7 @@ export default function OverrideRow<T>({
             onClick={() => onFork(defaultValue)}
             className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-muted bg-hs-card border border-hs-border-strong hover:text-hs-text-body hover:bg-hs-hover transition-colors whitespace-nowrap"
           >
-            Override
+            {t('settings.overrideRow.override')}
           </button>
         )}
       </div>
@@ -121,26 +123,31 @@ export default function OverrideRow<T>({
       <div className="text-[11px] text-hs-text-faint mt-2">
         {isOverridden ? (
           <>
-            Overridden{displayName ? ` for ${displayName}` : ''}. Default:{' '}
-            <strong className="text-hs-text-secondary">{formattedDefault}</strong> — edit on{' '}
+            {displayName
+              ? t('settings.overrideRow.overriddenForDisplay', { name: displayName })
+              : t('settings.overrideRow.overriddenWithoutDisplay')}
+            <strong className="text-hs-text-secondary">{formattedDefault}</strong>
+            {t('settings.overrideRow.overriddenSuffix')}
             <Link
               href={defaultsPageHref}
               className="text-hs-accent hover:text-hs-accent-hover border-b border-dashed border-hs-accent/40 hover:border-hs-accent/60"
             >
               {defaultsPageLabel}
             </Link>
-            .
+            {t('settings.overrideRow.overriddenSuffixEnd')}
           </>
         ) : (
           <>
-            Using the default.{' '}
+            {t('settings.overrideRow.usingDefault')}
             <Link
               href={defaultsPageHref}
               className="text-hs-accent hover:text-hs-accent-hover border-b border-dashed border-hs-accent/40 hover:border-hs-accent/60"
             >
               {defaultsPageLabel}
-            </Link>{' '}
-            uses <strong className="text-hs-text-secondary">{formattedDefault}</strong> for every display.
+            </Link>
+            {t('settings.overrideRow.usingDefaultPart2')}
+            <strong className="text-hs-text-secondary">{formattedDefault}</strong>
+            {t('settings.overrideRow.usingDefaultPart3')}
           </>
         )}
       </div>

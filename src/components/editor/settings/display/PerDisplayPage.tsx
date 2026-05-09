@@ -9,6 +9,7 @@ import { formatLastSeen } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, type PerDisplaySubtab } from '@/lib/settings-route';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import OverviewSubtab from './OverviewSubtab';
 import DisplaySubtab from './DisplaySubtab';
 import SleepSubtab from './SleepSubtab';
@@ -69,21 +70,49 @@ interface DisplaysApiResponse {
   displays: DisplayApiEntry[];
 }
 
-function statusColor(lastSeen: number | null): { bg: string; text: string; dot: string; label: string } {
+// The status pill drives styling AND copy off `kind` rather than sniffing the
+// English label so de-DE / future locales never break the CSS branching.
+type StatusKind = 'online' | 'idle' | 'offline';
+interface StatusInfo {
+  bg: string;
+  text: string;
+  dot: string;
+  kind: StatusKind;
+}
+
+function statusColor(lastSeen: number | null): StatusInfo {
   if (!lastSeen) {
-    return { bg: 'bg-hs-card', text: 'text-hs-text-muted', dot: 'bg-hs-card', label: 'Offline' };
+    return { bg: 'bg-hs-card', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
   }
   const diff = Date.now() - lastSeen;
   if (diff < 30_000) {
-    return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', label: 'Online' };
+    return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', kind: 'online' };
   }
   if (diff < 300_000) {
-    return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', label: 'Idle' };
+    return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', kind: 'idle' };
   }
-  return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', label: 'Offline' };
+  return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
+}
+
+function statusLabel(kind: StatusKind, t: TranslateFn): string {
+  switch (kind) {
+    case 'online':
+      return t('settings.perDisplayPage.header.statusOnline');
+    case 'idle':
+      return t('settings.perDisplayPage.header.statusIdle');
+    case 'offline':
+      return t('settings.perDisplayPage.header.statusOffline');
+  }
+}
+
+// Subtab nav labels resolved through t(); the display order remains
+// PER_DISPLAY_SUBTABS so URL parsing stays in lockstep with the renderer.
+function subtabLabel(tab: PerDisplaySubtab, t: TranslateFn): string {
+  return t(`settings.perDisplayPage.header.subtabs.${tab}`);
 }
 
 export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProps) {
+  const t = useTranslate('editor');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { config, setSelectedDisplay } = useEditorStore();
@@ -162,9 +191,13 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   if (!display) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
-        <div className="text-lg font-semibold text-hs-text-body">Display not found</div>
+        <div className="text-lg font-semibold text-hs-text-body">
+          {t('settings.perDisplayPage.header.notFound')}
+        </div>
         <p className="text-sm text-hs-text-faint mt-2">
-          No display registered with id <code className="text-hs-text-secondary">{displayId}</code>.
+          {t('settings.perDisplayPage.header.notFoundDescPart1')}
+          <code className="text-hs-text-secondary">{displayId}</code>
+          {t('settings.perDisplayPage.header.notFoundDescPart2')}
         </p>
       </div>
     );
@@ -206,7 +239,12 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
               className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border ${status.bg} ${status.text}`}
             >
               <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dot}`} />
-              {status.label} · {formatLastSeen(lastSeen)}
+              {/*
+                `formatLastSeen` is intentionally English-only per the helper's
+                contract — see follow-up note in src/lib/time-format.ts. The
+                "Online" / "Idle" / "Offline" prefix IS localized via t().
+              */}
+              {statusLabel(status.kind, t)} · {formatLastSeen(lastSeen)}
             </span>
             {dims && (
               <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full tabular-nums">
@@ -214,7 +252,9 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
               </span>
             )}
             <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full">
-              {screenCount} screen{screenCount === 1 ? '' : 's'}
+              {screenCount === 1
+                ? t('settings.perDisplayPage.header.screenCountSingular')
+                : t('settings.perDisplayPage.header.screenCountPlural', { count: screenCount })}
             </span>
             {reporterIp && (
               <span className="text-[11px] text-hs-text-muted bg-hs-card border border-hs-border-strong px-2.5 py-1 rounded-full font-mono">
@@ -229,19 +269,19 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
-            title="Open this display's kiosk URL"
+            title={t('settings.perDisplayPage.header.openTitle')}
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            Open
+            {t('settings.perDisplayPage.header.openLabel')}
           </a>
           <button
             type="button"
             onClick={handleEditScreens}
             className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
-            title="Edit this display's screens in the canvas"
+            title={t('settings.perDisplayPage.header.editScreensTitle')}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
-            Edit screens
+            {t('settings.perDisplayPage.header.editScreensLabel')}
           </button>
         </div>
       </div>
@@ -261,7 +301,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
                   : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
               }`}
             >
-              {tab}
+              {subtabLabel(tab, t)}
             </button>
           );
         })}

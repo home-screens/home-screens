@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 export interface AlertFormValues {
   alertsEnabled: boolean;
@@ -49,20 +50,23 @@ interface AlertFormFieldsProps {
  * is the one place the form rendering lives.
  */
 export default function AlertFormFields({ values, onChange, disabled = false, displayId }: AlertFormFieldsProps) {
+  const t = useTranslate('editor');
   const { alertsEnabled, alertsPosition, alertsMaxVisible, alertsDefaultDuration, alertsScale } = values;
   const [clearing, setClearing] = useState(false);
-  const [clearMessage, setClearMessage] = useState<string | null>(null);
+  // Track outcome via discriminated `kind` so styling/copy never branch on
+  // English strings; the rendered label resolves through t() at display time.
+  const [clearStatus, setClearStatus] = useState<{ kind: 'success' | 'error' } | null>(null);
 
   async function handleClearAlerts() {
     setClearing(true);
-    setClearMessage(null);
+    setClearStatus(null);
     try {
       const url = displayId
         ? `/api/display/clear-alerts?display=${encodeURIComponent(displayId)}`
         : '/api/display/clear-alerts';
       const res = await editorFetch(url, { method: 'POST' });
-      setClearMessage(res.ok ? 'Cleared' : 'Failed');
-      setTimeout(() => setClearMessage(null), 2000);
+      setClearStatus({ kind: res.ok ? 'success' : 'error' });
+      setTimeout(() => setClearStatus(null), 2000);
     } catch (err) {
       console.debug('Failed to clear alerts:', err);
     } finally {
@@ -80,30 +84,27 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
           onChange={(e) => onChange({ alertsEnabled: e.target.checked })}
           className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
         />
-        <span className="text-sm text-hs-text-body">Enable alert overlay</span>
+        <span className="text-sm text-hs-text-body">{t('settings.alertFormFields.enableLabel')}</span>
       </label>
-      <p className="text-xs text-hs-text-faint">
-        Show notifications on the display. Alerts can be triggered via the API and modules that
-        implemented alert functionality.
-      </p>
+      <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.enableHelp')}</p>
 
       {alertsEnabled && (
         <>
           <label className="block">
-            <span className="text-xs text-hs-text-muted">Position</span>
+            <span className="text-xs text-hs-text-muted">{t('settings.alertFormFields.positionLabel')}</span>
             <select
               value={alertsPosition}
               disabled={disabled}
               onChange={(e) => onChange({ alertsPosition: e.target.value })}
               className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-70"
             >
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
+              <option value="top">{t('settings.alertFormFields.positionTop')}</option>
+              <option value="bottom">{t('settings.alertFormFields.positionBottom')}</option>
             </select>
           </label>
 
           <Slider
-            label="Max visible alerts"
+            label={t('settings.alertFormFields.maxVisibleLabel')}
             value={alertsMaxVisible}
             min={1}
             max={10}
@@ -112,23 +113,23 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
           />
 
           <Slider
-            label="Default duration (seconds)"
+            label={t('settings.alertFormFields.defaultDurationLabel')}
             value={alertsDefaultDuration}
             min={0}
             max={120}
             step={5}
-            displayValue={alertsDefaultDuration === 0 ? 'Per-type defaults' : String(alertsDefaultDuration)}
+            displayValue={alertsDefaultDuration === 0 ? t('settings.alertFormFields.defaultDurationPerType') : String(alertsDefaultDuration)}
             onChange={(v) => onChange({ alertsDefaultDuration: v })}
             disabled={disabled}
           />
           {alertsDefaultDuration === 0 && (
             <p className="text-xs text-hs-text-faint -mt-1">
-              Info: 10s, Warning: 30s, Urgent: persistent until dismissed.
+              {t('settings.alertFormFields.defaultDurationHelp')}
             </p>
           )}
 
           <Slider
-            label="Alert size"
+            label={t('settings.alertFormFields.alertSizeLabel')}
             value={alertsScale * 100}
             min={75}
             max={200}
@@ -140,26 +141,30 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
 
           <div className="mt-4 pt-4 border-t border-hs-border-strong">
             <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
-              Active Alerts
+              {t('settings.alertFormFields.activeAlertsHeading')}
             </h4>
             <div className="flex items-center gap-3">
               <Button onClick={handleClearAlerts} disabled={clearing || disabled}>
-                {clearing ? 'Clearing...' : 'Clear All Alerts'}
+                {clearing ? t('settings.alertFormFields.clearingButton') : t('settings.alertFormFields.clearAllButton')}
               </Button>
-              {clearMessage && <span className="text-xs text-hs-success">{clearMessage}</span>}
+              {clearStatus && (
+                <span
+                  className={`text-xs ${clearStatus.kind === 'success' ? 'text-hs-success' : 'text-hs-danger'}`}
+                >
+                  {clearStatus.kind === 'success'
+                    ? t('settings.alertFormFields.cleared')
+                    : t('settings.alertFormFields.failed')}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-hs-text-faint mt-2">
-              Dismiss all active alerts on the display. Takes effect within 3 seconds.
-            </p>
+            <p className="text-xs text-hs-text-faint mt-2">{t('settings.alertFormFields.clearHelp')}</p>
           </div>
 
           <div className="mt-4 pt-4 border-t border-hs-border-strong">
             <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
-              API Usage
+              {t('settings.alertFormFields.apiUsageHeading')}
             </h4>
-            <p className="text-xs text-hs-text-faint">
-              Send alerts from external tools (Home Assistant, scripts, etc.):
-            </p>
+            <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.apiUsageIntro')}</p>
             <pre className="mt-2 text-xs text-hs-text-muted bg-hs-hover rounded-md p-3 overflow-x-auto">
 {`POST /api/display/alert
 {
@@ -170,8 +175,11 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
 }`}
             </pre>
             <p className="text-xs text-hs-text-faint mt-2">
-              Types: <code className="text-hs-text-muted">info</code>,{' '}
-              <code className="text-hs-text-muted">warning</code>,{' '}
+              {t('settings.alertFormFields.apiTypesPart1')}
+              <code className="text-hs-text-muted">info</code>
+              {t('settings.alertFormFields.apiTypesPart2')}
+              <code className="text-hs-text-muted">warning</code>
+              {t('settings.alertFormFields.apiTypesPart3')}
               <code className="text-hs-text-muted">urgent</code>
             </p>
           </div>

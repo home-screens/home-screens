@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import {
   Globe,
@@ -11,6 +11,7 @@ import {
 import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate, type TranslateFn } from '@/i18n';
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -61,16 +62,28 @@ const INTEGRATIONS: Integration[] = [
 function getStatusInfo(
   status: SecretStatus,
   keys: SecretKey[],
+  t: TranslateFn,
 ): { label: string; type: 'connected' | 'partial' | 'none' } {
   const configured = keys.filter((k) => !!status[k]).length;
-  if (configured === 0) return { label: 'Not configured', type: 'none' };
-  if (configured === keys.length) return { label: 'Connected', type: 'connected' };
-  return { label: `${configured} of ${keys.length}`, type: 'partial' };
+  if (configured === 0) {
+    return { label: t('settings.integrationsPage.status.notConfigured'), type: 'none' };
+  }
+  if (configured === keys.length) {
+    return { label: t('settings.integrationsPage.status.connected'), type: 'connected' };
+  }
+  return {
+    label: t('settings.integrationsPage.status.partial', {
+      configured,
+      total: keys.length,
+    }),
+    type: 'partial',
+  };
 }
 
 /* ─── Main component ──────────────────────── */
 
 export default function IntegrationsSection() {
+  const t = useTranslate('editor');
   const [status, setStatus] = useState<SecretStatus>({});
   const [loading, setLoading] = useState(true);
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
@@ -93,36 +106,49 @@ export default function IntegrationsSection() {
     fetchStatus();
   }, [fetchStatus]);
 
+  // Memoize visible integrations + per-card status info so the labels follow
+  // the active locale while the underlying brand names stay verbatim.
+  const { visibleIntegrations, cardStatus } = useMemo(() => {
+    const visible = advancedMode
+      ? INTEGRATIONS
+      : INTEGRATIONS.filter((i) => i.name !== 'GitHub');
+    return {
+      visibleIntegrations: visible,
+      cardStatus: {
+        google: getStatusInfo(status, ['google_client_id', 'google_client_secret', 'google_maps_key'], t),
+        immich: getStatusInfo(status, ['immich_url', 'immich_api_key'], t),
+        unsplash: getStatusInfo(status, ['unsplash_access_key'], t),
+        nasa: getStatusInfo(status, ['nasa_api_key'], t),
+        todoist: getStatusInfo(status, ['todoist_token'], t),
+        tomtom: getStatusInfo(status, ['tomtom_key'], t),
+        github: getStatusInfo(status, ['github_token'], t),
+      },
+    };
+  }, [advancedMode, status, t]);
+
   if (loading) {
     return (
       <section>
-        <p className="text-xs text-hs-text-faint">Loading integration status...</p>
+        <p className="text-xs text-hs-text-faint">{t('settings.integrationsPage.loadingStatus')}</p>
       </section>
     );
   }
 
-  const visibleIntegrations = advancedMode
-    ? INTEGRATIONS
-    : INTEGRATIONS.filter((i) => i.name !== 'GitHub');
   const configuredCount = visibleIntegrations.filter((i) =>
     i.keys.some((k) => !!status[k]),
   ).length;
 
-  const google = getStatusInfo(status, ['google_client_id', 'google_client_secret', 'google_maps_key']);
-  const immich = getStatusInfo(status, ['immich_url', 'immich_api_key']);
-  const unsplash = getStatusInfo(status, ['unsplash_access_key']);
-  const nasa = getStatusInfo(status, ['nasa_api_key']);
-  const todoist = getStatusInfo(status, ['todoist_token']);
-  const tomtom = getStatusInfo(status, ['tomtom_key']);
-  const github = getStatusInfo(status, ['github_token']);
+  const { google, immich, unsplash, nasa, todoist, tomtom, github } = cardStatus;
 
   return (
     <section>
       {/* Header */}
       <div className="mb-7">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">Integrations</h2>
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">
+          {t('settings.integrationsPage.heading')}
+        </h2>
         <p className="text-[13px] text-hs-text-faint">
-          Connect external services to unlock additional modules and features. API keys are stored locally and never leave your device.
+          {t('settings.integrationsPage.description')}
         </p>
       </div>
 
@@ -130,49 +156,51 @@ export default function IntegrationsSection() {
       <div className="flex items-center gap-2 px-3.5 py-2.5 bg-hs-hover border border-hs-border-strong/60 rounded-lg mb-7">
         <div className={`w-2 h-2 rounded-full ${configuredCount > 0 ? 'bg-hs-success' : 'bg-hs-card'}`} />
         <span className="text-[13px] text-hs-text-muted">
-          <strong className="text-hs-text-secondary">{configuredCount}</strong> of{' '}
-          <strong className="text-hs-text-secondary">{visibleIntegrations.length}</strong> integrations configured
+          <strong className="text-hs-text-secondary">{configuredCount}</strong>
+          {t('settings.integrationsPage.summary.configuredCountPart1')}
+          <strong className="text-hs-text-secondary">{visibleIntegrations.length}</strong>
+          {t('settings.integrationsPage.summary.configuredCountPart2')}
         </span>
       </div>
 
       {/* Google — full width */}
       <div className="mb-6">
         <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
-          Google Ecosystem
+          {t('settings.integrationsPage.groups.googleEcosystem')}
         </div>
         <IntegrationCard
           icon={<GoogleIcon />}
           iconBg="linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%)"
-          name="Google"
-          description="Calendar, Maps"
+          name={t('settings.integrationsPage.google.name')}
+          description={t('settings.integrationsPage.google.description')}
           statusLabel={google.label}
           statusType={google.type}
           defaultOpen={google.type !== 'none'}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SecretField
-              label="OAuth Client ID"
+              label={t('settings.integrationsPage.google.clientIdLabel')}
               secretKey="google_client_id"
-              placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
-              helpText="Create at console.cloud.google.com → APIs & Services → Credentials. Use type: TVs and Limited Input devices."
+              placeholder={t('settings.integrationsPage.google.clientIdPlaceholder')}
+              helpText={t('settings.integrationsPage.google.clientIdHelp')}
               status={!!status.google_client_id}
               onSaved={fetchStatus}
             />
             <SecretField
-              label="OAuth Client Secret"
+              label={t('settings.integrationsPage.google.clientSecretLabel')}
               secretKey="google_client_secret"
-              placeholder="e.g. GOCSPX-..."
-              helpText="The client secret from the same OAuth credential above."
+              placeholder={t('settings.integrationsPage.google.clientSecretPlaceholder')}
+              helpText={t('settings.integrationsPage.google.clientSecretHelp')}
               status={!!status.google_client_secret}
               onSaved={fetchStatus}
             />
           </div>
           <div className="border-t border-hs-border-strong/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
             <SecretField
-              label="Maps API Key"
+              label={t('settings.integrationsPage.google.mapsKeyLabel')}
               secretKey="google_maps_key"
-              placeholder="Paste your Google Maps API key"
-              helpText="Optional — for traffic/commute widget. Enable the Routes API in the same Cloud Console project."
+              placeholder={t('settings.integrationsPage.google.mapsKeyPlaceholder')}
+              helpText={t('settings.integrationsPage.google.mapsKeyHelp')}
               status={!!status.google_maps_key}
               onSaved={fetchStatus}
             />
@@ -183,31 +211,31 @@ export default function IntegrationsSection() {
       {/* Photos & Backgrounds — 2-col masonry */}
       <div className="mb-6">
         <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
-          Photos &amp; Backgrounds
+          {t('settings.integrationsPage.groups.photosAndBackgrounds')}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <IntegrationCard
             icon={<Camera className="w-[18px] h-[18px] text-white" />}
             iconBg="#4250af"
-            name="Immich"
-            description="Self-hosted photo library"
+            name={t('settings.integrationsPage.immich.name')}
+            description={t('settings.integrationsPage.immich.description')}
             statusLabel={immich.label}
             statusType={immich.type}
           >
             <div className="space-y-4">
               <SecretField
-                label="Server URL"
+                label={t('settings.integrationsPage.immich.urlLabel')}
                 secretKey="immich_url"
-                placeholder="e.g. http://192.168.1.50:2283"
-                helpText="The base URL of your Immich instance."
+                placeholder={t('settings.integrationsPage.immich.urlPlaceholder')}
+                helpText={t('settings.integrationsPage.immich.urlHelp')}
                 status={!!status.immich_url}
                 onSaved={fetchStatus}
               />
               <SecretField
-                label="API Key"
+                label={t('settings.integrationsPage.immich.apiKeyLabel')}
                 secretKey="immich_api_key"
-                placeholder="Paste your Immich API key"
-                helpText="Create at Immich → Account Settings → API Keys."
+                placeholder={t('settings.integrationsPage.immich.apiKeyPlaceholder')}
+                helpText={t('settings.integrationsPage.immich.apiKeyHelp')}
                 status={!!status.immich_api_key}
                 onSaved={fetchStatus}
               />
@@ -217,16 +245,16 @@ export default function IntegrationsSection() {
           <IntegrationCard
             icon={<UnsplashIcon />}
             iconBg="#111111"
-            name="Unsplash"
-            description="HD photo backgrounds by category"
+            name={t('settings.integrationsPage.unsplash.name')}
+            description={t('settings.integrationsPage.unsplash.description')}
             statusLabel={unsplash.label}
             statusType={unsplash.type}
           >
             <SecretField
-              label="Access Key"
+              label={t('settings.integrationsPage.unsplash.accessKeyLabel')}
               secretKey="unsplash_access_key"
-              placeholder="Paste your Unsplash access key"
-              helpText="Free at unsplash.com/developers — 50 requests/hour on free tier."
+              placeholder={t('settings.integrationsPage.unsplash.accessKeyPlaceholder')}
+              helpText={t('settings.integrationsPage.unsplash.accessKeyHelp')}
               status={!!status.unsplash_access_key}
               onSaved={fetchStatus}
             />
@@ -235,16 +263,16 @@ export default function IntegrationsSection() {
           <IntegrationCard
             icon={<Globe className="w-[18px] h-[18px] text-white" />}
             iconBg="#0b3d91"
-            name="NASA"
-            description="Astronomy Picture of the Day"
+            name={t('settings.integrationsPage.nasa.name')}
+            description={t('settings.integrationsPage.nasa.description')}
             statusLabel={nasa.label}
             statusType={nasa.type}
           >
             <SecretField
-              label="API Key"
+              label={t('settings.integrationsPage.nasa.apiKeyLabel')}
               secretKey="nasa_api_key"
-              placeholder="Paste your NASA API key"
-              helpText="Free at api.nasa.gov — 1,000 requests/hour. Image Library search works without a key."
+              placeholder={t('settings.integrationsPage.nasa.apiKeyPlaceholder')}
+              helpText={t('settings.integrationsPage.nasa.apiKeyHelp')}
               status={!!status.nasa_api_key}
               onSaved={fetchStatus}
             />
@@ -255,22 +283,22 @@ export default function IntegrationsSection() {
       {/* Services — 2-col masonry */}
       <div className="mb-6">
         <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
-          Services
+          {t('settings.integrationsPage.groups.services')}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <IntegrationCard
             icon={<CheckCircle2 className="w-[18px] h-[18px] text-white" />}
             iconBg="#e44332"
-            name="Todoist"
-            description="Display tasks from your projects"
+            name={t('settings.integrationsPage.todoist.name')}
+            description={t('settings.integrationsPage.todoist.description')}
             statusLabel={todoist.label}
             statusType={todoist.type}
           >
             <SecretField
-              label="API Token"
+              label={t('settings.integrationsPage.todoist.tokenLabel')}
               secretKey="todoist_token"
-              placeholder="Paste your Todoist API token"
-              helpText="Get your token from app.todoist.com/app/settings/integrations/developer. Validated on save."
+              placeholder={t('settings.integrationsPage.todoist.tokenPlaceholder')}
+              helpText={t('settings.integrationsPage.todoist.tokenHelp')}
               status={!!status.todoist_token}
               onSaved={fetchStatus}
             />
@@ -279,16 +307,16 @@ export default function IntegrationsSection() {
           <IntegrationCard
             icon={<Send className="w-[18px] h-[18px] text-white" />}
             iconBg="#333333"
-            name="TomTom"
-            description="Traffic & commute times"
+            name={t('settings.integrationsPage.tomtom.name')}
+            description={t('settings.integrationsPage.tomtom.description')}
             statusLabel={tomtom.label}
             statusType={tomtom.type}
           >
             <SecretField
-              label="API Key"
+              label={t('settings.integrationsPage.tomtom.keyLabel')}
               secretKey="tomtom_key"
-              placeholder="Paste your TomTom API key"
-              helpText="Free at developer.tomtom.com — Routing API required. Alternative to Google Maps."
+              placeholder={t('settings.integrationsPage.tomtom.keyPlaceholder')}
+              helpText={t('settings.integrationsPage.tomtom.keyHelp')}
               status={!!status.tomtom_key}
               onSaved={fetchStatus}
             />
@@ -298,19 +326,19 @@ export default function IntegrationsSection() {
             <IntegrationCard
               icon={<GitHubIcon />}
               iconBg="#24292e"
-              name="GitHub"
-              description="Higher rate limit for version checks"
+              name={t('settings.integrationsPage.github.name')}
+              description={t('settings.integrationsPage.github.description')}
               statusLabel={github.label}
               statusType={github.type}
             >
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-hs-accent-soft text-hs-accent-hover text-[11px] mb-3">
-                Optional
+                {t('settings.integrationsPage.github.optionalBadge')}
               </div>
               <SecretField
-                label="Personal Access Token"
+                label={t('settings.integrationsPage.github.tokenLabel')}
                 secretKey="github_token"
-                placeholder="Paste your GitHub token"
-                helpText="Increases rate limit from 60 to 5,000 req/hr. Create at github.com/settings/tokens (no scopes needed)."
+                placeholder={t('settings.integrationsPage.github.tokenPlaceholder')}
+                helpText={t('settings.integrationsPage.github.tokenHelp')}
                 status={!!status.github_token}
                 onSaved={fetchStatus}
               />

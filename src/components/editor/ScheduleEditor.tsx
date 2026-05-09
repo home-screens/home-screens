@@ -1,11 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import type { ModuleSchedule } from '@/types/config';
-
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 interface ScheduleEditorProps {
   schedule: ModuleSchedule | undefined;
@@ -13,6 +14,17 @@ interface ScheduleEditorProps {
 }
 
 export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
+  const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  // Day-of-week labels follow the formatting locale (date-fns conventions),
+  // not the UI language — ['Sun', 'Mon', …] for en-US, ['So.', 'Mo.', …]
+  // for de-DE. Memoized so the schedule editor doesn't re-run 7
+  // formatDateSync calls on every parent re-render.
+  const dayLabels = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'short'),
+    [formattingLocale],
+  );
+
   const enabled = !!schedule;
 
   const setSchedule = (updates: Partial<ModuleSchedule>) => {
@@ -37,15 +49,15 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
   return (
     <div className="space-y-3">
-      <PropertyGroup title="Status" accent={1}>
-        <Toggle label="Enable Schedule" checked={enabled} onChange={toggleEnabled} />
+      <PropertyGroup title={t('scheduleEditor.statusTitle')} accent={1}>
+        <Toggle label={t('scheduleEditor.enableLabel')} checked={enabled} onChange={toggleEnabled} />
       </PropertyGroup>
 
       {enabled && (
         <>
-          <PropertyGroup title="Days" accent={2}>
+          <PropertyGroup title={t('scheduleEditor.daysTitle')} accent={2}>
             <div className="flex gap-1">
-              {DAYS.map((label, i) => {
+              {dayLabels.map((label, i) => {
                 const days = schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
                 const active = days.includes(i);
                 return (
@@ -66,10 +78,10 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
             </div>
           </PropertyGroup>
 
-          <PropertyGroup title="Time window" accent={3}>
+          <PropertyGroup title={t('scheduleEditor.timeWindowTitle')} accent={3}>
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">From</span>
+                <span className="text-xs text-hs-text-muted">{t('scheduleEditor.fromLabel')}</span>
                 <input
                   type="time"
                   value={schedule?.startTime ?? ''}
@@ -78,7 +90,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                 />
               </label>
               <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">Until</span>
+                <span className="text-xs text-hs-text-muted">{t('scheduleEditor.untilLabel')}</span>
                 <input
                   type="time"
                   value={schedule?.endTime ?? ''}
@@ -89,9 +101,9 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
             </div>
           </PropertyGroup>
 
-          <PropertyGroup title="Behavior" accent={4}>
+          <PropertyGroup title={t('scheduleEditor.behaviorTitle')} accent={4}>
             <Toggle
-              label="Invert (hide during window)"
+              label={t('scheduleEditor.invertLabel')}
               checked={!!schedule?.invert}
               onChange={(v) => setSchedule({ invert: v || undefined })}
             />

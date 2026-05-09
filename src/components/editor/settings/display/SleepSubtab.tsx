@@ -9,6 +9,7 @@ import type {
   SleepSettings,
 } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import SleepFormFields, {
   type SleepFormValues,
 } from './SleepFormFields';
@@ -37,6 +38,7 @@ interface SleepSubtabProps {
  * "single rounded card with override button at the top" CTA layout.
  */
 export default function SleepSubtab({ config, display }: SleepSubtabProps) {
+  const t = useTranslate('editor');
   const { updateDisplaySettings, saveConfig } = useEditorStore();
   const isForked = !!(display.settings?.sleep || display.settings?.screensaver);
   // Resolve each half independently against the global default. If only one
@@ -74,21 +76,20 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
 
   return (
     <WholeBlockOverrideCard
-      label="Sleep schedule"
+      label={t('settings.perDisplayPage.sleep.label')}
       displayName={display.name}
       defaultsHref="?section=defaults&page=sleep"
-      defaultsLabel="Defaults → Sleep"
+      defaultsLabel={t('settings.perDisplayPage.sleep.defaultsLabel')}
       infoCopy={
         <>
-          Sleep is overridden as a whole block — you can&apos;t fork individual fields like dim
-          time. The default lives on{' '}
+          {t('settings.perDisplayPage.sleep.infoPart1')}
           <Link
             href="?section=defaults&page=sleep"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
-            Defaults → Sleep
+            {t('settings.perDisplayPage.sleep.defaultsLabel')}
           </Link>
-          .
+          {t('settings.perDisplayPage.sleep.infoPart2')}
         </>
       }
       isForked={isForked}

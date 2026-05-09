@@ -8,6 +8,7 @@ import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import { INPUT_CLASS } from './PropertyPanel';
 import { X, Plus } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 
 interface PluginConfigRendererProps {
   mod: ModuleInstance;
@@ -304,6 +305,7 @@ function ArrayEditor({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  const t = useTranslate('editor');
   const items = Array.isArray(value) ? value : (Array.isArray(prop.default) ? prop.default as unknown[] : []);
   const itemSchema = prop.items;
 
@@ -377,7 +379,7 @@ function ArrayEditor({
               type="button"
               onClick={() => removeItem(i)}
               className="p-1 text-hs-text-faint hover:text-hs-danger transition-colors flex-shrink-0 mt-0.5"
-              title="Remove"
+              title={t('common.remove')}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -391,7 +393,7 @@ function ArrayEditor({
           className="flex items-center gap-1 text-xs text-hs-text-muted hover:text-hs-text-body transition-colors mt-0.5"
         >
           <Plus className="w-3 h-3" />
-          Add
+          {t('common.add')}
         </button>
       )}
     </div>

@@ -4,11 +4,12 @@ import { useState, useMemo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ChevronRight, Puzzle } from 'lucide-react';
-import { getModulesByCategory } from '@/lib/module-registry';
+import { getModulesByCategory, categorySlug } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
 import { usePluginStore } from '@/stores/plugin-store';
+import { useTranslate } from '@/i18n';
 
-function PaletteItem({ definition }: { definition: ModuleDefinition }) {
+function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinition; displayLabel: string }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `palette-${definition.type}`,
     data: { source: 'palette', moduleType: definition.type },
@@ -25,7 +26,7 @@ function PaletteItem({ definition }: { definition: ModuleDefinition }) {
       }`}
     >
       <definition.icon className="w-4 h-4 text-hs-text-muted flex-shrink-0" />
-      <span className="text-sm text-hs-text-body">{definition.label}</span>
+      <span className="text-sm text-hs-text-body">{displayLabel}</span>
       {isPlugin && (
         <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20" title="Community plugin">
           <Puzzle className="w-3 h-3 text-violet-500" />
@@ -36,14 +37,18 @@ function PaletteItem({ definition }: { definition: ModuleDefinition }) {
   );
 }
 
+interface ResolvedModule extends ModuleDefinition {
+  displayLabel: string;
+}
+
 function CategoryGroup({
-  category,
+  categoryLabel,
   modules,
   open,
   onToggle,
 }: {
-  category: string;
-  modules: ModuleDefinition[];
+  categoryLabel: string;
+  modules: ResolvedModule[];
   open: boolean;
   onToggle: () => void;
 }) {
@@ -60,7 +65,7 @@ function CategoryGroup({
           }`}
         />
         <span className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider">
-          {category}
+          {categoryLabel}
         </span>
         <span className="text-[10px] text-hs-text-faint ml-auto">{modules.length}</span>
       </button>
@@ -75,7 +80,7 @@ function CategoryGroup({
           >
             <div className="flex flex-col gap-1.5 pb-2">
               {modules.map((def) => (
-                <PaletteItem key={def.type} definition={def} />
+                <PaletteItem key={def.type} definition={def} displayLabel={def.displayLabel} />
               ))}
             </div>
           </motion.div>
@@ -86,6 +91,7 @@ function CategoryGroup({
 }
 
 export default function ModulePalette() {
+  const t = useTranslate('editor');
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   // Subscribe to plugin store size so the palette re-renders when plugins load/unload
@@ -97,25 +103,39 @@ export default function ModulePalette() {
     return getModulesByCategory();
   }, [pluginCount]);
 
+  const resolvedGroups = useMemo(() => {
+    const groups: { category: string; categoryLabel: string; modules: ResolvedModule[] }[] = [];
+    for (const [category, modules] of grouped) {
+      const slug = categorySlug(category);
+      const categoryLabel = slug ? t(`registry.categories.${slug}`) : category;
+      const resolved: ResolvedModule[] = modules.map((m) => ({
+        ...m,
+        displayLabel: m.type.startsWith('plugin:') ? m.label : t(`registry.types.${m.type}`),
+      }));
+      groups.push({ category, categoryLabel, modules: resolved });
+    }
+    return groups;
+  }, [grouped, t]);
+
   const query = search.toLowerCase().trim();
 
   const filteredGroups = useMemo(() => {
-    const result: [string, ModuleDefinition[]][] = [];
-    for (const [category, modules] of grouped) {
+    const result: { category: string; categoryLabel: string; modules: ResolvedModule[] }[] = [];
+    for (const group of resolvedGroups) {
       const filtered = query
-        ? modules.filter(
+        ? group.modules.filter(
             (m) =>
-              m.label.toLowerCase().includes(query) ||
+              m.displayLabel.toLowerCase().includes(query) ||
               m.type.toLowerCase().includes(query) ||
-              category.toLowerCase().includes(query),
+              group.categoryLabel.toLowerCase().includes(query),
           )
-        : modules;
+        : group.modules;
       if (filtered.length > 0) {
-        result.push([category, filtered]);
+        result.push({ category: group.category, categoryLabel: group.categoryLabel, modules: filtered });
       }
     }
     return result;
-  }, [grouped, query]);
+  }, [resolvedGroups, query]);
 
   return (
     <div className="w-56 flex-shrink-0 bg-hs-panel border-r border-hs-border-strong flex flex-col overflow-hidden">
@@ -138,10 +158,10 @@ export default function ModulePalette() {
         {filteredGroups.length === 0 ? (
           <p className="text-xs text-hs-text-faint text-center py-4">No modules found</p>
         ) : (
-          filteredGroups.map(([category, modules]) => (
+          filteredGroups.map(({ category, categoryLabel, modules }) => (
             <CategoryGroup
               key={category}
-              category={category}
+              categoryLabel={categoryLabel}
               modules={modules}
               open={!collapsed.has(category)}
               onToggle={() =>

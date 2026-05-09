@@ -28,10 +28,12 @@ import PropertyPanel from '@/components/editor/PropertyPanel';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import PluginStorePanel from '@/components/editor/PluginStorePanel';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 const MIN_EDITOR_WIDTH = 768;
 
 export default function EditorPage() {
+  const t = useTranslate('editor');
   const {
     config,
     selectedDisplayId,
@@ -178,7 +180,7 @@ export default function EditorPage() {
   if (!config || pluginLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-hs-text-faint">
-        Loading...
+        {t('page.loading')}
       </div>
     );
   }
@@ -188,10 +190,10 @@ export default function EditorPage() {
       <div className="h-screen flex flex-col items-center justify-center gap-3 px-6 text-center bg-hs-body">
         <HomeScreensLogo />
         <p className="text-hs-text-secondary text-sm">
-          The editor requires a screen at least {MIN_EDITOR_WIDTH}px wide.
+          {t('page.tooNarrowMessage', { minWidth: MIN_EDITOR_WIDTH })}
         </p>
         <p className="text-hs-text-faint text-xs">
-          Please use a desktop browser or widen your window.
+          {t('page.tooNarrowHint')}
         </p>
       </div>
     );
@@ -213,7 +215,7 @@ export default function EditorPage() {
               variant="secondary"
               onClick={() => setShowPluginStore(true)}
             >
-              Plugins
+              {t('page.toolbar.pluginsButton')}
             </Button>
             <Button
               variant="secondary"
@@ -222,7 +224,7 @@ export default function EditorPage() {
                 router.push('/editor/settings');
               }}
             >
-              Settings
+              {t('page.toolbar.settingsButton')}
             </Button>
             <Button
               variant="secondary"
@@ -233,23 +235,23 @@ export default function EditorPage() {
                 window.open(url, '_blank');
               }}
             >
-              Preview
+              {t('page.toolbar.previewButton')}
             </Button>
             <div className="min-w-24 flex items-center justify-end gap-1.5" aria-live="polite">
               {saveError ? (
                 <span role="alert" className="flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 text-hs-danger" />
-                  <span className="text-xs text-hs-danger">Save failed</span>
+                  <span className="text-xs text-hs-danger">{t('page.toolbar.saveFailed')}</span>
                   <Button variant="secondary" size="sm" onClick={saveConfig}>
-                    Retry
+                    {t('page.toolbar.retryButton')}
                   </Button>
                 </span>
               ) : isSaving ? (
-                <span className="text-xs text-hs-text-faint">Saving...</span>
+                <span className="text-xs text-hs-text-faint">{t('page.toolbar.savingStatus')}</span>
               ) : !isDirty ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-hs-success" />
-                  <span className="text-xs text-hs-success">Saved</span>
+                  <span className="text-xs text-hs-success">{t('page.toolbar.savedStatus')}</span>
                 </>
               ) : null}
             </div>
@@ -267,10 +269,17 @@ export default function EditorPage() {
         {activePaletteType && (() => {
           const def = getModuleDefinition(activePaletteType as ModuleType);
           if (!def) return null;
+          // Mirror ModulePalette: built-in module types resolve through the
+          // editor.registry.types.* dictionary; plugin-registered modules
+          // keep their manifest-supplied label verbatim (translated by the
+          // plugin author or intentionally English).
+          const label = activePaletteType.startsWith('plugin:')
+            ? def.label
+            : t(`registry.types.${activePaletteType}`);
           return (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-hs-card border border-hs-accent shadow-lg shadow-hs-accent/20 cursor-grabbing">
               <def.icon className="w-5 h-5 text-hs-accent-hover" />
-              <span className="text-sm text-hs-text-body">{def.label}</span>
+              <span className="text-sm text-hs-text-body">{label}</span>
             </div>
           );
         })()}

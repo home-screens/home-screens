@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 
 interface ProfileSubtabProps {
   config: ScreenConfiguration;
@@ -28,6 +29,7 @@ interface ProfileSubtabProps {
  * `filterConfigForDisplay` uses on the server.
  */
 export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
+  const t = useTranslate('editor');
   const { updateDisplay, saveConfig } = useEditorStore();
   const profilePool = display.profiles ?? config.profiles ?? [];
   const activeProfileId = display.activeProfile ?? config.settings.activeProfile ?? '';
@@ -41,13 +43,15 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
     <div className="rounded-lg border border-hs-border bg-hs-panel/40">
       <div className="px-4 py-3.5">
         <label className="block">
-          <span className="text-xs text-hs-text-muted">Active profile</span>
+          <span className="text-xs text-hs-text-muted">
+            {t('settings.perDisplayPage.profile.activeProfileLabel')}
+          </span>
           <select
             value={activeProfileId}
             onChange={(e) => handleActiveProfileChange(e.target.value)}
             className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
-            <option value="">— None —</option>
+            <option value="">{t('settings.perDisplayPage.profile.noneOption')}</option>
             {profilePool.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -55,14 +59,14 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
             ))}
           </select>
           <p className="text-[11px] text-hs-text-faint mt-1.5">
-            Which profile {display.name} is currently displaying. Profile definitions live on{' '}
+            {t('settings.perDisplayPage.profile.helpPart1', { name: display.name })}
             <Link
               href="?section=defaults&page=profiles"
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
-              Defaults → Profiles
+              {t('settings.perDisplayPage.profile.helpLink')}
             </Link>
-            .
+            {t('settings.perDisplayPage.profile.helpPart2')}
           </p>
         </label>
       </div>

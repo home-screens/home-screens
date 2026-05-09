@@ -9,6 +9,7 @@ import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
@@ -47,6 +48,7 @@ function DragGhost({
   displayWidth,
   displayHeight,
   snap,
+  t,
 }: {
   mod: ModuleInstance;
   scale: number;
@@ -55,6 +57,7 @@ function DragGhost({
   displayWidth: number;
   displayHeight: number;
   snap: boolean;
+  t: TranslateFn;
 }) {
   const rawX = mod.position.x + deltaX / scale;
   const rawY = mod.position.y + deltaY / scale;
@@ -74,6 +77,7 @@ function DragGhost({
         zIndex: 9999,
         backgroundColor: 'var(--hs-accent-soft)',
       }}
+      aria-label={t('canvas.ghostCoordinatesAriaLabel', { x: snappedX, y: snappedY })}
     >
       <div className="absolute -top-5 left-0 text-[10px] text-hs-accent-hover whitespace-nowrap font-mono">
         {snappedX}, {snappedY}
@@ -83,6 +87,7 @@ function DragGhost({
 }
 
 export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChange?: (scale: number) => void; canvasRef?: React.RefObject<HTMLDivElement | null> }) {
+  const t = useTranslate('editor');
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerCanvasRef = useRef<HTMLDivElement>(null);
   const [baseScale, setBaseScale] = useState(0.4);
@@ -226,7 +231,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-hs-text-faint">
         <LayoutDashboard size={40} strokeWidth={1.5} className="opacity-30" />
-        <p className="text-sm">No screen selected</p>
+        <p className="text-sm">{t('canvas.noScreenSelected')}</p>
       </div>
     );
   }
@@ -291,6 +296,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                     displayWidth={displayWidth}
                     displayHeight={displayHeight}
                     snap={snapEnabled}
+                    t={t}
                   />
                 ) : null;
               })()}
@@ -306,8 +312,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           onClick={() => useEditorStore.getState().undo()}
           disabled={!canUndo}
           className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title="Undo (Cmd+Z)"
-          aria-label="Undo"
+          title={t('canvas.undoTitle')}
+          aria-label={t('canvas.undoAriaLabel')}
         >
           <Undo2 className="h-3.5 w-3.5" />
         </button>
@@ -315,8 +321,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           onClick={() => useEditorStore.getState().redo()}
           disabled={!canRedo}
           className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title="Redo (Cmd+Shift+Z)"
-          aria-label="Redo"
+          title={t('canvas.redoTitle')}
+          aria-label={t('canvas.redoAriaLabel')}
         >
           <Redo2 className="h-3.5 w-3.5" />
         </button>
@@ -331,8 +337,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               ? 'text-hs-accent-hover hover:bg-hs-card hover:text-hs-accent-hover'
               : 'text-hs-text-muted hover:bg-hs-card hover:text-hs-text-body'
           }`}
-          title={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
-          aria-label={snapEnabled ? 'Snap to grid (on)' : 'Snap to grid (off)'}
+          title={snapEnabled ? t('canvas.snapOnTitle') : t('canvas.snapOffTitle')}
+          aria-label={snapEnabled ? t('canvas.snapOnTitle') : t('canvas.snapOffTitle')}
           aria-pressed={snapEnabled}
         >
           <Grid3x3 className="h-3.5 w-3.5" />
@@ -345,20 +351,20 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           onClick={zoomOut}
           disabled={userZoom <= 0.25}
           className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title="Zoom out (Cmd+-)"
-          aria-label="Zoom out"
+          title={t('canvas.zoomOutTitle')}
+          aria-label={t('canvas.zoomOutAriaLabel')}
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </button>
         <span className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-hs-text-muted">
-          {Math.round(userZoom * 100)}%
+          {t('canvas.zoomPercent', { percent: Math.round(userZoom * 100) })}
         </span>
         <button
           onClick={zoomIn}
           disabled={userZoom >= 3.0}
           className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title="Zoom in (Cmd+=)"
-          aria-label="Zoom in"
+          title={t('canvas.zoomInTitle')}
+          aria-label={t('canvas.zoomInAriaLabel')}
         >
           <ZoomIn className="h-3.5 w-3.5" />
         </button>
@@ -369,8 +375,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
             <button
               onClick={resetZoom}
               className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body"
-              title="Fit to screen (Cmd+0)"
-              aria-label="Fit to screen"
+              title={t('canvas.fitTitle')}
+              aria-label={t('canvas.fitAriaLabel')}
             >
               <Maximize className="h-3.5 w-3.5" />
             </button>

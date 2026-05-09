@@ -3,15 +3,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import type { SavedNetwork } from './types';
 
 /* ─── Helpers ──────────────────────────────── */
 
-function formatLastUsed(iso: string): string {
-  if (iso === 'never') return 'Never used';
+function formatLastUsed(iso: string, t: TranslateFn, formattingLocale: string): string {
+  if (iso === 'never') return t('settings.networkPage.savedNetworks.neverUsed');
   try {
     const d = new Date(iso);
-    return `Last used ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    if (isNaN(d.getTime())) return iso;
+    const formatted = d.toLocaleDateString(formattingLocale, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    return t('settings.networkPage.savedNetworks.lastUsed', { date: formatted });
   } catch {
     return iso;
   }
@@ -27,6 +34,8 @@ interface SavedNetworksSectionProps {
 /* ─── Component ────────────────────────────── */
 
 export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectionProps) {
+  const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
   const [networks, setNetworks] = useState<SavedNetwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,23 +45,26 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
 
   /* ── Fetch saved networks ──────────────────── */
 
-  const fetchSaved = useCallback(async (withPasswords = false) => {
-    try {
-      const qs = withPasswords ? '?showPasswords=true' : '';
-      const res = await editorFetch(`/api/system/network/wifi/saved${qs}`);
-      if (res.ok) {
-        const data: SavedNetwork[] = await res.json();
-        setNetworks(data);
-        setError(null);
-      } else {
-        setError('Failed to load saved networks');
+  const fetchSaved = useCallback(
+    async (withPasswords = false) => {
+      try {
+        const qs = withPasswords ? '?showPasswords=true' : '';
+        const res = await editorFetch(`/api/system/network/wifi/saved${qs}`);
+        if (res.ok) {
+          const data: SavedNetwork[] = await res.json();
+          setNetworks(data);
+          setError(null);
+        } else {
+          setError(t('settings.networkPage.savedNetworks.loadError'));
+        }
+      } catch {
+        setError(t('settings.networkPage.savedNetworks.networkErrorMessage'));
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setError('Failed to reach server');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [t],
+  );
 
   useEffect(() => {
     fetchSaved(showPasswords);
@@ -86,9 +98,11 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
     return (
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Saved Networks
+          {t('settings.networkPage.savedNetworks.heading')}
         </h3>
-        <p className="text-xs text-hs-text-faint">Loading saved networks...</p>
+        <p className="text-xs text-hs-text-faint">
+          {t('settings.networkPage.savedNetworks.loading')}
+        </p>
       </section>
     );
   }
@@ -97,7 +111,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
     return (
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Saved Networks
+          {t('settings.networkPage.savedNetworks.heading')}
         </h3>
         <p className="text-xs text-hs-danger">{error}</p>
       </section>
@@ -108,9 +122,11 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
     return (
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Saved Networks
+          {t('settings.networkPage.savedNetworks.heading')}
         </h3>
-        <p className="text-xs text-hs-text-faint">No saved WiFi networks.</p>
+        <p className="text-xs text-hs-text-faint">
+          {t('settings.networkPage.savedNetworks.empty')}
+        </p>
       </section>
     );
   }
@@ -119,14 +135,16 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
     <section>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
-          Saved Networks
+          {t('settings.networkPage.savedNetworks.heading')}
         </h3>
         <button
           type="button"
           onClick={() => setShowPasswords(!showPasswords)}
           className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
         >
-          {showPasswords ? 'Hide passwords' : 'Show passwords'}
+          {showPasswords
+            ? t('settings.networkPage.savedNetworks.hidePasswords')
+            : t('settings.networkPage.savedNetworks.showPasswords')}
         </button>
       </div>
       <div className="space-y-1">
@@ -141,11 +159,11 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
                 {network.name}
               </span>
               <div className="flex items-center gap-2 text-xs text-hs-text-muted">
-                <span>{formatLastUsed(network.lastUsed)}</span>
+                <span>{formatLastUsed(network.lastUsed, t, formattingLocale)}</span>
                 {network.autoconnect && (
                   <>
                     <span className="text-hs-text-faint">&middot;</span>
-                    <span>Auto-connect</span>
+                    <span>{t('settings.networkPage.savedNetworks.autoConnect')}</span>
                   </>
                 )}
               </div>
@@ -159,21 +177,25 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
             {/* Forget button / confirmation */}
             {confirmForgetId === network.id ? (
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-xs text-hs-text-muted">Forget?</span>
+                <span className="text-xs text-hs-text-muted">
+                  {t('settings.networkPage.savedNetworks.forgetPrompt')}
+                </span>
                 <Button
                   variant="danger"
                   size="sm"
                   disabled={forgettingId === network.id}
                   onClick={() => handleForget(network.id)}
                 >
-                  {forgettingId === network.id ? 'Removing...' : 'Yes'}
+                  {forgettingId === network.id
+                    ? t('settings.networkPage.savedNetworks.forgettingButton')
+                    : t('settings.networkPage.savedNetworks.forgetConfirmYes')}
                 </Button>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => setConfirmForgetId(null)}
                 >
-                  No
+                  {t('settings.networkPage.savedNetworks.forgetConfirmNo')}
                 </Button>
               </div>
             ) : (
@@ -183,7 +205,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
                 onClick={() => setConfirmForgetId(network.id)}
                 className="shrink-0"
               >
-                Forget
+                {t('settings.networkPage.savedNetworks.forgetButton')}
               </Button>
             )}
           </div>

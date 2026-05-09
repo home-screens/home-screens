@@ -7,6 +7,8 @@ import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
+import { useConfirmStore } from '@/stores/confirm-store';
 import type {
   ChoreMember,
   ChoreDefinition,
@@ -16,9 +18,6 @@ import type {
 } from '@/types/config';
 import {
   MEMBER_COLORS,
-  DAY_NAMES_SHORT,
-  DAY_NAMES_FULL,
-  TIME_OF_DAY_META,
   getOrderedDays,
   resolveAssignee,
   choreAppliesToday,
@@ -29,7 +28,9 @@ import {
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
+  getTimeOfDayLabelKey,
 } from '@/components/modules/chore-chart/types';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import ChoreIcon, {
   MEMBER_ICONS,
   CHORE_ICONS,
@@ -59,6 +60,7 @@ function MemberForm({
   onSubmit: (data: Omit<ChoreMember, 'id'>) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslate('editor');
   const f = useMemberForm(initial);
   const submit = () => f.submit(onSubmit);
 
@@ -66,7 +68,7 @@ function MemberForm({
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
       <input
         type="text"
-        placeholder="Name..."
+        placeholder={t('choreChartModal.memberForm.namePlaceholder')}
         value={f.name}
         onChange={(e) => f.setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -78,13 +80,13 @@ function MemberForm({
         value={f.emoji}
         onChange={f.setEmoji}
         icons={MEMBER_ICONS}
-        label="Avatar"
+        label={t('choreChartModal.memberForm.avatarLabel')}
         variant="desktop"
       />
 
       {/* Color picker */}
       <div className="space-y-1.5">
-        <span className="text-xs text-hs-text-muted">Color</span>
+        <span className="text-xs text-hs-text-muted">{t('choreChartModal.memberForm.colorLabel')}</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {MEMBER_COLORS.map((c) => (
             <button
@@ -100,7 +102,7 @@ function MemberForm({
           <label
             className="w-6 h-6 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 border-dashed border-hs-border-strong hover:border-hs-text-secondary relative"
             style={!MEMBER_COLORS.includes(f.color) ? { backgroundColor: f.color, borderStyle: 'solid', borderColor: 'white' } : undefined}
-            title="Pick custom color"
+            title={t('choreChartModal.memberForm.customColorTitle')}
           >
             {MEMBER_COLORS.includes(f.color) && (
               <span className="text-hs-text-faint text-[10px] font-bold leading-none">+</span>
@@ -120,7 +122,7 @@ function MemberForm({
           {submitLabel}
         </Button>
         <Button size="sm" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
       </div>
     </div>
@@ -128,6 +130,33 @@ function MemberForm({
 }
 
 // ── Chore Form ────────────────────────────────────────────────────
+
+/**
+ * Discriminated kind for the chore-form validation hint. We compute it
+ * locally inside the modal (rather than reading the English literal
+ * from `form-hooks.ts`, which is out of i18n scope for this task) so
+ * the rendered hint always resolves through `t()`.
+ */
+type ChoreValidationHintKind =
+  | 'enterName'
+  | 'addPersonToSchedule'
+  | 'selectAtLeastOnePerson';
+
+function getChoreValidationHintKind(args: {
+  name: string;
+  rotation: ChoreRotation;
+  scheduleHasAssignment: boolean;
+  assigneeIdsLength: number;
+}): ChoreValidationHintKind | null {
+  if (!args.name.trim()) return 'enterName';
+  if (args.rotation === 'schedule' && !args.scheduleHasAssignment) {
+    return 'addPersonToSchedule';
+  }
+  if (args.rotation !== 'schedule' && args.assigneeIdsLength === 0) {
+    return 'selectAtLeastOnePerson';
+  }
+  return null;
+}
 
 function ChoreForm({
   initial,
@@ -142,6 +171,17 @@ function ChoreForm({
   onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslate('editor');
+  const tModules = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  // Day-of-week labels follow the formatting locale, not the UI language.
+  // Memoize so re-renders during day toggles don't redo seven
+  // `formatDateSync` calls each tick.
+  const dayNamesShort = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'short'),
+    [formattingLocale],
+  );
+
   const f = useChoreForm(initial, members);
   const {
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
@@ -150,15 +190,47 @@ function ChoreForm({
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
     scheduleMembers, scheduleDays, unscheduledMembers,
-    canSave, validationHint,
+    canSave,
   } = f;
   const submit = () => f.submit(onSubmit);
+
+  const scheduleHasAssignment = rotation === 'schedule'
+    ? Object.values(schedule).some((days) => days.length > 0)
+    : true;
+  const validationHintKind = getChoreValidationHintKind({
+    name,
+    rotation,
+    scheduleHasAssignment,
+    assigneeIdsLength: assigneeIds.length,
+  });
+
+  // `t` is locale-stable per provider.tsx, so a `[t]` dep is the correct
+  // shape — the maps rebuild only when the active locale changes, not on
+  // every keystroke that re-renders ChoreForm.
+  const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
+    () => ({
+      daily: t('choreChartModal.frequency.daily'),
+      weekly: t('choreChartModal.frequency.weekly'),
+      biweekly: t('choreChartModal.frequency.biweekly'),
+      once: t('choreChartModal.frequency.once'),
+    }),
+    [t],
+  );
+  const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
+    () => ({
+      fixed: t('choreChartModal.rotation.fixed'),
+      'rotate-daily': t('choreChartModal.rotation.rotateDaily'),
+      'rotate-weekly': t('choreChartModal.rotation.rotateWeekly'),
+      schedule: t('choreChartModal.rotation.schedule'),
+    }),
+    [t],
+  );
 
   return (
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
       <input
         type="text"
-        placeholder="Chore name..."
+        placeholder={t('choreChartModal.choreForm.namePlaceholder')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -170,14 +242,14 @@ function ChoreForm({
         value={emoji}
         onChange={setEmoji}
         icons={CHORE_ICONS}
-        label="Icon"
+        label={t('choreChartModal.choreForm.iconLabel')}
         variant="desktop"
       />
 
       {/* Points & Frequency */}
       <div className="flex gap-2">
         <label className="flex flex-col gap-0.5 w-20">
-          <span className="text-xs text-hs-text-muted">Tickets</span>
+          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.ticketsLabel')}</span>
           <input
             type="number"
             value={points}
@@ -187,27 +259,27 @@ function ChoreForm({
           />
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Frequency</span>
+          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.frequencyLabel')}</span>
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
             className={MODAL_INPUT_CLASS}
           >
-            {CHORE_FREQUENCIES.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
+            {CHORE_FREQUENCIES.map((opt) => (
+              <option key={opt.value} value={opt.value}>{frequencyLabelMap[opt.value]}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">Time of Day</span>
+          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.timeOfDayLabel')}</span>
           <select
             value={timeOfDay}
             onChange={(e) => setTimeOfDay(e.target.value as ChoreTimeOfDay)}
             className={MODAL_INPUT_CLASS}
           >
-            {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((t) => (
-              <option key={t} value={t}>
-                {TIME_OF_DAY_META[t].label}
+            {(['morning', 'afternoon', 'evening', 'anytime'] as const).map((tod) => (
+              <option key={tod} value={tod}>
+                {tModules(getTimeOfDayLabelKey(tod))}
               </option>
             ))}
           </select>
@@ -218,7 +290,9 @@ function ChoreForm({
         <>
           {/* Days — date picker for one-time, day-of-week toggles for recurring */}
           <div className="space-y-1.5">
-            <span className="text-xs text-hs-text-muted">{frequency === 'once' ? 'Date' : 'Days'}</span>
+            <span className="text-xs text-hs-text-muted">
+              {frequency === 'once' ? t('choreChartModal.choreForm.dateLabel') : t('choreChartModal.choreForm.daysLabel')}
+            </span>
             {frequency === 'once' ? (
               <input
                 type="date"
@@ -239,7 +313,7 @@ function ChoreForm({
                         : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
                     }`}
                   >
-                    {DAY_NAMES_SHORT[d][0]}
+                    {dayNamesShort[d][0]}
                   </button>
                 ))}
               </div>
@@ -248,7 +322,7 @@ function ChoreForm({
 
           {/* Assignees */}
           <div className="space-y-1.5">
-            <span className="text-xs text-hs-text-muted">Assign to</span>
+            <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.assignToLabel')}</span>
             <div className="flex flex-wrap gap-1.5">
               {members.map((m) => (
                 <button
@@ -273,12 +347,12 @@ function ChoreForm({
       {/* Schedule grid (when rotation = schedule) */}
       {rotation === 'schedule' && (
         <div className="space-y-1.5">
-          <span className="text-xs text-hs-text-muted">Weekly Schedule</span>
+          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.weeklyScheduleLabel')}</span>
           {/* Day headers */}
           <div className="flex gap-0.5" style={{ paddingLeft: 72 }}>
             {[0, 1, 2, 3, 4, 5, 6].map((d) => (
               <div key={d} className="flex-1 text-center text-[10px] font-semibold text-hs-text-faint">
-                {DAY_NAMES_SHORT[d][0]}
+                {dayNamesShort[d][0]}
               </div>
             ))}
           </div>
@@ -310,7 +384,7 @@ function ChoreForm({
                           }`}
                           style={isOn ? { background: member.color, color: 'white' } : undefined}
                         >
-                          {DAY_NAMES_SHORT[d][0]}
+                          {dayNamesShort[d][0]}
                         </button>
                       );
                     })}
@@ -336,11 +410,16 @@ function ChoreForm({
           )}
           {/* Coverage summary */}
           <div className="text-[11px] text-hs-text-faint flex items-center gap-1.5">
-            <span>Coverage: {scheduleDays.length} of 7 days</span>
+            <span>{t('choreChartModal.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
             {scheduleDays.length < 7 && (
-              <span className="text-hs-warning/70">
-                · {[0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => DAY_NAMES_SHORT[d]).join(', ')} uncovered
-              </span>
+              <>
+                {' · '}
+                <span className="text-hs-warning/70">
+                  {t('choreChartModal.choreForm.coverageUncovered', {
+                    days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
+                  })}
+                </span>
+              </>
             )}
           </div>
         </div>
@@ -349,7 +428,7 @@ function ChoreForm({
       {/* Rotation (only when 2+ assignees and not a one-time chore) */}
       {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Rotation</span>
+          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.rotationLabel')}</span>
           <select
             value={rotation}
             onChange={(e) => {
@@ -360,22 +439,24 @@ function ChoreForm({
             }}
             className={MODAL_INPUT_CLASS}
           >
-            {CHORE_ROTATIONS.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
+            {CHORE_ROTATIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{rotationLabelMap[opt.value]}</option>
             ))}
           </select>
         </label>
       )}
 
-      {validationHint && (
-        <p className="text-xs text-hs-warning/80">{validationHint}</p>
+      {validationHintKind && (
+        <p className="text-xs text-hs-warning/80">
+          {t(`choreChartModal.choreForm.validation.${validationHintKind}`)}
+        </p>
       )}
       <div className="flex gap-2 pt-1">
         <Button variant="primary" size="sm" onClick={submit} className="flex-1" disabled={!canSave}>
           {submitLabel}
         </Button>
         <Button size="sm" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
       </div>
     </div>
@@ -395,6 +476,13 @@ function WeeklyPreview({
   weekStartDay: 'sunday' | 'monday';
   accentColor: string;
 }) {
+  const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  const dayNamesFull = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'full'),
+    [formattingLocale],
+  );
+
   const days = getOrderedDays(weekStartDay);
   const today = new Date().getDay();
 
@@ -452,10 +540,12 @@ function WeeklyPreview({
                 opacity: isToday ? 1 : 0.6,
               }}
             >
-              {isToday ? `Today (${DAY_NAMES_FULL[day]})` : DAY_NAMES_FULL[day]}
+              {isToday
+                ? t('choreChartModal.preview.todayLabel', { day: dayNamesFull[day] })
+                : dayNamesFull[day]}
             </div>
             {dayChores.length === 0 ? (
-              <div className="text-[11px] text-hs-text-faint pl-2">No chores</div>
+              <div className="text-[11px] text-hs-text-faint pl-2">{t('choreChartModal.preview.noChores')}</div>
             ) : (
               dayChores.map((chore) => {
                 const assignees = resolveAssignee(chore, dateStr);
@@ -467,7 +557,7 @@ function WeeklyPreview({
                   >
                     {chore.emoji && <ChoreIcon value={chore.emoji} size={12} color="currentColor" />}
                     <span className="text-hs-text-secondary">{chore.name}</span>
-                    <span className="text-hs-text-faint">&rarr;</span>
+                    <span className="text-hs-text-faint">{t('choreChartModal.choreSummary.arrow')}</span>
                     {assignees.map((aid) => {
                       const m = members.find((x) => x.id === aid);
                       if (!m) return null;
@@ -479,7 +569,7 @@ function WeeklyPreview({
                       );
                     })}
                     {isRotated && (
-                      <span className="text-hs-text-faint text-[10px]">&larr; rot</span>
+                      <span className="text-hs-text-faint text-[10px]">{t('choreChartModal.choreSummary.rotatedShort')}</span>
                     )}
                   </div>
                 );
@@ -492,16 +582,19 @@ function WeeklyPreview({
       {/* Weekly totals */}
       <div className="pt-2 border-t border-hs-border-strong/50">
         <div className="text-xs font-semibold mb-1.5 opacity-60">
-          Weekly totals
+          {t('choreChartModal.preview.weeklyTotalsHeading')}
         </div>
         {members.map((m) => {
-          const t = totals[m.id];
+          const totalsForMember = totals[m.id];
           return (
             <div key={m.id} className="flex items-center gap-1.5 text-[11px] py-0.5 pl-2">
               {m.emoji && <ChoreIcon value={m.emoji} size={11} color="currentColor" />}
               <span className="text-hs-text-secondary">{m.name}:</span>
               <span className="text-hs-text-muted">
-                {t?.chores ?? 0} chores, {t?.points ?? 0} tickets
+                {t('choreChartModal.preview.memberLine', {
+                  chores: totalsForMember?.chores ?? 0,
+                  tickets: totalsForMember?.points ?? 0,
+                })}
               </span>
             </div>
           );
@@ -534,18 +627,19 @@ function MemberColumn({
   updateMember,
   deleteMember,
 }: MemberColumnProps) {
+  const t = useTranslate('editor');
   return (
     <div className="w-[260px] border-r border-hs-border-strong flex flex-col">
       <div className="px-3 py-2 border-b border-hs-border-strong/50">
         <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
-          Family Members
+          {t('choreChartModal.members.columnTitle')}
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
         {members.length === 0 && !showAddMember && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <p className="text-xs text-hs-text-faint">No members yet</p>
+            <p className="text-xs text-hs-text-faint">{t('choreChartModal.members.empty')}</p>
           </div>
         )}
 
@@ -554,7 +648,7 @@ function MemberColumn({
             <MemberForm
               key={member.id}
               initial={member}
-              submitLabel="Save"
+              submitLabel={t('choreChartModal.members.saveSubmit')}
               onSubmit={(data) => updateMember(member.id, data)}
               onCancel={() => setEditingMemberId(null)}
             />
@@ -581,7 +675,7 @@ function MemberColumn({
                     setShowAddMember(false);
                   }}
                   className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
-                  aria-label={`Edit ${member.name}`}
+                  aria-label={t('choreChartModal.members.editAriaLabel', { name: member.name })}
                 >
                   &#9998;
                 </button>
@@ -589,7 +683,7 @@ function MemberColumn({
                   type="button"
                   onClick={() => deleteMember(member.id)}
                   className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
-                  aria-label={`Delete ${member.name}`}
+                  aria-label={t('choreChartModal.members.deleteAriaLabel', { name: member.name })}
                 >
                   &times;
                 </button>
@@ -600,7 +694,7 @@ function MemberColumn({
 
         {showAddMember && (
           <MemberForm
-            submitLabel="Add Member"
+            submitLabel={t('choreChartModal.members.addSubmit')}
             onSubmit={addMember}
             onCancel={() => setShowAddMember(false)}
           />
@@ -618,7 +712,7 @@ function MemberColumn({
               setEditingMemberId(null);
             }}
           >
-            + Add Member
+            + {t('choreChartModal.members.addButton')}
           </Button>
         </div>
       )}
@@ -640,6 +734,36 @@ interface ChoreColumnProps {
   deleteChore: (id: string) => void;
 }
 
+/**
+ * Compose the per-chore secondary line ("Daily · Morning · 2 tickets").
+ *
+ * Pulled out so the legacy English-literal mid-string conditionals don't
+ * regrow. Frequency, time-of-day, and ticket pluralization each route
+ * through `t()` independently and the joiner ("·") stays a verbatim glyph.
+ */
+function buildChoreSummaryLine(args: {
+  chore: ChoreDefinition;
+  t: TranslateFn;
+  tModules: TranslateFn;
+}): string {
+  const { chore, t, tModules } = args;
+  let frequencyLabel: string;
+  if (chore.frequency === 'daily') frequencyLabel = t('choreChartModal.choreSummary.daily');
+  else if (chore.frequency === 'biweekly') frequencyLabel = t('choreChartModal.choreSummary.biweekly');
+  else if (chore.frequency === 'once') {
+    frequencyLabel = chore.specificDate
+      ? t('choreChartModal.choreSummary.once', { date: chore.specificDate })
+      : t('choreChartModal.choreSummary.onceNoDate');
+  } else frequencyLabel = t('choreChartModal.choreSummary.weekly');
+
+  const timeOfDayLabel = tModules(getTimeOfDayLabelKey(chore.timeOfDay));
+  const ticketsLabel = chore.points === 1
+    ? t('choreChartModal.choreSummary.ticketCountSingular', { count: chore.points })
+    : t('choreChartModal.choreSummary.ticketCountPlural', { count: chore.points });
+
+  return `${frequencyLabel} · ${timeOfDayLabel} · ${ticketsLabel}`;
+}
+
 function ChoreColumn({
   chores,
   members,
@@ -651,11 +775,13 @@ function ChoreColumn({
   setEditingChoreId,
   deleteChore,
 }: ChoreColumnProps) {
+  const t = useTranslate('editor');
+  const tModules = useTranslate('modules');
   return (
     <div className="flex-1 border-r border-hs-border-strong flex flex-col min-w-0">
       <div className="flex items-center justify-between px-3 py-2 border-b border-hs-border-strong/50">
         <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
-          Chores
+          {t('choreChartModal.chores.columnTitle')}
         </span>
         {members.length > 0 && (
           <button
@@ -666,7 +792,7 @@ function ChoreColumn({
             }}
             className="text-[11px] font-medium px-2 py-0.5 rounded bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors"
           >
-            + Add Chore
+            + {t('choreChartModal.chores.addButton')}
           </button>
         )}
       </div>
@@ -675,7 +801,7 @@ function ChoreColumn({
         <div className="px-3 pt-2">
           <input
             type="text"
-            placeholder="Search chores..."
+            placeholder={t('choreChartModal.chores.searchPlaceholder')}
             value={choreSearch}
             onChange={(e) => setChoreSearch(e.target.value)}
             className={MODAL_INPUT_CLASS}
@@ -686,16 +812,23 @@ function ChoreColumn({
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
         {chores.length === 0 && !showAddChore && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <p className="text-xs text-hs-text-faint">No chores yet</p>
+            <p className="text-xs text-hs-text-faint">{t('choreChartModal.chores.empty')}</p>
             {members.length === 0 && (
-              <p className="text-[11px] text-hs-text-faint">Add family members first</p>
+              <p className="text-[11px] text-hs-text-faint">{t('choreChartModal.chores.addMembersFirst')}</p>
             )}
           </div>
         )}
 
         {chores
           .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
-          .map((chore) => (
+          .map((chore) => {
+            let rotationSuffix: string | null = null;
+            if ((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') {
+              if (chore.rotation === 'rotate-daily') rotationSuffix = t('choreChartModal.choreSummary.rotationDaily');
+              else if (chore.rotation === 'rotate-weekly') rotationSuffix = t('choreChartModal.choreSummary.rotationWeekly');
+              else rotationSuffix = t('choreChartModal.choreSummary.rotationSchedule');
+            }
+            return (
             <div
               key={chore.id}
               className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
@@ -716,18 +849,16 @@ function ChoreColumn({
                   {chore.name}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  {chore.frequency === 'daily' ? 'Daily' : chore.frequency === 'biweekly' ? 'Every Other Week' : chore.frequency === 'once' ? `One time \u00b7 ${chore.specificDate ?? ''}` : 'Weekly'}{' '}
-                  &middot; {TIME_OF_DAY_META[chore.timeOfDay].label}{' '}
-                  &middot; {chore.points} ticket{chore.points !== 1 ? 's' : ''}
+                  {buildChoreSummaryLine({ chore, t, tModules })}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  &rarr;{' '}
+                  {t('choreChartModal.choreSummary.arrow')}{' '}
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}
-                  {((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') && (
+                  {rotationSuffix && (
                     <span className="text-hs-text-faint">
-                      {' '}({chore.rotation === 'rotate-daily' ? 'rotate daily' : chore.rotation === 'rotate-weekly' ? 'rotate weekly' : 'schedule'})
+                      {' '}({rotationSuffix})
                     </span>
                   )}
                 </div>
@@ -740,7 +871,7 @@ function ChoreColumn({
                     setShowAddChore(false);
                   }}
                   className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
-                  aria-label={`Edit ${chore.name}`}
+                  aria-label={t('choreChartModal.chores.editAriaLabel', { name: chore.name })}
                 >
                   &#9998;
                 </button>
@@ -748,14 +879,14 @@ function ChoreColumn({
                   type="button"
                   onClick={() => deleteChore(chore.id)}
                   className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
-                  aria-label={`Delete ${chore.name}`}
+                  aria-label={t('choreChartModal.chores.deleteAriaLabel', { name: chore.name })}
                 >
                   &times;
                 </button>
               </div>
             </div>
-          ),
-        )}
+            );
+          })}
       </div>
     </div>
   );
@@ -788,11 +919,16 @@ function PreviewColumn({
   setShowAddChore,
   setEditingChoreId,
 }: PreviewColumnProps) {
+  const t = useTranslate('editor');
+  let columnTitle: string;
+  if (showAddChore) columnTitle = t('choreChartModal.preview.columnTitleNew');
+  else if (editingChoreId) columnTitle = t('choreChartModal.preview.columnTitleEdit');
+  else columnTitle = t('choreChartModal.preview.columnTitleSchedule');
   return (
     <div className={`${showAddChore || editingChoreId ? 'w-[450px]' : 'w-[280px]'} flex flex-col transition-all duration-200`}>
       <div className="px-3 py-2 border-b border-hs-border-strong/50">
         <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
-          {showAddChore ? 'New Chore' : editingChoreId ? 'Edit Chore' : "This Week\u2019s Schedule"}
+          {columnTitle}
         </span>
       </div>
 
@@ -800,7 +936,7 @@ function PreviewColumn({
         {showAddChore ? (
           <ChoreForm
             members={members}
-            submitLabel="Add Chore"
+            submitLabel={t('choreChartModal.choreForm.addSubmit')}
             onSubmit={addChore}
             onCancel={() => setShowAddChore(false)}
           />
@@ -809,14 +945,14 @@ function PreviewColumn({
             key={editingChoreId}
             initial={chores.find((c) => c.id === editingChoreId)}
             members={members}
-            submitLabel="Save"
+            submitLabel={t('choreChartModal.choreForm.saveSubmit')}
             onSubmit={(data) => updateChore(editingChoreId, data)}
             onCancel={() => setEditingChoreId(null)}
           />
         ) : chores.length === 0 || members.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <p className="text-xs text-hs-text-faint text-center">
-              Add members and chores to see the weekly schedule
+              {t('choreChartModal.preview.placeholder')}
             </p>
           </div>
         ) : (
@@ -839,6 +975,7 @@ export default function ChoreChartModal({
   accentColor,
   onClose,
 }: ChoreChartModalProps) {
+  const t = useTranslate('editor');
   const [members, setMembers] = useState<ChoreMember[]>([]);
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -888,7 +1025,16 @@ export default function ChoreChartModal({
     setEditingMemberId(null);
   };
 
-  const deleteMember = (id: string) => {
+  const deleteMember = async (id: string) => {
+    const member = members.find((m) => m.id === id);
+    if (!member) return;
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('choreChartModal.members.deleteConfirm.title'),
+      message: t('choreChartModal.members.deleteConfirm.message', { name: member.name }),
+      confirmLabel: t('choreChartModal.members.deleteConfirm.confirmLabel'),
+      variant: 'danger',
+    });
+    if (!ok) return;
     const result = cascadeDeleteMember(members, chores, id);
     setMembers(result.members);
     setChores(result.chores);
@@ -905,20 +1051,29 @@ export default function ChoreChartModal({
     setEditingChoreId(null);
   };
 
-  const deleteChore = (id: string) => {
+  const deleteChore = async (id: string) => {
+    const chore = chores.find((c) => c.id === id);
+    if (!chore) return;
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('choreChartModal.chores.deleteConfirm.title'),
+      message: t('choreChartModal.chores.deleteConfirm.message', { name: chore.name }),
+      confirmLabel: t('choreChartModal.chores.deleteConfirm.confirmLabel'),
+      variant: 'danger',
+    });
+    if (!ok) return;
     setChores((prev) => removeChoreFromList(prev, id));
   };
 
   return (
     <CRUDModalShell
-      title="Chore Chart"
-      subtitle={`${members.length} members \u00b7 ${chores.length} chores`}
+      title={t('choreChartModal.title')}
+      subtitle={t('choreChartModal.subtitleMembersChores', { members: members.length, chores: chores.length })}
       maxWidth="max-w-6xl"
       onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
       {loadError && (
         <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
-          Failed to load chore data — changes won&apos;t be saved.
+          {t('choreChartModal.loadError')}
         </div>
       )}
       <div className="flex flex-1 min-h-0">

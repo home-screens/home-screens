@@ -7,6 +7,7 @@ import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 
 interface TemplatePickerProps {
@@ -15,6 +16,7 @@ interface TemplatePickerProps {
 }
 
 export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
+  const tEditor = useTranslate('editor');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [category, setCategory] = useState<string>('All');
@@ -105,10 +107,13 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                     const def = getModuleDefinition(type);
                     if (!def) return null;
                     const Icon = def.icon;
+                    const titleText = type.startsWith('plugin:')
+                      ? def.label
+                      : tEditor(`registry.types.${type}`);
                     return (
                       <div
                         key={type}
-                        title={def.label}
+                        title={titleText}
                         className="rounded bg-hs-hover p-1"
                       >
                         <Icon className="w-3.5 h-3.5 text-hs-text-muted" />

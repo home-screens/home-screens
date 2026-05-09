@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { AlertSettings, DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import AlertFormFields, {
   type AlertFormValues,
 } from './AlertFormFields';
@@ -36,6 +37,7 @@ interface AlertsSubtabProps {
  * bug that's painful to debug live.
  */
 export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
+  const t = useTranslate('editor');
   const { updateDisplaySettings, saveConfig } = useEditorStore();
   const isForked = display.settings?.alerts !== undefined;
   const values: AlertFormValues = isForked
@@ -63,20 +65,20 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
 
   return (
     <WholeBlockOverrideCard
-      label="Alert overlay"
+      label={t('settings.perDisplayPage.alerts.label')}
       displayName={display.name}
       defaultsHref="?section=defaults&page=alerts"
-      defaultsLabel="Defaults → Alerts"
+      defaultsLabel={t('settings.perDisplayPage.alerts.defaultsLabel')}
       infoCopy={
         <>
-          Alerts is overridden as a whole block. The default lives on{' '}
+          {t('settings.perDisplayPage.alerts.infoPart1')}
           <Link
             href="?section=defaults&page=alerts"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
-            Defaults → Alerts
+            {t('settings.perDisplayPage.alerts.defaultsLabel')}
           </Link>
-          .
+          {t('settings.perDisplayPage.alerts.infoPart2')}
         </>
       }
       isForked={isForked}

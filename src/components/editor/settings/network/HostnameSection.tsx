@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 /* ─── Props ────────────────────────────────── */
 
@@ -17,6 +18,7 @@ export default function HostnameSection({
   currentHostname,
   onSaved,
 }: HostnameSectionProps) {
+  const t = useTranslate('editor');
   const [value, setValue] = useState(currentHostname);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -46,16 +48,16 @@ export default function HostnameSection({
       const data = await res.json();
 
       if (res.ok && data.ok) {
-        setSuccessMsg('Hostname updated');
+        setSuccessMsg(t('settings.networkPage.hostname.successMessage'));
         onSaved();
 
         // Clear success message after 3s
         setTimeout(() => setSuccessMsg(null), 3000);
       } else {
-        setErrorMsg(data.error ?? 'Failed to update hostname');
+        setErrorMsg(data.error ?? t('settings.networkPage.hostname.defaultErrorMessage'));
       }
     } catch {
-      setErrorMsg('Failed to reach server');
+      setErrorMsg(t('settings.networkPage.hostname.networkErrorMessage'));
     } finally {
       setSaving(false);
     }
@@ -64,7 +66,7 @@ export default function HostnameSection({
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Hostname
+        {t('settings.networkPage.hostname.heading')}
       </h3>
 
       <div className="flex items-center gap-2">
@@ -79,7 +81,7 @@ export default function HostnameSection({
           onKeyDown={(e) => {
             if (e.key === 'Enter' && isDirty) handleSave();
           }}
-          placeholder="home-screens"
+          placeholder={t('settings.networkPage.hostname.placeholder')}
           className="bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary w-full font-mono"
           disabled={saving}
         />
@@ -90,7 +92,9 @@ export default function HostnameSection({
           disabled={!isDirty || saving}
           className="shrink-0"
         >
-          {saving ? 'Saving...' : 'Save'}
+          {saving
+            ? t('settings.networkPage.hostname.savingButton')
+            : t('settings.networkPage.hostname.saveButton')}
         </Button>
       </div>
 

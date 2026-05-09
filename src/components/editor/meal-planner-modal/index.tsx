@@ -19,6 +19,7 @@ import SidebarGrocery from './SidebarGrocery';
 import WeekGrid from './WeekGrid';
 import MealPickerPopover from './MealPickerPopover';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings } from '@/types/config';
+import { useTranslate } from '@/i18n';
 
 // ── Props ────────────────────────────────────────────────────
 
@@ -34,12 +35,6 @@ interface MealPlannerModalProps {
 
 type SidebarTab = 'library' | 'detail' | 'grocery';
 
-const TAB_LABELS: Record<SidebarTab, string> = {
-  library: 'Library',
-  detail: 'Detail',
-  grocery: 'Grocery',
-};
-
 // ── Component ────────────────────────────────────────────────
 
 export default function MealPlannerModal({
@@ -50,6 +45,15 @@ export default function MealPlannerModal({
   onUpdate,
   onClose,
 }: MealPlannerModalProps) {
+  const t = useTranslate('editor');
+  const tabLabelMap = useMemo<Record<SidebarTab, string>>(
+    () => ({
+      library: t('mealPlannerModal.tabs.library'),
+      detail: t('mealPlannerModal.tabs.detail'),
+      grocery: t('mealPlannerModal.tabs.grocery'),
+    }),
+    [t],
+  );
   const slots = settings.enabledSlots;
   const weekStartDay = settings.weekStartDay;
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('library');
@@ -123,14 +127,14 @@ export default function MealPlannerModal({
     const id = uuid();
     const newMeal: SavedMeal = {
       id,
-      name: 'New Meal',
+      name: t('mealPlannerModal.newMealName'),
       emoji: DEFAULT_MEAL_EMOJI,
     };
     // Don't persist yet — keep it local until the user saves
     setPendingMeal(newMeal);
     setSelectedMealId(id);
     setSidebarTab('detail');
-  }, []);
+  }, [t]);
 
   const saveMeal = useCallback((updated: SavedMeal) => {
     if (pendingMeal && updated.id === pendingMeal.id) {
@@ -144,8 +148,8 @@ export default function MealPlannerModal({
         savedMeals: savedMeals.map((m) => (m.id === updated.id ? updated : m)),
       });
     }
-    showToast('Changes saved');
-  }, [savedMeals, pendingMeal, onUpdate, showToast]);
+    showToast(t('mealPlannerModal.toast.changesSaved'));
+  }, [savedMeals, pendingMeal, onUpdate, showToast, t]);
 
   const deleteMeal = useCallback((id: string) => {
     if (pendingMeal && id === pendingMeal.id) {
@@ -163,7 +167,7 @@ export default function MealPlannerModal({
     setSelectedMealId(null);
     setSidebarTab('library');
     if (deletedMeal) {
-      showToast(`"${deletedMeal.name}" deleted`, () => {
+      showToast(t('mealPlannerModal.toast.mealDeleted', { name: deletedMeal.name }), () => {
         onUpdate({
           savedMeals: [...remainingMeals, deletedMeal],
           plan: [...remainingPlan, ...deletedEntries],
@@ -172,7 +176,7 @@ export default function MealPlannerModal({
         setSidebarTab('detail');
       });
     }
-  }, [savedMeals, plan, pendingMeal, onUpdate, showToast]);
+  }, [savedMeals, plan, pendingMeal, onUpdate, showToast, t]);
 
   const toggleFavorite = useCallback((id: string) => {
     if (pendingMeal && id === pendingMeal.id) {
@@ -219,18 +223,18 @@ export default function MealPlannerModal({
     const newPlan = plan.filter((p) => !(p.date === date && p.slot === slot));
     onUpdate({ plan: newPlan });
     if (removed) {
-      showToast('Meal removed', () => {
+      showToast(t('mealPlannerModal.toast.mealRemoved'), () => {
         onUpdate({ plan: [...newPlan, removed] });
       });
     }
-  }, [plan, onUpdate, showToast]);
+  }, [plan, onUpdate, showToast, t]);
 
   const suggestRandom = useCallback(() => {
     if (savedMeals.length === 0) return;
     const newWeek = generateRandomPlan(savedMeals, slots, viewedWeekDates);
     onUpdate({ plan: replaceWeekInPlan(plan, viewedWeekDates, newWeek) });
-    showToast('Random meals suggested!');
-  }, [savedMeals, slots, plan, viewedWeekDates, onUpdate, showToast]);
+    showToast(t('mealPlannerModal.toast.randomSuggested'));
+  }, [savedMeals, slots, plan, viewedWeekDates, onUpdate, showToast, t]);
 
   const copyLastWeek = useCallback(() => {
     const prevStart = new Date(viewingWeekStart);
@@ -239,8 +243,8 @@ export default function MealPlannerModal({
     const restamped = copyWeekEntries(plan, prevWeekDates, viewedWeekDates);
     if (restamped.length === 0) return;
     onUpdate({ plan: replaceWeekInPlan(plan, viewedWeekDates, restamped) });
-    showToast('Last week copied!');
-  }, [plan, viewingWeekStart, viewedWeekDates, weekStartDay, onUpdate, showToast]);
+    showToast(t('mealPlannerModal.toast.lastWeekCopied'));
+  }, [plan, viewingWeekStart, viewedWeekDates, weekStartDay, onUpdate, showToast, t]);
 
   const clearWeek = useCallback(() => {
     if (weekPlan.length === 0) return;
@@ -248,10 +252,10 @@ export default function MealPlannerModal({
     const remaining = plan.filter((p) => !weekSet.has(p.date));
     const snapshot = [...plan];
     onUpdate({ plan: remaining });
-    showToast('Week cleared', () => {
+    showToast(t('mealPlannerModal.toast.weekCleared'), () => {
       onUpdate({ plan: snapshot });
     });
-  }, [plan, weekPlan, viewedWeekDates, onUpdate, showToast]);
+  }, [plan, weekPlan, viewedWeekDates, onUpdate, showToast, t]);
 
   // Check if previous week has entries
   const hasPreviousWeekEntries = useMemo(() => {
@@ -292,16 +296,16 @@ export default function MealPlannerModal({
 
   return (
     <CRUDModalShell
-      title="Meal Planner"
+      title={t('mealPlannerModal.title')}
       icon={<span className="text-lg">&#127869;</span>}
-      subtitle={`${savedMeals.length} meals \u00b7 ${plan.length} planned`}
+      subtitle={t('mealPlannerModal.subtitleMealsPlanned', { meals: savedMeals.length, planned: plan.length })}
       maxWidth="max-w-[1340px]"
       headerActions={
         <button
           onClick={onClose}
           className="px-4 py-1.5 text-xs font-semibold rounded bg-amber-500 text-black hover:bg-amber-400 transition"
         >
-          Done
+          {t('mealPlannerModal.doneButton')}
         </button>
       }
       hideFooter
@@ -322,7 +326,7 @@ export default function MealPlannerModal({
                     : 'text-hs-text-faint border-transparent hover:text-hs-text-muted'
                 }`}
               >
-                {TAB_LABELS[tab]}
+                {tabLabelMap[tab]}
               </button>
             ))}
           </div>
@@ -402,7 +406,7 @@ export default function MealPlannerModal({
               }}
               className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500 text-black"
             >
-              Undo
+              {t('mealPlannerModal.toast.undoButton')}
             </button>
           )}
         </div>

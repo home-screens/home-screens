@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { LIBRARY_FILTERS, type LibraryFilter, formatTagLabel, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { LIBRARY_FILTERS, type LibraryFilter, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import { useTranslate } from '@/i18n';
 
 interface SidebarLibraryProps {
   meals: SavedMeal[];
@@ -12,15 +13,6 @@ interface SidebarLibraryProps {
   onToggleFavorite: (id: string) => void;
   onAddMeal: () => void;
 }
-
-const FILTER_LABELS: Record<LibraryFilter, string> = {
-  all: 'All',
-  favorites: 'Favs',
-  quick: formatTagLabel('quick'),
-  healthy: formatTagLabel('healthy'),
-  comfort: formatTagLabel('comfort'),
-  'kid-friendly': formatTagLabel('kid-friendly'),
-};
 
 function starRating(rating: number | undefined): string {
   if (!rating) return '';
@@ -35,8 +27,23 @@ export default function SidebarLibrary({
   onToggleFavorite,
   onAddMeal,
 }: SidebarLibraryProps) {
+  const t = useTranslate('editor');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<LibraryFilter>('all');
+
+  // Library filter pill labels — re-uses tag translations for the tag-named
+  // filters so "Quick"/"Schnell"/etc. stay consistent across the modal.
+  const filterLabelMap = useMemo<Record<LibraryFilter, string>>(
+    () => ({
+      all: t('mealPlannerModal.library.filters.all'),
+      favorites: t('mealPlannerModal.library.filters.favorites'),
+      quick: t('mealPlannerModal.tags.quick'),
+      healthy: t('mealPlannerModal.tags.healthy'),
+      comfort: t('mealPlannerModal.tags.comfort'),
+      'kid-friendly': t('mealPlannerModal.tags.kid-friendly'),
+    }),
+    [t],
+  );
 
   const filteredMeals = useMemo(() => {
     let result = meals;
@@ -61,6 +68,8 @@ export default function SidebarLibrary({
     return result;
   }, [meals, search, filter]);
 
+  const isFiltered = Boolean(search) || filter !== 'all';
+
   return (
     <div className="flex flex-col h-full">
       {/* Search */}
@@ -82,7 +91,7 @@ export default function SidebarLibrary({
           <input
             type="text"
             className={`${MODAL_INPUT_CLASS} pl-8`}
-            placeholder="Search meals..."
+            placeholder={t('mealPlannerModal.library.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -101,7 +110,7 @@ export default function SidebarLibrary({
                 : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
             }`}
           >
-            {FILTER_LABELS[f]}
+            {filterLabelMap[f]}
           </button>
         ))}
       </div>
@@ -124,15 +133,21 @@ export default function SidebarLibrary({
               />
             </svg>
             <span className="text-xs">
-              {search || filter !== 'all' ? 'No meals match' : 'No meals yet'}
+              {isFiltered
+                ? t('mealPlannerModal.library.noMealsMatch')
+                : t('mealPlannerModal.library.noMealsYet')}
             </span>
           </div>
         ) : (
           filteredMeals.map((meal) => {
             const isSelected = meal.id === selectedMealId;
             const meta: string[] = [];
-            if (meal.prepTime) meta.push(`${meal.prepTime}m`);
-            if (meal.difficulty) meta.push(meal.difficulty);
+            if (meal.prepTime) {
+              meta.push(t('mealPlannerModal.picker.prepTimeShort', { minutes: meal.prepTime }));
+            }
+            if (meal.difficulty) {
+              meta.push(t(`mealPlannerModal.difficulty.${meal.difficulty}`));
+            }
             if (meal.rating) meta.push(starRating(meal.rating));
 
             return (
@@ -182,7 +197,7 @@ export default function SidebarLibrary({
           className="w-full py-2.5 text-sm font-semibold border border-dashed border-hs-border-strong rounded-lg text-hs-text-faint hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/8 transition"
           onClick={onAddMeal}
         >
-          + Add New Meal
+          {t('mealPlannerModal.library.addNewMealButton')}
         </button>
       </div>
     </div>

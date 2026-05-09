@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import {
   DndContext,
@@ -24,9 +24,9 @@ import { getDisplayProfiles } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
+import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import type { ModuleSchedule, Profile } from '@/types/config';
-
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const TIME_CLASS =
   'mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent';
@@ -38,9 +38,10 @@ interface SortableScreenRowProps {
   screenName: string;
   screenEnabled?: boolean;
   onRemove: () => void;
+  t: TranslateFn;
 }
 
-function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove }: SortableScreenRowProps) {
+function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove, t }: SortableScreenRowProps) {
   const {
     attributes,
     listeners,
@@ -73,13 +74,17 @@ function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove }: So
       </button>
       <span className="flex-1 text-sm text-hs-text-secondary truncate">
         {screenName}
-        {screenEnabled === false && <span className="ml-1 text-[10px] text-hs-warning/70">(disabled)</span>}
+        {screenEnabled === false && (
+          <span className="ml-1 text-[10px] text-hs-warning/70">
+            {t('settings.profilesPage.card.disabledLabel')}
+          </span>
+        )}
       </span>
       <button
         type="button"
         onClick={onRemove}
         className="text-hs-text-faint hover:text-hs-danger transition-colors"
-        title="Remove from profile"
+        title={t('settings.profilesPage.card.removeFromProfileTitle')}
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -94,9 +99,11 @@ interface ProfileCardProps {
   index: number;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  t: TranslateFn;
+  dayLabels: string[];
 }
 
-function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: ProfileCardProps) {
+function SortableProfileCard({ profile, index, isExpanded, onToggleExpand, t, dayLabels }: ProfileCardProps) {
   const { config, selectedDisplayId, updateProfile, removeProfile } = useEditorStore();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -253,10 +260,14 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
           >
             <span className="text-sm font-medium text-hs-text-body truncate">{profile.name}</span>
             {activeProfileId === profile.id && (
-              <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">Active</span>
+              <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">
+                {t('settings.profilesPage.card.activeBadge')}
+              </span>
             )}
             {profile.schedule && (
-              <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">Scheduled</span>
+              <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">
+                {t('settings.profilesPage.card.scheduledBadge')}
+              </span>
             )}
           </button>
         )}
@@ -270,19 +281,24 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             setRenameValue(profile.name);
           }}
           className="text-hs-text-faint hover:text-hs-text-secondary transition-colors shrink-0"
-          title="Rename"
+          title={t('settings.profilesPage.card.renameTitle')}
         >
           <Pencil className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={async (e) => {
             e.stopPropagation();
-            if (await useConfirmStore.getState().confirm(`Delete "${profile.name}"?`)) {
+            const ok = await useConfirmStore.getState().confirm({
+              title: t('settings.profilesPage.deleteDialog.title'),
+              message: t('settings.profilesPage.deleteDialog.message', { name: profile.name }),
+              confirmLabel: t('settings.profilesPage.deleteDialog.confirm'),
+            });
+            if (ok) {
               removeProfile(profile.id);
             }
           }}
           className="text-hs-text-faint hover:text-hs-danger transition-colors shrink-0"
-          title="Delete profile"
+          title={t('settings.profilesPage.card.deleteTitle')}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -293,7 +309,9 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-hs-border-strong/60">
           {/* Screen selection — sortable included list + available list */}
           <div>
-            <span className="text-xs text-hs-text-muted mb-1.5 block">Screens</span>
+            <span className="text-xs text-hs-text-muted mb-1.5 block">
+              {t('settings.profilesPage.card.screensHeading')}
+            </span>
 
             {/* Included screens — draggable to reorder */}
             {includedScreens.length > 0 && (
@@ -307,6 +325,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                         screenName={screen.name}
                         screenEnabled={screen.enabled}
                         onRemove={() => removeScreen(screen.id)}
+                        t={t}
                       />
                     ))}
                   </div>
@@ -318,7 +337,9 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             {availableScreens.length > 0 && (
               <div className="space-y-1">
                 {includedScreens.length > 0 && (
-                  <span className="text-[10px] text-hs-text-faint uppercase tracking-wider">Available</span>
+                  <span className="text-[10px] text-hs-text-faint uppercase tracking-wider">
+                    {t('settings.profilesPage.card.availableHeading')}
+                  </span>
                 )}
                 {availableScreens.map((screen) => (
                   <button
@@ -327,10 +348,14 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                     onClick={() => addScreen(screen.id)}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-hs-text-faint hover:bg-hs-card/60 hover:text-hs-text-secondary transition-colors"
                   >
-                    <span className="text-xs">+</span>
+                    <span className="text-xs">{t('settings.profilesPage.card.addScreenSymbol')}</span>
                     <span className="truncate">
                       {screen.name}
-                      {screen.enabled === false && <span className="ml-1 text-[10px] text-hs-warning/70">(disabled)</span>}
+                      {screen.enabled === false && (
+                        <span className="ml-1 text-[10px] text-hs-warning/70">
+                          {t('settings.profilesPage.card.disabledLabel')}
+                        </span>
+                      )}
                     </span>
                   </button>
                 ))}
@@ -339,13 +364,13 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
             {includedScreens.length === 0 && (
               <p className="text-xs text-hs-warning mt-1">
-                No screens selected — all screens will be shown as fallback.
+                {t('settings.profilesPage.card.noScreensWarning')}
               </p>
             )}
 
             {includedScreens.length > 1 && (
               <p className="text-[10px] text-hs-text-faint mt-2">
-                Drag to set rotation order within this profile.
+                {t('settings.profilesPage.card.dragHelp')}
               </p>
             )}
           </div>
@@ -353,7 +378,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
           {/* Schedule */}
           <div className="border-t border-hs-border-strong pt-3 space-y-3">
             <Toggle
-              label="Auto-activate on schedule"
+              label={t('settings.profilesPage.card.scheduleToggleLabel')}
               checked={!!profile.schedule}
               onChange={toggleSchedule}
             />
@@ -361,9 +386,11 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
             {profile.schedule && (
               <>
                 <div>
-                  <span className="text-xs text-hs-text-muted mb-1 block">Days</span>
+                  <span className="text-xs text-hs-text-muted mb-1 block">
+                    {t('settings.profilesPage.card.daysLabel')}
+                  </span>
                   <div className="flex gap-1">
-                    {DAYS.map((label, i) => {
+                    {dayLabels.map((label, i) => {
                       const days = profile.schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];
                       const active = days.includes(i);
                       return (
@@ -386,7 +413,9 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 
                 <div className="grid grid-cols-2 gap-2">
                   <label className="block">
-                    <span className="text-xs text-hs-text-muted">From</span>
+                    <span className="text-xs text-hs-text-muted">
+                      {t('settings.profilesPage.card.fromLabel')}
+                    </span>
                     <input
                       type="time"
                       value={profile.schedule.startTime ?? ''}
@@ -395,7 +424,9 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-hs-text-muted">Until</span>
+                    <span className="text-xs text-hs-text-muted">
+                      {t('settings.profilesPage.card.untilLabel')}
+                    </span>
                     <input
                       type="time"
                       value={profile.schedule.endTime ?? ''}
@@ -406,7 +437,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
                 </div>
 
                 <Toggle
-                  label="Invert (hide during this window instead)"
+                  label={t('settings.profilesPage.card.invertLabel')}
                   checked={!!profile.schedule.invert}
                   onChange={(checked) => setSchedule({ invert: checked || undefined })}
                 />
@@ -422,6 +453,19 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand }: Pro
 /* ─── Main section ───────────────────────────── */
 
 export default function ProfilesSection() {
+  const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  // Day-of-week labels follow the formatting locale (date-fns conventions),
+  // not the UI language — ['Sun', 'Mon', …] for en-US, ['So.', 'Mo.', …]
+  // for de-DE. Matches MealsSection's day handling. Memoized because the
+  // parent re-renders on every dnd-kit drag tick — without this, each
+  // computation runs 7 `formatDateSync` invocations per frame and the
+  // fresh array reference defeats `React.memo` on children.
+  const dayLabels = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'short'),
+    [formattingLocale],
+  );
+
   const { config, selectedDisplayId, setSelectedDisplay, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
@@ -482,7 +526,7 @@ export default function ProfilesSection() {
   };
 
   const handleAdd = () => {
-    addProfile(`Profile ${profiles.length + 1}`);
+    addProfile(t('settings.profilesPage.newProfileName', { number: profiles.length + 1 }));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -508,18 +552,17 @@ export default function ProfilesSection() {
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Profiles
+        {t('settings.profilesPage.heading')}
       </h3>
       <p className="text-xs text-hs-text-faint mb-4">
-        Profiles control which screens are shown on the display and in what order. Create different layouts for morning, evening, weekends, etc.
-        When no profile is active, all screens rotate in the default tab order.
+        {t('settings.profilesPage.description')}
       </p>
 
       {isMultiDisplay && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
           <label className="block">
             <span className="text-[11px] uppercase tracking-wider text-hs-accent-hover font-medium">
-              Editing profiles for
+              {t('settings.profilesPage.displayPicker.label')}
             </span>
             <select
               value={selectedDisplayId ?? allDisplays[0]?.id ?? ''}
@@ -528,13 +571,12 @@ export default function ProfilesSection() {
             >
               {allDisplays.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.name} ({d.id})
+                  {t('settings.profilesPage.displayPicker.optionLabel', { name: d.name, id: d.id })}
                 </option>
               ))}
             </select>
             <p className="text-[11px] text-hs-text-faint mt-1.5">
-              Profiles are per-display because they reference each display&apos;s own screens.
-              Switching here changes which display the editor canvas is also working on.
+              {t('settings.profilesPage.displayPicker.help')}
             </p>
           </label>
         </div>
@@ -543,19 +585,21 @@ export default function ProfilesSection() {
       {/* Active profile selector */}
       {profiles.length > 0 && (
         <label className="block mb-4">
-          <span className="text-xs text-hs-text-muted">Active Profile</span>
+          <span className="text-xs text-hs-text-muted">
+            {t('settings.profilesPage.active.label')}
+          </span>
           <select
             value={activeProfileId ?? ''}
             onChange={(e) => setActiveProfile(e.target.value || undefined)}
             className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent mt-1"
           >
-            <option value="">None (show all screens)</option>
+            <option value="">{t('settings.profilesPage.active.noneOption')}</option>
             {profiles.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
           <p className="text-xs text-hs-text-faint mt-1">
-            Manually set which profile is active. Scheduled profiles take priority over this setting.
+            {t('settings.profilesPage.active.help')}
           </p>
         </label>
       )}
@@ -564,8 +608,10 @@ export default function ProfilesSection() {
       {profiles.length > 1 && (
         <div className="rounded-md bg-hs-card/60 border border-hs-border-strong/50 px-3 py-2 mb-4">
           <p className="text-xs text-hs-text-muted">
-            <span className="font-medium text-hs-text-secondary">Priority order:</span>{' '}
-            When multiple profiles have overlapping schedules, the profile listed first wins. Drag to reorder.
+            <span className="font-medium text-hs-text-secondary">
+              {t('settings.profilesPage.priority.labelPrefix')}
+            </span>
+            {t('settings.profilesPage.priority.helpSuffix')}
           </p>
         </div>
       )}
@@ -581,6 +627,8 @@ export default function ProfilesSection() {
                 index={index}
                 isExpanded={expandedIds.has(profile.id)}
                 onToggleExpand={() => toggleExpand(profile.id)}
+                t={t}
+                dayLabels={dayLabels}
               />
             ))}
           </div>
@@ -589,7 +637,7 @@ export default function ProfilesSection() {
 
       <div className="flex items-center gap-3 mt-4">
         <Button variant="secondary" onClick={handleAdd}>
-          Add Profile
+          {t('settings.profilesPage.addButton')}
         </Button>
         {/* Save button removed — auto-save means every profile mutation
             persists via the useDebouncedSave hook at the top of this

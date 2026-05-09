@@ -24,14 +24,31 @@ export type ProviderStatusType =
   | 'ready'
   | 'needs-setup';
 
+/**
+ * Provider records describe their user-visible copy via dotted i18n key
+ * paths rather than English literals. The consuming component (`WeatherProviderCard`)
+ * resolves them through `useTranslate('editor')` at render time so this
+ * module stays data-only and free of React/i18n imports.
+ *
+ * - `taglineKey` is required for every provider (the short subtitle under
+ *   the provider name).
+ * - `helperTextKey` is set on free providers (no secret) and carries the
+ *   longer explanatory paragraph rendered in lieu of an API-key field.
+ * - `keyHintKey` and `placeholderKey` are set on paid providers (those with
+ *   a `secretKey`) and feed the API-key input's helper line + placeholder.
+ *
+ * Optional keys are intentionally `undefined` (not empty strings) so the
+ * card can `if (key) t(key)` without leaking blank lines into the DOM.
+ */
 export interface WeatherProvider {
   id: WeatherProviderId;
+  /** Brand / proper-noun name. Rendered verbatim in every locale. */
   name: string;
-  tagline: string;
-  helperText: string;
+  taglineKey: string;
+  helperTextKey?: string;
   secretKey: WeatherSecretKey | null;
-  keyHint: string;
-  placeholder: string;
+  keyHintKey?: string;
+  placeholderKey?: string;
   iconBg: string;
 }
 
@@ -39,91 +56,77 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   {
     id: 'open-meteo',
     name: 'Open-Meteo',
-    tagline: 'Free · global · no key',
-    helperText: 'No API key required. Open-Meteo is free and open-source with global coverage.',
+    taglineKey: 'settings.weatherPage.providers.openMeteo.tagline',
+    helperTextKey: 'settings.weatherPage.providers.openMeteo.helperText',
     secretKey: null,
-    keyHint: '',
-    placeholder: '',
     iconBg: '#0ea5e9',
   },
   {
     id: 'weatherapi',
     name: 'WeatherAPI.com',
-    tagline: 'Free tier · no credit card',
-    helperText: '',
+    taglineKey: 'settings.weatherPage.providers.weatherApi.tagline',
     secretKey: 'weatherapi_key',
-    keyHint: 'Free at weatherapi.com — no credit card required.',
-    placeholder: 'Paste your WeatherAPI key',
+    keyHintKey: 'settings.weatherPage.providers.weatherApi.keyHint',
+    placeholderKey: 'settings.weatherPage.providers.weatherApi.placeholder',
     iconBg: '#f59e0b',
   },
   {
     id: 'openweathermap',
     name: 'OpenWeatherMap',
-    tagline: 'One Call 3.0 subscription',
-    helperText: '',
+    taglineKey: 'settings.weatherPage.providers.openWeatherMap.tagline',
     secretKey: 'openweathermap_key',
-    keyHint: 'Requires a One Call 3.0 subscription at openweathermap.org.',
-    placeholder: 'Paste your OpenWeatherMap API key',
+    keyHintKey: 'settings.weatherPage.providers.openWeatherMap.keyHint',
+    placeholderKey: 'settings.weatherPage.providers.openWeatherMap.placeholder',
     iconBg: '#ea580c',
   },
   {
     id: 'pirateweather',
     name: 'Pirate Weather',
-    tagline: 'Dark Sky replacement',
-    helperText: '',
+    taglineKey: 'settings.weatherPage.providers.pirateWeather.tagline',
     secretKey: 'pirateweather_key',
-    keyHint: 'Free at pirateweather.net — drop-in Dark Sky replacement.',
-    placeholder: 'Paste your Pirate Weather API key',
+    keyHintKey: 'settings.weatherPage.providers.pirateWeather.keyHint',
+    placeholderKey: 'settings.weatherPage.providers.pirateWeather.placeholder',
     iconBg: '#0d9488',
   },
   {
     id: 'noaa',
     name: 'NOAA / NWS',
-    tagline: 'Free · US only · no key',
-    helperText: 'No API key required. NOAA data is free and public (US only).',
+    taglineKey: 'settings.weatherPage.providers.noaa.tagline',
+    helperTextKey: 'settings.weatherPage.providers.noaa.helperText',
     secretKey: null,
-    keyHint: '',
-    placeholder: '',
     iconBg: '#1d4ed8',
   },
   {
     id: 'yr',
     name: 'Yr.no / MET Norway',
-    tagline: 'Free · global · no key',
-    helperText: 'No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon — e.g. Oslo (59.9139, 10.7522) — for the densest coverage.',
+    taglineKey: 'settings.weatherPage.providers.yr.tagline',
+    helperTextKey: 'settings.weatherPage.providers.yr.helperText',
     secretKey: null,
-    keyHint: '',
-    placeholder: '',
     iconBg: '#0369a1',
   },
   {
     id: 'smhi',
     name: 'SMHI',
-    tagline: 'Free · Nordic only · no key',
-    helperText: 'No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only — to test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region.',
+    taglineKey: 'settings.weatherPage.providers.smhi.tagline',
+    helperTextKey: 'settings.weatherPage.providers.smhi.helperText',
     secretKey: null,
-    keyHint: '',
-    placeholder: '',
     iconBg: '#005293',
   },
   {
     id: 'metoffice',
     name: 'UK Met Office',
-    tagline: 'Freemium · UK focus · requires key',
-    helperText: 'Requires a Weather DataHub API key from datahub.metoffice.gov.uk. The free tier allows only 360 calls/day — Home Screens caches every response for 30 minutes and hard-caps at 320/day to stay under quota. Best accuracy inside the UK — to test, try London (51.5074, -0.1278).',
+    taglineKey: 'settings.weatherPage.providers.metOffice.tagline',
     secretKey: 'metoffice_key',
-    keyHint: 'Sign up at datahub.metoffice.gov.uk and subscribe to the Site-Specific API to get a key.',
-    placeholder: 'Paste your Met Office DataHub API key',
+    keyHintKey: 'settings.weatherPage.providers.metOffice.keyHint',
+    placeholderKey: 'settings.weatherPage.providers.metOffice.placeholder',
     iconBg: '#262626',
   },
   {
     id: 'envcanada',
     name: 'Environment Canada',
-    tagline: 'Free · Canada only · no key',
-    helperText: 'No API key required. Provided by Environment and Climate Change Canada — the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207).',
+    taglineKey: 'settings.weatherPage.providers.envCanada.tagline',
+    helperTextKey: 'settings.weatherPage.providers.envCanada.helperText',
     secretKey: null,
-    keyHint: '',
-    placeholder: '',
     iconBg: '#d62718',
   },
 ];

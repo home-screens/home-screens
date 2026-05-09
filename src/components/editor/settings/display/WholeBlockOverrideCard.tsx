@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Info, RotateCcw } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 
 interface WholeBlockOverrideCardProps {
   /** Header label inside the rounded card (e.g. "Sleep schedule"). */
@@ -48,6 +49,7 @@ export default function WholeBlockOverrideCard({
   onReset,
   children,
 }: WholeBlockOverrideCardProps) {
+  const t = useTranslate('editor');
   return (
     <>
       <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
@@ -66,7 +68,7 @@ export default function WholeBlockOverrideCard({
                 className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/30 hover:bg-hs-accent/20 transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
-                Reset to default
+                {t('settings.overrideRow.resetToDefault')}
               </button>
             ) : (
               <button
@@ -74,21 +76,21 @@ export default function WholeBlockOverrideCard({
                 onClick={onFork}
                 className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-secondary bg-hs-card border border-hs-border-strong hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
               >
-                Override for {displayName}
+                {t('settings.perDisplayPage.wholeBlockOverride.overrideForButton', { name: displayName })}
               </button>
             )}
           </div>
           {children}
           {!isForked && (
             <p className="text-[11px] text-hs-text-faint mt-3">
-              Using the default from{' '}
+              {t('settings.perDisplayPage.wholeBlockOverride.usingDefaultPart1')}
               <Link
                 href={defaultsHref}
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
                 {defaultsLabel}
               </Link>
-              .
+              {t('settings.perDisplayPage.wholeBlockOverride.usingDefaultPart2')}
             </p>
           )}
         </div>

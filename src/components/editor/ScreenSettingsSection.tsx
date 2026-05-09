@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
@@ -16,6 +17,7 @@ import { ScreenScheduleSection } from './ScreenScheduleSection';
  * against a Defaults page.
  */
 export default function ScreenSettingsSection() {
+  const t = useTranslate('editor');
   const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
 
   const screen = useMemo(() => {
@@ -53,19 +55,21 @@ export default function ScreenSettingsSection() {
   };
 
   return (
-    <AccordionSection title="Screen settings">
+    <AccordionSection title={t('screenSettings.sectionTitle')}>
       <div className="space-y-3">
         <div className="flex items-baseline justify-between">
           <span className="text-sm font-semibold text-hs-text-body">{screen.name}</span>
           <span className="text-[11px] text-hs-text-muted bg-hs-card px-1.5 py-0.5 rounded-full">
-            {moduleCount} {moduleCount === 1 ? 'module' : 'modules'}
+            {moduleCount === 1
+              ? t('screenSettings.moduleCountSingular', { count: moduleCount })
+              : t('screenSettings.moduleCountPlural', { count: moduleCount })}
           </span>
         </div>
 
-        <PropertyGroup title="Rotation" accent={1}>
+        <PropertyGroup title={t('screenSettings.rotationGroupTitle')} accent={1}>
           <div className="flex items-center justify-between mb-2">
             <label htmlFor="screen-rotation-duration" className="text-xs text-hs-text-muted">
-              Duration
+              {t('screenSettings.durationLabel')}
             </label>
             {isOverridden ? (
               <button
@@ -73,7 +77,7 @@ export default function ScreenSettingsSection() {
                 onClick={handleReset}
                 className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors"
               >
-                Reset
+                {t('screenSettings.resetButton')}
               </button>
             ) : (
               <button
@@ -81,7 +85,7 @@ export default function ScreenSettingsSection() {
                 onClick={handleOverride}
                 className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-muted bg-hs-card border border-hs-border-strong hover:text-hs-text-body hover:bg-hs-hover transition-colors"
               >
-                Override
+                {t('screenSettings.overrideButton')}
               </button>
             )}
           </div>
@@ -99,20 +103,24 @@ export default function ScreenSettingsSection() {
                   onChange={(e) => handleChangeSeconds(e.target.value)}
                   className="pl-2 pr-1 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body w-24"
                 />
-                <span className="text-xs text-hs-text-muted">sec</span>
+                <span className="text-xs text-hs-text-muted">{t('screenSettings.secondsUnit')}</span>
                 {isSticky && (
                   <span className="text-[10px] font-semibold uppercase tracking-wider bg-hs-warning/15 text-hs-warning border border-hs-warning/35 px-2 py-0.5 rounded-full">
-                    Sticky
+                    {t('screenSettings.stickyBadge')}
                   </span>
                 )}
               </div>
               <p className="text-[11px] text-hs-text-faint mt-2">
-                0 = stay on this screen (manual advance only).
+                {t('screenSettings.stickyHint')}
               </p>
             </div>
           ) : (
             <p className="text-[11px] text-hs-text-faint">
-              Inherits the default: <strong className="text-hs-text-secondary">{defaultSec}s</strong>.
+              {t('screenSettings.inheritsHintBefore')}
+              <strong className="text-hs-text-secondary">
+                {t('screenSettings.inheritsHintValue', { seconds: defaultSec })}
+              </strong>
+              {t('screenSettings.inheritsHintAfter')}
             </p>
           )}
         </PropertyGroup>

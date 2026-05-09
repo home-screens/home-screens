@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 interface AuthStatus {
   authEnabled: boolean;
@@ -10,7 +11,32 @@ interface AuthStatus {
   hasDisplayToken: boolean;
 }
 
+// Status discriminants — kind drives styling/role explicitly so we never
+// sniff English prefixes from translated messages. Each surface (modal,
+// token, revoke, ip-allowlist) carries its own kind union; the unions are
+// intentionally narrow because not every surface emits every kind.
+
+type ModalStatusKind = 'success' | 'error';
+interface ModalStatus {
+  message: string;
+  kind: ModalStatusKind;
+}
+
+type RevokeStatusKind = 'success' | 'error';
+interface RevokeStatus {
+  message: string;
+  kind: RevokeStatusKind;
+}
+
+type IpStatusKind = 'success' | 'error';
+interface IpStatus {
+  message: string;
+  kind: IpStatusKind;
+}
+
 export default function SecuritySection() {
+  const t = useTranslate('editor');
+
   const [status, setStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,8 +45,7 @@ export default function SecuritySection() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [modalStatus, setModalStatus] = useState<ModalStatus | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Display token state
@@ -29,12 +54,12 @@ export default function SecuritySection() {
   const [tokenCopied, setTokenCopied] = useState(false);
   const [tokenRegenerating, setTokenRegenerating] = useState(false);
   const [tokenConfirmRegen, setTokenConfirmRegen] = useState(false);
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [tokenStatus, setTokenStatus] = useState<string | null>(null);
 
   // Session revocation state
   const [revokeConfirm, setRevokeConfirm] = useState(false);
   const [revoking, setRevoking] = useState(false);
-  const [revokeMessage, setRevokeMessage] = useState<string | null>(null);
+  const [revokeStatus, setRevokeStatus] = useState<RevokeStatus | null>(null);
 
   // IP Allowlist state
   const [ipAllowlist, setIpAllowlist] = useState<string[]>([]);
@@ -44,7 +69,7 @@ export default function SecuritySection() {
   const [ipNewEntry, setIpNewEntry] = useState('');
   const [ipEntryError, setIpEntryError] = useState<string | null>(null);
   const [ipSaving, setIpSaving] = useState(false);
-  const [ipMessage, setIpMessage] = useState<string | null>(null);
+  const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
   const [ipDirty, setIpDirty] = useState(false);
   const [ipLockoutConfirm, setIpLockoutConfirm] = useState(false);
 
@@ -91,17 +116,16 @@ export default function SecuritySection() {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    setError(null);
-    setSuccess(null);
+    setModalStatus(null);
   }
 
   async function handleSetPassword() {
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setModalStatus({ message: t('settings.securityPage.errors.passwordsDoNotMatch'), kind: 'error' });
       return;
     }
     setSubmitting(true);
-    setError(null);
+    setModalStatus(null);
     try {
       const res = await editorFetch('/api/auth/password', {
         method: 'POST',
@@ -110,7 +134,10 @@ export default function SecuritySection() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to set password');
+        setModalStatus({
+          message: data.error || t('settings.securityPage.errors.setFailed'),
+          kind: 'error',
+        });
         return;
       }
       setStatus({ authEnabled: true, authenticated: true, hasDisplayToken: true });
@@ -120,10 +147,16 @@ export default function SecuritySection() {
         const { displayToken: tok } = await tokenRes.json();
         setDisplayToken(tok);
       }
-      setSuccess('Password set! Authentication is now enabled.');
+      setModalStatus({
+        message: t('settings.securityPage.success.passwordSet'),
+        kind: 'success',
+      });
       setTimeout(resetModal, 2000);
     } catch {
-      setError('Network error');
+      setModalStatus({
+        message: t('settings.securityPage.errors.networkError'),
+        kind: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -131,11 +164,11 @@ export default function SecuritySection() {
 
   async function handleChangePassword() {
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setModalStatus({ message: t('settings.securityPage.errors.passwordsDoNotMatch'), kind: 'error' });
       return;
     }
     setSubmitting(true);
-    setError(null);
+    setModalStatus(null);
     try {
       const res = await editorFetch('/api/auth/password', {
         method: 'POST',
@@ -144,13 +177,22 @@ export default function SecuritySection() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to change password');
+        setModalStatus({
+          message: data.error || t('settings.securityPage.errors.changeFailed'),
+          kind: 'error',
+        });
         return;
       }
-      setSuccess('Password changed. All other sessions have been invalidated.');
+      setModalStatus({
+        message: t('settings.securityPage.success.passwordChanged'),
+        kind: 'success',
+      });
       setTimeout(resetModal, 2000);
     } catch {
-      setError('Network error');
+      setModalStatus({
+        message: t('settings.securityPage.errors.networkError'),
+        kind: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +200,7 @@ export default function SecuritySection() {
 
   async function handleDisable() {
     setSubmitting(true);
-    setError(null);
+    setModalStatus(null);
     try {
       const res = await editorFetch('/api/auth/password', {
         method: 'POST',
@@ -167,7 +209,10 @@ export default function SecuritySection() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to disable authentication');
+        setModalStatus({
+          message: data.error || t('settings.securityPage.errors.disableFailed'),
+          kind: 'error',
+        });
         return;
       }
       setStatus({ authEnabled: false, authenticated: false, hasDisplayToken: false });
@@ -176,11 +221,17 @@ export default function SecuritySection() {
       setTokenRevealed(false);
       setTokenCopied(false);
       setTokenConfirmRegen(false);
-      setTokenError(null);
-      setSuccess('Authentication disabled.');
+      setTokenStatus(null);
+      setModalStatus({
+        message: t('settings.securityPage.success.authDisabled'),
+        kind: 'success',
+      });
       setTimeout(resetModal, 2000);
     } catch {
-      setError('Network error');
+      setModalStatus({
+        message: t('settings.securityPage.errors.networkError'),
+        kind: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -203,18 +254,21 @@ export default function SecuritySection() {
         ta.select();
         const ok = document.execCommand('copy');
         document.body.removeChild(ta);
-        if (!ok) { setTokenError('Copy failed — select and copy manually'); return; }
+        if (!ok) {
+          setTokenStatus(t('settings.securityPage.displayToken.errorCopy'));
+          return;
+        }
         setTokenCopied(true);
         setTimeout(() => setTokenCopied(false), 2000);
       } catch {
-        setTokenError('Copy failed — select and copy manually');
+        setTokenStatus(t('settings.securityPage.displayToken.errorCopy'));
       }
     }
   }
 
   async function handleRegenerateToken() {
     setTokenRegenerating(true);
-    setTokenError(null);
+    setTokenStatus(null);
     try {
       const res = await editorFetch('/api/auth/display-token', { method: 'POST' });
       if (res.ok) {
@@ -223,10 +277,10 @@ export default function SecuritySection() {
         setTokenConfirmRegen(false);
         setTokenRevealed(true);
       } else {
-        setTokenError('Failed to regenerate token');
+        setTokenStatus(t('settings.securityPage.displayToken.errorRegenerate'));
       }
     } catch {
-      setTokenError('Network error');
+      setTokenStatus(t('settings.securityPage.displayToken.errorNetwork'));
     } finally {
       setTokenRegenerating(false);
     }
@@ -234,18 +288,27 @@ export default function SecuritySection() {
 
   async function handleRevokeAll() {
     setRevoking(true);
-    setRevokeMessage(null);
+    setRevokeStatus(null);
     try {
       const res = await editorFetch('/api/auth/revoke-sessions', { method: 'POST' });
       if (res.ok) {
         setRevokeConfirm(false);
-        setRevokeMessage('All sessions revoked. Redirecting to login...');
+        setRevokeStatus({
+          message: t('settings.securityPage.revokeSessions.success'),
+          kind: 'success',
+        });
         setTimeout(() => { window.location.href = '/login'; }, 1500);
       } else {
-        setRevokeMessage('Failed to revoke sessions');
+        setRevokeStatus({
+          message: t('settings.securityPage.revokeSessions.failed'),
+          kind: 'error',
+        });
       }
     } catch {
-      setRevokeMessage('Network error');
+      setRevokeStatus({
+        message: t('settings.securityPage.revokeSessions.networkError'),
+        kind: 'error',
+      });
     } finally {
       setRevoking(false);
     }
@@ -266,14 +329,26 @@ export default function SecuritySection() {
 
     // Client-side validation: basic format check (full validation on server)
     const parts = entry.split('/');
-    if (parts.length > 2) { setIpEntryError('Invalid CIDR format'); return; }
+    if (parts.length > 2) {
+      setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidCidr'));
+      return;
+    }
     const ipPart = parts[0];
-    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ipPart)) { setIpEntryError('Invalid IP address'); return; }
+    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ipPart)) {
+      setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidIp'));
+      return;
+    }
     if (parts.length === 2) {
       const prefix = Number(parts[1]);
-      if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) { setIpEntryError('Prefix length must be 0-32'); return; }
+      if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) {
+        setIpEntryError(t('settings.securityPage.ipAllowlist.errors.invalidPrefix'));
+        return;
+      }
     }
-    if (ipAllowlist.includes(entry)) { setIpEntryError('Already in the list'); return; }
+    if (ipAllowlist.includes(entry)) {
+      setIpEntryError(t('settings.securityPage.ipAllowlist.errors.alreadyInList'));
+      return;
+    }
 
     setIpAllowlist([...ipAllowlist, entry]);
     setIpNewEntry('');
@@ -288,7 +363,7 @@ export default function SecuritySection() {
 
   async function handleSaveIpAllowlist(force = false) {
     setIpSaving(true);
-    setIpMessage(null);
+    setIpStatus(null);
     if (!force) setIpLockoutConfirm(false);
     try {
       const res = await editorFetch('/api/auth/ip-allowlist', {
@@ -308,15 +383,24 @@ export default function SecuritySection() {
         return;
       }
       if (!res.ok) {
-        setIpMessage(data.error || 'Failed to save');
+        setIpStatus({
+          message: data.error || t('settings.securityPage.ipAllowlist.errors.saveFailed'),
+          kind: 'error',
+        });
         return;
       }
       setIpLockoutConfirm(false);
-      setIpMessage('Saved');
+      setIpStatus({
+        message: t('settings.securityPage.ipAllowlist.saved'),
+        kind: 'success',
+      });
       setIpDirty(false);
-      setTimeout(() => setIpMessage(null), 2000);
+      setTimeout(() => setIpStatus(null), 2000);
     } catch {
-      setIpMessage('Network error');
+      setIpStatus({
+        message: t('settings.securityPage.ipAllowlist.errors.networkError'),
+        kind: 'error',
+      });
     } finally {
       setIpSaving(false);
     }
@@ -325,7 +409,7 @@ export default function SecuritySection() {
   if (loading) {
     return (
       <section>
-        <p className="text-xs text-hs-text-faint">Checking authentication status...</p>
+        <p className="text-xs text-hs-text-faint">{t('settings.securityPage.loading')}</p>
       </section>
     );
   }
@@ -333,7 +417,7 @@ export default function SecuritySection() {
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Authentication
+        {t('settings.securityPage.heading')}
       </h3>
       <div className="space-y-3">
         {/* Status */}
@@ -345,19 +429,18 @@ export default function SecuritySection() {
           />
           <span className="text-sm text-hs-text-secondary">
             {status?.authEnabled
-              ? 'Authentication is enabled'
-              : 'Authentication is disabled'}
+              ? t('settings.securityPage.status.enabled')
+              : t('settings.securityPage.status.disabled')}
           </span>
         </div>
 
         {!status?.authEnabled && (
           <div className="space-y-3">
             <p className="text-xs text-hs-text-faint">
-              Set a password to protect the editor and API endpoints.
-              A display token will be auto-generated so the display can authenticate seamlessly.
+              {t('settings.securityPage.setup.description')}
             </p>
             <Button variant="primary" size="sm" onClick={() => setModal('set')}>
-              Set Password
+              {t('settings.securityPage.setup.setPasswordButton')}
             </Button>
           </div>
         )}
@@ -366,13 +449,13 @@ export default function SecuritySection() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="secondary" size="sm" onClick={() => setModal('change')}>
-                Change Password
+                {t('settings.securityPage.actions.changePassword')}
               </Button>
               <Button variant="danger" size="sm" onClick={() => setModal('disable')}>
-                Disable Authentication
+                {t('settings.securityPage.actions.disableAuth')}
               </Button>
               <Button variant="secondary" size="sm" onClick={handleLogout}>
-                Log Out
+                {t('settings.securityPage.actions.logOut')}
               </Button>
             </div>
 
@@ -380,12 +463,12 @@ export default function SecuritySection() {
             <div>
               {!revokeConfirm ? (
                 <Button variant="secondary" size="sm" onClick={() => setRevokeConfirm(true)}>
-                  Revoke All Sessions
+                  {t('settings.securityPage.revokeSessions.button')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-hs-warning">
-                    All sessions will be invalidated, including this one.
+                    {t('settings.securityPage.revokeSessions.warning')}
                   </span>
                   <Button
                     variant="danger"
@@ -393,20 +476,32 @@ export default function SecuritySection() {
                     onClick={handleRevokeAll}
                     disabled={revoking}
                   >
-                    {revoking ? 'Revoking...' : 'Confirm'}
+                    {revoking
+                      ? t('settings.securityPage.revokeSessions.revoking')
+                      : t('settings.securityPage.revokeSessions.confirmButton')}
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setRevokeConfirm(false)}
                   >
-                    Cancel
+                    {t('settings.securityPage.revokeSessions.cancel')}
                   </Button>
                 </div>
               )}
-              {revokeMessage && (
-                <p className={`text-xs mt-1 ${revoking ? 'text-hs-text-muted' : revokeMessage.startsWith('All sessions') ? 'text-hs-success' : 'text-hs-danger'}`}>
-                  {revokeMessage}
+              {revokeStatus && (
+                <p
+                  className={`text-xs mt-1 ${
+                    revoking
+                      ? 'text-hs-text-muted'
+                      : revokeStatus.kind === 'success'
+                        ? 'text-hs-success'
+                        : 'text-hs-danger'
+                  }`}
+                  aria-live="polite"
+                  role={revokeStatus.kind === 'error' ? 'alert' : undefined}
+                >
+                  {revokeStatus.message}
                 </p>
               )}
             </div>
@@ -415,24 +510,28 @@ export default function SecuritySection() {
             {displayToken && (
               <div className="mt-4 pt-4 border-t border-hs-border">
                 <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">
-                  Display Token
+                  {t('settings.securityPage.displayToken.heading')}
                 </h4>
                 <p className="text-xs text-hs-text-faint mb-2">
-                  The display uses this token to authenticate API requests. It was auto-generated when you set a password.
+                  {t('settings.securityPage.displayToken.description')}
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-xs bg-hs-card border border-hs-border-strong rounded px-2 py-1.5 text-hs-text-secondary font-mono truncate select-all">
-                    {tokenRevealed ? displayToken : displayToken.slice(0, 8) + '\u2022'.repeat(16)}
+                    {tokenRevealed ? displayToken : displayToken.slice(0, 8) + '•'.repeat(16)}
                   </code>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setTokenRevealed(!tokenRevealed)}
                   >
-                    {tokenRevealed ? 'Hide' : 'Reveal'}
+                    {tokenRevealed
+                      ? t('settings.securityPage.displayToken.hide')
+                      : t('settings.securityPage.displayToken.reveal')}
                   </Button>
                   <Button variant="secondary" size="sm" onClick={handleCopyToken}>
-                    {tokenCopied ? 'Copied!' : 'Copy'}
+                    {tokenCopied
+                      ? t('settings.securityPage.displayToken.copied')
+                      : t('settings.securityPage.displayToken.copy')}
                   </Button>
                 </div>
                 <div className="mt-2">
@@ -442,12 +541,12 @@ export default function SecuritySection() {
                       size="sm"
                       onClick={() => setTokenConfirmRegen(true)}
                     >
-                      Regenerate Token
+                      {t('settings.securityPage.displayToken.regenerateButton')}
                     </Button>
                   ) : (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-hs-warning">
-                        The display will need to reload to pick up the new token.
+                        {t('settings.securityPage.displayToken.regenerateWarning')}
                       </span>
                       <Button
                         variant="danger"
@@ -455,21 +554,35 @@ export default function SecuritySection() {
                         onClick={handleRegenerateToken}
                         disabled={tokenRegenerating}
                       >
-                        {tokenRegenerating ? 'Regenerating...' : 'Confirm'}
+                        {tokenRegenerating
+                          ? t('settings.securityPage.displayToken.regenerating')
+                          : t('settings.securityPage.displayToken.regenerateConfirm')}
                       </Button>
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => setTokenConfirmRegen(false)}
                       >
-                        Cancel
+                        {t('settings.securityPage.displayToken.regenerateCancel')}
                       </Button>
                     </div>
                   )}
-                  {tokenError && <p className="text-xs text-hs-danger mt-1">{tokenError}</p>}
+                  {tokenStatus && (
+                    <p
+                      className="text-xs text-hs-danger mt-1"
+                      aria-live="polite"
+                      role="alert"
+                    >
+                      {tokenStatus}
+                    </p>
+                  )}
                 </div>
                 <p className="text-xs text-hs-text-faint mt-2">
-                  For phone bookmarks, append <code className="text-hs-text-faint">?token=TOKEN</code> to command URLs.
+                  {t('settings.securityPage.displayToken.phoneHintPart1')}
+                  <code className="text-hs-text-faint">
+                    {t('settings.securityPage.displayToken.phoneHintCode')}
+                  </code>
+                  {t('settings.securityPage.displayToken.phoneHintPart2')}
                 </p>
               </div>
             )}
@@ -480,7 +593,7 @@ export default function SecuritySection() {
       {status?.authEnabled && (
         <div className="mt-6 pt-6 border-t border-hs-border">
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            IP Allowlist
+            {t('settings.securityPage.ipAllowlist.heading')}
           </h3>
 
           <div className="space-y-4">
@@ -494,8 +607,12 @@ export default function SecuritySection() {
                 className="mt-0.5 accent-hs-accent rounded"
               />
               <div>
-                <span className="text-sm text-hs-text-body">Skip authentication for trusted IPs</span>
-                <p className="text-xs text-hs-text-faint">Displays on these networks won&apos;t need a token</p>
+                <span className="text-sm text-hs-text-body">
+                  {t('settings.securityPage.ipAllowlist.bypassAuth.label')}
+                </span>
+                <p className="text-xs text-hs-text-faint">
+                  {t('settings.securityPage.ipAllowlist.bypassAuth.help')}
+                </p>
               </div>
             </label>
 
@@ -508,13 +625,19 @@ export default function SecuritySection() {
                 className="mt-0.5 accent-hs-accent rounded"
               />
               <div>
-                <span className="text-sm text-hs-text-body">Restrict access to trusted IPs</span>
-                <p className="text-xs text-hs-text-faint">Block all other IPs from reaching the system (except the login page)</p>
+                <span className="text-sm text-hs-text-body">
+                  {t('settings.securityPage.ipAllowlist.restrictAccess.label')}
+                </span>
+                <p className="text-xs text-hs-text-faint">
+                  {t('settings.securityPage.ipAllowlist.restrictAccess.help')}
+                </p>
               </div>
             </label>
 
             {ipAllowlist.length === 0 && (
-              <p className="text-xs text-hs-text-faint">Add at least one IP range to enable these options.</p>
+              <p className="text-xs text-hs-text-faint">
+                {t('settings.securityPage.ipAllowlist.emptyHint')}
+              </p>
             )}
 
             {/* Entry list */}
@@ -528,7 +651,7 @@ export default function SecuritySection() {
                     type="button"
                     onClick={() => handleRemoveIpEntry(i)}
                     className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors px-1"
-                    aria-label={`Remove ${entry}`}
+                    aria-label={t('settings.securityPage.ipAllowlist.removeAriaLabel', { entry })}
                   >
                     ✕
                   </button>
@@ -543,11 +666,11 @@ export default function SecuritySection() {
                 value={ipNewEntry}
                 onChange={(e) => { setIpNewEntry(e.target.value); setIpEntryError(null); }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddIpEntry(); } }}
-                placeholder="192.168.1.0/24"
+                placeholder={t('settings.securityPage.ipAllowlist.addPlaceholder')}
                 className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-1.5 font-mono focus:outline-none focus:border-hs-accent"
               />
               <Button variant="secondary" size="sm" onClick={handleAddIpEntry}>
-                Add
+                {t('settings.securityPage.ipAllowlist.addButton')}
               </Button>
             </div>
             {ipEntryError && <p className="text-xs text-hs-danger">{ipEntryError}</p>}
@@ -555,23 +678,30 @@ export default function SecuritySection() {
             {/* Caller IP info */}
             {ipCallerIp && (
               <p className="text-xs text-hs-text-faint">
-                Your IP: <code className="text-hs-text-secondary font-mono">{ipCallerIp}</code>
+                {t('settings.securityPage.ipAllowlist.callerIpLabel')}
+                <code className="text-hs-text-secondary font-mono">{ipCallerIp}</code>
               </p>
             )}
 
             {/* Lockout warning dialog */}
             {ipLockoutConfirm && (
               <div className="rounded-lg bg-hs-warning/10 border border-hs-warning/30 px-4 py-3">
-                <p className="text-sm text-hs-warning font-medium">You may lock yourself out</p>
+                <p className="text-sm text-hs-warning font-medium">
+                  {t('settings.securityPage.ipAllowlist.lockoutWarning.title')}
+                </p>
                 <p className="text-xs text-hs-text-muted mt-1">
-                  Your current IP ({ipCallerIp}) is not in the allowlist. If access restriction is enabled, you&apos;ll lose access to this editor.
+                  {t('settings.securityPage.ipAllowlist.lockoutWarning.messagePart1')}
+                  {ipCallerIp}
+                  {t('settings.securityPage.ipAllowlist.lockoutWarning.messagePart2')}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <Button variant="danger" size="sm" onClick={() => handleSaveIpAllowlist(true)} disabled={ipSaving}>
-                    {ipSaving ? 'Saving...' : 'Save Anyway'}
+                    {ipSaving
+                      ? t('settings.securityPage.ipAllowlist.lockoutWarning.saving')
+                      : t('settings.securityPage.ipAllowlist.lockoutWarning.saveAnyway')}
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setIpLockoutConfirm(false)}>
-                    Cancel
+                    {t('settings.securityPage.ipAllowlist.lockoutWarning.cancel')}
                   </Button>
                 </div>
               </div>
@@ -580,35 +710,63 @@ export default function SecuritySection() {
             {/* Save button */}
             {ipDirty && !ipLockoutConfirm && (
               <Button variant="primary" size="sm" onClick={() => handleSaveIpAllowlist(false)} disabled={ipSaving}>
-                {ipSaving ? 'Saving...' : 'Save Changes'}
+                {ipSaving
+                  ? t('settings.securityPage.ipAllowlist.saving')
+                  : t('settings.securityPage.ipAllowlist.saveButton')}
               </Button>
             )}
 
-            {ipMessage && (
-              <p className={`text-xs ${ipMessage === 'Saved' ? 'text-hs-success' : 'text-hs-danger'}`}>
-                {ipMessage}
+            {ipStatus && (
+              <p
+                className={`text-xs ${ipStatus.kind === 'success' ? 'text-hs-success' : 'text-hs-danger'}`}
+                aria-live="polite"
+                role={ipStatus.kind === 'error' ? 'alert' : undefined}
+              >
+                {ipStatus.message}
               </p>
             )}
 
             <p className="text-xs text-hs-text-faint">
-              If locked out, edit <code className="text-hs-text-faint">data/auth.json</code> on the device to disable.
+              {t('settings.securityPage.ipAllowlist.lockedOutHintPart1')}
+              <code className="text-hs-text-faint">
+                {t('settings.securityPage.ipAllowlist.lockedOutHintCode')}
+              </code>
+              {t('settings.securityPage.ipAllowlist.lockedOutHintPart2')}
             </p>
             <p className="text-xs text-hs-text-faint">
-              <strong className="text-hs-warning">IPv4 only.</strong> IPv6 clients (including dual-stack Pis reporting
-              <code className="text-hs-text-faint mx-1">::1</code>or <code className="text-hs-text-faint mx-1">fe80::…</code>)
-              do not match any allowlist entry and will be blocked when restriction is enabled. Check &quot;Your IP&quot; above —
-              if it starts with a colon, this feature will block you.
+              <strong className="text-hs-warning">
+                {t('settings.securityPage.ipAllowlist.ipv4Warning.strong')}
+              </strong>
+              {t('settings.securityPage.ipAllowlist.ipv4Warning.part1')}
+              <code className="text-hs-text-faint">
+                {t('settings.securityPage.ipAllowlist.ipv4Warning.loopback')}
+              </code>
+              {t('settings.securityPage.ipAllowlist.ipv4Warning.or')}
+              <code className="text-hs-text-faint">
+                {t('settings.securityPage.ipAllowlist.ipv4Warning.linkLocal')}
+              </code>
+              {t('settings.securityPage.ipAllowlist.ipv4Warning.part2')}
             </p>
             <p className="text-xs text-hs-text-faint">
-              <strong className="text-hs-warning">Trusted networks only.</strong> IP restriction reads the <code className="text-hs-text-faint">X-Forwarded-For</code> header.
-              If Home Screens is exposed directly to the internet without a trusted reverse proxy, this setting can be spoofed.
+              <strong className="text-hs-warning">
+                {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.strong')}
+              </strong>
+              {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.part1')}
+              <code className="text-hs-text-faint">
+                {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.header')}
+              </code>
+              {t('settings.securityPage.ipAllowlist.trustedNetworksWarning.part2')}
             </p>
           </div>
         </div>
       )}
 
         <p className="text-xs text-hs-text-faint">
-          Forgot your password? Delete <code className="text-hs-text-faint">data/auth.json</code> on the device to reset.
+          {t('settings.securityPage.forgotPasswordPart1')}
+          <code className="text-hs-text-faint">
+            {t('settings.securityPage.forgotPasswordCode')}
+          </code>
+          {t('settings.securityPage.forgotPasswordPart2')}
         </p>
       </div>
 
@@ -617,9 +775,9 @@ export default function SecuritySection() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-hs-panel border border-hs-border-strong rounded-lg p-6 w-full max-w-sm shadow-xl">
             <h4 className="text-sm font-medium text-hs-text-body mb-4">
-              {modal === 'set' && 'Set Password'}
-              {modal === 'change' && 'Change Password'}
-              {modal === 'disable' && 'Disable Authentication'}
+              {modal === 'set' && t('settings.securityPage.modal.setTitle')}
+              {modal === 'change' && t('settings.securityPage.modal.changeTitle')}
+              {modal === 'disable' && t('settings.securityPage.modal.disableTitle')}
             </h4>
 
             <div className="space-y-3">
@@ -627,8 +785,8 @@ export default function SecuritySection() {
                 <input
                   type="password"
                   value={currentPassword}
-                  onChange={(e) => { setCurrentPassword(e.target.value); setError(null); }}
-                  placeholder="Current password"
+                  onChange={(e) => { setCurrentPassword(e.target.value); setModalStatus(null); }}
+                  placeholder={t('settings.securityPage.modal.currentPasswordPlaceholder')}
                   autoFocus
                   className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                 />
@@ -639,16 +797,16 @@ export default function SecuritySection() {
                   <input
                     type="password"
                     value={newPassword}
-                    onChange={(e) => { setNewPassword(e.target.value); setError(null); }}
-                    placeholder="New password (min 8 characters)"
+                    onChange={(e) => { setNewPassword(e.target.value); setModalStatus(null); }}
+                    placeholder={t('settings.securityPage.modal.newPasswordPlaceholder')}
                     autoFocus={modal === 'set'}
                     className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                   />
                   <input
                     type="password"
                     value={confirmPassword}
-                    onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
-                    placeholder="Confirm new password"
+                    onChange={(e) => { setConfirmPassword(e.target.value); setModalStatus(null); }}
+                    placeholder={t('settings.securityPage.modal.confirmPasswordPlaceholder')}
                     className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                   />
                 </>
@@ -656,16 +814,23 @@ export default function SecuritySection() {
 
               {modal === 'disable' && (
                 <p className="text-xs text-hs-text-faint">
-                  This will remove the password and allow anyone on your network to access the editor.
+                  {t('settings.securityPage.modal.disableWarning')}
                 </p>
               )}
 
-              {error && <p className="text-xs text-hs-danger">{error}</p>}
-              {success && <p className="text-xs text-hs-success">{success}</p>}
+              {modalStatus && (
+                <p
+                  className={`text-xs ${modalStatus.kind === 'success' ? 'text-hs-success' : 'text-hs-danger'}`}
+                  aria-live="polite"
+                  role={modalStatus.kind === 'error' ? 'alert' : undefined}
+                >
+                  {modalStatus.message}
+                </p>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button variant="secondary" size="sm" onClick={resetModal} disabled={submitting}>
-                  Cancel
+                  {t('settings.securityPage.modal.cancel')}
                 </Button>
                 {modal === 'set' && (
                   <Button
@@ -674,7 +839,9 @@ export default function SecuritySection() {
                     onClick={handleSetPassword}
                     disabled={!newPassword || !confirmPassword || submitting}
                   >
-                    {submitting ? 'Setting...' : 'Set Password'}
+                    {submitting
+                      ? t('settings.securityPage.modal.setting')
+                      : t('settings.securityPage.modal.setSubmit')}
                   </Button>
                 )}
                 {modal === 'change' && (
@@ -684,7 +851,9 @@ export default function SecuritySection() {
                     onClick={handleChangePassword}
                     disabled={!currentPassword || !newPassword || !confirmPassword || submitting}
                   >
-                    {submitting ? 'Changing...' : 'Change Password'}
+                    {submitting
+                      ? t('settings.securityPage.modal.changing')
+                      : t('settings.securityPage.modal.changeSubmit')}
                   </Button>
                 )}
                 {modal === 'disable' && (
@@ -694,7 +863,9 @@ export default function SecuritySection() {
                     onClick={handleDisable}
                     disabled={!currentPassword || submitting}
                   >
-                    {submitting ? 'Disabling...' : 'Disable'}
+                    {submitting
+                      ? t('settings.securityPage.modal.disabling')
+                      : t('settings.securityPage.modal.disableSubmit')}
                   </Button>
                 )}
               </div>

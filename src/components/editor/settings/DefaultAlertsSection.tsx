@@ -8,6 +8,7 @@ import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklin
 import AlertFormFields, {
   type AlertFormValues,
 } from '@/components/editor/settings/display/AlertFormFields';
+import { useTranslate } from '@/i18n';
 
 /**
  * The "Defaults → Alerts" page — the source-of-truth for shared alert
@@ -33,6 +34,7 @@ interface DefaultAlertsSectionProps {
 }
 
 export default function DefaultAlertsSection({ config, values, onChange }: DefaultAlertsSectionProps) {
+  const t = useTranslate('editor');
   // Memoized on config — see the rationale in DefaultDisplaySection.
   const overrides = useMemo(
     () => findDisplaysOverridingFields(config, ALERT_OVERRIDE_FIELDS),
@@ -43,15 +45,16 @@ export default function DefaultAlertsSection({ config, values, onChange }: Defau
     <>
       <div className="mb-5">
         <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          Defaults → Alerts
+          {t('settings.defaultAlertsPage.breadcrumb')}
         </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">Default alert settings</h1>
+        <h1 className="text-xl font-semibold text-hs-text-primary">
+          {t('settings.defaultAlertsPage.heading')}
+        </h1>
         <p className="text-sm text-hs-text-faint mt-1">
-          Default position, size, and duration for the alert overlay on every display. A specific
-          display can override the whole alerts block from its own page.
+          {t('settings.defaultAlertsPage.description')}
         </p>
       </div>
-      <DefaultsBacklinkBanner overrides={overrides} pageLabel="this page" />
+      <DefaultsBacklinkBanner overrides={overrides} />
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <AlertFormFields values={values} onChange={onChange} />
       </div>

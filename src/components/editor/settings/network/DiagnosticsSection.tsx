@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate, type TranslateFn } from '@/i18n';
 
 /* ─── Types ────────────────────────────────── */
 
@@ -32,23 +33,33 @@ interface DiagnosticsResult {
 
 /* ─── Helpers ──────────────────────────────── */
 
-function formatLatency(ms: number | null): string {
+function formatLatency(ms: number | null, t: TranslateFn): string {
   if (ms === null) return '';
-  return ms < 1 ? '<1ms' : `${Math.round(ms)}ms`;
+  return ms < 1
+    ? t('settings.networkPage.diagnostics.host.latencyUnderOneMs')
+    : t('settings.networkPage.diagnostics.host.latencyMs', { ms: Math.round(ms) });
 }
 
-function formatLastRun(lastRun: string | null): string {
-  if (!lastRun) return 'Never';
+function formatLastRun(lastRun: string | null, t: TranslateFn): string {
+  if (!lastRun) return t('settings.networkPage.diagnostics.watchdog.never');
   try {
     const d = new Date(lastRun);
     if (isNaN(d.getTime())) return lastRun;
     const diffMs = Date.now() - d.getTime();
     const diffS = Math.floor(diffMs / 1000);
-    if (diffS < 60) return `${diffS} seconds ago`;
+    if (diffS < 60) {
+      return t('settings.networkPage.diagnostics.watchdog.secondsAgo', { count: diffS });
+    }
     const diffM = Math.floor(diffS / 60);
-    if (diffM < 60) return `${diffM} minute${diffM === 1 ? '' : 's'} ago`;
+    if (diffM < 60) {
+      return diffM === 1
+        ? t('settings.networkPage.diagnostics.watchdog.minuteAgoSingular', { count: diffM })
+        : t('settings.networkPage.diagnostics.watchdog.minutesAgoPlural', { count: diffM });
+    }
     const diffH = Math.floor(diffM / 60);
-    return `${diffH} hour${diffH === 1 ? '' : 's'} ago`;
+    return diffH === 1
+      ? t('settings.networkPage.diagnostics.watchdog.hourAgoSingular', { count: diffH })
+      : t('settings.networkPage.diagnostics.watchdog.hoursAgoPlural', { count: diffH });
   } catch {
     return lastRun;
   }
@@ -71,13 +82,23 @@ function HostRow({
   ip,
   reachable,
   latencyMs,
+  t,
 }: {
   label: string;
   ip: string;
   reachable: boolean;
   latencyMs: number | null;
+  t: TranslateFn;
 }) {
-  const latencyStr = reachable ? formatLatency(latencyMs) : null;
+  const latencyStr = reachable ? formatLatency(latencyMs, t) : null;
+  let statusText: string;
+  if (!reachable) {
+    statusText = t('settings.networkPage.diagnostics.host.unreachable');
+  } else if (latencyStr) {
+    statusText = t('settings.networkPage.diagnostics.host.reachableWithLatency', { latency: latencyStr });
+  } else {
+    statusText = t('settings.networkPage.diagnostics.host.reachable');
+  }
   return (
     <div className="flex items-center gap-2">
       <StatusDot reachable={reachable} />
@@ -86,11 +107,7 @@ function HostRow({
         <span className="text-hs-text-muted text-xs">({ip})</span>
       </span>
       <span className="ml-auto text-xs text-hs-text-muted">
-        {reachable
-          ? latencyStr
-            ? `Reachable (${latencyStr})`
-            : 'Reachable'
-          : 'Unreachable'}
+        {statusText}
       </span>
     </div>
   );
@@ -99,6 +116,7 @@ function HostRow({
 /* ─── Component ────────────────────────────── */
 
 export default function DiagnosticsSection() {
+  const t = useTranslate('editor');
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<DiagnosticsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -113,21 +131,21 @@ export default function DiagnosticsSection() {
         const data: DiagnosticsResult = await res.json();
         setResult(data);
       } else {
-        setError('Diagnostics request failed');
+        setError(t('settings.networkPage.diagnostics.requestFailed'));
       }
     } catch {
-      setError('Failed to reach server');
+      setError(t('settings.networkPage.diagnostics.networkErrorMessage'));
     } finally {
       setRunning(false);
     }
-  }, []);
+  }, [t]);
 
   const watchdog = result?.watchdog;
 
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Diagnostics
+        {t('settings.networkPage.diagnostics.heading')}
       </h3>
 
       <div className="bg-hs-card rounded-lg border border-hs-border p-4 space-y-3">
@@ -137,14 +155,16 @@ export default function DiagnosticsSection() {
             <div className="flex items-center gap-2">
               <StatusDot reachable={watchdog.active} />
               <span className="text-sm text-hs-text-primary">
-                WiFi watchdog:{' '}
+                {t('settings.networkPage.diagnostics.watchdog.label')}{' '}
                 <span className={watchdog.active ? 'text-hs-success' : 'text-hs-text-muted'}>
-                  {watchdog.active ? 'Active' : 'Inactive'}
+                  {watchdog.active
+                    ? t('settings.networkPage.diagnostics.watchdog.active')
+                    : t('settings.networkPage.diagnostics.watchdog.inactive')}
                 </span>
               </span>
             </div>
             <p className="text-xs text-hs-text-muted pl-4">
-              Last watchdog run: {formatLastRun(watchdog.lastRun)}
+              {t('settings.networkPage.diagnostics.watchdog.lastRun', { time: formatLastRun(watchdog.lastRun, t) })}
             </p>
           </div>
         )}
@@ -154,18 +174,20 @@ export default function DiagnosticsSection() {
           <div className="space-y-2">
             {result.gateway && (
               <HostRow
-                label="Gateway"
+                label={t('settings.networkPage.diagnostics.host.gatewayLabel')}
                 ip={result.gateway.ip}
                 reachable={result.gateway.reachable}
                 latencyMs={result.gateway.latencyMs}
+                t={t}
               />
             )}
             {result.internet && (
               <HostRow
-                label="Internet"
+                label={t('settings.networkPage.diagnostics.host.internetLabel')}
                 ip={result.internet.ip}
                 reachable={result.internet.reachable}
                 latencyMs={result.internet.latencyMs}
+                t={t}
               />
             )}
           </div>
@@ -174,7 +196,7 @@ export default function DiagnosticsSection() {
         {/* Not available */}
         {result && !result.available && (
           <p className="text-xs text-hs-text-muted">
-            Diagnostics are not available on this device.
+            {t('settings.networkPage.diagnostics.unavailable')}
           </p>
         )}
 
@@ -212,10 +234,10 @@ export default function DiagnosticsSection() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Testing...
+                {t('settings.networkPage.diagnostics.testingButton')}
               </span>
             ) : (
-              'Test Connection'
+              t('settings.networkPage.diagnostics.testButton')
             )}
           </Button>
         </div>

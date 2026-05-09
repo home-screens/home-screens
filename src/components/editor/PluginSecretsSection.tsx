@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import type { PluginSecretDeclaration } from '@/types/plugins';
+import { useTranslate } from '@/i18n';
 
 function PluginSecretField({
   decl,
@@ -17,6 +18,7 @@ function PluginSecretField({
   configured: boolean;
   onSaved: () => void;
 }) {
+  const t = useTranslate('editor');
   const [value, setValue] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -34,7 +36,7 @@ function PluginSecretField({
       const data = await res.json();
       if (!res.ok) {
         setSaveStatus('error');
-        setErrorMsg(data.error ?? 'Failed to save');
+        setErrorMsg(data.error ?? t('settings.pluginSecrets.defaultSaveError'));
         return;
       }
       setSaveStatus('saved');
@@ -43,7 +45,7 @@ function PluginSecretField({
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
       setSaveStatus('error');
-      setErrorMsg('Network error');
+      setErrorMsg(t('settings.pluginSecrets.networkError'));
     }
   }
 
@@ -66,7 +68,7 @@ function PluginSecretField({
         <span className="text-xs text-hs-text-muted">{decl.label}</span>
         <div className="flex items-center gap-2">
           {decl.required && !configured && (
-            <span className="text-xs text-hs-warning">Required</span>
+            <span className="text-xs text-hs-warning">{t('settings.pluginSecrets.requiredBadge')}</span>
           )}
           <StatusDot configured={configured} />
           {configured && (
@@ -74,7 +76,7 @@ function PluginSecretField({
               onClick={handleDelete}
               className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
             >
-              Remove
+              {t('settings.pluginSecrets.removeButton')}
             </button>
           )}
         </div>
@@ -84,7 +86,10 @@ function PluginSecretField({
           type="password"
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
-          placeholder={decl.placeholder ?? `Enter ${decl.label.toLowerCase()}`}
+          placeholder={
+            decl.placeholder ??
+            t('settings.pluginSecrets.enterPlaceholder', { label: decl.label.toLowerCase() })
+          }
           className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
         <Button
@@ -94,11 +99,13 @@ function PluginSecretField({
           disabled={!value.trim() || saveStatus === 'saving'}
           className="flex-shrink-0"
         >
-          {saveStatus === 'saving' ? '...' : 'Save'}
+          {saveStatus === 'saving'
+            ? t('settings.pluginSecrets.savingButton')
+            : t('settings.pluginSecrets.saveButton')}
         </Button>
       </div>
       {saveStatus === 'saved' && (
-        <span className="text-xs text-hs-success">Saved successfully</span>
+        <span className="text-xs text-hs-success">{t('settings.pluginSecrets.savedSuccess')}</span>
       )}
       {saveStatus === 'error' && (
         <span className="text-xs text-hs-danger">{errorMsg}</span>
@@ -117,6 +124,7 @@ export default function PluginSecretsSection({
   pluginId: string;
   secrets: PluginSecretDeclaration[];
 }) {
+  const t = useTranslate('editor');
   const [status, setStatus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
@@ -139,7 +147,7 @@ export default function PluginSecretsSection({
   }, [fetchStatus]);
 
   if (loading) {
-    return <p className="text-xs text-hs-text-faint">Loading secrets status...</p>;
+    return <p className="text-xs text-hs-text-faint">{t('settings.pluginSecrets.loading')}</p>;
   }
 
   return (

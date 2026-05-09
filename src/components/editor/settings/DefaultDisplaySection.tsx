@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { ScreenConfiguration } from '@/types/config';
+import type { ScreenConfiguration, TransitionEffect } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
 import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklinkBanner';
@@ -9,6 +9,7 @@ import Slider from '@/components/ui/Slider';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
+import { useTranslate } from '@/i18n';
 
 interface DefaultDisplayValues {
   displayWidth: number;
@@ -56,6 +57,7 @@ function resolvePreset(width: number, height: number) {
  * edit values nothing reads.
  */
 export default function DefaultDisplaySection({ config, values, onChange }: DefaultDisplaySectionProps) {
+  const t = useTranslate('editor');
   // Scan displays for overrides only when `config` changes. Without the
   // memo this runs on every keystroke into the form (which updates
   // `values`/`onChange` identities), and for a ≤64-display install with
@@ -78,6 +80,51 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
     pauseEnabled,
     pauseTimeoutSeconds,
   } = values;
+
+  // TRANSITION_OPTIONS / FULLSCREEN_THEMES are exported and consumed by
+  // multiple call sites (DisplaySubtab, FullscreenPhotoConfigSection, …),
+  // so we can't move the array construction in here. Instead we translate
+  // each label / theme group at render time using its `value` / `group` as
+  // the dictionary key. Falls back to the registry's English label when a
+  // key isn't registered (e.g. plugin-introduced effects, a future theme
+  // group). t() returns the raw key path on miss — not undefined and not
+  // falsy — so we compare result === key to detect a miss; a `|| fallback`
+  // would silently render the dotted-path key in the dropdown.
+  const tOrFallback = (key: string, fallback: string) => {
+    const result = t(key);
+    return result === key ? fallback : result;
+  };
+
+  const transitionOptions = useMemo(
+    () =>
+      TRANSITION_OPTIONS.map((opt) => ({
+        value: opt.value,
+        label: tOrFallback(
+          `settings.defaultDisplayPage.transitionOptions.${opt.value}`,
+          opt.label,
+        ),
+      })),
+    // tOrFallback closes over `t`; rebuild when locale changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t],
+  );
+
+  const fullscreenThemes = useMemo(
+    () =>
+      FULLSCREEN_THEMES.map((theme) => ({
+        ...theme,
+        // Theme names ("Linen", "Paper", "Charcoal", …) are kept verbatim —
+        // they're product names that don't translate. Only the group label
+        // ("light"/"dark") below the name is translated, with a fallback to
+        // the raw group identifier if a future group lacks a registered key.
+        groupLabel: tOrFallback(
+          `settings.defaultDisplayPage.themeGroups.${theme.group}`,
+          theme.group,
+        ),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t],
+  );
 
   // Canvas controls — only relevant in single-display mode. Derive
   // orientation from the actual dimensions (the source of truth for the
@@ -126,22 +173,36 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
     <>
       <div className="mb-5">
         <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          Defaults → Display
+          {t('settings.defaultDisplayPage.breadcrumb')}
         </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">Default display settings</h1>
+        <h1 className="text-xl font-semibold text-hs-text-primary">
+          {t('settings.defaultDisplayPage.heading')}
+        </h1>
         <p className="text-sm text-hs-text-faint mt-1">
-          These values are used by every display until a specific one overrides them. Change anything
-          here and every display that&apos;s <em>not</em> overriding that field picks up the new value.
+          {t('settings.defaultDisplayPage.descriptionPart1')}
+          <em>{t('settings.defaultDisplayPage.descriptionEmphasisNot')}</em>
+          {t('settings.defaultDisplayPage.descriptionPart2')}
         </p>
         {isMultiDisplay && (
           <p className="text-xs text-hs-text-faint mt-2">
-            Resolution, orientation, and flip are <strong className="text-hs-text-secondary">per display</strong>{' '}
-            — edit them on each display&apos;s own page under <em>Per display</em>.
+            {t('settings.defaultDisplayPage.multiDisplayNotePart1')}
+            <strong className="text-hs-text-secondary">
+              {t('settings.defaultDisplayPage.multiDisplayNotePerDisplay')}
+            </strong>
+            {t('settings.defaultDisplayPage.multiDisplayNotePart2')}
+            <em>{t('settings.defaultDisplayPage.multiDisplayNotePerDisplaySection')}</em>
+            {t('settings.defaultDisplayPage.multiDisplayNotePart3')}
           </p>
         )}
       </div>
 
-      <DefaultsBacklinkBanner overrides={overrides} pageLabel="this page" />
+      {/*
+        6.4a flagged the literal pageLabel="this page" here. The cleanest fix
+        is to omit the prop entirely — DefaultsBacklinkBanner already falls
+        back to t('settings.backlinkBanner.thisPage') so the locale resolves
+        at render time instead of being baked in English at the call site.
+       */}
+      <DefaultsBacklinkBanner overrides={overrides} />
 
       {/* Canvas controls — single-display installs only. In multi-display
           mode the global dims are vestigial (every DisplayNode owns its
@@ -149,10 +210,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           the user edit values nothing reads. */}
       {!isMultiDisplay && (
         <div className="mb-5">
-          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Canvas</div>
+          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+            {t('settings.defaultDisplayPage.canvas.heading')}
+          </div>
           <div className="rounded-lg border border-hs-border bg-hs-panel/40">
             <FieldRow>
-              <FieldLabel>Orientation</FieldLabel>
+              <FieldLabel>{t('settings.defaultDisplayPage.canvas.orientationLabel')}</FieldLabel>
               <div className="flex rounded-md overflow-hidden border border-hs-border-strong">
                 {(['portrait', 'landscape'] as const).map((o) => (
                   <button
@@ -165,14 +228,16 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                         : 'bg-hs-card text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover'
                     }`}
                   >
-                    {o === 'portrait' ? 'Portrait' : 'Landscape'}
+                    {o === 'portrait'
+                      ? t('settings.defaultDisplayPage.canvas.orientationPortrait')
+                      : t('settings.defaultDisplayPage.canvas.orientationLandscape')}
                   </button>
                 ))}
               </div>
             </FieldRow>
 
             <FieldRow>
-              <FieldLabel>Resolution</FieldLabel>
+              <FieldLabel>{t('settings.defaultDisplayPage.canvas.resolutionLabel')}</FieldLabel>
               <select
                 value={isCustom ? 'custom' : presetValue}
                 onChange={(e) => {
@@ -191,11 +256,14 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                   const h = orientation === 'portrait' ? p.long : p.short;
                   return (
                     <option key={p.short} value={String(p.short)}>
+                      {/* RESOLUTION_PRESETS labels (e.g. "1080p Full HD") are
+                          industry-standard shorthand and stay verbatim across
+                          locales — only the surrounding chrome is translated. */}
                       {p.label} ({w} × {h})
                     </option>
                   );
                 })}
-                <option value="custom">Custom...</option>
+                <option value="custom">{t('settings.defaultDisplayPage.canvas.resolutionCustom')}</option>
               </select>
               {isCustom && (
                 <div className="mt-2 flex items-center gap-2">
@@ -209,7 +277,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                       if (w > 0) onChange({ displayWidth: w });
                     }}
                     className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
-                    placeholder="Width"
+                    placeholder={t('settings.defaultDisplayPage.canvas.resolutionWidthPlaceholder')}
                   />
                   <span className="text-hs-text-faint text-sm">×</span>
                   <input
@@ -222,17 +290,17 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                       if (h > 0) onChange({ displayHeight: h });
                     }}
                     className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
-                    placeholder="Height"
+                    placeholder={t('settings.defaultDisplayPage.canvas.resolutionHeightPlaceholder')}
                   />
                 </div>
               )}
               <FieldHelp>
-                Match this to your physical display. Changing resolution affects the module canvas size.
+                {t('settings.defaultDisplayPage.canvas.resolutionHelp')}
               </FieldHelp>
             </FieldRow>
 
             <FieldRow>
-              <FieldLabel>Flip display</FieldLabel>
+              <FieldLabel>{t('settings.defaultDisplayPage.canvas.flipLabel')}</FieldLabel>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -240,11 +308,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                   onChange={(e) => setFlipped(e.target.checked)}
                   className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                 />
-                <span className="text-sm text-hs-text-secondary">Inverted mount</span>
+                <span className="text-sm text-hs-text-secondary">
+                  {t('settings.defaultDisplayPage.canvas.flipToggle')}
+                </span>
               </label>
               <FieldHelp>
-                Enable if your monitor is mounted upside-down. Rotates the display 180° from its base
-                orientation.
+                {t('settings.defaultDisplayPage.canvas.flipHelp')}
               </FieldHelp>
             </FieldRow>
           </div>
@@ -256,7 +325,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           container with border-b separated rows, no <h3>/<hr> dividers. */}
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <FieldRow>
-          <FieldLabel>Screen rotation interval</FieldLabel>
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}</FieldLabel>
           <Slider
             label=""
             value={rotationInterval}
@@ -266,13 +335,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             onChange={(v) => onChange({ rotationInterval: v })}
           />
           <FieldHelp>
-            How long each screen is shown before automatically cycling to the next. Only applies when
-            you have multiple screens configured.
+            {t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
           </FieldHelp>
         </FieldRow>
 
         <FieldRow>
-          <FieldLabel>Allow pause on touchscreen</FieldLabel>
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.pauseEnabledLabel')}</FieldLabel>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -280,115 +348,124 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               onChange={(e) => onChange({ pauseEnabled: e.target.checked })}
               className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
             />
-            <span className="text-sm text-hs-text-secondary">Enabled</span>
+            <span className="text-sm text-hs-text-secondary">
+              {t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
+            </span>
           </label>
           <FieldHelp>
-            Double-tap the active pagination dot to pause screen rotation. Double-tap again to resume.
+            {t('settings.defaultDisplayPage.fields.pauseEnabledHelp')}
           </FieldHelp>
           {pauseEnabled && (
             <div className="mt-3">
               <Slider
-                label="Auto-resume timeout"
+                label={t('settings.defaultDisplayPage.fields.pauseTimeoutLabel')}
                 value={pauseTimeoutSeconds}
                 min={0}
                 max={600}
                 step={30}
-                displayValue={pauseTimeoutSeconds === 0 ? 'Never' : `${pauseTimeoutSeconds}s`}
+                displayValue={
+                  pauseTimeoutSeconds === 0
+                    ? t('settings.defaultDisplayPage.fields.pauseTimeoutNever')
+                    : t('settings.defaultDisplayPage.fields.pauseTimeoutSeconds', {
+                        seconds: pauseTimeoutSeconds,
+                      })
+                }
                 onChange={(v) => onChange({ pauseTimeoutSeconds: v })}
               />
               <FieldHelp>
-                Automatically resume rotation after this many seconds. Set to 0 to stay paused until
-                manually resumed.
+                {t('settings.defaultDisplayPage.fields.pauseTimeoutHelp')}
               </FieldHelp>
             </div>
           )}
         </FieldRow>
 
         <FieldRow>
-          <FieldLabel>Transition effect</FieldLabel>
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.transitionEffectLabel')}</FieldLabel>
           <select
             value={transitionEffect}
             onChange={(e) => onChange({ transitionEffect: e.target.value })}
             className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
-            {TRANSITION_OPTIONS.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {transitionOptions.map((opt) => (
+              <option key={opt.value} value={opt.value as TransitionEffect}>
+                {opt.label}
               </option>
             ))}
           </select>
           <FieldHelp>
-            Animation style when cycling between screens. Blur may be GPU-intensive on low-power devices.
+            {t('settings.defaultDisplayPage.fields.transitionEffectHelp')}
           </FieldHelp>
         </FieldRow>
 
         {transitionEffect !== 'none' && (
           <FieldRow>
-            <FieldLabel>Transition duration</FieldLabel>
+            <FieldLabel>{t('settings.defaultDisplayPage.fields.transitionDurationLabel')}</FieldLabel>
             <Slider
               label=""
               value={transitionDuration}
               min={0.3}
               max={2}
               step={0.1}
-              displayValue={`${transitionDuration.toFixed(1)}s`}
+              displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', {
+                seconds: transitionDuration.toFixed(1),
+              })}
               onChange={(v) => onChange({ transitionDuration: v })}
             />
-            <FieldHelp>How long the transition animation takes between screens.</FieldHelp>
+            <FieldHelp>{t('settings.defaultDisplayPage.fields.transitionDurationHelp')}</FieldHelp>
           </FieldRow>
         )}
 
         <FieldRow>
-          <FieldLabel>Hide cursor after</FieldLabel>
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.cursorHideLabel')}</FieldLabel>
           <Slider
             label=""
             value={cursorHideSeconds}
             min={1}
             max={30}
             step={1}
-            displayValue={`${cursorHideSeconds}s`}
+            displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', {
+              seconds: cursorHideSeconds,
+            })}
             onChange={(v) => onChange({ cursorHideSeconds: v })}
           />
           <FieldHelp>
-            The mouse cursor is hidden after this many seconds of inactivity. Move the mouse to show
-            it again.
+            {t('settings.defaultDisplayPage.fields.cursorHideHelp')}
           </FieldHelp>
         </FieldRow>
 
         <FieldRow>
-          <FieldLabel>Fullscreen theme</FieldLabel>
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}</FieldLabel>
           <FieldHelp>
-            Applies to all fullscreen modules (Calendar, Chores, Meals) so they look seamless when
-            rotating. You can change this per module in the editor.
+            {t('settings.defaultDisplayPage.fields.fullscreenThemeHelp')}
           </FieldHelp>
           <div className="grid grid-cols-3 gap-2 mt-3">
-            {FULLSCREEN_THEMES.map((t) => (
+            {fullscreenThemes.map((theme) => (
               <button
-                key={t.id}
+                key={theme.id}
                 type="button"
-                onClick={() => onChange({ fullscreenTheme: t.id })}
+                onClick={() => onChange({ fullscreenTheme: theme.id })}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
-                  fullscreenTheme === t.id
+                  fullscreenTheme === theme.id
                     ? 'border-hs-accent bg-hs-accent-soft'
                     : 'border-hs-border-strong bg-hs-card hover:bg-hs-hover'
                 }`}
               >
                 <div
                   className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-hs-border-strong"
-                  style={{ background: t.tokens.bg }}
+                  style={{ background: theme.tokens.bg }}
                 >
-                  <div style={{ height: '60%', background: t.tokens.bg }} />
-                  <div style={{ height: '40%', background: t.tokens.border }} />
+                  <div style={{ height: '60%', background: theme.tokens.bg }} />
+                  <div style={{ height: '40%', background: theme.tokens.border }} />
                 </div>
                 <div>
                   <div
                     className={`text-xs font-semibold ${
-                      fullscreenTheme === t.id ? 'text-hs-accent-hover' : 'text-hs-text-body'
+                      fullscreenTheme === theme.id ? 'text-hs-accent-hover' : 'text-hs-text-body'
                     }`}
                   >
-                    {t.name}
+                    {theme.name}
                   </div>
-                  <div className="text-[10px] text-hs-text-faint capitalize">{t.group}</div>
+                  <div className="text-[10px] text-hs-text-faint">{theme.groupLabel}</div>
                 </div>
               </button>
             ))}

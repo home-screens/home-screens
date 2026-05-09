@@ -7,6 +7,7 @@ import type { DisplayNode } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { isMainDisplay } from '@/lib/display-filter';
+import { useTranslate } from '@/i18n';
 
 interface IdentitySubtabProps {
   display: DisplayNode;
@@ -26,6 +27,7 @@ interface IdentitySubtabProps {
  * button present but disabled by the store-level guard."
  */
 export default function IdentitySubtab({ display }: IdentitySubtabProps) {
+  const t = useTranslate('editor');
   const router = useRouter();
   const { updateDisplay, removeDisplay, saveConfig } = useEditorStore();
   const [name, setName] = useState(display.name);
@@ -49,7 +51,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
     if (isMain) return;
     const ok = await useConfirmStore
       .getState()
-      .confirm(`Remove display "${display.name}"? This deletes its screens.`);
+      .confirm(t('settings.perDisplayPage.identity.removeConfirm', { name: display.name }));
     if (!ok) return;
     setSaving(true);
     try {
@@ -71,7 +73,9 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <div className="px-4 py-3.5 border-b border-hs-border">
           <label className="block">
-            <span className="text-xs text-hs-text-muted">Display name</span>
+            <span className="text-xs text-hs-text-muted">
+              {t('settings.perDisplayPage.identity.displayNameLabel')}
+            </span>
             <input
               type="text"
               value={name}
@@ -80,13 +84,15 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
               className="mt-1.5 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             />
             <p className="text-[11px] text-hs-text-faint mt-1.5">
-              Shown in the sidebar and on the display kiosk. Auto-saves on blur.
+              {t('settings.perDisplayPage.identity.displayNameHelp')}
             </p>
           </label>
         </div>
         <div className="px-4 py-3.5">
           <label className="block">
-            <span className="text-xs text-hs-text-muted">Display ID</span>
+            <span className="text-xs text-hs-text-muted">
+              {t('settings.perDisplayPage.identity.displayIdLabel')}
+            </span>
             <input
               type="text"
               value={display.id}
@@ -94,19 +100,22 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
               className="mt-1.5 block w-full rounded-md bg-hs-hover border border-hs-border-strong text-sm text-hs-text-muted px-3 py-2 font-mono"
             />
             <p className="text-[11px] text-hs-text-faint mt-1.5">
-              Used in the kiosk URL <code className="text-hs-text-muted">/display/{display.id}</code>.
-              Cannot be changed without reconfiguring the Pi.
+              {t('settings.perDisplayPage.identity.displayIdHelpPart1')}
+              <code className="text-hs-text-muted">/display/{display.id}</code>
+              {t('settings.perDisplayPage.identity.displayIdHelpPart2')}
             </p>
           </label>
         </div>
       </div>
 
       <div className="mt-5 rounded-lg border border-hs-danger/20 bg-hs-danger/[0.04] p-4">
-        <div className="text-sm font-medium text-hs-danger mb-1">Danger zone</div>
+        <div className="text-sm font-medium text-hs-danger mb-1">
+          {t('settings.perDisplayPage.identity.dangerZoneHeading')}
+        </div>
         <div className="text-xs text-hs-text-muted mb-3">
           {isMain
-            ? 'The main display is the hub kiosk and cannot be removed. Removing it would orphan its screens and reset the hub to an unadopted state.'
-            : 'Removing a display stops serving it and deletes its screens. The Pi can re-register as unadopted.'}
+            ? t('settings.perDisplayPage.identity.dangerZoneMainHelp')
+            : t('settings.perDisplayPage.identity.dangerZoneRemovableHelp')}
         </div>
         <button
           type="button"
@@ -115,7 +124,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-transparent text-hs-danger border border-hs-danger/30 hover:bg-hs-danger/10 hover:border-hs-danger/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-hs-danger/30 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Remove {display.name}
+          {t('settings.perDisplayPage.identity.removeButton', { name: display.name })}
         </button>
       </div>
     </>
