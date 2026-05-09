@@ -37,6 +37,26 @@ export interface PluginManifest {
   permissions?: PluginPermission[];
   /** Maps fromVersion → { renames, defaults } for config migration on update */
   configMigrations?: Record<string, { renames?: Record<string, string>; defaults?: Record<string, unknown> }>;
+  /**
+   * Optional translation dictionaries shipped with the plugin.
+   *
+   * Keys are BCP-47 tags (e.g. `"en-US"`, `"de-DE"`). Values are paths to a
+   * JSON dictionary file relative to the plugin root — so for a plugin
+   * installed at `data/plugins/my-plugin/` a value of
+   * `"translations/de-DE.json"` resolves to
+   * `data/plugins/my-plugin/translations/de-DE.json`.
+   *
+   * At load time the plugin loader picks the first tag in the active
+   * locale's fallback chain that has an entry here, fetches the file, and
+   * registers it under the namespace `plugin:<pluginId>`. Plugin code can
+   * then call `__HS_SDK__.translate('plugin:<pluginId>.someKey')` to look
+   * strings up. The dictionary supports the same nested + plural-form
+   * shape as the host's built-in namespaces.
+   *
+   * Absent or empty: backwards-compatible no-op — the plugin loads as
+   * before and `translate('plugin:<pluginId>.foo')` returns the raw key.
+   */
+  translations?: Record<string, string>;
 }
 
 export type PluginDataRequirement = 'location' | 'weather' | 'calendar';
