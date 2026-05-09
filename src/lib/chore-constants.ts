@@ -1,4 +1,5 @@
 import type { ChoreResetFrequency, ChoreRotation } from '@/types/config';
+import type { TranslateFn } from '@/i18n/types';
 
 // ── Chore frequency & rotation labels (shared across editor + remote) ────
 
@@ -49,4 +50,31 @@ export function formatTimeAgo(input: Date | string): string {
   if (days < 7) return `${days}d ago`;
   const weeks = Math.floor(days / 7);
   return `${weeks}w ago`;
+}
+
+/**
+ * Localized variant of {@link formatTimeAgo}. Mirrors the threshold ladder
+ * exactly — only the string output is pulled from translation keys under
+ * `core.relativeTime.*`. Callers bind a `TranslateFn` via `useTranslate('core')`
+ * and pass it in. The English `formatTimeAgo` above stays callable as a
+ * deferred shim until task 6.12 migrates every consumer.
+ */
+export function formatTimeAgoLocalized(
+  input: Date | string,
+  t: TranslateFn,
+  now: Date = new Date(),
+): string {
+  const inputMs = typeof input === 'string' ? new Date(input).getTime() : input.getTime();
+  const ms = Math.max(0, now.getTime() - inputMs);
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 5) return t('relativeTime.justNow');
+  if (seconds < 60) return t('relativeTime.secondsAgo', { n: seconds });
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return t('relativeTime.minutesAgo', { n: minutes });
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return t('relativeTime.hoursAgo', { n: hours });
+  const days = Math.floor(hours / 24);
+  if (days < 7) return t('relativeTime.daysAgo', { n: days });
+  const weeks = Math.floor(days / 7);
+  return t('relativeTime.weeksAgo', { n: weeks });
 }

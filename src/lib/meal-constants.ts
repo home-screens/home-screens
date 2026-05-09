@@ -1,4 +1,6 @@
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize } from '@/types/config';
+import { formatDateSync, preloadDateLocale } from '@/i18n/formatters';
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
 // ── Shared defaults (used across editor + remote + config sections) ────
 
@@ -88,6 +90,16 @@ export const SLOT_META: Record<MealSlotType, { label: string; color: string; bg:
   snack:     { label: 'Snack',     color: '#ec4899', bg: 'rgba(236, 72, 153, 0.10)' },
 };
 
+/**
+ * Translation-key helper for meal slot labels. Callers using
+ * `useTranslate('modules')` pass the returned dotted path directly —
+ * the namespace prefix is implicit. `SLOT_META[slot].label` (English
+ * literal) stays callable until task 6.12 sweeps the remaining consumers.
+ */
+export function getMealSlotLabelKey(slot: MealSlotType): string {
+  return `meal-planner.slots.${slot}`;
+}
+
 /** Canonical slot ordering — matches chronological time windows */
 export const SLOT_ORDER: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
 
@@ -99,11 +111,66 @@ export const SLOT_WINDOWS: Record<MealSlotType, { start: number; end: number }> 
   dinner:    { start: 17, end: 21 },
 };
 
-/** Short day names (0 = Sunday) */
+/**
+ * @deprecated Hard-coded English short day names (0 = Sunday). Use
+ * `getLocalizedDayNames(locale, 'short')` instead so a German household
+ * sees `So/Mo/Di/...`. Tasks 4–5 will migrate every remaining caller;
+ * this export survives as a compatibility shim until then.
+ */
 export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-/** Full day names (0 = Sunday) */
+/**
+ * @deprecated Hard-coded English full day names (0 = Sunday). Use
+ * `getLocalizedDayNames(locale, 'full')` instead. Tasks 4–5 will
+ * migrate every remaining caller; this export survives as a
+ * compatibility shim until then.
+ */
 export const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/**
+ * Return 7 localized day-of-week names indexed 0=Sunday … 6=Saturday.
+ *
+ * Uses `formatDateSync` against a known anchor week (Sun 2024-01-07 →
+ * Sat 2024-01-13) so the array indices line up with `Date.prototype.getDay()`.
+ * The locale's date-fns bundle must already be preloaded — every layout
+ * does this server-side at request time, so by the time any client
+ * component calls this, the cache is warm. Falls back to the en-US
+ * date-fns default (synchronous) on cache miss.
+ *
+ * `format` selects the date-fns pattern: `'full'` → `EEEE` ("Monday",
+ * "Montag"), `'short'` → `EEE` ("Mon", "Mo").
+ */
+export function getLocalizedDayNames(
+  locale: string = DEFAULT_LOCALE,
+  format: 'short' | 'full' = 'full',
+): string[] {
+  const pattern = format === 'short' ? 'EEE' : 'EEEE';
+  // Anchor week: 2024-01-07 is a Sunday in every reasonable timezone
+  // (it's noon UTC, well clear of the date boundary). We construct each
+  // day with local-time `new Date(y, m, d)` so the result matches what
+  // `Date.prototype.getDay()` would return at the consumer site.
+  const result: string[] = new Array(7);
+  for (let dow = 0; dow < 7; dow++) {
+    const anchor = new Date(2024, 0, 7 + dow); // Sun Jan 7 + dow
+    result[dow] = formatDateSync(anchor, pattern, { locale });
+  }
+  return result;
+}
+
+/**
+ * Async variant of `getLocalizedDayNames` — awaits the date-fns locale
+ * import so the names are guaranteed correct on first call. Use this in
+ * server components / setup paths where you can `await`; client
+ * components on hot tick paths should prefer `getLocalizedDayNames`
+ * after relying on the layout-level preload.
+ */
+export async function getLocalizedDayNamesAsync(
+  locale: string = DEFAULT_LOCALE,
+  format: 'short' | 'full' = 'full',
+): Promise<string[]> {
+  await preloadDateLocale(locale);
+  return getLocalizedDayNames(locale, format);
+}
 
 /** Get ordered day indices based on week start */
 export function getOrderedDays(weekStartDay: 'sunday' | 'monday'): number[] {

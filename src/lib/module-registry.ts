@@ -33,6 +33,26 @@ export const MODULE_CATEGORIES: ModuleCategory[] = [
   'Travel',
 ];
 
+const CATEGORY_SLUG_MAP: Record<ModuleCategory, string> = {
+  'Full Screen': 'fullScreen',
+  'Time & Date': 'timeAndDate',
+  'Weather & Environment': 'weatherAndEnvironment',
+  'News & Finance': 'newsAndFinance',
+  'Knowledge & Fun': 'knowledgeAndFun',
+  'Personal': 'personal',
+  'Media & Display': 'mediaAndDisplay',
+  'Travel': 'travel',
+};
+
+/**
+ * Returns the camelCase slug for a built-in category (used as the i18n key
+ * suffix under `editor.registry.categories.*`), or `null` for plugin-defined
+ * categories that don't match a built-in.
+ */
+export function categorySlug(category: string): string | null {
+  return (CATEGORY_SLUG_MAP as Record<string, string>)[category] ?? null;
+}
+
 export interface ModuleDefinition {
   type: ModuleType;
   label: string;

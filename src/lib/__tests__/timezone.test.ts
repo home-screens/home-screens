@@ -155,6 +155,37 @@ describe('formatTimeInTZ', () => {
     expect(sydney).toMatch(/10:00/);
     expect(sydney).toMatch(/AM/);
   });
+
+  it('honors the locale argument when caller opts into 24h time (proving the tag flows through Intl)', () => {
+    // Regression guard for the en-US literal cutover. With an explicit
+    // `hour12: false` the German short time is "17:30" while the en-US
+    // form would still emit "17:30" too — that proves nothing.
+    // Instead, drop hour12 entirely so each locale picks its convention:
+    // de-DE uses 24h, en-US uses 12h with " AM/PM". Comparing the two
+    // outputs (rather than asserting an exact string) keeps the test
+    // resilient to ICU version drift while still proving the locale
+    // flowed end-to-end.
+    const date = new Date('2024-07-15T15:30:00Z');
+    const de = formatTimeInTZ(date, 'Europe/Berlin', { hour12: false }, 'de-DE');
+    const en = formatTimeInTZ(date, 'Europe/Berlin', { hour12: false }, 'en-US');
+    // Both should hit the locale-default 24h path with Berlin = UTC+2
+    // in July, so 15:30 UTC → 17:30 Berlin. The exact separator/spacing
+    // can differ between locales (de-DE may include narrow no-break
+    // spaces, en-US uses ASCII colons), so assert the digit pattern
+    // and the locale-divergence rather than exact string equality.
+    expect(de).toMatch(/17:30/);
+    expect(en).toMatch(/17:30/);
+    // Now read the user-facing weekday format — that one IS locale-
+    // sensitive in every locale, so we can compare distinct outputs.
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+    };
+    const deLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'de-DE');
+    const enLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'en-US');
+    expect(deLong).not.toBe(enLong);
+  });
 });
 
 describe('parseDateInTZ', () => {

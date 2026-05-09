@@ -5,7 +5,15 @@
  * Modules use `new Date()` whose `.getHours()` etc. reflect the OS timezone.
  * We solve this with a "shifted Date" trick: construct a Date whose local-time
  * methods return values matching the configured IANA timezone.
+ *
+ * Locale-aware helpers (`formatTimeInTZ`, `formatDateInTZ`) accept an
+ * optional `locale` argument — defaults to `DEFAULT_LOCALE` (en-US) so
+ * legacy callers continue to work without code changes. Internal Intl
+ * helpers that only need part extraction (`createTZDate`,
+ * `parseDateInTZ`) keep using `'en-US'` because the part values are
+ * locale-independent integers.
  */
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
 /**
  * Curated list of common IANA zones used as the shared source of truth for
@@ -73,6 +81,11 @@ export function createTZDate(timezone?: string): Date {
 
   try {
     const now = new Date();
+    // 'en-US' is intentional: `formatToParts` is consumed as integers
+    // (parseInt below), so we need a locale that emits ASCII digits
+    // — Arabic/Indic locales would emit non-Latin numerals that break
+    // parseInt. This is locale-INDEPENDENT machine extraction, not
+    // user-facing formatting.
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       year: 'numeric',
@@ -99,15 +112,21 @@ export function createTZDate(timezone?: string): Date {
  * Format a Date's time in the given timezone using Intl.
  * Useful for modules that display times from external sources (SunCalc, APIs)
  * where the Date is already a real UTC instant.
+ *
+ * `locale` is the BCP-47 tag used for the Intl formatter — defaults to
+ * `DEFAULT_LOCALE` (en-US). Pass the value from `useFormattingLocale()`
+ * (client) or from `globalSettings.formattingLocale` (server) for
+ * locale-aware output.
  */
 export function formatTimeInTZ(
   date: Date,
   timezone?: string,
   options?: Intl.DateTimeFormatOptions,
+  locale: string = DEFAULT_LOCALE,
 ): string {
   if (isNaN(date.getTime())) return '—';
   try {
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -116,7 +135,7 @@ export function formatTimeInTZ(
     });
   } catch {
     // Invalid timezone — format without timezone override
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -127,24 +146,30 @@ export function formatTimeInTZ(
 
 /**
  * Format a Date in the given IANA timezone using Intl.DateTimeFormat.
- * Prefer this over calling `date.toLocaleDateString('en-US', opts)` directly
+ * Prefer this over calling `date.toLocaleDateString(locale, opts)` directly
  * when `date` is a real UTC instant and the module has a configured timezone,
  * otherwise the Pi's OS timezone leaks into the displayed string.
+ *
+ * `locale` is the BCP-47 tag used for the Intl formatter — defaults to
+ * `DEFAULT_LOCALE` (en-US). Pass the value from `useFormattingLocale()`
+ * (client) or from `globalSettings.formattingLocale` (server) for
+ * locale-aware output.
  */
 export function formatDateInTZ(
   date: Date,
   timezone: string | undefined,
   options: Intl.DateTimeFormatOptions,
+  locale: string = DEFAULT_LOCALE,
 ): string {
   if (isNaN(date.getTime())) return '—';
   try {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale, {
       ...options,
       ...(timezone ? { timeZone: timezone } : {}),
     });
   } catch {
     // Invalid timezone — format without timezone override
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString(locale, options);
   }
 }
 
@@ -173,6 +198,8 @@ export function parseDateInTZ(dateStr: string, timezone?: string): Date {
   // Create a UTC guess and find how far off the target timezone is
   try {
     const utcGuess = Date.UTC(year, month, day, hour, min, sec);
+    // 'en-US' is intentional — see `createTZDate` for the rationale
+    // (machine extraction needs ASCII digits, not user-facing format).
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       year: 'numeric',

@@ -189,6 +189,14 @@ describe('resolveTemplateVariables', () => {
     const result = resolveTemplateVariables('{{greeting}}', 'Asia/Tokyo');
     expect(result).toBe('Good morning');
   });
+
+  it('honors the locale argument for {{day}} (German weekday name)', () => {
+    // Regression guard for the en-US literal cutover: passing a non-en
+    // locale must surface in the Intl-formatted weekday output.
+    vi.setSystemTime(new Date(2026, 2, 12, 12, 0, 0)); // Thursday
+    const result = resolveTemplateVariables('{{day}}', undefined, 'de-DE');
+    expect(result).toBe('Donnerstag');
+  });
 });
 
 // ---------------------------------------------------------------------------
