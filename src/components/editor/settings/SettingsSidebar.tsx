@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import {
   Activity,
   Bell,
@@ -9,6 +10,7 @@ import {
   Calendar,
   CloudSun,
   Database,
+  Globe,
   Layers,
   LayoutGrid,
   MapPin,
@@ -82,38 +84,51 @@ interface DisplaysApiResponse {
 }
 
 /**
- * Icon + label metadata for every Defaults page id. Typed as a
+ * Icon + nav-label key metadata for every Defaults page id. Typed as a
  * `Record<DefaultPageId, ...>` so adding a new page to
  * `DEFAULT_PAGE_IDS` in `lib/settings-route` without adding an entry
  * here is a compile error — and vice versa. That replaces the old
  * dual-maintenance risk where the sidebar array and the route parser's
  * canonical list could silently drift out of sync.
+ *
+ * The `labelKey` is a key under `editor.settings.sidebar.navLabels`. The
+ * actual visible string is resolved per render via `useTranslate('editor')`
+ * so a locale change re-flows the sidebar without remounting.
  */
-const PAGE_META: Record<DefaultPageId, { label: string; icon: LucideIcon }> = {
-  display: { label: 'Display', icon: Monitor },
-  sleep: { label: 'Sleep', icon: Moon },
-  alerts: { label: 'Alerts', icon: Bell },
-  location: { label: 'Location', icon: MapPin },
-  weather: { label: 'Weather', icon: CloudSun },
-  calendar: { label: 'Calendar', icon: Calendar },
-  meals: { label: 'Meals', icon: UtensilsCrossed },
-  profiles: { label: 'Profiles', icon: Layers },
-  integrations: { label: 'Integrations', icon: Plug },
-  security: { label: 'Security', icon: Shield },
-  data: { label: 'Data', icon: Database },
-  stats: { label: 'Stats', icon: Activity },
-  system: { label: 'System', icon: Server },
-  network: { label: 'Network', icon: Wifi },
-  docs: { label: 'Docs', icon: BookOpen },
+const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon }> = {
+  display: { labelKey: 'display', icon: Monitor },
+  sleep: { labelKey: 'sleep', icon: Moon },
+  alerts: { labelKey: 'alerts', icon: Bell },
+  location: { labelKey: 'location', icon: MapPin },
+  language: { labelKey: 'language', icon: Globe },
+  weather: { labelKey: 'weather', icon: CloudSun },
+  calendar: { labelKey: 'calendar', icon: Calendar },
+  meals: { labelKey: 'meals', icon: UtensilsCrossed },
+  profiles: { labelKey: 'profiles', icon: Layers },
+  integrations: { labelKey: 'integrations', icon: Plug },
+  security: { labelKey: 'security', icon: Shield },
+  data: { labelKey: 'data', icon: Database },
+  stats: { labelKey: 'stats', icon: Activity },
+  system: { labelKey: 'system', icon: Server },
+  network: { labelKey: 'network', icon: Wifi },
+  docs: { labelKey: 'docs', icon: BookOpen },
 };
 
 /**
  * Canonical render order for the Defaults group. Derived from
  * `DEFAULT_PAGE_IDS` so the sidebar and the route parser can't drift —
- * reordering happens in one place.
+ * reordering happens in one place. The `label` is resolved through `t`
+ * at call time so the visible string follows the active locale.
  */
-const DEFAULT_PAGES: { id: DefaultPageId; label: string; icon: LucideIcon }[] =
-  DEFAULT_PAGE_IDS.map((id) => ({ id, ...PAGE_META[id] }));
+function buildDefaultPages(
+  t: TranslateFn,
+): { id: DefaultPageId; label: string; icon: LucideIcon }[] {
+  return DEFAULT_PAGE_IDS.map((id) => ({
+    id,
+    label: t(`settings.sidebar.navLabels.${PAGE_META[id].labelKey}`),
+    icon: PAGE_META[id].icon,
+  }));
+}
 
 /**
  * Map a heartbeat lastSeen (ms epoch) to one of the three status colors.
@@ -132,6 +147,9 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   const { config } = useEditorStore();
   const displays = config?.displays ?? [];
   const isMultiDisplay = displays.length > 0;
+
+  const t = useTranslate('editor');
+  const defaultPages = useMemo(() => buildDefaultPages(t), [t]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -227,7 +245,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     return (
       <nav className="w-52 shrink-0 border-r border-hs-border bg-hs-panel/40 flex flex-col">
         <div className="flex-1 overflow-y-auto py-3">
-          {DEFAULT_PAGES.map((p) => (
+          {defaultPages.map((p) => (
             <SidebarItem
               key={p.id}
               icon={p.icon}
@@ -239,7 +257,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           <div className="mx-3.5 my-2 border-t border-hs-border" />
           <SidebarItem
             icon={LayoutGrid}
-            label="Displays"
+            label={t('settings.sidebar.displays')}
             active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
             onClick={() => navigate('?section=displays')}
           />
@@ -254,12 +272,12 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
       <div className="flex-1 overflow-y-auto py-3">
       {/* DEFAULTS group */}
       <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
-        Defaults
+        {t('settings.sidebar.defaults')}
       </div>
       <div className="px-3.5 pb-1.5 text-[10px] text-hs-text-faint italic leading-tight">
-        Used by every display until overridden.
+        {t('settings.sidebar.defaultsHelp')}
       </div>
-      {DEFAULT_PAGES.map((p) => (
+      {defaultPages.map((p) => (
         <SidebarItem
           key={p.id}
           icon={p.icon}
@@ -275,12 +293,12 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
 
       {/* PER DISPLAY group */}
       <div className="flex items-center justify-between px-3.5 pt-4 pb-1 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
-        <span>Per display</span>
+        <span>{t('settings.sidebar.perDisplay')}</span>
         <button
           type="button"
           onClick={onAddDisplay}
           className="text-hs-text-faint hover:text-hs-text-secondary transition-colors"
-          title="Add display"
+          title={t('settings.sidebar.addDisplay')}
         >
           <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
         </button>
@@ -288,7 +306,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
 
       <SidebarItem
         icon={LayoutGrid}
-        label="All displays"
+        label={t('settings.sidebar.allDisplays')}
         active={activeRoute.kind === 'displays'}
         onClick={() => navigate('?section=displays')}
         badge={String(displays.length)}
@@ -336,6 +354,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
  * visible regardless of how far the Defaults / Per display lists scroll.
  */
 function SidebarFooter() {
+  const t = useTranslate('editor');
   return (
     <div className="flex items-center justify-end gap-3 border-t border-hs-border px-3.5 py-2">
       <a
@@ -343,8 +362,8 @@ function SidebarFooter() {
         target="_blank"
         rel="noopener noreferrer"
         className="text-hs-text-faint hover:text-hs-text-body transition-colors"
-        title="homescreens.dev"
-        aria-label="Visit homescreens.dev"
+        title={t('settings.sidebar.websiteTitle')}
+        aria-label={t('settings.sidebar.websiteAriaLabel')}
       >
         <svg
           className="w-4 h-4"
@@ -366,8 +385,8 @@ function SidebarFooter() {
         target="_blank"
         rel="noopener noreferrer"
         className="text-hs-text-faint hover:text-hs-text-body transition-colors"
-        title="View on GitHub"
-        aria-label="View on GitHub"
+        title={t('settings.sidebar.githubTitle')}
+        aria-label={t('settings.sidebar.githubAriaLabel')}
       >
         <i className="fa-brands fa-github text-base leading-none" aria-hidden="true" />
       </a>

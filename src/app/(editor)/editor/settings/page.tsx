@@ -15,6 +15,7 @@ import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage'
 import { resolveSettingsRoute } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import LocationSection from '@/components/editor/settings/LocationSection';
+import LanguageAndRegionPage from '@/components/editor/settings/LanguageAndRegionPage';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
@@ -60,6 +61,7 @@ type TabId =
   | 'sleep'
   | 'alerts'
   | 'location'
+  | 'language'
   | 'weather'
   | 'calendar'
   | 'meals'
@@ -483,6 +485,10 @@ function SettingsPageContent() {
                 values={state.location}
                 onChange={(updates) => updateGroup('location', updates)}
               />
+            )}
+
+            {activeTab === 'language' && (
+              <LanguageAndRegionPage />
             )}
 
             {activeTab === 'weather' && (
