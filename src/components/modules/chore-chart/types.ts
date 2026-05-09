@@ -56,6 +56,14 @@ export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { label: string; icon: str
   anytime:   { label: 'Anytime',   icon: '\ud83d\udd50',  order: 3 },
 };
 
+/**
+ * Returns the `modules.chore-chart.timeOfDay.<timeOfDay>` translation key for use
+ * with `useTranslate('modules')`.
+ */
+export function getTimeOfDayLabelKey(timeOfDay: ChoreTimeOfDay): string {
+  return `chore-chart.timeOfDay.${timeOfDay}`;
+}
+
 export const MEMBER_COLORS = [
   '#f472b6', '#60a5fa', '#4ade80', '#fbbf24', '#a78bfa',
   '#fb923c', '#22d3ee', '#f87171', '#34d399', '#e879f9',

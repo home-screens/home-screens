@@ -3,6 +3,7 @@
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -13,6 +14,7 @@ interface WeekViewProps {
 }
 
 export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekViewProps) {
+  const t = useTranslate('modules');
   const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
@@ -20,15 +22,7 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekV
   const showEmoji = config.showEmoji ?? true;
 
   // Short slot labels for column headers
-  const slotLabel = (s: MealSlotType) => {
-    const labels: Record<MealSlotType, string> = {
-      breakfast: 'B',
-      lunch: 'L',
-      dinner: 'D',
-      snack: 'S',
-    };
-    return labels[s];
-  };
+  const slotLabel = (s: MealSlotType) => t(`meal-planner.slotShort.${s}`);
 
   return (
     <div className="flex flex-col h-full">

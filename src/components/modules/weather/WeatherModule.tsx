@@ -4,6 +4,7 @@ import type { WeatherConfig, WeatherView, ModuleStyle } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import WeatherCurrentView from './WeatherCurrentView';
 import WeatherHourlyView from './WeatherHourlyView';
@@ -52,13 +53,14 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
   const view = config.view ?? 'hourly';
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
+  const t = useTranslate('modules');
 
   if (locationMissing) {
     return (
       <ModuleWrapper style={style}>
         <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center gap-1">
-          <p style={{ fontSize: `${scaledFontSize}px`, opacity: TEXT_OPACITY.secondary }}>Location not set</p>
-          <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>Set your location in Settings</p>
+          <p style={{ fontSize: `${scaledFontSize}px`, opacity: TEXT_OPACITY.secondary }}>{t('weather.locationNotSet')}</p>
+          <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>{t('weather.setLocationInSettings')}</p>
         </div>
       </ModuleWrapper>
     );

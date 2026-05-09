@@ -1,6 +1,7 @@
 'use client';
 
 import { parseDateInTZ } from '@/lib/timezone';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -26,6 +27,7 @@ function formatElapsed(diffMs: number): string {
 }
 
 export default function ClockElapsedView({ config, now, scaledFontSize, containerRef, timezone }: ClockViewProps) {
+  const t = useTranslate('modules');
   const accentColor = config.accentColor || '#ffffff';
 
   const refDate = config.referenceTime ? parseDateInTZ(config.referenceTime, timezone) : null;
@@ -41,7 +43,7 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
           className="tracking-wide"
           style={{ fontSize: scaledFontSize * 1.1, opacity: TEXT_OPACITY.tertiary }}
         >
-          Set a reference time
+          {t('clock.elapsed.setReferenceTime')}
         </div>
       </div>
     );
@@ -56,12 +58,11 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
   const elapsed = formatElapsed(diffMs);
 
   const label = config.referenceLabel || '';
-  const preposition = countUp ? 'since' : 'until';
   const descriptor = isExpected
-    ? `${preposition} ${label}`.trim()
+    ? (countUp ? t('clock.elapsed.since', { label }) : t('clock.elapsed.until', { label })).trim()
     : countUp
-      ? `until ${label}`.trim()
-      : `since ${label}`.trim();
+      ? t('clock.elapsed.until', { label }).trim()
+      : t('clock.elapsed.since', { label }).trim();
 
   const displayValue = isExpected ? elapsed : !isExpected && Math.abs(diffMs) < 1000 ? '0s' : elapsed;
 
@@ -109,7 +110,7 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
           }}
           suppressHydrationWarning
         >
-          {countUp ? 'not yet' : 'elapsed'}
+          {countUp ? t('clock.elapsed.notYet') : t('clock.elapsed.elapsed')}
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import { getNextMealSlot } from './types';
 
 interface NextMealViewProps {
@@ -15,11 +16,13 @@ interface NextMealViewProps {
 }
 
 export function NextMealView({ config, settings, plan, savedMeals, todayISO, currentHour }: NextMealViewProps) {
+  const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 
-  const { slot, dayOffset, label } = getNextMealSlot(currentHour, slots);
+  const { slot, dayOffset, labelKey } = getNextMealSlot(currentHour, slots);
+  const label = t(`meal-planner.nextMealLabels.${labelKey}`);
   // Compute the ISO date for the target day
   const targetDate = new Date(todayISO + 'T12:00:00');
   targetDate.setDate(targetDate.getDate() + dayOffset);
@@ -74,7 +77,7 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                serving at {formatMealTime(time, settings.timeFormat)}
+                {t('meal-planner.servingAt', { time: formatMealTime(time, settings.timeFormat) })}
               </p>
             )}
 
@@ -96,7 +99,7 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
             {/* Prep time */}
             {showPrepTime && meal.prepTime && (
               <span className="flex items-center gap-1" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
-                <span>&#9201;</span> {meal.prepTime} min
+                <span>&#9201;</span> {t('meal-planner.prepTimeMin', { minutes: meal.prepTime })}
               </span>
             )}
 
@@ -115,7 +118,7 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
           className="italic"
           style={{ fontSize: '0.8em', opacity: 0.25 }}
         >
-          Nothing planned
+          {t('meal-planner.nothingPlanned')}
         </p>
       )}
 

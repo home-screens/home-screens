@@ -3,6 +3,7 @@
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_FULL, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -13,6 +14,7 @@ interface ListViewProps {
 }
 
 export function ListView({ config, settings, plan, savedMeals, todayISO }: ListViewProps) {
+  const t = useTranslate('modules');
   const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
@@ -48,7 +50,7 @@ export function ListView({ config, settings, plan, savedMeals, todayISO }: ListV
                   opacity: isToday ? 1 : TEXT_OPACITY.secondary,
                 }}
               >
-                {isToday ? 'Today' : DAY_NAMES_FULL[dayIdx]}
+                {isToday ? t('meal-planner.today') : DAY_NAMES_FULL[dayIdx]}
               </span>
               {isToday && (
                 <span className="opacity-30" style={{ fontSize: '0.5em' }}>
@@ -103,7 +105,7 @@ export function ListView({ config, settings, plan, savedMeals, todayISO }: ListV
                           </span>
                         )}
                         {showPrepTime && meal.prepTime && (
-                          <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {meal.prepTime}m</span>
+                          <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {t('meal-planner.prepTimeMinShort', { minutes: meal.prepTime })}</span>
                         )}
                         {showTags && meal.tags?.slice(0, 2).map((tag) => (
                           <span
@@ -121,7 +123,7 @@ export function ListView({ config, settings, plan, savedMeals, todayISO }: ListV
               </div>
             ) : (
               <p className="pl-1 opacity-15 italic" style={{ fontSize: '0.55em' }}>
-                No meals planned
+                {t('meal-planner.noMealsPlanned')}
               </p>
             )}
           </div>

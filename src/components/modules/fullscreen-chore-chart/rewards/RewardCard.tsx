@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { useTranslate } from '@/i18n';
 
 interface RewardCardProps {
   reward: RewardDefinition;
@@ -13,6 +14,7 @@ interface RewardCardProps {
 
 export default function RewardCard({ reward, canAfford, onRedeem, scale }: RewardCardProps) {
   const [hovered, setHovered] = useState(false);
+  const t = useTranslate('modules');
 
   const emojiFontSize = scale * 2.5;
   const nameFontSize = scale * 1.0;
@@ -85,7 +87,7 @@ export default function RewardCard({ reward, canAfford, onRedeem, scale }: Rewar
           color: 'var(--fcc-accent)',
         }}
       >
-        {reward.cost} tickets
+        {t('fullscreen-chore-chart.rewardsStore.rewardCost', { count: reward.cost })}
       </div>
 
       {/* Redeem button — only shown when affordable */}
@@ -101,7 +103,7 @@ export default function RewardCard({ reward, canAfford, onRedeem, scale }: Rewar
             marginTop: scale * 0.2,
           }}
         >
-          Redeem
+          {t('fullscreen-chore-chart.rewardsStore.redeem')}
         </div>
       )}
     </button>

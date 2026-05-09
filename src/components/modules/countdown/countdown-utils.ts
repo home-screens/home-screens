@@ -102,6 +102,10 @@ function isSameLocalDay(targetDate: string, timezone?: string): boolean {
 /** Get the current date/time in a specific timezone */
 function createTZDateFromTimezone(timezone: string): Date {
   try {
+    // 'en-US' here is locale-INDEPENDENT machine extraction — the
+    // values are immediately parsed back to integers, so an Arabic-Indic
+    // numeral output would break parseInt. This is not user-facing
+    // formatting; do not localize this string.
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       year: 'numeric', month: 'numeric', day: 'numeric',

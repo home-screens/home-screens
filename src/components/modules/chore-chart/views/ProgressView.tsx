@@ -3,6 +3,7 @@
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats } from '../types';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
 interface ProgressViewProps {
@@ -59,6 +60,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
   const { members, memberStats } = data;
   const showStreaks = config.showStreaks;
   const showPoints = config.showPoints;
+  const t = useTranslate('modules');
 
   // Overall stats
   let totalCompleted = 0;
@@ -89,7 +91,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
     <div className="flex flex-col h-full items-center" style={{ fontSize: 'inherit' }}>
       {/* Title */}
       <div className="text-center mb-3" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        &#128202; Family Progress
+        &#128202; {t('chore-chart.familyProgress')}
       </div>
 
       {/* Progress rings */}
@@ -116,11 +118,11 @@ export function ProgressView({ config, data }: ProgressViewProps) {
                 {member.name}
               </div>
               <div style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
-                {stats?.completed ?? 0}/{stats?.total ?? 0} done
+                {t('chore-chart.doneFraction', { done: stats?.completed ?? 0, total: stats?.total ?? 0 })}
               </div>
               {showStreaks && (stats?.streak ?? 0) >= 2 && (
                 <div style={{ fontSize: '0.55em' }}>
-                  &#128293; {stats!.streak} days
+                  &#128293; {t('chore-chart.streakDays', { count: stats!.streak })}
                 </div>
               )}
             </div>
@@ -139,7 +141,7 @@ export function ProgressView({ config, data }: ProgressViewProps) {
             textTransform: 'uppercase',
           }}
         >
-          This Week
+          {t('chore-chart.thisWeek')}
         </div>
         <div
           className="rounded-lg p-2 space-y-1"
@@ -147,26 +149,26 @@ export function ProgressView({ config, data }: ProgressViewProps) {
         >
           {showPoints && (
             <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
-              <span>&#11088; Total tickets</span>
+              <span>&#11088; {t('chore-chart.totalTickets')}</span>
               <span style={{ fontWeight: 600 }}>{totalWeeklyPoints}</span>
             </div>
           )}
           {showStreaks && bestStreak.streak > 0 && (
             <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
-              <span>&#127942; Best streak</span>
-              <span style={{ fontWeight: 600 }}>{bestStreak.name} ({bestStreak.streak} days)</span>
+              <span>&#127942; {t('chore-chart.bestStreak')}</span>
+              <span style={{ fontWeight: 600 }}>{t('chore-chart.bestStreakValue', { name: bestStreak.name, count: bestStreak.streak })}</span>
             </div>
           )}
           <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
-            <span>&#128200; Today&apos;s completion</span>
+            <span>&#128200; {t('chore-chart.todaysCompletion')}</span>
             <span style={{ fontWeight: 600 }}>{overallPct}%</span>
           </div>
           {showPoints && totalRewardBalance > 0 && (
             <>
               <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
               <div className="flex items-center justify-between" style={{ color: '#a78bfa' }}>
-                <span>🎟️ Reward balances</span>
-                <span style={{ fontWeight: 600 }}>{totalRewardBalance} tickets</span>
+                <span>🎟️ {t('chore-chart.rewardBalances')}</span>
+                <span style={{ fontWeight: 600 }}>{t('chore-chart.ticketsCount', { count: totalRewardBalance })}</span>
               </div>
             </>
           )}

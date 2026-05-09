@@ -3,6 +3,7 @@
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -13,19 +14,20 @@ interface CompactViewProps {
 }
 
 export function CompactView({ config, settings, plan, savedMeals, todayISO }: CompactViewProps) {
+  const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
   const tomorrowDate = new Date(todayISO + 'T12:00:00');
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowISO = toISODate(tomorrowDate);
   const columns = [
-    { date: todayISO, label: 'Today' },
-    { date: tomorrowISO, label: 'Tomorrow' },
+    { date: todayISO, label: t('meal-planner.today'), isToday: true },
+    { date: tomorrowISO, label: t('meal-planner.tomorrow'), isToday: false },
   ];
 
   return (
     <div className="flex h-full gap-3">
-      {columns.map(({ date, label }) => (
+      {columns.map(({ date, label, isToday }) => (
         <div key={date} className="flex-1 flex flex-col min-w-0">
           {/* Day header */}
           <div className="flex items-center gap-1.5 mb-2">
@@ -33,8 +35,8 @@ export function CompactView({ config, settings, plan, savedMeals, todayISO }: Co
               className="font-semibold uppercase tracking-[0.1em]"
               style={{
                 fontSize: '0.55em',
-                color: label === 'Today' ? config.accentColor : undefined,
-                opacity: label === 'Today' ? TEXT_OPACITY.heading : TEXT_OPACITY.tertiary,
+                color: isToday ? config.accentColor : undefined,
+                opacity: isToday ? TEXT_OPACITY.heading : TEXT_OPACITY.tertiary,
               }}
             >
               {label}

@@ -1,5 +1,8 @@
+'use client';
+
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { WeatherViewProps } from './types';
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
@@ -11,6 +14,8 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
 };
 
 export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef, timezone }: WeatherViewProps) {
+  const locale = useFormattingLocale();
+  const t = useTranslate('modules');
   // Filter to non-expired alerts
   const now = Math.floor(Date.now() / 1000);
   const active = (alerts ?? []).filter((a) => a.expires > now);
@@ -20,9 +25,9 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
         <AlertTriangle size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />
-        <span className="font-medium" style={{ fontSize: '1em' }}>Weather Alerts</span>
+        <span className="font-medium" style={{ fontSize: '1em' }}>{t('weather.weatherAlerts')}</span>
         {active.length > 0 && (
-          <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>({active.length})</span>
+          <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('weather.alertCount', { count: active.length })}</span>
         )}
       </div>
 
@@ -30,7 +35,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
           <ShieldCheck size="2.5em" style={{ opacity: TEXT_OPACITY.tertiary }} aria-hidden="true" />
           <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
-            {alerts !== undefined ? 'No active alerts' : 'Alert data requires Pirate Weather or NOAA'}
+            {alerts !== undefined ? t('weather.noActiveAlerts') : t('weather.alertDataRequires')}
           </p>
         </div>
       ) : (
@@ -38,7 +43,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
           {active.map((alert, i) => {
             const style = SEVERITY_STYLES[alert.severity] ?? SEVERITY_STYLES.Unknown;
             const expiresDate = new Date(alert.expires * 1000);
-            const expiresStr = expiresDate.toLocaleString('en-US', {
+            const expiresStr = expiresDate.toLocaleString(locale, {
               month: 'short',
               day: 'numeric',
               hour: 'numeric',
@@ -46,6 +51,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
               hour12: true,
               ...(timezone ? { timeZone: timezone } : {}),
             });
+            const severityLabel = t(`weather.severity.${alert.severity}`);
 
             return (
               <div
@@ -63,7 +69,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
                   </span>
                 </div>
                 <div className="mb-1" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.secondary }}>
-                  {alert.severity} · Expires {expiresStr}
+                  {t('weather.alertSeverityExpires', { severity: severityLabel, expires: expiresStr })}
                 </div>
                 <p className="line-clamp-3" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                   {alert.description}

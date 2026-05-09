@@ -1,16 +1,20 @@
 'use client';
 
-import { format } from 'date-fns';
 import { timeToWords } from './word-time';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockWordView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const hours = now.getHours();
   const minutes = now.getMinutes();
-  const words = timeToWords(hours, minutes);
+  const words = timeToWords(t, hours, minutes);
 
-  const dateStr = config.showDate ? format(now, config.dateFormat || 'EEEE, MMMM d') : null;
+  const dateStr = config.showDate
+    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    : null;
 
   return (
     <div

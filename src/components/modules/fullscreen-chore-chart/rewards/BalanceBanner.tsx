@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslate } from '@/i18n';
 
 interface BalanceBannerProps {
   balance: number;
@@ -16,6 +17,7 @@ export default function BalanceBanner({ balance, memberName, scale }: BalanceBan
   const padding = `${scale * 1.0}px ${scale * 1.6}px`;
   const borderRadius = scale * 0.8;
   const gap = scale * 1.2;
+  const t = useTranslate('modules');
 
   return (
     <div
@@ -40,7 +42,7 @@ export default function BalanceBanner({ balance, memberName, scale }: BalanceBan
             color: 'var(--fcc-text-2)',
           }}
         >
-          {memberName}&apos;s Tickets
+          {t('fullscreen-chore-chart.rewardsStore.memberTickets', { member: memberName })}
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: scale * 0.35 }}>
           <span
@@ -60,7 +62,7 @@ export default function BalanceBanner({ balance, memberName, scale }: BalanceBan
               color: 'var(--fcc-text-3)',
             }}
           >
-            tickets
+            {t('fullscreen-chore-chart.tickets')}
           </span>
         </div>
       </div>

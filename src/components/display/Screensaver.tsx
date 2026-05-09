@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ScreensaverMode } from '@/types/config';
+import { useFormattingLocale } from '@/i18n';
 
 interface ScreensaverProps {
   mode: ScreensaverMode;
@@ -16,6 +17,7 @@ function DriftingClock({ timezone }: { timezone?: string }) {
   const [time, setTime] = useState('');
   const [position, setPosition] = useState({ x: 50, y: 50 });
   const velocityRef = useRef({ dx: 0.3, dy: 0.2 });
+  const locale = useFormattingLocale();
 
   // Update clock every second
   useEffect(() => {
@@ -27,12 +29,12 @@ function DriftingClock({ timezone }: { timezone?: string }) {
         hour12: true,
       };
       if (timezone) opts.timeZone = timezone;
-      setTime(now.toLocaleTimeString('en-US', opts));
+      setTime(now.toLocaleTimeString(locale, opts));
     }
     tick();
     const id = setInterval(tick, 1_000);
     return () => clearInterval(id);
-  }, [timezone]);
+  }, [timezone, locale]);
 
   // Drift position slowly — bounces off edges
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Undo2 } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 
 export interface ToastItem {
   id: string;
@@ -33,6 +34,7 @@ function ToastEntry({
   onUndo: (id: string) => void;
 }) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const t = useTranslate('modules');
 
   useEffect(() => {
     timerRef.current = setTimeout(() => onDismiss(toast.id), TOAST_DURATION);
@@ -77,7 +79,7 @@ function ToastEntry({
           {toast.memberName}
         </span>
         <span style={{ fontSize: 14, color: 'var(--fcc-text-2)', marginLeft: 4 }}>
-          {toast.verb ?? (toast.wasCompleted ? 'completed' : 'uncompleted')}
+          {toast.verb ?? t(toast.wasCompleted ? 'fullscreen-chore-chart.verbs.completed' : 'fullscreen-chore-chart.verbs.uncompleted')}
         </span>
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fcc-text)', marginLeft: 4 }}>
           {toast.choreName}
@@ -103,7 +105,12 @@ function ToastEntry({
           touchAction: 'manipulation',
           borderRadius: 8,
         }}
-        aria-label={`Undo ${toast.wasCompleted ? 'completing' : 'uncompleting'} ${toast.choreName}`}
+        aria-label={t(
+          toast.wasCompleted
+            ? 'fullscreen-chore-chart.ariaLabels.undoCompleting'
+            : 'fullscreen-chore-chart.ariaLabels.undoUncompleting',
+          { chore: toast.choreName },
+        )}
       >
         <Undo2 size={18} />
       </button>}

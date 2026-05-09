@@ -2,10 +2,11 @@
 
 import { useMemo } from 'react';
 import {
-  format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, isSameDay, isSameMonth, getWeek,
 } from 'date-fns';
 import { isEventOnDay } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 
@@ -18,6 +19,8 @@ interface MonthGridViewProps {
 }
 
 export function MonthGridView({ events, config, scale, today, now: _now }: MonthGridViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const showWeekNumbers = config.monthShowWeekNumbers;
 
@@ -38,10 +41,14 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [today.toDateString()]);
 
-  const dowLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Localized day-of-week labels derived from the active formatting locale
+  const dowDates = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(cells[0] ?? today, i)),
+    [cells, today],
+  );
 
   return (
-    <div role="grid" aria-label={format(today, 'MMMM yyyy')} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div role="grid" aria-label={formatDateSync(today, 'MMMM yyyy', { locale })} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Day-of-week header */}
       <div role="row" style={{
         display: 'grid',
@@ -50,7 +57,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
         flexShrink: 0,
       }}>
         {showWeekNumbers && <div role="columnheader" />}
-        {dowLabels.map((label, i) => (
+        {dowDates.map((d, i) => (
           <div key={i} role="columnheader" style={{
             textAlign: 'center',
             padding: `${scale.bu * 0.5}px 0`,
@@ -60,7 +67,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
             letterSpacing: '0.08em',
             color: 'var(--cal-text-tertiary)',
           }}>
-            {label}
+            {formatDateSync(d, 'EEE', { locale })}
           </div>
         ))}
       </div>
@@ -113,7 +120,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
               )}
               <div
                 role="gridcell"
-                aria-label={`${format(day, 'MMMM d')}, ${dayEvents.length} events`}
+                aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, 'MMMM d', { locale }), count: dayEvents.length })}
                 style={{
                   borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                   borderBottom: '1px solid var(--cal-border-subtle)',
@@ -144,7 +151,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                       fontSize: fontSize * 0.8,
                       fontWeight: 600,
                     }}>
-                      {format(day, 'd')}
+                      {formatDateSync(day, 'd', { locale })}
                     </span>
                   ) : (
                     <span style={{
@@ -152,7 +159,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                       fontWeight: 600,
                       color: 'var(--cal-text-primary)',
                     }}>
-                      {format(day, 'd')}
+                      {formatDateSync(day, 'd', { locale })}
                     </span>
                   )}
                 </div>
@@ -219,7 +226,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                     color: 'var(--cal-text-tertiary)',
                     padding: `0 ${scale.bu * 0.2}px`,
                   }}>
-                    +{overflow} more
+                    {t('fullscreen-calendar.moreCount', { count: overflow })}
                   </div>
                 )}
               </div>

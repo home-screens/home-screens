@@ -89,6 +89,7 @@
     "noEvents": "No countdowns set",
     "noUpcoming": "No upcoming events",
     "agoSuffix": "(ago)",
+    "todayBang": "Today!",
     "unitDays": "days",
     "unitHours": "hrs",
     "unitMinutes": "min",

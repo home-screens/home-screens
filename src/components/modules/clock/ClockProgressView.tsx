@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -9,7 +10,9 @@ import type { ClockViewProps } from './types';
  * with time and percentage centered inside the ring.
  */
 export default function ClockProgressView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const { hours, minutes, seconds, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
+  const t = useTranslate('modules');
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`
@@ -89,7 +92,7 @@ export default function ClockProgressView({ config, now, scaledFontSize, contain
               style={{ fontSize: scaledFontSize * 0.55, marginTop: 2, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
-              {period.trim()}
+              {period}
             </div>
           )}
           <div

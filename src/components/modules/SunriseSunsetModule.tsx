@@ -5,6 +5,8 @@ import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
 import { useTZClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import type { SunriseSunsetConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
@@ -49,12 +51,14 @@ function SunArcView({
   timezone,
   showDayLength,
   showGoldenHour,
+  t,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
   timezone?: string;
   showDayLength: boolean;
   showGoldenHour: boolean;
+  t: TranslateFn;
 }) {
   const uid = useId();
   const sunGlowId = `sun-glow-${uid}`;
@@ -65,8 +69,8 @@ function SunArcView({
     const isPolarDay = isNaN(sunrise.getTime()) && isNaN(sunset.getTime());
     return (
       <div className="flex flex-col items-center justify-center h-full" style={{ fontSize: '0.85em', gap: '0.3em', opacity: TEXT_OPACITY.dim }}>
-        <span>{isPolarDay ? 'Midnight sun' : isNaN(sunrise.getTime()) ? 'No sunrise today' : formatTimeInTZ(sunrise, timezone)}</span>
-        <span>{isPolarDay ? 'Sun does not set' : isNaN(sunset.getTime()) ? 'No sunset today' : formatTimeInTZ(sunset, timezone)}</span>
+        <span>{isPolarDay ? t('sunrise-sunset.midnightSun') : isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
+        <span>{isPolarDay ? t('sunrise-sunset.sunDoesNotSet') : isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
         {showDayLength && <span>{getDayLength(sunrise, sunset)}</span>}
       </div>
     );
@@ -186,7 +190,7 @@ function SunArcView({
           fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '8px' }}
         >
-          noon
+          {t('sunrise-sunset.noon')}
         </text>
 
         {/* Sun glow */}
@@ -222,7 +226,7 @@ function SunArcView({
           fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '7px' }}
         >
-          ↑ rise
+          {t('sunrise-sunset.riseShort')}
         </text>
 
         {/* Sunset label (right) */}
@@ -244,7 +248,7 @@ function SunArcView({
           fillOpacity={TEXT_OPACITY.tertiary}
           style={{ fontSize: '7px' }}
         >
-          set ↓
+          {t('sunrise-sunset.setShort')}
         </text>
       </svg>
 
@@ -263,11 +267,13 @@ function DefaultView({
   timezone,
   showDayLength,
   showGoldenHour,
+  t,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   timezone?: string;
   showDayLength: boolean;
   showGoldenHour: boolean;
+  t: TranslateFn;
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ gap: '0.6em' }}>
@@ -276,7 +282,7 @@ function DefaultView({
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↑</span>
           <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
-            Sunrise
+            {t('sunrise-sunset.sunrise')}
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
             {formatTimeInTZ(times.sunrise, timezone)}
@@ -287,7 +293,7 @@ function DefaultView({
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↓</span>
           <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
-            Sunset
+            {t('sunrise-sunset.sunset')}
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
             {formatTimeInTZ(times.sunset, timezone)}
@@ -297,13 +303,13 @@ function DefaultView({
 
       {showDayLength && (
         <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-          Day length: {getDayLength(times.sunrise, times.sunset)}
+          {t('sunrise-sunset.dayLength', { length: getDayLength(times.sunrise, times.sunset) })}
         </span>
       )}
 
       {showGoldenHour && (
         <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-          Golden hour: {formatTimeInTZ(times.goldenHour, timezone)}
+          {t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}
         </span>
       )}
     </div>
@@ -312,6 +318,7 @@ function DefaultView({
 
 export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone }: SunriseSunsetModuleProps) {
   const now = useTZClock(timezone);
+  const t = useTranslate('modules');
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} />;
@@ -329,6 +336,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           timezone={timezone}
           showDayLength={config.showDayLength !== false}
           showGoldenHour={!!config.showGoldenHour}
+          t={t}
         />
       ) : (
         <DefaultView
@@ -336,6 +344,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           timezone={timezone}
           showDayLength={config.showDayLength !== false}
           showGoldenHour={!!config.showGoldenHour}
+          t={t}
         />
       )}
     </ModuleWrapper>

@@ -1,31 +1,38 @@
+'use client';
+
 import { CloudRain, Droplets, Wind } from 'lucide-react';
-import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
+import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherTableView({ config, forecast, units, scaledFontSize, containerRef }: WeatherViewProps) {
+  const formattingLocale = useFormattingLocale();
+  const t = useTranslate('modules');
+  const tWeather = useTranslate('weather');
   const days = forecast.slice(0, config.daysToShow);
   const windUnit = units === 'metric' ? 'km/h' : 'mph';
   const showHighLow = config.showHighLow !== false;
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>Forecast</h2>
+      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
       {days.length === 0 ? (
-        <WeatherEmptyState message="No forecast data" />
+        <WeatherEmptyState message={t('weather.noForecastData')} />
       ) : (
         <div className="flex flex-col flex-1 min-h-0 justify-around">
           {/* Header row */}
           <div className="flex items-center gap-3 pb-1" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary, borderBottom: `1px solid ${DIVIDER.visible}` }}>
-            <span className="w-[4em]">Day</span>
+            <span className="w-[4em]">{t('weather.tableHeaders.day')}</span>
             <span className="w-[2em]" />
-            {showHighLow && <span className="w-[5em] text-center">Temp</span>}
-            {config.showPrecipitation !== false && <span className="w-[3em] text-center">Rain</span>}
-            {config.showHumidity && <span className="w-[3em] text-center">Hum</span>}
-            {config.showWind && <span className="w-[4em] text-center">Wind</span>}
+            {showHighLow && <span className="w-[5em] text-center">{t('weather.tableHeaders.temp')}</span>}
+            {config.showPrecipitation !== false && <span className="w-[3em] text-center">{t('weather.tableHeaders.rain')}</span>}
+            {config.showHumidity && <span className="w-[3em] text-center">{t('weather.tableHeaders.humidity')}</span>}
+            {config.showWind && <span className="w-[4em] text-center">{t('weather.tableHeaders.wind')}</span>}
           </div>
 
           {/* Data rows */}
@@ -33,8 +40,8 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
             const Icon = getWeatherIcon(day.icon, config.iconSet);
             return (
               <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date)}</span>
-                <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getWeatherIconLabel(day.icon)} role="img" />
+                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, formattingLocale, t)}</span>
+                <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                 {showHighLow && (
                   <div className="flex gap-1 w-[5em] justify-center">
                     <span className="font-medium">{Math.round(day.high)}&deg;</span>

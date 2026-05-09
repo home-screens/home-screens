@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -75,7 +76,9 @@ function Arc({ radius, strokeWidth, progress, color, trackColor, size }: ArcProp
 }
 
 export default function ClockRadialView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const { hours, minutes, seconds, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
+  const t = useTranslate('modules');
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const hoursProgress = (hours % 12) / 12;
   const minutesProgress = minutes / 60;
@@ -160,7 +163,7 @@ export default function ClockRadialView({ config, now, scaledFontSize, container
               style={{ fontSize: ampmFontSize, marginTop: 2, opacity: TEXT_OPACITY.dim }}
               suppressHydrationWarning
             >
-              {period.trim()}
+              {period}
             </span>
           )}
         </div>

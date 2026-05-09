@@ -5,6 +5,7 @@ import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
 interface TodayViewProps {
@@ -24,6 +25,8 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
   const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
   const accentColor = config.accentColor ?? '#f59e0b';
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   // `tzNow` is a "shifted" Date whose local-time methods (getHours, getDay…)
   // reflect the configured IANA timezone — used by `getCurrentTimeOfDay`
   // which reads `getHours()`. `formatDateInTZ` does its own zone shift via
@@ -32,7 +35,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
   const tzNow = createTZDate(timezone);
   const currentTime = getCurrentTimeOfDay(tzNow.getHours());
 
-  const dayName = formatDateInTZ(new Date(), timezone, { weekday: 'long' });
+  const dayName = formatDateInTZ(new Date(), timezone, { weekday: 'long' }, locale);
   const totalAssigned = todayAssignments.length;
   const totalDone = todayAssignments.filter((a) => a.isCompleted).length;
 
@@ -50,7 +53,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
       <div className="text-center mb-2">
-        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; Today</div>
+        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; {t('chore-chart.today')}</div>
         <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{dayName}</div>
       </div>
 
@@ -78,7 +81,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
                 }}
               >
                 <span>{meta.icon}</span>
-                <span>{meta.label}</span>
+                <span>{t(`chore-chart.timeOfDay.${section}`)}</span>
                 {sectionDone && isPast && <span style={{ marginLeft: 'auto' }}>&check;</span>}
               </div>
 
@@ -137,7 +140,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
       {/* Progress bar */}
       <div className="mt-2">
         <div className="flex items-center gap-2" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.dim }}>
-          <span>Progress:</span>
+          <span>{t('chore-chart.progressLabel')}</span>
           <div className="flex-1">
             <div
               className="rounded-full overflow-hidden"
@@ -152,7 +155,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
               />
             </div>
           </div>
-          <span>{totalDone}/{totalAssigned} done</span>
+          <span>{t('chore-chart.doneFraction', { done: totalDone, total: totalAssigned })}</span>
         </div>
       </div>
     </div>

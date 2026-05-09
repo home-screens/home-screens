@@ -3,6 +3,7 @@
 import React from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { useTranslate } from '@/i18n';
 
 interface RedeemConfirmProps {
   reward: RewardDefinition;
@@ -30,6 +31,7 @@ export default function RedeemConfirm({
   const buttonBorderRadius = scale * 2;
   const buttonPadding = `${scale * 0.7}px ${scale * 2.0}px`;
   const gap = scale * 0.8;
+  const t = useTranslate('modules');
 
   return (
     /* Full-screen scrim */
@@ -76,7 +78,7 @@ export default function RedeemConfirm({
             lineHeight: 1.2,
           }}
         >
-          Spend your tickets?
+          {t('fullscreen-chore-chart.rewardsStore.confirmTitle')}
         </div>
 
         {/* Subtitle */}
@@ -87,7 +89,7 @@ export default function RedeemConfirm({
             lineHeight: 1.4,
           }}
         >
-          Spend {memberName}&rsquo;s tickets on {reward.name}? ({reward.cost} tickets)
+          {t('fullscreen-chore-chart.rewardsStore.confirmBody', { member: memberName, reward: reward.name, count: reward.cost })}
         </div>
 
         {error && (
@@ -119,7 +121,7 @@ export default function RedeemConfirm({
               outline: 'none',
             }}
           >
-            Cancel
+            {t('fullscreen-chore-chart.rewardsStore.confirmCancel')}
           </button>
 
           {/* Confirm */}
@@ -137,7 +139,7 @@ export default function RedeemConfirm({
               outline: 'none',
             }}
           >
-            Yes!
+            {t('fullscreen-chore-chart.rewardsStore.confirmYes')}
           </button>
         </div>
       </div>

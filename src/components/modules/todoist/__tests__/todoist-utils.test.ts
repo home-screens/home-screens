@@ -170,6 +170,20 @@ describe('formatDueDate', () => {
     const result = formatDueDate(due, new Date());
     expect(result.text).toBe('Today 12:00 AM');
   });
+
+  it('honors the locale argument for the "weekday name" branch (de-DE)', () => {
+    // Regression guard for the en-US literal cutover. A due date 3 days
+    // out should render as the German short weekday ("Mi" for
+    // Wednesday) when the locale arg is de-DE.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00')); // Sunday
+
+    const due = { date: '2025-06-18', datetime: null, isRecurring: false }; // Wednesday
+    const result = formatDueDate(due, new Date(), 'de-DE');
+    // ICU's de-DE short weekday for Wed is typically "Mi." — match the
+    // prefix to stay tolerant of ICU version drift.
+    expect(result.text.toLowerCase()).toMatch(/^mi/);
+  });
 });
 
 // ── filterTasks ──────────────────────────────────────────────────────

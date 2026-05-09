@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -67,7 +68,9 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
 }
 
 export default function ClockBarView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const { hours, minutes, seconds, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
+  const t = useTranslate('modules');
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
   const h12 = hours % 12;
   const hoursMax = config.format24h ? 24 : 12;
 
@@ -100,14 +103,14 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
       {/* Progress bars */}
       <div className="w-full flex flex-col" style={{ gap: barGap, maxWidth: scaledFontSize * 18 }}>
         <BarRow
-          label="H"
+          label={t('clock.barHoursLabel')}
           value={config.format24h ? hours : h12}
           max={hoursMax}
           accentColor={accentColor}
           fontSize={barFontSize}
         />
         <BarRow
-          label="M"
+          label={t('clock.barMinutesLabel')}
           value={minutes}
           max={60}
           accentColor={accentColor}
@@ -115,7 +118,7 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
         />
         {config.showSeconds && (
           <BarRow
-            label="S"
+            label={t('clock.barSecondsLabel')}
             value={seconds}
             max={60}
             accentColor={accentColor}

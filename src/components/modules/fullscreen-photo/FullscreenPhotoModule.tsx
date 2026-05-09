@@ -6,6 +6,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl } from '@/lib/fetch-keys';
 import { useAuthImage } from '@/components/display/useAuthImage';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { useFormattingLocale } from '@/i18n';
 
 // ── Ken Burns keyframes (injected once) ──────
 
@@ -97,6 +98,7 @@ function SlideLayer({
 
 function ClockOverlay({ textColor, textMuted }: { textColor: string; textMuted: string }) {
   const [time, setTime] = useState(() => new Date());
+  const locale = useFormattingLocale();
 
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 1000);
@@ -106,7 +108,7 @@ function ClockOverlay({ textColor, textMuted }: { textColor: string; textMuted: 
   const hours = time.getHours() % 12 || 12;
   const minutes = time.getMinutes().toString().padStart(2, '0');
   const ampm = time.getHours() >= 12 ? 'PM' : 'AM';
-  const dateStr = time.toLocaleDateString('en-US', {
+  const dateStr = time.toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',

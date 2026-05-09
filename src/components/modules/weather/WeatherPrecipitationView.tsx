@@ -1,8 +1,12 @@
+'use client';
+
 import { CloudRain } from 'lucide-react';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherPrecipitationView({ minutely, scaledFontSize, containerRef }: WeatherViewProps) {
+  const t = useTranslate('modules');
   const data = (minutely ?? []).slice(0, 60);
   const maxIntensity = Math.max(...data.map((m) => m.intensity), 0.5);
 
@@ -13,13 +17,13 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
     ? data.findIndex((m, i) => i > 0 && m.intensity === 0)
     : -1;
 
-  let summary = 'No precipitation expected';
+  let summary = t('weather.noPrecipitationExpected');
   if (hasRain && data[0]?.intensity > 0 && firstDryIdx > 0) {
-    summary = `Stopping in ${firstDryIdx} min`;
+    summary = t('weather.stoppingInMin', { minutes: firstDryIdx });
   } else if (hasRain && data[0]?.intensity > 0) {
-    summary = 'Precipitation for the next hour';
+    summary = t('weather.precipitationForNextHour');
   } else if (firstRainIdx > 0) {
-    summary = `Starting in ${firstRainIdx} min`;
+    summary = t('weather.startingInMin', { minutes: firstRainIdx });
   }
 
   // Color by precip type
@@ -34,7 +38,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
         <CloudRain size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />
-        <span className="font-medium" style={{ fontSize: '1em' }}>Next 60 Minutes</span>
+        <span className="font-medium" style={{ fontSize: '1em' }}>{t('weather.next60Minutes')}</span>
       </div>
 
       {/* Summary */}
@@ -44,7 +48,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
       {minutely === undefined ? (
         <div className="flex-1 flex items-center justify-center">
           <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
-            Minutely data requires Pirate Weather
+            {t('weather.minutelyDataRequires')}
           </p>
         </div>
       ) : data.length > 0 ? (
@@ -72,11 +76,11 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
 
           {/* Time axis */}
           <div className="flex justify-between mt-1" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
-            <span>Now</span>
-            <span>15m</span>
-            <span>30m</span>
-            <span>45m</span>
-            <span>60m</span>
+            <span>{t('weather.timeline.now')}</span>
+            <span>{t('weather.timeline.minutes15')}</span>
+            <span>{t('weather.timeline.minutes30')}</span>
+            <span>{t('weather.timeline.minutes45')}</span>
+            <span>{t('weather.timeline.minutes60')}</span>
           </div>
         </div>
       ) : (

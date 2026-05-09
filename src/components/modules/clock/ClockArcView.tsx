@@ -1,18 +1,21 @@
 'use client';
 
 import { useId, useState, useEffect } from 'react';
-import { format } from 'date-fns';
 import { parseClockTime } from '@/lib/date-info';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 export default function ClockArcView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const id = useId();
   const arcGradientId = `arc-gradient-${id}`;
   const sunGlowId = `sun-glow-${id}`;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { hours, minutes, hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
+  const { hours, minutes, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
 
   const totalMinutes = hours * 60 + minutes;
   const dayStart = 6 * 60;  // 6:00 AM
@@ -27,7 +30,9 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
     ? `${hStr}:${mStr}:${sStr}${period}`
     : `${hStr}:${mStr}${period}`;
 
-  const dateStr = config.showDate ? format(now, config.dateFormat || 'EEEE, MMMM d') : null;
+  const dateStr = config.showDate
+    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    : null;
 
   const svgWidth = Math.max(200, scaledFontSize * 16);
   const svgHeight = svgWidth * 0.55;
@@ -147,7 +152,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
             fontSize={labelSize}
             fontFamily="system-ui, sans-serif"
           >
-            6 AM
+            {t('clock.arc.morningLabel')}
           </text>
           <text
             x={arcEndX}
@@ -158,7 +163,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
             fontSize={labelSize}
             fontFamily="system-ui, sans-serif"
           >
-            6 PM
+            {t('clock.arc.eveningLabel')}
           </text>
 
           {/* Night indicator */}
@@ -172,7 +177,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
               fontSize={labelSize * 0.9}
               fontFamily="system-ui, sans-serif"
             >
-              {isBeforeDawn ? 'before dawn' : isAfterDusk ? 'after dusk' : ''}
+              {isBeforeDawn ? t('clock.arc.beforeDawn') : isAfterDusk ? t('clock.arc.afterDusk') : ''}
             </text>
           )}
         </svg>}

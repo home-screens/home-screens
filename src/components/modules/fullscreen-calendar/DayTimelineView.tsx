@@ -1,7 +1,8 @@
 'use client';
 
-import { format, isSameDay } from 'date-fns';
+import { isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { computeOverlapColumns, MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -16,6 +17,10 @@ interface DayTimelineViewProps {
 }
 
 export function DayTimelineView({ events, config, scale, today, now }: DayTimelineViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
+  const am = t('fullscreen-calendar.am');
+  const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
   const hourStart = config.dayHourStart ?? 6;
   const hourEnd = config.dayHourEnd ?? 22;
@@ -70,13 +75,13 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             color: 'var(--cal-text-tertiary)',
             marginBottom: scale.bu * 0.3,
           }}>
-            All Day
+            {t('fullscreen-calendar.allDay')}
           </div>
           {allDayEvs.map(ev => {
             const color = ev.calendarColor ?? '#3B82F6';
             const description = config.dayShowDescription ? sanitizeEventDescription(ev.description) : '';
             return (
-              <div key={ev.id} className="fsc-event-block" aria-label={`${ev.title}, all day`} style={{
+              <div key={ev.id} className="fsc-event-block" aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
                 borderRadius: 6,
                 background: eventBg(color, 0.13, scale.isDark),
@@ -109,7 +114,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
       )}
 
       {/* Timeline */}
-      <div ref={scrollRef} aria-label="Day timeline" style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+      <div ref={scrollRef} aria-label={t('fullscreen-calendar.ariaLabels.dayTimeline')} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         <div style={{ display: 'flex', height: gridHeight, position: 'relative' }}>
           {/* Time gutter */}
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>
@@ -128,13 +133,13 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                   whiteSpace: 'nowrap',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
-                  {formatHourLabel(h)}
+                  {formatHourLabel(h, am, pm)}
                 </div>
               );
             })}
             {/* Now badge */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timeFormat="h:mm a" />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timeFormat="h:mm a" locale={locale} />
             )}
           </div>
 
@@ -169,7 +174,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                   pointerEvents: 'none',
                   zIndex: 1,
                 }}>
-                  Morning
+                  {t('fullscreen-calendar.zones.morning')}
                 </div>
               </>
             )}
@@ -197,7 +202,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                   pointerEvents: 'none',
                   zIndex: 1,
                 }}>
-                  Afternoon
+                  {t('fullscreen-calendar.zones.afternoon')}
                 </div>
               </>
             )}
@@ -225,7 +230,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                   pointerEvents: 'none',
                   zIndex: 1,
                 }}>
-                  Evening
+                  {t('fullscreen-calendar.zones.evening')}
                 </div>
               </>
             )}
@@ -249,12 +254,27 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
               const color = ev.calendarColor ?? '#3B82F6';
               const isPast = isToday && evEnd <= nowHour;
 
+              const evStartLabel = formatDateSync(parseEventDate(ev.start), 'h:mm a', { locale });
+              const evEndLabel = formatDateSync(parseEventDate(ev.end), 'h:mm a', { locale });
+              const evAriaLabel = ev.location
+                ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
+                    title: ev.title,
+                    start: evStartLabel,
+                    end: evEndLabel,
+                    location: ev.location,
+                  })
+                : t('fullscreen-calendar.ariaLabels.eventTimed', {
+                    title: ev.title,
+                    start: evStartLabel,
+                    end: evEndLabel,
+                  });
+
               return (
                 <div
                   key={ev.id}
                   className="fsc-event-block"
                   role="article"
-                  aria-label={`${ev.title}, ${format(parseEventDate(ev.start), 'h:mm a')} to ${format(parseEventDate(ev.end), 'h:mm a')}${ev.location ? `, at ${ev.location}` : ''}`}
+                  aria-label={evAriaLabel}
                   style={{
                     position: 'absolute',
                     top,
@@ -282,7 +302,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                     color: 'var(--cal-text-secondary)',
                     marginTop: 1,
                   }}>
-                    {format(parseEventDate(ev.start), 'h:mm a')} &ndash; {format(parseEventDate(ev.end), 'h:mm a')}
+                    {evStartLabel} &ndash; {evEndLabel}
                   </div>
                   {config.dayShowLocation && ev.location && (
                     <div style={{
@@ -319,7 +339,13 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             })}
 
             {/* Now line */}
-            {config.showNowLine && nowInRange && <NowLine nowY={nowY} now={now} />}
+            {config.showNowLine && nowInRange && (
+              <NowLine
+                nowY={nowY}
+                now={now}
+                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatDateSync(now, 'h:mm a', { locale }) })}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -59,6 +60,7 @@ function DotColumn({ bits, accentColor, dotSize, gap, maxBits }: DotColumnProps)
 }
 
 export default function ClockBinaryView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+  const t = useTranslate('modules');
   const { minutes, seconds, h } = parseClockTime(config.format24h, now);
 
   const dotSize = Math.max(12, scaledFontSize * 0.85);
@@ -70,14 +72,14 @@ export default function ClockBinaryView({ config, now, scaledFontSize, container
 
   const groups: { label: string; columns: { bits: boolean[]; bitCount: number }[] }[] = [
     {
-      label: 'H',
+      label: t('clock.binaryHoursLabel'),
       columns: [
         { bits: digitToBits(Math.floor(h / 10), 2), bitCount: 2 },
         { bits: digitToBits(h % 10, 4), bitCount: 4 },
       ],
     },
     {
-      label: 'M',
+      label: t('clock.binaryMinutesLabel'),
       columns: [
         { bits: digitToBits(Math.floor(minutes / 10), 3), bitCount: 3 },
         { bits: digitToBits(minutes % 10, 4), bitCount: 4 },
@@ -87,7 +89,7 @@ export default function ClockBinaryView({ config, now, scaledFontSize, container
 
   if (config.showSeconds) {
     groups.push({
-      label: 'S',
+      label: t('clock.binarySecondsLabel'),
       columns: [
         { bits: digitToBits(Math.floor(seconds / 10), 3), bitCount: 3 },
         { bits: digitToBits(seconds % 10, 4), bitCount: 4 },

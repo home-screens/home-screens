@@ -1,4 +1,5 @@
 import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
 // ─── Types ───
 
@@ -68,7 +69,21 @@ export function daysBetween(a: Date, b: Date): number {
   return Math.round((startOfDay(a).getTime() - startOfDay(b).getTime()) / 86400000);
 }
 
-export function formatDueDate(due: TodoistTask['due'], now: Date): { text: string; color: string } {
+/**
+ * Format a Todoist task's due date for display. The literal "Yesterday" /
+ * "Today" / "Tomorrow" / AM/PM strings stay English here — Tasks 4–5
+ * extract them into the `modules.todoist` namespace. `locale` only
+ * affects the weekday-name and month-short branches, which are
+ * locale-aware via `toLocaleDateString`.
+ *
+ * Defaults `locale` to `DEFAULT_LOCALE` so out-of-scope callers (the
+ * Todoist module views, which Tasks 4–5 will migrate) keep working.
+ */
+export function formatDueDate(
+  due: TodoistTask['due'],
+  now: Date,
+  locale: string = DEFAULT_LOCALE,
+): { text: string; color: string } {
   if (!due) return { text: '', color: '' };
 
   const dueDate = new Date(due.datetime ?? due.date + 'T23:59:59');
@@ -96,10 +111,10 @@ export function formatDueDate(due: TodoistTask['due'], now: Date): { text: strin
   }
   if (diff === 1) return { text: 'Tomorrow', color: '#22c55e' };
   if (diff <= 7) {
-    const dayName = dueDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = dueDate.toLocaleDateString(locale, { weekday: 'short' });
     return { text: dayName, color: '#6b7280' };
   }
-  const formatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatted = dueDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
   return { text: formatted, color: '#6b7280' };
 }
 

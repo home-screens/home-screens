@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { formatDateSync } from '@/i18n';
 import { parseEventDate } from '@/lib/calendar-utils';
 
 // ─── Utilities ───
@@ -12,11 +12,15 @@ export function parseTimeToHours(dateStr: string): number {
   return d.getHours() + d.getMinutes() / 60;
 }
 
-/** Format an hour number (0-23) as a 12-hour label (e.g. 0 → "12 AM", 13 → "1 PM"). */
-export function formatHourLabel(h: number): string {
-  if (h === 0) return '12 AM';
-  if (h === 12) return '12 PM';
-  return h > 12 ? `${h - 12} PM` : `${h} AM`;
+/**
+ * Format an hour number (0-23) as a 12-hour label using localized AM/PM
+ * tokens (e.g. 0 → "12 AM", 13 → "1 PM"). Pass the resolved AM/PM strings
+ * from `useTranslate('modules')` so the label honors the active locale.
+ */
+export function formatHourLabel(h: number, am: string, pm: string): string {
+  if (h === 0) return `12 ${am}`;
+  if (h === 12) return `12 ${pm}`;
+  return h > 12 ? `${h - 12} ${pm}` : `${h} ${am}`;
 }
 
 // ─── Hooks ───
@@ -91,13 +95,15 @@ export function HourLines({ totalHours, hourHeight, hourStart, dimOffHours }: Ho
 interface NowLineProps {
   nowY: number;
   now: Date;
+  /** aria-label for the now line, e.g. "Current time: 3:45 PM" — already localized by the caller. */
+  ariaLabel: string;
 }
 
 /** Accent-colored horizontal line showing the current time, with a circle bullet on the left. */
-export function NowLine({ nowY, now }: NowLineProps) {
+export function NowLine({ nowY, ariaLabel }: NowLineProps) {
   return (
     <div
-      aria-label={`Current time: ${format(now, 'h:mm a')}`}
+      aria-label={ariaLabel}
       style={{
         position: 'absolute',
         top: nowY,
@@ -131,10 +137,12 @@ interface NowBadgeProps {
   fontSize: number;
   position: 'left' | 'right';
   timeFormat?: string;
+  /** Active formatting locale tag (e.g. "en-US") — used for the time label. */
+  locale: string;
 }
 
 /** Small pill badge showing the current time, positioned in the time gutter. */
-export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat = 'h:mm' }: NowBadgeProps) {
+export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat = 'h:mm', locale }: NowBadgeProps) {
   const posStyle = position === 'right'
     ? { right: scale.bu * 0.3 }
     : { left: scale.bu * 0.5 };
@@ -154,7 +162,7 @@ export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat = 'h
       zIndex: 11,
       lineHeight: 1.3,
     }}>
-      {format(now, timeFormat)}
+      {formatDateSync(now, timeFormat, { locale })}
     </div>
   );
 }

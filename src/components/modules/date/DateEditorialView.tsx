@@ -1,13 +1,22 @@
 'use client';
 
-import { buildInfoParts, parseDateParts } from '@/lib/date-info';
+import { getDateInfoValues } from '@/lib/date-info';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateEditorialView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
-  const { dayNumber, monthName, dayName, year } = parseDateParts(now);
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
+  const dayNumber = formatDateSync(now, 'd', { locale });
+  const monthName = formatDateSync(now, 'MMMM', { locale });
+  const dayName = formatDateSync(now, 'EEEE', { locale });
+  const year = formatDateSync(now, 'yyyy', { locale });
 
-  const infoParts = buildInfoParts(config, now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const infoParts: string[] = [];
+  if (config.showWeekNumber) infoParts.push(`${t('date.weekShort')} ${weekNumber}`);
+  if (config.showDayOfYear) infoParts.push(`${t('date.dayShort')} ${dayOfYear}`);
 
   return (
     <div
@@ -63,7 +72,7 @@ export default function DateEditorialView({ config, now, scaledFontSize, contain
               style={{ fontSize: scaledFontSize * 0.65, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
-              {infoParts.join(' \u00b7 ')}
+              {infoParts.join(' · ')}
             </div>
           )}
         </div>

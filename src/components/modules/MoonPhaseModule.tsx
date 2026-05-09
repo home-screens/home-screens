@@ -7,6 +7,8 @@ import type { MoonPhaseConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import { MetadataText } from './shared/MetadataText';
 
 interface MoonPhaseModuleProps {
@@ -17,16 +19,16 @@ interface MoonPhaseModuleProps {
   timezone?: string;
 }
 
-function getPhaseName(phase: number): string {
-  if (phase < 0.0625) return 'New Moon';
-  if (phase < 0.1875) return 'Waxing Crescent';
-  if (phase < 0.3125) return 'First Quarter';
-  if (phase < 0.4375) return 'Waxing Gibbous';
-  if (phase < 0.5625) return 'Full Moon';
-  if (phase < 0.6875) return 'Waning Gibbous';
-  if (phase < 0.8125) return 'Last Quarter';
-  if (phase < 0.9375) return 'Waning Crescent';
-  return 'New Moon';
+function getPhaseName(phase: number, t: TranslateFn): string {
+  if (phase < 0.0625) return t('moon-phase.phases.newMoon');
+  if (phase < 0.1875) return t('moon-phase.phases.waxingCrescent');
+  if (phase < 0.3125) return t('moon-phase.phases.firstQuarter');
+  if (phase < 0.4375) return t('moon-phase.phases.waxingGibbous');
+  if (phase < 0.5625) return t('moon-phase.phases.fullMoon');
+  if (phase < 0.6875) return t('moon-phase.phases.waningGibbous');
+  if (phase < 0.8125) return t('moon-phase.phases.lastQuarter');
+  if (phase < 0.9375) return t('moon-phase.phases.waningCrescent');
+  return t('moon-phase.phases.newMoon');
 }
 
 function MoonVisual({ phase }: { phase: number }) {
@@ -76,13 +78,14 @@ function MoonVisual({ phase }: { phase: number }) {
 
 export default function MoonPhaseModule({ config, style, latitude, longitude, timezone }: MoonPhaseModuleProps) {
   const now = useTZClock(timezone);
+  const t = useTranslate('modules');
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} />;
   }
 
   const illumination = SunCalc.getMoonIllumination(now);
-  const phaseName = getPhaseName(illumination.phase);
+  const phaseName = getPhaseName(illumination.phase, t);
   const illuminationPct = Math.round(illumination.fraction * 100);
 
   const moonTimes = config.showMoonTimes
@@ -101,14 +104,14 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
         </p>
         {config.showIllumination && (
           <p className="text-center" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
-            {illuminationPct}% illuminated
+            {t('moon-phase.illuminated', { percent: illuminationPct })}
           </p>
         )}
         {config.showMoonTimes && moonTimes && (
           <div className="flex items-center gap-3">
             {moonTimes.rise && (
               <MetadataText size="sm">
-                <span style={{ opacity: TEXT_OPACITY.tertiary }}>Rise</span>{' '}
+                <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.rise')}</span>{' '}
                 <span className="tabular-nums">{formatTimeInTZ(moonTimes.rise, timezone)}</span>
               </MetadataText>
             )}
@@ -117,7 +120,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
             )}
             {moonTimes.set && (
               <MetadataText size="sm">
-                <span style={{ opacity: TEXT_OPACITY.tertiary }}>Set</span>{' '}
+                <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.set')}</span>{' '}
                 <span className="tabular-nums">{formatTimeInTZ(moonTimes.set, timezone)}</span>
               </MetadataText>
             )}
