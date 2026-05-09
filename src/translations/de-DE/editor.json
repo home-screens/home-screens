@@ -1,0 +1,1834 @@
+{
+  "languageAndRegion": {
+    "title": "Sprache & Region",
+    "breadcrumb": "Standardwerte → Sprache & Region",
+    "description": "Legt die Sprache für den Editor, alle Displays und /remote fest. Alle Displays teilen sich diese Einstellung.",
+    "languageLabel": "Sprache",
+    "languageHelp": "Wähle die Sprache, die im Editor, auf allen Displays und unter /remote verwendet wird.",
+    "moreOptions": "Weitere Optionen",
+    "formattingLocaleLabel": "Formatierungs-Gebietsschema",
+    "formattingLocaleHelp": "Nur die Datums- und Zahlenformatierung überschreiben. Die Sprache der Oberfläche bleibt unverändert.",
+    "formattingLocaleSameAsLanguage": "Wie Sprache"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "confirm": "Bestätigen",
+    "reset": "Zurücksetzen",
+    "apply": "Übernehmen",
+    "loading": "Lädt…",
+    "saving": "Speichert…",
+    "saved": "Gespeichert"
+  },
+  "modal": {
+    "closeAriaLabel": "Dialog schließen"
+  },
+  "page": {
+    "loading": "Lädt…",
+    "tooNarrowMessage": "Der Editor benötigt einen Bildschirm von mindestens {minWidth}px Breite.",
+    "tooNarrowHint": "Bitte verwende einen Desktop-Browser oder verbreitere das Fenster.",
+    "toolbar": {
+      "pluginsButton": "Plugins",
+      "settingsButton": "Einstellungen",
+      "previewButton": "Vorschau",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "retryButton": "Erneut versuchen",
+      "savingStatus": "Speichert…",
+      "savedStatus": "Gespeichert"
+    }
+  },
+  "canvas": {
+    "noScreenSelected": "Kein Screen ausgewählt",
+    "ghostCoordinatesAriaLabel": "Ablageposition {x}, {y}",
+    "undoTitle": "Rückgängig (Cmd+Z)",
+    "undoAriaLabel": "Rückgängig",
+    "redoTitle": "Wiederholen (Cmd+Shift+Z)",
+    "redoAriaLabel": "Wiederholen",
+    "snapOnTitle": "Am Raster ausrichten (an)",
+    "snapOffTitle": "Am Raster ausrichten (aus)",
+    "zoomOutTitle": "Verkleinern (Cmd+-)",
+    "zoomOutAriaLabel": "Verkleinern",
+    "zoomInTitle": "Vergrößern (Cmd+=)",
+    "zoomInAriaLabel": "Vergrößern",
+    "zoomPercent": "{percent} %",
+    "fitTitle": "An Bildschirm anpassen (Cmd+0)",
+    "fitAriaLabel": "An Bildschirm anpassen"
+  },
+  "draggableModule": {
+    "scheduledActiveTitle": "Geplant – derzeit aktiv",
+    "scheduledInactiveTitle": "Geplant – derzeit inaktiv"
+  },
+  "displaySwitcher": {
+    "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
+    "label": "Welches Display bearbeitet diese Leinwand gerade?",
+    "optionWithDimensions": "{name} ({width}×{height})"
+  },
+  "screenTabs": {
+    "stickyTooltip": "fix – nur manueller Wechsel",
+    "secondsSuffix": "{seconds} s",
+    "scheduledTooltip": "geplant",
+    "disabledTooltip": "deaktiviert – wird auf dem Display nicht angezeigt",
+    "disabledIndicatorAriaLabel": "Deaktiviert",
+    "stickyBadge": "0 s",
+    "screenOptionsTitle": "Screen-Optionen",
+    "screenOptionsAriaLabel": "Optionen für {name}",
+    "deleteTabAriaLabel": "{name} löschen",
+    "removeConfirmMessage": "„{name}“ entfernen?",
+    "scrollLeftAriaLabel": "Tabs nach links scrollen",
+    "scrollLeftTitle": "Tabs nach links scrollen",
+    "scrollRightAriaLabel": "Tabs nach rechts scrollen",
+    "scrollRightTitle": "Tabs nach rechts scrollen",
+    "addScreenAriaLabel": "Screen hinzufügen",
+    "addMenu": {
+      "blank": "Leerer Screen",
+      "fromTemplate": "Aus Vorlage …"
+    },
+    "contextMenu": {
+      "moveLeft": "Nach links verschieben",
+      "moveRight": "Nach rechts verschieben",
+      "exportThisScreen": "Diesen Screen exportieren",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "rename": "Umbenennen",
+      "delete": "Löschen"
+    }
+  },
+  "screenSettings": {
+    "sectionTitle": "Screen-Einstellungen",
+    "moduleCountSingular": "{count} Modul",
+    "moduleCountPlural": "{count} Module",
+    "rotationGroupTitle": "Rotation",
+    "durationLabel": "Dauer",
+    "secondsUnit": "Sek.",
+    "stickyBadge": "Fix",
+    "stickyHint": "0 = auf diesem Screen bleiben (nur manueller Wechsel).",
+    "inheritsHintBefore": "Übernimmt die Standardeinstellung: ",
+    "inheritsHintValue": "{seconds} s",
+    "inheritsHintAfter": ".",
+    "overrideButton": "Überschreiben",
+    "resetButton": "Zurücksetzen"
+  },
+  "scheduleEditor": {
+    "statusTitle": "Status",
+    "enableLabel": "Zeitplan aktivieren",
+    "daysTitle": "Tage",
+    "timeWindowTitle": "Zeitfenster",
+    "fromLabel": "Von",
+    "untilLabel": "Bis",
+    "behaviorTitle": "Verhalten",
+    "invertLabel": "Umkehren (während des Fensters ausblenden)"
+  },
+  "registry": {
+    "categories": {
+      "fullScreen": "Vollbild",
+      "timeAndDate": "Zeit & Datum",
+      "weatherAndEnvironment": "Wetter & Umwelt",
+      "newsAndFinance": "Nachrichten & Finanzen",
+      "knowledgeAndFun": "Wissen & Spaß",
+      "personal": "Persönlich",
+      "mediaAndDisplay": "Medien & Anzeige",
+      "travel": "Reise"
+    },
+    "types": {
+      "fullscreen-calendar": "Vollbild-Kalender",
+      "fullscreen-chore-chart": "Vollbild-Aufgabentafel",
+      "fullscreen-meal-planner": "Vollbild-Essensplaner",
+      "fullscreen-photo": "Vollbild-Fotoanzeige",
+      "clock": "Uhr",
+      "calendar": "Kalender",
+      "countdown": "Countdown",
+      "date": "Datum",
+      "year-progress": "Jahresfortschritt",
+      "multi-month": "Mehrmonatskalender",
+      "weather": "Wetter",
+      "moon-phase": "Mondphase",
+      "sunrise-sunset": "Sonnenauf- und -untergang",
+      "air-quality": "Luftqualität",
+      "rain-map": "Regenkarte",
+      "news": "Nachrichten-Schlagzeilen",
+      "stock-ticker": "Aktienticker",
+      "crypto": "Kryptopreis",
+      "sports": "Sportergebnisse",
+      "standings": "Tabellen",
+      "dad-joke": "Witz",
+      "quote": "Zitat des Tages",
+      "word-of-day": "Wort des Tages",
+      "history": "Was geschah heute",
+      "todo": "Aufgabenliste",
+      "sticky-note": "Notizzettel",
+      "greeting": "Begrüßung",
+      "todoist": "Todoist",
+      "garbage-day": "Müllabfuhr",
+      "affirmations": "Affirmationen",
+      "meal-planner": "Essensplaner",
+      "chore-chart": "Aufgabentafel",
+      "text": "Text",
+      "image": "Bild",
+      "photo-slideshow": "Foto-Diashow",
+      "qr-code": "QR-Code",
+      "iframe": "Web-Einbettung",
+      "icon": "Symbol",
+      "shape": "Form & Trenner",
+      "display-control": "Anzeigesteuerung",
+      "traffic": "Verkehr & Pendelwege"
+    }
+  },
+  "settings": {
+    "sidebar": {
+      "defaults": "Standardwerte",
+      "defaultsHelp": "Wird von jedem Display verwendet, bis es überschrieben wird.",
+      "perDisplay": "Pro Display",
+      "allDisplays": "Alle Displays",
+      "addDisplay": "Display hinzufügen",
+      "displays": "Displays",
+      "websiteAriaLabel": "homescreens.dev besuchen",
+      "websiteTitle": "homescreens.dev",
+      "githubAriaLabel": "Auf GitHub ansehen",
+      "githubTitle": "Auf GitHub ansehen",
+      "navLabels": {
+        "language": "Sprache & Region",
+        "calendar": "Kalender",
+        "weather": "Wetter",
+        "location": "Standort",
+        "sleep": "Schlaf",
+        "alerts": "Hinweise",
+        "display": "Anzeige",
+        "data": "Daten",
+        "docs": "Dokumentation",
+        "integrations": "Integrationen",
+        "meals": "Mahlzeiten",
+        "network": "Netzwerk",
+        "profiles": "Profile",
+        "security": "Sicherheit",
+        "stats": "Statistik",
+        "system": "System",
+        "displays": "Displays"
+      }
+    },
+    "overrideRow": {
+      "override": "Überschreiben",
+      "resetToDefault": "Auf Standard zurücksetzen",
+      "overriddenForDisplay": "Überschrieben für {name}. Standard: ",
+      "overriddenWithoutDisplay": "Überschrieben. Standard: ",
+      "overriddenSuffix": " — bearbeiten unter ",
+      "overriddenSuffixEnd": ".",
+      "usingDefault": "Verwendet den Standard. ",
+      "usingDefaultPart2": " verwendet ",
+      "usingDefaultPart3": " für jedes Display."
+    },
+    "backlinkBanner": {
+      "thisPage": "dieser Seite",
+      "singleDisplayPart3": " auf {pageLabel}. ",
+      "singleDisplayPart5": ", um Überschreibungen anzuzeigen oder zurückzusetzen.",
+      "singleDisplayCurrentlyOverrides": " überschreibt aktuell ",
+      "singleFieldCount": "{count} Feld",
+      "multiFieldCount": "{count} Felder",
+      "openDisplayLink": "{name} öffnen",
+      "multiDisplayLabel": "{count} Displays",
+      "multiDisplayCurrentlyOverride": " überschreiben aktuell Felder auf {pageLabel}: "
+    },
+    "defaultAlertsPage": {
+      "breadcrumb": "Standardwerte → Hinweise",
+      "heading": "Standard-Hinweiseinstellungen",
+      "description": "Standard-Position, -Größe und -Dauer für das Hinweis-Overlay auf jedem Display. Ein bestimmtes Display kann den gesamten Hinweisblock von seiner eigenen Seite aus überschreiben."
+    },
+    "defaultSleepPage": {
+      "breadcrumb": "Standardwerte → Schlaf",
+      "heading": "Standard-Schlafeinstellungen",
+      "description": "Standard-Dimm-/Schlafzeitplan und Bildschirmschoner für jedes Display. Ein bestimmtes Display kann den gesamten Block von seiner eigenen Seite aus überschreiben."
+    },
+    "locationPage": {
+      "heading": "Standort",
+      "description": "Wird von Wetter, Mondphase, Sonnenauf-/-untergang und Luftqualitätsmodulen verwendet.",
+      "browserLabel": "Browser",
+      "serverLabel": "Server",
+      "timezoneLabel": "Zeitzone",
+      "timezoneSystemDefault": "Systemstandard ({timezone})",
+      "timezoneHelp": "Überschreibt die Betriebssystem-Zeitzone des Servers für Uhr, Begrüßung und andere zeitbasierte Module.",
+      "queryPlaceholder": "Postleitzahl oder Ortsname",
+      "lookUpButton": "Suchen",
+      "detectButton": "Erkennen",
+      "editCoordinates": "Koordinaten manuell bearbeiten",
+      "latitudeLabel": "Breitengrad",
+      "longitudeLabel": "Längengrad",
+      "latitudePlaceholder": "40.7128",
+      "longitudePlaceholder": "-74.006",
+      "status": {
+        "lookingUp": "Wird gesucht …",
+        "found": "Gefunden: {name}",
+        "error": "Fehler: {message}",
+        "lookupFailed": "Standort konnte nicht gefunden werden",
+        "detecting": "Erkennen …",
+        "detected": "Erkannt: {name}",
+        "detectedViaIp": "Erkannt: {name} (über IP)",
+        "detectedCoords": "Erkannt: {lat}, {lon}",
+        "detectFailed": "Fehler: Standort konnte nicht erkannt werden"
+      }
+    },
+    "calendarPage": {
+      "google": {
+        "heading": "Google Calendar",
+        "checkingConnection": "Verbindung wird geprüft …",
+        "connected": "Mit Google verbunden",
+        "disconnect": "Verbindung trennen",
+        "selectCalendars": "Kalender zur Anzeige auswählen",
+        "noCalendars": "Keine Kalender gefunden.",
+        "primaryBadge": "(primär)",
+        "credentialsRequired": "Google-OAuth-Anmeldedaten sind erforderlich, um deinen Kalender zu verbinden.",
+        "credentialsSetupPart1": "Lege deine Client-ID und dein Client-Secret zuerst unter ",
+        "settingsIntegrationsLink": "Einstellungen → Integrationen",
+        "credentialsSetupPart2": " an.",
+        "deviceCodeIntro": "Öffne den unten stehenden Link auf deinem Telefon oder Computer und gib dann den Code ein:",
+        "waitingForAuthorization": "Warte auf Autorisierung …",
+        "signIn": "Mit Google anmelden",
+        "usingClientIdLabel": "Verwendete Client-ID:",
+        "verifyCredentialsPart1": "Überprüfe deine Anmeldedaten unter ",
+        "verifyCredentialsPart2": " oder prüfe die ",
+        "googleCloudConsoleLink": "Google Cloud Console",
+        "verifyCredentialsPart3": ".",
+        "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console."
+      },
+      "holidays": {
+        "heading": "Gesetzliche Feiertage",
+        "none": "Keine",
+        "help": "Gesetzliche Feiertage in Kalender-Widgets anzeigen. Daten von Nager.Date."
+      },
+      "shared": {
+        "maxEventsLabel": "Max. Termine",
+        "daysAheadLabel": "Tage im Voraus"
+      }
+    },
+    "dataPage": {
+      "intervalOptions": {
+        "threeDays": "3 Tage",
+        "sevenDays": "7 Tage",
+        "fourteenDays": "14 Tage",
+        "thirtyDays": "30 Tage"
+      },
+      "alerts": {
+        "invalidLayoutFile": "Ungültige Layout-Datei:\n{errors}",
+        "invalidJsonFile": "Ungültige JSON-Datei.",
+        "exportBackupFailed": "Backup konnte nicht exportiert werden.",
+        "invalidBackupFile": "Ungültige Backup-Datei."
+      },
+      "shareLayout": {
+        "heading": "Layout teilen",
+        "description": "Exportiere dein Bildschirmlayout (Bildschirme, Module, visuelle Einstellungen) ohne persönliche Daten wie Standort, Kalender-IDs oder Geräteeinstellungen. Sicher zum Teilen mit anderen.",
+        "exportButton": "Layout exportieren",
+        "importButton": "Layout importieren"
+      },
+      "templates": {
+        "heading": "Vorlagen",
+        "description": "Beginne mit einer vorgefertigten Vorlage. Deine vorhandenen Einstellungen (Standort, Kalender usw.) bleiben erhalten.",
+        "browseButton": "Vorlagen durchsuchen"
+      },
+      "fullBackup": {
+        "heading": "Vollständiges Backup",
+        "description": "Exportiere oder stelle die gesamte Konfiguration einschließlich aller Einstellungen, Aufgabendaten und des Verlaufs der Erledigungen wieder her. Für Backup und Geräteumzug. Enthält keine API-Schlüssel.",
+        "working": "Arbeitet …",
+        "backupButton": "Alle Daten sichern",
+        "restoreButton": "Backup wiederherstellen"
+      },
+      "backupReminder": {
+        "heading": "Backup-Erinnerung",
+        "description": "Erhalte eine Benachrichtigung im Editor, wenn du eine Weile kein Backup mehr erstellt hast.",
+        "enableLabel": "Backup-Erinnerungen aktivieren",
+        "remindAfterLabel": "Erinnern nach",
+        "lastBackup": "Letztes Backup: {date}",
+        "noBackups": "Noch keine Backups erfasst"
+      }
+    },
+    "weatherPage": {
+      "heading": "Wetter",
+      "description": "Konfiguriere einen der untenstehenden Wetteranbieter. Einzelne Wetter-Widgets können jeden konfigurierten Anbieter wählen; einer wird als Standard verwendet.",
+      "unitsLabel": "Einheiten",
+      "imperialOption": "Imperial (°F, mph)",
+      "metricOption": "Metrisch (°C, km/h)",
+      "locationWarning": "Lege deinen Standort fest, damit das Wetter funktioniert. Gib eine Postleitzahl oder einen Ortsnamen ein oder verwende „Erkennen“.",
+      "providersLabel": "Anbieter",
+      "loadingProviderStatus": "Anbieterstatus wird geladen …",
+      "providerCard": {
+        "apiKeyLabel": "API-Schlüssel",
+        "currentlyDefault": "Aktueller Standard",
+        "setAsDefault": "Als Standard festlegen",
+        "testButton": "Testen",
+        "testingButton": "Teste …",
+        "testStatus": {
+          "success": "Funktioniert! Aktuelle Temperatur: {temp}°",
+          "connectedNoData": "Verbunden, aber keine Daten erhalten",
+          "errorWithDetail": "Fehler: {error}: {detail}",
+          "errorOnly": "Fehler: {error}",
+          "failed": "Fehlgeschlagen: {message}",
+          "unknownError": "Unbekannter Fehler"
+        },
+        "status": {
+          "defaultReady": "Standard · Bereit",
+          "defaultConfigured": "Standard · Konfiguriert",
+          "defaultNeedsSetup": "Standard · Einrichtung nötig",
+          "ready": "Bereit",
+          "configured": "Konfiguriert",
+          "needsSetup": "Einrichtung nötig"
+        }
+      },
+      "providers": {
+        "openMeteo": {
+          "tagline": "Kostenlos · weltweit · kein Schlüssel",
+          "helperText": "Kein API-Schlüssel erforderlich. Open-Meteo ist kostenlos, Open Source und weltweit verfügbar."
+        },
+        "weatherApi": {
+          "tagline": "Kostenloses Kontingent · keine Kreditkarte",
+          "keyHint": "Kostenlos auf weatherapi.com — keine Kreditkarte erforderlich.",
+          "placeholder": "Füge deinen WeatherAPI-Schlüssel ein"
+        },
+        "openWeatherMap": {
+          "tagline": "One-Call-3.0-Abonnement",
+          "keyHint": "Erfordert ein One-Call-3.0-Abonnement auf openweathermap.org.",
+          "placeholder": "Füge deinen OpenWeatherMap-API-Schlüssel ein"
+        },
+        "pirateWeather": {
+          "tagline": "Dark-Sky-Ersatz",
+          "keyHint": "Kostenlos auf pirateweather.net — direkter Dark-Sky-Ersatz.",
+          "placeholder": "Füge deinen Pirate-Weather-API-Schlüssel ein"
+        },
+        "noaa": {
+          "tagline": "Kostenlos · nur USA · kein Schlüssel",
+          "helperText": "Kein API-Schlüssel erforderlich. NOAA-Daten sind kostenlos und öffentlich (nur USA)."
+        },
+        "yr": {
+          "tagline": "Kostenlos · weltweit · kein Schlüssel",
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Norwegischen Meteorologischen Institut mit weltweiter Abdeckung. Zum Testen eine nordische Lat/Lon verwenden — z. B. Oslo (59.9139, 10.7522) — dort ist die Abdeckung am dichtesten."
+        },
+        "smhi": {
+          "tagline": "Kostenlos · nur Nordeuropa · kein Schlüssel",
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Schwedischen Meteorologischen und Hydrologischen Institut. Nur nordeuropäische Abdeckung — zum Testen eine nordische Lat/Lon verwenden (z. B. Stockholm: 59.3293, 18.0686). Außerhalb Nordeuropas werden keine Daten zurückgegeben."
+        },
+        "metOffice": {
+          "tagline": "Freemium · Fokus UK · erfordert Schlüssel",
+          "keyHint": "Registriere dich auf datahub.metoffice.gov.uk und abonniere die Site-Specific-API, um einen Schlüssel zu erhalten.",
+          "placeholder": "Füge deinen Met-Office-DataHub-API-Schlüssel ein"
+        },
+        "envCanada": {
+          "tagline": "Kostenlos · nur Kanada · kein Schlüssel",
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt von Environment and Climate Change Canada — die maßgebliche Vorhersagequelle in Kanada. Home Screens wählt die nächstgelegene von rund 844 kanadischen Stadtstationen anhand deiner Breite/Länge; Standorte mehr als 200 km von einer kanadischen Stadt entfernt werden abgelehnt. Zum Testen z. B. Toronto (43.6532, -79.3832) oder Vancouver (49.2827, -123.1207)."
+        }
+      }
+    },
+    "defaultDisplayPage": {
+      "breadcrumb": "Standardwerte → Anzeige",
+      "heading": "Standard-Anzeigeeinstellungen",
+      "descriptionPart1": "Diese Werte werden von jedem Display verwendet, bis ein bestimmtes Display sie überschreibt. Wenn du hier etwas änderst, übernimmt jedes Display, das dieses Feld ",
+      "descriptionEmphasisNot": "nicht",
+      "descriptionPart2": " überschreibt, den neuen Wert.",
+      "multiDisplayNotePart1": "Auflösung, Ausrichtung und Spiegelung sind ",
+      "multiDisplayNotePerDisplay": "pro Display",
+      "multiDisplayNotePart2": " — bearbeite sie auf der eigenen Seite jedes Displays unter ",
+      "multiDisplayNotePerDisplaySection": "Pro Display",
+      "multiDisplayNotePart3": ".",
+      "canvas": {
+        "heading": "Anzeigefläche",
+        "orientationLabel": "Ausrichtung",
+        "orientationPortrait": "Hochformat",
+        "orientationLandscape": "Querformat",
+        "resolutionLabel": "Auflösung",
+        "resolutionCustom": "Benutzerdefiniert …",
+        "resolutionWidthPlaceholder": "Breite",
+        "resolutionHeightPlaceholder": "Höhe",
+        "resolutionHelp": "Stelle dies passend zu deinem physischen Display ein. Eine geänderte Auflösung wirkt sich auf die Größe der Modul-Anzeigefläche aus.",
+        "flipLabel": "Anzeige spiegeln",
+        "flipToggle": "Umgekehrte Montage",
+        "flipHelp": "Aktivieren, wenn dein Monitor verkehrt herum montiert ist. Dreht die Anzeige um 180° gegenüber der Grundausrichtung."
+      },
+      "fields": {
+        "rotationIntervalLabel": "Bildschirmwechsel-Intervall",
+        "rotationIntervalHelp": "Wie lange jeder Bildschirm angezeigt wird, bevor automatisch zum nächsten gewechselt wird. Gilt nur, wenn mehrere Bildschirme konfiguriert sind.",
+        "pauseEnabledLabel": "Pause per Touchscreen erlauben",
+        "pauseEnabledToggle": "Aktiviert",
+        "pauseEnabledHelp": "Tippe doppelt auf den aktiven Paginierungspunkt, um den Bildschirmwechsel zu pausieren. Doppeltippe erneut, um fortzufahren.",
+        "pauseTimeoutLabel": "Automatisches Fortsetzen nach",
+        "pauseTimeoutNever": "Nie",
+        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutHelp": "Setzt den Bildschirmwechsel nach Ablauf dieser Zeit automatisch fort. Setze auf 0, um pausiert zu bleiben, bis manuell fortgesetzt wird.",
+        "transitionEffectLabel": "Übergangseffekt",
+        "transitionEffectHelp": "Animationsstil beim Wechsel zwischen Bildschirmen. „Unschärfe“ kann auf leistungsschwachen Geräten GPU-intensiv sein.",
+        "transitionDurationLabel": "Übergangsdauer",
+        "transitionDurationValue": "{seconds}s",
+        "transitionDurationHelp": "Wie lange die Übergangsanimation zwischen Bildschirmen dauert.",
+        "cursorHideLabel": "Mauszeiger ausblenden nach",
+        "cursorHideValue": "{seconds}s",
+        "cursorHideHelp": "Der Mauszeiger wird nach der eingestellten Zeit ohne Aktivität ausgeblendet. Bewege die Maus, um ihn wieder anzuzeigen.",
+        "fullscreenThemeLabel": "Vollbild-Design",
+        "fullscreenThemeHelp": "Gilt für alle Vollbild-Module (Kalender, Aufgaben, Mahlzeiten), damit sie beim Wechsel nahtlos wirken. Du kannst dies pro Modul im Editor ändern."
+      },
+      "transitionOptions": {
+        "fade": "Überblenden",
+        "slide": "Nach links schieben",
+        "slide-up": "Nach oben schieben",
+        "zoom": "Zoom",
+        "flip": "3D-Drehung",
+        "blur": "Unschärfe",
+        "crossfade": "Crossfade (Überlappung)",
+        "none": "Keiner (sofort)"
+      },
+      "themeGroups": {
+        "light": "hell",
+        "dark": "dunkel"
+      }
+    },
+    "perDisplayPage": {
+      "header": {
+        "openTitle": "Kiosk-URL dieses Displays öffnen",
+        "openLabel": "Öffnen",
+        "editScreensTitle": "Bildschirme dieses Displays in der Anzeigefläche bearbeiten",
+        "editScreensLabel": "Bildschirme bearbeiten",
+        "statusOnline": "Online",
+        "statusIdle": "Inaktiv",
+        "statusOffline": "Offline",
+        "screenCountSingular": "1 Bildschirm",
+        "screenCountPlural": "{count} Bildschirme",
+        "notFound": "Display nicht gefunden",
+        "notFoundDescPart1": "Kein Display mit der ID ",
+        "notFoundDescPart2": " registriert.",
+        "subtabs": {
+          "overview": "Übersicht",
+          "display": "Anzeige",
+          "sleep": "Schlaf",
+          "alerts": "Hinweise",
+          "profile": "Profil",
+          "identity": "Identität"
+        }
+      },
+      "overview": {
+        "resolutionLabel": "Auflösung",
+        "activeProfileLabel": "Aktives Profil",
+        "noActiveProfile": "Keines",
+        "screensLabel": "Bildschirme",
+        "overridesHeading": "Überschreibungen für {name}",
+        "withOverridesPart1": "{name} verwendet die ",
+        "defaultsLink": "Standardwerte",
+        "withOverridesPart2": " für alles außer:",
+        "noOverridesPart1": "{name} verwendet die ",
+        "noOverridesPart2": " für jedes Feld. Überschreibe eines im Tab Anzeige, Schlaf oder Hinweise.",
+        "chipBlockOverridden": "{label} überschrieben",
+        "chipFieldWithDefault": "{label}: {value} (Standard: {defaultValue})",
+        "chipFieldNoDefault": "{label}: {value}",
+        "fieldLabels": {
+          "rotationIntervalMs": "Wechselintervall",
+          "transitionEffect": "Übergang",
+          "transitionDuration": "Übergangsdauer",
+          "pauseEnabled": "Pause per Tippen",
+          "pauseTimeoutSeconds": "Pause-Timeout",
+          "cursorHideSeconds": "Mauszeiger ausblenden",
+          "fullscreenTheme": "Design",
+          "sleep": "Schlafzeitplan",
+          "screensaver": "Bildschirmschoner",
+          "alerts": "Hinweis-Overlay"
+        },
+        "chipValues": {
+          "pauseOn": "An",
+          "pauseOff": "Aus",
+          "pauseNever": "Nie"
+        },
+        "transitionLabels": {
+          "fade": "Überblenden",
+          "slide": "Nach links schieben",
+          "slide-up": "Nach oben schieben",
+          "zoom": "Zoom",
+          "flip": "3D-Drehung",
+          "blur": "Unschärfe",
+          "crossfade": "Crossfade",
+          "none": "Keiner"
+        }
+      },
+      "identity": {
+        "displayNameLabel": "Display-Name",
+        "displayNameHelp": "Wird in der Seitenleiste und im Display-Kiosk angezeigt. Speichert beim Verlassen automatisch.",
+        "displayIdLabel": "Display-ID",
+        "displayIdHelpPart1": "Wird in der Kiosk-URL ",
+        "displayIdHelpPart2": " verwendet. Kann nicht geändert werden, ohne den Pi neu zu konfigurieren.",
+        "dangerZoneHeading": "Gefahrenbereich",
+        "dangerZoneMainHelp": "Das Hauptdisplay ist der Hub-Kiosk und kann nicht entfernt werden. Beim Entfernen würden seine Bildschirme verwaisen und der Hub auf einen nicht adoptierten Zustand zurückgesetzt.",
+        "dangerZoneRemovableHelp": "Beim Entfernen eines Displays wird es nicht mehr ausgeliefert und seine Bildschirme werden gelöscht. Der Pi kann sich erneut als nicht adoptiert registrieren.",
+        "removeButton": "{name} entfernen",
+        "removeConfirm": "Display „{name}“ entfernen? Dadurch werden seine Bildschirme gelöscht."
+      },
+      "profile": {
+        "activeProfileLabel": "Aktives Profil",
+        "noneOption": "— Keines —",
+        "helpPart1": "Welches Profil auf {name} aktuell angezeigt wird. Profildefinitionen leben unter ",
+        "helpLink": "Standardwerte → Profile",
+        "helpPart2": "."
+      },
+      "display": {
+        "defaultsLabel": "Standardwerte → Anzeige",
+        "bannerPart1": "Felder hier zeigen den ",
+        "bannerEmphasisDefault": "Standardwert",
+        "bannerPart2": " von ",
+        "bannerPart3": " an. Klicke auf ",
+        "bannerEmphasisOverride": "Überschreiben",
+        "bannerPart4": " bei einem Feld, um es nur für {name} zu ändern.",
+        "canvasHeading": "Anzeigefläche",
+        "resolutionLabel": "Auflösung",
+        "perDisplayBadge": "Pro Display",
+        "resolutionHelp": "Module werden gegen diese Anzeigefläche ausgelegt. Jedes Display hat seine eigene Auflösung — sie wird nicht geteilt.",
+        "rotationLabel": "Drehung",
+        "rotationOptionNormal": "Normal (Querformat)",
+        "rotationOption90": "90° im Uhrzeigersinn (Hochformat)",
+        "rotationOption180": "180° (umgekehrt)",
+        "rotationOption270": "270° im Uhrzeigersinn (Hochformat)",
+        "rotationAndTransitionsHeading": "Wechsel & Übergänge",
+        "appearanceHeading": "Erscheinungsbild",
+        "fields": {
+          "rotationIntervalSeconds": "{seconds} Sekunden",
+          "pauseEnabledLabelDisabled": "Deaktiviert"
+        },
+        "footer": {
+          "overrideCountSingular": "{count} Anzeige-Überschreibung",
+          "overrideCountPlural": "{count} Anzeige-Überschreibungen",
+          "activeForDisplay": " aktiv für {name}.",
+          "clearAllButton": "Anzeige-Überschreibungen löschen",
+          "clearAllTitle": "Setzt jedes Feld in diesem Tab auf den Standard zurück. Schlaf- und Hinweis-Überschreibungen bleiben unberührt."
+        }
+      },
+      "sleep": {
+        "label": "Schlafzeitplan",
+        "defaultsLabel": "Standardwerte → Schlaf",
+        "infoPart1": "Schlaf wird als ganzer Block überschrieben — einzelne Felder wie die Dimmzeit lassen sich nicht separat überschreiben. Der Standard liegt unter ",
+        "infoPart2": "."
+      },
+      "alerts": {
+        "label": "Hinweis-Overlay",
+        "defaultsLabel": "Standardwerte → Hinweise",
+        "infoPart1": "Hinweise werden als ganzer Block überschrieben. Der Standard liegt unter ",
+        "infoPart2": "."
+      },
+      "wholeBlockOverride": {
+        "overrideForButton": "Für {name} überschreiben",
+        "usingDefaultPart1": "Verwendet den Standard von ",
+        "usingDefaultPart2": "."
+      }
+    },
+    "alertFormFields": {
+      "enableLabel": "Hinweis-Overlay aktivieren",
+      "enableHelp": "Benachrichtigungen auf dem Display anzeigen. Hinweise können über die API und über Module mit Hinweis-Funktion ausgelöst werden.",
+      "positionLabel": "Position",
+      "positionTop": "Oben",
+      "positionBottom": "Unten",
+      "maxVisibleLabel": "Maximal sichtbare Hinweise",
+      "defaultDurationLabel": "Standarddauer (Sekunden)",
+      "defaultDurationPerType": "Standardwerte je Typ",
+      "defaultDurationHelp": "Info: 10 s, Warnung: 30 s, Dringend: dauerhaft, bis verworfen.",
+      "alertSizeLabel": "Hinweisgröße",
+      "activeAlertsHeading": "Aktive Hinweise",
+      "clearAllButton": "Alle Hinweise löschen",
+      "clearingButton": "Wird gelöscht …",
+      "cleared": "Gelöscht",
+      "failed": "Fehlgeschlagen",
+      "clearHelp": "Verwirft alle aktiven Hinweise auf dem Display. Wird innerhalb von 3 Sekunden wirksam.",
+      "apiUsageHeading": "API-Nutzung",
+      "apiUsageIntro": "Sende Hinweise aus externen Tools (Home Assistant, Skripte usw.):",
+      "apiTypesPart1": "Typen: ",
+      "apiTypesPart2": ", ",
+      "apiTypesPart3": ", "
+    },
+    "sleepFormFields": {
+      "enableLabel": "Display-Schlaf aktivieren",
+      "enableHelp": "Display nach Inaktivität oder per Zeitplan dimmen und optional ausschalten. Maus-, Touch- oder Tastatureingaben wecken es wieder auf.",
+      "dimAfterLabel": "Dimmen nach (Minuten)",
+      "sleepAfterLabel": "Schlafen nach Dimmen (Minuten)",
+      "sleepAfterOff": "Aus",
+      "sleepAfterHelp": "Das Display dimmt, wird aber durch Inaktivität nie vollständig schwarz.",
+      "dimBrightnessLabel": "Dimm-Helligkeit (%)",
+      "screensaverLabel": "Bildschirmschoner",
+      "screensaverClock": "Treibende Uhr",
+      "screensaverBlank": "Schwarz (nur dimmen)",
+      "screensaverOff": "Aus (direkt schlafen)",
+      "screensaverHelp": "Wird im gedimmten Zustand angezeigt, bevor das Display vollständig schläft.",
+      "dimScheduleLabel": "Nach Zeitplan dimmen",
+      "dimAtLabel": "Dimmen um",
+      "brightenAtLabel": "Aufhellen um",
+      "dimScheduleHelp": "Dimmt das Display in diesem Zeitfenster und hellt es am Ende automatisch wieder auf. Unterstützt nächtliche Zeiträume.",
+      "sleepScheduleLabel": "Nach Zeitplan schlafen",
+      "sleepAtLabel": "Schlafen um",
+      "wakeAtLabel": "Aufwachen um",
+      "sleepScheduleHelp": "Schaltet das Display in diesem Zeitfenster vollständig aus und weckt es am Ende automatisch. Ignoriert Aktivität. Unterstützt nächtliche Zeiträume."
+    },
+    "integrationsPage": {
+      "heading": "Integrationen",
+      "description": "Verbinde externe Dienste, um zusätzliche Module und Funktionen freizuschalten. API-Schlüssel werden lokal gespeichert und verlassen dein Gerät niemals.",
+      "loadingStatus": "Integrationsstatus wird geladen …",
+      "summary": {
+        "configuredCountPart1": " von ",
+        "configuredCountPart2": " Integrationen konfiguriert"
+      },
+      "groups": {
+        "googleEcosystem": "Google-Ökosystem",
+        "photosAndBackgrounds": "Fotos & Hintergründe",
+        "services": "Dienste"
+      },
+      "google": {
+        "name": "Google",
+        "description": "Calendar, Maps",
+        "clientIdLabel": "OAuth-Client-ID",
+        "clientIdPlaceholder": "z. B. 123456789-abc.apps.googleusercontent.com",
+        "clientIdHelp": "Erstelle unter console.cloud.google.com → APIs & Services → Credentials. Verwende den Typ: TVs and Limited Input devices.",
+        "clientSecretLabel": "OAuth-Client-Secret",
+        "clientSecretPlaceholder": "z. B. GOCSPX-…",
+        "clientSecretHelp": "Das Client-Secret derselben OAuth-Anmeldedaten von oben.",
+        "mapsKeyLabel": "Maps-API-Schlüssel",
+        "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
+        "mapsKeyHelp": "Optional — für das Verkehrs-/Pendel-Widget. Aktiviere die Routes API im selben Cloud-Console-Projekt."
+      },
+      "immich": {
+        "name": "Immich",
+        "description": "Selbstgehostete Fotobibliothek",
+        "urlLabel": "Server-URL",
+        "urlPlaceholder": "z. B. http://192.168.1.50:2283",
+        "urlHelp": "Die Basis-URL deiner Immich-Instanz.",
+        "apiKeyLabel": "API-Schlüssel",
+        "apiKeyPlaceholder": "Füge deinen Immich-API-Schlüssel ein",
+        "apiKeyHelp": "Erstelle unter Immich → Account Settings → API Keys."
+      },
+      "unsplash": {
+        "name": "Unsplash",
+        "description": "HD-Fotohintergründe nach Kategorie",
+        "accessKeyLabel": "Access Key",
+        "accessKeyPlaceholder": "Füge deinen Unsplash Access Key ein",
+        "accessKeyHelp": "Kostenlos unter unsplash.com/developers — 50 Anfragen/Stunde im kostenlosen Tarif."
+      },
+      "nasa": {
+        "name": "NASA",
+        "description": "Astronomy Picture of the Day",
+        "apiKeyLabel": "API-Schlüssel",
+        "apiKeyPlaceholder": "Füge deinen NASA-API-Schlüssel ein",
+        "apiKeyHelp": "Kostenlos unter api.nasa.gov — 1.000 Anfragen/Stunde. Die Suche in der Image Library funktioniert ohne Schlüssel."
+      },
+      "todoist": {
+        "name": "Todoist",
+        "description": "Aufgaben aus deinen Projekten anzeigen",
+        "tokenLabel": "API-Token",
+        "tokenPlaceholder": "Füge deinen Todoist-API-Token ein",
+        "tokenHelp": "Hole deinen Token unter app.todoist.com/app/settings/integrations/developer. Wird beim Speichern überprüft."
+      },
+      "tomtom": {
+        "name": "TomTom",
+        "description": "Verkehr & Pendelzeiten",
+        "keyLabel": "API-Schlüssel",
+        "keyPlaceholder": "Füge deinen TomTom-API-Schlüssel ein",
+        "keyHelp": "Kostenlos unter developer.tomtom.com — Routing API erforderlich. Alternative zu Google Maps."
+      },
+      "github": {
+        "name": "GitHub",
+        "description": "Höheres Anfragelimit für Versionsprüfungen",
+        "optionalBadge": "Optional",
+        "tokenLabel": "Personal Access Token",
+        "tokenPlaceholder": "Füge deinen GitHub-Token ein",
+        "tokenHelp": "Erhöht das Anfragelimit von 60 auf 5.000 Anfragen/Stunde. Erstelle unter github.com/settings/tokens (keine Scopes nötig)."
+      },
+      "status": {
+        "notConfigured": "Nicht konfiguriert",
+        "connected": "Verbunden",
+        "partial": "{configured} von {total}"
+      }
+    },
+    "networkPage": {
+      "loading": "Netzwerkinformationen werden geladen …",
+      "unavailable": {
+        "heading": "Netzwerk",
+        "message": "Netzwerkeinstellungen sind nur auf dem Anzeigegerät verfügbar."
+      },
+      "interfaces": {
+        "heading": "Schnittstellen",
+        "noneDetected": "Keine Netzwerkschnittstellen gefunden."
+      },
+      "hiddenNetwork": {
+        "connectButton": "Mit verstecktem Netzwerk verbinden …"
+      },
+      "hostname": {
+        "heading": "Hostname",
+        "placeholder": "home-screens",
+        "saveButton": "Speichern",
+        "savingButton": "Speichert …",
+        "successMessage": "Hostname aktualisiert",
+        "defaultErrorMessage": "Hostname konnte nicht aktualisiert werden",
+        "networkErrorMessage": "Server nicht erreichbar"
+      },
+      "interface": {
+        "type": {
+          "ethernet": "Ethernet",
+          "wifiBuiltIn": "Integriertes WLAN",
+          "wifiUsb": "USB-WLAN ({driver})",
+          "wifi": "WLAN"
+        },
+        "state": {
+          "connected": "Verbunden",
+          "connectedToSsid": "Verbunden mit „{ssid}“",
+          "connectedWithAddress": "{state} ({address})",
+          "disconnected": "Getrennt",
+          "unavailable": "Nicht verfügbar",
+          "unmanaged": "Nicht verwaltet"
+        },
+        "managementBadge": "Deine Verbindung",
+        "ipSettingsButton": "IP-Einstellungen",
+        "disconnectButton": "Trennen",
+        "disconnectingButton": "Wird getrennt …",
+        "signalLabel": "Signal {percent}%",
+        "addressing": {
+          "static": "Statisch",
+          "dhcp": "DHCP"
+        }
+      },
+      "wifiScan": {
+        "heading": "Verfügbare WLAN-Netzwerke",
+        "scanningInterface": "Suche auf {device}",
+        "scanButton": "Suchen",
+        "scanningButton": "Suche läuft …",
+        "scanCooldownButton": "Suchen ({seconds}s)",
+        "defaultScanError": "Suche fehlgeschlagen",
+        "networkErrorMessage": "Server nicht erreichbar",
+        "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
+        "badges": {
+          "connected": "Verbunden",
+          "saved": "Gespeichert"
+        }
+      },
+      "wifiConnect": {
+        "titleNamed": "Mit „{ssid}“ verbinden",
+        "titleHidden": "Mit verstecktem Netzwerk verbinden",
+        "ssidLabel": "Netzwerkname (SSID)",
+        "ssidPlaceholder": "Netzwerknamen eingeben",
+        "ssidRequiredError": "SSID ist erforderlich",
+        "passwordLabel": "Passwort",
+        "passwordPlaceholder": "Passwort eingeben",
+        "showPassword": "Anzeigen",
+        "hidePassword": "Verbergen",
+        "interfaceLabel": "Schnittstelle",
+        "cancelButton": "Abbrechen",
+        "connectButton": "Verbinden",
+        "connectingButton": "Wird verbunden …",
+        "defaultConnectError": "Verbindung fehlgeschlagen",
+        "networkErrorMessage": "Server nicht erreichbar"
+      },
+      "managementWarning": {
+        "heading": "Warnung: Management-Schnittstelle",
+        "autoRevertHint": "Wenn diese Änderung die Verbindung unterbricht, wird sie nach 60 Sekunden automatisch zurückgesetzt.",
+        "cancelButton": "Abbrechen",
+        "proceedButton": "Ich verstehe, fortfahren"
+      },
+      "rollback": {
+        "polling": {
+          "heading": "Verbindung wird geprüft …",
+          "remaining": "Noch {seconds}s bis zum automatischen Zurücksetzen",
+          "warning": "Wird diese Seite unerreichbar, werden die vorherigen Einstellungen automatisch wiederhergestellt."
+        },
+        "confirmed": {
+          "heading": "Verbindung bestätigt!",
+          "message": "Die Netzwerkänderung wurde geprüft und gespeichert."
+        },
+        "reverted": {
+          "heading": "Änderung zurückgesetzt",
+          "message": "Die vorherigen Netzwerkeinstellungen wurden wiederhergestellt."
+        },
+        "dismissButton": "Schließen"
+      },
+      "savedNetworks": {
+        "heading": "Gespeicherte Netzwerke",
+        "loading": "Gespeicherte Netzwerke werden geladen …",
+        "loadError": "Gespeicherte Netzwerke konnten nicht geladen werden",
+        "networkErrorMessage": "Server nicht erreichbar",
+        "empty": "Keine gespeicherten WLAN-Netzwerke.",
+        "showPasswords": "Passwörter anzeigen",
+        "hidePasswords": "Passwörter verbergen",
+        "lastUsed": "Zuletzt verwendet {date}",
+        "neverUsed": "Nie verwendet",
+        "autoConnect": "Automatisch verbinden",
+        "forgetPrompt": "Vergessen?",
+        "forgetButton": "Vergessen",
+        "forgetConfirmYes": "Ja",
+        "forgetConfirmNo": "Nein",
+        "forgettingButton": "Wird entfernt …"
+      },
+      "ipSettings": {
+        "heading": "IP-Einstellungen ({device})",
+        "method": {
+          "auto": "DHCP (automatisch)",
+          "manual": "Statisch (manuell)"
+        },
+        "addressLabel": "IP-Adresse",
+        "addressPlaceholder": "192.168.1.50",
+        "prefixLabel": "Subnetz-Präfix",
+        "prefixPlaceholder": "24",
+        "gatewayLabel": "Gateway",
+        "gatewayPlaceholder": "192.168.1.1",
+        "dnsLabel": "DNS-Server",
+        "dnsPlaceholder": "8.8.8.8",
+        "removeDnsAriaLabel": "DNS-Server entfernen",
+        "addDnsButton": "+ DNS-Server hinzufügen",
+        "dhcpHint": "Per DHCP zugewiesen",
+        "managementInterfaceHint": "Änderungen an dieser Schnittstelle werden automatisch zurückgesetzt, wenn die Verbindung verloren geht.",
+        "applyButton": "Anwenden",
+        "applyingButton": "Wird angewendet …",
+        "successMessage": "Einstellungen angewendet",
+        "defaultErrorMessage": "IP-Einstellungen konnten nicht angewendet werden",
+        "networkErrorMessage": "Server nicht erreichbar"
+      },
+      "diagnostics": {
+        "heading": "Diagnose",
+        "watchdog": {
+          "label": "WLAN-Watchdog:",
+          "active": "Aktiv",
+          "inactive": "Inaktiv",
+          "lastRun": "Letzter Watchdog-Lauf: {time}",
+          "never": "Nie",
+          "secondsAgo": "vor {count} Sekunden",
+          "minuteAgoSingular": "vor {count} Minute",
+          "minutesAgoPlural": "vor {count} Minuten",
+          "hourAgoSingular": "vor {count} Stunde",
+          "hoursAgoPlural": "vor {count} Stunden"
+        },
+        "host": {
+          "gatewayLabel": "Gateway",
+          "internetLabel": "Internet",
+          "reachable": "Erreichbar",
+          "reachableWithLatency": "Erreichbar ({latency})",
+          "unreachable": "Nicht erreichbar",
+          "latencyUnderOneMs": "<1 ms",
+          "latencyMs": "{ms} ms"
+        },
+        "unavailable": "Diagnose ist auf diesem Gerät nicht verfügbar.",
+        "requestFailed": "Diagnose-Anfrage fehlgeschlagen",
+        "networkErrorMessage": "Server nicht erreichbar",
+        "testButton": "Verbindung testen",
+        "testingButton": "Wird getestet …"
+      }
+    },
+    "mealsPage": {
+      "loading": "Mahlzeiten-Einstellungen werden geladen …",
+      "intro": {
+        "part1": "Gemeinsame Einstellungen für den Essensplaner. Sie erscheinen auch in der Einstellungs-Schublade der ",
+        "remoteLinkLabel": "Fernsteuerung",
+        "part2": " — Bearbeitungen auf einer der Seiten bleiben überall synchron."
+      },
+      "status": {
+        "saving": "Speichert …",
+        "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
+        "networkLoad": "Netzwerkfehler beim Laden der Mahlzeiten-Einstellungen.",
+        "saveFailed": "Mahlzeiten-Einstellungen konnten nicht gespeichert werden.",
+        "networkSave": "Netzwerkfehler beim Speichern der Mahlzeiten-Einstellungen.",
+        "unableToLoad": "Mahlzeiten-Einstellungen können nicht geladen werden."
+      },
+      "slots": {
+        "heading": "Mahlzeiten",
+        "description": "Welche Mahlzeiten plant dein Haushalt? Wirkt sich auf jedes Essensplaner-Modul auf allen Bildschirmen aus."
+      },
+      "weekStart": {
+        "heading": "Woche beginnt am",
+        "sunday": "Sonntag",
+        "monday": "Montag"
+      },
+      "timeFormat": {
+        "heading": "Zeitformat",
+        "description": "Gilt für jede Mahlzeitenanzeige im Kiosk und in der Fernsteuerung.",
+        "twelveHourLabel": "12-Stunden",
+        "twentyFourHourLabel": "24-Stunden"
+      },
+      "defaultTimes": {
+        "heading": "Standard-Essenszeiten",
+        "description": "Werden verwendet, wenn eine geplante Mahlzeit keine eigene Zeit hat. Lass das Feld leer für Mahlzeiten, deren Zeit täglich variiert.",
+        "clear": "Leeren",
+        "clearAriaLabel": "Standardzeit für {name} leeren",
+        "timeInputAriaLabel": "Standardzeit für {name}",
+        "noSlotsHint": "Aktiviere oben mindestens eine Mahlzeit, um Standardzeiten festzulegen."
+      },
+      "reset": {
+        "button": "Auf Standardwerte zurücksetzen",
+        "help": "Stellt Frühstück/Mittagessen/Abendessen, Wochenstart Sonntag und 12-Stunden-Format wieder her und entfernt alle Standardzeiten."
+      }
+    },
+    "systemPage": {
+      "loading": "System-Informationen werden geladen …",
+      "loadFailed": "System-Informationen konnten nicht geladen werden",
+      "advanced": {
+        "heading": "Erweitert",
+        "toggleLabel": "Erweiterte Optionen anzeigen",
+        "help": "Zeigt entwicklerseitige Steuerelemente: Pre-Release-Kanal, GitHub-Token und Plugin-Entwicklermodus."
+      },
+      "version": {
+        "heading": "Version",
+        "branchLabel": "Branch: {channel}",
+        "installedFromRelease": "Aus Release installiert",
+        "stableChannel": "Stable-Kanal",
+        "prereleaseChannel": "Pre-Release-Kanal",
+        "checkButton": "Nach Updates suchen",
+        "checking": "Wird geprüft …"
+      },
+      "upgradeInProgress": {
+        "title": "Aktualisierung läuft",
+        "help": "Eine Aktualisierung läuft gerade. Wenn sie hängen zu bleiben scheint, kannst du sie abbrechen.",
+        "cancelButton": "Aktualisierung abbrechen"
+      },
+      "updateAvailable": {
+        "updateTitle": "Update verfügbar: v{version}",
+        "prereleaseTitle": "Pre-Release verfügbar: v{version}",
+        "currentLine": "Du bist auf v{version}",
+        "updateButton": "Jetzt aktualisieren",
+        "installButton": "Installieren"
+      },
+      "upToDate": "Du bist auf der neuesten Version",
+      "changelog": {
+        "heading": "Änderungsprotokoll",
+        "viewButton": "Änderungsprotokoll anzeigen",
+        "empty": "Auf GitHub wurden keine Releases gefunden."
+      },
+      "history": {
+        "heading": "Versionsverlauf",
+        "currentBadge": "aktuell",
+        "rollback": "Zurücksetzen"
+      },
+      "backups": {
+        "heading": "Konfigurations-Backups",
+        "empty": "Noch keine Backups. Backups werden automatisch vor jeder Aktualisierung erstellt.",
+        "sizeKb": "{size} KB",
+        "download": "Herunterladen",
+        "restore": "Wiederherstellen"
+      },
+      "restoreStatus": {
+        "restoring": "Wird wiederhergestellt …",
+        "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
+        "error": "Fehler: {error}",
+        "failed": "Backup konnte nicht wiederhergestellt werden"
+      },
+      "restoreDialog": {
+        "title": "Backup wiederherstellen",
+        "message": "Konfiguration aus {name} wiederherstellen? Die aktuelle Konfiguration wird überschrieben.",
+        "confirm": "Wiederherstellen"
+      },
+      "upgradeDialog": {
+        "title": "Aktualisieren",
+        "message": "Auf {tag} aktualisieren? Der Server startet neu und du verlierst kurz die Verbindung.",
+        "confirm": "Aktualisieren"
+      },
+      "rollbackDialog": {
+        "title": "Zurücksetzen",
+        "message": "Auf {tag} zurücksetzen? Der Server startet neu.",
+        "confirm": "Zurücksetzen"
+      },
+      "powerDialog": {
+        "rebootTitle": "System neu starten",
+        "rebootMessage": "Möchtest du das System wirklich neu starten? Du verlierst kurz die Verbindung.",
+        "rebootConfirm": "Neu starten",
+        "restartTitle": "Dienst neu starten",
+        "restartMessage": "Möchtest du den Dienst wirklich neu starten? Du verlierst kurz die Verbindung.",
+        "restartConfirm": "Neu starten"
+      },
+      "cancelUpgradeDialog": {
+        "title": "Aktualisierung abbrechen",
+        "message": "Bist du sicher? Die laufende Aktualisierung wird beendet. Möglicherweise musst du sie danach erneut starten.",
+        "confirm": "Aktualisierung abbrechen"
+      },
+      "actions": {
+        "heading": "System-Aktionen",
+        "restartService": "Dienst neu starten",
+        "rebootSystem": "System neu starten",
+        "help": "„Dienst neu starten“ lädt die App neu. „System neu starten“ startet den gesamten Raspberry Pi neu."
+      },
+      "powerStatus": {
+        "restartScheduled": "Dienst-Neustart geplant. Die Seite wird gleich neu geladen …",
+        "rebootScheduled": "System-Neustart geplant. Das Display kommt in Kürze wieder online …",
+        "processing": "Wird verarbeitet …",
+        "unknownError": "Unbekannter Fehler",
+        "unreachable": "Server nicht erreichbar"
+      }
+    },
+    "profilesPage": {
+      "heading": "Profile",
+      "description": "Profile steuern, welche Bildschirme auf dem Display und in welcher Reihenfolge angezeigt werden. Erstelle verschiedene Layouts für Morgen, Abend, Wochenenden usw. Wenn kein Profil aktiv ist, rotieren alle Bildschirme in der Standard-Tab-Reihenfolge.",
+      "displayPicker": {
+        "label": "Profile bearbeiten für",
+        "optionLabel": "{name} ({id})",
+        "help": "Profile sind pro Display, weil sie auf die jeweiligen Bildschirme eines Displays verweisen. Ein Wechsel hier ändert auch das Display, an dem der Editor-Canvas arbeitet."
+      },
+      "active": {
+        "label": "Aktives Profil",
+        "noneOption": "Keines (alle Bildschirme anzeigen)",
+        "help": "Lege manuell fest, welches Profil aktiv ist. Geplante Profile haben Vorrang vor dieser Einstellung."
+      },
+      "priority": {
+        "labelPrefix": "Reihenfolge der Priorität:",
+        "helpSuffix": " Wenn mehrere Profile sich überschneidende Zeitpläne haben, gewinnt das zuerst gelistete Profil. Ziehe zum Umsortieren."
+      },
+      "addButton": "Profil hinzufügen",
+      "newProfileName": "Profil {number}",
+      "card": {
+        "activeBadge": "Aktiv",
+        "scheduledBadge": "Geplant",
+        "renameTitle": "Umbenennen",
+        "deleteTitle": "Profil löschen",
+        "removeFromProfileTitle": "Aus Profil entfernen",
+        "disabledLabel": "(deaktiviert)",
+        "screensHeading": "Bildschirme",
+        "availableHeading": "Verfügbar",
+        "addScreenSymbol": "+",
+        "noScreensWarning": "Keine Bildschirme ausgewählt — als Fallback werden alle Bildschirme angezeigt.",
+        "dragHelp": "Ziehe, um die Rotationsreihenfolge in diesem Profil festzulegen.",
+        "scheduleToggleLabel": "Automatisch nach Zeitplan aktivieren",
+        "daysLabel": "Tage",
+        "fromLabel": "Von",
+        "untilLabel": "Bis",
+        "invertLabel": "Umkehren (in diesem Zeitfenster stattdessen ausblenden)"
+      },
+      "deleteDialog": {
+        "title": "Profil löschen",
+        "message": "„{name}“ löschen?",
+        "confirm": "Löschen"
+      }
+    },
+    "securityPage": {
+      "loading": "Anmeldungsstatus wird geprüft …",
+      "heading": "Anmeldung",
+      "status": {
+        "enabled": "Anmeldung ist aktiviert",
+        "disabled": "Anmeldung ist deaktiviert"
+      },
+      "setup": {
+        "description": "Lege ein Passwort fest, um den Editor und die API-Endpunkte zu schützen. Ein Display-Token wird automatisch erzeugt, damit das Display sich nahtlos anmelden kann.",
+        "setPasswordButton": "Passwort festlegen"
+      },
+      "actions": {
+        "changePassword": "Passwort ändern",
+        "disableAuth": "Anmeldung deaktivieren",
+        "logOut": "Abmelden"
+      },
+      "revokeSessions": {
+        "button": "Alle Sitzungen widerrufen",
+        "warning": "Alle Sitzungen werden ungültig — auch diese.",
+        "confirmButton": "Bestätigen",
+        "revoking": "Wird widerrufen …",
+        "cancel": "Abbrechen",
+        "success": "Alle Sitzungen widerrufen. Du wirst zur Anmeldung weitergeleitet …",
+        "failed": "Sitzungen konnten nicht widerrufen werden",
+        "networkError": "Netzwerkfehler"
+      },
+      "displayToken": {
+        "heading": "Display-Token",
+        "description": "Das Display verwendet diesen Token, um API-Anfragen zu authentifizieren. Er wurde automatisch erzeugt, als du ein Passwort festgelegt hast.",
+        "reveal": "Anzeigen",
+        "hide": "Verbergen",
+        "copy": "Kopieren",
+        "copied": "Kopiert!",
+        "regenerateButton": "Token neu erzeugen",
+        "regenerating": "Wird erzeugt …",
+        "regenerateConfirm": "Bestätigen",
+        "regenerateCancel": "Abbrechen",
+        "regenerateWarning": "Das Display muss neu geladen werden, um den neuen Token zu übernehmen.",
+        "errorRegenerate": "Token konnte nicht neu erzeugt werden",
+        "errorNetwork": "Netzwerkfehler",
+        "errorCopy": "Kopieren fehlgeschlagen — bitte manuell auswählen und kopieren",
+        "phoneHintPart1": "Für Lesezeichen am Telefon hänge ",
+        "phoneHintCode": "?token=TOKEN",
+        "phoneHintPart2": " an die Befehls-URLs an."
+      },
+      "ipAllowlist": {
+        "heading": "IP-Zulassungsliste",
+        "bypassAuth": {
+          "label": "Anmeldung für vertrauenswürdige IPs überspringen",
+          "help": "Displays in diesen Netzwerken benötigen keinen Token"
+        },
+        "restrictAccess": {
+          "label": "Zugriff auf vertrauenswürdige IPs beschränken",
+          "help": "Blockiere alle anderen IPs (außer der Anmeldeseite) am Zugriff auf das System"
+        },
+        "emptyHint": "Füge mindestens einen IP-Bereich hinzu, um diese Optionen zu aktivieren.",
+        "removeAriaLabel": "{entry} entfernen",
+        "addPlaceholder": "192.168.1.0/24",
+        "addButton": "Hinzufügen",
+        "errors": {
+          "invalidCidr": "Ungültiges CIDR-Format",
+          "invalidIp": "Ungültige IP-Adresse",
+          "invalidPrefix": "Präfixlänge muss 0–32 sein",
+          "alreadyInList": "Bereits in der Liste",
+          "saveFailed": "Speichern fehlgeschlagen",
+          "networkError": "Netzwerkfehler"
+        },
+        "callerIpLabel": "Deine IP: ",
+        "lockoutWarning": {
+          "title": "Du könntest dich aussperren",
+          "messagePart1": "Deine aktuelle IP (",
+          "messagePart2": ") ist nicht in der Zulassungsliste. Wenn die Zugriffsbeschränkung aktiv ist, verlierst du den Zugriff auf diesen Editor.",
+          "saveAnyway": "Trotzdem speichern",
+          "saving": "Speichert …",
+          "cancel": "Abbrechen"
+        },
+        "saveButton": "Änderungen speichern",
+        "saving": "Speichert …",
+        "saved": "Gespeichert",
+        "lockedOutHintPart1": "Falls du ausgesperrt bist, bearbeite ",
+        "lockedOutHintCode": "data/auth.json",
+        "lockedOutHintPart2": " auf dem Gerät, um es zu deaktivieren.",
+        "ipv4Warning": {
+          "strong": "Nur IPv4.",
+          "part1": " IPv6-Clients (auch Dual-Stack-Pis, die ",
+          "loopback": "::1",
+          "or": " oder ",
+          "linkLocal": "fe80::…",
+          "part2": " melden) entsprechen keinem Listeneintrag und werden bei aktiver Beschränkung blockiert. Prüfe „Deine IP“ oben — wenn sie mit einem Doppelpunkt beginnt, sperrt dich diese Funktion aus."
+        },
+        "trustedNetworksWarning": {
+          "strong": "Nur vertrauenswürdige Netzwerke.",
+          "part1": " Die IP-Beschränkung liest den ",
+          "header": "X-Forwarded-For",
+          "part2": "-Header. Wenn Home Screens ohne vertrauenswürdigen Reverse-Proxy direkt im Internet steht, kann diese Einstellung manipuliert werden."
+        }
+      },
+      "forgotPasswordPart1": "Passwort vergessen? Lösche ",
+      "forgotPasswordCode": "data/auth.json",
+      "forgotPasswordPart2": " auf dem Gerät, um es zurückzusetzen.",
+      "modal": {
+        "setTitle": "Passwort festlegen",
+        "changeTitle": "Passwort ändern",
+        "disableTitle": "Anmeldung deaktivieren",
+        "currentPasswordPlaceholder": "Aktuelles Passwort",
+        "newPasswordPlaceholder": "Neues Passwort (mind. 8 Zeichen)",
+        "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+        "disableWarning": "Dadurch wird das Passwort entfernt und jeder in deinem Netzwerk kann den Editor nutzen.",
+        "cancel": "Abbrechen",
+        "setSubmit": "Passwort festlegen",
+        "setting": "Wird festgelegt …",
+        "changeSubmit": "Passwort ändern",
+        "changing": "Wird geändert …",
+        "disableSubmit": "Deaktivieren",
+        "disabling": "Wird deaktiviert …"
+      },
+      "errors": {
+        "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+        "setFailed": "Passwort konnte nicht festgelegt werden",
+        "changeFailed": "Passwort konnte nicht geändert werden",
+        "disableFailed": "Anmeldung konnte nicht deaktiviert werden",
+        "networkError": "Netzwerkfehler"
+      },
+      "success": {
+        "passwordSet": "Passwort festgelegt! Die Anmeldung ist jetzt aktiviert.",
+        "passwordChanged": "Passwort geändert. Alle anderen Sitzungen wurden ungültig.",
+        "authDisabled": "Anmeldung deaktiviert."
+      }
+    },
+    "docsPage": {
+      "intro": {
+        "part1": "Die vollständige Dokumentation findest du unter ",
+        "linkLabel": "homescreens.dev/docs",
+        "part2": ". Die Anleitungen decken alles ab – von der ersten Einrichtung bis zur Plugin-Entwicklung."
+      },
+      "sections": {
+        "introduction": "Einführung",
+        "guides": "Anleitungen",
+        "reference": "Referenz"
+      },
+      "links": {
+        "gettingStarted": {
+          "title": "Erste Schritte",
+          "description": "Überblick über Home Screens und die Kernkonzepte"
+        },
+        "installation": {
+          "title": "Installation",
+          "description": "Auf einem Raspberry Pi einrichten oder lokal ausführen"
+        },
+        "raspberryPi": {
+          "title": "Raspberry Pi",
+          "description": "Kiosk-Bereitstellung, Dienstverwaltung, Tipps zur SD-Karte"
+        },
+        "editor": {
+          "title": "Editor",
+          "description": "Anleitung zum visuellen Editor und den Canvas-Werkzeugen"
+        },
+        "modules": {
+          "title": "Module",
+          "description": "Alle 38 Module und ihre Konfigurationsoptionen"
+        },
+        "backgrounds": {
+          "title": "Hintergründe",
+          "description": "Uploads, Unsplash, NASA APOD und Rotation"
+        },
+        "profiles": {
+          "title": "Profile & Zeitpläne",
+          "description": "Automatisierung und zeitbasierte Bildschirmlayouts"
+        },
+        "configuration": {
+          "title": "Konfiguration",
+          "description": "JSON-Schema und Referenz der Konfigurationsdatei"
+        },
+        "remoteControl": {
+          "title": "Fernsteuerung",
+          "description": "Steuere dein Display vom Telefon oder einem anderen Gerät aus"
+        },
+        "multiDisplay": {
+          "title": "Mehrere Displays",
+          "description": "Hub-and-Spoke-Aufbau, um mehrere Pis von einem Server aus zu betreiben"
+        },
+        "networking": {
+          "title": "Netzwerk",
+          "description": "Reverse Proxy und Fernzugriff von außerhalb deines LANs"
+        },
+        "troubleshooting": {
+          "title": "Fehlerbehebung",
+          "description": "Häufige Probleme und Lösungen"
+        },
+        "api": {
+          "title": "API",
+          "description": "Alle API-Endpunkte und ihre Parameter"
+        },
+        "plugins": {
+          "title": "Plugins",
+          "description": "Eigene Module mit dem Plugin-SDK erstellen"
+        },
+        "development": {
+          "title": "Entwicklung",
+          "description": "Architekturüberblick und Anleitung zum Mitwirken"
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Häufig gestellte Fragen"
+        }
+      }
+    },
+    "shared": {
+      "secretField": {
+        "removeButton": "Entfernen",
+        "savingButton": "…",
+        "saveButton": "Speichern",
+        "savedSuccess": "Erfolgreich gespeichert",
+        "defaultSaveError": "Speichern fehlgeschlagen",
+        "networkError": "Netzwerkfehler"
+      }
+    },
+    "localBackgrounds": {
+      "none": "Kein Hintergrund",
+      "deleteTitle": "Hintergrund löschen",
+      "deleteMessage": "„{filename}“ löschen?",
+      "deleteConfirmLabel": "Löschen",
+      "deleteAriaLabel": "Löschen",
+      "uploadButton": "Hintergrund hochladen",
+      "uploadingButton": "Lädt hoch …",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "uploadFailedWithStatus": "Upload fehlgeschlagen ({status})"
+    },
+    "pluginInstallPreview": {
+      "verifiedTitle": "Vom Home-Screens-Team geprüft",
+      "versionPrefix": "v",
+      "external": {
+        "heading": "Installation außerhalb des Marketplace",
+        "message": "Dieses Plugin wurde nicht vom Home-Screens-Team geprüft. Stelle sicher, dass du dieser Quelle vertraust."
+      },
+      "unverified": {
+        "heading": "Nicht verifiziertes Plugin",
+        "message": "Dieses Plugin wurde nicht vom Home-Screens-Team geprüft. Installation auf eigenes Risiko."
+      },
+      "permissionsHeading": "Angefragte Berechtigungen",
+      "permissions": {
+        "network": "Netzwerkzugriff",
+        "secrets": "Secret-Speicher",
+        "events": "Host-Events",
+        "storage": "Lokaler Speicher",
+        "localNetwork": "Lokales Netzwerk (LAN)"
+      },
+      "secretsHeading": "Benötigte API-Schlüssel",
+      "secretRequired": "(erforderlich)",
+      "sha256Heading": "SHA-256",
+      "sha256CopyButton": "Kopieren",
+      "sha256CopyAriaLabel": "SHA-256 kopieren"
+    },
+    "pluginSecrets": {
+      "loading": "Secret-Status wird geladen …",
+      "requiredBadge": "Erforderlich",
+      "removeButton": "Entfernen",
+      "enterPlaceholder": "{label} eingeben",
+      "savingButton": "…",
+      "saveButton": "Speichern",
+      "savedSuccess": "Erfolgreich gespeichert",
+      "defaultSaveError": "Speichern fehlgeschlagen",
+      "networkError": "Netzwerkfehler"
+    },
+    "pluginStorePanel": {
+      "title": "Plugins",
+      "dismissErrorAriaLabel": "Fehler ausblenden",
+      "tabs": {
+        "browse": "Entdecken",
+        "installed": "Installiert",
+        "updates": "Updates",
+        "developer": "Entwickler"
+      },
+      "errors": {
+        "actionFailed": "Aktion fehlgeschlagen",
+        "requestFailed": "Anfrage fehlgeschlagen ({status})"
+      },
+      "browse": {
+        "searchPlaceholder": "Plugins durchsuchen …",
+        "installFromUrlButton": "Aus URL installieren …",
+        "noMatches": "Keine Plugins passen zu deiner Suche",
+        "empty": "Keine Plugins in der Registry verfügbar",
+        "installedBadge": "Installiert",
+        "installButton": "Installieren",
+        "installingButton": "Wird installiert …"
+      },
+      "installed": {
+        "empty": "Keine Plugins installiert",
+        "externalBadge": "Extern",
+        "checkUpdateTitle": "Auf Update prüfen",
+        "checkUpdateAriaLabel": "Auf Update für {id} prüfen",
+        "enableTitle": "Aktivieren",
+        "disableTitle": "Deaktivieren",
+        "enableAriaLabel": "{id} aktivieren",
+        "disableAriaLabel": "{id} deaktivieren",
+        "uninstallTitle": "Deinstallieren",
+        "uninstallAriaLabel": "{id} deinstallieren"
+      },
+      "updates": {
+        "allUpToDate": "Alle Plugins sind auf dem neuesten Stand",
+        "updateButton": "Aktualisieren",
+        "updatingButton": "Wird aktualisiert …"
+      },
+      "developer": {
+        "loadFromUrlLabel": "Aus URL laden",
+        "loadFromUrlHelp": "Gib die URL deines Entwicklungs-Servers ein (z. B. http://localhost:5173). Das Plugin lädt bei Änderungen automatisch neu.",
+        "loadButton": "Laden",
+        "loadFailed": "Dev-Plugin konnte nicht geladen werden",
+        "devPluginsHeading": "Dev-Plugins",
+        "devBadge": "Dev",
+        "unloadTitle": "Entladen",
+        "unloadAriaLabel": "{name} entladen",
+        "tipsHeading": "Tipps",
+        "tips": {
+          "localStorage": "Dev-Plugins werden nur im localStorage gespeichert – sie bleiben nicht über Browser hinweg erhalten",
+          "autoReload": "Das Plugin lädt automatisch neu, wenn sich das Bundle ändert (alle 2 Sekunden geprüft)",
+          "sourcemapsPart1": "Source Maps werden unterstützt – füge ",
+          "sourcemapsPart2": " zu deiner Vite-Konfiguration hinzu",
+          "devOverrides": "Dev-Plugins überschreiben installierte Versionen mit dem gleichen Modultyp"
+        }
+      },
+      "installConfirm": {
+        "heading": "Plugin installieren"
+      }
+    }
+  },
+  "backgroundPicker": {
+    "title": "Hintergrund",
+    "statusGroup": "Status",
+    "rotationGroup": "Wechsel",
+    "autoRotate": "Automatisch wechseln",
+    "sourceLabel": "Quelle",
+    "searchQueryLabel": "Suchbegriff",
+    "searchQueryPlaceholder": "Naturlandschaft",
+    "rotateEveryLabel": "Wechseln alle",
+    "nasaInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Das Display prüft im gewählten Intervall auf Updates.",
+    "sources": {
+      "nasaApod": "NASA-Bild des Tages"
+    },
+    "tabs": {
+      "nasa": "NASA",
+      "local": "Lokal"
+    },
+    "intervals": {
+      "minutes": "{count} Minuten",
+      "hourSingular": "1 Stunde",
+      "hours": "{count} Stunden"
+    },
+    "immich": {
+      "albumLabel": "Album",
+      "anyAlbum": "Beliebiges Album",
+      "albumOption": "{name} ({count})",
+      "personLabel": "Person",
+      "anyone": "Beliebige Person",
+      "favoritesOnly": "Nur Favoriten"
+    }
+  },
+  "imageBrowserModal": {
+    "title": "Bildersammlung",
+    "tabs": {
+      "local": "Lokal",
+      "unsplash": "Unsplash"
+    },
+    "allPhotos": "Alle Fotos",
+    "newFolderPlaceholder": "Ordnername",
+    "newFolderConfirm": "OK",
+    "newFolderButton": "+ Neuer Ordner",
+    "deleteFolderButton": "Ordner löschen",
+    "uploadButton": "Fotos hochladen",
+    "uploadingButton": "Lädt hoch …",
+    "loadingImages": "Bilder werden geladen …",
+    "emptyPhotos": "Noch keine Fotos. Lade welche hoch!",
+    "photoCountSingular": "{count} Foto",
+    "photoCountPlural": "{count} Fotos",
+    "confirmSelectImage": "Bild auswählen",
+    "confirmUseFolder": "Diesen Ordner verwenden",
+    "unsplashAttribution": "Fotos von Unsplash – in deiner lokalen Sammlung gespeichert",
+    "unsplashSearchPlaceholder": "Unsplash durchsuchen …",
+    "unsplashCategories": {
+      "nature": "Natur",
+      "mountains": "Berge",
+      "ocean": "Meer",
+      "holidays": "Feiertage",
+      "birthday": "Geburtstag",
+      "flowers": "Blumen",
+      "seasons": "Jahreszeiten",
+      "abstract": "Abstrakt"
+    }
+  },
+  "choreChartModal": {
+    "title": "Aufgabentafel",
+    "subtitleMembersChores": "{members} Mitglieder · {chores} Aufgaben",
+    "loadError": "Aufgaben konnten nicht geladen werden — Änderungen werden nicht gespeichert.",
+    "members": {
+      "columnTitle": "Familienmitglieder",
+      "empty": "Noch keine Mitglieder",
+      "addButton": "Mitglied hinzufügen",
+      "addSubmit": "Mitglied hinzufügen",
+      "saveSubmit": "Speichern",
+      "editAriaLabel": "{name} bearbeiten",
+      "deleteAriaLabel": "{name} löschen",
+      "deleteConfirm": {
+        "title": "Mitglied entfernen",
+        "message": "„{name}“ entfernen? Damit verschwindet das Mitglied auch aus allen Aufgaben.",
+        "confirmLabel": "Entfernen"
+      }
+    },
+    "memberForm": {
+      "namePlaceholder": "Name…",
+      "avatarLabel": "Avatar",
+      "colorLabel": "Farbe",
+      "customColorTitle": "Eigene Farbe wählen"
+    },
+    "chores": {
+      "columnTitle": "Aufgaben",
+      "addButton": "Aufgabe hinzufügen",
+      "searchPlaceholder": "Aufgaben suchen…",
+      "empty": "Noch keine Aufgaben",
+      "addMembersFirst": "Füge zuerst Familienmitglieder hinzu",
+      "editAriaLabel": "{name} bearbeiten",
+      "deleteAriaLabel": "{name} löschen",
+      "deleteConfirm": {
+        "title": "Aufgabe löschen",
+        "message": "„{name}“ löschen?",
+        "confirmLabel": "Löschen"
+      }
+    },
+    "choreForm": {
+      "namePlaceholder": "Name der Aufgabe…",
+      "iconLabel": "Symbol",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Häufigkeit",
+      "timeOfDayLabel": "Tageszeit",
+      "dateLabel": "Datum",
+      "daysLabel": "Tage",
+      "assignToLabel": "Wer macht's?",
+      "weeklyScheduleLabel": "Wochenplan",
+      "coverageLabel": "Abgedeckt: {covered} von 7 Tagen",
+      "coverageUncovered": "{days} offen",
+      "rotationLabel": "Reihenfolge",
+      "addSubmit": "Aufgabe hinzufügen",
+      "saveSubmit": "Speichern",
+      "validation": {
+        "enterName": "Gib der Aufgabe einen Namen",
+        "addPersonToSchedule": "Trag mindestens eine Person in den Plan ein",
+        "selectAtLeastOnePerson": "Wähle mindestens eine Person aus"
+      }
+    },
+    "frequency": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "once": "Einmalig"
+    },
+    "rotation": {
+      "fixed": "Fest (alle machen mit)",
+      "rotateDaily": "Täglich abwechseln",
+      "rotateWeekly": "Wöchentlich abwechseln",
+      "schedule": "Plan"
+    },
+    "choreSummary": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "once": "Einmalig · {date}",
+      "onceNoDate": "Einmalig",
+      "ticketCountSingular": "{count} Ticket",
+      "ticketCountPlural": "{count} Tickets",
+      "rotationDaily": "täglich abwechseln",
+      "rotationWeekly": "wöchentlich abwechseln",
+      "rotationSchedule": "Plan",
+      "rotatedShort": "← Wechsel",
+      "arrow": "→"
+    },
+    "preview": {
+      "columnTitleNew": "Neue Aufgabe",
+      "columnTitleEdit": "Aufgabe bearbeiten",
+      "columnTitleSchedule": "Wochenplan",
+      "placeholder": "Füge Mitglieder und Aufgaben hinzu, um den Wochenplan zu sehen",
+      "todayLabel": "Heute ({day})",
+      "noChores": "Keine Aufgaben",
+      "weeklyTotalsHeading": "Wochensumme",
+      "memberLine": "{chores} Aufgaben, {tickets} Tickets"
+    }
+  },
+  "mealPlannerModal": {
+    "title": "Mahlzeitenplaner",
+    "subtitleMealsPlanned": "{meals} Mahlzeiten · {planned} eingeplant",
+    "doneButton": "Fertig",
+    "newMealName": "Neue Mahlzeit",
+    "tabs": {
+      "library": "Bibliothek",
+      "detail": "Details",
+      "grocery": "Einkauf"
+    },
+    "toast": {
+      "changesSaved": "Änderungen gespeichert",
+      "mealDeleted": "„{name}“ gelöscht",
+      "mealRemoved": "Mahlzeit entfernt",
+      "randomSuggested": "Zufallsmahlzeiten vorgeschlagen!",
+      "lastWeekCopied": "Letzte Woche kopiert!",
+      "weekCleared": "Woche geleert",
+      "undoButton": "Rückgängig"
+    },
+    "library": {
+      "searchPlaceholder": "Mahlzeiten suchen…",
+      "noMealsMatch": "Keine passenden Mahlzeiten",
+      "noMealsYet": "Noch keine Mahlzeiten",
+      "addNewMealButton": "+ Neue Mahlzeit",
+      "filters": {
+        "all": "Alle",
+        "favorites": "Favoriten"
+      }
+    },
+    "detail": {
+      "emptyLine1": "Wähle eine Mahlzeit in der Bibliothek,",
+      "emptyLine2": "um sie zu bearbeiten",
+      "untitledFallback": "Ohne Titel",
+      "nameLabel": "Name",
+      "emojiLabel": "Emoji",
+      "emojiSearchPlaceholder": "Emojis suchen (z. B. Pizza, Frühstück, Nachtisch)…",
+      "noEmojisMatch": "Keine Emojis passen zu „{query}“",
+      "prepTimeLabel": "Vorbereitungszeit",
+      "cookTimeLabel": "Kochzeit",
+      "minPlaceholder": "Min",
+      "servingsLabel": "Portionen",
+      "difficultyLabel": "Schwierigkeit",
+      "tagsLabel": "Tags",
+      "ingredientsLabel": "Zutaten",
+      "ingredientNamePlaceholder": "Name der Zutat",
+      "amountPlaceholder": "Menge",
+      "categoryPlaceholder": "Kategorie",
+      "addIngredientButton": "+ Zutat hinzufügen",
+      "recipeUrlLabel": "Rezept-Link",
+      "recipeUrlPlaceholder": "https://…",
+      "notesLabel": "Notizen",
+      "saveChangesButton": "Änderungen speichern",
+      "deleteButton": "Löschen"
+    },
+    "difficulty": {
+      "easy": "Einfach",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "ingredientCategories": {
+      "produce": "Obst & Gemüse",
+      "dairy": "Milchprodukte",
+      "meat": "Fleisch",
+      "seafood": "Meeresfrüchte",
+      "bakery": "Backwaren",
+      "pantry": "Vorrat",
+      "frozen": "Tiefkühl",
+      "beverages": "Getränke",
+      "other": "Sonstiges"
+    },
+    "tags": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Snack",
+      "quick": "Schnell",
+      "healthy": "Gesund",
+      "vegetarian": "Vegetarisch",
+      "vegan": "Vegan",
+      "comfort": "Wohlfühlessen",
+      "spicy": "Scharf",
+      "kid-friendly": "Kinderfreundlich",
+      "meal-prep": "Meal-Prep",
+      "gluten-free": "Glutenfrei",
+      "dairy-free": "Laktosefrei",
+      "batch-cook": "Vorratskochen"
+    },
+    "grocery": {
+      "itemsCount": "{checked} von {total} Artikeln",
+      "fromThisWeek": "Aus dieser Woche",
+      "emptyMessage": "Plan Mahlzeiten mit Zutaten ein, um die Einkaufsliste zu sehen",
+      "categoryLabels": {
+        "produce": "Obst & Gemüse",
+        "dairy": "Milch & Eier",
+        "meat": "Fleisch & Fisch",
+        "seafood": "Fleisch & Fisch",
+        "bakery": "Backwaren",
+        "pantry": "Vorrat",
+        "frozen": "Tiefkühl",
+        "beverages": "Getränke",
+        "other": "Sonstiges"
+      }
+    },
+    "weekGrid": {
+      "todayLabel": "Heute",
+      "todayChip": "Heute",
+      "suggestButton": "Vorschlagen",
+      "copyLastWeekButton": "Letzte Woche kopieren",
+      "clearButton": "Leeren",
+      "prepTimeMin": "{minutes} Min"
+    },
+    "picker": {
+      "title": "Mahlzeit wählen",
+      "searchPlaceholder": "Mahlzeiten suchen…",
+      "noMealsFound": "Keine Mahlzeiten gefunden",
+      "prepTimeShort": "{minutes} Min"
+    }
+  },
+  "propertyPanel": {
+    "emptyState": "Wähle ein Modul zum Bearbeiten",
+    "moduleHeading": "{name}-Modul",
+    "pluginNotLoaded": "Plugin nicht installiert oder konnte nicht geladen werden",
+    "sections": {
+      "position": "Position",
+      "size": "Größe",
+      "shape": "Form",
+      "effects": "Effekte",
+      "color": "Farbe",
+      "text": "Text",
+      "positionAndSize": "Position & Größe",
+      "style": "Stil",
+      "config": "Konfiguration",
+      "settings": "Einstellungen",
+      "secrets": "Geheimnisse",
+      "credentials": "Anmeldedaten",
+      "schedule": "Zeitplan"
+    },
+    "fields": {
+      "x": "X",
+      "y": "Y",
+      "w": "W",
+      "h": "H",
+      "borderRadius": "Eckenradius",
+      "padding": "Innenabstand",
+      "borderWidth": "Rahmenbreite",
+      "opacity": "Deckkraft",
+      "backdropBlur": "Hintergrund-Unschärfe",
+      "shadowSize": "Schattengröße",
+      "background": "Hintergrund",
+      "borderColor": "Rahmenfarbe",
+      "textColor": "Textfarbe",
+      "fontSize": "Schriftgröße"
+    },
+    "actions": {
+      "delete": "Modul löschen",
+      "confirmDelete": "Dieses Modul löschen?"
+    }
+  },
+  "upgradeModal": {
+    "titleUpgrade": "Aktualisierung auf {tag}",
+    "titleRollback": "Zurücksetzen auf {tag}",
+    "stepLabels": {
+      "preflight": "Vorabprüfungen",
+      "backup": "Konfiguration sichern",
+      "download": "Update herunterladen",
+      "migrate": "Konfiguration migrieren",
+      "deploy": "Update installieren",
+      "setup-system": "Systemkonfiguration anwenden",
+      "restart": "Dienst neu starten",
+      "cleanup": "Abschließen",
+      "fetch": "Neuesten Code herunterladen",
+      "checkout": "Auf neue Version wechseln",
+      "install": "Abhängigkeiten installieren",
+      "build": "Anwendung bauen"
+    },
+    "warning": {
+      "installing": "Update wird installiert – Seite nicht schließen und Gerät nicht ausschalten",
+      "inProgress": "Diese Seite nicht schließen und das Gerät nicht ausschalten"
+    },
+    "successDefault": "Aktualisierung abgeschlossen!",
+    "doneButton": "Fertig"
+  },
+  "holidayPickerModal": {
+    "title": "Feiertage hinzufügen",
+    "countryLabel": "Land",
+    "countryPlaceholder": "Land wählen …",
+    "loadingHolidays": "Feiertage werden geladen …",
+    "selectionCount": "{selected} von {total} ausgewählt",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "noHolidays": "Keine bevorstehenden Feiertage gefunden.",
+    "addEmpty": "Feiertage hinzufügen",
+    "addCountSingular": "{count} Feiertag hinzufügen",
+    "addCountPlural": "{count} Feiertage hinzufügen",
+    "errors": {
+      "loadCountries": "Länder konnten nicht geladen werden",
+      "loadHolidays": "Feiertage konnten nicht geladen werden"
+    }
+  },
+  "layoutExportModal": {
+    "title": "Layout exportieren",
+    "defaultName": "Mein Layout",
+    "nameLabel": "Name",
+    "descriptionLabel": "Beschreibung (optional)",
+    "descriptionPlaceholder": "Familien-Dashboard mit Wetter und Kalender",
+    "screensHeading": "Bildschirme einbeziehen",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "moduleCountSingular": "{count} Modul",
+    "moduleCountPlural": "{count} Module",
+    "exportButton": "Exportieren"
+  },
+  "layoutImportModal": {
+    "title": "Layout importieren",
+    "screenCountSingular": "{count} Bildschirm",
+    "screenCountPlural": "{count} Bildschirme",
+    "moduleCountSingular": "{count} Modul",
+    "moduleCountPlural": "{count} Module",
+    "countsLine": "{screens}, {modules}",
+    "sourceLine": "Quelle: {width} x {height}",
+    "dimensionWarning": "Dieses Layout wurde für {sourceWidth}x{sourceHeight} entworfen, dein Display ist aber {currentWidth}x{currentHeight}. Module werden automatisch skaliert, eventuell musst du sie nachjustieren.",
+    "applyVisualLabel": "Visuelle Einstellungen übernehmen",
+    "visualSummary": "Rotation: {seconds}s",
+    "visualSummaryWithTransition": "Rotation: {seconds}s, Übergang: {transition}",
+    "saveError": "Speichern fehlgeschlagen – prüfe deine Verbindung und versuche es erneut.",
+    "importButton": "Importieren"
+  },
+  "installFromUrlModal": {
+    "title": "Plugin aus URL installieren",
+    "dialogAriaLabel": "Plugin aus URL installieren",
+    "tarballUrlLabel": "Tarball-URL",
+    "tarballUrlHelpPart1": "HTTPS-URL zu einem ",
+    "tarballUrlHelpPart2": "-Plugin-Bundle. Ersetze die Version durch ",
+    "tarballUrlHelpPart3": ", wenn künftige Updates nur eine Versionsnummer benötigen sollen.",
+    "exampleLabel": "Beispiel:",
+    "versionLabel": "Zu installierende Version",
+    "externalSourceWarning": "Du installierst von außerhalb des Plugin-Marketplace. Installiere nur Plugins aus Quellen, denen du vertraust.",
+    "installingMessage": "Wird heruntergeladen und installiert …",
+    "doneButton": "Fertig",
+    "tryAgainButton": "Erneut versuchen",
+    "installFailed": "Installation fehlgeschlagen",
+    "pluginFallbackName": "Plugin"
+  },
+  "externalUpdateModal": {
+    "title": "{id} aktualisieren",
+    "dialogAriaLabel": "{id} aktualisieren",
+    "currentVersionLabel": "Aktuelle Version:",
+    "tarballUrlLabel": "Tarball-URL",
+    "tarballUrlHelpPart1": "Passe die URL auf eine neue Version an oder ersetze die Version durch ",
+    "tarballUrlHelpPart2": ", damit künftige Updates nur eine Versionsnummer benötigen.",
+    "exampleLabel": "Beispiel:",
+    "versionLabel": "Zu installierende Version",
+    "workingMessage": "Wird heruntergeladen und aktualisiert …",
+    "updatedToVersion": "Auf v{version} aktualisiert.",
+    "doneButton": "Fertig",
+    "tryAgainButton": "Erneut versuchen",
+    "updateFailed": "Aktualisierung fehlgeschlagen"
+  }
+}

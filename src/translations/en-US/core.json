@@ -1,0 +1,15 @@
+{
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "yesterday": "Yesterday",
+  "loading": "Loading…",
+  "noData": "No data",
+  "relativeTime": {
+    "justNow": "just now",
+    "secondsAgo": "{n}s ago",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "weeksAgo": "{n}w ago"
+  }
+}
