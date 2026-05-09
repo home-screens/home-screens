@@ -8,6 +8,7 @@
 import type { ScreenConfiguration, Screen, ModuleInstance, BuiltinModuleType } from '@/types/config';
 import { validateDisplays } from './display-filter';
 import { getLatestSchemaVersion } from './migrations';
+import { LOCALES } from '@/i18n/manifest';
 
 export interface ConfigDiagnostic {
   /** Machine-readable code, e.g. 'UNKNOWN_MODULE_TYPE'. */
@@ -45,9 +46,28 @@ function isKnownModuleType(type: string): boolean {
 // to bump here — the latest migration's version wins.
 const LATEST_SCHEMA_VERSION = getLatestSchemaVersion();
 
+// Track whether we've already warned about an unknown locale this process —
+// `validateConfig` is called from a long-lived dev server and from the
+// config-check CLI, and a screaming-loud loop would be useless either way.
+let UNKNOWN_LOCALE_WARNED = false;
+
+/** @internal — for tests. Resets the warn-once latch. */
+export function __resetUnknownLocaleWarningForTests(): void {
+  UNKNOWN_LOCALE_WARNED = false;
+}
+
 /**
  * Validate a parsed ScreenConfiguration object. Returns an empty array when
  * the config is healthy.
+ *
+ * **Side effect — input mutation.** When `settings.locale` is set to an
+ * unregistered tag, the field is cleared on the input object (`s.locale =
+ * undefined`). This is intentional: it lets the runtime fall back to en-US
+ * cleanly without rejecting an otherwise-valid config, and the editor can
+ * round-trip the cleaned config straight back to disk. Callers that need
+ * an unmutated input should clone before passing in. (Refactoring this
+ * to return a cleaned copy would touch every caller plus the
+ * config-check CLI; the current behavior is documented and isolated.)
  */
 export function validateConfig(config: ScreenConfiguration): ConfigDiagnostic[] {
   const diags: ConfigDiagnostic[] = [];
@@ -95,6 +115,21 @@ export function validateConfig(config: ScreenConfiguration): ConfigDiagnostic[] 
     }
     if (s.latitude === 0 && s.longitude === 0) {
       diags.push({ code: 'LOCATION_NOT_SET', severity: 'warning', message: 'Latitude and longitude are both 0 — location-dependent modules (weather, sunrise, etc.) will not work correctly', path: 'settings' });
+    }
+
+    // Locale tag — drop unknown tags rather than rejecting the config.
+    // The runtime falls back to en-US when `settings.locale` is undefined,
+    // so clearing it is the friendliest behavior (the user can pick a real
+    // locale from the editor without seeing a hard error first).
+    //
+    // NOTE: This mutates the caller's settings object (see the JSDoc on
+    // `validateConfig` above). Documented + intentional.
+    if (s.locale != null && !Object.prototype.hasOwnProperty.call(LOCALES, s.locale)) {
+      if (!UNKNOWN_LOCALE_WARNED) {
+        UNKNOWN_LOCALE_WARNED = true;
+        console.warn(`[config] Unknown locale "${s.locale}" — falling back to default. Pick one of: ${Object.keys(LOCALES).join(', ')}`);
+      }
+      s.locale = undefined;
     }
 
     // activeProfile reference

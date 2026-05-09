@@ -1,4 +1,5 @@
 import type { ScreenConfiguration } from '@/types/config';
+import { v4ToV5 } from './v4-to-v5';
 
 interface Migration {
   version: number;
@@ -82,6 +83,10 @@ const migrations: Migration[] = [
     up: (config) => ({ ...config, version: 4 }),
     down: (config) => ({ ...config, version: 3 }),
   },
+  // Migration 005: locale field added to GlobalSettings. No-op transform —
+  // the new optional `locale` and `formattingLocale` fields default to
+  // en-US at read time, so existing configs need no on-disk change.
+  v4ToV5,
 ];
 
 /** @internal Get all migrations sorted by version */
