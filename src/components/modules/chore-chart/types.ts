@@ -47,13 +47,13 @@ export interface DayEntry {
  *  both reference this so they cannot drift. */
 export const CHORE_HISTORY_DAYS = 90;
 
-export { DAY_NAMES_SHORT, DAY_NAMES_FULL, getOrderedDays } from '@/lib/meal-constants';
+export { getOrderedDays } from '@/lib/meal-constants';
 
-export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { label: string; icon: string; order: number }> = {
-  morning:   { label: 'Morning',   icon: '\u2600\ufe0f', order: 0 },
-  afternoon: { label: 'Afternoon', icon: '\u26c5\ufe0f', order: 1 },
-  evening:   { label: 'Evening',   icon: '\ud83c\udf19',  order: 2 },
-  anytime:   { label: 'Anytime',   icon: '\ud83d\udd50',  order: 3 },
+export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { icon: string; order: number }> = {
+  morning:   { icon: '\u2600\ufe0f', order: 0 },
+  afternoon: { icon: '\u26c5\ufe0f', order: 1 },
+  evening:   { icon: '\ud83c\udf19',  order: 2 },
+  anytime:   { icon: '\ud83d\udd50',  order: 3 },
 };
 
 /**

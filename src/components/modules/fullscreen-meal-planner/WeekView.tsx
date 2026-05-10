@@ -1,4 +1,5 @@
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useMemo } from 'react';
+import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
@@ -8,7 +9,7 @@ export default function WeekView({
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const dayNamesShort = getLocalizedDayNames(locale, 'short');
+  const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
   const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(now, weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
@@ -97,7 +98,7 @@ export default function WeekView({
                       textTransform: 'uppercase' as const, letterSpacing: '0.06em',
                       color: meta.color, opacity: 0.85,
                     }}>
-                      {meta.label}
+                      {t(getMealSlotLabelKey(slot))}
                     </span>
                   );
 

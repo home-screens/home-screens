@@ -1,4 +1,4 @@
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
@@ -35,7 +35,6 @@ export default function TodayView({
   }
   const { meal: heroMeal, planned: heroPlanned } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
-  const heroMeta = SLOT_META[heroSlot];
 
   // Other meals (non-hero)
   const otherSlots = activeOrder.filter((sl) => sl !== heroSlot);
@@ -76,7 +75,7 @@ export default function TodayView({
           padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
           display: 'inline-flex', alignItems: 'center', gap: s * 0.4,
         }}>
-          <span>⚡ {heroLabel} &mdash; {heroMeta.label}</span>
+          <span>⚡ {heroLabel} &mdash; {t(getMealSlotLabelKey(heroSlot))}</span>
           {heroTime && (
             <span style={{
               fontVariantNumeric: 'tabular-nums',
@@ -190,7 +189,7 @@ export default function TodayView({
                       letterSpacing: '0.06em', color: meta.color, marginBottom: s * 0.1,
                       display: 'flex', alignItems: 'baseline', gap: s * 0.4,
                     }}>
-                      <span>{meta.label}</span>
+                      <span>{t(getMealSlotLabelKey(sl))}</span>
                       {slotTime && (
                         <span style={{
                           color: 'var(--fmp-text-3)',

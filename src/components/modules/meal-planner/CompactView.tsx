@@ -1,9 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
-import { useTranslate } from '@/i18n';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -15,6 +16,8 @@ interface CompactViewProps {
 
 export function CompactView({ config, settings, plan, savedMeals, todayISO }: CompactViewProps) {
   const t = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
   const tomorrowDate = new Date(todayISO + 'T12:00:00');
@@ -42,7 +45,7 @@ export function CompactView({ config, settings, plan, savedMeals, todayISO }: Co
               {label}
             </span>
             <span className="opacity-20" style={{ fontSize: '0.5em' }}>
-              {DAY_NAMES_SHORT[dateToDayIndex(date)]}
+              {dayNames[dateToDayIndex(date)]}
             </span>
           </div>
 

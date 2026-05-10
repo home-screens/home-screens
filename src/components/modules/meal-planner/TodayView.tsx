@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 
 interface TodayViewProps {
@@ -54,7 +54,7 @@ function SlotCard({
         className="px-3 pt-2 pb-0.5 uppercase tracking-[0.15em] font-semibold flex items-center gap-2"
         style={{ fontSize: '0.5em', color: meta.color, opacity: isActive ? 1 : TEXT_OPACITY.secondary }}
       >
-        <span>{meta.label}</span>
+        <span>{t(getMealSlotLabelKey(slot))}</span>
         {time && (
           <span
             className="normal-case tracking-normal font-medium"

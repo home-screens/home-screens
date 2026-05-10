@@ -418,7 +418,6 @@ describe('SLOT_META', () => {
   it('has entries for all slots in SLOT_ORDER', () => {
     for (const slot of SLOT_ORDER) {
       expect(SLOT_META[slot]).toBeDefined();
-      expect(SLOT_META[slot].label).toBeTruthy();
       expect(SLOT_META[slot].color).toBeTruthy();
     }
   });

@@ -59,11 +59,11 @@ export default function FullscreenChoreChartModule({
   const { todayAssignments, memberStats, weekData, members, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
-  // configured IANA timezone — used by `getCurrentTimeOfDay`/DAY_NAMES_FULL
-  // which read `.getHours()`/`.getDay()`. `formatDateInTZ` further down
-  // takes a real UTC instant (`new Date()`) so it can do its own zone
-  // shift via `Intl.DateTimeFormat`; passing the shifted Date would
-  // double-shift and yield the wrong day near midnight.
+  // configured IANA timezone — used by `getCurrentTimeOfDay` which reads
+  // `.getHours()`. `formatDateInTZ` further down takes a real UTC instant
+  // (`new Date()`) so it can do its own zone shift via `Intl.DateTimeFormat`;
+  // passing the shifted Date would double-shift and yield the wrong day
+  // near midnight.
   const tzNow = createTZDate(timezone);
   const currentTod = getCurrentTimeOfDay(tzNow.getHours());
 

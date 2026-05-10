@@ -42,7 +42,7 @@ export default async function EditorLayout({ children }: { children: React.React
     <I18nProvider
       locale={locale}
       formattingLocale={formattingLocale}
-      namespaces={['core', 'modules', 'editor']}
+      namespaces={['core', 'modules', 'editor', 'weather']}
     >
       <div className="bg-hs-body text-hs-text-primary font-sans antialiased h-screen overflow-hidden">
         <PluginGlobalsEditor />

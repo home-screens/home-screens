@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import { displayFetch } from '@/lib/display-fetch';
-import { formatTimeAgo } from '@/lib/chore-constants';
+import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { rewardsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import MemberPicker from './rewards/MemberPicker';
@@ -42,6 +42,7 @@ export function RewardsStoreView({
   const [redeeming, setRedeeming] = useState(false);
   const [redeemError, setRedeemError] = useState<string | null>(null);
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
 
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -321,7 +322,7 @@ export function RewardsStoreView({
                   </span>
                 </div>
                 <span style={{ fontSize: scale * 0.7, color: 'var(--fcc-text-3)', flexShrink: 0 }}>
-                  {formatTimeAgo(r.redeemedAt)}
+                  {formatTimeAgoLocalized(r.redeemedAt, tCore)}
                 </span>
               </div>
             ))}

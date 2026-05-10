@@ -83,18 +83,17 @@ export function capitalize(s: string): string {
 }
 
 /** Slot visual config */
-export const SLOT_META: Record<MealSlotType, { label: string; color: string; bg: string }> = {
-  breakfast: { label: 'Breakfast', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.10)' },
-  lunch:     { label: 'Lunch',     color: '#10b981', bg: 'rgba(16, 185, 129, 0.10)' },
-  dinner:    { label: 'Dinner',    color: '#6366f1', bg: 'rgba(99, 102, 241, 0.10)' },
-  snack:     { label: 'Snack',     color: '#ec4899', bg: 'rgba(236, 72, 153, 0.10)' },
+export const SLOT_META: Record<MealSlotType, { color: string; bg: string }> = {
+  breakfast: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.10)' },
+  lunch:     { color: '#10b981', bg: 'rgba(16, 185, 129, 0.10)' },
+  dinner:    { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.10)' },
+  snack:     { color: '#ec4899', bg: 'rgba(236, 72, 153, 0.10)' },
 };
 
 /**
  * Translation-key helper for meal slot labels. Callers using
  * `useTranslate('modules')` pass the returned dotted path directly —
- * the namespace prefix is implicit. `SLOT_META[slot].label` (English
- * literal) stays callable until task 6.12 sweeps the remaining consumers.
+ * the namespace prefix is implicit.
  */
 export function getMealSlotLabelKey(slot: MealSlotType): string {
   return `meal-planner.slots.${slot}`;
@@ -110,22 +109,6 @@ export const SLOT_WINDOWS: Record<MealSlotType, { start: number; end: number }> 
   snack:     { start: 14, end: 17 },
   dinner:    { start: 17, end: 21 },
 };
-
-/**
- * @deprecated Hard-coded English short day names (0 = Sunday). Use
- * `getLocalizedDayNames(locale, 'short')` instead so a German household
- * sees `So/Mo/Di/...`. Tasks 4–5 will migrate every remaining caller;
- * this export survives as a compatibility shim until then.
- */
-export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-/**
- * @deprecated Hard-coded English full day names (0 = Sunday). Use
- * `getLocalizedDayNames(locale, 'full')` instead. Tasks 4–5 will
- * migrate every remaining caller; this export survives as a
- * compatibility shim until then.
- */
-export const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /**
  * Return 7 localized day-of-week names indexed 0=Sunday … 6=Saturday.

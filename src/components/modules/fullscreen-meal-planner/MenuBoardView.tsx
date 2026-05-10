@@ -1,5 +1,5 @@
 import type { MealSlotType, SavedMeal } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
@@ -20,7 +20,7 @@ export default function MenuBoardView({
       const time = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
       return { slot: sl, meal, time, meta: SLOT_META[sl] };
     })
-    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; time: string | undefined; meta: { label: string; color: string } }[];
+    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; time: string | undefined; meta: { color: string } }[];
 
   return (
     <div style={{
@@ -75,7 +75,7 @@ export default function MenuBoardView({
                 background: `${course.meta.color}1a`,
                 padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
               }}>
-                {course.meta.label}
+                {t(getMealSlotLabelKey(course.slot))}
               </span>
               {course.time && (
                 <span style={{

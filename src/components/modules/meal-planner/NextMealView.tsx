@@ -2,7 +2,7 @@
 
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { getNextMealSlot } from './types';
 
@@ -46,7 +46,7 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
         className="uppercase tracking-[0.15em] font-bold"
         style={{ fontSize: '0.7em', color: meta.color }}
       >
-        {meta.label}
+        {t(getMealSlotLabelKey(slot))}
       </span>
 
       {meal ? (

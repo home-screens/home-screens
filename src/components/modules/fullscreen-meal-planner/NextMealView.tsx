@@ -1,4 +1,4 @@
-import { SLOT_META, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
@@ -60,7 +60,7 @@ export default function NextMealView({
           fontSize: s * 0.8, fontWeight: 600, textTransform: 'uppercase' as const,
           letterSpacing: '0.1em', color: 'var(--fmp-text-3)',
         }}>
-          {meta.label}
+          {t(getMealSlotLabelKey(slot))}
         </span>
         {time && (
           <span style={{
