@@ -1,0 +1,20 @@
+{
+  "conditions": {
+    "sunny": "Ensolarado",
+    "clearNight": "Noite clara",
+    "cloudy": "Nublado",
+    "partlyCloudy": "Parcialmente nublado",
+    "partlyCloudyNight": "Noite parcialmente nublada",
+    "mostlySunny": "Predominantemente ensolarado",
+    "mostlyCloudy": "Predominantemente nublado",
+    "rain": "Chuva",
+    "drizzle": "Garoa",
+    "snow": "Neve",
+    "thunderstorm": "Trovoada",
+    "fog": "Neblina",
+    "hail": "Granizo",
+    "sleet": "Chuva com neve",
+    "temperature": "Temperatura",
+    "weather": "Tempo"
+  }
+}

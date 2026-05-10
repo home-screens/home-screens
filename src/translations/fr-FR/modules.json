@@ -1,0 +1,547 @@
+{
+  "clock": {
+    "am": "AM",
+    "pm": "PM",
+    "weekShort": "Sem.",
+    "dayShort": "Jour",
+    "binaryHoursLabel": "H",
+    "binaryMinutesLabel": "M",
+    "binarySecondsLabel": "S",
+    "barHoursLabel": "H",
+    "barMinutesLabel": "M",
+    "barSecondsLabel": "S",
+    "arc": {
+      "morningLabel": "6 h",
+      "eveningLabel": "18 h",
+      "beforeDawn": "avant l'aube",
+      "afterDusk": "après le crépuscule"
+    },
+    "elapsed": {
+      "setReferenceTime": "Définir une heure de référence",
+      "since": "depuis {label}",
+      "until": "jusqu'à {label}",
+      "notYet": "pas encore",
+      "elapsed": "écoulé"
+    },
+    "fuzzy": {
+      "oclock": "{hour} heures",
+      "justPast": "{hour} heures passées",
+      "tenPast": "{hour} heures dix",
+      "quarterPast": "{hour} heures et quart",
+      "twentyPast": "{hour} heures vingt",
+      "twentyFivePast": "{hour} heures vingt-cinq",
+      "halfPast": "{hour} heures et demie",
+      "twentyFiveTo": "{next} heures moins vingt-cinq",
+      "twentyTo": "{next} heures moins vingt",
+      "quarterTo": "{next} heures moins le quart",
+      "tenTo": "{next} heures moins dix",
+      "almost": "presque {next} heures"
+    },
+    "word": {
+      "oclock": "Il est {hour} heures",
+      "atMinute": "Il est {hour} heures {minute}",
+      "hours": {
+        "1": "une",
+        "2": "deux",
+        "3": "trois",
+        "4": "quatre",
+        "5": "cinq",
+        "6": "six",
+        "7": "sept",
+        "8": "huit",
+        "9": "neuf",
+        "10": "dix",
+        "11": "onze",
+        "12": "douze"
+      },
+      "onesCompound": {
+        "1": "un",
+        "2": "deux",
+        "3": "trois",
+        "4": "quatre",
+        "5": "cinq",
+        "6": "six",
+        "7": "sept",
+        "8": "huit",
+        "9": "neuf"
+      },
+      "minutes": {
+        "0": "zéro",
+        "10": "dix",
+        "11": "onze",
+        "12": "douze",
+        "13": "treize",
+        "14": "quatorze",
+        "15": "quinze",
+        "16": "seize",
+        "17": "dix-sept",
+        "18": "dix-huit",
+        "19": "dix-neuf",
+        "20": "vingt",
+        "30": "trente",
+        "40": "quarante",
+        "50": "cinquante"
+      },
+      "minuteJoin": "{tens}-{ones}"
+    }
+  },
+  "countdown": {
+    "noEvents": "Aucun compte à rebours défini",
+    "noUpcoming": "Aucun événement à venir",
+    "agoSuffix": "(passé)",
+    "unitDays": "jours",
+    "unitHours": "h",
+    "unitMinutes": "min",
+    "unitSeconds": "s"
+  },
+  "date": {
+    "weekShort": "Sem.",
+    "dayShort": "Jour",
+    "weekAbbrev": "SEM",
+    "dayAbbrev": "JOUR"
+  },
+  "year-progress": {
+    "week": "Semaine"
+  },
+  "garbage-day": {
+    "header": "Calendrier de collecte",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "nextDay": "{day} prochain",
+    "emptyState": "Définis les jours de collecte dans les paramètres du module",
+    "labels": {
+      "trash": "Ordures",
+      "recycling": "Recyclage",
+      "yardWaste": "Déchets verts"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Un {day} sur deux"
+    }
+  },
+  "calendar": {
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "yesterday": "Hier",
+    "allDay": "Toute la journée",
+    "noEvents": "Aucun événement",
+    "noUpcomingEvents": "Aucun événement à venir",
+    "weekShort": "Sem.",
+    "moreCount": "+{count} de plus",
+    "am": "AM",
+    "pm": "PM"
+  },
+  "fullscreen-calendar": {
+    "today": "Aujourd'hui",
+    "allDay": "Toute la journée",
+    "noEvents": "Aucun événement",
+    "noEventsThisMonth": "Aucun événement ce mois-ci",
+    "noEventsThisWeek": "Aucun événement cette semaine",
+    "noEventsToday": "Aucun événement aujourd'hui",
+    "noUpcomingEvents": "Aucun événement à venir",
+    "moreCount": "+{count} de plus",
+    "am": "AM",
+    "pm": "PM",
+    "headerUpcoming": "À venir",
+    "viewLabels": {
+      "schedule": "Planning",
+      "weekList": "Semaine",
+      "monthGrid": "Mois",
+      "dayTimeline": "Jour",
+      "agenda": "Agenda"
+    },
+    "zones": {
+      "morning": "Matin",
+      "afternoon": "Après-midi",
+      "evening": "Soir"
+    },
+    "ariaLabels": {
+      "currentTemperature": "Température actuelle {temp} degrés",
+      "view": "Vue : {label}",
+      "dayTimeline": "Chronologie de la journée",
+      "scheduleTimeGrid": "Grille horaire du planning",
+      "currentTime": "Heure actuelle : {time}",
+      "eventAllDay": "{title}, toute la journée",
+      "eventTimed": "{title}, de {start} à {end}",
+      "eventTimedAtLocation": "{title}, de {start} à {end}, à {location}",
+      "monthCell": "{date}, {count} événements"
+    }
+  },
+  "weather": {
+    "today": "Aujourd'hui",
+    "tomorrowShort": "Dem.",
+    "feelsLike": "Ressenti {temp}",
+    "feelsShort": "Ressenti {temp}",
+    "highLow": "Max:{high} Min:{low}",
+    "hourlyForecast": "Prévisions horaires",
+    "forecast": "Prévisions",
+    "weatherAlerts": "Alertes météo",
+    "alertCount": "({count})",
+    "noActiveAlerts": "Aucune alerte active",
+    "alertDataRequires": "Les alertes nécessitent Pirate Weather ou NOAA",
+    "alertSeverityExpires": "{severity} · Expire {expires}",
+    "noWeatherData": "Aucune donnée météo",
+    "noForecastData": "Aucune donnée de prévision",
+    "locationNotSet": "Lieu non défini",
+    "setLocationInSettings": "Définis ton lieu dans les paramètres",
+    "next60Minutes": "Les 60 prochaines minutes",
+    "noPrecipitationExpected": "Aucune précipitation prévue",
+    "stoppingInMin": "S'arrête dans {minutes} min",
+    "precipitationForNextHour": "Précipitations pour la prochaine heure",
+    "startingInMin": "Commence dans {minutes} min",
+    "minutelyDataRequires": "Les données par minute nécessitent Pirate Weather",
+    "tableHeaders": {
+      "day": "Jour",
+      "temp": "Temp.",
+      "rain": "Pluie",
+      "humidity": "Hum.",
+      "wind": "Vent"
+    },
+    "timeline": {
+      "now": "Maintenant",
+      "minutes15": "15 min",
+      "minutes30": "30 min",
+      "minutes45": "45 min",
+      "minutes60": "60 min"
+    },
+    "severity": {
+      "Extreme": "Extrême",
+      "Severe": "Grave",
+      "Moderate": "Modérée",
+      "Minor": "Mineure",
+      "Unknown": "Inconnue"
+    }
+  },
+  "air-quality": {
+    "loading": "Chargement de la qualité de l'air…",
+    "airQualityIndex": "Indice de qualité de l'air",
+    "labels": {
+      "good": "Bonne",
+      "fair": "Acceptable",
+      "moderate": "Modérée",
+      "poor": "Mauvaise",
+      "veryPoor": "Très mauvaise",
+      "unknown": "Inconnue"
+    },
+    "pollutants": {
+      "pm25": "PM2,5",
+      "pm10": "PM10",
+      "o3": "O₃"
+    }
+  },
+  "moon-phase": {
+    "phases": {
+      "newMoon": "Nouvelle lune",
+      "waxingCrescent": "Premier croissant",
+      "firstQuarter": "Premier quartier",
+      "waxingGibbous": "Lune gibbeuse croissante",
+      "fullMoon": "Pleine lune",
+      "waningGibbous": "Lune gibbeuse décroissante",
+      "lastQuarter": "Dernier quartier",
+      "waningCrescent": "Dernier croissant"
+    },
+    "illuminated": "{percent} % illuminée",
+    "rise": "Lever",
+    "set": "Coucher"
+  },
+  "sunrise-sunset": {
+    "sunrise": "Lever du soleil",
+    "sunset": "Coucher du soleil",
+    "dayLength": "Durée du jour : {length}",
+    "goldenHour": "Heure dorée : {time}",
+    "midnightSun": "Soleil de minuit",
+    "sunDoesNotSet": "Le soleil ne se couche pas",
+    "noSunriseToday": "Pas de lever de soleil aujourd'hui",
+    "noSunsetToday": "Pas de coucher de soleil aujourd'hui",
+    "noon": "midi",
+    "riseShort": "↑ lever",
+    "setShort": "coucher ↓"
+  },
+  "rain-map": {
+    "loading": "Chargement de la carte des pluies…",
+    "noRadarData": "Aucune donnée radar disponible",
+    "now": "Maintenant",
+    "minutesAgo": "il y a {minutes} min",
+    "minutesAhead": "+{minutes} min"
+  },
+  "meal-planner": {
+    "noMealsPlannedYet": "Aucun repas prévu pour le moment",
+    "addMealsInEditor": "Ajoute des repas dans l'éditeur",
+    "noMealsPlanned": "Aucun repas prévu",
+    "noMealPlanned": "Aucun repas prévu",
+    "nothingPlanned": "Rien de prévu",
+    "todaysMeals": "Repas du jour",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "now": "maintenant",
+    "servingAt": "servi à {time}",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "slotShort": {
+      "breakfast": "P",
+      "lunch": "D",
+      "dinner": "S",
+      "snack": "G"
+    },
+    "slots": {
+      "breakfast": "Petit-déjeuner",
+      "lunch": "Déjeuner",
+      "dinner": "Dîner",
+      "snack": "Goûter"
+    },
+    "nextMealLabels": {
+      "now": "Maintenant",
+      "comingUp": "Bientôt",
+      "tomorrow": "Demain",
+      "next": "Suivant"
+    }
+  },
+  "fullscreen-meal-planner": {
+    "thisWeeksMeals": "Repas de la semaine",
+    "todaysMeals": "Repas du jour",
+    "todaysMenu": "Menu du jour",
+    "today": "Aujourd'hui",
+    "alsoToday": "Aussi aujourd'hui",
+    "noMealPlanned": "Aucun repas prévu",
+    "notPlanned": "Non prévu",
+    "noMealsPlannedToday": "Aucun repas prévu aujourd'hui",
+    "noUpcomingMeals": "Aucun repas à venir prévu",
+    "mealsPlannedCount": "{filled} repas sur {total} prévus",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "heroLabels": {
+      "now": "Maintenant",
+      "upNext": "Ensuite",
+      "tonight": "Ce soir"
+    },
+    "nextMealLabels": {
+      "now": "Maintenant",
+      "comingUp": "Bientôt",
+      "tomorrow": "Demain"
+    }
+  },
+  "chore-chart": {
+    "familyChores": "Tâches de la famille",
+    "familyProgress": "Progression de la famille",
+    "starChart": "Tableau d'étoiles",
+    "today": "Aujourd'hui",
+    "chores": "Tâches",
+    "thisWeek": "Cette semaine",
+    "addMembersToStart": "Ajoute des membres de la famille pour commencer",
+    "openEditorToSetUp": "Ouvre l'éditeur pour configurer ton tableau de tâches",
+    "noChoresConfigured": "Aucune tâche configurée",
+    "addChoresInEditor": "Ajoute quelques tâches dans l'éditeur",
+    "dayOff": "Jour de repos !",
+    "allDone": "Tout est fait !",
+    "doneLabel": "Fait :",
+    "progressLabel": "Progression :",
+    "doneFraction": "{done}/{total} fait",
+    "streakDays": "{count} jours",
+    "totalTickets": "Tickets au total",
+    "bestStreak": "Meilleure série",
+    "bestStreakValue": "{name} ({count} jours)",
+    "todaysCompletion": "Fait aujourd'hui",
+    "rewardBalances": "Tickets restants",
+    "ticketsCount": "{count} tickets",
+    "timeOfDay": {
+      "morning": "Matin",
+      "afternoon": "Après-midi",
+      "evening": "Soir",
+      "anytime": "À tout moment"
+    }
+  },
+  "fullscreen-chore-chart": {
+    "rewardsButton": "Récompenses",
+    "complete": "Fait",
+    "noChoresToday": "Aucune tâche aujourd'hui",
+    "weeklyTickets": "Tickets cette semaine :",
+    "weeklyTicketsValue": "{earned} / {total}",
+    "bestStreakLabel": "Meilleure série :",
+    "bestStreakValue": "{name} — {count} jours",
+    "bestStreakNone": "Aucune",
+    "thisWeek": "Cette semaine",
+    "ticket": "ticket",
+    "tickets": "tickets",
+    "ticketCount": "{count} ticket",
+    "ticketsCount": "{count} tickets",
+    "verbs": {
+      "completed": "a fait",
+      "uncompleted": "a annulé",
+      "redeemed": "a échangé"
+    },
+    "ariaLabels": {
+      "completeChore": "Cocher {chore} pour {member}",
+      "undoChore": "Annuler {chore} pour {member}",
+      "undoCompleting": "Annuler la validation de {chore}",
+      "undoUncompleting": "Annuler le décochage de {chore}"
+    },
+    "timeOfDay": {
+      "morning": "Matin",
+      "afternoon": "Après-midi",
+      "evening": "Soir",
+      "anytime": "À tout moment"
+    },
+    "rewardsStore": {
+      "title": "Récompenses",
+      "subtitle": "Choisis quelque chose de chouette",
+      "backToChores": "← Tâches",
+      "noneAvailable": "Aucune récompense disponible pour l'instant",
+      "recentRedemptions": "Échanges récents",
+      "redemptionCost": "−{cost} tickets",
+      "memberTickets": "Tickets de {member}",
+      "balanceCount": "{count} tickets",
+      "rewardCost": "{count} tickets",
+      "redeem": "Échanger",
+      "confirmTitle": "Dépenser tes tickets ?",
+      "confirmBody": "Dépenser les tickets de {member} pour {reward} ? ({count} tickets)",
+      "confirmCancel": "Annuler",
+      "confirmYes": "Oui !",
+      "errorGeneric": "Quelque chose a mal tourné",
+      "errorOffline": "Connexion impossible"
+    }
+  },
+  "sports": {
+    "loading": "Chargement des scores…",
+    "noGames": "Aucun match trouvé"
+  },
+  "stock-ticker": {
+    "loading": "Chargement…",
+    "empty": "Aucune donnée boursière",
+    "headers": {
+      "symbol": "Symbole",
+      "price": "Cours",
+      "change": "Variation",
+      "percent": "% Var."
+    }
+  },
+  "standings": {
+    "loading": "Chargement du classement…",
+    "noStandings": "Aucun classement disponible"
+  },
+  "todo": {
+    "defaultTitle": "À faire",
+    "noTasksYet": "Aucune tâche pour l'instant"
+  },
+  "traffic": {
+    "sectionTitle": "Trafic",
+    "noRoutes": "Aucun itinéraire configuré",
+    "loading": "Chargement du trafic…",
+    "unitMin": "min",
+    "mockNotice": "Données d'exemple — ajoute une clé API trafic dans les paramètres"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "Aucune photo sélectionnée",
+    "noPhotoSelectedHint": "Choisis une photo dans le panneau de l'éditeur.",
+    "noPhotosYet": "Aucune photo pour l'instant",
+    "noPhotosYetHint": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur /remote, ou choisis un dossier dans l'éditeur."
+  },
+  "dad-joke": {
+    "loading": "Chargement de la blague…"
+  },
+  "quote": {
+    "loading": "Chargement de la citation…"
+  },
+  "history": {
+    "loading": "Chargement de l'historique…",
+    "header": "Ce jour-là",
+    "noEvents": "Aucun événement trouvé",
+    "yearsAgo": {
+      "one": "il y a {count} an",
+      "other": "il y a {count} ans"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "adjectif",
+      "noun": "nom",
+      "verb": "verbe",
+      "adverb": "adverbe"
+    }
+  },
+  "news": {
+    "loading": "Chargement des actualités…",
+    "empty": "Aucun titre",
+    "header": "Actualités",
+    "timeAgo": {
+      "justNow": "à l'instant",
+      "minutes": "il y a {count} min",
+      "hours": "il y a {count} h",
+      "days": "il y a {count} j"
+    }
+  },
+  "greeting": {
+    "morning": "Bonjour",
+    "afternoon": "Bon après-midi",
+    "evening": "Bonsoir",
+    "night": "Bonne nuit",
+    "defaultName": "Ami(e)",
+    "weather": {
+      "rain": "Journée pluvieuse en perspective",
+      "snow": "Couvre-toi bien aujourd'hui",
+      "thunderstorm": "Orages prévus",
+      "clear": "Belle journée en perspective"
+    }
+  },
+  "affirmations": {
+    "noEntries": "Aucune affirmation configurée",
+    "categories": {
+      "affirmations": "Affirmation",
+      "compliments": "Compliment",
+      "motivational": "Motivation",
+      "gratitude": "Gratitude",
+      "mindfulness": "Pleine conscience"
+    }
+  },
+  "crypto": {
+    "loading": "Chargement…",
+    "empty": "Aucune donnée crypto",
+    "headers": {
+      "coin": "Monnaie",
+      "price": "Cours",
+      "percent": "% 24 h"
+    }
+  },
+  "todoist": {
+    "loading": "Chargement des tâches…",
+    "empty": "Aucune tâche à afficher",
+    "taskCount": {
+      "one": "{count} tâche",
+      "other": "{count} tâches"
+    },
+    "recurringTooltip": "Récurrente",
+    "completeAriaLabel": "Terminer : {content}",
+    "priority": {
+      "urgent": "Urgente",
+      "high": "Haute",
+      "medium": "Moyenne",
+      "normal": "Normale"
+    },
+    "groups": {
+      "overdue": "En retard",
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "thisWeek": "Cette semaine",
+      "upcoming": "À venir",
+      "noDate": "Sans date",
+      "noLabel": "Sans étiquette"
+    },
+    "dueDate": {
+      "yesterday": "Hier",
+      "today": "Aujourd'hui",
+      "todayAtTime": "Aujourd'hui {time}",
+      "tomorrow": "Demain",
+      "daysOverdue": {
+        "one": "{count} j de retard",
+        "other": "{count} j de retard"
+      }
+    },
+    "focus": {
+      "allClear": "Tout est bon pour aujourd'hui !",
+      "allCaughtUp": "Tu es à jour !",
+      "taskRemaining": {
+        "one": "tâche restante",
+        "other": "tâches restantes"
+      }
+    }
+  }
+}

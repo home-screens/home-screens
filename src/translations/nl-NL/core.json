@@ -1,0 +1,15 @@
+{
+  "today": "Vandaag",
+  "tomorrow": "Morgen",
+  "yesterday": "Gisteren",
+  "loading": "Laden…",
+  "noData": "Geen gegevens",
+  "relativeTime": {
+    "justNow": "zojuist",
+    "secondsAgo": "{n} sec geleden",
+    "minutesAgo": "{n} min geleden",
+    "hoursAgo": "{n} uur geleden",
+    "daysAgo": "{n} d geleden",
+    "weeksAgo": "{n} w geleden"
+  }
+}

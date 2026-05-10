@@ -1,0 +1,20 @@
+{
+  "conditions": {
+    "sunny": "Ensoleillé",
+    "clearNight": "Nuit claire",
+    "cloudy": "Nuageux",
+    "partlyCloudy": "Partiellement nuageux",
+    "partlyCloudyNight": "Nuit partiellement nuageuse",
+    "mostlySunny": "Plutôt ensoleillé",
+    "mostlyCloudy": "Plutôt nuageux",
+    "rain": "Pluie",
+    "drizzle": "Bruine",
+    "snow": "Neige",
+    "thunderstorm": "Orage",
+    "fog": "Brouillard",
+    "hail": "Grêle",
+    "sleet": "Neige fondue",
+    "temperature": "Température",
+    "weather": "Météo"
+  }
+}

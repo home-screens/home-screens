@@ -1,0 +1,539 @@
+{
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "remove": "Remover",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "confirm": "Confirmar",
+    "loading": "Carregando…",
+    "noData": "Sem dados"
+  },
+  "tabs": {
+    "control": "Controle",
+    "chores": "Tarefas",
+    "meals": "Refeições",
+    "rewards": "Recompensas",
+    "photos": "Fotos",
+    "alerts": "Avisos",
+    "settings": "Configurações"
+  },
+  "statusBar": {
+    "title": "Controle remoto",
+    "settingsAriaLabel": "Configurações"
+  },
+  "connectionBanner": {
+    "unreachable": "Tela inacessível — verifique se o dispositivo está ligado e conectado"
+  },
+  "backupReminder": {
+    "daysAgoSingular": "Você não faz backup há {n} dia.",
+    "daysAgoPlural": "Você não faz backup há {n} dias.",
+    "backupButton": "Backup",
+    "savingButton": "Salvando…",
+    "dismissAriaLabel": "Dispensar"
+  },
+  "displayHero": {
+    "stateActive": "Ativa",
+    "stateDimmed": "Esmaecida",
+    "stateAsleep": "Dormindo",
+    "updatedTimeAgo": "Atualizada {ago}",
+    "screenIndex": "Tela {current} de {total}",
+    "waiting": "Aguardando a tela…",
+    "unreachable": "Tela inacessível"
+  },
+  "screenControls": {
+    "prevAriaLabel": "Tela anterior",
+    "nextAriaLabel": "Próxima tela"
+  },
+  "quickActions": {
+    "wakeDisplay": "Acordar tela",
+    "sleepDisplay": "Dormir tela",
+    "sendAlert": "Enviar aviso"
+  },
+  "brightnessCard": {
+    "label": "Brilho",
+    "valueAriaLabel": "Brilho {percent}%"
+  },
+  "profileSwitcher": {
+    "heading": "Perfis"
+  },
+  "displayPicker": {
+    "targeting": "Destino",
+    "allLabel": "Todas"
+  },
+  "mobileColorPicker": {
+    "colorLabel": "Cor",
+    "customColorTitle": "Cor personalizada"
+  },
+  "choresTab": {
+    "header": "Tarefas",
+    "subNav": {
+      "today": "Hoje",
+      "manage": "Gerenciar",
+      "rewards": "Recompensas"
+    },
+    "empty": {
+      "title": "Nenhuma tarefa configurada ainda",
+      "description": "Vá em Gerenciar para adicionar membros da família e tarefas.",
+      "setUpButton": "Configurar tarefas"
+    },
+    "warningDismissAriaLabel": "Dispensar aviso",
+    "memberAriaLabel": "{name}",
+    "memberAriaLabelAllDone": "{name} (tudo pronto)",
+    "history": {
+      "editingPrefix": "Editando ",
+      "editingDaysAgoSingular": " (1 dia atrás) — os tickets entram no saldo de hoje.",
+      "editingDaysAgoPlural": " (há {n} dias) — os tickets entram no saldo de hoje.",
+      "editingNote": " Observação: a lista de tarefas de hoje é mostrada para dias passados, então tarefas adicionadas recentemente podem parecer perdidas.",
+      "lockedMessage": "Peça a um adulto para adicionar tarefas que você perdeu."
+    },
+    "progress": {
+      "completion": "{done}/{total} concluídas",
+      "allDone": "Tudo pronto!"
+    },
+    "noChoresToday": "Nenhuma tarefa hoje!",
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "choreAriaLabelMarkComplete": "Marcar como concluída: {chore}",
+    "choreAriaLabelCompleted": "Concluída: {chore}"
+  },
+  "choreHistoryNav": {
+    "prevMonthAriaLabel": "Mês anterior",
+    "nextMonthAriaLabel": "Próximo mês",
+    "jumpToTodayAriaLabel": "Ir para hoje",
+    "todayButton": "Hoje",
+    "tileAriaLabel": "Ver {date}, {earned} de {total} crianças completaram todas as tarefas",
+    "tileAriaLabelEmpty": "Ver {date}, sem tarefas"
+  },
+  "choresManage": {
+    "tabs": {
+      "chores": "Tarefas",
+      "members": "Membros"
+    },
+    "members": {
+      "empty": "Nenhum membro ainda",
+      "emptyHint": "Adicione membros da família para começar",
+      "editAriaLabel": "Editar {name}",
+      "choreCountSingular": "{n} tarefa atribuída",
+      "choreCountPlural": "{n} tarefas atribuídas",
+      "addButton": "Adicionar membro"
+    },
+    "chores": {
+      "empty": "Nenhuma tarefa ainda",
+      "emptyHintNoMembers": "Adicione membros da família primeiro",
+      "emptyHintAddChores": "Adicione tarefas e atribua-as aos membros",
+      "editAriaLabel": "Editar {name}",
+      "addButton": "Adicionar tarefa",
+      "frequencyDaily": "Diária",
+      "frequencyWeekly": "Semanal",
+      "frequencyBiweekly": "A cada duas semanas",
+      "frequencyOnce": "Uma vez · {date}",
+      "ticketCountSingular": "{n} ticket",
+      "ticketCountPlural": "{n} tickets",
+      "rotationDaily": "rodízio diário",
+      "rotationWeekly": "rodízio semanal",
+      "rotationSchedule": "agenda",
+      "unknownAssignee": "?"
+    },
+    "memberForm": {
+      "titleNew": "Novo membro",
+      "titleEdit": "Editar membro",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Digite o nome...",
+      "avatarLabel": "Avatar",
+      "addSubmit": "Adicionar membro",
+      "saveSubmit": "Salvar membro",
+      "deleteButton": "Excluir membro"
+    },
+    "memberDelete": {
+      "title": "Excluir \"{name}\"?",
+      "fallbackName": "esta pessoa",
+      "descriptionNoChores": "Isso vai remover {name} de qualquer tarefa atribuída. Tarefas sem responsáveis também serão excluídas.",
+      "descriptionWithChoresSingular": "Isso vai remover {name} de {count} tarefa atribuída. Tarefas sem responsáveis também serão excluídas.",
+      "descriptionWithChoresPlural": "Isso vai remover {name} de todas as {count} tarefas atribuídas. Tarefas sem responsáveis também serão excluídas.",
+      "confirmLabel": "Excluir membro"
+    },
+    "choreForm": {
+      "titleNew": "Nova tarefa",
+      "titleEdit": "Editar tarefa",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Nome da tarefa...",
+      "iconLabel": "Ícone",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Frequência",
+      "timeOfDayLabel": "Hora do dia",
+      "dateLabel": "Data",
+      "daysLabel": "Dias",
+      "assignToLabel": "Atribuir a",
+      "weeklyScheduleLabel": "Agenda semanal",
+      "coverageLabel": "Cobertura: {covered} de 7 dias",
+      "coverageUncovered": "· {days} sem cobertura",
+      "rotationLabel": "Rodízio",
+      "addSubmit": "Adicionar tarefa",
+      "saveSubmit": "Salvar tarefa",
+      "deleteButton": "Excluir tarefa",
+      "validation": {
+        "enterName": "Digite um nome para a tarefa",
+        "addPersonToSchedule": "Adicione pelo menos uma pessoa à agenda",
+        "selectAtLeastOnePerson": "Selecione pelo menos uma pessoa"
+      }
+    },
+    "choreDelete": {
+      "title": "Excluir \"{name}\"?",
+      "description": "Esta tarefa e todo o histórico de conclusão serão removidos.",
+      "confirmLabel": "Excluir tarefa"
+    },
+    "frequency": {
+      "daily": "Diária",
+      "weekly": "Semanal",
+      "biweekly": "A cada duas semanas",
+      "once": "Uma vez"
+    },
+    "rotation": {
+      "fixed": "Fixo (todos fazem)",
+      "rotateDaily": "Rodízio diário",
+      "rotateWeekly": "Rodízio semanal",
+      "schedule": "Agenda"
+    }
+  },
+  "mealsTab": {
+    "header": "Refeições",
+    "loading": "Carregando refeições...",
+    "settingsButtonAriaLabel": "Abrir configurações de refeições",
+    "settingsButtonTitle": "Configurações",
+    "weekLabel": {
+      "thisWeek": "Esta semana"
+    },
+    "subNav": {
+      "plan": "Plano",
+      "library": "Biblioteca",
+      "grocery": "Compras"
+    },
+    "weekNav": {
+      "prevAriaLabel": "Semana anterior",
+      "nextAriaLabel": "Próxima semana",
+      "todayButton": "Hoje"
+    },
+    "confirm": {
+      "clearWeek": {
+        "title": "Limpar plano?",
+        "description": "Isso vai remover todas as refeições planejadas para esta semana.",
+        "confirmLabel": "Limpar semana"
+      },
+      "deleteMeal": {
+        "title": "Excluir \"{name}\"?",
+        "description": "Isso também vai remover a refeição de qualquer horário planejado.",
+        "confirmLabel": "Excluir refeição"
+      }
+    },
+    "weekView": {
+      "todayBadge": "Hoje",
+      "notPlanned": "{slot} - Não planejada",
+      "activeNowSuffix": " • Agora",
+      "prepTimeMin": "{minutes} min",
+      "empty": {
+        "title": "Nenhuma refeição planejada esta semana",
+        "description": "Vá em Plano para começar a adicionar refeições.",
+        "planButton": "Planejar refeições"
+      }
+    },
+    "library": {
+      "searchPlaceholder": "Pesquisar refeições...",
+      "filterByAriaLabel": "Filtrar por {label}",
+      "empty": {
+        "titleNoMeals": "Nenhuma refeição ainda",
+        "titleNoMatches": "Sem resultados",
+        "hintNoMeals": "Toque no botão + para adicionar sua primeira refeição.",
+        "hintNoMatches": "Tente outra pesquisa ou outro filtro."
+      },
+      "prepTimeMin": "{minutes} min de preparo",
+      "favoriteAddAriaLabel": "Adicionar aos favoritos",
+      "favoriteRemoveAriaLabel": "Remover dos favoritos",
+      "fabAriaLabel": "Adicionar nova refeição",
+      "filters": {
+        "all": "Todas",
+        "favorites": "Favoritas",
+        "quick": "Rápida",
+        "healthy": "Saudável",
+        "comfort": "Reconfortante",
+        "kid-friendly": "Para crianças"
+      }
+    }
+  },
+  "mealForm": {
+    "titleNew": "Adicionar refeição",
+    "titleEdit": "Editar refeição",
+    "saveSubmit": "Salvar refeição",
+    "saveChangesSubmit": "Salvar alterações",
+    "savingSubmit": "Salvando…",
+    "deleteButton": "Excluir refeição",
+    "nameLabel": "Nome da refeição",
+    "namePlaceholder": "ex: Frango xadrez",
+    "emojiLabel": "Emoji",
+    "emojiSelectAriaLabel": "Selecionar {emoji}",
+    "prepTimeLabel": "Tempo de preparo",
+    "cookTimeLabel": "Tempo de cozimento",
+    "minPlaceholder": "min",
+    "servingsLabel": "Porções",
+    "servingsPlaceholder": "4",
+    "difficultyLabel": "Dificuldade",
+    "tagsLabel": "Tags",
+    "ingredientsLabel": "Ingredientes",
+    "ingredientNamePlaceholder": "Nome",
+    "ingredientAmountPlaceholder": "Quantidade",
+    "removeIngredientAriaLabel": "Remover ingrediente",
+    "addIngredientButton": "+ Adicionar ingrediente",
+    "recipeUrlLabel": "URL da receita",
+    "recipeUrlPlaceholder": "https://...",
+    "notesLabel": "Notas",
+    "notesPlaceholder": "Notas sobre esta refeição...",
+    "ratingLabel": "Avaliação",
+    "ratingStarAriaLabel": "Avaliar com {n} de 5 estrelas",
+    "favoriteOn": "Favoritada",
+    "favoriteOff": "Adicionar aos favoritos"
+  },
+  "mealsPlan": {
+    "actions": {
+      "suggest": "Sugerir",
+      "suggestAriaLabel": "Sugerir refeições aleatórias",
+      "copyLastWeek": "Copiar semana passada",
+      "copyLastWeekAriaLabel": "Copiar plano da semana passada",
+      "clear": "Limpar",
+      "clearAriaLabel": "Limpar todas as refeições planejadas"
+    },
+    "empty": {
+      "title": "Nenhuma refeição na sua biblioteca",
+      "description": "Adicione refeições à sua biblioteca primeiro, depois planeje sua semana.",
+      "addMealsButton": "Adicionar refeições"
+    },
+    "slot": {
+      "addMeal": "+ Adicionar refeição",
+      "removeMealAriaLabel": "Remover {meal} de {slot}",
+      "planSlotAriaLabel": "Planejar {slot} para {day}",
+      "mealFallback": "refeição"
+    },
+    "picker": {
+      "title": "Escolha uma refeição",
+      "emptyLibrary": "Nenhuma refeição na biblioteca. Adicione algumas primeiro.",
+      "prepTimeShort": "{minutes} min",
+      "removeMealButton": "Remover refeição"
+    }
+  },
+  "mealsGrocery": {
+    "itemsCountSingular": "{checked} de {total} item",
+    "itemsCountPlural": "{checked} de {total} itens",
+    "shareButton": "Compartilhar",
+    "shareCopiedButton": "Copiado!",
+    "autoGeneratedHint": "Gerada automaticamente das refeições desta semana",
+    "shareHeading": "Lista de compras",
+    "shareCompleteMessage": "Lista de compras concluída!",
+    "empty": {
+      "title": "Nenhum item de compras",
+      "description": "Planeje refeições com ingredientes para ver sua lista de compras."
+    }
+  },
+  "mealsSettings": {
+    "ariaLabel": "Configurações de refeições",
+    "title": "Configurações de refeições",
+    "cancelAriaLabel": "Cancelar e fechar",
+    "slots": {
+      "heading": "Refeições",
+      "description": "Quais refeições você planeja? Afeta o editor e todos os módulos exibidos.",
+      "toggleAriaLabelEnabled": "{label}, ativada",
+      "toggleAriaLabelDisabled": "{label}, desativada"
+    },
+    "weekStart": {
+      "heading": "Semana começa em",
+      "sunday": "Domingo",
+      "monday": "Segunda-feira"
+    },
+    "timeFormat": {
+      "heading": "Formato de hora",
+      "description": "Aplica-se a toda exibição de refeições no kiosk e neste controle remoto.",
+      "twelveHourLabel": "12 horas",
+      "twentyFourHourLabel": "24 horas"
+    },
+    "defaultTimes": {
+      "heading": "Horários padrão de refeição",
+      "description": "Usados quando uma refeição planejada não tem horário próprio. Deixe em branco para refeições com horário variável.",
+      "clear": "Limpar",
+      "clearAriaLabel": "Limpar horário padrão de {name}",
+      "timeInputAriaLabel": "Horário padrão de {name}"
+    },
+    "save": {
+      "saving": "Salvando…",
+      "submit": "Salvar configurações",
+      "saveFailed": "Falha ao salvar. Tente novamente.",
+      "networkError": "Erro de rede. Tente novamente."
+    }
+  },
+  "rewardForm": {
+    "titleAdd": "Adicionar recompensa",
+    "titleEdit": "Editar recompensa",
+    "saveButton": "Salvar recompensa",
+    "deleteButton": "Excluir recompensa",
+    "iconLabel": "Ícone",
+    "nameLabel": "Nome",
+    "namePlaceholder": "ex: Tempo extra de tela",
+    "ticketCostLabel": "Custo em tickets",
+    "ticketCostPlaceholder": "10",
+    "enabledLabel": "Ativada",
+    "visible": "Visível",
+    "hidden": "Oculta",
+    "descriptionLabel": "Descrição (opcional)",
+    "descriptionPlaceholder": "Descrição curta...",
+    "availableToLabel": "Disponível para",
+    "everyone": "Todos",
+    "deleteConfirm": {
+      "title": "Excluir recompensa",
+      "description": "Tem certeza de que quer excluir \"{name}\"? O histórico de resgates anteriores será preservado."
+    }
+  },
+  "alertSender": {
+    "title": "Enviar aviso",
+    "closeAriaLabel": "Fechar envio de aviso",
+    "typeInfo": "Info",
+    "typeWarning": "Atenção",
+    "typeUrgent": "Urgente",
+    "titleLabel": "Título",
+    "titlePlaceholder": "Opcional",
+    "messageLabel": "Mensagem",
+    "messagePlaceholder": "O que a tela deve mostrar?",
+    "durationLabel": "Duração",
+    "duration10s": "10s",
+    "duration30s": "30s",
+    "duration1Min": "1 min",
+    "duration5Min": "5 min",
+    "durationPersistent": "Permanente",
+    "sendButton": "Enviar aviso",
+    "sendingButton": "Enviando…",
+    "sentButton": "Enviado!",
+    "failedButton": "Falhou — tente novamente"
+  },
+  "rewardsView": {
+    "nav": {
+      "redeem": "Resgatar",
+      "rewards": "Recompensas",
+      "balances": "Saldos",
+      "history": "Histórico"
+    },
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "redeem": {
+      "balanceLabel": "tickets disponíveis",
+      "availableHeading": "Recompensas disponíveis",
+      "empty": "Nenhuma recompensa configurada ainda",
+      "memberFallback": "este membro",
+      "confirmTitle": "Resgatar {name}?",
+      "confirmDescriptionSingular": "Isso vai usar {cost} ticket do saldo de {memberName}. Restantes: {remaining}",
+      "confirmDescriptionPlural": "Isso vai usar {cost} tickets do saldo de {memberName}. Restantes: {remaining}",
+      "confirmLabelSingular": "Resgatar — {cost} ticket",
+      "confirmLabelPlural": "Resgatar — {cost} tickets"
+    },
+    "manage": {
+      "heading": "Recompensas",
+      "countSingular": "{n} recompensa",
+      "countPlural": "{n} recompensas",
+      "everyone": "Todos",
+      "disabled": "Desativada",
+      "memberCountSingular": "{n} membro",
+      "memberCountPlural": "{n} membros",
+      "addButton": "Adicionar recompensa"
+    },
+    "balances": {
+      "heading": "Saldos de tickets",
+      "adjustDownAriaLabel": "Subtrair um ticket de {name}",
+      "adjustUpAriaLabel": "Adicionar um ticket a {name}"
+    },
+    "history": {
+      "heading": "Resgates recentes",
+      "empty": "Nenhum resgate ainda",
+      "entry": {
+        "beforeReward": " resgatou ",
+        "afterRewardSingular": " — {n} ticket",
+        "afterRewardPlural": " — {n} tickets"
+      }
+    }
+  },
+  "settingsSheet": {
+    "title": "Configurações",
+    "closeAriaLabel": "Fechar configurações",
+    "system": {
+      "heading": "Sistema",
+      "errorFailedToLoad": "Falha ao carregar",
+      "hostLabel": "Host",
+      "uptimeLabel": "Tempo ligado",
+      "memoryLabel": "Memória",
+      "diskLabel": "Disco"
+    },
+    "theme": {
+      "heading": "Tema",
+      "light": "Claro",
+      "dark": "Escuro",
+      "system": "Sistema"
+    },
+    "data": {
+      "heading": "Dados",
+      "backup": {
+        "label": "Fazer backup de tudo",
+        "savedLabel": "Backup salvo",
+        "busyLabel": "Baixando…",
+        "description": "Baixar configuração, tarefas, refeições e recompensas"
+      },
+      "restore": {
+        "label": "Restaurar backup",
+        "confirmingLabel": "Toque novamente para restaurar",
+        "busyLabel": "Restaurando…",
+        "doneLabel": "Restaurado",
+        "invalidFileLabel": "Arquivo de backup inválido",
+        "failedLabel": "Falha ao restaurar",
+        "idleDescription": "Envie um arquivo de backup deste dispositivo",
+        "confirmingDescription": "Isso vai substituir todos os dados existentes"
+      }
+    },
+    "power": {
+      "heading": "Energia",
+      "restartService": {
+        "label": "Reiniciar serviço",
+        "description": "Reiniciar o app Home Screens",
+        "confirmLabel": "Toque novamente para reiniciar"
+      },
+      "reboot": {
+        "label": "Reiniciar dispositivo",
+        "description": "Reinicialização completa do sistema",
+        "confirmLabel": "Toque novamente para reiniciar"
+      }
+    },
+    "confirmable": {
+      "sentLabel": "Enviado"
+    }
+  },
+  "photosTab": {
+    "header": "Fotos",
+    "newFolderButton": "Nova pasta",
+    "newFolderPlaceholder": "Nome da pasta",
+    "createButton": "Criar",
+    "allPhotosTab": "Todas as fotos",
+    "uploadingProgress": "Enviando {current} de {total}...",
+    "uploadFailedFor": "Falha ao enviar {name}",
+    "uploadFailed": "Falha ao enviar",
+    "uploadedSingular": "{n} foto enviada",
+    "uploadedPlural": "{n} fotos enviadas",
+    "photoDeleted": "Foto excluída",
+    "folderCreated": "Pasta criada",
+    "failedCreateFolder": "Falha ao criar pasta",
+    "uploadButton": "Enviar fotos",
+    "emptyTitle": "Nenhuma foto nesta pasta",
+    "emptyHint": "Toque em Enviar fotos para adicionar imagens",
+    "deletePrompt": "Excluir?",
+    "deletingButton": "Excluindo...",
+    "deleteAriaLabel": "Excluir foto",
+    "dismissErrorAriaLabel": "Dispensar erro"
+  },
+  "choresKidView": {
+    "notConfigured": "Nenhuma tarefa configurada. Adicione um módulo de Quadro de Tarefas no editor para começar."
+  }
+}

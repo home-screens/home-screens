@@ -1,0 +1,15 @@
+{
+  "today": "Hoje",
+  "tomorrow": "Amanhã",
+  "yesterday": "Ontem",
+  "loading": "Carregando…",
+  "noData": "Sem dados",
+  "relativeTime": {
+    "justNow": "agora mesmo",
+    "secondsAgo": "há {n}s",
+    "minutesAgo": "há {n} min",
+    "hoursAgo": "há {n}h",
+    "daysAgo": "há {n}d",
+    "weeksAgo": "há {n}sem"
+  }
+}
