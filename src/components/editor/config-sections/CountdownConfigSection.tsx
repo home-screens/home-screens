@@ -65,6 +65,15 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         <Toggle label="Show Past Events" checked={!!c.showPastEvents} onChange={(v) => set({ showPastEvents: v })} />
       )}
 
+      <Toggle
+        label="Stay on the day"
+        checked={!!c.stayUntilEndOfDay}
+        onChange={(v) => set({ stayUntilEndOfDay: v })}
+      />
+      <p className="text-[10px] text-hs-text-faint -mt-1">
+        Once an event hits zero, keep it on screen until the end of the day before moving on.
+      </p>
+
       <LabeledField label={`Scale (${((c.scale ?? 1) * 100).toFixed(0)}%)`}>
         <input
           type="range"

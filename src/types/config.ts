@@ -452,6 +452,7 @@ export interface CountdownEvent {
 export interface CountdownConfig {
   events: CountdownEvent[];
   showPastEvents: boolean;
+  stayUntilEndOfDay?: boolean; // When true, an event that has hit zero stays visible until the end of the calendar day in the configured timezone.
   scale: number; // 0.5 – 4, default 1
   view: CountdownView;
   holidayCountry?: string;

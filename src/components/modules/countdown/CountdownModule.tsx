@@ -35,7 +35,12 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
     return () => clearInterval(interval);
   }, []);
 
-  const events = processEvents(config.events, config.showPastEvents ?? false, timezone);
+  const events = processEvents(
+    config.events,
+    config.showPastEvents ?? false,
+    timezone,
+    config.stayUntilEndOfDay ?? false,
+  );
 
   void now;
 

@@ -21,21 +21,30 @@ export default function CountdownNextView({ events, scale, basePx }: CountdownVi
           style={{ fontSize: `${Math.max(14, 18 * scale)}px`, opacity: TEXT_OPACITY.heading }}
         >
           {event.name}
-          {event.time.past && <span className="ml-1 font-normal">(ago)</span>}
+          {event.time.past && !event.stayingForToday && <span className="ml-1 font-normal">(ago)</span>}
         </p>
-        <div className="flex items-start justify-center" style={{ fontSize: `${nextBasePx}px`, gap: '0.15em' }}>
-          {event.time.days > 0 && (
-            <>
-              <FlipCard value={String(event.time.days)} label="days" />
-              <FlipSeparator />
-            </>
-          )}
-          <FlipCard value={pad(event.time.hours)} label="hrs" />
-          <FlipSeparator />
-          <FlipCard value={pad(event.time.minutes)} label="min" />
-          <FlipSeparator />
-          <FlipCard value={pad(event.time.seconds)} label="sec" />
-        </div>
+        {event.stayingForToday ? (
+          <p
+            className="font-semibold text-center"
+            style={{ fontSize: `${nextBasePx}px`, opacity: TEXT_OPACITY.heading }}
+          >
+            Today!
+          </p>
+        ) : (
+          <div className="flex items-start justify-center" style={{ fontSize: `${nextBasePx}px`, gap: '0.15em' }}>
+            {event.time.days > 0 && (
+              <>
+                <FlipCard value={String(event.time.days)} label="days" />
+                <FlipSeparator />
+              </>
+            )}
+            <FlipCard value={pad(event.time.hours)} label="hrs" />
+            <FlipSeparator />
+            <FlipCard value={pad(event.time.minutes)} label="min" />
+            <FlipSeparator />
+            <FlipCard value={pad(event.time.seconds)} label="sec" />
+          </div>
+        )}
       </div>
     </div>
   );

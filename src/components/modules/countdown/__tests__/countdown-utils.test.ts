@@ -112,6 +112,29 @@ describe('resolveEventDate', () => {
     };
     expect(resolveEventDate(event)).toBe('not-a-date');
   });
+
+  it('keeps the current year for a recurring event still on its day when stayUntilEndOfDay is true', () => {
+    // Christmas at 00:00, "now" is Christmas afternoon — without the flag this jumps to 2027.
+    vi.setSystemTime(new Date('2026-12-25T15:00:00'));
+    const event: CountdownEvent = {
+      id: '1',
+      name: 'Christmas',
+      date: '2025-12-25T00:00',
+      recurring: 'yearly',
+    };
+    expect(resolveEventDate(event, undefined, true)).toBe('2026-12-25T00:00');
+  });
+
+  it('still rolls a recurring event forward the day after, even with stayUntilEndOfDay', () => {
+    vi.setSystemTime(new Date('2026-12-26T00:00:01'));
+    const event: CountdownEvent = {
+      id: '1',
+      name: 'Christmas',
+      date: '2025-12-25T00:00',
+      recurring: 'yearly',
+    };
+    expect(resolveEventDate(event, undefined, true)).toBe('2027-12-25T00:00');
+  });
 });
 
 describe('processEvents', () => {
@@ -171,5 +194,60 @@ describe('processEvents', () => {
     // Christmas 2026 already passed (it's Dec 26), so it resolves to 2027
     expect(result).toHaveLength(1);
     expect(result[0].time.past).toBe(false);
+  });
+
+  it('keeps a passed event visible the rest of the day when stayUntilEndOfDay is true', () => {
+    vi.setSystemTime(new Date('2026-03-15T18:30:00'));
+
+    const events: CountdownEvent[] = [
+      { id: '1', name: 'Party', date: '2026-03-15T12:00' }, // earlier today
+      { id: '2', name: 'Future', date: '2026-03-20T00:00' },
+    ];
+
+    const result = processEvents(events, false, undefined, true);
+    expect(result).toHaveLength(2);
+    // Today-but-passed sorts first
+    expect(result[0].name).toBe('Party');
+    expect(result[0].stayingForToday).toBe(true);
+    expect(result[0].time.past).toBe(true);
+    expect(result[1].name).toBe('Future');
+    expect(result[1].stayingForToday).toBe(false);
+  });
+
+  it('does not keep yesterday\'s event when stayUntilEndOfDay is true', () => {
+    vi.setSystemTime(new Date('2026-03-15T01:00:00'));
+
+    const events: CountdownEvent[] = [
+      { id: '1', name: 'Yesterday', date: '2026-03-14T20:00' },
+      { id: '2', name: 'Future', date: '2026-03-20T00:00' },
+    ];
+
+    const result = processEvents(events, false, undefined, true);
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Future');
+  });
+
+  it('keeps a recurring event on its day with stayUntilEndOfDay even after midnight of the event time', () => {
+    vi.setSystemTime(new Date('2026-12-25T15:00:00'));
+
+    const events: CountdownEvent[] = [
+      { id: '1', name: 'Christmas', date: '2025-12-25T00:00', recurring: 'yearly' },
+    ];
+
+    const result = processEvents(events, false, undefined, true);
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Christmas');
+    expect(result[0].stayingForToday).toBe(true);
+  });
+
+  it('marks future events with stayingForToday=false', () => {
+    vi.setSystemTime(new Date('2026-03-15T12:00:00'));
+
+    const events: CountdownEvent[] = [
+      { id: '1', name: 'Future', date: '2026-03-20T00:00' },
+    ];
+
+    const result = processEvents(events, false, undefined, true);
+    expect(result[0].stayingForToday).toBe(false);
   });
 });

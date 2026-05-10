@@ -28,8 +28,17 @@ export function pad(n: number) {
  * Date object) to avoid timezone-dependent extraction. The string contains the
  * user's intended calendar values; timezone only matters for the "has it
  * passed" check, which getTimeRemaining handles via parseDateInTZ.
+ *
+ * When `stayUntilEndOfDay` is true and today's calendar date in the configured
+ * timezone matches the recurring event's month/day, we keep this year's date
+ * even after the moment has passed — so the event stays visible through the
+ * rest of the day instead of jumping forward to next year.
  */
-export function resolveEventDate(event: CountdownEvent, timezone?: string): string {
+export function resolveEventDate(
+  event: CountdownEvent,
+  timezone?: string,
+  stayUntilEndOfDay = false,
+): string {
   if (event.recurring !== 'yearly') return event.date;
 
   // Extract month/day/time from the stored string (e.g. "2025-12-25T00:00")
@@ -52,8 +61,42 @@ export function resolveEventDate(event: CountdownEvent, timezone?: string): stri
     return thisYearStr;
   }
 
-  // Already passed this year — use next year
+  // Already passed this year — but if it's still the same calendar day in the
+  // configured timezone and the user opted into "stay until end of day", keep it.
+  if (stayUntilEndOfDay) {
+    const today = getDatePartsInTZ(new Date(), timezone);
+    if (today.month === month && today.day === day) {
+      return thisYearStr;
+    }
+  }
+
+  // Otherwise advance to next year
   return formatDateStr(currentYear + 1, month, day, hours, minutes);
+}
+
+/** Extract calendar year/month/day for a Date as observed in `timezone`. */
+function getDatePartsInTZ(date: Date, timezone?: string): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+  return { year: get('year'), month: get('month'), day: get('day') };
+}
+
+/** True if the YYYY-MM-DD prefix of `targetDate` matches today's date in `timezone`. */
+function isSameLocalDay(targetDate: string, timezone?: string): boolean {
+  const m = targetDate.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return false;
+  const today = getDatePartsInTZ(new Date(), timezone);
+  return (
+    today.year === parseInt(m[1], 10) &&
+    today.month === parseInt(m[2], 10) &&
+    today.day === parseInt(m[3], 10)
+  );
 }
 
 /** Get the current date/time in a specific timezone */
@@ -85,14 +128,19 @@ export function processEvents(
   events: CountdownEvent[],
   showPastEvents: boolean,
   timezone?: string,
+  stayUntilEndOfDay = false,
 ): ProcessedEvent[] {
   return events
-    .map((event) => ({
-      ...event,
-      time: getTimeRemaining(resolveEventDate(event, timezone), timezone),
-    }))
-    .filter((event) => showPastEvents || !event.time.past)
+    .map((event) => {
+      const resolved = resolveEventDate(event, timezone, stayUntilEndOfDay);
+      const time = getTimeRemaining(resolved, timezone);
+      const stayingForToday = stayUntilEndOfDay && time.past && isSameLocalDay(resolved, timezone);
+      return { ...event, time, stayingForToday };
+    })
+    .filter((event) => showPastEvents || !event.time.past || event.stayingForToday)
     .sort((a, b) => {
+      // Today-but-passed events sort first — they're the most relevant thing on screen the day-of.
+      if (a.stayingForToday !== b.stayingForToday) return a.stayingForToday ? -1 : 1;
       if (a.time.past !== b.time.past) return a.time.past ? 1 : -1;
       return a.time.totalMs - b.time.totalMs;
     });

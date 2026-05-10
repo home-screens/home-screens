@@ -11,6 +11,7 @@ export interface TimeRemaining {
 
 export interface ProcessedEvent extends CountdownEvent {
   time: TimeRemaining;
+  stayingForToday: boolean;
 }
 
 export interface CountdownViewProps {
