@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslate } from '@/i18n';
 import {
   FA_ICONS,
   buildIconClass,
@@ -30,17 +31,19 @@ interface IconPickerProps {
 
 type KindFilter = 'all' | 'solid' | 'regular' | 'brands';
 
-const KIND_FILTERS: ReadonlyArray<{ value: KindFilter; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'solid', label: 'Solid' },
-  { value: 'regular', label: 'Regular' },
-  { value: 'brands', label: 'Brands' },
+const KIND_FILTERS: ReadonlyArray<{ value: KindFilter; labelKey: string }> = [
+  { value: 'all', labelKey: 'iconPicker.kindAll' },
+  { value: 'solid', labelKey: 'iconPicker.styleSolid' },
+  { value: 'regular', labelKey: 'iconPicker.styleRegular' },
+  { value: 'brands', labelKey: 'iconPicker.styleBrands' },
 ];
 
 /** When the search returns more than this many icons, only render the first chunk to keep the picker snappy. */
 const VISIBLE_LIMIT = 600;
 
-export default function IconPicker({ label = 'Icon', value, currentKind, onPick }: IconPickerProps) {
+export default function IconPicker({ label, value, currentKind, onPick }: IconPickerProps) {
+  const t = useTranslate('editor');
+  const resolvedLabel = label ?? t('iconPicker.label');
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   const handlePick = useCallback(
@@ -58,7 +61,7 @@ export default function IconPicker({ label = 'Icon', value, currentKind, onPick 
 
   return (
     <>
-      <LabeledField label={label}>
+      <LabeledField label={resolvedLabel}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -73,9 +76,9 @@ export default function IconPicker({ label = 'Icon', value, currentKind, onPick 
               : <span className="text-hs-text-faint text-xs">?</span>}
           </span>
           <span className="truncate text-xs text-hs-text-body flex-1">
-            {value || 'Choose an icon...'}
+            {value || t('iconPicker.chooseIconPlaceholder')}
           </span>
-          <span className="text-[10px] text-hs-text-faint shrink-0">Browse</span>
+          <span className="text-[10px] text-hs-text-faint shrink-0">{t('iconPicker.browse')}</span>
         </button>
       </LabeledField>
 
@@ -97,6 +100,7 @@ interface IconPickerModalProps {
 }
 
 function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps) {
+  const t = useTranslate('editor');
   const trapRef = useFocusTrap<HTMLDivElement>();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -186,20 +190,20 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
       >
         <div className="px-5 pt-4 pb-3 border-b border-hs-border-strong">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 className="text-sm font-semibold text-hs-text-primary">Choose an icon</h3>
+            <h3 className="text-sm font-semibold text-hs-text-primary">{t('iconPicker.chooseTitle')}</h3>
             <button
               type="button"
               onClick={onClose}
               className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
-              aria-label="Close"
+              aria-label={t('common.close')}
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
           <input
             ref={searchRef}
             type="search"
-            placeholder="Search 1,900+ icons by name or keyword..."
+            placeholder={t('iconPicker.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className={`${INPUT_CLASS} w-full text-sm`}
@@ -216,13 +220,13 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
                     : 'border-hs-border-strong text-hs-text-muted hover:text-hs-text-body'
                 }`}
               >
-                {f.label}
+                {t(f.labelKey)}
               </button>
             ))}
             <span className="text-[11px] text-hs-text-faint ml-auto">
               {loading
-                ? 'Loading full catalog…'
-                : `${filtered.length.toLocaleString()} icon${filtered.length === 1 ? '' : 's'}`}
+                ? t('iconPicker.loadingCatalog')
+                : t('iconPicker.iconCount', { count: filtered.length })}
             </span>
           </div>
         </div>
@@ -230,7 +234,7 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
         <div className="flex-1 overflow-y-auto p-3">
           {filtered.length === 0 ? (
             <p className="text-center text-xs text-hs-text-faint py-12">
-              No icons match &ldquo;{query}&rdquo;. Try a different keyword.
+              {t('iconPicker.noMatch', { query })}
             </p>
           ) : (
             <>
@@ -242,7 +246,7 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
               />
               {truncated > 0 && (
                 <p className="text-center text-[11px] text-hs-text-faint mt-3">
-                  +{truncated.toLocaleString()} more — refine your search to see them.
+                  {t('iconPicker.moreResults', { count: truncated })}
                 </p>
               )}
             </>

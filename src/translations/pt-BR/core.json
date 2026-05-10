@@ -11,5 +11,44 @@
     "hoursAgo": "há {n}h",
     "daysAgo": "há {n}d",
     "weeksAgo": "há {n}sem"
+  },
+  "displayNotFound": {
+    "notRegistered": "Tela não registrada",
+    "adoptionLine1": "Esta tela está conectada ao hub, mas ainda não foi adotada.",
+    "adoptionLine2": "Abra o editor no hub, vá em",
+    "settingsLink": "Configurações → Telas",
+    "andClick": "e clique em",
+    "adoptLabel": "Adotar",
+    "nextTo": "ao lado de",
+    "waitingForAdoption": "Aguardando adoção…",
+    "recoveryNotice": "Este ID de tela não está registrado, mas seu hub tem outras telas configuradas. Trocando para a tela padrão em {seconds} s.",
+    "goToDefault": "Ir para a tela padrão agora"
+  },
+  "login": {
+    "checkingAuth": "Verificando autenticação…",
+    "ipBlocked": "Seu endereço IP está bloqueado",
+    "enterPasswordToContinue": "Digite sua senha para continuar",
+    "accessRestricted": "Acesso restrito",
+    "accessRestrictedDescription": "Seu endereço IP não está na lista permitida. Entrar não ajudará — o servidor rejeitará todas as solicitações do seu endereço. Entre em contato com um administrador para adicionar seu IP à lista, ou entre por uma rede permitida.",
+    "passwordPlaceholder": "Senha",
+    "rememberMe": "Lembrar-me por 90 dias",
+    "signingIn": "Entrando…",
+    "unlock": "Desbloquear",
+    "loading": "Carregando…",
+    "backToDisplay": "Voltar para a tela",
+    "loginFailed": "Falha ao entrar",
+    "unreachable": "Não foi possível alcançar o servidor"
+  },
+  "errors": {
+    "fetchFailed": "Falha ao carregar dados",
+    "loadImagesFailed": "Falha ao carregar imagens",
+    "uploadFailed": "Falha no envio",
+    "createFolderFailed": "Falha ao criar pasta",
+    "deleteFolderFailed": "Falha ao excluir pasta",
+    "googleExpired": "Sua conexão com o Google expirou. Entre novamente.",
+    "deviceFlowFailed": "Falha ao iniciar fluxo do dispositivo",
+    "codeExpired": "Código expirado. Tente novamente.",
+    "authorizationFailed": "Falha na autorização",
+    "startSignInFailed": "Falha ao iniciar o login"
   }
 }

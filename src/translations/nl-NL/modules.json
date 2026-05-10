@@ -89,6 +89,7 @@
     "noEvents": "Geen aftellingen ingesteld",
     "noUpcoming": "Geen aankomende gebeurtenissen",
     "agoSuffix": "(geleden)",
+    "todayBang": "Vandaag!",
     "unitDays": "dagen",
     "unitHours": "uur",
     "unitMinutes": "min",
@@ -348,6 +349,12 @@
       "afternoon": "Middag",
       "evening": "Avond",
       "anytime": "Wanneer dan ook"
+    },
+    "iconPicker": {
+      "filter": "Pictogrammen filteren...",
+      "noMatch": "Geen overeenkomende pictogrammen",
+      "none": "Geen",
+      "clear": "Wissen"
     }
   },
   "fullscreen-chore-chart": {
@@ -543,5 +550,38 @@
         "other": "taken over"
       }
     }
+  },
+  "photo-slideshow": {
+    "loading": "Foto's worden geladen…",
+    "empty": "Geen foto's gevonden"
+  },
+  "icon": {
+    "empty": "Geen pictogram geselecteerd"
+  },
+  "sticky-note": {
+    "empty": "Geen inhoud"
+  },
+  "iframe": {
+    "noUrl": "Geen URL ingesteld",
+    "embeddedTitle": "Ingesloten inhoud"
+  },
+  "qr-code": {
+    "scanToConnect": "Scan om verbinding te maken",
+    "configureWifi": "Wifi-netwerk instellen",
+    "configureData": "QR-gegevens instellen"
+  },
+  "display-control": {
+    "prev": "Vorige",
+    "next": "Volgende",
+    "sleep": "Slaap",
+    "sleepHoldHint": "Slaap (vasthouden om te bevestigen)",
+    "brightness": "Helderheid",
+    "closeBrightness": "Helderheid sluiten",
+    "ariaPrev": "Vorig scherm",
+    "ariaNext": "Volgend scherm"
+  },
+  "common": {
+    "locationNotConfigured": "Locatie niet ingesteld",
+    "pluginNotAvailable": "Plug-in niet beschikbaar: {name}"
   }
 }

@@ -535,5 +535,14 @@
   },
   "choresKidView": {
     "notConfigured": "Noch keine Aufgaben eingerichtet. Bitte einen Erwachsenen, ein Aufgabentafel-Modul im Editor hinzuzufügen."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Servierzeit {time}, zum Ändern klicken",
+    "servingTimeTitle": "Servierzeit: {time}",
+    "setServingTime": "Servierzeit festlegen",
+    "setTime": "+ Zeit festlegen",
+    "setMealTime": "Mahlzeit-Zeit festlegen",
+    "servingTime": "Servierzeit",
+    "clearTime": "Zeit löschen"
   }
 }

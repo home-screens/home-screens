@@ -11,5 +11,44 @@
     "hoursAgo": "{n} uur geleden",
     "daysAgo": "{n} d geleden",
     "weeksAgo": "{n} w geleden"
+  },
+  "displayNotFound": {
+    "notRegistered": "Display niet geregistreerd",
+    "adoptionLine1": "Deze display is verbonden met de hub maar nog niet toegevoegd.",
+    "adoptionLine2": "Open de editor op de hub, ga naar",
+    "settingsLink": "Instellingen → Displays",
+    "andClick": "en klik op",
+    "adoptLabel": "Toevoegen",
+    "nextTo": "naast",
+    "waitingForAdoption": "Wachten op toevoeging…",
+    "recoveryNotice": "Deze display-ID is niet geregistreerd, maar je hub heeft andere displays. Schakelen naar de standaarddisplay over {seconds} s.",
+    "goToDefault": "Nu naar standaarddisplay"
+  },
+  "login": {
+    "checkingAuth": "Authenticatie controleren…",
+    "ipBlocked": "Je IP-adres is geblokkeerd",
+    "enterPasswordToContinue": "Voer je wachtwoord in om door te gaan",
+    "accessRestricted": "Toegang beperkt",
+    "accessRestrictedDescription": "Je IP-adres staat niet op de toegestane lijst. Inloggen helpt niet — de server weigert elk verzoek vanaf je adres. Neem contact op met een beheerder om je IP aan de lijst toe te voegen, of log in vanaf een toegestaan netwerk.",
+    "passwordPlaceholder": "Wachtwoord",
+    "rememberMe": "90 dagen ingelogd blijven",
+    "signingIn": "Aanmelden…",
+    "unlock": "Ontgrendelen",
+    "loading": "Laden…",
+    "backToDisplay": "Terug naar display",
+    "loginFailed": "Aanmelden mislukt",
+    "unreachable": "Server niet bereikbaar"
+  },
+  "errors": {
+    "fetchFailed": "Gegevens konden niet worden geladen",
+    "loadImagesFailed": "Afbeeldingen konden niet worden geladen",
+    "uploadFailed": "Uploaden mislukt",
+    "createFolderFailed": "Map kon niet worden aangemaakt",
+    "deleteFolderFailed": "Map kon niet worden verwijderd",
+    "googleExpired": "Je Google-verbinding is verlopen. Log opnieuw in.",
+    "deviceFlowFailed": "Apparaataanmelding kon niet worden gestart",
+    "codeExpired": "Code verlopen. Probeer het opnieuw.",
+    "authorizationFailed": "Autorisatie mislukt",
+    "startSignInFailed": "Aanmelding kon niet worden gestart"
   }
 }

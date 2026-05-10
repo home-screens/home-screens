@@ -535,5 +535,14 @@
   },
   "choresKidView": {
     "notConfigured": "Geen klusjes ingesteld. Vraag een volwassene om een Klusjeskaart-module aan de editor toe te voegen om te beginnen."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serveertijd {time}, klik om te wijzigen",
+    "servingTimeTitle": "Serveertijd: {time}",
+    "setServingTime": "Serveertijd instellen",
+    "setTime": "+ Tijd instellen",
+    "setMealTime": "Maaltijdtijd instellen",
+    "servingTime": "Serveertijd",
+    "clearTime": "Tijd wissen"
   }
 }

@@ -11,5 +11,44 @@
     "hoursAgo": "hace {n} h",
     "daysAgo": "hace {n} d",
     "weeksAgo": "hace {n} sem"
+  },
+  "displayNotFound": {
+    "notRegistered": "Pantalla no registrada",
+    "adoptionLine1": "Esta pantalla está conectada al hub pero aún no se ha adoptado.",
+    "adoptionLine2": "Abre el editor en el hub, ve a",
+    "settingsLink": "Ajustes → Pantallas",
+    "andClick": "y haz clic en",
+    "adoptLabel": "Adoptar",
+    "nextTo": "junto a",
+    "waitingForAdoption": "Esperando adopción…",
+    "recoveryNotice": "Este ID de pantalla no está registrado, pero tu hub tiene otras pantallas configuradas. Cambiando a la pantalla predeterminada en {seconds} s.",
+    "goToDefault": "Ir a la pantalla predeterminada ahora"
+  },
+  "login": {
+    "checkingAuth": "Comprobando autenticación…",
+    "ipBlocked": "Tu dirección IP está bloqueada",
+    "enterPasswordToContinue": "Introduce tu contraseña para continuar",
+    "accessRestricted": "Acceso restringido",
+    "accessRestrictedDescription": "Tu dirección IP no está en la lista permitida. Iniciar sesión no ayudará — el servidor rechazará todas las solicitudes desde tu dirección. Contacta con un administrador para añadir tu IP a la lista, o conéctate desde una red permitida.",
+    "passwordPlaceholder": "Contraseña",
+    "rememberMe": "Recuérdame durante 90 días",
+    "signingIn": "Iniciando sesión…",
+    "unlock": "Desbloquear",
+    "loading": "Cargando…",
+    "backToDisplay": "Volver a la pantalla",
+    "loginFailed": "Error al iniciar sesión",
+    "unreachable": "No se puede contactar con el servidor"
+  },
+  "errors": {
+    "fetchFailed": "Error al cargar los datos",
+    "loadImagesFailed": "Error al cargar las imágenes",
+    "uploadFailed": "Error al subir",
+    "createFolderFailed": "Error al crear la carpeta",
+    "deleteFolderFailed": "Error al eliminar la carpeta",
+    "googleExpired": "Tu conexión con Google ha expirado. Vuelve a iniciar sesión.",
+    "deviceFlowFailed": "Error al iniciar el flujo del dispositivo",
+    "codeExpired": "Código caducado. Inténtalo de nuevo.",
+    "authorizationFailed": "Error de autorización",
+    "startSignInFailed": "No se pudo iniciar la sesión"
   }
 }

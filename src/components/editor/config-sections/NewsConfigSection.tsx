@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
@@ -9,13 +10,6 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, NewsView } from '@/types/config';
-
-const NEWS_VIEWS: { value: NewsView; label: string }[] = [
-  { value: 'headline', label: 'Headline (Rotating)' },
-  { value: 'list', label: 'List' },
-  { value: 'ticker', label: 'Ticker (Scrolling)' },
-  { value: 'compact', label: 'Compact' },
-];
 
 const NEWS_FEED_PRESETS = [
   { label: 'BBC News', url: '' },
@@ -31,6 +25,13 @@ const NEWS_FEED_PRESETS = [
 const PRESET_URLS = new Set(NEWS_FEED_PRESETS.map((p) => p.url));
 
 export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+  const NEWS_VIEWS: { value: NewsView; label: string }[] = [
+    { value: 'headline', label: t('configSections.news.viewHeadline') },
+    { value: 'list', label: t('configSections.news.viewList') },
+    { value: 'ticker', label: t('configSections.news.viewTicker') },
+    { value: 'compact', label: t('configSections.news.viewCompact') },
+  ];
   const { config: c, set } = useModuleConfig<{
     feedUrl?: string; view?: NewsView; refreshIntervalMs?: number; rotateIntervalMs?: number;
     maxItems?: number; showTimestamp?: boolean; showDescription?: boolean; tickerSpeed?: number;
@@ -43,7 +44,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
   return (
     <>
-      <LabeledField label="Feed Source">
+      <LabeledField label={t('configSections.news.feedSource')}>
         <select
           value={isCustom ? '__custom__' : feedUrl}
           onChange={(e) => {
@@ -55,12 +56,12 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           {NEWS_FEED_PRESETS.map((p) => (
             <option key={p.url} value={p.url}>{p.label}</option>
           ))}
-          <option value="__custom__">Custom URL…</option>
+          <option value="__custom__">{t('configSections.news.customUrlOption')}</option>
         </select>
       </LabeledField>
       {isCustom && (
         <LabeledInput
-          label="Custom RSS Feed URL"
+          label={t('configSections.news.customRssFeedUrl')}
           value={feedUrl}
           onChange={(v) => set({ feedUrl: v })}
           placeholder="https://example.com/feed.xml"
@@ -73,7 +74,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
       {view === 'headline' && (
         <Slider
-          label="Rotate Headlines (seconds)"
+          label={t('configSections.news.rotateHeadlines')}
           value={(c.rotateIntervalMs ?? 10000) / 1000}
           min={3}
           max={30}
@@ -82,7 +83,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
       {view !== 'headline' && (
         <Slider
-          label="Max Items"
+          label={t('configSections.news.maxItems')}
           value={c.maxItems ?? 10}
           min={3}
           max={20}
@@ -91,7 +92,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
       {view === 'ticker' && (
         <Slider
-          label="Ticker Speed (sec/item)"
+          label={t('configSections.news.tickerSpeed')}
           value={c.tickerSpeed ?? 5}
           min={1}
           max={15}
@@ -100,27 +101,27 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
       {(view === 'list' || view === 'compact') && (
         <Toggle
-          label="Show Timestamp"
+          label={t('configSections.news.showTimestamp')}
           checked={c.showTimestamp ?? false}
           onChange={(v) => set({ showTimestamp: v })}
         />
       )}
       {view === 'list' && (
         <Toggle
-          label="Show Description"
+          label={t('configSections.news.showDescription')}
           checked={c.showDescription ?? false}
           onChange={(v) => set({ showDescription: v })}
         />
       )}
       {view === 'list' && (
         <ColorPicker
-          label="Bullet Color"
+          label={t('configSections.news.bulletColor')}
           value={c.accentColor ?? ''}
           onChange={(v) => set({ accentColor: v || undefined })}
         />
       )}
       <Slider
-        label="Refresh (seconds)"
+        label={t('configSections.news.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 300000) / 1000}
         min={60}
         max={3600}

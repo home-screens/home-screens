@@ -1,17 +1,19 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import Slider from '@/components/ui/Slider';
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance } from '@/types/config';
 
 export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{ refreshIntervalMs?: number; accentColor?: string }>(mod, screenId);
 
   return (
     <>
       <Slider
-        label="Refresh (seconds)"
+        label={t('configSections.quote.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 300000) / 1000}
         min={30}
         max={3600}

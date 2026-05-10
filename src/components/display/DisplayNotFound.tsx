@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useTranslate } from '@/i18n';
 import { setDisplayToken, displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
 
@@ -41,6 +42,7 @@ const AUTO_RECOVER_MS = 60_000;
  * the entire time the user is browsing the editor.
  */
 export default function DisplayNotFound({ displayId, displayToken }: DisplayNotFoundProps) {
+  const t = useTranslate('core');
   // The display token must be set before any displayFetch fires.
   useLayoutEffect(() => { setDisplayToken(displayToken); }, [displayToken]);
 
@@ -207,7 +209,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
             marginBottom: 12,
           }}
         >
-          Display Not Registered
+          {t('displayNotFound.notRegistered')}
         </div>
         <h1
           style={{
@@ -228,9 +230,11 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
             margin: '0 0 32px',
           }}
         >
-          This display is connected to the hub but has not been adopted yet.
-          Open the editor on the hub, go to <strong>Settings → Displays</strong>,
-          and click <strong>Adopt</strong> next to{' '}
+          {t('displayNotFound.adoptionLine1')}{' '}
+          {t('displayNotFound.adoptionLine2')}{' '}
+          <strong>{t('displayNotFound.settingsLink')}</strong>,{' '}
+          {t('displayNotFound.andClick')} <strong>{t('displayNotFound.adoptLabel')}</strong>{' '}
+          {t('displayNotFound.nextTo')}{' '}
           <code
             style={{
               padding: '2px 8px',
@@ -267,7 +271,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
               animation: 'hs-pulse 1.6s ease-in-out infinite',
             }}
           />
-          Waiting for adoption…
+          {t('displayNotFound.waitingForAdoption')}
         </div>
 
         {/* Auto-recovery — only when the hub already has other registered
@@ -284,12 +288,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
             }}
           >
             <div style={{ fontSize: 13, color: '#a3a3a3', marginBottom: 12, lineHeight: 1.5 }}>
-              This display ID isn&rsquo;t registered, but your hub has other
-              displays set up. Switching to the default display in{' '}
-              <strong style={{ color: '#fafafa', fontVariantNumeric: 'tabular-nums' }}>
-                {Math.ceil(msRemaining / 1000)}s
-              </strong>
-              .
+              {t('displayNotFound.recoveryNotice', { seconds: Math.ceil(msRemaining / 1000) })}
             </div>
             <button
               type="button"
@@ -309,7 +308,7 @@ export default function DisplayNotFound({ displayId, displayToken }: DisplayNotF
                 minWidth: 44,
               }}
             >
-              Go to default display now
+              {t('displayNotFound.goToDefault')}
             </button>
           </div>
         )}

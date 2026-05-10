@@ -12,34 +12,37 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
 
 type Config = Partial<FullscreenPhotoConfig>;
 
-const SOURCE_OPTIONS = [
-  { value: 'local', label: 'Local Photos' },
-  { value: 'immich', label: 'Immich' },
-] as const;
-
-const MODE_OPTIONS = [
-  { value: 'slideshow', label: 'Slideshow' },
-  { value: 'single', label: 'Single Photo' },
-] as const;
-
-const TRANSITION_OPTIONS: { value: FullscreenPhotoTransition; label: string }[] = [
-  { value: 'fade', label: 'Fade' },
-  { value: 'slide', label: 'Slide' },
-  { value: 'zoom', label: 'Zoom' },
-  { value: 'none', label: 'None' },
-];
-
-const OBJECT_FIT_OPTIONS: { value: 'cover' | 'contain' | 'fill'; label: string }[] = [
-  { value: 'cover', label: 'Cover' },
-  { value: 'contain', label: 'Contain' },
-  { value: 'fill', label: 'Fill' },
-];
-
 export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+
+  const SOURCE_OPTIONS = [
+    { value: 'local', label: t('configSections.fullscreen-photo.sourceLocal') },
+    { value: 'immich', label: t('configSections.fullscreen-photo.sourceImmich') },
+  ] as const;
+
+  const MODE_OPTIONS = [
+    { value: 'slideshow', label: t('configSections.fullscreen-photo.modeSlideshow') },
+    { value: 'single', label: t('configSections.fullscreen-photo.modeSingle') },
+  ] as const;
+
+  const TRANSITION_OPTIONS: { value: FullscreenPhotoTransition; label: string }[] = [
+    { value: 'fade', label: t('configSections.fullscreen-photo.transitionFade') },
+    { value: 'slide', label: t('configSections.fullscreen-photo.transitionSlide') },
+    { value: 'zoom', label: t('configSections.fullscreen-photo.transitionZoom') },
+    { value: 'none', label: t('configSections.fullscreen-photo.transitionNone') },
+  ];
+
+  const OBJECT_FIT_OPTIONS: { value: 'cover' | 'contain' | 'fill'; label: string }[] = [
+    { value: 'cover', label: t('configSections.fullscreen-photo.objectFitCover') },
+    { value: 'contain', label: t('configSections.fullscreen-photo.objectFitContain') },
+    { value: 'fill', label: t('configSections.fullscreen-photo.objectFitFill') },
+  ];
+
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showBrowser, setShowBrowser] = useState(false);
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
@@ -85,15 +88,15 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label="Theme">
+      <LabeledField label={t('configSections.fullscreen-photo.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
           className={INPUT_CLASS}
         >
-          <option value="">Default (Midnight)</option>
-          {FULLSCREEN_THEMES.map((t) => (
-            <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
+          <option value="">{t('configSections.fullscreen-photo.themeDefaultMidnight')}</option>
+          {FULLSCREEN_THEMES.map((theme) => (
+            <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
           ))}
         </select>
       </LabeledField>
@@ -101,7 +104,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
         <LabeledSelect
-          label="Photo Source"
+          label={t('configSections.fullscreen-photo.photoSource')}
           value={source as 'local' | 'immich'}
           onChange={(v) => set({ source: v })}
           options={SOURCE_OPTIONS}
@@ -114,7 +117,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         <>
           {/* Mode toggle: Slideshow vs Single Photo */}
           <LabeledSelect
-            label="Mode"
+            label={t('configSections.fullscreen-photo.mode')}
             value={isSinglePhoto ? 'single' : 'slideshow'}
             onChange={(v) => {
               if (v === 'single') {
@@ -129,13 +132,13 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
           {isSinglePhoto ? (
             /* Single photo picker */
             <div>
-              <span className="text-xs text-hs-text-muted">Photo</span>
+              <span className="text-xs text-hs-text-muted">{t('configSections.fullscreen-photo.photo')}</span>
               <div className="flex gap-1.5 mt-1">
                 <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
-                  {c.file ? c.file.replace(/.*[/\\]/, '').replace(/\.[^.]+$/, '') : 'None selected'}
+                  {c.file ? c.file.replace(/.*[/\\]/, '').replace(/\.[^.]+$/, '') : t('configSections.fullscreen-photo.noneSelected')}
                 </div>
                 <Button size="sm" onClick={() => setShowPhotoPicker(true)}>
-                  Choose...
+                  {t('configSections.fullscreen-photo.choose')}
                 </Button>
               </div>
               {c.file && (
@@ -152,19 +155,21 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
           ) : (
             /* Folder picker (existing slideshow UI) */
             <div>
-              <span className="text-xs text-hs-text-muted">Photo Folder</span>
+              <span className="text-xs text-hs-text-muted">{t('configSections.fullscreen-photo.photoFolder')}</span>
               <div className="flex gap-1.5 mt-1">
                 <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
-                  {directory || 'All Photos (root)'}
+                  {directory || t('configSections.fullscreen-photo.allPhotosRoot')}
                 </div>
                 <Button size="sm" onClick={() => setShowBrowser(true)}>
-                  Browse...
+                  {t('configSections.fullscreen-photo.browse')}
                 </Button>
               </div>
               {photoCount > 0 && (
                 <div className="mt-1.5">
                   <span className="text-[10px] text-hs-text-faint">
-                    {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
+                    {photoCount === 1
+                      ? t('configSections.fullscreen-photo.photoCountSingular', { count: photoCount })
+                      : t('configSections.fullscreen-photo.photoCountPlural', { count: photoCount })}
                   </span>
                   <div className="flex gap-1 mt-1 overflow-x-auto">
                     {previewImages.map((img) => (
@@ -180,7 +185,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
                 </div>
               )}
               {photoCount === 0 && (
-                <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
+                <p className="text-[10px] text-hs-text-faint mt-1">{t('configSections.fullscreen-photo.noPhotosInFolder')}</p>
               )}
             </div>
           )}
@@ -190,7 +195,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Slide interval — only for slideshow mode */}
       {!isSinglePhoto && (
         <Slider
-          label="Slide Interval (seconds)"
+          label={t('configSections.fullscreen-photo.slideIntervalSeconds')}
           value={(c.intervalMs ?? 30000) / 1000}
           min={5}
           max={300}
@@ -203,7 +208,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       <div className="flex gap-2">
         {!isSinglePhoto && (
           <LabeledSelect
-            label="Transition"
+            label={t('configSections.fullscreen-photo.transition')}
             value={c.transition ?? 'fade'}
             onChange={(v) => set({ transition: v })}
             options={TRANSITION_OPTIONS}
@@ -211,7 +216,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
           />
         )}
         <LabeledSelect
-          label="Object Fit"
+          label={t('configSections.fullscreen-photo.objectFit')}
           value={c.objectFit ?? 'cover'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FIT_OPTIONS}
@@ -222,25 +227,25 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       {/* Toggles */}
       {!isSinglePhoto && (
         <Toggle
-          label="Shuffle Order"
+          label={t('configSections.fullscreen-photo.shuffleOrder')}
           checked={c.shuffle ?? false}
           onChange={(v) => set({ shuffle: v })}
         />
       )}
       <Toggle
-        label="Ken Burns Effect"
+        label={t('configSections.fullscreen-photo.kenBurnsEffect')}
         checked={c.kenBurns ?? false}
         onChange={(v) => set({ kenBurns: v })}
       />
       <Toggle
-        label="Show Clock Overlay"
+        label={t('configSections.fullscreen-photo.showClockOverlay')}
         checked={c.showClock ?? true}
         onChange={(v) => set({ showClock: v })}
       />
 
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        Upload photos from your phone via the Photos tab at{' '}
+        {t('configSections.fullscreen-photo.mobileHintPrefix')}{' '}
         <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 

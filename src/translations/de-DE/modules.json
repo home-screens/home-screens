@@ -349,6 +349,12 @@
       "afternoon": "Nachmittag",
       "evening": "Abend",
       "anytime": "Jederzeit"
+    },
+    "iconPicker": {
+      "filter": "Symbole filtern...",
+      "noMatch": "Keine passenden Symbole",
+      "none": "Keins",
+      "clear": "Löschen"
     }
   },
   "fullscreen-chore-chart": {
@@ -544,5 +550,38 @@
         "other": "Aufgaben übrig"
       }
     }
+  },
+  "photo-slideshow": {
+    "loading": "Fotos werden geladen…",
+    "empty": "Keine Fotos gefunden"
+  },
+  "icon": {
+    "empty": "Kein Symbol ausgewählt"
+  },
+  "sticky-note": {
+    "empty": "Kein Inhalt"
+  },
+  "iframe": {
+    "noUrl": "Keine URL festgelegt",
+    "embeddedTitle": "Eingebetteter Inhalt"
+  },
+  "qr-code": {
+    "scanToConnect": "Zum Verbinden scannen",
+    "configureWifi": "WLAN-Netzwerk konfigurieren",
+    "configureData": "QR-Daten konfigurieren"
+  },
+  "display-control": {
+    "prev": "Zurück",
+    "next": "Weiter",
+    "sleep": "Schlaf",
+    "sleepHoldHint": "Schlaf (zum Bestätigen halten)",
+    "brightness": "Helligkeit",
+    "closeBrightness": "Helligkeit schließen",
+    "ariaPrev": "Vorheriger Bildschirm",
+    "ariaNext": "Nächster Bildschirm"
+  },
+  "common": {
+    "locationNotConfigured": "Standort nicht konfiguriert",
+    "pluginNotAvailable": "Plug-in nicht verfügbar: {name}"
   }
 }

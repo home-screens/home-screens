@@ -11,5 +11,44 @@
     "hoursAgo": "vor {n} Std.",
     "daysAgo": "vor {n} T.",
     "weeksAgo": "vor {n} W."
+  },
+  "displayNotFound": {
+    "notRegistered": "Display nicht registriert",
+    "adoptionLine1": "Dieses Display ist mit dem Hub verbunden, wurde aber noch nicht hinzugefügt.",
+    "adoptionLine2": "Öffne den Editor am Hub, gehe zu",
+    "settingsLink": "Einstellungen → Displays",
+    "andClick": "und klicke",
+    "adoptLabel": "Hinzufügen",
+    "nextTo": "neben",
+    "waitingForAdoption": "Warte auf das Hinzufügen…",
+    "recoveryNotice": "Diese Display-ID ist nicht registriert, aber dein Hub hat andere Displays eingerichtet. Wechsle in {seconds} s zum Standard-Display.",
+    "goToDefault": "Jetzt zum Standard-Display wechseln"
+  },
+  "login": {
+    "checkingAuth": "Authentifizierung wird geprüft…",
+    "ipBlocked": "Deine IP-Adresse ist blockiert",
+    "enterPasswordToContinue": "Gib dein Passwort ein, um fortzufahren",
+    "accessRestricted": "Zugang eingeschränkt",
+    "accessRestrictedDescription": "Deine IP-Adresse ist nicht auf der zugelassenen Liste. Anmelden hilft nicht — der Server lehnt jede Anfrage von deiner Adresse ab. Wende dich an einen Administrator, um deine IP zur Zugriffsliste hinzuzufügen, oder melde dich aus einem zulässigen Netzwerk an.",
+    "passwordPlaceholder": "Passwort",
+    "rememberMe": "90 Tage angemeldet bleiben",
+    "signingIn": "Anmeldung läuft…",
+    "unlock": "Entsperren",
+    "loading": "Wird geladen…",
+    "backToDisplay": "Zurück zum Display",
+    "loginFailed": "Anmeldung fehlgeschlagen",
+    "unreachable": "Server nicht erreichbar"
+  },
+  "errors": {
+    "fetchFailed": "Daten konnten nicht geladen werden",
+    "loadImagesFailed": "Bilder konnten nicht geladen werden",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "createFolderFailed": "Ordner konnte nicht erstellt werden",
+    "deleteFolderFailed": "Ordner konnte nicht gelöscht werden",
+    "googleExpired": "Deine Google-Verbindung ist abgelaufen. Bitte melde dich erneut an.",
+    "deviceFlowFailed": "Geräte-Anmeldung konnte nicht gestartet werden",
+    "codeExpired": "Code abgelaufen. Bitte erneut versuchen.",
+    "authorizationFailed": "Autorisierung fehlgeschlagen",
+    "startSignInFailed": "Anmeldung konnte nicht gestartet werden"
   }
 }

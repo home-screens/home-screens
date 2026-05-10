@@ -1,25 +1,27 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, SportsView } from '@/types/config';
 
-const SPORTS_VIEWS: { value: SportsView; label: string }[] = [
-  { value: 'scoreboard', label: 'Scoreboard' },
-  { value: 'cards', label: 'Cards' },
-  { value: 'list', label: 'List' },
-  { value: 'ticker', label: 'Ticker' },
-];
-
 export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{
     view?: SportsView;
     leagues?: string[];
     refreshIntervalMs?: number;
     tickerSpeed?: number;
   }>(mod, screenId);
+
+  const SPORTS_VIEWS: { value: SportsView; label: string }[] = [
+    { value: 'scoreboard', label: t('configSections.sports.viewScoreboard') },
+    { value: 'cards', label: t('configSections.sports.viewCards') },
+    { value: 'list', label: t('configSections.sports.viewList') },
+    { value: 'ticker', label: t('configSections.sports.viewTicker') },
+  ];
 
   const leagueOptions = ['nfl', 'nba', 'mlb', 'nhl', 'mls', 'epl'];
   const selectedLeagues = c.leagues ?? ['nba', 'nfl'];
@@ -33,7 +35,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         options={SPORTS_VIEWS}
       />
       <div className="space-y-1">
-        <span className="text-xs text-hs-text-muted">Leagues</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.sports.leagues')}</span>
         {leagueOptions.map((league) => (
           <Toggle
             key={league}
@@ -50,7 +52,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       </div>
       {view === 'ticker' && (
         <Slider
-          label="Ticker Speed (sec/game)"
+          label={t('configSections.sports.tickerSpeed')}
           value={c.tickerSpeed ?? 4}
           min={2}
           max={10}
@@ -59,7 +61,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         />
       )}
       <Slider
-        label="Refresh (seconds)"
+        label={t('configSections.sports.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 60000) / 1000}
         min={30}
         max={600}

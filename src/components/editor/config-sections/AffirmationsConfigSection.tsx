@@ -11,24 +11,11 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { hasValidLocation } from '@/lib/location';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, AffirmationsView, AffirmationsCategory, CustomAffirmation } from '@/types/config';
 
-const VIEWS: { value: AffirmationsView; label: string }[] = [
-  { value: 'elegant', label: 'Elegant (Accent Lines)' },
-  { value: 'card', label: 'Card (Gradient Tint)' },
-  { value: 'minimal', label: 'Minimal (Text Only)' },
-  { value: 'typewriter', label: 'Typewriter (Animated)' },
-];
-
-const CATEGORIES: { value: AffirmationsCategory; label: string }[] = [
-  { value: 'affirmations', label: 'Affirmations' },
-  { value: 'compliments', label: 'Compliments' },
-  { value: 'motivational', label: 'Motivational' },
-  { value: 'gratitude', label: 'Gratitude Prompts' },
-  { value: 'mindfulness', label: 'Mindfulness' },
-];
-
 export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{
     view?: AffirmationsView;
     categories?: AffirmationsCategory[];
@@ -39,6 +26,21 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
     customEntries?: CustomAffirmation[];
     accentColor?: string;
   }>(mod, screenId);
+
+  const VIEWS: { value: AffirmationsView; label: string }[] = [
+    { value: 'elegant', label: t('configSections.affirmations.viewElegant') },
+    { value: 'card', label: t('configSections.affirmations.viewCard') },
+    { value: 'minimal', label: t('configSections.affirmations.viewMinimal') },
+    { value: 'typewriter', label: t('configSections.affirmations.viewTypewriter') },
+  ];
+
+  const CATEGORIES: { value: AffirmationsCategory; label: string }[] = [
+    { value: 'affirmations', label: t('configSections.affirmations.categoryAffirmations') },
+    { value: 'compliments', label: t('configSections.affirmations.categoryCompliments') },
+    { value: 'motivational', label: t('configSections.affirmations.categoryMotivational') },
+    { value: 'gratitude', label: t('configSections.affirmations.categoryGratitude') },
+    { value: 'mindfulness', label: t('configSections.affirmations.categoryMindfulness') },
+  ];
 
   const [newText, setNewText] = useState('');
   const [newAttribution, setNewAttribution] = useState('');
@@ -80,7 +82,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Categories */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-hs-text-muted">Content Categories</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.affirmations.contentCategories')}</span>
         {CATEGORIES.map((cat) => (
           <Toggle
             key={cat.value}
@@ -93,7 +95,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Rotation Speed — typewriter needs more time to finish typing */}
       <Slider
-        label="Rotation (seconds)"
+        label={t('configSections.affirmations.rotationSeconds')}
         value={(c.rotationIntervalMs ?? 15000) / 1000}
         min={(c.view ?? 'elegant') === 'typewriter' ? 10 : 5}
         max={120}
@@ -102,7 +104,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Toggles */}
       <Toggle
-        label="Time-Aware Content"
+        label={t('configSections.affirmations.timeAware')}
         checked={c.timeAware ?? true}
         onChange={(v) => set({ timeAware: v })}
       />
@@ -111,7 +113,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         onChange={(v) => set({ weatherAware: v })}
       />
       <Toggle
-        label="Show Category Label"
+        label={t('configSections.affirmations.showCategoryLabel')}
         checked={c.showCategoryLabel ?? false}
         onChange={(v) => set({ showCategoryLabel: v })}
       />
@@ -119,7 +121,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
       {/* Accent Color */}
       {(c.view ?? 'elegant') !== 'minimal' && (
         <ColorPicker
-          label="Accent Color"
+          label={t('configSections.affirmations.accentColor')}
           value={c.accentColor ?? '#a78bfa'}
           onChange={(v) => set({ accentColor: v })}
         />
@@ -127,7 +129,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 
       {/* Custom Entries */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs text-hs-text-muted">Custom Entries ({customEntries.length})</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.affirmations.customEntriesCount', { count: customEntries.length })}</span>
         {customEntries.map((entry) => (
           <div key={entry.id} className="flex items-start gap-1 text-xs bg-hs-card rounded p-1.5">
             <span className="flex-1 text-hs-text-secondary leading-snug">{entry.text}</span>
@@ -142,7 +144,7 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         ))}
         <input
           type="text"
-          placeholder="New affirmation text…"
+          placeholder={t('configSections.affirmations.newEntryPlaceholder')}
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addCustom()}
@@ -150,14 +152,14 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
         />
         <input
           type="text"
-          placeholder="Attribution (optional)"
+          placeholder={t('configSections.affirmations.attributionPlaceholder')}
           value={newAttribution}
           onChange={(e) => setNewAttribution(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addCustom()}
           className={INPUT_CLASS}
         />
         <Button variant="secondary" className="text-xs" onClick={addCustom}>
-          Add Entry
+          {t('configSections.affirmations.addEntry')}
         </Button>
       </div>
     </>
@@ -165,16 +167,17 @@ export function AffirmationsConfigSection({ mod, screenId }: { mod: ModuleInstan
 }
 
 function WeatherAwareToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  const t = useTranslate('editor');
   const lat = useEditorStore((s) => s.config?.settings?.latitude ?? s.config?.settings?.weather?.latitude);
   const lon = useEditorStore((s) => s.config?.settings?.longitude ?? s.config?.settings?.weather?.longitude);
   const hasLocation = hasValidLocation(lat, lon);
 
   return (
     <>
-      <Toggle label="Weather-Aware Content" checked={checked} onChange={onChange} />
+      <Toggle label={t('configSections.affirmations.weatherAware')} checked={checked} onChange={onChange} />
       {checked && !hasLocation && (
         <p className="text-xs text-hs-warning">
-          Set your location in Settings &gt; Weather to enable weather-aware content.
+          {t('configSections.affirmations.weatherAwareLocationWarning')}
         </p>
       )}
     </>

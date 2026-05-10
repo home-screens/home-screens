@@ -89,6 +89,7 @@
     "noEvents": "Nenhuma contagem regressiva definida",
     "noUpcoming": "Nenhum evento próximo",
     "agoSuffix": "(passou)",
+    "todayBang": "Hoje!",
     "unitDays": "dias",
     "unitHours": "h",
     "unitMinutes": "min",
@@ -348,6 +349,12 @@
       "afternoon": "Tarde",
       "evening": "Noite",
       "anytime": "A qualquer hora"
+    },
+    "iconPicker": {
+      "filter": "Filtrar ícones...",
+      "noMatch": "Nenhum ícone correspondente",
+      "none": "Nenhum",
+      "clear": "Limpar"
     }
   },
   "fullscreen-chore-chart": {
@@ -543,5 +550,38 @@
         "other": "tarefas restantes"
       }
     }
+  },
+  "photo-slideshow": {
+    "loading": "Carregando fotos…",
+    "empty": "Nenhuma foto encontrada"
+  },
+  "icon": {
+    "empty": "Nenhum ícone selecionado"
+  },
+  "sticky-note": {
+    "empty": "Sem conteúdo"
+  },
+  "iframe": {
+    "noUrl": "Nenhum URL definido",
+    "embeddedTitle": "Conteúdo incorporado"
+  },
+  "qr-code": {
+    "scanToConnect": "Escaneie para conectar",
+    "configureWifi": "Configurar rede Wi-Fi",
+    "configureData": "Configurar dados do QR"
+  },
+  "display-control": {
+    "prev": "Ant.",
+    "next": "Próx.",
+    "sleep": "Suspender",
+    "sleepHoldHint": "Suspender (segure para confirmar)",
+    "brightness": "Brilho",
+    "closeBrightness": "Fechar brilho",
+    "ariaPrev": "Tela anterior",
+    "ariaNext": "Próxima tela"
+  },
+  "common": {
+    "locationNotConfigured": "Local não configurado",
+    "pluginNotAvailable": "Plug-in indisponível: {name}"
   }
 }

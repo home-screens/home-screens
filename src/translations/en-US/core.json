@@ -11,5 +11,44 @@
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago",
     "weeksAgo": "{n}w ago"
+  },
+  "displayNotFound": {
+    "notRegistered": "Display Not Registered",
+    "adoptionLine1": "This display is connected to the hub but has not been adopted yet.",
+    "adoptionLine2": "Open the editor on the hub, go to",
+    "settingsLink": "Settings → Displays",
+    "andClick": "and click",
+    "adoptLabel": "Adopt",
+    "nextTo": "next to",
+    "waitingForAdoption": "Waiting for adoption…",
+    "recoveryNotice": "This display ID isn't registered, but your hub has other displays set up. Switching to the default display in {seconds}s.",
+    "goToDefault": "Go to default display now"
+  },
+  "login": {
+    "checkingAuth": "Checking authentication…",
+    "ipBlocked": "Your IP address is blocked",
+    "enterPasswordToContinue": "Enter your password to continue",
+    "accessRestricted": "Access restricted",
+    "accessRestrictedDescription": "Your IP address is not in the allowed list. Signing in won't help — the server will still reject every request from your address. Contact an administrator to add your IP to the allowlist, or sign in from a permitted network.",
+    "passwordPlaceholder": "Password",
+    "rememberMe": "Remember me for 90 days",
+    "signingIn": "Signing in…",
+    "unlock": "Unlock",
+    "loading": "Loading…",
+    "backToDisplay": "Back to display",
+    "loginFailed": "Login failed",
+    "unreachable": "Unable to reach server"
+  },
+  "errors": {
+    "fetchFailed": "Failed to fetch data",
+    "loadImagesFailed": "Failed to load images",
+    "uploadFailed": "Upload failed",
+    "createFolderFailed": "Failed to create folder",
+    "deleteFolderFailed": "Failed to delete folder",
+    "googleExpired": "Your Google connection has expired. Please sign in again.",
+    "deviceFlowFailed": "Failed to start device flow",
+    "codeExpired": "Code expired. Please try again.",
+    "authorizationFailed": "Authorization failed",
+    "startSignInFailed": "Failed to start sign-in"
   }
 }

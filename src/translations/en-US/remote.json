@@ -535,5 +535,14 @@
   },
   "choresKidView": {
     "notConfigured": "No chores configured. Add a Chore Chart module in the editor to get started."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serving time {time}, click to change",
+    "servingTimeTitle": "Serving time: {time}",
+    "setServingTime": "Set serving time",
+    "setTime": "+ Set time",
+    "setMealTime": "Set meal time",
+    "servingTime": "Serving time",
+    "clearTime": "Clear time"
   }
 }

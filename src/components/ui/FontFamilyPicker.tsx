@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import {
   FONT_REGISTRY,
   FONT_CATEGORY_LABELS,
@@ -37,23 +38,26 @@ interface FontFamilyPickerProps {
 export default function FontFamilyPicker({
   value,
   onChange,
-  label = 'Font Family',
+  label,
   allowInherit = false,
-  inheritLabel = 'Inherit from module',
+  inheritLabel,
 }: FontFamilyPickerProps) {
+  const t = useTranslate('editor');
+  const resolvedLabel = label ?? t('fontFamilyPicker.label');
+  const resolvedInheritLabel = inheritLabel ?? t('fontFamilyPicker.inheritLabel');
   const grouped = fontsByCategory();
   const selected = allowInherit && !value ? '' : fontValueToId(value);
   const selectedDef = selected ? FONT_REGISTRY.find((f) => f.id === selected) : undefined;
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+      <span className="text-xs text-hs-text-muted">{resolvedLabel}</span>
       <select
         value={selected}
         onChange={(e) => onChange(e.target.value)}
         className={INPUT_CLASS}
         style={{ fontFamily: selectedDef?.cssStack }}
       >
-        {allowInherit && <option value="">{inheritLabel}</option>}
+        {allowInherit && <option value="">{resolvedInheritLabel}</option>}
         {(Object.keys(grouped) as FontCategory[]).map((cat) => (
           <optgroup key={cat} label={FONT_CATEGORY_LABELS[cat]}>
             {grouped[cat].map((f) => (

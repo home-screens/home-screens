@@ -1,30 +1,32 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, QRCodeConfig } from '@/types/config';
 
-const MODE_OPTIONS = [
-  { value: 'custom', label: 'Custom (URL / Text)' },
-  { value: 'wifi', label: 'WiFi Password' },
-] as const;
-
-const AUTH_OPTIONS = [
-  { value: 'WPA', label: 'WPA / WPA2 / WPA3' },
-  { value: 'WEP', label: 'WEP' },
-  { value: 'nopass', label: 'None (Open)' },
-] as const;
-
 export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<QRCodeConfig>(mod, screenId);
   const mode = c.mode ?? 'custom';
+
+  const MODE_OPTIONS = [
+    { value: 'custom', label: t('configSections.qr-code.modeCustom') },
+    { value: 'wifi', label: t('configSections.qr-code.modeWifi') },
+  ] as const;
+
+  const AUTH_OPTIONS = [
+    { value: 'WPA', label: t('configSections.qr-code.authWPA') },
+    { value: 'WEP', label: t('configSections.qr-code.authWEP') },
+    { value: 'nopass', label: t('configSections.qr-code.authNone') },
+  ] as const;
 
   return (
     <>
       <LabeledSelect
-        label="Mode"
+        label={t('configSections.qr-code.mode')}
         value={mode}
         onChange={(v) => set({ mode: v as QRCodeConfig['mode'] })}
         options={MODE_OPTIONS}
@@ -33,23 +35,23 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       {mode === 'wifi' ? (
         <>
           <LabeledInput
-            label="Network Name (SSID)"
+            label={t('configSections.qr-code.networkName')}
             value={c.ssid || ''}
             onChange={(v) => set({ ssid: v })}
             placeholder="MyNetwork"
           />
           <LabeledSelect
-            label="Encryption"
+            label={t('configSections.qr-code.encryption')}
             value={c.authType || 'WPA'}
             onChange={(v) => set({ authType: v as QRCodeConfig['authType'] })}
             options={AUTH_OPTIONS}
           />
           {(c.authType || 'WPA') !== 'nopass' && (
             <LabeledInput
-              label="Password"
+              label={t('configSections.qr-code.password')}
               value={c.password || ''}
               onChange={(v) => set({ password: v })}
-              placeholder="WiFi password"
+              placeholder={t('configSections.qr-code.passwordPlaceholder')}
             />
           )}
           <label className="flex items-center gap-2 cursor-pointer">
@@ -59,7 +61,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
               onChange={(e) => set({ hiddenNetwork: e.target.checked })}
               className="accent-cyan-500"
             />
-            <span className="text-xs text-hs-text-muted">Hidden Network</span>
+            <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.hiddenNetwork')}</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -68,7 +70,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
               onChange={(e) => set({ showNetworkName: e.target.checked })}
               className="accent-cyan-500"
             />
-            <span className="text-xs text-hs-text-muted">Show Network Name</span>
+            <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.showNetworkName')}</span>
           </label>
           {(c.authType || 'WPA') !== 'nopass' && (
             <label className="flex items-center gap-2 cursor-pointer">
@@ -78,28 +80,28 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
                 onChange={(e) => set({ showPassword: e.target.checked })}
                 className="accent-cyan-500"
               />
-              <span className="text-xs text-hs-text-muted">Show Password</span>
+              <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.showPassword')}</span>
             </label>
           )}
         </>
       ) : (
         <>
           <LabeledInput
-            label="Data (URL or text)"
+            label={t('configSections.qr-code.dataUrlOrText')}
             value={c.data || ''}
             onChange={(v) => set({ data: v })}
             placeholder="https://example.com"
           />
           <LabeledInput
-            label="Label"
+            label={t('configSections.qr-code.label')}
             value={c.label || ''}
             onChange={(v) => set({ label: v })}
           />
         </>
       )}
 
-      <ColorPicker label="QR Color" value={c.fgColor || '#ffffff'} onChange={(v) => set({ fgColor: v })} />
-      <ColorPicker label="Background" value={c.bgColor || 'transparent'} onChange={(v) => set({ bgColor: v })} />
+      <ColorPicker label={t('configSections.qr-code.qrColor')} value={c.fgColor || '#ffffff'} onChange={(v) => set({ fgColor: v })} />
+      <ColorPicker label={t('configSections.qr-code.background')} value={c.bgColor || 'transparent'} onChange={(v) => set({ bgColor: v })} />
     </>
   );
 }

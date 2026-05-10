@@ -10,12 +10,8 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
-
-const ICON_SETS: { value: WeatherIconSet; label: string }[] = [
-  { value: 'outline', label: 'Outline' },
-  { value: 'color', label: 'Color' },
-];
 
 // Provider capabilities — controls which toggles and views are visible
 const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean }> = {
@@ -35,18 +31,24 @@ const VIEW_REQUIRES: Partial<Record<WeatherView, 'minutely' | 'alerts'>> = {
   alerts: 'alerts',
 };
 
-const ALL_WEATHER_VIEWS: { value: WeatherView; label: string }[] = [
-  { value: 'current', label: 'Current Only' },
-  { value: 'hourly', label: 'Hourly' },
-  { value: 'daily', label: 'Daily Forecast' },
-  { value: 'combined', label: 'Combined' },
-  { value: 'compact', label: 'Compact' },
-  { value: 'table', label: 'Table' },
-  { value: 'precipitation', label: 'Precipitation' },
-  { value: 'alerts', label: 'Weather Alerts' },
-];
-
 export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+
+  const ICON_SETS: { value: WeatherIconSet; label: string }[] = [
+    { value: 'outline', label: t('configSections.weather.iconSets.outline') },
+    { value: 'color', label: t('configSections.weather.iconSets.color') },
+  ];
+
+  const ALL_WEATHER_VIEWS: { value: WeatherView; label: string }[] = [
+    { value: 'current', label: t('configSections.weather.views.current') },
+    { value: 'hourly', label: t('configSections.weather.views.hourly') },
+    { value: 'daily', label: t('configSections.weather.views.daily') },
+    { value: 'combined', label: t('configSections.weather.views.combined') },
+    { value: 'compact', label: t('configSections.weather.views.compact') },
+    { value: 'table', label: t('configSections.weather.views.table') },
+    { value: 'precipitation', label: t('configSections.weather.views.precipitation') },
+    { value: 'alerts', label: t('configSections.weather.views.alerts') },
+  ];
   const { config: c, set } = useModuleConfig<{
     view?: WeatherView;
     iconSet?: WeatherIconSet;
@@ -130,57 +132,57 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         options={availableViews}
       />
       {view === 'alerts' && caps.alerts && (
-        <Toggle label="Hide When No Alerts" checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
+        <Toggle label={t('configSections.weather.hideWhenNoAlerts')} checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
       )}
       {showsStats && (
         <LabeledSelect
-          label="Icon Style"
+          label={t('configSections.weather.iconStyle')}
           value={c.iconSet ?? 'color'}
           onChange={(v) => set({ iconSet: v })}
           options={ICON_SETS}
         />
       )}
       {filteredProviders.length > 0 && (
-        <LabeledField label="Data Provider">
+        <LabeledField label={t('configSections.weather.dataProvider')}>
           <select
             value={c.provider ?? 'global'}
             onChange={(e) => set({ provider: e.target.value as WeatherProviderOption })}
             className={INPUT_CLASS}
           >
-            {!viewRequirement && <option value="global">Global Default</option>}
+            {!viewRequirement && <option value="global">{t('configSections.weather.providers.global')}</option>}
             {filteredProviders.includes('openweathermap') && (
-              <option value="openweathermap">OpenWeatherMap</option>
+              <option value="openweathermap">{t('configSections.weather.providers.openweathermap')}</option>
             )}
             {filteredProviders.includes('weatherapi') && (
-              <option value="weatherapi">WeatherAPI</option>
+              <option value="weatherapi">{t('configSections.weather.providers.weatherapi')}</option>
             )}
             {filteredProviders.includes('pirateweather') && (
-              <option value="pirateweather">Pirate Weather</option>
+              <option value="pirateweather">{t('configSections.weather.providers.pirateweather')}</option>
             )}
             {filteredProviders.includes('noaa') && (
-              <option value="noaa">NOAA / NWS (US only)</option>
+              <option value="noaa">{t('configSections.weather.providers.noaa')}</option>
             )}
             {filteredProviders.includes('open-meteo') && (
-              <option value="open-meteo">Open-Meteo (free, global)</option>
+              <option value="open-meteo">{t('configSections.weather.providers.openMeteo')}</option>
             )}
             {filteredProviders.includes('yr') && (
-              <option value="yr">Yr.no / MET Norway (free, global)</option>
+              <option value="yr">{t('configSections.weather.providers.yr')}</option>
             )}
             {filteredProviders.includes('smhi') && (
-              <option value="smhi">SMHI (free, Nordic only)</option>
+              <option value="smhi">{t('configSections.weather.providers.smhi')}</option>
             )}
             {filteredProviders.includes('metoffice') && (
-              <option value="metoffice">UK Met Office (UK focus)</option>
+              <option value="metoffice">{t('configSections.weather.providers.metoffice')}</option>
             )}
             {filteredProviders.includes('envcanada') && (
-              <option value="envcanada">Environment Canada (Canada only)</option>
+              <option value="envcanada">{t('configSections.weather.providers.envcanada')}</option>
             )}
           </select>
         </LabeledField>
       )}
       {showsHours && (
         <LabeledInput
-          label="Hours to Show"
+          label={t('configSections.weather.hoursToShow')}
           type="number"
           value={c.hoursToShow ?? 8}
           onChange={(v) => set({ hoursToShow: Number(v) })}
@@ -188,34 +190,34 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       )}
       {showsDays && (
         <LabeledInput
-          label="Days to Show"
+          label={t('configSections.weather.daysToShow')}
           type="number"
           value={c.daysToShow ?? 5}
           onChange={(v) => set({ daysToShow: Number(v) })}
         />
       )}
       {showsCurrent && (
-        <Toggle label="Feels Like" checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />
+        <Toggle label={t('configSections.weather.feelsLike')} checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />
       )}
       {showsDays && (
-        <Toggle label="High / Low" checked={c.showHighLow !== false} onChange={(v) => set({ showHighLow: v })} />
+        <Toggle label={t('configSections.weather.highLow')} checked={c.showHighLow !== false} onChange={(v) => set({ showHighLow: v })} />
       )}
       {showsStats && (
         <>
-          <Toggle label="Precipitation" checked={c.showPrecipitation !== false} onChange={(v) => set({ showPrecipitation: v })} />
+          <Toggle label={t('configSections.weather.precipitation')} checked={c.showPrecipitation !== false} onChange={(v) => set({ showPrecipitation: v })} />
           {showsDays && (
-            <Toggle label="Precipitation Amount" checked={!!c.showPrecipAmount} onChange={(v) => set({ showPrecipAmount: v })} />
+            <Toggle label={t('configSections.weather.precipitationAmount')} checked={!!c.showPrecipAmount} onChange={(v) => set({ showPrecipAmount: v })} />
           )}
-          <Toggle label="Humidity" checked={!!c.showHumidity} onChange={(v) => set({ showHumidity: v })} />
-          <Toggle label="Wind Speed" checked={!!c.showWind} onChange={(v) => set({ showWind: v })} />
+          <Toggle label={t('configSections.weather.humidity')} checked={!!c.showHumidity} onChange={(v) => set({ showHumidity: v })} />
+          <Toggle label={t('configSections.weather.windSpeed')} checked={!!c.showWind} onChange={(v) => set({ showWind: v })} />
           {caps.pressure && (
-            <Toggle label="Pressure" checked={!!c.showPressure} onChange={(v) => set({ showPressure: v })} />
+            <Toggle label={t('configSections.weather.pressure')} checked={!!c.showPressure} onChange={(v) => set({ showPressure: v })} />
           )}
           {caps.visibility && (
-            <Toggle label="Visibility" checked={!!c.showVisibility} onChange={(v) => set({ showVisibility: v })} />
+            <Toggle label={t('configSections.weather.visibility')} checked={!!c.showVisibility} onChange={(v) => set({ showVisibility: v })} />
           )}
           {caps.dewPoint && (
-            <Toggle label="Dew Point" checked={!!c.showDewPoint} onChange={(v) => set({ showDewPoint: v })} />
+            <Toggle label={t('configSections.weather.dewPoint')} checked={!!c.showDewPoint} onChange={(v) => set({ showDewPoint: v })} />
           )}
         </>
       )}

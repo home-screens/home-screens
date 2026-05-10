@@ -6,9 +6,11 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { hasValidLocation } from '@/lib/location';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
 export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{ name?: string; accentColor?: string; weatherAware?: boolean }>(mod, screenId);
   const lat = useEditorStore((s) => s.config?.settings?.latitude ?? s.config?.settings?.weather?.latitude);
   const lon = useEditorStore((s) => s.config?.settings?.longitude ?? s.config?.settings?.weather?.longitude);
@@ -18,8 +20,8 @@ export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   return (
     <>
       <LabeledInput
-        label="Name"
-        value={(c.name as string) || 'Friend'}
+        label={t('configSections.greeting.name')}
+        value={(c.name as string) || t('configSections.greeting.defaultName')}
         onChange={(v) => set({ name: v })}
       />
       <AccentColorPicker
@@ -27,13 +29,13 @@ export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         onChange={(v) => set({ accentColor: v })}
       />
       <Toggle
-        label="Weather-Aware Greeting"
+        label={t('configSections.greeting.weatherAware')}
         checked={weatherAware}
         onChange={(v) => set({ weatherAware: v })}
       />
       {weatherAware && !hasLocation && (
         <p className="text-xs text-hs-warning">
-          Set your location in Settings &gt; Weather to enable weather-aware greetings.
+          {t('configSections.greeting.locationRequired')}
         </p>
       )}
     </>

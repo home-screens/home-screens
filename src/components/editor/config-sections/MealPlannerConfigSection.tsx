@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
@@ -32,16 +33,16 @@ interface MealsPayload {
   settings: MealSettings;
 }
 
-const VIEWS: { value: MealPlannerView; label: string }[] = [
-  { value: 'week', label: 'Week Grid' },
-  { value: 'today', label: "Today's Meals" },
-  { value: 'next-meal', label: 'Next Meal (Hero)' },
-  { value: 'compact', label: 'Compact (Today + Tomorrow)' },
-  { value: 'list', label: 'Full Week List' },
-];
-
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+  const VIEWS: { value: MealPlannerView; label: string }[] = [
+    { value: 'week', label: t('configSections.meal-planner.viewWeek') },
+    { value: 'today', label: t('configSections.meal-planner.viewToday') },
+    { value: 'next-meal', label: t('configSections.meal-planner.viewNextMeal') },
+    { value: 'compact', label: t('configSections.meal-planner.viewCompact') },
+    { value: 'list', label: t('configSections.meal-planner.viewList') },
+  ];
   const [showModal, setShowModal] = useState(false);
   const [mealData, setMealData] = useState<MealsPayload>({
     savedMeals: [],
@@ -134,24 +135,24 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
 
       {/* Display Toggles */}
       <Toggle
-        label="Show Emoji"
+        label={t('configSections.meal-planner.showEmoji')}
         checked={c.showEmoji ?? true}
         onChange={(v) => set({ showEmoji: v })}
       />
       <Toggle
-        label="Show Prep Time"
+        label={t('configSections.meal-planner.showPrepTime')}
         checked={c.showPrepTime ?? true}
         onChange={(v) => set({ showPrepTime: v })}
       />
       <Toggle
-        label="Show Tags"
+        label={t('configSections.meal-planner.showTags')}
         checked={c.showTags ?? true}
         onChange={(v) => set({ showTags: v })}
       />
 
       {/* Accent Color */}
       <ColorPicker
-        label="Accent Color"
+        label={t('configSections.meal-planner.accentColor')}
         value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -160,24 +161,24 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           are shared across all meal modules. Edit them from either Settings → Meals
           (in the editor) or the /remote settings drawer. */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        Meal slots, week start, time format, and default serving times are managed from{' '}
-        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">Settings &rarr; Meals</a>{' '}
-        or <span className="text-hs-text-muted">/remote</span> so all your meal modules stay in sync.
+        {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
+        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</a>{' '}
+        {t('configSections.meal-planner.sharedSettingsOr')} <span className="text-hs-text-muted">/remote</span> {t('configSections.meal-planner.sharedSettingsSuffix')}
       </p>
 
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{mealData.savedMeals.length} saved meals</span>
+          <span>{t('configSections.meal-planner.savedMealsCount', { count: mealData.savedMeals.length })}</span>
           <span>&middot;</span>
-          <span>{mealData.plan.length} planned</span>
+          <span>{t('configSections.meal-planner.plannedCount', { count: mealData.plan.length })}</span>
         </div>
         <Button
           variant="primary"
           className="w-full text-xs"
           onClick={() => setShowModal(true)}
         >
-          Edit Meal Plan
+          {t('configSections.meal-planner.editMealPlan')}
         </Button>
       </div>
 

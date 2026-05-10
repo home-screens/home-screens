@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import type { StickyNoteConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
@@ -11,10 +12,11 @@ interface StickyNoteModuleProps {
 }
 
 export default function StickyNoteModule({ config, style }: StickyNoteModuleProps) {
+  const t = useTranslate('modules');
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
 
   if (!config.content?.trim()) {
-    return <ModuleEmptyState style={style} message="No note content" />;
+    return <ModuleEmptyState style={style} message={t('sticky-note.empty')} />;
   }
 
   const noteColor = config.noteColor ?? '#fef08a';

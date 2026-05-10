@@ -6,9 +6,11 @@ export interface BrightnessPopoverProps {
   initial: number; // 0..100
   onCommit: (value: number) => void;
   onDismiss: () => void;
+  /** Translated label shown in the popover header and as the slider's aria-label. */
+  label?: string;
 }
 
-export function BrightnessPopover({ initial, onCommit, onDismiss }: BrightnessPopoverProps) {
+export function BrightnessPopover({ initial, onCommit, onDismiss, label = 'Brightness' }: BrightnessPopoverProps) {
   const [value, setValue] = useState(clamp(initial));
   const ref = useRef<HTMLDivElement>(null);
 
@@ -28,11 +30,11 @@ export function BrightnessPopover({ initial, onCommit, onDismiss }: BrightnessPo
       className="rounded-xl bg-hs-card border border-hs-border-strong shadow-lg p-3 w-[220px]"
     >
       <div className="flex justify-between text-xs mb-1">
-        <span className="uppercase tracking-wider text-hs-text-muted">Brightness</span>
+        <span className="uppercase tracking-wider text-hs-text-muted">{label}</span>
         <span className="font-mono text-hs-text-faint">{value}%</span>
       </div>
       <input
-        aria-label="Brightness"
+        aria-label={label}
         type="range"
         min={0}
         max={100}

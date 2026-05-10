@@ -535,5 +535,14 @@
   },
   "choresKidView": {
     "notConfigured": "Aucune tâche configurée. Ajoute un module Tableau de tâches dans l'éditeur pour commencer."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Heure de service {time}, clique pour modifier",
+    "servingTimeTitle": "Heure de service : {time}",
+    "setServingTime": "Définir l'heure de service",
+    "setTime": "+ Définir l'heure",
+    "setMealTime": "Définir l'heure du repas",
+    "servingTime": "Heure de service",
+    "clearTime": "Effacer l'heure"
   }
 }

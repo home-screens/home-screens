@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
+import { useTranslate } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
@@ -53,6 +54,7 @@ function filterIcons(icons: string[], search: string): string[] {
 }
 
 export default function IconPicker({ value, onChange, icons, label, variant }: IconPickerProps) {
+  const t = useTranslate('modules');
   const [search, setSearch] = useState('');
   const showSearch = icons.length > SEARCH_THRESHOLD[variant];
   const filtered = filterIcons(icons, search);
@@ -64,7 +66,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
         {showSearch && (
           <input
             type="text"
-            placeholder="Filter icons..."
+            placeholder={t('chore-chart.iconPicker.filter')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={MOBILE_INPUT_STYLE}
@@ -128,7 +130,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                 gridColumn: '1 / -1',
               }}
             >
-              No matching icons
+              {t('chore-chart.iconPicker.noMatch')}
             </span>
           )}
         </div>
@@ -143,16 +145,16 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
         {value ? (
           <ChoreIcon value={value} size={22} />
         ) : (
-          <span className="text-xs text-hs-text-faint">None</span>
+          <span className="text-xs text-hs-text-faint">{t('chore-chart.iconPicker.none')}</span>
         )}
         {value && (
           <button
             type="button"
             onClick={() => onChange('')}
             className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary ml-auto"
-            aria-label={`Clear ${label.toLowerCase()}`}
+            aria-label={`${t('chore-chart.iconPicker.clear')} ${label.toLowerCase()}`}
           >
-            Clear
+            {t('chore-chart.iconPicker.clear')}
           </button>
         )}
       </div>
@@ -160,7 +162,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
       {showSearch && (
         <input
           type="text"
-          placeholder="Filter icons..."
+          placeholder={t('chore-chart.iconPicker.filter')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={MODAL_INPUT_CLASS}
@@ -198,7 +200,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
           );
         })}
         {search && filtered.length === 0 && (
-          <span className="text-xs text-hs-text-faint py-2">No matching icons</span>
+          <span className="text-xs text-hs-text-faint py-2">{t('chore-chart.iconPicker.noMatch')}</span>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslate } from '@/i18n';
 import type { PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
@@ -38,6 +39,7 @@ interface PhotoSlideshowModuleProps {
 }
 
 export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<string[]>(photoSlideshowUrl(config), 600000);
   const files = data ?? [];
   const intervalMs = config.intervalMs ?? 30000;
@@ -70,11 +72,11 @@ export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowMo
   }, [index, files]);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading photos…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('photo-slideshow.loading')} error={error} />;
   }
 
   if (files.length === 0) {
-    return <ModuleEmptyState style={style} message="No photos found" />;
+    return <ModuleEmptyState style={style} message={t('photo-slideshow.empty')} />;
   }
 
   const isFade = config.transition === 'fade';

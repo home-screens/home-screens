@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import ImageSearchBrowser, { type BrowsePhoto, type CategoryDef, type SearchResult } from './ImageSearchBrowser';
 
 interface UnsplashPhoto {
@@ -18,19 +19,6 @@ interface UnsplashPhoto {
   downloadUrl: string;
 }
 
-const CATEGORIES: CategoryDef[] = [
-  { label: 'Nature', query: 'nature landscape' },
-  { label: 'Mountains', query: 'mountains scenic' },
-  { label: 'Ocean', query: 'ocean sea coast' },
-  { label: 'Forest', query: 'forest trees' },
-  { label: 'Sky', query: 'sky clouds sunset' },
-  { label: 'Space', query: 'space galaxy nebula' },
-  { label: 'City', query: 'city skyline night' },
-  { label: 'Abstract', query: 'abstract gradient dark' },
-  { label: 'Flowers', query: 'flowers botanical' },
-  { label: 'Seasons', query: 'seasons autumn winter' },
-];
-
 /** Map from BrowsePhoto.id to the full UnsplashPhoto for use in the save handler */
 let photoCache: Map<string, UnsplashPhoto> = new Map();
 
@@ -40,7 +28,21 @@ interface Props {
 }
 
 export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Props) {
+  const t = useTranslate('editor');
   const { updateScreen } = useEditorStore();
+
+  const CATEGORIES: CategoryDef[] = useMemo(() => [
+    { label: t('imageBrowsers.unsplash.categories.nature'), query: 'nature landscape' },
+    { label: t('imageBrowsers.unsplash.categories.mountains'), query: 'mountains scenic' },
+    { label: t('imageBrowsers.unsplash.categories.ocean'), query: 'ocean sea coast' },
+    { label: t('imageBrowsers.unsplash.categories.forest'), query: 'forest trees' },
+    { label: t('imageBrowsers.unsplash.categories.sky'), query: 'sky clouds sunset' },
+    { label: t('imageBrowsers.unsplash.categories.space'), query: 'space galaxy nebula' },
+    { label: t('imageBrowsers.unsplash.categories.city'), query: 'city skyline night' },
+    { label: t('imageBrowsers.unsplash.categories.abstract'), query: 'abstract gradient dark' },
+    { label: t('imageBrowsers.unsplash.categories.flowers'), query: 'flowers botanical' },
+    { label: t('imageBrowsers.unsplash.categories.seasons'), query: 'seasons autumn winter' },
+  ], [t]);
 
   const handleSearch = useCallback(async (query: string, pageNum: number): Promise<SearchResult> => {
     const res = await editorFetch(
@@ -48,7 +50,7 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
     );
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || 'Failed to search Unsplash');
+      throw new Error(data.error || t('imageBrowsers.unsplash.errors.search'));
     }
     const unsplashPhotos: UnsplashPhoto[] = data.photos ?? [];
     const newCache = new Map<string, UnsplashPhoto>();
@@ -63,7 +65,7 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
     });
     photoCache = newCache;
     return { photos: browsePhotos, totalPages: data.totalPages ?? 1 };
-  }, []);
+  }, [t]);
 
   const handleUsePhoto = useCallback(async (photo: BrowsePhoto) => {
     if (!selectedScreenId) return;
@@ -88,9 +90,9 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
   if (!hasUnsplashKey) {
     return (
       <div className="text-xs text-hs-text-faint bg-hs-hover rounded-md p-3 space-y-2">
-        <p>Add a free Unsplash API key in <strong>Settings</strong> to browse thousands of HD backgrounds.</p>
+        <p>{t('imageBrowsers.unsplash.notConfiguredPrefix')} <strong>{t('imageBrowsers.unsplash.settingsWord')}</strong> {t('imageBrowsers.unsplash.notConfiguredSuffix')}</p>
         <p className="text-hs-text-faint">
-          Get one at unsplash.com/developers
+          {t('imageBrowsers.unsplash.apiKeyHint')}
         </p>
       </div>
     );
@@ -101,8 +103,8 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
       categories={CATEGORIES}
       onSearch={handleSearch}
       onUsePhoto={handleUsePhoto}
-      attribution="Photos by Unsplash"
-      searchPlaceholder="Search anything..."
+      attribution={t('imageBrowsers.unsplash.attribution')}
+      searchPlaceholder={t('imageBrowsers.unsplash.searchPlaceholder')}
     />
   );
 }

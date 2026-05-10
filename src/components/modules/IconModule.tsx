@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { useTranslate } from '@/i18n';
 import type { IconConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
@@ -32,10 +33,11 @@ const FLIP_CLASS: Record<IconConfig['flip'], string> = {
 };
 
 export default function IconModule({ config, style }: IconModuleProps) {
+  const t = useTranslate('modules');
   const iconClass = buildIconClass(config.iconName ?? '', config.style ?? 'solid');
 
   if (!iconClass) {
-    return <ModuleEmptyState style={style} message="No icon selected" />;
+    return <ModuleEmptyState style={style} message={t('icon.empty')} />;
   }
 
   const rotation = config.rotation ?? 0;

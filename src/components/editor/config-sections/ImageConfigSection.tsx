@@ -7,15 +7,17 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Button from '@/components/ui/Button';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
-const OBJECT_FIT_OPTIONS = [
-  { value: 'cover', label: 'Cover' },
-  { value: 'contain', label: 'Contain' },
-  { value: 'fill', label: 'Fill' },
-] as const;
-
 export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+  const OBJECT_FIT_OPTIONS = [
+    { value: 'cover', label: t('configSections.image.objectFitCover') },
+    { value: 'contain', label: t('configSections.image.objectFitContain') },
+    { value: 'fill', label: t('configSections.image.objectFitFill') },
+  ] as const;
+
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
   const [tab, setTab] = useState<'url' | 'library'>(() => {
     // Default to library tab if src is a local serve URL
@@ -41,10 +43,10 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       if (res.ok && data.path) {
         set({ src: data.path });
       } else {
-        setUploadError(data.error || 'Upload failed');
+        setUploadError(data.error || t('configSections.image.uploadFailed'));
       }
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      setUploadError(err instanceof Error ? err.message : t('configSections.image.uploadFailed'));
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -54,7 +56,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     <>
       {/* Tab toggle */}
       <div>
-        <span className="text-xs text-hs-text-muted">Image Source</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.image.imageSource')}</span>
         <div className="flex gap-1 bg-hs-card rounded-md p-0.5 mt-1">
           <button
             onClick={() => setTab('url')}
@@ -62,7 +64,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               tab === 'url' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
-            URL
+            {t('configSections.image.tabUrl')}
           </button>
           <button
             onClick={() => setTab('library')}
@@ -70,14 +72,14 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               tab === 'library' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
-            Library
+            {t('configSections.image.tabLibrary')}
           </button>
         </div>
       </div>
 
       {tab === 'url' ? (
         <LabeledInput
-          label="Image URL"
+          label={t('configSections.image.imageUrl')}
           value={(c.src as string) || ''}
           onChange={(v) => set({ src: v })}
           placeholder="https://example.com/photo.jpg"
@@ -86,11 +88,11 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-1.5">
             <Button size="sm" onClick={() => setShowBrowser(true)} className="flex-1">
-              Browse Library...
+              {t('configSections.image.browseLibrary')}
             </Button>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleQuickUpload} className="hidden" />
             <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex-1">
-              {uploading ? 'Uploading...' : 'Upload Image'}
+              {uploading ? t('configSections.image.uploading') : t('configSections.image.uploadImage')}
             </Button>
           </div>
           {uploadError && <p className="text-xs text-hs-danger">{uploadError}</p>}
@@ -100,7 +102,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Preview */}
       {c.src && (
         <div>
-          <span className="text-xs text-hs-text-muted">Preview</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.image.preview')}</span>
           <div className="mt-1 rounded-md overflow-hidden border border-hs-border-strong">
             <img
               src={c.src as string}
@@ -113,14 +115,14 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       <div className="flex gap-2">
         <LabeledSelect
-          label="Object Fit"
+          label={t('configSections.image.objectFit')}
           value={((c.objectFit as string) || 'cover') as 'cover' | 'contain' | 'fill'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FIT_OPTIONS}
           fieldClassName="flex-1"
         />
         <LabeledInput
-          label="Alt Text"
+          label={t('configSections.image.altText')}
           value={(c.alt as string) || ''}
           onChange={(v) => set({ alt: v })}
           fieldClassName="flex-1"

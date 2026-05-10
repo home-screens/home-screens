@@ -4,16 +4,10 @@ import Slider from '@/components/ui/Slider';
 import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
 
 type FinancialView = StockTickerView | CryptoView;
-
-const FINANCIAL_VIEWS: { value: FinancialView; label: string }[] = [
-  { value: 'cards', label: 'Cards' },
-  { value: 'ticker', label: 'Ticker (Scrolling)' },
-  { value: 'table', label: 'Table' },
-  { value: 'compact', label: 'Compact' },
-];
 
 interface FinancialConfigProps {
   mod: ModuleInstance;
@@ -25,7 +19,15 @@ interface FinancialConfigProps {
 }
 
 function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText }: FinancialConfigProps) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{ view?: FinancialView; refreshIntervalMs?: number; cardScale?: number; tickerSpeed?: number } & Record<string, unknown>>(mod, screenId);
+
+  const FINANCIAL_VIEWS: { value: FinancialView; label: string }[] = [
+    { value: 'cards', label: t('configSections.financial.viewCards') },
+    { value: 'ticker', label: t('configSections.financial.viewTicker') },
+    { value: 'table', label: t('configSections.financial.viewTable') },
+    { value: 'compact', label: t('configSections.financial.viewCompact') },
+  ];
 
   const view = c.view ?? 'cards';
   const symbolsValue = (c[symbolsField] as string) || symbolsPlaceholder;
@@ -44,7 +46,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
       />
       {view !== 'ticker' && (
         <Slider
-          label="Scale"
+          label={t('configSections.financial.scale')}
           value={c.cardScale ?? 1}
           min={0.5}
           max={3}
@@ -54,7 +56,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
       )}
       {view === 'ticker' && (
         <Slider
-          label={`Ticker Speed (${tickerUnitText})`}
+          label={t('configSections.financial.tickerSpeed', { unit: tickerUnitText })}
           value={c.tickerSpeed ?? 5}
           min={2}
           max={15}
@@ -63,7 +65,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
         />
       )}
       <Slider
-        label="Refresh (seconds)"
+        label={t('configSections.financial.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 60000) / 1000}
         min={30}
         max={600}
@@ -75,27 +77,29 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
 }
 
 export function StockTickerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   return (
     <FinancialConfigSectionInner
       mod={mod}
       screenId={screenId}
       symbolsField="symbols"
-      symbolsLabel="Symbols (comma-separated)"
+      symbolsLabel={t('configSections.financial.stockSymbolsLabel')}
       symbolsPlaceholder="AAPL,GOOGL,MSFT"
-      tickerUnitText="sec/stock"
+      tickerUnitText={t('configSections.financial.tickerUnitStock')}
     />
   );
 }
 
 export function CryptoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   return (
     <FinancialConfigSectionInner
       mod={mod}
       screenId={screenId}
       symbolsField="ids"
-      symbolsLabel="Coin IDs (comma-separated, CoinGecko)"
+      symbolsLabel={t('configSections.financial.cryptoIdsLabel')}
       symbolsPlaceholder="bitcoin,ethereum"
-      tickerUnitText="sec/coin"
+      tickerUnitText={t('configSections.financial.tickerUnitCoin')}
     />
   );
 }

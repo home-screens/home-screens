@@ -8,44 +8,46 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { getFaIconKind, getFaIconStyles, pickStyleForIcon, type FaIconKind } from '@/lib/font-awesome-icons';
+import { useTranslate } from '@/i18n';
 import type { IconConfig, ModuleInstance } from '@/types/config';
 
-const ALL_STYLE_OPTIONS = [
-  { value: 'solid', label: 'Solid' },
-  { value: 'regular', label: 'Regular (outline)' },
-  { value: 'brands', label: 'Brands (logos)' },
-] as const;
-
-const ROTATION_OPTIONS = [
-  { value: '0', label: 'No rotation' },
-  { value: '90', label: '90°' },
-  { value: '180', label: '180°' },
-  { value: '270', label: '270°' },
-] as const;
-
-const FLIP_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'horizontal', label: 'Horizontal' },
-  { value: 'vertical', label: 'Vertical' },
-  { value: 'both', label: 'Both' },
-] as const;
-
-const ANIMATION_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'spin', label: 'Spin' },
-  { value: 'spin-pulse', label: 'Spin (stepped)' },
-  { value: 'spin-reverse', label: 'Spin reverse' },
-  { value: 'beat', label: 'Beat' },
-  { value: 'fade', label: 'Fade' },
-  { value: 'beat-fade', label: 'Beat + fade' },
-  { value: 'bounce', label: 'Bounce' },
-  { value: 'shake', label: 'Shake' },
-  { value: 'flip', label: 'Flip' },
-] as const;
-
 export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<IconConfig>(mod, screenId);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const ALL_STYLE_OPTIONS = [
+    { value: 'solid', label: t('configSections.icon.styleSolid') },
+    { value: 'regular', label: t('configSections.icon.styleRegular') },
+    { value: 'brands', label: t('configSections.icon.styleBrands') },
+  ] as const;
+
+  const ROTATION_OPTIONS = [
+    { value: '0', label: t('configSections.icon.rotation0') },
+    { value: '90', label: t('configSections.icon.rotation90') },
+    { value: '180', label: t('configSections.icon.rotation180') },
+    { value: '270', label: t('configSections.icon.rotation270') },
+  ] as const;
+
+  const FLIP_OPTIONS = [
+    { value: 'none', label: t('configSections.icon.flipNone') },
+    { value: 'horizontal', label: t('configSections.icon.flipHorizontal') },
+    { value: 'vertical', label: t('configSections.icon.flipVertical') },
+    { value: 'both', label: t('configSections.icon.flipBoth') },
+  ] as const;
+
+  const ANIMATION_OPTIONS = [
+    { value: 'none', label: t('configSections.icon.animationNone') },
+    { value: 'spin', label: t('configSections.icon.animationSpin') },
+    { value: 'spin-pulse', label: t('configSections.icon.animationSpinPulse') },
+    { value: 'spin-reverse', label: t('configSections.icon.animationSpinReverse') },
+    { value: 'beat', label: t('configSections.icon.animationBeat') },
+    { value: 'fade', label: t('configSections.icon.animationFade') },
+    { value: 'beat-fade', label: t('configSections.icon.animationBeatFade') },
+    { value: 'bounce', label: t('configSections.icon.animationBounce') },
+    { value: 'shake', label: t('configSections.icon.animationShake') },
+    { value: 'flip', label: t('configSections.icon.animationFlip') },
+  ] as const;
 
   const animation = c.animation ?? 'none';
   const showAnimationDuration = animation !== 'none';
@@ -65,7 +67,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   return (
     <>
       <IconPicker
-        label="Icon"
+        label={t('configSections.icon.icon')}
         value={c.iconName ?? ''}
         currentKind={currentStyle}
         onPick={(name, kind, styles) => {
@@ -80,7 +82,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
 
       <LabeledSelect
-        label="Style"
+        label={t('configSections.icon.style')}
         value={currentStyle}
         onChange={(v) => {
           const next = v as IconConfig['style'];
@@ -95,13 +97,13 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
 
       <ColorPicker
-        label="Icon color"
+        label={t('configSections.icon.iconColor')}
         value={c.color ?? '#fbbf24'}
         onChange={(v) => set({ color: v })}
       />
 
       <ColorPicker
-        label="Icon background"
+        label={t('configSections.icon.iconBackground')}
         value={c.iconBackground ?? 'transparent'}
         onChange={(v) => set({ iconBackground: v })}
       />
@@ -113,12 +115,12 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           onChange={(e) => set({ autoFit: e.target.checked })}
           className="accent-cyan-500"
         />
-        <span className="text-xs text-hs-text-muted">Auto-fit to module size</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.icon.autoFit')}</span>
       </label>
 
       {!c.autoFit && (
         <Slider
-          label="Scale"
+          label={t('configSections.icon.scale')}
           value={c.scale ?? 0.7}
           min={0.1}
           max={1}
@@ -129,21 +131,21 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       <LabeledSelect
-        label="Rotation"
+        label={t('configSections.icon.rotation')}
         value={String(c.rotation ?? 0) as '0' | '90' | '180' | '270'}
         onChange={(v) => set({ rotation: Number(v) as IconConfig['rotation'] })}
         options={ROTATION_OPTIONS}
       />
 
       <LabeledSelect
-        label="Flip"
+        label={t('configSections.icon.flip')}
         value={c.flip ?? 'none'}
         onChange={(v) => set({ flip: v as IconConfig['flip'] })}
         options={FLIP_OPTIONS}
       />
 
       <LabeledSelect
-        label="Animation"
+        label={t('configSections.icon.animation')}
         value={animation}
         onChange={(v) => set({ animation: v as IconConfig['animation'] })}
         options={ANIMATION_OPTIONS}
@@ -151,7 +153,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       {showAnimationDuration && (
         <Slider
-          label="Animation speed"
+          label={t('configSections.icon.animationSpeed')}
           value={c.animationDuration ?? 2}
           min={0.25}
           max={6}
@@ -166,11 +168,11 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onClick={() => setShowAdvanced((s) => !s)}
         className="text-[11px] text-hs-text-faint hover:text-hs-text-muted transition-colors text-left"
       >
-        {showAdvanced ? '▾ Hide advanced' : '▸ Advanced — paste a raw class string'}
+        {showAdvanced ? t('configSections.icon.hideAdvanced') : t('configSections.icon.showAdvanced')}
       </button>
       {showAdvanced && (
         <LabeledInput
-          label="Custom class"
+          label={t('configSections.icon.customClass')}
           value={c.iconName ?? ''}
           onChange={(v) => set({ iconName: v })}
           placeholder="fa-solid fa-cloud-sun"

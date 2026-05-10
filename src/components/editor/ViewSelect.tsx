@@ -1,6 +1,7 @@
 'use client';
 
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { useTranslate } from '@/i18n';
 
 interface ViewSelectProps<T extends string> {
   label?: string;
@@ -11,15 +12,17 @@ interface ViewSelectProps<T extends string> {
 }
 
 export default function ViewSelect<T extends string>({
-  label = 'View',
+  label,
   value,
   onChange,
   options,
   className = INPUT_CLASS,
 }: ViewSelectProps<T>) {
+  const t = useTranslate('editor');
+  const effectiveLabel = label ?? t('viewSelect.defaultLabel');
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-xs text-hs-text-muted">{label}</span>
+      <span className="text-xs text-hs-text-muted">{effectiveLabel}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}

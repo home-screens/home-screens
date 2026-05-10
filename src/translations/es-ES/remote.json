@@ -535,5 +535,14 @@
   },
   "choresKidView": {
     "notConfigured": "No hay tareas configuradas. Pídele a una persona mayor que añada un módulo de Tabla de tareas en el editor."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Hora de servir {time}, haz clic para cambiar",
+    "servingTimeTitle": "Hora de servir: {time}",
+    "setServingTime": "Establecer hora de servir",
+    "setTime": "+ Establecer hora",
+    "setMealTime": "Establecer hora de la comida",
+    "servingTime": "Hora de servir",
+    "clearTime": "Borrar hora"
   }
 }

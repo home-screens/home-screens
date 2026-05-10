@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { ICalSource } from '@/types/config';
 
@@ -34,6 +35,7 @@ interface UseGoogleCalendarsReturn {
 }
 
 export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleCalendarsOptions): UseGoogleCalendarsReturn {
+  const t = useTranslate('core');
   const [credentialsConfigured, setCredentialsConfigured] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
@@ -59,12 +61,12 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
         // Google tokens missing, expired, or revoked — show reconnect UI with reason
         const errData = await res.json().catch(() => null);
         setGoogleConnected(false);
-        onAuthError(errData?.error || 'Your Google connection has expired. Please sign in again.');
+        onAuthError(errData?.error || t('errors.googleExpired'));
       }
     } catch (err) {
       console.debug('[useGoogleCalendars] fetchCalendars failed (editorFetch handles 401 session errors):', err);
     }
-  }, [onChange, onAuthError]);
+  }, [onChange, onAuthError, t]);
 
   useEffect(() => {
     async function checkAuth() {

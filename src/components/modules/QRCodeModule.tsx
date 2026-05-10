@@ -1,6 +1,7 @@
 'use client';
 
 import { QRCodeSVG } from 'qrcode.react';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { QRCodeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -12,6 +13,7 @@ interface QRCodeModuleProps {
 }
 
 export default function QRCodeModule({ config, style }: QRCodeModuleProps) {
+  const t = useTranslate('modules');
   const fgColor = config.fgColor || '#ffffff';
   const bgColor = config.bgColor || 'transparent';
   const mode = config.mode ?? 'custom';
@@ -47,7 +49,7 @@ export default function QRCodeModule({ config, style }: QRCodeModuleProps) {
                 )}
                 {!(config.showNetworkName ?? true) && !(config.showPassword ?? true) && (
                   <span className="text-center" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
-                    Scan to connect
+                    {t('qr-code.scanToConnect')}
                   </span>
                 )}
               </div>
@@ -59,7 +61,7 @@ export default function QRCodeModule({ config, style }: QRCodeModuleProps) {
           </>
         ) : (
           <span style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
-            {mode === 'wifi' ? 'Configure WiFi network' : 'Configure QR data'}
+            {mode === 'wifi' ? t('qr-code.configureWifi') : t('qr-code.configureData')}
           </span>
         )}
       </div>

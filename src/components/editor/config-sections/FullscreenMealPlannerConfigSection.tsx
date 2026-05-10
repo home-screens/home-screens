@@ -13,6 +13,7 @@ import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
+import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
@@ -29,20 +30,22 @@ interface MealsPayload {
   settings: MealSettings;
 }
 
-const VIEWS = [
-  { value: 'week', label: 'Week' },
-  { value: 'today', label: 'Today' },
-  { value: 'menu-board', label: 'Menu Board' },
-  { value: 'next-meal', label: 'Next Meal' },
-] as const;
-
-const DENSITY_OPTIONS = [
-  { value: 'cozy', label: 'Cozy' },
-  { value: 'snug', label: 'Snug' },
-] as const;
-
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+
+  const VIEWS = [
+    { value: 'week', label: t('configSections.fullscreen-meal-planner.viewWeek') },
+    { value: 'today', label: t('configSections.fullscreen-meal-planner.viewToday') },
+    { value: 'menu-board', label: t('configSections.fullscreen-meal-planner.viewMenuBoard') },
+    { value: 'next-meal', label: t('configSections.fullscreen-meal-planner.viewNextMeal') },
+  ] as const;
+
+  const DENSITY_OPTIONS = [
+    { value: 'cozy', label: t('configSections.fullscreen-meal-planner.densityCozy') },
+    { value: 'snug', label: t('configSections.fullscreen-meal-planner.densitySnug') },
+  ] as const;
+
   const [showModal, setShowModal] = useState(false);
   const [mealData, setMealData] = useState<MealsPayload>({
     savedMeals: [],
@@ -123,22 +126,22 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label="Theme">
+      <LabeledField label={t('configSections.fullscreen-meal-planner.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
           className={INPUT_CLASS}
         >
-          <option value="">Default (from Settings)</option>
-          {FULLSCREEN_THEMES.map((t) => (
-            <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
+          <option value="">{t('configSections.fullscreen-meal-planner.themeDefault')}</option>
+          {FULLSCREEN_THEMES.map((theme) => (
+            <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
           ))}
         </select>
       </LabeledField>
 
       {/* View */}
       <LabeledSelect
-        label="View"
+        label={t('configSections.fullscreen-meal-planner.view')}
         value={c.view ?? 'week'}
         onChange={(v) => set({ view: v })}
         options={VIEWS}
@@ -146,7 +149,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Density */}
       <LabeledSelect
-        label="Density"
+        label={t('configSections.fullscreen-meal-planner.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}
@@ -154,21 +157,21 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Typography Size */}
       <LabeledSelect
-        label="Typography Size"
+        label={t('configSections.fullscreen-meal-planner.typographySize')}
         value={c.typographySize ?? 'medium'}
         onChange={(v) => set({ typographySize: v })}
         options={TYPOGRAPHY_SIZES}
       />
 
       {/* Display Toggles */}
-      <Toggle label="Show Emoji" checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
-      <Toggle label="Show Prep Time" checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
-      <Toggle label="Show Tags" checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
-      <Toggle label="Show Difficulty" checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
+      <Toggle label={t('configSections.fullscreen-meal-planner.showEmoji')} checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
+      <Toggle label={t('configSections.fullscreen-meal-planner.showPrepTime')} checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
+      <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
+      <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
 
       {/* Accent Color */}
       <ColorPicker
-        label="Accent Color"
+        label={t('configSections.fullscreen-meal-planner.accentColor')}
         value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -176,25 +179,24 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{mealData.savedMeals.length} saved meals</span>
+          <span>{t('configSections.fullscreen-meal-planner.savedMealsCount', { count: mealData.savedMeals.length })}</span>
           <span>&middot;</span>
-          <span>{mealData.plan.length} planned</span>
+          <span>{t('configSections.fullscreen-meal-planner.plannedCount', { count: mealData.plan.length })}</span>
         </div>
         <Button
           variant="primary"
           className="w-full text-xs"
           onClick={() => setShowModal(true)}
         >
-          Edit Meal Planner
+          {t('configSections.fullscreen-meal-planner.editMealPlanner')}
         </Button>
       </div>
 
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        Meal slots, week start, time format, and default serving times are shared across
-        all meal modules. Edit them from{' '}
-        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">Settings &rarr; Meals</a>{' '}
-        or the <span className="text-hs-text-muted">/remote</span> settings drawer.
+        {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
+        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
+        {t('configSections.fullscreen-meal-planner.mobileHintSuffix')} <span className="text-hs-text-muted">/remote</span> {t('configSections.fullscreen-meal-planner.mobileHintEnd')}
       </p>
 
       {/* Modal */}
