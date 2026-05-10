@@ -7,6 +7,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { quoteUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useTranslate } from '@/i18n';
 
 interface QuoteModuleProps {
   config: QuoteConfig;
@@ -14,12 +15,13 @@ interface QuoteModuleProps {
 }
 
 export default function QuoteModule({ config, style }: QuoteModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<{ quote: string; author: string }>(quoteUrl(), config.refreshIntervalMs ?? 300000);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading quote…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('quote.loading')} error={error} />;
   }
 
   return (

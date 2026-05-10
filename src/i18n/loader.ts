@@ -157,6 +157,39 @@ export function registerPluginNamespace(
   CACHE.set(key, dictionary);
 }
 
+/**
+ * Drop cache entries so the next `loadNamespace(locale, namespace)` call
+ * re-issues the network request. Useful when a dictionary file appears
+ * after the kiosk has been running long enough to have negative-cached
+ * the en-US fallback under the original locale key (a fresh `fr-FR/*.json`
+ * dropped into `src/translations/` won't take effect on a long-running
+ * Pi without a hard reload otherwise).
+ *
+ * - No arg: clears every cached and pending entry (use sparingly).
+ * - `locale` only: clears all `(locale, *)` entries.
+ *
+ * The Language picker calls this after a locale change so any negatively-
+ * cached dictionaries for the previously-active tag are flushed.
+ *
+ * **Caveat:** the in-memory provider state is NOT reset. Callers that need
+ * the UI to immediately reflect new strings must combine this with a
+ * `router.refresh()` or equivalent provider re-mount.
+ */
+export function revalidateLoaderCache(locale?: string): void {
+  if (!locale) {
+    CACHE.clear();
+    PENDING.clear();
+    return;
+  }
+  const prefix = `${locale}:`;
+  for (const key of CACHE.keys()) {
+    if (key.startsWith(prefix)) CACHE.delete(key);
+  }
+  for (const key of PENDING.keys()) {
+    if (key.startsWith(prefix)) PENDING.delete(key);
+  }
+}
+
 /** @internal — for tests only. Drops every cached and pending request. */
 export function __resetLoaderForTests(): void {
   CACHE.clear();

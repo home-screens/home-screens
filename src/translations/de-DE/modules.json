@@ -104,6 +104,22 @@
   "year-progress": {
     "week": "Woche"
   },
+  "garbage-day": {
+    "header": "Abfuhrkalender",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "nextDay": "Nächster {day}",
+    "emptyState": "Abfuhrtage in den Moduleinstellungen festlegen",
+    "labels": {
+      "trash": "Restmüll",
+      "recycling": "Wertstoff",
+      "yardWaste": "Gartenabfall"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Alle zwei Wochen, {day}"
+    }
+  },
   "calendar": {
     "today": "Heute",
     "tomorrow": "Morgen",
@@ -383,6 +399,150 @@
       "confirmYes": "Ja!",
       "errorGeneric": "Etwas ist schiefgelaufen",
       "errorOffline": "Keine Verbindung"
+    }
+  },
+  "sports": {
+    "loading": "Spielstände werden geladen…",
+    "noGames": "Keine Spiele gefunden"
+  },
+  "stock-ticker": {
+    "loading": "Wird geladen…",
+    "empty": "Keine Aktiendaten",
+    "headers": {
+      "symbol": "Symbol",
+      "price": "Kurs",
+      "change": "Veränderung",
+      "percent": "% Änd"
+    }
+  },
+  "standings": {
+    "loading": "Tabelle wird geladen…",
+    "noStandings": "Keine Tabelle verfügbar"
+  },
+  "todo": {
+    "defaultTitle": "Aufgaben",
+    "noTasksYet": "Noch keine Aufgaben"
+  },
+  "traffic": {
+    "sectionTitle": "Verkehr",
+    "noRoutes": "Keine Routen eingerichtet",
+    "loading": "Verkehr wird geladen…",
+    "unitMin": "Min.",
+    "mockNotice": "Beispieldaten — Verkehrs-API-Schlüssel in den Einstellungen hinzufügen"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "Kein Foto ausgewählt",
+    "noPhotoSelectedHint": "Wähle ein Foto im Editor-Bereich aus.",
+    "noPhotosYet": "Noch keine Fotos",
+    "noPhotosYetHint": "Lade Fotos von deinem Telefon über den Fotos-Tab unter /remote hoch oder wähle einen Ordner im Editor."
+  },
+  "dad-joke": {
+    "loading": "Witz wird geladen…"
+  },
+  "quote": {
+    "loading": "Zitat wird geladen…"
+  },
+  "history": {
+    "loading": "Verlauf wird geladen…",
+    "header": "An diesem Tag",
+    "noEvents": "Keine Ereignisse gefunden",
+    "yearsAgo": {
+      "one": "vor {count} Jahr",
+      "other": "vor {count} Jahren"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "Adjektiv",
+      "noun": "Nomen",
+      "verb": "Verb",
+      "adverb": "Adverb"
+    }
+  },
+  "news": {
+    "loading": "Nachrichten werden geladen…",
+    "empty": "Keine Schlagzeilen",
+    "header": "Nachrichten",
+    "timeAgo": {
+      "justNow": "gerade eben",
+      "minutes": "vor {count} Min",
+      "hours": "vor {count} Std",
+      "days": "vor {count} T"
+    }
+  },
+  "greeting": {
+    "morning": "Guten Morgen",
+    "afternoon": "Guten Tag",
+    "evening": "Guten Abend",
+    "night": "Gute Nacht",
+    "defaultName": "Freund/in",
+    "weather": {
+      "rain": "Es wird regnerisch",
+      "snow": "Warm anziehen",
+      "thunderstorm": "Gewitter erwartet",
+      "clear": "Schöner Tag voraus"
+    }
+  },
+  "affirmations": {
+    "noEntries": "Keine Affirmationen konfiguriert",
+    "categories": {
+      "affirmations": "Affirmation",
+      "compliments": "Kompliment",
+      "motivational": "Motivation",
+      "gratitude": "Dankbarkeit",
+      "mindfulness": "Achtsamkeit"
+    }
+  },
+  "crypto": {
+    "loading": "Wird geladen…",
+    "empty": "Keine Kryptodaten",
+    "headers": {
+      "coin": "Münze",
+      "price": "Kurs",
+      "percent": "24 Std %"
+    }
+  },
+  "todoist": {
+    "loading": "Aufgaben werden geladen…",
+    "empty": "Keine Aufgaben anzuzeigen",
+    "taskCount": {
+      "one": "{count} Aufgabe",
+      "other": "{count} Aufgaben"
+    },
+    "recurringTooltip": "Wiederkehrend",
+    "completeAriaLabel": "Erledigen: {content}",
+    "priority": {
+      "urgent": "Dringend",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "normal": "Normal"
+    },
+    "groups": {
+      "overdue": "Überfällig",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "thisWeek": "Diese Woche",
+      "upcoming": "Demnächst",
+      "noDate": "Ohne Datum",
+      "noLabel": "Ohne Bezeichnung"
+    },
+    "dueDate": {
+      "yesterday": "Gestern",
+      "today": "Heute",
+      "todayAtTime": "Heute {time}",
+      "tomorrow": "Morgen",
+      "daysOverdue": {
+        "one": "{count} Tag überfällig",
+        "other": "{count} Tage überfällig"
+      }
+    },
+    "focus": {
+      "allClear": "Heute alles erledigt!",
+      "allCaughtUp": "Alles erledigt!",
+      "taskRemaining": {
+        "one": "Aufgabe übrig",
+        "other": "Aufgaben übrig"
+      }
     }
   }
 }

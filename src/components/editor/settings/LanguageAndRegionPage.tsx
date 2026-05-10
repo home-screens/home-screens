@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
-import { useTranslate } from '@/i18n';
+import { useTranslate, revalidateLoaderCache } from '@/i18n';
 import { LOCALES, DEFAULT_LOCALE } from '@/i18n/manifest';
 import { reloadPluginTranslations } from '@/lib/plugin-loader';
 
@@ -59,6 +59,12 @@ export default function LanguageAndRegionPage() {
     // refresh that lands before the save would render stale data and
     // make the picker appear not to save.
     await saveConfig();
+    // Drop any negatively-cached dictionaries under the new tag (e.g. the
+    // first time we ever pick `fr-FR`, the loader had previously cached
+    // the en-US fallback under `fr-FR:*` keys). Without this, an install
+    // that ships a new locale file mid-session won't see the strings
+    // until a hard reload. Cheap to do unconditionally on locale change.
+    revalidateLoaderCache(next);
     // Plugin translations are namespace-cached per locale. Refill the
     // cache against the new tag so plugin modules re-render with the
     // right strings; without this, plugin namespaces would stay frozen

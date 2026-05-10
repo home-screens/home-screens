@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { CryptoConfig, ModuleStyle } from '@/types/config';
 import {
@@ -10,6 +11,7 @@ import {
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
 import FinancialDataModule from './financial/FinancialDataModule';
 import { cryptoUrl } from '@/lib/fetch-keys';
+import { useTranslate } from '@/i18n';
 
 interface CryptoModuleProps {
   config: CryptoConfig;
@@ -45,30 +47,32 @@ function toCompactRows(coins: CryptoData[]): CompactRow[] {
   }));
 }
 
-const cryptoTableColumns: TableColumn<CryptoData>[] = [
-  {
-    header: 'Coin',
-    render: (coin) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{coin.name}</span>,
-  },
-  {
-    header: 'Price',
-    align: 'right',
-    render: (coin) => (
-      <span className="font-bold">
-        {formatUSD(coin.price)}
-      </span>
-    ),
-  },
-  {
-    header: '24h %',
-    align: 'right',
-    render: (coin) => (
-      <ChangeColor value={coin.change24h}>{formatPercent(coin.change24h)}</ChangeColor>
-    ),
-  },
-];
-
 export default function CryptoModule({ config, style }: CryptoModuleProps) {
+  const t = useTranslate('modules');
+
+  const cryptoTableColumns = useMemo<TableColumn<CryptoData>[]>(() => [
+    {
+      header: t('crypto.headers.coin'),
+      render: (coin) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{coin.name}</span>,
+    },
+    {
+      header: t('crypto.headers.price'),
+      align: 'right',
+      render: (coin) => (
+        <span className="font-bold">
+          {formatUSD(coin.price)}
+        </span>
+      ),
+    },
+    {
+      header: t('crypto.headers.percent'),
+      align: 'right',
+      render: (coin) => (
+        <ChangeColor value={coin.change24h}>{formatPercent(coin.change24h)}</ChangeColor>
+      ),
+    },
+  ], [t]);
+
   return (
     <FinancialDataModule<CryptoData>
       url={cryptoUrl(config) ?? ''}
@@ -82,8 +86,8 @@ export default function CryptoModule({ config, style }: CryptoModuleProps) {
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
       style={style}
-      loadingMessage="Loading…"
-      emptyMessage="No crypto data"
+      loadingMessage={t('crypto.loading')}
+      emptyMessage={t('crypto.empty')}
       compactLabelWidth="w-24"
     />
   );

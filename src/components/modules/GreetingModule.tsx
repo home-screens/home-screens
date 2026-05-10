@@ -7,6 +7,8 @@ import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { hasAccentColor } from '@/lib/constants';
 import { useEventBus } from '@/hooks/useEventBus';
 import type { WeatherCondition } from '@/lib/event-bus';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 
 interface GreetingModuleProps {
   config: GreetingConfig;
@@ -14,11 +16,11 @@ interface GreetingModuleProps {
   timezone?: string;
 }
 
-function getGreeting(hour: number): string {
-  if (hour >= 5 && hour < 12) return 'Good morning';
-  if (hour >= 12 && hour < 17) return 'Good afternoon';
-  if (hour >= 17 && hour < 21) return 'Good evening';
-  return 'Good night';
+function getGreeting(hour: number, t: TranslateFn): string {
+  if (hour >= 5 && hour < 12) return t('greeting.morning');
+  if (hour >= 12 && hour < 17) return t('greeting.afternoon');
+  if (hour >= 17 && hour < 21) return t('greeting.evening');
+  return t('greeting.night');
 }
 
 function getTimeAccent(hour: number, accentColor?: string): string {
@@ -29,27 +31,28 @@ function getTimeAccent(hour: number, accentColor?: string): string {
   return '#93c5fd';
 }
 
-function getWeatherSuffix(condition: WeatherCondition): string | null {
+function getWeatherSuffix(condition: WeatherCondition, t: TranslateFn): string | null {
   switch (condition) {
     case 'rain':
-    case 'drizzle': return 'Rainy day ahead';
-    case 'snow': return 'Bundle up today';
-    case 'thunderstorm': return 'Storms expected';
-    case 'clear': return 'Beautiful day ahead';
+    case 'drizzle': return t('greeting.weather.rain');
+    case 'snow': return t('greeting.weather.snow');
+    case 'thunderstorm': return t('greeting.weather.thunderstorm');
+    case 'clear': return t('greeting.weather.clear');
     default: return null;
   }
 }
 
 export default function GreetingModule({ config, style, timezone }: GreetingModuleProps) {
+  const t = useTranslate('modules');
   const now = useTZClock(timezone);
   const weather = useEventBus('weather.conditions');
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.12);
 
-  const name = config.name ?? 'Friend';
-  const greeting = getGreeting(now.getHours());
+  const name = config.name ?? t('greeting.defaultName');
+  const greeting = getGreeting(now.getHours(), t);
   const accent = getTimeAccent(now.getHours(), config.accentColor);
   const weatherAware = config.weatherAware ?? true;
-  const suffix = weatherAware && weather ? getWeatherSuffix(weather.condition) : null;
+  const suffix = weatherAware && weather ? getWeatherSuffix(weather.condition, t) : null;
 
   return (
     <ModuleWrapper style={style}>

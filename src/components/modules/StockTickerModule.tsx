@@ -1,7 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { StockTickerConfig, ModuleStyle } from '@/types/config';
+import { useTranslate } from '@/i18n';
 import {
   formatUSD,
   formatPercent,
@@ -58,39 +60,41 @@ function toCompactRows(stocks: StockData[]): CompactRow[] {
   });
 }
 
-const stockTableColumns: TableColumn<StockData>[] = [
-  {
-    header: 'Symbol',
-    render: (stock) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{stock.symbol}</span>,
-  },
-  {
-    header: 'Price',
-    align: 'right',
-    render: (stock) => (
-      <span className="font-bold">
-        {formatUSD(stock.price ?? 0)}
-      </span>
-    ),
-  },
-  {
-    header: 'Change',
-    align: 'right',
-    render: (stock) => {
-      const change = stock.change ?? 0;
-      return <ChangeColor value={change}>{formatChange(change)}</ChangeColor>;
-    },
-  },
-  {
-    header: '%',
-    align: 'right',
-    render: (stock) => {
-      const changePercent = stock.changePercent ?? 0;
-      return <ChangeColor value={changePercent}>{formatPercent(changePercent)}</ChangeColor>;
-    },
-  },
-];
-
 export default function StockTickerModule({ config, style }: StockTickerModuleProps) {
+  const t = useTranslate('modules');
+
+  const stockTableColumns = useMemo<TableColumn<StockData>[]>(() => [
+    {
+      header: t('stock-ticker.headers.symbol'),
+      render: (stock) => <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{stock.symbol}</span>,
+    },
+    {
+      header: t('stock-ticker.headers.price'),
+      align: 'right',
+      render: (stock) => (
+        <span className="font-bold">
+          {formatUSD(stock.price ?? 0)}
+        </span>
+      ),
+    },
+    {
+      header: t('stock-ticker.headers.change'),
+      align: 'right',
+      render: (stock) => {
+        const change = stock.change ?? 0;
+        return <ChangeColor value={change}>{formatChange(change)}</ChangeColor>;
+      },
+    },
+    {
+      header: t('stock-ticker.headers.percent'),
+      align: 'right',
+      render: (stock) => {
+        const changePercent = stock.changePercent ?? 0;
+        return <ChangeColor value={changePercent}>{formatPercent(changePercent)}</ChangeColor>;
+      },
+    },
+  ], [t]);
+
   return (
     <FinancialDataModule<StockData>
       url={stocksUrl(config) ?? ''}
@@ -104,8 +108,8 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
       style={style}
-      loadingMessage="Loading…"
-      emptyMessage="No stock data"
+      loadingMessage={t('stock-ticker.loading')}
+      emptyMessage={t('stock-ticker.empty')}
     />
   );
 }

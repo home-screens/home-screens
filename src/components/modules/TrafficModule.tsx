@@ -8,6 +8,7 @@ import { trafficUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
 import { ContentCard } from './shared/ContentCard';
+import { useTranslate } from '@/i18n';
 
 interface TrafficModuleProps {
   config: TrafficConfig;
@@ -33,21 +34,22 @@ function delayColor(delayMinutes: number): string {
 }
 
 export default function TrafficModule({ config, style }: TrafficModuleProps) {
+  const t = useTranslate('modules');
   const routes = config.routes ?? [];
   const [data, error] = useFetchData<TrafficData>(trafficUrl(config) ?? '', config.refreshIntervalMs ?? 300000);
 
   if (routes.length === 0) {
-    return <ModuleEmptyState style={style} message="No routes configured" />;
+    return <ModuleEmptyState style={style} message={t('traffic.noRoutes')} />;
   }
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading traffic…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('traffic.loading')} error={error} />;
   }
 
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full gap-2">
-        <SectionHeader className="text-center">Traffic</SectionHeader>
+        <SectionHeader className="text-center">{t('traffic.sectionTitle')}</SectionHeader>
 
         {data && (
           <div className="flex flex-col gap-2">
@@ -63,7 +65,7 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
                       <span className="font-bold tabular-nums" style={{ fontSize: '1.5em', lineHeight: 1 }}>
                         {route.durationInTrafficMinutes}
                       </span>
-                      <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>min</span>
+                      <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>{t('traffic.unitMin')}</span>
                       {route.delayMinutes > 0 && (
                         <span
                           className="px-1.5 py-0.5 rounded-full font-medium tabular-nums"
@@ -83,7 +85,7 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
             })}
             {data.mock && (
               <p className="text-center italic" style={{ fontSize: '0.65em', marginTop: '0.25em', opacity: TEXT_OPACITY.tertiary }}>
-                Sample data — add a traffic API key in Settings
+                {t('traffic.mockNotice')}
               </p>
             )}
           </div>

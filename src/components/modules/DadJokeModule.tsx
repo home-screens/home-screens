@@ -8,6 +8,7 @@ import { dadJokeUrl } from '@/lib/fetch-keys';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { resolveAccent } from '@/lib/constants';
 import { AccentDivider } from './shared/AccentDivider';
+import { useTranslate } from '@/i18n';
 
 interface DadJokeModuleProps {
   config: DadJokeConfig;
@@ -15,12 +16,13 @@ interface DadJokeModuleProps {
 }
 
 export default function DadJokeModule({ config, style }: DadJokeModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<{ joke: string }>(dadJokeUrl(), config.refreshIntervalMs);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading joke…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('dad-joke.loading')} error={error} />;
   }
 
   return (

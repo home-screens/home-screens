@@ -38,9 +38,17 @@ interface I18nContextValue {
    * the cascade. See `useFormattingLocale`.
    */
   formattingLocale: string;
-  /** Fast lookup: namespace → (locale → dictionary). */
+  /**
+   * Fast lookup: namespace → (locale → dictionary). Replaced (not
+   * mutated) whenever a new dictionary lands — the loader effect always
+   * builds a fresh outer Map + inner Map clone before calling setState,
+   * so the reference identity is the source of truth for re-renders.
+   */
   namespaces: Map<string, Map<string, Dictionary>>;
-  /** Bumped whenever a new namespace dictionary lands so consumers re-render. */
+  /**
+   * Bumped on date-fns locale preload so consumers that depend on the
+   * formatting locale re-derive even when the namespace map is unchanged.
+   */
   version: number;
   /** Internal helper for the hook to request a missing namespace. */
   requestNamespace: (namespace: string) => void;
@@ -107,7 +115,7 @@ export function I18nProvider({
   // Mode because the initializer is invoked once per mount even if the
   // function component double-renders. No render-side mutation; the loader
   // cache and the in-context map are populated before first paint.
-  const [namespaceMaps] = useState<Map<string, Map<string, Dictionary>>>(() =>
+  const [namespaceMaps, setNamespaceMaps] = useState<Map<string, Map<string, Dictionary>>>(() =>
     buildInitialMap(blob, locale),
   );
   const [version, setVersion] = useState(0);
@@ -181,6 +189,22 @@ export function I18nProvider({
     }
     if (namespacesToLoad.size === 0) return;
 
+    // Immutable update helper — clones the outer Map and the affected
+    // inner Map before patching the new (tag → dict) entry, then hands
+    // the clone to setState. Consumers re-render because the outer Map
+    // identity changes, not because of a side-channel `version` bump.
+    const writeDict = (namespace: string, tag: string, dict: Dictionary) => {
+      setNamespaceMaps((prev) => {
+        const prevInner = prev.get(namespace) ?? new Map<string, Dictionary>();
+        if (prevInner.get(tag) === dict) return prev;
+        const nextInner = new Map(prevInner);
+        nextInner.set(tag, dict);
+        const next = new Map(prev);
+        next.set(namespace, nextInner);
+        return next;
+      });
+    };
+
     const chain = resolveLocaleChain(locale, FALLBACK_LOCALE);
     for (const namespace of namespacesToLoad) {
       const requestKey = `${locale}:${namespace}`;
@@ -190,23 +214,15 @@ export function I18nProvider({
       for (const tag of chain) {
         const cached = getCachedNamespace(tag, namespace);
         if (cached) {
-          const inner = namespaceMaps.get(namespace) ?? new Map<string, Dictionary>();
-          if (!inner.has(tag)) {
-            inner.set(tag, cached);
-            namespaceMaps.set(namespace, inner);
-            setVersion((v) => v + 1);
-          }
+          writeDict(namespace, tag, cached);
           continue;
         }
         void loadNamespace(tag, namespace).then((dict) => {
-          const inner = namespaceMaps.get(namespace) ?? new Map<string, Dictionary>();
-          inner.set(tag, dict);
-          namespaceMaps.set(namespace, inner);
-          setVersion((v) => v + 1);
+          writeDict(namespace, tag, dict);
         });
       }
     }
-  }, [locale, requestedNamespaces, namespaceMaps, pendingTick]);
+  }, [locale, requestedNamespaces, pendingTick]);
 
   const ctxValue = useMemo<I18nContextValue>(
     () => ({

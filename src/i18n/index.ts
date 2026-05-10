@@ -9,7 +9,13 @@ export { formatDate, formatDateSync, formatNumber, formatRelativeTime, preloadDa
 export { LOCALES, FALLBACK_LOCALE, DEFAULT_LOCALE, isRegisteredLocale } from './manifest';
 export { pluralCategory } from './plural';
 export { resolveLocaleChain, lookupKey } from './fallback';
-export { loadNamespace, hydrateFromBlob, getCachedNamespace, registerPluginNamespace } from './loader';
+export {
+  loadNamespace,
+  hydrateFromBlob,
+  getCachedNamespace,
+  registerPluginNamespace,
+  revalidateLoaderCache,
+} from './loader';
 export { BUILT_IN_NAMESPACES } from './types';
 
 export type {

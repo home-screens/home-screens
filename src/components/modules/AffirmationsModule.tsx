@@ -9,6 +9,8 @@ import ModuleWrapper from './ModuleWrapper';
 import { BUILT_IN, type AffirmationEntry as Entry } from './affirmations-data';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 
 interface AffirmationsModuleProps {
   config: AffirmationsConfig;
@@ -21,12 +23,15 @@ interface AffirmationsModuleProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const CATEGORY_LABELS: Record<AffirmationsCategory, string> = {
-  affirmations: 'Affirmation',
-  compliments: 'Compliment',
-  motivational: 'Motivation',
-  gratitude: 'Gratitude',
-  mindfulness: 'Mindfulness',
+// Map of category enum → translation key. Resolve via `t(CATEGORY_LABEL_KEYS[category])`
+// at the call site. Note: the BUILT_IN affirmation `text` strings (in ./affirmations-data.ts)
+// remain English seed content — German seed content is future work.
+const CATEGORY_LABEL_KEYS: Record<AffirmationsCategory, string> = {
+  affirmations: 'affirmations.categories.affirmations',
+  compliments: 'affirmations.categories.compliments',
+  motivational: 'affirmations.categories.motivational',
+  gratitude: 'affirmations.categories.gratitude',
+  mindfulness: 'affirmations.categories.mindfulness',
 };
 
 function getTimeOfDay(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
@@ -141,13 +146,13 @@ function useAffirmationRotation(
 // View components
 // ---------------------------------------------------------------------------
 
-function ElegantView({ entry, accentColor, showCategory }: { entry: Entry; accentColor: string; showCategory: boolean }) {
+function ElegantView({ entry, accentColor, showCategory, t }: { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
       <div className="w-12 h-0.5 rounded-full" style={{ backgroundColor: accentColor, opacity: TEXT_OPACITY.secondary }} />
       {showCategory && (
         <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {CATEGORY_LABELS[entry.category]}
+          {t(CATEGORY_LABEL_KEYS[entry.category])}
         </span>
       )}
       <p className="text-center leading-relaxed font-light italic" style={{ fontSize: '1.3em' }}>
@@ -163,7 +168,7 @@ function ElegantView({ entry, accentColor, showCategory }: { entry: Entry; accen
   );
 }
 
-function CardView({ entry, accentColor, showCategory }: { entry: Entry; accentColor: string; showCategory: boolean }) {
+function CardView({ entry, accentColor, showCategory, t }: { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn }) {
   return (
     <div
       className="flex flex-col items-center justify-center h-full gap-2 px-5 rounded-xl"
@@ -174,7 +179,7 @@ function CardView({ entry, accentColor, showCategory }: { entry: Entry; accentCo
     >
       {showCategory && (
         <span className="uppercase tracking-[0.15em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {CATEGORY_LABELS[entry.category]}
+          {t(CATEGORY_LABEL_KEYS[entry.category])}
         </span>
       )}
       <p className="text-center leading-relaxed" style={{ fontSize: '1.15em' }}>
@@ -189,12 +194,12 @@ function CardView({ entry, accentColor, showCategory }: { entry: Entry; accentCo
   );
 }
 
-function MinimalView({ entry, showCategory }: { entry: Entry; accentColor?: string; showCategory: boolean }) {
+function MinimalView({ entry, showCategory, t }: { entry: Entry; accentColor?: string; showCategory: boolean; t: TranslateFn }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2 px-4">
       {showCategory && (
         <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {CATEGORY_LABELS[entry.category]}
+          {t(CATEGORY_LABEL_KEYS[entry.category])}
         </span>
       )}
       <p className="text-center leading-relaxed font-light" style={{ fontSize: '1.2em' }}>
@@ -209,14 +214,14 @@ function MinimalView({ entry, showCategory }: { entry: Entry; accentColor?: stri
   );
 }
 
-function TypewriterView({ entry, accentColor, showCategory }: { entry: Entry; accentColor: string; showCategory: boolean }) {
+function TypewriterView({ entry, accentColor, showCategory, t }: { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn }) {
   const { displayed, done } = useTypewriter(entry.text, true);
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2 px-4">
       {showCategory && (
         <span className="uppercase tracking-[0.2em]" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {CATEGORY_LABELS[entry.category]}
+          {t(CATEGORY_LABEL_KEYS[entry.category])}
         </span>
       )}
       <p className="text-center leading-relaxed font-mono" style={{ fontSize: '1.1em' }}>
@@ -238,7 +243,7 @@ function TypewriterView({ entry, accentColor, showCategory }: { entry: Entry; ac
 // View component map
 // ---------------------------------------------------------------------------
 
-type ViewProps = { entry: Entry; accentColor: string; showCategory: boolean };
+type ViewProps = { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn };
 
 const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> = {
   elegant: ElegantView,
@@ -252,6 +257,7 @@ const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> 
 // ---------------------------------------------------------------------------
 
 export default function AffirmationsModule({ config, style, timezone, latitude }: AffirmationsModuleProps) {
+  const t = useTranslate('modules');
   const now = useTZClock(timezone, 60_000);
   const weather = useEventBus('weather.conditions');
 
@@ -285,7 +291,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
     return (
       <ModuleWrapper style={style}>
         <div className="flex items-center justify-center h-full" style={{ opacity: TEXT_OPACITY.dim }}>
-          <p style={{ fontSize: '0.9em' }}>No affirmations configured</p>
+          <p style={{ fontSize: '0.9em' }}>{t('affirmations.noEntries')}</p>
         </div>
       </ModuleWrapper>
     );
@@ -298,7 +304,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
     <ModuleWrapper style={style}>
       <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
         <div key={`${key}-${entry.text}`} className="h-full">
-          <ViewComponent entry={entry} accentColor={accentColor} showCategory={showCategory} />
+          <ViewComponent entry={entry} accentColor={accentColor} showCategory={showCategory} t={t} />
         </div>
       </div>
     </ModuleWrapper>

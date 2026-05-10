@@ -5,6 +5,7 @@ import ModuleWrapper from '../ModuleWrapper';
 import { ModuleLoadingState, ModuleEmptyState } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { sportsUrl } from '@/lib/fetch-keys';
+import { useTranslate } from '@/i18n';
 import { ScoreboardView } from './ScoreboardView';
 import { CardsView } from './CardsView';
 import { ListView } from './ListView';
@@ -17,6 +18,7 @@ interface SportsModuleProps {
 }
 
 export default function SportsModule({ config, style }: SportsModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<{ games: Game[] }>(
     sportsUrl(config),
     config.refreshIntervalMs ?? 60000,
@@ -25,11 +27,11 @@ export default function SportsModule({ config, style }: SportsModuleProps) {
   const view = config.view ?? 'scoreboard';
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading scores…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('sports.loading')} error={error} />;
   }
 
   if (games.length === 0) {
-    return <ModuleEmptyState style={style} message="No games found" />;
+    return <ModuleEmptyState style={style} message={t('sports.noGames')} />;
   }
 
   return (

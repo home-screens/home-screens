@@ -104,6 +104,22 @@
   "year-progress": {
     "week": "Week"
   },
+  "garbage-day": {
+    "header": "Collection Schedule",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "nextDay": "Next {day}",
+    "emptyState": "Set collection days in module settings",
+    "labels": {
+      "trash": "Trash",
+      "recycling": "Recycling",
+      "yardWaste": "Yard Waste"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Every other {day}"
+    }
+  },
   "calendar": {
     "today": "Today",
     "tomorrow": "Tomorrow",
@@ -383,6 +399,150 @@
       "confirmYes": "Yes!",
       "errorGeneric": "Something went wrong",
       "errorOffline": "Could not connect"
+    }
+  },
+  "sports": {
+    "loading": "Loading scores…",
+    "noGames": "No games found"
+  },
+  "stock-ticker": {
+    "loading": "Loading…",
+    "empty": "No stock data",
+    "headers": {
+      "symbol": "Symbol",
+      "price": "Price",
+      "change": "Change",
+      "percent": "% Chg"
+    }
+  },
+  "standings": {
+    "loading": "Loading standings…",
+    "noStandings": "No standings available"
+  },
+  "todo": {
+    "defaultTitle": "To Do",
+    "noTasksYet": "No tasks yet"
+  },
+  "traffic": {
+    "sectionTitle": "Traffic",
+    "noRoutes": "No routes configured",
+    "loading": "Loading traffic…",
+    "unitMin": "min",
+    "mockNotice": "Sample data — add a traffic API key in Settings"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "No photo selected",
+    "noPhotoSelectedHint": "Choose a photo in the editor panel.",
+    "noPhotosYet": "No photos yet",
+    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor."
+  },
+  "dad-joke": {
+    "loading": "Loading joke…"
+  },
+  "quote": {
+    "loading": "Loading quote…"
+  },
+  "history": {
+    "loading": "Loading history…",
+    "header": "On This Day",
+    "noEvents": "No events found",
+    "yearsAgo": {
+      "one": "{count} year ago",
+      "other": "{count} years ago"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "adjective",
+      "noun": "noun",
+      "verb": "verb",
+      "adverb": "adverb"
+    }
+  },
+  "news": {
+    "loading": "Loading news…",
+    "empty": "No headlines",
+    "header": "News",
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes": "{count}m ago",
+      "hours": "{count}h ago",
+      "days": "{count}d ago"
+    }
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Good night",
+    "defaultName": "Friend",
+    "weather": {
+      "rain": "Rainy day ahead",
+      "snow": "Bundle up today",
+      "thunderstorm": "Storms expected",
+      "clear": "Beautiful day ahead"
+    }
+  },
+  "affirmations": {
+    "noEntries": "No affirmations configured",
+    "categories": {
+      "affirmations": "Affirmation",
+      "compliments": "Compliment",
+      "motivational": "Motivation",
+      "gratitude": "Gratitude",
+      "mindfulness": "Mindfulness"
+    }
+  },
+  "crypto": {
+    "loading": "Loading…",
+    "empty": "No crypto data",
+    "headers": {
+      "coin": "Coin",
+      "price": "Price",
+      "percent": "24h %"
+    }
+  },
+  "todoist": {
+    "loading": "Loading tasks…",
+    "empty": "No tasks to show",
+    "taskCount": {
+      "one": "{count} task",
+      "other": "{count} tasks"
+    },
+    "recurringTooltip": "Recurring",
+    "completeAriaLabel": "Complete: {content}",
+    "priority": {
+      "urgent": "Urgent",
+      "high": "High",
+      "medium": "Medium",
+      "normal": "Normal"
+    },
+    "groups": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "upcoming": "Upcoming",
+      "noDate": "No Date",
+      "noLabel": "No Label"
+    },
+    "dueDate": {
+      "yesterday": "Yesterday",
+      "today": "Today",
+      "todayAtTime": "Today {time}",
+      "tomorrow": "Tomorrow",
+      "daysOverdue": {
+        "one": "{count}d overdue",
+        "other": "{count}d overdue"
+      }
+    },
+    "focus": {
+      "allClear": "All clear for today!",
+      "allCaughtUp": "You're all caught up!",
+      "taskRemaining": {
+        "one": "task remaining",
+        "other": "tasks remaining"
+      }
     }
   }
 }
