@@ -1,0 +1,586 @@
+{
+  "clock": {
+    "am": "AM",
+    "pm": "PM",
+    "weekShort": "Week",
+    "dayShort": "Day",
+    "binaryHoursLabel": "H",
+    "binaryMinutesLabel": "M",
+    "binarySecondsLabel": "S",
+    "barHoursLabel": "H",
+    "barMinutesLabel": "M",
+    "barSecondsLabel": "S",
+    "arc": {
+      "morningLabel": "6 AM",
+      "eveningLabel": "6 PM",
+      "beforeDawn": "before dawn",
+      "afterDusk": "after dusk"
+    },
+    "elapsed": {
+      "setReferenceTime": "Set a reference time",
+      "since": "since {label}",
+      "until": "until {label}",
+      "notYet": "not yet",
+      "elapsed": "elapsed"
+    },
+    "fuzzy": {
+      "oclock": "{hour} o'clock",
+      "justPast": "just past {hour}",
+      "tenPast": "ten past {hour}",
+      "quarterPast": "quarter past {hour}",
+      "twentyPast": "twenty past {hour}",
+      "twentyFivePast": "twenty-five past {hour}",
+      "halfPast": "half past {hour}",
+      "twentyFiveTo": "twenty-five to {next}",
+      "twentyTo": "twenty to {next}",
+      "quarterTo": "quarter to {next}",
+      "tenTo": "ten to {next}",
+      "almost": "almost {next}"
+    },
+    "word": {
+      "oclock": "It is {hour} o'clock",
+      "atMinute": "It is {hour} {minute}",
+      "hours": {
+        "1": "one",
+        "2": "two",
+        "3": "three",
+        "4": "four",
+        "5": "five",
+        "6": "six",
+        "7": "seven",
+        "8": "eight",
+        "9": "nine",
+        "10": "ten",
+        "11": "eleven",
+        "12": "twelve"
+      },
+      "onesCompound": {
+        "1": "one",
+        "2": "two",
+        "3": "three",
+        "4": "four",
+        "5": "five",
+        "6": "six",
+        "7": "seven",
+        "8": "eight",
+        "9": "nine"
+      },
+      "minutes": {
+        "0": "zero",
+        "10": "ten",
+        "11": "eleven",
+        "12": "twelve",
+        "13": "thirteen",
+        "14": "fourteen",
+        "15": "fifteen",
+        "16": "sixteen",
+        "17": "seventeen",
+        "18": "eighteen",
+        "19": "nineteen",
+        "20": "twenty",
+        "30": "thirty",
+        "40": "forty",
+        "50": "fifty"
+      },
+      "minuteJoin": "{tens}-{ones}"
+    }
+  },
+  "countdown": {
+    "noEvents": "No countdowns set",
+    "noUpcoming": "No upcoming events",
+    "agoSuffix": "(ago)",
+    "unitDays": "days",
+    "unitHours": "hrs",
+    "unitMinutes": "min",
+    "unitSeconds": "sec"
+  },
+  "date": {
+    "weekShort": "Week",
+    "dayShort": "Day",
+    "weekAbbrev": "WK",
+    "dayAbbrev": "DAY"
+  },
+  "year-progress": {
+    "week": "Week"
+  },
+  "garbage-day": {
+    "header": "Collection Schedule",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "nextDay": "Next {day}",
+    "emptyState": "Set collection days in module settings",
+    "labels": {
+      "trash": "Trash",
+      "recycling": "Recycling",
+      "yardWaste": "Yard Waste"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Every other {day}"
+    }
+  },
+  "calendar": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "allDay": "All day",
+    "noEvents": "No events",
+    "noUpcomingEvents": "No upcoming events",
+    "weekShort": "Wk",
+    "moreCount": "+{count} more",
+    "am": "AM",
+    "pm": "PM"
+  },
+  "fullscreen-calendar": {
+    "today": "Today",
+    "allDay": "All Day",
+    "noEvents": "No events",
+    "noEventsThisMonth": "No events this month",
+    "noEventsThisWeek": "No events this week",
+    "noEventsToday": "No events today",
+    "noUpcomingEvents": "No upcoming events",
+    "moreCount": "+{count} more",
+    "am": "AM",
+    "pm": "PM",
+    "headerUpcoming": "Upcoming",
+    "viewLabels": {
+      "schedule": "Schedule",
+      "weekList": "Week",
+      "monthGrid": "Month",
+      "dayTimeline": "Day",
+      "agenda": "Agenda"
+    },
+    "zones": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "ariaLabels": {
+      "currentTemperature": "Current temperature {temp} degrees",
+      "view": "View: {label}",
+      "dayTimeline": "Day timeline",
+      "scheduleTimeGrid": "Schedule time grid",
+      "currentTime": "Current time: {time}",
+      "eventAllDay": "{title}, all day",
+      "eventTimed": "{title}, {start} to {end}",
+      "eventTimedAtLocation": "{title}, {start} to {end}, at {location}",
+      "monthCell": "{date}, {count} events"
+    }
+  },
+  "weather": {
+    "today": "Today",
+    "tomorrowShort": "Tmrw",
+    "feelsLike": "Feels like {temp}",
+    "feelsShort": "Feels {temp}",
+    "highLow": "H:{high} L:{low}",
+    "hourlyForecast": "Hourly Forecast",
+    "forecast": "Forecast",
+    "weatherAlerts": "Weather Alerts",
+    "alertCount": "({count})",
+    "noActiveAlerts": "No active alerts",
+    "alertDataRequires": "Alert data requires Pirate Weather or NOAA",
+    "alertSeverityExpires": "{severity} · Expires {expires}",
+    "noWeatherData": "No weather data",
+    "noForecastData": "No forecast data",
+    "locationNotSet": "Location not set",
+    "setLocationInSettings": "Set your location in Settings",
+    "next60Minutes": "Next 60 Minutes",
+    "noPrecipitationExpected": "No precipitation expected",
+    "stoppingInMin": "Stopping in {minutes} min",
+    "precipitationForNextHour": "Precipitation for the next hour",
+    "startingInMin": "Starting in {minutes} min",
+    "minutelyDataRequires": "Minutely data requires Pirate Weather",
+    "tableHeaders": {
+      "day": "Day",
+      "temp": "Temp",
+      "rain": "Rain",
+      "humidity": "Hum",
+      "wind": "Wind"
+    },
+    "timeline": {
+      "now": "Now",
+      "minutes15": "15m",
+      "minutes30": "30m",
+      "minutes45": "45m",
+      "minutes60": "60m"
+    },
+    "severity": {
+      "Extreme": "Extreme",
+      "Severe": "Severe",
+      "Moderate": "Moderate",
+      "Minor": "Minor",
+      "Unknown": "Unknown"
+    }
+  },
+  "air-quality": {
+    "loading": "Loading air quality…",
+    "airQualityIndex": "Air Quality Index",
+    "labels": {
+      "good": "Good",
+      "fair": "Fair",
+      "moderate": "Moderate",
+      "poor": "Poor",
+      "veryPoor": "Very Poor",
+      "unknown": "Unknown"
+    },
+    "pollutants": {
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "o3": "O₃"
+    }
+  },
+  "moon-phase": {
+    "phases": {
+      "newMoon": "New Moon",
+      "waxingCrescent": "Waxing Crescent",
+      "firstQuarter": "First Quarter",
+      "waxingGibbous": "Waxing Gibbous",
+      "fullMoon": "Full Moon",
+      "waningGibbous": "Waning Gibbous",
+      "lastQuarter": "Last Quarter",
+      "waningCrescent": "Waning Crescent"
+    },
+    "illuminated": "{percent}% illuminated",
+    "rise": "Rise",
+    "set": "Set"
+  },
+  "sunrise-sunset": {
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "dayLength": "Day length: {length}",
+    "goldenHour": "Golden hour: {time}",
+    "midnightSun": "Midnight sun",
+    "sunDoesNotSet": "Sun does not set",
+    "noSunriseToday": "No sunrise today",
+    "noSunsetToday": "No sunset today",
+    "noon": "noon",
+    "riseShort": "↑ rise",
+    "setShort": "set ↓"
+  },
+  "rain-map": {
+    "loading": "Loading rain map…",
+    "noRadarData": "No radar data available",
+    "now": "Now",
+    "minutesAgo": "{minutes}m ago",
+    "minutesAhead": "+{minutes}m"
+  },
+  "meal-planner": {
+    "noMealsPlannedYet": "No meals planned yet",
+    "addMealsInEditor": "Add meals in the editor",
+    "noMealsPlanned": "No meals planned",
+    "noMealPlanned": "No meal planned",
+    "nothingPlanned": "Nothing planned",
+    "todaysMeals": "Today's Meals",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "now": "now",
+    "servingAt": "serving at {time}",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes}m",
+    "slotShort": {
+      "breakfast": "B",
+      "lunch": "L",
+      "dinner": "D",
+      "snack": "S"
+    },
+    "slots": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "nextMealLabels": {
+      "now": "Now",
+      "comingUp": "Coming Up",
+      "tomorrow": "Tomorrow",
+      "next": "Next"
+    }
+  },
+  "fullscreen-meal-planner": {
+    "thisWeeksMeals": "This Week's Meals",
+    "todaysMeals": "Today's Meals",
+    "todaysMenu": "Today's Menu",
+    "today": "Today",
+    "alsoToday": "Also Today",
+    "noMealPlanned": "No meal planned",
+    "notPlanned": "Not planned",
+    "noMealsPlannedToday": "No meals planned for today",
+    "noUpcomingMeals": "No upcoming meals planned",
+    "mealsPlannedCount": "{filled} of {total} meals planned",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes}m",
+    "heroLabels": {
+      "now": "Now",
+      "upNext": "Up Next",
+      "tonight": "Tonight"
+    },
+    "nextMealLabels": {
+      "now": "Now",
+      "comingUp": "Coming Up",
+      "tomorrow": "Tomorrow"
+    }
+  },
+  "chore-chart": {
+    "familyChores": "Family Chores",
+    "familyProgress": "Family Progress",
+    "starChart": "Star Chart",
+    "today": "Today",
+    "chores": "Chores",
+    "thisWeek": "This Week",
+    "addMembersToStart": "Add family members to get started",
+    "openEditorToSetUp": "Open the editor to set up your chore chart",
+    "noChoresConfigured": "No chores configured",
+    "addChoresInEditor": "Add some chores in the editor",
+    "dayOff": "Day off!",
+    "allDone": "All done!",
+    "doneLabel": "Done:",
+    "progressLabel": "Progress:",
+    "doneFraction": "{done}/{total} done",
+    "streakDays": "{count} days",
+    "totalTickets": "Total tickets",
+    "bestStreak": "Best streak",
+    "bestStreakValue": "{name} ({count} days)",
+    "todaysCompletion": "Today's completion",
+    "rewardBalances": "Reward balances",
+    "ticketsCount": "{count} tickets",
+    "timeOfDay": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "anytime": "Anytime"
+    },
+    "iconPicker": {
+      "filter": "Filter icons...",
+      "noMatch": "No matching icons",
+      "none": "None",
+      "clear": "Clear"
+    }
+  },
+  "fullscreen-chore-chart": {
+    "rewardsButton": "Rewards",
+    "complete": "Complete",
+    "noChoresToday": "No chores today",
+    "weeklyTickets": "Weekly tickets:",
+    "weeklyTicketsValue": "{earned} / {total}",
+    "bestStreakLabel": "Best streak:",
+    "bestStreakValue": "{name} — {count} days",
+    "bestStreakNone": "None",
+    "thisWeek": "This Week",
+    "ticket": "ticket",
+    "tickets": "tickets",
+    "ticketCount": "{count} ticket",
+    "ticketsCount": "{count} tickets",
+    "verbs": {
+      "completed": "completed",
+      "uncompleted": "uncompleted",
+      "redeemed": "redeemed"
+    },
+    "ariaLabels": {
+      "completeChore": "Complete {chore} for {member}",
+      "undoChore": "Undo {chore} for {member}",
+      "undoCompleting": "Undo completing {chore}",
+      "undoUncompleting": "Undo uncompleting {chore}"
+    },
+    "timeOfDay": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "anytime": "Anytime"
+    },
+    "rewardsStore": {
+      "title": "Rewards",
+      "subtitle": "Pick something great",
+      "backToChores": "← Chores",
+      "noneAvailable": "No rewards available yet",
+      "recentRedemptions": "Recent Redemptions",
+      "redemptionCost": "−{cost} tickets",
+      "memberTickets": "{member}'s Tickets",
+      "balanceCount": "{count} tickets",
+      "rewardCost": "{count} tickets",
+      "redeem": "Redeem",
+      "confirmTitle": "Spend your tickets?",
+      "confirmBody": "Spend {member}'s tickets on {reward}? ({count} tickets)",
+      "confirmCancel": "Cancel",
+      "confirmYes": "Yes!",
+      "errorGeneric": "Something went wrong",
+      "errorOffline": "Could not connect"
+    }
+  },
+  "sports": {
+    "loading": "Loading scores…",
+    "noGames": "No games found"
+  },
+  "stock-ticker": {
+    "loading": "Loading…",
+    "empty": "No stock data",
+    "headers": {
+      "symbol": "Symbol",
+      "price": "Price",
+      "change": "Change",
+      "percent": "% Chg"
+    }
+  },
+  "standings": {
+    "loading": "Loading standings…",
+    "noStandings": "No standings available"
+  },
+  "todo": {
+    "defaultTitle": "To Do",
+    "noTasksYet": "No tasks yet"
+  },
+  "traffic": {
+    "sectionTitle": "Traffic",
+    "noRoutes": "No routes configured",
+    "loading": "Loading traffic…",
+    "unitMin": "min",
+    "mockNotice": "Sample data — add a traffic API key in Settings"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "No photo selected",
+    "noPhotoSelectedHint": "Choose a photo in the editor panel.",
+    "noPhotosYet": "No photos yet",
+    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor."
+  },
+  "dad-joke": {
+    "loading": "Loading joke…"
+  },
+  "quote": {
+    "loading": "Loading quote…"
+  },
+  "history": {
+    "loading": "Loading history…",
+    "header": "On This Day",
+    "noEvents": "No events found",
+    "yearsAgo": {
+      "one": "{count} year ago",
+      "other": "{count} years ago"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "adjective",
+      "noun": "noun",
+      "verb": "verb",
+      "adverb": "adverb"
+    }
+  },
+  "news": {
+    "loading": "Loading news…",
+    "empty": "No headlines",
+    "header": "News",
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes": "{count}m ago",
+      "hours": "{count}h ago",
+      "days": "{count}d ago"
+    }
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Good night",
+    "defaultName": "Friend",
+    "weather": {
+      "rain": "Rainy day ahead",
+      "snow": "Bundle up today",
+      "thunderstorm": "Storms expected",
+      "clear": "Beautiful day ahead"
+    }
+  },
+  "affirmations": {
+    "noEntries": "No affirmations configured",
+    "categories": {
+      "affirmations": "Affirmation",
+      "compliments": "Compliment",
+      "motivational": "Motivation",
+      "gratitude": "Gratitude",
+      "mindfulness": "Mindfulness"
+    }
+  },
+  "crypto": {
+    "loading": "Loading…",
+    "empty": "No crypto data",
+    "headers": {
+      "coin": "Coin",
+      "price": "Price",
+      "percent": "24h %"
+    }
+  },
+  "todoist": {
+    "loading": "Loading tasks…",
+    "empty": "No tasks to show",
+    "taskCount": {
+      "one": "{count} task",
+      "other": "{count} tasks"
+    },
+    "recurringTooltip": "Recurring",
+    "completeAriaLabel": "Complete: {content}",
+    "priority": {
+      "urgent": "Urgent",
+      "high": "High",
+      "medium": "Medium",
+      "normal": "Normal"
+    },
+    "groups": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "upcoming": "Upcoming",
+      "noDate": "No Date",
+      "noLabel": "No Label"
+    },
+    "dueDate": {
+      "yesterday": "Yesterday",
+      "today": "Today",
+      "todayAtTime": "Today {time}",
+      "tomorrow": "Tomorrow",
+      "daysOverdue": {
+        "one": "{count}d overdue",
+        "other": "{count}d overdue"
+      }
+    },
+    "focus": {
+      "allClear": "All clear for today!",
+      "allCaughtUp": "You're all caught up!",
+      "taskRemaining": {
+        "one": "task remaining",
+        "other": "tasks remaining"
+      }
+    }
+  },
+  "photo-slideshow": {
+    "loading": "Loading photos…",
+    "empty": "No photos found"
+  },
+  "icon": {
+    "empty": "No icon selected"
+  },
+  "sticky-note": {
+    "empty": "No note content"
+  },
+  "iframe": {
+    "noUrl": "No URL set",
+    "embeddedTitle": "Embedded content"
+  },
+  "qr-code": {
+    "scanToConnect": "Scan to connect",
+    "configureWifi": "Configure WiFi network",
+    "configureData": "Configure QR data"
+  },
+  "display-control": {
+    "prev": "Prev",
+    "next": "Next",
+    "sleep": "Sleep",
+    "sleepHoldHint": "Sleep (hold to confirm)",
+    "brightness": "Brightness",
+    "closeBrightness": "Close brightness",
+    "ariaPrev": "Previous screen",
+    "ariaNext": "Next screen"
+  },
+  "common": {
+    "locationNotConfigured": "Location not configured",
+    "pluginNotAvailable": "Plugin not available: {name}"
+  }
+}

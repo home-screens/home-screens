@@ -77,6 +77,7 @@ function languageSiblingDefault(language: string): string | undefined {
     case 'es': return 'es-ES';
     case 'nl': return 'nl-NL';
     case 'pt': return 'pt-BR';
+    case 'da': return 'da-DK';
     default: return undefined;
   }
 }

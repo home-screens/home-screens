@@ -15,6 +15,7 @@ export const LOCALES: LocaleManifest = {
   'es-ES': { tag: 'es-ES', nativeName: 'Español', englishName: 'Spanish (Spain)' },
   'nl-NL': { tag: 'nl-NL', nativeName: 'Nederlands', englishName: 'Dutch (Netherlands)' },
   'pt-BR': { tag: 'pt-BR', nativeName: 'Português', englishName: 'Portuguese (Brazil)' },
+  'da-DK': { tag: 'da-DK', nativeName: 'Dansk', englishName: 'Danish (Denmark)' },
 };
 
 /** Locale used when a key isn't found in the active locale or its language fallback. */

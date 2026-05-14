@@ -72,6 +72,11 @@ async function importDateFnsLocale(tag: string): Promise<DateFnsLocale> {
       const m = await import('date-fns/locale/pt-BR');
       return m.ptBR;
     }
+    case 'da':
+    case 'da-DK': {
+      const m = await import('date-fns/locale/da');
+      return m.da;
+    }
     default: {
       const m = await import('date-fns/locale/en-US');
       return m.enUS;
