@@ -157,6 +157,7 @@ export async function installPlugin(
     }
 
     const safeId = sanitizePluginId(registryEntry.id);
+    await fs.mkdir(pluginsDir(), { recursive: true });
     const tmpTarPath = path.join(pluginsDir(), `${safeId}.tar.gz`);
     await fs.writeFile(tmpTarPath, downloadBuffer);
 
