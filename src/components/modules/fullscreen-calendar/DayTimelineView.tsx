@@ -1,7 +1,7 @@
 'use client';
 
 import { format, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { computeOverlapColumns, MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -74,6 +74,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
           </div>
           {allDayEvs.map(ev => {
             const color = ev.calendarColor ?? '#3B82F6';
+            const description = config.dayShowDescription ? sanitizeEventDescription(ev.description) : '';
             return (
               <div key={ev.id} className="fsc-event-block" aria-label={`${ev.title}, all day`} style={{
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
@@ -86,6 +87,21 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                 marginBottom: scale.bu * 0.2,
               }}>
                 {ev.title}
+                {description && (
+                  <div style={{
+                    fontSize: fontSize * 0.75,
+                    fontWeight: 400,
+                    marginTop: scale.bu * 0.2,
+                    whiteSpace: 'pre-line',
+                    wordBreak: 'break-word',
+                    lineHeight: 1.35,
+                    color: 'var(--cal-text-secondary)',
+                    maxHeight: fontSize * 0.75 * 1.35 * 3,
+                    overflow: 'hidden',
+                  }}>
+                    {description}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -281,6 +297,23 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                       {ev.location}
                     </div>
                   )}
+                  {config.dayShowDescription && height >= fontSize * 5 && (() => {
+                    const description = sanitizeEventDescription(ev.description);
+                    if (!description) return null;
+                    return (
+                      <div style={{
+                        fontSize: fontSize * 0.75,
+                        color: 'var(--cal-text-secondary)',
+                        marginTop: scale.bu * 0.3,
+                        whiteSpace: 'pre-line',
+                        wordBreak: 'break-word',
+                        lineHeight: 1.35,
+                        overflow: 'hidden',
+                      }}>
+                        {description}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}

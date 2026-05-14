@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, compareEventStarts } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 
@@ -17,6 +17,7 @@ interface WeekListViewProps {
 export function WeekListView({ events, config, scale, today, now: _now }: WeekListViewProps) {
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
+  const showDescription = config.weekShowDescription === true;
 
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const days = useMemo(
@@ -85,12 +86,12 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
         {!shouldCollapse && (<>
           {/* All-day events */}
           {allDayEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} showDescription={showDescription} />
           ))}
 
           {/* Empty day */}
@@ -147,15 +148,17 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   );
 }
 
-function EventRow({ event, fontSize, scale, isAllDay }: {
+function EventRow({ event, fontSize, scale, isAllDay, showDescription }: {
   event: CalendarEvent;
   fontSize: number;
   scale: CalendarScale;
   isAllDay?: boolean;
+  showDescription?: boolean;
 }) {
   const color = event.calendarColor ?? '#3B82F6';
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
+  const description = showDescription ? sanitizeEventDescription(event.description) : '';
 
   return (
     <div
@@ -210,6 +213,18 @@ function EventRow({ event, fontSize, scale, isAllDay }: {
             marginTop: 1,
           }}>
             {event.location}
+          </div>
+        )}
+        {description && (
+          <div style={{
+            fontSize: fontSize * 0.85,
+            color: 'var(--cal-text-secondary)',
+            marginTop: scale.bu * 0.25,
+            whiteSpace: 'pre-line',
+            wordBreak: 'break-word',
+            lineHeight: 1.35,
+          }}>
+            {description}
           </div>
         )}
       </div>

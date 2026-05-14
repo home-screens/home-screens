@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { format, addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { autoScheduleDays, computeOverlapColumns, eventBg, eventBorder } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -242,6 +242,24 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                             {format(parseEventDate(ev.start), 'h:mm a')}
                           </div>
                         )}
+                        {config.scheduleShowDescription && height >= fontSize * 4 && (() => {
+                          const description = sanitizeEventDescription(ev.description);
+                          if (!description) return null;
+                          return (
+                            <div style={{
+                              fontSize: fontSize * 0.7,
+                              color: 'var(--cal-text-secondary)',
+                              lineHeight: 1.3,
+                              marginTop: scale.bu * 0.15,
+                              whiteSpace: 'pre-line',
+                              wordBreak: 'break-word',
+                              overflow: 'hidden',
+                              flex: 1,
+                            }}>
+                              {description}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}

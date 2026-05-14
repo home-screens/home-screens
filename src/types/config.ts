@@ -380,9 +380,11 @@ export interface FullscreenCalendarConfig {
   scheduleDaysToShow: number;       // 1-7, 0 = auto
   scheduleHourStart: number;        // 0-23
   scheduleHourEnd: number;          // 1-24
+  scheduleShowDescription?: boolean;
 
   // Week list view
   weekCollapsePastDays: boolean;
+  weekShowDescription?: boolean;
 
   // Month grid view
   monthShowWeekNumbers: boolean;
@@ -392,10 +394,12 @@ export interface FullscreenCalendarConfig {
   dayHourStart: number;
   dayHourEnd: number;
   dayShowLocation: boolean;
+  dayShowDescription?: boolean;
 
   // Agenda view
   agendaDaysAhead: number;          // 7-30
   agendaHideEmptyDays: boolean;
+  agendaShowDescription?: boolean;
 }
 
 // Calendar module config
@@ -410,6 +414,9 @@ export interface CalendarConfig {
   showWeekNumbers: boolean;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
+  // Per-view: render the sanitized event description under the title.
+  dailyShowDescription?: boolean;
+  agendaShowDescription?: boolean;
 }
 
 // Unified weather module config

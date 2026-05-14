@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseEventDate, compareEventStarts, isEventOnDay } from '@/lib/calendar-utils';
+import { parseEventDate, compareEventStarts, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 
 describe('parseEventDate', () => {
   it('parses date-only strings as local midnight (not UTC)', () => {
@@ -141,5 +141,60 @@ describe('isEventOnDay', () => {
       expect(isEventOnDay(event, localDay(2026, 3, 22))).toBe(true);
       expect(isEventOnDay(event, localDay(2026, 3, 21))).toBe(false);
     });
+  });
+});
+
+describe('sanitizeEventDescription', () => {
+  it('returns empty string for null/undefined/empty input', () => {
+    expect(sanitizeEventDescription(undefined)).toBe('');
+    expect(sanitizeEventDescription(null)).toBe('');
+    expect(sanitizeEventDescription('')).toBe('');
+    expect(sanitizeEventDescription('   \n  ')).toBe('');
+  });
+
+  it('strips simple <p> wrappers (the case from issue #6)', () => {
+    expect(sanitizeEventDescription('<p>Math homework due.</p>')).toBe('Math homework due.');
+  });
+
+  it('converts <br> to newline', () => {
+    expect(sanitizeEventDescription('Line one<br>Line two<br/>Line three')).toBe(
+      'Line one\nLine two\nLine three',
+    );
+  });
+
+  it('treats consecutive paragraphs as a blank-line separator', () => {
+    expect(sanitizeEventDescription('<p>First.</p><p>Second.</p>')).toBe('First.\n\nSecond.');
+  });
+
+  it('decodes common HTML entities', () => {
+    expect(sanitizeEventDescription('Tom &amp; Jerry &lt;3 &#39;quotes&#39; &#x263A;'))
+      .toBe("Tom & Jerry <3 'quotes' ☺");
+  });
+
+  it('renders list items with bullet prefixes', () => {
+    expect(sanitizeEventDescription('<ul><li>Pencils</li><li>Paper</li></ul>')).toBe(
+      '• Pencils\n• Paper',
+    );
+  });
+
+  it('collapses 3+ blank lines down to a single blank line', () => {
+    expect(sanitizeEventDescription('a\n\n\n\n\nb')).toBe('a\n\nb');
+  });
+
+  it('normalizes CRLF line endings', () => {
+    expect(sanitizeEventDescription('one\r\ntwo\rthree')).toBe('one\ntwo\nthree');
+  });
+
+  it('preserves plain-text descriptions unchanged (aside from trimming)', () => {
+    expect(sanitizeEventDescription('  Just plain text.  ')).toBe('Just plain text.');
+  });
+
+  it('leaves out-of-range numeric character references intact instead of throwing', () => {
+    // Both values are finite but above 0x10FFFF, which would crash String.fromCodePoint.
+    // A hostile or malformed ICS feed must never bring down the kiosk render.
+    expect(sanitizeEventDescription('hi &#9999999999; bye')).toBe('hi &#9999999999; bye');
+    expect(sanitizeEventDescription('hi &#x110000; bye')).toBe('hi &#x110000; bye');
+    // Negative or unparseable values also fall through safely.
+    expect(sanitizeEventDescription('hi &#xZZZ; bye')).toBe('hi &#xZZZ; bye');
   });
 });

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { format, addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, compareEventStarts } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { MapPin } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -19,6 +19,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const daysAhead = config.agendaDaysAhead ?? 14;
   const isLandscape = scale.orientation === 'landscape';
+  const showDescription = config.agendaShowDescription === true;
 
   const dayGroups = useMemo(() => {
     const groups: { date: Date; events: CalendarEvent[] }[] = [];
@@ -92,6 +93,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
           const nowHour = now.getHours() + now.getMinutes() / 60;
           const isPast = isGroupToday && !ev.allDay &&
             (end.getHours() + end.getMinutes() / 60) <= nowHour;
+          const description = showDescription ? sanitizeEventDescription(ev.description) : '';
 
           if (ev.allDay) {
             return (
@@ -125,6 +127,17 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
                 }}>
                   {ev.title}
                 </div>
+                {description && (
+                  <div style={{
+                    fontSize: fontSize * 0.8,
+                    color: 'var(--cal-text-secondary)',
+                    marginTop: scale.bu * 0.25,
+                    whiteSpace: 'pre-line',
+                    wordBreak: 'break-word',
+                  }}>
+                    {description}
+                  </div>
+                )}
               </div>
             );
           }
@@ -171,6 +184,18 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
                 }}>
                   <MapPin size={fontSize * 0.6} aria-hidden="true" />
                   {ev.location}
+                </div>
+              )}
+              {description && (
+                <div style={{
+                  fontSize: fontSize * 0.85,
+                  color: 'var(--cal-text-secondary)',
+                  marginTop: scale.bu * 0.3,
+                  whiteSpace: 'pre-line',
+                  wordBreak: 'break-word',
+                  lineHeight: 1.35,
+                }}>
+                  {description}
                 </div>
               )}
               {ev.sourceName && (

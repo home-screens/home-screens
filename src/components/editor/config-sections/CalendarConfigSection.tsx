@@ -40,6 +40,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     showWeekNumbers?: boolean;
     sourceFilter?: string[];
     accentColor?: string;
+    dailyShowDescription?: boolean;
+    agendaShowDescription?: boolean;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -190,6 +192,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           <Toggle label="Show Time" checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
           <Toggle label="Show Location" checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
         </>
+      )}
+      {viewMode === 'daily' && (
+        <Toggle label="Show Description" checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
+      )}
+      {viewMode === 'agenda' && (
+        <Toggle label="Show Description" checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
       {(viewMode === 'week' || viewMode === 'month') && (
         <Toggle label="Show Week Numbers" checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />

@@ -200,18 +200,24 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {view === 'schedule' && (
-        <LabeledInput
-          label="Days to Show (0 = auto)"
-          type="number"
-          min={0}
-          max={7}
-          value={c.scheduleDaysToShow ?? 0}
-          onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
-        />
+        <>
+          <LabeledInput
+            label="Days to Show (0 = auto)"
+            type="number"
+            min={0}
+            max={7}
+            value={c.scheduleDaysToShow ?? 0}
+            onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
+          />
+          <Toggle label="Show Description" checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
+        </>
       )}
 
       {view === 'week-list' && (
-        <Toggle label="Collapse Past Days" checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+        <>
+          <Toggle label="Collapse Past Days" checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+          <Toggle label="Show Description" checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
+        </>
       )}
 
       {view === 'month-grid' && (
@@ -229,7 +235,10 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {view === 'day-timeline' && (
-        <Toggle label="Show Location" checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
+        <>
+          <Toggle label="Show Location" checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
+          <Toggle label="Show Description" checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
+        </>
       )}
 
       {view === 'agenda' && (
@@ -243,6 +252,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
           <Toggle label="Hide Empty Days" checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
+          <Toggle label="Show Description" checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
         </>
       )}
     </>

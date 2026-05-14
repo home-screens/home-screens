@@ -2,25 +2,13 @@
 
 import { format, isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth, isToday as isDateToday } from 'date-fns';
 import { createTZDate } from '@/lib/timezone';
-import { parseEventDate, isEventOnDay, compareEventStarts } from '@/lib/calendar-utils';
-import type { CalendarConfig, CalendarViewMode, ModuleStyle } from '@/types/config';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
 import { MetadataText } from './shared/MetadataText';
 import { ContentCard } from './shared/ContentCard';
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  location?: string;
-  allDay?: boolean;
-  calendarColor?: string;
-  sourceId?: string;
-  sourceName?: string;
-}
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -47,17 +35,19 @@ function formatRelativeDay(date: Date, today: Date): string {
 
 // ─── Event Card (shared across views) ───
 
-function EventCard({ event, textColor: _textColor, showTime, showLocation, compact, accentColor }: {
+function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
   showLocation: boolean;
+  showDescription?: boolean;
   compact?: boolean;
   accentColor: string;
 }) {
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
   const isAllDay = event.allDay || (!event.start.includes('T'));
+  const description = showDescription ? sanitizeEventDescription(event.description) : '';
 
   if (compact) {
     return (
@@ -93,6 +83,14 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, compa
             {event.location}
           </MetadataText>
         )}
+        {description && (
+          <p
+            className="leading-snug whitespace-pre-line break-words"
+            style={{ fontSize: '0.72em', opacity: TEXT_OPACITY.secondary, marginTop: '2px' }}
+          >
+            {description}
+          </p>
+        )}
       </div>
     </ContentCard>
   );
@@ -110,6 +108,7 @@ function DailyView({ events, config, style, today, accentColor }: {
   const daysToShow = config.daysToShow ?? 3;
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
+  const showDescription = config.dailyShowDescription === true;
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(today, i);
@@ -147,7 +146,7 @@ function DailyView({ events, config, style, today, accentColor }: {
                 </div>
               ) : (
                 dayEvents.map((ev) => (
-                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} accentColor={accentColor} />
+                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} />
                 ))
               )}
             </div>
@@ -169,6 +168,7 @@ function AgendaView({ events, config, style, today, accentColor }: {
 }) {
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
+  const showDescription = config.agendaShowDescription === true;
   const maxEvents = config.maxEvents ?? 20;
 
   // Sort events chronologically and limit
@@ -208,7 +208,7 @@ function AgendaView({ events, config, style, today, accentColor }: {
           </div>
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => (
-              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} accentColor={accentColor} />
+              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} />
             ))}
           </div>
         </div>
