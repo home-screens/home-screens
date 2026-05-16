@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslate } from '@/i18n';
 import ColorPicker from './ColorPicker';
 
 interface AccentColorPickerProps {
@@ -22,6 +23,7 @@ const PRESETS = [
 ];
 
 export default function AccentColorPicker({ value, onChange }: AccentColorPickerProps) {
+  const t = useTranslate('editor');
   const isPreset = PRESETS.some((p) => p.value === value);
   const [showCustom, setShowCustom] = useState(!isPreset && value !== '#000000');
   // Sync showCustom when value changes externally (e.g. undo/redo)
@@ -36,7 +38,7 @@ export default function AccentColorPicker({ value, onChange }: AccentColorPicker
   return (
     <div className="flex flex-col gap-2">
       <label className="flex items-center justify-between gap-2">
-        <span className="text-xs text-hs-text-muted">Accent Color</span>
+        <span className="text-xs text-hs-text-muted">{t('accentColorPicker.label')}</span>
         <div className="flex items-center gap-2">
           <span
             className="w-5 h-5 rounded border border-hs-border-strong shrink-0"
@@ -62,7 +64,7 @@ export default function AccentColorPicker({ value, onChange }: AccentColorPicker
         </div>
       </label>
       {showCustom && (
-        <ColorPicker label="Custom Color" value={value} onChange={onChange} />
+        <ColorPicker label={t('accentColorPicker.customColor')} value={value} onChange={onChange} />
       )}
     </div>
   );

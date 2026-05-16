@@ -109,7 +109,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     } catch {
       if (id !== fetchIdRef.current) return;
       setImages([]);
-      if (!preserveError) setError('Failed to load images');
+      if (!preserveError) setError(t('errors.loadImagesFailed'));
     }
     if (id === fetchIdRef.current) setLoadingImages(false);
   }, [t]);

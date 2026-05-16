@@ -3,9 +3,11 @@
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
+import { useTranslate } from '@/i18n';
 import { X, Download } from 'lucide-react';
 
 export default function BackupReminderToast() {
+  const t = useTranslate('editor');
   const reminderSettings = useEditorStore((s) => s.config?.settings?.backupReminder);
   const { shouldShow, daysSinceBackup, busy, handleBackup, handleDismiss } = useBackupReminder({
     enabled: reminderSettings?.enabled ?? false,
@@ -26,7 +28,7 @@ export default function BackupReminderToast() {
       `}</style>
       <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-hs-panel/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
         <div className="text-hs-warning text-sm">
-          You haven&#x2019;t backed up in {daysSinceBackup} day{daysSinceBackup === 1 ? '' : 's'}.
+          {t('backupReminder.message', { count: daysSinceBackup ?? 0 })}
         </div>
         <button
           onClick={handleBackup}
@@ -34,12 +36,12 @@ export default function BackupReminderToast() {
           className="flex items-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
         >
           <Download className="w-3.5 h-3.5" />
-          {busy ? 'Downloading\u2026' : 'Backup Now'}
+          {busy ? t('backupReminder.downloading') : t('backupReminder.backupNow')}
         </button>
         <button
           onClick={handleDismiss}
           className="text-hs-text-faint hover:text-hs-text-secondary transition-colors p-0.5"
-          aria-label="Dismiss"
+          aria-label={t('backupReminder.dismiss')}
         >
           <X className="w-4 h-4" />
         </button>

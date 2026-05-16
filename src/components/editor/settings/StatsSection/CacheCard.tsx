@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Database } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import { formatAge } from '@/lib/time-format';
 import type { CacheStats } from '@/lib/display-cache';
 import type { DisplayNode } from '@/types/config';
@@ -21,6 +22,7 @@ export function CacheCard({
   displayConnected: boolean;
   activeDisplay: DisplayNode | null;
 }) {
+  const t = useTranslate('editor');
   const [showCacheDetails, setShowCacheDetails] = useState(false);
 
   // Guard against malformed cacheStats from older display clients.
@@ -39,13 +41,13 @@ export function CacheCard({
     <section>
       <SectionHeading
         icon={Database}
-        title="Data Cache"
+        title={t('settings.statsSection.cacheTitle')}
         trailing={cacheStats && cacheStats.details.length > 0 ? (
           <button
             onClick={() => setShowCacheDetails(!showCacheDetails)}
             className="text-[11px] text-hs-accent hover:text-hs-accent-hover"
           >
-            {showCacheDetails ? 'Hide details' : 'Show details'}
+            {showCacheDetails ? t('settings.statsSection.hideDetails') : t('settings.statsSection.showDetails')}
           </button>
         ) : null}
       />
@@ -56,7 +58,7 @@ export function CacheCard({
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 sm:items-center">
             {/* Headline hit rate */}
             <div className="rounded-lg bg-hs-hover border border-hs-border-strong px-5 py-4 w-full sm:w-[160px] text-center shrink-0">
-              <div className="text-[10px] uppercase tracking-wider text-hs-text-faint">Hit rate</div>
+              <div className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.statsSection.hitRate')}</div>
               <div className={`text-[34px] font-semibold leading-none mt-1 tabular-nums ${
                 hitRateColor === 'success' ? 'text-hs-success' :
                 hitRateColor === 'warning' ? 'text-hs-warning' : 'text-hs-danger'
@@ -74,16 +76,16 @@ export function CacheCard({
                 long compound values like "25 / 100" can't wrap onto their
                 own lines the way they did before. */}
             <div className="grid grid-cols-2 gap-2 flex-1 min-w-0 self-stretch sm:self-start">
-              <CacheStatTile label="Entries"  value={`${cacheStats.entries} / ${cacheStats.maxEntries}`} />
-              <CacheStatTile label="Fresh"    value={String(cacheStats.fresh)}    tone="success" />
-              <CacheStatTile label="Stale"    value={String(cacheStats.stale)}    tone={cacheStats.stale > 0 ? 'warning' : 'neutral'} />
-              <CacheStatTile label="Inflight" value={String(cacheStats.inflight)} />
+              <CacheStatTile label={t('settings.statsSection.entries')}  value={`${cacheStats.entries} / ${cacheStats.maxEntries}`} />
+              <CacheStatTile label={t('settings.statsSection.fresh')}    value={String(cacheStats.fresh)}    tone="success" />
+              <CacheStatTile label={t('settings.statsSection.stale')}    value={String(cacheStats.stale)}    tone={cacheStats.stale > 0 ? 'warning' : 'neutral'} />
+              <CacheStatTile label={t('settings.statsSection.inflight')} value={String(cacheStats.inflight)} />
             </div>
           </div>
           {/* Entries fill bar */}
           <div>
             <div className="flex flex-wrap items-center justify-between text-[11px] mb-1 gap-x-3 gap-y-0.5">
-              <span className="text-hs-text-faint">Entries fill</span>
+              <span className="text-hs-text-faint">{t('settings.statsSection.entriesFill')}</span>
               <span className="text-hs-text-secondary font-mono tabular-nums whitespace-nowrap">
                 {cacheStats.entries} / {cacheStats.maxEntries}
               </span>
@@ -92,7 +94,7 @@ export function CacheCard({
           </div>
           {cacheStats.evictions > 0 && (
             <p className="text-xs text-hs-text-faint">
-              {cacheStats.evictions} LRU eviction{cacheStats.evictions !== 1 ? 's' : ''}
+              {t('settings.statsSection.evictions', { count: cacheStats.evictions })}
             </p>
           )}
 
@@ -101,10 +103,10 @@ export function CacheCard({
               <table className="w-full text-xs">
                 <thead>
                   <tr className="text-hs-text-faint border-b border-hs-border-strong">
-                    <th className="text-left px-2 py-1.5 font-medium">URL</th>
-                    <th className="text-right px-2 py-1.5 font-medium">Age</th>
-                    <th className="text-right px-2 py-1.5 font-medium">TTL</th>
-                    <th className="text-right px-2 py-1.5 font-medium">State</th>
+                    <th className="text-left px-2 py-1.5 font-medium">{t('settings.statsSection.cacheUrl')}</th>
+                    <th className="text-right px-2 py-1.5 font-medium">{t('settings.statsSection.cacheAge')}</th>
+                    <th className="text-right px-2 py-1.5 font-medium">{t('settings.statsSection.cacheTtl')}</th>
+                    <th className="text-right px-2 py-1.5 font-medium">{t('settings.statsSection.cacheState')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hs-border">
@@ -125,7 +127,7 @@ export function CacheCard({
                             ? 'bg-hs-warning/20 text-hs-warning'
                             : 'bg-hs-success/20 text-hs-success'
                         }`}>
-                          {d.stale ? 'stale' : 'fresh'}
+                          {d.stale ? t('settings.statsSection.cacheStaleLabel') : t('settings.statsSection.cacheFreshLabel')}
                         </span>
                       </td>
                     </tr>
@@ -137,8 +139,9 @@ export function CacheCard({
         </div>
       ) : (
         <p className="text-xs text-hs-text-faint">
-          Cache stats are reported by the display client. No display connected
-          {activeDisplay ? <> for <span className="text-hs-text-secondary">{activeDisplay.name}</span></> : null}.
+          {activeDisplay
+            ? t('settings.statsSection.cacheNoDisplayForName', { name: activeDisplay.name })
+            : t('settings.statsSection.cacheNoDisplay')}
         </p>
       )}
     </section>

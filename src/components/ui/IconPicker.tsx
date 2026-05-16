@@ -179,7 +179,7 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
       className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Choose an icon"
+      aria-label={t('iconPicker.chooseTitle')}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

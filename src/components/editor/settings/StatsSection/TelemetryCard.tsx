@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
 import type { SystemStats } from './types';
 
@@ -16,21 +17,20 @@ export function TelemetryCard({
   isSaving: boolean;
   onToggle: () => void | Promise<void>;
 }) {
+  const t = useTranslate('editor');
   const [showTelemetryDetails, setShowTelemetryDetails] = useState(false);
 
   return (
     <section>
-      <SectionHeading icon={BarChart3} title="Anonymous Telemetry" />
+      <SectionHeading icon={BarChart3} title={t('settings.statsSection.telemetryTitle')} />
       <div className="space-y-3">
         <p className="text-xs text-hs-text-muted leading-relaxed">
-          Home Screens collects anonymous usage statistics to help prioritize features
-          and understand how the app is used. No personal data, IP addresses, or content
-          is ever collected.
+          {t('settings.statsSection.telemetryDescription')}
         </p>
 
         <div className="flex items-center justify-between">
           <label htmlFor="telemetry-toggle" className="text-sm text-hs-text-secondary">
-            Send anonymous usage data
+            {t('settings.statsSection.telemetryToggle')}
           </label>
           <button
             id="telemetry-toggle"
@@ -54,17 +54,17 @@ export function TelemetryCard({
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             {stats.telemetry.installId && (
               <>
-                <div className="text-hs-text-faint">Install ID</div>
+                <div className="text-hs-text-faint">{t('settings.statsSection.installId')}</div>
                 <div className="text-hs-text-muted font-mono text-[11px] truncate">
                   {stats.telemetry.installId}
                 </div>
               </>
             )}
-            <div className="text-hs-text-faint">Last beacon</div>
+            <div className="text-hs-text-faint">{t('settings.statsSection.lastBeacon')}</div>
             <div className="text-hs-text-muted">
               {stats.telemetry.lastBeaconAt
                 ? new Date(stats.telemetry.lastBeaconAt).toLocaleString()
-                : 'Never'}
+                : t('settings.statsSection.never')}
             </div>
           </div>
         )}
@@ -74,27 +74,25 @@ export function TelemetryCard({
           className="flex items-center gap-1 text-[11px] text-hs-accent hover:text-hs-accent-hover"
         >
           {showTelemetryDetails ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          What we collect
+          {t('settings.statsSection.whatWeCollect')}
         </button>
 
         {showTelemetryDetails && (
           <div className="rounded-md bg-hs-hover border border-hs-border-strong p-3 text-xs text-hs-text-muted space-y-2">
-            <p className="text-hs-text-secondary font-medium">Data sent once daily:</p>
+            <p className="text-hs-text-secondary font-medium">{t('settings.statsSection.telemetryDataDaily')}</p>
             <ul className="list-disc list-inside space-y-0.5">
-              <li>Anonymous install ID (random UUID)</li>
-              <li>App version and platform (OS, architecture)</li>
-              <li>Display resolution and orientation</li>
-              <li>Number of screens, modules, and profiles</li>
-              <li>Module types in use (e.g. clock, weather)</li>
-              <li>Weather provider and transition effect</li>
-              <li>Whether sleep, alerts, and auth are enabled</li>
-              <li>Whether calendar integrations are configured</li>
-              <li>Number of installed plugins</li>
+              <li>{t('settings.statsSection.telemetryItem1')}</li>
+              <li>{t('settings.statsSection.telemetryItem2')}</li>
+              <li>{t('settings.statsSection.telemetryItem3')}</li>
+              <li>{t('settings.statsSection.telemetryItem4')}</li>
+              <li>{t('settings.statsSection.telemetryItem5')}</li>
+              <li>{t('settings.statsSection.telemetryItem6')}</li>
+              <li>{t('settings.statsSection.telemetryItem7')}</li>
+              <li>{t('settings.statsSection.telemetryItem8')}</li>
+              <li>{t('settings.statsSection.telemetryItem9')}</li>
             </ul>
             <p className="text-hs-text-faint mt-2">
-              We never collect: IP addresses, location, calendar events, API keys,
-              module content, hostnames, or any personally identifiable information.
-              All of the code is Open Source and can be verified.
+              {t('settings.statsSection.telemetryDisclaimer')}
             </p>
           </div>
         )}

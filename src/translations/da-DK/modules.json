@@ -92,7 +92,8 @@
     "unitDays": "days",
     "unitHours": "hrs",
     "unitMinutes": "min",
-    "unitSeconds": "sec"
+    "unitSeconds": "sec",
+    "todayBang": "Today!"
   },
   "date": {
     "weekShort": "Week",

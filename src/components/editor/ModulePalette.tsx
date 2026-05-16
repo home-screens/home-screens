@@ -10,6 +10,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { useTranslate } from '@/i18n';
 
 function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinition; displayLabel: string }) {
+  const t = useTranslate('editor');
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `palette-${definition.type}`,
     data: { source: 'palette', moduleType: definition.type },
@@ -28,9 +29,9 @@ function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinitio
       <definition.icon className="w-4 h-4 text-hs-text-muted flex-shrink-0" />
       <span className="text-sm text-hs-text-body">{displayLabel}</span>
       {isPlugin && (
-        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20" title="Community plugin">
+        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20" title={t('modulePalette.communityPluginTooltip')}>
           <Puzzle className="w-3 h-3 text-violet-500" />
-          <span className="text-[10px] text-violet-500 font-medium">Plugin</span>
+          <span className="text-[10px] text-violet-500 font-medium">{t('modulePalette.pluginBadge')}</span>
         </span>
       )}
     </div>
@@ -141,7 +142,7 @@ export default function ModulePalette() {
     <div className="w-56 flex-shrink-0 bg-hs-panel border-r border-hs-border-strong flex flex-col overflow-hidden">
       <div className="p-3 pb-2 flex flex-col gap-2">
         <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider">
-          Modules
+          {t('modulePalette.modulesHeading')}
         </h3>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" />
@@ -149,14 +150,14 @@ export default function ModulePalette() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search modules..."
+            placeholder={t('modulePalette.searchPlaceholder')}
             className="w-full pl-8 pr-3 py-1.5 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint focus:outline-none focus:border-hs-accent"
           />
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1">
         {filteredGroups.length === 0 ? (
-          <p className="text-xs text-hs-text-faint text-center py-4">No modules found</p>
+          <p className="text-xs text-hs-text-faint text-center py-4">{t('modulePalette.noResults')}</p>
         ) : (
           filteredGroups.map(({ category, categoryLabel, modules }) => (
             <CategoryGroup

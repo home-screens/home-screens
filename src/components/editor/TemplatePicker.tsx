@@ -42,7 +42,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
       const layout = await loadTemplate(template, orientation);
       onSelect(layout);
     } catch {
-      setError(`Failed to load "${template.name}"`);
+      setError(tEditor('templatePicker.loadFailed', { name: template.name }));
     } finally {
       setLoading(null);
     }
@@ -53,7 +53,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-hs-text-primary">Templates</h2>
+          <h2 className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
           <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary">
             <X className="w-5 h-5" />
           </button>
@@ -127,7 +127,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                   )}
                 </div>
                 {loading === template.id && (
-                  <span className="text-xs text-hs-accent-hover mt-2 block">Loading...</span>
+                  <span className="text-xs text-hs-accent-hover mt-2 block">{tEditor('common.loading')}</span>
                 )}
               </button>
             ))}
@@ -136,7 +136,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
         {/* Footer */}
         <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
-          <Button variant="secondary" onClick={onClose}>Close</Button>
+          <Button variant="secondary" onClick={onClose}>{tEditor('common.close')}</Button>
         </div>
       </div>
     </div>

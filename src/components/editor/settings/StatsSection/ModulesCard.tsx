@@ -1,9 +1,11 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import { MODULE_PALETTE, MODULE_OTHER_COLOR } from './metadata';
 import type { SystemStats } from './types';
 
 export function ModulesCard({ stats }: { stats: SystemStats }) {
+  const t = useTranslate('editor');
   // Module breakdown: top 7 by count, rest bucketed into "other".
   const moduleEntries = Object.entries(stats.app.moduleTypes)
     .sort(([, a], [, b]) => b - a);
@@ -17,7 +19,7 @@ export function ModulesCard({ stats }: { stats: SystemStats }) {
       color: MODULE_PALETTE[i % MODULE_PALETTE.length],
     })),
     ...(restTotal > 0
-      ? [{ label: 'other', count: restTotal, color: MODULE_OTHER_COLOR }]
+      ? [{ label: t('settings.statsSection.moduleOther'), count: restTotal, color: MODULE_OTHER_COLOR }]
       : []),
   ];
   const moduleTotal = stats.app.modules || moduleSegments.reduce((s, seg) => s + seg.count, 0);
@@ -31,9 +33,9 @@ export function ModulesCard({ stats }: { stats: SystemStats }) {
           cleanly when the viewport's too narrow, instead of the
           mid-dot breaking "· 37 types" mid-phrase. */}
       <div className="flex flex-wrap items-center justify-between text-[11px] mb-1.5 gap-x-3 gap-y-0.5">
-        <span className="text-hs-text-faint">Module breakdown</span>
+        <span className="text-hs-text-faint">{t('settings.statsSection.moduleBreakdown')}</span>
         <span className="text-hs-text-faint font-mono tabular-nums whitespace-nowrap">
-          {moduleTotal} modules · {moduleTypeCount} types
+          {t('settings.statsSection.moduleSummary', { count: moduleTotal, types: moduleTypeCount })}
         </span>
       </div>
       <div className="flex h-2.5 rounded-md overflow-hidden bg-hs-card border border-hs-border-strong">

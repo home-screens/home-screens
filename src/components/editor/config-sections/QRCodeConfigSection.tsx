@@ -38,7 +38,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             label={t('configSections.qr-code.networkName')}
             value={c.ssid || ''}
             onChange={(v) => set({ ssid: v })}
-            placeholder="MyNetwork"
+            placeholder={t('configSections.qr-code.networkNamePlaceholder')}
           />
           <LabeledSelect
             label={t('configSections.qr-code.encryption')}
@@ -90,7 +90,7 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
             label={t('configSections.qr-code.dataUrlOrText')}
             value={c.data || ''}
             onChange={(v) => set({ data: v })}
-            placeholder="https://example.com"
+            placeholder={t('configSections.qr-code.dataUrlOrTextPlaceholder')}
           />
           <LabeledInput
             label={t('configSections.qr-code.label')}

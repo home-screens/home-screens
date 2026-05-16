@@ -1,26 +1,28 @@
 'use client';
 
 import { FolderTree } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
 import { formatBytes } from './shared/formatters';
 import { DATA_DIR_COLORS } from './metadata';
 import type { SystemStats } from './types';
 
 export function DataDirCard({ stats }: { stats: SystemStats }) {
+  const t = useTranslate('editor');
   const dataDirTotal = stats.disk.dataDir.total;
   const dataSegments = [
-    { label: 'Backgrounds',    size: stats.disk.dataDir.backgrounds, color: DATA_DIR_COLORS.backgrounds },
-    { label: 'Config Backups', size: stats.disk.dataDir.backups,     color: DATA_DIR_COLORS.backups },
-    { label: 'Configuration',  size: stats.disk.dataDir.config,      color: DATA_DIR_COLORS.config },
+    { label: t('settings.statsSection.dataBackgrounds'),  size: stats.disk.dataDir.backgrounds, color: DATA_DIR_COLORS.backgrounds },
+    { label: t('settings.statsSection.dataBackups'),      size: stats.disk.dataDir.backups,     color: DATA_DIR_COLORS.backups },
+    { label: t('settings.statsSection.dataConfiguration'), size: stats.disk.dataDir.config,      color: DATA_DIR_COLORS.config },
   ].filter(s => s.size > 0);
 
   return (
     <section>
-      <SectionHeading icon={FolderTree} title="Home Screens Data" />
+      <SectionHeading icon={FolderTree} title={t('settings.statsSection.dataDirTitle')} />
       {dataDirTotal > 0 ? (
         <div>
           <div className="flex flex-wrap items-center justify-between text-[11px] mb-1.5 gap-x-3 gap-y-0.5">
-            <span className="text-hs-text-faint">Total app data</span>
+            <span className="text-hs-text-faint">{t('settings.statsSection.totalAppData')}</span>
             <span className="text-hs-text-secondary font-mono tabular-nums whitespace-nowrap">
               {formatBytes(dataDirTotal)}
             </span>
@@ -48,7 +50,7 @@ export function DataDirCard({ stats }: { stats: SystemStats }) {
           </div>
         </div>
       ) : (
-        <p className="text-xs text-hs-text-faint">No app data yet.</p>
+        <p className="text-xs text-hs-text-faint">{t('settings.statsSection.noAppData')}</p>
       )}
     </section>
   );
