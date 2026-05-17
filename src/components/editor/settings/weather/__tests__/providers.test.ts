@@ -70,4 +70,17 @@ describe('WEATHER_PROVIDERS metadata', () => {
     const keys = paid.map((p) => p.secretKey);
     expect(new Set(keys).size).toBe(keys.length);
   });
+
+  // The SMHI Test button must use Nordic coordinates regardless of the
+  // user's configured location — outside the bbox the API returns 404
+  // and the test would falsely report the integration as broken.
+  it('pins SMHI testCoords inside the Nordic coverage area', () => {
+    const smhi = WEATHER_PROVIDERS.find((p) => p.id === 'smhi');
+    expect(smhi?.testCoords).toBeDefined();
+    // SMHI's pmp3g/snow1g bbox roughly: lat 52.5–70.7, lon -9.5–39.
+    expect(smhi!.testCoords!.lat).toBeGreaterThanOrEqual(52.5);
+    expect(smhi!.testCoords!.lat).toBeLessThanOrEqual(70.7);
+    expect(smhi!.testCoords!.lon).toBeGreaterThanOrEqual(-9.5);
+    expect(smhi!.testCoords!.lon).toBeLessThanOrEqual(39);
+  });
 });

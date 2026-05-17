@@ -62,8 +62,13 @@ export default function WeatherProviderCard({
     setTesting(true);
     setTestStatus('Testing...');
     try {
+      // Regional providers (e.g. SMHI) define `testCoords` inside their
+      // coverage area; use those so the Test button reports integration
+      // health independently of the user's configured location.
+      const testLat = provider.testCoords ? provider.testCoords.lat.toString() : lat;
+      const testLon = provider.testCoords ? provider.testCoords.lon.toString() : lon;
       const res = await editorFetch(
-        `/api/weather?provider=${provider.id}&lat=${lat}&lon=${lon}&units=${units}&type=hourly`,
+        `/api/weather?provider=${provider.id}&lat=${testLat}&lon=${testLon}&units=${units}&type=hourly`,
       );
       if (res.ok) {
         const data = await res.json();
