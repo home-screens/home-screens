@@ -138,6 +138,13 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   telemetryEnabled?: boolean      // Enable anonymous usage telemetry (on by default)
 
   fullscreenTheme?: string        // Global preset for fullscreen modules (e.g. "lavender", "sunset")
+
+  locale?: string                 // BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US".
+                                  // Controls display language, dictionary lookup, and (unless
+                                  // formattingLocale overrides it) date/number formatting.
+  formattingLocale?: string       // Optional BCP-47 override that affects ONLY date/number
+                                  // formatting — leaves the active dictionary unchanged.
+                                  // Falls back to `locale` when omitted.
 }
 ```
 
@@ -1067,7 +1074,7 @@ A clean config exits with status `0` and a "No issues found" summary. Any errors
 
 ```json
 {
-  "version": 4,
+  "version": 5,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

@@ -92,6 +92,7 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `allowedDomains` | array | Domains the plugin proxy can reach (e.g., `["api.example.com", "*.openweathermap.org"]`). Required for `pluginFetch` to work. |
 | `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"localNetwork"`. The first four are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
 | `configMigrations` | object | Version-keyed migration rules for renaming or adding config fields on update. |
+| `translations` | object | BCP-47 tag → path to a dictionary JSON file inside the plugin (e.g. `{ "de-DE": "translations/de-DE.json" }`). Looked up under the namespace `plugin:<pluginId>` via `__HS_SDK__.translate`. See [Translations](#translations) below. |
 
 ### Config Schema
 
@@ -279,6 +280,7 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `pluginFetch` | function | Server-side proxy for API calls (see [API Proxy](#plugin-api-proxy)) |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |
+| `translate` | function | `translate(key, vars?)` — looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
 
 **Editor-only members** (available when running in the editor, not on the display):
 
@@ -286,6 +288,31 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 |---|---|---|
 | `AccordionSection` | component | Collapsible section for editor property panels |
 | `useModuleConfig` | hook | `useModuleConfig(moduleId, screenId)` — returns `{ config, set }` for reading and updating module config |
+
+### Translations
+
+Plugins can ship localized strings and look them up through the host's i18n runtime. Declare a `translations` map in your manifest pointing at one JSON dictionary per BCP-47 tag, then call `__HS_SDK__.translate(key)` from your component.
+
+```json
+{
+  "name": "My Plugin",
+  "moduleType": "my-plugin",
+  "translations": {
+    "en-US": "translations/en-US.json",
+    "de-DE": "translations/de-DE.json"
+  }
+}
+```
+
+```ts
+const { translate } = window.__HS_SDK__;
+translate('plugin:my-plugin.title');         // → "My Title"
+translate('plugin:my-plugin.greeting', { name: 'Alex' });  // interpolation
+```
+
+At load time the loader picks the first tag in the active locale's fallback chain that has a dictionary, fetches it from `/api/plugins/asset/<pluginId>/<path>`, and registers it under the namespace `plugin:<pluginId>`. Dictionaries support the same nested + plural-form shape as the host's built-in namespaces (`core`, `editor`, `modules`, etc.).
+
+If `translations` is omitted, `translate('plugin:<pluginId>.foo')` returns the raw key unchanged — adding i18n later is non-breaking.
 
 ### Building the Bundle
 

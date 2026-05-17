@@ -196,7 +196,7 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 Open the **Settings Panel** to configure system-wide options. In a **single-display install**, the sidebar is a single flat list of pages:
 
-**Display** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Meals** · **Profiles** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Docs**
+**Display** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Meals** · **Profiles** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Network** · **Docs**
 
 When you add a second display, the sidebar automatically splits into two groups:
 
@@ -256,6 +256,8 @@ Profiles let you define named groups of screens that activate based on a schedul
 - **Manual Coordinates** — expandable section for editing latitude/longitude directly
 - **Timezone** — override the server's OS timezone for time-based modules (all IANA timezones available)
 - **Time Comparison** — displays browser time and server time side-by-side to verify timezone settings
+- **Language** — pick the display language from any of the shipped locales (English, German, French, Spanish, Dutch, Brazilian Portuguese, Danish). Switching is instant; both the editor and the display pick it up on the next render.
+- **Formatting Locale** (optional) — override date and number formatting only, without changing the active dictionary. Useful when you want English UI text but, say, European date order — leave blank to follow Language.
 
 ### Weather
 
