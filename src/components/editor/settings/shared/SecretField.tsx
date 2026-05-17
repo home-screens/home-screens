@@ -61,7 +61,7 @@ export default function SecretField({
       const data = await res.json();
       if (!res.ok) {
         setSaveStatus('error');
-        setErrorMsg(data.error ?? t('settings.shared.secretField.defaultSaveError'));
+        setErrorMsg(data.error ?? t('common.saveError'));
         return;
       }
       setSaveStatus('saved');
@@ -70,7 +70,7 @@ export default function SecretField({
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
       setSaveStatus('error');
-      setErrorMsg(t('settings.shared.secretField.networkError'));
+      setErrorMsg(t('common.networkError'));
     }
   }
 

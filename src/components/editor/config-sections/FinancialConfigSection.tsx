@@ -65,7 +65,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
         />
       )}
       <Slider
-        label={t('configSections.financial.refreshSeconds')}
+        label={t('common.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 60000) / 1000}
         min={30}
         max={600}

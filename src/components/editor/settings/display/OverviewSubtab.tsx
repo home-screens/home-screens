@@ -65,7 +65,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
   return (
     <>
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <KvCard label={t('settings.perDisplayPage.overview.resolutionLabel')}>
+        <KvCard label={t('common.resolution')}>
           {dims ? (
             <span className="tabular-nums">
               {dims.width} × {dims.height}

@@ -198,10 +198,10 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         </>
       )}
       {viewMode === 'daily' && (
-        <Toggle label={t('configSections.calendar.showDescription')} checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
+        <Toggle label={t('common.showDescription')} checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
       )}
       {viewMode === 'agenda' && (
-        <Toggle label={t('configSections.calendar.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
+        <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
       {(viewMode === 'week' || viewMode === 'month') && (
         <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />

@@ -60,7 +60,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ mapStyle: v })}
         options={MAP_STYLE_OPTIONS}
       />
-      <Slider label={t('configSections.rain-map.refreshMinutes')} value={(c.refreshIntervalMs ?? 600000) / 60000} min={5} max={30} step={5} onChange={(v) => set({ refreshIntervalMs: v * 60000 })} />
+      <Slider label={t('common.refreshMinutes')} value={(c.refreshIntervalMs ?? 600000) / 60000} min={5} max={30} step={5} onChange={(v) => set({ refreshIntervalMs: v * 60000 })} />
       <p className="text-xs text-hs-text-faint">{t('configSections.rain-map.locationHelp')}</p>
     </>
   );

@@ -23,7 +23,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   return (
     <div className="space-y-2">
       <Slider
-        label={t('configSections.traffic.refreshMinutes')}
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 300000) / 60000}
         min={1}
         max={30}

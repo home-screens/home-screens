@@ -44,6 +44,7 @@ export default function MealsSection() {
   // so we need a second translator to resolve `getMealSlotLabelKey` against
   // the dictionary that already ships those keys (Step 4 / task 6.1).
   const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
 
   const [settings, setSettings] = useState<MealSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -238,7 +239,7 @@ export default function MealsSection() {
           {t('settings.mealsPage.intro.part2')}
         </p>
         <div className="flex items-center gap-2 text-xs">
-          {saving && <span className="text-hs-text-faint">{t('settings.mealsPage.status.saving')}</span>}
+          {saving && <span className="text-hs-text-faint">{t('common.saving')}</span>}
           {!saving && status && status.kind === 'success' && (
             <span className="text-hs-success">{status.message}</span>
           )}
@@ -315,9 +316,7 @@ export default function MealsSection() {
                 }`}
                 aria-pressed={isSelected}
               >
-                {day === 'sunday'
-                  ? t('settings.mealsPage.weekStart.sunday')
-                  : t('settings.mealsPage.weekStart.monday')}
+                {day === 'sunday' ? tCore('days.sunday') : tCore('days.monday')}
               </button>
             );
           })}

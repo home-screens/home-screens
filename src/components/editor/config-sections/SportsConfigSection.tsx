@@ -61,7 +61,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         />
       )}
       <Slider
-        label={t('configSections.sports.refreshSeconds')}
+        label={t('common.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 60000) / 1000}
         min={30}
         max={600}

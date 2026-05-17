@@ -28,6 +28,7 @@ type Config = {
 
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
   const [counts, setCounts] = useState({ members: 0, chores: 0 });
@@ -41,8 +42,8 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   ];
 
   const WEEK_START_OPTIONS = [
-    { value: 'sunday' as const, label: t('configSections.chore-chart.weekStartSunday') },
-    { value: 'monday' as const, label: t('configSections.chore-chart.weekStartMonday') },
+    { value: 'sunday' as const, label: tCore('days.sunday') },
+    { value: 'monday' as const, label: tCore('days.monday') },
   ];
 
   useEffect(() => {

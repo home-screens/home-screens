@@ -13,9 +13,9 @@ import type { ModuleInstance } from '@/types/config';
 export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const OBJECT_FIT_OPTIONS = [
-    { value: 'cover', label: t('configSections.image.objectFitCover') },
-    { value: 'contain', label: t('configSections.image.objectFitContain') },
-    { value: 'fill', label: t('configSections.image.objectFitFill') },
+    { value: 'cover', label: t('common.objectFitCover') },
+    { value: 'contain', label: t('common.objectFitContain') },
+    { value: 'fill', label: t('common.objectFitFill') },
   ] as const;
 
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
@@ -115,7 +115,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       <div className="flex gap-2">
         <LabeledSelect
-          label={t('configSections.image.objectFit')}
+          label={t('common.objectFit')}
           value={((c.objectFit as string) || 'cover') as 'cover' | 'contain' | 'fill'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FIT_OPTIONS}

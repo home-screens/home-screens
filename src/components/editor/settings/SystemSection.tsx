@@ -253,7 +253,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         } catch {
           setPowerState({
             status: 'error',
-            message: t('settings.systemPage.powerStatus.unreachable'),
+            message: t('common.serverUnreachable'),
           });
         }
       },

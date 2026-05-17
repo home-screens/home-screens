@@ -49,5 +49,14 @@
     "codeExpired": "Koden er udløbet. Prøv igen.",
     "authorizationFailed": "Godkendelse fejlede",
     "startSignInFailed": "Start af logind fejlede"
+  },
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
   }
 }

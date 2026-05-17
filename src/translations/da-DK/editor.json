@@ -20,7 +20,24 @@
     "confirm": "Confirm",
     "loading": "Loading…",
     "saving": "Saving…",
-    "saved": "Saved"
+    "saved": "Saved",
+    "refreshMinutes": "Refresh (minutes)",
+    "refreshSeconds": "Refresh (seconds)",
+    "refresh": "Refresh",
+    "theme": "Theme",
+    "density": "Density",
+    "objectFit": "Object Fit",
+    "objectFitCover": "Cover",
+    "objectFitContain": "Contain",
+    "objectFitFill": "Fill",
+    "showDescription": "Show Description",
+    "apiKey": "API Key",
+    "resolution": "Resolution",
+    "orientation": "Orientation",
+    "saveFailed": "Save failed",
+    "saveError": "Failed to save",
+    "networkError": "Network error",
+    "serverUnreachable": "Failed to reach server"
   },
   "modal": {
     "closeAriaLabel": "Close dialog"
@@ -33,10 +50,7 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Settings",
       "previewButton": "Preview",
-      "saveFailed": "Save failed",
-      "retryButton": "Retry",
-      "savingStatus": "Saving…",
-      "savedStatus": "Saved"
+      "retryButton": "Retry"
     }
   },
   "canvas": {
@@ -350,7 +364,6 @@
       "providersLabel": "Providers",
       "loadingProviderStatus": "Loading provider status…",
       "providerCard": {
-        "apiKeyLabel": "API Key",
         "currentlyDefault": "Currently the default",
         "setAsDefault": "Set as default",
         "testButton": "Test",
@@ -428,10 +441,8 @@
       "multiDisplayNotePart3": ".",
       "canvas": {
         "heading": "Canvas",
-        "orientationLabel": "Orientation",
         "orientationPortrait": "Portrait",
         "orientationLandscape": "Landscape",
-        "resolutionLabel": "Resolution",
         "resolutionCustom": "Custom...",
         "resolutionWidthPlaceholder": "Width",
         "resolutionHeightPlaceholder": "Height",
@@ -500,7 +511,6 @@
         }
       },
       "overview": {
-        "resolutionLabel": "Resolution",
         "activeProfileLabel": "Active profile",
         "noActiveProfile": "None",
         "screensLabel": "Screens",
@@ -569,7 +579,6 @@
         "bannerEmphasisOverride": "Override",
         "bannerPart4": " on any field to change it just for {name}.",
         "canvasHeading": "Canvas",
-        "resolutionLabel": "Resolution",
         "perDisplayBadge": "Per display",
         "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution — it isn't shared.",
         "rotationLabel": "Rotation",
@@ -686,7 +695,6 @@
         "urlLabel": "Server URL",
         "urlPlaceholder": "e.g. http://192.168.1.50:2283",
         "urlHelp": "The base URL of your Immich instance.",
-        "apiKeyLabel": "API Key",
         "apiKeyPlaceholder": "Paste your Immich API key",
         "apiKeyHelp": "Create at Immich → Account Settings → API Keys."
       },
@@ -700,7 +708,6 @@
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
-        "apiKeyLabel": "API Key",
         "apiKeyPlaceholder": "Paste your NASA API key",
         "apiKeyHelp": "Free at api.nasa.gov — 1,000 requests/hour. Image Library search works without a key."
       },
@@ -714,7 +721,6 @@
       "tomtom": {
         "name": "TomTom",
         "description": "Traffic & commute times",
-        "keyLabel": "API Key",
         "keyPlaceholder": "Paste your TomTom API key",
         "keyHelp": "Free at developer.tomtom.com — Routing API required. Alternative to Google Maps."
       },
@@ -751,8 +757,7 @@
         "saveButton": "Save",
         "savingButton": "Saving...",
         "successMessage": "Hostname updated",
-        "defaultErrorMessage": "Failed to update hostname",
-        "networkErrorMessage": "Failed to reach server"
+        "defaultErrorMessage": "Failed to update hostname"
       },
       "interface": {
         "type": {
@@ -786,7 +791,6 @@
         "scanningButton": "Scanning...",
         "scanCooldownButton": "Scan ({seconds}s)",
         "defaultScanError": "Scan failed",
-        "networkErrorMessage": "Failed to reach server",
         "emptyHint": "Click Scan to search for nearby Wi-Fi networks.",
         "badges": {
           "connected": "Connected",
@@ -807,8 +811,7 @@
         "cancelButton": "Cancel",
         "connectButton": "Connect",
         "connectingButton": "Connecting...",
-        "defaultConnectError": "Connection failed",
-        "networkErrorMessage": "Failed to reach server"
+        "defaultConnectError": "Connection failed"
       },
       "managementWarning": {
         "heading": "Management Interface Warning",
@@ -836,7 +839,6 @@
         "heading": "Saved Networks",
         "loading": "Loading saved networks...",
         "loadError": "Failed to load saved networks",
-        "networkErrorMessage": "Failed to reach server",
         "empty": "No saved Wi-Fi networks.",
         "showPasswords": "Show passwords",
         "hidePasswords": "Hide passwords",
@@ -870,8 +872,7 @@
         "applyButton": "Apply",
         "applyingButton": "Applying...",
         "successMessage": "Settings applied",
-        "defaultErrorMessage": "Failed to apply IP settings",
-        "networkErrorMessage": "Failed to reach server"
+        "defaultErrorMessage": "Failed to apply IP settings"
       },
       "diagnostics": {
         "heading": "Diagnostics",
@@ -898,7 +899,6 @@
         },
         "unavailable": "Diagnostics are not available on this device.",
         "requestFailed": "Diagnostics request failed",
-        "networkErrorMessage": "Failed to reach server",
         "testButton": "Test Connection",
         "testingButton": "Testing..."
       }
@@ -911,7 +911,6 @@
         "part2": " settings drawer — edits from either surface stay in sync."
       },
       "status": {
-        "saving": "Saving…",
         "loadFailed": "Failed to load meal settings.",
         "networkLoad": "Network error loading meal settings.",
         "saveFailed": "Failed to save meal settings.",
@@ -923,9 +922,7 @@
         "description": "Which meals does your household plan? Affects every meal-planner module across all screens."
       },
       "weekStart": {
-        "heading": "Week Starts On",
-        "sunday": "Sunday",
-        "monday": "Monday"
+        "heading": "Week Starts On"
       },
       "timeFormat": {
         "heading": "Time Format",
@@ -1037,8 +1034,7 @@
         "restartScheduled": "Service restart scheduled. The page will reload momentarily…",
         "rebootScheduled": "System reboot scheduled. The display will come back online shortly…",
         "processing": "Processing…",
-        "unknownError": "Unknown error",
-        "unreachable": "Failed to reach server"
+        "unknownError": "Unknown error"
       }
     },
     "profilesPage": {
@@ -1107,8 +1103,7 @@
         "revoking": "Revoking…",
         "cancel": "Cancel",
         "success": "All sessions revoked. Redirecting to login…",
-        "failed": "Failed to revoke sessions",
-        "networkError": "Network error"
+        "failed": "Failed to revoke sessions"
       },
       "displayToken": {
         "heading": "Display Token",
@@ -1123,7 +1118,6 @@
         "regenerateCancel": "Cancel",
         "regenerateWarning": "The display will need to reload to pick up the new token.",
         "errorRegenerate": "Failed to regenerate token",
-        "errorNetwork": "Network error",
         "errorCopy": "Copy failed — select and copy manually",
         "phoneHintPart1": "For phone bookmarks, append ",
         "phoneHintCode": "?token=TOKEN",
@@ -1147,9 +1141,7 @@
           "invalidCidr": "Invalid CIDR format",
           "invalidIp": "Invalid IP address",
           "invalidPrefix": "Prefix length must be 0-32",
-          "alreadyInList": "Already in the list",
-          "saveFailed": "Failed to save",
-          "networkError": "Network error"
+          "alreadyInList": "Already in the list"
         },
         "callerIpLabel": "Your IP: ",
         "lockoutWarning": {
@@ -1157,12 +1149,9 @@
           "messagePart1": "Your current IP (",
           "messagePart2": ") is not in the allowlist. If access restriction is enabled, you'll lose access to this editor.",
           "saveAnyway": "Save Anyway",
-          "saving": "Saving…",
           "cancel": "Cancel"
         },
         "saveButton": "Save Changes",
-        "saving": "Saving…",
-        "saved": "Saved",
         "lockedOutHintPart1": "If locked out, edit ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " on the device to disable.",
@@ -1204,8 +1193,7 @@
         "passwordsDoNotMatch": "Passwords do not match",
         "setFailed": "Failed to set password",
         "changeFailed": "Failed to change password",
-        "disableFailed": "Failed to disable authentication",
-        "networkError": "Network error"
+        "disableFailed": "Failed to disable authentication"
       },
       "success": {
         "passwordSet": "Password set! Authentication is now enabled.",
@@ -1296,9 +1284,7 @@
         "removeButton": "Remove",
         "savingButton": "…",
         "saveButton": "Save",
-        "savedSuccess": "Saved successfully",
-        "defaultSaveError": "Failed to save",
-        "networkError": "Network error"
+        "savedSuccess": "Saved successfully"
       }
     },
     "localBackgrounds": {
@@ -1344,9 +1330,7 @@
       "enterPlaceholder": "Enter {label}",
       "savingButton": "…",
       "saveButton": "Save",
-      "savedSuccess": "Saved successfully",
-      "defaultSaveError": "Failed to save",
-      "networkError": "Network error"
+      "savedSuccess": "Saved successfully"
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1419,7 +1403,6 @@
       "serverTitle": "Server",
       "diagnosticsBundle": "Diagnostics bundle",
       "generatingBundle": "Generating…",
-      "refresh": "Refresh",
       "bundleFailed": "Bundle generation failed: {error}",
       "hostname": "Hostname",
       "platform": "Platform",
@@ -1528,11 +1511,7 @@
       "populatedDescriptionSuffix": ".",
       "defaultsLink": "Defaults",
       "refreshHeartbeatsTitle": "Refresh heartbeats",
-      "refresh": "Refresh",
       "addDisplay": "Add display",
-      "saved": "Saved",
-      "saveFailed": "Save failed",
-      "saving": "Saving…",
       "emptyTitle": "This install is running in single-display mode",
       "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet — multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
@@ -1577,7 +1556,6 @@
       "formIdHint": "(used in URL: /display/<id>)",
       "formIdPlaceholder": "kitchen",
       "formIdLocked": "ID is locked to match the polling display.",
-      "formResolution": "Resolution",
       "formReportedViewport": "(reported by display: {width} × {height})",
       "formWidth": "Width",
       "formHeight": "Height",
@@ -1598,7 +1576,6 @@
       "formErrorHeight": "Height must be a positive integer ≤ {max}"
     },
     "header": {
-      "saveFailed": "Gem mislykkedes",
       "backToEditor": "Editor",
       "contextLabel": "Indstillinger",
       "theme": {
@@ -2077,8 +2054,7 @@
     },
     "air-quality": {
       "showAQI": "Show AQI",
-      "showPollutants": "Show Pollutants",
-      "refreshMinutes": "Refresh (minutes)"
+      "showPollutants": "Show Pollutants"
     },
     "calendar": {
       "viewMode": "View Mode",
@@ -2097,8 +2073,7 @@
       "showTime": "Show Time",
       "showLocation": "Show Location",
       "showWeekNumbers": "Show Week Numbers",
-      "accentColor": "Accent Color",
-      "showDescription": "Show Description"
+      "accentColor": "Accent Color"
     },
     "chore-chart": {
       "viewBoard": "Board (Column per Member)",
@@ -2106,8 +2081,6 @@
       "viewToday": "Today (Time of Day)",
       "viewProgress": "Progress (Rings)",
       "viewCompact": "Compact (Dense Grid)",
-      "weekStartSunday": "Sunday",
-      "weekStartMonday": "Monday",
       "weekStartsOn": "Week Starts On",
       "showTickets": "Show Tickets",
       "showStreaks": "Show Streaks",
@@ -2184,7 +2157,6 @@
       "stayOnDayHelp": "Once an event hits zero, keep it on screen until the end of the day before moving on."
     },
     "dad-joke": {
-      "refreshSeconds": "Refresh (seconds)",
       "showDividers": "Show Dividers"
     },
     "date": {
@@ -2229,7 +2201,6 @@
       "viewCompact": "Compact",
       "scale": "Scale",
       "tickerSpeed": "Ticker Speed ({unit})",
-      "refreshSeconds": "Refresh (seconds)",
       "stockSymbolsLabel": "Symbols (comma-separated)",
       "cryptoIdsLabel": "Coin IDs (comma-separated, CoinGecko)",
       "tickerUnitStock": "sec/stock",
@@ -2251,9 +2222,7 @@
       "typography3xLarge": "3X Large",
       "typography4xLarge": "4X Large",
       "view": "View",
-      "density": "Density",
       "typographySize": "Typography Size",
-      "theme": "Theme",
       "themeDefault": "Default (from Settings)",
       "accentColor": "Accent Color",
       "dimPastEvents": "Dim Past Events",
@@ -2273,8 +2242,7 @@
       "maxEventsPerCellAuto": "Max Events per Cell (0 = auto)",
       "showLocation": "Show Location",
       "daysAhead": "Days Ahead",
-      "hideEmptyDays": "Hide Empty Days",
-      "showDescription": "Show Description"
+      "hideEmptyDays": "Hide Empty Days"
     },
     "fullscreen-chore-chart": {
       "view": "View",
@@ -2282,16 +2250,12 @@
       "viewRewardsStore": "Rewards Store",
       "showRewardsButton": "Show Rewards Button",
       "showRewardsButtonHelp": "Adds a button on the chore board so kids can switch to the rewards store. Best for touch-enabled displays.",
-      "theme": "Theme",
       "themeDefault": "Default (from Settings)",
-      "density": "Density",
       "densityCozy": "Cozy",
       "densitySnug": "Snug",
       "typographySize": "Typography Size",
       "accentColor": "Accent Color",
       "weekStartsOn": "Week Starts On",
-      "weekStartSunday": "Sunday",
-      "weekStartMonday": "Monday",
       "showTickets": "Show Tickets",
       "showStreaks": "Show Streaks",
       "showTimeOfDay": "Show Time of Day",
@@ -2302,14 +2266,12 @@
       "mobileHintPrefix": "Family members can check off chores on the touchscreen or from their phone via the Chores tab at"
     },
     "fullscreen-meal-planner": {
-      "theme": "Theme",
       "themeDefault": "Default (from Settings)",
       "view": "View",
       "viewWeek": "Week",
       "viewToday": "Today",
       "viewMenuBoard": "Menu Board",
       "viewNextMeal": "Next Meal",
-      "density": "Density",
       "densityCozy": "Cozy",
       "densitySnug": "Snug",
       "typographySize": "Typography Size",
@@ -2327,7 +2289,6 @@
       "mobileHintEnd": "settings drawer."
     },
     "fullscreen-photo": {
-      "theme": "Theme",
       "themeDefaultMidnight": "Default (Midnight)",
       "photoSource": "Photo Source",
       "sourceLocal": "Local Photos",
@@ -2350,10 +2311,6 @@
       "transitionSlide": "Slide",
       "transitionZoom": "Zoom",
       "transitionNone": "None",
-      "objectFit": "Object Fit",
-      "objectFitCover": "Cover",
-      "objectFitContain": "Contain",
-      "objectFitFill": "Fill",
       "shuffleOrder": "Shuffle Order",
       "kenBurnsEffect": "Ken Burns Effect",
       "showClockOverlay": "Show Clock Overlay",
@@ -2365,13 +2322,6 @@
       "highlightDayBefore": "Day Before (put bins out)",
       "highlightDayOf": "Day Of (collection day)",
       "dayDisabled": "Disabled",
-      "daySunday": "Sunday",
-      "dayMonday": "Monday",
-      "dayTuesday": "Tuesday",
-      "dayWednesday": "Wednesday",
-      "dayThursday": "Thursday",
-      "dayFriday": "Friday",
-      "daySaturday": "Saturday",
       "trash": "Trash",
       "recycling": "Recycling",
       "custom": "Custom",
@@ -2392,7 +2342,6 @@
     },
     "history": {
       "cycleEventsSeconds": "Cycle Events (seconds)",
-      "refreshMinutes": "Refresh (minutes)",
       "showDividers": "Show Dividers",
       "sourceWikipedia": "Source: Wikipedia",
       "sourceMuffinLabs": "Source: MuffinLabs"
@@ -2456,10 +2405,6 @@
       "uploading": "Uploading...",
       "uploadFailed": "Upload failed",
       "preview": "Preview",
-      "objectFit": "Object Fit",
-      "objectFitCover": "Cover",
-      "objectFitContain": "Contain",
-      "objectFitFill": "Fill",
       "altText": "Alt Text"
     },
     "immichSource": {
@@ -2507,8 +2452,6 @@
       "layoutHorizontal": "Horizontal (side by side)",
       "monthsToShow": "Months to Show",
       "weekStartsOn": "Week Starts On",
-      "startDaySunday": "Sunday",
-      "startDayMonday": "Monday",
       "showWeekNumbers": "Show Week Numbers",
       "highlightWeekends": "Highlight Weekends",
       "showAdjacentDays": "Show Adjacent Days"
@@ -2525,18 +2468,13 @@
       "maxItems": "Max Items",
       "tickerSpeed": "Ticker Speed (sec/item)",
       "showTimestamp": "Show Timestamp",
-      "showDescription": "Show Description",
-      "bulletColor": "Bullet Color",
-      "refreshSeconds": "Refresh (seconds)"
+      "bulletColor": "Bullet Color"
     },
     "photo-slideshow": {
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
       "transitionFade": "Fade",
       "transitionNone": "None",
-      "fitCover": "Cover",
-      "fitContain": "Contain",
-      "fitFill": "Fill",
       "photoSource": "Photo Source",
       "folder": "Folder",
       "allPhotosRoot": "All Photos (root)",
@@ -2545,8 +2483,7 @@
       "photoCountOther": "{count} photos",
       "noPhotosInFolder": "No photos in this folder",
       "slideInterval": "Slide Interval (seconds)",
-      "transition": "Transition",
-      "objectFit": "Object Fit"
+      "transition": "Transition"
     },
     "qr-code": {
       "modeCustom": "Custom (URL / Text)",
@@ -2569,9 +2506,6 @@
       "networkNamePlaceholder": "MyNetwork",
       "dataUrlOrTextPlaceholder": "https://example.com"
     },
-    "quote": {
-      "refreshSeconds": "Refresh (seconds)"
-    },
     "rain-map": {
       "styleDark": "Dark",
       "styleStandard": "Standard",
@@ -2586,7 +2520,6 @@
       "showTimestamp": "Show Timestamp",
       "showTimeline": "Show Timeline",
       "mapStyle": "Map Style",
-      "refreshMinutes": "Refresh (minutes)",
       "locationHelp": "Uses location from global settings when lat/lon are 0."
     },
     "shape": {
@@ -2663,8 +2596,7 @@
       "viewList": "List",
       "viewTicker": "Ticker",
       "leagues": "Leagues",
-      "tickerSpeed": "Ticker Speed (sec/game)",
-      "refreshSeconds": "Refresh (seconds)"
+      "tickerSpeed": "Ticker Speed (sec/game)"
     },
     "standings": {
       "viewTable": "Table",
@@ -2677,8 +2609,7 @@
       "grouping": "Grouping",
       "playoffCutoffLine": "Playoff Cutoff Line",
       "teamsToShow": "Teams to Show (0 = all)",
-      "rotationSeconds": "Rotation (seconds)",
-      "refreshMinutes": "Refresh (minutes)"
+      "rotationSeconds": "Rotation (seconds)"
     },
     "sticky-note": {
       "content": "Content",
@@ -2845,11 +2776,9 @@
       "showSubtasks": "Show Subtasks",
       "showLabels": "Show Labels",
       "showProject": "Show Project",
-      "showDescription": "Show Description",
       "showNoDueDate": "Show No-Date Tasks",
       "tapToComplete": "Tap to Complete (touchscreen)",
       "maxTasks": "Max Tasks",
-      "refreshMinutes": "Refresh (minutes)",
       "viewModes": {
         "list": "List",
         "board": "Board",
@@ -2870,7 +2799,6 @@
       }
     },
     "traffic": {
-      "refreshMinutes": "Refresh (minutes)",
       "routes": "Routes",
       "newRouteLabel": "Work",
       "labelPlaceholder": "Label",
@@ -2933,7 +2861,6 @@
   "imageBrowsers": {
     "immich": {
       "allPhotos": "All photos",
-      "refresh": "Refresh",
       "noPhotos": "No photos found",
       "attribution": "Photos from your Immich library",
       "notConfiguredPrefix": "Add your Immich Server URL and API Key in",
@@ -2972,7 +2899,6 @@
     "nasa": {
       "attribution": "Images courtesy of NASA",
       "searchPlaceholder": "Search NASA images...",
-      "refresh": "Refresh",
       "watermarkNote": "Note: Some NASA images include embedded timestamps or watermarks that cannot be removed.",
       "notConfiguredPrefix": "Add a free NASA API key in",
       "settingsWord": "Settings",

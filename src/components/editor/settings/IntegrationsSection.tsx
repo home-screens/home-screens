@@ -232,7 +232,7 @@ export default function IntegrationsSection() {
                 onSaved={fetchStatus}
               />
               <SecretField
-                label={t('settings.integrationsPage.immich.apiKeyLabel')}
+                label={t('common.apiKey')}
                 secretKey="immich_api_key"
                 placeholder={t('settings.integrationsPage.immich.apiKeyPlaceholder')}
                 helpText={t('settings.integrationsPage.immich.apiKeyHelp')}
@@ -269,7 +269,7 @@ export default function IntegrationsSection() {
             statusType={nasa.type}
           >
             <SecretField
-              label={t('settings.integrationsPage.nasa.apiKeyLabel')}
+              label={t('common.apiKey')}
               secretKey="nasa_api_key"
               placeholder={t('settings.integrationsPage.nasa.apiKeyPlaceholder')}
               helpText={t('settings.integrationsPage.nasa.apiKeyHelp')}
@@ -313,7 +313,7 @@ export default function IntegrationsSection() {
             statusType={tomtom.type}
           >
             <SecretField
-              label={t('settings.integrationsPage.tomtom.keyLabel')}
+              label={t('common.apiKey')}
               secretKey="tomtom_key"
               placeholder={t('settings.integrationsPage.tomtom.keyPlaceholder')}
               helpText={t('settings.integrationsPage.tomtom.keyHelp')}

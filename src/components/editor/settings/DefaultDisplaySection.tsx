@@ -215,7 +215,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           </div>
           <div className="rounded-lg border border-hs-border bg-hs-panel/40">
             <FieldRow>
-              <FieldLabel>{t('settings.defaultDisplayPage.canvas.orientationLabel')}</FieldLabel>
+              <FieldLabel>{t('common.orientation')}</FieldLabel>
               <div className="flex rounded-md overflow-hidden border border-hs-border-strong">
                 {(['portrait', 'landscape'] as const).map((o) => (
                   <button
@@ -237,7 +237,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             </FieldRow>
 
             <FieldRow>
-              <FieldLabel>{t('settings.defaultDisplayPage.canvas.resolutionLabel')}</FieldLabel>
+              <FieldLabel>{t('common.resolution')}</FieldLabel>
               <select
                 value={isCustom ? 'custom' : presetValue}
                 onChange={(e) => {

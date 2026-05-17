@@ -22,7 +22,7 @@ export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ rotationIntervalMs: v * 1000 })}
       />
       <Slider
-        label={t('configSections.history.refreshMinutes')}
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 86400000) / 60000}
         min={5}
         max={1440}

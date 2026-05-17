@@ -126,7 +126,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label={t('configSections.fullscreen-meal-planner.theme')}>
+      <LabeledField label={t('common.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -149,7 +149,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
       {/* Density */}
       <LabeledSelect
-        label={t('configSections.fullscreen-meal-planner.density')}
+        label={t('common.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}

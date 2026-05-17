@@ -57,7 +57,7 @@ export default function HostnameSection({
         setErrorMsg(data.error ?? t('settings.networkPage.hostname.defaultErrorMessage'));
       }
     } catch {
-      setErrorMsg(t('settings.networkPage.hostname.networkErrorMessage'));
+      setErrorMsg(t('common.serverUnreachable'));
     } finally {
       setSaving(false);
     }

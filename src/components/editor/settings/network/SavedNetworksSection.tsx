@@ -58,7 +58,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
           setError(t('settings.networkPage.savedNetworks.loadError'));
         }
       } catch {
-        setError(t('settings.networkPage.savedNetworks.networkErrorMessage'));
+        setError(t('common.serverUnreachable'));
       } finally {
         setLoading(false);
       }

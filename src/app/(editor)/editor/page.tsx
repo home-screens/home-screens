@@ -241,17 +241,17 @@ export default function EditorPage() {
               {saveError ? (
                 <span role="alert" className="flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 text-hs-danger" />
-                  <span className="text-xs text-hs-danger">{t('page.toolbar.saveFailed')}</span>
+                  <span className="text-xs text-hs-danger">{t('common.saveFailed')}</span>
                   <Button variant="secondary" size="sm" onClick={saveConfig}>
                     {t('page.toolbar.retryButton')}
                   </Button>
                 </span>
               ) : isSaving ? (
-                <span className="text-xs text-hs-text-faint">{t('page.toolbar.savingStatus')}</span>
+                <span className="text-xs text-hs-text-faint">{t('common.saving')}</span>
               ) : !isDirty ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-hs-success" />
-                  <span className="text-xs text-hs-success">{t('page.toolbar.savedStatus')}</span>
+                  <span className="text-xs text-hs-success">{t('common.saved')}</span>
                 </>
               ) : null}
             </div>

@@ -49,5 +49,14 @@
     "codeExpired": "Code verlopen. Probeer het opnieuw.",
     "authorizationFailed": "Autorisatie mislukt",
     "startSignInFailed": "Aanmelding kon niet worden gestart"
+  },
+  "days": {
+    "sunday": "Zondag",
+    "monday": "Maandag",
+    "tuesday": "Dinsdag",
+    "wednesday": "Woensdag",
+    "thursday": "Donderdag",
+    "friday": "Vrijdag",
+    "saturday": "Zaterdag"
   }
 }

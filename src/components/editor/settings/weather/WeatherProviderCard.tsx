@@ -155,7 +155,7 @@ export default function WeatherProviderCard({
       ) : (
         <div className="mb-4">
           <SecretField
-            label={t('settings.weatherPage.providerCard.apiKeyLabel')}
+            label={t('common.apiKey')}
             secretKey={provider.secretKey}
             placeholder={provider.placeholderKey ? t(provider.placeholderKey) : ''}
             helpText={provider.keyHintKey ? t(provider.keyHintKey) : ''}

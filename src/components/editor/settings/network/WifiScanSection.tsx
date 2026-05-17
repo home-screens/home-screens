@@ -74,7 +74,7 @@ export default function WifiScanSection({
         setScanError(errData?.error ?? t('settings.networkPage.wifiScan.defaultScanError'));
       }
     } catch {
-      setScanError(t('settings.networkPage.wifiScan.networkErrorMessage'));
+      setScanError(t('common.serverUnreachable'));
     } finally {
       setScanning(false);
 

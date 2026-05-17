@@ -134,7 +134,7 @@ export default function DiagnosticsSection() {
         setError(t('settings.networkPage.diagnostics.requestFailed'));
       }
     } catch {
-      setError(t('settings.networkPage.diagnostics.networkErrorMessage'));
+      setError(t('common.serverUnreachable'));
     } finally {
       setRunning(false);
     }

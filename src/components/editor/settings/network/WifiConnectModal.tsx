@@ -109,7 +109,7 @@ export default function WifiConnectModal({
 
         onConnected(data.rollbackId);
       } catch {
-        setError(t('settings.networkPage.wifiConnect.networkErrorMessage'));
+        setError(t('common.serverUnreachable'));
         setConnecting(false);
       }
     },

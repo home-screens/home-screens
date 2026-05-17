@@ -168,7 +168,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
       )}
       {hasNasaKey && (
         <Button size="sm" onClick={() => setApodRefreshKey((k) => k + 1)} className="self-start">
-          {t('imageBrowsers.nasa.refresh')}
+          {t('common.refresh')}
         </Button>
       )}
       {nasaNote}

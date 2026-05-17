@@ -14,7 +14,7 @@ export function DadJokeConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   return (
     <>
       <Slider
-        label={t('configSections.dad-joke.refreshSeconds')}
+        label={t('common.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 60000) / 1000}
         min={30}
         max={3600}

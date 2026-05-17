@@ -20,7 +20,24 @@
     "confirm": "Bevestigen",
     "loading": "Laden…",
     "saving": "Opslaan…",
-    "saved": "Opgeslagen"
+    "saved": "Opgeslagen",
+    "refreshMinutes": "Vernieuwen (minuten)",
+    "refreshSeconds": "Vernieuwen (seconden)",
+    "refresh": "Vernieuwen",
+    "theme": "Thema",
+    "density": "Dichtheid",
+    "objectFit": "Objectaanpassing",
+    "objectFitCover": "Bedekken",
+    "objectFitContain": "Passend",
+    "objectFitFill": "Vullen",
+    "showDescription": "Beschrijving tonen",
+    "apiKey": "API-sleutel",
+    "resolution": "Resolutie",
+    "orientation": "Oriëntatie",
+    "saveFailed": "Opslaan mislukt",
+    "saveError": "Opslaan mislukt",
+    "networkError": "Netwerkfout",
+    "serverUnreachable": "Server niet bereikbaar"
   },
   "modal": {
     "closeAriaLabel": "Dialoogvenster sluiten"
@@ -33,10 +50,7 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Instellingen",
       "previewButton": "Voorbeeld",
-      "saveFailed": "Opslaan mislukt",
-      "retryButton": "Opnieuw proberen",
-      "savingStatus": "Opslaan…",
-      "savedStatus": "Opgeslagen"
+      "retryButton": "Opnieuw proberen"
     }
   },
   "canvas": {
@@ -350,7 +364,6 @@
       "providersLabel": "Aanbieders",
       "loadingProviderStatus": "Status van aanbieder laden…",
       "providerCard": {
-        "apiKeyLabel": "API-sleutel",
         "currentlyDefault": "Op dit moment de standaard",
         "setAsDefault": "Als standaard instellen",
         "testButton": "Testen",
@@ -428,10 +441,8 @@
       "multiDisplayNotePart3": ".",
       "canvas": {
         "heading": "Canvas",
-        "orientationLabel": "Oriëntatie",
         "orientationPortrait": "Staand",
         "orientationLandscape": "Liggend",
-        "resolutionLabel": "Resolutie",
         "resolutionCustom": "Aangepast…",
         "resolutionWidthPlaceholder": "Breedte",
         "resolutionHeightPlaceholder": "Hoogte",
@@ -500,7 +511,6 @@
         }
       },
       "overview": {
-        "resolutionLabel": "Resolutie",
         "activeProfileLabel": "Actief profiel",
         "noActiveProfile": "Geen",
         "screensLabel": "Schermen",
@@ -569,7 +579,6 @@
         "bannerEmphasisOverride": "Overschrijven",
         "bannerPart4": " bij een veld om het alleen voor {name} te wijzigen.",
         "canvasHeading": "Canvas",
-        "resolutionLabel": "Resolutie",
         "perDisplayBadge": "Per display",
         "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie — die wordt niet gedeeld.",
         "rotationLabel": "Rotatie",
@@ -686,7 +695,6 @@
         "urlLabel": "Server-URL",
         "urlPlaceholder": "bijv. http://192.168.1.50:2283",
         "urlHelp": "De basis-URL van je Immich-installatie.",
-        "apiKeyLabel": "API-sleutel",
         "apiKeyPlaceholder": "Plak je Immich API-sleutel",
         "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
       },
@@ -700,7 +708,6 @@
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
-        "apiKeyLabel": "API-sleutel",
         "apiKeyPlaceholder": "Plak je NASA API-sleutel",
         "apiKeyHelp": "Gratis op api.nasa.gov — 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
       },
@@ -714,7 +721,6 @@
       "tomtom": {
         "name": "TomTom",
         "description": "Verkeer & reistijden",
-        "keyLabel": "API-sleutel",
         "keyPlaceholder": "Plak je TomTom API-sleutel",
         "keyHelp": "Gratis op developer.tomtom.com — Routing API vereist. Alternatief voor Google Maps."
       },
@@ -751,8 +757,7 @@
         "saveButton": "Opslaan",
         "savingButton": "Opslaan…",
         "successMessage": "Hostname bijgewerkt",
-        "defaultErrorMessage": "Hostname bijwerken mislukt",
-        "networkErrorMessage": "Server niet bereikbaar"
+        "defaultErrorMessage": "Hostname bijwerken mislukt"
       },
       "interface": {
         "type": {
@@ -786,7 +791,6 @@
         "scanningButton": "Scannen…",
         "scanCooldownButton": "Scannen ({seconds}s)",
         "defaultScanError": "Scannen mislukt",
-        "networkErrorMessage": "Server niet bereikbaar",
         "emptyHint": "Klik op Scannen om naar Wi-Fi-netwerken in de buurt te zoeken.",
         "badges": {
           "connected": "Verbonden",
@@ -807,8 +811,7 @@
         "cancelButton": "Annuleren",
         "connectButton": "Verbinden",
         "connectingButton": "Verbinden…",
-        "defaultConnectError": "Verbinden mislukt",
-        "networkErrorMessage": "Server niet bereikbaar"
+        "defaultConnectError": "Verbinden mislukt"
       },
       "managementWarning": {
         "heading": "Waarschuwing voor beheerinterface",
@@ -836,7 +839,6 @@
         "heading": "Opgeslagen netwerken",
         "loading": "Opgeslagen netwerken laden…",
         "loadError": "Opgeslagen netwerken laden mislukt",
-        "networkErrorMessage": "Server niet bereikbaar",
         "empty": "Geen opgeslagen Wi-Fi-netwerken.",
         "showPasswords": "Wachtwoorden tonen",
         "hidePasswords": "Wachtwoorden verbergen",
@@ -870,8 +872,7 @@
         "applyButton": "Toepassen",
         "applyingButton": "Toepassen…",
         "successMessage": "Instellingen toegepast",
-        "defaultErrorMessage": "IP-instellingen toepassen mislukt",
-        "networkErrorMessage": "Server niet bereikbaar"
+        "defaultErrorMessage": "IP-instellingen toepassen mislukt"
       },
       "diagnostics": {
         "heading": "Diagnostiek",
@@ -898,7 +899,6 @@
         },
         "unavailable": "Diagnostiek is niet beschikbaar op dit apparaat.",
         "requestFailed": "Diagnostiekverzoek mislukt",
-        "networkErrorMessage": "Server niet bereikbaar",
         "testButton": "Verbinding testen",
         "testingButton": "Testen…"
       }
@@ -911,7 +911,6 @@
         "part2": "-instellingenpaneel — bewerkingen vanuit beide kanten blijven gesynchroniseerd."
       },
       "status": {
-        "saving": "Opslaan…",
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
         "networkLoad": "Netwerkfout bij het laden van maaltijdinstellingen.",
         "saveFailed": "Maaltijdinstellingen opslaan mislukt.",
@@ -923,9 +922,7 @@
         "description": "Welke maaltijden plant je gezin? Werkt door in elke maaltijdplanner-module op alle schermen."
       },
       "weekStart": {
-        "heading": "Week begint op",
-        "sunday": "Zondag",
-        "monday": "Maandag"
+        "heading": "Week begint op"
       },
       "timeFormat": {
         "heading": "Tijdformaat",
@@ -1037,8 +1034,7 @@
         "restartScheduled": "Service-herstart gepland. De pagina wordt zo herladen…",
         "rebootScheduled": "Systeemherstart gepland. Het display komt zo weer online…",
         "processing": "Verwerken…",
-        "unknownError": "Onbekende fout",
-        "unreachable": "Server niet bereikbaar"
+        "unknownError": "Onbekende fout"
       }
     },
     "profilesPage": {
@@ -1107,8 +1103,7 @@
         "revoking": "Intrekken…",
         "cancel": "Annuleren",
         "success": "Alle sessies ingetrokken. Doorsturen naar inloggen…",
-        "failed": "Sessies intrekken mislukt",
-        "networkError": "Netwerkfout"
+        "failed": "Sessies intrekken mislukt"
       },
       "displayToken": {
         "heading": "Display-token",
@@ -1123,7 +1118,6 @@
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Het display moet herladen om de nieuwe token op te pikken.",
         "errorRegenerate": "Token opnieuw genereren mislukt",
-        "errorNetwork": "Netwerkfout",
         "errorCopy": "Kopiëren mislukt — selecteer en kopieer handmatig",
         "phoneHintPart1": "Voor bladwijzers op je telefoon: voeg ",
         "phoneHintCode": "?token=TOKEN",
@@ -1147,9 +1141,7 @@
           "invalidCidr": "Ongeldig CIDR-formaat",
           "invalidIp": "Ongeldig IP-adres",
           "invalidPrefix": "Prefixlengte moet 0-32 zijn",
-          "alreadyInList": "Staat al in de lijst",
-          "saveFailed": "Opslaan mislukt",
-          "networkError": "Netwerkfout"
+          "alreadyInList": "Staat al in de lijst"
         },
         "callerIpLabel": "Jouw IP: ",
         "lockoutWarning": {
@@ -1157,12 +1149,9 @@
           "messagePart1": "Je huidige IP (",
           "messagePart2": ") staat niet in de allowlist. Als toegangsbeperking is ingeschakeld, verlies je toegang tot deze editor.",
           "saveAnyway": "Toch opslaan",
-          "saving": "Opslaan…",
           "cancel": "Annuleren"
         },
         "saveButton": "Wijzigingen opslaan",
-        "saving": "Opslaan…",
-        "saved": "Opgeslagen",
         "lockedOutHintPart1": "Als je buitengesloten bent: bewerk ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " op het apparaat om uit te schakelen.",
@@ -1204,8 +1193,7 @@
         "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
         "setFailed": "Wachtwoord instellen mislukt",
         "changeFailed": "Wachtwoord wijzigen mislukt",
-        "disableFailed": "Authenticatie uitschakelen mislukt",
-        "networkError": "Netwerkfout"
+        "disableFailed": "Authenticatie uitschakelen mislukt"
       },
       "success": {
         "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
@@ -1296,9 +1284,7 @@
         "removeButton": "Verwijderen",
         "savingButton": "…",
         "saveButton": "Opslaan",
-        "savedSuccess": "Succesvol opgeslagen",
-        "defaultSaveError": "Opslaan mislukt",
-        "networkError": "Netwerkfout"
+        "savedSuccess": "Succesvol opgeslagen"
       }
     },
     "localBackgrounds": {
@@ -1344,9 +1330,7 @@
       "enterPlaceholder": "Voer {label} in",
       "savingButton": "…",
       "saveButton": "Opslaan",
-      "savedSuccess": "Succesvol opgeslagen",
-      "defaultSaveError": "Opslaan mislukt",
-      "networkError": "Netwerkfout"
+      "savedSuccess": "Succesvol opgeslagen"
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1419,7 +1403,6 @@
       "serverTitle": "Server",
       "diagnosticsBundle": "Diagnostiekbundel",
       "generatingBundle": "Genereren…",
-      "refresh": "Vernieuwen",
       "bundleFailed": "Bundel maken mislukt: {error}",
       "hostname": "Hostnaam",
       "platform": "Platform",
@@ -1528,11 +1511,7 @@
       "populatedDescriptionSuffix": ".",
       "defaultsLink": "Standaardwaarden",
       "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
-      "refresh": "Vernieuwen",
       "addDisplay": "Scherm toevoegen",
-      "saved": "Opgeslagen",
-      "saveFailed": "Opslaan mislukt",
-      "saving": "Opslaan…",
       "emptyTitle": "Deze installatie draait in enkel-scherm-modus",
       "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd — ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
       "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
@@ -1577,7 +1556,6 @@
       "formIdHint": "(gebruikt in URL: /display/<id>)",
       "formIdPlaceholder": "keuken",
       "formIdLocked": "Het ID is vastgezet op dat van het rapporterende scherm.",
-      "formResolution": "Resolutie",
       "formReportedViewport": "(gerapporteerd door scherm: {width} × {height})",
       "formWidth": "Breedte",
       "formHeight": "Hoogte",
@@ -1598,7 +1576,6 @@
       "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn"
     },
     "header": {
-      "saveFailed": "Opslaan mislukt",
       "backToEditor": "Editor",
       "contextLabel": "Instellingen",
       "theme": {
@@ -2077,8 +2054,7 @@
     },
     "air-quality": {
       "showAQI": "AQI tonen",
-      "showPollutants": "Verontreinigingen tonen",
-      "refreshMinutes": "Vernieuwen (minuten)"
+      "showPollutants": "Verontreinigingen tonen"
     },
     "calendar": {
       "viewMode": "Weergavemodus",
@@ -2097,8 +2073,7 @@
       "showTime": "Tijd tonen",
       "showLocation": "Locatie tonen",
       "showWeekNumbers": "Weeknummers tonen",
-      "accentColor": "Accentkleur",
-      "showDescription": "Beschrijving tonen"
+      "accentColor": "Accentkleur"
     },
     "chore-chart": {
       "viewBoard": "Bord (kolom per lid)",
@@ -2106,8 +2081,6 @@
       "viewToday": "Vandaag (dagdeel)",
       "viewProgress": "Voortgang (ringen)",
       "viewCompact": "Compact (dicht raster)",
-      "weekStartSunday": "Zondag",
-      "weekStartMonday": "Maandag",
       "weekStartsOn": "Week begint op",
       "showTickets": "Tickets tonen",
       "showStreaks": "Streaks tonen",
@@ -2184,7 +2157,6 @@
       "setBackground": "Achtergrond instellen..."
     },
     "dad-joke": {
-      "refreshSeconds": "Vernieuwen (seconden)",
       "showDividers": "Scheidingslijnen tonen"
     },
     "date": {
@@ -2229,7 +2201,6 @@
       "viewCompact": "Compact",
       "scale": "Schaal",
       "tickerSpeed": "Tickersnelheid ({unit})",
-      "refreshSeconds": "Vernieuwen (seconden)",
       "stockSymbolsLabel": "Symbolen (komma-gescheiden)",
       "cryptoIdsLabel": "Coin-ID's (komma-gescheiden, CoinGecko)",
       "tickerUnitStock": "sec/aandeel",
@@ -2251,9 +2222,7 @@
       "typography3xLarge": "3X groot",
       "typography4xLarge": "4X groot",
       "view": "Weergave",
-      "density": "Dichtheid",
       "typographySize": "Tekstgrootte",
-      "theme": "Thema",
       "themeDefault": "Standaard (uit Instellingen)",
       "accentColor": "Accentkleur",
       "dimPastEvents": "Eerdere evenementen dimmen",
@@ -2273,8 +2242,7 @@
       "maxEventsPerCellAuto": "Max. evenementen per cel (0 = automatisch)",
       "showLocation": "Locatie tonen",
       "daysAhead": "Dagen vooruit",
-      "hideEmptyDays": "Lege dagen verbergen",
-      "showDescription": "Beschrijving tonen"
+      "hideEmptyDays": "Lege dagen verbergen"
     },
     "fullscreen-chore-chart": {
       "view": "Weergave",
@@ -2282,16 +2250,12 @@
       "viewRewardsStore": "Beloningenwinkel",
       "showRewardsButton": "Knop Beloningen tonen",
       "showRewardsButtonHelp": "Voegt een knop toe aan het klusjesbord zodat kinderen naar de beloningenwinkel kunnen wisselen. Het beste voor displays met touchscreen.",
-      "theme": "Thema",
       "themeDefault": "Standaard (uit Instellingen)",
-      "density": "Dichtheid",
       "densityCozy": "Ruim",
       "densitySnug": "Krap",
       "typographySize": "Tekstgrootte",
       "accentColor": "Accentkleur",
       "weekStartsOn": "Week begint op",
-      "weekStartSunday": "Zondag",
-      "weekStartMonday": "Maandag",
       "showTickets": "Tickets tonen",
       "showStreaks": "Streaks tonen",
       "showTimeOfDay": "Dagdeel tonen",
@@ -2302,14 +2266,12 @@
       "mobileHintPrefix": "Gezinsleden kunnen klusjes afvinken op het touchscreen of vanaf hun telefoon via het tabblad Klusjes op"
     },
     "fullscreen-meal-planner": {
-      "theme": "Thema",
       "themeDefault": "Standaard (uit Instellingen)",
       "view": "Weergave",
       "viewWeek": "Week",
       "viewToday": "Vandaag",
       "viewMenuBoard": "Menubord",
       "viewNextMeal": "Volgende maaltijd",
-      "density": "Dichtheid",
       "densityCozy": "Ruim",
       "densitySnug": "Krap",
       "typographySize": "Tekstgrootte",
@@ -2327,7 +2289,6 @@
       "mobileHintEnd": "het instellingenpaneel."
     },
     "fullscreen-photo": {
-      "theme": "Thema",
       "themeDefaultMidnight": "Standaard (Midnight)",
       "photoSource": "Fotobron",
       "sourceLocal": "Lokale foto's",
@@ -2350,10 +2311,6 @@
       "transitionSlide": "Schuiven",
       "transitionZoom": "Zoomen",
       "transitionNone": "Geen",
-      "objectFit": "Objectaanpassing",
-      "objectFitCover": "Bedekken",
-      "objectFitContain": "Passend",
-      "objectFitFill": "Vullen",
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
@@ -2365,13 +2322,6 @@
       "highlightDayBefore": "Dag ervoor (bakken buiten zetten)",
       "highlightDayOf": "Op de dag zelf (ophaaldag)",
       "dayDisabled": "Uitgeschakeld",
-      "daySunday": "Zondag",
-      "dayMonday": "Maandag",
-      "dayTuesday": "Dinsdag",
-      "dayWednesday": "Woensdag",
-      "dayThursday": "Donderdag",
-      "dayFriday": "Vrijdag",
-      "daySaturday": "Zaterdag",
       "trash": "Restafval",
       "recycling": "Recycling",
       "custom": "Aangepast",
@@ -2392,7 +2342,6 @@
     },
     "history": {
       "cycleEventsSeconds": "Evenementen wisselen (seconden)",
-      "refreshMinutes": "Vernieuwen (minuten)",
       "showDividers": "Scheidingslijnen tonen",
       "sourceWikipedia": "Bron: Wikipedia",
       "sourceMuffinLabs": "Bron: MuffinLabs"
@@ -2456,10 +2405,6 @@
       "uploading": "Uploaden...",
       "uploadFailed": "Uploaden mislukt",
       "preview": "Voorbeeld",
-      "objectFit": "Objectaanpassing",
-      "objectFitCover": "Bedekken",
-      "objectFitContain": "Passend",
-      "objectFitFill": "Vullen",
       "altText": "Alt-tekst"
     },
     "immichSource": {
@@ -2507,8 +2452,6 @@
       "layoutHorizontal": "Horizontaal (naast elkaar)",
       "monthsToShow": "Aantal maanden tonen",
       "weekStartsOn": "Week begint op",
-      "startDaySunday": "Zondag",
-      "startDayMonday": "Maandag",
       "showWeekNumbers": "Weeknummers tonen",
       "highlightWeekends": "Weekenden markeren",
       "showAdjacentDays": "Aangrenzende dagen tonen"
@@ -2525,18 +2468,13 @@
       "maxItems": "Max. items",
       "tickerSpeed": "Tickersnelheid (sec/item)",
       "showTimestamp": "Tijdstempel tonen",
-      "showDescription": "Beschrijving tonen",
-      "bulletColor": "Opsommingskleur",
-      "refreshSeconds": "Vernieuwen (seconden)"
+      "bulletColor": "Opsommingskleur"
     },
     "photo-slideshow": {
       "sourceLocal": "Lokale foto's",
       "sourceImmich": "Immich",
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
-      "fitCover": "Bedekken",
-      "fitContain": "Passend",
-      "fitFill": "Vullen",
       "photoSource": "Fotobron",
       "folder": "Map",
       "allPhotosRoot": "Alle foto's (root)",
@@ -2545,8 +2483,7 @@
       "photoCountOther": "{count} foto's",
       "noPhotosInFolder": "Geen foto's in deze map",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang",
-      "objectFit": "Objectaanpassing"
+      "transition": "Overgang"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",
@@ -2569,9 +2506,6 @@
       "networkNamePlaceholder": "MijnNetwerk",
       "dataUrlOrTextPlaceholder": "https://example.com"
     },
-    "quote": {
-      "refreshSeconds": "Vernieuwen (seconden)"
-    },
     "rain-map": {
       "styleDark": "Donker",
       "styleStandard": "Standaard",
@@ -2586,7 +2520,6 @@
       "showTimestamp": "Tijdstempel tonen",
       "showTimeline": "Tijdlijn tonen",
       "mapStyle": "Kaartstijl",
-      "refreshMinutes": "Vernieuwen (minuten)",
       "locationHelp": "Gebruikt de locatie uit de algemene instellingen wanneer lat/lon 0 zijn."
     },
     "shape": {
@@ -2663,8 +2596,7 @@
       "viewList": "Lijst",
       "viewTicker": "Ticker",
       "leagues": "Competities",
-      "tickerSpeed": "Tickersnelheid (sec/wedstrijd)",
-      "refreshSeconds": "Vernieuwen (seconden)"
+      "tickerSpeed": "Tickersnelheid (sec/wedstrijd)"
     },
     "standings": {
       "viewTable": "Tabel",
@@ -2677,8 +2609,7 @@
       "grouping": "Groepering",
       "playoffCutoffLine": "Playoff-grenslijn",
       "teamsToShow": "Aantal teams tonen (0 = alle)",
-      "rotationSeconds": "Rotatie (seconden)",
-      "refreshMinutes": "Vernieuwen (minuten)"
+      "rotationSeconds": "Rotatie (seconden)"
     },
     "sticky-note": {
       "content": "Inhoud",
@@ -2845,11 +2776,9 @@
       "showSubtasks": "Subtaken tonen",
       "showLabels": "Labels tonen",
       "showProject": "Project tonen",
-      "showDescription": "Beschrijving tonen",
       "showNoDueDate": "Taken zonder datum tonen",
       "tapToComplete": "Tik om af te ronden (touchscreen)",
       "maxTasks": "Max. taken",
-      "refreshMinutes": "Vernieuwen (minuten)",
       "viewModes": {
         "list": "Lijst",
         "board": "Bord",
@@ -2870,7 +2799,6 @@
       }
     },
     "traffic": {
-      "refreshMinutes": "Vernieuwen (minuten)",
       "routes": "Routes",
       "newRouteLabel": "Werk",
       "labelPlaceholder": "Label",
@@ -2933,7 +2861,6 @@
   "imageBrowsers": {
     "immich": {
       "allPhotos": "Alle foto's",
-      "refresh": "Vernieuwen",
       "noPhotos": "Geen foto's gevonden",
       "attribution": "Foto's uit je Immich-bibliotheek",
       "notConfiguredPrefix": "Voeg je Immich-server-URL en API-sleutel toe bij",
@@ -2972,7 +2899,6 @@
     "nasa": {
       "attribution": "Afbeeldingen met dank aan NASA",
       "searchPlaceholder": "Zoek NASA-afbeeldingen...",
-      "refresh": "Vernieuwen",
       "watermarkNote": "Let op: sommige NASA-afbeeldingen bevatten ingebedde tijdstempels of watermerken die niet kunnen worden verwijderd.",
       "notConfiguredPrefix": "Voeg een gratis NASA API-sleutel toe bij",
       "settingsWord": "Instellingen",

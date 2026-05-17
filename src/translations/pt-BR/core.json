@@ -49,5 +49,14 @@
     "codeExpired": "Código expirado. Tente novamente.",
     "authorizationFailed": "Falha na autorização",
     "startSignInFailed": "Falha ao iniciar o login"
+  },
+  "days": {
+    "sunday": "Domingo",
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado"
   }
 }

@@ -20,7 +20,24 @@
     "confirm": "Confirmar",
     "loading": "Carregando…",
     "saving": "Salvando…",
-    "saved": "Salvo"
+    "saved": "Salvo",
+    "refreshMinutes": "Atualizar (minutos)",
+    "refreshSeconds": "Atualizar (segundos)",
+    "refresh": "Atualizar",
+    "theme": "Tema",
+    "density": "Densidade",
+    "objectFit": "Ajuste",
+    "objectFitCover": "Cobrir",
+    "objectFitContain": "Conter",
+    "objectFitFill": "Preencher",
+    "showDescription": "Mostrar descrição",
+    "apiKey": "Chave de API",
+    "resolution": "Resolução",
+    "orientation": "Orientação",
+    "saveFailed": "Falha ao salvar",
+    "saveError": "Falha ao salvar",
+    "networkError": "Erro de rede",
+    "serverUnreachable": "Falha ao acessar o servidor"
   },
   "modal": {
     "closeAriaLabel": "Fechar diálogo"
@@ -33,10 +50,7 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Configurações",
       "previewButton": "Pré-visualizar",
-      "saveFailed": "Falha ao salvar",
-      "retryButton": "Tentar novamente",
-      "savingStatus": "Salvando…",
-      "savedStatus": "Salvo"
+      "retryButton": "Tentar novamente"
     }
   },
   "canvas": {
@@ -350,7 +364,6 @@
       "providersLabel": "Provedores",
       "loadingProviderStatus": "Carregando status dos provedores…",
       "providerCard": {
-        "apiKeyLabel": "Chave de API",
         "currentlyDefault": "Atualmente o padrão",
         "setAsDefault": "Definir como padrão",
         "testButton": "Testar",
@@ -428,10 +441,8 @@
       "multiDisplayNotePart3": ".",
       "canvas": {
         "heading": "Canvas",
-        "orientationLabel": "Orientação",
         "orientationPortrait": "Retrato",
         "orientationLandscape": "Paisagem",
-        "resolutionLabel": "Resolução",
         "resolutionCustom": "Personalizada...",
         "resolutionWidthPlaceholder": "Largura",
         "resolutionHeightPlaceholder": "Altura",
@@ -500,7 +511,6 @@
         }
       },
       "overview": {
-        "resolutionLabel": "Resolução",
         "activeProfileLabel": "Perfil ativo",
         "noActiveProfile": "Nenhum",
         "screensLabel": "Telas",
@@ -569,7 +579,6 @@
         "bannerEmphasisOverride": "Substituir",
         "bannerPart4": " em qualquer campo para alterá-lo apenas para {name}.",
         "canvasHeading": "Canvas",
-        "resolutionLabel": "Resolução",
         "perDisplayBadge": "Por tela",
         "resolutionHelp": "Os módulos são posicionados sobre este canvas. Cada tela tem sua própria resolução — não é compartilhada.",
         "rotationLabel": "Rotação",
@@ -686,7 +695,6 @@
         "urlLabel": "URL do servidor",
         "urlPlaceholder": "ex: http://192.168.1.50:2283",
         "urlHelp": "A URL base da sua instância do Immich.",
-        "apiKeyLabel": "Chave de API",
         "apiKeyPlaceholder": "Cole sua chave de API do Immich",
         "apiKeyHelp": "Crie em Immich → Account Settings → API Keys."
       },
@@ -700,7 +708,6 @@
       "nasa": {
         "name": "NASA",
         "description": "Foto astronômica do dia",
-        "apiKeyLabel": "Chave de API",
         "apiKeyPlaceholder": "Cole sua chave de API da NASA",
         "apiKeyHelp": "Gratuita em api.nasa.gov — 1.000 requisições/hora. A pesquisa na Image Library funciona sem chave."
       },
@@ -714,7 +721,6 @@
       "tomtom": {
         "name": "TomTom",
         "description": "Trânsito e tempos de trajeto",
-        "keyLabel": "Chave de API",
         "keyPlaceholder": "Cole sua chave de API da TomTom",
         "keyHelp": "Gratuita em developer.tomtom.com — Routing API necessária. Alternativa ao Google Maps."
       },
@@ -751,8 +757,7 @@
         "saveButton": "Salvar",
         "savingButton": "Salvando...",
         "successMessage": "Hostname atualizado",
-        "defaultErrorMessage": "Falha ao atualizar o hostname",
-        "networkErrorMessage": "Falha ao acessar o servidor"
+        "defaultErrorMessage": "Falha ao atualizar o hostname"
       },
       "interface": {
         "type": {
@@ -786,7 +791,6 @@
         "scanningButton": "Escaneando...",
         "scanCooldownButton": "Escanear ({seconds}s)",
         "defaultScanError": "Falha no escaneamento",
-        "networkErrorMessage": "Falha ao acessar o servidor",
         "emptyHint": "Clique em Escanear para procurar redes Wi-Fi próximas.",
         "badges": {
           "connected": "Conectado",
@@ -807,8 +811,7 @@
         "cancelButton": "Cancelar",
         "connectButton": "Conectar",
         "connectingButton": "Conectando...",
-        "defaultConnectError": "Falha na conexão",
-        "networkErrorMessage": "Falha ao acessar o servidor"
+        "defaultConnectError": "Falha na conexão"
       },
       "managementWarning": {
         "heading": "Aviso da interface de gerenciamento",
@@ -836,7 +839,6 @@
         "heading": "Redes salvas",
         "loading": "Carregando redes salvas...",
         "loadError": "Falha ao carregar redes salvas",
-        "networkErrorMessage": "Falha ao acessar o servidor",
         "empty": "Nenhuma rede Wi-Fi salva.",
         "showPasswords": "Mostrar senhas",
         "hidePasswords": "Ocultar senhas",
@@ -870,8 +872,7 @@
         "applyButton": "Aplicar",
         "applyingButton": "Aplicando...",
         "successMessage": "Configurações aplicadas",
-        "defaultErrorMessage": "Falha ao aplicar configurações de IP",
-        "networkErrorMessage": "Falha ao acessar o servidor"
+        "defaultErrorMessage": "Falha ao aplicar configurações de IP"
       },
       "diagnostics": {
         "heading": "Diagnósticos",
@@ -898,7 +899,6 @@
         },
         "unavailable": "Diagnósticos não estão disponíveis neste dispositivo.",
         "requestFailed": "A requisição de diagnóstico falhou",
-        "networkErrorMessage": "Falha ao acessar o servidor",
         "testButton": "Testar conexão",
         "testingButton": "Testando..."
       }
@@ -911,7 +911,6 @@
         "part2": " — edições de qualquer um dos lados ficam sincronizadas."
       },
       "status": {
-        "saving": "Salvando…",
         "loadFailed": "Falha ao carregar as configurações de refeições.",
         "networkLoad": "Erro de rede ao carregar as configurações de refeições.",
         "saveFailed": "Falha ao salvar as configurações de refeições.",
@@ -923,9 +922,7 @@
         "description": "Quais refeições sua família planeja? Afeta todos os módulos do planejador em todas as telas."
       },
       "weekStart": {
-        "heading": "Semana começa em",
-        "sunday": "Domingo",
-        "monday": "Segunda-feira"
+        "heading": "Semana começa em"
       },
       "timeFormat": {
         "heading": "Formato de hora",
@@ -1037,8 +1034,7 @@
         "restartScheduled": "Reinicialização do serviço agendada. A página vai recarregar em instantes…",
         "rebootScheduled": "Reinicialização do sistema agendada. A tela voltará em breve…",
         "processing": "Processando…",
-        "unknownError": "Erro desconhecido",
-        "unreachable": "Falha ao acessar o servidor"
+        "unknownError": "Erro desconhecido"
       }
     },
     "profilesPage": {
@@ -1107,8 +1103,7 @@
         "revoking": "Revogando…",
         "cancel": "Cancelar",
         "success": "Todas as sessões foram revogadas. Redirecionando para o login…",
-        "failed": "Falha ao revogar as sessões",
-        "networkError": "Erro de rede"
+        "failed": "Falha ao revogar as sessões"
       },
       "displayToken": {
         "heading": "Token da tela",
@@ -1123,7 +1118,6 @@
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "A tela precisará recarregar para usar o novo token.",
         "errorRegenerate": "Falha ao regenerar o token",
-        "errorNetwork": "Erro de rede",
         "errorCopy": "Falha ao copiar — selecione e copie manualmente",
         "phoneHintPart1": "Para favoritos no celular, anexe ",
         "phoneHintCode": "?token=TOKEN",
@@ -1147,9 +1141,7 @@
           "invalidCidr": "Formato CIDR inválido",
           "invalidIp": "Endereço IP inválido",
           "invalidPrefix": "O comprimento do prefixo deve ser 0-32",
-          "alreadyInList": "Já está na lista",
-          "saveFailed": "Falha ao salvar",
-          "networkError": "Erro de rede"
+          "alreadyInList": "Já está na lista"
         },
         "callerIpLabel": "Seu IP: ",
         "lockoutWarning": {
@@ -1157,12 +1149,9 @@
           "messagePart1": "Seu IP atual (",
           "messagePart2": ") não está na lista. Se a restrição de acesso for ativada, você perderá acesso a este editor.",
           "saveAnyway": "Salvar mesmo assim",
-          "saving": "Salvando…",
           "cancel": "Cancelar"
         },
         "saveButton": "Salvar alterações",
-        "saving": "Salvando…",
-        "saved": "Salvo",
         "lockedOutHintPart1": "Se ficar travado, edite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " no dispositivo para desativar.",
@@ -1204,8 +1193,7 @@
         "passwordsDoNotMatch": "As senhas não coincidem",
         "setFailed": "Falha ao definir a senha",
         "changeFailed": "Falha ao alterar a senha",
-        "disableFailed": "Falha ao desativar a autenticação",
-        "networkError": "Erro de rede"
+        "disableFailed": "Falha ao desativar a autenticação"
       },
       "success": {
         "passwordSet": "Senha definida! A autenticação agora está ativada.",
@@ -1296,9 +1284,7 @@
         "removeButton": "Remover",
         "savingButton": "…",
         "saveButton": "Salvar",
-        "savedSuccess": "Salvo com sucesso",
-        "defaultSaveError": "Falha ao salvar",
-        "networkError": "Erro de rede"
+        "savedSuccess": "Salvo com sucesso"
       }
     },
     "localBackgrounds": {
@@ -1344,9 +1330,7 @@
       "enterPlaceholder": "Digite {label}",
       "savingButton": "…",
       "saveButton": "Salvar",
-      "savedSuccess": "Salvo com sucesso",
-      "defaultSaveError": "Falha ao salvar",
-      "networkError": "Erro de rede"
+      "savedSuccess": "Salvo com sucesso"
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1419,7 +1403,6 @@
       "serverTitle": "Servidor",
       "diagnosticsBundle": "Pacote de diagnóstico",
       "generatingBundle": "Gerando…",
-      "refresh": "Atualizar",
       "bundleFailed": "Falha ao gerar o pacote: {error}",
       "hostname": "Nome do host",
       "platform": "Plataforma",
@@ -1530,11 +1513,7 @@
       "populatedDescriptionSuffix": " compartilhados.",
       "defaultsLink": "Padrões",
       "refreshHeartbeatsTitle": "Atualizar heartbeats",
-      "refresh": "Atualizar",
       "addDisplay": "Adicionar display",
-      "saved": "Salvo",
-      "saveFailed": "Falha ao salvar",
-      "saving": "Salvando…",
       "emptyTitle": "Esta instalação está rodando em modo de display único",
       "emptyParagraphPart1": "Sua configuração atual conta como um display, mas ainda não está registrada aqui — o suporte a múltiplos displays é opcional para que instalações existentes permaneçam inalteradas até você adicionar explicitamente uma segunda tela. No momento em que você adicionar o primeiro display, o layout atual deste Pi vira um display chamado ",
       "emptyParagraphPart2": " e continua funcionando exatamente como hoje.",
@@ -1581,7 +1560,6 @@
       "formIdHint": "(usado na URL: /display/<id>)",
       "formIdPlaceholder": "cozinha",
       "formIdLocked": "O ID está travado para corresponder ao do display que está relatando.",
-      "formResolution": "Resolução",
       "formReportedViewport": "(relatado pelo display: {width} × {height})",
       "formWidth": "Largura",
       "formHeight": "Altura",
@@ -1602,7 +1580,6 @@
       "formErrorHeight": "A altura deve ser um inteiro positivo ≤ {max}"
     },
     "header": {
-      "saveFailed": "Falha ao salvar",
       "backToEditor": "Editor",
       "contextLabel": "Configurações",
       "theme": {
@@ -2082,8 +2059,7 @@
     },
     "air-quality": {
       "showAQI": "Mostrar IQA",
-      "showPollutants": "Mostrar poluentes",
-      "refreshMinutes": "Atualizar (minutos)"
+      "showPollutants": "Mostrar poluentes"
     },
     "calendar": {
       "viewMode": "Modo de exibição",
@@ -2102,8 +2078,7 @@
       "showTime": "Mostrar horário",
       "showLocation": "Mostrar local",
       "showWeekNumbers": "Mostrar números das semanas",
-      "accentColor": "Cor de destaque",
-      "showDescription": "Mostrar descrição"
+      "accentColor": "Cor de destaque"
     },
     "chore-chart": {
       "viewBoard": "Quadro (coluna por membro)",
@@ -2111,8 +2086,6 @@
       "viewToday": "Hoje (por período do dia)",
       "viewProgress": "Progresso (anéis)",
       "viewCompact": "Compacto (grade densa)",
-      "weekStartSunday": "Domingo",
-      "weekStartMonday": "Segunda-feira",
       "weekStartsOn": "Semana começa em",
       "showTickets": "Mostrar tickets",
       "showStreaks": "Mostrar sequências",
@@ -2189,7 +2162,6 @@
       "setBackground": "Definir plano de fundo..."
     },
     "dad-joke": {
-      "refreshSeconds": "Atualizar (segundos)",
       "showDividers": "Mostrar divisores"
     },
     "date": {
@@ -2234,7 +2206,6 @@
       "viewCompact": "Compacto",
       "scale": "Escala",
       "tickerSpeed": "Velocidade do ticker ({unit})",
-      "refreshSeconds": "Atualizar (segundos)",
       "stockSymbolsLabel": "Símbolos (separados por vírgula)",
       "cryptoIdsLabel": "IDs de moedas (separados por vírgula, CoinGecko)",
       "tickerUnitStock": "s/ação",
@@ -2256,9 +2227,7 @@
       "typography3xLarge": "3X grande",
       "typography4xLarge": "4X grande",
       "view": "Exibição",
-      "density": "Densidade",
       "typographySize": "Tamanho da tipografia",
-      "theme": "Tema",
       "themeDefault": "Padrão (das configurações)",
       "accentColor": "Cor de destaque",
       "dimPastEvents": "Esmaecer eventos passados",
@@ -2278,8 +2247,7 @@
       "maxEventsPerCellAuto": "Máx. de eventos por célula (0 = automático)",
       "showLocation": "Mostrar local",
       "daysAhead": "Dias à frente",
-      "hideEmptyDays": "Ocultar dias vazios",
-      "showDescription": "Mostrar descrição"
+      "hideEmptyDays": "Ocultar dias vazios"
     },
     "fullscreen-chore-chart": {
       "view": "Exibição",
@@ -2287,16 +2255,12 @@
       "viewRewardsStore": "Loja de recompensas",
       "showRewardsButton": "Mostrar botão de recompensas",
       "showRewardsButtonHelp": "Adiciona um botão no quadro de tarefas para que as crianças possam ir para a loja de recompensas. Ideal para telas com toque.",
-      "theme": "Tema",
       "themeDefault": "Padrão (das configurações)",
-      "density": "Densidade",
       "densityCozy": "Confortável",
       "densitySnug": "Compacta",
       "typographySize": "Tamanho da tipografia",
       "accentColor": "Cor de destaque",
       "weekStartsOn": "Semana começa em",
-      "weekStartSunday": "Domingo",
-      "weekStartMonday": "Segunda-feira",
       "showTickets": "Mostrar tickets",
       "showStreaks": "Mostrar sequências",
       "showTimeOfDay": "Mostrar período do dia",
@@ -2307,14 +2271,12 @@
       "mobileHintPrefix": "Os membros da família podem marcar tarefas na tela sensível ao toque ou no celular pela aba Tarefas em"
     },
     "fullscreen-meal-planner": {
-      "theme": "Tema",
       "themeDefault": "Padrão (das configurações)",
       "view": "Exibição",
       "viewWeek": "Semana",
       "viewToday": "Hoje",
       "viewMenuBoard": "Quadro de cardápio",
       "viewNextMeal": "Próxima refeição",
-      "density": "Densidade",
       "densityCozy": "Confortável",
       "densitySnug": "Compacta",
       "typographySize": "Tamanho da tipografia",
@@ -2332,7 +2294,6 @@
       "mobileHintEnd": "gaveta de configurações."
     },
     "fullscreen-photo": {
-      "theme": "Tema",
       "themeDefaultMidnight": "Padrão (Midnight)",
       "photoSource": "Fonte das fotos",
       "sourceLocal": "Fotos locais",
@@ -2355,10 +2316,6 @@
       "transitionSlide": "Deslizar",
       "transitionZoom": "Zoom",
       "transitionNone": "Nenhuma",
-      "objectFit": "Ajuste",
-      "objectFitCover": "Cobrir",
-      "objectFitContain": "Conter",
-      "objectFitFill": "Preencher",
       "shuffleOrder": "Ordem aleatória",
       "kenBurnsEffect": "Efeito Ken Burns",
       "showClockOverlay": "Mostrar relógio sobreposto",
@@ -2370,13 +2327,6 @@
       "highlightDayBefore": "Véspera (colocar as lixeiras)",
       "highlightDayOf": "No dia (coleta)",
       "dayDisabled": "Desativado",
-      "daySunday": "Domingo",
-      "dayMonday": "Segunda-feira",
-      "dayTuesday": "Terça-feira",
-      "dayWednesday": "Quarta-feira",
-      "dayThursday": "Quinta-feira",
-      "dayFriday": "Sexta-feira",
-      "daySaturday": "Sábado",
       "trash": "Lixo",
       "recycling": "Reciclagem",
       "custom": "Personalizado",
@@ -2397,7 +2347,6 @@
     },
     "history": {
       "cycleEventsSeconds": "Alternar eventos (segundos)",
-      "refreshMinutes": "Atualizar (minutos)",
       "showDividers": "Mostrar divisores",
       "sourceWikipedia": "Fonte: Wikipedia",
       "sourceMuffinLabs": "Fonte: MuffinLabs"
@@ -2461,10 +2410,6 @@
       "uploading": "Enviando...",
       "uploadFailed": "Falha no envio",
       "preview": "Pré-visualização",
-      "objectFit": "Ajuste",
-      "objectFitCover": "Cobrir",
-      "objectFitContain": "Conter",
-      "objectFitFill": "Preencher",
       "altText": "Texto alternativo"
     },
     "immichSource": {
@@ -2512,8 +2457,6 @@
       "layoutHorizontal": "Horizontal (lado a lado)",
       "monthsToShow": "Meses a mostrar",
       "weekStartsOn": "Semana começa em",
-      "startDaySunday": "Domingo",
-      "startDayMonday": "Segunda-feira",
       "showWeekNumbers": "Mostrar números das semanas",
       "highlightWeekends": "Destacar fins de semana",
       "showAdjacentDays": "Mostrar dias adjacentes"
@@ -2530,18 +2473,13 @@
       "maxItems": "Máx. de itens",
       "tickerSpeed": "Velocidade do ticker (s/item)",
       "showTimestamp": "Mostrar data/hora",
-      "showDescription": "Mostrar descrição",
-      "bulletColor": "Cor do marcador",
-      "refreshSeconds": "Atualizar (segundos)"
+      "bulletColor": "Cor do marcador"
     },
     "photo-slideshow": {
       "sourceLocal": "Fotos locais",
       "sourceImmich": "Immich",
       "transitionFade": "Fade",
       "transitionNone": "Nenhuma",
-      "fitCover": "Cobrir",
-      "fitContain": "Conter",
-      "fitFill": "Preencher",
       "photoSource": "Fonte das fotos",
       "folder": "Pasta",
       "allPhotosRoot": "Todas as fotos (raiz)",
@@ -2550,8 +2488,7 @@
       "photoCountOther": "{count} fotos",
       "noPhotosInFolder": "Nenhuma foto nesta pasta",
       "slideInterval": "Intervalo do slide (segundos)",
-      "transition": "Transição",
-      "objectFit": "Ajuste"
+      "transition": "Transição"
     },
     "qr-code": {
       "modeCustom": "Personalizado (URL / texto)",
@@ -2574,9 +2511,6 @@
       "networkNamePlaceholder": "MinhaRede",
       "dataUrlOrTextPlaceholder": "https://example.com"
     },
-    "quote": {
-      "refreshSeconds": "Atualizar (segundos)"
-    },
     "rain-map": {
       "styleDark": "Escuro",
       "styleStandard": "Padrão",
@@ -2591,7 +2525,6 @@
       "showTimestamp": "Mostrar data/hora",
       "showTimeline": "Mostrar linha do tempo",
       "mapStyle": "Estilo do mapa",
-      "refreshMinutes": "Atualizar (minutos)",
       "locationHelp": "Usa a localização das configurações globais quando lat/lon são 0."
     },
     "shape": {
@@ -2668,8 +2601,7 @@
       "viewList": "Lista",
       "viewTicker": "Ticker",
       "leagues": "Ligas",
-      "tickerSpeed": "Velocidade do ticker (s/jogo)",
-      "refreshSeconds": "Atualizar (segundos)"
+      "tickerSpeed": "Velocidade do ticker (s/jogo)"
     },
     "standings": {
       "viewTable": "Tabela",
@@ -2682,8 +2614,7 @@
       "grouping": "Agrupamento",
       "playoffCutoffLine": "Linha de corte dos playoffs",
       "teamsToShow": "Times a mostrar (0 = todos)",
-      "rotationSeconds": "Rotação (segundos)",
-      "refreshMinutes": "Atualizar (minutos)"
+      "rotationSeconds": "Rotação (segundos)"
     },
     "sticky-note": {
       "content": "Conteúdo",
@@ -2850,11 +2781,9 @@
       "showSubtasks": "Mostrar subtarefas",
       "showLabels": "Mostrar etiquetas",
       "showProject": "Mostrar projeto",
-      "showDescription": "Mostrar descrição",
       "showNoDueDate": "Mostrar tarefas sem data",
       "tapToComplete": "Tocar para concluir (tela sensível ao toque)",
       "maxTasks": "Máx. de tarefas",
-      "refreshMinutes": "Atualizar (minutos)",
       "viewModes": {
         "list": "Lista",
         "board": "Quadro",
@@ -2875,7 +2804,6 @@
       }
     },
     "traffic": {
-      "refreshMinutes": "Atualizar (minutos)",
       "routes": "Rotas",
       "newRouteLabel": "Trabalho",
       "labelPlaceholder": "Rótulo",
@@ -2938,7 +2866,6 @@
   "imageBrowsers": {
     "immich": {
       "allPhotos": "Todas as fotos",
-      "refresh": "Atualizar",
       "noPhotos": "Nenhuma foto encontrada",
       "attribution": "Fotos da sua biblioteca do Immich",
       "notConfiguredPrefix": "Adicione a URL do servidor Immich e a chave de API em",
@@ -2977,7 +2904,6 @@
     "nasa": {
       "attribution": "Imagens cortesia da NASA",
       "searchPlaceholder": "Pesquisar imagens da NASA...",
-      "refresh": "Atualizar",
       "watermarkNote": "Observação: algumas imagens da NASA têm datas ou marcas d'água incorporadas que não podem ser removidas.",
       "notConfiguredPrefix": "Adicione uma chave de API gratuita da NASA em",
       "settingsWord": "Configurações",

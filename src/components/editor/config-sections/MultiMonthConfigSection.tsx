@@ -10,11 +10,12 @@ import type { ModuleInstance } from '@/types/config';
 
 export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean }>(mod, screenId);
 
   const START_DAY_OPTIONS = [
-    { value: 'sunday', label: t('configSections.multi-month.startDaySunday') },
-    { value: 'monday', label: t('configSections.multi-month.startDayMonday') },
+    { value: 'sunday', label: tCore('days.sunday') },
+    { value: 'monday', label: tCore('days.monday') },
   ] as const;
 
   return (

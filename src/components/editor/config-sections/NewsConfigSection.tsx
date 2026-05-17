@@ -108,7 +108,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
       {view === 'list' && (
         <Toggle
-          label={t('configSections.news.showDescription')}
+          label={t('common.showDescription')}
           checked={c.showDescription ?? false}
           onChange={(v) => set({ showDescription: v })}
         />
@@ -121,7 +121,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         />
       )}
       <Slider
-        label={t('configSections.news.refreshSeconds')}
+        label={t('common.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 300000) / 1000}
         min={60}
         max={3600}

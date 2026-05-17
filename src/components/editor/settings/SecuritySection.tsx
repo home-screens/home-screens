@@ -154,7 +154,7 @@ export default function SecuritySection() {
       setTimeout(resetModal, 2000);
     } catch {
       setModalStatus({
-        message: t('settings.securityPage.errors.networkError'),
+        message: t('common.networkError'),
         kind: 'error',
       });
     } finally {
@@ -190,7 +190,7 @@ export default function SecuritySection() {
       setTimeout(resetModal, 2000);
     } catch {
       setModalStatus({
-        message: t('settings.securityPage.errors.networkError'),
+        message: t('common.networkError'),
         kind: 'error',
       });
     } finally {
@@ -229,7 +229,7 @@ export default function SecuritySection() {
       setTimeout(resetModal, 2000);
     } catch {
       setModalStatus({
-        message: t('settings.securityPage.errors.networkError'),
+        message: t('common.networkError'),
         kind: 'error',
       });
     } finally {
@@ -280,7 +280,7 @@ export default function SecuritySection() {
         setTokenStatus(t('settings.securityPage.displayToken.errorRegenerate'));
       }
     } catch {
-      setTokenStatus(t('settings.securityPage.displayToken.errorNetwork'));
+      setTokenStatus(t('common.networkError'));
     } finally {
       setTokenRegenerating(false);
     }
@@ -306,7 +306,7 @@ export default function SecuritySection() {
       }
     } catch {
       setRevokeStatus({
-        message: t('settings.securityPage.revokeSessions.networkError'),
+        message: t('common.networkError'),
         kind: 'error',
       });
     } finally {
@@ -384,21 +384,21 @@ export default function SecuritySection() {
       }
       if (!res.ok) {
         setIpStatus({
-          message: data.error || t('settings.securityPage.ipAllowlist.errors.saveFailed'),
+          message: data.error || t('common.saveFailed'),
           kind: 'error',
         });
         return;
       }
       setIpLockoutConfirm(false);
       setIpStatus({
-        message: t('settings.securityPage.ipAllowlist.saved'),
+        message: t('common.saved'),
         kind: 'success',
       });
       setIpDirty(false);
       setTimeout(() => setIpStatus(null), 2000);
     } catch {
       setIpStatus({
-        message: t('settings.securityPage.ipAllowlist.errors.networkError'),
+        message: t('common.networkError'),
         kind: 'error',
       });
     } finally {
@@ -697,7 +697,7 @@ export default function SecuritySection() {
                 <div className="flex items-center gap-2 mt-2">
                   <Button variant="danger" size="sm" onClick={() => handleSaveIpAllowlist(true)} disabled={ipSaving}>
                     {ipSaving
-                      ? t('settings.securityPage.ipAllowlist.lockoutWarning.saving')
+                      ? t('common.saving')
                       : t('settings.securityPage.ipAllowlist.lockoutWarning.saveAnyway')}
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setIpLockoutConfirm(false)}>
@@ -711,7 +711,7 @@ export default function SecuritySection() {
             {ipDirty && !ipLockoutConfirm && (
               <Button variant="primary" size="sm" onClick={() => handleSaveIpAllowlist(false)} disabled={ipSaving}>
                 {ipSaving
-                  ? t('settings.securityPage.ipAllowlist.saving')
+                  ? t('common.saving')
                   : t('settings.securityPage.ipAllowlist.saveButton')}
               </Button>
             )}

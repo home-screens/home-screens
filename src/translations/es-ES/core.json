@@ -49,5 +49,14 @@
     "codeExpired": "Código caducado. Inténtalo de nuevo.",
     "authorizationFailed": "Error de autorización",
     "startSignInFailed": "No se pudo iniciar la sesión"
+  },
+  "days": {
+    "sunday": "Domingo",
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado"
   }
 }

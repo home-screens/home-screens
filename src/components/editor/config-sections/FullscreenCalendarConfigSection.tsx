@@ -122,7 +122,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Density */}
       <LabeledSelect
-        label={t('configSections.fullscreen-calendar.density')}
+        label={t('common.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}
@@ -137,7 +137,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       />
 
       {/* Theme Override */}
-      <LabeledField label={t('configSections.fullscreen-calendar.theme')}>
+      <LabeledField label={t('common.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -213,14 +213,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             value={c.scheduleDaysToShow ?? 0}
             onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
           />
-          <Toggle label={t('configSections.fullscreen-calendar.showDescription')} checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
         </>
       )}
 
       {view === 'week-list' && (
         <>
           <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
-          <Toggle label={t('configSections.fullscreen-calendar.showDescription')} checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
         </>
       )}
 
@@ -241,7 +241,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {view === 'day-timeline' && (
         <>
           <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
-          <Toggle label={t('configSections.fullscreen-calendar.showDescription')} checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
         </>
       )}
 
@@ -256,7 +256,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
           <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
-          <Toggle label={t('configSections.fullscreen-calendar.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
         </>
       )}
     </>

@@ -100,7 +100,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         onChange={(v) => set({ rotationIntervalMs: v * 1000 })}
       />
       <Slider
-        label={t('configSections.standings.refreshMinutes')}
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 300000) / 60000}
         min={1}
         max={60}

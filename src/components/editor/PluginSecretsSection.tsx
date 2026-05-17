@@ -36,7 +36,7 @@ function PluginSecretField({
       const data = await res.json();
       if (!res.ok) {
         setSaveStatus('error');
-        setErrorMsg(data.error ?? t('settings.pluginSecrets.defaultSaveError'));
+        setErrorMsg(data.error ?? t('common.saveError'));
         return;
       }
       setSaveStatus('saved');
@@ -45,7 +45,7 @@ function PluginSecretField({
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
       setSaveStatus('error');
-      setErrorMsg(t('settings.pluginSecrets.networkError'));
+      setErrorMsg(t('common.networkError'));
     }
   }
 

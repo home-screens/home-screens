@@ -388,7 +388,7 @@ function SettingsPageContent() {
   ) : hasFailure ? (
     <span className="text-xs text-hs-danger flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-danger" />
-      {t('settings.header.saveFailed')}
+      {t('common.saveFailed')}
     </span>
   ) : saveMessage === 'saved' ? (
     <span className="text-xs text-hs-success flex items-center gap-1.5">

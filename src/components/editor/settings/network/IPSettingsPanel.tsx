@@ -121,7 +121,7 @@ export default function IPSettingsPanel({
         onApplied();
       }
     } catch {
-      setErrorMsg(t('settings.networkPage.ipSettings.networkErrorMessage'));
+      setErrorMsg(t('common.serverUnreachable'));
     } finally {
       setApplying(false);
     }

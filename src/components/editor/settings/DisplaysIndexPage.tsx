@@ -321,7 +321,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       {/* Per-display dimensions */}
       <div>
         <span className="text-xs text-hs-text-muted block mb-2">
-          {t('settings.displaysIndex.formResolution')}
+          {t('common.resolution')}
           {prefilledViewport && (
             <span className="ml-2 text-hs-text-faint">
               {t('settings.displaysIndex.formReportedViewport', { width: prefilledViewport.width, height: prefilledViewport.height })}
@@ -544,7 +544,7 @@ export default function DisplaysIndexPage() {
             title={t('settings.displaysIndex.refreshHeartbeatsTitle')}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            {t('settings.displaysIndex.refresh')}
+            {t('common.refresh')}
           </button>
           {!adding && (
             <button
@@ -724,12 +724,12 @@ export default function DisplaysIndexPage() {
       {/* Auto-save status toast */}
       {(saving || saveMessage) && (
         <div className="flex items-center gap-2 mt-6 border-t border-hs-border pt-4 text-xs">
-          {saving && <span className="text-hs-text-faint">{t('settings.displaysIndex.saving')}</span>}
+          {saving && <span className="text-hs-text-faint">{t('common.saving')}</span>}
           {!saving && saveMessage && (
             <span className={saveMessage === 'saved' ? 'text-hs-success' : 'text-hs-danger'}>
               {saveMessage === 'saved'
-                ? t('settings.displaysIndex.saved')
-                : t('settings.displaysIndex.saveFailed')}
+                ? t('common.saved')
+                : t('common.saveFailed')}
             </span>
           )}
         </div>

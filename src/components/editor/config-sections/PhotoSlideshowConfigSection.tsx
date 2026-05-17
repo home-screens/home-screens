@@ -24,9 +24,9 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   ] as const;
 
   const OBJECT_FITS = [
-    { value: 'cover', label: t('configSections.photo-slideshow.fitCover') },
-    { value: 'contain', label: t('configSections.photo-slideshow.fitContain') },
-    { value: 'fill', label: t('configSections.photo-slideshow.fitFill') },
+    { value: 'cover', label: t('common.objectFitCover') },
+    { value: 'contain', label: t('common.objectFitContain') },
+    { value: 'fill', label: t('common.objectFitFill') },
   ] as const;
 
   const { config: c, set } = useModuleConfig<{ source?: string; directory?: string; intervalMs?: number; transition?: string; objectFit?: string }>(mod, screenId);
@@ -143,7 +143,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
           fieldClassName="flex-1"
         />
         <LabeledSelect
-          label={t('configSections.photo-slideshow.objectFit')}
+          label={t('common.objectFit')}
           value={(c.objectFit as string) || 'cover'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FITS}

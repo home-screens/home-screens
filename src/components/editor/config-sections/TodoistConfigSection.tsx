@@ -138,7 +138,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       <Toggle label={t('configSections.todoist.showSubtasks')} checked={c.showSubtasks !== false} onChange={(v) => set({ showSubtasks: v })} />
       <Toggle label={t('configSections.todoist.showLabels')} checked={c.showLabels !== false} onChange={(v) => set({ showLabels: v })} />
       <Toggle label={t('configSections.todoist.showProject')} checked={c.showProject !== false} onChange={(v) => set({ showProject: v })} />
-      <Toggle label={t('configSections.todoist.showDescription')} checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
+      <Toggle label={t('common.showDescription')} checked={!!c.showDescription} onChange={(v) => set({ showDescription: v })} />
       <Toggle label={t('configSections.todoist.showNoDueDate')} checked={c.showNoDueDate !== false} onChange={(v) => set({ showNoDueDate: v })} />
       <Toggle
         label={t('configSections.todoist.tapToComplete')}
@@ -154,7 +154,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ maxTasks: Number(v) })}
       />
       <Slider
-        label={t('configSections.todoist.refreshMinutes')}
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 300000) / 60000}
         min={5}
         max={30}

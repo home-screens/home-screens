@@ -11,6 +11,7 @@ import type { ModuleInstance } from '@/types/config';
 
 export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<{
     trashDay?: number; trashFrequency?: string; trashStartDate?: string; trashColor?: string;
     recyclingDay?: number; recyclingFrequency?: string; recyclingStartDate?: string; recyclingColor?: string;
@@ -30,13 +31,13 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
 
   const dayOptions = [
     { label: t('configSections.garbage-day.dayDisabled'), value: -1 },
-    { label: t('configSections.garbage-day.daySunday'), value: 0 },
-    { label: t('configSections.garbage-day.dayMonday'), value: 1 },
-    { label: t('configSections.garbage-day.dayTuesday'), value: 2 },
-    { label: t('configSections.garbage-day.dayWednesday'), value: 3 },
-    { label: t('configSections.garbage-day.dayThursday'), value: 4 },
-    { label: t('configSections.garbage-day.dayFriday'), value: 5 },
-    { label: t('configSections.garbage-day.daySaturday'), value: 6 },
+    { label: tCore('days.sunday'), value: 0 },
+    { label: tCore('days.monday'), value: 1 },
+    { label: tCore('days.tuesday'), value: 2 },
+    { label: tCore('days.wednesday'), value: 3 },
+    { label: tCore('days.thursday'), value: 4 },
+    { label: tCore('days.friday'), value: 5 },
+    { label: tCore('days.saturday'), value: 6 },
   ];
 
   const defaultColors: Record<string, string> = { trash: '#6ee7b7', recycling: '#93c5fd', custom: '#fbbf24' };

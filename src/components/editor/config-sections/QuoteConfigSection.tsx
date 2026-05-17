@@ -13,7 +13,7 @@ export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   return (
     <>
       <Slider
-        label={t('configSections.quote.refreshSeconds')}
+        label={t('common.refreshSeconds')}
         value={(c.refreshIntervalMs ?? 300000) / 1000}
         min={30}
         max={3600}

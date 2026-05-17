@@ -49,5 +49,14 @@
     "codeExpired": "Code abgelaufen. Bitte erneut versuchen.",
     "authorizationFailed": "Autorisierung fehlgeschlagen",
     "startSignInFailed": "Anmeldung konnte nicht gestartet werden"
+  },
+  "days": {
+    "sunday": "Sonntag",
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag"
   }
 }

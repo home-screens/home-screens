@@ -20,7 +20,24 @@
     "confirm": "Bestätigen",
     "loading": "Lädt…",
     "saving": "Speichert…",
-    "saved": "Gespeichert"
+    "saved": "Gespeichert",
+    "refreshMinutes": "Aktualisierung (Minuten)",
+    "refreshSeconds": "Aktualisierung (Sekunden)",
+    "refresh": "Aktualisieren",
+    "theme": "Design",
+    "density": "Dichte",
+    "objectFit": "Bildanpassung",
+    "objectFitCover": "Ausfüllen",
+    "objectFitContain": "Einpassen",
+    "objectFitFill": "Strecken",
+    "showDescription": "Beschreibung anzeigen",
+    "apiKey": "API-Schlüssel",
+    "resolution": "Auflösung",
+    "orientation": "Ausrichtung",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "saveError": "Speichern fehlgeschlagen",
+    "networkError": "Netzwerkfehler",
+    "serverUnreachable": "Server nicht erreichbar"
   },
   "modal": {
     "closeAriaLabel": "Dialog schließen"
@@ -33,10 +50,7 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Einstellungen",
       "previewButton": "Vorschau",
-      "saveFailed": "Speichern fehlgeschlagen",
-      "retryButton": "Erneut versuchen",
-      "savingStatus": "Speichert…",
-      "savedStatus": "Gespeichert"
+      "retryButton": "Erneut versuchen"
     }
   },
   "canvas": {
@@ -350,7 +364,6 @@
       "providersLabel": "Anbieter",
       "loadingProviderStatus": "Anbieterstatus wird geladen …",
       "providerCard": {
-        "apiKeyLabel": "API-Schlüssel",
         "currentlyDefault": "Aktueller Standard",
         "setAsDefault": "Als Standard festlegen",
         "testButton": "Testen",
@@ -428,10 +441,8 @@
       "multiDisplayNotePart3": ".",
       "canvas": {
         "heading": "Anzeigefläche",
-        "orientationLabel": "Ausrichtung",
         "orientationPortrait": "Hochformat",
         "orientationLandscape": "Querformat",
-        "resolutionLabel": "Auflösung",
         "resolutionCustom": "Benutzerdefiniert …",
         "resolutionWidthPlaceholder": "Breite",
         "resolutionHeightPlaceholder": "Höhe",
@@ -500,7 +511,6 @@
         }
       },
       "overview": {
-        "resolutionLabel": "Auflösung",
         "activeProfileLabel": "Aktives Profil",
         "noActiveProfile": "Keines",
         "screensLabel": "Bildschirme",
@@ -569,7 +579,6 @@
         "bannerEmphasisOverride": "Überschreiben",
         "bannerPart4": " bei einem Feld, um es nur für {name} zu ändern.",
         "canvasHeading": "Anzeigefläche",
-        "resolutionLabel": "Auflösung",
         "perDisplayBadge": "Pro Display",
         "resolutionHelp": "Module werden gegen diese Anzeigefläche ausgelegt. Jedes Display hat seine eigene Auflösung — sie wird nicht geteilt.",
         "rotationLabel": "Drehung",
@@ -686,7 +695,6 @@
         "urlLabel": "Server-URL",
         "urlPlaceholder": "z. B. http://192.168.1.50:2283",
         "urlHelp": "Die Basis-URL deiner Immich-Instanz.",
-        "apiKeyLabel": "API-Schlüssel",
         "apiKeyPlaceholder": "Füge deinen Immich-API-Schlüssel ein",
         "apiKeyHelp": "Erstelle unter Immich → Account Settings → API Keys."
       },
@@ -700,7 +708,6 @@
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
-        "apiKeyLabel": "API-Schlüssel",
         "apiKeyPlaceholder": "Füge deinen NASA-API-Schlüssel ein",
         "apiKeyHelp": "Kostenlos unter api.nasa.gov — 1.000 Anfragen/Stunde. Die Suche in der Image Library funktioniert ohne Schlüssel."
       },
@@ -714,7 +721,6 @@
       "tomtom": {
         "name": "TomTom",
         "description": "Verkehr & Pendelzeiten",
-        "keyLabel": "API-Schlüssel",
         "keyPlaceholder": "Füge deinen TomTom-API-Schlüssel ein",
         "keyHelp": "Kostenlos unter developer.tomtom.com — Routing API erforderlich. Alternative zu Google Maps."
       },
@@ -751,8 +757,7 @@
         "saveButton": "Speichern",
         "savingButton": "Speichert …",
         "successMessage": "Hostname aktualisiert",
-        "defaultErrorMessage": "Hostname konnte nicht aktualisiert werden",
-        "networkErrorMessage": "Server nicht erreichbar"
+        "defaultErrorMessage": "Hostname konnte nicht aktualisiert werden"
       },
       "interface": {
         "type": {
@@ -786,7 +791,6 @@
         "scanningButton": "Suche läuft …",
         "scanCooldownButton": "Suchen ({seconds}s)",
         "defaultScanError": "Suche fehlgeschlagen",
-        "networkErrorMessage": "Server nicht erreichbar",
         "emptyHint": "Klicke auf „Suchen“, um nahegelegene WLAN-Netzwerke zu finden.",
         "badges": {
           "connected": "Verbunden",
@@ -807,8 +811,7 @@
         "cancelButton": "Abbrechen",
         "connectButton": "Verbinden",
         "connectingButton": "Wird verbunden …",
-        "defaultConnectError": "Verbindung fehlgeschlagen",
-        "networkErrorMessage": "Server nicht erreichbar"
+        "defaultConnectError": "Verbindung fehlgeschlagen"
       },
       "managementWarning": {
         "heading": "Warnung: Management-Schnittstelle",
@@ -836,7 +839,6 @@
         "heading": "Gespeicherte Netzwerke",
         "loading": "Gespeicherte Netzwerke werden geladen …",
         "loadError": "Gespeicherte Netzwerke konnten nicht geladen werden",
-        "networkErrorMessage": "Server nicht erreichbar",
         "empty": "Keine gespeicherten WLAN-Netzwerke.",
         "showPasswords": "Passwörter anzeigen",
         "hidePasswords": "Passwörter verbergen",
@@ -870,8 +872,7 @@
         "applyButton": "Anwenden",
         "applyingButton": "Wird angewendet …",
         "successMessage": "Einstellungen angewendet",
-        "defaultErrorMessage": "IP-Einstellungen konnten nicht angewendet werden",
-        "networkErrorMessage": "Server nicht erreichbar"
+        "defaultErrorMessage": "IP-Einstellungen konnten nicht angewendet werden"
       },
       "diagnostics": {
         "heading": "Diagnose",
@@ -898,7 +899,6 @@
         },
         "unavailable": "Diagnose ist auf diesem Gerät nicht verfügbar.",
         "requestFailed": "Diagnose-Anfrage fehlgeschlagen",
-        "networkErrorMessage": "Server nicht erreichbar",
         "testButton": "Verbindung testen",
         "testingButton": "Wird getestet …"
       }
@@ -911,7 +911,6 @@
         "part2": " — Bearbeitungen auf einer der Seiten bleiben überall synchron."
       },
       "status": {
-        "saving": "Speichert …",
         "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
         "networkLoad": "Netzwerkfehler beim Laden der Mahlzeiten-Einstellungen.",
         "saveFailed": "Mahlzeiten-Einstellungen konnten nicht gespeichert werden.",
@@ -923,9 +922,7 @@
         "description": "Welche Mahlzeiten plant dein Haushalt? Wirkt sich auf jedes Essensplaner-Modul auf allen Bildschirmen aus."
       },
       "weekStart": {
-        "heading": "Woche beginnt am",
-        "sunday": "Sonntag",
-        "monday": "Montag"
+        "heading": "Woche beginnt am"
       },
       "timeFormat": {
         "heading": "Zeitformat",
@@ -1037,8 +1034,7 @@
         "restartScheduled": "Dienst-Neustart geplant. Die Seite wird gleich neu geladen …",
         "rebootScheduled": "System-Neustart geplant. Das Display kommt in Kürze wieder online …",
         "processing": "Wird verarbeitet …",
-        "unknownError": "Unbekannter Fehler",
-        "unreachable": "Server nicht erreichbar"
+        "unknownError": "Unbekannter Fehler"
       }
     },
     "profilesPage": {
@@ -1107,8 +1103,7 @@
         "revoking": "Wird widerrufen …",
         "cancel": "Abbrechen",
         "success": "Alle Sitzungen widerrufen. Du wirst zur Anmeldung weitergeleitet …",
-        "failed": "Sitzungen konnten nicht widerrufen werden",
-        "networkError": "Netzwerkfehler"
+        "failed": "Sitzungen konnten nicht widerrufen werden"
       },
       "displayToken": {
         "heading": "Display-Token",
@@ -1123,7 +1118,6 @@
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Das Display muss neu geladen werden, um den neuen Token zu übernehmen.",
         "errorRegenerate": "Token konnte nicht neu erzeugt werden",
-        "errorNetwork": "Netzwerkfehler",
         "errorCopy": "Kopieren fehlgeschlagen — bitte manuell auswählen und kopieren",
         "phoneHintPart1": "Für Lesezeichen am Telefon hänge ",
         "phoneHintCode": "?token=TOKEN",
@@ -1147,9 +1141,7 @@
           "invalidCidr": "Ungültiges CIDR-Format",
           "invalidIp": "Ungültige IP-Adresse",
           "invalidPrefix": "Präfixlänge muss 0–32 sein",
-          "alreadyInList": "Bereits in der Liste",
-          "saveFailed": "Speichern fehlgeschlagen",
-          "networkError": "Netzwerkfehler"
+          "alreadyInList": "Bereits in der Liste"
         },
         "callerIpLabel": "Deine IP: ",
         "lockoutWarning": {
@@ -1157,12 +1149,9 @@
           "messagePart1": "Deine aktuelle IP (",
           "messagePart2": ") ist nicht in der Zulassungsliste. Wenn die Zugriffsbeschränkung aktiv ist, verlierst du den Zugriff auf diesen Editor.",
           "saveAnyway": "Trotzdem speichern",
-          "saving": "Speichert …",
           "cancel": "Abbrechen"
         },
         "saveButton": "Änderungen speichern",
-        "saving": "Speichert …",
-        "saved": "Gespeichert",
         "lockedOutHintPart1": "Falls du ausgesperrt bist, bearbeite ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " auf dem Gerät, um es zu deaktivieren.",
@@ -1204,8 +1193,7 @@
         "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
         "setFailed": "Passwort konnte nicht festgelegt werden",
         "changeFailed": "Passwort konnte nicht geändert werden",
-        "disableFailed": "Anmeldung konnte nicht deaktiviert werden",
-        "networkError": "Netzwerkfehler"
+        "disableFailed": "Anmeldung konnte nicht deaktiviert werden"
       },
       "success": {
         "passwordSet": "Passwort festgelegt! Die Anmeldung ist jetzt aktiviert.",
@@ -1296,9 +1284,7 @@
         "removeButton": "Entfernen",
         "savingButton": "…",
         "saveButton": "Speichern",
-        "savedSuccess": "Erfolgreich gespeichert",
-        "defaultSaveError": "Speichern fehlgeschlagen",
-        "networkError": "Netzwerkfehler"
+        "savedSuccess": "Erfolgreich gespeichert"
       }
     },
     "localBackgrounds": {
@@ -1344,9 +1330,7 @@
       "enterPlaceholder": "{label} eingeben",
       "savingButton": "…",
       "saveButton": "Speichern",
-      "savedSuccess": "Erfolgreich gespeichert",
-      "defaultSaveError": "Speichern fehlgeschlagen",
-      "networkError": "Netzwerkfehler"
+      "savedSuccess": "Erfolgreich gespeichert"
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1419,7 +1403,6 @@
       "serverTitle": "Server",
       "diagnosticsBundle": "Diagnose-Bundle",
       "generatingBundle": "Wird erstellt…",
-      "refresh": "Aktualisieren",
       "bundleFailed": "Bundle-Erstellung fehlgeschlagen: {error}",
       "hostname": "Hostname",
       "platform": "Plattform",
@@ -1528,11 +1511,7 @@
       "populatedDescriptionSuffix": ".",
       "defaultsLink": "Standardwerte",
       "refreshHeartbeatsTitle": "Heartbeats aktualisieren",
-      "refresh": "Aktualisieren",
       "addDisplay": "Anzeige hinzufügen",
-      "saved": "Gespeichert",
-      "saveFailed": "Speichern fehlgeschlagen",
-      "saving": "Wird gespeichert…",
       "emptyTitle": "Diese Installation läuft im Einzelanzeige-Modus",
       "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht registriert — Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
       "emptyParagraphPart2": " und läuft genauso weiter wie heute.",
@@ -1577,7 +1556,6 @@
       "formIdHint": "(wird in der URL verwendet: /display/<id>)",
       "formIdPlaceholder": "küche",
       "formIdLocked": "Die ID ist auf die der meldenden Anzeige festgelegt.",
-      "formResolution": "Auflösung",
       "formReportedViewport": "(von Anzeige gemeldet: {width} × {height})",
       "formWidth": "Breite",
       "formHeight": "Höhe",
@@ -1598,7 +1576,6 @@
       "formErrorHeight": "Die Höhe muss eine positive Ganzzahl ≤ {max} sein"
     },
     "header": {
-      "saveFailed": "Speichern fehlgeschlagen",
       "backToEditor": "Editor",
       "contextLabel": "Einstellungen",
       "theme": {
@@ -2077,8 +2054,7 @@
     },
     "air-quality": {
       "showAQI": "AQI anzeigen",
-      "showPollutants": "Schadstoffe anzeigen",
-      "refreshMinutes": "Aktualisierung (Minuten)"
+      "showPollutants": "Schadstoffe anzeigen"
     },
     "calendar": {
       "viewMode": "Ansicht",
@@ -2097,8 +2073,7 @@
       "showTime": "Uhrzeit anzeigen",
       "showLocation": "Ort anzeigen",
       "showWeekNumbers": "Kalenderwochen anzeigen",
-      "accentColor": "Akzentfarbe",
-      "showDescription": "Beschreibung anzeigen"
+      "accentColor": "Akzentfarbe"
     },
     "chore-chart": {
       "viewBoard": "Board (Spalte je Person)",
@@ -2106,8 +2081,6 @@
       "viewToday": "Heute (nach Tageszeit)",
       "viewProgress": "Fortschritt (Ringe)",
       "viewCompact": "Kompakt (dichtes Raster)",
-      "weekStartSunday": "Sonntag",
-      "weekStartMonday": "Montag",
       "weekStartsOn": "Woche beginnt am",
       "showTickets": "Tickets anzeigen",
       "showStreaks": "Serien anzeigen",
@@ -2184,7 +2157,6 @@
       "setBackground": "Hintergrund festlegen …"
     },
     "dad-joke": {
-      "refreshSeconds": "Aktualisierung (Sekunden)",
       "showDividers": "Trennlinien anzeigen"
     },
     "date": {
@@ -2229,7 +2201,6 @@
       "viewCompact": "Kompakt",
       "scale": "Skalierung",
       "tickerSpeed": "Tickergeschwindigkeit ({unit})",
-      "refreshSeconds": "Aktualisierung (Sekunden)",
       "stockSymbolsLabel": "Symbole (kommagetrennt)",
       "cryptoIdsLabel": "Coin-IDs (kommagetrennt, CoinGecko)",
       "tickerUnitStock": "Sek./Aktie",
@@ -2251,9 +2222,7 @@
       "typography3xLarge": "3× groß",
       "typography4xLarge": "4× groß",
       "view": "Ansicht",
-      "density": "Dichte",
       "typographySize": "Schriftgröße",
-      "theme": "Design",
       "themeDefault": "Standard (aus Einstellungen)",
       "accentColor": "Akzentfarbe",
       "dimPastEvents": "Vergangene Termine abdunkeln",
@@ -2273,8 +2242,7 @@
       "maxEventsPerCellAuto": "Max. Termine pro Zelle (0 = automatisch)",
       "showLocation": "Ort anzeigen",
       "daysAhead": "Tage in die Zukunft",
-      "hideEmptyDays": "Leere Tage ausblenden",
-      "showDescription": "Beschreibung anzeigen"
+      "hideEmptyDays": "Leere Tage ausblenden"
     },
     "fullscreen-chore-chart": {
       "view": "Ansicht",
@@ -2282,16 +2250,12 @@
       "viewRewardsStore": "Belohnungs-Shop",
       "showRewardsButton": "Belohnungs-Schaltfläche anzeigen",
       "showRewardsButtonHelp": "Fügt dem Aufgaben-Board eine Schaltfläche hinzu, mit der Kinder zum Belohnungs-Shop wechseln können. Ideal für Displays mit Touch.",
-      "theme": "Design",
       "themeDefault": "Standard (aus Einstellungen)",
-      "density": "Dichte",
       "densityCozy": "Locker",
       "densitySnug": "Dicht",
       "typographySize": "Schriftgröße",
       "accentColor": "Akzentfarbe",
       "weekStartsOn": "Woche beginnt am",
-      "weekStartSunday": "Sonntag",
-      "weekStartMonday": "Montag",
       "showTickets": "Tickets anzeigen",
       "showStreaks": "Serien anzeigen",
       "showTimeOfDay": "Tageszeit anzeigen",
@@ -2302,14 +2266,12 @@
       "mobileHintPrefix": "Familienmitglieder können Aufgaben am Touchscreen oder vom Handy aus abhaken – über den Aufgaben-Tab unter"
     },
     "fullscreen-meal-planner": {
-      "theme": "Design",
       "themeDefault": "Standard (aus Einstellungen)",
       "view": "Ansicht",
       "viewWeek": "Woche",
       "viewToday": "Heute",
       "viewMenuBoard": "Menütafel",
       "viewNextMeal": "Nächste Mahlzeit",
-      "density": "Dichte",
       "densityCozy": "Locker",
       "densitySnug": "Dicht",
       "typographySize": "Schriftgröße",
@@ -2327,7 +2289,6 @@
       "mobileHintEnd": "Einstellungs-Bereich."
     },
     "fullscreen-photo": {
-      "theme": "Design",
       "themeDefaultMidnight": "Standard (Midnight)",
       "photoSource": "Fotoquelle",
       "sourceLocal": "Lokale Fotos",
@@ -2350,10 +2311,6 @@
       "transitionSlide": "Schieben",
       "transitionZoom": "Zoom",
       "transitionNone": "Keiner",
-      "objectFit": "Bildanpassung",
-      "objectFitCover": "Ausfüllen",
-      "objectFitContain": "Einpassen",
-      "objectFitFill": "Strecken",
       "shuffleOrder": "Zufällige Reihenfolge",
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
@@ -2365,13 +2322,6 @@
       "highlightDayBefore": "Tag davor (Tonnen rausstellen)",
       "highlightDayOf": "Am Tag selbst (Abholtag)",
       "dayDisabled": "Deaktiviert",
-      "daySunday": "Sonntag",
-      "dayMonday": "Montag",
-      "dayTuesday": "Dienstag",
-      "dayWednesday": "Mittwoch",
-      "dayThursday": "Donnerstag",
-      "dayFriday": "Freitag",
-      "daySaturday": "Samstag",
       "trash": "Restmüll",
       "recycling": "Wertstoff",
       "custom": "Benutzerdefiniert",
@@ -2392,7 +2342,6 @@
     },
     "history": {
       "cycleEventsSeconds": "Ereignis-Wechsel (Sekunden)",
-      "refreshMinutes": "Aktualisierung (Minuten)",
       "showDividers": "Trennlinien anzeigen",
       "sourceWikipedia": "Quelle: Wikipedia",
       "sourceMuffinLabs": "Quelle: MuffinLabs"
@@ -2456,10 +2405,6 @@
       "uploading": "Lädt hoch …",
       "uploadFailed": "Hochladen fehlgeschlagen",
       "preview": "Vorschau",
-      "objectFit": "Bildanpassung",
-      "objectFitCover": "Ausfüllen",
-      "objectFitContain": "Einpassen",
-      "objectFitFill": "Strecken",
       "altText": "Alternativtext"
     },
     "immichSource": {
@@ -2507,8 +2452,6 @@
       "layoutHorizontal": "Horizontal (nebeneinander)",
       "monthsToShow": "Anzuzeigende Monate",
       "weekStartsOn": "Woche beginnt am",
-      "startDaySunday": "Sonntag",
-      "startDayMonday": "Montag",
       "showWeekNumbers": "Kalenderwochen anzeigen",
       "highlightWeekends": "Wochenenden hervorheben",
       "showAdjacentDays": "Tage angrenzender Monate anzeigen"
@@ -2525,18 +2468,13 @@
       "maxItems": "Max. Einträge",
       "tickerSpeed": "Tickergeschwindigkeit (Sek./Eintrag)",
       "showTimestamp": "Zeitstempel anzeigen",
-      "showDescription": "Beschreibung anzeigen",
-      "bulletColor": "Aufzählungspunkt-Farbe",
-      "refreshSeconds": "Aktualisierung (Sekunden)"
+      "bulletColor": "Aufzählungspunkt-Farbe"
     },
     "photo-slideshow": {
       "sourceLocal": "Lokale Fotos",
       "sourceImmich": "Immich",
       "transitionFade": "Überblenden",
       "transitionNone": "Keiner",
-      "fitCover": "Ausfüllen",
-      "fitContain": "Einpassen",
-      "fitFill": "Strecken",
       "photoSource": "Fotoquelle",
       "folder": "Ordner",
       "allPhotosRoot": "Alle Fotos (Stammverzeichnis)",
@@ -2545,8 +2483,7 @@
       "photoCountOther": "{count} Fotos",
       "noPhotosInFolder": "Keine Fotos in diesem Ordner",
       "slideInterval": "Bildwechsel (Sekunden)",
-      "transition": "Übergang",
-      "objectFit": "Bildanpassung"
+      "transition": "Übergang"
     },
     "qr-code": {
       "modeCustom": "Benutzerdefiniert (URL / Text)",
@@ -2569,9 +2506,6 @@
       "networkNamePlaceholder": "MeinNetzwerk",
       "dataUrlOrTextPlaceholder": "https://example.com"
     },
-    "quote": {
-      "refreshSeconds": "Aktualisierung (Sekunden)"
-    },
     "rain-map": {
       "styleDark": "Dunkel",
       "styleStandard": "Standard",
@@ -2586,7 +2520,6 @@
       "showTimestamp": "Zeitstempel anzeigen",
       "showTimeline": "Zeitleiste anzeigen",
       "mapStyle": "Kartenstil",
-      "refreshMinutes": "Aktualisierung (Minuten)",
       "locationHelp": "Verwendet den Standort aus den globalen Einstellungen, wenn lat/lon = 0."
     },
     "shape": {
@@ -2663,8 +2596,7 @@
       "viewList": "Liste",
       "viewTicker": "Ticker",
       "leagues": "Ligen",
-      "tickerSpeed": "Tickergeschwindigkeit (Sek./Spiel)",
-      "refreshSeconds": "Aktualisierung (Sekunden)"
+      "tickerSpeed": "Tickergeschwindigkeit (Sek./Spiel)"
     },
     "standings": {
       "viewTable": "Tabelle",
@@ -2677,8 +2609,7 @@
       "grouping": "Gruppierung",
       "playoffCutoffLine": "Playoff-Trennlinie",
       "teamsToShow": "Anzuzeigende Teams (0 = alle)",
-      "rotationSeconds": "Wechsel (Sekunden)",
-      "refreshMinutes": "Aktualisierung (Minuten)"
+      "rotationSeconds": "Wechsel (Sekunden)"
     },
     "sticky-note": {
       "content": "Inhalt",
@@ -2845,11 +2776,9 @@
       "showSubtasks": "Unteraufgaben anzeigen",
       "showLabels": "Labels anzeigen",
       "showProject": "Projekt anzeigen",
-      "showDescription": "Beschreibung anzeigen",
       "showNoDueDate": "Aufgaben ohne Datum anzeigen",
       "tapToComplete": "Tippen zum Abhaken (Touchscreen)",
       "maxTasks": "Max. Aufgaben",
-      "refreshMinutes": "Aktualisierung (Minuten)",
       "viewModes": {
         "list": "Liste",
         "board": "Board",
@@ -2870,7 +2799,6 @@
       }
     },
     "traffic": {
-      "refreshMinutes": "Aktualisierung (Minuten)",
       "routes": "Routen",
       "newRouteLabel": "Arbeit",
       "labelPlaceholder": "Beschriftung",
@@ -2933,7 +2861,6 @@
   "imageBrowsers": {
     "immich": {
       "allPhotos": "Alle Fotos",
-      "refresh": "Aktualisieren",
       "noPhotos": "Keine Fotos gefunden",
       "attribution": "Fotos aus deiner Immich-Bibliothek",
       "notConfiguredPrefix": "Trage deine Immich-Server-URL und deinen API-Schlüssel ein unter",
@@ -2972,7 +2899,6 @@
     "nasa": {
       "attribution": "Bilder von NASA",
       "searchPlaceholder": "NASA-Bilder suchen …",
-      "refresh": "Aktualisieren",
       "watermarkNote": "Hinweis: Einige NASA-Bilder enthalten eingebettete Zeitstempel oder Wasserzeichen, die nicht entfernt werden können.",
       "notConfiguredPrefix": "Hinterlege einen kostenlosen NASA API-Schlüssel unter",
       "settingsWord": "Einstellungen",

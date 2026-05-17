@@ -38,9 +38,9 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   ];
 
   const OBJECT_FIT_OPTIONS: { value: 'cover' | 'contain' | 'fill'; label: string }[] = [
-    { value: 'cover', label: t('configSections.fullscreen-photo.objectFitCover') },
-    { value: 'contain', label: t('configSections.fullscreen-photo.objectFitContain') },
-    { value: 'fill', label: t('configSections.fullscreen-photo.objectFitFill') },
+    { value: 'cover', label: t('common.objectFitCover') },
+    { value: 'contain', label: t('common.objectFitContain') },
+    { value: 'fill', label: t('common.objectFitFill') },
   ];
 
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
@@ -88,7 +88,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label={t('configSections.fullscreen-photo.theme')}>
+      <LabeledField label={t('common.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -216,7 +216,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
           />
         )}
         <LabeledSelect
-          label={t('configSections.fullscreen-photo.objectFit')}
+          label={t('common.objectFit')}
           value={c.objectFit ?? 'cover'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FIT_OPTIONS}

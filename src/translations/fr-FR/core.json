@@ -49,5 +49,14 @@
     "codeExpired": "Code expiré. Réessaie.",
     "authorizationFailed": "Échec de l'autorisation",
     "startSignInFailed": "Impossible de démarrer la connexion"
+  },
+  "days": {
+    "sunday": "Dimanche",
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi"
   }
 }

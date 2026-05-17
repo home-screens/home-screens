@@ -15,7 +15,7 @@ export function AirQualityConfigSection({ mod, screenId }: { mod: ModuleInstance
       <Toggle label={t('configSections.air-quality.showAQI')} checked={c.showAQI !== false} onChange={(v) => set({ showAQI: v })} />
       <Toggle label={t('configSections.air-quality.showPollutants')} checked={!!c.showPollutants} onChange={(v) => set({ showPollutants: v })} />
       <Slider
-        label={t('configSections.air-quality.refreshMinutes')}
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 600000) / 60000}
         min={5}
         max={120}

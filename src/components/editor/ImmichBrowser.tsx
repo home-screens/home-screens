@@ -114,7 +114,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
           ))}
         </select>
         <Button size="sm" onClick={fetchPhotos} disabled={isLoading}>
-          {t('imageBrowsers.immich.refresh')}
+          {t('common.refresh')}
         </Button>
       </div>
 

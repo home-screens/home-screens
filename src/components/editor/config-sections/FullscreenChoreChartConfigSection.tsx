@@ -23,6 +23,7 @@ type Config = Partial<FullscreenChoreChartConfig>;
 
 export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
 
   const VIEW_OPTIONS: { value: FullscreenChoreChartView; label: string }[] = [
@@ -36,8 +37,8 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   ] as const;
 
   const WEEK_START_OPTIONS = [
-    { value: 'sunday', label: t('configSections.fullscreen-chore-chart.weekStartSunday') },
-    { value: 'monday', label: t('configSections.fullscreen-chore-chart.weekStartMonday') },
+    { value: 'sunday', label: tCore('days.sunday') },
+    { value: 'monday', label: tCore('days.monday') },
   ] as const;
 
   const [showModal, setShowModal] = useState(false);
@@ -77,7 +78,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       )}
 
       {/* Theme Override */}
-      <LabeledField label={t('configSections.fullscreen-chore-chart.theme')}>
+      <LabeledField label={t('common.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
@@ -92,7 +93,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
 
       {/* Density */}
       <LabeledSelect
-        label={t('configSections.fullscreen-chore-chart.density')}
+        label={t('common.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}

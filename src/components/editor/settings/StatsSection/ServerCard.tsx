@@ -37,7 +37,7 @@ export function ServerCard({
               {bundleState === 'generating' ? t('settings.statsSection.generatingBundle') : t('settings.statsSection.diagnosticsBundle')}
             </Button>
             <Button variant="secondary" size="sm" onClick={onRefresh}>
-              {t('settings.statsSection.refresh')}
+              {t('common.refresh')}
             </Button>
           </>
         }
