@@ -119,14 +119,20 @@ git tag -a "v${NEXT_VERSION}" -m "release v${NEXT_VERSION}"
 
 TAG="v${NEXT_VERSION}"
 
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" = "HEAD" ]; then
+  echo "Error: detached HEAD; check out a branch before releasing."
+  exit 1
+fi
+
 if $NO_PUSH; then
   echo ""
   echo "Created ${TAG} (not pushed)."
   echo "  Inspect:  git log --oneline -1 && cat RELEASE_NOTES/${TAG}.md"
-  echo "  Push:     git push origin main --follow-tags"
+  echo "  Push:     git push origin ${BRANCH} --follow-tags"
   echo "  Undo:     git tag -d ${TAG} && git reset --soft HEAD~1"
 else
-  git push origin main --follow-tags
+  git push origin "${BRANCH}" --follow-tags
   echo ""
   if [[ "$BUMP" == pre* ]]; then
     echo "Pre-released ${TAG}."
