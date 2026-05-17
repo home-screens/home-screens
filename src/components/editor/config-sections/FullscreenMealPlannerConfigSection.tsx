@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
@@ -45,6 +45,22 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     { value: 'cozy', label: t('configSections.fullscreen-meal-planner.densityCozy') },
     { value: 'snug', label: t('configSections.fullscreen-meal-planner.densitySnug') },
   ] as const;
+
+  // Translate the shared TYPOGRAPHY_SIZES table at render time. See the
+  // matching pattern in FullscreenChoreChartConfigSection — both modules
+  // share the same dropdown options and the same `editor.common.typographySizes.*`
+  // keys, so the resolved labels stay consistent across modules.
+  const typographySizeOptions = useMemo(
+    () =>
+      TYPOGRAPHY_SIZES.map((opt) => {
+        const translated = t(opt.i18nKey);
+        return {
+          value: opt.value,
+          label: translated === opt.i18nKey ? opt.label : translated,
+        };
+      }),
+    [t],
+  );
 
   const [showModal, setShowModal] = useState(false);
   const [mealData, setMealData] = useState<MealsPayload>({
@@ -160,7 +176,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         label={t('configSections.fullscreen-meal-planner.typographySize')}
         value={c.typographySize ?? 'medium'}
         onChange={(v) => set({ typographySize: v })}
-        options={TYPOGRAPHY_SIZES}
+        options={typographySizeOptions}
       />
 
       {/* Display Toggles */}

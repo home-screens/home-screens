@@ -26,7 +26,16 @@
     "saveFailed": "Falha ao salvar",
     "saveError": "Falha ao salvar",
     "networkError": "Erro de rede",
-    "serverUnreachable": "Falha ao acessar o servidor"
+    "serverUnreachable": "Falha ao acessar o servidor",
+    "typographySizes": {
+      "small": "Pequeno",
+      "medium": "Médio",
+      "large": "Grande",
+      "extra-large": "Extra Grande",
+      "2x-large": "2X Grande",
+      "3x-large": "3X Grande",
+      "4x-large": "4X Grande"
+    }
   },
   "fields": {
     "rotation": "Rotação",
@@ -1795,54 +1804,10 @@
       "saveChangesButton": "Salvar alterações",
       "deleteButton": "Excluir"
     },
-    "difficulty": {
-      "easy": "Fácil",
-      "medium": "Médio",
-      "hard": "Difícil"
-    },
-    "ingredientCategories": {
-      "produce": "Hortifrúti",
-      "dairy": "Laticínios",
-      "meat": "Carnes",
-      "seafood": "Frutos do mar",
-      "bakery": "Padaria",
-      "pantry": "Despensa",
-      "frozen": "Congelados",
-      "beverages": "Bebidas",
-      "other": "Outros"
-    },
-    "tags": {
-      "breakfast": "Café da manhã",
-      "lunch": "Almoço",
-      "dinner": "Jantar",
-      "snack": "Lanche",
-      "quick": "Rápida",
-      "healthy": "Saudável",
-      "vegetarian": "Vegetariana",
-      "vegan": "Vegana",
-      "comfort": "Reconfortante",
-      "spicy": "Apimentada",
-      "kid-friendly": "Para crianças",
-      "meal-prep": "Marmita",
-      "gluten-free": "Sem glúten",
-      "dairy-free": "Sem lactose",
-      "batch-cook": "Em grande quantidade"
-    },
     "grocery": {
       "itemsCount": "{checked} de {total} itens",
       "fromThisWeek": "Desta semana",
-      "emptyMessage": "Planeje refeições com ingredientes para ver sua lista de compras",
-      "categoryLabels": {
-        "produce": "Hortifrúti",
-        "dairy": "Laticínios e ovos",
-        "meat": "Carnes e frutos do mar",
-        "seafood": "Carnes e frutos do mar",
-        "bakery": "Padaria",
-        "pantry": "Despensa",
-        "frozen": "Congelados",
-        "beverages": "Bebidas",
-        "other": "Outros"
-      }
+      "emptyMessage": "Planeje refeições com ingredientes para ver sua lista de compras"
     },
     "weekGrid": {
       "todayLabel": "Hoje",

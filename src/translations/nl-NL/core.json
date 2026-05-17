@@ -83,5 +83,53 @@
     "thursday": "Donderdag",
     "friday": "Vrijdag",
     "saturday": "Zaterdag"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Makkelijk",
+      "medium": "Gemiddeld",
+      "hard": "Moeilijk"
+    },
+    "tags": {
+      "breakfast": "Ontbijt",
+      "lunch": "Lunch",
+      "dinner": "Avondeten",
+      "snack": "Tussendoortje",
+      "quick": "Snel",
+      "healthy": "Gezond",
+      "vegetarian": "Vegetarisch",
+      "vegan": "Veganistisch",
+      "comfort": "Comfort",
+      "spicy": "Pittig",
+      "kid-friendly": "Kindvriendelijk",
+      "meal-prep": "Mealprep",
+      "gluten-free": "Glutenvrij",
+      "dairy-free": "Lactosevrij",
+      "batch-cook": "Batch-koken"
+    },
+    "ingredientCategories": {
+      "produce": "Groente & fruit",
+      "dairy": "Zuivel",
+      "meat": "Vlees",
+      "seafood": "Vis & zeevruchten",
+      "bakery": "Bakkerij",
+      "pantry": "Voorraadkast",
+      "frozen": "Diepvries",
+      "beverages": "Dranken",
+      "other": "Overig"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Groente & fruit",
+        "dairy": "Zuivel & eieren",
+        "meat": "Vlees & vis",
+        "seafood": "Vlees & vis",
+        "bakery": "Bakkerij",
+        "pantry": "Voorraadkast",
+        "frozen": "Diepvries",
+        "beverages": "Dranken",
+        "other": "Overig"
+      }
+    }
   }
 }

@@ -1,20 +1,25 @@
 import type { ChoreResetFrequency, ChoreRotation } from '@/types/config';
 import type { TranslateFn } from '@/i18n/types';
 
-// ── Chore frequency & rotation labels (shared across editor + remote) ────
+// ── Chore frequency & rotation values (shared across editor + remote) ────
+//
+// Only the canonical `value` is exported. The previous `label` field was
+// dead — every consumer (`ChoresManageView`, `ChoreChartModal`) resolves
+// labels through `frequencyLabelMap[opt.value]` / `rotationLabelMap[opt.value]`,
+// which read from the active locale dictionary instead of the constant.
 
-export const CHORE_FREQUENCIES: { value: ChoreResetFrequency; label: string }[] = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Every Other Week' },
-  { value: 'once', label: 'One Time' },
+export const CHORE_FREQUENCIES: { value: ChoreResetFrequency }[] = [
+  { value: 'daily' },
+  { value: 'weekly' },
+  { value: 'biweekly' },
+  { value: 'once' },
 ];
 
-export const CHORE_ROTATIONS: { value: ChoreRotation; label: string }[] = [
-  { value: 'fixed', label: 'Fixed (all do it)' },
-  { value: 'rotate-daily', label: 'Rotate Daily' },
-  { value: 'rotate-weekly', label: 'Rotate Weekly' },
-  { value: 'schedule', label: 'Schedule' },
+export const CHORE_ROTATIONS: { value: ChoreRotation }[] = [
+  { value: 'fixed' },
+  { value: 'rotate-daily' },
+  { value: 'rotate-weekly' },
+  { value: 'schedule' },
 ];
 
 // ── Reward icon presets ────

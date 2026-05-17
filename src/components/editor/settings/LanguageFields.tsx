@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, revalidateLoaderCache } from '@/i18n';
 import { LOCALES, DEFAULT_LOCALE } from '@/i18n/manifest';
-import { reloadPluginTranslations } from '@/lib/plugin-loader';
+import { reloadPluginTranslations, clearActiveLocaleCache } from '@/lib/plugin-loader';
 
 /**
  * Language fields card for the "Defaults → Location & language" page.
@@ -64,6 +64,13 @@ export default function LanguageFields() {
     // that ships a new locale file mid-session won't see the strings
     // until a hard reload. Cheap to do unconditionally on locale change.
     revalidateLoaderCache(next);
+    // Drop the plugin-loader's 5-second active-locale memo so the very
+    // next `reloadPluginTranslations()` re-reads `/api/config` and sees
+    // the locale we just saved. Without this, switching locale within
+    // the TTL window re-fetches plugin dictionaries against the
+    // *previous* locale (the cached value), leaving plugin strings
+    // stale for up to 5 seconds.
+    clearActiveLocaleCache();
     // Plugin translations are namespace-cached per locale. Refill the
     // cache against the new tag so plugin modules re-render with the
     // right strings; without this, plugin namespaces would stay frozen

@@ -14,6 +14,9 @@ interface SidebarGroceryProps {
 
 export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem }: SidebarGroceryProps) {
   const t = useTranslate('editor');
+  // Grocery category labels live in `core.meal.grocery.categoryLabels.*`
+  // (shared with /remote).
+  const tCore = useTranslate('core');
   const groceryMap = useMemo(
     () => generateGroceryList(plan, meals, Array.from(checkedItems)),
     [plan, meals, checkedItems],
@@ -70,7 +73,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
           // `t()` returns the raw key path on miss (and emits a once-per-key
           // dev warning), which is the right developer feedback for any future
           // GroceryCategory enum value added without a matching translation.
-          const categoryLabel = t(`mealPlannerModal.grocery.categoryLabels.${catKey}`);
+          const categoryLabel = tCore(`meal.grocery.categoryLabels.${catKey}`);
 
           return (
             <div key={catKey} className="mb-5">

@@ -28,6 +28,9 @@ export default function SidebarLibrary({
   onAddMeal,
 }: SidebarLibraryProps) {
   const t = useTranslate('editor');
+  // Tag + difficulty labels live in `core.meal.*` (shared with /remote so
+  // both surfaces resolve them without lazy-fetching the editor bundle).
+  const tCore = useTranslate('core');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<LibraryFilter>('all');
 
@@ -37,12 +40,12 @@ export default function SidebarLibrary({
     () => ({
       all: t('mealPlannerModal.library.filters.all'),
       favorites: t('mealPlannerModal.library.filters.favorites'),
-      quick: t('mealPlannerModal.tags.quick'),
-      healthy: t('mealPlannerModal.tags.healthy'),
-      comfort: t('mealPlannerModal.tags.comfort'),
-      'kid-friendly': t('mealPlannerModal.tags.kid-friendly'),
+      quick: tCore('meal.tags.quick'),
+      healthy: tCore('meal.tags.healthy'),
+      comfort: tCore('meal.tags.comfort'),
+      'kid-friendly': tCore('meal.tags.kid-friendly'),
     }),
-    [t],
+    [t, tCore],
   );
 
   const filteredMeals = useMemo(() => {
@@ -146,7 +149,7 @@ export default function SidebarLibrary({
               meta.push(t('mealPlannerModal.picker.prepTimeShort', { minutes: meal.prepTime }));
             }
             if (meal.difficulty) {
-              meta.push(t(`mealPlannerModal.difficulty.${meal.difficulty}`));
+              meta.push(tCore(`meal.difficulty.${meal.difficulty}`));
             }
             if (meal.rating) meta.push(starRating(meal.rating));
 

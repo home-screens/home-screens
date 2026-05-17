@@ -41,7 +41,10 @@ export default function MealsLibraryView({
   saveError,
 }: MealsLibraryViewProps) {
   const t = useTranslate('remote');
-  const tEditor = useTranslate('editor');
+  // Difficulty labels live in `core.meal.*` so /remote doesn't have to
+  // lazy-fetch the 113KB editor.json just to render three words. Core
+  // is already loaded by the remote layout.
+  const tCore = useTranslate('core');
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* Search input */}
@@ -130,7 +133,7 @@ export default function MealsLibraryView({
               </div>
               <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
                 {meal.prepTime && <span>{t('mealsTab.library.prepTimeMin', { minutes: meal.prepTime })}</span>}
-                {meal.difficulty && <span>{tEditor(`mealPlannerModal.difficulty.${meal.difficulty}`)}</span>}
+                {meal.difficulty && <span>{tCore(`meal.difficulty.${meal.difficulty}`)}</span>}
               </div>
               {meal.tags && meal.tags.length > 0 && (
                 <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>

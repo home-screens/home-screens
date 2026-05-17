@@ -24,7 +24,10 @@ export default function MealFormOverlay({
   saveError,
 }: MealFormOverlayProps) {
   const t = useTranslate('remote');
-  const tEditor = useTranslate('editor');
+  // Difficulty / tags / ingredient-category labels live in `core.meal.*`
+  // so /remote doesn't have to lazy-fetch the 113KB editor.json. Core is
+  // already loaded by the remote layout.
+  const tCore = useTranslate('core');
   const {
     editingMeal,
     setEditingMeal,
@@ -226,7 +229,7 @@ export default function MealFormOverlay({
                     transition: 'all 0.15s',
                   }}
                 >
-                  {tEditor(`mealPlannerModal.difficulty.${d}`)}
+                  {tCore(`meal.difficulty.${d}`)}
                 </button>
               );
             })}
@@ -261,7 +264,7 @@ export default function MealFormOverlay({
                   transition: 'all 0.15s',
                 }}
               >
-                {tEditor(`mealPlannerModal.tags.${tag}`)}
+                {tCore(`meal.tags.${tag}`)}
               </button>
             );
           })}
@@ -311,7 +314,7 @@ export default function MealFormOverlay({
             >
               {GROCERY_CATEGORY_ORDER.map((cat) => (
                 <option key={cat} value={cat}>
-                  {tEditor(`mealPlannerModal.ingredientCategories.${cat}`)}
+                  {tCore(`meal.ingredientCategories.${cat}`)}
                 </option>
               ))}
             </select>

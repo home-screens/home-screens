@@ -73,6 +73,10 @@ interface SidebarDetailProps {
 
 export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite }: SidebarDetailProps) {
   const t = useTranslate('editor');
+  // Difficulty / tag / ingredient-category labels live in `core.meal.*`
+  // (shared with /remote so both surfaces resolve them without lazy-fetching
+  // the editor bundle).
+  const tCore = useTranslate('core');
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('');
   const [prepTime, setPrepTime] = useState<number | undefined>(undefined);
@@ -306,7 +310,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                     }`}
                     onClick={() => setDifficulty(isActive ? undefined : level)}
                   >
-                    {t(`mealPlannerModal.difficulty.${level}`)}
+                    {tCore(`meal.difficulty.${level}`)}
                   </button>
                 );
               })}
@@ -331,7 +335,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   }`}
                   onClick={() => toggleTag(tag)}
                 >
-                  {t(`mealPlannerModal.tags.${tag}`)}
+                  {tCore(`meal.tags.${tag}`)}
                 </button>
               );
             })}
@@ -382,7 +386,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                     <option value="">{t('mealPlannerModal.detail.categoryPlaceholder')}</option>
                     {INGREDIENT_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
-                        {t(`mealPlannerModal.ingredientCategories.${cat}`)}
+                        {tCore(`meal.ingredientCategories.${cat}`)}
                       </option>
                     ))}
                   </select>

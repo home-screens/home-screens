@@ -16,8 +16,10 @@ export default function MealsGroceryView({
   toggleGroceryItem,
 }: MealsGroceryViewProps) {
   const t = useTranslate('remote');
-  // Cross-namespace borrow for grocery category labels (already shipped in 6.6.ii).
-  const tEditor = useTranslate('editor');
+  // Grocery category labels live in `core.meal.grocery.categoryLabels.*`
+  // so /remote doesn't have to lazy-fetch the 113KB editor.json. Core is
+  // already loaded by the remote layout.
+  const tCore = useTranslate('core');
 
   const buildShareText = useCallback((): string => {
     const sections: string[] = [];
@@ -27,13 +29,13 @@ export default function MealsGroceryView({
       // `t()` returns the raw key path on miss (and emits a once-per-key dev
       // warning), which is the right developer feedback for any future
       // GroceryCategory enum value added without a matching translation.
-      const label = tEditor(`mealPlannerModal.grocery.categoryLabels.${catKey}`);
+      const label = tCore(`meal.grocery.categoryLabels.${catKey}`);
       const lines = unchecked.map((i) => `  ${i.name}${i.amount ? ` (${i.amount})` : ''}`);
       sections.push(`${label}\n${lines.join('\n')}`);
     }
     if (sections.length === 0) return t('mealsGrocery.shareCompleteMessage');
     return `${t('mealsGrocery.shareHeading')}\n\n${sections.join('\n\n')}`;
-  }, [groceryList, t, tEditor]);
+  }, [groceryList, t, tCore]);
 
   const [shareLabel, setShareLabel] = useState<'idle' | 'copied'>('idle');
 
@@ -130,7 +132,7 @@ export default function MealsGroceryView({
       {/* Category groups */}
       {Array.from(groceryList.entries()).map(([catKey, { items }]) => {
         const catChecked = items.filter((i) => i.checked).length;
-        const categoryLabel = tEditor(`mealPlannerModal.grocery.categoryLabels.${catKey}`);
+        const categoryLabel = tCore(`meal.grocery.categoryLabels.${catKey}`);
         return (
         <div key={catKey} style={{ marginBottom: 20 }}>
           {/* Category header */}

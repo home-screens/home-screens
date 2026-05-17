@@ -18,11 +18,13 @@ export const GET = withDisplayAuth(async () => {
   return NextResponse.json({
     iso: now.toISOString(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    // Omit `hour12` so the locale's natural convention wins (24h in
+    // de-DE / fr-FR / nl-NL, 12h in en-US). Forcing a fixed value here
+    // would defeat the locale resolution above.
     formatted: now.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       second: '2-digit',
-      hour12: true,
     }),
   });
 }, 'Failed to get server time');

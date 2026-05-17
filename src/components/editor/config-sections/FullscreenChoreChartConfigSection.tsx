@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
@@ -25,6 +25,23 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+
+  // Translate the shared TYPOGRAPHY_SIZES table at render time. Falls back
+  // to the English `label` if the key is missing — `t()` returns the raw
+  // dotted path on miss (not undefined), so `result === key` is the only
+  // reliable miss check. Mirrors the TRANSITION_OPTIONS pattern in
+  // DefaultDisplaySection.
+  const typographySizeOptions = useMemo(
+    () =>
+      TYPOGRAPHY_SIZES.map((opt) => {
+        const translated = t(opt.i18nKey);
+        return {
+          value: opt.value,
+          label: translated === opt.i18nKey ? opt.label : translated,
+        };
+      }),
+    [t],
+  );
 
   const VIEW_OPTIONS: { value: FullscreenChoreChartView; label: string }[] = [
     { value: 'chores', label: t('configSections.fullscreen-chore-chart.viewChoreBoard') },
@@ -104,7 +121,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
         label={t('configSections.fullscreen-chore-chart.typographySize')}
         value={c.typographySize ?? 'medium'}
         onChange={(v) => set({ typographySize: v })}
-        options={TYPOGRAPHY_SIZES}
+        options={typographySizeOptions}
       />
 
       {/* Accent Color */}

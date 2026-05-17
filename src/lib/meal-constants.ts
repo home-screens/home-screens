@@ -10,15 +10,22 @@ export const DEFAULT_ACCENT_COLOR = '#f59e0b';
 /** Default emoji for meals with no emoji set */
 export const DEFAULT_MEAL_EMOJI = '🍽️';
 
-/** Typography size options for fullscreen modules */
-export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string }[] = [
-  { value: 'small', label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large', label: 'Large' },
-  { value: 'extra-large', label: 'Extra Large' },
-  { value: '2x-large', label: '2X Large' },
-  { value: '3x-large', label: '3X Large' },
-  { value: '4x-large', label: '4X Large' },
+/**
+ * Typography size options for fullscreen modules.
+ *
+ * Each option carries an `i18nKey` (resolved against the `editor` namespace
+ * at the call site via `tOrFallback`) plus a `label` English fallback. Both
+ * fullscreen-meal-planner and fullscreen-chore-chart config sections
+ * translate at render time so the dropdown reads in the active locale.
+ */
+export const TYPOGRAPHY_SIZES: { value: FullscreenTypographySize; label: string; i18nKey: string }[] = [
+  { value: 'small',       label: 'Small',       i18nKey: 'common.typographySizes.small' },
+  { value: 'medium',      label: 'Medium',      i18nKey: 'common.typographySizes.medium' },
+  { value: 'large',       label: 'Large',       i18nKey: 'common.typographySizes.large' },
+  { value: 'extra-large', label: 'Extra Large', i18nKey: 'common.typographySizes.extra-large' },
+  { value: '2x-large',    label: '2X Large',    i18nKey: 'common.typographySizes.2x-large' },
+  { value: '3x-large',    label: '3X Large',    i18nKey: 'common.typographySizes.3x-large' },
+  { value: '4x-large',    label: '4X Large',    i18nKey: 'common.typographySizes.4x-large' },
 ];
 
 /**

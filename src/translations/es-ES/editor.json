@@ -26,7 +26,16 @@
     "saveFailed": "Error al guardar",
     "saveError": "Error al guardar",
     "networkError": "Error de red",
-    "serverUnreachable": "No se pudo contactar con el servidor"
+    "serverUnreachable": "No se pudo contactar con el servidor",
+    "typographySizes": {
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande",
+      "extra-large": "Muy Grande",
+      "2x-large": "2X Grande",
+      "3x-large": "3X Grande",
+      "4x-large": "4X Grande"
+    }
   },
   "fields": {
     "rotation": "Rotación",
@@ -1795,54 +1804,10 @@
       "saveChangesButton": "Guardar cambios",
       "deleteButton": "Eliminar"
     },
-    "difficulty": {
-      "easy": "Fácil",
-      "medium": "Media",
-      "hard": "Difícil"
-    },
-    "ingredientCategories": {
-      "produce": "Frutas y verduras",
-      "dairy": "Lácteos",
-      "meat": "Carne",
-      "seafood": "Pescado y marisco",
-      "bakery": "Panadería",
-      "pantry": "Despensa",
-      "frozen": "Congelados",
-      "beverages": "Bebidas",
-      "other": "Otros"
-    },
-    "tags": {
-      "breakfast": "Desayuno",
-      "lunch": "Comida",
-      "dinner": "Cena",
-      "snack": "Merienda",
-      "quick": "Rápida",
-      "healthy": "Saludable",
-      "vegetarian": "Vegetariana",
-      "vegan": "Vegana",
-      "comfort": "Reconfortante",
-      "spicy": "Picante",
-      "kid-friendly": "Para niños",
-      "meal-prep": "Meal-prep",
-      "gluten-free": "Sin gluten",
-      "dairy-free": "Sin lácteos",
-      "batch-cook": "Cocinar en lote"
-    },
     "grocery": {
       "itemsCount": "{checked} de {total} artículos",
       "fromThisWeek": "De esta semana",
-      "emptyMessage": "Planifica comidas con ingredientes para ver tu lista de la compra",
-      "categoryLabels": {
-        "produce": "Frutas y verduras",
-        "dairy": "Lácteos y huevos",
-        "meat": "Carne y pescado",
-        "seafood": "Carne y pescado",
-        "bakery": "Panadería",
-        "pantry": "Despensa",
-        "frozen": "Congelados",
-        "beverages": "Bebidas",
-        "other": "Otros"
-      }
+      "emptyMessage": "Planifica comidas con ingredientes para ver tu lista de la compra"
     },
     "weekGrid": {
       "todayLabel": "Hoy",

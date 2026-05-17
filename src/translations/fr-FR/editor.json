@@ -26,7 +26,16 @@
     "saveFailed": "Échec de l’enregistrement",
     "saveError": "Échec de l’enregistrement",
     "networkError": "Erreur réseau",
-    "serverUnreachable": "Impossible de joindre le serveur"
+    "serverUnreachable": "Impossible de joindre le serveur",
+    "typographySizes": {
+      "small": "Petit",
+      "medium": "Moyen",
+      "large": "Grand",
+      "extra-large": "Très Grand",
+      "2x-large": "2X Grand",
+      "3x-large": "3X Grand",
+      "4x-large": "4X Grand"
+    }
   },
   "fields": {
     "rotation": "Rotation",
@@ -1795,54 +1804,10 @@
       "saveChangesButton": "Enregistrer les modifications",
       "deleteButton": "Supprimer"
     },
-    "difficulty": {
-      "easy": "Facile",
-      "medium": "Moyenne",
-      "hard": "Difficile"
-    },
-    "ingredientCategories": {
-      "produce": "Fruits et légumes",
-      "dairy": "Produits laitiers",
-      "meat": "Viande",
-      "seafood": "Poisson",
-      "bakery": "Boulangerie",
-      "pantry": "Épicerie",
-      "frozen": "Surgelés",
-      "beverages": "Boissons",
-      "other": "Autre"
-    },
-    "tags": {
-      "breakfast": "Petit-déjeuner",
-      "lunch": "Déjeuner",
-      "dinner": "Dîner",
-      "snack": "Goûter",
-      "quick": "Rapide",
-      "healthy": "Sain",
-      "vegetarian": "Végétarien",
-      "vegan": "Végan",
-      "comfort": "Réconfortant",
-      "spicy": "Épicé",
-      "kid-friendly": "Pour enfants",
-      "meal-prep": "Meal-prep",
-      "gluten-free": "Sans gluten",
-      "dairy-free": "Sans lactose",
-      "batch-cook": "Batch cooking"
-    },
     "grocery": {
       "itemsCount": "{checked} sur {total} articles",
       "fromThisWeek": "De cette semaine",
-      "emptyMessage": "Planifie des repas avec des ingrédients pour voir ta liste de courses",
-      "categoryLabels": {
-        "produce": "Fruits et légumes",
-        "dairy": "Produits laitiers et œufs",
-        "meat": "Viande et poisson",
-        "seafood": "Viande et poisson",
-        "bakery": "Boulangerie",
-        "pantry": "Épicerie",
-        "frozen": "Surgelés",
-        "beverages": "Boissons",
-        "other": "Autre"
-      }
+      "emptyMessage": "Planifie des repas avec des ingrédients pour voir ta liste de courses"
     },
     "weekGrid": {
       "todayLabel": "Aujourd'hui",

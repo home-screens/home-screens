@@ -83,5 +83,53 @@
     "thursday": "Donnerstag",
     "friday": "Freitag",
     "saturday": "Samstag"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Einfach",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "tags": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Snack",
+      "quick": "Schnell",
+      "healthy": "Gesund",
+      "vegetarian": "Vegetarisch",
+      "vegan": "Vegan",
+      "comfort": "Wohlfühlessen",
+      "spicy": "Scharf",
+      "kid-friendly": "Kinderfreundlich",
+      "meal-prep": "Meal-Prep",
+      "gluten-free": "Glutenfrei",
+      "dairy-free": "Laktosefrei",
+      "batch-cook": "Vorratskochen"
+    },
+    "ingredientCategories": {
+      "produce": "Obst & Gemüse",
+      "dairy": "Milchprodukte",
+      "meat": "Fleisch",
+      "seafood": "Meeresfrüchte",
+      "bakery": "Backwaren",
+      "pantry": "Vorrat",
+      "frozen": "Tiefkühl",
+      "beverages": "Getränke",
+      "other": "Sonstiges"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Obst & Gemüse",
+        "dairy": "Milch & Eier",
+        "meat": "Fleisch & Fisch",
+        "seafood": "Fleisch & Fisch",
+        "bakery": "Backwaren",
+        "pantry": "Vorrat",
+        "frozen": "Tiefkühl",
+        "beverages": "Getränke",
+        "other": "Sonstiges"
+      }
+    }
   }
 }

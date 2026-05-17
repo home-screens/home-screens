@@ -83,5 +83,53 @@
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "tags": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack",
+      "quick": "Quick",
+      "healthy": "Healthy",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "comfort": "Comfort",
+      "spicy": "Spicy",
+      "kid-friendly": "Kid-Friendly",
+      "meal-prep": "Meal-Prep",
+      "gluten-free": "Gluten-Free",
+      "dairy-free": "Dairy-Free",
+      "batch-cook": "Batch-Cook"
+    },
+    "ingredientCategories": {
+      "produce": "Produce",
+      "dairy": "Dairy",
+      "meat": "Meat",
+      "seafood": "Seafood",
+      "bakery": "Bakery",
+      "pantry": "Pantry",
+      "frozen": "Frozen",
+      "beverages": "Beverages",
+      "other": "Other"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Produce",
+        "dairy": "Dairy & Eggs",
+        "meat": "Meat & Seafood",
+        "seafood": "Meat & Seafood",
+        "bakery": "Bakery",
+        "pantry": "Pantry",
+        "frozen": "Frozen",
+        "beverages": "Beverages",
+        "other": "Other"
+      }
+    }
   }
 }

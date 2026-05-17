@@ -526,7 +526,11 @@ export async function getActiveLocale(): Promise<string> {
       return DEFAULT_LOCALE;
     }
     const config = await res.json();
-    const locale = config?.globalSettings?.locale;
+    // `/api/config` returns the raw `ScreenConfiguration`, whose locale
+    // lives at `settings.locale` (not the legacy `globalSettings` shape).
+    // Matching the actual on-the-wire field is the only way plugin
+    // translations resolve to the user's chosen locale.
+    const locale = config?.settings?.locale;
     const value = typeof locale === 'string' && locale ? locale : DEFAULT_LOCALE;
     activeLocaleCache = { value, fetchedAt: now };
     return value;

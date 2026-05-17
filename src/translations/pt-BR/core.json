@@ -83,5 +83,53 @@
     "thursday": "Quinta-feira",
     "friday": "Sexta-feira",
     "saturday": "Sábado"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Médio",
+      "hard": "Difícil"
+    },
+    "tags": {
+      "breakfast": "Café da manhã",
+      "lunch": "Almoço",
+      "dinner": "Jantar",
+      "snack": "Lanche",
+      "quick": "Rápida",
+      "healthy": "Saudável",
+      "vegetarian": "Vegetariana",
+      "vegan": "Vegana",
+      "comfort": "Reconfortante",
+      "spicy": "Apimentada",
+      "kid-friendly": "Para crianças",
+      "meal-prep": "Marmita",
+      "gluten-free": "Sem glúten",
+      "dairy-free": "Sem lactose",
+      "batch-cook": "Em grande quantidade"
+    },
+    "ingredientCategories": {
+      "produce": "Hortifrúti",
+      "dairy": "Laticínios",
+      "meat": "Carnes",
+      "seafood": "Frutos do mar",
+      "bakery": "Padaria",
+      "pantry": "Despensa",
+      "frozen": "Congelados",
+      "beverages": "Bebidas",
+      "other": "Outros"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Hortifrúti",
+        "dairy": "Laticínios e ovos",
+        "meat": "Carnes e frutos do mar",
+        "seafood": "Carnes e frutos do mar",
+        "bakery": "Padaria",
+        "pantry": "Despensa",
+        "frozen": "Congelados",
+        "beverages": "Bebidas",
+        "other": "Outros"
+      }
+    }
   }
 }

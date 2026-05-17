@@ -26,7 +26,16 @@
     "saveFailed": "Save failed",
     "saveError": "Failed to save",
     "networkError": "Network error",
-    "serverUnreachable": "Failed to reach server"
+    "serverUnreachable": "Failed to reach server",
+    "typographySizes": {
+      "small": "Lille",
+      "medium": "Mellem",
+      "large": "Stor",
+      "extra-large": "Ekstra Stor",
+      "2x-large": "2X Stor",
+      "3x-large": "3X Stor",
+      "4x-large": "4X Stor"
+    }
   },
   "fields": {
     "rotation": "Rotation",
@@ -1791,54 +1800,10 @@
       "saveChangesButton": "Save Changes",
       "deleteButton": "Delete"
     },
-    "difficulty": {
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard"
-    },
-    "ingredientCategories": {
-      "produce": "Produce",
-      "dairy": "Dairy",
-      "meat": "Meat",
-      "seafood": "Seafood",
-      "bakery": "Bakery",
-      "pantry": "Pantry",
-      "frozen": "Frozen",
-      "beverages": "Beverages",
-      "other": "Other"
-    },
-    "tags": {
-      "breakfast": "Breakfast",
-      "lunch": "Lunch",
-      "dinner": "Dinner",
-      "snack": "Snack",
-      "quick": "Quick",
-      "healthy": "Healthy",
-      "vegetarian": "Vegetarian",
-      "vegan": "Vegan",
-      "comfort": "Comfort",
-      "spicy": "Spicy",
-      "kid-friendly": "Kid-Friendly",
-      "meal-prep": "Meal-Prep",
-      "gluten-free": "Gluten-Free",
-      "dairy-free": "Dairy-Free",
-      "batch-cook": "Batch-Cook"
-    },
     "grocery": {
       "itemsCount": "{checked} of {total} items",
       "fromThisWeek": "From this week",
-      "emptyMessage": "Plan meals with ingredients to see your shopping list",
-      "categoryLabels": {
-        "produce": "Produce",
-        "dairy": "Dairy & Eggs",
-        "meat": "Meat & Seafood",
-        "seafood": "Meat & Seafood",
-        "bakery": "Bakery",
-        "pantry": "Pantry",
-        "frozen": "Frozen",
-        "beverages": "Beverages",
-        "other": "Other"
-      }
+      "emptyMessage": "Plan meals with ingredients to see your shopping list"
     },
     "weekGrid": {
       "todayLabel": "Today",

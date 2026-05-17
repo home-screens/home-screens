@@ -40,13 +40,13 @@ function mockFetchRoutes(routes: Record<string, () => Response | Promise<Respons
 }
 
 const CONFIG_RESPONSE_EN = () =>
-  new Response(JSON.stringify({ globalSettings: { locale: 'en-US' } }), { status: 200 });
+  new Response(JSON.stringify({ settings: { locale: 'en-US' } }), { status: 200 });
 
 const CONFIG_RESPONSE_DE = () =>
-  new Response(JSON.stringify({ globalSettings: { locale: 'de-DE' } }), { status: 200 });
+  new Response(JSON.stringify({ settings: { locale: 'de-DE' } }), { status: 200 });
 
 const CONFIG_RESPONSE_NONE = () =>
-  new Response(JSON.stringify({ globalSettings: {} }), { status: 200 });
+  new Response(JSON.stringify({ settings: {} }), { status: 200 });
 
 describe('loadPluginTranslations', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
@@ -196,7 +196,7 @@ describe('loadPluginTranslations', () => {
     expect(getCachedNamespace('en-US', 'plugin:my-plugin')).toBeUndefined();
   });
 
-  it('uses DEFAULT_LOCALE when /api/config has no globalSettings.locale', async () => {
+  it('uses DEFAULT_LOCALE when /api/config has no settings.locale', async () => {
     mockFetchRoutes({
       '/api/config': CONFIG_RESPONSE_NONE,
       '/api/plugins/asset/my-plugin/translations/en-US.json': () =>
@@ -407,7 +407,7 @@ describe('getActiveLocale failure-path behaviour', () => {
         if (callCount === 1) {
           return new Response('boom', { status: 500 });
         }
-        return new Response(JSON.stringify({ globalSettings: { locale: 'de-DE' } }), { status: 200 });
+        return new Response(JSON.stringify({ settings: { locale: 'de-DE' } }), { status: 200 });
       }
       return new Response('Not Found', { status: 404 });
     });
@@ -428,7 +428,7 @@ describe('getActiveLocale failure-path behaviour', () => {
       if (url.includes('/api/config')) {
         callCount++;
         if (callCount === 1) throw new Error('network down');
-        return new Response(JSON.stringify({ globalSettings: { locale: 'fr-FR' } }), { status: 200 });
+        return new Response(JSON.stringify({ settings: { locale: 'fr-FR' } }), { status: 200 });
       }
       return new Response('Not Found', { status: 404 });
     });
@@ -447,7 +447,7 @@ describe('getActiveLocale failure-path behaviour', () => {
       const url = typeof input === 'string' ? input : (input as Request).url;
       if (url.includes('/api/config')) {
         callCount++;
-        return new Response(JSON.stringify({ globalSettings: { locale: 'de-DE' } }), { status: 200 });
+        return new Response(JSON.stringify({ settings: { locale: 'de-DE' } }), { status: 200 });
       }
       return new Response('Not Found', { status: 404 });
     });
@@ -476,7 +476,7 @@ describe('clearActiveLocaleCache', () => {
     vi.spyOn(global, 'fetch').mockImplementation(async () => {
       callCount++;
       return new Response(
-        JSON.stringify({ globalSettings: { locale: currentLocale } }),
+        JSON.stringify({ settings: { locale: currentLocale } }),
         { status: 200 },
       );
     });

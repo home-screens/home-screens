@@ -83,5 +83,53 @@
     "thursday": "Jueves",
     "friday": "Viernes",
     "saturday": "Sábado"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Media",
+      "hard": "Difícil"
+    },
+    "tags": {
+      "breakfast": "Desayuno",
+      "lunch": "Comida",
+      "dinner": "Cena",
+      "snack": "Merienda",
+      "quick": "Rápida",
+      "healthy": "Saludable",
+      "vegetarian": "Vegetariana",
+      "vegan": "Vegana",
+      "comfort": "Reconfortante",
+      "spicy": "Picante",
+      "kid-friendly": "Para niños",
+      "meal-prep": "Meal-prep",
+      "gluten-free": "Sin gluten",
+      "dairy-free": "Sin lácteos",
+      "batch-cook": "Cocinar en lote"
+    },
+    "ingredientCategories": {
+      "produce": "Frutas y verduras",
+      "dairy": "Lácteos",
+      "meat": "Carne",
+      "seafood": "Pescado y marisco",
+      "bakery": "Panadería",
+      "pantry": "Despensa",
+      "frozen": "Congelados",
+      "beverages": "Bebidas",
+      "other": "Otros"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Frutas y verduras",
+        "dairy": "Lácteos y huevos",
+        "meat": "Carne y pescado",
+        "seafood": "Carne y pescado",
+        "bakery": "Panadería",
+        "pantry": "Despensa",
+        "frozen": "Congelados",
+        "beverages": "Bebidas",
+        "other": "Otros"
+      }
+    }
   }
 }

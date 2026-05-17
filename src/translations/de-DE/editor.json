@@ -26,7 +26,16 @@
     "saveFailed": "Speichern fehlgeschlagen",
     "saveError": "Speichern fehlgeschlagen",
     "networkError": "Netzwerkfehler",
-    "serverUnreachable": "Server nicht erreichbar"
+    "serverUnreachable": "Server nicht erreichbar",
+    "typographySizes": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß",
+      "extra-large": "Sehr Groß",
+      "2x-large": "2X Groß",
+      "3x-large": "3X Groß",
+      "4x-large": "4X Groß"
+    }
   },
   "fields": {
     "rotation": "Rotation",
@@ -1791,54 +1800,10 @@
       "saveChangesButton": "Änderungen speichern",
       "deleteButton": "Löschen"
     },
-    "difficulty": {
-      "easy": "Einfach",
-      "medium": "Mittel",
-      "hard": "Schwer"
-    },
-    "ingredientCategories": {
-      "produce": "Obst & Gemüse",
-      "dairy": "Milchprodukte",
-      "meat": "Fleisch",
-      "seafood": "Meeresfrüchte",
-      "bakery": "Backwaren",
-      "pantry": "Vorrat",
-      "frozen": "Tiefkühl",
-      "beverages": "Getränke",
-      "other": "Sonstiges"
-    },
-    "tags": {
-      "breakfast": "Frühstück",
-      "lunch": "Mittagessen",
-      "dinner": "Abendessen",
-      "snack": "Snack",
-      "quick": "Schnell",
-      "healthy": "Gesund",
-      "vegetarian": "Vegetarisch",
-      "vegan": "Vegan",
-      "comfort": "Wohlfühlessen",
-      "spicy": "Scharf",
-      "kid-friendly": "Kinderfreundlich",
-      "meal-prep": "Meal-Prep",
-      "gluten-free": "Glutenfrei",
-      "dairy-free": "Laktosefrei",
-      "batch-cook": "Vorratskochen"
-    },
     "grocery": {
       "itemsCount": "{checked} von {total} Artikeln",
       "fromThisWeek": "Aus dieser Woche",
-      "emptyMessage": "Plan Mahlzeiten mit Zutaten ein, um die Einkaufsliste zu sehen",
-      "categoryLabels": {
-        "produce": "Obst & Gemüse",
-        "dairy": "Milch & Eier",
-        "meat": "Fleisch & Fisch",
-        "seafood": "Fleisch & Fisch",
-        "bakery": "Backwaren",
-        "pantry": "Vorrat",
-        "frozen": "Tiefkühl",
-        "beverages": "Getränke",
-        "other": "Sonstiges"
-      }
+      "emptyMessage": "Plan Mahlzeiten mit Zutaten ein, um die Einkaufsliste zu sehen"
     },
     "weekGrid": {
       "todayLabel": "Heute",
