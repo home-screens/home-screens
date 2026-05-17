@@ -1938,27 +1938,27 @@ describe('SMHIProvider', () => {
     const smhiResponse = {
       timeSeries: [
         {
-          validTime: t0,
-          parameters: [
-            { name: 't', values: [10] },
-            { name: 'r', values: [70] },
-            { name: 'ws', values: [4] },
-            { name: 'msl', values: [1015.2] },
-            { name: 'Wsymb2', values: [3] },
-            { name: 'pcat', values: [3] },
-            { name: 'pmean', values: [0.4] },
-          ],
+          time: t0,
+          data: {
+            air_temperature: 10,
+            relative_humidity: 70,
+            wind_speed: 4,
+            air_pressure_at_mean_sea_level: 1015.2,
+            symbol_code: 3,
+            probability_of_precipitation: 80,
+            precipitation_amount_mean: 0.4,
+          },
         },
         {
-          validTime: t1,
-          parameters: [
-            { name: 't', values: [9] },
-            { name: 'r', values: [75] },
-            { name: 'ws', values: [5] },
-            { name: 'Wsymb2', values: [3] },
-            { name: 'pcat', values: [0] },
-            { name: 'pmean', values: [0] },
-          ],
+          time: t1,
+          data: {
+            air_temperature: 9,
+            relative_humidity: 75,
+            wind_speed: 5,
+            symbol_code: 3,
+            probability_of_precipitation: 0,
+            precipitation_amount_mean: 0,
+          },
         },
       ],
     };
@@ -1974,13 +1974,14 @@ describe('SMHIProvider', () => {
       vi.useRealTimers();
     });
 
-    it('hits the lon-then-lat URL path SMHI requires', async () => {
+    it('hits the snow1g v1 endpoint with lon-then-lat path order', async () => {
       fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
       const provider = new SMHIProvider();
       await provider.getHourly(59.3, 18.07, 'metric');
 
       const url = fetchSpy.mock.calls[0][0] as string;
-      // SMHI requires /lon/{lon}/lat/{lat}/ path order
+      // SMHI requires /lon/{lon}/lat/{lat}/ path order against snow1g v1
+      expect(url).toContain('/api/category/snow1g/version/1/');
       expect(url).toMatch(/\/lon\/18\.\d+\/lat\/59\.\d+\//);
     });
 
@@ -2001,13 +2002,12 @@ describe('SMHIProvider', () => {
       expect(hourly[0].temp).toBe(50);
     });
 
-    it('derives binary precipProbability from pcat', async () => {
+    it('passes through probability_of_precipitation directly', async () => {
       fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
       const provider = new SMHIProvider();
       const hourly = await provider.getHourly(59.3, 18.07, 'metric');
 
-      // First entry pcat=3 → 100, second pcat=0 → 0
-      expect(hourly[0].precipProbability).toBe(100);
+      expect(hourly[0].precipProbability).toBe(80);
       expect(hourly[1].precipProbability).toBe(0);
     });
 
@@ -2034,28 +2034,28 @@ describe('SMHIProvider', () => {
       expect(forecast[0].icon).toBe('cloud-sun');
     });
 
-    it('emits binary precipProbability in daily forecast (regression)', async () => {
+    it('takes max precipProbability across the day in daily forecast', async () => {
       // Ensures the precip stat icon stays visible on daily/table/combined views.
       fetchSpy.mockResolvedValue(new Response(JSON.stringify(smhiResponse), { status: 200 }));
       const provider = new SMHIProvider();
 
       const forecast = await provider.getForecast(59.3, 18.07, 'metric');
 
-      // First entry has pcat=3 → day flagged as having precip → 100
-      expect(forecast[0].precipProbability).toBe(100);
+      // Hours probabilities: 80, 0 → max 80
+      expect(forecast[0].precipProbability).toBe(80);
     });
 
     it('reports precipProbability=0 when no hour has precipitation', async () => {
       const dryResponse = {
         timeSeries: [
           {
-            validTime: t0,
-            parameters: [
-              { name: 't', values: [10] },
-              { name: 'Wsymb2', values: [1] },
-              { name: 'pcat', values: [0] },
-              { name: 'pmean', values: [0] },
-            ],
+            time: t0,
+            data: {
+              air_temperature: 10,
+              symbol_code: 1,
+              probability_of_precipitation: 0,
+              precipitation_amount_mean: 0,
+            },
           },
         ],
       };

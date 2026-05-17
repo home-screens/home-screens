@@ -5,27 +5,35 @@ import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
 
 // ── SMHI (Swedish Meteorological and Hydrological Institute) ─────────
-// https://opendata.smhi.se/apidocs/metfcst/index.html
+// https://opendata.smhi.se/metfcst/snow1gv1
 // Coverage: Nordic region — returns 404 outside the SMHI bbox.
+//
+// Migrated from the deprecated `pmp3g v2` endpoint (shut down 2026-03-31)
+// to `snow1g v1`. Symbol codes (1–27) are preserved across both APIs.
 
-interface SMHIParameter {
-  name: string;
-  values: number[];
+interface SMHIDataPoint {
+  air_temperature?: number;
+  relative_humidity?: number;
+  wind_speed?: number;
+  air_pressure_at_mean_sea_level?: number;
+  symbol_code?: number;
+  precipitation_amount_mean?: number;
+  probability_of_precipitation?: number;
 }
 
 interface SMHITimeseriesEntry {
-  validTime: string;
-  parameters: SMHIParameter[];
+  time: string;
+  data: SMHIDataPoint;
 }
 
 interface SMHIResponse {
   timeSeries: SMHITimeseriesEntry[];
 }
 
-// ── SMHI Wsymb2 (1-27) → icon vocabulary ─────────────────────────────
-// Reference: SMHI parameter table, "Wsymb2" weather symbol categories.
-// For day/night-sensitive symbols (clear/partial cloud), we resolve via
-// an intermediate marker so the day/night swap stays in one place.
+// ── SMHI symbol_code (1-27) → icon vocabulary ────────────────────────
+// Same code space as the legacy Wsymb2 parameter. For day/night-sensitive
+// symbols (clear/partial cloud) we resolve via an intermediate marker so
+// the day/night swap stays in one place.
 
 type SMHIIntermediate = WeatherIconName | 'clear' | 'partly-cloudy';
 
@@ -97,10 +105,6 @@ export function wsymb2ToIcon(code: number, isDay: boolean): WeatherIconName {
   return intermediate;
 }
 
-function getParam(entry: SMHITimeseriesEntry, name: string): number | undefined {
-  return entry.parameters.find((p) => p.name === name)?.values[0];
-}
-
 // ── SMHI provider ────────────────────────────────────────────────────
 
 /** @internal */
@@ -113,7 +117,7 @@ export class SMHIProvider implements WeatherProvider {
     const latStr = lat.toFixed(6);
     const lonStr = lon.toFixed(6);
     return fetchWeatherJSON<SMHIResponse>(
-      `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lonStr}/lat/${latStr}/data.json`,
+      `https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/${lonStr}/lat/${latStr}/data.json`,
       'SMHI',
     );
   }
@@ -124,30 +128,26 @@ export class SMHIProvider implements WeatherProvider {
     const nowMs = Date.now();
 
     return data.timeSeries
-      .filter((entry) => new Date(entry.validTime).getTime() >= nowMs - 3600000)
+      .filter((entry) => new Date(entry.time).getTime() >= nowMs - 3600000)
       .slice(0, 48)
       .map((entry) => {
-        const t = getParam(entry, 't');
-        const r = getParam(entry, 'r');
-        const ws = getParam(entry, 'ws');
-        const msl = getParam(entry, 'msl');
-        const wsymb = getParam(entry, 'Wsymb2');
-        const pcat = getParam(entry, 'pcat');
-        // SMHI doesn't provide a precipitation probability — use the
-        // precipitation category as a binary signal instead.
-        const precipProbability = pcat != null && pcat > 0 ? 100 : 0;
-        const hour = new Date(entry.validTime).getUTCHours();
+        const d = entry.data;
+        const hour = new Date(entry.time).getUTCHours();
         const isDay = hour >= 6 && hour < 18;
 
         return {
-          time: entry.validTime,
-          temp: t != null ? celsiusToUnit(t, isMetric) : 0,
-          humidity: r,
-          icon: wsymb != null ? wsymb2ToIcon(wsymb, isDay) : FALLBACK_ICON,
-          description: wsymb != null ? (WSYMB2_DESCRIPTIONS[wsymb] ?? 'Unknown') : 'Unknown',
-          windSpeed: ws != null ? Math.round(msToWindUnit(ws, isMetric)) : undefined,
-          precipProbability,
-          pressure: msl != null ? Math.round(msl) : undefined,
+          time: entry.time,
+          temp: d.air_temperature != null ? celsiusToUnit(d.air_temperature, isMetric) : 0,
+          humidity: d.relative_humidity,
+          icon: d.symbol_code != null ? wsymb2ToIcon(d.symbol_code, isDay) : FALLBACK_ICON,
+          description: d.symbol_code != null
+            ? (WSYMB2_DESCRIPTIONS[d.symbol_code] ?? 'Unknown')
+            : 'Unknown',
+          windSpeed: d.wind_speed != null ? Math.round(msToWindUnit(d.wind_speed, isMetric)) : undefined,
+          precipProbability: d.probability_of_precipitation ?? 0,
+          pressure: d.air_pressure_at_mean_sea_level != null
+            ? Math.round(d.air_pressure_at_mean_sea_level)
+            : undefined,
         };
       });
   }
@@ -160,33 +160,27 @@ export class SMHIProvider implements WeatherProvider {
       temps: number[];
       symbols: Map<number, number>;
       precipMm: number;
-      hasPrecip: boolean;
+      maxPrecipProb: number;
       windSpeedsMs: number[];
       humidities: number[];
     }>();
 
     for (const entry of data.timeSeries) {
-      const date = entry.validTime.split('T')[0];
+      const date = entry.time.split('T')[0];
       let day = byDate.get(date);
       if (!day) {
-        day = { temps: [], symbols: new Map(), precipMm: 0, hasPrecip: false, windSpeedsMs: [], humidities: [] };
+        day = { temps: [], symbols: new Map(), precipMm: 0, maxPrecipProb: 0, windSpeedsMs: [], humidities: [] };
         byDate.set(date, day);
       }
-      const t = getParam(entry, 't');
-      const r = getParam(entry, 'r');
-      const ws = getParam(entry, 'ws');
-      const wsymb = getParam(entry, 'Wsymb2');
-      const pmean = getParam(entry, 'pmean');
-      const pcat = getParam(entry, 'pcat');
-
-      if (t != null) day.temps.push(t);
-      if (r != null) day.humidities.push(r);
-      if (ws != null) day.windSpeedsMs.push(ws);
-      if (wsymb != null) day.symbols.set(wsymb, (day.symbols.get(wsymb) ?? 0) + 1);
-      if (pmean != null) day.precipMm += pmean;
-      // SMHI doesn't expose a true probability; mark the day "has precip"
-      // if any hour has a non-zero pcat, then carry that forward as a binary.
-      if (pcat != null && pcat > 0) day.hasPrecip = true;
+      const d = entry.data;
+      if (d.air_temperature != null) day.temps.push(d.air_temperature);
+      if (d.relative_humidity != null) day.humidities.push(d.relative_humidity);
+      if (d.wind_speed != null) day.windSpeedsMs.push(d.wind_speed);
+      if (d.symbol_code != null) day.symbols.set(d.symbol_code, (day.symbols.get(d.symbol_code) ?? 0) + 1);
+      if (d.precipitation_amount_mean != null) day.precipMm += d.precipitation_amount_mean;
+      if (d.probability_of_precipitation != null && d.probability_of_precipitation > day.maxPrecipProb) {
+        day.maxPrecipProb = d.probability_of_precipitation;
+      }
     }
 
     return Array.from(byDate.entries()).slice(0, 7).map(([date, day]) => {
@@ -217,7 +211,7 @@ export class SMHIProvider implements WeatherProvider {
         description: dominantSymbol != null
           ? (WSYMB2_DESCRIPTIONS[dominantSymbol] ?? 'Unknown')
           : 'Unknown',
-        precipProbability: day.hasPrecip ? 100 : 0,
+        precipProbability: day.maxPrecipProb,
         precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
         humidity: avgHumidity != null ? Math.round(avgHumidity) : undefined,
         windSpeed: avgWindMs != null ? Math.round(msToWindUnit(avgWindMs, isMetric)) : undefined,
