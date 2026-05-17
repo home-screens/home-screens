@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Mesma do idioma"
   },
   "common": {
-    "cancel": "Cancelar",
-    "delete": "Excluir",
-    "remove": "Remover",
-    "add": "Adicionar",
-    "close": "Fechar",
-    "back": "Voltar",
-    "confirm": "Confirmar",
-    "loading": "Carregando…",
-    "saving": "Salvando…",
     "saved": "Salvo",
     "refreshMinutes": "Atualizar (minutos)",
     "refreshSeconds": "Atualizar (segundos)",
@@ -38,6 +29,12 @@
     "saveError": "Falha ao salvar",
     "networkError": "Erro de rede",
     "serverUnreachable": "Falha ao acessar o servidor"
+  },
+  "fields": {
+    "rotation": "Rotação",
+    "color": "Cor",
+    "icon": "Ícone",
+    "days": "Dias"
   },
   "modal": {
     "closeAriaLabel": "Fechar diálogo"
@@ -113,7 +110,6 @@
     "sectionTitle": "Configurações da tela",
     "moduleCountSingular": "{count} módulo",
     "moduleCountPlural": "{count} módulos",
-    "rotationGroupTitle": "Rotação",
     "durationLabel": "Duração",
     "secondsUnit": "seg",
     "stickyBadge": "Fixa",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Ativar agenda",
-    "daysTitle": "Dias",
     "timeWindowTitle": "Janela de tempo",
     "fromLabel": "De",
     "untilLabel": "Até",
@@ -581,7 +576,6 @@
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Por tela",
         "resolutionHelp": "Os módulos são posicionados sobre este canvas. Cada tela tem sua própria resolução — não é compartilhada.",
-        "rotationLabel": "Rotação",
         "rotationOptionNormal": "Normal (paisagem)",
         "rotationOption90": "90° horário (retrato)",
         "rotationOption180": "180° (invertida)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "Nenhuma tela selecionada — todas as telas serão mostradas como fallback.",
         "dragHelp": "Arraste para definir a ordem de rotação dentro deste perfil.",
         "scheduleToggleLabel": "Ativar automaticamente conforme agenda",
-        "daysLabel": "Dias",
         "fromLabel": "De",
         "untilLabel": "Até",
         "invertLabel": "Inverter (ocultar durante esta janela)"
@@ -1564,7 +1557,6 @@
       "formWidth": "Largura",
       "formHeight": "Altura",
       "formResolutionHint": "Defina isto para corresponder ao display físico no qual o quiosque está sendo renderizado. Os módulos serão dispostos sobre esta área quando você editar as telas deste display.",
-      "formRotation": "Rotação",
       "formRotationNormal": "Normal (paisagem)",
       "formRotation90": "90° horário (retrato)",
       "formRotation180": "180° (invertido)",
@@ -1593,7 +1585,6 @@
   "backgroundPicker": {
     "title": "Plano de fundo",
     "statusGroup": "Status",
-    "rotationGroup": "Rotação",
     "autoRotate": "Rotação automática",
     "sourceLabel": "Fonte",
     "searchQueryLabel": "Termo de pesquisa",
@@ -1653,8 +1644,7 @@
       "abstract": "Abstrato"
     },
     "errors": {
-      "searchUnsplash": "Falha ao pesquisar no Unsplash",
-      "saveImage": "Falha ao salvar a imagem"
+      "searchUnsplash": "Falha ao pesquisar no Unsplash"
     }
   },
   "choreChartModal": {
@@ -1678,7 +1668,6 @@
     "memberForm": {
       "namePlaceholder": "Nome...",
       "avatarLabel": "Avatar",
-      "colorLabel": "Cor",
       "customColorTitle": "Escolher cor personalizada"
     },
     "chores": {
@@ -1697,17 +1686,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Nome da tarefa...",
-      "iconLabel": "Ícone",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Frequência",
       "timeOfDayLabel": "Hora do dia",
       "dateLabel": "Data",
-      "daysLabel": "Dias",
       "assignToLabel": "Atribuir a",
       "weeklyScheduleLabel": "Agenda semanal",
       "coverageLabel": "Cobertura: {covered} de 7 dias",
       "coverageUncovered": "{days} sem cobertura",
-      "rotationLabel": "Rodízio",
       "addSubmit": "Adicionar tarefa",
       "saveSubmit": "Salvar",
       "validation": {
@@ -1880,7 +1866,6 @@
       "size": "Tamanho",
       "shape": "Forma",
       "effects": "Efeitos",
-      "color": "Cor",
       "text": "Texto",
       "positionAndSize": "Posição e tamanho",
       "style": "Estilo",
@@ -2016,7 +2001,6 @@
     "inheritLabel": "Herdar do módulo"
   },
   "iconPicker": {
-    "label": "Ícone",
     "styleSolid": "Sólido",
     "styleRegular": "Contorno",
     "styleBrands": "Marcas",
@@ -2352,7 +2336,6 @@
       "sourceMuffinLabs": "Fonte: MuffinLabs"
     },
     "icon": {
-      "icon": "Ícone",
       "style": "Estilo",
       "styleSolid": "Sólido",
       "styleRegular": "Regular (contorno)",
@@ -2361,7 +2344,6 @@
       "iconBackground": "Plano de fundo do ícone",
       "autoFit": "Ajustar automaticamente ao tamanho do módulo",
       "scale": "Escala",
-      "rotation": "Rotação",
       "rotation0": "Sem rotação",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2565,7 +2547,6 @@
       "frameBrackets": "Cantos em colchete",
       "shape": "Forma",
       "fill": "Preenchimento",
-      "color": "Cor",
       "gradientFrom": "Gradiente de",
       "gradientTo": "Gradiente para",
       "gradientAngle": "Ângulo do gradiente",
@@ -2584,7 +2565,6 @@
       "sides": "Lados",
       "points": "Pontas",
       "pointSharpness": "Nitidez das pontas",
-      "rotation": "Rotação",
       "direction": "Direção",
       "headSize": "Tamanho da ponta",
       "intensity": "Intensidade",
@@ -2692,7 +2672,6 @@
         "effect": "Efeito",
         "gradient": "Gradiente",
         "layout": "Layout",
-        "rotation": "Rotação",
         "marquee": "Marquee",
         "decorative": "Decorativo"
       },
@@ -2864,6 +2843,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Falha ao salvar a imagem"
+    },
     "immich": {
       "allPhotos": "Todas as fotos",
       "noPhotos": "Nenhuma foto encontrada",
@@ -2874,8 +2856,7 @@
       "apiKeyHint": "Crie uma chave de API em Immich → Configurações da conta → Chaves de API",
       "errors": {
         "loadPhotos": "Falha ao carregar as fotos",
-        "fetchImage": "Falha ao buscar a imagem",
-        "saveImage": "Falha ao salvar a imagem"
+        "fetchImage": "Falha ao buscar a imagem"
       }
     },
     "unsplash": {
@@ -2914,8 +2895,7 @@
         "library": "Biblioteca de imagens"
       },
       "errors": {
-        "fetch": "Falha ao buscar imagens da NASA",
-        "save": "Falha ao salvar a imagem"
+        "fetch": "Falha ao buscar imagens da NASA"
       },
       "categories": {
         "nebula": "Nebulosa",
@@ -2937,8 +2917,7 @@
       "next": "Próxima",
       "pageOf": "Página {page} de {total}",
       "errors": {
-        "load": "Falha ao carregar as imagens",
-        "save": "Falha ao salvar a imagem"
+        "load": "Falha ao carregar as imagens"
       }
     }
   },
@@ -2950,7 +2929,6 @@
       "title": "Feeds iCal / ICS",
       "editLowercase": "editar",
       "doneLowercase": "concluído",
-      "color": "Cor",
       "feedNamePlaceholder": "Nome do feed",
       "newFeedNamePlaceholder": "Nome do feed (ex.: Trabalho, Esportes)",
       "addFeed": "+ Adicionar feed",

@@ -16,6 +16,7 @@ export default function LayoutImportModal({
   onClose,
 }: LayoutImportModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const { config, selectedDisplayId, importLayoutAction, saveConfig } = useEditorStore();
   const [applyVisual, setApplyVisual] = useState(false);
@@ -147,7 +148,7 @@ export default function LayoutImportModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button variant="primary" onClick={handleImport}>
             {t('layoutImportModal.importButton')}
           </Button>

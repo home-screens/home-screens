@@ -43,7 +43,7 @@ const VISIBLE_LIMIT = 600;
 
 export default function IconPicker({ label, value, currentKind, onPick }: IconPickerProps) {
   const t = useTranslate('editor');
-  const resolvedLabel = label ?? t('iconPicker.label');
+  const resolvedLabel = label ?? t('fields.icon');
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   const handlePick = useCallback(
@@ -101,6 +101,7 @@ interface IconPickerModalProps {
 
 function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const trapRef = useFocusTrap<HTMLDivElement>();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -195,9 +196,9 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
               type="button"
               onClick={onClose}
               className="text-xs text-hs-text-muted hover:text-hs-text-body transition-colors"
-              aria-label={t('common.close')}
+              aria-label={tCore('actions.close')}
             >
-              {t('common.close')}
+              {tCore('actions.close')}
             </button>
           </div>
           <input

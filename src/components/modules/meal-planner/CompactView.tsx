@@ -15,7 +15,7 @@ interface CompactViewProps {
 }
 
 export function CompactView({ config, settings, plan, savedMeals, todayISO }: CompactViewProps) {
-  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const slots = settings.enabledSlots;
@@ -24,8 +24,8 @@ export function CompactView({ config, settings, plan, savedMeals, todayISO }: Co
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowISO = toISODate(tomorrowDate);
   const columns = [
-    { date: todayISO, label: t('meal-planner.today'), isToday: true },
-    { date: tomorrowISO, label: t('meal-planner.tomorrow'), isToday: false },
+    { date: todayISO, label: tCore('today'), isToday: true },
+    { date: tomorrowISO, label: tCore('tomorrow'), isToday: false },
   ];
 
   return (

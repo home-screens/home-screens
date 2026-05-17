@@ -27,6 +27,7 @@ export default function CRUDModalShell({
   children,
 }: CRUDModalShellProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const trapRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function CRUDModalShell({
           {headerActions ?? (
             <button
               onClick={onClose}
-              aria-label={t('common.close')}
+              aria-label={tCore('actions.close')}
               className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors"
             >
               &times;

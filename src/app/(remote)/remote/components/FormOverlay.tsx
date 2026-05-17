@@ -17,10 +17,10 @@ export default function FormOverlay({
   children: ReactNode;
   footer?: ReactNode;
 }) {
-  const t = useTranslate('remote');
-  // Central-fix: default the chevron-back label through the shared `remote.common.back`
-  // key so every caller picks up the active locale without forwarding props.
-  const resolvedBackLabel = backLabel ?? t('common.back');
+  const tCore = useTranslate('core');
+  // Default the chevron-back label through `core.actions.back` so every
+  // caller picks up the active locale without forwarding props.
+  const resolvedBackLabel = backLabel ?? tCore('actions.back');
   const [visible, setVisible] = useState(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {

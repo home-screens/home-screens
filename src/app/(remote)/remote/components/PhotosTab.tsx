@@ -12,6 +12,7 @@ interface DirectoryInfo {
 
 export default function PhotosTab({ directory: initialDirectory }: { directory: string }) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [directories, setDirectories] = useState<DirectoryInfo[]>([]);
   const [selectedDir, setSelectedDir] = useState(initialDirectory);
   const [images, setImages] = useState<string[]>([]);
@@ -178,7 +179,7 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           onClick={() => setShowNewFolder(!showNewFolder)}
           className="text-xs text-hs-accent active:text-hs-accent-hover min-h-[44px] px-3 flex items-center"
         >
-          {showNewFolder ? t('common.cancel') : t('photosTab.newFolderButton')}
+          {showNewFolder ? tCore('actions.cancel') : t('photosTab.newFolderButton')}
         </button>
       </div>
 
@@ -329,13 +330,13 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
                       disabled={deletingImage === img}
                       className="px-3 py-1.5 text-xs font-medium bg-hs-danger text-white rounded-md min-h-[36px] active:opacity-90"
                     >
-                      {deletingImage === img ? t('photosTab.deletingButton') : t('common.delete')}
+                      {deletingImage === img ? t('photosTab.deletingButton') : tCore('actions.delete')}
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
                       className="px-3 py-1.5 text-xs font-medium bg-hs-card text-hs-text-secondary rounded-md min-h-[36px] active:bg-hs-hover"
                     >
-                      {t('common.cancel')}
+                      {tCore('actions.cancel')}
                     </button>
                   </div>
                 </div>

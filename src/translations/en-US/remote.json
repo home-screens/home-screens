@@ -1,14 +1,4 @@
 {
-  "common": {
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "remove": "Remove",
-    "add": "Add",
-    "close": "Close",
-    "back": "Back",
-    "confirm": "Confirm",
-    "loading": "Loading…"
-  },
   "tabs": {
     "control": "Control",
     "chores": "Chores",

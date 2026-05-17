@@ -106,8 +106,6 @@
   },
   "garbage-day": {
     "header": "Collection Schedule",
-    "today": "Today",
-    "tomorrow": "Tomorrow",
     "nextDay": "Next {day}",
     "emptyState": "Set collection days in module settings",
     "labels": {
@@ -121,9 +119,6 @@
     }
   },
   "calendar": {
-    "today": "Today",
-    "tomorrow": "Tomorrow",
-    "yesterday": "Yesterday",
     "allDay": "All day",
     "noEvents": "No events",
     "noUpcomingEvents": "No upcoming events",
@@ -131,7 +126,6 @@
     "moreCount": "+{count} more"
   },
   "fullscreen-calendar": {
-    "today": "Today",
     "allDay": "All Day",
     "noEvents": "No events",
     "noEventsThisMonth": "No events this month",
@@ -167,7 +161,6 @@
     }
   },
   "weather": {
-    "today": "Today",
     "tomorrowShort": "Tmrw",
     "feelsLike": "Feels like {temp}",
     "feelsShort": "Feels {temp}",
@@ -270,8 +263,6 @@
     "noMealPlanned": "No meal planned",
     "nothingPlanned": "Nothing planned",
     "todaysMeals": "Today's Meals",
-    "today": "Today",
-    "tomorrow": "Tomorrow",
     "now": "now",
     "servingAt": "serving at {time}",
     "prepTimeMin": "{minutes} min",
@@ -299,7 +290,6 @@
     "thisWeeksMeals": "This Week's Meals",
     "todaysMeals": "Today's Meals",
     "todaysMenu": "Today's Menu",
-    "today": "Today",
     "alsoToday": "Also Today",
     "noMealPlanned": "No meal planned",
     "notPlanned": "Not planned",
@@ -323,7 +313,6 @@
     "familyChores": "Family Chores",
     "familyProgress": "Family Progress",
     "starChart": "Star Chart",
-    "today": "Today",
     "chores": "Chores",
     "thisWeek": "This Week",
     "addMembersToStart": "Add family members to get started",

@@ -1,14 +1,4 @@
 {
-  "common": {
-    "cancel": "Annuleren",
-    "delete": "Verwijderen",
-    "remove": "Verwijderen",
-    "add": "Toevoegen",
-    "close": "Sluiten",
-    "back": "Terug",
-    "confirm": "Bevestigen",
-    "loading": "Laden…"
-  },
   "tabs": {
     "control": "Bediening",
     "chores": "Klusjes",

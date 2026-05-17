@@ -435,7 +435,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Rotation ── */}
-      <SectionHeading>{t('configSections.text.sections.rotation')}</SectionHeading>
+      <SectionHeading>{t('fields.rotation')}</SectionHeading>
 
       <Toggle label={t('configSections.text.slideshow')} checked={rotationOn} onChange={(v) => set({ rotationEnabled: v })} />
       {rotationOn && (

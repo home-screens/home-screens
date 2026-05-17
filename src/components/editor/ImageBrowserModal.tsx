@@ -46,6 +46,7 @@ export default function ImageBrowserModal({
   onClose,
 }: ImageBrowserModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const lib = useImageLibrary({ initialDirectory });
   const [tab, setTab] = useState<'local' | 'unsplash'>('local');
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
@@ -133,7 +134,7 @@ export default function ImageBrowserModal({
         filename: `unsplash-${original.id}`,
       }),
     });
-    if (!res.ok) throw new Error(t('imageBrowserModal.errors.saveImage'));
+    if (!res.ok) throw new Error(t('imageBrowsers.errors.saveImage'));
     const data = await res.json();
     if (data.path) {
       onSelectImage?.(data.path);
@@ -261,7 +262,7 @@ export default function ImageBrowserModal({
         {tab === 'local' && (
           <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
             <Button size="sm" onClick={onClose}>
-              {t('common.cancel')}
+              {tCore('actions.cancel')}
             </Button>
             <Button
               size="sm"
@@ -310,11 +311,12 @@ function DirectorySidebar({
   newFolderInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <div className="w-[180px] border-r border-hs-border-strong flex flex-col">
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {loadingDirs ? (
-          <p className="text-xs text-hs-text-faint p-2">{t('common.loading')}</p>
+          <p className="text-xs text-hs-text-faint p-2">{tCore('loading')}</p>
         ) : (
           <>
             {/* Root (All Photos) */}
@@ -414,6 +416,7 @@ function ImageGrid({
   error: string | null;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const photoCountLabel = images.length === 1
     ? t('imageBrowserModal.photoCountSingular', { count: images.length })
     : t('imageBrowserModal.photoCountPlural', { count: images.length });
@@ -495,8 +498,8 @@ function ImageGrid({
                   }}
                   disabled={deletingImage === img}
                   className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                  title={t('common.delete')}
-                  aria-label={t('common.delete')}
+                  title={tCore('actions.delete')}
+                  aria-label={tCore('actions.delete')}
                 >
                   {deletingImage === img ? '...' : '×'}
                 </button>

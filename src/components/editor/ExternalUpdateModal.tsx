@@ -18,6 +18,7 @@ type Step = 'entry' | 'working' | 'done' | 'error';
 
 export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: ExternalUpdateModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [url, setUrl] = useState(plugin.externalUrl ?? '');
   const [newVersion, setNewVersion] = useState(plugin.version);
   const [step, setStep] = useState<Step>('entry');
@@ -108,7 +109,7 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
             )}
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{tCore('actions.cancel')}</Button>
               <Button
                 size="sm"
                 disabled={!canContinue}
@@ -152,7 +153,7 @@ export default function ExternalUpdateModal({ plugin, onClose, onUpdated }: Exte
               <p className="text-xs text-hs-danger">{error}</p>
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.close')}</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{tCore('actions.close')}</Button>
               <Button size="sm" onClick={() => setStep('entry')}>{t('externalUpdateModal.tryAgainButton')}</Button>
             </div>
           </div>

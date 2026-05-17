@@ -126,7 +126,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {showsColor(view, fillMode) && (
         <ColorPicker
-          label={t('configSections.shape.color')}
+          label={t('fields.color')}
           value={c.color ?? '#ffffff'}
           onChange={(v) => set({ color: v })}
         />
@@ -323,7 +323,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {ROTATABLE.has(view) && (
         <Slider
-          label={t('configSections.shape.rotation')}
+          label={t('fields.rotation')}
           value={c.rotation ?? 0}
           min={0}
           max={360}

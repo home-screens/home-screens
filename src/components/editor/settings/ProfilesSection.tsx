@@ -387,7 +387,7 @@ function SortableProfileCard({ profile, index, isExpanded, onToggleExpand, t, da
               <>
                 <div>
                   <span className="text-xs text-hs-text-muted mb-1 block">
-                    {t('settings.profilesPage.card.daysLabel')}
+                    {t('fields.days')}
                   </span>
                   <div className="flex gap-1">
                     {dayLabels.map((label, i) => {

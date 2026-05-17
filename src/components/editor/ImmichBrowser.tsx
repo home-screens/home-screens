@@ -15,6 +15,7 @@ interface Props {
 
 export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { updateScreen } = useEditorStore();
   const currentScreen = useEditorStore((s) => {
     if (!s.config) return undefined;
@@ -83,7 +84,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
         updateScreen(selectedScreenId, updates);
       }
     } catch {
-      setError(t('imageBrowsers.immich.errors.saveImage'));
+      setError(t('imageBrowsers.errors.saveImage'));
     }
     setSaving(null);
   };
@@ -121,7 +122,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
       {error && <p className="text-xs text-hs-danger">{error}</p>}
 
       {isLoading ? (
-        <div className="text-xs text-hs-text-faint py-4 text-center">{t('common.loading')}</div>
+        <div className="text-xs text-hs-text-faint py-4 text-center">{tCore('loading')}</div>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 max-h-[300px] overflow-y-auto">
           {photos.map((url) => {
@@ -141,7 +142,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
                 />
                 {saving === url && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <span className="text-xs text-white">{t('common.saving')}</span>
+                    <span className="text-xs text-white">{tCore('status.saving')}</span>
                   </div>
                 )}
               </button>

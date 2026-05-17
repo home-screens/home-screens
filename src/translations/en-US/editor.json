@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Same as language"
   },
   "common": {
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "remove": "Remove",
-    "add": "Add",
-    "close": "Close",
-    "back": "Back",
-    "confirm": "Confirm",
-    "loading": "Loading…",
-    "saving": "Saving…",
     "saved": "Saved",
     "refreshMinutes": "Refresh (minutes)",
     "refreshSeconds": "Refresh (seconds)",
@@ -38,6 +29,12 @@
     "saveError": "Failed to save",
     "networkError": "Network error",
     "serverUnreachable": "Failed to reach server"
+  },
+  "fields": {
+    "rotation": "Rotation",
+    "color": "Color",
+    "icon": "Icon",
+    "days": "Days"
   },
   "modal": {
     "closeAriaLabel": "Close dialog"
@@ -113,7 +110,6 @@
     "sectionTitle": "Screen settings",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "rotationGroupTitle": "Rotation",
     "durationLabel": "Duration",
     "secondsUnit": "sec",
     "stickyBadge": "Sticky",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Enable Schedule",
-    "daysTitle": "Days",
     "timeWindowTitle": "Time window",
     "fromLabel": "From",
     "untilLabel": "Until",
@@ -581,7 +576,6 @@
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
         "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution — it isn't shared.",
-        "rotationLabel": "Rotation",
         "rotationOptionNormal": "Normal (landscape)",
         "rotationOption90": "90° clockwise (portrait)",
         "rotationOption180": "180° (inverted)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "No screens selected — all screens will be shown as fallback.",
         "dragHelp": "Drag to set rotation order within this profile.",
         "scheduleToggleLabel": "Auto-activate on schedule",
-        "daysLabel": "Days",
         "fromLabel": "From",
         "untilLabel": "Until",
         "invertLabel": "Invert (hide during this window instead)"
@@ -1560,7 +1553,6 @@
       "formWidth": "Width",
       "formHeight": "Height",
       "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display’s screens.",
-      "formRotation": "Rotation",
       "formRotationNormal": "Normal (landscape)",
       "formRotation90": "90° clockwise (portrait)",
       "formRotation180": "180° (inverted)",
@@ -1589,7 +1581,6 @@
   "backgroundPicker": {
     "title": "Background",
     "statusGroup": "Status",
-    "rotationGroup": "Rotation",
     "autoRotate": "Auto-rotate",
     "sourceLabel": "Source",
     "searchQueryLabel": "Search query",
@@ -1649,8 +1640,7 @@
       "abstract": "Abstract"
     },
     "errors": {
-      "searchUnsplash": "Failed to search Unsplash",
-      "saveImage": "Failed to save image"
+      "searchUnsplash": "Failed to search Unsplash"
     }
   },
   "choreChartModal": {
@@ -1674,7 +1664,6 @@
     "memberForm": {
       "namePlaceholder": "Name...",
       "avatarLabel": "Avatar",
-      "colorLabel": "Color",
       "customColorTitle": "Pick custom color"
     },
     "chores": {
@@ -1693,17 +1682,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Chore name...",
-      "iconLabel": "Icon",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Frequency",
       "timeOfDayLabel": "Time of Day",
       "dateLabel": "Date",
-      "daysLabel": "Days",
       "assignToLabel": "Assign to",
       "weeklyScheduleLabel": "Weekly Schedule",
       "coverageLabel": "Coverage: {covered} of 7 days",
       "coverageUncovered": "{days} uncovered",
-      "rotationLabel": "Rotation",
       "addSubmit": "Add Chore",
       "saveSubmit": "Save",
       "validation": {
@@ -1876,7 +1862,6 @@
       "size": "Size",
       "shape": "Shape",
       "effects": "Effects",
-      "color": "Color",
       "text": "Text",
       "positionAndSize": "Position & Size",
       "style": "Style",
@@ -2012,7 +1997,6 @@
     "inheritLabel": "Inherit from module"
   },
   "iconPicker": {
-    "label": "Icon",
     "styleSolid": "Solid",
     "styleRegular": "Regular",
     "styleBrands": "Brands",
@@ -2347,7 +2331,6 @@
       "sourceMuffinLabs": "Source: MuffinLabs"
     },
     "icon": {
-      "icon": "Icon",
       "style": "Style",
       "styleSolid": "Solid",
       "styleRegular": "Regular (outline)",
@@ -2356,7 +2339,6 @@
       "iconBackground": "Icon background",
       "autoFit": "Auto-fit to module size",
       "scale": "Scale",
-      "rotation": "Rotation",
       "rotation0": "No rotation",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2560,7 +2542,6 @@
       "frameBrackets": "Corner brackets",
       "shape": "Shape",
       "fill": "Fill",
-      "color": "Color",
       "gradientFrom": "Gradient from",
       "gradientTo": "Gradient to",
       "gradientAngle": "Gradient angle",
@@ -2579,7 +2560,6 @@
       "sides": "Sides",
       "points": "Points",
       "pointSharpness": "Point sharpness",
-      "rotation": "Rotation",
       "direction": "Direction",
       "headSize": "Head size",
       "intensity": "Intensity",
@@ -2687,7 +2667,6 @@
         "effect": "Effect",
         "gradient": "Gradient",
         "layout": "Layout",
-        "rotation": "Rotation",
         "marquee": "Marquee",
         "decorative": "Decorative"
       },
@@ -2859,6 +2838,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Failed to save image"
+    },
     "immich": {
       "allPhotos": "All photos",
       "noPhotos": "No photos found",
@@ -2869,8 +2851,7 @@
       "apiKeyHint": "Create an API key in Immich → Account Settings → API Keys",
       "errors": {
         "loadPhotos": "Failed to load photos",
-        "fetchImage": "Failed to fetch image",
-        "saveImage": "Failed to save image"
+        "fetchImage": "Failed to fetch image"
       }
     },
     "unsplash": {
@@ -2909,8 +2890,7 @@
         "library": "Image Library"
       },
       "errors": {
-        "fetch": "Failed to fetch NASA images",
-        "save": "Failed to save image"
+        "fetch": "Failed to fetch NASA images"
       },
       "categories": {
         "nebula": "Nebula",
@@ -2932,8 +2912,7 @@
       "next": "Next",
       "pageOf": "Page {page} of {total}",
       "errors": {
-        "load": "Failed to load images",
-        "save": "Failed to save image"
+        "load": "Failed to load images"
       }
     }
   },
@@ -2945,7 +2924,6 @@
       "title": "iCal / ICS Feeds",
       "editLowercase": "edit",
       "doneLowercase": "done",
-      "color": "Color",
       "feedNamePlaceholder": "Feed name",
       "newFeedNamePlaceholder": "Feed name (e.g. Work, Sports)",
       "addFeed": "+ Add Feed",

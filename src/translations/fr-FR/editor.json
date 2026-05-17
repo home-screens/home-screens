@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Identique à la langue"
   },
   "common": {
-    "cancel": "Annuler",
-    "delete": "Supprimer",
-    "remove": "Retirer",
-    "add": "Ajouter",
-    "close": "Fermer",
-    "back": "Retour",
-    "confirm": "Confirmer",
-    "loading": "Chargement…",
-    "saving": "Enregistrement…",
     "saved": "Enregistré",
     "refreshMinutes": "Actualisation (minutes)",
     "refreshSeconds": "Actualisation (secondes)",
@@ -38,6 +29,12 @@
     "saveError": "Échec de l’enregistrement",
     "networkError": "Erreur réseau",
     "serverUnreachable": "Impossible de joindre le serveur"
+  },
+  "fields": {
+    "rotation": "Rotation",
+    "color": "Couleur",
+    "icon": "Icône",
+    "days": "Jours"
   },
   "modal": {
     "closeAriaLabel": "Fermer la boîte de dialogue"
@@ -113,7 +110,6 @@
     "sectionTitle": "Paramètres de l'écran",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "rotationGroupTitle": "Rotation",
     "durationLabel": "Durée",
     "secondsUnit": "s",
     "stickyBadge": "Épinglé",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "État",
     "enableLabel": "Activer la planification",
-    "daysTitle": "Jours",
     "timeWindowTitle": "Plage horaire",
     "fromLabel": "De",
     "untilLabel": "Jusqu'à",
@@ -581,7 +576,6 @@
         "canvasHeading": "Canevas",
         "perDisplayBadge": "Par affichage",
         "resolutionHelp": "Les modules sont disposés selon ce canevas. Chaque affichage a sa propre résolution — elle n'est pas partagée.",
-        "rotationLabel": "Rotation",
         "rotationOptionNormal": "Normale (paysage)",
         "rotationOption90": "90° horaire (portrait)",
         "rotationOption180": "180° (inversée)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "Aucun écran sélectionné — tous les écrans seront affichés en repli.",
         "dragHelp": "Glisse pour définir l'ordre de rotation dans ce profil.",
         "scheduleToggleLabel": "Activation automatique selon planning",
-        "daysLabel": "Jours",
         "fromLabel": "De",
         "untilLabel": "Jusqu'à",
         "invertLabel": "Inverser (masquer pendant cette plage)"
@@ -1564,7 +1557,6 @@
       "formWidth": "Largeur",
       "formHeight": "Hauteur",
       "formResolutionHint": "Réglez ceci pour correspondre à l’écran physique sur lequel le kiosque s’affiche. Les modules seront disposés sur ce canevas lorsque vous éditerez les écrans de cet affichage.",
-      "formRotation": "Rotation",
       "formRotationNormal": "Normale (paysage)",
       "formRotation90": "90° horaire (portrait)",
       "formRotation180": "180° (inversé)",
@@ -1593,7 +1585,6 @@
   "backgroundPicker": {
     "title": "Arrière-plan",
     "statusGroup": "État",
-    "rotationGroup": "Rotation",
     "autoRotate": "Rotation auto",
     "sourceLabel": "Source",
     "searchQueryLabel": "Requête de recherche",
@@ -1653,8 +1644,7 @@
       "abstract": "Abstrait"
     },
     "errors": {
-      "searchUnsplash": "Échec de la recherche Unsplash",
-      "saveImage": "Échec de l’enregistrement de l’image"
+      "searchUnsplash": "Échec de la recherche Unsplash"
     }
   },
   "choreChartModal": {
@@ -1678,7 +1668,6 @@
     "memberForm": {
       "namePlaceholder": "Nom…",
       "avatarLabel": "Avatar",
-      "colorLabel": "Couleur",
       "customColorTitle": "Choisir une couleur personnalisée"
     },
     "chores": {
@@ -1697,17 +1686,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Nom de la tâche…",
-      "iconLabel": "Icône",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Fréquence",
       "timeOfDayLabel": "Moment de la journée",
       "dateLabel": "Date",
-      "daysLabel": "Jours",
       "assignToLabel": "Assigner à",
       "weeklyScheduleLabel": "Planning hebdomadaire",
       "coverageLabel": "Couverture : {covered} jours sur 7",
       "coverageUncovered": "{days} sans plan",
-      "rotationLabel": "Rotation",
       "addSubmit": "Ajouter la tâche",
       "saveSubmit": "Enregistrer",
       "validation": {
@@ -1880,7 +1866,6 @@
       "size": "Taille",
       "shape": "Forme",
       "effects": "Effets",
-      "color": "Couleur",
       "text": "Texte",
       "positionAndSize": "Position et taille",
       "style": "Style",
@@ -2016,7 +2001,6 @@
     "inheritLabel": "Hériter du module"
   },
   "iconPicker": {
-    "label": "Icône",
     "styleSolid": "Pleine",
     "styleRegular": "Contour",
     "styleBrands": "Marques",
@@ -2352,7 +2336,6 @@
       "sourceMuffinLabs": "Source : MuffinLabs"
     },
     "icon": {
-      "icon": "Icône",
       "style": "Style",
       "styleSolid": "Plein",
       "styleRegular": "Régulier (contour)",
@@ -2361,7 +2344,6 @@
       "iconBackground": "Arrière-plan de l'icône",
       "autoFit": "Ajuster automatiquement à la taille du module",
       "scale": "Échelle",
-      "rotation": "Rotation",
       "rotation0": "Aucune rotation",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2565,7 +2547,6 @@
       "frameBrackets": "Crochets d'angle",
       "shape": "Forme",
       "fill": "Remplissage",
-      "color": "Couleur",
       "gradientFrom": "Dégradé de",
       "gradientTo": "Dégradé vers",
       "gradientAngle": "Angle du dégradé",
@@ -2584,7 +2565,6 @@
       "sides": "Côtés",
       "points": "Pointes",
       "pointSharpness": "Acuité des pointes",
-      "rotation": "Rotation",
       "direction": "Direction",
       "headSize": "Taille de la pointe",
       "intensity": "Intensité",
@@ -2692,7 +2672,6 @@
         "effect": "Effet",
         "gradient": "Dégradé",
         "layout": "Disposition",
-        "rotation": "Rotation",
         "marquee": "Marquise",
         "decorative": "Décoratif"
       },
@@ -2864,6 +2843,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Échec de l'enregistrement de l'image"
+    },
     "immich": {
       "allPhotos": "Toutes les photos",
       "noPhotos": "Aucune photo trouvée",
@@ -2874,8 +2856,7 @@
       "apiKeyHint": "Crée une clé API dans Immich → Paramètres du compte → Clés API",
       "errors": {
         "loadPhotos": "Échec du chargement des photos",
-        "fetchImage": "Échec de la récupération de l'image",
-        "saveImage": "Échec de l'enregistrement de l'image"
+        "fetchImage": "Échec de la récupération de l'image"
       }
     },
     "unsplash": {
@@ -2914,8 +2895,7 @@
         "library": "Bibliothèque d'images"
       },
       "errors": {
-        "fetch": "Échec de la récupération des images NASA",
-        "save": "Échec de l'enregistrement de l'image"
+        "fetch": "Échec de la récupération des images NASA"
       },
       "categories": {
         "nebula": "Nébuleuse",
@@ -2937,8 +2917,7 @@
       "next": "Suiv.",
       "pageOf": "Page {page} sur {total}",
       "errors": {
-        "load": "Échec du chargement des images",
-        "save": "Échec de l'enregistrement de l'image"
+        "load": "Échec du chargement des images"
       }
     }
   },
@@ -2950,7 +2929,6 @@
       "title": "Flux iCal / ICS",
       "editLowercase": "modifier",
       "doneLowercase": "terminé",
-      "color": "Couleur",
       "feedNamePlaceholder": "Nom du flux",
       "newFeedNamePlaceholder": "Nom du flux (ex. Travail, Sport)",
       "addFeed": "+ Ajouter un flux",

@@ -106,8 +106,6 @@
   },
   "garbage-day": {
     "header": "Calendrier de collecte",
-    "today": "Aujourd'hui",
-    "tomorrow": "Demain",
     "nextDay": "{day} prochain",
     "emptyState": "Définis les jours de collecte dans les paramètres du module",
     "labels": {
@@ -121,9 +119,6 @@
     }
   },
   "calendar": {
-    "today": "Aujourd'hui",
-    "tomorrow": "Demain",
-    "yesterday": "Hier",
     "allDay": "Toute la journée",
     "noEvents": "Aucun événement",
     "noUpcomingEvents": "Aucun événement à venir",
@@ -131,7 +126,6 @@
     "moreCount": "+{count} de plus"
   },
   "fullscreen-calendar": {
-    "today": "Aujourd'hui",
     "allDay": "Toute la journée",
     "noEvents": "Aucun événement",
     "noEventsThisMonth": "Aucun événement ce mois-ci",
@@ -167,7 +161,6 @@
     }
   },
   "weather": {
-    "today": "Aujourd'hui",
     "tomorrowShort": "Dem.",
     "feelsLike": "Ressenti {temp}",
     "feelsShort": "Ressenti {temp}",
@@ -270,8 +263,6 @@
     "noMealPlanned": "Aucun repas prévu",
     "nothingPlanned": "Rien de prévu",
     "todaysMeals": "Repas du jour",
-    "today": "Aujourd'hui",
-    "tomorrow": "Demain",
     "now": "maintenant",
     "servingAt": "servi à {time}",
     "prepTimeMin": "{minutes} min",
@@ -299,7 +290,6 @@
     "thisWeeksMeals": "Repas de la semaine",
     "todaysMeals": "Repas du jour",
     "todaysMenu": "Menu du jour",
-    "today": "Aujourd'hui",
     "alsoToday": "Aussi aujourd'hui",
     "noMealPlanned": "Aucun repas prévu",
     "notPlanned": "Non prévu",
@@ -323,7 +313,6 @@
     "familyChores": "Tâches de la famille",
     "familyProgress": "Progression de la famille",
     "starChart": "Tableau d'étoiles",
-    "today": "Aujourd'hui",
     "chores": "Tâches",
     "thisWeek": "Cette semaine",
     "addMembersToStart": "Ajoute des membres de la famille pour commencer",

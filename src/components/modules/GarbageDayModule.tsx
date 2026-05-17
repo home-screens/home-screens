@@ -75,11 +75,11 @@ function getStatusText(
   now: Date,
   frequency: GarbageFrequency,
   startDate: string,
-  t: TranslateFn,
+  tCore: TranslateFn,
 ): string {
   if (scheduleDay < 0) return '';
   if (isHighlighted(scheduleDay, today, mode, now, frequency, startDate)) {
-    return mode === 'day-of' ? t('garbage-day.today') : t('garbage-day.tomorrow');
+    return mode === 'day-of' ? tCore('today') : tCore('tomorrow');
   }
   return '';
 }
@@ -91,6 +91,7 @@ function getNextCollectionText(
   startDate: string,
   dayNames: string[],
   t: TranslateFn,
+  tCore: TranslateFn,
 ): string {
   if (scheduleDay < 0) return '';
   // Walk forward up to 14 days to find the next collection
@@ -98,7 +99,7 @@ function getNextCollectionText(
     const future = new Date(now);
     future.setDate(future.getDate() + i);
     if (future.getDay() === scheduleDay && isCollectionWeek(future, scheduleDay, frequency, startDate)) {
-      if (i === 1) return t('garbage-day.tomorrow');
+      if (i === 1) return tCore('tomorrow');
       if (i <= 6) return dayNames[future.getDay()];
       // `garbage-day.nextDay` assumes the weekday name can be slotted into
       // a single "Next {day}" template. That holds for English and German
@@ -159,14 +160,15 @@ interface WasteRowProps {
   startDate: string;
   dayNames: string[];
   t: TranslateFn;
+  tCore: TranslateFn;
 }
 
-function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequency, startDate, dayNames, t }: WasteRowProps) {
+function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequency, startDate, dayNames, t, tCore }: WasteRowProps) {
   if (scheduleDay < 0) return null;
 
   const active = isHighlighted(scheduleDay, today, highlightMode, now, frequency, startDate);
-  const status = getStatusText(scheduleDay, today, highlightMode, now, frequency, startDate, t);
-  const nextCollection = !active ? getNextCollectionText(scheduleDay, now, frequency, startDate, dayNames, t) : '';
+  const status = getStatusText(scheduleDay, today, highlightMode, now, frequency, startDate, tCore);
+  const nextCollection = !active ? getNextCollectionText(scheduleDay, now, frequency, startDate, dayNames, t, tCore) : '';
   const frequencyKey = frequency === 'biweekly' ? 'garbage-day.frequency.biweekly' : 'garbage-day.frequency.weekly';
   const frequencyText = t(frequencyKey, { day: dayNames[scheduleDay] });
 
@@ -211,6 +213,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
   const now = useTZClock(timezone, 60_000);
   const today = now.getDay(); // 0=Sun, 6=Sat
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
 
@@ -237,6 +240,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
             startDate={config.trashStartDate ?? ''}
             dayNames={dayNames}
             t={t}
+            tCore={tCore}
           />
           <WasteRow
             label={t('garbage-day.labels.recycling')}
@@ -249,6 +253,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
             startDate={config.recyclingStartDate ?? ''}
             dayNames={dayNames}
             t={t}
+            tCore={tCore}
           />
           <WasteRow
             label={customLabel}
@@ -261,6 +266,7 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
             startDate={config.customStartDate ?? ''}
             dayNames={dayNames}
             t={t}
+            tCore={tCore}
           />
         </div>
 

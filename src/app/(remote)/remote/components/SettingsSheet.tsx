@@ -110,6 +110,7 @@ function ConfirmableAction({
 
 export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: SettingsSheetProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -251,7 +252,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
           {loading ? (
-            <p className="text-sm text-hs-text-faint text-center py-4">{t('common.loading')}</p>
+            <p className="text-sm text-hs-text-faint text-center py-4">{tCore('loading')}</p>
           ) : error ? (
             <p className="text-sm text-hs-danger text-center py-4">{error}</p>
           ) : stats ? (

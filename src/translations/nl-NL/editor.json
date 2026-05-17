@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Zelfde als taal"
   },
   "common": {
-    "cancel": "Annuleren",
-    "delete": "Verwijderen",
-    "remove": "Verwijderen",
-    "add": "Toevoegen",
-    "close": "Sluiten",
-    "back": "Terug",
-    "confirm": "Bevestigen",
-    "loading": "Laden…",
-    "saving": "Opslaan…",
     "saved": "Opgeslagen",
     "refreshMinutes": "Vernieuwen (minuten)",
     "refreshSeconds": "Vernieuwen (seconden)",
@@ -38,6 +29,12 @@
     "saveError": "Opslaan mislukt",
     "networkError": "Netwerkfout",
     "serverUnreachable": "Server niet bereikbaar"
+  },
+  "fields": {
+    "rotation": "Rotatie",
+    "color": "Kleur",
+    "icon": "Pictogram",
+    "days": "Dagen"
   },
   "modal": {
     "closeAriaLabel": "Dialoogvenster sluiten"
@@ -113,7 +110,6 @@
     "sectionTitle": "Scherminstellingen",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "rotationGroupTitle": "Rotatie",
     "durationLabel": "Duur",
     "secondsUnit": "sec",
     "stickyBadge": "Vast",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Schema inschakelen",
-    "daysTitle": "Dagen",
     "timeWindowTitle": "Tijdvenster",
     "fromLabel": "Van",
     "untilLabel": "Tot",
@@ -581,7 +576,6 @@
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
         "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie — die wordt niet gedeeld.",
-        "rotationLabel": "Rotatie",
         "rotationOptionNormal": "Normaal (liggend)",
         "rotationOption90": "90° met de klok mee (staand)",
         "rotationOption180": "180° (omgekeerd)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "Geen schermen geselecteerd — alle schermen worden als terugval getoond.",
         "dragHelp": "Sleep om de rotatievolgorde binnen dit profiel te bepalen.",
         "scheduleToggleLabel": "Automatisch activeren op schema",
-        "daysLabel": "Dagen",
         "fromLabel": "Van",
         "untilLabel": "Tot",
         "invertLabel": "Omkeren (juist verbergen tijdens dit venster)"
@@ -1560,7 +1553,6 @@
       "formWidth": "Breedte",
       "formHeight": "Hoogte",
       "formResolutionHint": "Stel dit in op het fysieke scherm waarop de kiosk wordt weergegeven. Modules worden op dit canvas geplaatst wanneer je de schermen van deze display bewerkt.",
-      "formRotation": "Rotatie",
       "formRotationNormal": "Normaal (liggend)",
       "formRotation90": "90° met de klok mee (staand)",
       "formRotation180": "180° (omgekeerd)",
@@ -1589,7 +1581,6 @@
   "backgroundPicker": {
     "title": "Achtergrond",
     "statusGroup": "Status",
-    "rotationGroup": "Rotatie",
     "autoRotate": "Automatisch wisselen",
     "sourceLabel": "Bron",
     "searchQueryLabel": "Zoekopdracht",
@@ -1649,8 +1640,7 @@
       "abstract": "Abstract"
     },
     "errors": {
-      "searchUnsplash": "Zoeken op Unsplash mislukt",
-      "saveImage": "Afbeelding opslaan mislukt"
+      "searchUnsplash": "Zoeken op Unsplash mislukt"
     }
   },
   "choreChartModal": {
@@ -1674,7 +1664,6 @@
     "memberForm": {
       "namePlaceholder": "Naam…",
       "avatarLabel": "Avatar",
-      "colorLabel": "Kleur",
       "customColorTitle": "Eigen kleur kiezen"
     },
     "chores": {
@@ -1693,17 +1682,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Naam van het klusje…",
-      "iconLabel": "Pictogram",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Frequentie",
       "timeOfDayLabel": "Tijdstip",
       "dateLabel": "Datum",
-      "daysLabel": "Dagen",
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
       "coverageLabel": "Dekking: {covered} van 7 dagen",
       "coverageUncovered": "{days} zonder iemand",
-      "rotationLabel": "Rotatie",
       "addSubmit": "Klusje toevoegen",
       "saveSubmit": "Opslaan",
       "validation": {
@@ -1876,7 +1862,6 @@
       "size": "Grootte",
       "shape": "Vorm",
       "effects": "Effecten",
-      "color": "Kleur",
       "text": "Tekst",
       "positionAndSize": "Positie & grootte",
       "style": "Stijl",
@@ -2012,7 +1997,6 @@
     "inheritLabel": "Overnemen van module"
   },
   "iconPicker": {
-    "label": "Pictogram",
     "styleSolid": "Vol",
     "styleRegular": "Lijn",
     "styleBrands": "Merken",
@@ -2347,7 +2331,6 @@
       "sourceMuffinLabs": "Bron: MuffinLabs"
     },
     "icon": {
-      "icon": "Pictogram",
       "style": "Stijl",
       "styleSolid": "Solide",
       "styleRegular": "Standaard (omtrek)",
@@ -2356,7 +2339,6 @@
       "iconBackground": "Pictogramachtergrond",
       "autoFit": "Automatisch passend maken aan modulegrootte",
       "scale": "Schaal",
-      "rotation": "Rotatie",
       "rotation0": "Geen rotatie",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2560,7 +2542,6 @@
       "frameBrackets": "Hoekhaken",
       "shape": "Vorm",
       "fill": "Vulling",
-      "color": "Kleur",
       "gradientFrom": "Gradiënt van",
       "gradientTo": "Gradiënt naar",
       "gradientAngle": "Gradiënthoek",
@@ -2579,7 +2560,6 @@
       "sides": "Zijden",
       "points": "Punten",
       "pointSharpness": "Puntscherpte",
-      "rotation": "Rotatie",
       "direction": "Richting",
       "headSize": "Pijlpuntgrootte",
       "intensity": "Intensiteit",
@@ -2687,7 +2667,6 @@
         "effect": "Effect",
         "gradient": "Gradiënt",
         "layout": "Indeling",
-        "rotation": "Rotatie",
         "marquee": "Marquee",
         "decorative": "Decoratief"
       },
@@ -2859,6 +2838,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Afbeelding opslaan mislukt"
+    },
     "immich": {
       "allPhotos": "Alle foto's",
       "noPhotos": "Geen foto's gevonden",
@@ -2869,8 +2851,7 @@
       "apiKeyHint": "Maak een API-sleutel aan in Immich → Account Settings → API Keys",
       "errors": {
         "loadPhotos": "Foto's laden mislukt",
-        "fetchImage": "Afbeelding ophalen mislukt",
-        "saveImage": "Afbeelding opslaan mislukt"
+        "fetchImage": "Afbeelding ophalen mislukt"
       }
     },
     "unsplash": {
@@ -2909,8 +2890,7 @@
         "library": "Afbeeldingenbibliotheek"
       },
       "errors": {
-        "fetch": "NASA-afbeeldingen ophalen mislukt",
-        "save": "Afbeelding opslaan mislukt"
+        "fetch": "NASA-afbeeldingen ophalen mislukt"
       },
       "categories": {
         "nebula": "Nevel",
@@ -2932,8 +2912,7 @@
       "next": "Volgende",
       "pageOf": "Pagina {page} van {total}",
       "errors": {
-        "load": "Afbeeldingen laden mislukt",
-        "save": "Afbeelding opslaan mislukt"
+        "load": "Afbeeldingen laden mislukt"
       }
     }
   },
@@ -2945,7 +2924,6 @@
       "title": "iCal / ICS-feeds",
       "editLowercase": "bewerken",
       "doneLowercase": "klaar",
-      "color": "Kleur",
       "feedNamePlaceholder": "Feednaam",
       "newFeedNamePlaceholder": "Feednaam (bv. Werk, Sport)",
       "addFeed": "+ Feed toevoegen",

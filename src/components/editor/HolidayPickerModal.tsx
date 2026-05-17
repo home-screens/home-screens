@@ -32,6 +32,7 @@ export default function HolidayPickerModal({
   onClose,
 }: HolidayPickerModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [countries, setCountries] = useState<Country[]>([]);
   const [country, setCountry] = useState(initialCountry ?? '');
   const [holidays, setHolidays] = useState<HolidayInfo[]>([]);
@@ -243,7 +244,7 @@ export default function HolidayPickerModal({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
-          <Button size="sm" variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button size="sm" variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button size="sm" onClick={handleConfirm} disabled={selectedIds.size === 0}>
             {addLabel}
           </Button>

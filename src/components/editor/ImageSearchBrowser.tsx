@@ -55,6 +55,7 @@ export default function ImageSearchBrowser({
   columns = 2,
 }: ImageSearchBrowserProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const effectiveSearchPlaceholder = searchPlaceholder ?? t('imageBrowsers.search.placeholder');
   const [photos, setPhotos] = useState<BrowsePhoto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +103,7 @@ export default function ImageSearchBrowser({
     try {
       await onUsePhoto(photo);
     } catch {
-      setError(t('imageBrowsers.search.errors.save'));
+      setError(t('imageBrowsers.errors.saveImage'));
     }
     setIsSaving(null);
   };
@@ -150,7 +151,7 @@ export default function ImageSearchBrowser({
       {error && <p className="text-xs text-hs-danger">{error}</p>}
 
       {isLoading ? (
-        <div className="text-xs text-hs-text-faint py-4 text-center">{t('common.loading')}</div>
+        <div className="text-xs text-hs-text-faint py-4 text-center">{tCore('loading')}</div>
       ) : (
         <div className={`grid gap-1.5 overflow-y-auto ${
           columns === 4 ? 'grid-cols-4' : columns === 3 ? 'grid-cols-3' : 'grid-cols-2 max-h-[300px]'
@@ -178,7 +179,7 @@ export default function ImageSearchBrowser({
               </div>
               {isSaving === photo.id && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-xs text-white">{t('common.saving')}</span>
+                  <span className="text-xs text-white">{tCore('status.saving')}</span>
                 </div>
               )}
             </button>

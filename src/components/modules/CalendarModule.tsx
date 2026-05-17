@@ -30,13 +30,13 @@ function formatDuration(start: Date, end: Date): string {
 function formatRelativeDay(
   date: Date,
   today: Date,
-  t: TranslateFn,
+  tCore: TranslateFn,
   locale: string,
 ): string {
   const diffDays = Math.round((startOfDay(date).getTime() - startOfDay(today).getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return t('calendar.today');
-  if (diffDays === 1) return t('calendar.tomorrow');
-  if (diffDays === -1) return t('calendar.yesterday');
+  if (diffDays === 0) return tCore('today');
+  if (diffDays === 1) return tCore('tomorrow');
+  if (diffDays === -1) return tCore('yesterday');
   return formatDateSync(date, 'EEEE, MMM d', { locale });
 }
 
@@ -107,13 +107,14 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
 
 // ─── Daily View (original) ───
 
-function DailyView({ events, config, style, today, accentColor, t, locale }: {
+function DailyView({ events, config, style, today, accentColor, t, tCore, locale }: {
   events: CalendarEvent[];
   accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
   t: TranslateFn;
+  tCore: TranslateFn;
   locale: string;
 }) {
   const daysToShow = config.daysToShow ?? 3;
@@ -135,7 +136,7 @@ function DailyView({ events, config, style, today, accentColor, t, locale }: {
           <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0">
             <div className="text-center mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <SectionHeader active={isToday}>
-                {isToday ? t('calendar.today') : formatDateSync(date, 'EEE', { locale })}
+                {isToday ? tCore('today') : formatDateSync(date, 'EEE', { locale })}
               </SectionHeader>
               <p
                 className="font-bold"
@@ -170,13 +171,14 @@ function DailyView({ events, config, style, today, accentColor, t, locale }: {
 
 // ─── Agenda View ───
 
-function AgendaView({ events, config, style, today, accentColor, t, locale }: {
+function AgendaView({ events, config, style, today, accentColor, t, tCore, locale }: {
   events: CalendarEvent[];
   accentColor: string;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
   t: TranslateFn;
+  tCore: TranslateFn;
   locale: string;
 }) {
   const showTime = config.showTime !== false;
@@ -215,7 +217,7 @@ function AgendaView({ events, config, style, today, accentColor, t, locale }: {
         <div key={date.toISOString()}>
           <div className="flex items-center gap-2 mb-1.5">
             <SectionHeader className="shrink-0" active={isSameDay(date, today)}>
-              {formatRelativeDay(date, today, t, locale)}
+              {formatRelativeDay(date, today, tCore, locale)}
             </SectionHeader>
             <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
           </div>
@@ -239,6 +241,7 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
   style: ModuleStyle;
   today: Date;
   t: TranslateFn;
+  tCore: TranslateFn;
   locale: string;
 }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
@@ -323,6 +326,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
   style: ModuleStyle;
   today: Date;
   t: TranslateFn;
+  tCore: TranslateFn;
   locale: string;
 }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
@@ -433,6 +437,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   today: Date;
   accentColor: string;
   t: TranslateFn;
+  tCore: TranslateFn;
   locale: string;
 }>> = {
   daily: DailyView,
@@ -443,6 +448,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
 
 export default function CalendarModule({ config, style, events, timezone }: CalendarModuleProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const rawEvents = events ?? [];
   const sourceFilter = config.sourceFilter;
@@ -456,7 +462,7 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
 
   return (
     <ModuleWrapper style={style}>
-      <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} t={t} locale={locale} />
+      <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} t={t} tCore={tCore} locale={locale} />
     </ModuleWrapper>
   );
 }

@@ -3,6 +3,31 @@
   "tomorrow": "Tomorrow",
   "yesterday": "Yesterday",
   "loading": "Loading…",
+  "actions": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "remove": "Remove",
+    "add": "Add",
+    "close": "Close",
+    "back": "Back",
+    "confirm": "Confirm",
+    "save": "Save",
+    "done": "Done",
+    "edit": "Edit",
+    "clear": "Clear",
+    "settings": "Settings",
+    "name": "Name",
+    "color": "Color",
+    "icon": "Icon",
+    "label": "Label"
+  },
+  "status": {
+    "saving": "Saving…",
+    "connected": "Connected",
+    "disabled": "Disabled",
+    "never": "Never",
+    "none": "None"
+  },
   "relativeTime": {
     "justNow": "just now",
     "secondsAgo": "{n}s ago",

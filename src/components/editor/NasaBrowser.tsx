@@ -118,7 +118,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || t('imageBrowsers.nasa.errors.save'));
+      throw new Error(data.error || t('imageBrowsers.errors.saveImage'));
     }
     if (data.path) {
       const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];

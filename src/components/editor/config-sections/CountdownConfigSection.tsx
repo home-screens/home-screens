@@ -15,6 +15,7 @@ import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<CountdownConfig>(mod, screenId);
   const events = c.events ?? [];
   const view = c.view ?? 'all';
@@ -93,7 +94,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         <span className="text-xs text-hs-text-muted">{t('configSections.countdown.events')}</span>
         <div className="flex items-center gap-1">
           <Button size="sm" onClick={() => setShowHolidayPicker(true)}>{t('configSections.countdown.holidaysButton')}</Button>
-          <Button size="sm" onClick={addEvent}>{t('common.add')}</Button>
+          <Button size="sm" onClick={addEvent}>{tCore('actions.add')}</Button>
         </div>
       </div>
 

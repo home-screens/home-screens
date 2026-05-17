@@ -26,6 +26,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
   const allowTouch = config.allowDisplayComplete;
   const accentColor = config.accentColor ?? '#f59e0b';
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   // `tzNow` is a "shifted" Date whose local-time methods (getHours, getDay…)
   // reflect the configured IANA timezone — used by `getCurrentTimeOfDay`
@@ -53,7 +54,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
       <div className="text-center mb-2">
-        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; {t('chore-chart.today')}</div>
+        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; {tCore('today')}</div>
         <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{dayName}</div>
       </div>
 

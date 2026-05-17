@@ -61,6 +61,7 @@ function MemberForm({
   onCancel: () => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const f = useMemberForm(initial);
   const submit = () => f.submit(onSubmit);
 
@@ -86,7 +87,7 @@ function MemberForm({
 
       {/* Color picker */}
       <div className="space-y-1.5">
-        <span className="text-xs text-hs-text-muted">{t('choreChartModal.memberForm.colorLabel')}</span>
+        <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {MEMBER_COLORS.map((c) => (
             <button
@@ -122,7 +123,7 @@ function MemberForm({
           {submitLabel}
         </Button>
         <Button size="sm" onClick={onCancel}>
-          {t('common.cancel')}
+          {tCore('actions.cancel')}
         </Button>
       </div>
     </div>
@@ -172,6 +173,7 @@ function ChoreForm({
   onCancel: () => void;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale, not the UI language.
@@ -242,7 +244,7 @@ function ChoreForm({
         value={emoji}
         onChange={setEmoji}
         icons={CHORE_ICONS}
-        label={t('choreChartModal.choreForm.iconLabel')}
+        label={t('fields.icon')}
         variant="desktop"
       />
 
@@ -291,7 +293,7 @@ function ChoreForm({
           {/* Days — date picker for one-time, day-of-week toggles for recurring */}
           <div className="space-y-1.5">
             <span className="text-xs text-hs-text-muted">
-              {frequency === 'once' ? t('choreChartModal.choreForm.dateLabel') : t('choreChartModal.choreForm.daysLabel')}
+              {frequency === 'once' ? t('choreChartModal.choreForm.dateLabel') : t('fields.days')}
             </span>
             {frequency === 'once' ? (
               <input
@@ -428,7 +430,7 @@ function ChoreForm({
       {/* Rotation (only when 2+ assignees and not a one-time chore) */}
       {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.rotationLabel')}</span>
+          <span className="text-xs text-hs-text-muted">{t('fields.rotation')}</span>
           <select
             value={rotation}
             onChange={(e) => {
@@ -456,7 +458,7 @@ function ChoreForm({
           {submitLabel}
         </Button>
         <Button size="sm" onClick={onCancel}>
-          {t('common.cancel')}
+          {tCore('actions.cancel')}
         </Button>
       </div>
     </div>

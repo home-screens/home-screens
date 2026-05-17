@@ -27,6 +27,7 @@ export default function RewardFormOverlay({
   onBack,
 }: RewardFormOverlayProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const isEdit = reward !== null;
   const [name, setName] = useState(reward?.name ?? '');
   const [emoji, setEmoji] = useState(reward?.emoji ?? 'lucide:gift');
@@ -251,7 +252,7 @@ export default function RewardFormOverlay({
         <ConfirmSheet
           title={t('rewardForm.deleteConfirm.title')}
           description={t('rewardForm.deleteConfirm.description', { name: reward?.name ?? '' })}
-          confirmLabel={t('common.delete')}
+          confirmLabel={tCore('actions.delete')}
           onConfirm={() => {
             setConfirmDelete(false);
             onDelete?.(reward!.id);

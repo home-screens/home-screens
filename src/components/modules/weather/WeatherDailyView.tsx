@@ -13,7 +13,9 @@ import type { WeatherViewProps } from './types';
 export default function WeatherDailyView({ config, forecast, units, scaledFontSize, containerRef }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const tWeather = useTranslate('weather');
+  const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
   const days = forecast.slice(0, config.daysToShow);
   const windUnit = units === 'metric' ? 'km/h' : 'mph';
   const showHighLow = config.showHighLow !== false;
@@ -28,7 +30,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
           <div className="flex items-center gap-5 flex-1 min-h-0">
             {/* Today - large */}
             <div className="flex flex-col items-center shrink-0">
-              <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, t)}</span>
+              <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, dayLabels)}</span>
               <div className="flex items-center gap-2">
                 {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(days[0].icon, tWeather)} role="img" />; })()}
                 {showHighLow && (
@@ -55,7 +57,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
                 return (
                   <div key={i} className="flex flex-col items-center gap-1">
                     <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-                      {dayLabel(day.date, formattingLocale, t)}
+                      {dayLabel(day.date, formattingLocale, dayLabels)}
                     </span>
                     <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                     <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />

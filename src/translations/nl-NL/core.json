@@ -3,6 +3,31 @@
   "tomorrow": "Morgen",
   "yesterday": "Gisteren",
   "loading": "Laden…",
+  "actions": {
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "remove": "Verwijderen",
+    "add": "Toevoegen",
+    "close": "Sluiten",
+    "back": "Terug",
+    "confirm": "Bevestigen",
+    "save": "Opslaan",
+    "done": "Klaar",
+    "edit": "Bewerken",
+    "clear": "Leegmaken",
+    "settings": "Instellingen",
+    "name": "Naam",
+    "color": "Kleur",
+    "icon": "Pictogram",
+    "label": "Label"
+  },
+  "status": {
+    "saving": "Opslaan…",
+    "connected": "Verbonden",
+    "disabled": "Uitgeschakeld",
+    "never": "Nooit",
+    "none": "Geen"
+  },
   "relativeTime": {
     "justNow": "zojuist",
     "secondsAgo": "{n} sec geleden",

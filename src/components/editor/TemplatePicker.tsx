@@ -17,6 +17,7 @@ interface TemplatePickerProps {
 
 export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
   const tEditor = useTranslate('editor');
+  const tCore = useTranslate('core');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [category, setCategory] = useState<string>('All');
@@ -127,7 +128,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                   )}
                 </div>
                 {loading === template.id && (
-                  <span className="text-xs text-hs-accent-hover mt-2 block">{tEditor('common.loading')}</span>
+                  <span className="text-xs text-hs-accent-hover mt-2 block">{tCore('loading')}</span>
                 )}
               </button>
             ))}
@@ -136,7 +137,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
         {/* Footer */}
         <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
-          <Button variant="secondary" onClick={onClose}>{tEditor('common.close')}</Button>
+          <Button variant="secondary" onClick={onClose}>{tCore('actions.close')}</Button>
         </div>
       </div>
     </div>

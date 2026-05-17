@@ -1,14 +1,4 @@
 {
-  "common": {
-    "cancel": "Annuler",
-    "delete": "Supprimer",
-    "remove": "Retirer",
-    "add": "Ajouter",
-    "close": "Fermer",
-    "back": "Retour",
-    "confirm": "Confirmer",
-    "loading": "Chargement…"
-  },
   "tabs": {
     "control": "Contrôle",
     "chores": "Tâches",

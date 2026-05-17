@@ -16,6 +16,7 @@ interface ListViewProps {
 
 export function ListView({ config, settings, plan, savedMeals, todayISO }: ListViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
   const weekStartDay = settings.weekStartDay;
@@ -53,7 +54,7 @@ export function ListView({ config, settings, plan, savedMeals, todayISO }: ListV
                   opacity: isToday ? 1 : TEXT_OPACITY.secondary,
                 }}
               >
-                {isToday ? t('meal-planner.today') : dayNames[dayIdx]}
+                {isToday ? tCore('today') : dayNames[dayIdx]}
               </span>
               {isToday && (
                 <span className="opacity-30" style={{ fontSize: '0.5em' }}>

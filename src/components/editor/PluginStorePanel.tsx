@@ -31,6 +31,7 @@ function tabLabel(tab: Tab, t: TranslateFn): string {
 
 export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [tab, setTab] = useState<Tab>('browse');
   const [registry, setRegistry] = useState<RegistryPlugin[]>([]);
   const [installed, setInstalled] = useState<InstalledPlugin[]>([]);
@@ -187,7 +188,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-3">
           {loading ? (
-            <p className="text-sm text-hs-text-faint mt-8 text-center">{t('common.loading')}</p>
+            <p className="text-sm text-hs-text-faint mt-8 text-center">{tCore('loading')}</p>
           ) : tab === 'browse' ? (
             <BrowseTab
               plugins={filteredRegistry}
@@ -648,6 +649,7 @@ function InstallConfirmModal({
   actionInProgress: string | null;
 }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const latest = plugin.versions[0];
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
   const [manifestSecrets, setManifestSecrets] = useState<PluginSecretDeclaration[]>([]);
@@ -695,7 +697,7 @@ function InstallConfirmModal({
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="secondary" size="sm" onClick={onCancel} disabled={isWorking}>
-            {t('common.cancel')}
+            {tCore('actions.cancel')}
           </Button>
           <Button
             size="sm"

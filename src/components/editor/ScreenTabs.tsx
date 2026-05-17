@@ -205,6 +205,7 @@ function SortableTab({
 
 export default function ScreenTabs() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config, selectedDisplayId, selectedScreenId, selectScreen, addScreen, removeScreen, reorderScreens, updateScreen } = useEditorStore();
   // Screen operations target the currently-selected display's screens.
   // In legacy single-display mode this resolves to the global screen pool.
@@ -366,7 +367,7 @@ export default function ScreenTabs() {
                       e.stopPropagation();
                       if (await useConfirmStore.getState().confirm({
                         message: t('screenTabs.removeConfirmMessage', { name: screen.name }),
-                        confirmLabel: t('common.remove'),
+                        confirmLabel: tCore('actions.remove'),
                         variant: 'danger',
                       })) {
                         removeScreen(screen.id);
@@ -535,7 +536,7 @@ export default function ScreenTabs() {
                 setContextMenu(null);
                 if (await useConfirmStore.getState().confirm({
                   message: t('screenTabs.removeConfirmMessage', { name: screenName }),
-                  confirmLabel: t('common.delete'),
+                  confirmLabel: tCore('actions.delete'),
                   variant: 'danger',
                 })) {
                   removeScreen(contextMenu.screenId);

@@ -237,7 +237,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
           <div className="px-4 py-3.5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs text-hs-text-muted">
-                {t('settings.perDisplayPage.display.rotationLabel')}
+                {t('fields.rotation')}
               </div>
               <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">
                 {t('settings.perDisplayPage.display.perDisplayBadge')}

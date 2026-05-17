@@ -24,6 +24,7 @@ export default function OrientationChangeModal({
   onCancel,
 }: OrientationChangeModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onCancel();
@@ -53,7 +54,7 @@ export default function OrientationChangeModal({
         </p>
 
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>{t('common.cancel')}</Button>
+          <Button variant="secondary" onClick={onCancel}>{tCore('actions.cancel')}</Button>
           <Button variant="secondary" onClick={onSwitchAnyway}>{t('modals.orientation.switchAnyway')}</Button>
           <Button variant="primary" onClick={onScaleToFit}>{t('modals.orientation.scaleToFit')}</Button>
         </div>

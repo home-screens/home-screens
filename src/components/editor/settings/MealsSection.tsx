@@ -239,7 +239,7 @@ export default function MealsSection() {
           {t('settings.mealsPage.intro.part2')}
         </p>
         <div className="flex items-center gap-2 text-xs">
-          {saving && <span className="text-hs-text-faint">{t('common.saving')}</span>}
+          {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
           {!saving && status && status.kind === 'success' && (
             <span className="text-hs-success">{status.message}</span>
           )}

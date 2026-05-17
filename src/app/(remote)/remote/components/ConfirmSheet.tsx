@@ -22,13 +22,13 @@ export default function ConfirmSheet({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  // Central-fix: default both action labels through the shared `remote` namespace
-  // so callers don't need to translate them locally. Callers that want a custom
-  // label (e.g. "Delete Member", "Redeem — 3 tickets") still pass `confirmLabel`
-  // explicitly. Mirrors the ConfirmModal pattern from 6.4c.ii.
-  const t = useTranslate('remote');
-  const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
-  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
+  // Defaults route through `core.actions` so callers don't need to translate
+  // them locally. Callers that want a custom label (e.g. "Delete Member",
+  // "Redeem — 3 tickets") still pass `confirmLabel` explicitly. Mirrors the
+  // ConfirmModal pattern from 6.4c.ii.
+  const tCore = useTranslate('core');
+  const resolvedConfirmLabel = confirmLabel ?? tCore('actions.confirm');
+  const resolvedCancelLabel = cancelLabel ?? tCore('actions.cancel');
 
   return (
     <div

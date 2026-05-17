@@ -34,6 +34,7 @@ const MIN_EDITOR_WIDTH = 768;
 
 export default function EditorPage() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const {
     config,
     selectedDisplayId,
@@ -247,7 +248,7 @@ export default function EditorPage() {
                   </Button>
                 </span>
               ) : isSaving ? (
-                <span className="text-xs text-hs-text-faint">{t('common.saving')}</span>
+                <span className="text-xs text-hs-text-faint">{tCore('status.saving')}</span>
               ) : !isDirty ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-hs-success" />

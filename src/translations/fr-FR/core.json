@@ -3,6 +3,31 @@
   "tomorrow": "Demain",
   "yesterday": "Hier",
   "loading": "Chargement…",
+  "actions": {
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "back": "Retour",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "done": "Terminé",
+    "edit": "Modifier",
+    "clear": "Vider",
+    "settings": "Paramètres",
+    "name": "Nom",
+    "color": "Couleur",
+    "icon": "Icône",
+    "label": "Étiquette"
+  },
+  "status": {
+    "saving": "Enregistrement…",
+    "connected": "Connecté",
+    "disabled": "Désactivé",
+    "never": "Jamais",
+    "none": "Aucun"
+  },
   "relativeTime": {
     "justNow": "à l'instant",
     "secondsAgo": "il y a {n} s",

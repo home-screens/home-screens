@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Igual que el idioma"
   },
   "common": {
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
-    "remove": "Quitar",
-    "add": "Añadir",
-    "close": "Cerrar",
-    "back": "Atrás",
-    "confirm": "Confirmar",
-    "loading": "Cargando…",
-    "saving": "Guardando…",
     "saved": "Guardado",
     "refreshMinutes": "Actualizar (minutos)",
     "refreshSeconds": "Actualizar (segundos)",
@@ -38,6 +29,12 @@
     "saveError": "Error al guardar",
     "networkError": "Error de red",
     "serverUnreachable": "No se pudo contactar con el servidor"
+  },
+  "fields": {
+    "rotation": "Rotación",
+    "color": "Color",
+    "icon": "Icono",
+    "days": "Días"
   },
   "modal": {
     "closeAriaLabel": "Cerrar diálogo"
@@ -113,7 +110,6 @@
     "sectionTitle": "Ajustes de la pantalla",
     "moduleCountSingular": "{count} módulo",
     "moduleCountPlural": "{count} módulos",
-    "rotationGroupTitle": "Rotación",
     "durationLabel": "Duración",
     "secondsUnit": "s",
     "stickyBadge": "Fija",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "Estado",
     "enableLabel": "Activar programación",
-    "daysTitle": "Días",
     "timeWindowTitle": "Ventana horaria",
     "fromLabel": "Desde",
     "untilLabel": "Hasta",
@@ -581,7 +576,6 @@
         "canvasHeading": "Lienzo",
         "perDisplayBadge": "Por display",
         "resolutionHelp": "Los módulos se distribuyen sobre este lienzo. Cada display tiene su propia resolución — no se comparte.",
-        "rotationLabel": "Rotación",
         "rotationOptionNormal": "Normal (horizontal)",
         "rotationOption90": "90° en sentido horario (vertical)",
         "rotationOption180": "180° (invertida)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "No hay pantallas seleccionadas — se mostrarán todas las pantallas como respaldo.",
         "dragHelp": "Arrastra para fijar el orden de rotación dentro de este perfil.",
         "scheduleToggleLabel": "Activar automáticamente por programación",
-        "daysLabel": "Días",
         "fromLabel": "Desde",
         "untilLabel": "Hasta",
         "invertLabel": "Invertir (ocultar durante esta ventana en su lugar)"
@@ -1564,7 +1557,6 @@
       "formWidth": "Ancho",
       "formHeight": "Alto",
       "formResolutionHint": "Ajusta esto para que coincida con la pantalla física donde se renderiza el quiosco. Los módulos se distribuirán sobre este lienzo cuando edites las pantallas de este display.",
-      "formRotation": "Rotación",
       "formRotationNormal": "Normal (apaisado)",
       "formRotation90": "90° horaria (vertical)",
       "formRotation180": "180° (invertida)",
@@ -1593,7 +1585,6 @@
   "backgroundPicker": {
     "title": "Fondo",
     "statusGroup": "Estado",
-    "rotationGroup": "Rotación",
     "autoRotate": "Rotar automáticamente",
     "sourceLabel": "Fuente",
     "searchQueryLabel": "Búsqueda",
@@ -1653,8 +1644,7 @@
       "abstract": "Abstracto"
     },
     "errors": {
-      "searchUnsplash": "No se pudo buscar en Unsplash",
-      "saveImage": "No se pudo guardar la imagen"
+      "searchUnsplash": "No se pudo buscar en Unsplash"
     }
   },
   "choreChartModal": {
@@ -1678,7 +1668,6 @@
     "memberForm": {
       "namePlaceholder": "Nombre...",
       "avatarLabel": "Avatar",
-      "colorLabel": "Color",
       "customColorTitle": "Elegir color personalizado"
     },
     "chores": {
@@ -1697,17 +1686,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Nombre de la tarea...",
-      "iconLabel": "Icono",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Frecuencia",
       "timeOfDayLabel": "Momento del día",
       "dateLabel": "Fecha",
-      "daysLabel": "Días",
       "assignToLabel": "Asignar a",
       "weeklyScheduleLabel": "Calendario semanal",
       "coverageLabel": "Cobertura: {covered} de 7 días",
       "coverageUncovered": "{days} sin cubrir",
-      "rotationLabel": "Rotación",
       "addSubmit": "Añadir tarea",
       "saveSubmit": "Guardar",
       "validation": {
@@ -1880,7 +1866,6 @@
       "size": "Tamaño",
       "shape": "Forma",
       "effects": "Efectos",
-      "color": "Color",
       "text": "Texto",
       "positionAndSize": "Posición y tamaño",
       "style": "Estilo",
@@ -2016,7 +2001,6 @@
     "inheritLabel": "Heredar del módulo"
   },
   "iconPicker": {
-    "label": "Icono",
     "styleSolid": "Sólido",
     "styleRegular": "Contorno",
     "styleBrands": "Marcas",
@@ -2352,7 +2336,6 @@
       "sourceMuffinLabs": "Fuente: MuffinLabs"
     },
     "icon": {
-      "icon": "Icono",
       "style": "Estilo",
       "styleSolid": "Sólido",
       "styleRegular": "Regular (contorno)",
@@ -2361,7 +2344,6 @@
       "iconBackground": "Fondo del icono",
       "autoFit": "Ajustar al tamaño del módulo",
       "scale": "Escala",
-      "rotation": "Rotación",
       "rotation0": "Sin rotación",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2565,7 +2547,6 @@
       "frameBrackets": "Esquinas",
       "shape": "Forma",
       "fill": "Relleno",
-      "color": "Color",
       "gradientFrom": "Degradado desde",
       "gradientTo": "Degradado hasta",
       "gradientAngle": "Ángulo del degradado",
@@ -2584,7 +2565,6 @@
       "sides": "Lados",
       "points": "Puntas",
       "pointSharpness": "Agudeza de las puntas",
-      "rotation": "Rotación",
       "direction": "Dirección",
       "headSize": "Tamaño de la punta",
       "intensity": "Intensidad",
@@ -2692,7 +2672,6 @@
         "effect": "Efecto",
         "gradient": "Degradado",
         "layout": "Disposición",
-        "rotation": "Rotación",
         "marquee": "Marquesina",
         "decorative": "Decorativo"
       },
@@ -2864,6 +2843,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Error al guardar la imagen"
+    },
     "immich": {
       "allPhotos": "Todas las fotos",
       "noPhotos": "No se han encontrado fotos",
@@ -2874,8 +2856,7 @@
       "apiKeyHint": "Crea una API key en Immich → Ajustes de cuenta → API Keys",
       "errors": {
         "loadPhotos": "Error al cargar las fotos",
-        "fetchImage": "Error al obtener la imagen",
-        "saveImage": "Error al guardar la imagen"
+        "fetchImage": "Error al obtener la imagen"
       }
     },
     "unsplash": {
@@ -2914,8 +2895,7 @@
         "library": "Biblioteca de imágenes"
       },
       "errors": {
-        "fetch": "Error al obtener imágenes de NASA",
-        "save": "Error al guardar la imagen"
+        "fetch": "Error al obtener imágenes de NASA"
       },
       "categories": {
         "nebula": "Nebulosa",
@@ -2937,8 +2917,7 @@
       "next": "Siguiente",
       "pageOf": "Página {page} de {total}",
       "errors": {
-        "load": "Error al cargar las imágenes",
-        "save": "Error al guardar la imagen"
+        "load": "Error al cargar las imágenes"
       }
     }
   },
@@ -2950,7 +2929,6 @@
       "title": "Feeds iCal / ICS",
       "editLowercase": "editar",
       "doneLowercase": "hecho",
-      "color": "Color",
       "feedNamePlaceholder": "Nombre del feed",
       "newFeedNamePlaceholder": "Nombre del feed (p. ej. Trabajo, Deportes)",
       "addFeed": "+ Añadir feed",

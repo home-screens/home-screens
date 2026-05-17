@@ -18,6 +18,7 @@ interface WeekListViewProps {
 
 export function WeekListView({ events, config, scale, today, now: _now }: WeekListViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
@@ -82,7 +83,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
               padding: `${scale.bu * 0.15}px ${scale.bu * 0.5}px`,
               borderRadius: 4,
             }}>
-              {t('fullscreen-calendar.today')}
+              {tCore('today')}
             </span>
           )}
         </div>

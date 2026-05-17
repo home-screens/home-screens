@@ -106,8 +106,6 @@
   },
   "garbage-day": {
     "header": "Calendario de recogida",
-    "today": "Hoy",
-    "tomorrow": "Mañana",
     "nextDay": "Próximo {day}",
     "emptyState": "Configura los días de recogida en los ajustes del módulo",
     "labels": {
@@ -121,9 +119,6 @@
     }
   },
   "calendar": {
-    "today": "Hoy",
-    "tomorrow": "Mañana",
-    "yesterday": "Ayer",
     "allDay": "Todo el día",
     "noEvents": "Sin eventos",
     "noUpcomingEvents": "Sin eventos próximos",
@@ -131,7 +126,6 @@
     "moreCount": "+{count} más"
   },
   "fullscreen-calendar": {
-    "today": "Hoy",
     "allDay": "Todo el día",
     "noEvents": "Sin eventos",
     "noEventsThisMonth": "Sin eventos este mes",
@@ -167,7 +161,6 @@
     }
   },
   "weather": {
-    "today": "Hoy",
     "tomorrowShort": "Mñn",
     "feelsLike": "Sensación {temp}",
     "feelsShort": "Sens. {temp}",
@@ -270,8 +263,6 @@
     "noMealPlanned": "No hay comida planeada",
     "nothingPlanned": "Nada planeado",
     "todaysMeals": "Comidas de hoy",
-    "today": "Hoy",
-    "tomorrow": "Mañana",
     "now": "ahora",
     "servingAt": "se sirve a las {time}",
     "prepTimeMin": "{minutes} min",
@@ -299,7 +290,6 @@
     "thisWeeksMeals": "Comidas de esta semana",
     "todaysMeals": "Comidas de hoy",
     "todaysMenu": "Menú de hoy",
-    "today": "Hoy",
     "alsoToday": "También hoy",
     "noMealPlanned": "No hay comida planeada",
     "notPlanned": "No planeada",
@@ -323,7 +313,6 @@
     "familyChores": "Tareas de la familia",
     "familyProgress": "Progreso de la familia",
     "starChart": "Tabla de estrellas",
-    "today": "Hoy",
     "chores": "Tareas",
     "thisWeek": "Esta semana",
     "addMembersToStart": "Añade miembros de la familia para empezar",

@@ -155,7 +155,7 @@ export default function BackgroundPicker() {
             />
           </PropertyGroup>
           {rotationEnabled && (
-            <PropertyGroup title={t('backgroundPicker.rotationGroup')} accent={2}>
+            <PropertyGroup title={t('fields.rotation')} accent={2}>
               <div className="space-y-2">
                 <label className="block">
                   <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.sourceLabel')}</span>

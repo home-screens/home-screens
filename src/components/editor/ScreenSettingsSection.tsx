@@ -66,7 +66,7 @@ export default function ScreenSettingsSection() {
           </span>
         </div>
 
-        <PropertyGroup title={t('screenSettings.rotationGroupTitle')} accent={1}>
+        <PropertyGroup title={t('fields.rotation')} accent={1}>
           <div className="flex items-center justify-between mb-2">
             <label htmlFor="screen-rotation-duration" className="text-xs text-hs-text-muted">
               {t('screenSettings.durationLabel')}

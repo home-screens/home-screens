@@ -72,6 +72,7 @@ interface Props {
 
 export default function UpgradeModal({ targetTag, isRollback, onComplete, onClose }: Props) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   // Start with no steps; auto-detect tarball vs git from SSE events
   const [detectedSteps, setDetectedSteps] = useState<readonly string[]>([]);
@@ -245,7 +246,7 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-hs-border-strong flex-shrink-0">
           {!done && !failed && (
             <Button variant="danger" size="sm" onClick={handleCancel} disabled={cancelBlocked}>
-              {t('common.cancel')}
+              {tCore('actions.cancel')}
             </Button>
           )}
           {done && (
@@ -255,7 +256,7 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
           )}
           {failed && (
             <Button variant="secondary" onClick={onClose}>
-              {t('common.close')}
+              {tCore('actions.close')}
             </Button>
           )}
         </div>

@@ -18,6 +18,7 @@ interface AgendaViewProps {
 
 export function AgendaView({ events, config, scale, today, now }: AgendaViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const daysAhead = config.agendaDaysAhead ?? 14;
@@ -72,7 +73,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
               letterSpacing: '0.06em',
               color: 'var(--cal-accent)',
             }}>
-              &middot; {t('fullscreen-calendar.today')}
+              &middot; {tCore('today')}
             </span>
           )}
         </div>

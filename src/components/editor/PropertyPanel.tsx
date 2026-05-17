@@ -145,7 +145,7 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
         </div>
       </PropertyGroup>
 
-      <PropertyGroup title={t('propertyPanel.sections.color')} accent={3}>
+      <PropertyGroup title={t('fields.color')} accent={3}>
         <div className="space-y-3">
           <ColorPicker label={t('propertyPanel.fields.background')} value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
           <ColorPicker label={t('propertyPanel.fields.borderColor')} value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />

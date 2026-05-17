@@ -36,6 +36,7 @@ interface IpStatus {
 
 export default function SecuritySection() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   const [status, setStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -697,7 +698,7 @@ export default function SecuritySection() {
                 <div className="flex items-center gap-2 mt-2">
                   <Button variant="danger" size="sm" onClick={() => handleSaveIpAllowlist(true)} disabled={ipSaving}>
                     {ipSaving
-                      ? t('common.saving')
+                      ? tCore('status.saving')
                       : t('settings.securityPage.ipAllowlist.lockoutWarning.saveAnyway')}
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setIpLockoutConfirm(false)}>
@@ -711,7 +712,7 @@ export default function SecuritySection() {
             {ipDirty && !ipLockoutConfirm && (
               <Button variant="primary" size="sm" onClick={() => handleSaveIpAllowlist(false)} disabled={ipSaving}>
                 {ipSaving
-                  ? t('common.saving')
+                  ? tCore('status.saving')
                   : t('settings.securityPage.ipAllowlist.saveButton')}
               </Button>
             )}

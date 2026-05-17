@@ -67,7 +67,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   return (
     <>
       <IconPicker
-        label={t('configSections.icon.icon')}
+        label={t('fields.icon')}
         value={c.iconName ?? ''}
         currentKind={currentStyle}
         onPick={(name, kind, styles) => {
@@ -131,7 +131,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       <LabeledSelect
-        label={t('configSections.icon.rotation')}
+        label={t('fields.rotation')}
         value={String(c.rotation ?? 0) as '0' | '90' | '180' | '270'}
         onChange={(v) => set({ rotation: Number(v) as IconConfig['rotation'] })}
         options={ROTATION_OPTIONS}

@@ -8,6 +8,7 @@ export default function WeekView({
   settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
   const weekStartDay = settings.weekStartDay;
@@ -79,7 +80,7 @@ export default function WeekView({
                     textTransform: 'uppercase' as const, letterSpacing: '0.08em',
                     marginLeft: 'auto',
                   }}>
-                    {t('fullscreen-meal-planner.today')}
+                    {tCore('today')}
                   </span>
                 )}
               </div>

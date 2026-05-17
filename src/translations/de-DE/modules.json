@@ -106,8 +106,6 @@
   },
   "garbage-day": {
     "header": "Abfuhrkalender",
-    "today": "Heute",
-    "tomorrow": "Morgen",
     "nextDay": "Nächster {day}",
     "emptyState": "Abfuhrtage in den Moduleinstellungen festlegen",
     "labels": {
@@ -121,9 +119,6 @@
     }
   },
   "calendar": {
-    "today": "Heute",
-    "tomorrow": "Morgen",
-    "yesterday": "Gestern",
     "allDay": "Ganztägig",
     "noEvents": "Keine Termine",
     "noUpcomingEvents": "Keine bevorstehenden Termine",
@@ -131,7 +126,6 @@
     "moreCount": "+{count} weitere"
   },
   "fullscreen-calendar": {
-    "today": "Heute",
     "allDay": "Ganztägig",
     "noEvents": "Keine Termine",
     "noEventsThisMonth": "Keine Termine diesen Monat",
@@ -167,7 +161,6 @@
     }
   },
   "weather": {
-    "today": "Heute",
     "tomorrowShort": "Morgen",
     "feelsLike": "Gefühlt {temp}",
     "feelsShort": "Gefühlt {temp}",
@@ -270,8 +263,6 @@
     "noMealPlanned": "Keine Mahlzeit geplant",
     "nothingPlanned": "Nichts geplant",
     "todaysMeals": "Mahlzeiten heute",
-    "today": "Heute",
-    "tomorrow": "Morgen",
     "now": "jetzt",
     "servingAt": "serviert um {time}",
     "prepTimeMin": "{minutes} Min",
@@ -299,7 +290,6 @@
     "thisWeeksMeals": "Mahlzeiten diese Woche",
     "todaysMeals": "Mahlzeiten heute",
     "todaysMenu": "Speisekarte heute",
-    "today": "Heute",
     "alsoToday": "Außerdem heute",
     "noMealPlanned": "Keine Mahlzeit geplant",
     "notPlanned": "Nicht geplant",
@@ -323,7 +313,6 @@
     "familyChores": "Familienaufgaben",
     "familyProgress": "Fortschritt der Familie",
     "starChart": "Sterntafel",
-    "today": "Heute",
     "chores": "Aufgaben",
     "thisWeek": "Diese Woche",
     "addMembersToStart": "Füge Familienmitglieder hinzu, um loszulegen",

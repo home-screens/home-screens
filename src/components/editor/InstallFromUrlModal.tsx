@@ -19,6 +19,7 @@ type Step = 'entry' | 'installing' | 'done' | 'error';
 
 export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFromUrlModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [step, setStep] = useState<Step>('entry');
   const [url, setUrl] = useState('');
   const [version, setVersion] = useState('');
@@ -121,7 +122,7 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{tCore('actions.cancel')}</Button>
               <Button size="sm" disabled={!canContinue} onClick={handleInstall}>{t('settings.pluginStorePanel.browse.installButton')}</Button>
             </div>
           </div>
@@ -160,7 +161,7 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
               <p className="text-xs text-hs-danger">{error}</p>
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary" size="sm" onClick={onClose}>{t('common.close')}</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{tCore('actions.close')}</Button>
               <Button size="sm" onClick={() => setStep('entry')}>{t('installFromUrlModal.tryAgainButton')}</Button>
             </div>
           </div>

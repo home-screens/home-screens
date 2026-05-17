@@ -24,6 +24,7 @@ interface MealsSettingsSheetProps {
 
 export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsSettingsSheetProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
   // so we need a second translator to resolve `getMealSlotLabelKey` against
   // the dictionary that already ships those keys.
@@ -145,7 +146,7 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
             }}
             aria-label={t('mealsSettings.cancelAriaLabel')}
           >
-            {t('common.cancel')}
+            {tCore('actions.cancel')}
           </button>
         </div>
 

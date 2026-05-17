@@ -11,15 +11,6 @@
     "formattingLocaleSameAsLanguage": "Wie Sprache"
   },
   "common": {
-    "cancel": "Abbrechen",
-    "delete": "Löschen",
-    "remove": "Entfernen",
-    "add": "Hinzufügen",
-    "close": "Schließen",
-    "back": "Zurück",
-    "confirm": "Bestätigen",
-    "loading": "Lädt…",
-    "saving": "Speichert…",
     "saved": "Gespeichert",
     "refreshMinutes": "Aktualisierung (Minuten)",
     "refreshSeconds": "Aktualisierung (Sekunden)",
@@ -38,6 +29,12 @@
     "saveError": "Speichern fehlgeschlagen",
     "networkError": "Netzwerkfehler",
     "serverUnreachable": "Server nicht erreichbar"
+  },
+  "fields": {
+    "rotation": "Rotation",
+    "color": "Farbe",
+    "icon": "Symbol",
+    "days": "Tage"
   },
   "modal": {
     "closeAriaLabel": "Dialog schließen"
@@ -113,7 +110,6 @@
     "sectionTitle": "Screen-Einstellungen",
     "moduleCountSingular": "{count} Modul",
     "moduleCountPlural": "{count} Module",
-    "rotationGroupTitle": "Rotation",
     "durationLabel": "Dauer",
     "secondsUnit": "Sek.",
     "stickyBadge": "Fix",
@@ -127,7 +123,6 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Zeitplan aktivieren",
-    "daysTitle": "Tage",
     "timeWindowTitle": "Zeitfenster",
     "fromLabel": "Von",
     "untilLabel": "Bis",
@@ -581,7 +576,6 @@
         "canvasHeading": "Anzeigefläche",
         "perDisplayBadge": "Pro Display",
         "resolutionHelp": "Module werden gegen diese Anzeigefläche ausgelegt. Jedes Display hat seine eigene Auflösung — sie wird nicht geteilt.",
-        "rotationLabel": "Drehung",
         "rotationOptionNormal": "Normal (Querformat)",
         "rotationOption90": "90° im Uhrzeigersinn (Hochformat)",
         "rotationOption180": "180° (umgekehrt)",
@@ -1069,7 +1063,6 @@
         "noScreensWarning": "Keine Bildschirme ausgewählt — als Fallback werden alle Bildschirme angezeigt.",
         "dragHelp": "Ziehe, um die Rotationsreihenfolge in diesem Profil festzulegen.",
         "scheduleToggleLabel": "Automatisch nach Zeitplan aktivieren",
-        "daysLabel": "Tage",
         "fromLabel": "Von",
         "untilLabel": "Bis",
         "invertLabel": "Umkehren (in diesem Zeitfenster stattdessen ausblenden)"
@@ -1560,7 +1553,6 @@
       "formWidth": "Breite",
       "formHeight": "Höhe",
       "formResolutionHint": "Stellen Sie dies auf die physische Anzeige ein, auf der der Kiosk läuft. Module werden gegen diese Canvas-Größe angeordnet, wenn Sie die Bildschirme dieser Anzeige bearbeiten.",
-      "formRotation": "Drehung",
       "formRotationNormal": "Normal (Querformat)",
       "formRotation90": "90° im Uhrzeigersinn (Hochformat)",
       "formRotation180": "180° (umgekehrt)",
@@ -1589,7 +1581,6 @@
   "backgroundPicker": {
     "title": "Hintergrund",
     "statusGroup": "Status",
-    "rotationGroup": "Wechsel",
     "autoRotate": "Automatisch wechseln",
     "sourceLabel": "Quelle",
     "searchQueryLabel": "Suchbegriff",
@@ -1649,8 +1640,7 @@
       "abstract": "Abstrakt"
     },
     "errors": {
-      "searchUnsplash": "Unsplash-Suche fehlgeschlagen",
-      "saveImage": "Bild konnte nicht gespeichert werden"
+      "searchUnsplash": "Unsplash-Suche fehlgeschlagen"
     }
   },
   "choreChartModal": {
@@ -1674,7 +1664,6 @@
     "memberForm": {
       "namePlaceholder": "Name…",
       "avatarLabel": "Avatar",
-      "colorLabel": "Farbe",
       "customColorTitle": "Eigene Farbe wählen"
     },
     "chores": {
@@ -1693,17 +1682,14 @@
     },
     "choreForm": {
       "namePlaceholder": "Name der Aufgabe…",
-      "iconLabel": "Symbol",
       "ticketsLabel": "Tickets",
       "frequencyLabel": "Häufigkeit",
       "timeOfDayLabel": "Tageszeit",
       "dateLabel": "Datum",
-      "daysLabel": "Tage",
       "assignToLabel": "Wer macht's?",
       "weeklyScheduleLabel": "Wochenplan",
       "coverageLabel": "Abgedeckt: {covered} von 7 Tagen",
       "coverageUncovered": "{days} offen",
-      "rotationLabel": "Reihenfolge",
       "addSubmit": "Aufgabe hinzufügen",
       "saveSubmit": "Speichern",
       "validation": {
@@ -1876,7 +1862,6 @@
       "size": "Größe",
       "shape": "Form",
       "effects": "Effekte",
-      "color": "Farbe",
       "text": "Text",
       "positionAndSize": "Position & Größe",
       "style": "Stil",
@@ -2012,7 +1997,6 @@
     "inheritLabel": "Vom Modul erben"
   },
   "iconPicker": {
-    "label": "Symbol",
     "styleSolid": "Solid",
     "styleRegular": "Regular",
     "styleBrands": "Marken",
@@ -2347,7 +2331,6 @@
       "sourceMuffinLabs": "Quelle: MuffinLabs"
     },
     "icon": {
-      "icon": "Symbol",
       "style": "Stil",
       "styleSolid": "Gefüllt",
       "styleRegular": "Standard (Kontur)",
@@ -2356,7 +2339,6 @@
       "iconBackground": "Symbol-Hintergrund",
       "autoFit": "Automatisch an Modulgröße anpassen",
       "scale": "Skalierung",
-      "rotation": "Drehung",
       "rotation0": "Keine Drehung",
       "rotation90": "90°",
       "rotation180": "180°",
@@ -2560,7 +2542,6 @@
       "frameBrackets": "Eckklammern",
       "shape": "Form",
       "fill": "Füllung",
-      "color": "Farbe",
       "gradientFrom": "Verlauf von",
       "gradientTo": "Verlauf bis",
       "gradientAngle": "Verlaufswinkel",
@@ -2579,7 +2560,6 @@
       "sides": "Seiten",
       "points": "Zacken",
       "pointSharpness": "Zackenschärfe",
-      "rotation": "Drehung",
       "direction": "Richtung",
       "headSize": "Kopfgröße",
       "intensity": "Intensität",
@@ -2687,7 +2667,6 @@
         "effect": "Effekt",
         "gradient": "Verlauf",
         "layout": "Layout",
-        "rotation": "Wechsel",
         "marquee": "Laufschrift",
         "decorative": "Dekorativ"
       },
@@ -2859,6 +2838,9 @@
     }
   },
   "imageBrowsers": {
+    "errors": {
+      "saveImage": "Bild konnte nicht gespeichert werden"
+    },
     "immich": {
       "allPhotos": "Alle Fotos",
       "noPhotos": "Keine Fotos gefunden",
@@ -2869,8 +2851,7 @@
       "apiKeyHint": "Erstelle einen API-Schlüssel in Immich → Kontoeinstellungen → API-Schlüssel",
       "errors": {
         "loadPhotos": "Fotos konnten nicht geladen werden",
-        "fetchImage": "Bild konnte nicht abgerufen werden",
-        "saveImage": "Bild konnte nicht gespeichert werden"
+        "fetchImage": "Bild konnte nicht abgerufen werden"
       }
     },
     "unsplash": {
@@ -2909,8 +2890,7 @@
         "library": "Bildbibliothek"
       },
       "errors": {
-        "fetch": "NASA-Bilder konnten nicht abgerufen werden",
-        "save": "Bild konnte nicht gespeichert werden"
+        "fetch": "NASA-Bilder konnten nicht abgerufen werden"
       },
       "categories": {
         "nebula": "Nebel",
@@ -2932,8 +2912,7 @@
       "next": "Weiter",
       "pageOf": "Seite {page} von {total}",
       "errors": {
-        "load": "Bilder konnten nicht geladen werden",
-        "save": "Bild konnte nicht gespeichert werden"
+        "load": "Bilder konnten nicht geladen werden"
       }
     }
   },
@@ -2945,7 +2924,6 @@
       "title": "iCal-/ICS-Feeds",
       "editLowercase": "bearbeiten",
       "doneLowercase": "fertig",
-      "color": "Farbe",
       "feedNamePlaceholder": "Feed-Name",
       "newFeedNamePlaceholder": "Feed-Name (z. B. Arbeit, Sport)",
       "addFeed": "+ Feed hinzufügen",

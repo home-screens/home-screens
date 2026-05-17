@@ -358,7 +358,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       </div>
 
       <label className="block">
-        <span className="text-xs text-hs-text-muted">{t('settings.displaysIndex.formRotation')}</span>
+        <span className="text-xs text-hs-text-muted">{t('fields.rotation')}</span>
         <select
           value={transform}
           onChange={(e) =>
@@ -415,6 +415,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
  */
 export default function DisplaysIndexPage() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const router = useRouter();
   const { config, addDisplay, saveConfig } = useEditorStore();
 
@@ -724,7 +725,7 @@ export default function DisplaysIndexPage() {
       {/* Auto-save status toast */}
       {(saving || saveMessage) && (
         <div className="flex items-center gap-2 mt-6 border-t border-hs-border pt-4 text-xs">
-          {saving && <span className="text-hs-text-faint">{t('common.saving')}</span>}
+          {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
           {!saving && saveMessage && (
             <span className={saveMessage === 'saved' ? 'text-hs-success' : 'text-hs-danger'}>
               {saveMessage === 'saved'

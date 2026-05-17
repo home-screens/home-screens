@@ -55,7 +55,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
       {enabled && (
         <>
-          <PropertyGroup title={t('scheduleEditor.daysTitle')} accent={2}>
+          <PropertyGroup title={t('fields.days')} accent={2}>
             <div className="flex gap-1">
               {dayLabels.map((label, i) => {
                 const days = schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6];

@@ -11,6 +11,7 @@ import type { ModuleInstance } from '@/types/config';
 export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ routes?: { label: string; origin: string; destination: string }[]; refreshIntervalMs?: number }>(mod, screenId);
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const routes = c.routes ?? [];
 
   const { add: addRoute, remove: removeRoute, update: updateRoute } = useIndexListEditor(
@@ -31,7 +32,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">{t('configSections.traffic.routes')}</span>
-        <Button size="sm" onClick={addRoute}>{t('common.add')}</Button>
+        <Button size="sm" onClick={addRoute}>{tCore('actions.add')}</Button>
       </div>
       {routes.map((r, idx) => (
         <div key={idx} className="p-2 bg-hs-card rounded space-y-1">

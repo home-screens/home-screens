@@ -90,12 +90,12 @@ export default function SettingsPage() {
   // unless it's wrapped in a Suspense boundary. The outer shell is
   // intentionally empty (or a cheap fallback) so Next can prerender a
   // static HTML skeleton and stream the real content at runtime.
-  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <Suspense
       fallback={
         <div className="h-screen flex items-center justify-center text-hs-text-faint">
-          {t('common.loading')}
+          {tCore('loading')}
         </div>
       }
     >
@@ -110,6 +110,7 @@ function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
 
   const { config, selectedDisplayId, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
   // Subscribe to the store's save state so the header indicator lights
@@ -362,7 +363,7 @@ function SettingsPageContent() {
   if (!settings) {
     return (
       <div className="h-screen flex items-center justify-center text-hs-text-faint">
-        {t('common.loading')}
+        {tCore('loading')}
       </div>
     );
   }
@@ -383,7 +384,7 @@ function SettingsPageContent() {
   const statusIndicator = isActivelySaving ? (
     <span className="text-xs text-hs-text-muted flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse" />
-      {t('common.saving')}
+      {tCore('status.saving')}
     </span>
   ) : hasFailure ? (
     <span className="text-xs text-hs-danger flex items-center gap-1.5">

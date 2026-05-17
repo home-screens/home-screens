@@ -106,8 +106,6 @@
   },
   "garbage-day": {
     "header": "Ophaalschema",
-    "today": "Vandaag",
-    "tomorrow": "Morgen",
     "nextDay": "Volgende {day}",
     "emptyState": "Stel ophaaldagen in via de module-instellingen",
     "labels": {
@@ -121,9 +119,6 @@
     }
   },
   "calendar": {
-    "today": "Vandaag",
-    "tomorrow": "Morgen",
-    "yesterday": "Gisteren",
     "allDay": "Hele dag",
     "noEvents": "Geen afspraken",
     "noUpcomingEvents": "Geen aankomende afspraken",
@@ -131,7 +126,6 @@
     "moreCount": "+{count} meer"
   },
   "fullscreen-calendar": {
-    "today": "Vandaag",
     "allDay": "Hele dag",
     "noEvents": "Geen afspraken",
     "noEventsThisMonth": "Geen afspraken deze maand",
@@ -167,7 +161,6 @@
     }
   },
   "weather": {
-    "today": "Vandaag",
     "tomorrowShort": "Morg",
     "feelsLike": "Voelt als {temp}",
     "feelsShort": "Voelt {temp}",
@@ -270,8 +263,6 @@
     "noMealPlanned": "Geen maaltijd gepland",
     "nothingPlanned": "Niets gepland",
     "todaysMeals": "Maaltijden vandaag",
-    "today": "Vandaag",
-    "tomorrow": "Morgen",
     "now": "nu",
     "servingAt": "geserveerd om {time}",
     "prepTimeMin": "{minutes} min",
@@ -299,7 +290,6 @@
     "thisWeeksMeals": "Maaltijden deze week",
     "todaysMeals": "Maaltijden vandaag",
     "todaysMenu": "Menu vandaag",
-    "today": "Vandaag",
     "alsoToday": "Ook vandaag",
     "noMealPlanned": "Geen maaltijd gepland",
     "notPlanned": "Niet gepland",
@@ -323,7 +313,6 @@
     "familyChores": "Klusjes voor het gezin",
     "familyProgress": "Voortgang van het gezin",
     "starChart": "Sterrenkaart",
-    "today": "Vandaag",
     "chores": "Klusjes",
     "thisWeek": "Deze week",
     "addMembersToStart": "Voeg gezinsleden toe om te beginnen",

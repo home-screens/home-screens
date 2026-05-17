@@ -18,6 +18,7 @@ interface ICalFeedManagerProps {
 
 export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManagerProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newFeedName, setNewFeedName] = useState('');
   const [newFeedUrl, setNewFeedUrl] = useState('');
@@ -121,7 +122,7 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
                       placeholder="https://example.com/calendar.ics"
                     />
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-hs-text-muted mr-1">{t('modals.icalFeeds.color')}</span>
+                      <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
                       {ICAL_COLOR_PALETTE.map((color) => (
                         <button
                           key={color}
@@ -159,7 +160,7 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
               placeholder="https://example.com/calendar.ics"
             />
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-hs-text-muted mr-1">{t('modals.icalFeeds.color')}</span>
+              <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
               {ICAL_COLOR_PALETTE.map((color) => (
                 <button
                   key={color}
@@ -174,10 +175,10 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
             </div>
             <div className="flex items-center gap-2 pt-1">
               <Button variant="primary" size="sm" onClick={addICalSource} disabled={!newFeedName.trim() || !newFeedUrl.trim()}>
-                {t('common.add')}
+                {tCore('actions.add')}
               </Button>
               <Button variant="secondary" size="sm" onClick={() => { setShowAddForm(false); setNewFeedName(''); setNewFeedUrl(''); }}>
-                {t('common.cancel')}
+                {tCore('actions.cancel')}
               </Button>
             </div>
           </div>

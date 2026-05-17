@@ -12,6 +12,7 @@ import type { ModuleInstance, TodoItem } from '@/types/config';
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ title?: string; items?: TodoItem[]; accentColor?: string }>(mod, screenId);
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const items = c.items ?? [];
 
   const { add: addItem, remove: removeItem, update: updateItem } = useListEditor<TodoItem>(
@@ -30,7 +31,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">{t('configSections.todo.items')}</span>
-        <Button size="sm" onClick={addItem}>{t('common.add')}</Button>
+        <Button size="sm" onClick={addItem}>{tCore('actions.add')}</Button>
       </div>
       {items.map((it) => (
         <div key={it.id} className="flex items-center gap-1 p-1 bg-hs-card rounded">
