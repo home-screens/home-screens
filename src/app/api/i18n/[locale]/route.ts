@@ -55,12 +55,21 @@ export async function GET(request: NextRequest, ctx: RouteContext): Promise<Next
     }),
   );
 
+  // In production, translations are essentially static — let the browser
+  // hold them for an hour and shared caches for a day. In development the
+  // long max-age silently breaks the edit-reload loop: hard refresh keeps
+  // the document fetch fresh but `fetch('/api/i18n/...')` is still served
+  // from the browser's disk cache, so JSON edits never reach the page until
+  // the cache TTL expires.
+  const cacheControl = process.env.NODE_ENV === 'production'
+    ? 'public, max-age=3600, s-maxage=86400'
+    : 'no-store';
+
   return NextResponse.json(result, {
     headers: {
       // Browser + shared caches key by full URL (including `?ns=` query),
       // so different namespace combinations are cached independently.
-      // 1h browser, 24h CDN — translations are essentially static.
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+      'Cache-Control': cacheControl,
       'X-Locale': locale,
       'X-Locale-Registered': String(isRegisteredLocale(rawLocale)),
       'X-Available-Locales': Object.keys(LOCALES).join(','),

@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Sprache & Region",
-    "breadcrumb": "Standardwerte → Sprache & Region",
-    "description": "Legt die Sprache für den Editor, alle Displays und /remote fest. Alle Displays teilen sich diese Einstellung.",
     "languageLabel": "Sprache",
     "languageHelp": "Wähle die Sprache, die im Editor, auf allen Displays und unter /remote verwendet wird.",
     "moreOptions": "Weitere Optionen",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "Auf GitHub ansehen",
       "githubTitle": "Auf GitHub ansehen",
       "navLabels": {
-        "language": "Sprache & Region",
         "calendar": "Kalender",
         "weather": "Wetter",
-        "location": "Standort",
+        "location": "Standort & Sprache",
         "sleep": "Schlaf",
         "alerts": "Hinweise",
         "display": "Anzeige",
@@ -247,6 +244,11 @@
       "breadcrumb": "Standardwerte → Schlaf",
       "heading": "Standard-Schlafeinstellungen",
       "description": "Standard-Dimm-/Schlafzeitplan und Bildschirmschoner für jedes Display. Ein bestimmtes Display kann den gesamten Block von seiner eigenen Seite aus überschreiben."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Standardwerte → Standort & Sprache",
+      "title": "Standort & Sprache",
+      "description": "Wähle die überall verwendete Sprache und lege dann den Standort fest, der von Wetter und anderen standortabhängigen Modulen verwendet wird."
     },
     "locationPage": {
       "heading": "Standort",

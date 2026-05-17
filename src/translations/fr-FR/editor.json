@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Langue et région",
-    "breadcrumb": "Valeurs par défaut → Langue et région",
-    "description": "Définit la langue de l'éditeur, de tous les affichages et de /remote. Tous les affichages partagent ce paramètre.",
     "languageLabel": "Langue",
     "languageHelp": "Choisis la langue utilisée dans l'éditeur, sur tous les affichages et sur /remote.",
     "moreOptions": "Plus d'options",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "Voir sur GitHub",
       "githubTitle": "Voir sur GitHub",
       "navLabels": {
-        "language": "Langue et région",
         "calendar": "Calendrier",
         "weather": "Météo",
-        "location": "Lieu",
+        "location": "Lieu et langue",
         "sleep": "Veille",
         "alerts": "Alertes",
         "display": "Affichage",
@@ -247,6 +244,11 @@
       "breadcrumb": "Valeurs par défaut → Veille",
       "heading": "Paramètres de veille par défaut",
       "description": "Calendrier d'atténuation / mise en veille et économiseur d'écran appliqués à tous les affichages. Un affichage spécifique peut remplacer l'ensemble du bloc depuis sa propre page."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Valeurs par défaut → Lieu et langue",
+      "title": "Lieu et langue",
+      "description": "Choisis la langue utilisée partout, puis définis le lieu utilisé par la météo et les autres modules basés sur le lieu."
     },
     "locationPage": {
       "heading": "Lieu",

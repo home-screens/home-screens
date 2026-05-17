@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Language & region",
-    "breadcrumb": "Defaults → Language & region",
-    "description": "Sets the language for the editor, every display, and /remote. All displays share this setting.",
     "languageLabel": "Language",
     "languageHelp": "Pick the language used across the editor, every display, and /remote.",
     "moreOptions": "More options",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "View on GitHub",
       "githubTitle": "View on GitHub",
       "navLabels": {
-        "language": "Language & region",
         "calendar": "Calendar",
         "weather": "Weather",
-        "location": "Location",
+        "location": "Location & language",
         "sleep": "Sleep",
         "alerts": "Alerts",
         "display": "Display",
@@ -247,6 +244,11 @@
       "breadcrumb": "Defaults → Sleep",
       "heading": "Default sleep settings",
       "description": "Default dim / sleep schedule and screensaver applied to every display. A specific display can override the whole block from its own page."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Defaults → Location & language",
+      "title": "Location & language",
+      "description": "Pick the language used everywhere, then set the location used by weather and other location-aware modules."
     },
     "locationPage": {
       "heading": "Location",

@@ -16,7 +16,7 @@ import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage'
 import { resolveSettingsRoute } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import LocationSection from '@/components/editor/settings/LocationSection';
-import LanguageAndRegionPage from '@/components/editor/settings/LanguageAndRegionPage';
+import LanguageFields from '@/components/editor/settings/LanguageFields';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
@@ -62,7 +62,6 @@ type TabId =
   | 'sleep'
   | 'alerts'
   | 'location'
-  | 'language'
   | 'weather'
   | 'calendar'
   | 'meals'
@@ -486,14 +485,26 @@ function SettingsPageContent() {
             )}
 
             {activeTab === 'location' && (
-              <LocationSection
-                values={state.location}
-                onChange={(updates) => updateGroup('location', updates)}
-              />
-            )}
-
-            {activeTab === 'language' && (
-              <LanguageAndRegionPage />
+              <>
+                <div className="mb-5">
+                  <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
+                    {t('settings.locationAndLanguagePage.breadcrumb')}
+                  </div>
+                  <h1 className="text-xl font-semibold text-hs-text-primary">
+                    {t('settings.locationAndLanguagePage.title')}
+                  </h1>
+                  <p className="text-sm text-hs-text-faint mt-1">
+                    {t('settings.locationAndLanguagePage.description')}
+                  </p>
+                </div>
+                <LanguageFields />
+                <div className="mt-6">
+                  <LocationSection
+                    values={state.location}
+                    onChange={(updates) => updateGroup('location', updates)}
+                  />
+                </div>
+              </>
             )}
 
             {activeTab === 'weather' && (

@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Taal & regio",
-    "breadcrumb": "Standaardwaarden → Taal & regio",
-    "description": "Stelt de taal in voor de editor, alle displays en /remote. Alle displays delen deze instelling.",
     "languageLabel": "Taal",
     "languageHelp": "Kies de taal voor de editor, alle displays en /remote.",
     "moreOptions": "Meer opties",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "Bekijk op GitHub",
       "githubTitle": "Bekijk op GitHub",
       "navLabels": {
-        "language": "Taal & regio",
         "calendar": "Kalender",
         "weather": "Weer",
-        "location": "Locatie",
+        "location": "Locatie & taal",
         "sleep": "Slapen",
         "alerts": "Meldingen",
         "display": "Display",
@@ -247,6 +244,11 @@
       "breadcrumb": "Standaardwaarden → Slapen",
       "heading": "Standaard slaapinstellingen",
       "description": "Standaard dim/slaap-schema en screensaver voor elk display. Een specifiek display kan het hele blok overschrijven via zijn eigen pagina."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Standaardwaarden → Locatie & taal",
+      "title": "Locatie & taal",
+      "description": "Kies de taal die overal wordt gebruikt en stel daarna de locatie in die door weer en andere locatieafhankelijke modules wordt gebruikt."
     },
     "locationPage": {
       "heading": "Locatie",

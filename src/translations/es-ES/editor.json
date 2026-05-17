@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Idioma y región",
-    "breadcrumb": "Valores predeterminados → Idioma y región",
-    "description": "Define el idioma del editor, todos los displays y /remote. Todos los displays comparten este ajuste.",
     "languageLabel": "Idioma",
     "languageHelp": "Elige el idioma usado en el editor, todos los displays y /remote.",
     "moreOptions": "Más opciones",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "Ver en GitHub",
       "githubTitle": "Ver en GitHub",
       "navLabels": {
-        "language": "Idioma y región",
         "calendar": "Calendario",
         "weather": "Tiempo",
-        "location": "Ubicación",
+        "location": "Ubicación e idioma",
         "sleep": "Suspensión",
         "alerts": "Avisos",
         "display": "Pantalla",
@@ -247,6 +244,11 @@
       "breadcrumb": "Valores predeterminados → Suspensión",
       "heading": "Ajustes predeterminados de suspensión",
       "description": "Programación predeterminada de atenuación / suspensión y salvapantallas que se aplica a cada display. Un display concreto puede anular todo el bloque desde su propia página."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Valores predeterminados → Ubicación e idioma",
+      "title": "Ubicación e idioma",
+      "description": "Elige el idioma que se usa en todas partes y luego define la ubicación que usan los módulos de tiempo y otros módulos basados en la ubicación."
     },
     "locationPage": {
       "heading": "Ubicación",

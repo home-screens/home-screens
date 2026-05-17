@@ -1,8 +1,6 @@
 {
   "languageAndRegion": {
     "title": "Idioma e região",
-    "breadcrumb": "Padrões → Idioma e região",
-    "description": "Define o idioma do editor, de todas as telas e do /remote. Todas as telas compartilham essa configuração.",
     "languageLabel": "Idioma",
     "languageHelp": "Escolha o idioma usado no editor, em todas as telas e no /remote.",
     "moreOptions": "Mais opções",
@@ -197,10 +195,9 @@
       "githubAriaLabel": "Ver no GitHub",
       "githubTitle": "Ver no GitHub",
       "navLabels": {
-        "language": "Idioma e região",
         "calendar": "Calendário",
         "weather": "Tempo",
-        "location": "Localização",
+        "location": "Localização e idioma",
         "sleep": "Suspensão",
         "alerts": "Avisos",
         "display": "Tela",
@@ -247,6 +244,11 @@
       "breadcrumb": "Padrões → Suspensão",
       "heading": "Configurações padrão de suspensão",
       "description": "Agenda de escurecimento/suspensão e protetor de tela padrão aplicados a todas as telas. Uma tela específica pode substituir todo o bloco a partir da sua própria página."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Padrões → Localização e idioma",
+      "title": "Localização e idioma",
+      "description": "Escolha o idioma usado em todos os lugares e defina a localização usada pelo módulo de tempo e demais módulos baseados em localização."
     },
     "locationPage": {
       "heading": "Localização",

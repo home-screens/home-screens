@@ -134,9 +134,25 @@ describe('GET /api/i18n/[locale]', () => {
     expect(body).toEqual({ editor: { title: 'Editor' } });
   });
 
-  it('Cache-Control header matches the public/maxage policy', async () => {
-    const { request, ctx } = makeRequest('en-US', 'ns=core');
-    const res = await GET(request, ctx);
-    expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600, s-maxage=86400');
+  it('Cache-Control header matches the public/maxage policy in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      const { request, ctx } = makeRequest('en-US', 'ns=core');
+      const res = await GET(request, ctx);
+      expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600, s-maxage=86400');
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('Cache-Control header is no-store in development so JSON edits show up on reload', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    try {
+      const { request, ctx } = makeRequest('en-US', 'ns=core');
+      const res = await GET(request, ctx);
+      expect(res.headers.get('Cache-Control')).toBe('no-store');
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

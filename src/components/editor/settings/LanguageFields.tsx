@@ -9,22 +9,21 @@ import { LOCALES, DEFAULT_LOCALE } from '@/i18n/manifest';
 import { reloadPluginTranslations } from '@/lib/plugin-loader';
 
 /**
- * "Defaults → Language & region" page.
+ * Language fields card for the "Defaults → Location & language" page.
  *
  * Owns two fields on `globalSettings`:
  *   - `locale` (BCP-47, drives the i18n provider for editor / display / remote)
  *   - `formattingLocale` (optional override for date/number formatting only)
  *
  * Locale has no per-display variant — every display in the install shares
- * the same setting — so this page does NOT render an `OverrideRow` or a
+ * the same setting — so this section does NOT render an `OverrideRow` or a
  * `findDisplaysOverridingFields` backlink banner. Those affordances are
  * reserved for fields that can actually be overridden per display.
  *
- * Saves go straight through `updateSettings` (which the editor store
- * coalesces into the next auto-save tick), mirroring how the other
- * Defaults pages operate.
+ * Renders as a self-contained card; the parent page provides the
+ * breadcrumb + page header above it.
  */
-export default function LanguageAndRegionPage() {
+export default function LanguageFields() {
   const t = useTranslate('editor');
   const router = useRouter();
   const { config, updateSettings, saveConfig } = useEditorStore();
@@ -95,18 +94,9 @@ export default function LanguageAndRegionPage() {
 
   return (
     <>
-      <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          {t('languageAndRegion.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">
-          {t('languageAndRegion.title')}
-        </h1>
-        <p className="text-sm text-hs-text-faint mt-1">
-          {t('languageAndRegion.description')}
-        </p>
-      </div>
-
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        {t('languageAndRegion.title')}
+      </h3>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4 space-y-4">
         {/* Language */}
         <div>
