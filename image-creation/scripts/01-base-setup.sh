@@ -20,6 +20,13 @@ if ! grep -q "127.0.1.1" /etc/hosts; then
     echo "127.0.1.1	home-screens" >> /etc/hosts
 fi
 
+# Stop cloud-init from re-applying its cached hostname on every boot.
+# Without this, /etc/hostname gets rewritten from /boot/firmware/user-data
+# every reboot, silently undoing any hostnamectl change made by the editor.
+log_info "Disabling cloud-init hostname management"
+mkdir -p /etc/cloud/cloud.cfg.d
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg
+
 log_info "Creating home-screens user"
 if ! id "hs" &>/dev/null; then
     useradd -m -s /bin/bash hs

@@ -476,6 +476,16 @@ sudo apt-get upgrade -y -qq
 info "Installing bootstrap packages..."
 sudo apt-get install -y -qq curl vim
 
+# Stop cloud-init (active by default on Raspberry Pi OS) from re-applying
+# its cached hostname on every boot. Without this, hostname changes made
+# in the editor get silently reverted after the next reboot.
+if [ -d /etc/cloud ]; then
+  info "Disabling cloud-init hostname management..."
+  sudo mkdir -p /etc/cloud/cloud.cfg.d
+  echo "preserve_hostname: true" \
+    | sudo tee /etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg >/dev/null
+fi
+
 # --- Step 2: Node.js ---
 install_node "${NODE_MAJOR}"
 
