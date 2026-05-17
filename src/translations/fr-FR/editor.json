@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Identique à la langue"
   },
   "common": {
-    "save": "Enregistrer",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "remove": "Retirer",
-    "edit": "Modifier",
     "add": "Ajouter",
     "close": "Fermer",
     "back": "Retour",
     "confirm": "Confirmer",
-    "reset": "Réinitialiser",
-    "apply": "Appliquer",
     "loading": "Chargement…",
     "saving": "Enregistrement…",
     "saved": "Enregistré"
@@ -1464,7 +1460,8 @@
       "entriesFill": "Remplissage",
       "evictions": {
         "one": "{count} éviction LRU",
-        "other": "{count} évictions LRU"
+        "other": "{count} évictions LRU",
+        "many": "{count} évictions LRU"
       },
       "cacheUrl": "URL",
       "cacheAge": "Âge",
@@ -1524,7 +1521,8 @@
       "heroNew": "Utiliser Home Screens sur plusieurs écrans",
       "heroExisting": {
         "one": "{count} écran dans ce foyer",
-        "other": "{count} écrans dans ce foyer"
+        "other": "{count} écrans dans ce foyer",
+        "many": "{count} écrans dans ce foyer"
       },
       "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi — un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon — chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
       "emptyDescriptionSuffix": ".",
@@ -1549,7 +1547,8 @@
       "unadoptedLabel": "écran non adopté",
       "unadoptedWaiting": {
         "one": "{count} écran non adopté en attente",
-        "other": "{count} écrans non adoptés en attente"
+        "other": "{count} écrans non adoptés en attente",
+        "many": "{count} écrans non adoptés en attente"
       },
       "unadoptedHintPrefix": "Ces Pis sont connectés au hub mais ne sont pas encore enregistrés. Cliquez sur ",
       "unadoptedHintSuffix": " pour leur attribuer des écrans.",
@@ -1568,7 +1567,8 @@
       "rotationNormal": "normale",
       "screenCount": {
         "one": "{count} écran",
-        "other": "{count} écrans"
+        "other": "{count} écrans",
+        "many": "{count} écrans"
       },
       "multipleClientsCardHeading": "{count} clients distincts signalent cet écran",
       "tabsSuffix": "×{count} onglets",
@@ -1600,6 +1600,17 @@
       "formErrorIdTaken": "Un écran avec l’ID « {id} » existe déjà",
       "formErrorWidth": "La largeur doit être un entier positif ≤ {max}",
       "formErrorHeight": "La hauteur doit être un entier positif ≤ {max}"
+    },
+    "header": {
+      "saveFailed": "Échec de l’enregistrement",
+      "backToEditor": "Éditeur",
+      "contextLabel": "Paramètres",
+      "theme": {
+        "dark": "Sombre",
+        "light": "Clair",
+        "system": "Système",
+        "titleFormat": "Thème : {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1674,10 @@
       "flowers": "Fleurs",
       "seasons": "Saisons",
       "abstract": "Abstrait"
+    },
+    "errors": {
+      "searchUnsplash": "Échec de la recherche Unsplash",
+      "saveImage": "Échec de l’enregistrement de l’image"
     }
   },
   "choreChartModal": {
@@ -2033,7 +2048,8 @@
     "loadingCatalog": "Chargement du catalogue complet…",
     "iconCount": {
       "one": "{count} icône",
-      "other": "{count} icônes"
+      "other": "{count} icônes",
+      "many": "{count} icônes"
     },
     "noMatch": "Aucune icône ne correspond à « {query} ». Essaie un autre mot-clé.",
     "moreResults": "+{count} de plus — affine ta recherche pour les voir.",
@@ -3028,7 +3044,19 @@
   },
   "accentColorPicker": {
     "label": "Couleur d'accent",
-    "customColor": "Couleur personnalisée"
+    "customColor": "Couleur personnalisée",
+    "presets": {
+      "none": "Aucun",
+      "purple": "Violet",
+      "blue": "Bleu",
+      "cyan": "Cyan",
+      "green": "Vert",
+      "amber": "Ambre",
+      "orange": "Orange",
+      "red": "Rouge",
+      "pink": "Rose",
+      "custom": "Personnalisé"
+    }
   },
   "templatePicker": {
     "title": "Modèles",
@@ -3044,10 +3072,15 @@
   "backupReminder": {
     "message": {
       "one": "Vous n’avez pas effectué de sauvegarde depuis 1 jour.",
-      "other": "Vous n’avez pas effectué de sauvegarde depuis {count} jours."
+      "other": "Vous n’avez pas effectué de sauvegarde depuis {count} jours.",
+      "many": "Vous n’avez pas effectué de sauvegarde depuis {count} jours."
     },
     "downloading": "Téléchargement…",
     "backupNow": "Sauvegarder maintenant",
     "dismiss": "Fermer"
+  },
+  "statusDot": {
+    "configured": "Configuré",
+    "notConfigured": "Non configuré"
   }
 }

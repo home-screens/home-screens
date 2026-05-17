@@ -3,7 +3,6 @@
   "tomorrow": "Morgen",
   "yesterday": "Gisteren",
   "loading": "Laden…",
-  "noData": "Geen gegevens",
   "relativeTime": {
     "justNow": "zojuist",
     "secondsAgo": "{n} sec geleden",

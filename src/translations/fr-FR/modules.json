@@ -128,9 +128,7 @@
     "noEvents": "Aucun événement",
     "noUpcomingEvents": "Aucun événement à venir",
     "weekShort": "Sem.",
-    "moreCount": "+{count} de plus",
-    "am": "AM",
-    "pm": "PM"
+    "moreCount": "+{count} de plus"
   },
   "fullscreen-calendar": {
     "today": "Aujourd'hui",
@@ -355,6 +353,109 @@
       "noMatch": "Aucune icône correspondante",
       "none": "Aucun",
       "clear": "Effacer"
+    },
+    "iconLabels": {
+      "user": "Personne",
+      "user-round": "Personne 2",
+      "baby": "Bébé",
+      "crown": "Royal",
+      "star": "Étoile",
+      "heart": "Cœur",
+      "smile": "Sourire",
+      "person-standing": "Debout",
+      "circle-user": "Avatar",
+      "shield-user": "Gardien",
+      "cat": "Chat",
+      "dog": "Chien",
+      "sparkles": "Propre",
+      "brush-cleaning": "Frotter",
+      "spray-can": "Vaporiser",
+      "droplets": "Eau",
+      "bath": "Bain",
+      "shower-head": "Douche",
+      "towel-rack": "Serviettes",
+      "bed": "Lit",
+      "bed-double": "Lits",
+      "utensils": "Vaisselle",
+      "utensils-crossed": "Cuisine",
+      "cooking-pot": "Marmite",
+      "hand-platter": "Servir",
+      "glass-water": "Boire",
+      "shirt": "Linge",
+      "washing-machine": "Lave-linge",
+      "trash": "Poubelle",
+      "recycle": "Recycler",
+      "bone": "Animal",
+      "flower": "Jardin",
+      "leaf": "Cour",
+      "tree": "Arbre",
+      "car": "Voiture",
+      "mail": "Courrier",
+      "mailbox": "Boîte aux lettres",
+      "shopping-cart": "Courses",
+      "shopping-bag": "Achats",
+      "book-open": "Lire",
+      "notebook": "Devoirs",
+      "music": "Musique",
+      "lamp": "Lampe",
+      "wrench": "Réparer",
+      "scissors": "Couper",
+      "package": "Colis",
+      "home": "Maison",
+      "key": "Clé",
+      "lightbulb": "Lumière",
+      "wifi": "WiFi",
+      "toilet": "Toilettes",
+      "soap": "Savon",
+      "paw-print": "Soin animal",
+      "footprints": "Promenade",
+      "shovel": "Pelle",
+      "paint-roller": "Peindre",
+      "hammer": "Réparer",
+      "fence": "Clôture",
+      "bike": "Vélo",
+      "chef-hat": "Chef",
+      "microwave": "Micro-ondes",
+      "refrigerator": "Frigo",
+      "apple": "Goûter",
+      "coffee": "Café",
+      "egg": "Petit-déj",
+      "pill": "Médicament",
+      "alarm-clock": "Réveil",
+      "timer": "Minuteur",
+      "dumbbell": "Sport",
+      "toy-brick": "Jouets",
+      "backpack": "École",
+      "blinds": "Stores",
+      "gift": "Cadeau",
+      "tv": "TV",
+      "ice-cream-cone": "Glace",
+      "clapperboard": "Film",
+      "pizza": "Pizza",
+      "banknote": "Argent",
+      "circle-check-big": "Réussi",
+      "party-popper": "Fête",
+      "rocket": "Fusée",
+      "gem": "Joyau",
+      "trophy": "Trophée",
+      "gamepad-2": "Jeux",
+      "headphones": "Musique",
+      "candy": "Bonbon",
+      "cookie": "Biscuit",
+      "cake": "Gâteau",
+      "palette": "Art",
+      "ticket": "Billet",
+      "popcorn": "Popcorn",
+      "circle-dollar-sign": "Dollar",
+      "wallet": "Portefeuille",
+      "badge-check": "Badge",
+      "plane": "Voyage",
+      "tent": "Camping",
+      "fish": "Poisson",
+      "drama": "Théâtre",
+      "puzzle": "Puzzle",
+      "sticker": "Autocollant",
+      "volleyball": "Sports"
     }
   },
   "fullscreen-chore-chart": {
@@ -367,7 +468,6 @@
     "bestStreakValue": "{name} — {count} jours",
     "bestStreakNone": "Aucune",
     "thisWeek": "Cette semaine",
-    "ticket": "ticket",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
@@ -454,7 +554,8 @@
     "noEvents": "Aucun événement trouvé",
     "yearsAgo": {
       "one": "il y a {count} an",
-      "other": "il y a {count} ans"
+      "other": "il y a {count} ans",
+      "many": "il y a {count} ans"
     }
   },
   "word-of-day": {
@@ -513,7 +614,8 @@
     "empty": "Aucune tâche à afficher",
     "taskCount": {
       "one": "{count} tâche",
-      "other": "{count} tâches"
+      "other": "{count} tâches",
+      "many": "{count} tâches"
     },
     "recurringTooltip": "Récurrente",
     "completeAriaLabel": "Terminer : {content}",
@@ -539,7 +641,8 @@
       "tomorrow": "Demain",
       "daysOverdue": {
         "one": "{count} j de retard",
-        "other": "{count} j de retard"
+        "other": "{count} j de retard",
+        "many": "{count} j de retard"
       }
     },
     "focus": {
@@ -547,7 +650,8 @@
       "allCaughtUp": "Tu es à jour !",
       "taskRemaining": {
         "one": "tâche restante",
-        "other": "tâches restantes"
+        "other": "tâches restantes",
+        "many": "tâches restantes"
       }
     }
   },

@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Igual que el idioma"
   },
   "common": {
-    "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "remove": "Quitar",
-    "edit": "Editar",
     "add": "Añadir",
     "close": "Cerrar",
     "back": "Atrás",
     "confirm": "Confirmar",
-    "reset": "Restablecer",
-    "apply": "Aplicar",
     "loading": "Cargando…",
     "saving": "Guardando…",
     "saved": "Guardado"
@@ -1464,7 +1460,8 @@
       "entriesFill": "Llenado",
       "evictions": {
         "one": "{count} expulsión LRU",
-        "other": "{count} expulsiones LRU"
+        "other": "{count} expulsiones LRU",
+        "many": "{count} expulsiones LRU"
       },
       "cacheUrl": "URL",
       "cacheAge": "Antigüedad",
@@ -1524,7 +1521,8 @@
       "heroNew": "Ejecuta Home Screens en varias pantallas",
       "heroExisting": {
         "one": "{count} pantalla en este hogar",
-        "other": "{count} pantallas en este hogar"
+        "other": "{count} pantallas en este hogar",
+        "many": "{count} pantallas en este hogar"
       },
       "emptyDescriptionPrefix": "Controla más de una pantalla desde esta Pi — una pantalla táctil de cocina, un monitor de dormitorio, una TV de salón — cada una con su propia disposición, resolución y rotación. Esta Pi se convierte en el hub y las sirve todas; las pantallas secundarias pueden ser Pi Zeros económicos ejecutando ",
       "emptyDescriptionSuffix": ".",
@@ -1549,7 +1547,8 @@
       "unadoptedLabel": "pantalla no adoptada",
       "unadoptedWaiting": {
         "one": "{count} pantalla no adoptada esperando",
-        "other": "{count} pantallas no adoptadas esperando"
+        "other": "{count} pantallas no adoptadas esperando",
+        "many": "{count} pantallas no adoptadas esperando"
       },
       "unadoptedHintPrefix": "Estas Pis están conectadas al hub pero aún no se han registrado. Haz clic en ",
       "unadoptedHintSuffix": " para asignarles pantallas.",
@@ -1568,7 +1567,8 @@
       "rotationNormal": "normal",
       "screenCount": {
         "one": "{count} pantalla",
-        "other": "{count} pantallas"
+        "other": "{count} pantallas",
+        "many": "{count} pantallas"
       },
       "multipleClientsCardHeading": "{count} clientes distintos informan para esta pantalla",
       "tabsSuffix": "×{count} pestañas",
@@ -1600,6 +1600,17 @@
       "formErrorIdTaken": "Ya existe una pantalla con el ID «{id}»",
       "formErrorWidth": "El ancho debe ser un entero positivo ≤ {max}",
       "formErrorHeight": "El alto debe ser un entero positivo ≤ {max}"
+    },
+    "header": {
+      "saveFailed": "Error al guardar",
+      "backToEditor": "Editor",
+      "contextLabel": "Ajustes",
+      "theme": {
+        "dark": "Oscuro",
+        "light": "Claro",
+        "system": "Sistema",
+        "titleFormat": "Tema: {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1674,10 @@
       "flowers": "Flores",
       "seasons": "Estaciones",
       "abstract": "Abstracto"
+    },
+    "errors": {
+      "searchUnsplash": "No se pudo buscar en Unsplash",
+      "saveImage": "No se pudo guardar la imagen"
     }
   },
   "choreChartModal": {
@@ -2033,7 +2048,8 @@
     "loadingCatalog": "Cargando catálogo completo…",
     "iconCount": {
       "one": "{count} icono",
-      "other": "{count} iconos"
+      "other": "{count} iconos",
+      "many": "{count} iconos"
     },
     "noMatch": "Ningún icono coincide con «{query}». Prueba otra palabra clave.",
     "moreResults": "+{count} más — afina la búsqueda para verlos.",
@@ -3028,7 +3044,19 @@
   },
   "accentColorPicker": {
     "label": "Color de acento",
-    "customColor": "Color personalizado"
+    "customColor": "Color personalizado",
+    "presets": {
+      "none": "Ninguno",
+      "purple": "Violeta",
+      "blue": "Azul",
+      "cyan": "Cian",
+      "green": "Verde",
+      "amber": "Ámbar",
+      "orange": "Naranja",
+      "red": "Rojo",
+      "pink": "Rosa",
+      "custom": "Personalizado"
+    }
   },
   "templatePicker": {
     "title": "Plantillas",
@@ -3044,10 +3072,15 @@
   "backupReminder": {
     "message": {
       "one": "No has hecho una copia de seguridad en 1 día.",
-      "other": "No has hecho una copia de seguridad en {count} días."
+      "other": "No has hecho una copia de seguridad en {count} días.",
+      "many": "No has hecho una copia de seguridad en {count} días."
     },
     "downloading": "Descargando…",
     "backupNow": "Hacer copia ahora",
     "dismiss": "Descartar"
+  },
+  "statusDot": {
+    "configured": "Configurado",
+    "notConfigured": "Sin configurar"
   }
 }

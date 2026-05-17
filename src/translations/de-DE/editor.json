@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Wie Sprache"
   },
   "common": {
-    "save": "Speichern",
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "remove": "Entfernen",
-    "edit": "Bearbeiten",
     "add": "Hinzufügen",
     "close": "Schließen",
     "back": "Zurück",
     "confirm": "Bestätigen",
-    "reset": "Zurücksetzen",
-    "apply": "Übernehmen",
     "loading": "Lädt…",
     "saving": "Speichert…",
     "saved": "Gespeichert"
@@ -1600,6 +1596,17 @@
       "formErrorIdTaken": "Eine Anzeige mit der ID „{id}“ existiert bereits",
       "formErrorWidth": "Die Breite muss eine positive Ganzzahl ≤ {max} sein",
       "formErrorHeight": "Die Höhe muss eine positive Ganzzahl ≤ {max} sein"
+    },
+    "header": {
+      "saveFailed": "Speichern fehlgeschlagen",
+      "backToEditor": "Editor",
+      "contextLabel": "Einstellungen",
+      "theme": {
+        "dark": "Dunkel",
+        "light": "Hell",
+        "system": "System",
+        "titleFormat": "Design: {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1670,10 @@
       "flowers": "Blumen",
       "seasons": "Jahreszeiten",
       "abstract": "Abstrakt"
+    },
+    "errors": {
+      "searchUnsplash": "Unsplash-Suche fehlgeschlagen",
+      "saveImage": "Bild konnte nicht gespeichert werden"
     }
   },
   "choreChartModal": {
@@ -3028,7 +3039,19 @@
   },
   "accentColorPicker": {
     "label": "Akzentfarbe",
-    "customColor": "Benutzerdefinierte Farbe"
+    "customColor": "Benutzerdefinierte Farbe",
+    "presets": {
+      "none": "Keine",
+      "purple": "Lila",
+      "blue": "Blau",
+      "cyan": "Cyan",
+      "green": "Grün",
+      "amber": "Bernstein",
+      "orange": "Orange",
+      "red": "Rot",
+      "pink": "Pink",
+      "custom": "Benutzerdefiniert"
+    }
   },
   "templatePicker": {
     "title": "Vorlagen",
@@ -3049,5 +3072,9 @@
     "downloading": "Wird heruntergeladen…",
     "backupNow": "Jetzt sichern",
     "dismiss": "Schließen"
+  },
+  "statusDot": {
+    "configured": "Konfiguriert",
+    "notConfigured": "Nicht konfiguriert"
   }
 }

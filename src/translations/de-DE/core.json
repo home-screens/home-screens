@@ -3,7 +3,6 @@
   "tomorrow": "Morgen",
   "yesterday": "Gestern",
   "loading": "Lädt…",
-  "noData": "Keine Daten",
   "relativeTime": {
     "justNow": "gerade eben",
     "secondsAgo": "vor {n} Sek.",

@@ -1,6 +1,9 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
+
 export default function StatusDot({ configured }: { configured: boolean }) {
+  const t = useTranslate('editor');
   return (
     <span className="flex items-center gap-1.5 text-xs">
       <span
@@ -9,7 +12,7 @@ export default function StatusDot({ configured }: { configured: boolean }) {
         }`}
       />
       <span className={configured ? 'text-hs-success' : 'text-hs-text-faint'}>
-        {configured ? 'Configured' : 'Not configured'}
+        {configured ? t('statusDot.configured') : t('statusDot.notConfigured')}
       </span>
     </span>
   );

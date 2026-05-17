@@ -102,7 +102,7 @@ export default function ImageBrowserModal({
       `/api/unsplash?query=${encodeURIComponent(query)}&page=${pageNum}&per_page=16&orientation=portrait`
     );
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to search Unsplash');
+    if (!res.ok) throw new Error(data.error || t('imageBrowserModal.errors.searchUnsplash'));
 
     const unsplashPhotos: UnsplashPhoto[] = data.photos ?? [];
     const newCache = new Map<string, UnsplashPhoto>();
@@ -117,7 +117,7 @@ export default function ImageBrowserModal({
     });
     photoCacheRef.current = newCache;
     return { photos: browsePhotos, totalPages: data.totalPages ?? 1 };
-  }, []);
+  }, [t]);
 
   const handleUnsplashUsePhoto = useCallback(async (photo: BrowsePhoto) => {
     const original = photoCacheRef.current.get(photo.id);
@@ -133,13 +133,13 @@ export default function ImageBrowserModal({
         filename: `unsplash-${original.id}`,
       }),
     });
-    if (!res.ok) throw new Error('Failed to save image');
+    if (!res.ok) throw new Error(t('imageBrowserModal.errors.saveImage'));
     const data = await res.json();
     if (data.path) {
       onSelectImage?.(data.path);
       onClose();
     }
-  }, [onSelectImage, onClose]);
+  }, [onSelectImage, onClose, t]);
 
   const currentDirInfo = lib.directories.find((d) => d.path === lib.selectedDir);
 

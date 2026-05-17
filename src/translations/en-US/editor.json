@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Same as language"
   },
   "common": {
-    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "remove": "Remove",
-    "edit": "Edit",
     "add": "Add",
     "close": "Close",
     "back": "Back",
     "confirm": "Confirm",
-    "reset": "Reset",
-    "apply": "Apply",
     "loading": "Loading…",
     "saving": "Saving…",
     "saved": "Saved"
@@ -1600,6 +1596,17 @@
       "formErrorIdTaken": "A display with ID \"{id}\" already exists",
       "formErrorWidth": "Width must be a positive integer ≤ {max}",
       "formErrorHeight": "Height must be a positive integer ≤ {max}"
+    },
+    "header": {
+      "saveFailed": "Save failed",
+      "backToEditor": "Editor",
+      "contextLabel": "Settings",
+      "theme": {
+        "dark": "Dark",
+        "light": "Light",
+        "system": "System",
+        "titleFormat": "Theme: {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1670,10 @@
       "flowers": "Flowers",
       "seasons": "Seasons",
       "abstract": "Abstract"
+    },
+    "errors": {
+      "searchUnsplash": "Failed to search Unsplash",
+      "saveImage": "Failed to save image"
     }
   },
   "choreChartModal": {
@@ -3028,7 +3039,19 @@
   },
   "accentColorPicker": {
     "label": "Accent Color",
-    "customColor": "Custom Color"
+    "customColor": "Custom Color",
+    "presets": {
+      "none": "None",
+      "purple": "Purple",
+      "blue": "Blue",
+      "cyan": "Cyan",
+      "green": "Green",
+      "amber": "Amber",
+      "orange": "Orange",
+      "red": "Red",
+      "pink": "Pink",
+      "custom": "Custom"
+    }
   },
   "templatePicker": {
     "title": "Templates",
@@ -3049,5 +3072,9 @@
     "downloading": "Downloading…",
     "backupNow": "Backup Now",
     "dismiss": "Dismiss"
+  },
+  "statusDot": {
+    "configured": "Configured",
+    "notConfigured": "Not configured"
   }
 }

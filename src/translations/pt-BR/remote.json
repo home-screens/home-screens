@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Salvar",
     "cancel": "Cancelar",
     "delete": "Excluir",
     "remove": "Remover",
-    "edit": "Editar",
     "add": "Adicionar",
     "close": "Fechar",
     "back": "Voltar",
     "confirm": "Confirmar",
-    "loading": "Carregando…",
-    "noData": "Sem dados"
+    "loading": "Carregando…"
   },
   "tabs": {
     "control": "Controle",
     "chores": "Tarefas",
     "meals": "Refeições",
-    "rewards": "Recompensas",
-    "photos": "Fotos",
-    "alerts": "Avisos",
-    "settings": "Configurações"
+    "photos": "Fotos"
   },
   "statusBar": {
     "title": "Controle remoto",

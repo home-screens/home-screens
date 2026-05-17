@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
-import { useTranslate } from '@/i18n';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
@@ -43,13 +43,13 @@ const MOBILE_LABEL_STYLE: CSSProperties = {
   letterSpacing: '0.04em',
 };
 
-function filterIcons(icons: string[], search: string): string[] {
+function filterIcons(icons: string[], search: string, t: TranslateFn): string[] {
   if (!search) return icons;
   const q = search.toLowerCase();
   return icons.filter((name) => {
-    const def = getIconDef(name);
-    if (!def) return false;
-    return name.toLowerCase().includes(q) || def.label.toLowerCase().includes(q);
+    if (!getIconDef(name)) return false;
+    const label = t(`chore-chart.iconLabels.${name}`);
+    return name.toLowerCase().includes(q) || label.toLowerCase().includes(q);
   });
 }
 
@@ -57,7 +57,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
   const t = useTranslate('modules');
   const [search, setSearch] = useState('');
   const showSearch = icons.length > SEARCH_THRESHOLD[variant];
-  const filtered = filterIcons(icons, search);
+  const filtered = filterIcons(icons, search, t);
 
   if (variant === 'mobile') {
     return (
@@ -116,7 +116,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {def.label}
+                  {t(`chore-chart.iconLabels.${name}`)}
                 </span>
               </button>
             );
@@ -194,7 +194,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
             >
               <Icon size={22} strokeWidth={1.75} />
               <span className="text-[9px] leading-tight text-hs-text-muted truncate w-full text-center">
-                {def.label}
+                {t(`chore-chart.iconLabels.${name}`)}
               </span>
             </button>
           );

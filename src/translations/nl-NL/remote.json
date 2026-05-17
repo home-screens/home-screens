@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Opslaan",
     "cancel": "Annuleren",
     "delete": "Verwijderen",
     "remove": "Verwijderen",
-    "edit": "Bewerken",
     "add": "Toevoegen",
     "close": "Sluiten",
     "back": "Terug",
     "confirm": "Bevestigen",
-    "loading": "Laden…",
-    "noData": "Geen gegevens"
+    "loading": "Laden…"
   },
   "tabs": {
     "control": "Bediening",
     "chores": "Klusjes",
     "meals": "Maaltijden",
-    "rewards": "Beloningen",
-    "photos": "Foto's",
-    "alerts": "Meldingen",
-    "settings": "Instellingen"
+    "photos": "Foto's"
   },
   "statusBar": {
     "title": "Afstandsbediening",

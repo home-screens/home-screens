@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "remove": "Remove",
-    "edit": "Edit",
     "add": "Add",
     "close": "Close",
     "back": "Back",
     "confirm": "Confirm",
-    "loading": "Loading…",
-    "noData": "No data"
+    "loading": "Loading…"
   },
   "tabs": {
     "control": "Control",
     "chores": "Chores",
     "meals": "Meals",
-    "rewards": "Rewards",
-    "photos": "Photos",
-    "alerts": "Alerts",
-    "settings": "Settings"
+    "photos": "Photos"
   },
   "statusBar": {
     "title": "Remote",

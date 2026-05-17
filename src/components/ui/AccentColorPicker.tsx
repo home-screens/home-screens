@@ -10,17 +10,17 @@ interface AccentColorPickerProps {
 }
 
 const PRESETS = [
-  { label: 'None', value: '#000000' },
-  { label: 'Purple', value: '#a78bfa' },
-  { label: 'Blue', value: '#3b82f6' },
-  { label: 'Cyan', value: '#22d3ee' },
-  { label: 'Green', value: '#22c55e' },
-  { label: 'Amber', value: '#fbbf24' },
-  { label: 'Orange', value: '#f97316' },
-  { label: 'Red', value: '#ef4444' },
-  { label: 'Pink', value: '#ec4899' },
-  { label: 'Custom', value: '' },
-];
+  { key: 'none', value: '#000000' },
+  { key: 'purple', value: '#a78bfa' },
+  { key: 'blue', value: '#3b82f6' },
+  { key: 'cyan', value: '#22d3ee' },
+  { key: 'green', value: '#22c55e' },
+  { key: 'amber', value: '#fbbf24' },
+  { key: 'orange', value: '#f97316' },
+  { key: 'red', value: '#ef4444' },
+  { key: 'pink', value: '#ec4899' },
+  { key: 'custom', value: '' },
+] as const;
 
 export default function AccentColorPicker({ value, onChange }: AccentColorPickerProps) {
   const t = useTranslate('editor');
@@ -58,7 +58,7 @@ export default function AccentColorPicker({ value, onChange }: AccentColorPicker
             className="px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body"
           >
             {PRESETS.map((p) => (
-              <option key={p.label} value={p.value}>{p.label}</option>
+              <option key={p.key} value={p.value}>{t(`accentColorPicker.presets.${p.key}`)}</option>
             ))}
           </select>
         </div>

@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Zelfde als taal"
   },
   "common": {
-    "save": "Opslaan",
     "cancel": "Annuleren",
     "delete": "Verwijderen",
     "remove": "Verwijderen",
-    "edit": "Bewerken",
     "add": "Toevoegen",
     "close": "Sluiten",
     "back": "Terug",
     "confirm": "Bevestigen",
-    "reset": "Herstellen",
-    "apply": "Toepassen",
     "loading": "Laden…",
     "saving": "Opslaan…",
     "saved": "Opgeslagen"
@@ -1600,6 +1596,17 @@
       "formErrorIdTaken": "Er bestaat al een scherm met ID \"{id}\"",
       "formErrorWidth": "Breedte moet een positief geheel getal ≤ {max} zijn",
       "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn"
+    },
+    "header": {
+      "saveFailed": "Opslaan mislukt",
+      "backToEditor": "Editor",
+      "contextLabel": "Instellingen",
+      "theme": {
+        "dark": "Donker",
+        "light": "Licht",
+        "system": "Systeem",
+        "titleFormat": "Thema: {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1670,10 @@
       "flowers": "Bloemen",
       "seasons": "Seizoenen",
       "abstract": "Abstract"
+    },
+    "errors": {
+      "searchUnsplash": "Zoeken op Unsplash mislukt",
+      "saveImage": "Afbeelding opslaan mislukt"
     }
   },
   "choreChartModal": {
@@ -3028,7 +3039,19 @@
   },
   "accentColorPicker": {
     "label": "Accentkleur",
-    "customColor": "Aangepaste kleur"
+    "customColor": "Aangepaste kleur",
+    "presets": {
+      "none": "Geen",
+      "purple": "Paars",
+      "blue": "Blauw",
+      "cyan": "Cyaan",
+      "green": "Groen",
+      "amber": "Amber",
+      "orange": "Oranje",
+      "red": "Rood",
+      "pink": "Roze",
+      "custom": "Aangepast"
+    }
   },
   "templatePicker": {
     "title": "Sjablonen",
@@ -3049,5 +3072,9 @@
     "downloading": "Downloaden…",
     "backupNow": "Nu back-uppen",
     "dismiss": "Sluiten"
+  },
+  "statusDot": {
+    "configured": "Geconfigureerd",
+    "notConfigured": "Niet geconfigureerd"
   }
 }

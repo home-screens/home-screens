@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslate } from '@/i18n';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import SettingsSidebar from '@/components/editor/settings/SettingsSidebar';
 import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
@@ -89,11 +90,12 @@ export default function SettingsPage() {
   // unless it's wrapped in a Suspense boundary. The outer shell is
   // intentionally empty (or a cheap fallback) so Next can prerender a
   // static HTML skeleton and stream the real content at runtime.
+  const t = useTranslate('editor');
   return (
     <Suspense
       fallback={
         <div className="h-screen flex items-center justify-center text-hs-text-faint">
-          Loading...
+          {t('common.loading')}
         </div>
       }
     >
@@ -102,9 +104,12 @@ export default function SettingsPage() {
   );
 }
 
+type SaveStatus = 'saved' | 'failed' | null;
+
 function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslate('editor');
 
   const { config, selectedDisplayId, updateSettings, saveConfig, loadConfig, scaleAllModules } = useEditorStore();
   // Subscribe to the store's save state so the header indicator lights
@@ -148,7 +153,7 @@ function SettingsPageContent() {
   const activeTab: TabId | null = sectionRoute.kind === 'defaults' ? sectionRoute.page : null;
   const [state, setState] = useState<SettingsState>(() => toFormState(settings));
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<SaveStatus>(null);
 
   // Load config on mount (handles hard refresh / direct URL visit)
   useEffect(() => {
@@ -222,9 +227,9 @@ function SettingsPageContent() {
       // skip the toast and wait for the final transition.
       const live = useEditorStore.getState();
       if (live.isSaving || live.isDirty) return;
-      setSaveMessage('Saved');
+      setSaveMessage('saved');
       const timer = setTimeout(
-        () => setSaveMessage((prev) => (prev === 'Saved' ? null : prev)),
+        () => setSaveMessage((prev) => (prev === 'saved' ? null : prev)),
         2000,
       );
       return () => clearTimeout(timer);
@@ -240,14 +245,14 @@ function SettingsPageContent() {
       try {
         updateSettings(toConfigSettings(latestStateRef.current));
         await saveConfig();
-        setSaveMessage('Saved');
+        setSaveMessage('saved');
         // Clear the "Saved" toast after a couple of seconds so it
         // disappears during long idle periods and reappears on the
         // next change.
-        setTimeout(() => setSaveMessage((prev) => (prev === 'Saved' ? null : prev)), 2000);
+        setTimeout(() => setSaveMessage((prev) => (prev === 'saved' ? null : prev)), 2000);
       } catch (err) {
         console.error('Auto-save failed:', err);
-        setSaveMessage('Save failed');
+        setSaveMessage('failed');
       } finally {
         setSaving(false);
       }
@@ -357,7 +362,7 @@ function SettingsPageContent() {
   if (!settings) {
     return (
       <div className="h-screen flex items-center justify-center text-hs-text-faint">
-        Loading...
+        {t('common.loading')}
       </div>
     );
   }
@@ -374,22 +379,21 @@ function SettingsPageContent() {
   // Error state falls back to storeSaveError so per-display save
   // failures don't disappear just because local state said "Saved".
   const isActivelySaving = saving || storeIsSaving;
-  const failureMessage =
-    saveMessage === 'Save failed' ? 'Save failed' : storeSaveError ? 'Save failed' : null;
+  const hasFailure = saveMessage === 'failed' || !!storeSaveError;
   const statusIndicator = isActivelySaving ? (
     <span className="text-xs text-hs-text-muted flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse" />
-      Saving…
+      {t('common.saving')}
     </span>
-  ) : failureMessage ? (
+  ) : hasFailure ? (
     <span className="text-xs text-hs-danger flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-danger" />
-      {failureMessage}
+      {t('settings.header.saveFailed')}
     </span>
-  ) : saveMessage === 'Saved' ? (
+  ) : saveMessage === 'saved' ? (
     <span className="text-xs text-hs-success flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-success" />
-      Saved
+      {t('common.saved')}
     </span>
   ) : null;
 
@@ -403,11 +407,11 @@ function SettingsPageContent() {
             className="flex items-center gap-1.5 text-sm text-hs-text-muted hover:text-hs-text-body transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Editor
+            {t('settings.header.backToEditor')}
           </button>
           <div className="h-6 w-px bg-hs-card" />
           <button onClick={handleBack}>
-            <HomeScreensLogo contextLabel="Settings" />
+            <HomeScreensLogo contextLabel={t('settings.header.contextLabel')} />
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -594,9 +598,9 @@ function SettingsPageContent() {
 
 const THEME_CYCLE: ThemeChoice[] = ['dark', 'light', 'system'];
 const THEME_ICON = { dark: Moon, light: Sun, system: Monitor } as const;
-const THEME_LABEL = { dark: 'Dark', light: 'Light', system: 'System' } as const;
 
 function ThemeToggle() {
+  const t = useTranslate('editor');
   const [choice, setChoice] = useState<ThemeChoice>('dark');
   useEffect(() => { setChoice(getThemeChoice()); }, []);
 
@@ -607,15 +611,16 @@ function ThemeToggle() {
   };
 
   const Icon = THEME_ICON[choice];
+  const label = t(`settings.header.theme.${choice}`);
 
   return (
     <button
       onClick={cycle}
       className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover transition-colors"
-      title={`Theme: ${THEME_LABEL[choice]}`}
+      title={t('settings.header.theme.titleFormat', { label })}
     >
       <Icon className="w-3.5 h-3.5" />
-      <span>{THEME_LABEL[choice]}</span>
+      <span>{label}</span>
     </button>
   );
 }

@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "remove": "Quitar",
-    "edit": "Editar",
     "add": "Añadir",
     "close": "Cerrar",
     "back": "Atrás",
     "confirm": "Confirmar",
-    "loading": "Cargando…",
-    "noData": "Sin datos"
+    "loading": "Cargando…"
   },
   "tabs": {
     "control": "Control",
     "chores": "Tareas",
     "meals": "Comidas",
-    "rewards": "Premios",
-    "photos": "Fotos",
-    "alerts": "Avisos",
-    "settings": "Ajustes"
+    "photos": "Fotos"
   },
   "statusBar": {
     "title": "Mando",

@@ -11,17 +11,13 @@
     "formattingLocaleSameAsLanguage": "Mesma do idioma"
   },
   "common": {
-    "save": "Salvar",
     "cancel": "Cancelar",
     "delete": "Excluir",
     "remove": "Remover",
-    "edit": "Editar",
     "add": "Adicionar",
     "close": "Fechar",
     "back": "Voltar",
     "confirm": "Confirmar",
-    "reset": "Redefinir",
-    "apply": "Aplicar",
     "loading": "Carregando…",
     "saving": "Salvando…",
     "saved": "Salvo"
@@ -1464,7 +1460,8 @@
       "entriesFill": "Preenchimento",
       "evictions": {
         "one": "{count} despejo LRU",
-        "other": "{count} despejos LRU"
+        "other": "{count} despejos LRU",
+        "many": "{count} despejos LRU"
       },
       "cacheUrl": "URL",
       "cacheAge": "Idade",
@@ -1524,7 +1521,8 @@
       "heroNew": "Use o Home Screens em vários displays",
       "heroExisting": {
         "one": "{count} display nesta casa",
-        "other": "{count} displays nesta casa"
+        "other": "{count} displays nesta casa",
+        "many": "{count} displays nesta casa"
       },
       "emptyDescriptionPrefix": "Controle mais de uma tela com este Pi — uma tela touch na cozinha, um monitor no quarto, uma TV na sala — cada uma com layout, resolução e rotação próprios. Este Pi se torna o hub e serve todas elas; displays secundários podem ser Pi Zeros baratos rodando ",
       "emptyDescriptionSuffix": ".",
@@ -1549,7 +1547,8 @@
       "unadoptedLabel": "display não adotado",
       "unadoptedWaiting": {
         "one": "{count} display não adotado aguardando",
-        "other": "{count} displays não adotados aguardando"
+        "other": "{count} displays não adotados aguardando",
+        "many": "{count} displays não adotados aguardando"
       },
       "unadoptedHintPrefix": "Esses Pis estão conectados ao hub, mas ainda não foram registrados. Clique em ",
       "unadoptedHintSuffix": " para atribuir telas a eles.",
@@ -1568,7 +1567,8 @@
       "rotationNormal": "normal",
       "screenCount": {
         "one": "{count} tela",
-        "other": "{count} telas"
+        "other": "{count} telas",
+        "many": "{count} telas"
       },
       "multipleClientsCardHeading": "{count} clientes distintos relatando para este display",
       "tabsSuffix": "×{count} abas",
@@ -1600,6 +1600,17 @@
       "formErrorIdTaken": "Já existe um display com ID \"{id}\"",
       "formErrorWidth": "A largura deve ser um inteiro positivo ≤ {max}",
       "formErrorHeight": "A altura deve ser um inteiro positivo ≤ {max}"
+    },
+    "header": {
+      "saveFailed": "Falha ao salvar",
+      "backToEditor": "Editor",
+      "contextLabel": "Configurações",
+      "theme": {
+        "dark": "Escuro",
+        "light": "Claro",
+        "system": "Sistema",
+        "titleFormat": "Tema: {label}"
+      }
     }
   },
   "backgroundPicker": {
@@ -1663,6 +1674,10 @@
       "flowers": "Flores",
       "seasons": "Estações",
       "abstract": "Abstrato"
+    },
+    "errors": {
+      "searchUnsplash": "Falha ao pesquisar no Unsplash",
+      "saveImage": "Falha ao salvar a imagem"
     }
   },
   "choreChartModal": {
@@ -2033,7 +2048,8 @@
     "loadingCatalog": "Carregando catálogo completo…",
     "iconCount": {
       "one": "{count} ícone",
-      "other": "{count} ícones"
+      "other": "{count} ícones",
+      "many": "{count} ícones"
     },
     "noMatch": "Nenhum ícone corresponde a \"{query}\". Tente outra palavra-chave.",
     "moreResults": "+{count} mais — refine sua pesquisa para vê-los.",
@@ -3028,7 +3044,19 @@
   },
   "accentColorPicker": {
     "label": "Cor de destaque",
-    "customColor": "Cor personalizada"
+    "customColor": "Cor personalizada",
+    "presets": {
+      "none": "Nenhum",
+      "purple": "Roxo",
+      "blue": "Azul",
+      "cyan": "Ciano",
+      "green": "Verde",
+      "amber": "Âmbar",
+      "orange": "Laranja",
+      "red": "Vermelho",
+      "pink": "Rosa",
+      "custom": "Personalizado"
+    }
   },
   "templatePicker": {
     "title": "Modelos",
@@ -3044,10 +3072,15 @@
   "backupReminder": {
     "message": {
       "one": "Você não faz um backup há 1 dia.",
-      "other": "Você não faz um backup há {count} dias."
+      "other": "Você não faz um backup há {count} dias.",
+      "many": "Você não faz um backup há {count} dias."
     },
     "downloading": "Baixando…",
     "backupNow": "Fazer backup agora",
     "dismiss": "Dispensar"
+  },
+  "statusDot": {
+    "configured": "Configurado",
+    "notConfigured": "Não configurado"
   }
 }

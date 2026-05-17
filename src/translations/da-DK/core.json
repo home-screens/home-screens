@@ -3,7 +3,6 @@
   "tomorrow": "I morgen",
   "yesterday": "I går",
   "loading": "Henter…",
-  "noData": "Ingen data",
   "relativeTime": {
     "justNow": "lige nu",
     "secondsAgo": "{n}s siden",

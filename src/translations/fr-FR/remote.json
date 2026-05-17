@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Enregistrer",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "remove": "Retirer",
-    "edit": "Modifier",
     "add": "Ajouter",
     "close": "Fermer",
     "back": "Retour",
     "confirm": "Confirmer",
-    "loading": "Chargement…",
-    "noData": "Aucune donnée"
+    "loading": "Chargement…"
   },
   "tabs": {
     "control": "Contrôle",
     "chores": "Tâches",
     "meals": "Repas",
-    "rewards": "Récompenses",
-    "photos": "Photos",
-    "alerts": "Alertes",
-    "settings": "Paramètres"
+    "photos": "Photos"
   },
   "statusBar": {
     "title": "Télécommande",

@@ -1,25 +1,19 @@
 {
   "common": {
-    "save": "Speichern",
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "remove": "Entfernen",
-    "edit": "Bearbeiten",
     "add": "Hinzufügen",
     "close": "Schließen",
     "back": "Zurück",
     "confirm": "Bestätigen",
-    "loading": "Lädt…",
-    "noData": "Keine Daten"
+    "loading": "Lädt…"
   },
   "tabs": {
     "control": "Steuerung",
     "chores": "Aufgaben",
     "meals": "Mahlzeiten",
-    "rewards": "Belohnungen",
-    "photos": "Fotos",
-    "alerts": "Hinweise",
-    "settings": "Einstellungen"
+    "photos": "Fotos"
   },
   "statusBar": {
     "title": "Fernsteuerung",
