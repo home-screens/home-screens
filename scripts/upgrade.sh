@@ -559,6 +559,22 @@ case "${action}" in
       done
     fi
 
+    # 0b. Stop cloud-init from re-applying its cached hostname on every boot.
+    # Raspberry Pi OS ships cloud-init enabled; without this drop-in,
+    # /etc/hostname is rewritten on each boot from /boot/firmware/user-data,
+    # silently undoing any hostnamectl change made through the editor.
+    # Idempotent: only writes when the file is missing or differs.
+    if [ -d /etc/cloud ]; then
+      CLOUD_HOSTNAME_CONF="/etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg"
+      DESIRED_CLOUD_HOSTNAME="preserve_hostname: true"
+      if [ ! -f "${CLOUD_HOSTNAME_CONF}" ] \
+         || [ "$(cat "${CLOUD_HOSTNAME_CONF}")" != "${DESIRED_CLOUD_HOSTNAME}" ]; then
+        sudo mkdir -p /etc/cloud/cloud.cfg.d
+        echo "${DESIRED_CLOUD_HOSTNAME}" | sudo tee "${CLOUD_HOSTNAME_CONF}" > /dev/null
+        changed="${changed}cloud-init-hostname,"
+      fi
+    fi
+
     # 1. Ensure fontconfig prioritises emoji font for Chromium
     EMOJI_CONF="/etc/fonts/conf.d/01-emoji.conf"
     DESIRED_EMOJI_CONF='<?xml version="1.0"?>

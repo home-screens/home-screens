@@ -77,5 +77,30 @@ export const PUT = withAuth(async (request: NextRequest) => {
     console.warn('[network/hostname] avahi-daemon restart failed (non-fatal):', message);
   }
 
+  // 5. Tell cloud-init to keep its hands off the hostname. Raspberry Pi OS
+  //    ships cloud-init enabled, and its update_hostname module rewrites
+  //    /etc/hostname on every boot from the cached user-data value — which
+  //    would silently undo this change after the next reboot. The drop-in
+  //    is a no-op on systems without cloud-init.
+  try {
+    const dropIn = 'preserve_hostname: true\n';
+    const child = execFileCb(
+      'sudo',
+      ['tee', '/etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg'],
+      (err) => {
+        if (err)
+          console.warn(
+            '[network/hostname] Failed to write cloud-init drop-in (non-fatal):',
+            err.message,
+          );
+      },
+    );
+    child.stdin?.write(dropIn);
+    child.stdin?.end();
+    await new Promise<void>((resolve) => child.on('close', resolve));
+  } catch {
+    // Non-fatal: cloud-init may not be installed
+  }
+
   return NextResponse.json({ ok: true, hostname });
 }, 'Failed to update hostname');

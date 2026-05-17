@@ -50,6 +50,13 @@ export interface WeatherProvider {
   keyHintKey?: string;
   placeholderKey?: string;
   iconBg: string;
+  /**
+   * For regional providers, a known-good coordinate inside the coverage
+   * area used by the editor's Test button so connectivity verification
+   * doesn't fail when the user's configured location sits outside the
+   * provider's bounding box. Omitted for global providers.
+   */
+  testCoords?: { lat: number; lon: number };
 }
 
 export const WEATHER_PROVIDERS: WeatherProvider[] = [
@@ -111,6 +118,10 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     helperTextKey: 'settings.weatherPage.providers.smhi.helperText',
     secretKey: null,
     iconBg: '#005293',
+    // Stockholm — dead-center in SMHI's Nordic bbox. Used by the Test
+    // button so users outside the coverage area can still verify the
+    // integration is wired up.
+    testCoords: { lat: 59.3293, lon: 18.0686 },
   },
   {
     id: 'metoffice',
