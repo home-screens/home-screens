@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { execFile as execFileCb } from 'child_process';
 import { withAuth, getClientIP } from '@/lib/api-utils';
 import {
   nmcliSudo,
@@ -27,6 +28,39 @@ interface ConnectRequest {
   password?: string;
   iface: string;
   confirmed?: boolean;
+}
+
+/**
+ * Tell cloud-init to keep its hands off network config. Raspberry Pi OS
+ * ships cloud-init enabled with a NoCloud datasource that contains only
+ * an ethernet stanza; on every boot it regenerates /etc/netplan from
+ * that, deleting the 90-NM-<uuid>.yaml NetworkManager writes for the
+ * Wi-Fi profile we just created. Without this drop-in, any Wi-Fi added
+ * here gets silently nuked at the next reboot.
+ *
+ * Idempotent and non-fatal: on systems without cloud-init the tee call
+ * fails and we swallow the error.
+ */
+async function disableCloudInitNetwork(): Promise<void> {
+  try {
+    const dropIn = 'network: {config: disabled}\n';
+    const child = execFileCb(
+      'sudo',
+      ['tee', '/etc/cloud/cloud.cfg.d/99-home-screens-network.cfg'],
+      (err) => {
+        if (err)
+          console.warn(
+            '[network/wifi/connect] Failed to write cloud-init drop-in (non-fatal):',
+            err.message,
+          );
+      },
+    );
+    child.stdin?.write(dropIn);
+    child.stdin?.end();
+    await new Promise<void>((resolve) => child.on('close', resolve));
+  } catch {
+    // Non-fatal: cloud-init may not be installed
+  }
 }
 
 /* ─── Helpers ───────────────────────────────── */
@@ -173,6 +207,10 @@ export const POST = withAuth(async (request: NextRequest) => {
 
     // 10. Ensure source-based routing so both interfaces remain reachable
     await ensureSourceRouting();
+
+    // 10b. Self-heal cloud-init on already-installed Pis so the profile
+    // we just wrote survives the next reboot. See helper for full context.
+    await disableCloudInitNetwork();
 
     // 11. Schedule rollback if management interface with prior connection
     let rollbackId: string | undefined;
