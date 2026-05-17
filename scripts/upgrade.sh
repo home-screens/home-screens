@@ -575,6 +575,22 @@ case "${action}" in
       fi
     fi
 
+    # 0c. Stop cloud-init from rewriting netplan on every boot. The NoCloud
+    # datasource on Raspberry Pi OS contains only an ethernet stanza; on
+    # boot, cloud-init regenerates /etc/netplan from it and deletes the
+    # NM-managed 90-NM-<uuid>.yaml that stores any Wi-Fi profile added via
+    # the editor. Same idempotent drop-in pattern as the hostname fix.
+    if [ -d /etc/cloud ]; then
+      CLOUD_NETWORK_CONF="/etc/cloud/cloud.cfg.d/99-home-screens-network.cfg"
+      DESIRED_CLOUD_NETWORK="network: {config: disabled}"
+      if [ ! -f "${CLOUD_NETWORK_CONF}" ] \
+         || [ "$(cat "${CLOUD_NETWORK_CONF}")" != "${DESIRED_CLOUD_NETWORK}" ]; then
+        sudo mkdir -p /etc/cloud/cloud.cfg.d
+        echo "${DESIRED_CLOUD_NETWORK}" | sudo tee "${CLOUD_NETWORK_CONF}" > /dev/null
+        changed="${changed}cloud-init-network,"
+      fi
+    fi
+
     # 1. Ensure fontconfig prioritises emoji font for Chromium
     EMOJI_CONF="/etc/fonts/conf.d/01-emoji.conf"
     DESIRED_EMOJI_CONF='<?xml version="1.0"?>

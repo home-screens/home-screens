@@ -484,6 +484,15 @@ if [ -d /etc/cloud ]; then
   sudo mkdir -p /etc/cloud/cloud.cfg.d
   echo "preserve_hostname: true" \
     | sudo tee /etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg >/dev/null
+
+  # Same story for network config: cloud-init's network module rewrites
+  # /etc/netplan on every boot from the NoCloud datasource, which contains
+  # no wifis: stanza — so any Wi-Fi profile added through the editor (which
+  # NetworkManager stores as /etc/netplan/90-NM-<uuid>.yaml on this stack)
+  # gets silently deleted at the next reboot.
+  info "Disabling cloud-init network management..."
+  echo "network: {config: disabled}" \
+    | sudo tee /etc/cloud/cloud.cfg.d/99-home-screens-network.cfg >/dev/null
 fi
 
 # --- Step 2: Node.js ---

@@ -27,6 +27,13 @@ log_info "Disabling cloud-init hostname management"
 mkdir -p /etc/cloud/cloud.cfg.d
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg
 
+# Same fix for network config: cloud-init's network module rewrites
+# /etc/netplan from the NoCloud datasource on every boot, deleting any
+# Wi-Fi profile NetworkManager added via the editor (stored as
+# /etc/netplan/90-NM-<uuid>.yaml on this stack).
+log_info "Disabling cloud-init network management"
+echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-home-screens-network.cfg
+
 log_info "Creating home-screens user"
 if ! id "hs" &>/dev/null; then
     useradd -m -s /bin/bash hs
