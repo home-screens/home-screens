@@ -104,11 +104,11 @@ export const GET = withAuth(async () => {
       uptime: os.uptime(),
       nodeVersion: process.version,
     },
-    memory: {
-      total: os.totalmem(),
-      free: os.freemem(),
-      used: os.totalmem() - os.freemem(),
-    },
+    memory: (() => {
+      const total = os.totalmem();
+      const free = os.freemem();
+      return { total, free, used: total - free };
+    })(),
     app: {
       screens: screens.length,
       modules: totalModules,
