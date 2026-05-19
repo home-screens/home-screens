@@ -7,189 +7,189 @@
   },
   "statusBar": {
     "title": "Remote",
-    "settingsAriaLabel": "Settings"
+    "settingsAriaLabel": "Indstillinger"
   },
   "connectionBanner": {
-    "unreachable": "Display unreachable — check that the device is on and connected"
+    "unreachable": "Skærm utilgængelig — tjek at skærmen er tændt og tilsluttet"
   },
   "backupReminder": {
-    "daysAgoSingular": "You haven’t backed up in {n} day.",
-    "daysAgoPlural": "You haven’t backed up in {n} days.",
+    "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
+    "daysAgoPlural": "Du har ikke foretaget i {n} dage.",
     "backupButton": "Backup",
-    "savingButton": "Saving…",
-    "dismissAriaLabel": "Dismiss"
+    "savingButton": "Gemmer…",
+    "dismissAriaLabel": "Afvis"
   },
   "displayHero": {
-    "stateActive": "Active",
-    "stateDimmed": "Dimmed",
-    "stateAsleep": "Asleep",
-    "updatedTimeAgo": "Updated {ago}",
-    "screenIndex": "Screen {current} of {total}",
-    "waiting": "Waiting for display…",
-    "unreachable": "Display unreachable"
+    "stateActive": "Aktiv",
+    "stateDimmed": "Deaktiveret",
+    "stateAsleep": "Slumrer",
+    "updatedTimeAgo": "Opdateret {ago}",
+    "screenIndex": "Skærm {current} af {total}",
+    "waiting": "Venter på skærm…",
+    "unreachable": "Skærm er ikke tilgængelig"
   },
   "screenControls": {
-    "prevAriaLabel": "Previous screen",
-    "nextAriaLabel": "Next screen"
+    "prevAriaLabel": "Forrige skærm",
+    "nextAriaLabel": "Næste skærm"
   },
   "quickActions": {
-    "wakeDisplay": "Wake Display",
-    "sleepDisplay": "Sleep Display",
-    "sendAlert": "Send Alert"
+    "wakeDisplay": "Væk skærm",
+    "sleepDisplay": "Slumr skærm",
+    "sendAlert": "Send advarsel"
   },
   "brightnessCard": {
-    "label": "Brightness",
-    "valueAriaLabel": "Brightness {percent}%"
+    "label": "Lysstyrke",
+    "valueAriaLabel": "Lysstyrke {percent}%"
   },
   "profileSwitcher": {
-    "heading": "Profiles"
+    "heading": "Profiler"
   },
   "displayPicker": {
-    "targeting": "Targeting",
-    "allLabel": "All"
+    "targeting": "Målretter",
+    "allLabel": "Alle"
   },
   "mobileColorPicker": {
-    "colorLabel": "Color",
-    "customColorTitle": "Custom color"
+    "colorLabel": "Farve",
+    "customColorTitle": "Brugerdefineret farve"
   },
   "choresTab": {
-    "header": "Chores",
+    "header": "Pligter",
     "subNav": {
-      "today": "Today",
-      "manage": "Manage",
-      "rewards": "Rewards"
+      "today": "I dag",
+      "manage": "Administrér",
+      "rewards": "Belønninger"
     },
     "empty": {
-      "title": "No chores set up yet",
-      "description": "Switch to Manage to add family members and chores.",
-      "setUpButton": "Set Up Chores"
+      "title": "Der er ikke tilføjet pligter endnu",
+      "description": "Skift til Administrér for at tilføje familiemedlemmer og pligter.",
+      "setUpButton": "Tilføj pligter"
     },
-    "warningDismissAriaLabel": "Dismiss warning",
+    "warningDismissAriaLabel": "Ignorér advarsel",
     "memberAriaLabel": "{name}",
-    "memberAriaLabelAllDone": "{name} (all done)",
+    "memberAriaLabelAllDone": "{name} (afsluttet)",
     "history": {
-      "editingPrefix": "Editing ",
-      "editingDaysAgoSingular": " (1 day ago) — tickets add to today's balance.",
-      "editingDaysAgoPlural": " ({n} days ago) — tickets add to today's balance.",
+      "editingPrefix": "Redigerer ",
+      "editingDaysAgoSingular": " (1 dag siden) — tickets add to today's balance.",
+      "editingDaysAgoPlural": " ({n} dage siden) — tickets add to today's balance.",
       "editingNote": " Note: today's chore list is shown for past days, so chores added recently may appear missed.",
       "lockedMessage": "Ask a grown-up to add chores you missed."
     },
     "progress": {
-      "completion": "{done}/{total} complete",
-      "allDone": "All done!"
+      "completion": "{done}/{total} afsluttet",
+      "allDone": "Alle pligter er klaret!"
     },
-    "noChoresToday": "No chores today!",
+    "noChoresToday": "Ingen pligter i dag!",
     "ticketCountSingular": "{n} ticket",
     "ticketCountPlural": "{n} tickets",
-    "choreAriaLabelMarkComplete": "Mark complete: {chore}",
-    "choreAriaLabelCompleted": "Completed: {chore}"
+    "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
+    "choreAriaLabelCompleted": "Afsluttet: {chore}"
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Previous month",
-    "nextMonthAriaLabel": "Next month",
-    "jumpToTodayAriaLabel": "Jump to today",
-    "todayButton": "Today",
-    "tileAriaLabel": "View {date}, {earned} of {total} kids earned all their chores",
-    "tileAriaLabelEmpty": "View {date}, no chores"
+    "prevMonthAriaLabel": "Forrige måned",
+    "nextMonthAriaLabel": "Næste måned",
+    "jumpToTodayAriaLabel": "Spring til i dag",
+    "todayButton": "I dag",
+    "tileAriaLabel": "Vis {date}, {earned} af {total} børn har udført alle sine pligter",
+    "tileAriaLabelEmpty": "Vis {date}, ingen pligter"
   },
   "choresManage": {
     "tabs": {
-      "chores": "Chores",
-      "members": "Members"
+      "chores": "Pligter",
+      "members": "Medlemmer"
     },
     "members": {
-      "empty": "No members yet",
-      "emptyHint": "Add family members to get started",
-      "editAriaLabel": "Edit {name}",
-      "choreCountSingular": "{n} chore assigned",
-      "choreCountPlural": "{n} chores assigned",
-      "addButton": "Add Member"
+      "empty": "Ingen medlemmer endnu",
+      "emptyHint": "Start med at tilføje familiemedlemmer",
+      "editAriaLabel": "Redigér {name}",
+      "choreCountSingular": "{n} pligt tildelt",
+      "choreCountPlural": "{n} pligter tildelt",
+      "addButton": "Tilføj medlem"
     },
     "chores": {
-      "empty": "No chores yet",
-      "emptyHintNoMembers": "Add family members first",
-      "emptyHintAddChores": "Add chores and assign them to members",
-      "editAriaLabel": "Edit {name}",
-      "addButton": "Add Chore",
-      "frequencyDaily": "Daily",
-      "frequencyWeekly": "Weekly",
-      "frequencyBiweekly": "Every Other Week",
-      "frequencyOnce": "One time · {date}",
+      "empty": "Ingen pligter endnu",
+      "emptyHintNoMembers": "Tilføj familiemedlemmer først",
+      "emptyHintAddChores": "Tilføj pligter og tildel dem til medlemmer",
+      "editAriaLabel": "Redigér {name}",
+      "addButton": "Tilføj pligt",
+      "frequencyDaily": "Daglig",
+      "frequencyWeekly": "Ugentlig",
+      "frequencyBiweekly": "Hver anden uge",
+      "frequencyOnce": "Én gang · {date}",
       "ticketCountSingular": "{n} ticket",
       "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "rotate daily",
-      "rotationWeekly": "rotate weekly",
-      "rotationSchedule": "schedule",
+      "rotationDaily": "rotér dagligt",
+      "rotationWeekly": "rotér ugentligt",
+      "rotationSchedule": "skema",
       "unknownAssignee": "?"
     },
     "memberForm": {
-      "titleNew": "New Member",
-      "titleEdit": "Edit Member",
-      "nameLabel": "Name",
-      "namePlaceholder": "Enter name...",
+      "titleNew": "Nyt medlem",
+      "titleEdit": "Redigér medlem",
+      "nameLabel": "Navn",
+      "namePlaceholder": "Indtast navn...",
       "avatarLabel": "Avatar",
-      "addSubmit": "Add Member",
-      "saveSubmit": "Save Member",
-      "deleteButton": "Delete Member"
+      "addSubmit": "Tilføj medlem",
+      "saveSubmit": "Gem medlem",
+      "deleteButton": "Slet medlem"
     },
     "memberDelete": {
-      "title": "Delete \"{name}\"?",
-      "fallbackName": "them",
+      "title": "Slet \"{name}\"?",
+      "fallbackName": "dem",
       "descriptionNoChores": "This will remove {name} from any assigned chores. Chores with no remaining assignees will also be deleted.",
       "descriptionWithChoresSingular": "This will remove {name} from {count} assigned chore. Chores with no remaining assignees will also be deleted.",
       "descriptionWithChoresPlural": "This will remove {name} from all {count} assigned chores. Chores with no remaining assignees will also be deleted.",
-      "confirmLabel": "Delete Member"
+      "confirmLabel": "Slet medlem"
     },
     "choreForm": {
-      "titleNew": "New Chore",
-      "titleEdit": "Edit Chore",
-      "nameLabel": "Name",
+      "titleNew": "Ny pligt",
+      "titleEdit": "Redigér pligt",
+      "nameLabel": "Navn",
       "namePlaceholder": "Chore name...",
-      "iconLabel": "Icon",
+      "iconLabel": "Ikon",
       "ticketsLabel": "Tickets",
-      "frequencyLabel": "Frequency",
-      "timeOfDayLabel": "Time of Day",
-      "dateLabel": "Date",
-      "daysLabel": "Days",
-      "assignToLabel": "Assign to",
-      "weeklyScheduleLabel": "Weekly Schedule",
-      "coverageLabel": "Coverage: {covered} of 7 days",
-      "coverageUncovered": "· {days} uncovered",
+      "frequencyLabel": "Frekvens",
+      "timeOfDayLabel": "Tid på dagen",
+      "dateLabel": "Dato",
+      "daysLabel": "Dage",
+      "assignToLabel": "Tildel",
+      "weeklyScheduleLabel": "Ugeskema",
+      "coverageLabel": "Dækning: {covered} af 7 dage",
+      "coverageUncovered": "· {days} ikke dækket",
       "rotationLabel": "Rotation",
-      "addSubmit": "Add Chore",
-      "saveSubmit": "Save Chore",
-      "deleteButton": "Delete Chore",
+      "addSubmit": "Tilføj pligt",
+      "saveSubmit": "Gem pligt",
+      "deleteButton": "Slet pligt",
       "validation": {
-        "enterName": "Enter a chore name",
-        "addPersonToSchedule": "Add at least one person to the schedule",
-        "selectAtLeastOnePerson": "Select at least one person"
+        "enterName": "Tilføj et navn på en pligt",
+        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
+        "selectAtLeastOnePerson": "Vælg mindst én person"
       }
     },
     "choreDelete": {
-      "title": "Delete \"{name}\"?",
+      "title": "Slet \"{name}\"?",
       "description": "This chore and all its completion history will be removed.",
-      "confirmLabel": "Delete Chore"
+      "confirmLabel": "Slet pligt"
     },
     "frequency": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One Time"
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hveranden uge",
+      "once": "Én gang"
     },
     "rotation": {
       "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotate Daily",
-      "rotateWeekly": "Rotate Weekly",
-      "schedule": "Schedule"
+      "rotateDaily": "Rotatér dagligt",
+      "rotateWeekly": "Rotatér ugentligt",
+      "schedule": "Skema"
     }
   },
   "mealsTab": {
-    "header": "Meals",
-    "loading": "Loading meals...",
-    "settingsButtonAriaLabel": "Open meal settings",
-    "settingsButtonTitle": "Settings",
+    "header": "Måltider",
+    "loading": "Henter måltider...",
+    "settingsButtonAriaLabel": "Åbn indstillinger for måltider",
+    "settingsButtonTitle": "Indstillinger",
     "weekLabel": {
-      "thisWeek": "This Week"
+      "thisWeek": "Denne uge"
     },
     "subNav": {
       "plan": "Plan",
