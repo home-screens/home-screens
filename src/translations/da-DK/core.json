@@ -4,29 +4,29 @@
   "yesterday": "I går",
   "loading": "Henter…",
   "actions": {
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "remove": "Remove",
-    "add": "Add",
-    "close": "Close",
-    "back": "Back",
-    "confirm": "Confirm",
-    "save": "Save",
-    "done": "Done",
-    "edit": "Edit",
-    "clear": "Clear",
-    "settings": "Settings",
-    "name": "Name",
-    "color": "Color",
-    "icon": "Icon",
-    "label": "Label"
+    "cancel": "Annullér",
+    "delete": "Slet",
+    "remove": "Fjern",
+    "add": "Tilføj",
+    "close": "Luk",
+    "back": "Tilbage",
+    "confirm": "Bekræft",
+    "save": "Gem",
+    "done": "Afslut",
+    "edit": "Redigér",
+    "clear": "Nulstil",
+    "settings": "Indstillinger",
+    "name": "Navn",
+    "color": "Farve",
+    "icon": "Ikon",
+    "label": "Etiket"
   },
   "status": {
-    "saving": "Saving…",
-    "connected": "Connected",
-    "disabled": "Disabled",
-    "never": "Never",
-    "none": "None"
+    "saving": "Gemmer…",
+    "connected": "Forbundet",
+    "disabled": "Deaktiveret",
+    "never": "Aldrig",
+    "none": "Ingen"
   },
   "relativeTime": {
     "justNow": "lige nu",
@@ -76,59 +76,59 @@
     "startSignInFailed": "Start af logind fejlede"
   },
   "days": {
-    "sunday": "Sunday",
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday"
+    "sunday": "søndag",
+    "monday": "mandag",
+    "tuesday": "tirsdag",
+    "wednesday": "onsdag",
+    "thursday": "torsdag",
+    "friday": "fredag",
+    "saturday": "lørdag"
   },
   "meal": {
     "difficulty": {
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard"
+      "easy": "Let",
+      "medium": "Middel",
+      "hard": "Svær"
     },
     "tags": {
-      "breakfast": "Breakfast",
-      "lunch": "Lunch",
-      "dinner": "Dinner",
+      "breakfast": "Morgenmad",
+      "lunch": "Frokost",
+      "dinner": "Aftensmad",
       "snack": "Snack",
-      "quick": "Quick",
-      "healthy": "Healthy",
-      "vegetarian": "Vegetarian",
-      "vegan": "Vegan",
-      "comfort": "Comfort",
-      "spicy": "Spicy",
-      "kid-friendly": "Kid-Friendly",
-      "meal-prep": "Meal-Prep",
-      "gluten-free": "Gluten-Free",
-      "dairy-free": "Dairy-Free",
-      "batch-cook": "Batch-Cook"
+      "quick": "Hurtig",
+      "healthy": "Sund",
+      "vegetarian": "Vegetarisk",
+      "vegan": "Vegansk",
+      "comfort": "Hygge",
+      "spicy": "Krydret",
+      "kid-friendly": "Børnevenlig",
+      "meal-prep": "Forberedelse",
+      "gluten-free": "Glutenfri",
+      "dairy-free": "Mælkefri",
+      "batch-cook": "Store portioner"
     },
     "ingredientCategories": {
-      "produce": "Produce",
-      "dairy": "Dairy",
-      "meat": "Meat",
-      "seafood": "Seafood",
-      "bakery": "Bakery",
-      "pantry": "Pantry",
-      "frozen": "Frozen",
-      "beverages": "Beverages",
-      "other": "Other"
+      "produce": "Frugt og grønt",
+      "dairy": "Mejeriprodukter",
+      "meat": "Kød",
+      "seafood": "Fisk og skaldyr",
+      "bakery": "Bagværk",
+      "pantry": "Spisekammer",
+      "frozen": "Frossen",
+      "beverages": "Drikkevarer",
+      "other": "Andet"
     },
     "grocery": {
       "categoryLabels": {
-        "produce": "Produce",
-        "dairy": "Dairy & Eggs",
-        "meat": "Meat & Seafood",
-        "seafood": "Meat & Seafood",
-        "bakery": "Bakery",
-        "pantry": "Pantry",
-        "frozen": "Frozen",
-        "beverages": "Beverages",
-        "other": "Other"
+        "produce": "Frugt og grønt",
+        "dairy": "Mejeriprodukter og æg",
+        "meat": "Kød og Fisk og skaldyr",
+        "seafood": "Kød og Fisk og skaldyr",
+        "bakery": "Bagværk",
+        "pantry": "Spisekammer",
+        "frozen": "Frossen",
+        "beverages": "Drikkevarer",
+        "other": "Andet"
       }
     }
   }
