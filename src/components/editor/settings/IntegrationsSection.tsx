@@ -288,7 +288,7 @@ export default function IntegrationsSection() {
               label="API Key"
               secretKey="tomtom_key"
               placeholder="Paste your TomTom API key"
-              helpText="Free at developer.tomtom.com — Routing API required. Alternative to Google Maps."
+              helpText="Free at developer.tomtom.com. On your key, enable Geocoding API, Reverse Geocoding API, and Routing API (per-key, not just account-wide). Alternative to Google Maps."
               status={!!status.tomtom_key}
               onSaved={fetchStatus}
             />

@@ -26,6 +26,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
           try {
             const body = await res.json();
             if (body.error) msg = body.error;
+            if (body.detail) msg = `${msg}: ${body.detail}`;
           } catch {
             // use default message
           }

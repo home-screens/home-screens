@@ -68,7 +68,8 @@ async function tomtomGeocode(address: string, apiKey: string): Promise<string> {
   const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(address)}.json?key=${apiKey}&limit=1`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
-    throw new Error(`TomTom Geocode error: ${res.status}`);
+    const text = await res.text();
+    throw new Error(`TomTom Geocode error: ${res.status} ${text}`);
   }
   const data = await res.json();
   const pos = data.results?.[0]?.position;
