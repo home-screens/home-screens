@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { validateConfig, type ConfigDiagnostic } from '../validate-config';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { validateConfig, __resetUnknownLocaleWarningForTests, type ConfigDiagnostic } from '../validate-config';
 import { getLatestSchemaVersion } from '../migrations';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -369,6 +369,111 @@ describe('validateConfig', () => {
       });
       const result = validateConfig(config);
       expect(findByCode(result, 'UNKNOWN_MODULE_TYPE')).toBeDefined();
+    });
+  });
+
+  // ── Locale (settings.locale) ─────────────────────────────────────────
+
+  describe('settings.locale', () => {
+    let warnSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      // The warn-once latch lives at module scope; reset it so each test
+      // starts from a clean slate. Without this, the first test that
+      // triggers the warning would poison the rest.
+      __resetUnknownLocaleWarningForTests();
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('accepts a registered locale unchanged', () => {
+      const config = validConfig();
+      config.settings.locale = 'de-DE';
+      const result = validateConfig(config);
+
+      // No locale-related diagnostic — registered tags are silently kept.
+      expect(result).toEqual([]);
+      expect(config.settings.locale).toBe('de-DE');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('leaves locale undefined when not set', () => {
+      const config = validConfig();
+      expect(config.settings.locale).toBeUndefined();
+
+      const result = validateConfig(config);
+      expect(result).toEqual([]);
+      expect(config.settings.locale).toBeUndefined();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears an unknown locale (mutates input — documented side effect)', () => {
+      const config = validConfig();
+      config.settings.locale = 'xx-YY';
+      validateConfig(config);
+
+      // The unknown tag is stripped so the runtime falls back to en-US.
+      expect(config.settings.locale).toBeUndefined();
+    });
+
+    it('warns to console.warn when clearing an unknown locale', () => {
+      const config = validConfig();
+      config.settings.locale = 'xx-YY';
+      validateConfig(config);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('xx-YY');
+      // Should suggest at least one known locale by tag.
+      expect(message).toMatch(/en-US/);
+    });
+
+    it('only warns once per process even across multiple bad configs', () => {
+      // Guards against a screaming-loud warn loop in a long-lived dev server
+      // or CLI process. The latch is reset in beforeEach so we observe a
+      // single warn across two validateConfig calls within this test.
+      const a = validConfig();
+      a.settings.locale = 'xx-YY';
+      validateConfig(a);
+
+      const b = validConfig();
+      b.settings.locale = 'zz-ZZ';
+      validateConfig(b);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      // Both inputs still get cleaned, even though only the first warned.
+      expect(a.settings.locale).toBeUndefined();
+      expect(b.settings.locale).toBeUndefined();
+    });
+
+    it('does not warn for a registered locale even after the latch is armed', () => {
+      // Re-arm the latch with one bad call, then prove that a valid locale
+      // on a second call neither warns nor gets touched.
+      const bad = validConfig();
+      bad.settings.locale = 'xx-YY';
+      validateConfig(bad);
+      warnSpy.mockClear();
+
+      const good = validConfig();
+      good.settings.locale = 'fr-FR';
+      validateConfig(good);
+
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(good.settings.locale).toBe('fr-FR');
+    });
+
+    it('does not produce a ConfigDiagnostic for the locale path', () => {
+      // The contract is "clean silently + warn once" — no error or warning
+      // diagnostic should surface for an unknown locale.
+      const config = validConfig();
+      config.settings.locale = 'xx-YY';
+      const result = validateConfig(config);
+
+      const localeDiag = result.find((d) => d.path?.includes('locale'));
+      expect(localeDiag).toBeUndefined();
     });
   });
 

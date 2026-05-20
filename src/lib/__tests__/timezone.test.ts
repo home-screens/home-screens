@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createTZDate, formatTimeInTZ, parseDateInTZ } from '@/lib/timezone';
+import { createTZDate, formatTimeInTZ, formatDateInTZ, parseDateInTZ } from '@/lib/timezone';
 
 describe('createTZDate', () => {
   it('returns a Date close to now when no timezone is provided', () => {
@@ -185,6 +185,62 @@ describe('formatTimeInTZ', () => {
     const deLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'de-DE');
     const enLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'en-US');
     expect(deLong).not.toBe(enLong);
+  });
+});
+
+describe('formatDateInTZ', () => {
+  it('returns "—" (em dash) for an invalid/NaN Date', () => {
+    const nan = new Date('not-a-date');
+    expect(formatDateInTZ(nan, 'UTC', { weekday: 'long' })).toBe('—');
+  });
+
+  it('formats a date in a specific timezone (en-US default)', () => {
+    // Mid-day UTC → still the same date in UTC; assert digits are present.
+    const date = new Date('2024-07-15T12:30:00Z');
+    const result = formatDateInTZ(date, 'UTC', { year: 'numeric', month: 'long', day: 'numeric' });
+    expect(result).toContain('2024');
+    expect(result).toContain('July');
+    expect(result).toContain('15');
+  });
+
+  it('respects the timezone when bucketing across the day boundary', () => {
+    // 2024-07-15T23:30:00Z is already July 16 in Tokyo (UTC+9).
+    const date = new Date('2024-07-15T23:30:00Z');
+    const result = formatDateInTZ(date, 'Asia/Tokyo', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    expect(result).toMatch(/07\/16\/2024|2024-07-16/);
+  });
+
+  it('falls back gracefully when the timezone is invalid (does NOT throw)', () => {
+    const date = new Date('2024-07-15T12:30:00Z');
+    const result = formatDateInTZ(date, 'Not/A_Real_Zone', { weekday: 'long' });
+    // Should still format using the host TZ, not return "—".
+    expect(result).not.toBe('—');
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('honors the locale argument for user-facing weekday names', () => {
+    // Regression guard for the en-US literal cutover: passing a non-en
+    // locale must change the Intl-formatted weekday.
+    const date = new Date('2024-07-15T12:00:00Z'); // Monday
+    const en = formatDateInTZ(date, 'UTC', { weekday: 'long' }, 'en-US');
+    const de = formatDateInTZ(date, 'UTC', { weekday: 'long' }, 'de-DE');
+    expect(en).toMatch(/Monday/);
+    expect(de).toMatch(/Montag/);
+    expect(en).not.toBe(de);
+  });
+
+  it('honors the locale even when the timezone is invalid (fallback path)', () => {
+    // The catch branch must also pass the locale through, otherwise users
+    // with a misconfigured timezone would silently get English output.
+    const date = new Date('2024-07-15T12:00:00Z');
+    const de = formatDateInTZ(date, 'Not/A_Real_Zone', { weekday: 'long' }, 'de-DE');
+    expect(de).toMatch(/Montag/);
+  });
+
+  it('defaults to en-US when locale is omitted', () => {
+    const date = new Date('2024-07-15T12:00:00Z');
+    const result = formatDateInTZ(date, 'UTC', { weekday: 'long' });
+    expect(result).toMatch(/Monday/);
   });
 });
 
