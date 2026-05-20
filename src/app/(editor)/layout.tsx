@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import PluginGlobalsEditor from '@/components/PluginGlobalsEditor';
 import BackupReminderToast from '@/components/editor/BackupReminderToast';
+import UpdateAvailableToast from '@/components/editor/UpdateAvailableToast';
 import { readConfig } from '@/lib/config';
 import { I18nProvider, preloadDateLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -58,6 +59,7 @@ export default async function EditorLayout({ children }: { children: React.React
         {children}
         <ConfirmModal />
         <BackupReminderToast />
+        <UpdateAvailableToast />
       </div>
     </I18nProvider>
   );

@@ -977,6 +977,11 @@
         "updateButton": "Nu bijwerken",
         "installButton": "Installeren"
       },
+      "updateNotification": {
+        "heading": "Updatemelding",
+        "description": "Ontvang een melding in de editor en op /remote wanneer er een nieuwe versie beschikbaar is.",
+        "enableLabel": "Mij melden wanneer er een update beschikbaar is"
+      },
       "upToDate": "Je gebruikt de nieuwste versie",
       "changelog": {
         "heading": "Changelog",
@@ -2942,6 +2947,11 @@
     },
     "downloading": "Downloaden…",
     "backupNow": "Nu back-uppen",
+    "dismiss": "Sluiten"
+  },
+  "updateAvailable": {
+    "message": "Update beschikbaar: v{version}",
+    "updateButton": "Nu bijwerken",
     "dismiss": "Sluiten"
   },
   "statusDot": {

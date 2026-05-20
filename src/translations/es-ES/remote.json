@@ -19,6 +19,10 @@
     "savingButton": "Guardando…",
     "dismissAriaLabel": "Descartar"
   },
+  "updateAvailable": {
+    "message": "Actualización disponible: v{version}",
+    "dismissAriaLabel": "Descartar"
+  },
   "displayHero": {
     "stateActive": "Activo",
     "stateDimmed": "Atenuado",

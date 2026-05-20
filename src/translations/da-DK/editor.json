@@ -977,6 +977,11 @@
         "updateButton": "Update Now",
         "installButton": "Install"
       },
+      "updateNotification": {
+        "heading": "Opdateringsnotifikation",
+        "description": "Få en notifikation i editoren og på /remote, når en ny version er tilgængelig.",
+        "enableLabel": "Giv mig besked, når en opdatering er tilgængelig"
+      },
       "upToDate": "You're on the latest version",
       "changelog": {
         "heading": "Changelog",
@@ -2943,6 +2948,11 @@
     "downloading": "Downloading…",
     "backupNow": "Backup Now",
     "dismiss": "Dismiss"
+  },
+  "updateAvailable": {
+    "message": "Opdatering tilgængelig: v{version}",
+    "updateButton": "Opdater nu",
+    "dismiss": "Afvis"
   },
   "statusDot": {
     "configured": "Konfigureret",

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import Toggle from '@/components/ui/Toggle';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -68,11 +69,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const [restoreStatus, setRestoreStatus] = useState<RestoreStatus | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
+  const [updateNotifSaveError, setUpdateNotifSaveError] = useState(false);
   const [channel, setChannel] = useState<'stable' | 'dev'>(() => {
     const cfg = useEditorStore.getState().config;
     return cfg?.settings?.updateChannel === 'dev' ? 'dev' : 'stable';
   });
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
+  const updateNotificationEnabled = useEditorStore((s) => s.config?.settings?.updateNotification?.enabled ?? false);
 
   const fetchAll = useCallback(async (forceCheck = false) => {
     try {
@@ -145,6 +148,16 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       await saveConfig();
     } catch {
       // Store is updated in-memory; config will be saved on next successful write
+    }
+  }
+
+  async function handleToggleUpdateNotification(enabled: boolean) {
+    updateSettings({ updateNotification: { ...useEditorStore.getState().config?.settings?.updateNotification, enabled } });
+    setUpdateNotifSaveError(false);
+    try {
+      await saveConfig();
+    } catch {
+      setUpdateNotifSaveError(true);
     }
   }
 
@@ -434,6 +447,26 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           <p className="text-xs text-hs-success/80 mt-2 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
             {t('settings.systemPage.upToDate')}
+          </p>
+        )}
+      </section>
+
+      {/* Update Notification */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.systemPage.updateNotification.heading')}
+        </h3>
+        <p className="text-xs text-hs-text-faint mb-3">
+          {t('settings.systemPage.updateNotification.description')}
+        </p>
+        <Toggle
+          label={t('settings.systemPage.updateNotification.enableLabel')}
+          checked={updateNotificationEnabled}
+          onChange={handleToggleUpdateNotification}
+        />
+        {updateNotifSaveError && (
+          <p className="text-xs text-hs-danger mt-2" role="alert">
+            {t('common.saveFailed')}
           </p>
         )}
       </section>

@@ -977,6 +977,11 @@
         "updateButton": "Actualizar ahora",
         "installButton": "Instalar"
       },
+      "updateNotification": {
+        "heading": "Notificación de actualización",
+        "description": "Recibe una notificación en el editor y en /remote cuando haya una nueva versión disponible.",
+        "enableLabel": "Avisarme cuando haya una actualización disponible"
+      },
       "upToDate": "Estás en la última versión",
       "changelog": {
         "heading": "Changelog",
@@ -2948,6 +2953,11 @@
     },
     "downloading": "Descargando…",
     "backupNow": "Hacer copia ahora",
+    "dismiss": "Descartar"
+  },
+  "updateAvailable": {
+    "message": "Actualización disponible: v{version}",
+    "updateButton": "Actualizar ahora",
     "dismiss": "Descartar"
   },
   "statusDot": {

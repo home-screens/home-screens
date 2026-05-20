@@ -19,6 +19,10 @@
     "savingButton": "Saving…",
     "dismissAriaLabel": "Dismiss"
   },
+  "updateAvailable": {
+    "message": "Update available: v{version}",
+    "dismissAriaLabel": "Dismiss"
+  },
   "displayHero": {
     "stateActive": "Active",
     "stateDimmed": "Dimmed",

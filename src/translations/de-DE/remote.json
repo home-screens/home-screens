@@ -19,6 +19,10 @@
     "savingButton": "Speichert …",
     "dismissAriaLabel": "Schließen"
   },
+  "updateAvailable": {
+    "message": "Update verfügbar: v{version}",
+    "dismissAriaLabel": "Schließen"
+  },
   "displayHero": {
     "stateActive": "Aktiv",
     "stateDimmed": "Gedimmt",

@@ -18,6 +18,8 @@ import AlertSender from './components/AlertSender';
 import SettingsSheet from './components/SettingsSheet';
 import BackupReminderBanner from './components/BackupReminderBanner';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
+import UpdateAvailableBanner from './components/UpdateAvailableBanner';
+import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import BottomTabBar from './components/BottomTabBar';
 import ChoresTab from './components/ChoresTab';
 import MealsTab from './components/MealsTab';
@@ -34,6 +36,8 @@ interface RemoteInitialData {
   hasPhotos: boolean;
   photoDirectory: string;
   backupReminder: { enabled: boolean; intervalDays: number };
+  updateNotification: { enabled: boolean };
+  updateChannel: 'stable' | 'dev';
   /** Multi-display registry. Empty in single-display installs. */
   displays: Array<{ id: string; name: string }>;
   /**
@@ -78,6 +82,10 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const backup = useBackupReminder({
     enabled: initialData.backupReminder.enabled,
     intervalDays: initialData.backupReminder.intervalDays,
+  });
+  const updateNotif = useUpdateNotification({
+    enabled: initialData.updateNotification.enabled,
+    channel: initialData.updateChannel,
   });
 
   const [activeTab, setActiveTab] = useState<string>('control');
@@ -177,6 +185,11 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
         {activeTab === 'control' ? (
           <>
             <StatusBar isConnected={isConnected} onSettingsOpen={() => setSettingsOpen(true)} />
+            <UpdateAvailableBanner
+              shouldShow={updateNotif.shouldShow}
+              latestVersion={updateNotif.latestVersion}
+              onDismiss={updateNotif.handleDismiss}
+            />
             <BackupReminderBanner
               shouldShow={backup.shouldShow}
               daysSinceBackup={backup.daysSinceBackup}

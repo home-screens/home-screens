@@ -19,6 +19,10 @@
     "savingButton": "Opslaan…",
     "dismissAriaLabel": "Sluiten"
   },
+  "updateAvailable": {
+    "message": "Update beschikbaar: v{version}",
+    "dismissAriaLabel": "Sluiten"
+  },
   "displayHero": {
     "stateActive": "Actief",
     "stateDimmed": "Gedimd",

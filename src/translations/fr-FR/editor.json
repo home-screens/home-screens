@@ -977,6 +977,11 @@
         "updateButton": "Mettre à jour maintenant",
         "installButton": "Installer"
       },
+      "updateNotification": {
+        "heading": "Notification de mise à jour",
+        "description": "Recevez une notification dans l'éditeur et sur /remote quand une nouvelle version est disponible.",
+        "enableLabel": "Me notifier quand une mise à jour est disponible"
+      },
       "upToDate": "Tu es sur la dernière version",
       "changelog": {
         "heading": "Journal des modifications",
@@ -2948,6 +2953,11 @@
     },
     "downloading": "Téléchargement…",
     "backupNow": "Sauvegarder maintenant",
+    "dismiss": "Fermer"
+  },
+  "updateAvailable": {
+    "message": "Mise à jour disponible : v{version}",
+    "updateButton": "Mettre à jour maintenant",
     "dismiss": "Fermer"
   },
   "statusDot": {

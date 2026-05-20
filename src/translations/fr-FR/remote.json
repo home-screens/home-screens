@@ -19,6 +19,10 @@
     "savingButton": "Enregistrement…",
     "dismissAriaLabel": "Fermer"
   },
+  "updateAvailable": {
+    "message": "Mise à jour disponible : v{version}",
+    "dismissAriaLabel": "Fermer"
+  },
   "displayHero": {
     "stateActive": "Actif",
     "stateDimmed": "Atténué",

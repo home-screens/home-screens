@@ -88,10 +88,15 @@ export default async function RemotePage() {
     enabled: config.settings.backupReminder?.enabled ?? false,
     intervalDays: config.settings.backupReminder?.intervalDays ?? 7,
   };
+  const updateNotification = {
+    enabled: config.settings.updateNotification?.enabled ?? false,
+  };
+  const updateChannel: 'stable' | 'dev' =
+    config.settings.updateChannel === 'dev' ? 'dev' : 'stable';
 
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
     />
   );
 }

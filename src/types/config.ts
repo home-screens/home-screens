@@ -195,6 +195,10 @@ export interface BackupReminderSettings {
   intervalDays: number; // default 7
 }
 
+export interface UpdateNotificationSettings {
+  enabled: boolean;
+}
+
 export interface GlobalSettings {
   rotationIntervalMs: number;
   displayWidth: number;
@@ -220,6 +224,7 @@ export interface GlobalSettings {
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
   backupReminder?: BackupReminderSettings;
+  updateNotification?: UpdateNotificationSettings;
   /** BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US". */
   locale?: string;
   /** Optional override for date/number formatting only. Falls back to `locale`. */

@@ -19,6 +19,10 @@
     "savingButton": "Gemmer…",
     "dismissAriaLabel": "Afvis"
   },
+  "updateAvailable": {
+    "message": "Opdatering tilgængelig: v{version}",
+    "dismissAriaLabel": "Afvis"
+  },
   "displayHero": {
     "stateActive": "Aktiv",
     "stateDimmed": "Deaktiveret",
