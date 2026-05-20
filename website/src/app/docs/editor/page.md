@@ -350,6 +350,7 @@ The Stats tab provides a live dashboard of system health and application state:
 - **Version** — current app version with commit hash and installation method (git or release)
 - **Update Channel** — switch between Stable and Pre-release (dev) channels. Only shown when **Advanced Mode** is enabled.
 - **Check for Updates** — query GitHub for new releases
+- **Update Notification** — opt-in toggle (off by default). When enabled, the editor shows a dismissible toast and `/remote` shows a banner whenever a newer release is available on GitHub. Dismissals are tracked per release tag so the same upgrade won't re-surface; a new release will surface a new prompt.
 - **Upgrade** — download and install a newer version (with confirmation dialog)
 - **Changelog** — expandable view of recent release notes
 - **Version History** — list of installed versions with rollback option for each

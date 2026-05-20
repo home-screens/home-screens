@@ -31,6 +31,8 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **System management** — upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk** — one-command setup with boot splash, auto-login, and display orientation
 - **Password-protected editor** — optional authentication for the configuration interface
+- **Multi-language UI** — ships in 7 languages: English, German, French, Spanish, Dutch, Brazilian Portuguese, and Danish; date and number formatting can be locked to a separate locale
+- **Opt-in update notifications** — toggle a per-tag toast in the editor and banner on `/remote` when a newer release is on GitHub
 - **No cloud required** — all data stored locally as JSON, no accounts or external services needed
 
 ## Quick Start

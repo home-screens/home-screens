@@ -216,7 +216,7 @@ The following integrations can be configured through the editor:
 | Met Office | Free weather data (UK coverage, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
 | Environment Canada | Free weather data (Canadian cities, ECCC citypage feeds, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
 | Google Maps | Google Routes API key for traffic module | For traffic module |
-| TomTom | TomTom Routing API key (traffic fallback) | For traffic module |
+| TomTom | TomTom API key — alternative to Google Maps for traffic. Enable **Geocoding API**, **Reverse Geocoding API**, and **Routing API** on the key (per-key, not just account-wide). | For traffic module |
 
 ## Password Protection
 

@@ -4,11 +4,11 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import {
   Puzzle, Monitor, CalendarClock, Layers, Shield,
-  Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Maximize,
+  Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Maximize, Languages,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
-import { WEATHER_PROVIDER_COUNT } from '@/lib/stats';
+import { LOCALE_COUNT, LOCALE_NATIVE_NAMES, WEATHER_PROVIDER_COUNT } from '@/lib/stats';
 
 interface Feature {
   icon: LucideIcon;
@@ -71,6 +71,12 @@ const featuresRight: Feature[] = [
     icon: ArrowUpCircle,
     title: 'OTA Updates',
     description: 'One-click upgrade from the UI. Rollback if anything breaks. Auto-backups.',
+  },
+  {
+    icon: Languages,
+    title: 'Languages',
+    stat: String(LOCALE_COUNT),
+    description: LOCALE_NATIVE_NAMES.join(' · ') + '. Switch from Settings.',
   },
 ];
 

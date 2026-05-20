@@ -15,7 +15,10 @@ import {
   CLOCK_VIEW_COUNT,
   WEATHER_VIEW_COUNT,
   SHAPE_VIEW_COUNT,
+  LOCALE_COUNT,
+  LOCALE_NATIVE_NAMES,
 } from '../../../website/src/lib/stats';
+import { LOCALES } from '@/i18n/manifest';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const TYPES_FILE = path.join(REPO_ROOT, 'src/types/config.ts');
@@ -130,6 +133,16 @@ describe('website stats stay in sync with the codebase', () => {
 
   it('API_ROUTE_COUNT matches the route.ts files under src/app/api', () => {
     expect(API_ROUTE_COUNT).toBe(countApiRouteFiles());
+  });
+
+  it('LOCALE_COUNT matches the registered locales in src/i18n/manifest.ts', () => {
+    expect(LOCALE_COUNT).toBe(Object.keys(LOCALES).length);
+  });
+
+  it('LOCALE_NATIVE_NAMES matches the manifest in registry order', () => {
+    expect([...LOCALE_NATIVE_NAMES]).toEqual(
+      Object.values(LOCALES).map((l) => l.nativeName),
+    );
   });
 
   // Markdoc can't substitute variables inside YAML frontmatter or fenced code

@@ -55,6 +55,7 @@ Total: **~$90** plus a display. Budget tip: a repurposed old monitor or a small 
 - **Google Calendar + iCal** — two paths to Google (iCal URL or OAuth); iCal also works with Apple, Outlook, Fastmail, and anything else that publishes ICS
 - **Profile system** — different screens at different times of day (morning vs. evening, weekdays vs. weekends)
 - **Multi-display** — one server, many Pis, each with its own layout
+- **Multi-language** — ships in 7 languages (English, German, French, Spanish, Dutch, Brazilian Portuguese, Danish); date and number formats can be locked to a separate locale
 
 Built with Next.js 16, React 19, and Tailwind CSS. Configuration is a single JSON file — no database.
 
