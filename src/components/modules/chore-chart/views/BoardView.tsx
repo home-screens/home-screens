@@ -4,6 +4,7 @@ import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
 interface BoardViewProps {
@@ -20,12 +21,13 @@ interface BoardViewProps {
 export function BoardView({ config, data }: BoardViewProps) {
   const { todayAssignments, members, memberStats, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
+  const t = useTranslate('modules');
 
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Title */}
       <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        Family Chores
+        {t('chore-chart.familyChores')}
       </div>
 
       {/* Columns */}
@@ -57,7 +59,7 @@ export function BoardView({ config, data }: BoardViewProps) {
                   )}
                 </div>
                 <div className="flex-1 flex items-center justify-center" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
-                  Day off! &#127796;
+                  {t('chore-chart.dayOff')} &#127796;
                 </div>
               </div>
             );
@@ -139,7 +141,7 @@ export function BoardView({ config, data }: BoardViewProps) {
       {/* All complete celebration */}
       {members.length > 0 && todayAssignments.length > 0 && todayAssignments.every((a) => a.isCompleted) && (
         <div className="text-center mt-2" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-          All done! &#127881;
+          {t('chore-chart.allDone')} &#127881;
         </div>
       )}
     </div>

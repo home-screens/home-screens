@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslate } from '@/i18n';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
@@ -10,23 +11,24 @@ import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import type { ModuleInstance } from '@/types/config';
 
-const PHOTO_SOURCES = [
-  { value: 'local', label: 'Local Photos' },
-  { value: 'immich', label: 'Immich' },
-] as const;
-
-const TRANSITIONS = [
-  { value: 'fade', label: 'Fade' },
-  { value: 'none', label: 'None' },
-] as const;
-
-const OBJECT_FITS = [
-  { value: 'cover', label: 'Cover' },
-  { value: 'contain', label: 'Contain' },
-  { value: 'fill', label: 'Fill' },
-] as const;
-
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+  const PHOTO_SOURCES = [
+    { value: 'local', label: t('configSections.photo-slideshow.sourceLocal') },
+    { value: 'immich', label: t('configSections.photo-slideshow.sourceImmich') },
+  ] as const;
+
+  const TRANSITIONS = [
+    { value: 'fade', label: t('configSections.photo-slideshow.transitionFade') },
+    { value: 'none', label: t('configSections.photo-slideshow.transitionNone') },
+  ] as const;
+
+  const OBJECT_FITS = [
+    { value: 'cover', label: t('common.objectFitCover') },
+    { value: 'contain', label: t('common.objectFitContain') },
+    { value: 'fill', label: t('common.objectFitFill') },
+  ] as const;
+
   const { config: c, set } = useModuleConfig<{ source?: string; directory?: string; intervalMs?: number; transition?: string; objectFit?: string }>(mod, screenId);
   const [showBrowser, setShowBrowser] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -73,7 +75,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (
         <LabeledSelect
-          label="Photo Source"
+          label={t('configSections.photo-slideshow.photoSource')}
           value={source}
           onChange={(v) => set({ source: v })}
           options={PHOTO_SOURCES}
@@ -86,20 +88,22 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
         <>
           {/* Folder picker */}
           <div>
-            <span className="text-xs text-hs-text-muted">Folder</span>
+            <span className="text-xs text-hs-text-muted">{t('configSections.photo-slideshow.folder')}</span>
             <div className="flex gap-1.5 mt-1">
               <div className="flex-1 px-2 py-1 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-secondary truncate">
-                {directory || 'All Photos (root)'}
+                {directory || t('configSections.photo-slideshow.allPhotosRoot')}
               </div>
               <Button size="sm" onClick={() => setShowBrowser(true)}>
-                Browse...
+                {t('configSections.photo-slideshow.browse')}
               </Button>
             </div>
             {/* Photo count + preview strip */}
             {photoCount > 0 && (
               <div className="mt-1.5">
                 <span className="text-[10px] text-hs-text-faint">
-                  {photoCount} {photoCount === 1 ? 'photo' : 'photos'}
+                  {photoCount === 1
+                    ? t('configSections.photo-slideshow.photoCountOne', { count: photoCount })
+                    : t('configSections.photo-slideshow.photoCountOther', { count: photoCount })}
                 </span>
                 <div className="flex gap-1 mt-1 overflow-x-auto">
                   {previewImages.map((img) => (
@@ -115,14 +119,14 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
               </div>
             )}
             {photoCount === 0 && (
-              <p className="text-[10px] text-hs-text-faint mt-1">No photos in this folder</p>
+              <p className="text-[10px] text-hs-text-faint mt-1">{t('configSections.photo-slideshow.noPhotosInFolder')}</p>
             )}
           </div>
         </>
       )}
 
       <Slider
-        label="Slide Interval (seconds)"
+        label={t('configSections.photo-slideshow.slideInterval')}
         value={(c.intervalMs ?? 30000) / 1000}
         min={5}
         max={300}
@@ -132,14 +136,14 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
 
       <div className="flex gap-2">
         <LabeledSelect
-          label="Transition"
+          label={t('configSections.photo-slideshow.transition')}
           value={(c.transition as string) || 'fade'}
           onChange={(v) => set({ transition: v })}
           options={TRANSITIONS}
           fieldClassName="flex-1"
         />
         <LabeledSelect
-          label="Object Fit"
+          label={t('common.objectFit')}
           value={(c.objectFit as string) || 'cover'}
           onChange={(v) => set({ objectFit: v })}
           options={OBJECT_FITS}

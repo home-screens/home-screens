@@ -79,6 +79,11 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   sleep: { kind: 'defaults', page: 'sleep' },
   alerts: { kind: 'defaults', page: 'alerts' },
   location: { kind: 'defaults', page: 'location' },
+  // Language was merged into the Location page on 2026-05-17 — the
+  // standalone "Language & region" tab no longer exists. Legacy
+  // `?tab=language` bookmarks land on the merged page so the language
+  // picker (now rendered above the location form) is still one click away.
+  language: { kind: 'defaults', page: 'location' },
   weather: { kind: 'defaults', page: 'weather' },
   calendar: { kind: 'defaults', page: 'calendar' },
   meals: { kind: 'defaults', page: 'meals' },

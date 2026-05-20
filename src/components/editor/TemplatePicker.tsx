@@ -7,6 +7,7 @@ import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
+import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 
 interface TemplatePickerProps {
@@ -15,6 +16,8 @@ interface TemplatePickerProps {
 }
 
 export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProps) {
+  const tEditor = useTranslate('editor');
+  const tCore = useTranslate('core');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [category, setCategory] = useState<string>('All');
@@ -40,7 +43,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
       const layout = await loadTemplate(template, orientation);
       onSelect(layout);
     } catch {
-      setError(`Failed to load "${template.name}"`);
+      setError(tEditor('templatePicker.loadFailed', { name: template.name }));
     } finally {
       setLoading(null);
     }
@@ -51,7 +54,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-hs-text-primary">Templates</h2>
+          <h2 className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
           <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary">
             <X className="w-5 h-5" />
           </button>
@@ -105,10 +108,13 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                     const def = getModuleDefinition(type);
                     if (!def) return null;
                     const Icon = def.icon;
+                    const titleText = type.startsWith('plugin:')
+                      ? def.label
+                      : tEditor(`registry.types.${type}`);
                     return (
                       <div
                         key={type}
-                        title={def.label}
+                        title={titleText}
                         className="rounded bg-hs-hover p-1"
                       >
                         <Icon className="w-3.5 h-3.5 text-hs-text-muted" />
@@ -122,7 +128,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                   )}
                 </div>
                 {loading === template.id && (
-                  <span className="text-xs text-hs-accent-hover mt-2 block">Loading...</span>
+                  <span className="text-xs text-hs-accent-hover mt-2 block">{tCore('loading')}</span>
                 )}
               </button>
             ))}
@@ -131,7 +137,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
         {/* Footer */}
         <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
-          <Button variant="secondary" onClick={onClose}>Close</Button>
+          <Button variant="secondary" onClick={onClose}>{tCore('actions.close')}</Button>
         </div>
       </div>
     </div>

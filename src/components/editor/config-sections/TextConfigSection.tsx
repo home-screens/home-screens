@@ -9,6 +9,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import LabeledTextarea from '@/components/ui/LabeledTextarea';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
+import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
   TextConfig,
@@ -18,78 +19,79 @@ import type {
   TextWrapMode,
 } from '@/types/config';
 
-const ORIENTATION_OPTIONS: { value: 'horizontal' | 'vertical' | 'sideways'; label: string }[] = [
-  { value: 'horizontal', label: 'Horizontal' },
-  { value: 'vertical', label: 'Vertical' },
-  { value: 'sideways', label: 'Sideways' },
-];
-
-const ALIGNMENT_OPTIONS = [
-  { value: 'left', label: 'Left' },
-  { value: 'center', label: 'Center' },
-  { value: 'right', label: 'Right' },
-] as const;
-
-const VERTICAL_ALIGN_OPTIONS: { value: 'top' | 'center' | 'bottom'; label: string }[] = [
-  { value: 'top', label: 'Top' },
-  { value: 'center', label: 'Center' },
-  { value: 'bottom', label: 'Bottom' },
-];
-
-const TEXT_TRANSFORM_OPTIONS: { value: 'none' | 'uppercase' | 'lowercase' | 'capitalize'; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'uppercase', label: 'UPPERCASE' },
-  { value: 'lowercase', label: 'lowercase' },
-  { value: 'capitalize', label: 'Capitalize' },
-];
-
-const EFFECT_OPTIONS: { value: TextEffect; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'typewriter', label: 'Typewriter' },
-  { value: 'fade-in', label: 'Fade In' },
-  { value: 'gradient-sweep', label: 'Gradient Sweep' },
-  { value: 'glow', label: 'Glow / Pulse' },
-  { value: 'outline', label: 'Outline' },
-  { value: 'shadow', label: 'Drop Shadow' },
-  { value: '3d', label: '3D / Extruded' },
-  { value: 'neon', label: 'Neon' },
-  { value: 'wave', label: 'Wave (per-character)' },
-  { value: 'bounce', label: 'Bounce (per-character)' },
-  { value: 'shake', label: 'Shake (per-character)' },
-  { value: 'color-cycle', label: 'Color Cycle' },
-];
-
-const DECORATION_OPTIONS: { value: TextDecoration; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'underline', label: 'Underline' },
-  { value: 'overline', label: 'Overline' },
-  { value: 'line-through', label: 'Strikethrough' },
-];
-
-const REVEAL_OPTIONS: { value: TextRevealOnRotation; label: string }[] = [
-  { value: 'none', label: 'None (instant swap)' },
-  { value: 'fade', label: 'Fade' },
-  { value: 'slide-up', label: 'Slide up' },
-  { value: 'slide-down', label: 'Slide down' },
-  { value: 'zoom', label: 'Zoom' },
-];
-
-const WRAP_OPTIONS: { value: TextWrapMode; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'nowrap', label: 'No wrap (single line)' },
-  { value: 'balance', label: 'Balanced (multi-line)' },
-  { value: 'pretty', label: 'Pretty (avoid orphans)' },
-];
-
-const MARQUEE_DIRECTION_OPTIONS: { value: 'left' | 'right' | 'up' | 'down'; label: string }[] = [
-  { value: 'left', label: 'Left' },
-  { value: 'right', label: 'Right' },
-  { value: 'up', label: 'Up' },
-  { value: 'down', label: 'Down' },
-];
-
 export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<TextConfig>(mod, screenId);
+  const t = useTranslate('editor');
+
+  const ORIENTATION_OPTIONS: { value: 'horizontal' | 'vertical' | 'sideways'; label: string }[] = [
+    { value: 'horizontal', label: t('configSections.text.orientationOptions.horizontal') },
+    { value: 'vertical', label: t('configSections.text.orientationOptions.vertical') },
+    { value: 'sideways', label: t('configSections.text.orientationOptions.sideways') },
+  ];
+
+  const ALIGNMENT_OPTIONS = [
+    { value: 'left', label: t('configSections.text.alignmentOptions.left') },
+    { value: 'center', label: t('configSections.text.alignmentOptions.center') },
+    { value: 'right', label: t('configSections.text.alignmentOptions.right') },
+  ] as const;
+
+  const VERTICAL_ALIGN_OPTIONS: { value: 'top' | 'center' | 'bottom'; label: string }[] = [
+    { value: 'top', label: t('configSections.text.verticalAlignOptions.top') },
+    { value: 'center', label: t('configSections.text.verticalAlignOptions.center') },
+    { value: 'bottom', label: t('configSections.text.verticalAlignOptions.bottom') },
+  ];
+
+  const TEXT_TRANSFORM_OPTIONS: { value: 'none' | 'uppercase' | 'lowercase' | 'capitalize'; label: string }[] = [
+    { value: 'none', label: t('configSections.text.textTransformOptions.none') },
+    { value: 'uppercase', label: t('configSections.text.textTransformOptions.uppercase') },
+    { value: 'lowercase', label: t('configSections.text.textTransformOptions.lowercase') },
+    { value: 'capitalize', label: t('configSections.text.textTransformOptions.capitalize') },
+  ];
+
+  const EFFECT_OPTIONS: { value: TextEffect; label: string }[] = [
+    { value: 'none', label: t('configSections.text.effectOptions.none') },
+    { value: 'typewriter', label: t('configSections.text.effectOptions.typewriter') },
+    { value: 'fade-in', label: t('configSections.text.effectOptions.fade-in') },
+    { value: 'gradient-sweep', label: t('configSections.text.effectOptions.gradient-sweep') },
+    { value: 'glow', label: t('configSections.text.effectOptions.glow') },
+    { value: 'outline', label: t('configSections.text.effectOptions.outline') },
+    { value: 'shadow', label: t('configSections.text.effectOptions.shadow') },
+    { value: '3d', label: t('configSections.text.effectOptions.3d') },
+    { value: 'neon', label: t('configSections.text.effectOptions.neon') },
+    { value: 'wave', label: t('configSections.text.effectOptions.wave') },
+    { value: 'bounce', label: t('configSections.text.effectOptions.bounce') },
+    { value: 'shake', label: t('configSections.text.effectOptions.shake') },
+    { value: 'color-cycle', label: t('configSections.text.effectOptions.color-cycle') },
+  ];
+
+  const DECORATION_OPTIONS: { value: TextDecoration; label: string }[] = [
+    { value: 'none', label: t('configSections.text.decorationOptions.none') },
+    { value: 'underline', label: t('configSections.text.decorationOptions.underline') },
+    { value: 'overline', label: t('configSections.text.decorationOptions.overline') },
+    { value: 'line-through', label: t('configSections.text.decorationOptions.line-through') },
+  ];
+
+  const REVEAL_OPTIONS: { value: TextRevealOnRotation; label: string }[] = [
+    { value: 'none', label: t('configSections.text.revealOptions.none') },
+    { value: 'fade', label: t('configSections.text.revealOptions.fade') },
+    { value: 'slide-up', label: t('configSections.text.revealOptions.slide-up') },
+    { value: 'slide-down', label: t('configSections.text.revealOptions.slide-down') },
+    { value: 'zoom', label: t('configSections.text.revealOptions.zoom') },
+  ];
+
+  const WRAP_OPTIONS: { value: TextWrapMode; label: string }[] = [
+    { value: 'normal', label: t('configSections.text.wrapOptions.normal') },
+    { value: 'nowrap', label: t('configSections.text.wrapOptions.nowrap') },
+    { value: 'balance', label: t('configSections.text.wrapOptions.balance') },
+    { value: 'pretty', label: t('configSections.text.wrapOptions.pretty') },
+  ];
+
+  const MARQUEE_DIRECTION_OPTIONS: { value: 'left' | 'right' | 'up' | 'down'; label: string }[] = [
+    { value: 'left', label: t('configSections.text.marqueeDirectionOptions.left') },
+    { value: 'right', label: t('configSections.text.marqueeDirectionOptions.right') },
+    { value: 'up', label: t('configSections.text.marqueeDirectionOptions.up') },
+    { value: 'down', label: t('configSections.text.marqueeDirectionOptions.down') },
+  ];
 
   const effect = (c.effect as TextEffect) || 'none';
   const gradientOn = !!c.gradientEnabled;
@@ -101,47 +103,47 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     <div className="space-y-2">
       {/* ── Content ── */}
       <LabeledTextarea
-        label="Content"
+        label={t('configSections.text.content')}
         value={(c.content as string) || ''}
         onChange={(v) => set({ content: v })}
         rows={4}
-        placeholder={rotationOn ? 'Slide 1\n---\nSlide 2\n---\nSlide 3' : 'Hello, World!'}
+        placeholder={rotationOn ? t('configSections.text.contentRotationPlaceholder') : t('configSections.text.contentPlaceholder')}
       />
 
       {/* ── Layout ── */}
       <LabeledSelect
-        label="Orientation"
+        label={t('configSections.text.orientation')}
         value={(c.orientation as 'horizontal' | 'vertical' | 'sideways') || 'horizontal'}
         onChange={(v) => set({ orientation: v })}
         options={ORIENTATION_OPTIONS}
       />
 
       <LabeledSelect
-        label="Alignment"
+        label={t('configSections.text.alignment')}
         value={(c.alignment as 'left' | 'center' | 'right') || 'center'}
         onChange={(v) => set({ alignment: v })}
         options={ALIGNMENT_OPTIONS}
       />
 
       <LabeledSelect
-        label="Vertical Align"
+        label={t('configSections.text.verticalAlign')}
         value={(c.verticalAlign as 'top' | 'center' | 'bottom') || 'center'}
         onChange={(v) => set({ verticalAlign: v })}
         options={VERTICAL_ALIGN_OPTIONS}
       />
 
       {/* ── Typography ── */}
-      <SectionHeading>Typography</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.typography')}</SectionHeading>
 
       <FontFamilyPicker
-        label="Font (override)"
+        label={t('configSections.text.fontOverride')}
         value={c.fontFamily as string | undefined}
         onChange={(v) => set({ fontFamily: v || undefined })}
         allowInherit
       />
 
       <Slider
-        label="Font Weight"
+        label={t('configSections.text.fontWeight')}
         value={c.fontWeight ?? 400}
         min={100}
         max={900}
@@ -150,10 +152,10 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ fontWeight: v })}
       />
 
-      <Toggle label="Italic" checked={!!c.italic} onChange={(v) => set({ italic: v })} />
+      <Toggle label={t('configSections.text.italic')} checked={!!c.italic} onChange={(v) => set({ italic: v })} />
 
       <Slider
-        label="Line Height"
+        label={t('configSections.text.lineHeight')}
         value={c.lineHeight ?? 1.2}
         min={0.8}
         max={3}
@@ -163,14 +165,14 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
 
       <LabeledSelect
-        label="Text Transform"
+        label={t('configSections.text.textTransform')}
         value={(c.textTransform as 'none' | 'uppercase' | 'lowercase' | 'capitalize') || 'none'}
         onChange={(v) => set({ textTransform: v })}
         options={TEXT_TRANSFORM_OPTIONS}
       />
 
       <Slider
-        label="Letter Spacing"
+        label={t('configSections.text.letterSpacing')}
         value={c.letterSpacing ?? 0}
         min={-5}
         max={20}
@@ -179,7 +181,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
 
       <Slider
-        label="Word Spacing"
+        label={t('configSections.text.wordSpacing')}
         value={c.wordSpacing ?? 0}
         min={-10}
         max={40}
@@ -188,7 +190,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       />
 
       <LabeledSelect
-        label="Decoration"
+        label={t('configSections.text.decoration')}
         value={decoration}
         onChange={(v) => set({ textDecoration: v })}
         options={DECORATION_OPTIONS}
@@ -197,12 +199,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {decoration !== 'none' && (
         <>
           <ColorPicker
-            label="Decoration Color"
+            label={t('configSections.text.decorationColor')}
             value={(c.textDecorationColor as string) || '#ffffff'}
             onChange={(v) => set({ textDecorationColor: v })}
           />
           <Slider
-            label="Decoration Thickness"
+            label={t('configSections.text.decorationThickness')}
             value={c.textDecorationThickness ?? 2}
             min={1}
             max={10}
@@ -214,14 +216,14 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-hs-text-muted">Emoji</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.text.emoji')}</span>
           {c.icon && (
             <button
               type="button"
               onClick={() => set({ icon: '' })}
               className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
             >
-              Clear
+              {t('configSections.text.clear')}
             </button>
           )}
         </div>
@@ -239,23 +241,23 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-hs-text-faint">Shown before the text</span>
+        <span className="text-[10px] text-hs-text-faint">{t('configSections.text.emojiHint')}</span>
       </div>
 
       {/* ── Features ── */}
-      <SectionHeading>Features</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.features')}</SectionHeading>
 
-      <Toggle label="Markdown" checked={!!c.markdown} onChange={(v) => set({ markdown: v })} />
+      <Toggle label={t('configSections.text.markdown')} checked={!!c.markdown} onChange={(v) => set({ markdown: v })} />
       {!!c.markdown && (
         <p className="text-[10px] text-hs-text-faint pl-1 leading-relaxed">
-          **bold** &nbsp; *italic* &nbsp; ~~strike~~ &nbsp; `code` &nbsp; newlines → line breaks
+          {t('configSections.text.markdownHint')}
         </p>
       )}
       {!marqueeOn && (
-        <Toggle label="Auto-fit to Container" checked={!!c.autoFit} onChange={(v) => set({ autoFit: v })} />
+        <Toggle label={t('configSections.text.autoFit')} checked={!!c.autoFit} onChange={(v) => set({ autoFit: v })} />
       )}
       <Toggle
-        label="Template Variables"
+        label={t('configSections.text.templateVariables')}
         checked={!!c.templateVariables}
         onChange={(v) => set({ templateVariables: v })}
       />
@@ -266,10 +268,10 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Effect ── */}
-      <SectionHeading>Effect</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.effect')}</SectionHeading>
 
       <LabeledSelect
-        label="Effect"
+        label={t('configSections.text.effect')}
         value={effect}
         onChange={(v) => set({ effect: v })}
         options={EFFECT_OPTIONS}
@@ -279,7 +281,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         effect === 'glow' || effect === 'neon' || effect === 'gradient-sweep' ||
         effect === 'color-cycle') && (
         <Slider
-          label="Animation Speed"
+          label={t('configSections.text.animationSpeed')}
           value={c.animationSpeed ?? 2}
           min={0.5}
           max={10}
@@ -292,7 +294,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {effect === 'outline' && (
         <>
           <Slider
-            label="Outline Width"
+            label={t('configSections.text.outlineWidth')}
             value={c.outlineWidth ?? 2}
             min={1}
             max={10}
@@ -300,7 +302,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ outlineWidth: v })}
           />
           <ColorPicker
-            label="Outline Color"
+            label={t('configSections.text.outlineColor')}
             value={(c.outlineColor as string) || '#000000'}
             onChange={(v) => set({ outlineColor: v })}
           />
@@ -310,7 +312,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       {effect === 'shadow' && (
         <>
           <Slider
-            label="Shadow X"
+            label={t('configSections.text.shadowX')}
             value={c.shadowOffsetX ?? 2}
             min={-20}
             max={20}
@@ -318,7 +320,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ shadowOffsetX: v })}
           />
           <Slider
-            label="Shadow Y"
+            label={t('configSections.text.shadowY')}
             value={c.shadowOffsetY ?? 2}
             min={-20}
             max={20}
@@ -326,7 +328,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ shadowOffsetY: v })}
           />
           <Slider
-            label="Shadow Blur"
+            label={t('configSections.text.shadowBlur')}
             value={c.shadowBlur ?? 4}
             min={0}
             max={40}
@@ -334,7 +336,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ shadowBlur: v })}
           />
           <ColorPicker
-            label="Shadow Color"
+            label={t('configSections.text.shadowColor')}
             value={(c.shadowColor as string) || 'rgba(0,0,0,0.5)'}
             onChange={(v) => set({ shadowColor: v })}
           />
@@ -349,24 +351,24 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Gradient ── */}
-      <SectionHeading>Gradient</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.gradient')}</SectionHeading>
 
-      <Toggle label="Gradient Text" checked={gradientOn} onChange={(v) => set({ gradientEnabled: v })} />
+      <Toggle label={t('configSections.text.gradientText')} checked={gradientOn} onChange={(v) => set({ gradientEnabled: v })} />
 
       {gradientOn && (
         <>
           <ColorPicker
-            label="From"
+            label={t('configSections.text.gradientFrom')}
             value={(c.gradientFrom as string) || '#a78bfa'}
             onChange={(v) => set({ gradientFrom: v })}
           />
           <ColorPicker
-            label="To"
+            label={t('configSections.text.gradientTo')}
             value={(c.gradientTo as string) || '#22d3ee'}
             onChange={(v) => set({ gradientTo: v })}
           />
           <Slider
-            label="Angle"
+            label={t('configSections.text.gradientAngle')}
             value={c.gradientAngle ?? 90}
             min={0}
             max={360}
@@ -378,43 +380,43 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Layout polish ── */}
-      <SectionHeading>Layout</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.layout')}</SectionHeading>
 
       <Slider
-        label="Max Width"
+        label={t('configSections.text.maxWidth')}
         value={c.maxWidth ?? 0}
         min={0}
         max={2000}
         step={10}
-        displayValue={c.maxWidth ? `${c.maxWidth}px` : 'No limit'}
+        displayValue={c.maxWidth ? `${c.maxWidth}px` : t('configSections.text.maxWidthNoLimit')}
         onChange={(v) => set({ maxWidth: v })}
       />
 
       <LabeledSelect
-        label="Wrap"
+        label={t('configSections.text.wrap')}
         value={(c.wrapMode as TextWrapMode) || 'normal'}
         onChange={(v) => set({ wrapMode: v })}
         options={WRAP_OPTIONS}
       />
 
-      <Toggle label="Drop Cap" checked={!!c.dropCap} onChange={(v) => set({ dropCap: v })} />
+      <Toggle label={t('configSections.text.dropCap')} checked={!!c.dropCap} onChange={(v) => set({ dropCap: v })} />
       {c.dropCap && (
         <ColorPicker
-          label="Drop Cap Color"
+          label={t('configSections.text.dropCapColor')}
           value={(c.dropCapColor as string) || (c.accentColor as string) || '#ffffff'}
           onChange={(v) => set({ dropCapColor: v })}
         />
       )}
 
       <ColorPicker
-        label="Text Background"
+        label={t('configSections.text.textBackground')}
         value={(c.textBackground as string) || 'transparent'}
         onChange={(v) => set({ textBackground: v && v !== 'transparent' ? v : undefined })}
       />
       {c.textBackground && (
         <>
           <Slider
-            label="BG Padding"
+            label={t('configSections.text.bgPadding')}
             value={c.textBackgroundPadding ?? 4}
             min={0}
             max={32}
@@ -422,7 +424,7 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ textBackgroundPadding: v })}
           />
           <Slider
-            label="BG Radius"
+            label={t('configSections.text.bgRadius')}
             value={c.textBackgroundRadius ?? 4}
             min={0}
             max={32}
@@ -433,16 +435,16 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Rotation ── */}
-      <SectionHeading>Rotation</SectionHeading>
+      <SectionHeading>{t('fields.rotation')}</SectionHeading>
 
-      <Toggle label="Slideshow" checked={rotationOn} onChange={(v) => set({ rotationEnabled: v })} />
+      <Toggle label={t('configSections.text.slideshow')} checked={rotationOn} onChange={(v) => set({ rotationEnabled: v })} />
       {rotationOn && (
         <>
           <p className="text-[10px] text-hs-text-faint pl-1 leading-relaxed">
-            Separate slides with <span className="font-mono text-hs-text-muted">---</span> in the content above
+            {t('configSections.text.slidesHintPrefix')} <span className="font-mono text-hs-text-muted">---</span> {t('configSections.text.slidesHintSuffix')}
           </p>
           <Slider
-            label="Interval"
+            label={t('configSections.text.interval')}
             value={c.rotationIntervalMs ?? 5000}
             min={1000}
             max={30000}
@@ -451,12 +453,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             onChange={(v) => set({ rotationIntervalMs: v })}
           />
           <LabeledInput
-            label="Separator"
+            label={t('configSections.text.separator')}
             value={(c.rotationSeparator as string) || '---'}
             onChange={(v) => set({ rotationSeparator: v })}
           />
           <LabeledSelect
-            label="Reveal animation"
+            label={t('configSections.text.revealAnimation')}
             value={(c.revealOnRotation as TextRevealOnRotation) || 'none'}
             onChange={(v) => set({ revealOnRotation: v })}
             options={REVEAL_OPTIONS}
@@ -465,20 +467,20 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Marquee ── */}
-      <SectionHeading>Marquee</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.marquee')}</SectionHeading>
 
-      <Toggle label="Scrolling Marquee" checked={marqueeOn} onChange={(v) => set({ marquee: v })} />
+      <Toggle label={t('configSections.text.scrollingMarquee')} checked={marqueeOn} onChange={(v) => set({ marquee: v })} />
 
       {marqueeOn && (
         <>
           <LabeledSelect
-            label="Direction"
+            label={t('configSections.text.direction')}
             value={(c.marqueeDirection as 'left' | 'right' | 'up' | 'down') || 'left'}
             onChange={(v) => set({ marqueeDirection: v })}
             options={MARQUEE_DIRECTION_OPTIONS}
           />
           <Slider
-            label="Speed"
+            label={t('configSections.text.speed')}
             value={c.marqueeSpeed ?? 30}
             min={5}
             max={120}
@@ -490,12 +492,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       {/* ── Decorative ── */}
-      <SectionHeading>Decorative</SectionHeading>
+      <SectionHeading>{t('configSections.text.sections.decorative')}</SectionHeading>
 
-      <Toggle label="Dividers" checked={!!c.showDividers} onChange={(v) => set({ showDividers: v })} />
+      <Toggle label={t('configSections.text.dividers')} checked={!!c.showDividers} onChange={(v) => set({ showDividers: v })} />
 
       <ColorPicker
-        label="Accent Color"
+        label={t('configSections.text.accentColor')}
         value={(c.accentColor as string) || '#ffffff'}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -510,16 +512,17 @@ function ColorPalette({
   palette: string[];
   onChange: (palette: string[]) => void;
 }) {
+  const t = useTranslate('editor');
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-hs-text-muted">Color Cycle Palette</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.text.colorCyclePalette')}</span>
         <button
           type="button"
           onClick={() => onChange([...palette, '#ffffff'])}
           className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
         >
-          + Add
+          {t('configSections.text.addColor')}
         </button>
       </div>
       <div className="space-y-1">

@@ -10,6 +10,7 @@ import {
 } from '@/lib/display-override-fields';
 import { orientDimensions } from '@/stores/editor-store';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import { useTranslate, type TranslateFn } from '@/i18n';
 
 interface DisplayApiEntry {
   id: string;
@@ -37,6 +38,7 @@ interface OverviewSubtabProps {
  * each one drifts from the shared default.
  */
 export default function OverviewSubtab({ config, display, heartbeat }: OverviewSubtabProps) {
+  const t = useTranslate('editor');
   const dims = display.displayWidth && display.displayHeight
     ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
@@ -63,7 +65,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
   return (
     <>
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <KvCard label="Resolution">
+        <KvCard label={t('common.resolution')}>
           {dims ? (
             <span className="tabular-nums">
               {dims.width} × {dims.height}
@@ -72,27 +74,31 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             <span className="text-hs-text-faint">—</span>
           )}
         </KvCard>
-        <KvCard label="Active profile">
-          {activeProfile?.name ?? heartbeat?.status?.activeProfile ?? <span className="text-hs-text-faint">None</span>}
+        <KvCard label={t('settings.perDisplayPage.overview.activeProfileLabel')}>
+          {activeProfile?.name ?? heartbeat?.status?.activeProfile ?? (
+            <span className="text-hs-text-faint">
+              {t('settings.perDisplayPage.overview.noActiveProfile')}
+            </span>
+          )}
         </KvCard>
-        <KvCard label="Screens">{screenCount}</KvCard>
+        <KvCard label={t('settings.perDisplayPage.overview.screensLabel')}>{screenCount}</KvCard>
       </div>
 
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <div className="text-xs font-semibold text-hs-text-secondary uppercase tracking-wider mb-3">
-          Overrides for {display.name}
+          {t('settings.perDisplayPage.overview.overridesHeading', { name: display.name })}
         </div>
         {myOverrides && myOverrides.overriddenFields.length > 0 ? (
           <>
             <div className="text-sm text-hs-text-muted mb-3">
-              {display.name} uses the{' '}
+              {t('settings.perDisplayPage.overview.withOverridesPart1', { name: display.name })}
               <Link
                 href="?section=defaults&page=display"
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
-                Defaults
-              </Link>{' '}
-              for everything except:
+                {t('settings.perDisplayPage.overview.defaultsLink')}
+              </Link>
+              {t('settings.perDisplayPage.overview.withOverridesPart2')}
             </div>
             <div className="flex gap-2 flex-wrap">
               {myOverrides.overriddenFields.map((field) => (
@@ -101,20 +107,21 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
                   field={String(field)}
                   display={display}
                   settings={config.settings}
+                  t={t}
                 />
               ))}
             </div>
           </>
         ) : (
           <div className="text-sm text-hs-text-faint">
-            {display.name} uses the{' '}
+            {t('settings.perDisplayPage.overview.noOverridesPart1', { name: display.name })}
             <Link
               href="?section=defaults&page=display"
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
-              Defaults
-            </Link>{' '}
-            for every field. Override one from the Display, Sleep, or Alerts subtab.
+              {t('settings.perDisplayPage.overview.defaultsLink')}
+            </Link>
+            {t('settings.perDisplayPage.overview.noOverridesPart2')}
           </div>
         )}
       </div>
@@ -140,18 +147,24 @@ function KvCard({ label, children }: { label: string; children: React.ReactNode 
  *
  * Whole-block overrides (sleep, screensaver, alerts) don't have a single
  * comparable value — they collapse into a chip that just names the block.
+ *
+ * `t` is threaded through (rather than re-derived per chip) so every chip
+ * in the list shares the same TranslateFn instance — saves a hook call per
+ * field and keeps the rendering tree pure.
  */
 function OverrideChip({
   field,
   display,
   settings,
+  t,
 }: {
   field: string;
   display: DisplayNode;
   settings: GlobalSettings;
+  t: TranslateFn;
 }) {
   const overrides = display.settings ?? {};
-  const formatted = formatOverrideComparison(field, overrides, settings);
+  const formatted = formatOverrideComparison(field, overrides, settings, t);
 
   return (
     <span className="text-[11px] text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/30 px-2.5 py-1 rounded-full">
@@ -173,33 +186,37 @@ function formatRotationInterval(ms: number): string {
   return `${Math.round(ms / 1000)}s`;
 }
 
-// Shortened labels — the chip has no room for the parenthetical clarifiers
-// that `TRANSITION_OPTIONS` in @/lib/transitions uses in dropdowns.
-const CHIP_LABELS: Record<string, string> = {
-  fade: 'Fade',
-  slide: 'Slide Left',
-  'slide-up': 'Slide Up',
-  zoom: 'Zoom',
-  flip: '3D Flip',
-  blur: 'Blur',
-  crossfade: 'Crossfade',
-  none: 'None',
-};
+/**
+ * Look up a translation, but fall back to the raw value when the key isn't
+ * registered — covers plugin-introduced transition effects (and any future
+ * additions to the registry) without rendering the dotted-path key.
+ */
+function tOrFallback(t: TranslateFn, key: string, fallback: string): string {
+  const result = t(key);
+  return result === key ? fallback : result;
+}
 
-function formatTransitionEffect(effect: string): string {
-  return CHIP_LABELS[effect] ?? effect;
+// Shortened labels — the chip has no room for the parenthetical clarifiers
+// that `TRANSITION_OPTIONS` in @/lib/transitions uses in dropdowns. Looked
+// up via t() so de-DE / future locales render properly; falls back to the
+// effect's id (e.g. "fade") if a plugin introduces a new value not yet in
+// the registry.
+function formatTransitionEffect(effect: string, t: TranslateFn): string {
+  return tOrFallback(t, `settings.perDisplayPage.overview.transitionLabels.${effect}`, effect);
 }
 
 function formatTransitionDuration(seconds: number): string {
   return `${seconds.toFixed(1)}s`;
 }
 
-function formatPauseEnabled(enabled: boolean): string {
-  return enabled ? 'On' : 'Off';
+function formatPauseEnabled(enabled: boolean, t: TranslateFn): string {
+  return enabled
+    ? t('settings.perDisplayPage.overview.chipValues.pauseOn')
+    : t('settings.perDisplayPage.overview.chipValues.pauseOff');
 }
 
-function formatPauseTimeout(seconds: number): string {
-  return seconds === 0 ? 'Never' : `${seconds}s`;
+function formatPauseTimeout(seconds: number, t: TranslateFn): string {
+  return seconds === 0 ? t('settings.perDisplayPage.overview.chipValues.pauseNever') : `${seconds}s`;
 }
 
 function formatCursorHide(seconds: number): string {
@@ -207,22 +224,19 @@ function formatCursorHide(seconds: number): string {
 }
 
 function formatFullscreenTheme(themeId: string): string {
+  // Theme names ("Linen", "Charcoal", …) are kept verbatim — product names
+  // that don't translate, matching DefaultDisplaySection's policy.
   return FULLSCREEN_THEMES.find((t) => t.id === themeId)?.name ?? themeId;
 }
 
-/** Pretty label shown before the colon in each chip. */
-const FIELD_LABELS: Record<string, string> = {
-  rotationIntervalMs: 'Rotation interval',
-  transitionEffect: 'Transition',
-  transitionDuration: 'Transition duration',
-  pauseEnabled: 'Pause on tap',
-  pauseTimeoutSeconds: 'Pause timeout',
-  cursorHideSeconds: 'Hide cursor',
-  fullscreenTheme: 'Theme',
-  sleep: 'Sleep schedule',
-  screensaver: 'Screensaver',
-  alerts: 'Alert overlay',
-};
+/**
+ * Pretty label shown before the colon in each chip — falls back to the raw
+ * field key for any future override field that lacks a registered label,
+ * mirroring how DefaultDisplaySection handles plugin transitions.
+ */
+function fieldLabel(field: string, t: TranslateFn): string {
+  return tOrFallback(t, `settings.perDisplayPage.overview.fieldLabels.${field}`, field);
+}
 
 /**
  * Format one override field as a `Label: <override> (default: <default>)`
@@ -249,12 +263,13 @@ function formatOverrideComparison(
   field: string,
   overrides: NonNullable<DisplayNode['settings']>,
   settings: GlobalSettings,
+  t: TranslateFn,
 ): string {
-  const label = FIELD_LABELS[field] ?? field;
+  const label = fieldLabel(field, t);
 
   // Whole-block overrides — no single value to compare against.
   if (field === 'sleep' || field === 'screensaver' || field === 'alerts') {
-    return `${label} overridden`;
+    return t('settings.perDisplayPage.overview.chipBlockOverridden', { label });
   }
 
   // Indexed access via `as Record<string, unknown>` — we keep the
@@ -272,7 +287,13 @@ function formatOverrideComparison(
    * value is missing rather than rendering the literal `"undefined"`.
    */
   const compare = (overrideText: string, defaultText: string | null): string =>
-    defaultText != null ? `${label}: ${overrideText} (default: ${defaultText})` : `${label}: ${overrideText}`;
+    defaultText != null
+      ? t('settings.perDisplayPage.overview.chipFieldWithDefault', {
+          label,
+          value: overrideText,
+          defaultValue: defaultText,
+        })
+      : t('settings.perDisplayPage.overview.chipFieldNoDefault', { label, value: overrideText });
 
   switch (field) {
     case 'rotationIntervalMs':
@@ -284,8 +305,8 @@ function formatOverrideComparison(
       );
     case 'transitionEffect':
       return compare(
-        formatTransitionEffect(overrideValue as string),
-        defaultValue != null ? formatTransitionEffect(defaultValue as string) : null,
+        formatTransitionEffect(overrideValue as string, t),
+        defaultValue != null ? formatTransitionEffect(defaultValue as string, t) : null,
       );
     case 'transitionDuration':
       return compare(
@@ -294,13 +315,13 @@ function formatOverrideComparison(
       );
     case 'pauseEnabled':
       return compare(
-        formatPauseEnabled(overrideValue as boolean),
-        defaultValue != null ? formatPauseEnabled(defaultValue as boolean) : null,
+        formatPauseEnabled(overrideValue as boolean, t),
+        defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,
       );
     case 'pauseTimeoutSeconds':
       return compare(
-        formatPauseTimeout(overrideValue as number),
-        defaultValue != null ? formatPauseTimeout(defaultValue as number) : null,
+        formatPauseTimeout(overrideValue as number, t),
+        defaultValue != null ? formatPauseTimeout(defaultValue as number, t) : null,
       );
     case 'cursorHideSeconds':
       return compare(

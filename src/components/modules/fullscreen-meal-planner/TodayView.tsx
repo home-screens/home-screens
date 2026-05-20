@@ -1,10 +1,12 @@
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
 export default function TodayView({
   settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
+  const t = useTranslate('modules');
   const currentHour = now.getHours();
   const todayISO = toISODate(now);
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
@@ -20,20 +22,19 @@ export default function TodayView({
   let heroLabel: string;
   if (activeSlot) {
     heroSlot = activeSlot;
-    heroLabel = 'Now';
+    heroLabel = t('fullscreen-meal-planner.heroLabels.now');
   } else {
     const upcoming = activeOrder.find((sl) => currentHour < SLOT_WINDOWS[sl].start);
     if (upcoming) {
       heroSlot = upcoming;
-      heroLabel = 'Up Next';
+      heroLabel = t('fullscreen-meal-planner.heroLabels.upNext');
     } else {
       heroSlot = activeOrder[activeOrder.length - 1] ?? 'dinner';
-      heroLabel = 'Tonight';
+      heroLabel = t('fullscreen-meal-planner.heroLabels.tonight');
     }
   }
   const { meal: heroMeal, planned: heroPlanned } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
-  const heroMeta = SLOT_META[heroSlot];
 
   // Other meals (non-hero)
   const otherSlots = activeOrder.filter((sl) => sl !== heroSlot);
@@ -54,7 +55,7 @@ export default function TodayView({
         fontFamily: headerFont, fontSize: s * 2.2, fontWeight: 400,
         color: 'var(--fmp-text)', marginBottom: s * 1.5,
       }}>
-        Today&rsquo;s Meals
+        {t('fullscreen-meal-planner.todaysMeals')}
       </div>
 
       {/* Hero card */}
@@ -74,7 +75,7 @@ export default function TodayView({
           padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
           display: 'inline-flex', alignItems: 'center', gap: s * 0.4,
         }}>
-          <span>⚡ {heroLabel} &mdash; {heroMeta.label}</span>
+          <span>⚡ {heroLabel} &mdash; {t(getMealSlotLabelKey(heroSlot))}</span>
           {heroTime && (
             <span style={{
               fontVariantNumeric: 'tabular-nums',
@@ -112,7 +113,7 @@ export default function TodayView({
                   background: 'var(--fmp-border-sub)', padding: `${s * 0.1}px ${s * 0.5}px`,
                   borderRadius: s * 0.3,
                 }}>
-                  &#9201; {heroMeal.prepTime}m
+                  &#9201; {t('fullscreen-meal-planner.prepTimeMinShort', { minutes: heroMeal.prepTime })}
                 </span>
               )}
               {showDifficulty && heroMeal.difficulty && (() => {
@@ -143,7 +144,7 @@ export default function TodayView({
           </>
         ) : (
           <span style={{ fontSize: s * 1.2, color: 'var(--fmp-text-3)', padding: `${s * 2}px 0` }}>
-            No meal planned
+            {t('fullscreen-meal-planner.noMealPlanned')}
           </span>
         )}
       </div>
@@ -156,7 +157,7 @@ export default function TodayView({
             letterSpacing: '0.08em', color: 'var(--fmp-text-3)',
             marginTop: s * 2, marginBottom: s * 0.8,
           }}>
-            Also Today
+            {t('fullscreen-meal-planner.alsoToday')}
           </div>
           <div style={{ display: 'flex', gap: s * 0.6, flexWrap: 'wrap' as const }}>
             {otherSlots.map((sl) => {
@@ -188,7 +189,7 @@ export default function TodayView({
                       letterSpacing: '0.06em', color: meta.color, marginBottom: s * 0.1,
                       display: 'flex', alignItems: 'baseline', gap: s * 0.4,
                     }}>
-                      <span>{meta.label}</span>
+                      <span>{t(getMealSlotLabelKey(sl))}</span>
                       {slotTime && (
                         <span style={{
                           color: 'var(--fmp-text-3)',
@@ -204,12 +205,12 @@ export default function TodayView({
                       fontSize: s * 0.8, fontWeight: 600, color: 'var(--fmp-text)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
                     }}>
-                      {meal?.name ?? 'Not planned'}
+                      {meal?.name ?? t('fullscreen-meal-planner.notPlanned')}
                     </div>
                   </div>
                   {showPrepTime && meal?.prepTime && (
                     <span style={{ fontSize: s * 0.6, color: 'var(--fmp-text-3)', flexShrink: 0 }}>
-                      {meal.prepTime}m
+                      {t('fullscreen-meal-planner.prepTimeMinShort', { minutes: meal.prepTime })}
                     </span>
                   )}
                 </div>

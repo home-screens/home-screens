@@ -8,14 +8,8 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
-
-const VIEW_MODES = [
-  { value: 'daily', label: 'Daily Columns' },
-  { value: 'agenda', label: 'Agenda List' },
-  { value: 'week', label: 'Week Grid' },
-  { value: 'month', label: 'Month Grid' },
-] as const;
 
 interface GoogleCalendar {
   id: string;
@@ -31,6 +25,7 @@ interface CalendarSource {
 }
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{
     viewMode?: string;
     daysToShow?: number;
@@ -45,6 +40,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
+
+  const VIEW_MODES = [
+    { value: 'daily', label: t('configSections.calendar.viewDaily') },
+    { value: 'agenda', label: t('configSections.calendar.viewAgenda') },
+    { value: 'week', label: t('configSections.calendar.viewWeek') },
+    { value: 'month', label: t('configSections.calendar.viewMonth') },
+  ] as const;
 
   // Build list of available sources from global settings + Google API
   const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
@@ -79,7 +81,9 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       const local = gid.split('@')[0];
       if (/^[a-z0-9]{20,}$/i.test(local)) {
         unnamedCount++;
-        name = unnamedCount > 1 ? `Google Calendar ${unnamedCount}` : 'Google Calendar';
+        name = unnamedCount > 1
+          ? t('configSections.calendar.googleCalendarNumbered', { n: unnamedCount })
+          : t('configSections.calendar.googleCalendar');
       } else {
         name = local;
       }
@@ -96,7 +100,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     }
   }
   if (holidayCountry) {
-    availableSources.push({ id: 'holidays', name: 'Public Holidays', color: '#10b981' });
+    availableSources.push({ id: 'holidays', name: t('configSections.calendar.publicHolidays'), color: '#10b981' });
   }
 
   const allSelected = sourceFilter.length === 0;
@@ -123,7 +127,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   return (
     <>
       <LabeledSelect
-        label="View Mode"
+        label={t('configSections.calendar.viewMode')}
         value={viewMode}
         onChange={(v) => set({ viewMode: v })}
         options={VIEW_MODES}
@@ -131,13 +135,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
 
       {googleAuthError && googleCalendarIds.length > 0 && (
         <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
-          Google Calendar auth expired. Re-authenticate in Settings → Calendar.
+          {t('configSections.calendar.googleAuthExpired')}
         </div>
       )}
 
       {availableSources.length > 1 && (
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Sources</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.calendar.sources')}</span>
           <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong max-h-40 overflow-y-auto">
             <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
               <input
@@ -146,7 +150,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
                 onChange={selectAll}
                 className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
               />
-              <span className="text-sm text-hs-text-body">All Sources</span>
+              <span className="text-sm text-hs-text-body">{t('configSections.calendar.allSources')}</span>
             </label>
             {availableSources.map((src) => (
               <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
@@ -169,7 +173,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
 
       {viewMode === 'daily' && (
         <LabeledInput
-          label="Days to Show"
+          label={t('configSections.calendar.daysToShow')}
           type="number"
           min={1}
           max={14}
@@ -179,7 +183,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {viewMode === 'agenda' && (
         <LabeledInput
-          label="Max Events"
+          label={t('configSections.calendar.maxEvents')}
           type="number"
           min={1}
           max={100}
@@ -189,21 +193,21 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {(viewMode === 'daily' || viewMode === 'agenda') && (
         <>
-          <Toggle label="Show Time" checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
-          <Toggle label="Show Location" checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
+          <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
+          <Toggle label={t('configSections.calendar.showLocation')} checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
         </>
       )}
       {viewMode === 'daily' && (
-        <Toggle label="Show Description" checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
+        <Toggle label={t('common.showDescription')} checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
       )}
       {viewMode === 'agenda' && (
-        <Toggle label="Show Description" checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
+        <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
       {(viewMode === 'week' || viewMode === 'month') && (
-        <Toggle label="Show Week Numbers" checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
+        <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
       )}
       <ColorPicker
-        label="Accent Color"
+        label={t('configSections.calendar.accentColor')}
         value={c.accentColor ?? '#3b82f6'}
         onChange={(v) => set({ accentColor: v })}
       />

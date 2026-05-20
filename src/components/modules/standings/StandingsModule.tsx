@@ -5,6 +5,7 @@ import ModuleWrapper from '../ModuleWrapper';
 import { ModuleLoadingState, ModuleEmptyState } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { standingsUrl } from '@/lib/fetch-keys';
+import { useTranslate } from '@/i18n';
 import { TableView } from './TableView';
 import { CompactView } from './CompactView';
 import { ConferenceView } from './ConferenceView';
@@ -16,6 +17,7 @@ interface StandingsModuleProps {
 }
 
 export default function StandingsModule({ config, style }: StandingsModuleProps) {
+  const t = useTranslate('modules');
   const grouping = config.grouping ?? 'division';
   const view = config.view ?? 'table';
 
@@ -27,11 +29,11 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
   const groups = data?.groups ?? [];
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading standings…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('standings.loading')} error={error} />;
   }
 
   if (groups.length === 0) {
-    return <ModuleEmptyState style={style} message="No standings available" />;
+    return <ModuleEmptyState style={style} message={t('standings.noStandings')} />;
   }
 
   const teamsToShow = config.teamsToShow ?? 0;

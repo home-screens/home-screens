@@ -1876,3 +1876,33 @@ Geocodes a location name to coordinates. Used by the weather location picker in 
   }
 ]
 ```
+
+---
+
+## Internationalization
+
+### GET /api/i18n/[locale]
+
+Fetches one or more translation dictionaries for a locale. Used by the client-side `<I18nProvider>` to hydrate dictionaries on the fly when the active locale changes; server-rendered pages read the same dictionaries directly without going through this route.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `locale` (path) | string | — | BCP-47 tag (e.g. `en-US`, `de-DE`). Unknown tags fall back to `en-US` silently — there is no 404 path. |
+| `ns` (query) | string | `core` | Comma-separated namespace list. Valid namespaces are `core`, `editor`, `modules`, `remote`, `weather`. |
+
+**Response:** `{ <namespace>: <dictionary>, ... }` where each `<dictionary>` is a nested JSON object of translation keys. Missing keys fall back per-namespace through the locale's language siblings and finally to `en-US`, so a partially translated locale stays usable.
+
+**Caching:** Responses are cached aggressively in the browser and at any CDN tier. The full URL (locale + `?ns=` query) is the cache key, so each `(locale, namespace-set)` combination is cached independently.
+
+**Example:**
+```
+GET /api/i18n/de-DE?ns=core,weather
+```
+```json
+{
+  "core": { "common": { "save": "Speichern", ... }, ... },
+  "weather": { "conditions": { "rain": "Regen", ... }, ... }
+}
+```
+
+Plugin translations are not served by this route — they are bundled inside the plugin's own files and served through `/api/plugins/asset/...`. See the [Plugins guide](/docs/plugins) for plugin-side i18n.

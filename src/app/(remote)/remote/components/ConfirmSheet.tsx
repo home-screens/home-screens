@@ -1,11 +1,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useTranslate } from '@/i18n';
 
 export default function ConfirmSheet({
   title,
   description,
   confirmLabel,
+  cancelLabel,
   confirmColor,
   icon,
   onConfirm,
@@ -13,12 +15,21 @@ export default function ConfirmSheet({
 }: {
   title: string;
   description: string;
-  confirmLabel: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
   confirmColor?: string;
   icon?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  // Defaults route through `core.actions` so callers don't need to translate
+  // them locally. Callers that want a custom label (e.g. "Delete Member",
+  // "Redeem — 3 tickets") still pass `confirmLabel` explicitly. Mirrors the
+  // ConfirmModal pattern from 6.4c.ii.
+  const tCore = useTranslate('core');
+  const resolvedConfirmLabel = confirmLabel ?? tCore('actions.confirm');
+  const resolvedCancelLabel = cancelLabel ?? tCore('actions.cancel');
+
   return (
     <div
       style={{
@@ -68,7 +79,7 @@ export default function ConfirmSheet({
             marginBottom: 8,
           }}
         >
-          {confirmLabel}
+          {resolvedConfirmLabel}
         </button>
         <button
           className="press-scale"
@@ -86,7 +97,7 @@ export default function ConfirmSheet({
             cursor: 'pointer',
           }}
         >
-          Cancel
+          {resolvedCancelLabel}
         </button>
       </div>
     </div>

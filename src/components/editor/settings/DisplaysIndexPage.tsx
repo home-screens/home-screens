@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -151,6 +152,7 @@ interface DisplayFormProps {
 }
 
 function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubmit, takenIds }: DisplayFormProps) {
+  const t = useTranslate('editor');
   const { config } = useEditorStore();
   const [name, setName] = useState(initial?.name ?? '');
   const [id, setId] = useState(initial?.id ?? prefilledId ?? '');
@@ -220,23 +222,23 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     setError(null);
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Name is required');
+      setError(t('settings.displaysIndex.formErrorName'));
       return;
     }
     if (!isValidDisplayId(id)) {
-      setError('ID must be lowercase letters, digits, and hyphens (e.g. "kitchen")');
+      setError(t('settings.displaysIndex.formErrorId'));
       return;
     }
     if (!initial && takenIds.has(id)) {
-      setError(`A display with ID "${id}" already exists`);
+      setError(t('settings.displaysIndex.formErrorIdTaken', { id }));
       return;
     }
     if (!Number.isInteger(width) || width <= 0 || width > MAX_DISPLAY_DIMENSION) {
-      setError(`Width must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}`);
+      setError(t('settings.displaysIndex.formErrorWidth', { max: MAX_DISPLAY_DIMENSION }));
       return;
     }
     if (!Number.isInteger(height) || height <= 0 || height > MAX_DISPLAY_DIMENSION) {
-      setError(`Height must be a positive integer ≤ ${MAX_DISPLAY_DIMENSION}`);
+      setError(t('settings.displaysIndex.formErrorHeight', { max: MAX_DISPLAY_DIMENSION }));
       return;
     }
 
@@ -266,7 +268,11 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     <div className="rounded-lg border border-hs-border-strong bg-hs-hover p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-hs-text-body">
-          {initial ? 'Edit Display' : prefilledId ? `Adopt ${prefilledId}` : 'Add Display'}
+          {initial
+            ? t('settings.displaysIndex.formEditTitle')
+            : prefilledId
+              ? t('settings.displaysIndex.formAdoptTitle', { id: prefilledId })
+              : t('settings.displaysIndex.formAddTitle')}
         </h4>
         <button
           onClick={onCancel}
@@ -277,19 +283,19 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       </div>
 
       <label className="block">
-        <span className="text-xs text-hs-text-muted">Name</span>
+        <span className="text-xs text-hs-text-muted">{t('settings.displaysIndex.formNameLabel')}</span>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Kitchen Touchscreen"
+          placeholder={t('settings.displaysIndex.formNamePlaceholder')}
           className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
       </label>
 
       <label className="block">
         <span className="text-xs text-hs-text-muted">
-          ID <span className="text-hs-text-faint">(used in URL: /display/&lt;id&gt;)</span>
+          {t('settings.displaysIndex.formIdLabel')} <span className="text-hs-text-faint">{t('settings.displaysIndex.formIdHint')}</span>
         </span>
         <input
           type="text"
@@ -302,12 +308,12 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             setId(e.target.value);
             setIdTouched(true);
           }}
-          placeholder="kitchen"
+          placeholder={t('settings.displaysIndex.formIdPlaceholder')}
           className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent font-mono disabled:opacity-50"
         />
         {prefilledId && !initial && (
           <p className="text-[11px] text-hs-text-faint mt-1">
-            ID is locked to match the polling display.
+            {t('settings.displaysIndex.formIdLocked')}
           </p>
         )}
       </label>
@@ -315,16 +321,16 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       {/* Per-display dimensions */}
       <div>
         <span className="text-xs text-hs-text-muted block mb-2">
-          Resolution
+          {t('common.resolution')}
           {prefilledViewport && (
             <span className="ml-2 text-hs-text-faint">
-              (reported by display: {prefilledViewport.width} × {prefilledViewport.height})
+              {t('settings.displaysIndex.formReportedViewport', { width: prefilledViewport.width, height: prefilledViewport.height })}
             </span>
           )}
         </span>
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
-            <span className="text-[11px] text-hs-text-faint">Width</span>
+            <span className="text-[11px] text-hs-text-faint">{t('settings.displaysIndex.formWidth')}</span>
             <input
               type="number"
               min={1}
@@ -335,7 +341,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
             />
           </label>
           <label className="block">
-            <span className="text-[11px] text-hs-text-faint">Height</span>
+            <span className="text-[11px] text-hs-text-faint">{t('settings.displaysIndex.formHeight')}</span>
             <input
               type="number"
               min={1}
@@ -347,14 +353,12 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
           </label>
         </div>
         <p className="text-[11px] text-hs-text-faint mt-2">
-          Set this to match the physical display the kiosk is rendering on.
-          Modules will be laid out against this canvas size when you edit
-          this display&apos;s screens.
+          {t('settings.displaysIndex.formResolutionHint')}
         </p>
       </div>
 
       <label className="block">
-        <span className="text-xs text-hs-text-muted">Rotation</span>
+        <span className="text-xs text-hs-text-muted">{t('fields.rotation')}</span>
         <select
           value={transform}
           onChange={(e) =>
@@ -362,14 +366,13 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
           }
           className="mt-1 block w-full rounded-md bg-hs-panel border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         >
-          <option value="normal">Normal (landscape)</option>
-          <option value="90">90° clockwise (portrait)</option>
-          <option value="180">180° (inverted)</option>
-          <option value="270">270° clockwise (portrait)</option>
+          <option value="normal">{t('settings.displaysIndex.formRotationNormal')}</option>
+          <option value="90">{t('settings.displaysIndex.formRotation90')}</option>
+          <option value="180">{t('settings.displaysIndex.formRotation180')}</option>
+          <option value="270">{t('settings.displaysIndex.formRotation270')}</option>
         </select>
         <p className="text-[11px] text-hs-text-faint mt-1">
-          Picks the canvas orientation. The width and height above auto-swap
-          so the longer edge matches whichever axis the rotation chose.
+          {t('settings.displaysIndex.formRotationHint')}
         </p>
       </label>
 
@@ -380,9 +383,9 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
       )}
 
       <div className="flex items-center gap-2 justify-end">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+        <Button variant="secondary" onClick={onCancel}>{t('settings.displaysIndex.formCancel')}</Button>
         <Button variant="primary" onClick={handleSubmit}>
-          {initial ? 'Save changes' : 'Add display'}
+          {initial ? t('settings.displaysIndex.formSaveChanges') : t('settings.displaysIndex.formAddDisplay')}
         </Button>
       </div>
     </div>
@@ -411,6 +414,8 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
  * reason this page still has any mutating affordances at all.
  */
 export default function DisplaysIndexPage() {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const router = useRouter();
   const { config, addDisplay, saveConfig } = useEditorStore();
 
@@ -419,7 +424,7 @@ export default function DisplaysIndexPage() {
   const [adding, setAdding] = useState(false);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<'saved' | 'failed' | null>(null);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -465,11 +470,11 @@ export default function DisplaysIndexPage() {
     setSaveMessage(null);
     try {
       await saveConfig();
-      setSaveMessage('Saved');
+      setSaveMessage('saved');
       setTimeout(() => setSaveMessage(null), 2000);
       refresh();
     } catch {
-      setSaveMessage('Save failed');
+      setSaveMessage('failed');
     } finally {
       setSaving(false);
     }
@@ -501,26 +506,23 @@ export default function DisplaysIndexPage() {
     <section>
       <div className="flex items-start justify-between mb-5">
         <div className="max-w-2xl">
-          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">Displays</div>
+          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">{t('settings.displaysIndex.breadcrumb')}</div>
           <h1 className="text-xl font-semibold text-hs-text-primary">
             {isEmpty
-              ? 'Run Home Screens on multiple displays'
-              : `${displays.length} ${displays.length === 1 ? 'display' : 'displays'} in this home`}
+              ? t('settings.displaysIndex.heroNew')
+              : t('settings.displaysIndex.heroExisting', { count: displays.length })}
           </h1>
           {isEmpty ? (
             <p className="text-sm text-hs-text-faint mt-1 leading-relaxed">
-              Drive more than one screen from this Pi — a kitchen touchscreen, a
-              bedroom monitor, a living-room TV — each with its own layout,
-              resolution, and rotation. This Pi becomes the hub and serves all of
-              them; secondary displays can be cheap Pi Zeros running{' '}
+              {t('settings.displaysIndex.emptyDescriptionPrefix')}
               <code className="text-[12px] px-1 py-0.5 rounded bg-hs-card text-hs-text-secondary">
                 install.sh --display-only
               </code>
-              .
+              {t('settings.displaysIndex.emptyDescriptionSuffix')}
             </p>
           ) : (
             <p className="text-sm text-hs-text-faint mt-1">
-              Click a display to edit its own settings. Everything else uses the shared{' '}
+              {t('settings.displaysIndex.populatedDescriptionPrefix')}
               <a
                 href="?section=defaults&page=display"
                 onClick={(e) => {
@@ -529,9 +531,9 @@ export default function DisplaysIndexPage() {
                 }}
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
-                Defaults
+                {t('settings.displaysIndex.defaultsLink')}
               </a>
-              .
+              {t('settings.displaysIndex.populatedDescriptionSuffix')}
             </p>
           )}
         </div>
@@ -540,10 +542,10 @@ export default function DisplaysIndexPage() {
             onClick={refresh}
             disabled={refreshing}
             className="text-xs text-hs-text-faint hover:text-hs-text-secondary flex items-center gap-1 disabled:opacity-50"
-            title="Refresh heartbeats"
+            title={t('settings.displaysIndex.refreshHeartbeatsTitle')}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('common.refresh')}
           </button>
           {!adding && (
             <button
@@ -551,7 +553,7 @@ export default function DisplaysIndexPage() {
               className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-hs-card border border-hs-border-strong text-hs-text-secondary hover:text-hs-text-primary hover:bg-hs-hover transition-colors"
             >
               <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-              Add display
+              {t('settings.displaysIndex.addDisplay')}
             </button>
           )}
         </div>
@@ -578,35 +580,32 @@ export default function DisplaysIndexPage() {
           // reassurance rather than a single neutral-500 line.
           <div className="rounded-lg border border-hs-border bg-hs-panel/40 px-5 py-5 mb-5">
             <div className="text-sm font-medium text-hs-text-body mb-1.5">
-              This install is running in single-display mode
+              {t('settings.displaysIndex.emptyTitle')}
             </div>
             <p className="text-[13px] text-hs-text-muted leading-relaxed mb-3">
-              Your current setup counts as one display but isn&apos;t registered here
-              yet — multi-display support is opt-in so existing installs stay
-              unchanged until you explicitly add a second screen. The moment you
-              add your first display, this Pi&apos;s current layout becomes a display
-              called <span className="text-hs-text-body font-medium">Main</span> and
-              keeps running exactly as it does today.
+              {t('settings.displaysIndex.emptyParagraphPart1')}
+              <span className="text-hs-text-body font-medium">{t('settings.displaysIndex.mainLabel')}</span>
+              {t('settings.displaysIndex.emptyParagraphPart2')}
             </p>
             <ul className="text-[13px] text-hs-text-muted space-y-1.5 mb-1">
               <li className="flex gap-2">
                 <span className="text-hs-text-faint shrink-0">→</span>
                 <span>
-                  Click <span className="text-hs-text-body font-medium">Add display</span> above
-                  to register a new screen — give it a name, resolution, and rotation,
-                  then design its own layout in the editor.
+                  {t('settings.displaysIndex.emptyBullet1Prefix')}
+                  <span className="text-hs-text-body font-medium">{t('settings.displaysIndex.addDisplay')}</span>
+                  {t('settings.displaysIndex.emptyBullet1Suffix')}
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="text-hs-text-faint shrink-0">→</span>
                 <span>
-                  Or flash another Pi with{' '}
+                  {t('settings.displaysIndex.emptyBullet2Prefix')}
                   <code className="text-[12px] px-1 py-0.5 rounded bg-hs-card text-hs-text-secondary">
                     install.sh --display-only --backend http://&lt;this-pi&gt;:3000
                   </code>
-                  . Once it boots, it will appear below as an{' '}
-                  <span className="text-hs-warning">unadopted display</span> waiting
-                  to be adopted with one click.
+                  {t('settings.displaysIndex.emptyBullet2Middle')}
+                  <span className="text-hs-warning">{t('settings.displaysIndex.unadoptedLabel')}</span>
+                  {t('settings.displaysIndex.emptyBullet2Suffix')}
                 </span>
               </li>
             </ul>
@@ -632,12 +631,13 @@ export default function DisplaysIndexPage() {
           <div className="flex items-center gap-2 mb-1">
             <Monitor className="w-4 h-4 text-hs-warning" />
             <span className="text-sm font-medium text-hs-warning">
-              {unadopted.length} unadopted display{unadopted.length === 1 ? '' : 's'} waiting
+              {t('settings.displaysIndex.unadoptedWaiting', { count: unadopted.length })}
             </span>
           </div>
           <p className="text-xs text-hs-text-faint mb-3 pl-6">
-            These Pis are connected to the hub but have not been registered yet.
-            Click <strong>Adopt</strong> to assign them screens.
+            {t('settings.displaysIndex.unadoptedHintPrefix')}
+            <strong>{t('settings.displaysIndex.adoptStrong')}</strong>
+            {t('settings.displaysIndex.unadoptedHintSuffix')}
           </p>
           <div className="space-y-2">
             {unadopted.map((un) => {
@@ -665,29 +665,29 @@ export default function DisplaysIndexPage() {
                   <div className="flex-1 min-w-0">
                     <code className="text-xs font-mono text-hs-warning">{un.id}</code>
                     <div className="flex items-center gap-3 text-[11px] text-hs-text-faint mt-0.5 flex-wrap">
-                      <span>Last seen {formatLastSeen(un.lastSeen)}</span>
+                      <span>{t('settings.displaysIndex.lastSeenLabel', { time: formatLastSeen(un.lastSeen) })}</span>
                       {soleReporter && (
                         <>
                           <span className="tabular-nums">
-                            {soleReporter.width}×{soleReporter.height} reported
+                            {t('settings.displaysIndex.reportedDimensions', { width: soleReporter.width, height: soleReporter.height })}
                           </span>
                           {formatClientAddress(soleReporter.clientAddress) && (
                             <span className="font-mono text-hs-text-faint">
-                              from {formatClientAddress(soleReporter.clientAddress)}
+                              {t('settings.displaysIndex.reportedFrom', { address: formatClientAddress(soleReporter.clientAddress) ?? '' })}
                             </span>
                           )}
                         </>
                       )}
                       {viewports.length === 0 && un.reportedViewport && (
                         <span className="tabular-nums">
-                          {un.reportedViewport.width}×{un.reportedViewport.height} reported
+                          {t('settings.displaysIndex.reportedDimensions', { width: un.reportedViewport.width, height: un.reportedViewport.height })}
                         </span>
                       )}
                     </div>
                     {multipleReporters && (
                       <div className="mt-2 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
                         <div className="font-medium mb-1">
-                          {viewports.length} clients reporting with this ID
+                          {t('settings.displaysIndex.multipleClientsHeading', { count: viewports.length })}
                         </div>
                         <ul className="space-y-0.5 text-hs-text-muted">
                           {viewports.map((v, i) => {
@@ -705,17 +705,15 @@ export default function DisplaysIndexPage() {
                           })}
                         </ul>
                         <p className="text-hs-text-faint mt-1">
-                          Two or more clients are POSTing with this display ID.
-                          Check the source IPs above to find which device is
-                          actually reporting — most often a duplicate
-                          <code className="mx-1">--display-id</code> install, a stray
-                          chromium tab, or a hub kiosk pointed at the wrong URL.
+                          {t('settings.displaysIndex.multipleClientsParagraphPrefix')}
+                          <code className="mx-1">--display-id</code>
+                          {t('settings.displaysIndex.multipleClientsParagraphSuffix')}
                         </p>
                       </div>
                     )}
                   </div>
                   <Button variant="secondary" onClick={() => setAdoptingId(un.id)}>
-                    Adopt
+                    {t('settings.displaysIndex.adoptButton')}
                   </Button>
                 </div>
               );
@@ -727,10 +725,12 @@ export default function DisplaysIndexPage() {
       {/* Auto-save status toast */}
       {(saving || saveMessage) && (
         <div className="flex items-center gap-2 mt-6 border-t border-hs-border pt-4 text-xs">
-          {saving && <span className="text-hs-text-faint">Saving…</span>}
+          {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
           {!saving && saveMessage && (
-            <span className={saveMessage === 'Saved' ? 'text-hs-success' : 'text-hs-danger'}>
-              {saveMessage}
+            <span className={saveMessage === 'saved' ? 'text-hs-success' : 'text-hs-danger'}>
+              {saveMessage === 'saved'
+                ? t('common.saved')
+                : t('common.saveFailed')}
             </span>
           )}
         </div>
@@ -765,6 +765,7 @@ function DisplayCard({
   heartbeat: DisplayApiEntry | null;
   onOpen: () => void;
 }) {
+  const t = useTranslate('editor');
   const lastSeen = heartbeat?.lastSeen ?? null;
   const oriented = display.displayWidth && display.displayHeight
     ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
@@ -791,20 +792,20 @@ function DisplayCard({
       return {
         className: 'bg-hs-success/10 border-hs-success/30 text-hs-success',
         dot: 'bg-hs-success',
-        label: `Online · ${formatLastSeen(lastSeen)}`,
+        label: t('settings.displaysIndex.statusOnline', { time: formatLastSeen(lastSeen) }),
       };
     }
     if (diff < 300_000) {
       return {
         className: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning',
         dot: 'bg-hs-warning',
-        label: `Idle · ${formatLastSeen(lastSeen)}`,
+        label: t('settings.displaysIndex.statusIdle', { time: formatLastSeen(lastSeen) }),
       };
     }
     return {
       className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
       dot: 'bg-hs-card',
-      label: `Offline · ${formatLastSeen(lastSeen)}`,
+      label: t('settings.displaysIndex.statusOffline', { time: formatLastSeen(lastSeen) }),
     };
   })();
 
@@ -834,11 +835,11 @@ function DisplayCard({
         {dimensions && <span className="tabular-nums">{dimensions}</span>}
         <span>
           {display.displayTransform && display.displayTransform !== 'normal'
-            ? `${display.displayTransform}° rotation`
-            : 'normal'}
+            ? t('settings.displaysIndex.rotationDegrees', { degrees: display.displayTransform })
+            : t('settings.displaysIndex.rotationNormal')}
         </span>
         <span>
-          {screenCount} screen{screenCount === 1 ? '' : 's'}
+          {t('settings.displaysIndex.screenCount', { count: screenCount })}
         </span>
         {reporterIp ? (
           <span className="font-mono text-hs-text-faint">{reporterIp}</span>
@@ -849,7 +850,7 @@ function DisplayCard({
       {multipleReporters && (
         <div className="mt-3 rounded-md border border-hs-warning/30 bg-hs-warning/[0.07] px-2.5 py-1.5 text-[11px] text-hs-warning">
           <div className="font-medium mb-1">
-            {reports.length} distinct clients reporting for this display
+            {t('settings.displaysIndex.multipleClientsCardHeading', { count: reports.length })}
           </div>
           <ul className="space-y-0.5 text-hs-text-muted">
             {reports.map((v, i) => {
@@ -862,7 +863,7 @@ function DisplayCard({
                   {addr && <span className="font-mono text-hs-warning/80">{addr}</span>}
                   {addr && <span className="text-hs-text-faint"> · </span>}
                   {v.width}×{v.height}
-                  {v.count > 1 && <span className="text-hs-text-faint"> · ×{v.count} tabs</span>}
+                  {v.count > 1 && <span className="text-hs-text-faint"> · {t('settings.displaysIndex.tabsSuffix', { count: v.count })}</span>}
                   <span className="text-hs-text-faint"> · {formatLastSeen(v.lastSeen)}</span>
                 </li>
               );

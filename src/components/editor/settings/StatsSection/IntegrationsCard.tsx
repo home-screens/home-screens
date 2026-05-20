@@ -1,9 +1,11 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import { INTEGRATION_META } from './metadata';
 import type { SystemStats } from './types';
 
 export function IntegrationsCard({ stats }: { stats: SystemStats }) {
+  const t = useTranslate('editor');
   // Only count secrets that map to a known integration tile — otherwise an
   // unrelated secret (e.g. a password hash) inflates the numerator past the
   // denominator and we display the nonsense "10 / 9 configured".
@@ -15,9 +17,9 @@ export function IntegrationsCard({ stats }: { stats: SystemStats }) {
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center justify-between text-[11px] mb-2 gap-x-3 gap-y-0.5">
-        <span className="text-hs-text-faint">Integrations</span>
+        <span className="text-hs-text-faint">{t('settings.statsSection.integrations')}</span>
         <span className="text-hs-text-faint font-mono tabular-nums whitespace-nowrap">
-          {configuredIntegrationKeys.length} / {integrationKeys.length} configured
+          {t('settings.statsSection.integrationsConfigured', { count: configuredIntegrationKeys.length, total: integrationKeys.length })}
         </span>
       </div>
       {/* 2 cols on narrow, 3 on sm+. `min-w-0` on each row + `truncate`

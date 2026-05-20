@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 import { useCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
 
@@ -10,21 +11,25 @@ interface AlertSenderProps {
   onClose: () => void;
 }
 
+// Type and duration options are static structural data; user-visible labels
+// are looked up from the `remote.alertSender.*` namespace inside the
+// component so they re-render on locale change.
 const ALERT_TYPES = [
-  { value: 'info', label: 'Info', activeBg: 'bg-hs-accent/[0.15]', activeText: 'text-hs-accent-hover', activeBorder: 'border-hs-accent/30' },
-  { value: 'warning', label: 'Warning', activeBg: 'bg-hs-warning/[0.15]', activeText: 'text-hs-warning', activeBorder: 'border-hs-warning/30' },
-  { value: 'urgent', label: 'Urgent', activeBg: 'bg-hs-danger/[0.15]', activeText: 'text-hs-danger', activeBorder: 'border-hs-danger/30' },
+  { value: 'info', labelKey: 'typeInfo', activeBg: 'bg-hs-accent/[0.15]', activeText: 'text-hs-accent-hover', activeBorder: 'border-hs-accent/30' },
+  { value: 'warning', labelKey: 'typeWarning', activeBg: 'bg-hs-warning/[0.15]', activeText: 'text-hs-warning', activeBorder: 'border-hs-warning/30' },
+  { value: 'urgent', labelKey: 'typeUrgent', activeBg: 'bg-hs-danger/[0.15]', activeText: 'text-hs-danger', activeBorder: 'border-hs-danger/30' },
 ] as const;
 
 const DURATIONS = [
-  { label: '10s', value: 10000 },
-  { label: '30s', value: 30000 },
-  { label: '1 min', value: 60000 },
-  { label: '5 min', value: 300000 },
-  { label: 'Persistent', value: 0 },
-];
+  { labelKey: 'duration10s', value: 10000 },
+  { labelKey: 'duration30s', value: 30000 },
+  { labelKey: 'duration1Min', value: 60000 },
+  { labelKey: 'duration5Min', value: 300000 },
+  { labelKey: 'durationPersistent', value: 0 },
+] as const;
 
 export default function AlertSender({ open, onClose }: AlertSenderProps) {
+  const t = useTranslate('remote');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -90,11 +95,11 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="text-lg font-bold text-hs-text-primary">Send Alert</h2>
+          <h2 className="text-lg font-bold text-hs-text-primary">{t('alertSender.title')}</h2>
           <button
             onClick={onClose}
             className="w-11 h-11 rounded-full bg-hs-card flex items-center justify-center text-hs-text-muted"
-            aria-label="Close alert sender"
+            aria-label={t('alertSender.closeAriaLabel')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -105,28 +110,28 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
         <div className="px-5 pb-6 space-y-4">
           {/* Type selector */}
           <div className="flex gap-2">
-            {ALERT_TYPES.map((t) => (
+            {ALERT_TYPES.map((opt) => (
               <button
-                key={t.value}
-                onClick={() => setType(t.value)}
+                key={opt.value}
+                onClick={() => setType(opt.value)}
                 className={`flex-1 min-h-[44px] py-2.5 rounded-xl text-[13px] font-semibold border transition-all active:scale-[0.98] ${
-                  type === t.value
-                    ? `${t.activeBg} ${t.activeText} ${t.activeBorder}`
+                  type === opt.value
+                    ? `${opt.activeBg} ${opt.activeText} ${opt.activeBorder}`
                     : 'bg-hs-input text-hs-text-faint border-hs-border-strong'
                 }`}
               >
-                {t.label}
+                {t(`alertSender.${opt.labelKey}`)}
               </button>
             ))}
           </div>
 
           {/* Title */}
           <div>
-            <label htmlFor="alert-title" className="block text-xs font-medium text-hs-text-faint mb-1.5">Title</label>
+            <label htmlFor="alert-title" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.titleLabel')}</label>
             <input
               id="alert-title"
               type="text"
-              placeholder="Optional"
+              placeholder={t('alertSender.titlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-3 min-h-[44px] text-sm bg-hs-input border border-hs-border-strong rounded-xl text-hs-text-primary placeholder-hs-text-faint focus:outline-none focus:border-hs-accent/40 transition-colors"
@@ -135,10 +140,10 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
           {/* Message */}
           <div>
-            <label htmlFor="alert-message" className="block text-xs font-medium text-hs-text-faint mb-1.5">Message</label>
+            <label htmlFor="alert-message" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.messageLabel')}</label>
             <textarea
               id="alert-message"
-              placeholder="What should the display show?"
+              placeholder={t('alertSender.messagePlaceholder')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={2}
@@ -148,7 +153,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
           {/* Duration */}
           <div>
-            <span className="block text-xs font-medium text-hs-text-faint mb-1.5">Duration</span>
+            <span className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.durationLabel')}</span>
             <div className="flex gap-2 overflow-x-auto scrollbar-none">
               {DURATIONS.map((d) => (
                 <button
@@ -160,7 +165,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
                       : 'bg-hs-input text-hs-text-faint'
                   }`}
                 >
-                  {d.label}
+                  {t(`alertSender.${d.labelKey}`)}
                 </button>
               ))}
             </div>
@@ -178,7 +183,7 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
                   : 'bg-hs-accent active:bg-hs-accent-hover text-white'
             }`}
           >
-            {state === 'pending' ? 'Sending\u2026' : state === 'success' ? 'Sent!' : state === 'error' ? 'Failed \u2014 try again' : 'Send Alert'}
+            {state === 'pending' ? t('alertSender.sendingButton') : state === 'success' ? t('alertSender.sentButton') : state === 'error' ? t('alertSender.failedButton') : t('alertSender.sendButton')}
           </button>
         </div>
       </div>

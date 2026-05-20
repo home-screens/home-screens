@@ -1,4 +1,7 @@
 import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { formatDateSync } from '@/i18n/formatters';
+import type { TranslateFn } from '@/i18n/types';
 
 // ─── Types ───
 
@@ -28,8 +31,28 @@ export interface TodoistData {
   projects: { id: string; name: string; color: string; order: number }[];
 }
 
+/**
+ * Stable, language-agnostic identifiers for date-based grouping.
+ * Consumers compare on `TaskGroup['key']` rather than `label` so locale
+ * switches don't break highlight logic.
+ */
+export type DateGroupKey =
+  | 'overdue'
+  | 'today'
+  | 'tomorrow'
+  | 'thisWeek'
+  | 'upcoming'
+  | 'noDate';
+
 export interface TaskGroup {
+  /**
+   * Stable identifier — language-agnostic. For date groups one of
+   * `DateGroupKey`. For priority groups `'p1'..'p4'`. For project groups
+   * the `projectId`. For label groups the raw label string (user data,
+   * not translatable) or `'__no_label'`. For `'none'` groupBy: `'all'`.
+   */
   key: string;
+  /** Resolved, translated, or user-provided display label. */
   label: string;
   color?: string;
   tasks: TodoistTask[];
@@ -49,12 +72,42 @@ export const PRIORITY_COLORS: Record<number, string> = {
   1: 'transparent', // P4 normal
 };
 
-const PRIORITY_LABELS: Record<number, string> = {
-  4: 'Urgent',
-  3: 'High',
-  2: 'Medium',
-  1: 'Normal',
+/**
+ * Translation-key map for priority labels. Consumers call
+ * `t(PRIORITY_LABEL_KEYS[priority])` against the `modules` namespace.
+ * Mirrors the `getMealSlotLabelKey` precedent in `meal-constants.ts`.
+ */
+export const PRIORITY_LABEL_KEYS: Record<number, string> = {
+  4: 'todoist.priority.urgent',
+  3: 'todoist.priority.high',
+  2: 'todoist.priority.medium',
+  1: 'todoist.priority.normal',
 };
+
+/** Translation-key map for date-group labels. */
+export const DATE_GROUP_LABEL_KEYS: Record<DateGroupKey, string> = {
+  overdue: 'todoist.groups.overdue',
+  today: 'todoist.groups.today',
+  tomorrow: 'todoist.groups.tomorrow',
+  thisWeek: 'todoist.groups.thisWeek',
+  upcoming: 'todoist.groups.upcoming',
+  noDate: 'todoist.groups.noDate',
+};
+
+const DATE_GROUP_COLORS: Partial<Record<DateGroupKey, string>> = {
+  overdue: '#ef4444',
+  today: '#f59e0b',
+  tomorrow: '#22c55e',
+};
+
+const DATE_GROUP_ORDER: DateGroupKey[] = [
+  'overdue',
+  'today',
+  'tomorrow',
+  'thisWeek',
+  'upcoming',
+  'noDate',
+];
 
 // ─── Date Helpers ───
 
@@ -68,7 +121,29 @@ export function daysBetween(a: Date, b: Date): number {
   return Math.round((startOfDay(a).getTime() - startOfDay(b).getTime()) / 86400000);
 }
 
-export function formatDueDate(due: TodoistTask['due'], now: Date): { text: string; color: string } {
+/**
+ * Pick a clock-time format string based on the locale's resolved hour
+ * cycle. `Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions()
+ * .hourCycle` returns `'h11' | 'h12' | 'h23' | 'h24'` — the first two are
+ * 12-hour, the latter two 24-hour. This correctly classifies en-GB and
+ * fr-CA as 24h (which `locale.startsWith('en')` misses).
+ */
+function pickTimeFormat(locale: string): string {
+  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
+  return cycle === 'h11' || cycle === 'h12' ? 'h:mm a' : 'HH:mm';
+}
+
+/**
+ * Format a Todoist task's due date for display. Returns translated text
+ * via `t`. `locale` controls weekday-name, month-short, and time-of-day
+ * rendering.
+ */
+export function formatDueDate(
+  due: TodoistTask['due'],
+  now: Date,
+  t: TranslateFn,
+  locale: string = DEFAULT_LOCALE,
+): { text: string; color: string } {
   if (!due) return { text: '', color: '' };
 
   const dueDate = new Date(due.datetime ?? due.date + 'T23:59:59');
@@ -76,42 +151,49 @@ export function formatDueDate(due: TodoistTask['due'], now: Date): { text: strin
 
   if (diff < 0) {
     const absDiff = Math.abs(diff);
+    if (absDiff === 1) {
+      return { text: t('todoist.dueDate.yesterday'), color: '#ef4444' };
+    }
     return {
-      text: absDiff === 1 ? 'Yesterday' : `${absDiff}d overdue`,
+      text: t('todoist.dueDate.daysOverdue', { count: absDiff }),
       color: '#ef4444',
     };
   }
   if (diff === 0) {
     if (due.datetime) {
-      const h = dueDate.getHours();
-      const m = dueDate.getMinutes();
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
+      const timeText = formatDateSync(dueDate, pickTimeFormat(locale), { locale });
       return {
-        text: `Today ${h12}:${m.toString().padStart(2, '0')} ${ampm}`,
+        text: t('todoist.dueDate.todayAtTime', { time: timeText }),
         color: '#f59e0b',
       };
     }
-    return { text: 'Today', color: '#f59e0b' };
+    return { text: t('todoist.dueDate.today'), color: '#f59e0b' };
   }
-  if (diff === 1) return { text: 'Tomorrow', color: '#22c55e' };
+  if (diff === 1) {
+    return { text: t('todoist.dueDate.tomorrow'), color: '#22c55e' };
+  }
   if (diff <= 7) {
-    const dayName = dueDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = dueDate.toLocaleDateString(locale, { weekday: 'short' });
     return { text: dayName, color: '#6b7280' };
   }
-  const formatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatted = dueDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
   return { text: formatted, color: '#6b7280' };
 }
 
-function getDueDateGroup(due: TodoistTask['due'], now: Date): string {
-  if (!due) return 'No Date';
+/**
+ * Bucket a task's due date into a stable, language-agnostic group key.
+ * Callers map the key to a translated label via
+ * `DATE_GROUP_LABEL_KEYS[key]`.
+ */
+export function getDueDateGroup(due: TodoistTask['due'], now: Date): DateGroupKey {
+  if (!due) return 'noDate';
   const dueDate = new Date(due.datetime ?? due.date + 'T23:59:59');
   const diff = daysBetween(dueDate, now);
-  if (diff < 0) return 'Overdue';
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Tomorrow';
-  if (diff <= 7) return 'This Week';
-  return 'Upcoming';
+  if (diff < 0) return 'overdue';
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'tomorrow';
+  if (diff <= 7) return 'thisWeek';
+  return 'upcoming';
 }
 
 // ─── Sorting & Filtering ───
@@ -177,14 +259,25 @@ export function sortTasks(tasks: TodoistTask[], sortBy: string): TodoistTask[] {
   return sorted;
 }
 
+/**
+ * Group tasks for list/board views. `key` on each returned group is a
+ * STABLE language-agnostic identifier; `label` is the resolved
+ * translated string (or user data for project/label grouping). The
+ * optional `t` arg defaults to identity so unit tests and any residual
+ * untranslated callers see translation keys verbatim — that lets tests
+ * assert on key shape without wiring a fake translator.
+ */
 export function groupTasks(
   tasks: TodoistTask[],
   groupBy: TodoistGroupBy,
   now: Date,
+  t?: TranslateFn,
 ): TaskGroup[] {
   if (groupBy === 'none') {
     return [{ key: 'all', label: '', tasks }];
   }
+
+  const tr: TranslateFn = t ?? ((key) => key);
 
   const map = new Map<string, TaskGroup>();
   const order: string[] = [];
@@ -202,20 +295,20 @@ export function groupTasks(
         break;
       case 'priority':
         key = `p${task.priority}`;
-        label = PRIORITY_LABELS[task.priority] ?? 'Normal';
+        label = tr(PRIORITY_LABEL_KEYS[task.priority] ?? PRIORITY_LABEL_KEYS[1]);
         color = PRIORITY_COLORS[task.priority];
         break;
-      case 'date':
-        label = getDueDateGroup(task.due, now);
-        key = label;
-        if (label === 'Overdue') color = '#ef4444';
-        else if (label === 'Today') color = '#f59e0b';
-        else if (label === 'Tomorrow') color = '#22c55e';
+      case 'date': {
+        const dateKey = getDueDateGroup(task.due, now);
+        key = dateKey;
+        label = tr(DATE_GROUP_LABEL_KEYS[dateKey]);
+        color = DATE_GROUP_COLORS[dateKey];
         break;
+      }
       case 'label':
         if (task.labels.length === 0) {
           key = '__no_label';
-          label = 'No Label';
+          label = tr('todoist.groups.noLabel');
         } else {
           key = task.labels[0];
           label = task.labels[0];
@@ -236,8 +329,11 @@ export function groupTasks(
 
   // Sort groups for date grouping in logical order
   if (groupBy === 'date') {
-    const dateOrder = ['Overdue', 'Today', 'Tomorrow', 'This Week', 'Upcoming', 'No Date'];
-    order.sort((a, b) => dateOrder.indexOf(a) - dateOrder.indexOf(b));
+    order.sort(
+      (a, b) =>
+        DATE_GROUP_ORDER.indexOf(a as DateGroupKey) -
+        DATE_GROUP_ORDER.indexOf(b as DateGroupKey),
+    );
   }
   if (groupBy === 'priority') {
     order.sort((a, b) => {

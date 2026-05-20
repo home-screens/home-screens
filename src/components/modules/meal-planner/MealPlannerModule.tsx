@@ -7,6 +7,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
 import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
@@ -27,6 +28,7 @@ interface MealPlannerModuleProps {
 }
 
 export default function MealPlannerModule({ config, style, timezone }: MealPlannerModuleProps) {
+  const t = useTranslate('modules');
   const now = useTZClock(timezone, 60_000);
   const view = config.view ?? 'week';
   const todayISO = toISODate(now);
@@ -58,9 +60,9 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
       <ModuleWrapper style={style}>
         <div className="flex flex-col items-center justify-center h-full gap-2">
           <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#127869;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>No meals planned yet</p>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('meal-planner.noMealsPlannedYet')}</p>
           <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            Add meals in the editor
+            {t('meal-planner.addMealsInEditor')}
           </p>
         </div>
       </ModuleWrapper>

@@ -1,8 +1,15 @@
 /**
  * Relative-time / duration formatters shared across the editor, remote, and
- * settings surfaces. Kept presentation-agnostic — no locale / Intl, because
- * the kiosk runs in a single language and every consumer expects these exact
- * compact strings ("5s ago", "2h 30m", etc).
+ * settings surfaces. These helpers do simple integer arithmetic (no Intl,
+ * no date-fns) and emit hard-coded English suffixes — "5s ago", "2h 30m",
+ * "<1s". They survive the i18n cutover unchanged because every consumer
+ * expects exactly these compact strings (heartbeat freshness chips, uptime
+ * pills) and matches their layout against the fixed character widths.
+ *
+ * If a future task needs localized relative-time output, prefer
+ * `formatRelativeTime` from `@/i18n/formatters` (Intl.RelativeTimeFormat
+ * under the hood) — do not localize these helpers in place; their shape
+ * is part of the API.
  */
 
 /**

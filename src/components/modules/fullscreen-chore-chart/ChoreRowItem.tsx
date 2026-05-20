@@ -1,5 +1,8 @@
+'use client';
+
 import type { ChoreMember } from '@/types/config';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { useTranslate } from '@/i18n';
 import AssigneeDot from './AssigneeDot';
 import type { ChoreRow, ToggleParams } from './helpers';
 
@@ -26,6 +29,7 @@ export default function ChoreRowItem({
   allowTouch,
   onToggle,
 }: ChoreRowItemProps) {
+  const t = useTranslate('modules');
   return (
     <div
       style={{
@@ -53,7 +57,7 @@ export default function ChoreRowItem({
         {row.choreName}
         {showPoints && row.points > 1 && (
           <span style={{ fontSize: fontSize * 0.7, color: 'var(--fcc-text-2)', fontWeight: 600, marginLeft: fontSize * 0.3 }}>
-            {row.points} ticket{row.points !== 1 ? 's' : ''}
+            {t(row.points === 1 ? 'fullscreen-chore-chart.ticketCount' : 'fullscreen-chore-chart.ticketsCount', { count: row.points })}
           </span>
         )}
       </span>

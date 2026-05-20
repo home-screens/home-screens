@@ -8,25 +8,28 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, CountdownEvent, CountdownView, CountdownConfig } from '@/types/config';
 import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 
-const VIEWS: { value: CountdownView; label: string }[] = [
-  { value: 'all', label: 'All Events (Stacked)' },
-  { value: 'next', label: 'Next Event (Single)' },
-];
-
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<CountdownConfig>(mod, screenId);
   const events = c.events ?? [];
   const view = c.view ?? 'all';
+
+  const VIEWS: { value: CountdownView; label: string }[] = [
+    { value: 'all', label: t('configSections.countdown.viewAll') },
+    { value: 'next', label: t('configSections.countdown.viewNext') },
+  ];
 
   const { add: addEvent, remove: removeEvent, update: updateEvent } = useListEditor<CountdownEvent>(
     events,
     'events',
     set,
-    { name: 'New Event', date: new Date().toISOString().slice(0, 16) }
+    { name: t('configSections.countdown.defaultEventName'), date: new Date().toISOString().slice(0, 16) }
   );
 
   const [showHolidayPicker, setShowHolidayPicker] = useState(false);
@@ -62,19 +65,19 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
 
       {/* Show Past Events — only relevant for "all" view */}
       {view === 'all' && (
-        <Toggle label="Show Past Events" checked={!!c.showPastEvents} onChange={(v) => set({ showPastEvents: v })} />
+        <Toggle label={t('configSections.countdown.showPastEvents')} checked={!!c.showPastEvents} onChange={(v) => set({ showPastEvents: v })} />
       )}
 
       <Toggle
-        label="Stay on the day"
+        label={t('configSections.countdown.stayOnDay')}
         checked={!!c.stayUntilEndOfDay}
         onChange={(v) => set({ stayUntilEndOfDay: v })}
       />
       <p className="text-[10px] text-hs-text-faint -mt-1">
-        Once an event hits zero, keep it on screen until the end of the day before moving on.
+        {t('configSections.countdown.stayOnDayHelp')}
       </p>
 
-      <LabeledField label={`Scale (${((c.scale ?? 1) * 100).toFixed(0)}%)`}>
+      <LabeledField label={t('configSections.countdown.scalePercent', { percent: ((c.scale ?? 1) * 100).toFixed(0) })}>
         <input
           type="range"
           min="0.5"
@@ -88,15 +91,15 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
 
       {/* Events header with Add + Browse Holidays */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-hs-text-muted">Events</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.countdown.events')}</span>
         <div className="flex items-center gap-1">
-          <Button size="sm" onClick={() => setShowHolidayPicker(true)}>Holidays...</Button>
-          <Button size="sm" onClick={addEvent}>Add</Button>
+          <Button size="sm" onClick={() => setShowHolidayPicker(true)}>{t('configSections.countdown.holidaysButton')}</Button>
+          <Button size="sm" onClick={addEvent}>{tCore('actions.add')}</Button>
         </div>
       </div>
 
       <p className="text-[10px] text-hs-text-faint -mt-1">
-        The nearest upcoming event&#39;s background image will be used as the page background.
+        {t('configSections.countdown.backgroundImageHelp')}
       </p>
 
       {/* Event list */}
@@ -106,13 +109,13 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
           <div key={ev.id} className="p-2 bg-hs-card rounded space-y-1">
             <div className="flex items-center gap-1">
               {isHoliday && (
-                <span className="text-[10px] bg-emerald-800 text-emerald-200 px-1 rounded shrink-0">Holiday</span>
+                <span className="text-[10px] bg-emerald-800 text-emerald-200 px-1 rounded shrink-0">{t('configSections.countdown.holidayBadge')}</span>
               )}
               <input
                 type="text"
                 value={ev.name}
                 onChange={(e) => updateEvent(ev.id, { name: e.target.value })}
-                placeholder="Name"
+                placeholder={t('configSections.countdown.namePlaceholder')}
                 className={`flex-1 ${NESTED_INPUT_CLASS}`}
                 readOnly={isHoliday}
               />
@@ -141,13 +144,13 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                     }}
                     className="accent-hs-accent"
                   />
-                  Repeat yearly
+                  {t('configSections.countdown.repeatYearly')}
                 </label>
               </>
             )}
             {isHoliday && (
               <p className="text-[10px] text-hs-text-faint">
-                Recurring yearly &middot; {ev.date.slice(0, 10)}
+                {t('configSections.countdown.holidayRecurringInfo', { date: ev.date.slice(0, 10) })}
               </p>
             )}
             {/* Background image picker */}
@@ -163,7 +166,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                     onClick={() => updateEvent(ev.id, { backgroundImage: undefined })}
                     className="text-hs-text-faint hover:text-hs-text-secondary text-[10px]"
                   >
-                    Clear
+                    {t('configSections.countdown.clear')}
                   </button>
                 </>
               ) : (
@@ -171,7 +174,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                   onClick={() => setImageBrowserEventId(ev.id)}
                   className="text-hs-accent hover:text-hs-accent-hover text-[10px]"
                 >
-                  Set Background...
+                  {t('configSections.countdown.setBackground')}
                 </button>
               )}
             </div>

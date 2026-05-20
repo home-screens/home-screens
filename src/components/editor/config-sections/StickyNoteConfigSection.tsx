@@ -3,20 +3,22 @@
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledTextarea from '@/components/ui/LabeledTextarea';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
 export function StickyNoteConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ content?: string; noteColor?: string }>(mod, screenId);
+  const t = useTranslate('editor');
 
   return (
     <>
       <LabeledTextarea
-        label="Content"
+        label={t('configSections.sticky-note.content')}
         value={c.content ?? ''}
         onChange={(v) => set({ content: v })}
         rows={4}
       />
-      <LabeledField label="Note Color">
+      <LabeledField label={t('configSections.sticky-note.noteColor')}>
         <input
           type="color"
           value={c.noteColor ?? '#fef08a'}

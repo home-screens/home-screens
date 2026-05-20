@@ -1,0 +1,532 @@
+{
+  "tabs": {
+    "control": "Bediening",
+    "chores": "Klusjes",
+    "meals": "Maaltijden",
+    "photos": "Foto's"
+  },
+  "statusBar": {
+    "title": "Afstandsbediening",
+    "settingsAriaLabel": "Instellingen"
+  },
+  "connectionBanner": {
+    "unreachable": "Display niet bereikbaar — controleer of het apparaat aan en verbonden is"
+  },
+  "backupReminder": {
+    "daysAgoSingular": "Je hebt al {n} dag geen back-up gemaakt.",
+    "daysAgoPlural": "Je hebt al {n} dagen geen back-up gemaakt.",
+    "backupButton": "Back-up",
+    "savingButton": "Opslaan…",
+    "dismissAriaLabel": "Sluiten"
+  },
+  "displayHero": {
+    "stateActive": "Actief",
+    "stateDimmed": "Gedimd",
+    "stateAsleep": "Slaapt",
+    "updatedTimeAgo": "Bijgewerkt {ago}",
+    "screenIndex": "Scherm {current} van {total}",
+    "waiting": "Wachten op display…",
+    "unreachable": "Display niet bereikbaar"
+  },
+  "screenControls": {
+    "prevAriaLabel": "Vorig scherm",
+    "nextAriaLabel": "Volgend scherm"
+  },
+  "quickActions": {
+    "wakeDisplay": "Display wekken",
+    "sleepDisplay": "Display slapen",
+    "sendAlert": "Melding sturen"
+  },
+  "brightnessCard": {
+    "label": "Helderheid",
+    "valueAriaLabel": "Helderheid {percent}%"
+  },
+  "profileSwitcher": {
+    "heading": "Profielen"
+  },
+  "displayPicker": {
+    "targeting": "Doel",
+    "allLabel": "Alle"
+  },
+  "mobileColorPicker": {
+    "colorLabel": "Kleur",
+    "customColorTitle": "Eigen kleur"
+  },
+  "choresTab": {
+    "header": "Klusjes",
+    "subNav": {
+      "today": "Vandaag",
+      "manage": "Beheren",
+      "rewards": "Beloningen"
+    },
+    "empty": {
+      "title": "Nog geen klusjes ingesteld",
+      "description": "Ga naar Beheren om gezinsleden en klusjes toe te voegen.",
+      "setUpButton": "Klusjes instellen"
+    },
+    "warningDismissAriaLabel": "Waarschuwing sluiten",
+    "memberAriaLabel": "{name}",
+    "memberAriaLabelAllDone": "{name} (alles klaar)",
+    "history": {
+      "editingPrefix": "Je bewerkt ",
+      "editingDaysAgoSingular": " (1 dag geleden) — tickets worden opgeteld bij het saldo van vandaag.",
+      "editingDaysAgoPlural": " ({n} dagen geleden) — tickets worden opgeteld bij het saldo van vandaag.",
+      "editingNote": " Let op: voor vorige dagen wordt de klusjeslijst van vandaag getoond, dus klusjes die je net hebt toegevoegd kunnen gemist lijken.",
+      "lockedMessage": "Vraag een volwassene om gemiste klusjes toe te voegen."
+    },
+    "progress": {
+      "completion": "{done}/{total} klaar",
+      "allDone": "Alles klaar!"
+    },
+    "noChoresToday": "Vandaag geen klusjes!",
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "choreAriaLabelMarkComplete": "Afvinken: {chore}",
+    "choreAriaLabelCompleted": "Klaar: {chore}"
+  },
+  "choreHistoryNav": {
+    "prevMonthAriaLabel": "Vorige maand",
+    "nextMonthAriaLabel": "Volgende maand",
+    "jumpToTodayAriaLabel": "Naar vandaag",
+    "todayButton": "Vandaag",
+    "tileAriaLabel": "{date} bekijken, {earned} van {total} kinderen hebben al hun klusjes gedaan",
+    "tileAriaLabelEmpty": "{date} bekijken, geen klusjes"
+  },
+  "choresManage": {
+    "tabs": {
+      "chores": "Klusjes",
+      "members": "Gezinsleden"
+    },
+    "members": {
+      "empty": "Nog geen gezinsleden",
+      "emptyHint": "Voeg gezinsleden toe om te beginnen",
+      "editAriaLabel": "{name} bewerken",
+      "choreCountSingular": "{n} klusje toegewezen",
+      "choreCountPlural": "{n} klusjes toegewezen",
+      "addButton": "Gezinslid toevoegen"
+    },
+    "chores": {
+      "empty": "Nog geen klusjes",
+      "emptyHintNoMembers": "Voeg eerst gezinsleden toe",
+      "emptyHintAddChores": "Voeg klusjes toe en wijs ze aan gezinsleden toe",
+      "editAriaLabel": "{name} bewerken",
+      "addButton": "Klusje toevoegen",
+      "frequencyDaily": "Dagelijks",
+      "frequencyWeekly": "Wekelijks",
+      "frequencyBiweekly": "Om de week",
+      "frequencyOnce": "Eenmalig · {date}",
+      "ticketCountSingular": "{n} ticket",
+      "ticketCountPlural": "{n} tickets",
+      "rotationDaily": "dagelijks wisselen",
+      "rotationWeekly": "wekelijks wisselen",
+      "rotationSchedule": "schema",
+      "unknownAssignee": "?"
+    },
+    "memberForm": {
+      "titleNew": "Nieuw gezinslid",
+      "titleEdit": "Gezinslid bewerken",
+      "nameLabel": "Naam",
+      "namePlaceholder": "Naam invoeren…",
+      "avatarLabel": "Avatar",
+      "addSubmit": "Gezinslid toevoegen",
+      "saveSubmit": "Gezinslid opslaan",
+      "deleteButton": "Gezinslid verwijderen"
+    },
+    "memberDelete": {
+      "title": "\"{name}\" verwijderen?",
+      "fallbackName": "deze persoon",
+      "descriptionNoChores": "Hiermee wordt {name} uit alle toegewezen klusjes verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
+      "descriptionWithChoresSingular": "Hiermee wordt {name} uit {count} toegewezen klusje verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
+      "descriptionWithChoresPlural": "Hiermee wordt {name} uit alle {count} toegewezen klusjes verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
+      "confirmLabel": "Gezinslid verwijderen"
+    },
+    "choreForm": {
+      "titleNew": "Nieuw klusje",
+      "titleEdit": "Klusje bewerken",
+      "nameLabel": "Naam",
+      "namePlaceholder": "Naam van het klusje…",
+      "iconLabel": "Pictogram",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Frequentie",
+      "timeOfDayLabel": "Tijdstip",
+      "dateLabel": "Datum",
+      "daysLabel": "Dagen",
+      "assignToLabel": "Toewijzen aan",
+      "weeklyScheduleLabel": "Weekschema",
+      "coverageLabel": "Dekking: {covered} van 7 dagen",
+      "coverageUncovered": "· {days} zonder iemand",
+      "rotationLabel": "Wie doet het?",
+      "addSubmit": "Klusje toevoegen",
+      "saveSubmit": "Klusje opslaan",
+      "deleteButton": "Klusje verwijderen",
+      "validation": {
+        "enterName": "Geef het klusje een naam",
+        "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
+        "selectAtLeastOnePerson": "Kies minstens één persoon"
+      }
+    },
+    "choreDelete": {
+      "title": "\"{name}\" verwijderen?",
+      "description": "Dit klusje en al zijn geschiedenis worden verwijderd.",
+      "confirmLabel": "Klusje verwijderen"
+    },
+    "frequency": {
+      "daily": "Dagelijks",
+      "weekly": "Wekelijks",
+      "biweekly": "Om de week",
+      "once": "Eenmalig"
+    },
+    "rotation": {
+      "fixed": "Vast (iedereen doet mee)",
+      "rotateDaily": "Dagelijks wisselen",
+      "rotateWeekly": "Wekelijks wisselen",
+      "schedule": "Schema"
+    }
+  },
+  "mealsTab": {
+    "header": "Maaltijden",
+    "loading": "Maaltijden laden…",
+    "settingsButtonAriaLabel": "Maaltijdinstellingen openen",
+    "settingsButtonTitle": "Instellingen",
+    "weekLabel": {
+      "thisWeek": "Deze week"
+    },
+    "subNav": {
+      "plan": "Plan",
+      "library": "Bibliotheek",
+      "grocery": "Boodschappen"
+    },
+    "weekNav": {
+      "prevAriaLabel": "Vorige week",
+      "nextAriaLabel": "Volgende week",
+      "todayButton": "Vandaag"
+    },
+    "confirm": {
+      "clearWeek": {
+        "title": "Plan leegmaken?",
+        "description": "Hiermee verwijder je alle geplande maaltijden voor deze week.",
+        "confirmLabel": "Week leegmaken"
+      },
+      "deleteMeal": {
+        "title": "\"{name}\" verwijderen?",
+        "description": "Hiermee wordt de maaltijd ook uit alle geplande momenten verwijderd.",
+        "confirmLabel": "Maaltijd verwijderen"
+      }
+    },
+    "weekView": {
+      "todayBadge": "Vandaag",
+      "notPlanned": "{slot} - Niet gepland",
+      "activeNowSuffix": " • Nu",
+      "prepTimeMin": "{minutes} min",
+      "empty": {
+        "title": "Deze week geen maaltijden gepland",
+        "description": "Ga naar Plan om maaltijden toe te voegen.",
+        "planButton": "Maaltijden plannen"
+      }
+    },
+    "library": {
+      "searchPlaceholder": "Maaltijden zoeken…",
+      "filterByAriaLabel": "Filteren op {label}",
+      "empty": {
+        "titleNoMeals": "Nog geen maaltijden",
+        "titleNoMatches": "Geen resultaten",
+        "hintNoMeals": "Tik op de + om je eerste maaltijd toe te voegen.",
+        "hintNoMatches": "Probeer een andere zoekopdracht of filter."
+      },
+      "prepTimeMin": "{minutes} min voorbereiden",
+      "favoriteAddAriaLabel": "Aan favorieten toevoegen",
+      "favoriteRemoveAriaLabel": "Uit favorieten verwijderen",
+      "fabAriaLabel": "Nieuwe maaltijd toevoegen",
+      "filters": {
+        "all": "Alle",
+        "favorites": "Favorieten",
+        "quick": "Snel",
+        "healthy": "Gezond",
+        "comfort": "Comfort",
+        "kid-friendly": "Kindvriendelijk"
+      }
+    }
+  },
+  "mealForm": {
+    "titleNew": "Maaltijd toevoegen",
+    "titleEdit": "Maaltijd bewerken",
+    "saveSubmit": "Maaltijd opslaan",
+    "saveChangesSubmit": "Wijzigingen opslaan",
+    "savingSubmit": "Opslaan…",
+    "deleteButton": "Maaltijd verwijderen",
+    "nameLabel": "Naam van de maaltijd",
+    "namePlaceholder": "bijv. Kip-roerbak",
+    "emojiLabel": "Emoji",
+    "emojiSelectAriaLabel": "{emoji} selecteren",
+    "prepTimeLabel": "Voorbereidingstijd",
+    "cookTimeLabel": "Bereidingstijd",
+    "minPlaceholder": "min",
+    "servingsLabel": "Porties",
+    "servingsPlaceholder": "4",
+    "difficultyLabel": "Moeilijkheid",
+    "tagsLabel": "Labels",
+    "ingredientsLabel": "Ingrediënten",
+    "ingredientNamePlaceholder": "Naam",
+    "ingredientAmountPlaceholder": "Hoeveelheid",
+    "removeIngredientAriaLabel": "Ingrediënt verwijderen",
+    "addIngredientButton": "+ Ingrediënt toevoegen",
+    "recipeUrlLabel": "Recept-URL",
+    "recipeUrlPlaceholder": "https://…",
+    "notesLabel": "Notities",
+    "notesPlaceholder": "Notities over deze maaltijd…",
+    "ratingLabel": "Beoordeling",
+    "ratingStarAriaLabel": "Geef {n} van de 5 sterren",
+    "favoriteOn": "Favoriet",
+    "favoriteOff": "Aan favorieten toevoegen"
+  },
+  "mealsPlan": {
+    "actions": {
+      "suggest": "Voorstel",
+      "suggestAriaLabel": "Willekeurige maaltijden voorstellen",
+      "copyLastWeek": "Vorige week kopiëren",
+      "copyLastWeekAriaLabel": "Plan van vorige week kopiëren",
+      "clear": "Leegmaken",
+      "clearAriaLabel": "Alle geplande maaltijden verwijderen"
+    },
+    "empty": {
+      "title": "Nog geen maaltijden in je bibliotheek",
+      "description": "Voeg eerst maaltijden toe aan je bibliotheek en plan dan je week.",
+      "addMealsButton": "Maaltijden toevoegen"
+    },
+    "slot": {
+      "addMeal": "+ Maaltijd toevoegen",
+      "removeMealAriaLabel": "{meal} uit {slot} verwijderen",
+      "planSlotAriaLabel": "{slot} plannen voor {day}",
+      "mealFallback": "maaltijd"
+    },
+    "picker": {
+      "title": "Kies een maaltijd",
+      "emptyLibrary": "Geen maaltijden in de bibliotheek. Voeg er eerst een paar toe.",
+      "prepTimeShort": "{minutes} min",
+      "removeMealButton": "Maaltijd verwijderen"
+    }
+  },
+  "mealsGrocery": {
+    "itemsCountSingular": "{checked} van {total} item",
+    "itemsCountPlural": "{checked} van {total} items",
+    "shareButton": "Delen",
+    "shareCopiedButton": "Gekopieerd!",
+    "autoGeneratedHint": "Automatisch gegenereerd uit de maaltijden van deze week",
+    "shareHeading": "Boodschappenlijst",
+    "shareCompleteMessage": "Boodschappenlijst is compleet!",
+    "empty": {
+      "title": "Geen boodschappen",
+      "description": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien."
+    }
+  },
+  "mealsSettings": {
+    "ariaLabel": "Maaltijdinstellingen",
+    "title": "Maaltijdinstellingen",
+    "cancelAriaLabel": "Annuleren en sluiten",
+    "slots": {
+      "heading": "Maaltijdmomenten",
+      "description": "Welke maaltijden plan je? Werkt door in de editor en alle weergegeven modules.",
+      "toggleAriaLabelEnabled": "{label}, ingeschakeld",
+      "toggleAriaLabelDisabled": "{label}, uitgeschakeld"
+    },
+    "weekStart": {
+      "heading": "Week begint op",
+      "sunday": "Zondag",
+      "monday": "Maandag"
+    },
+    "timeFormat": {
+      "heading": "Tijdformaat",
+      "description": "Geldt voor elke maaltijdweergave op de kiosk en deze afstandsbediening.",
+      "twelveHourLabel": "12-uurs",
+      "twentyFourHourLabel": "24-uurs"
+    },
+    "defaultTimes": {
+      "heading": "Standaard servertijden",
+      "description": "Worden gebruikt als een geplande maaltijd geen eigen tijd heeft. Laat leeg voor momenten waarvan de tijd varieert.",
+      "clear": "Leegmaken",
+      "clearAriaLabel": "Standaardtijd voor {name} leegmaken",
+      "timeInputAriaLabel": "Standaardtijd voor {name}"
+    },
+    "save": {
+      "saving": "Opslaan…",
+      "submit": "Instellingen opslaan",
+      "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+      "networkError": "Netwerkfout. Probeer het opnieuw."
+    }
+  },
+  "rewardForm": {
+    "titleAdd": "Beloning toevoegen",
+    "titleEdit": "Beloning bewerken",
+    "saveButton": "Beloning opslaan",
+    "deleteButton": "Beloning verwijderen",
+    "iconLabel": "Pictogram",
+    "nameLabel": "Naam",
+    "namePlaceholder": "bijv. Extra schermtijd",
+    "ticketCostLabel": "Ticketkosten",
+    "ticketCostPlaceholder": "10",
+    "enabledLabel": "Ingeschakeld",
+    "visible": "Zichtbaar",
+    "hidden": "Verborgen",
+    "descriptionLabel": "Beschrijving (optioneel)",
+    "descriptionPlaceholder": "Korte beschrijving…",
+    "availableToLabel": "Beschikbaar voor",
+    "everyone": "Iedereen",
+    "deleteConfirm": {
+      "title": "Beloning verwijderen",
+      "description": "Weet je zeker dat je \"{name}\" wilt verwijderen? De inwisselgeschiedenis blijft bewaard."
+    }
+  },
+  "alertSender": {
+    "title": "Melding sturen",
+    "closeAriaLabel": "Meldingverzender sluiten",
+    "typeInfo": "Info",
+    "typeWarning": "Waarschuwing",
+    "typeUrgent": "Dringend",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Optioneel",
+    "messageLabel": "Bericht",
+    "messagePlaceholder": "Wat moet het display tonen?",
+    "durationLabel": "Duur",
+    "duration10s": "10 sec",
+    "duration30s": "30 sec",
+    "duration1Min": "1 min",
+    "duration5Min": "5 min",
+    "durationPersistent": "Blijvend",
+    "sendButton": "Melding sturen",
+    "sendingButton": "Versturen…",
+    "sentButton": "Verstuurd!",
+    "failedButton": "Mislukt — probeer opnieuw"
+  },
+  "rewardsView": {
+    "nav": {
+      "redeem": "Inwisselen",
+      "rewards": "Beloningen",
+      "balances": "Saldo's",
+      "history": "Geschiedenis"
+    },
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "redeem": {
+      "balanceLabel": "tickets beschikbaar",
+      "availableHeading": "Beschikbare beloningen",
+      "empty": "Nog geen beloningen ingesteld",
+      "memberFallback": "deze persoon",
+      "confirmTitle": "{name} inwisselen?",
+      "confirmDescriptionSingular": "Hiermee wordt {cost} ticket van het saldo van {memberName} gebruikt. Over: {remaining}",
+      "confirmDescriptionPlural": "Hiermee worden {cost} tickets van het saldo van {memberName} gebruikt. Over: {remaining}",
+      "confirmLabelSingular": "Inwisselen — {cost} ticket",
+      "confirmLabelPlural": "Inwisselen — {cost} tickets"
+    },
+    "manage": {
+      "heading": "Beloningen",
+      "countSingular": "{n} beloning",
+      "countPlural": "{n} beloningen",
+      "everyone": "Iedereen",
+      "disabled": "Uitgeschakeld",
+      "memberCountSingular": "{n} gezinslid",
+      "memberCountPlural": "{n} gezinsleden",
+      "addButton": "Beloning toevoegen"
+    },
+    "balances": {
+      "heading": "Ticketsaldo's",
+      "adjustDownAriaLabel": "Een ticket van {name} aftrekken",
+      "adjustUpAriaLabel": "Een ticket aan {name} toevoegen"
+    },
+    "history": {
+      "heading": "Onlangs ingewisseld",
+      "empty": "Nog niets ingewisseld",
+      "entry": {
+        "beforeReward": " heeft ",
+        "afterRewardSingular": " ingewisseld — {n} ticket",
+        "afterRewardPlural": " ingewisseld — {n} tickets"
+      }
+    }
+  },
+  "settingsSheet": {
+    "title": "Instellingen",
+    "closeAriaLabel": "Instellingen sluiten",
+    "system": {
+      "heading": "Systeem",
+      "errorFailedToLoad": "Laden mislukt",
+      "hostLabel": "Host",
+      "uptimeLabel": "Uptime",
+      "memoryLabel": "Geheugen",
+      "diskLabel": "Schijf"
+    },
+    "theme": {
+      "heading": "Thema",
+      "light": "Licht",
+      "dark": "Donker",
+      "system": "Systeem"
+    },
+    "data": {
+      "heading": "Gegevens",
+      "backup": {
+        "label": "Alles back-uppen",
+        "savedLabel": "Back-up opgeslagen",
+        "busyLabel": "Downloaden…",
+        "description": "Download configuratie, klusjes, maaltijden en beloningen"
+      },
+      "restore": {
+        "label": "Back-up terugzetten",
+        "confirmingLabel": "Tik nog eens om terug te zetten",
+        "busyLabel": "Terugzetten…",
+        "doneLabel": "Teruggezet",
+        "invalidFileLabel": "Ongeldig back-upbestand",
+        "failedLabel": "Terugzetten mislukt",
+        "idleDescription": "Upload een back-upbestand vanaf dit apparaat",
+        "confirmingDescription": "Hiermee worden alle bestaande gegevens vervangen"
+      }
+    },
+    "power": {
+      "heading": "Stroom",
+      "restartService": {
+        "label": "Service herstarten",
+        "description": "Herstart de Home Screens-app",
+        "confirmLabel": "Tik nog eens om te herstarten"
+      },
+      "reboot": {
+        "label": "Apparaat opnieuw opstarten",
+        "description": "Volledige systeemherstart",
+        "confirmLabel": "Tik nog eens om opnieuw op te starten"
+      }
+    },
+    "confirmable": {
+      "sentLabel": "Verstuurd"
+    }
+  },
+  "photosTab": {
+    "header": "Foto's",
+    "newFolderButton": "Nieuwe map",
+    "newFolderPlaceholder": "Mapnaam",
+    "createButton": "Maken",
+    "allPhotosTab": "Alle foto's",
+    "uploadingProgress": "Uploaden {current} van {total}…",
+    "uploadFailedFor": "Uploaden mislukt voor {name}",
+    "uploadFailed": "Uploaden mislukt",
+    "uploadedSingular": "{n} foto geüpload",
+    "uploadedPlural": "{n} foto's geüpload",
+    "photoDeleted": "Foto verwijderd",
+    "folderCreated": "Map gemaakt",
+    "failedCreateFolder": "Map maken mislukt",
+    "uploadButton": "Foto's uploaden",
+    "emptyTitle": "Geen foto's in deze map",
+    "emptyHint": "Tik op Foto's uploaden om afbeeldingen toe te voegen",
+    "deletePrompt": "Verwijderen?",
+    "deletingButton": "Verwijderen…",
+    "deleteAriaLabel": "Foto verwijderen",
+    "dismissErrorAriaLabel": "Fout sluiten"
+  },
+  "choresKidView": {
+    "notConfigured": "Geen klusjes ingesteld. Vraag een volwassene om een Klusjeskaart-module aan de editor toe te voegen om te beginnen."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serveertijd {time}, klik om te wijzigen",
+    "servingTimeTitle": "Serveertijd: {time}",
+    "setServingTime": "Serveertijd instellen",
+    "setTime": "+ Tijd instellen",
+    "setMealTime": "Maaltijdtijd instellen",
+    "servingTime": "Serveertijd",
+    "clearTime": "Tijd wissen"
+  }
+}

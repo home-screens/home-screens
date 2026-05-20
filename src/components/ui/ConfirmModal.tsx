@@ -3,10 +3,12 @@
 import { useEffect, useCallback } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { useTranslate } from '@/i18n';
 import Button from './Button';
 
 export default function ConfirmModal() {
   const { open, options, isAlert, respond } = useConfirmStore();
+  const tCore = useTranslate('core');
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -29,7 +31,7 @@ export default function ConfirmModal() {
   const variant = options.variant ?? 'danger';
 
   return (
-    <div className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={options.title ?? 'Confirm'}>
+    <div className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={options.title ?? tCore('actions.confirm')}>
       <div ref={trapRef} className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-sm shadow-2xl">
         {options.title && (
           <div className="px-5 pt-4 pb-0">
@@ -42,11 +44,11 @@ export default function ConfirmModal() {
         <div className="flex items-center justify-end gap-2 px-5 pb-4">
           {!isAlert && (
             <Button variant="secondary" size="sm" onClick={() => respond(false)}>
-              {options.cancelLabel ?? 'Cancel'}
+              {options.cancelLabel ?? tCore('actions.cancel')}
             </Button>
           )}
           <Button variant={variant} size="sm" onClick={() => respond(true)}>
-            {options.confirmLabel ?? 'Confirm'}
+            {options.confirmLabel ?? tCore('actions.confirm')}
           </Button>
         </div>
       </div>

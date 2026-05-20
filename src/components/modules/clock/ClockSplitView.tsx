@@ -1,7 +1,7 @@
 'use client';
 
-import { format } from 'date-fns';
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -10,22 +10,24 @@ import type { ClockViewProps } from './types';
  * separated by a hairline vertical divider.
  */
 export default function ClockSplitView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
-  const { hStr, mStr, sStr, period } = parseClockTime(config.format24h, now);
-  const ampm = period.trimStart();
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
+  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
+  const ampm = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`
     : `${hStr}:${mStr}`;
 
   const dateStr = config.showDate
-    ? format(now, config.dateFormat || 'EEEE, MMMM d')
+    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
     : null;
 
   const { weekNumber, dayOfYear } = getDateInfoValues(now);
 
   const infoParts: { label: string; value: string }[] = [];
-  if (config.showWeekNumber) infoParts.push({ label: 'Week', value: String(weekNumber) });
-  if (config.showDayOfYear) infoParts.push({ label: 'Day', value: String(dayOfYear) });
+  if (config.showWeekNumber) infoParts.push({ label: t('clock.weekShort'), value: String(weekNumber) });
+  if (config.showDayOfYear) infoParts.push({ label: t('clock.dayShort'), value: String(dayOfYear) });
 
   const timeFontSize = scaledFontSize * 2.8;
   const dateFontSize = scaledFontSize * 1.0;

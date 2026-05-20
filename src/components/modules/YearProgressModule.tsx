@@ -1,6 +1,7 @@
 'use client';
 
 import { useTZClock } from '@/hooks/useTZClock';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { YearProgressConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
@@ -92,6 +93,8 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }:
 
 export default function YearProgressModule({ config, style, timezone }: YearProgressModuleProps) {
   const now = useTZClock(timezone);
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
 
   const showYear = config.showYear ?? true;
   const showMonth = config.showMonth ?? true;
@@ -102,10 +105,8 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
 
   const { yearPercent, monthPercent, weekPercent, dayPercent, year } = getProgress(now);
 
-  const monthName = now.toLocaleString('default', { month: 'long' });
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const jsDay = now.getDay();
-  const dayName = dayNames[jsDay === 0 ? 6 : jsDay - 1];
+  const monthName = formatDateSync(now, 'MMMM', { locale });
+  const dayName = formatDateSync(now, 'EEEE', { locale });
 
   return (
     <ModuleWrapper style={style}>
@@ -117,7 +118,7 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
           <ProgressBar label={monthName} percent={monthPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
         {showWeek && (
-          <ProgressBar label="Week" percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
+          <ProgressBar label={t('year-progress.week')} percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
         )}
         {showDay && (
           <ProgressBar label={dayName} percent={dayPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />

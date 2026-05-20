@@ -1,4 +1,7 @@
+'use client';
+
 import { Check } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import type { ToggleParams } from './helpers';
 
 interface AssigneeDotProps {
@@ -27,6 +30,7 @@ export default function AssigneeDot({
   onToggle,
 }: AssigneeDotProps) {
   const iconSz = dotSize * 0.55;
+  const t = useTranslate('modules');
 
   return (
     <div
@@ -40,7 +44,12 @@ export default function AssigneeDot({
       }
       aria-label={
         allowTouch
-          ? `${isCompleted ? 'Undo' : 'Complete'} ${choreName} for ${memberName}`
+          ? t(
+              isCompleted
+                ? 'fullscreen-chore-chart.ariaLabels.undoChore'
+                : 'fullscreen-chore-chart.ariaLabels.completeChore',
+              { chore: choreName, member: memberName },
+            )
           : undefined
       }
       style={{

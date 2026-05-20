@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslate } from '@/i18n';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 
 export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null] {
+  const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
       } catch {
         // Don't set error state for intentional aborts (unmount / URL change)
         if (controller.signal.aborted) return;
-        setError('Failed to fetch data');
+        setError(t('errors.fetchFailed'));
       }
     }
 
@@ -62,7 +64,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
     fetchAndCache();
     const interval = setInterval(fetchAndCache, refreshMs);
     return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
-  }, [url, refreshMs]);
+  }, [url, refreshMs, t]);
 
   return [data, error];
 }

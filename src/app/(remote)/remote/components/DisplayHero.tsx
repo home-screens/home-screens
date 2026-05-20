@@ -1,7 +1,8 @@
 'use client';
 
 import type { DisplayStatus } from '@/lib/display-commands';
-import { formatTimeAgo } from '@/lib/chore-constants';
+import { formatTimeAgoLocalized } from '@/lib/chore-constants';
+import { useTranslate } from '@/i18n';
 
 interface DisplayHeroProps {
   status: DisplayStatus | null;
@@ -15,9 +16,17 @@ const STATE_BADGE = {
   asleep: 'bg-hs-text-faint/[0.12] text-hs-text-muted border-hs-text-faint/25',
 } as const;
 
+const STATE_KEYS = {
+  active: 'displayHero.stateActive',
+  dimmed: 'displayHero.stateDimmed',
+  asleep: 'displayHero.stateAsleep',
+} as const;
+
 export default function DisplayHero({ status, isConnected, lastUpdated }: DisplayHeroProps) {
+  const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const displayState = status?.displayState ?? 'active';
-  const stateLabel = displayState.charAt(0).toUpperCase() + displayState.slice(1);
+  const stateLabel = t(STATE_KEYS[displayState]);
 
   return (
     <div className="mx-5 mt-1 p-5 bg-hs-card border border-hs-border-strong rounded-[14px] relative overflow-hidden">
@@ -34,7 +43,7 @@ export default function DisplayHero({ status, isConnected, lastUpdated }: Displa
           <span />
         )}
         {lastUpdated && (
-          <span className="text-xs text-hs-text-faint">Updated {formatTimeAgo(lastUpdated)}</span>
+          <span className="text-xs text-hs-text-faint">{t('displayHero.updatedTimeAgo', { ago: formatTimeAgoLocalized(lastUpdated, tCore) })}</span>
         )}
       </div>
 
@@ -44,13 +53,12 @@ export default function DisplayHero({ status, isConnected, lastUpdated }: Displa
             {status.currentScreen.name}
           </div>
           <div className="text-[13px] text-hs-text-faint">
-            Screen <span className="text-hs-text-muted">{status.currentScreen.index + 1}</span> of{' '}
-            <span className="text-hs-text-muted">{status.screenCount}</span>
+            {t('displayHero.screenIndex', { current: status.currentScreen.index + 1, total: status.screenCount })}
           </div>
         </>
       ) : (
         <div className="text-lg font-semibold text-hs-text-faint">
-          {isConnected ? 'Waiting for display\u2026' : 'Display unreachable'}
+          {isConnected ? t('displayHero.waiting') : t('displayHero.unreachable')}
         </div>
       )}
     </div>

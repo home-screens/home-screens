@@ -11,6 +11,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import { useTranslate } from '@/i18n';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
@@ -27,33 +28,34 @@ interface GoogleCalendar {
   primary: boolean;
 }
 
-const VIEW_OPTIONS: { value: FullscreenCalendarView; label: string }[] = [
-  { value: 'schedule', label: 'Schedule (Column Grid)' },
-  { value: 'week-list', label: 'Week List' },
-  { value: 'month-grid', label: 'Month Grid' },
-  { value: 'day-timeline', label: 'Day Timeline' },
-  { value: 'agenda', label: 'Agenda' },
-];
-
-const DENSITY_OPTIONS: { value: CalendarDensity; label: string }[] = [
-  { value: 'cozy', label: 'Cozy (distance reading)' },
-  { value: 'snug', label: 'Snug (more events)' },
-];
-
-const TYPOGRAPHY_OPTIONS: { value: FullscreenTypographySize; label: string }[] = [
-  { value: 'small', label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large', label: 'Large' },
-  { value: 'extra-large', label: 'Extra Large' },
-  { value: '2x-large', label: '2X Large' },
-  { value: '3x-large', label: '3X Large' },
-  { value: '4x-large', label: '4X Large' },
-];
-
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
   const sourceFilter = c.sourceFilter ?? [];
+
+  const VIEW_OPTIONS: { value: FullscreenCalendarView; label: string }[] = [
+    { value: 'schedule', label: t('configSections.fullscreen-calendar.viewSchedule') },
+    { value: 'week-list', label: t('configSections.fullscreen-calendar.viewWeekList') },
+    { value: 'month-grid', label: t('configSections.fullscreen-calendar.viewMonthGrid') },
+    { value: 'day-timeline', label: t('configSections.fullscreen-calendar.viewDayTimeline') },
+    { value: 'agenda', label: t('configSections.fullscreen-calendar.viewAgenda') },
+  ];
+
+  const DENSITY_OPTIONS: { value: CalendarDensity; label: string }[] = [
+    { value: 'cozy', label: t('configSections.fullscreen-calendar.densityCozy') },
+    { value: 'snug', label: t('configSections.fullscreen-calendar.densitySnug') },
+  ];
+
+  const TYPOGRAPHY_OPTIONS: { value: FullscreenTypographySize; label: string }[] = [
+    { value: 'small', label: t('configSections.fullscreen-calendar.typographySmall') },
+    { value: 'medium', label: t('configSections.fullscreen-calendar.typographyMedium') },
+    { value: 'large', label: t('configSections.fullscreen-calendar.typographyLarge') },
+    { value: 'extra-large', label: t('configSections.fullscreen-calendar.typographyExtraLarge') },
+    { value: '2x-large', label: t('configSections.fullscreen-calendar.typography2xLarge') },
+    { value: '3x-large', label: t('configSections.fullscreen-calendar.typography3xLarge') },
+    { value: '4x-large', label: t('configSections.fullscreen-calendar.typography4xLarge') },
+  ];
 
   // Build source list (same pattern as CalendarConfigSection)
   const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
@@ -80,7 +82,9 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       const local = gid.split('@')[0];
       if (/^[a-z0-9]{20,}$/i.test(local)) {
         unnamedCount++;
-        name = unnamedCount > 1 ? `Google Calendar ${unnamedCount}` : 'Google Calendar';
+        name = unnamedCount > 1
+          ? t('configSections.fullscreen-calendar.googleCalendarNumbered', { n: unnamedCount })
+          : t('configSections.fullscreen-calendar.googleCalendar');
       } else {
         name = local;
       }
@@ -90,7 +94,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   for (const src of icalSources) {
     if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
   }
-  if (holidayCountry) availableSources.push({ id: 'holidays', name: 'Public Holidays', color: '#10b981' });
+  if (holidayCountry) availableSources.push({ id: 'holidays', name: t('configSections.fullscreen-calendar.publicHolidays'), color: '#10b981' });
 
   const allSelected = sourceFilter.length === 0;
 
@@ -110,7 +114,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     <>
       {/* View Mode */}
       <LabeledSelect
-        label="View"
+        label={t('configSections.fullscreen-calendar.view')}
         value={view}
         onChange={(v) => set({ view: v })}
         options={VIEW_OPTIONS}
@@ -118,7 +122,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Density */}
       <LabeledSelect
-        label="Density"
+        label={t('common.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}
@@ -126,44 +130,44 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* Typography Size */}
       <LabeledSelect
-        label="Typography Size"
+        label={t('configSections.fullscreen-calendar.typographySize')}
         value={c.typographySize ?? 'medium'}
         onChange={(v) => set({ typographySize: v })}
         options={TYPOGRAPHY_OPTIONS}
       />
 
       {/* Theme Override */}
-      <LabeledField label="Theme">
+      <LabeledField label={t('common.theme')}>
         <select
           value={c.theme ?? ''}
           onChange={(e) => set({ theme: e.target.value || undefined })}
           className={INPUT_CLASS}
         >
-          <option value="">Default (from Settings)</option>
-          {FULLSCREEN_THEMES.map((t) => (
-            <option key={t.id} value={t.id}>{t.name} ({t.group})</option>
+          <option value="">{t('configSections.fullscreen-calendar.themeDefault')}</option>
+          {FULLSCREEN_THEMES.map((th) => (
+            <option key={th.id} value={th.id}>{th.name} ({th.group})</option>
           ))}
         </select>
       </LabeledField>
 
       {/* Accent Color */}
-      <ColorPicker label="Accent Color" value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
+      <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
 
       {/* Toggles */}
-      <Toggle label="Dim Past Events" checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
-      <Toggle label="Shade Weekends" checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
-      <Toggle label="Show Weather" checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />
-      <Toggle label="Show Now Line" checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+      <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
+      <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
+      <Toggle label={t('configSections.fullscreen-calendar.showWeather')} checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />
+      <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
 
       {/* Source filter */}
       {availableSources.length > 1 && (
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">Sources</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.fullscreen-calendar.sources')}</span>
           <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong max-h-40 overflow-y-auto">
             <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
               <input type="radio" checked={allSelected} onChange={() => set({ sourceFilter: undefined })}
                 className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0" />
-              <span className="text-sm text-hs-text-body">All Sources</span>
+              <span className="text-sm text-hs-text-body">{t('configSections.fullscreen-calendar.allSources')}</span>
             </label>
             {availableSources.map((src) => (
               <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
@@ -181,7 +185,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {(view === 'schedule' || view === 'day-timeline') && (
         <>
           <LabeledInput
-            label="Start Hour"
+            label={t('configSections.fullscreen-calendar.startHour')}
             type="number"
             min={0}
             max={23}
@@ -189,7 +193,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
           />
           <LabeledInput
-            label="End Hour"
+            label={t('configSections.fullscreen-calendar.endHour')}
             type="number"
             min={1}
             max={24}
@@ -202,29 +206,29 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {view === 'schedule' && (
         <>
           <LabeledInput
-            label="Days to Show (0 = auto)"
+            label={t('configSections.fullscreen-calendar.daysToShowAuto')}
             type="number"
             min={0}
             max={7}
             value={c.scheduleDaysToShow ?? 0}
             onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
           />
-          <Toggle label="Show Description" checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
         </>
       )}
 
       {view === 'week-list' && (
         <>
-          <Toggle label="Collapse Past Days" checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
-          <Toggle label="Show Description" checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
+          <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
         </>
       )}
 
       {view === 'month-grid' && (
         <>
-          <Toggle label="Show Week Numbers" checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
+          <Toggle label={t('configSections.fullscreen-calendar.showWeekNumbers')} checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
           <LabeledInput
-            label="Max Events per Cell (0 = auto)"
+            label={t('configSections.fullscreen-calendar.maxEventsPerCellAuto')}
             type="number"
             min={0}
             max={8}
@@ -236,23 +240,23 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {view === 'day-timeline' && (
         <>
-          <Toggle label="Show Location" checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
-          <Toggle label="Show Description" checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
+          <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
         </>
       )}
 
       {view === 'agenda' && (
         <>
           <LabeledInput
-            label="Days Ahead"
+            label={t('configSections.fullscreen-calendar.daysAhead')}
             type="number"
             min={7}
             max={30}
             value={c.agendaDaysAhead ?? 14}
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
-          <Toggle label="Hide Empty Days" checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
-          <Toggle label="Show Description" checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
+          <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
+          <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
         </>
       )}
     </>

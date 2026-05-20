@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
-import { MEAL_TAGS, FOOD_EMOJIS, formatTagLabel, normalizeTag, capitalize, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 /** All selectable categories for ingredient editing (includes seafood, which the grocery list merges into meat) */
 const INGREDIENT_CATEGORIES: GroceryCategory[] = [
@@ -71,6 +72,11 @@ interface SidebarDetailProps {
 }
 
 export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite }: SidebarDetailProps) {
+  const t = useTranslate('editor');
+  // Difficulty / tag / ingredient-category labels live in `core.meal.*`
+  // (shared with /remote so both surfaces resolve them without lazy-fetching
+  // the editor bundle).
+  const tCore = useTranslate('core');
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('');
   const [prepTime, setPrepTime] = useState<number | undefined>(undefined);
@@ -113,7 +119,11 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-hs-text-faint gap-3">
         <span className="text-3xl opacity-15">&#9998;</span>
-        <p className="text-sm leading-relaxed">Select a meal from the Library tab<br />to edit its details</p>
+        <p className="text-sm leading-relaxed">
+          {t('mealPlannerModal.detail.emptyLine1')}
+          <br />
+          {t('mealPlannerModal.detail.emptyLine2')}
+        </p>
       </div>
     );
   }
@@ -175,7 +185,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-hs-border-strong">
           <span className="text-4xl">{emoji || DEFAULT_MEAL_EMOJI}</span>
           <div className="flex-1">
-            <div className="text-lg font-bold text-hs-text-body">{name || 'Untitled'}</div>
+            <div className="text-lg font-bold text-hs-text-body">{name || t('mealPlannerModal.detail.untitledFallback')}</div>
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -202,7 +212,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Name */}
         <div className="mb-4">
-          <label className={labelClass}>Name</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.nameLabel')}</label>
           <input
             type="text"
             className={MODAL_INPUT_CLASS}
@@ -213,11 +223,11 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Emoji grid */}
         <div className="mb-4">
-          <label className={labelClass}>Emoji</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.emojiLabel')}</label>
           <input
             type="text"
             className={`${MODAL_INPUT_CLASS} mb-2`}
-            placeholder="Search emojis (e.g. pizza, breakfast, dessert)..."
+            placeholder={t('mealPlannerModal.detail.emojiSearchPlaceholder')}
             value={emojiSearch}
             onChange={(e) => setEmojiSearch(e.target.value)}
           />
@@ -238,7 +248,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             ))}
             {filteredEmojis.length === 0 && (
               <div className="col-span-6 py-4 text-center text-xs text-hs-text-faint">
-                No emojis match &ldquo;{emojiSearch}&rdquo;
+                {t('mealPlannerModal.detail.noEmojisMatch', { query: emojiSearch })}
               </div>
             )}
           </div>
@@ -247,21 +257,21 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
         {/* Prep Time / Cook Time */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className={labelClass}>Prep Time</label>
+            <label className={labelClass}>{t('mealPlannerModal.detail.prepTimeLabel')}</label>
             <input
               type="number"
               className={MODAL_INPUT_CLASS}
-              placeholder="min"
+              placeholder={t('mealPlannerModal.detail.minPlaceholder')}
               value={prepTime ?? ''}
               onChange={(e) => setPrepTime(e.target.value ? Number(e.target.value) : undefined)}
             />
           </div>
           <div>
-            <label className={labelClass}>Cook Time</label>
+            <label className={labelClass}>{t('mealPlannerModal.detail.cookTimeLabel')}</label>
             <input
               type="number"
               className={MODAL_INPUT_CLASS}
-              placeholder="min"
+              placeholder={t('mealPlannerModal.detail.minPlaceholder')}
               value={cookTime ?? ''}
               onChange={(e) => setCookTime(e.target.value ? Number(e.target.value) : undefined)}
             />
@@ -271,7 +281,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
         {/* Servings / Difficulty */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className={labelClass}>Servings</label>
+            <label className={labelClass}>{t('mealPlannerModal.detail.servingsLabel')}</label>
             <input
               type="number"
               className={MODAL_INPUT_CLASS}
@@ -280,7 +290,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             />
           </div>
           <div>
-            <label className={labelClass}>Difficulty</label>
+            <label className={labelClass}>{t('mealPlannerModal.detail.difficultyLabel')}</label>
             <div className="flex gap-1">
               {(['easy', 'medium', 'hard'] as const).map((level) => {
                 const isActive = difficulty === level;
@@ -300,7 +310,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                     }`}
                     onClick={() => setDifficulty(isActive ? undefined : level)}
                   >
-                    {capitalize(level)}
+                    {tCore(`meal.difficulty.${level}`)}
                   </button>
                 );
               })}
@@ -310,7 +320,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Tags */}
         <div className="mb-4">
-          <label className={labelClass}>Tags</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.tagsLabel')}</label>
           <div className="flex flex-wrap gap-1.5">
             {MEAL_TAGS.map((tag) => {
               const isActive = tags.includes(tag);
@@ -325,7 +335,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   }`}
                   onClick={() => toggleTag(tag)}
                 >
-                  {formatTagLabel(tag)}
+                  {tCore(`meal.tags.${tag}`)}
                 </button>
               );
             })}
@@ -334,7 +344,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Ingredients */}
         <div className="mb-4">
-          <label className={labelClass}>Ingredients</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.ingredientsLabel')}</label>
           {ingredients.map((ingredient, index) => (
             <div
               key={index}
@@ -344,7 +354,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 <input
                   type="text"
                   className={`flex-1 ${MODAL_INPUT_CLASS}`}
-                  placeholder="Ingredient name"
+                  placeholder={t('mealPlannerModal.detail.ingredientNamePlaceholder')}
                   value={ingredient.name}
                   onChange={(e) => updateIngredient(index, 'name', e.target.value)}
                 />
@@ -360,7 +370,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 <input
                   type="text"
                   className={`flex-1 ${MODAL_INPUT_CLASS}`}
-                  placeholder="Amount"
+                  placeholder={t('mealPlannerModal.detail.amountPlaceholder')}
                   value={ingredient.amount ?? ''}
                   onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
                 />
@@ -373,10 +383,10 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                       updateIngredient(index, 'category', e.target.value)
                     }
                   >
-                    <option value="">Category</option>
+                    <option value="">{t('mealPlannerModal.detail.categoryPlaceholder')}</option>
                     {INGREDIENT_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
-                        {capitalize(cat)}
+                        {tCore(`meal.ingredientCategories.${cat}`)}
                       </option>
                     ))}
                   </select>
@@ -392,17 +402,17 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             className="w-full py-2 text-xs font-semibold border border-dashed border-hs-border-strong rounded-md text-hs-text-faint hover:border-hs-border-strong hover:text-hs-text-muted transition"
             onClick={addIngredient}
           >
-            + Add ingredient
+            {t('mealPlannerModal.detail.addIngredientButton')}
           </button>
         </div>
 
         {/* Recipe URL */}
         <div className="mb-4">
-          <label className={labelClass}>Recipe URL</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.recipeUrlLabel')}</label>
           <input
             type="url"
             className={MODAL_INPUT_CLASS}
-            placeholder="https://..."
+            placeholder={t('mealPlannerModal.detail.recipeUrlPlaceholder')}
             value={recipeUrl}
             onChange={(e) => setRecipeUrl(e.target.value)}
           />
@@ -410,7 +420,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Notes */}
         <div className="mb-4">
-          <label className={labelClass}>Notes</label>
+          <label className={labelClass}>{t('mealPlannerModal.detail.notesLabel')}</label>
           <textarea
             rows={3}
             className={`${MODAL_INPUT_CLASS} resize-none`}
@@ -423,10 +433,10 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       {/* Pinned footer */}
       <div className="px-4 py-2.5 border-t border-hs-border-strong flex gap-2">
         <Button variant="primary" className="flex-1" onClick={handleSave}>
-          Save Changes
+          {t('mealPlannerModal.detail.saveChangesButton')}
         </Button>
         <Button variant="danger" onClick={() => onDelete(meal.id)}>
-          Delete
+          {t('mealPlannerModal.detail.deleteButton')}
         </Button>
       </div>
     </>

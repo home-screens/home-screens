@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
+import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 
@@ -15,6 +17,9 @@ interface WeekListViewProps {
 }
 
 export function WeekListView({ events, config, scale, today, now: _now }: WeekListViewProps) {
+  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.weekShowDescription === true;
@@ -65,7 +70,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
           alignItems: 'baseline',
           gap: scale.bu * 0.8,
         }}>
-          {format(day, 'EEEE, MMMM d')}
+          {formatDateSync(day, 'EEEE, MMMM d', { locale })}
           {isToday && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
@@ -78,7 +83,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
               padding: `${scale.bu * 0.15}px ${scale.bu * 0.5}px`,
               borderRadius: 4,
             }}>
-              Today
+              {tCore('today')}
             </span>
           )}
         </div>
@@ -86,12 +91,12 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
         {!shouldCollapse && (<>
           {/* All-day events */}
           {allDayEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} t={t} locale={locale} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} showDescription={showDescription} />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} showDescription={showDescription} t={t} locale={locale} />
           ))}
 
           {/* Empty day */}
@@ -102,7 +107,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
               fontStyle: 'italic',
               color: 'var(--cal-text-tertiary)',
             }}>
-              No events
+              {t('fullscreen-calendar.noEvents')}
             </div>
           )}
         </>)}
@@ -148,23 +153,47 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   );
 }
 
-function EventRow({ event, fontSize, scale, isAllDay, showDescription }: {
+function EventRow({ event, fontSize, scale, isAllDay, showDescription, t, locale }: {
   event: CalendarEvent;
   fontSize: number;
   scale: CalendarScale;
   isAllDay?: boolean;
   showDescription?: boolean;
+  t: TranslateFn;
+  locale: string;
 }) {
   const color = event.calendarColor ?? '#3B82F6';
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
+  const startLabel = formatDateSync(start, 'h:mm a', { locale });
+  const endLabel = formatDateSync(end, 'h:mm a', { locale });
+
+  let ariaLabel: string;
+  if (isAllDay) {
+    ariaLabel = event.location
+      ? `${t('fullscreen-calendar.ariaLabels.eventAllDay', { title: event.title })}, ${event.location}`
+      : t('fullscreen-calendar.ariaLabels.eventAllDay', { title: event.title });
+  } else if (event.location) {
+    ariaLabel = t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
+      title: event.title,
+      start: startLabel,
+      end: endLabel,
+      location: event.location,
+    });
+  } else {
+    ariaLabel = t('fullscreen-calendar.ariaLabels.eventTimed', {
+      title: event.title,
+      start: startLabel,
+      end: endLabel,
+    });
+  }
 
   return (
     <div
       className="fsc-event-block"
       role="article"
-      aria-label={`${event.title}${isAllDay ? ', all day' : `, ${format(start, 'h:mm a')} to ${format(end, 'h:mm a')}`}${event.location ? `, at ${event.location}` : ''}`}
+      aria-label={ariaLabel}
       style={{
         display: 'flex',
         alignItems: 'flex-start',
@@ -193,10 +222,10 @@ function EventRow({ event, fontSize, scale, isAllDay, showDescription }: {
               letterSpacing: '0.04em',
               fontSize: fontSize * 0.7,
             }}>
-              All Day
+              {t('fullscreen-calendar.allDay')}
             </span>
           ) : (
-            `${format(start, 'h:mm a')} \u2013 ${format(end, 'h:mm a')}`
+            `${startLabel} \u2013 ${endLabel}`
           )}
         </div>
         <div style={{

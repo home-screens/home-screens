@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
-import { generateGroceryList, GROCERY_CATEGORIES, GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
+import { generateGroceryList, GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
+import { useTranslate } from '@/i18n';
 
 interface SidebarGroceryProps {
   plan: PlannedMeal[];
@@ -12,6 +13,10 @@ interface SidebarGroceryProps {
 }
 
 export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem }: SidebarGroceryProps) {
+  const t = useTranslate('editor');
+  // Grocery category labels live in `core.meal.grocery.categoryLabels.*`
+  // (shared with /remote).
+  const tCore = useTranslate('core');
   const groceryMap = useMemo(
     () => generateGroceryList(plan, meals, Array.from(checkedItems)),
     [plan, meals, checkedItems],
@@ -36,9 +41,9 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
         <div className="mb-4">
           <div className="flex justify-between mb-1.5">
             <span className="text-sm font-semibold text-hs-text-secondary">
-              {checked} of {total} items
+              {t('mealPlannerModal.grocery.itemsCount', { checked, total })}
             </span>
-            <span className="text-[11px] text-hs-text-faint">From this week</span>
+            <span className="text-[11px] text-hs-text-faint">{t('mealPlannerModal.grocery.fromThisWeek')}</span>
           </div>
           <div className="h-1 bg-hs-card rounded-full overflow-hidden">
             <div
@@ -53,7 +58,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
           <div className="flex flex-col items-center justify-center gap-3 py-12">
             <span className="text-3xl opacity-20">&#128722;</span>
             <p className="text-sm text-hs-text-faint text-center">
-              Plan meals with ingredients to see your shopping list
+              {t('mealPlannerModal.grocery.emptyMessage')}
             </p>
           </div>
         )}
@@ -65,13 +70,17 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
 
           const catChecked = group.items.filter((i) => i.checked).length;
           const catTotal = group.items.length;
+          // `t()` returns the raw key path on miss (and emits a once-per-key
+          // dev warning), which is the right developer feedback for any future
+          // GroceryCategory enum value added without a matching translation.
+          const categoryLabel = tCore(`meal.grocery.categoryLabels.${catKey}`);
 
           return (
             <div key={catKey} className="mb-5">
               {/* Category header */}
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
-                  {GROCERY_CATEGORIES[catKey] ?? catKey}
+                  {categoryLabel}
                 </span>
                 <span className="ml-auto text-[10px] px-1.5 rounded bg-hs-card text-hs-text-faint">
                   {catChecked}/{catTotal}

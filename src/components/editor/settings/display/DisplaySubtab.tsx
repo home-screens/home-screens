@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Info } from 'lucide-react';
 import Link from 'next/link';
 import Slider from '@/components/ui/Slider';
@@ -11,6 +11,7 @@ import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { MAX_DISPLAY_DIMENSION, orientDimensions } from '@/lib/display-filter';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
+import { useTranslate } from '@/i18n';
 import type {
   DisplayNode,
   ScreenConfiguration,
@@ -23,7 +24,6 @@ interface DisplaySubtabProps {
 }
 
 const DEFAULTS_HREF = '?section=defaults&page=display';
-const DEFAULTS_LABEL = 'Defaults → Display';
 
 /**
  * Display detail "Display" — the per-display equivalent of the
@@ -47,9 +47,32 @@ const DEFAULTS_LABEL = 'Defaults → Display';
  * sync.
  */
 export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
+  const t = useTranslate('editor');
   const { updateDisplay, updateDisplaySettings, saveConfig } = useEditorStore();
   const overrides = display.settings ?? {};
   const settings = config.settings;
+
+  // Resolve once per render — every OverrideRow + the banner share this label.
+  const DEFAULTS_LABEL = t('settings.perDisplayPage.display.defaultsLabel');
+
+  // Translated transition labels, falling back to the registry English name
+  // when a plugin introduces an effect not listed in the default tree.
+  // Memoized so each OverrideRow's `formatValue` closure stays stable across
+  // renders that don't change locale.
+  const tOrFallback = useCallback(
+    (key: string, fallback: string) => {
+      const result = t(key);
+      return result === key ? fallback : result;
+    },
+    [t],
+  );
+  const transitionLabelFor = useMemo(
+    () => (effect: TransitionEffect) => {
+      const opt = TRANSITION_OPTIONS.find((o) => o.value === effect);
+      return tOrFallback(`settings.defaultDisplayPage.transitionOptions.${effect}`, opt?.label ?? String(effect));
+    },
+    [tOrFallback],
+  );
 
   // Local working copy of canvas dims so the user can type freely without
   // every keystroke hitting the store. We commit on blur or Enter to keep
@@ -153,26 +176,39 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
       <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
         <Info className="w-4 h-4 text-hs-accent-hover shrink-0 mt-0.5" />
         <div className="text-xs text-hs-accent-hover leading-relaxed">
-          Fields here show the <strong className="text-hs-text-primary">default</strong> value from{' '}
+          {t('settings.perDisplayPage.display.bannerPart1')}
+          <strong className="text-hs-text-primary">
+            {t('settings.perDisplayPage.display.bannerEmphasisDefault')}
+          </strong>
+          {t('settings.perDisplayPage.display.bannerPart2')}
           <Link
             href={DEFAULTS_HREF}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {DEFAULTS_LABEL}
           </Link>
-          . Click <strong className="text-hs-text-primary">Override</strong> on any field to change it
-          just for {display.name}.
+          {t('settings.perDisplayPage.display.bannerPart3')}
+          <strong className="text-hs-text-primary">
+            {t('settings.perDisplayPage.display.bannerEmphasisOverride')}
+          </strong>
+          {t('settings.perDisplayPage.display.bannerPart4', { name: display.name })}
         </div>
       </div>
 
       {/* Canvas section — resolution, rotation, flip. Per-display only. */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Canvas</div>
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+          {t('settings.perDisplayPage.display.canvasHeading')}
+        </div>
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <div className="px-4 py-3.5 border-b border-hs-border">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs text-hs-text-muted">Resolution</div>
-              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Per display</span>
+              <div className="text-xs text-hs-text-muted">
+                {t('common.resolution')}
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">
+                {t('settings.perDisplayPage.display.perDisplayBadge')}
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <input
@@ -195,24 +231,27 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
               />
             </div>
             <p className="text-[11px] text-hs-text-faint mt-1.5">
-              Modules are laid out against this canvas. Every display carries its own resolution
-              — it isn&apos;t shared.
+              {t('settings.perDisplayPage.display.resolutionHelp')}
             </p>
           </div>
           <div className="px-4 py-3.5">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs text-hs-text-muted">Rotation</div>
-              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">Per display</span>
+              <div className="text-xs text-hs-text-muted">
+                {t('fields.rotation')}
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">
+                {t('settings.perDisplayPage.display.perDisplayBadge')}
+              </span>
             </div>
             <select
               value={display.displayTransform ?? 'normal'}
               onChange={(e) => handleTransform(e.target.value as 'normal' | '90' | '180' | '270')}
               className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             >
-              <option value="normal">Normal (landscape)</option>
-              <option value="90">90° clockwise (portrait)</option>
-              <option value="180">180° (inverted)</option>
-              <option value="270">270° clockwise (portrait)</option>
+              <option value="normal">{t('settings.perDisplayPage.display.rotationOptionNormal')}</option>
+              <option value="90">{t('settings.perDisplayPage.display.rotationOption90')}</option>
+              <option value="180">{t('settings.perDisplayPage.display.rotationOption180')}</option>
+              <option value="270">{t('settings.perDisplayPage.display.rotationOption270')}</option>
             </select>
           </div>
         </div>
@@ -221,34 +260,43 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
       {/* Rotation & transitions — inheritable */}
       <div className="mb-5">
         <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
-          Rotation &amp; transitions
+          {t('settings.perDisplayPage.display.rotationAndTransitionsHeading')}
         </div>
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
-            label="Screen rotation interval"
+            label={t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}
             defaultValue={(settings.rotationIntervalMs ?? 30000) / 1000}
             override={overrides.rotationIntervalMs != null ? overrides.rotationIntervalMs / 1000 : undefined}
             onFork={(seed) => setOverride('rotationIntervalMs', seed * 1000)}
             onReset={() => setOverride('rotationIntervalMs', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => `${v} seconds`}
+            formatValue={(v) => t('settings.perDisplayPage.display.fields.rotationIntervalSeconds', { seconds: v })}
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
-              <Slider label="" value={value} min={5} max={120} step={5} displayValue={`${value}s`} onChange={onChange} disabled={disabled} />
+              <Slider
+                label=""
+                value={value}
+                min={5}
+                max={120}
+                step={5}
+                displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
+                onChange={onChange}
+                disabled={disabled}
+              />
             )}
           </OverrideRow>
 
           <OverrideRow<TransitionEffect>
-            label="Transition effect"
+            label={t('settings.defaultDisplayPage.fields.transitionEffectLabel')}
             defaultValue={(settings.transitionEffect ?? 'fade') as TransitionEffect}
             override={overrides.transitionEffect}
             onFork={(seed) => setOverride('transitionEffect', seed)}
             onReset={() => setOverride('transitionEffect', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => TRANSITION_OPTIONS.find((t) => t.value === v)?.label ?? String(v)}
+            formatValue={(v) => transitionLabelFor(v)}
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
@@ -258,9 +306,9 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                 onChange={(e) => onChange(e.target.value as TransitionEffect)}
                 className="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent disabled:opacity-50"
               >
-                {TRANSITION_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
+                {TRANSITION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {transitionLabelFor(opt.value)}
                   </option>
                 ))}
               </select>
@@ -275,14 +323,14 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
               the bulk footer but have no way to reset it individually. */}
           {(effectiveTransitionEffect !== 'none' || overrides.transitionDuration !== undefined) && (
             <OverrideRow
-              label="Transition duration"
+              label={t('settings.defaultDisplayPage.fields.transitionDurationLabel')}
               defaultValue={settings.transitionDuration ?? 0.6}
               override={overrides.transitionDuration}
               onFork={(seed) => setOverride('transitionDuration', seed)}
               onReset={() => setOverride('transitionDuration', undefined)}
               defaultsPageHref={DEFAULTS_HREF}
               defaultsPageLabel={DEFAULTS_LABEL}
-              formatValue={(v) => `${v.toFixed(1)}s`}
+              formatValue={(v) => t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: v.toFixed(1) })}
               displayName={display.name}
             >
               {({ value, onChange, disabled }) => (
@@ -292,7 +340,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                   min={0.3}
                   max={2}
                   step={0.1}
-                  displayValue={`${value.toFixed(1)}s`}
+                  displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', { seconds: value.toFixed(1) })}
                   onChange={onChange}
                   disabled={disabled}
                 />
@@ -301,14 +349,18 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
           )}
 
           <OverrideRow
-            label="Allow pause on touchscreen"
+            label={t('settings.defaultDisplayPage.fields.pauseEnabledLabel')}
             defaultValue={settings.pauseEnabled ?? true}
             override={overrides.pauseEnabled}
             onFork={(seed) => setOverride('pauseEnabled', seed)}
             onReset={() => setOverride('pauseEnabled', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => (v ? 'Enabled' : 'Disabled')}
+            formatValue={(v) =>
+              v
+                ? t('settings.defaultDisplayPage.fields.pauseEnabledToggle')
+                : t('settings.perDisplayPage.display.fields.pauseEnabledLabelDisabled')
+            }
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
@@ -320,7 +372,9 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                   onChange={(e) => onChange(e.target.checked)}
                   className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                 />
-                <span className="text-sm text-hs-text-secondary">Enabled</span>
+                <span className="text-sm text-hs-text-secondary">
+                  {t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
+                </span>
               </label>
             )}
           </OverrideRow>
@@ -330,14 +384,18 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
               `pauseEnabled` was overridden to false. */}
           {(effectivePauseEnabled || overrides.pauseTimeoutSeconds !== undefined) && (
             <OverrideRow
-              label="Auto-resume timeout"
+              label={t('settings.defaultDisplayPage.fields.pauseTimeoutLabel')}
               defaultValue={settings.pauseTimeoutSeconds ?? 300}
               override={overrides.pauseTimeoutSeconds}
               onFork={(seed) => setOverride('pauseTimeoutSeconds', seed)}
               onReset={() => setOverride('pauseTimeoutSeconds', undefined)}
               defaultsPageHref={DEFAULTS_HREF}
               defaultsPageLabel={DEFAULTS_LABEL}
-              formatValue={(v) => (v === 0 ? 'Never' : `${v}s`)}
+              formatValue={(v) =>
+                v === 0
+                  ? t('settings.defaultDisplayPage.fields.pauseTimeoutNever')
+                  : t('settings.defaultDisplayPage.fields.pauseTimeoutSeconds', { seconds: v })
+              }
               displayName={display.name}
             >
               {({ value, onChange, disabled }) => (
@@ -347,7 +405,11 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
                   min={0}
                   max={600}
                   step={30}
-                  displayValue={value === 0 ? 'Never' : `${value}s`}
+                  displayValue={
+                    value === 0
+                      ? t('settings.defaultDisplayPage.fields.pauseTimeoutNever')
+                      : t('settings.defaultDisplayPage.fields.pauseTimeoutSeconds', { seconds: value })
+                  }
                   onChange={onChange}
                   disabled={disabled}
                 />
@@ -359,61 +421,78 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
 
       {/* Appearance — inheritable */}
       <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">Appearance</div>
+        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
+          {t('settings.perDisplayPage.display.appearanceHeading')}
+        </div>
         <div className="rounded-lg border border-hs-border bg-hs-panel/40">
           <OverrideRow
-            label="Hide cursor after"
+            label={t('settings.defaultDisplayPage.fields.cursorHideLabel')}
             defaultValue={settings.cursorHideSeconds ?? 3}
             override={overrides.cursorHideSeconds}
             onFork={(seed) => setOverride('cursorHideSeconds', seed)}
             onReset={() => setOverride('cursorHideSeconds', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => `${v}s`}
+            formatValue={(v) => t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: v })}
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
-              <Slider label="" value={value} min={1} max={30} step={1} displayValue={`${value}s`} onChange={onChange} disabled={disabled} />
+              <Slider
+                label=""
+                value={value}
+                min={1}
+                max={30}
+                step={1}
+                displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
+                onChange={onChange}
+                disabled={disabled}
+              />
             )}
           </OverrideRow>
 
           <OverrideRow
-            label="Fullscreen theme"
+            label={t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}
             defaultValue={settings.fullscreenTheme ?? 'linen'}
             override={overrides.fullscreenTheme}
             onFork={(seed) => setOverride('fullscreenTheme', seed)}
             onReset={() => setOverride('fullscreenTheme', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => FULLSCREEN_THEMES.find((t) => t.id === v)?.name ?? v}
+            formatValue={(v) => FULLSCREEN_THEMES.find((th) => th.id === v)?.name ?? v}
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
               <div className="grid grid-cols-3 gap-2">
-                {FULLSCREEN_THEMES.map((t) => (
+                {FULLSCREEN_THEMES.map((theme) => (
                   <button
-                    key={t.id}
+                    key={theme.id}
                     type="button"
                     disabled={disabled}
-                    onClick={() => onChange(t.id)}
+                    onClick={() => onChange(theme.id)}
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
-                      value === t.id
+                      value === theme.id
                         ? 'border-hs-accent bg-hs-accent-soft'
                         : 'border-hs-border-strong bg-hs-card hover:bg-hs-hover'
                     } disabled:cursor-not-allowed`}
                   >
                     <div
                       className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden border border-hs-border-strong"
-                      style={{ background: t.tokens.bg }}
+                      style={{ background: theme.tokens.bg }}
                     >
-                      <div style={{ height: '60%', background: t.tokens.bg }} />
-                      <div style={{ height: '40%', background: t.tokens.border }} />
+                      <div style={{ height: '60%', background: theme.tokens.bg }} />
+                      <div style={{ height: '40%', background: theme.tokens.border }} />
                     </div>
                     <div>
-                      <div className={`text-xs font-semibold ${value === t.id ? 'text-hs-accent-hover' : 'text-hs-text-body'}`}>
-                        {t.name}
+                      <div
+                        className={`text-xs font-semibold ${
+                          value === theme.id ? 'text-hs-accent-hover' : 'text-hs-text-body'
+                        }`}
+                      >
+                        {theme.name}
                       </div>
-                      <div className="text-[10px] text-hs-text-faint capitalize">{t.group}</div>
+                      <div className="text-[10px] text-hs-text-faint capitalize">
+                        {tOrFallback(`settings.defaultDisplayPage.themeGroups.${theme.group}`, theme.group)}
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -432,18 +511,20 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
       <div className="mt-6 flex items-center justify-between border-t border-hs-border pt-4">
         <div className="text-xs text-hs-text-faint">
           <span className="text-hs-text-secondary">
-            {overrideCount} display {overrideCount === 1 ? 'override' : 'overrides'}
-          </span>{' '}
-          active for {display.name}.
+            {overrideCount === 1
+              ? t('settings.perDisplayPage.display.footer.overrideCountSingular', { count: overrideCount })
+              : t('settings.perDisplayPage.display.footer.overrideCountPlural', { count: overrideCount })}
+          </span>
+          {t('settings.perDisplayPage.display.footer.activeForDisplay', { name: display.name })}
         </div>
         {overrideCount > 0 && (
           <button
             type="button"
             onClick={handleClearAll}
             className="text-xs text-hs-danger hover:text-hs-danger transition-colors"
-            title="Reset every field on this subtab to its default. Sleep and Alerts overrides are unaffected."
+            title={t('settings.perDisplayPage.display.footer.clearAllTitle')}
           >
-            Clear display overrides
+            {t('settings.perDisplayPage.display.footer.clearAllButton')}
           </button>
         )}
       </div>

@@ -5,6 +5,13 @@ import { registerPluginModule } from '@/lib/module-registry';
 import { registerFetchKey } from '@/lib/fetch-keys';
 import { compareSemver } from '@/lib/semver';
 import { displayFetch } from '@/lib/display-fetch';
+import {
+  DEFAULT_LOCALE,
+  FALLBACK_LOCALE,
+  registerPluginNamespace,
+  resolveLocaleChain,
+} from '@/i18n';
+import type { Dictionary } from '@/i18n';
 
 // ---------------------------------------------------------------------------
 // Dev-mode state — local plugin loading from dev server URLs
@@ -57,6 +64,11 @@ export async function loadDevPlugin(url: string): Promise<void> {
   const bundleRes = await fetch(`${base}/dist/bundle.js`);
   if (!bundleRes.ok) throw new Error(`Dev bundle fetch failed: ${bundleRes.status}`);
   const bundleText = await bundleRes.text();
+
+  // 2b. Pre-register dev-plugin translations against the dev server's URL
+  // base — same fallback chain the installed-plugin path uses, just with a
+  // remote origin instead of the local /api/plugins/asset/<id> route.
+  await loadPluginTranslations(manifest, base);
 
   // 3. Execute bundle
   const { component, configSection } = executeBundle(bundleText, manifest);
@@ -390,6 +402,12 @@ async function loadSinglePlugin(
     }
     const bundleText = await bundleRes.text();
 
+    // 3b. Pre-register plugin translations (if any) before the IIFE runs so
+    // synchronous calls into `__HS_SDK__.translate` from the bundle's top
+    // level resolve against real strings. Errors here only warn — the
+    // plugin still loads.
+    await loadPluginTranslations(manifest);
+
     // 4. Execute IIFE bundle
     const { component, configSection } = executeBundle(bundleText, manifest);
 
@@ -473,6 +491,361 @@ function executeBundle(
   } finally {
     window.__HS_PLUGIN__ = undefined;
   }
+}
+
+// ---------------------------------------------------------------------------
+// i18n — fetch + register plugin-supplied translation dictionaries
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the active locale for plugin translation lookup. Reads
+ * `globalSettings.locale` from `/api/config`; on any failure (no config,
+ * network error, missing field) falls back to `DEFAULT_LOCALE`. Cached for
+ * the lifetime of a single `loadAllPlugins` call so parallel
+ * `loadSinglePlugin` invocations don't all re-issue the request.
+ *
+ * Failure-path caching is deliberately *off*: when the config fetch fails
+ * (5xx, network error, malformed JSON) we return `DEFAULT_LOCALE` but do
+ * not write the cache. The next caller retries the network. Otherwise a
+ * single transient outage during plugin load would lock every plugin into
+ * the fallback locale until the TTL expires (and would re-arm the same
+ * window every time the cache was checked, ratcheting failures forever).
+ */
+let activeLocaleCache: { value: string; fetchedAt: number } | null = null;
+const ACTIVE_LOCALE_TTL_MS = 5_000;
+
+export async function getActiveLocale(): Promise<string> {
+  const now = Date.now();
+  if (activeLocaleCache && now - activeLocaleCache.fetchedAt < ACTIVE_LOCALE_TTL_MS) {
+    return activeLocaleCache.value;
+  }
+  try {
+    const res = await displayFetch('/api/config');
+    if (!res.ok) {
+      // Don't cache the failure — let the next call retry.
+      return DEFAULT_LOCALE;
+    }
+    const config = await res.json();
+    // `/api/config` returns the raw `ScreenConfiguration`, whose locale
+    // lives at `settings.locale` (not the legacy `globalSettings` shape).
+    // Matching the actual on-the-wire field is the only way plugin
+    // translations resolve to the user's chosen locale.
+    const locale = config?.settings?.locale;
+    const value = typeof locale === 'string' && locale ? locale : DEFAULT_LOCALE;
+    activeLocaleCache = { value, fetchedAt: now };
+    return value;
+  } catch {
+    // Don't cache the failure — let the next call retry.
+    return DEFAULT_LOCALE;
+  }
+}
+
+/**
+ * Invalidate the active-locale cache. The editor's locale-change save flow
+ * should call this immediately after a successful PUT so the next plugin
+ * translation fetch picks up the new locale without waiting for the TTL.
+ *
+ * Pair with {@link reloadPluginTranslations} to re-fetch dictionaries for
+ * all currently-loaded plugins under the new locale.
+ */
+export function clearActiveLocaleCache(): void {
+  activeLocaleCache = null;
+}
+
+/** @internal — drops the active-locale cache so tests can re-mock. */
+export function __resetPluginLoaderActiveLocaleCacheForTests(): void {
+  activeLocaleCache = null;
+}
+
+/**
+ * Validate that a fetched payload looks like a translation dictionary —
+ * a plain JSON object whose values are either strings or further nested
+ * dictionaries. Returns the value cast to `Dictionary` on success or
+ * `null` if the shape is wrong (so the caller can warn + skip).
+ */
+function isDictionary(value: unknown): value is Dictionary {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return true;
+}
+
+/**
+ * Build the URL the plugin loader fetches a translation file from. Kept as
+ * its own function so dev plugins (loaded from a remote dev server) can
+ * resolve relative to their own base URL while installed plugins fetch
+ * via the local API. The dev-server case passes a `baseUrl`; the
+ * installed-plugin case omits it and we fall back to the standard
+ * `/api/plugins/asset/<id>` shape — this is the same pattern the
+ * `manifest`/`bundle` endpoints use, just for arbitrary on-disk plugin
+ * assets.
+ *
+ * Returns `null` when the manifest path is unsafe — absolute schemes
+ * (`http:`, `file:`), parent-directory traversal (`..`), backslashes, or
+ * embedded NUL bytes. Callers must skip the registration and warn. Even
+ * though the asset route already enforces traversal containment, rejecting
+ * here means we never even issue the request and never let a manifest
+ * point at an arbitrary external origin via the dev-server passthrough.
+ */
+function buildTranslationUrl(
+  pluginId: string,
+  relativePath: string,
+  baseUrl?: string,
+): string | null {
+  // Reject absolute schemes (http://, https://, file://, javascript:, etc.).
+  // The dev-server `baseUrl` is the *only* authorized cross-origin escape
+  // hatch and it's not in the manifest path — the manifest must always be
+  // a relative path under the plugin root.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(relativePath)) {
+    console.warn(
+      `[plugin] translations path for "${pluginId}" rejected: absolute scheme not allowed (${relativePath}).`,
+    );
+    return null;
+  }
+  // Reject NUL bytes and backslashes — Windows-style separators or null
+  // injection should never be in a sane manifest path.
+  if (relativePath.includes('\0') || relativePath.includes('\\')) {
+    console.warn(
+      `[plugin] translations path for "${pluginId}" rejected: contains NUL or backslash.`,
+    );
+    return null;
+  }
+  // Normalise separators and reject any `..` segment after splitting. We
+  // also reject empty segments produced by leading/trailing/double slashes
+  // because those are almost always a manifest typo or a probe.
+  const segments = relativePath.split('/');
+  for (const seg of segments) {
+    if (seg === '..') {
+      console.warn(
+        `[plugin] translations path for "${pluginId}" rejected: parent-directory traversal (${relativePath}).`,
+      );
+      return null;
+    }
+  }
+  // Manifest paths are relative to the plugin root and may use `/` as the
+  // separator. Strip leading slashes after the safety checks above so the
+  // checks see exactly what the manifest declared.
+  const safePath = relativePath.replace(/^\/+/, '');
+  if (!safePath) {
+    console.warn(
+      `[plugin] translations path for "${pluginId}" rejected: empty path.`,
+    );
+    return null;
+  }
+  if (baseUrl) {
+    return `${baseUrl.replace(/\/+$/, '')}/${safePath}`;
+  }
+  return `/api/plugins/asset/${encodeURIComponent(pluginId)}/${safePath}`;
+}
+
+// 1 MB cap on a single translation dictionary. A real-world dictionary is
+// typically a few KB; the cap is here to keep a malicious or buggy plugin
+// from pinning memory or stalling the load pipeline. Tunable if a future
+// plugin legitimately ships a much larger dictionary, but the right answer
+// at that size is to split per-namespace anyway.
+const MAX_TRANSLATION_BYTES = 1_000_000;
+
+/**
+ * Read a `Response` body in chunks, aborting if the running byte counter
+ * exceeds {@link MAX_TRANSLATION_BYTES}. Returns the decoded JSON value on
+ * success or `null` on any failure (size cap, decode error, JSON parse
+ * error). The caller logs an appropriate warning either way.
+ */
+async function readBoundedJson(res: Response, pluginId: string, tag: string): Promise<unknown | null> {
+  // Fast path: trust a sane Content-Length header before consuming.
+  const declaredLen = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declaredLen) && declaredLen > MAX_TRANSLATION_BYTES) {
+    console.warn(
+      `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
+      + `(declared ${declaredLen}B) — skipping.`,
+    );
+    return null;
+  }
+
+  const reader = res.body?.getReader();
+  // No streaming body — fall back to res.json() with a best-effort length
+  // re-check. Browsers should always expose a body; this branch is mostly
+  // for older test mocks that return synthetic Responses without one.
+  if (!reader) {
+    const text = await res.text();
+    if (text.length > MAX_TRANSLATION_BYTES) {
+      console.warn(
+        `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B — skipping.`,
+      );
+      return null;
+    }
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[plugin] translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
+      );
+      return null;
+    }
+  }
+
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    received += value.byteLength;
+    if (received > MAX_TRANSLATION_BYTES) {
+      // Cancel the body so the connection (and any upstream socket) is
+      // released promptly instead of being read to completion.
+      try { await reader.cancel(); } catch { /* ignore */ }
+      console.warn(
+        `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
+        + `(read ${received}B before abort) — skipping.`,
+      );
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  try {
+    const merged = new Uint8Array(received);
+    let offset = 0;
+    for (const c of chunks) {
+      merged.set(c, offset);
+      offset += c.byteLength;
+    }
+    const decoded = new TextDecoder('utf-8').decode(merged);
+    return JSON.parse(decoded);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[plugin] translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
+    );
+    return null;
+  }
+}
+
+/**
+ * If `manifest.translations` is set, walk the locale fallback chain and
+ * register the first dictionary that loads successfully under
+ * `plugin:<pluginId>`. Silent no-op when `translations` is absent or empty.
+ *
+ * Failures (missing file, malformed JSON, non-object payload, oversize)
+ * are logged as warnings — they never prevent the plugin from loading.
+ *
+ * **Locale-change limitation:** this runs once per plugin during
+ * `loadAllPlugins` (or `loadDevPlugin`) and registers the dictionary for
+ * the *current* active locale. When the user later switches locale at
+ * runtime, the plugin's translations stay pinned to whatever was loaded.
+ * Call {@link reloadPluginTranslations} from the locale-change save flow
+ * to re-fetch dictionaries for every loaded plugin under the new locale.
+ */
+export async function loadPluginTranslations(
+  manifest: PluginManifest,
+  baseUrl?: string,
+): Promise<void> {
+  const translations = manifest.translations;
+  if (!translations || typeof translations !== 'object') return;
+  const tags = Object.keys(translations);
+  if (tags.length === 0) return;
+
+  let activeLocale: string;
+  try {
+    activeLocale = await getActiveLocale();
+  } catch {
+    activeLocale = DEFAULT_LOCALE;
+  }
+  const chain = resolveLocaleChain(activeLocale, FALLBACK_LOCALE);
+
+  for (const tag of chain) {
+    const relativePath = translations[tag];
+    if (typeof relativePath !== 'string' || !relativePath) continue;
+
+    const url = buildTranslationUrl(manifest.id, relativePath, baseUrl);
+    if (url == null) {
+      // buildTranslationUrl already warned with the precise reason. Skip
+      // this tag entirely — the loop will try the next entry in the
+      // fallback chain.
+      continue;
+    }
+    let dict: Dictionary | null = null;
+    try {
+      const res = await displayFetch(url);
+      if (!res.ok) {
+        console.warn(
+          `[plugin] translations fetch failed for ${manifest.id} (${tag}): ${res.status}`,
+        );
+        continue;
+      }
+      const json = await readBoundedJson(res, manifest.id, tag);
+      if (json == null) {
+        // readBoundedJson already warned (size cap or parse error).
+        continue;
+      }
+      if (!isDictionary(json)) {
+        console.warn(
+          `[plugin] translations payload for ${manifest.id} (${tag}) is not a JSON object — skipping`,
+        );
+        continue;
+      }
+      dict = json;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[plugin] translations fetch threw for ${manifest.id} (${tag}): ${message}`,
+      );
+      continue;
+    }
+
+    try {
+      registerPluginNamespace(manifest.id, activeLocale, dict);
+    } catch (err) {
+      // Invalid plugin IDs should already be caught upstream by the
+      // manifest validator. Surface this loudly via the warning rather
+      // than letting the throw bubble — the rest of the plugin can still
+      // load successfully.
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[plugin] translations register failed for ${manifest.id}: ${message}`,
+      );
+    }
+    return;
+  }
+}
+
+/**
+ * Re-fetch and re-register translation dictionaries for every plugin the
+ * Zustand store currently knows about, under the *current* active locale.
+ *
+ * Called by the editor's locale-change save flow after persisting the new
+ * locale to `globalSettings.locale`. Sequence:
+ *   1. PUT /api/config { ...globalSettings: { locale: newTag } }
+ *   2. clearActiveLocaleCache()           — drop the stale cached value
+ *   3. await reloadPluginTranslations()  — refill the namespace cache
+ *   4. router.refresh()                   — re-render with new strings
+ *
+ * Failures inside individual plugin reloads are swallowed (and warned by
+ * `loadPluginTranslations`) so a single broken plugin can't block the
+ * reload of the rest.
+ */
+export async function reloadPluginTranslations(): Promise<void> {
+  // Lazy-import the store so this function stays callable from contexts
+  // (server modules, tests) that haven't pulled the editor bundle in.
+  const { usePluginStore } = await import('@/stores/plugin-store');
+  const plugins = usePluginStore.getState().plugins;
+
+  // Reload dev plugins from their own dev-server origin and installed
+  // plugins from the local /api/plugins/asset route. Dev plugins live
+  // under the same plugin store entry — we look up the dev URL from the
+  // localStorage map populated by `loadDevPlugin`.
+  const devUrls = getDevPlugins();
+
+  await Promise.allSettled(
+    Array.from(plugins.values()).map(async ({ manifest }) => {
+      const dev = devUrls.get(manifest.id);
+      if (dev) {
+        await loadPluginTranslations(manifest, dev.url);
+      } else {
+        await loadPluginTranslations(manifest);
+      }
+    }),
+  );
 }
 
 // Re-export from @/lib/semver for backward compatibility

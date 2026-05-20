@@ -21,6 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import type { LayoutExport } from '@/types/layout-export';
 import type { Screen } from '@/types/config';
 import LayoutExportModal from './LayoutExportModal';
@@ -30,19 +31,23 @@ import TemplatePicker from './TemplatePicker';
 
 /* ─── Sortable tab ──────────────────────────── */
 
-function DurationBadge({ ms }: { ms: number }) {
+function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
   if (ms === 0) {
     return (
       <span
         className="ml-1 text-[9px] font-semibold tracking-wide text-hs-warning bg-hs-warning/15 border border-hs-warning/35 rounded-full px-1.5 py-[1px]"
         aria-hidden
       >
-        0s
+        {t('screenTabs.stickyBadge')}
       </span>
     );
   }
   const sec = Math.round(ms / 1000);
-  const label = sec < 1 ? `${ms}ms` : `${sec}s`;
+  // Sub-second durations keep the raw "ms" suffix — too short to round to
+  // whole seconds without losing information. Translation surface stays at
+  // the seconds-suffix level to avoid a separate sub-second key for an edge
+  // case that already uses a non-localized number suffix.
+  const label = sec < 1 ? `${ms}ms` : t('screenTabs.secondsSuffix', { seconds: sec });
   return (
     <span
       className="ml-1 text-[9px] font-semibold tracking-wide text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 rounded-full px-1.5 py-[1px]"
@@ -66,6 +71,7 @@ interface SortableTabProps {
   onDelete: (e: React.MouseEvent) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   canDelete: boolean;
+  t: TranslateFn;
 }
 
 function SortableTab({
@@ -81,6 +87,7 @@ function SortableTab({
   onDelete,
   onContextMenu,
   canDelete,
+  t,
 }: SortableTabProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const {
@@ -119,10 +126,10 @@ function SortableTab({
       data-active={isSelected}
       title={(() => {
         const parts: string[] = [screen.name];
-        if (screen.rotationDurationMs === 0) parts.push('sticky — manual advance only');
-        else if (screen.rotationDurationMs != null) parts.push(`${Math.round(screen.rotationDurationMs / 1000)}s`);
-        if (screen.schedule) parts.push('scheduled');
-        if (isDisabled) parts.push('disabled — not shown on display');
+        if (screen.rotationDurationMs === 0) parts.push(t('screenTabs.stickyTooltip'));
+        else if (screen.rotationDurationMs != null) parts.push(t('screenTabs.secondsSuffix', { seconds: Math.round(screen.rotationDurationMs / 1000) }));
+        if (screen.schedule) parts.push(t('screenTabs.scheduledTooltip'));
+        if (isDisabled) parts.push(t('screenTabs.disabledTooltip'));
         return parts.join(' · ');
       })()}
       className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
@@ -153,14 +160,18 @@ function SortableTab({
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
-          {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} />}
+          {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
           {screen.schedule && (
             <Clock
               className="ml-0.5 h-3 w-3 text-hs-text-faint"
               aria-hidden="true"
             />
           )}
-          {isDisabled && <span className="ml-0.5 text-[10px] text-hs-text-faint">⊘</span>}
+          {isDisabled && (
+            <span className="ml-0.5 text-[10px] text-hs-text-faint" aria-label={t('screenTabs.disabledIndicatorAriaLabel')}>
+              ⊘
+            </span>
+          )}
           {isSelected && (
             <button
               onClick={(e) => {
@@ -168,8 +179,8 @@ function SortableTab({
                 onContextMenu(e);
               }}
               className="ml-1 text-xs text-hs-text-faint hover:text-hs-text-body"
-              title="Screen options"
-              aria-label={`Options for ${screen.name}`}
+              title={t('screenTabs.screenOptionsTitle')}
+              aria-label={t('screenTabs.screenOptionsAriaLabel', { name: screen.name })}
             >
               &#9998;
             </button>
@@ -180,7 +191,7 @@ function SortableTab({
         <button
           onClick={onDelete}
           className="ml-1 text-xs text-hs-text-faint hover:text-hs-danger"
-          aria-label={`Delete ${screen.name}`}
+          aria-label={t('screenTabs.deleteTabAriaLabel', { name: screen.name })}
         >
           x
         </button>
@@ -193,6 +204,8 @@ function SortableTab({
 /* ─── Main component ────────────────────────── */
 
 export default function ScreenTabs() {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config, selectedDisplayId, selectedScreenId, selectScreen, addScreen, removeScreen, reorderScreens, updateScreen } = useEditorStore();
   // Screen operations target the currently-selected display's screens.
   // In legacy single-display mode this resolves to the global screen pool.
@@ -352,12 +365,17 @@ export default function ScreenTabs() {
                     onCancelEditing={() => setEditingId(null)}
                     onDelete={async (e) => {
                       e.stopPropagation();
-                      if (await useConfirmStore.getState().confirm(`Remove "${screen.name}"?`)) {
+                      if (await useConfirmStore.getState().confirm({
+                        message: t('screenTabs.removeConfirmMessage', { name: screen.name }),
+                        confirmLabel: tCore('actions.remove'),
+                        variant: 'danger',
+                      })) {
                         removeScreen(screen.id);
                       }
                     }}
                     onContextMenu={(e) => handleContextMenu(e, screen.id)}
                     canDelete={screens.length > 1}
+                    t={t}
                   />
                 ))}
               </div>
@@ -373,8 +391,8 @@ export default function ScreenTabs() {
             type="button"
             onClick={() => scrollTabs('left')}
             disabled={!canScrollLeft}
-            aria-label="Scroll tabs left"
-            title="Scroll tabs left"
+            aria-label={t('screenTabs.scrollLeftAriaLabel')}
+            title={t('screenTabs.scrollLeftTitle')}
             className={clsx(
               'absolute left-1 top-1/2 -translate-y-1/2 rounded-full border border-hs-border-strong/80 bg-hs-body/90 p-1 text-hs-text-secondary shadow-sm transition-all',
               canScrollLeft ? 'opacity-100 hover:border-hs-border-strong hover:text-hs-text-primary' : 'pointer-events-none opacity-0',
@@ -392,8 +410,8 @@ export default function ScreenTabs() {
             type="button"
             onClick={() => scrollTabs('right')}
             disabled={!canScrollRight}
-            aria-label="Scroll tabs right"
-            title="Scroll tabs right"
+            aria-label={t('screenTabs.scrollRightAriaLabel')}
+            title={t('screenTabs.scrollRightTitle')}
             className={clsx(
               'absolute right-1 top-1/2 -translate-y-1/2 rounded-full border border-hs-border-strong/80 bg-hs-body/90 p-1 text-hs-text-secondary shadow-sm transition-all',
               canScrollRight ? 'opacity-100 hover:border-hs-border-strong hover:text-hs-text-primary' : 'pointer-events-none opacity-0',
@@ -407,7 +425,7 @@ export default function ScreenTabs() {
         <div className="shrink-0">
           <button
             ref={addBtnRef}
-            aria-label="Add screen"
+            aria-label={t('screenTabs.addScreenAriaLabel')}
             className="flex items-center gap-0.5 rounded-md bg-hs-card px-2 py-1 text-xs font-medium text-hs-text-body transition-colors hover:bg-hs-hover"
             onClick={(e) => {
               e.stopPropagation();
@@ -441,7 +459,7 @@ export default function ScreenTabs() {
               setAddMenuPos(null);
             }}
           >
-            Blank Screen
+            {t('screenTabs.addMenu.blank')}
           </button>
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
@@ -450,7 +468,7 @@ export default function ScreenTabs() {
               setAddMenuPos(null);
             }}
           >
-            From Template...
+            {t('screenTabs.addMenu.fromTemplate')}
           </button>
         </div>
       )}
@@ -467,21 +485,21 @@ export default function ScreenTabs() {
             disabled={contextScreenIndex <= 0}
             onClick={() => handleMoveScreen(contextMenu.screenId, 'left')}
           >
-            Move Left
+            {t('screenTabs.contextMenu.moveLeft')}
           </button>
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card disabled:text-hs-text-faint disabled:cursor-default"
             disabled={contextScreenIndex >= screens.length - 1}
             onClick={() => handleMoveScreen(contextMenu.screenId, 'right')}
           >
-            Move Right
+            {t('screenTabs.contextMenu.moveRight')}
           </button>
           <div className="my-1 border-t border-hs-border-strong/60" />
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => handleExportScreen(contextMenu.screenId)}
           >
-            Export This Screen
+            {t('screenTabs.contextMenu.exportThisScreen')}
           </button>
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
@@ -496,8 +514,8 @@ export default function ScreenTabs() {
             }}
           >
             {screens.find((s) => s.id === contextMenu.screenId)?.enabled === false
-              ? 'Enable'
-              : 'Disable'}
+              ? t('screenTabs.contextMenu.enable')
+              : t('screenTabs.contextMenu.disable')}
           </button>
           <div className="my-1 border-t border-hs-border-strong/60" />
           <button
@@ -508,20 +526,24 @@ export default function ScreenTabs() {
               setContextMenu(null);
             }}
           >
-            Rename
+            {t('screenTabs.contextMenu.rename')}
           </button>
           {screens.length > 1 && (
             <button
               className="w-full px-3 py-1.5 text-left text-sm text-hs-danger hover:bg-hs-card"
               onClick={async () => {
-                const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name;
+                const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name ?? '';
                 setContextMenu(null);
-                if (await useConfirmStore.getState().confirm(`Remove "${screenName}"?`)) {
+                if (await useConfirmStore.getState().confirm({
+                  message: t('screenTabs.removeConfirmMessage', { name: screenName }),
+                  confirmLabel: tCore('actions.delete'),
+                  variant: 'danger',
+                })) {
                   removeScreen(contextMenu.screenId);
                 }
               }}
             >
-              Delete
+              {t('screenTabs.contextMenu.delete')}
             </button>
           )}
         </div>

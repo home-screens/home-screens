@@ -1,0 +1,20 @@
+{
+  "conditions": {
+    "sunny": "Zonnig",
+    "clearNight": "Heldere nacht",
+    "cloudy": "Bewolkt",
+    "partlyCloudy": "Half bewolkt",
+    "partlyCloudyNight": "Half bewolkte nacht",
+    "mostlySunny": "Overwegend zonnig",
+    "mostlyCloudy": "Overwegend bewolkt",
+    "rain": "Regen",
+    "drizzle": "Motregen",
+    "snow": "Sneeuw",
+    "thunderstorm": "Onweer",
+    "fog": "Mist",
+    "hail": "Hagel",
+    "sleet": "Natte sneeuw",
+    "temperature": "Temperatuur",
+    "weather": "Weer"
+  }
+}

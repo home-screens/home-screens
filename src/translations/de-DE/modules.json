@@ -1,0 +1,676 @@
+{
+  "clock": {
+    "am": "vorm.",
+    "pm": "nachm.",
+    "weekShort": "Woche",
+    "dayShort": "Tag",
+    "binaryHoursLabel": "S",
+    "binaryMinutesLabel": "M",
+    "binarySecondsLabel": "S",
+    "barHoursLabel": "S",
+    "barMinutesLabel": "M",
+    "barSecondsLabel": "S",
+    "arc": {
+      "morningLabel": "6 Uhr",
+      "eveningLabel": "18 Uhr",
+      "beforeDawn": "vor Sonnenaufgang",
+      "afterDusk": "nach Einbruch der Dunkelheit"
+    },
+    "elapsed": {
+      "setReferenceTime": "Bezugszeit festlegen",
+      "since": "seit {label}",
+      "until": "bis {label}",
+      "notYet": "noch nicht",
+      "elapsed": "vorbei"
+    },
+    "fuzzy": {
+      "oclock": "{hour} Uhr",
+      "justPast": "kurz nach {hour}",
+      "tenPast": "zehn nach {hour}",
+      "quarterPast": "viertel nach {hour}",
+      "twentyPast": "zwanzig nach {hour}",
+      "twentyFivePast": "fünfundzwanzig nach {hour}",
+      "halfPast": "halb {next}",
+      "twentyFiveTo": "fünfundzwanzig vor {next}",
+      "twentyTo": "zwanzig vor {next}",
+      "quarterTo": "viertel vor {next}",
+      "tenTo": "zehn vor {next}",
+      "almost": "kurz vor {next}"
+    },
+    "word": {
+      "oclock": "Es ist {hour} Uhr",
+      "atMinute": "Es ist {hour} Uhr {minute}",
+      "hours": {
+        "1": "eins",
+        "2": "zwei",
+        "3": "drei",
+        "4": "vier",
+        "5": "fünf",
+        "6": "sechs",
+        "7": "sieben",
+        "8": "acht",
+        "9": "neun",
+        "10": "zehn",
+        "11": "elf",
+        "12": "zwölf"
+      },
+      "onesCompound": {
+        "1": "ein",
+        "2": "zwei",
+        "3": "drei",
+        "4": "vier",
+        "5": "fünf",
+        "6": "sechs",
+        "7": "sieben",
+        "8": "acht",
+        "9": "neun"
+      },
+      "minutes": {
+        "0": "null",
+        "10": "zehn",
+        "11": "elf",
+        "12": "zwölf",
+        "13": "dreizehn",
+        "14": "vierzehn",
+        "15": "fünfzehn",
+        "16": "sechzehn",
+        "17": "siebzehn",
+        "18": "achtzehn",
+        "19": "neunzehn",
+        "20": "zwanzig",
+        "30": "dreißig",
+        "40": "vierzig",
+        "50": "fünfzig"
+      },
+      "minuteJoin": "{ones}und{tens}"
+    }
+  },
+  "countdown": {
+    "noEvents": "Keine Countdowns festgelegt",
+    "noUpcoming": "Keine bevorstehenden Ereignisse",
+    "agoSuffix": "(vergangen)",
+    "todayBang": "Heute!",
+    "unitDays": "Tage",
+    "unitHours": "Std",
+    "unitMinutes": "Min",
+    "unitSeconds": "Sek"
+  },
+  "date": {
+    "weekShort": "Woche",
+    "dayShort": "Tag",
+    "weekAbbrev": "WO",
+    "dayAbbrev": "TAG"
+  },
+  "year-progress": {
+    "week": "Woche"
+  },
+  "garbage-day": {
+    "header": "Abfuhrkalender",
+    "nextDay": "Nächster {day}",
+    "emptyState": "Abfuhrtage in den Moduleinstellungen festlegen",
+    "labels": {
+      "trash": "Restmüll",
+      "recycling": "Wertstoff",
+      "yardWaste": "Gartenabfall"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Alle zwei Wochen, {day}"
+    }
+  },
+  "calendar": {
+    "allDay": "Ganztägig",
+    "noEvents": "Keine Termine",
+    "noUpcomingEvents": "Keine bevorstehenden Termine",
+    "weekShort": "KW",
+    "moreCount": "+{count} weitere"
+  },
+  "fullscreen-calendar": {
+    "allDay": "Ganztägig",
+    "noEvents": "Keine Termine",
+    "noEventsThisMonth": "Keine Termine diesen Monat",
+    "noEventsThisWeek": "Keine Termine diese Woche",
+    "noEventsToday": "Keine Termine heute",
+    "noUpcomingEvents": "Keine bevorstehenden Termine",
+    "moreCount": "+{count} weitere",
+    "am": "vorm.",
+    "pm": "nachm.",
+    "headerUpcoming": "Demnächst",
+    "viewLabels": {
+      "schedule": "Zeitplan",
+      "weekList": "Woche",
+      "monthGrid": "Monat",
+      "dayTimeline": "Tag",
+      "agenda": "Agenda"
+    },
+    "zones": {
+      "morning": "Vormittag",
+      "afternoon": "Nachmittag",
+      "evening": "Abend"
+    },
+    "ariaLabels": {
+      "currentTemperature": "Aktuelle Temperatur {temp} Grad",
+      "view": "Ansicht: {label}",
+      "dayTimeline": "Tageszeitachse",
+      "scheduleTimeGrid": "Zeitplan-Raster",
+      "currentTime": "Aktuelle Uhrzeit: {time}",
+      "eventAllDay": "{title}, ganztägig",
+      "eventTimed": "{title}, {start} bis {end}",
+      "eventTimedAtLocation": "{title}, {start} bis {end}, bei {location}",
+      "monthCell": "{date}, {count} Termine"
+    }
+  },
+  "weather": {
+    "tomorrowShort": "Morgen",
+    "feelsLike": "Gefühlt {temp}",
+    "feelsShort": "Gefühlt {temp}",
+    "highLow": "H:{high} T:{low}",
+    "hourlyForecast": "Stundenvorhersage",
+    "forecast": "Vorhersage",
+    "weatherAlerts": "Wetterwarnungen",
+    "alertCount": "({count})",
+    "noActiveAlerts": "Keine aktiven Warnungen",
+    "alertDataRequires": "Warnungen erfordern Pirate Weather oder NOAA",
+    "alertSeverityExpires": "{severity} · Läuft ab {expires}",
+    "noWeatherData": "Keine Wetterdaten",
+    "noForecastData": "Keine Vorhersagedaten",
+    "locationNotSet": "Standort nicht festgelegt",
+    "setLocationInSettings": "Lege deinen Standort in den Einstellungen fest",
+    "next60Minutes": "Nächste 60 Minuten",
+    "noPrecipitationExpected": "Kein Niederschlag erwartet",
+    "stoppingInMin": "Hört in {minutes} Min auf",
+    "precipitationForNextHour": "Niederschlag für die nächste Stunde",
+    "startingInMin": "Beginnt in {minutes} Min",
+    "minutelyDataRequires": "Minütliche Daten erfordern Pirate Weather",
+    "tableHeaders": {
+      "day": "Tag",
+      "temp": "Temp",
+      "rain": "Regen",
+      "humidity": "Feuchte",
+      "wind": "Wind"
+    },
+    "timeline": {
+      "now": "Jetzt",
+      "minutes15": "15 Min",
+      "minutes30": "30 Min",
+      "minutes45": "45 Min",
+      "minutes60": "60 Min"
+    },
+    "severity": {
+      "Extreme": "Extrem",
+      "Severe": "Stark",
+      "Moderate": "Mäßig",
+      "Minor": "Gering",
+      "Unknown": "Unbekannt"
+    }
+  },
+  "air-quality": {
+    "loading": "Luftqualität wird geladen…",
+    "airQualityIndex": "Luftqualitätsindex",
+    "labels": {
+      "good": "Gut",
+      "fair": "Ordentlich",
+      "moderate": "Mäßig",
+      "poor": "Schlecht",
+      "veryPoor": "Sehr schlecht",
+      "unknown": "Unbekannt"
+    },
+    "pollutants": {
+      "pm25": "PM2,5",
+      "pm10": "PM10",
+      "o3": "O₃"
+    }
+  },
+  "moon-phase": {
+    "phases": {
+      "newMoon": "Neumond",
+      "waxingCrescent": "Zunehmende Sichel",
+      "firstQuarter": "Erstes Viertel",
+      "waxingGibbous": "Zunehmender Mond",
+      "fullMoon": "Vollmond",
+      "waningGibbous": "Abnehmender Mond",
+      "lastQuarter": "Letztes Viertel",
+      "waningCrescent": "Abnehmende Sichel"
+    },
+    "illuminated": "{percent}% beleuchtet",
+    "rise": "Aufgang",
+    "set": "Untergang"
+  },
+  "sunrise-sunset": {
+    "sunrise": "Sonnenaufgang",
+    "sunset": "Sonnenuntergang",
+    "dayLength": "Tageslänge: {length}",
+    "goldenHour": "Goldene Stunde: {time}",
+    "midnightSun": "Mitternachtssonne",
+    "sunDoesNotSet": "Sonne geht nicht unter",
+    "noSunriseToday": "Heute kein Sonnenaufgang",
+    "noSunsetToday": "Heute kein Sonnenuntergang",
+    "noon": "Mittag",
+    "riseShort": "↑ Aufg.",
+    "setShort": "Unt. ↓"
+  },
+  "rain-map": {
+    "loading": "Regenkarte wird geladen…",
+    "noRadarData": "Keine Radardaten verfügbar",
+    "now": "Jetzt",
+    "minutesAgo": "vor {minutes} Min",
+    "minutesAhead": "+{minutes} Min"
+  },
+  "meal-planner": {
+    "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
+    "addMealsInEditor": "Mahlzeiten im Editor hinzufügen",
+    "noMealsPlanned": "Keine Mahlzeiten geplant",
+    "noMealPlanned": "Keine Mahlzeit geplant",
+    "nothingPlanned": "Nichts geplant",
+    "todaysMeals": "Mahlzeiten heute",
+    "now": "jetzt",
+    "servingAt": "serviert um {time}",
+    "prepTimeMin": "{minutes} Min",
+    "prepTimeMinShort": "{minutes} Min",
+    "slotShort": {
+      "breakfast": "F",
+      "lunch": "M",
+      "dinner": "A",
+      "snack": "S"
+    },
+    "slots": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Snack"
+    },
+    "nextMealLabels": {
+      "now": "Jetzt",
+      "comingUp": "Demnächst",
+      "tomorrow": "Morgen",
+      "next": "Nächste"
+    }
+  },
+  "fullscreen-meal-planner": {
+    "thisWeeksMeals": "Mahlzeiten diese Woche",
+    "todaysMeals": "Mahlzeiten heute",
+    "todaysMenu": "Speisekarte heute",
+    "alsoToday": "Außerdem heute",
+    "noMealPlanned": "Keine Mahlzeit geplant",
+    "notPlanned": "Nicht geplant",
+    "noMealsPlannedToday": "Heute keine Mahlzeiten geplant",
+    "noUpcomingMeals": "Keine bevorstehenden Mahlzeiten geplant",
+    "mealsPlannedCount": "{filled} von {total} Mahlzeiten geplant",
+    "prepTimeMin": "{minutes} Min",
+    "prepTimeMinShort": "{minutes} Min",
+    "heroLabels": {
+      "now": "Jetzt",
+      "upNext": "Als Nächstes",
+      "tonight": "Heute Abend"
+    },
+    "nextMealLabels": {
+      "now": "Jetzt",
+      "comingUp": "Demnächst",
+      "tomorrow": "Morgen"
+    }
+  },
+  "chore-chart": {
+    "familyChores": "Familienaufgaben",
+    "familyProgress": "Fortschritt der Familie",
+    "starChart": "Sterntafel",
+    "chores": "Aufgaben",
+    "thisWeek": "Diese Woche",
+    "addMembersToStart": "Füge Familienmitglieder hinzu, um loszulegen",
+    "openEditorToSetUp": "Öffne den Editor, um deine Aufgabentafel einzurichten",
+    "noChoresConfigured": "Noch keine Aufgaben",
+    "addChoresInEditor": "Füge im Editor ein paar Aufgaben hinzu",
+    "dayOff": "Heute frei!",
+    "allDone": "Alles fertig!",
+    "doneLabel": "Geschafft:",
+    "progressLabel": "Fortschritt:",
+    "doneFraction": "{done}/{total} geschafft",
+    "streakDays": "{count} Tage",
+    "totalTickets": "Tickets gesamt",
+    "bestStreak": "Beste Serie",
+    "bestStreakValue": "{name} ({count} Tage)",
+    "todaysCompletion": "Heute geschafft",
+    "rewardBalances": "Tickets übrig",
+    "ticketsCount": "{count} Tickets",
+    "timeOfDay": {
+      "morning": "Morgen",
+      "afternoon": "Nachmittag",
+      "evening": "Abend",
+      "anytime": "Jederzeit"
+    },
+    "iconPicker": {
+      "filter": "Symbole filtern...",
+      "noMatch": "Keine passenden Symbole",
+      "none": "Keins",
+      "clear": "Löschen"
+    },
+    "iconLabels": {
+      "user": "Person",
+      "user-round": "Person 2",
+      "baby": "Baby",
+      "crown": "Krone",
+      "star": "Stern",
+      "heart": "Herz",
+      "smile": "Lächeln",
+      "person-standing": "Stehend",
+      "circle-user": "Avatar",
+      "shield-user": "Hüter",
+      "cat": "Katze",
+      "dog": "Hund",
+      "sparkles": "Sauber",
+      "brush-cleaning": "Schrubben",
+      "spray-can": "Sprühen",
+      "droplets": "Wasser",
+      "bath": "Bad",
+      "shower-head": "Dusche",
+      "towel-rack": "Handtücher",
+      "bed": "Bett",
+      "bed-double": "Betten",
+      "utensils": "Geschirr",
+      "utensils-crossed": "Kochen",
+      "cooking-pot": "Topf",
+      "hand-platter": "Servieren",
+      "glass-water": "Trinken",
+      "shirt": "Wäsche",
+      "washing-machine": "Waschmaschine",
+      "trash": "Müll",
+      "recycle": "Recycling",
+      "bone": "Haustier",
+      "flower": "Garten",
+      "leaf": "Hof",
+      "tree": "Baum",
+      "car": "Auto",
+      "mail": "Post",
+      "mailbox": "Briefkasten",
+      "shopping-cart": "Einkauf",
+      "shopping-bag": "Shoppen",
+      "book-open": "Lesen",
+      "notebook": "Hausaufgaben",
+      "music": "Musik",
+      "lamp": "Lampe",
+      "wrench": "Reparieren",
+      "scissors": "Schneiden",
+      "package": "Paket",
+      "home": "Zuhause",
+      "key": "Schlüssel",
+      "lightbulb": "Licht",
+      "wifi": "WLAN",
+      "toilet": "Toilette",
+      "soap": "Seife",
+      "paw-print": "Tierpflege",
+      "footprints": "Spaziergang",
+      "shovel": "Schaufel",
+      "paint-roller": "Malen",
+      "hammer": "Reparieren",
+      "fence": "Zaun",
+      "bike": "Fahrrad",
+      "chef-hat": "Koch",
+      "microwave": "Mikrowelle",
+      "refrigerator": "Kühlschrank",
+      "apple": "Snack",
+      "coffee": "Kaffee",
+      "egg": "Frühstück",
+      "pill": "Medizin",
+      "alarm-clock": "Aufwachen",
+      "timer": "Timer",
+      "dumbbell": "Sport",
+      "toy-brick": "Spielzeug",
+      "backpack": "Schule",
+      "blinds": "Jalousien",
+      "gift": "Geschenk",
+      "tv": "TV",
+      "ice-cream-cone": "Eis",
+      "clapperboard": "Film",
+      "pizza": "Pizza",
+      "banknote": "Geld",
+      "circle-check-big": "Bestanden",
+      "party-popper": "Party",
+      "rocket": "Rakete",
+      "gem": "Edelstein",
+      "trophy": "Pokal",
+      "gamepad-2": "Gaming",
+      "headphones": "Musik",
+      "candy": "Bonbon",
+      "cookie": "Keks",
+      "cake": "Kuchen",
+      "palette": "Kunst",
+      "ticket": "Ticket",
+      "popcorn": "Popcorn",
+      "circle-dollar-sign": "Dollar",
+      "wallet": "Geldbeutel",
+      "badge-check": "Abzeichen",
+      "plane": "Reise",
+      "tent": "Camping",
+      "fish": "Fisch",
+      "drama": "Theater",
+      "puzzle": "Puzzle",
+      "sticker": "Sticker",
+      "volleyball": "Sport"
+    }
+  },
+  "fullscreen-chore-chart": {
+    "rewardsButton": "Belohnungen",
+    "complete": "Geschafft",
+    "noChoresToday": "Heute keine Aufgaben",
+    "weeklyTickets": "Tickets diese Woche:",
+    "weeklyTicketsValue": "{earned} / {total}",
+    "bestStreakLabel": "Beste Serie:",
+    "bestStreakValue": "{name} — {count} Tage",
+    "bestStreakNone": "Keine",
+    "thisWeek": "Diese Woche",
+    "tickets": "Tickets",
+    "ticketCount": "{count} Ticket",
+    "ticketsCount": "{count} Tickets",
+    "verbs": {
+      "completed": "hat geschafft",
+      "uncompleted": "hat abgewählt",
+      "redeemed": "hat eingelöst"
+    },
+    "ariaLabels": {
+      "completeChore": "{chore} für {member} abhaken",
+      "undoChore": "{chore} für {member} rückgängig machen",
+      "undoCompleting": "Geschafft-Markierung von {chore} rückgängig machen",
+      "undoUncompleting": "Abwählen von {chore} rückgängig machen"
+    },
+    "timeOfDay": {
+      "morning": "Morgen",
+      "afternoon": "Nachmittag",
+      "evening": "Abend",
+      "anytime": "Jederzeit"
+    },
+    "rewardsStore": {
+      "title": "Belohnungen",
+      "subtitle": "Such dir was Schönes aus",
+      "backToChores": "← Aufgaben",
+      "noneAvailable": "Noch keine Belohnungen",
+      "recentRedemptions": "Zuletzt eingelöst",
+      "redemptionCost": "−{cost} Tickets",
+      "memberTickets": "Tickets von {member}",
+      "balanceCount": "{count} Tickets",
+      "rewardCost": "{count} Tickets",
+      "redeem": "Einlösen",
+      "confirmTitle": "Tickets ausgeben?",
+      "confirmBody": "Tickets von {member} für {reward} ausgeben? ({count} Tickets)",
+      "confirmCancel": "Abbrechen",
+      "confirmYes": "Ja!",
+      "errorGeneric": "Etwas ist schiefgelaufen",
+      "errorOffline": "Keine Verbindung"
+    }
+  },
+  "sports": {
+    "loading": "Spielstände werden geladen…",
+    "noGames": "Keine Spiele gefunden"
+  },
+  "stock-ticker": {
+    "loading": "Wird geladen…",
+    "empty": "Keine Aktiendaten",
+    "headers": {
+      "symbol": "Symbol",
+      "price": "Kurs",
+      "change": "Veränderung",
+      "percent": "% Änd"
+    }
+  },
+  "standings": {
+    "loading": "Tabelle wird geladen…",
+    "noStandings": "Keine Tabelle verfügbar"
+  },
+  "todo": {
+    "defaultTitle": "Aufgaben",
+    "noTasksYet": "Noch keine Aufgaben"
+  },
+  "traffic": {
+    "sectionTitle": "Verkehr",
+    "noRoutes": "Keine Routen eingerichtet",
+    "loading": "Verkehr wird geladen…",
+    "unitMin": "Min.",
+    "mockNotice": "Beispieldaten — Verkehrs-API-Schlüssel in den Einstellungen hinzufügen"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "Kein Foto ausgewählt",
+    "noPhotoSelectedHint": "Wähle ein Foto im Editor-Bereich aus.",
+    "noPhotosYet": "Noch keine Fotos",
+    "noPhotosYetHint": "Lade Fotos von deinem Telefon über den Fotos-Tab unter /remote hoch oder wähle einen Ordner im Editor."
+  },
+  "dad-joke": {
+    "loading": "Witz wird geladen…"
+  },
+  "quote": {
+    "loading": "Zitat wird geladen…"
+  },
+  "history": {
+    "loading": "Verlauf wird geladen…",
+    "header": "An diesem Tag",
+    "noEvents": "Keine Ereignisse gefunden",
+    "yearsAgo": {
+      "one": "vor {count} Jahr",
+      "other": "vor {count} Jahren"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "Adjektiv",
+      "noun": "Nomen",
+      "verb": "Verb",
+      "adverb": "Adverb"
+    }
+  },
+  "news": {
+    "loading": "Nachrichten werden geladen…",
+    "empty": "Keine Schlagzeilen",
+    "header": "Nachrichten",
+    "timeAgo": {
+      "justNow": "gerade eben",
+      "minutes": "vor {count} Min",
+      "hours": "vor {count} Std",
+      "days": "vor {count} T"
+    }
+  },
+  "greeting": {
+    "morning": "Guten Morgen",
+    "afternoon": "Guten Tag",
+    "evening": "Guten Abend",
+    "night": "Gute Nacht",
+    "defaultName": "Freund/in",
+    "weather": {
+      "rain": "Es wird regnerisch",
+      "snow": "Warm anziehen",
+      "thunderstorm": "Gewitter erwartet",
+      "clear": "Schöner Tag voraus"
+    }
+  },
+  "affirmations": {
+    "noEntries": "Keine Affirmationen konfiguriert",
+    "categories": {
+      "affirmations": "Affirmation",
+      "compliments": "Kompliment",
+      "motivational": "Motivation",
+      "gratitude": "Dankbarkeit",
+      "mindfulness": "Achtsamkeit"
+    }
+  },
+  "crypto": {
+    "loading": "Wird geladen…",
+    "empty": "Keine Kryptodaten",
+    "headers": {
+      "coin": "Münze",
+      "price": "Kurs",
+      "percent": "24 Std %"
+    }
+  },
+  "todoist": {
+    "loading": "Aufgaben werden geladen…",
+    "empty": "Keine Aufgaben anzuzeigen",
+    "taskCount": {
+      "one": "{count} Aufgabe",
+      "other": "{count} Aufgaben"
+    },
+    "recurringTooltip": "Wiederkehrend",
+    "completeAriaLabel": "Erledigen: {content}",
+    "priority": {
+      "urgent": "Dringend",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "normal": "Normal"
+    },
+    "groups": {
+      "overdue": "Überfällig",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "thisWeek": "Diese Woche",
+      "upcoming": "Demnächst",
+      "noDate": "Ohne Datum",
+      "noLabel": "Ohne Bezeichnung"
+    },
+    "dueDate": {
+      "yesterday": "Gestern",
+      "today": "Heute",
+      "todayAtTime": "Heute {time}",
+      "tomorrow": "Morgen",
+      "daysOverdue": {
+        "one": "{count} Tag überfällig",
+        "other": "{count} Tage überfällig"
+      }
+    },
+    "focus": {
+      "allClear": "Heute alles erledigt!",
+      "allCaughtUp": "Alles erledigt!",
+      "taskRemaining": {
+        "one": "Aufgabe übrig",
+        "other": "Aufgaben übrig"
+      }
+    }
+  },
+  "photo-slideshow": {
+    "loading": "Fotos werden geladen…",
+    "empty": "Keine Fotos gefunden"
+  },
+  "icon": {
+    "empty": "Kein Symbol ausgewählt"
+  },
+  "sticky-note": {
+    "empty": "Kein Inhalt"
+  },
+  "iframe": {
+    "noUrl": "Keine URL festgelegt",
+    "embeddedTitle": "Eingebetteter Inhalt"
+  },
+  "qr-code": {
+    "scanToConnect": "Zum Verbinden scannen",
+    "configureWifi": "WLAN-Netzwerk konfigurieren",
+    "configureData": "QR-Daten konfigurieren"
+  },
+  "display-control": {
+    "prev": "Zurück",
+    "next": "Weiter",
+    "sleep": "Schlaf",
+    "sleepHoldHint": "Schlaf (zum Bestätigen halten)",
+    "brightness": "Helligkeit",
+    "closeBrightness": "Helligkeit schließen",
+    "ariaPrev": "Vorheriger Bildschirm",
+    "ariaNext": "Nächster Bildschirm"
+  },
+  "common": {
+    "locationNotConfigured": "Standort nicht konfiguriert",
+    "pluginNotAvailable": "Plug-in nicht verfügbar: {name}"
+  }
+}

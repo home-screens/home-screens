@@ -4,8 +4,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import { displayFetch } from '@/lib/display-fetch';
-import { formatTimeAgo } from '@/lib/chore-constants';
+import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { rewardsUrl } from '@/lib/fetch-keys';
+import { useTranslate } from '@/i18n';
 import MemberPicker from './rewards/MemberPicker';
 import BalanceBanner from './rewards/BalanceBanner';
 import RewardCard from './rewards/RewardCard';
@@ -40,6 +41,8 @@ export function RewardsStoreView({
   const [confirmingReward, setConfirmingReward] = useState<RewardDefinition | null>(null);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemError, setRedeemError] = useState<string | null>(null);
+  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
 
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -118,15 +121,15 @@ export function RewardsStoreView({
           setConfirmingReward(null);
         } else {
           const err = await res.json().catch(() => null);
-          setRedeemError(err?.error ?? 'Something went wrong');
+          setRedeemError(err?.error ?? t('fullscreen-chore-chart.rewardsStore.errorGeneric'));
         }
       } catch {
-        setRedeemError('Could not connect');
+        setRedeemError(t('fullscreen-chore-chart.rewardsStore.errorOffline'));
       } finally {
         setRedeeming(false);
       }
     },
-    [confirmingReward, selectedMemberId, selectedMember, redeeming],
+    [confirmingReward, selectedMemberId, selectedMember, redeeming, t],
   );
 
   const handleCancelConfirm = useCallback(() => {
@@ -180,7 +183,7 @@ export function RewardsStoreView({
               lineHeight: 1.1,
             }}
           >
-            Rewards
+            {t('fullscreen-chore-chart.rewardsStore.title')}
           </div>
           <div
             style={{
@@ -190,7 +193,7 @@ export function RewardsStoreView({
               marginTop: scale * 0.25,
             }}
           >
-            Pick something great
+            {t('fullscreen-chore-chart.rewardsStore.subtitle')}
           </div>
         </div>
 
@@ -212,7 +215,7 @@ export function RewardsStoreView({
               alignSelf: 'center',
             }}
           >
-            ← Chores
+            {t('fullscreen-chore-chart.rewardsStore.backToChores')}
           </button>
         )}
       </div>
@@ -271,7 +274,7 @@ export function RewardsStoreView({
               fontWeight: 500,
             }}
           >
-            No rewards available yet
+            {t('fullscreen-chore-chart.rewardsStore.noneAvailable')}
           </div>
         ) : (
           <div
@@ -297,7 +300,7 @@ export function RewardsStoreView({
         {memberRedemptions.length > 0 && (
           <div style={{ marginTop: scale * 1.5, paddingTop: scale * 1, borderTop: '1px solid var(--fcc-border-sub)' }}>
             <div style={{ fontSize: scale * 0.85, fontWeight: 700, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: scale * 0.6 }}>
-              Recent Redemptions
+              {t('fullscreen-chore-chart.rewardsStore.recentRedemptions')}
             </div>
             {memberRedemptions.map((r) => (
               <div
@@ -315,11 +318,11 @@ export function RewardsStoreView({
                     {r.rewardName}
                   </span>
                   <span style={{ fontSize: scale * 0.75, color: 'var(--fcc-accent)', fontWeight: 600 }}>
-                    −{r.cost} tickets
+                    {t('fullscreen-chore-chart.rewardsStore.redemptionCost', { cost: r.cost })}
                   </span>
                 </div>
                 <span style={{ fontSize: scale * 0.7, color: 'var(--fcc-text-3)', flexShrink: 0 }}>
-                  {formatTimeAgo(r.redeemedAt)}
+                  {formatTimeAgoLocalized(r.redeemedAt, tCore)}
                 </span>
               </div>
             ))}

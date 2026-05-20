@@ -220,6 +220,10 @@ export interface GlobalSettings {
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
   backupReminder?: BackupReminderSettings;
+  /** BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US". */
+  locale?: string;
+  /** Optional override for date/number formatting only. Falls back to `locale`. */
+  formattingLocale?: string;
 }
 
 export interface Profile {

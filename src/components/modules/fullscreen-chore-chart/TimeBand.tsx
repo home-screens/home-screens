@@ -1,5 +1,7 @@
+'use client';
+
 import type { ChoreMember, ChoreTimeOfDay } from '@/types/config';
-import { TIME_OF_DAY_META } from '@/components/modules/chore-chart/types';
+import { useTranslate } from '@/i18n';
 import ChoreRowItem from './ChoreRowItem';
 import { TOD_ICONS, type ChoreRow, type ToggleParams } from './helpers';
 
@@ -16,6 +18,7 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
   const TodIcon = TOD_ICONS[tod];
   const isCurrent = tod === currentTod;
   const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-3)';
+  const t = useTranslate('modules');
 
   return (
     <div
@@ -36,7 +39,7 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
           color: headerColor,
         }}
       >
-        {TIME_OF_DAY_META[tod].label}
+        {t(`fullscreen-chore-chart.timeOfDay.${tod}`)}
       </span>
     </div>
   );

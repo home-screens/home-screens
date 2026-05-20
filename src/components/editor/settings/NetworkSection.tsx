@@ -12,6 +12,7 @@ import HostnameSection from './network/HostnameSection';
 import IPSettingsPanel from './network/IPSettingsPanel';
 import DiagnosticsSection from './network/DiagnosticsSection';
 import type { NetworkOverview, NetworkInterface, WifiNetwork } from './network/types';
+import { useTranslate } from '@/i18n';
 
 /* ─── Constants ────────────────────────────── */
 
@@ -20,6 +21,7 @@ const POLL_INTERVAL_MS = 10_000;
 /* ─── Main component ────────────────────────── */
 
 export default function NetworkSection() {
+  const t = useTranslate('editor');
   const [overview, setOverview] = useState<NetworkOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedWifiIface, setSelectedWifiIface] = useState<string>('');
@@ -185,7 +187,7 @@ export default function NetworkSection() {
   if (loading) {
     return (
       <div className="text-sm text-hs-text-faint py-8 text-center">
-        Loading network information...
+        {t('settings.networkPage.loading')}
       </div>
     );
   }
@@ -197,13 +199,15 @@ export default function NetworkSection() {
       <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Network
+            {t('settings.networkPage.unavailable.heading')}
           </h3>
           <div className="rounded-lg bg-hs-card border border-hs-border p-4">
             <p className="text-sm text-hs-text-muted">
-              Network settings are only available on the display device.
+              {t('settings.networkPage.unavailable.message')}
             </p>
             {overview?.reason && (
+              // overview.reason comes from the server-side network probe and
+              // is already locale-agnostic / system-generated; rendered as-is.
               <p className="text-xs text-hs-text-faint mt-1">
                 {overview.reason}
               </p>
@@ -234,10 +238,10 @@ export default function NetworkSection() {
         {/* Interfaces */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Interfaces
+            {t('settings.networkPage.interfaces.heading')}
           </h3>
           {interfaces.length === 0 ? (
-            <p className="text-xs text-hs-text-faint">No network interfaces detected.</p>
+            <p className="text-xs text-hs-text-faint">{t('settings.networkPage.interfaces.noneDetected')}</p>
           ) : (
             <div className="space-y-2">
               {interfaces.map((iface) => (
@@ -287,7 +291,7 @@ export default function NetworkSection() {
               onClick={handleHiddenNetworkOpen}
               className="text-sm text-hs-accent hover:text-hs-accent-hover transition-colors"
             >
-              Connect to hidden network...
+              {t('settings.networkPage.hiddenNetwork.connectButton')}
             </button>
           </section>
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import type { BackgroundRotation } from '@/types/config';
@@ -11,6 +11,7 @@ import ImmichBrowser from './ImmichBrowser';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import Toggle from '@/components/ui/Toggle';
+import { useTranslate } from '@/i18n';
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -19,6 +20,7 @@ function ImmichRotationFields({ rotation, onChange }: {
   rotation: BackgroundRotation;
   onChange: (updates: Partial<BackgroundRotation>) => void;
 }) {
+  const t = useTranslate('editor');
   const [albums, setAlbums] = useState<ImmichAlbumOption[]>([]);
   const [people, setPeople] = useState<ImmichPersonOption[]>([]);
 
@@ -38,26 +40,28 @@ function ImmichRotationFields({ rotation, onChange }: {
   return (
     <>
       <label className="block">
-        <span className="text-[10px] text-hs-text-faint">Album</span>
+        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.albumLabel')}</span>
         <select
           value={rotation.immichAlbumId || ''}
           onChange={(e) => onChange({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
           className={selectClass}
         >
-          <option value="">Any album</option>
+          <option value="">{t('backgroundPicker.immich.anyAlbum')}</option>
           {albums.map((a) => (
-            <option key={a.id} value={a.id}>{a.name} ({a.assetCount})</option>
+            <option key={a.id} value={a.id}>
+              {t('backgroundPicker.immich.albumOption', { name: a.name, count: a.assetCount })}
+            </option>
           ))}
         </select>
       </label>
       <label className="block">
-        <span className="text-[10px] text-hs-text-faint">Person</span>
+        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.personLabel')}</span>
         <select
           value={rotation.immichPersonId || ''}
           onChange={(e) => onChange({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
           className={selectClass}
         >
-          <option value="">Anyone</option>
+          <option value="">{t('backgroundPicker.immich.anyone')}</option>
           {people.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
@@ -70,13 +74,14 @@ function ImmichRotationFields({ rotation, onChange }: {
           onChange={(e) => onChange({ immichFavoritesOnly: e.target.checked || undefined })}
           className="rounded border-hs-border-strong"
         />
-        <span className="text-[10px] text-hs-text-faint">Favorites only</span>
+        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.favoritesOnly')}</span>
       </label>
     </>
   );
 }
 
 export default function BackgroundPicker() {
+  const t = useTranslate('editor');
   const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('unsplash');
   const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
@@ -86,6 +91,21 @@ export default function BackgroundPicker() {
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
   const rotationSource = currentScreen?.backgroundRotation?.source || 'unsplash';
+
+  // Interval options. Re-built per locale (cheap; rebuilds only when `t`
+  // identity changes). Labels run through `t()` so de-DE renders idiomatic
+  // German plurals; the numeric `value` is the underlying minutes count.
+  const intervalOptions = useMemo<{ value: number; label: string }[]>(
+    () => [
+      { value: 15, label: t('backgroundPicker.intervals.minutes', { count: 15 }) },
+      { value: 30, label: t('backgroundPicker.intervals.minutes', { count: 30 }) },
+      { value: 60, label: t('backgroundPicker.intervals.hourSingular') },
+      { value: 120, label: t('backgroundPicker.intervals.hours', { count: 2 }) },
+      { value: 240, label: t('backgroundPicker.intervals.hours', { count: 4 }) },
+      { value: 480, label: t('backgroundPicker.intervals.hours', { count: 8 }) },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     async function checkKeys() {
@@ -124,17 +144,21 @@ export default function BackgroundPicker() {
   const rotationFieldClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
   return (
-    <AccordionSection title="Background">
+    <AccordionSection title={t('backgroundPicker.title')}>
       {anySourceAvailable && (
         <>
-          <PropertyGroup title="Status" accent={1}>
-            <Toggle label="Auto-rotate" checked={rotationEnabled} onChange={setRotationEnabled} />
+          <PropertyGroup title={t('backgroundPicker.statusGroup')} accent={1}>
+            <Toggle
+              label={t('backgroundPicker.autoRotate')}
+              checked={rotationEnabled}
+              onChange={setRotationEnabled}
+            />
           </PropertyGroup>
           {rotationEnabled && (
-            <PropertyGroup title="Rotation" accent={2}>
+            <PropertyGroup title={t('fields.rotation')} accent={2}>
               <div className="space-y-2">
                 <label className="block">
-                  <span className="text-[10px] text-hs-text-faint">Source</span>
+                  <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.sourceLabel')}</span>
                   <select
                     value={rotationSource}
                     onChange={(e) => {
@@ -152,13 +176,13 @@ export default function BackgroundPicker() {
                     className={rotationFieldClass}
                   >
                     {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
-                    {hasNasaKey && <option value="nasa-apod">NASA Picture of the Day</option>}
+                    {hasNasaKey && <option value="nasa-apod">{t('backgroundPicker.sources.nasaApod')}</option>}
                     {hasImmichKey && <option value="immich">Immich</option>}
                   </select>
                 </label>
                 {rotationSource === 'unsplash' && (
                   <label className="block">
-                    <span className="text-[10px] text-hs-text-faint">Search query</span>
+                    <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.searchQueryLabel')}</span>
                     <input
                       type="text"
                       value={currentScreen.backgroundRotation!.query}
@@ -168,7 +192,7 @@ export default function BackgroundPicker() {
                           backgroundRotation: { ...currentScreen.backgroundRotation!, query: e.target.value },
                         });
                       }}
-                      placeholder="nature landscape"
+                      placeholder={t('backgroundPicker.searchQueryPlaceholder')}
                       className={rotationFieldClass}
                     />
                   </label>
@@ -185,7 +209,7 @@ export default function BackgroundPicker() {
                   />
                 )}
                 <label className="block">
-                  <span className="text-[10px] text-hs-text-faint">Rotate every</span>
+                  <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.rotateEveryLabel')}</span>
                   <select
                     value={currentScreen.backgroundRotation!.intervalMinutes}
                     onChange={(e) => {
@@ -196,17 +220,14 @@ export default function BackgroundPicker() {
                     }}
                     className={rotationFieldClass}
                   >
-                    <option value={15}>15 minutes</option>
-                    <option value={30}>30 minutes</option>
-                    <option value={60}>1 hour</option>
-                    <option value={120}>2 hours</option>
-                    <option value={240}>4 hours</option>
-                    <option value={480}>8 hours</option>
+                    {intervalOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                   </select>
                 </label>
                 {rotationSource === 'nasa-apod' && (
                   <p className="text-[10px] text-hs-text-faint">
-                    NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.
+                    {t('backgroundPicker.nasaInfo')}
                   </p>
                 )}
               </div>
@@ -230,7 +251,7 @@ export default function BackgroundPicker() {
             tab === 'nasa' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >
-          NASA
+          {t('backgroundPicker.tabs.nasa')}
         </button>
         {hasImmichKey && (
           <button
@@ -248,7 +269,7 @@ export default function BackgroundPicker() {
             tab === 'local' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >
-          Local
+          {t('backgroundPicker.tabs.local')}
         </button>
       </div>
 

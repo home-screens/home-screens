@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 
 interface LayoutImportModalProps {
   layout: LayoutExport;
@@ -14,6 +15,9 @@ export default function LayoutImportModal({
   layout,
   onClose,
 }: LayoutImportModalProps) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
+  const formattingLocale = useFormattingLocale();
   const { config, selectedDisplayId, importLayoutAction, saveConfig } = useEditorStore();
   const [applyVisual, setApplyVisual] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,14 +43,25 @@ export default function LayoutImportModal({
       await saveConfig();
       onClose();
     } catch {
-      setError('Failed to save — check your connection and try again.');
+      setError(t('layoutImportModal.saveError'));
     }
   };
+
+  const exportedAtLabel = new Date(metadata.exportedAt).toLocaleDateString(formattingLocale);
+
+  const screenCountLabel =
+    metadata.screenCount === 1
+      ? t('layoutImportModal.screenCountSingular', { count: metadata.screenCount })
+      : t('layoutImportModal.screenCountPlural', { count: metadata.screenCount });
+  const moduleCountLabel =
+    metadata.moduleCount === 1
+      ? t('layoutImportModal.moduleCountSingular', { count: metadata.moduleCount })
+      : t('layoutImportModal.moduleCountPlural', { count: metadata.moduleCount });
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1">Import Layout</h2>
+        <h2 className="text-lg font-semibold text-hs-text-primary mb-1">{t('layoutImportModal.title')}</h2>
         {metadata.description && (
           <p className="text-xs text-hs-text-faint mb-3">{metadata.description}</p>
         )}
@@ -56,16 +71,21 @@ export default function LayoutImportModal({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-hs-text-body">{metadata.name}</span>
             <span className="text-xs text-hs-text-faint">
-              {new Date(metadata.exportedAt).toLocaleDateString()}
+              {exportedAtLabel}
             </span>
           </div>
           <div className="text-xs text-hs-text-muted space-y-0.5">
             <p>
-              {metadata.screenCount} screen{metadata.screenCount !== 1 ? 's' : ''},{' '}
-              {metadata.moduleCount} module{metadata.moduleCount !== 1 ? 's' : ''}
+              {t('layoutImportModal.countsLine', {
+                screens: screenCountLabel,
+                modules: moduleCountLabel,
+              })}
             </p>
             <p>
-              Source: {metadata.sourceDisplay.width} x {metadata.sourceDisplay.height}
+              {t('layoutImportModal.sourceLine', {
+                width: metadata.sourceDisplay.width,
+                height: metadata.sourceDisplay.height,
+              })}
             </p>
           </div>
           {/* Screen list */}
@@ -86,10 +106,12 @@ export default function LayoutImportModal({
         {dimensionMismatch && (
           <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
             <p className="text-xs text-hs-warning">
-              This layout was designed for{' '}
-              {metadata.sourceDisplay.width}x{metadata.sourceDisplay.height} but your
-              display is {currentWidth}x{currentHeight}. Modules will be scaled
-              automatically but may need fine-tuning.
+              {t('layoutImportModal.dimensionWarning', {
+                sourceWidth: metadata.sourceDisplay.width,
+                sourceHeight: metadata.sourceDisplay.height,
+                currentWidth,
+                currentHeight,
+              })}
             </p>
           </div>
         )}
@@ -103,10 +125,16 @@ export default function LayoutImportModal({
             className="accent-hs-accent"
           />
           <div>
-            <span className="text-sm text-hs-text-body">Apply visual settings</span>
+            <span className="text-sm text-hs-text-body">{t('layoutImportModal.applyVisualLabel')}</span>
             <p className="text-xs text-hs-text-faint">
-              Rotation: {visual.rotationIntervalMs / 1000}s
-              {visual.transitionEffect ? `, transition: ${visual.transitionEffect}` : ''}
+              {visual.transitionEffect
+                ? t('layoutImportModal.visualSummaryWithTransition', {
+                    seconds: visual.rotationIntervalMs / 1000,
+                    transition: visual.transitionEffect,
+                  })
+                : t('layoutImportModal.visualSummary', {
+                    seconds: visual.rotationIntervalMs / 1000,
+                  })}
             </p>
           </div>
         </label>
@@ -120,9 +148,9 @@ export default function LayoutImportModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button variant="primary" onClick={handleImport}>
-            Import
+            {t('layoutImportModal.importButton')}
           </Button>
         </div>
       </div>

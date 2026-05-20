@@ -1,8 +1,8 @@
 'use client';
 
-import { format } from 'date-fns';
 import { parseClockTime } from '@/lib/date-info';
 import { timeToFuzzy } from './word-time';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -13,11 +13,13 @@ import type { ClockViewProps } from './types';
  * Literary and cozy, distinct from the formal "word" view.
  */
 export default function ClockFuzzyView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const { hours, minutes } = parseClockTime(config.format24h, now);
 
-  const fuzzyText = timeToFuzzy(hours, minutes);
+  const fuzzyText = timeToFuzzy(t, hours, minutes);
   const dateStr = config.showDate
-    ? format(now, config.dateFormat || 'EEEE, MMMM d')
+    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
     : null;
 
   return (

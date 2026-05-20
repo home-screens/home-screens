@@ -1,3 +1,5 @@
+'use client';
+
 import {
   BookOpen,
   Download,
@@ -18,18 +20,20 @@ import {
   Monitor,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 
 /* ─── Documentation links ────────────────────── */
 
 interface DocLink {
-  title: string;
+  /** Translation sub-key under settings.docsPage.links — provides {title, description}. */
+  linkKey: string;
   href: string;
-  description: string;
   icon: LucideIcon;
 }
 
 interface DocSection {
-  title: string;
+  /** Translation sub-key under settings.docsPage.sections — provides the heading. */
+  sectionKey: string;
   links: DocLink[];
 }
 
@@ -37,114 +41,34 @@ const DOCS_BASE = 'https://homescreens.dev';
 
 const DOCS: DocSection[] = [
   {
-    title: 'Introduction',
+    sectionKey: 'introduction',
     links: [
-      {
-        title: 'Getting Started',
-        href: '/docs',
-        description: 'Overview of Home Screens and core concepts',
-        icon: BookOpen,
-      },
-      {
-        title: 'Installation',
-        href: '/docs/getting-started',
-        description: 'Set up on Raspberry Pi or run locally',
-        icon: Download,
-      },
-      {
-        title: 'Raspberry Pi',
-        href: '/docs/raspberry-pi',
-        description: 'Kiosk deployment, service management, SD card tips',
-        icon: Cpu,
-      },
+      { linkKey: 'gettingStarted', href: '/docs', icon: BookOpen },
+      { linkKey: 'installation', href: '/docs/getting-started', icon: Download },
+      { linkKey: 'raspberryPi', href: '/docs/raspberry-pi', icon: Cpu },
     ],
   },
   {
-    title: 'Guides',
+    sectionKey: 'guides',
     links: [
-      {
-        title: 'Editor',
-        href: '/docs/editor',
-        description: 'Visual editor walkthrough and canvas tools',
-        icon: LayoutGrid,
-      },
-      {
-        title: 'Modules',
-        href: '/docs/modules',
-        description: 'All 38 modules and their configuration options',
-        icon: Blocks,
-      },
-      {
-        title: 'Backgrounds',
-        href: '/docs/backgrounds',
-        description: 'Uploads, Unsplash, NASA APOD, and rotation',
-        icon: Image,
-      },
-      {
-        title: 'Profiles & Scheduling',
-        href: '/docs/profiles',
-        description: 'Automation and time-based screen layouts',
-        icon: Clock,
-      },
-      {
-        title: 'Configuration',
-        href: '/docs/configuration',
-        description: 'JSON schema and config file reference',
-        icon: FileJson,
-      },
-      {
-        title: 'Remote Control',
-        href: '/docs/remote-control',
-        description: 'Control your display from a phone or another device',
-        icon: Smartphone,
-      },
-      {
-        title: 'Multi-display',
-        href: '/docs/multi-display',
-        description: 'Hub-and-spoke setup for running multiple Pis from one server',
-        icon: Monitor,
-      },
-      {
-        title: 'Networking',
-        href: '/docs/networking',
-        description: 'Reverse proxy and remote access from outside your LAN',
-        icon: Globe,
-      },
-      {
-        title: 'Troubleshooting',
-        href: '/docs/troubleshooting',
-        description: 'Common issues and fixes',
-        icon: Wrench,
-      },
+      { linkKey: 'editor', href: '/docs/editor', icon: LayoutGrid },
+      { linkKey: 'modules', href: '/docs/modules', icon: Blocks },
+      { linkKey: 'backgrounds', href: '/docs/backgrounds', icon: Image },
+      { linkKey: 'profiles', href: '/docs/profiles', icon: Clock },
+      { linkKey: 'configuration', href: '/docs/configuration', icon: FileJson },
+      { linkKey: 'remoteControl', href: '/docs/remote-control', icon: Smartphone },
+      { linkKey: 'multiDisplay', href: '/docs/multi-display', icon: Monitor },
+      { linkKey: 'networking', href: '/docs/networking', icon: Globe },
+      { linkKey: 'troubleshooting', href: '/docs/troubleshooting', icon: Wrench },
     ],
   },
   {
-    title: 'Reference',
+    sectionKey: 'reference',
     links: [
-      {
-        title: 'API',
-        href: '/docs/api',
-        description: 'All API endpoints and their parameters',
-        icon: Code,
-      },
-      {
-        title: 'Plugins',
-        href: '/docs/plugins',
-        description: 'Build custom modules with the plugin SDK',
-        icon: Puzzle,
-      },
-      {
-        title: 'Development',
-        href: '/docs/development',
-        description: 'Architecture overview and contributing guide',
-        icon: GitBranch,
-      },
-      {
-        title: 'FAQ',
-        href: '/docs/faq',
-        description: 'Frequently asked questions',
-        icon: HelpCircle,
-      },
+      { linkKey: 'api', href: '/docs/api', icon: Code },
+      { linkKey: 'plugins', href: '/docs/plugins', icon: Puzzle },
+      { linkKey: 'development', href: '/docs/development', icon: GitBranch },
+      { linkKey: 'faq', href: '/docs/faq', icon: HelpCircle },
     ],
   },
 ];
@@ -152,27 +76,28 @@ const DOCS: DocSection[] = [
 /* ─── Component ──────────────────────────────── */
 
 export default function DocsSection() {
+  const t = useTranslate('editor');
   return (
     <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
       <section>
         <p className="text-sm text-hs-text-muted leading-relaxed">
-          Full documentation is available at{' '}
+          {t('settings.docsPage.intro.part1')}
           <a
             href={`${DOCS_BASE}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-hs-accent hover:text-hs-accent-hover transition-colors"
           >
-            homescreens.dev/docs
+            {t('settings.docsPage.intro.linkLabel')}
           </a>
-          . Guides cover everything from initial setup to plugin development.
+          {t('settings.docsPage.intro.part2')}
         </p>
       </section>
 
       {DOCS.map((section) => (
-        <section key={section.title}>
+        <section key={section.sectionKey}>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {section.title}
+            {t(`settings.docsPage.sections.${section.sectionKey}`)}
           </h3>
           <div className="grid gap-2">
             {section.links.map((link) => {
@@ -189,12 +114,12 @@ export default function DocsSection() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-medium text-hs-text-body group-hover:text-hs-text-primary transition-colors">
-                        {link.title}
+                        {t(`settings.docsPage.links.${link.linkKey}.title`)}
                       </span>
                       <ExternalLink className="w-3 h-3 text-hs-text-faint group-hover:text-hs-text-muted transition-colors" />
                     </div>
                     <p className="text-xs text-hs-text-faint mt-0.5 leading-relaxed">
-                      {link.description}
+                      {t(`settings.docsPage.links.${link.linkKey}.description`)}
                     </p>
                   </div>
                 </a>

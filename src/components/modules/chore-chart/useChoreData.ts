@@ -11,7 +11,6 @@ import {
   type ResolvedAssignment,
   type MemberStats,
   type WeekDayData,
-  DAY_NAMES_SHORT,
   localDateStr,
   todayStr,
   resolveAssignee,
@@ -19,6 +18,8 @@ import {
   completionKey,
   getWeekDatesFor,
 } from './types';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
+import { useFormattingLocale } from '@/i18n';
 
 /** Display-only settings accepted by useChoreData — no members/chores,
  *  those are fetched from the shared /api/chores/data endpoint. */
@@ -64,6 +65,8 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   // stay in lockstep — see fetch-keys.ts. Drops to 5s give phone→wall
   // cross-device toggles a 5s worst-case lag.
   const choreChartTtl = FETCH_KEY_REGISTRY['chore-chart']?.ttlMs ?? 5_000;
+  const formattingLocale = useFormattingLocale();
+  const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), choreChartTtl);
   const [fetchedChoreData] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
   const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
@@ -242,7 +245,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
 
       days.push({
         date,
-        dayName: DAY_NAMES_SHORT[dayOfWeek],
+        dayName: dayNames[dayOfWeek],
         dayIndex: dayOfWeek,
         isToday: date === today,
         memberStars,
@@ -250,7 +253,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     }
 
     return days;
-  }, [members, chores, completionSet, config.weekStartDay]);
+  }, [members, chores, completionSet, config.weekStartDay, dayNames]);
 
   // Toggle completion
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {

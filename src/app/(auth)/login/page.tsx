@@ -3,9 +3,11 @@
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslate } from '@/i18n';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 
 function LoginForm() {
+  const t = useTranslate('core');
   const searchParams = useSearchParams();
   const rawFrom = searchParams.get('from') || '/editor';
   const from = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/editor';
@@ -62,10 +64,10 @@ function LoginForm() {
       }
 
       const data = await res.json();
-      setError(data.error || 'Login failed');
+      setError(data.error || t('login.loginFailed'));
       setPassword('');
     } catch {
-      setError('Unable to reach server');
+      setError(t('login.unreachable'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ function LoginForm() {
   if (checking) {
     return (
       <div className="h-screen flex items-center justify-center text-hs-text-faint text-sm">
-        Checking authentication...
+        {t('login.checkingAuth')}
       </div>
     );
   }
@@ -85,17 +87,15 @@ function LoginForm() {
         <div className="flex flex-col items-center mb-8">
           <HomeScreensLogo className="mb-4" />
           <p className="text-sm text-hs-text-faint">
-            {ipRestricted ? 'Your IP address is blocked' : 'Enter your password to continue'}
+            {ipRestricted ? t('login.ipBlocked') : t('login.enterPasswordToContinue')}
           </p>
         </div>
 
         {ipRestricted && (
           <div className="rounded-lg bg-hs-danger/10 border border-hs-danger/30 px-4 py-3 mb-4">
-            <p className="text-sm font-medium text-hs-danger">Access restricted</p>
+            <p className="text-sm font-medium text-hs-danger">{t('login.accessRestricted')}</p>
             <p className="text-xs text-hs-text-muted mt-1">
-              Your IP address is not in the allowed list. Signing in won&apos;t help —
-              the server will still reject every request from your address. Contact an
-              administrator to add your IP to the allowlist, or sign in from a permitted network.
+              {t('login.accessRestrictedDescription')}
             </p>
           </div>
         )}
@@ -107,7 +107,7 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(null); }}
-              placeholder="Password"
+              placeholder={t('login.passwordPlaceholder')}
               autoComplete="current-password"
               className="w-full rounded-lg bg-hs-input border border-hs-border-strong text-hs-text-body px-4 py-3 text-sm focus:outline-none focus:border-hs-accent placeholder:text-hs-text-faint"
             />
@@ -120,7 +120,7 @@ function LoginForm() {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="accent-hs-accent rounded"
             />
-            <span className="text-sm text-hs-text-muted">Remember me for 90 days</span>
+            <span className="text-sm text-hs-text-muted">{t('login.rememberMe')}</span>
           </label>
 
           {error && (
@@ -132,7 +132,7 @@ function LoginForm() {
             disabled={!password.trim() || loading}
             className="w-full rounded-lg bg-hs-accent hover:bg-hs-accent-hover text-white font-medium py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Unlock'}
+            {loading ? t('login.signingIn') : t('login.unlock')}
           </button>
         </form>}
 
@@ -141,7 +141,7 @@ function LoginForm() {
             href="/display"
             className="text-xs text-hs-text-secondary hover:text-hs-text-muted transition-colors"
           >
-            Back to display
+            {t('login.backToDisplay')}
           </Link>
         </div>
       </div>
@@ -149,15 +149,18 @@ function LoginForm() {
   );
 }
 
+function LoadingFallback() {
+  const t = useTranslate('core');
+  return (
+    <div className="h-screen flex items-center justify-center text-hs-text-faint text-sm">
+      {t('login.loading')}
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="h-screen flex items-center justify-center text-hs-text-faint text-sm">
-          Loading...
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingFallback />}>
       <LoginForm />
     </Suspense>
   );

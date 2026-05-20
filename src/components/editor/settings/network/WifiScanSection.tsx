@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from './types';
 
 /* ─── Constants ────────────────────────────── */
@@ -45,6 +46,7 @@ export default function WifiScanSection({
   onSelectIface,
   onNetworkClick,
 }: WifiScanSectionProps) {
+  const t = useTranslate('editor');
   const [scanResults, setScanResults] = useState<WifiNetwork[]>([]);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
@@ -69,10 +71,10 @@ export default function WifiScanSection({
         setScanResults(data);
       } else {
         const errData = await res.json().catch(() => null);
-        setScanError(errData?.error ?? 'Scan failed');
+        setScanError(errData?.error ?? t('settings.networkPage.wifiScan.defaultScanError'));
       }
     } catch {
-      setScanError('Failed to reach server');
+      setScanError(t('common.serverUnreachable'));
     } finally {
       setScanning(false);
 
@@ -89,7 +91,7 @@ export default function WifiScanSection({
         });
       }, 1000);
     }
-  }, [selectedWifiIface, cooldownRemaining]);
+  }, [selectedWifiIface, cooldownRemaining, t]);
 
   /* ── Cleanup cooldown timer on unmount ─────── */
 
@@ -113,7 +115,7 @@ export default function WifiScanSection({
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        Available WiFi Networks
+        {t('settings.networkPage.wifiScan.heading')}
       </h3>
 
       {/* Controls row */}
@@ -133,7 +135,7 @@ export default function WifiScanSection({
         )}
         {wifiInterfaces.length === 1 && (
           <span className="text-xs text-hs-text-muted">
-            Scanning {selectedWifiIface}
+            {t('settings.networkPage.wifiScan.scanningInterface', { device: selectedWifiIface })}
           </span>
         )}
         <div className="ml-auto">
@@ -144,10 +146,10 @@ export default function WifiScanSection({
             disabled={scanning || cooldownRemaining > 0}
           >
             {scanning
-              ? 'Scanning...'
+              ? t('settings.networkPage.wifiScan.scanningButton')
               : cooldownRemaining > 0
-                ? `Scan (${cooldownRemaining}s)`
-                : 'Scan'}
+                ? t('settings.networkPage.wifiScan.scanCooldownButton', { seconds: cooldownRemaining })
+                : t('settings.networkPage.wifiScan.scanButton')}
           </Button>
         </div>
       </div>
@@ -179,12 +181,12 @@ export default function WifiScanSection({
               <div className="flex items-center gap-2 shrink-0">
                 {network.inUse && (
                   <span className="text-[10px] uppercase tracking-wider bg-hs-success/20 text-hs-success px-1.5 py-0.5 rounded">
-                    Connected
+                    {t('settings.networkPage.wifiScan.badges.connected')}
                   </span>
                 )}
                 {!network.inUse && network.saved && (
                   <span className="text-[10px] uppercase tracking-wider bg-hs-accent/20 text-hs-accent px-1.5 py-0.5 rounded">
-                    Saved
+                    {t('settings.networkPage.wifiScan.badges.saved')}
                   </span>
                 )}
 
@@ -215,7 +217,7 @@ export default function WifiScanSection({
         </div>
       ) : !scanning && scanResults.length === 0 && !scanError ? (
         <p className="text-xs text-hs-text-faint">
-          Click Scan to search for nearby WiFi networks.
+          {t('settings.networkPage.wifiScan.emptyHint')}
         </p>
       ) : null}
     </section>

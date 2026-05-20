@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -36,6 +37,7 @@ function ConfirmableAction({
   label,
   description,
   confirmLabel,
+  sentLabel,
   onConfirm,
   sheetOpen,
   iconBg,
@@ -45,6 +47,7 @@ function ConfirmableAction({
   label: string;
   description: string;
   confirmLabel: string;
+  sentLabel: string;
   onConfirm: () => void;
   iconBg: string;
   iconColor: string;
@@ -90,7 +93,7 @@ function ConfirmableAction({
       </div>
       <div className="flex-1 min-w-0">
         <div className={`text-[15px] font-medium ${confirming ? 'text-hs-danger animate-pulse' : executed ? 'text-hs-text-faint' : 'text-hs-text-primary'}`}>
-          {executed ? 'Sent' : confirming ? confirmLabel : label}
+          {executed ? sentLabel : confirming ? confirmLabel : label}
         </div>
         {!confirming && !executed && (
           <div className="text-xs text-hs-text-faint mt-0.5">{description}</div>
@@ -106,6 +109,8 @@ function ConfirmableAction({
 }
 
 export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: SettingsSheetProps) {
+  const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,11 +131,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStats(await res.json());
     } catch {
-      setError('Failed to load');
+      setError(t('settingsSheet.system.errorFailedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // Re-fetch stats each time the sheet opens; reset data action states
   useEffect(() => {
@@ -230,11 +235,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* Sheet Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="text-lg font-bold text-hs-text-primary">Settings</h2>
+          <h2 className="text-lg font-bold text-hs-text-primary">{t('settingsSheet.title')}</h2>
           <button
             onClick={onClose}
             className="w-11 h-11 rounded-full bg-hs-card flex items-center justify-center text-hs-text-muted"
-            aria-label="Close settings"
+            aria-label={t('settingsSheet.closeAriaLabel')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -244,31 +249,31 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* System Info */}
         <div className="px-5 pb-5">
-          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">System</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
           {loading ? (
-            <p className="text-sm text-hs-text-faint text-center py-4">Loading&hellip;</p>
+            <p className="text-sm text-hs-text-faint text-center py-4">{tCore('loading')}</p>
           ) : error ? (
             <p className="text-sm text-hs-danger text-center py-4">{error}</p>
           ) : stats ? (
             <div className="space-y-0">
               <div className="flex justify-between text-[13px] py-1.5">
-                <span className="text-hs-text-muted">Host</span>
+                <span className="text-hs-text-muted">{t('settingsSheet.system.hostLabel')}</span>
                 <span className="text-hs-text-primary font-medium">{stats.os.hostname}</span>
               </div>
               <div className="flex justify-between text-[13px] py-1.5 mb-2">
-                <span className="text-hs-text-muted">Uptime</span>
+                <span className="text-hs-text-muted">{t('settingsSheet.system.uptimeLabel')}</span>
                 <span className="text-hs-text-primary font-medium">{formatUptime(stats.os.uptime)}</span>
               </div>
-              <UsageBar used={stats.memory.used} total={stats.memory.total} label="Memory" color="#3b82f6" />
-              <UsageBar used={stats.disk.used} total={stats.disk.total} label="Disk" color="#22c55e" />
+              <UsageBar used={stats.memory.used} total={stats.memory.total} label={t('settingsSheet.system.memoryLabel')} color="#3b82f6" />
+              <UsageBar used={stats.disk.used} total={stats.disk.total} label={t('settingsSheet.system.diskLabel')} color="#22c55e" />
             </div>
           ) : null}
         </div>
 
         {/* Theme */}
         <div className="px-5 pb-5">
-          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">Theme</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.theme.heading')}</h3>
           <div className="flex gap-2">
             {(['light', 'dark', 'system'] as const).map((opt) => (
               <button
@@ -280,7 +285,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
                     : 'bg-hs-card text-hs-text-muted'
                 }`}
               >
-                {opt === 'system' ? 'System' : opt === 'light' ? 'Light' : 'Dark'}
+                {opt === 'system' ? t('settingsSheet.theme.system') : opt === 'light' ? t('settingsSheet.theme.light') : t('settingsSheet.theme.dark')}
               </button>
             ))}
           </div>
@@ -288,7 +293,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* Data */}
         <div className="px-5 pb-5">
-          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">Data</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.data.heading')}</h3>
           <button
             onClick={handleBackup}
             disabled={backupBusy || backupDone}
@@ -301,10 +306,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
             </div>
             <div className="flex-1 min-w-0">
               <div className={`text-[15px] font-medium ${backupDone ? 'text-hs-success' : 'text-hs-text-primary'}`}>
-                {backupDone ? 'Backup Saved' : backupBusy ? 'Downloading\u2026' : 'Backup All Data'}
+                {backupDone ? t('settingsSheet.data.backup.savedLabel') : backupBusy ? t('settingsSheet.data.backup.busyLabel') : t('settingsSheet.data.backup.label')}
               </div>
               {!backupBusy && !backupDone && (
-                <div className="text-xs text-hs-text-faint mt-0.5">Download config, chores, meals &amp; rewards</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.backup.description')}</div>
               )}
             </div>
             {!backupBusy && !backupDone && (
@@ -333,18 +338,18 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
                 : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-hs-danger'
                 : 'text-hs-text-primary'
               }`}>
-                {restoreState === 'confirming' ? 'Tap again to restore'
-                : restoreState === 'busy' ? 'Restoring\u2026'
-                : restoreState === 'done' ? 'Restored'
-                : restoreState === 'invalid-file' ? 'Invalid backup file'
-                : restoreState === 'restore-failed' ? 'Restore failed'
-                : 'Restore Backup'}
+                {restoreState === 'confirming' ? t('settingsSheet.data.restore.confirmingLabel')
+                : restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
+                : restoreState === 'done' ? t('settingsSheet.data.restore.doneLabel')
+                : restoreState === 'invalid-file' ? t('settingsSheet.data.restore.invalidFileLabel')
+                : restoreState === 'restore-failed' ? t('settingsSheet.data.restore.failedLabel')
+                : t('settingsSheet.data.restore.label')}
               </div>
               {restoreState === 'idle' && (
-                <div className="text-xs text-hs-text-faint mt-0.5">Upload a backup file from this device</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.idleDescription')}</div>
               )}
               {restoreState === 'confirming' && (
-                <div className="text-xs text-hs-text-faint mt-0.5">This will replace all existing data</div>
+                <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.confirmingDescription')}</div>
               )}
             </div>
             {restoreState === 'idle' && (
@@ -364,13 +369,14 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
         {/* Power */}
         <div className="px-5 pb-6">
-          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-1">Power</h3>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-1">{t('settingsSheet.power.heading')}</h3>
 
           <div className="divide-y divide-hs-border">
             <ConfirmableAction
-              label="Restart Service"
-              description="Restart the Home Screens app"
-              confirmLabel="Tap again to restart"
+              label={t('settingsSheet.power.restartService.label')}
+              description={t('settingsSheet.power.restartService.description')}
+              confirmLabel={t('settingsSheet.power.restartService.confirmLabel')}
+              sentLabel={t('settingsSheet.confirmable.sentLabel')}
               onConfirm={() => sendPower('restart-service')}
               sheetOpen={open}
               iconBg="bg-hs-accent-soft"
@@ -383,9 +389,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
             />
 
             <ConfirmableAction
-              label="Reboot Device"
-              description="Full system restart"
-              confirmLabel="Tap again to reboot"
+              label={t('settingsSheet.power.reboot.label')}
+              description={t('settingsSheet.power.reboot.description')}
+              confirmLabel={t('settingsSheet.power.reboot.confirmLabel')}
+              sentLabel={t('settingsSheet.confirmable.sentLabel')}
               onConfirm={() => sendPower('reboot')}
               sheetOpen={open}
               iconBg="bg-hs-danger/[0.12]"

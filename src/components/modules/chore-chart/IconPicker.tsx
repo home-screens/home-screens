@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 
@@ -42,20 +43,21 @@ const MOBILE_LABEL_STYLE: CSSProperties = {
   letterSpacing: '0.04em',
 };
 
-function filterIcons(icons: string[], search: string): string[] {
+function filterIcons(icons: string[], search: string, t: TranslateFn): string[] {
   if (!search) return icons;
   const q = search.toLowerCase();
   return icons.filter((name) => {
-    const def = getIconDef(name);
-    if (!def) return false;
-    return name.toLowerCase().includes(q) || def.label.toLowerCase().includes(q);
+    if (!getIconDef(name)) return false;
+    const label = t(`chore-chart.iconLabels.${name}`);
+    return name.toLowerCase().includes(q) || label.toLowerCase().includes(q);
   });
 }
 
 export default function IconPicker({ value, onChange, icons, label, variant }: IconPickerProps) {
+  const t = useTranslate('modules');
   const [search, setSearch] = useState('');
   const showSearch = icons.length > SEARCH_THRESHOLD[variant];
-  const filtered = filterIcons(icons, search);
+  const filtered = filterIcons(icons, search, t);
 
   if (variant === 'mobile') {
     return (
@@ -64,7 +66,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
         {showSearch && (
           <input
             type="text"
-            placeholder="Filter icons..."
+            placeholder={t('chore-chart.iconPicker.filter')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={MOBILE_INPUT_STYLE}
@@ -114,7 +116,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {def.label}
+                  {t(`chore-chart.iconLabels.${name}`)}
                 </span>
               </button>
             );
@@ -128,7 +130,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                 gridColumn: '1 / -1',
               }}
             >
-              No matching icons
+              {t('chore-chart.iconPicker.noMatch')}
             </span>
           )}
         </div>
@@ -143,16 +145,16 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
         {value ? (
           <ChoreIcon value={value} size={22} />
         ) : (
-          <span className="text-xs text-hs-text-faint">None</span>
+          <span className="text-xs text-hs-text-faint">{t('chore-chart.iconPicker.none')}</span>
         )}
         {value && (
           <button
             type="button"
             onClick={() => onChange('')}
             className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary ml-auto"
-            aria-label={`Clear ${label.toLowerCase()}`}
+            aria-label={`${t('chore-chart.iconPicker.clear')} ${label.toLowerCase()}`}
           >
-            Clear
+            {t('chore-chart.iconPicker.clear')}
           </button>
         )}
       </div>
@@ -160,7 +162,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
       {showSearch && (
         <input
           type="text"
-          placeholder="Filter icons..."
+          placeholder={t('chore-chart.iconPicker.filter')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={MODAL_INPUT_CLASS}
@@ -192,13 +194,13 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
             >
               <Icon size={22} strokeWidth={1.75} />
               <span className="text-[9px] leading-tight text-hs-text-muted truncate w-full text-center">
-                {def.label}
+                {t(`chore-chart.iconLabels.${name}`)}
               </span>
             </button>
           );
         })}
         {search && filtered.length === 0 && (
-          <span className="text-xs text-hs-text-faint py-2">No matching icons</span>
+          <span className="text-xs text-hs-text-faint py-2">{t('chore-chart.iconPicker.noMatch')}</span>
         )}
       </div>
     </div>

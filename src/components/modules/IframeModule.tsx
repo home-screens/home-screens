@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslate } from '@/i18n';
 import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { IframeConfig, ModuleStyle } from '@/types/config';
@@ -12,6 +13,7 @@ interface IframeModuleProps {
 }
 
 export default function IframeModule({ config, style }: IframeModuleProps) {
+  const t = useTranslate('modules');
   // Append a cache-busting key to force iframe reload on refresh interval
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -44,7 +46,7 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
     return (
       <ModuleWrapper style={style}>
         <div className="flex items-center justify-center h-full" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
-          {urlError ?? 'No URL set'}
+          {urlError ?? t('iframe.noUrl')}
         </div>
       </ModuleWrapper>
     );
@@ -67,7 +69,7 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
     <ModuleWrapper style={{ ...style, padding: 0 }}>
       <iframe
         src={src}
-        title={config.title || 'Embedded content'}
+        title={config.title || t('iframe.embeddedTitle')}
         className="w-full h-full border-0"
         style={{
           display: 'block',

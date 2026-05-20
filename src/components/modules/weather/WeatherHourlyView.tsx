@@ -1,16 +1,23 @@
+'use client';
+
 import { CloudRain, Droplets, Wind } from 'lucide-react';
-import { getWeatherIcon, getWeatherIconLabel } from '@/lib/weather-icons';
+import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { WeatherEmptyState } from './WeatherEmptyState';
+import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherHourlyView({ config, hourly, forecast, timezone, scaledFontSize, containerRef }: WeatherViewProps) {
   const hours = hourly.slice(0, config.hoursToShow);
+  const locale = useFormattingLocale();
+  const t = useTranslate('modules');
+  const tWeather = useTranslate('weather');
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>Hourly Forecast</h2>
+      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.hourlyForecast')}</h2>
       {hours.length === 0 ? (
         <WeatherEmptyState />
       ) : (
@@ -19,17 +26,17 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
           <div className="flex flex-col items-center justify-center shrink-0">
             <div className="flex items-center gap-2">
               <span className="font-light" style={{ fontSize: '3em' }}>{Math.round(hours[0].temp)}&deg;</span>
-              {(() => { const Icon = getWeatherIcon(hours[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getWeatherIconLabel(hours[0].icon)} role="img" />; })()}
+              {(() => { const Icon = getWeatherIcon(hours[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(hours[0].icon, tWeather)} role="img" />; })()}
             </div>
             <div className="flex flex-col items-center gap-0.5">
               {forecast[0] && (
                 <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
-                  H:{Math.round(forecast[0].high)}&deg; L:{Math.round(forecast[0].low)}&deg;
+                  {t('weather.highLow', { high: `${Math.round(forecast[0].high)}°`, low: `${Math.round(forecast[0].low)}°` })}
                 </span>
               )}
               {config.showFeelsLike !== false && hours[0].feelsLike != null && (
                 <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
-                  Feels like {Math.round(hours[0].feelsLike)}&deg;
+                  {t('weather.feelsLike', { temp: `${Math.round(hours[0].feelsLike)}°` })}
                 </span>
               )}
               <WeatherStat icon={Droplets} value={hours[0].humidity} unit="%" visible={config.showHumidity} fontSize="0.85em" />
@@ -47,13 +54,13 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
               return (
                 <div key={i} className="flex flex-col items-center justify-evenly min-h-0">
                   <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-                    {new Date(hour.time).toLocaleTimeString('en-US', {
+                    {new Date(hour.time).toLocaleTimeString(locale, {
                       hour: 'numeric',
                       hour12: true,
                       ...(timezone ? { timeZone: timezone } : {}),
                     })}
                   </span>
-                  <Icon size="1.8em" strokeWidth={1.5} aria-label={getWeatherIconLabel(hour.icon)} role="img" />
+                  <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(hour.icon, tWeather)} role="img" />
                   <WeatherStat icon={CloudRain} value={hour.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   <span className="font-medium" style={{ fontSize: '0.875em' }}>{Math.round(hour.temp)}&deg;</span>
                   <WeatherStat icon={Droplets} value={hour.humidity} unit="%" visible={config.showHumidity} />

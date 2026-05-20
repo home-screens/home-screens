@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslate } from '@/i18n';
 import type { MealSlotType } from '@/types/config';
 import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
 
@@ -103,6 +104,7 @@ export default function MealTimeChip({
   align = 'left',
   popoverZIndex = 60,
 }: MealTimeChipProps) {
+  const t = useTranslate('remote');
   const [isEditing, setIsEditing] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -174,10 +176,10 @@ export default function MealTimeChip({
       onMouseLeave={(e) => {
         if (!isEditing) e.currentTarget.style.background = colors.chipBg;
       }}
-      aria-label={ariaLabel ?? `Serving time ${formattedValue}, click to change`}
+      aria-label={ariaLabel ?? t('mealTimeChip.servingTimeAria', { time: formattedValue })}
       aria-expanded={isEditing}
       aria-haspopup="dialog"
-      title={`Serving time: ${formattedValue}`}
+      title={t('mealTimeChip.servingTimeTitle', { time: formattedValue })}
     >
       <svg width={compact ? 9 : 10} height={compact ? 9 : 10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="12" cy="12" r="10" />
@@ -221,7 +223,7 @@ export default function MealTimeChip({
         e.currentTarget.style.background = 'transparent';
         e.currentTarget.style.color = colors.ghostText;
       }}
-      aria-label={ariaLabel ?? 'Set serving time'}
+      aria-label={ariaLabel ?? t('mealTimeChip.setServingTime')}
       aria-expanded={isEditing}
       aria-haspopup="dialog"
     >
@@ -229,7 +231,7 @@ export default function MealTimeChip({
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
       </svg>
-      <span>{compact ? 'Time' : '+ Set time'}</span>
+      <span>{compact ? t('mealTimeChip.servingTime') : t('mealTimeChip.setTime')}</span>
     </button>
   );
 
@@ -270,7 +272,7 @@ export default function MealTimeChip({
             fontFamily: 'inherit',
           }}
           role="dialog"
-          aria-label="Set meal time"
+          aria-label={t('mealTimeChip.setMealTime')}
         >
           {/* Native time input */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -294,7 +296,7 @@ export default function MealTimeChip({
                 fontFamily: 'inherit',
                 colorScheme: 'dark',
               }}
-              aria-label="Serving time"
+              aria-label={t('mealTimeChip.servingTime')}
             />
             {value && (
               <button
@@ -318,8 +320,8 @@ export default function MealTimeChip({
                   fontSize: 14,
                   fontFamily: 'inherit',
                 }}
-                aria-label="Clear time"
-                title="Clear time"
+                aria-label={t('mealTimeChip.clearTime')}
+                title={t('mealTimeChip.clearTime')}
               >
                 ×
               </button>

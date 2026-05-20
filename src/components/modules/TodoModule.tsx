@@ -6,6 +6,7 @@ import { ModuleEmptyState } from './ModuleStates';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useTranslate } from '@/i18n';
 
 interface TodoModuleProps {
   config: TodoConfig;
@@ -28,12 +29,13 @@ function CheckIcon({ done, color }: { done: boolean; color: string }) {
 }
 
 export default function TodoModule({ config, style }: TodoModuleProps) {
-  const title = config.title ?? 'To Do';
+  const t = useTranslate('modules');
+  const title = config.title ?? t('todo.defaultTitle');
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
   const accentColor = config.accentColor ?? '#000000';
 
   if (!config.items || config.items.length === 0) {
-    return <ModuleEmptyState style={style} message="No tasks yet" />;
+    return <ModuleEmptyState style={style} message={t('todo.noTasksYet')} />;
   }
 
   const doneCount = config.items.filter((i) => i.completed).length;

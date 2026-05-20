@@ -18,23 +18,24 @@ import {
   completionKey,
   todayStr,
   TIME_OF_DAY_META,
+  getTimeOfDayLabelKey,
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
 
 /** Format a YYYY-MM-DD string as a friendly long date for banner copy. */
-const LONG_DATE = new Intl.DateTimeFormat('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-});
-function formatLongDate(iso: string): string {
+function formatLongDate(iso: string, locale: string): string {
   const [y, m, d] = iso.split('-').map(Number);
-  return LONG_DATE.format(new Date(y, m - 1, d));
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(y, m - 1, d));
 }
 function daysBetween(from: string, to: string): number {
   const [fy, fm, fd] = from.split('-').map(Number);
@@ -57,6 +58,9 @@ interface ChoresTabProps {
 }
 
 export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
+  const locale = useFormattingLocale();
+  const t = useTranslate('remote');
+  const tModules = useTranslate('modules');
   // ── Lifted state (shared between Today + Manage views) ──
   const [members, setMembers] = useState<ChoreMember[]>(config.members ?? []);
   const [chores, setChores] = useState<ChoreDefinition[]>(config.chores ?? []);
@@ -291,7 +295,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
   const selectedMember = members.find((m) => m.id === selectedMemberId);
   const dayName = (() => {
     const [y, m, d] = viewingDate.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long' });
+    return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'long' });
   })();
   const currentTimeOfDay = getCurrentTimeOfDay(new Date().getHours());
 
@@ -300,7 +304,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
       {/* Day header */}
       <div style={{ padding: '12px 0 4px' }}>
         <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{dayName}</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>Chores</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{t('choresTab.header')}</h2>
       </div>
 
       {/* Sub-nav: Today / Manage / Rewards */}
@@ -333,7 +337,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               color: subView === v ? 'var(--hs-text-body)' : 'var(--hs-text-faint)',
             }}
           >
-            {v.charAt(0).toUpperCase() + v.slice(1)}
+            {t(`choresTab.subNav.${v}`)}
           </button>
         ))}
       </div>
@@ -351,9 +355,9 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
         /* Empty state */
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
           <Settings size={40} color="var(--hs-border-strong)" style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>No chores set up yet</p>
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>{t('choresTab.empty.title')}</p>
           <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            Switch to Manage to add family members and chores.
+            {t('choresTab.empty.description')}
           </p>
           <button
             onClick={() => setSubView('manage')}
@@ -369,7 +373,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               fontWeight: 600,
             }}
           >
-            Set Up Chores
+            {t('choresTab.empty.setUpButton')}
           </button>
         </div>
       ) : (
@@ -397,7 +401,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               <button
                 type="button"
                 onClick={() => setLastWarning(null)}
-                aria-label="Dismiss warning"
+                aria-label={t('choresTab.warningDismissAriaLabel')}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -446,9 +450,12 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               }}
             >
               <span>
-                Editing <strong style={{ fontWeight: 700 }}>{formatLongDate(viewingDate)}</strong>
-                {' '}({daysAgo} day{daysAgo === 1 ? '' : 's'} ago) — tickets add to today&apos;s balance.
-                {' '}Note: today&apos;s chore list is shown for past days, so chores added recently may appear missed.
+                {t('choresTab.history.editingPrefix')}
+                <strong style={{ fontWeight: 700 }}>{formatLongDate(viewingDate, locale)}</strong>
+                {daysAgo === 1
+                  ? t('choresTab.history.editingDaysAgoSingular')
+                  : t('choresTab.history.editingDaysAgoPlural', { n: daysAgo })}
+                {t('choresTab.history.editingNote')}
               </span>
             </div>
           ) : (
@@ -469,7 +476,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               }}
             >
               <Lock size={14} strokeWidth={2.25} aria-hidden="true" />
-              <span>Ask a grown-up to add chores you missed.</span>
+              <span>{t('choresTab.history.lockedMessage')}</span>
             </div>
           );
           })()}
@@ -486,7 +493,11 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                   key={member.id}
                   className="press-scale"
                   onClick={() => setSelectedMemberId(member.id)}
-                  aria-label={`${member.name}${allDone ? ' (all done)' : ''}`}
+                  aria-label={
+                    allDone
+                      ? t('choresTab.memberAriaLabelAllDone', { name: member.name })
+                      : t('choresTab.memberAriaLabel', { name: member.name })
+                  }
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -521,10 +532,10 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           <div style={{ padding: '0 0 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-                {totalDone}/{totalCount} complete
+                {t('choresTab.progress.completion', { done: totalDone, total: totalCount })}
               </span>
               {totalCount > 0 && totalDone === totalCount && (
-                <span style={{ fontSize: 13, color: 'var(--hs-success)', fontWeight: 500 }}>All done!</span>
+                <span style={{ fontSize: 13, color: 'var(--hs-success)', fontWeight: 500 }}>{t('choresTab.progress.allDone')}</span>
               )}
             </div>
             <div style={{ height: 8, background: 'var(--hs-border)', borderRadius: 4, overflow: 'hidden' }}>
@@ -544,7 +555,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           <div style={{ paddingBottom: 80 }}>
             {myAssignments.length === 0 && (
               <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                <p style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>No chores today!</p>
+                <p style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>{t('choresTab.noChoresToday')}</p>
               </div>
             )}
 
@@ -552,7 +563,6 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
               const items = grouped.get(section);
               if (!items?.length) return null;
 
-              const meta = TIME_OF_DAY_META[section];
               const TodIcon = TOD_ICONS[section];
               const isCurrent = !isViewingPast && section === currentTimeOfDay;
               const sectionAllDone = items.every((a) => a.isCompleted);
@@ -571,7 +581,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                         color: isCurrent ? accentColor : 'var(--hs-text-faint)',
                       }}
                     >
-                      {meta.label}
+                      {tModules(getTimeOfDayLabelKey(section))}
                     </span>
                     {sectionAllDone && (
                       <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-success)' }}>&#10003;</span>
@@ -681,7 +691,9 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                               opacity: done ? 0.3 : 1,
                             }}
                           >
-                            {assignment.points} ticket{assignment.points !== 1 ? 's' : ''}
+                            {assignment.points === 1
+                              ? t('choresTab.ticketCountSingular', { n: assignment.points })
+                              : t('choresTab.ticketCountPlural', { n: assignment.points })}
                           </span>
                         )}
                       </>
@@ -702,7 +714,11 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                         className="press-scale"
                         onClick={() => toggle(assignment.choreId)}
                         disabled={isToggling}
-                        aria-label={`${done ? 'Completed' : 'Mark complete'}: ${assignment.choreName}`}
+                        aria-label={
+                          done
+                            ? t('choresTab.choreAriaLabelCompleted', { chore: assignment.choreName })
+                            : t('choresTab.choreAriaLabelMarkComplete', { chore: assignment.choreName })
+                        }
                         style={rowStyle}
                       >
                         {rowInner}

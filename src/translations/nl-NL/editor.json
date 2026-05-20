@@ -1,0 +1,2951 @@
+{
+  "languageAndRegion": {
+    "title": "Taal & regio",
+    "languageLabel": "Taal",
+    "languageHelp": "Kies de taal voor de editor, alle displays en /remote.",
+    "moreOptions": "Meer opties",
+    "formattingLocaleLabel": "Opmaaklocale",
+    "formattingLocaleHelp": "Overschrijf alleen de datum- en getalopmaak. De interfacetaal blijft hetzelfde.",
+    "formattingLocaleSameAsLanguage": "Zelfde als taal"
+  },
+  "common": {
+    "saved": "Opgeslagen",
+    "refreshMinutes": "Vernieuwen (minuten)",
+    "refreshSeconds": "Vernieuwen (seconden)",
+    "refresh": "Vernieuwen",
+    "theme": "Thema",
+    "density": "Dichtheid",
+    "objectFit": "Objectaanpassing",
+    "objectFitCover": "Bedekken",
+    "objectFitContain": "Passend",
+    "objectFitFill": "Vullen",
+    "showDescription": "Beschrijving tonen",
+    "apiKey": "API-sleutel",
+    "resolution": "Resolutie",
+    "orientation": "Oriëntatie",
+    "saveFailed": "Opslaan mislukt",
+    "saveError": "Opslaan mislukt",
+    "networkError": "Netwerkfout",
+    "serverUnreachable": "Server niet bereikbaar",
+    "typographySizes": {
+      "small": "Klein",
+      "medium": "Middel",
+      "large": "Groot",
+      "extra-large": "Extra Groot",
+      "2x-large": "2X Groot",
+      "3x-large": "3X Groot",
+      "4x-large": "4X Groot"
+    }
+  },
+  "fields": {
+    "rotation": "Rotatie",
+    "color": "Kleur",
+    "icon": "Pictogram",
+    "days": "Dagen"
+  },
+  "modal": {
+    "closeAriaLabel": "Dialoogvenster sluiten"
+  },
+  "page": {
+    "loading": "Laden…",
+    "tooNarrowMessage": "De editor heeft een scherm van minstens {minWidth}px breed nodig.",
+    "tooNarrowHint": "Gebruik een desktopbrowser of maak je venster breder.",
+    "toolbar": {
+      "pluginsButton": "Plugins",
+      "settingsButton": "Instellingen",
+      "previewButton": "Voorbeeld",
+      "retryButton": "Opnieuw proberen"
+    }
+  },
+  "canvas": {
+    "noScreenSelected": "Geen scherm geselecteerd",
+    "ghostCoordinatesAriaLabel": "Plaatsingspositie {x}, {y}",
+    "undoTitle": "Ongedaan maken (Cmd+Z)",
+    "undoAriaLabel": "Ongedaan maken",
+    "redoTitle": "Opnieuw (Cmd+Shift+Z)",
+    "redoAriaLabel": "Opnieuw",
+    "snapOnTitle": "Uitlijnen op raster (aan)",
+    "snapOffTitle": "Uitlijnen op raster (uit)",
+    "zoomOutTitle": "Uitzoomen (Cmd+-)",
+    "zoomOutAriaLabel": "Uitzoomen",
+    "zoomInTitle": "Inzoomen (Cmd+=)",
+    "zoomInAriaLabel": "Inzoomen",
+    "zoomPercent": "{percent}%",
+    "fitTitle": "Passend op scherm (Cmd+0)",
+    "fitAriaLabel": "Passend op scherm"
+  },
+  "draggableModule": {
+    "scheduledActiveTitle": "Gepland — momenteel actief",
+    "scheduledInactiveTitle": "Gepland — momenteel inactief"
+  },
+  "displaySwitcher": {
+    "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
+    "label": "Welk display bewerk je nu op dit canvas?",
+    "optionWithDimensions": "{name} ({width}×{height})"
+  },
+  "screenTabs": {
+    "stickyTooltip": "vast — alleen handmatig wisselen",
+    "secondsSuffix": "{seconds}s",
+    "scheduledTooltip": "gepland",
+    "disabledTooltip": "uitgeschakeld — niet getoond op display",
+    "disabledIndicatorAriaLabel": "Uitgeschakeld",
+    "stickyBadge": "0s",
+    "screenOptionsTitle": "Schermopties",
+    "screenOptionsAriaLabel": "Opties voor {name}",
+    "deleteTabAriaLabel": "{name} verwijderen",
+    "removeConfirmMessage": "\"{name}\" verwijderen?",
+    "scrollLeftAriaLabel": "Tabbladen naar links scrollen",
+    "scrollLeftTitle": "Tabbladen naar links scrollen",
+    "scrollRightAriaLabel": "Tabbladen naar rechts scrollen",
+    "scrollRightTitle": "Tabbladen naar rechts scrollen",
+    "addScreenAriaLabel": "Scherm toevoegen",
+    "addMenu": {
+      "blank": "Leeg scherm",
+      "fromTemplate": "Uit sjabloon…"
+    },
+    "contextMenu": {
+      "moveLeft": "Naar links verplaatsen",
+      "moveRight": "Naar rechts verplaatsen",
+      "exportThisScreen": "Dit scherm exporteren",
+      "enable": "Inschakelen",
+      "disable": "Uitschakelen",
+      "rename": "Hernoemen",
+      "delete": "Verwijderen"
+    }
+  },
+  "screenSettings": {
+    "sectionTitle": "Scherminstellingen",
+    "moduleCountSingular": "{count} module",
+    "moduleCountPlural": "{count} modules",
+    "durationLabel": "Duur",
+    "secondsUnit": "sec",
+    "stickyBadge": "Vast",
+    "stickyHint": "0 = blijf op dit scherm (alleen handmatig wisselen).",
+    "inheritsHintBefore": "Neemt de standaard over: ",
+    "inheritsHintValue": "{seconds}s",
+    "inheritsHintAfter": ".",
+    "overrideButton": "Overschrijven",
+    "resetButton": "Herstellen"
+  },
+  "scheduleEditor": {
+    "statusTitle": "Status",
+    "enableLabel": "Schema inschakelen",
+    "timeWindowTitle": "Tijdvenster",
+    "fromLabel": "Van",
+    "untilLabel": "Tot",
+    "behaviorTitle": "Gedrag",
+    "invertLabel": "Omkeren (verbergen tijdens venster)"
+  },
+  "registry": {
+    "categories": {
+      "fullScreen": "Volledig scherm",
+      "timeAndDate": "Tijd & datum",
+      "weatherAndEnvironment": "Weer & omgeving",
+      "newsAndFinance": "Nieuws & financiën",
+      "knowledgeAndFun": "Kennis & plezier",
+      "personal": "Persoonlijk",
+      "mediaAndDisplay": "Media & weergave",
+      "travel": "Reizen"
+    },
+    "types": {
+      "fullscreen-calendar": "Schermvullende kalender",
+      "fullscreen-chore-chart": "Schermvullende klusjeskaart",
+      "fullscreen-meal-planner": "Schermvullende maaltijdplanner",
+      "fullscreen-photo": "Schermvullende fotoweergave",
+      "clock": "Klok",
+      "calendar": "Kalender",
+      "countdown": "Aftellen",
+      "date": "Datum",
+      "year-progress": "Jaarvoortgang",
+      "multi-month": "Meerdere maanden",
+      "weather": "Weer",
+      "moon-phase": "Maanfase",
+      "sunrise-sunset": "Zonsopgang / zonsondergang",
+      "air-quality": "Luchtkwaliteit",
+      "rain-map": "Regenkaart",
+      "news": "Nieuwskoppen",
+      "stock-ticker": "Aandelenticker",
+      "crypto": "Cryptoprijzen",
+      "sports": "Sportuitslagen",
+      "standings": "Standen",
+      "dad-joke": "Pa-mop",
+      "quote": "Citaat van de dag",
+      "word-of-day": "Woord van de dag",
+      "history": "Deze dag in de geschiedenis",
+      "todo": "Takenlijst",
+      "sticky-note": "Memo",
+      "greeting": "Begroeting",
+      "todoist": "Todoist",
+      "garbage-day": "Afvaldag",
+      "affirmations": "Affirmaties",
+      "meal-planner": "Maaltijdplanner",
+      "chore-chart": "Klusjeskaart",
+      "text": "Tekst",
+      "image": "Afbeelding",
+      "photo-slideshow": "Fotodiavoorstelling",
+      "qr-code": "QR-code",
+      "iframe": "Webinsluiting",
+      "icon": "Pictogram",
+      "shape": "Vorm & scheidingslijn",
+      "display-control": "Displaybediening",
+      "traffic": "Verkeer / Forenzen"
+    }
+  },
+  "settings": {
+    "sidebar": {
+      "defaults": "Standaardwaarden",
+      "defaultsHelp": "Wordt door elk display gebruikt totdat het wordt overschreven.",
+      "perDisplay": "Per display",
+      "allDisplays": "Alle displays",
+      "addDisplay": "Display toevoegen",
+      "displays": "Displays",
+      "websiteAriaLabel": "Bezoek homescreens.dev",
+      "websiteTitle": "homescreens.dev",
+      "githubAriaLabel": "Bekijk op GitHub",
+      "githubTitle": "Bekijk op GitHub",
+      "navLabels": {
+        "calendar": "Kalender",
+        "weather": "Weer",
+        "location": "Locatie & taal",
+        "sleep": "Slapen",
+        "alerts": "Meldingen",
+        "display": "Display",
+        "data": "Gegevens",
+        "docs": "Documentatie",
+        "integrations": "Integraties",
+        "meals": "Maaltijden",
+        "network": "Netwerk",
+        "profiles": "Profielen",
+        "security": "Beveiliging",
+        "stats": "Statistieken",
+        "system": "Systeem",
+        "displays": "Displays"
+      }
+    },
+    "overrideRow": {
+      "override": "Overschrijven",
+      "resetToDefault": "Terugzetten op standaard",
+      "overriddenForDisplay": "Overschreven voor {name}. Standaard: ",
+      "overriddenWithoutDisplay": "Overschreven. Standaard: ",
+      "overriddenSuffix": " — bewerken via ",
+      "overriddenSuffixEnd": ".",
+      "usingDefault": "Gebruikt de standaard. ",
+      "usingDefaultPart2": " gebruikt ",
+      "usingDefaultPart3": " voor elk display."
+    },
+    "backlinkBanner": {
+      "thisPage": "deze pagina",
+      "singleDisplayPart3": " op {pageLabel}. ",
+      "singleDisplayPart5": " om de overrides te bekijken of te verwijderen.",
+      "singleDisplayCurrentlyOverrides": " overschrijft momenteel ",
+      "singleFieldCount": "{count} veld",
+      "multiFieldCount": "{count} velden",
+      "openDisplayLink": "{name} openen",
+      "multiDisplayLabel": "{count} displays",
+      "multiDisplayCurrentlyOverride": " overschrijven momenteel velden op {pageLabel}: "
+    },
+    "defaultAlertsPage": {
+      "breadcrumb": "Standaardwaarden → Meldingen",
+      "heading": "Standaard meldingsinstellingen",
+      "description": "Standaardpositie, -grootte en -duur voor de meldingsoverlay op elk display. Een specifiek display kan het hele meldingenblok overschrijven via zijn eigen pagina."
+    },
+    "defaultSleepPage": {
+      "breadcrumb": "Standaardwaarden → Slapen",
+      "heading": "Standaard slaapinstellingen",
+      "description": "Standaard dim/slaap-schema en screensaver voor elk display. Een specifiek display kan het hele blok overschrijven via zijn eigen pagina."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Standaardwaarden → Locatie & taal",
+      "title": "Locatie & taal",
+      "description": "Kies de taal die overal wordt gebruikt en stel daarna de locatie in die door weer en andere locatieafhankelijke modules wordt gebruikt."
+    },
+    "locationPage": {
+      "heading": "Locatie",
+      "description": "Wordt gebruikt door modules voor weer, maanfase, zonsopgang/-ondergang en luchtkwaliteit.",
+      "browserLabel": "Browser",
+      "serverLabel": "Server",
+      "timezoneLabel": "Tijdzone",
+      "timezoneSystemDefault": "Systeemstandaard ({timezone})",
+      "timezoneHelp": "Overschrijft de tijdzone van het besturingssysteem voor klok, begroeting en andere tijdgebaseerde modules.",
+      "queryPlaceholder": "Postcode of plaatsnaam",
+      "lookUpButton": "Opzoeken",
+      "detectButton": "Detecteren",
+      "editCoordinates": "Coördinaten handmatig bewerken",
+      "latitudeLabel": "Breedtegraad",
+      "longitudeLabel": "Lengtegraad",
+      "latitudePlaceholder": "40.7128",
+      "longitudePlaceholder": "-74.006",
+      "status": {
+        "lookingUp": "Opzoeken…",
+        "found": "Gevonden: {name}",
+        "error": "Fout: {message}",
+        "lookupFailed": "Locatie opzoeken mislukt",
+        "detecting": "Detecteren…",
+        "detected": "Gedetecteerd: {name}",
+        "detectedViaIp": "Gedetecteerd: {name} (via IP)",
+        "detectedCoords": "Gedetecteerd: {lat}, {lon}",
+        "detectFailed": "Fout: locatie kon niet worden gedetecteerd"
+      }
+    },
+    "calendarPage": {
+      "google": {
+        "heading": "Google Calendar",
+        "checkingConnection": "Verbinding controleren…",
+        "connected": "Verbonden met Google",
+        "disconnect": "Verbinding verbreken",
+        "selectCalendars": "Selecteer kalenders om weer te geven",
+        "noCalendars": "Geen kalenders gevonden.",
+        "primaryBadge": "(primair)",
+        "credentialsRequired": "Google OAuth-inloggegevens zijn vereist om je kalender te verbinden.",
+        "credentialsSetupPart1": "Stel eerst je Client ID en Client Secret in onder ",
+        "settingsIntegrationsLink": "Instellingen → Integraties",
+        "credentialsSetupPart2": ".",
+        "deviceCodeIntro": "Open de onderstaande link op je telefoon of computer en voer dan de code in:",
+        "waitingForAuthorization": "Wachten op autorisatie…",
+        "signIn": "Aanmelden met Google",
+        "usingClientIdLabel": "Client ID in gebruik:",
+        "verifyCredentialsPart1": "Controleer je inloggegevens onder ",
+        "verifyCredentialsPart2": ", of bekijk je ",
+        "googleCloudConsoleLink": "Google Cloud Console",
+        "verifyCredentialsPart3": ".",
+        "signInHelp": "Meld je aan om je kalenders automatisch te zien. Vereist een Google OAuth-client van het type \"TVs and Limited Input devices\" in de Cloud Console."
+      },
+      "holidays": {
+        "heading": "Officiële feestdagen",
+        "none": "Geen",
+        "help": "Toon officiële feestdagen op kalenderwidgets. Gegevens van Nager.Date."
+      },
+      "shared": {
+        "maxEventsLabel": "Max. afspraken",
+        "daysAheadLabel": "Dagen vooruit"
+      }
+    },
+    "dataPage": {
+      "intervalOptions": {
+        "threeDays": "3 dagen",
+        "sevenDays": "7 dagen",
+        "fourteenDays": "14 dagen",
+        "thirtyDays": "30 dagen"
+      },
+      "alerts": {
+        "invalidLayoutFile": "Ongeldig lay-outbestand:\n{errors}",
+        "invalidJsonFile": "Ongeldig JSON-bestand.",
+        "exportBackupFailed": "Back-up exporteren mislukt.",
+        "invalidBackupFile": "Ongeldig back-upbestand."
+      },
+      "shareLayout": {
+        "heading": "Lay-out delen",
+        "description": "Exporteer je schermlay-out (schermen, modules, visuele instellingen) zonder persoonlijke gegevens zoals locatie, kalender-ID's of apparaatinstellingen. Veilig om met anderen te delen.",
+        "exportButton": "Lay-out exporteren",
+        "importButton": "Lay-out importeren"
+      },
+      "templates": {
+        "heading": "Sjablonen",
+        "description": "Begin met een kant-en-klare sjabloon. Je bestaande instellingen (locatie, kalenders, enz.) blijven behouden.",
+        "browseButton": "Sjablonen bekijken"
+      },
+      "fullBackup": {
+        "heading": "Volledige back-up",
+        "description": "Exporteer of zet de hele configuratie terug, inclusief alle instellingen, klusjesgegevens en geschiedenis. Voor back-ups en migratie tussen apparaten. API-sleutels worden niet meegenomen.",
+        "working": "Bezig…",
+        "backupButton": "Alles back-uppen",
+        "restoreButton": "Back-up terugzetten"
+      },
+      "backupReminder": {
+        "heading": "Back-upherinnering",
+        "description": "Krijg een melding in de editor wanneer je al een tijd geen back-up hebt gemaakt.",
+        "enableLabel": "Back-upherinneringen inschakelen",
+        "remindAfterLabel": "Herinnering na",
+        "lastBackup": "Laatste back-up: {date}",
+        "noBackups": "Nog geen back-ups vastgelegd"
+      }
+    },
+    "weatherPage": {
+      "heading": "Weer",
+      "description": "Configureer een van de onderstaande weeraanbieders. Individuele weerwidgets kunnen elke geconfigureerde aanbieder kiezen; één wordt als standaard gebruikt.",
+      "unitsLabel": "Eenheden",
+      "imperialOption": "Imperiaal (°F, mph)",
+      "metricOption": "Metriek (°C, km/u)",
+      "locationWarning": "Stel je locatie in om het weer te laten werken. Voer een postcode of plaatsnaam in, of gebruik Detecteren.",
+      "providersLabel": "Aanbieders",
+      "loadingProviderStatus": "Status van aanbieder laden…",
+      "providerCard": {
+        "currentlyDefault": "Op dit moment de standaard",
+        "setAsDefault": "Als standaard instellen",
+        "testButton": "Testen",
+        "testingButton": "Testen…",
+        "testStatus": {
+          "success": "Werkt! Huidige temp: {temp}°",
+          "connectedNoData": "Verbonden, maar geen gegevens ontvangen",
+          "errorWithDetail": "Fout: {error}: {detail}",
+          "errorOnly": "Fout: {error}",
+          "failed": "Mislukt: {message}",
+          "unknownError": "Onbekende fout"
+        },
+        "status": {
+          "defaultReady": "Standaard · Klaar",
+          "defaultConfigured": "Standaard · Geconfigureerd",
+          "defaultNeedsSetup": "Standaard · Instellen vereist",
+          "ready": "Klaar",
+          "configured": "Geconfigureerd",
+          "needsSetup": "Instellen vereist"
+        }
+      },
+      "providers": {
+        "openMeteo": {
+          "tagline": "Gratis · wereldwijd · geen sleutel",
+          "helperText": "Geen API-sleutel vereist. Open-Meteo is gratis en open source met wereldwijde dekking."
+        },
+        "weatherApi": {
+          "tagline": "Gratis tier · geen creditcard",
+          "keyHint": "Gratis op weatherapi.com — geen creditcard nodig.",
+          "placeholder": "Plak je WeatherAPI-sleutel"
+        },
+        "openWeatherMap": {
+          "tagline": "One Call 3.0-abonnement",
+          "keyHint": "Vereist een One Call 3.0-abonnement op openweathermap.org.",
+          "placeholder": "Plak je OpenWeatherMap API-sleutel"
+        },
+        "pirateWeather": {
+          "tagline": "Dark Sky-vervanger",
+          "keyHint": "Gratis op pirateweather.net — directe Dark Sky-vervanger.",
+          "placeholder": "Plak je Pirate Weather API-sleutel"
+        },
+        "noaa": {
+          "tagline": "Gratis · alleen VS · geen sleutel",
+          "helperText": "Geen API-sleutel vereist. NOAA-gegevens zijn gratis en openbaar (alleen VS)."
+        },
+        "yr": {
+          "tagline": "Gratis · wereldwijd · geen sleutel",
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Noors Meteorologisch Instituut met wereldwijde dekking. Gebruik om te testen een Scandinavische lat/lon — bijv. Oslo (59.9139, 10.7522) — voor de dichtste dekking."
+        },
+        "smhi": {
+          "tagline": "Gratis · alleen Scandinavië · geen sleutel",
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Zweeds Meteorologisch en Hydrologisch Instituut. Alleen Scandinavische dekking — gebruik om te testen een Scandinavische lat/lon (bijv. Stockholm: 59.3293, 18.0686). Geeft geen gegevens terug buiten Scandinavië."
+        },
+        "metOffice": {
+          "tagline": "Freemium · focus VK · sleutel vereist",
+          "keyHint": "Meld je aan op datahub.metoffice.gov.uk en abonneer je op de Site-Specific API om een sleutel te krijgen.",
+          "placeholder": "Plak je Met Office DataHub API-sleutel"
+        },
+        "envCanada": {
+          "tagline": "Gratis · alleen Canada · geen sleutel",
+          "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada — de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
+        }
+      }
+    },
+    "defaultDisplayPage": {
+      "breadcrumb": "Standaardwaarden → Display",
+      "heading": "Standaard display-instellingen",
+      "descriptionPart1": "Deze waarden worden door elk display gebruikt totdat een specifiek display ze overschrijft. Verander hier iets en elk display dat dat veld ",
+      "descriptionEmphasisNot": "niet",
+      "descriptionPart2": " overschrijft, neemt de nieuwe waarde over.",
+      "multiDisplayNotePart1": "Resolutie, oriëntatie en spiegeling zijn ",
+      "multiDisplayNotePerDisplay": "per display",
+      "multiDisplayNotePart2": " — bewerk ze op de eigen pagina van elk display onder ",
+      "multiDisplayNotePerDisplaySection": "Per display",
+      "multiDisplayNotePart3": ".",
+      "canvas": {
+        "heading": "Canvas",
+        "orientationPortrait": "Staand",
+        "orientationLandscape": "Liggend",
+        "resolutionCustom": "Aangepast…",
+        "resolutionWidthPlaceholder": "Breedte",
+        "resolutionHeightPlaceholder": "Hoogte",
+        "resolutionHelp": "Stel dit in op je fysieke display. Een gewijzigde resolutie beïnvloedt de grootte van het modulecanvas.",
+        "flipLabel": "Display spiegelen",
+        "flipToggle": "Omgekeerd gemonteerd",
+        "flipHelp": "Inschakelen als je monitor ondersteboven is gemonteerd. Draait het display 180° ten opzichte van de basisoriëntatie."
+      },
+      "fields": {
+        "rotationIntervalLabel": "Schermrotatie-interval",
+        "rotationIntervalHelp": "Hoe lang elk scherm wordt getoond voordat automatisch naar het volgende wordt gewisseld. Geldt alleen als je meerdere schermen hebt geconfigureerd.",
+        "pauseEnabledLabel": "Pauze op touchscreen toestaan",
+        "pauseEnabledToggle": "Ingeschakeld",
+        "pauseEnabledHelp": "Dubbeltik op de actieve paginatiestip om de schermrotatie te pauzeren. Dubbeltik nogmaals om te hervatten.",
+        "pauseTimeoutLabel": "Time-out voor automatisch hervatten",
+        "pauseTimeoutNever": "Nooit",
+        "pauseTimeoutSeconds": "{seconds}s",
+        "pauseTimeoutHelp": "Hervat de rotatie automatisch na zoveel seconden. Stel in op 0 om gepauzeerd te blijven tot handmatig hervat.",
+        "transitionEffectLabel": "Overgangseffect",
+        "transitionEffectHelp": "Animatiestijl bij het wisselen tussen schermen. Blur kan zwaar zijn voor de GPU op apparaten met weinig vermogen.",
+        "transitionDurationLabel": "Duur van de overgang",
+        "transitionDurationValue": "{seconds}s",
+        "transitionDurationHelp": "Hoe lang de overgangsanimatie tussen schermen duurt.",
+        "cursorHideLabel": "Cursor verbergen na",
+        "cursorHideValue": "{seconds}s",
+        "cursorHideHelp": "De muiscursor wordt verborgen na zoveel seconden van inactiviteit. Beweeg de muis om hem weer te tonen.",
+        "fullscreenThemeLabel": "Schermvullend thema",
+        "fullscreenThemeHelp": "Geldt voor alle schermvullende modules (Kalender, Klusjes, Maaltijden) zodat ze er naadloos uitzien bij rotatie. Je kunt dit per module wijzigen in de editor."
+      },
+      "transitionOptions": {
+        "fade": "Vervagen",
+        "slide": "Schuiven naar links",
+        "slide-up": "Schuiven omhoog",
+        "zoom": "Zoom",
+        "flip": "3D-flip",
+        "blur": "Blur",
+        "crossfade": "Crossfade (overlap)",
+        "none": "Geen (direct)"
+      },
+      "themeGroups": {
+        "light": "licht",
+        "dark": "donker"
+      }
+    },
+    "perDisplayPage": {
+      "header": {
+        "openTitle": "Open de kiosk-URL van dit display",
+        "openLabel": "Openen",
+        "editScreensTitle": "Bewerk de schermen van dit display in het canvas",
+        "editScreensLabel": "Schermen bewerken",
+        "statusOnline": "Online",
+        "statusIdle": "Inactief",
+        "statusOffline": "Offline",
+        "screenCountSingular": "1 scherm",
+        "screenCountPlural": "{count} schermen",
+        "notFound": "Display niet gevonden",
+        "notFoundDescPart1": "Geen display geregistreerd met id ",
+        "notFoundDescPart2": ".",
+        "subtabs": {
+          "overview": "overzicht",
+          "display": "display",
+          "sleep": "slapen",
+          "alerts": "meldingen",
+          "profile": "profiel",
+          "identity": "identiteit"
+        }
+      },
+      "overview": {
+        "activeProfileLabel": "Actief profiel",
+        "noActiveProfile": "Geen",
+        "screensLabel": "Schermen",
+        "overridesHeading": "Overrides voor {name}",
+        "withOverridesPart1": "{name} gebruikt de ",
+        "defaultsLink": "Standaardwaarden",
+        "withOverridesPart2": " voor alles behalve:",
+        "noOverridesPart1": "{name} gebruikt de ",
+        "noOverridesPart2": " voor elk veld. Overschrijf er een via de subtab Display, Slapen of Meldingen.",
+        "chipBlockOverridden": "{label} overschreven",
+        "chipFieldWithDefault": "{label}: {value} (standaard: {defaultValue})",
+        "chipFieldNoDefault": "{label}: {value}",
+        "fieldLabels": {
+          "rotationIntervalMs": "Rotatie-interval",
+          "transitionEffect": "Overgang",
+          "transitionDuration": "Duur overgang",
+          "pauseEnabled": "Pauze bij tikken",
+          "pauseTimeoutSeconds": "Pauze-time-out",
+          "cursorHideSeconds": "Cursor verbergen",
+          "fullscreenTheme": "Thema",
+          "sleep": "Slaapschema",
+          "screensaver": "Screensaver",
+          "alerts": "Meldingsoverlay"
+        },
+        "chipValues": {
+          "pauseOn": "Aan",
+          "pauseOff": "Uit",
+          "pauseNever": "Nooit"
+        },
+        "transitionLabels": {
+          "fade": "Vervagen",
+          "slide": "Schuiven naar links",
+          "slide-up": "Schuiven omhoog",
+          "zoom": "Zoom",
+          "flip": "3D-flip",
+          "blur": "Blur",
+          "crossfade": "Crossfade",
+          "none": "Geen"
+        }
+      },
+      "identity": {
+        "displayNameLabel": "Displaynaam",
+        "displayNameHelp": "Wordt getoond in de zijbalk en op de display-kiosk. Wordt automatisch opgeslagen bij blur.",
+        "displayIdLabel": "Display-ID",
+        "displayIdHelpPart1": "Gebruikt in de kiosk-URL ",
+        "displayIdHelpPart2": ". Kan niet worden gewijzigd zonder de Pi opnieuw te configureren.",
+        "dangerZoneHeading": "Gevarenzone",
+        "dangerZoneMainHelp": "Het hoofddisplay is de hub-kiosk en kan niet worden verwijderd. Verwijderen zou zijn schermen wezen maken en de hub terugzetten naar een niet-geadopteerde staat.",
+        "dangerZoneRemovableHelp": "Een display verwijderen stopt de bediening en verwijdert zijn schermen. De Pi kan zich opnieuw als niet-geadopteerd registreren.",
+        "removeButton": "{name} verwijderen",
+        "removeConfirm": "Display \"{name}\" verwijderen? Hiermee worden zijn schermen verwijderd."
+      },
+      "profile": {
+        "activeProfileLabel": "Actief profiel",
+        "noneOption": "— Geen —",
+        "helpPart1": "Welk profiel {name} momenteel toont. Profieldefinities staan op ",
+        "helpLink": "Standaardwaarden → Profielen",
+        "helpPart2": "."
+      },
+      "display": {
+        "defaultsLabel": "Standaardwaarden → Display",
+        "bannerPart1": "Velden hier tonen de ",
+        "bannerEmphasisDefault": "standaard",
+        "bannerPart2": "-waarde van ",
+        "bannerPart3": ". Klik op ",
+        "bannerEmphasisOverride": "Overschrijven",
+        "bannerPart4": " bij een veld om het alleen voor {name} te wijzigen.",
+        "canvasHeading": "Canvas",
+        "perDisplayBadge": "Per display",
+        "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie — die wordt niet gedeeld.",
+        "rotationOptionNormal": "Normaal (liggend)",
+        "rotationOption90": "90° met de klok mee (staand)",
+        "rotationOption180": "180° (omgekeerd)",
+        "rotationOption270": "270° met de klok mee (staand)",
+        "rotationAndTransitionsHeading": "Rotatie & overgangen",
+        "appearanceHeading": "Uiterlijk",
+        "fields": {
+          "rotationIntervalSeconds": "{seconds} seconden",
+          "pauseEnabledLabelDisabled": "Uitgeschakeld"
+        },
+        "footer": {
+          "overrideCountSingular": "{count} display-override",
+          "overrideCountPlural": "{count} display-overrides",
+          "activeForDisplay": " actief voor {name}.",
+          "clearAllButton": "Display-overrides wissen",
+          "clearAllTitle": "Zet elk veld op deze subtab terug naar de standaard. Slaap- en meldingsoverrides worden niet beïnvloed."
+        }
+      },
+      "sleep": {
+        "label": "Slaapschema",
+        "defaultsLabel": "Standaardwaarden → Slapen",
+        "infoPart1": "Slapen wordt als één blok overschreven — je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
+        "infoPart2": "."
+      },
+      "alerts": {
+        "label": "Meldingsoverlay",
+        "defaultsLabel": "Standaardwaarden → Meldingen",
+        "infoPart1": "Meldingen worden als één blok overschreven. De standaard staat op ",
+        "infoPart2": "."
+      },
+      "wholeBlockOverride": {
+        "overrideForButton": "Overschrijven voor {name}",
+        "usingDefaultPart1": "Gebruikt de standaard van ",
+        "usingDefaultPart2": "."
+      }
+    },
+    "alertFormFields": {
+      "enableLabel": "Meldingsoverlay inschakelen",
+      "enableHelp": "Toon meldingen op het display. Meldingen kunnen via de API en modules met meldingsfunctionaliteit worden geactiveerd.",
+      "positionLabel": "Positie",
+      "positionTop": "Boven",
+      "positionBottom": "Onder",
+      "maxVisibleLabel": "Max. zichtbare meldingen",
+      "defaultDurationLabel": "Standaardduur (seconden)",
+      "defaultDurationPerType": "Standaard per type",
+      "defaultDurationHelp": "Info: 10s, Waarschuwing: 30s, Dringend: blijft staan tot weggetikt.",
+      "alertSizeLabel": "Meldingsgrootte",
+      "activeAlertsHeading": "Actieve meldingen",
+      "clearAllButton": "Alle meldingen wissen",
+      "clearingButton": "Wissen…",
+      "cleared": "Gewist",
+      "failed": "Mislukt",
+      "clearHelp": "Sluit alle actieve meldingen op het display. Wordt binnen 3 seconden van kracht.",
+      "apiUsageHeading": "API-gebruik",
+      "apiUsageIntro": "Stuur meldingen vanuit externe tools (Home Assistant, scripts, enz.):",
+      "apiTypesPart1": "Types: ",
+      "apiTypesPart2": ", ",
+      "apiTypesPart3": ", "
+    },
+    "sleepFormFields": {
+      "enableLabel": "Display-slaap inschakelen",
+      "enableHelp": "Dim en zet het display optioneel uit na inactiviteit of volgens een schema. Elke muis-, aanraak- of toetsenbordinvoer wekt het weer.",
+      "dimAfterLabel": "Dimmen na (minuten)",
+      "sleepAfterLabel": "Slapen na dimmen (minuten)",
+      "sleepAfterOff": "Uit",
+      "sleepAfterHelp": "Het display dimt maar gaat nooit volledig zwart door inactiviteit.",
+      "dimBrightnessLabel": "Dim-helderheid (%)",
+      "screensaverLabel": "Screensaver",
+      "screensaverClock": "Bewegende klok",
+      "screensaverBlank": "Leeg (alleen dimmen)",
+      "screensaverOff": "Uit (direct slapen)",
+      "screensaverHelp": "Wordt getoond tijdens de gedimde staat, voordat het display volledig gaat slapen.",
+      "dimScheduleLabel": "Dimmen op schema",
+      "dimAtLabel": "Dimmen om",
+      "brightenAtLabel": "Verlichten om",
+      "dimScheduleHelp": "Dimt het display in dit venster en verheldert automatisch wanneer het eindigt. Ondersteunt vensters die de nacht overspannen.",
+      "sleepScheduleLabel": "Slapen op schema",
+      "sleepAtLabel": "Slapen om",
+      "wakeAtLabel": "Wekken om",
+      "sleepScheduleHelp": "Zet het display volledig uit in dit venster en wekt het automatisch wanneer het eindigt. Negeert activiteit. Ondersteunt vensters die de nacht overspannen."
+    },
+    "integrationsPage": {
+      "heading": "Integraties",
+      "description": "Verbind externe diensten om extra modules en functies te ontgrendelen. API-sleutels worden lokaal opgeslagen en verlaten je apparaat nooit.",
+      "loadingStatus": "Status van integraties laden…",
+      "summary": {
+        "configuredCountPart1": " van ",
+        "configuredCountPart2": " integraties geconfigureerd"
+      },
+      "groups": {
+        "googleEcosystem": "Google-ecosysteem",
+        "photosAndBackgrounds": "Foto's & achtergronden",
+        "services": "Diensten"
+      },
+      "google": {
+        "name": "Google",
+        "description": "Calendar, Maps",
+        "clientIdLabel": "OAuth Client ID",
+        "clientIdPlaceholder": "bijv. 123456789-abc.apps.googleusercontent.com",
+        "clientIdHelp": "Maak aan op console.cloud.google.com → APIs & Services → Credentials. Gebruik type: TVs and Limited Input devices.",
+        "clientSecretLabel": "OAuth Client Secret",
+        "clientSecretPlaceholder": "bijv. GOCSPX-…",
+        "clientSecretHelp": "Het client secret van dezelfde OAuth-credential hierboven.",
+        "mapsKeyLabel": "Maps API-sleutel",
+        "mapsKeyPlaceholder": "Plak je Google Maps API-sleutel",
+        "mapsKeyHelp": "Optioneel — voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
+      },
+      "immich": {
+        "name": "Immich",
+        "description": "Zelfgehoste fotobibliotheek",
+        "urlLabel": "Server-URL",
+        "urlPlaceholder": "bijv. http://192.168.1.50:2283",
+        "urlHelp": "De basis-URL van je Immich-installatie.",
+        "apiKeyPlaceholder": "Plak je Immich API-sleutel",
+        "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
+      },
+      "unsplash": {
+        "name": "Unsplash",
+        "description": "HD-foto-achtergronden per categorie",
+        "accessKeyLabel": "Access Key",
+        "accessKeyPlaceholder": "Plak je Unsplash access key",
+        "accessKeyHelp": "Gratis op unsplash.com/developers — 50 verzoeken/uur op het gratis tier."
+      },
+      "nasa": {
+        "name": "NASA",
+        "description": "Astronomy Picture of the Day",
+        "apiKeyPlaceholder": "Plak je NASA API-sleutel",
+        "apiKeyHelp": "Gratis op api.nasa.gov — 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
+      },
+      "todoist": {
+        "name": "Todoist",
+        "description": "Toon taken uit je projecten",
+        "tokenLabel": "API-token",
+        "tokenPlaceholder": "Plak je Todoist API-token",
+        "tokenHelp": "Haal je token op via app.todoist.com/app/settings/integrations/developer. Wordt bij opslaan gevalideerd."
+      },
+      "tomtom": {
+        "name": "TomTom",
+        "description": "Verkeer & reistijden",
+        "keyPlaceholder": "Plak je TomTom API-sleutel",
+        "keyHelp": "Gratis op developer.tomtom.com — Routing API vereist. Alternatief voor Google Maps."
+      },
+      "github": {
+        "name": "GitHub",
+        "description": "Hogere rate limit voor versiecontroles",
+        "optionalBadge": "Optioneel",
+        "tokenLabel": "Personal Access Token",
+        "tokenPlaceholder": "Plak je GitHub-token",
+        "tokenHelp": "Verhoogt de rate limit van 60 naar 5.000 verzoeken/uur. Maak aan op github.com/settings/tokens (geen scopes nodig)."
+      },
+      "status": {
+        "notConfigured": "Niet geconfigureerd",
+        "connected": "Verbonden",
+        "partial": "{configured} van {total}"
+      }
+    },
+    "networkPage": {
+      "loading": "Netwerkinformatie laden…",
+      "unavailable": {
+        "heading": "Netwerk",
+        "message": "Netwerkinstellingen zijn alleen beschikbaar op het displayapparaat."
+      },
+      "interfaces": {
+        "heading": "Interfaces",
+        "noneDetected": "Geen netwerkinterfaces gedetecteerd."
+      },
+      "hiddenNetwork": {
+        "connectButton": "Verbind met verborgen netwerk…"
+      },
+      "hostname": {
+        "heading": "Hostname",
+        "placeholder": "home-screens",
+        "saveButton": "Opslaan",
+        "savingButton": "Opslaan…",
+        "successMessage": "Hostname bijgewerkt",
+        "defaultErrorMessage": "Hostname bijwerken mislukt"
+      },
+      "interface": {
+        "type": {
+          "ethernet": "Ethernet",
+          "wifiBuiltIn": "Ingebouwde Wi-Fi",
+          "wifiUsb": "USB Wi-Fi ({driver})",
+          "wifi": "Wi-Fi"
+        },
+        "state": {
+          "connected": "Verbonden",
+          "connectedToSsid": "Verbonden met \"{ssid}\"",
+          "connectedWithAddress": "{state} ({address})",
+          "disconnected": "Niet verbonden",
+          "unavailable": "Niet beschikbaar",
+          "unmanaged": "Onbeheerd"
+        },
+        "managementBadge": "Jouw verbinding",
+        "ipSettingsButton": "IP-instellingen",
+        "disconnectButton": "Verbinding verbreken",
+        "disconnectingButton": "Verbinding verbreken…",
+        "signalLabel": "Signaal {percent}%",
+        "addressing": {
+          "static": "Statisch",
+          "dhcp": "DHCP"
+        }
+      },
+      "wifiScan": {
+        "heading": "Beschikbare Wi-Fi-netwerken",
+        "scanningInterface": "Scannen op {device}",
+        "scanButton": "Scannen",
+        "scanningButton": "Scannen…",
+        "scanCooldownButton": "Scannen ({seconds}s)",
+        "defaultScanError": "Scannen mislukt",
+        "emptyHint": "Klik op Scannen om naar Wi-Fi-netwerken in de buurt te zoeken.",
+        "badges": {
+          "connected": "Verbonden",
+          "saved": "Opgeslagen"
+        }
+      },
+      "wifiConnect": {
+        "titleNamed": "Verbinden met \"{ssid}\"",
+        "titleHidden": "Verbinden met verborgen netwerk",
+        "ssidLabel": "Netwerknaam (SSID)",
+        "ssidPlaceholder": "Voer netwerknaam in",
+        "ssidRequiredError": "SSID is vereist",
+        "passwordLabel": "Wachtwoord",
+        "passwordPlaceholder": "Voer wachtwoord in",
+        "showPassword": "Tonen",
+        "hidePassword": "Verbergen",
+        "interfaceLabel": "Interface",
+        "cancelButton": "Annuleren",
+        "connectButton": "Verbinden",
+        "connectingButton": "Verbinden…",
+        "defaultConnectError": "Verbinden mislukt"
+      },
+      "managementWarning": {
+        "heading": "Waarschuwing voor beheerinterface",
+        "autoRevertHint": "Als deze wijziging de verbinding verbreekt, wordt deze na 60 seconden automatisch teruggedraaid.",
+        "cancelButton": "Annuleren",
+        "proceedButton": "Ik begrijp het, doorgaan"
+      },
+      "rollback": {
+        "polling": {
+          "heading": "Verbinding controleren…",
+          "remaining": "{seconds}s tot automatische rollback",
+          "warning": "Als deze pagina onbereikbaar wordt, worden de vorige instellingen automatisch hersteld."
+        },
+        "confirmed": {
+          "heading": "Verbinding bevestigd!",
+          "message": "De netwerkwijziging is geverifieerd en opgeslagen."
+        },
+        "reverted": {
+          "heading": "Wijziging teruggedraaid",
+          "message": "De vorige netwerkinstellingen zijn hersteld."
+        },
+        "dismissButton": "Sluiten"
+      },
+      "savedNetworks": {
+        "heading": "Opgeslagen netwerken",
+        "loading": "Opgeslagen netwerken laden…",
+        "loadError": "Opgeslagen netwerken laden mislukt",
+        "empty": "Geen opgeslagen Wi-Fi-netwerken.",
+        "showPasswords": "Wachtwoorden tonen",
+        "hidePasswords": "Wachtwoorden verbergen",
+        "lastUsed": "Laatst gebruikt {date}",
+        "neverUsed": "Nooit gebruikt",
+        "autoConnect": "Automatisch verbinden",
+        "forgetPrompt": "Vergeten?",
+        "forgetButton": "Vergeten",
+        "forgetConfirmYes": "Ja",
+        "forgetConfirmNo": "Nee",
+        "forgettingButton": "Verwijderen…"
+      },
+      "ipSettings": {
+        "heading": "IP-instellingen ({device})",
+        "method": {
+          "auto": "DHCP (auto)",
+          "manual": "Statisch (handmatig)"
+        },
+        "addressLabel": "IP-adres",
+        "addressPlaceholder": "192.168.1.50",
+        "prefixLabel": "Subnetprefix",
+        "prefixPlaceholder": "24",
+        "gatewayLabel": "Gateway",
+        "gatewayPlaceholder": "192.168.1.1",
+        "dnsLabel": "DNS-servers",
+        "dnsPlaceholder": "8.8.8.8",
+        "removeDnsAriaLabel": "DNS-server verwijderen",
+        "addDnsButton": "+ DNS-server toevoegen",
+        "dhcpHint": "Toegewezen door DHCP",
+        "managementInterfaceHint": "Wijzigingen aan deze interface worden automatisch teruggedraaid als de verbinding wegvalt.",
+        "applyButton": "Toepassen",
+        "applyingButton": "Toepassen…",
+        "successMessage": "Instellingen toegepast",
+        "defaultErrorMessage": "IP-instellingen toepassen mislukt"
+      },
+      "diagnostics": {
+        "heading": "Diagnostiek",
+        "watchdog": {
+          "label": "Wi-Fi-watchdog:",
+          "active": "Actief",
+          "inactive": "Inactief",
+          "lastRun": "Laatste watchdog-run: {time}",
+          "never": "Nooit",
+          "secondsAgo": "{count} seconden geleden",
+          "minuteAgoSingular": "{count} minuut geleden",
+          "minutesAgoPlural": "{count} minuten geleden",
+          "hourAgoSingular": "{count} uur geleden",
+          "hoursAgoPlural": "{count} uur geleden"
+        },
+        "host": {
+          "gatewayLabel": "Gateway",
+          "internetLabel": "Internet",
+          "reachable": "Bereikbaar",
+          "reachableWithLatency": "Bereikbaar ({latency})",
+          "unreachable": "Niet bereikbaar",
+          "latencyUnderOneMs": "<1ms",
+          "latencyMs": "{ms}ms"
+        },
+        "unavailable": "Diagnostiek is niet beschikbaar op dit apparaat.",
+        "requestFailed": "Diagnostiekverzoek mislukt",
+        "testButton": "Verbinding testen",
+        "testingButton": "Testen…"
+      }
+    },
+    "mealsPage": {
+      "loading": "Maaltijdinstellingen laden…",
+      "intro": {
+        "part1": "Gedeelde maaltijdplanner-instellingen. Deze verschijnen ook in het ",
+        "remoteLinkLabel": "remote",
+        "part2": "-instellingenpaneel — bewerkingen vanuit beide kanten blijven gesynchroniseerd."
+      },
+      "status": {
+        "loadFailed": "Maaltijdinstellingen laden mislukt.",
+        "networkLoad": "Netwerkfout bij het laden van maaltijdinstellingen.",
+        "saveFailed": "Maaltijdinstellingen opslaan mislukt.",
+        "networkSave": "Netwerkfout bij het opslaan van maaltijdinstellingen.",
+        "unableToLoad": "Kan maaltijdinstellingen niet laden."
+      },
+      "slots": {
+        "heading": "Maaltijdmomenten",
+        "description": "Welke maaltijden plant je gezin? Werkt door in elke maaltijdplanner-module op alle schermen."
+      },
+      "weekStart": {
+        "heading": "Week begint op"
+      },
+      "timeFormat": {
+        "heading": "Tijdformaat",
+        "description": "Geldt voor elke maaltijdweergave op de kiosk en de remote.",
+        "twelveHourLabel": "12-uurs",
+        "twentyFourHourLabel": "24-uurs"
+      },
+      "defaultTimes": {
+        "heading": "Standaard servertijden",
+        "description": "Worden gebruikt als een geplande maaltijd geen eigen tijd heeft. Laat leeg voor momenten waarvan de tijd per dag varieert.",
+        "clear": "Leegmaken",
+        "clearAriaLabel": "Standaardtijd voor {name} leegmaken",
+        "timeInputAriaLabel": "Standaardtijd voor {name}",
+        "noSlotsHint": "Schakel hierboven minstens één moment in om standaardtijden in te stellen."
+      },
+      "reset": {
+        "button": "Terugzetten op standaardwaarden",
+        "help": "Herstelt ontbijt/lunch/avondeten, weekstart op zondag, 12-uursformaat en wist alle standaardtijden."
+      }
+    },
+    "systemPage": {
+      "loading": "Systeeminformatie laden…",
+      "loadFailed": "Systeeminformatie laden mislukt",
+      "advanced": {
+        "heading": "Geavanceerd",
+        "toggleLabel": "Geavanceerde opties tonen",
+        "help": "Toont knoppen voor ontwikkelaars: pre-release-kanaal, GitHub-token en plugin-ontwikkelaarsmodus."
+      },
+      "version": {
+        "heading": "Versie",
+        "branchLabel": "Branch: {channel}",
+        "installedFromRelease": "Geïnstalleerd vanaf release",
+        "stableChannel": "Stabiel kanaal",
+        "prereleaseChannel": "Pre-release-kanaal",
+        "checkButton": "Controleren op updates",
+        "checking": "Controleren…"
+      },
+      "upgradeInProgress": {
+        "title": "Upgrade bezig",
+        "help": "Er loopt momenteel een upgrade. Als die lijkt vast te zitten, kun je hem annuleren.",
+        "cancelButton": "Upgrade annuleren"
+      },
+      "updateAvailable": {
+        "updateTitle": "Update beschikbaar: v{version}",
+        "prereleaseTitle": "Pre-release beschikbaar: v{version}",
+        "currentLine": "Je gebruikt v{version}",
+        "updateButton": "Nu bijwerken",
+        "installButton": "Installeren"
+      },
+      "upToDate": "Je gebruikt de nieuwste versie",
+      "changelog": {
+        "heading": "Changelog",
+        "viewButton": "Changelog bekijken",
+        "empty": "Geen releases gevonden op GitHub."
+      },
+      "history": {
+        "heading": "Versiegeschiedenis",
+        "currentBadge": "huidig",
+        "rollback": "Terugdraaien"
+      },
+      "backups": {
+        "heading": "Configuratie-back-ups",
+        "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
+        "sizeKb": "{size}KB",
+        "download": "Downloaden",
+        "restore": "Terugzetten"
+      },
+      "restoreStatus": {
+        "restoring": "Terugzetten…",
+        "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
+        "error": "Fout: {error}",
+        "failed": "Back-up terugzetten mislukt"
+      },
+      "restoreDialog": {
+        "title": "Back-up terugzetten",
+        "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
+        "confirm": "Terugzetten"
+      },
+      "upgradeDialog": {
+        "title": "Upgrade",
+        "message": "Upgraden naar {tag}? De server start opnieuw en je kunt kort de verbinding verliezen.",
+        "confirm": "Upgraden"
+      },
+      "rollbackDialog": {
+        "title": "Terugdraaien",
+        "message": "Terugdraaien naar {tag}? De server start opnieuw.",
+        "confirm": "Terugdraaien"
+      },
+      "powerDialog": {
+        "rebootTitle": "Systeem opnieuw opstarten",
+        "rebootMessage": "Weet je zeker dat je het systeem opnieuw wilt opstarten? Je kunt kort de verbinding verliezen.",
+        "rebootConfirm": "Opnieuw opstarten",
+        "restartTitle": "Service herstarten",
+        "restartMessage": "Weet je zeker dat je de service wilt herstarten? Je kunt kort de verbinding verliezen.",
+        "restartConfirm": "Herstarten"
+      },
+      "cancelUpgradeDialog": {
+        "title": "Upgrade annuleren",
+        "message": "Weet je het zeker? De lopende upgrade wordt gestopt. Je moet daarna mogelijk opnieuw proberen.",
+        "confirm": "Upgrade annuleren"
+      },
+      "actions": {
+        "heading": "Systeemacties",
+        "restartService": "Service herstarten",
+        "rebootSystem": "Systeem opnieuw opstarten",
+        "help": "Service herstarten herlaadt de app. Systeem opnieuw opstarten herstart de hele Raspberry Pi."
+      },
+      "powerStatus": {
+        "restartScheduled": "Service-herstart gepland. De pagina wordt zo herladen…",
+        "rebootScheduled": "Systeemherstart gepland. Het display komt zo weer online…",
+        "processing": "Verwerken…",
+        "unknownError": "Onbekende fout"
+      }
+    },
+    "profilesPage": {
+      "heading": "Profielen",
+      "description": "Profielen bepalen welke schermen op het display worden getoond en in welke volgorde. Maak verschillende lay-outs voor 's ochtends, 's avonds, weekends, enzovoort. Als geen profiel actief is, draaien alle schermen in de standaard tabvolgorde.",
+      "displayPicker": {
+        "label": "Profielen bewerken voor",
+        "optionLabel": "{name} ({id})",
+        "help": "Profielen zijn per display omdat ze verwijzen naar de eigen schermen van elk display. Hier wisselen verandert ook welk display het editorcanvas bewerkt."
+      },
+      "active": {
+        "label": "Actief profiel",
+        "noneOption": "Geen (toon alle schermen)",
+        "help": "Stel handmatig in welk profiel actief is. Geplande profielen hebben voorrang op deze instelling."
+      },
+      "priority": {
+        "labelPrefix": "Prioriteitsvolgorde:",
+        "helpSuffix": " Wanneer meerdere profielen overlappende schema's hebben, wint het profiel dat het hoogst staat. Sleep om te herschikken."
+      },
+      "addButton": "Profiel toevoegen",
+      "newProfileName": "Profiel {number}",
+      "card": {
+        "activeBadge": "Actief",
+        "scheduledBadge": "Gepland",
+        "renameTitle": "Hernoemen",
+        "deleteTitle": "Profiel verwijderen",
+        "removeFromProfileTitle": "Verwijderen uit profiel",
+        "disabledLabel": "(uitgeschakeld)",
+        "screensHeading": "Schermen",
+        "availableHeading": "Beschikbaar",
+        "addScreenSymbol": "+",
+        "noScreensWarning": "Geen schermen geselecteerd — alle schermen worden als terugval getoond.",
+        "dragHelp": "Sleep om de rotatievolgorde binnen dit profiel te bepalen.",
+        "scheduleToggleLabel": "Automatisch activeren op schema",
+        "fromLabel": "Van",
+        "untilLabel": "Tot",
+        "invertLabel": "Omkeren (juist verbergen tijdens dit venster)"
+      },
+      "deleteDialog": {
+        "title": "Profiel verwijderen",
+        "message": "\"{name}\" verwijderen?",
+        "confirm": "Verwijderen"
+      }
+    },
+    "securityPage": {
+      "loading": "Authenticatiestatus controleren…",
+      "heading": "Authenticatie",
+      "status": {
+        "enabled": "Authenticatie is ingeschakeld",
+        "disabled": "Authenticatie is uitgeschakeld"
+      },
+      "setup": {
+        "description": "Stel een wachtwoord in om de editor en API-eindpunten te beveiligen. Er wordt automatisch een display-token gegenereerd zodat het display naadloos kan authenticeren.",
+        "setPasswordButton": "Wachtwoord instellen"
+      },
+      "actions": {
+        "changePassword": "Wachtwoord wijzigen",
+        "disableAuth": "Authenticatie uitschakelen",
+        "logOut": "Uitloggen"
+      },
+      "revokeSessions": {
+        "button": "Alle sessies intrekken",
+        "warning": "Alle sessies worden ongeldig gemaakt, inclusief deze.",
+        "confirmButton": "Bevestigen",
+        "revoking": "Intrekken…",
+        "cancel": "Annuleren",
+        "success": "Alle sessies ingetrokken. Doorsturen naar inloggen…",
+        "failed": "Sessies intrekken mislukt"
+      },
+      "displayToken": {
+        "heading": "Display-token",
+        "description": "Het display gebruikt deze token om API-verzoeken te authenticeren. De token werd automatisch gegenereerd toen je een wachtwoord instelde.",
+        "reveal": "Tonen",
+        "hide": "Verbergen",
+        "copy": "Kopiëren",
+        "copied": "Gekopieerd!",
+        "regenerateButton": "Token opnieuw genereren",
+        "regenerating": "Opnieuw genereren…",
+        "regenerateConfirm": "Bevestigen",
+        "regenerateCancel": "Annuleren",
+        "regenerateWarning": "Het display moet herladen om de nieuwe token op te pikken.",
+        "errorRegenerate": "Token opnieuw genereren mislukt",
+        "errorCopy": "Kopiëren mislukt — selecteer en kopieer handmatig",
+        "phoneHintPart1": "Voor bladwijzers op je telefoon: voeg ",
+        "phoneHintCode": "?token=TOKEN",
+        "phoneHintPart2": " toe aan command-URL's."
+      },
+      "ipAllowlist": {
+        "heading": "IP-allowlist",
+        "bypassAuth": {
+          "label": "Authenticatie overslaan voor vertrouwde IP's",
+          "help": "Displays op deze netwerken hebben geen token nodig"
+        },
+        "restrictAccess": {
+          "label": "Toegang beperken tot vertrouwde IP's",
+          "help": "Blokkeer alle andere IP's om het systeem te bereiken (behalve de inlogpagina)"
+        },
+        "emptyHint": "Voeg minstens één IP-bereik toe om deze opties in te schakelen.",
+        "removeAriaLabel": "{entry} verwijderen",
+        "addPlaceholder": "192.168.1.0/24",
+        "addButton": "Toevoegen",
+        "errors": {
+          "invalidCidr": "Ongeldig CIDR-formaat",
+          "invalidIp": "Ongeldig IP-adres",
+          "invalidPrefix": "Prefixlengte moet 0-32 zijn",
+          "alreadyInList": "Staat al in de lijst"
+        },
+        "callerIpLabel": "Jouw IP: ",
+        "lockoutWarning": {
+          "title": "Je sluit jezelf mogelijk buiten",
+          "messagePart1": "Je huidige IP (",
+          "messagePart2": ") staat niet in de allowlist. Als toegangsbeperking is ingeschakeld, verlies je toegang tot deze editor.",
+          "saveAnyway": "Toch opslaan",
+          "cancel": "Annuleren"
+        },
+        "saveButton": "Wijzigingen opslaan",
+        "lockedOutHintPart1": "Als je buitengesloten bent: bewerk ",
+        "lockedOutHintCode": "data/auth.json",
+        "lockedOutHintPart2": " op het apparaat om uit te schakelen.",
+        "ipv4Warning": {
+          "strong": "Alleen IPv4.",
+          "part1": " IPv6-clients (inclusief dual-stack Pi's die ",
+          "loopback": "::1",
+          "or": " of ",
+          "linkLocal": "fe80::…",
+          "part2": " rapporteren) komen niet overeen met enige allowlist-vermelding en worden geblokkeerd als beperking is ingeschakeld. Controleer \"Jouw IP\" hierboven — als het met een dubbele punt begint, blokkeert deze functie je."
+        },
+        "trustedNetworksWarning": {
+          "strong": "Alleen vertrouwde netwerken.",
+          "part1": " IP-beperking leest de ",
+          "header": "X-Forwarded-For",
+          "part2": "-header. Als Home Screens direct aan internet wordt blootgesteld zonder vertrouwde reverse proxy, kan deze instelling worden vervalst."
+        }
+      },
+      "forgotPasswordPart1": "Wachtwoord vergeten? Verwijder ",
+      "forgotPasswordCode": "data/auth.json",
+      "forgotPasswordPart2": " op het apparaat om te resetten.",
+      "modal": {
+        "setTitle": "Wachtwoord instellen",
+        "changeTitle": "Wachtwoord wijzigen",
+        "disableTitle": "Authenticatie uitschakelen",
+        "currentPasswordPlaceholder": "Huidig wachtwoord",
+        "newPasswordPlaceholder": "Nieuw wachtwoord (min. 8 tekens)",
+        "confirmPasswordPlaceholder": "Nieuw wachtwoord bevestigen",
+        "disableWarning": "Hiermee verwijder je het wachtwoord en kan iedereen op je netwerk de editor gebruiken.",
+        "cancel": "Annuleren",
+        "setSubmit": "Wachtwoord instellen",
+        "setting": "Instellen…",
+        "changeSubmit": "Wachtwoord wijzigen",
+        "changing": "Wijzigen…",
+        "disableSubmit": "Uitschakelen",
+        "disabling": "Uitschakelen…"
+      },
+      "errors": {
+        "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
+        "setFailed": "Wachtwoord instellen mislukt",
+        "changeFailed": "Wachtwoord wijzigen mislukt",
+        "disableFailed": "Authenticatie uitschakelen mislukt"
+      },
+      "success": {
+        "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
+        "passwordChanged": "Wachtwoord gewijzigd. Alle andere sessies zijn ongeldig gemaakt.",
+        "authDisabled": "Authenticatie uitgeschakeld."
+      }
+    },
+    "docsPage": {
+      "intro": {
+        "part1": "Volledige documentatie staat op ",
+        "linkLabel": "homescreens.dev/docs",
+        "part2": ". Gidsen behandelen alles van eerste installatie tot pluginontwikkeling."
+      },
+      "sections": {
+        "introduction": "Introductie",
+        "guides": "Gidsen",
+        "reference": "Referentie"
+      },
+      "links": {
+        "gettingStarted": {
+          "title": "Aan de slag",
+          "description": "Overzicht van Home Screens en kernconcepten"
+        },
+        "installation": {
+          "title": "Installatie",
+          "description": "Opzetten op Raspberry Pi of lokaal draaien"
+        },
+        "raspberryPi": {
+          "title": "Raspberry Pi",
+          "description": "Kioskimplementatie, servicebeheer, SD-kaarttips"
+        },
+        "editor": {
+          "title": "Editor",
+          "description": "Rondleiding door de visuele editor en canvasgereedschappen"
+        },
+        "modules": {
+          "title": "Modules",
+          "description": "Alle 38 modules en hun configuratieopties"
+        },
+        "backgrounds": {
+          "title": "Achtergronden",
+          "description": "Uploads, Unsplash, NASA APOD en rotatie"
+        },
+        "profiles": {
+          "title": "Profielen & planning",
+          "description": "Automatisering en tijdgebaseerde schermlay-outs"
+        },
+        "configuration": {
+          "title": "Configuratie",
+          "description": "JSON-schema en configuratiebestand-referentie"
+        },
+        "remoteControl": {
+          "title": "Afstandsbediening",
+          "description": "Bedien je display vanaf een telefoon of ander apparaat"
+        },
+        "multiDisplay": {
+          "title": "Meerdere displays",
+          "description": "Hub-and-spoke-opzet om meerdere Pi's vanaf één server te draaien"
+        },
+        "networking": {
+          "title": "Netwerken",
+          "description": "Reverse proxy en toegang van buiten je LAN"
+        },
+        "troubleshooting": {
+          "title": "Problemen oplossen",
+          "description": "Veelvoorkomende problemen en oplossingen"
+        },
+        "api": {
+          "title": "API",
+          "description": "Alle API-eindpunten en hun parameters"
+        },
+        "plugins": {
+          "title": "Plugins",
+          "description": "Bouw eigen modules met de plugin-SDK"
+        },
+        "development": {
+          "title": "Ontwikkeling",
+          "description": "Architectuuroverzicht en bijdragehandleiding"
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Veelgestelde vragen"
+        }
+      }
+    },
+    "shared": {
+      "secretField": {
+        "removeButton": "Verwijderen",
+        "savingButton": "…",
+        "saveButton": "Opslaan",
+        "savedSuccess": "Succesvol opgeslagen"
+      }
+    },
+    "localBackgrounds": {
+      "none": "Geen",
+      "deleteTitle": "Achtergrond verwijderen",
+      "deleteMessage": "\"{filename}\" verwijderen?",
+      "deleteConfirmLabel": "Verwijderen",
+      "deleteAriaLabel": "Verwijderen",
+      "uploadButton": "Achtergrond uploaden",
+      "uploadingButton": "Uploaden…",
+      "uploadFailed": "Uploaden mislukt",
+      "uploadFailedWithStatus": "Uploaden mislukt ({status})"
+    },
+    "pluginInstallPreview": {
+      "verifiedTitle": "Geverifieerd",
+      "versionPrefix": "v",
+      "external": {
+        "heading": "Installeren van buiten de marketplace",
+        "message": "Deze plugin is niet beoordeeld door het Home Screens-team. Controleer of je deze bron vertrouwt."
+      },
+      "unverified": {
+        "heading": "Niet-geverifieerde plugin",
+        "message": "Deze plugin is niet beoordeeld door het Home Screens-team. Installeer op eigen risico."
+      },
+      "permissionsHeading": "Gevraagde rechten",
+      "permissions": {
+        "network": "Netwerktoegang",
+        "secrets": "Geheimopslag",
+        "events": "Host-events",
+        "storage": "Lokale opslag",
+        "localNetwork": "Lokaal netwerk (LAN)"
+      },
+      "secretsHeading": "Vereiste API-sleutels",
+      "secretRequired": "(vereist)",
+      "sha256Heading": "SHA-256",
+      "sha256CopyButton": "Kopiëren",
+      "sha256CopyAriaLabel": "SHA-256 kopiëren"
+    },
+    "pluginSecrets": {
+      "loading": "Status van geheimen laden…",
+      "requiredBadge": "Vereist",
+      "removeButton": "Verwijderen",
+      "enterPlaceholder": "Voer {label} in",
+      "savingButton": "…",
+      "saveButton": "Opslaan",
+      "savedSuccess": "Succesvol opgeslagen"
+    },
+    "pluginStorePanel": {
+      "title": "Plugins",
+      "dismissErrorAriaLabel": "Fout sluiten",
+      "tabs": {
+        "browse": "Bladeren",
+        "installed": "Geïnstalleerd",
+        "updates": "Updates",
+        "developer": "Ontwikkelaar"
+      },
+      "errors": {
+        "actionFailed": "Actie mislukt",
+        "requestFailed": "Verzoek mislukt ({status})"
+      },
+      "browse": {
+        "searchPlaceholder": "Plugins zoeken…",
+        "installFromUrlButton": "Installeren via URL…",
+        "noMatches": "Geen plugins komen overeen met je zoekopdracht",
+        "empty": "Geen plugins beschikbaar in de registry",
+        "installedBadge": "Geïnstalleerd",
+        "installButton": "Installeren",
+        "installingButton": "Installeren…"
+      },
+      "installed": {
+        "empty": "Geen plugins geïnstalleerd",
+        "externalBadge": "Extern",
+        "checkUpdateTitle": "Controleren op update",
+        "checkUpdateAriaLabel": "Controleren op update voor {id}",
+        "enableTitle": "Inschakelen",
+        "disableTitle": "Uitschakelen",
+        "enableAriaLabel": "{id} inschakelen",
+        "disableAriaLabel": "{id} uitschakelen",
+        "uninstallTitle": "Verwijderen",
+        "uninstallAriaLabel": "{id} verwijderen"
+      },
+      "updates": {
+        "allUpToDate": "Alle plugins zijn bijgewerkt",
+        "updateButton": "Bijwerken",
+        "updatingButton": "Bijwerken…"
+      },
+      "developer": {
+        "loadFromUrlLabel": "Laden vanuit URL",
+        "loadFromUrlHelp": "Voer je dev-server-URL in (bijv. http://localhost:5173). De plugin laadt automatisch opnieuw bij wijzigingen.",
+        "loadButton": "Laden",
+        "loadFailed": "Dev-plugin laden mislukt",
+        "devPluginsHeading": "Dev-plugins",
+        "devBadge": "Dev",
+        "unloadTitle": "Ontladen",
+        "unloadAriaLabel": "{name} ontladen",
+        "tipsHeading": "Tips",
+        "tips": {
+          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen — ze blijven niet bewaard tussen browsers",
+          "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2s gepolld)",
+          "sourcemapsPart1": "Source maps worden ondersteund — voeg ",
+          "sourcemapsPart2": " toe aan je Vite-config",
+          "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype"
+        }
+      },
+      "installConfirm": {
+        "heading": "Plugin installeren"
+      }
+    },
+    "statsSection": {
+      "loadingStats": "Statistieken laden…",
+      "failedToLoad": "Statistieken konden niet worden geladen",
+      "configurationTitle": "Configuratie",
+      "screens": "Schermen",
+      "modules": "Modules",
+      "profiles": "Profielen",
+      "serverTitle": "Server",
+      "diagnosticsBundle": "Diagnostiekbundel",
+      "generatingBundle": "Genereren…",
+      "bundleFailed": "Bundel maken mislukt: {error}",
+      "hostname": "Hostnaam",
+      "platform": "Platform",
+      "uptime": "Bedrijfstijd",
+      "hardwareTitle": "CPU & temperatuur",
+      "sourceReporter": "Reporter",
+      "sourceHub": "Hub (lokaal)",
+      "piModel": "Pi-model",
+      "unavailable": "Niet beschikbaar",
+      "unknown": "Onbekend",
+      "cores": "{count} kernen",
+      "loadLabel": "Belasting (1/5/15 m)",
+      "throttling": "Throttling",
+      "throttleActive": "Actief ({raw})",
+      "previouslyThrottled": "Eerder gethrottled",
+      "throttleOk": "OK",
+      "temperature": "Temperatuur",
+      "noHardwareStats": "Er zijn nog geen hardwaregegevens gerapporteerd voor dit scherm. Installeer home-screens-reporter.timer op de bijbehorende Pi.",
+      "storageTitle": "Opslag",
+      "used": "Gebruikt",
+      "free": "vrij",
+      "diskUnavailable": "Schijfstatistieken niet beschikbaar",
+      "memoryTitle": "Geheugen",
+      "inUse": "In gebruik",
+      "moduleBreakdown": "Moduleverdeling",
+      "moduleSummary": "{count} modules · {types} typen",
+      "moduleOther": "overig",
+      "integrations": "Integraties",
+      "integrationsConfigured": "{count} / {total} geconfigureerd",
+      "cacheTitle": "Datacache",
+      "hideDetails": "Details verbergen",
+      "showDetails": "Details tonen",
+      "hitRate": "Hitratio",
+      "entries": "Items",
+      "fresh": "Vers",
+      "stale": "Verouderd",
+      "inflight": "In behandeling",
+      "entriesFill": "Vulgraad",
+      "evictions": {
+        "one": "{count} LRU-verwijdering",
+        "other": "{count} LRU-verwijderingen"
+      },
+      "cacheUrl": "URL",
+      "cacheAge": "Leeftijd",
+      "cacheTtl": "TTL",
+      "cacheState": "Status",
+      "cacheStaleLabel": "verouderd",
+      "cacheFreshLabel": "vers",
+      "cacheNoDisplay": "Cachestatistieken worden gerapporteerd door de schermclient. Geen scherm verbonden.",
+      "cacheNoDisplayForName": "Cachestatistieken worden gerapporteerd door de schermclient. Geen scherm verbonden voor {name}.",
+      "telemetryTitle": "Anonieme telemetrie",
+      "telemetryDescription": "Home Screens verzamelt anonieme gebruiksstatistieken om functies te prioriteren en te begrijpen hoe de app wordt gebruikt. Er worden nooit persoonsgegevens, IP-adressen of inhoud verzameld.",
+      "telemetryToggle": "Anonieme gebruiksgegevens verzenden",
+      "installId": "Installatie-ID",
+      "lastBeacon": "Laatste signaal",
+      "never": "Nooit",
+      "whatWeCollect": "Wat we verzamelen",
+      "telemetryDataDaily": "Gegevens die één keer per dag worden verstuurd:",
+      "telemetryItem1": "Anonieme installatie-ID (willekeurige UUID)",
+      "telemetryItem2": "App-versie en platform (besturingssysteem, architectuur)",
+      "telemetryItem3": "Schermresolutie en oriëntatie",
+      "telemetryItem4": "Aantal schermen, modules en profielen",
+      "telemetryItem5": "Gebruikte moduletypen (bijv. klok, weer)",
+      "telemetryItem6": "Weerprovider en overgangseffect",
+      "telemetryItem7": "Of slaapstand, meldingen en authenticatie zijn ingeschakeld",
+      "telemetryItem8": "Of agenda-integraties zijn geconfigureerd",
+      "telemetryItem9": "Aantal geïnstalleerde plug-ins",
+      "telemetryDisclaimer": "We verzamelen nooit: IP-adressen, locatie, agenda-items, API-sleutels, module-inhoud, hostnamen of andere persoonlijk identificeerbare informatie. Alle code is open source en kan worden geverifieerd.",
+      "dataDirTitle": "Home Screens-gegevens",
+      "totalAppData": "Totale appgegevens",
+      "dataBackgrounds": "Achtergronden",
+      "dataBackups": "Configuratiebackups",
+      "dataConfiguration": "Configuratie",
+      "noAppData": "Nog geen appgegevens.",
+      "displayTitle": "Scherm",
+      "offline": "Offline",
+      "switchDisplay": "Scherm wisselen",
+      "screen": "Scherm",
+      "indexOf": "{index} van {total}",
+      "profile": "Profiel",
+      "viewport": "Weergavevenster",
+      "notChromium": "Geen Chromium",
+      "lastSeen": "Laatst gezien",
+      "timeAgo": "{age} geleden",
+      "noDisplayPrefix": "Geen scherm verbonden. Open",
+      "noDisplayForNamePrefix": "Geen scherm verbonden voor {name}. Open",
+      "noDisplayOpenSuffix": "om te starten.",
+      "displayHardwareTitle": "Schermhardware",
+      "webglUnavailable": "WebGL niet beschikbaar",
+      "cpuCoresLabel": "CPU-kernen",
+      "deviceMemoryLabel": "Apparaatgeheugen",
+      "deviceMemoryGb": "{gb} GB",
+      "noBrowserStats": "Browserinformatie wordt gerapporteerd door de schermclient. Geen scherm verbonden.",
+      "noBrowserStatsForName": "Browserinformatie wordt gerapporteerd door de schermclient. Geen scherm verbonden voor {name}."
+    },
+    "displaysIndex": {
+      "breadcrumb": "Schermen",
+      "heroNew": "Home Screens op meerdere schermen draaien",
+      "heroExisting": {
+        "one": "{count} scherm in dit huis",
+        "other": "{count} schermen in dit huis"
+      },
+      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi — een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer — elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub en bedient ze allemaal; extra schermen kunnen goedkope Pi Zeros zijn die ",
+      "emptyDescriptionSuffix": " draaien.",
+      "populatedDescriptionPrefix": "Klik op een scherm om zijn eigen instellingen te bewerken. Al het andere gebruikt de gedeelde ",
+      "populatedDescriptionSuffix": ".",
+      "defaultsLink": "Standaardwaarden",
+      "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
+      "addDisplay": "Scherm toevoegen",
+      "emptyTitle": "Deze installatie draait in enkel-scherm-modus",
+      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd — ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
+      "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
+      "mainLabel": "Main",
+      "emptyBullet1Prefix": "Klik hierboven op ",
+      "emptyBullet1Suffix": " om een nieuw scherm te registreren — geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
+      "emptyBullet2Prefix": "Of flash een andere Pi met ",
+      "emptyBullet2Middle": ". Zodra hij start, verschijnt hij hieronder als een ",
+      "emptyBullet2Suffix": " die met één klik kan worden geadopteerd.",
+      "unadoptedLabel": "niet-geadopteerd scherm",
+      "unadoptedWaiting": {
+        "one": "{count} niet-geadopteerd scherm wacht",
+        "other": "{count} niet-geadopteerde schermen wachten"
+      },
+      "unadoptedHintPrefix": "Deze Pis zijn verbonden met de hub maar nog niet geregistreerd. Klik op ",
+      "unadoptedHintSuffix": " om schermen aan ze toe te wijzen.",
+      "adoptStrong": "Adopteren",
+      "adoptButton": "Adopteren",
+      "lastSeenLabel": "Laatst gezien {time}",
+      "reportedDimensions": "{width}×{height} gerapporteerd",
+      "reportedFrom": "vanaf {address}",
+      "multipleClientsHeading": "{count} clients melden zich met dit ID",
+      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert — meestal een dubbele ",
+      "multipleClientsParagraphSuffix": " installatie, een verdwaalde Chromium-tab, of een hub-kiosk die naar de verkeerde URL wijst.",
+      "statusOnline": "Online · {time}",
+      "statusIdle": "Inactief · {time}",
+      "statusOffline": "Offline · {time}",
+      "rotationDegrees": "rotatie van {degrees}°",
+      "rotationNormal": "normaal",
+      "screenCount": {
+        "one": "{count} scherm",
+        "other": "{count} schermen"
+      },
+      "multipleClientsCardHeading": "{count} verschillende clients rapporteren voor dit scherm",
+      "tabsSuffix": "×{count} tabs",
+      "formEditTitle": "Scherm bewerken",
+      "formAdoptTitle": "{id} adopteren",
+      "formAddTitle": "Scherm toevoegen",
+      "formNameLabel": "Naam",
+      "formNamePlaceholder": "Keuken-aanraakscherm",
+      "formIdLabel": "ID",
+      "formIdHint": "(gebruikt in URL: /display/<id>)",
+      "formIdPlaceholder": "keuken",
+      "formIdLocked": "Het ID is vastgezet op dat van het rapporterende scherm.",
+      "formReportedViewport": "(gerapporteerd door scherm: {width} × {height})",
+      "formWidth": "Breedte",
+      "formHeight": "Hoogte",
+      "formResolutionHint": "Stel dit in op het fysieke scherm waarop de kiosk wordt weergegeven. Modules worden op dit canvas geplaatst wanneer je de schermen van deze display bewerkt.",
+      "formRotationNormal": "Normaal (liggend)",
+      "formRotation90": "90° met de klok mee (staand)",
+      "formRotation180": "180° (omgekeerd)",
+      "formRotation270": "270° met de klok mee (staand)",
+      "formRotationHint": "Kiest de oriëntatie van het canvas. De breedte en hoogte hierboven wisselen automatisch zodat de langste kant overeenkomt met de door de rotatie gekozen as.",
+      "formCancel": "Annuleren",
+      "formSaveChanges": "Wijzigingen opslaan",
+      "formAddDisplay": "Scherm toevoegen",
+      "formErrorName": "Naam is verplicht",
+      "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"kitchen\")",
+      "formErrorIdTaken": "Er bestaat al een scherm met ID \"{id}\"",
+      "formErrorWidth": "Breedte moet een positief geheel getal ≤ {max} zijn",
+      "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn"
+    },
+    "header": {
+      "backToEditor": "Editor",
+      "contextLabel": "Instellingen",
+      "theme": {
+        "dark": "Donker",
+        "light": "Licht",
+        "system": "Systeem",
+        "titleFormat": "Thema: {label}"
+      }
+    }
+  },
+  "backgroundPicker": {
+    "title": "Achtergrond",
+    "statusGroup": "Status",
+    "autoRotate": "Automatisch wisselen",
+    "sourceLabel": "Bron",
+    "searchQueryLabel": "Zoekopdracht",
+    "searchQueryPlaceholder": "natuurlandschap",
+    "rotateEveryLabel": "Wisselen elke",
+    "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
+    "sources": {
+      "nasaApod": "NASA Picture of the Day"
+    },
+    "tabs": {
+      "nasa": "NASA",
+      "local": "Lokaal"
+    },
+    "intervals": {
+      "minutes": "{count} minuten",
+      "hourSingular": "1 uur",
+      "hours": "{count} uur"
+    },
+    "immich": {
+      "albumLabel": "Album",
+      "anyAlbum": "Elk album",
+      "albumOption": "{name} ({count})",
+      "personLabel": "Persoon",
+      "anyone": "Iedereen",
+      "favoritesOnly": "Alleen favorieten"
+    }
+  },
+  "imageBrowserModal": {
+    "title": "Afbeeldingsbibliotheek",
+    "tabs": {
+      "local": "Lokaal",
+      "unsplash": "Unsplash"
+    },
+    "allPhotos": "Alle foto's",
+    "newFolderPlaceholder": "Mapnaam",
+    "newFolderConfirm": "OK",
+    "newFolderButton": "+ Nieuwe map",
+    "deleteFolderButton": "Map verwijderen",
+    "uploadButton": "Foto's uploaden",
+    "uploadingButton": "Uploaden…",
+    "loadingImages": "Afbeeldingen laden…",
+    "emptyPhotos": "Nog geen foto's. Upload er een paar!",
+    "photoCountSingular": "{count} foto",
+    "photoCountPlural": "{count} foto's",
+    "confirmSelectImage": "Afbeelding selecteren",
+    "confirmUseFolder": "Deze map gebruiken",
+    "unsplashAttribution": "Foto's van Unsplash — opgeslagen in je lokale bibliotheek",
+    "unsplashSearchPlaceholder": "Unsplash doorzoeken…",
+    "unsplashCategories": {
+      "nature": "Natuur",
+      "mountains": "Bergen",
+      "ocean": "Oceaan",
+      "holidays": "Feestdagen",
+      "birthday": "Verjaardag",
+      "flowers": "Bloemen",
+      "seasons": "Seizoenen",
+      "abstract": "Abstract"
+    },
+    "errors": {
+      "searchUnsplash": "Zoeken op Unsplash mislukt"
+    }
+  },
+  "choreChartModal": {
+    "title": "Klusjeskaart",
+    "subtitleMembersChores": "{members} gezinsleden · {chores} klusjes",
+    "loadError": "Klusjesgegevens laden mislukt — wijzigingen worden niet opgeslagen.",
+    "members": {
+      "columnTitle": "Gezinsleden",
+      "empty": "Nog geen gezinsleden",
+      "addButton": "Gezinslid toevoegen",
+      "addSubmit": "Gezinslid toevoegen",
+      "saveSubmit": "Opslaan",
+      "editAriaLabel": "{name} bewerken",
+      "deleteAriaLabel": "{name} verwijderen",
+      "deleteConfirm": {
+        "title": "Gezinslid verwijderen",
+        "message": "\"{name}\" verwijderen? Hiermee wordt deze persoon ook uit elk klusje verwijderd.",
+        "confirmLabel": "Verwijderen"
+      }
+    },
+    "memberForm": {
+      "namePlaceholder": "Naam…",
+      "avatarLabel": "Avatar",
+      "customColorTitle": "Eigen kleur kiezen"
+    },
+    "chores": {
+      "columnTitle": "Klusjes",
+      "addButton": "Klusje toevoegen",
+      "searchPlaceholder": "Klusjes zoeken…",
+      "empty": "Nog geen klusjes",
+      "addMembersFirst": "Voeg eerst gezinsleden toe",
+      "editAriaLabel": "{name} bewerken",
+      "deleteAriaLabel": "{name} verwijderen",
+      "deleteConfirm": {
+        "title": "Klusje verwijderen",
+        "message": "\"{name}\" verwijderen?",
+        "confirmLabel": "Verwijderen"
+      }
+    },
+    "choreForm": {
+      "namePlaceholder": "Naam van het klusje…",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Frequentie",
+      "timeOfDayLabel": "Tijdstip",
+      "dateLabel": "Datum",
+      "assignToLabel": "Toewijzen aan",
+      "weeklyScheduleLabel": "Weekschema",
+      "coverageLabel": "Dekking: {covered} van 7 dagen",
+      "coverageUncovered": "{days} zonder iemand",
+      "addSubmit": "Klusje toevoegen",
+      "saveSubmit": "Opslaan",
+      "validation": {
+        "enterName": "Geef het klusje een naam",
+        "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
+        "selectAtLeastOnePerson": "Kies minstens één persoon"
+      }
+    },
+    "frequency": {
+      "daily": "Dagelijks",
+      "weekly": "Wekelijks",
+      "biweekly": "Om de week",
+      "once": "Eenmalig"
+    },
+    "rotation": {
+      "fixed": "Vast (iedereen doet mee)",
+      "rotateDaily": "Dagelijks wisselen",
+      "rotateWeekly": "Wekelijks wisselen",
+      "schedule": "Schema"
+    },
+    "choreSummary": {
+      "daily": "Dagelijks",
+      "weekly": "Wekelijks",
+      "biweekly": "Om de week",
+      "once": "Eenmalig · {date}",
+      "onceNoDate": "Eenmalig",
+      "ticketCountSingular": "{count} ticket",
+      "ticketCountPlural": "{count} tickets",
+      "rotationDaily": "dagelijks wisselen",
+      "rotationWeekly": "wekelijks wisselen",
+      "rotationSchedule": "schema",
+      "rotatedShort": "← rot",
+      "arrow": "→"
+    },
+    "preview": {
+      "columnTitleNew": "Nieuw klusje",
+      "columnTitleEdit": "Klusje bewerken",
+      "columnTitleSchedule": "Schema van deze week",
+      "placeholder": "Voeg gezinsleden en klusjes toe om het weekschema te zien",
+      "todayLabel": "Vandaag ({day})",
+      "noChores": "Geen klusjes",
+      "weeklyTotalsHeading": "Weektotalen",
+      "memberLine": "{chores} klusjes, {tickets} tickets"
+    }
+  },
+  "mealPlannerModal": {
+    "title": "Maaltijdplanner",
+    "subtitleMealsPlanned": "{meals} maaltijden · {planned} gepland",
+    "doneButton": "Klaar",
+    "newMealName": "Nieuwe maaltijd",
+    "tabs": {
+      "library": "Bibliotheek",
+      "detail": "Details",
+      "grocery": "Boodschappen"
+    },
+    "toast": {
+      "changesSaved": "Wijzigingen opgeslagen",
+      "mealDeleted": "\"{name}\" verwijderd",
+      "mealRemoved": "Maaltijd verwijderd",
+      "randomSuggested": "Willekeurige maaltijden voorgesteld!",
+      "lastWeekCopied": "Vorige week gekopieerd!",
+      "weekCleared": "Week leeggemaakt",
+      "undoButton": "Ongedaan maken"
+    },
+    "library": {
+      "searchPlaceholder": "Maaltijden zoeken…",
+      "noMealsMatch": "Geen maaltijden komen overeen",
+      "noMealsYet": "Nog geen maaltijden",
+      "addNewMealButton": "+ Nieuwe maaltijd toevoegen",
+      "filters": {
+        "all": "Alle",
+        "favorites": "Fav"
+      }
+    },
+    "detail": {
+      "emptyLine1": "Selecteer een maaltijd in het tabblad Bibliotheek",
+      "emptyLine2": "om de details te bewerken",
+      "untitledFallback": "Naamloos",
+      "nameLabel": "Naam",
+      "emojiLabel": "Emoji",
+      "emojiSearchPlaceholder": "Emoji's zoeken (bijv. pizza, ontbijt, dessert)…",
+      "noEmojisMatch": "Geen emoji's komen overeen met \"{query}\"",
+      "prepTimeLabel": "Voorbereidingstijd",
+      "cookTimeLabel": "Bereidingstijd",
+      "minPlaceholder": "min",
+      "servingsLabel": "Porties",
+      "difficultyLabel": "Moeilijkheid",
+      "tagsLabel": "Labels",
+      "ingredientsLabel": "Ingrediënten",
+      "ingredientNamePlaceholder": "Naam ingrediënt",
+      "amountPlaceholder": "Hoeveelheid",
+      "categoryPlaceholder": "Categorie",
+      "addIngredientButton": "+ Ingrediënt toevoegen",
+      "recipeUrlLabel": "Recept-URL",
+      "recipeUrlPlaceholder": "https://…",
+      "notesLabel": "Notities",
+      "saveChangesButton": "Wijzigingen opslaan",
+      "deleteButton": "Verwijderen"
+    },
+    "grocery": {
+      "itemsCount": "{checked} van {total} items",
+      "fromThisWeek": "Van deze week",
+      "emptyMessage": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien"
+    },
+    "weekGrid": {
+      "todayLabel": "Vandaag",
+      "todayChip": "Vandaag",
+      "suggestButton": "Voorstel",
+      "copyLastWeekButton": "Vorige week kopiëren",
+      "clearButton": "Leegmaken",
+      "prepTimeMin": "{minutes} min"
+    },
+    "picker": {
+      "title": "Kies een maaltijd",
+      "searchPlaceholder": "Maaltijden zoeken…",
+      "noMealsFound": "Geen maaltijden gevonden",
+      "prepTimeShort": "{minutes} min"
+    }
+  },
+  "propertyPanel": {
+    "emptyState": "Selecteer een module om te bewerken",
+    "moduleHeading": "{name}-module",
+    "pluginNotLoaded": "Plugin niet geïnstalleerd of laden mislukt",
+    "sections": {
+      "position": "Positie",
+      "size": "Grootte",
+      "shape": "Vorm",
+      "effects": "Effecten",
+      "text": "Tekst",
+      "positionAndSize": "Positie & grootte",
+      "style": "Stijl",
+      "config": "Configuratie",
+      "settings": "Instellingen",
+      "secrets": "Geheimen",
+      "credentials": "Inloggegevens",
+      "schedule": "Schema"
+    },
+    "fields": {
+      "x": "X",
+      "y": "Y",
+      "w": "B",
+      "h": "H",
+      "borderRadius": "Hoekafronding",
+      "padding": "Opvulling",
+      "borderWidth": "Randdikte",
+      "opacity": "Doorzichtigheid",
+      "backdropBlur": "Achtergrondblur",
+      "shadowSize": "Schaduwgrootte",
+      "background": "Achtergrond",
+      "borderColor": "Randkleur",
+      "textColor": "Tekstkleur",
+      "fontSize": "Tekstgrootte"
+    },
+    "actions": {
+      "delete": "Module verwijderen",
+      "confirmDelete": "Deze module verwijderen?"
+    }
+  },
+  "upgradeModal": {
+    "titleUpgrade": "Upgraden naar {tag}",
+    "titleRollback": "Terugdraaien naar {tag}",
+    "stepLabels": {
+      "preflight": "Pre-flight controles",
+      "backup": "Configuratie back-uppen",
+      "download": "Update downloaden",
+      "migrate": "Configuratie migreren",
+      "deploy": "Update installeren",
+      "setup-system": "Systeemconfiguratie toepassen",
+      "restart": "Service herstarten",
+      "cleanup": "Afronden",
+      "fetch": "Nieuwste code downloaden",
+      "checkout": "Wisselen naar nieuwe versie",
+      "install": "Afhankelijkheden installeren",
+      "build": "Applicatie bouwen"
+    },
+    "warning": {
+      "installing": "Update installeren — sluit het apparaat niet af",
+      "inProgress": "Sluit deze pagina niet en zet het apparaat niet uit"
+    },
+    "successDefault": "Upgrade voltooid!",
+    "doneButton": "Klaar"
+  },
+  "holidayPickerModal": {
+    "title": "Feestdagen toevoegen",
+    "countryLabel": "Land",
+    "countryPlaceholder": "Selecteer een land…",
+    "loadingHolidays": "Feestdagen laden…",
+    "selectionCount": "{selected} van {total} geselecteerd",
+    "selectAll": "Alles selecteren",
+    "deselectAll": "Selectie opheffen",
+    "noHolidays": "Geen aankomende feestdagen gevonden.",
+    "addEmpty": "Feestdagen toevoegen",
+    "addCountSingular": "{count} feestdag toevoegen",
+    "addCountPlural": "{count} feestdagen toevoegen",
+    "errors": {
+      "loadCountries": "Landen laden mislukt",
+      "loadHolidays": "Feestdagen laden mislukt"
+    }
+  },
+  "layoutExportModal": {
+    "title": "Lay-out exporteren",
+    "defaultName": "Mijn lay-out",
+    "nameLabel": "Naam",
+    "descriptionLabel": "Beschrijving (optioneel)",
+    "descriptionPlaceholder": "Gezinsdashboard met weer en kalender",
+    "screensHeading": "Schermen om mee te nemen",
+    "selectAll": "Alles selecteren",
+    "deselectAll": "Selectie opheffen",
+    "moduleCountSingular": "{count} module",
+    "moduleCountPlural": "{count} modules",
+    "exportButton": "Exporteren"
+  },
+  "layoutImportModal": {
+    "title": "Lay-out importeren",
+    "screenCountSingular": "{count} scherm",
+    "screenCountPlural": "{count} schermen",
+    "moduleCountSingular": "{count} module",
+    "moduleCountPlural": "{count} modules",
+    "countsLine": "{screens}, {modules}",
+    "sourceLine": "Bron: {width} x {height}",
+    "dimensionWarning": "Deze lay-out is ontworpen voor {sourceWidth}x{sourceHeight} maar je display is {currentWidth}x{currentHeight}. Modules worden automatisch geschaald maar moeten misschien worden bijgesteld.",
+    "applyVisualLabel": "Visuele instellingen toepassen",
+    "visualSummary": "Rotatie: {seconds}s",
+    "visualSummaryWithTransition": "Rotatie: {seconds}s, overgang: {transition}",
+    "saveError": "Opslaan mislukt — controleer je verbinding en probeer opnieuw.",
+    "importButton": "Importeren"
+  },
+  "installFromUrlModal": {
+    "title": "Plugin installeren via URL",
+    "dialogAriaLabel": "Plugin installeren via URL",
+    "tarballUrlLabel": "Tarball-URL",
+    "tarballUrlHelpPart1": "HTTPS-URL naar een ",
+    "tarballUrlHelpPart2": " plugin-bundel. Vervang de versie door ",
+    "tarballUrlHelpPart3": " als je wilt dat toekomstige updates alleen een versienummer nodig hebben.",
+    "exampleLabel": "Voorbeeld:",
+    "versionLabel": "Versie om te installeren",
+    "externalSourceWarning": "Je installeert van buiten de plugin-marketplace. Installeer alleen plugins van bronnen die je vertrouwt.",
+    "installingMessage": "Downloaden en installeren…",
+    "doneButton": "Klaar",
+    "tryAgainButton": "Opnieuw proberen",
+    "installFailed": "Installatie mislukt",
+    "pluginFallbackName": "Plugin"
+  },
+  "externalUpdateModal": {
+    "title": "{id} bijwerken",
+    "dialogAriaLabel": "{id} bijwerken",
+    "currentVersionLabel": "Huidige versie:",
+    "tarballUrlLabel": "Tarball-URL",
+    "tarballUrlHelpPart1": "Bewerk de URL om naar een nieuwe versie te verwijzen, of vervang de versie door ",
+    "tarballUrlHelpPart2": " zodat toekomstige updates alleen een versienummer nodig hebben.",
+    "exampleLabel": "Voorbeeld:",
+    "versionLabel": "Versie om te installeren",
+    "workingMessage": "Downloaden en bijwerken…",
+    "updatedToVersion": "Bijgewerkt naar v{version}.",
+    "doneButton": "Klaar",
+    "tryAgainButton": "Opnieuw proberen",
+    "updateFailed": "Bijwerken mislukt"
+  },
+  "fontFamilyPicker": {
+    "label": "Lettertype",
+    "inheritLabel": "Overnemen van module"
+  },
+  "iconPicker": {
+    "styleSolid": "Vol",
+    "styleRegular": "Lijn",
+    "styleBrands": "Merken",
+    "chooseTitle": "Kies een pictogram",
+    "searchPlaceholder": "Zoek door 1.900+ pictogrammen op naam of trefwoord…",
+    "loadingCatalog": "Volledige catalogus laden…",
+    "iconCount": {
+      "one": "{count} pictogram",
+      "other": "{count} pictogrammen"
+    },
+    "noMatch": "Geen pictogrammen komen overeen met \"{query}\". Probeer een ander trefwoord.",
+    "moreResults": "+{count} meer — verfijn je zoekopdracht om ze te zien.",
+    "chooseIconPlaceholder": "Kies een pictogram…",
+    "browse": "Bladeren",
+    "kindAll": "Alles"
+  },
+  "configSections": {
+    "affirmations": {
+      "viewElegant": "Elegant (accentlijnen)",
+      "viewCard": "Kaart (gradiënttint)",
+      "viewMinimal": "Minimaal (alleen tekst)",
+      "viewTypewriter": "Typemachine (geanimeerd)",
+      "categoryAffirmations": "Affirmaties",
+      "categoryCompliments": "Complimenten",
+      "categoryMotivational": "Motiverend",
+      "categoryGratitude": "Dankbaarheidsvragen",
+      "categoryMindfulness": "Mindfulness",
+      "contentCategories": "Inhoudscategorieën",
+      "rotationSeconds": "Rotatie (seconden)",
+      "timeAware": "Tijdsbewuste inhoud",
+      "weatherAware": "Weerbewuste inhoud",
+      "weatherAwareLocationWarning": "Stel je locatie in bij Instellingen > Weer om weerbewuste inhoud in te schakelen.",
+      "showCategoryLabel": "Categorielabel tonen",
+      "accentColor": "Accentkleur",
+      "customEntriesCount": "Eigen items ({count})",
+      "newEntryPlaceholder": "Nieuwe affirmatietekst…",
+      "attributionPlaceholder": "Bron (optioneel)",
+      "addEntry": "Item toevoegen"
+    },
+    "air-quality": {
+      "showAQI": "AQI tonen",
+      "showPollutants": "Verontreinigingen tonen"
+    },
+    "calendar": {
+      "viewMode": "Weergavemodus",
+      "viewDaily": "Dagkolommen",
+      "viewAgenda": "Agendalijst",
+      "viewWeek": "Weekraster",
+      "viewMonth": "Maandraster",
+      "googleAuthExpired": "Google Calendar-verificatie verlopen. Verifieer opnieuw via Instellingen → Agenda.",
+      "sources": "Bronnen",
+      "allSources": "Alle bronnen",
+      "googleCalendar": "Google Calendar",
+      "googleCalendarNumbered": "Google Calendar {n}",
+      "publicHolidays": "Officiële feestdagen",
+      "daysToShow": "Aantal dagen tonen",
+      "maxEvents": "Max. evenementen",
+      "showTime": "Tijd tonen",
+      "showLocation": "Locatie tonen",
+      "showWeekNumbers": "Weeknummers tonen",
+      "accentColor": "Accentkleur"
+    },
+    "chore-chart": {
+      "viewBoard": "Bord (kolom per lid)",
+      "viewStarChart": "Star Chart (weekraster)",
+      "viewToday": "Vandaag (dagdeel)",
+      "viewProgress": "Voortgang (ringen)",
+      "viewCompact": "Compact (dicht raster)",
+      "weekStartsOn": "Week begint op",
+      "showTickets": "Tickets tonen",
+      "showStreaks": "Streaks tonen",
+      "showTimeOfDay": "Dagdeel tonen",
+      "tapToComplete": "Tik om af te ronden (display)",
+      "accentColor": "Accentkleur",
+      "membersCount": "{count} leden",
+      "choresCount": "{count} klusjes",
+      "editChoreChart": "Klusjeslijst bewerken",
+      "mobileHintPrefix": "Gezinsleden kunnen klusjes afvinken vanaf hun telefoon via het tabblad Klusjes op"
+    },
+    "clock": {
+      "viewClassic": "Klassiek (gecentreerd)",
+      "viewDigital": "Digitaal (7-segment LED)",
+      "viewAnalog": "Analoog (wijzerplaat)",
+      "viewMinimal": "Minimaal (alleen tijd)",
+      "viewFlip": "Flip (klapcijfers)",
+      "viewWord": "Woord (Engelse tekst)",
+      "viewBinary": "Binair (BCD-puntjes)",
+      "viewVertical": "Verticaal (gestapeld)",
+      "viewSplit": "Gesplitst (tijd + datum)",
+      "viewProgress": "Voortgang (dagring)",
+      "viewFuzzy": "Vaag (bij benadering)",
+      "viewWorld": "Wereld (tijdzones)",
+      "viewDotMatrix": "Dotmatrix (LED-raster)",
+      "viewRadial": "Radiaal (concentrische ringen)",
+      "viewArc": "Boog (zonpositie)",
+      "viewNeon": "Neon (gloeibord)",
+      "viewBar": "Balk (voortgangsbalken)",
+      "viewElapsed": "Verstreken (sinds/tot)",
+      "datePresetWeekdayMonthDay": "maandag 5 januari",
+      "datePresetShortWeekday": "ma 5 jan",
+      "datePresetMonthDayYear": "5 januari 2026",
+      "datePresetShortMonthDayYear": "5 jan 2026",
+      "datePresetSlashMDY": "01/05/2026",
+      "datePresetSlashDMY": "05/01/2026",
+      "datePresetIso": "2026-01-05",
+      "datePresetWeekday": "maandag",
+      "invalidFormat": "Ongeldige opmaak",
+      "format24h": "24-uurs opmaak",
+      "showSeconds": "Seconden tonen",
+      "showDate": "Datum tonen",
+      "dateFormat": "Datumopmaak",
+      "customOption": "Aangepast...",
+      "dateFormatPlaceholder": "bv. EEEE, MMMM d",
+      "showWeekNumber": "Weeknummer tonen",
+      "showDayOfYear": "Dag van het jaar tonen",
+      "showHourNumbers": "Uurcijfers tonen",
+      "flipAnimation": "Flip-animatie",
+      "accentColor": "Accentkleur",
+      "timeZonesCount": "Tijdzones ({count}/{max})",
+      "addTimezone": "Tijdzone toevoegen...",
+      "referenceTime": "Referentietijd",
+      "referenceLabel": "Label",
+      "referenceLabelPlaceholder": "bv. opening beurs",
+      "countUp": "Optellen (verstreken)"
+    },
+    "countdown": {
+      "viewAll": "Alle evenementen (gestapeld)",
+      "viewNext": "Volgend evenement (één)",
+      "defaultEventName": "Nieuw evenement",
+      "showPastEvents": "Eerdere evenementen tonen",
+      "stayOnDay": "Blijven op de dag",
+      "stayOnDayHelp": "Zodra een gebeurtenis op nul staat, blijft die in beeld tot het einde van de dag.",
+      "scalePercent": "Schaal ({percent}%)",
+      "events": "Evenementen",
+      "holidaysButton": "Feestdagen...",
+      "backgroundImageHelp": "De achtergrondafbeelding van het eerstvolgende evenement wordt als pagina-achtergrond gebruikt.",
+      "holidayBadge": "Feestdag",
+      "namePlaceholder": "Naam",
+      "repeatYearly": "Jaarlijks herhalen",
+      "holidayRecurringInfo": "Jaarlijks terugkerend · {date}",
+      "clear": "Wissen",
+      "setBackground": "Achtergrond instellen..."
+    },
+    "dad-joke": {
+      "showDividers": "Scheidingslijnen tonen"
+    },
+    "date": {
+      "viewFull": "Volledig (kalenderpagina)",
+      "viewMinimal": "Minimaal (één regel)",
+      "viewStacked": "Gestapeld (verticaal)",
+      "viewEditorial": "Redactioneel (magazine)",
+      "viewBanner": "Banner (horizontaal)",
+      "datePresetMonthDay": "5 januari",
+      "datePresetWeekdayMonthDay": "maandag 5 januari",
+      "datePresetShortWeekday": "ma 5 jan",
+      "datePresetMonthDayYear": "5 januari 2026",
+      "datePresetShortMonthDayYear": "5 jan 2026",
+      "datePresetSlashMDY": "01/05/2026",
+      "datePresetSlashDMY": "05/01/2026",
+      "datePresetIso": "2026-01-05",
+      "invalidFormat": "Ongeldige opmaak",
+      "dateFormat": "Datumopmaak",
+      "customOption": "Aangepast...",
+      "dateFormatPlaceholder": "bv. EEEE, MMMM d",
+      "showDayName": "Dagnaam tonen",
+      "showYear": "Jaartal tonen",
+      "showWeekNumber": "Weeknummer tonen",
+      "showDayOfYear": "Dag van het jaar tonen",
+      "accentColor": "Accentkleur"
+    },
+    "display-control": {
+      "layout": "Indeling",
+      "layoutBar": "Balk",
+      "layoutPad": "Pad",
+      "layoutPanel": "Paneel",
+      "defaultTarget": "Standaarddoel",
+      "targetSelf": "Dit display (zelf)",
+      "targetAll": "Alle displays",
+      "legacyHint": "Er is maar één display geregistreerd — het doel is vastgezet op dit display.",
+      "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen"
+    },
+    "financial": {
+      "viewCards": "Kaarten",
+      "viewTicker": "Ticker (scrollend)",
+      "viewTable": "Tabel",
+      "viewCompact": "Compact",
+      "scale": "Schaal",
+      "tickerSpeed": "Tickersnelheid ({unit})",
+      "stockSymbolsLabel": "Symbolen (komma-gescheiden)",
+      "cryptoIdsLabel": "Coin-ID's (komma-gescheiden, CoinGecko)",
+      "tickerUnitStock": "sec/aandeel",
+      "tickerUnitCoin": "sec/coin"
+    },
+    "fullscreen-calendar": {
+      "viewSchedule": "Schema (kolomraster)",
+      "viewWeekList": "Weeklijst",
+      "viewMonthGrid": "Maandraster",
+      "viewDayTimeline": "Dagtijdlijn",
+      "viewAgenda": "Agenda",
+      "densityCozy": "Ruim (lezen op afstand)",
+      "densitySnug": "Krap (meer evenementen)",
+      "typographySmall": "Klein",
+      "typographyMedium": "Middel",
+      "typographyLarge": "Groot",
+      "typographyExtraLarge": "Extra groot",
+      "typography2xLarge": "2X groot",
+      "typography3xLarge": "3X groot",
+      "typography4xLarge": "4X groot",
+      "view": "Weergave",
+      "typographySize": "Tekstgrootte",
+      "themeDefault": "Standaard (uit Instellingen)",
+      "accentColor": "Accentkleur",
+      "dimPastEvents": "Eerdere evenementen dimmen",
+      "shadeWeekends": "Weekenden arceren",
+      "showWeather": "Weer tonen",
+      "showNowLine": "Nu-lijn tonen",
+      "sources": "Bronnen",
+      "allSources": "Alle bronnen",
+      "googleCalendar": "Google Calendar",
+      "googleCalendarNumbered": "Google Calendar {n}",
+      "publicHolidays": "Officiële feestdagen",
+      "startHour": "Beginuur",
+      "endHour": "Einduur",
+      "daysToShowAuto": "Aantal dagen tonen (0 = automatisch)",
+      "collapsePastDays": "Voorbije dagen inklappen",
+      "showWeekNumbers": "Weeknummers tonen",
+      "maxEventsPerCellAuto": "Max. evenementen per cel (0 = automatisch)",
+      "showLocation": "Locatie tonen",
+      "daysAhead": "Dagen vooruit",
+      "hideEmptyDays": "Lege dagen verbergen"
+    },
+    "fullscreen-chore-chart": {
+      "view": "Weergave",
+      "viewChoreBoard": "Klusjesbord",
+      "viewRewardsStore": "Beloningenwinkel",
+      "showRewardsButton": "Knop Beloningen tonen",
+      "showRewardsButtonHelp": "Voegt een knop toe aan het klusjesbord zodat kinderen naar de beloningenwinkel kunnen wisselen. Het beste voor displays met touchscreen.",
+      "themeDefault": "Standaard (uit Instellingen)",
+      "densityCozy": "Ruim",
+      "densitySnug": "Krap",
+      "typographySize": "Tekstgrootte",
+      "accentColor": "Accentkleur",
+      "weekStartsOn": "Week begint op",
+      "showTickets": "Tickets tonen",
+      "showStreaks": "Streaks tonen",
+      "showTimeOfDay": "Dagdeel tonen",
+      "tapToComplete": "Tik om af te ronden (display)",
+      "membersCount": "{count} leden",
+      "choresCount": "{count} klusjes",
+      "editChoreChart": "Klusjeslijst bewerken",
+      "mobileHintPrefix": "Gezinsleden kunnen klusjes afvinken op het touchscreen of vanaf hun telefoon via het tabblad Klusjes op"
+    },
+    "fullscreen-meal-planner": {
+      "themeDefault": "Standaard (uit Instellingen)",
+      "view": "Weergave",
+      "viewWeek": "Week",
+      "viewToday": "Vandaag",
+      "viewMenuBoard": "Menubord",
+      "viewNextMeal": "Volgende maaltijd",
+      "densityCozy": "Ruim",
+      "densitySnug": "Krap",
+      "typographySize": "Tekstgrootte",
+      "showEmoji": "Emoji tonen",
+      "showPrepTime": "Bereidingstijd tonen",
+      "showTags": "Tags tonen",
+      "showDifficulty": "Moeilijkheid tonen",
+      "accentColor": "Accentkleur",
+      "savedMealsCount": "{count} opgeslagen maaltijden",
+      "plannedCount": "{count} gepland",
+      "editMealPlanner": "Maaltijdplanner bewerken",
+      "mobileHintPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden gedeeld door alle maaltijdmodules. Bewerk ze via",
+      "mobileHintSettingsLink": "Instellingen → Maaltijden",
+      "mobileHintSuffix": "of via",
+      "mobileHintEnd": "het instellingenpaneel."
+    },
+    "fullscreen-photo": {
+      "themeDefaultMidnight": "Standaard (Midnight)",
+      "photoSource": "Fotobron",
+      "sourceLocal": "Lokale foto's",
+      "sourceImmich": "Immich",
+      "mode": "Modus",
+      "modeSlideshow": "Diavoorstelling",
+      "modeSingle": "Enkele foto",
+      "photo": "Foto",
+      "noneSelected": "Geen geselecteerd",
+      "choose": "Kiezen...",
+      "photoFolder": "Fotomap",
+      "allPhotosRoot": "Alle foto's (root)",
+      "browse": "Bladeren...",
+      "photoCountSingular": "{count} foto",
+      "photoCountPlural": "{count} foto's",
+      "noPhotosInFolder": "Geen foto's in deze map",
+      "slideIntervalSeconds": "Slide-interval (seconden)",
+      "transition": "Overgang",
+      "transitionFade": "Vervagen",
+      "transitionSlide": "Schuiven",
+      "transitionZoom": "Zoomen",
+      "transitionNone": "Geen",
+      "shuffleOrder": "Willekeurige volgorde",
+      "kenBurnsEffect": "Ken Burns-effect",
+      "showClockOverlay": "Klok-overlay tonen",
+      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op"
+    },
+    "garbage-day": {
+      "frequencyWeekly": "Elke week",
+      "frequencyBiweekly": "Om de week",
+      "highlightDayBefore": "Dag ervoor (bakken buiten zetten)",
+      "highlightDayOf": "Op de dag zelf (ophaaldag)",
+      "dayDisabled": "Uitgeschakeld",
+      "trash": "Restafval",
+      "recycling": "Recycling",
+      "custom": "Aangepast",
+      "dayLabel": "{label}-dag",
+      "frequency": "Frequentie",
+      "knownDateLabel": "Een bekende {label}-datum",
+      "knownDateHelp": "Kies een datum waarop {label} is/wordt opgehaald",
+      "iconColor": "Pictogramkleur",
+      "customCategoryName": "Eigen categorienaam",
+      "defaultCustomLabel": "Tuinafval",
+      "highlightWhen": "Markeren wanneer"
+    },
+    "greeting": {
+      "name": "Naam",
+      "defaultName": "Vriend",
+      "weatherAware": "Weerbewuste begroeting",
+      "locationRequired": "Stel je locatie in bij Instellingen > Weer om weerbewuste begroetingen in te schakelen."
+    },
+    "history": {
+      "cycleEventsSeconds": "Evenementen wisselen (seconden)",
+      "showDividers": "Scheidingslijnen tonen",
+      "sourceWikipedia": "Bron: Wikipedia",
+      "sourceMuffinLabs": "Bron: MuffinLabs"
+    },
+    "icon": {
+      "style": "Stijl",
+      "styleSolid": "Solide",
+      "styleRegular": "Standaard (omtrek)",
+      "styleBrands": "Merken (logo's)",
+      "iconColor": "Pictogramkleur",
+      "iconBackground": "Pictogramachtergrond",
+      "autoFit": "Automatisch passend maken aan modulegrootte",
+      "scale": "Schaal",
+      "rotation0": "Geen rotatie",
+      "rotation90": "90°",
+      "rotation180": "180°",
+      "rotation270": "270°",
+      "flip": "Spiegelen",
+      "flipNone": "Geen",
+      "flipHorizontal": "Horizontaal",
+      "flipVertical": "Verticaal",
+      "flipBoth": "Beide",
+      "animation": "Animatie",
+      "animationNone": "Geen",
+      "animationSpin": "Draaien",
+      "animationSpinPulse": "Draaien (stapsgewijs)",
+      "animationSpinReverse": "Draaien (omgekeerd)",
+      "animationBeat": "Kloppen",
+      "animationFade": "Vervagen",
+      "animationBeatFade": "Kloppen + vervagen",
+      "animationBounce": "Stuiteren",
+      "animationShake": "Schudden",
+      "animationFlip": "Flip",
+      "animationSpeed": "Animatiesnelheid",
+      "hideAdvanced": "▾ Geavanceerd verbergen",
+      "showAdvanced": "▸ Geavanceerd — plak een ruwe class-string",
+      "customClass": "Aangepaste class"
+    },
+    "iframe": {
+      "url": "URL",
+      "titleAccessibility": "Titel (toegankelijkheid)",
+      "titlePlaceholder": "bv. Home Assistant Dashboard",
+      "autoRefreshSeconds": "Automatisch vernieuwen (seconden, 0 = uit)",
+      "allowScrolling": "Scrollen toestaan",
+      "enableSandbox": "Sandbox inschakelen",
+      "sandboxPermissions": "Sandbox-machtigingen",
+      "sandboxDangerous": "De combinatie van allow-same-origin en allow-scripts schakelt de sandbox feitelijk uit.",
+      "unknownTokensSingular": "Onbekend token: {tokens}",
+      "unknownTokensPlural": "Onbekende tokens: {tokens}",
+      "sandboxHelp": "Tokens gescheiden door spaties. Laat leeg voor maximale beperking."
+    },
+    "image": {
+      "imageSource": "Afbeeldingsbron",
+      "tabUrl": "URL",
+      "tabLibrary": "Bibliotheek",
+      "imageUrl": "Afbeeldings-URL",
+      "browseLibrary": "Bibliotheek doorzoeken...",
+      "uploadImage": "Afbeelding uploaden",
+      "uploading": "Uploaden...",
+      "uploadFailed": "Uploaden mislukt",
+      "preview": "Voorbeeld",
+      "altText": "Alt-tekst"
+    },
+    "immichSource": {
+      "connecting": "Verbinden...",
+      "connected": "Verbonden",
+      "connectedWithVersion": "Verbonden (v{version})",
+      "apiKeyInvalid": "API-sleutel ongeldig",
+      "cannotReachServer": "Server niet bereikbaar",
+      "retry": "Opnieuw proberen",
+      "album": "Album",
+      "anyAlbum": "Elk album",
+      "person": "Persoon",
+      "anyone": "Iedereen",
+      "favoritesOnly": "Alleen favorieten",
+      "photosPerRefresh": "Foto's per vernieuwing",
+      "photoInAlbumSingular": "{count} foto in album",
+      "photoInAlbumPlural": "{count} foto's in album"
+    },
+    "meal-planner": {
+      "viewWeek": "Weekraster",
+      "viewToday": "Maaltijden van vandaag",
+      "viewNextMeal": "Volgende maaltijd (hero)",
+      "viewCompact": "Compact (vandaag + morgen)",
+      "viewList": "Volledige weeklijst",
+      "showEmoji": "Emoji tonen",
+      "showPrepTime": "Bereidingstijd tonen",
+      "showTags": "Tags tonen",
+      "accentColor": "Accentkleur",
+      "sharedSettingsPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden beheerd via",
+      "sharedSettingsLink": "Instellingen → Maaltijden",
+      "sharedSettingsOr": "of",
+      "sharedSettingsSuffix": "zodat al je maaltijdmodules synchroon blijven.",
+      "savedMealsCount": "{count} opgeslagen maaltijden",
+      "plannedCount": "{count} gepland",
+      "editMealPlan": "Maaltijdplan bewerken"
+    },
+    "moon-phase": {
+      "showIllumination": "Verlichtingspercentage tonen",
+      "showMoonTimes": "Maan-tijden tonen",
+      "locationHelp": "Gebruikt de locatie uit de algemene instellingen."
+    },
+    "multi-month": {
+      "layout": "Indeling",
+      "layoutVertical": "Verticaal (gestapeld)",
+      "layoutHorizontal": "Horizontaal (naast elkaar)",
+      "monthsToShow": "Aantal maanden tonen",
+      "weekStartsOn": "Week begint op",
+      "showWeekNumbers": "Weeknummers tonen",
+      "highlightWeekends": "Weekenden markeren",
+      "showAdjacentDays": "Aangrenzende dagen tonen"
+    },
+    "news": {
+      "viewHeadline": "Kop (roterend)",
+      "viewList": "Lijst",
+      "viewTicker": "Ticker (scrollend)",
+      "viewCompact": "Compact",
+      "feedSource": "Feedbron",
+      "customUrlOption": "Aangepaste URL…",
+      "customRssFeedUrl": "Aangepaste RSS-feed-URL",
+      "rotateHeadlines": "Koppen rouleren (seconden)",
+      "maxItems": "Max. items",
+      "tickerSpeed": "Tickersnelheid (sec/item)",
+      "showTimestamp": "Tijdstempel tonen",
+      "bulletColor": "Opsommingskleur"
+    },
+    "photo-slideshow": {
+      "sourceLocal": "Lokale foto's",
+      "sourceImmich": "Immich",
+      "transitionFade": "Vervagen",
+      "transitionNone": "Geen",
+      "photoSource": "Fotobron",
+      "folder": "Map",
+      "allPhotosRoot": "Alle foto's (root)",
+      "browse": "Bladeren...",
+      "photoCountOne": "{count} foto",
+      "photoCountOther": "{count} foto's",
+      "noPhotosInFolder": "Geen foto's in deze map",
+      "slideInterval": "Slide-interval (seconden)",
+      "transition": "Overgang"
+    },
+    "qr-code": {
+      "modeCustom": "Aangepast (URL / tekst)",
+      "modeWifi": "WiFi-wachtwoord",
+      "authWPA": "WPA / WPA2 / WPA3",
+      "authWEP": "WEP",
+      "authNone": "Geen (open)",
+      "mode": "Modus",
+      "networkName": "Netwerknaam (SSID)",
+      "encryption": "Versleuteling",
+      "password": "Wachtwoord",
+      "passwordPlaceholder": "WiFi-wachtwoord",
+      "hiddenNetwork": "Verborgen netwerk",
+      "showNetworkName": "Netwerknaam tonen",
+      "showPassword": "Wachtwoord tonen",
+      "dataUrlOrText": "Data (URL of tekst)",
+      "label": "Label",
+      "qrColor": "QR-kleur",
+      "background": "Achtergrond",
+      "networkNamePlaceholder": "MijnNetwerk",
+      "dataUrlOrTextPlaceholder": "https://example.com"
+    },
+    "rain-map": {
+      "styleDark": "Donker",
+      "styleStandard": "Standaard",
+      "latitude": "Breedtegraad (0 = wereldwijd)",
+      "longitude": "Lengtegraad (0 = wereldwijd)",
+      "zoom": "Zoom",
+      "animationSpeed": "Animatiesnelheid (ms)",
+      "endPause": "Eindpauze (ms)",
+      "radarOpacity": "Radar-dekking %",
+      "smoothRadar": "Vloeiende radar",
+      "showSnow": "Sneeuw tonen",
+      "showTimestamp": "Tijdstempel tonen",
+      "showTimeline": "Tijdlijn tonen",
+      "mapStyle": "Kaartstijl",
+      "locationHelp": "Gebruikt de locatie uit de algemene instellingen wanneer lat/lon 0 zijn."
+    },
+    "shape": {
+      "viewDivider": "Scheidingslijn",
+      "viewDoubleLine": "Dubbele lijn",
+      "viewWave": "Golf",
+      "viewZigzag": "Zigzag",
+      "viewDottedRow": "Stippelrij",
+      "viewRectangle": "Rechthoek",
+      "viewCircle": "Cirkel",
+      "viewTriangle": "Driehoek",
+      "viewPolygon": "Veelhoek",
+      "viewStar": "Ster",
+      "viewArrow": "Pijl",
+      "viewGlow": "Gloed (radiaal)",
+      "viewGradient": "Gradiëntpaneel",
+      "viewGrid": "Rasterpatroon",
+      "viewFrame": "Kader",
+      "fillSolid": "Effen kleur",
+      "fillGradient": "Gradiënt",
+      "orientationHorizontal": "Horizontaal",
+      "orientationVertical": "Verticaal",
+      "orientationDiagonal": "Diagonaal",
+      "lineStyleSolid": "Doorlopend",
+      "lineStyleDashed": "Streepjes",
+      "lineStyleDotted": "Stippels",
+      "endStyleFlat": "Vlak",
+      "endStyleFade": "Vervagen",
+      "endStyleRounded": "Afgerond",
+      "arrowRight": "Rechts",
+      "arrowDown": "Omlaag",
+      "arrowLeft": "Links",
+      "arrowUp": "Omhoog",
+      "gridDots": "Punten",
+      "gridLines": "Lijnen",
+      "gridCross": "Kruisjes",
+      "frameRectangle": "Rechthoekige omtrek",
+      "frameBrackets": "Hoekhaken",
+      "shape": "Vorm",
+      "fill": "Vulling",
+      "gradientFrom": "Gradiënt van",
+      "gradientTo": "Gradiënt naar",
+      "gradientAngle": "Gradiënthoek",
+      "orientation": "Oriëntatie",
+      "thickness": "Dikte",
+      "lineStyle": "Lijnstijl",
+      "edgeStyle": "Randstijl",
+      "amplitude": "Amplitude",
+      "frequency": "Frequentie",
+      "lineGap": "Lijnafstand",
+      "dotCount": "Aantal punten",
+      "dotSize": "Puntgrootte",
+      "outlineOnly": "Alleen omtrek (hol)",
+      "strokeWidth": "Lijndikte",
+      "cornerRadius": "Hoekradius",
+      "sides": "Zijden",
+      "points": "Punten",
+      "pointSharpness": "Puntscherpte",
+      "direction": "Richting",
+      "headSize": "Pijlpuntgrootte",
+      "intensity": "Intensiteit",
+      "softness": "Zachtheid",
+      "pattern": "Patroon",
+      "spacing": "Afstand",
+      "markSize": "Markeringsgrootte",
+      "frameStyle": "Kaderstijl",
+      "bracketLength": "Hoeklengte"
+    },
+    "sports": {
+      "viewScoreboard": "Scorebord",
+      "viewCards": "Kaarten",
+      "viewList": "Lijst",
+      "viewTicker": "Ticker",
+      "leagues": "Competities",
+      "tickerSpeed": "Tickersnelheid (sec/wedstrijd)"
+    },
+    "standings": {
+      "viewTable": "Tabel",
+      "viewCompact": "Compact",
+      "viewConference": "Conference",
+      "groupingDivision": "Per divisie",
+      "groupingConference": "Per conference",
+      "groupingLeague": "Volledige competitie",
+      "league": "Competitie",
+      "grouping": "Groepering",
+      "playoffCutoffLine": "Playoff-grenslijn",
+      "teamsToShow": "Aantal teams tonen (0 = alle)",
+      "rotationSeconds": "Rotatie (seconden)"
+    },
+    "sticky-note": {
+      "content": "Inhoud",
+      "noteColor": "Notitiekleur"
+    },
+    "sunrise-sunset": {
+      "views": {
+        "default": "Standaard (tekst)",
+        "arc": "Zonneboog (visueel)"
+      },
+      "showDayLength": "Daglengte tonen",
+      "showGoldenHour": "Gouden uur tonen",
+      "locationHint": "Gebruikt de locatie uit de algemene instellingen."
+    },
+    "text": {
+      "content": "Inhoud",
+      "contentPlaceholder": "Hallo, wereld!",
+      "contentRotationPlaceholder": "Slide 1\n---\nSlide 2\n---\nSlide 3",
+      "orientation": "Oriëntatie",
+      "alignment": "Uitlijning",
+      "verticalAlign": "Verticale uitlijning",
+      "fontOverride": "Lettertype (overschrijven)",
+      "fontWeight": "Lettergewicht",
+      "italic": "Cursief",
+      "lineHeight": "Regelhoogte",
+      "textTransform": "Teksttransformatie",
+      "letterSpacing": "Letterspatiëring",
+      "wordSpacing": "Woordspatiëring",
+      "decoration": "Decoratie",
+      "decorationColor": "Decoratiekleur",
+      "decorationThickness": "Decoratiedikte",
+      "emoji": "Emoji",
+      "clear": "Wissen",
+      "emojiHint": "Getoond vóór de tekst",
+      "markdown": "Markdown",
+      "markdownHint": "**vet**   *cursief*   ~~doorhalen~~   `code`   nieuwe regels → regelafbreking",
+      "autoFit": "Automatisch passend in container",
+      "templateVariables": "Sjabloonvariabelen",
+      "effect": "Effect",
+      "animationSpeed": "Animatiesnelheid",
+      "outlineWidth": "Omtrekbreedte",
+      "outlineColor": "Omtrekkleur",
+      "shadowX": "Schaduw X",
+      "shadowY": "Schaduw Y",
+      "shadowBlur": "Schaduwvervaging",
+      "shadowColor": "Schaduwkleur",
+      "gradientText": "Gradiënttekst",
+      "gradientFrom": "Van",
+      "gradientTo": "Naar",
+      "gradientAngle": "Hoek",
+      "maxWidth": "Max. breedte",
+      "maxWidthNoLimit": "Geen limiet",
+      "wrap": "Afbreken",
+      "dropCap": "Initiaal",
+      "dropCapColor": "Kleur initiaal",
+      "textBackground": "Tekstachtergrond",
+      "bgPadding": "Achtergrondpadding",
+      "bgRadius": "Achtergrondradius",
+      "slideshow": "Diavoorstelling",
+      "slidesHintPrefix": "Scheid slides met",
+      "slidesHintSuffix": "in de inhoud hierboven",
+      "interval": "Interval",
+      "separator": "Scheidingsteken",
+      "revealAnimation": "Onthullingsanimatie",
+      "scrollingMarquee": "Scrollende marquee",
+      "direction": "Richting",
+      "speed": "Snelheid",
+      "dividers": "Scheidingslijnen",
+      "accentColor": "Accentkleur",
+      "colorCyclePalette": "Kleurcyclus-palet",
+      "addColor": "+ Toevoegen",
+      "sections": {
+        "typography": "Typografie",
+        "features": "Functies",
+        "effect": "Effect",
+        "gradient": "Gradiënt",
+        "layout": "Indeling",
+        "marquee": "Marquee",
+        "decorative": "Decoratief"
+      },
+      "orientationOptions": {
+        "horizontal": "Horizontaal",
+        "vertical": "Verticaal",
+        "sideways": "Gekanteld"
+      },
+      "alignmentOptions": {
+        "left": "Links",
+        "center": "Midden",
+        "right": "Rechts"
+      },
+      "verticalAlignOptions": {
+        "top": "Boven",
+        "center": "Midden",
+        "bottom": "Onder"
+      },
+      "textTransformOptions": {
+        "none": "Geen",
+        "uppercase": "HOOFDLETTERS",
+        "lowercase": "kleine letters",
+        "capitalize": "Eerste Letter Groot"
+      },
+      "effectOptions": {
+        "none": "Geen",
+        "typewriter": "Typemachine",
+        "fade-in": "Invagen",
+        "gradient-sweep": "Gradiënt-sweep",
+        "glow": "Gloed / pulse",
+        "outline": "Omtrek",
+        "shadow": "Slagschaduw",
+        "3d": "3D / geëxtrudeerd",
+        "neon": "Neon",
+        "wave": "Golf (per teken)",
+        "bounce": "Stuiteren (per teken)",
+        "shake": "Schudden (per teken)",
+        "color-cycle": "Kleurcyclus"
+      },
+      "decorationOptions": {
+        "none": "Geen",
+        "underline": "Onderstrepen",
+        "overline": "Bovenlijn",
+        "line-through": "Doorhalen"
+      },
+      "revealOptions": {
+        "none": "Geen (direct wisselen)",
+        "fade": "Vervagen",
+        "slide-up": "Omhoog schuiven",
+        "slide-down": "Omlaag schuiven",
+        "zoom": "Zoomen"
+      },
+      "wrapOptions": {
+        "normal": "Normaal",
+        "nowrap": "Niet afbreken (één regel)",
+        "balance": "Gebalanceerd (meerdere regels)",
+        "pretty": "Mooi (geen losse woorden)"
+      },
+      "marqueeDirectionOptions": {
+        "left": "Links",
+        "right": "Rechts",
+        "up": "Omhoog",
+        "down": "Omlaag"
+      }
+    },
+    "todo": {
+      "title": "Titel",
+      "defaultTitle": "Te doen",
+      "items": "Items",
+      "newItemText": "Nieuw item"
+    },
+    "todoist": {
+      "apiToken": "API-token",
+      "checking": "Controleren...",
+      "connected": "Verbonden",
+      "notConfigured": "Niet geconfigureerd.",
+      "settingsIntegrationsLink": "Instellingen → Integraties",
+      "title": "Titel",
+      "viewMode": "Weergavemodus",
+      "groupByLabel": "Groeperen op",
+      "sortByLabel": "Sorteren op",
+      "filterProjects": "Projecten filteren (komma-gescheiden)",
+      "filterProjectsPlaceholder": "bv. Werk, Persoonlijk",
+      "filterLabels": "Labels filteren (komma-gescheiden)",
+      "filterLabelsPlaceholder": "bv. dringend, thuis",
+      "showSubtasks": "Subtaken tonen",
+      "showLabels": "Labels tonen",
+      "showProject": "Project tonen",
+      "showNoDueDate": "Taken zonder datum tonen",
+      "tapToComplete": "Tik om af te ronden (touchscreen)",
+      "maxTasks": "Max. taken",
+      "viewModes": {
+        "list": "Lijst",
+        "board": "Bord",
+        "focus": "Focus (vandaag)"
+      },
+      "groupBy": {
+        "none": "Geen",
+        "project": "Project",
+        "priority": "Prioriteit",
+        "date": "Vervaldatum",
+        "label": "Label"
+      },
+      "sortBy": {
+        "default": "Standaardvolgorde",
+        "priority": "Prioriteit",
+        "due_date": "Vervaldatum",
+        "alphabetical": "Alfabetisch"
+      }
+    },
+    "traffic": {
+      "routes": "Routes",
+      "newRouteLabel": "Werk",
+      "labelPlaceholder": "Label",
+      "originPlaceholder": "Vertrekadres",
+      "destinationPlaceholder": "Bestemmingsadres"
+    },
+    "weather": {
+      "hideWhenNoAlerts": "Verbergen zonder waarschuwingen",
+      "iconStyle": "Pictogramstijl",
+      "dataProvider": "Dataleverancier",
+      "hoursToShow": "Aantal uren tonen",
+      "daysToShow": "Aantal dagen tonen",
+      "feelsLike": "Gevoelstemperatuur",
+      "highLow": "Hoog / laag",
+      "precipitation": "Neerslag",
+      "precipitationAmount": "Hoeveelheid neerslag",
+      "humidity": "Luchtvochtigheid",
+      "windSpeed": "Windsnelheid",
+      "pressure": "Luchtdruk",
+      "visibility": "Zicht",
+      "dewPoint": "Dauwpunt",
+      "iconSets": {
+        "outline": "Omtrek",
+        "color": "Kleur"
+      },
+      "views": {
+        "current": "Alleen actueel",
+        "hourly": "Per uur",
+        "daily": "Dagverwachting",
+        "combined": "Gecombineerd",
+        "compact": "Compact",
+        "table": "Tabel",
+        "precipitation": "Neerslag",
+        "alerts": "Weerwaarschuwingen"
+      },
+      "providers": {
+        "global": "Algemene standaard",
+        "openweathermap": "OpenWeatherMap",
+        "weatherapi": "WeatherAPI",
+        "pirateweather": "Pirate Weather",
+        "noaa": "NOAA / NWS (alleen VS)",
+        "openMeteo": "Open-Meteo (gratis, wereldwijd)",
+        "yr": "Yr.no / MET Norway (gratis, wereldwijd)",
+        "smhi": "SMHI (gratis, alleen Scandinavië)",
+        "metoffice": "UK Met Office (gericht op VK)",
+        "envcanada": "Environment Canada (alleen Canada)"
+      }
+    },
+    "word-of-day": {
+      "showDividers": "Scheidingslijnen tonen"
+    },
+    "year-progress": {
+      "showYear": "Jaar tonen",
+      "showMonth": "Maand tonen",
+      "showWeek": "Week tonen",
+      "showDay": "Dag tonen",
+      "showPercentage": "Percentage tonen"
+    }
+  },
+  "imageBrowsers": {
+    "errors": {
+      "saveImage": "Afbeelding opslaan mislukt"
+    },
+    "immich": {
+      "allPhotos": "Alle foto's",
+      "noPhotos": "Geen foto's gevonden",
+      "attribution": "Foto's uit je Immich-bibliotheek",
+      "notConfiguredPrefix": "Voeg je Immich-server-URL en API-sleutel toe bij",
+      "settingsWord": "Instellingen",
+      "notConfiguredSuffix": "om door je fotobibliotheek te bladeren.",
+      "apiKeyHint": "Maak een API-sleutel aan in Immich → Account Settings → API Keys",
+      "errors": {
+        "loadPhotos": "Foto's laden mislukt",
+        "fetchImage": "Afbeelding ophalen mislukt"
+      }
+    },
+    "unsplash": {
+      "attribution": "Foto's via Unsplash",
+      "searchPlaceholder": "Zoek wat dan ook...",
+      "notConfiguredPrefix": "Voeg een gratis Unsplash API-sleutel toe bij",
+      "settingsWord": "Instellingen",
+      "notConfiguredSuffix": "om door duizenden HD-achtergronden te bladeren.",
+      "apiKeyHint": "Haal er een op via unsplash.com/developers",
+      "errors": {
+        "search": "Zoeken in Unsplash mislukt"
+      },
+      "categories": {
+        "nature": "Natuur",
+        "mountains": "Bergen",
+        "ocean": "Oceaan",
+        "forest": "Bos",
+        "sky": "Lucht",
+        "space": "Ruimte",
+        "city": "Stad",
+        "abstract": "Abstract",
+        "flowers": "Bloemen",
+        "seasons": "Seizoenen"
+      }
+    },
+    "nasa": {
+      "attribution": "Afbeeldingen met dank aan NASA",
+      "searchPlaceholder": "Zoek NASA-afbeeldingen...",
+      "watermarkNote": "Let op: sommige NASA-afbeeldingen bevatten ingebedde tijdstempels of watermerken die niet kunnen worden verwijderd.",
+      "notConfiguredPrefix": "Voeg een gratis NASA API-sleutel toe bij",
+      "settingsWord": "Instellingen",
+      "notConfiguredSuffix": "om door Astronomy Picture of the Day te bladeren.",
+      "apiKeyHint": "Haal er een op via api.nasa.gov",
+      "modes": {
+        "apod": "Foto van de dag",
+        "library": "Afbeeldingenbibliotheek"
+      },
+      "errors": {
+        "fetch": "NASA-afbeeldingen ophalen mislukt"
+      },
+      "categories": {
+        "nebula": "Nevel",
+        "galaxy": "Sterrenstelsel",
+        "earth": "Aarde",
+        "mars": "Mars",
+        "moon": "Maan",
+        "saturn": "Saturnus",
+        "jupiter": "Jupiter",
+        "sun": "Zon",
+        "aurora": "Poollicht",
+        "iss": "ISS"
+      }
+    },
+    "search": {
+      "placeholder": "Zoek wat dan ook...",
+      "searchButton": "Zoeken",
+      "prev": "Vorige",
+      "next": "Volgende",
+      "pageOf": "Pagina {page} van {total}",
+      "errors": {
+        "load": "Afbeeldingen laden mislukt"
+      }
+    }
+  },
+  "modals": {
+    "crud": {
+      "done": "Klaar"
+    },
+    "icalFeeds": {
+      "title": "iCal / ICS-feeds",
+      "editLowercase": "bewerken",
+      "doneLowercase": "klaar",
+      "feedNamePlaceholder": "Feednaam",
+      "newFeedNamePlaceholder": "Feednaam (bv. Werk, Sport)",
+      "addFeed": "+ Feed toevoegen",
+      "helpText": "Voeg ICS/iCal-feed-URL's toe vanuit Google Calendar, Apple Calendar, Outlook, Nextcloud of een andere dienst die .ics-feeds aanbiedt."
+    },
+    "orientation": {
+      "title": "Modules kunnen buiten beeld vallen",
+      "warning": "{offCanvasCount} van de {totalModuleCount} modules zou buiten het nieuwe canvas van {newWidth}×{newHeight} vallen.",
+      "scaleToFit": "Passend schalen",
+      "scaleToFitDescription": "verkleint alle modules proportioneel zodat er niets afgesneden wordt.",
+      "switchAnyway": "Toch wisselen",
+      "switchAnywayDescription": "houdt modules op hun huidige positie — je kunt ze handmatig verplaatsen."
+    }
+  },
+  "viewSelect": {
+    "defaultLabel": "Weergave"
+  },
+  "accentColorPicker": {
+    "label": "Accentkleur",
+    "customColor": "Aangepaste kleur",
+    "presets": {
+      "none": "Geen",
+      "purple": "Paars",
+      "blue": "Blauw",
+      "cyan": "Cyaan",
+      "green": "Groen",
+      "amber": "Amber",
+      "orange": "Oranje",
+      "red": "Rood",
+      "pink": "Roze",
+      "custom": "Aangepast"
+    }
+  },
+  "templatePicker": {
+    "title": "Sjablonen",
+    "loadFailed": "Laden van \"{name}\" mislukt"
+  },
+  "modulePalette": {
+    "modulesHeading": "Modules",
+    "searchPlaceholder": "Modules zoeken…",
+    "noResults": "Geen modules gevonden",
+    "pluginBadge": "Plug-in",
+    "communityPluginTooltip": "Community-plug-in"
+  },
+  "backupReminder": {
+    "message": {
+      "one": "Je hebt al 1 dag geen back-up gemaakt.",
+      "other": "Je hebt al {count} dagen geen back-up gemaakt."
+    },
+    "downloading": "Downloaden…",
+    "backupNow": "Nu back-uppen",
+    "dismiss": "Sluiten"
+  },
+  "statusDot": {
+    "configured": "Geconfigureerd",
+    "notConfigured": "Niet geconfigureerd"
+  }
+}

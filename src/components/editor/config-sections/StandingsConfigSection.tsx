@@ -1,23 +1,12 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StandingsView, StandingsGrouping } from '@/types/config';
-
-const STANDINGS_VIEWS: { value: StandingsView; label: string }[] = [
-  { value: 'table', label: 'Table' },
-  { value: 'compact', label: 'Compact' },
-  { value: 'conference', label: 'Conference' },
-];
-
-const STANDINGS_GROUPINGS: { value: StandingsGrouping; label: string }[] = [
-  { value: 'division', label: 'By Division' },
-  { value: 'conference', label: 'By Conference' },
-  { value: 'league', label: 'Full League' },
-];
 
 const STANDINGS_LEAGUES: { value: string; label: string }[] = [
   { value: 'nfl', label: 'NFL' },
@@ -35,6 +24,7 @@ const STANDINGS_LEAGUES: { value: string; label: string }[] = [
 ];
 
 export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{
     view?: StandingsView;
     league?: string;
@@ -45,6 +35,18 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
     refreshIntervalMs?: number;
   }>(mod, screenId);
 
+  const STANDINGS_VIEWS: { value: StandingsView; label: string }[] = [
+    { value: 'table', label: t('configSections.standings.viewTable') },
+    { value: 'compact', label: t('configSections.standings.viewCompact') },
+    { value: 'conference', label: t('configSections.standings.viewConference') },
+  ];
+
+  const STANDINGS_GROUPINGS: { value: StandingsGrouping; label: string }[] = [
+    { value: 'division', label: t('configSections.standings.groupingDivision') },
+    { value: 'conference', label: t('configSections.standings.groupingConference') },
+    { value: 'league', label: t('configSections.standings.groupingLeague') },
+  ];
+
   return (
     <>
       <ViewSelect
@@ -53,7 +55,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         options={STANDINGS_VIEWS}
       />
       <div className="space-y-1">
-        <span className="text-xs text-hs-text-muted">League</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.standings.league')}</span>
         <select
           value={c.league ?? 'nba'}
           onChange={(e) => set({ league: e.target.value })}
@@ -65,7 +67,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         </select>
       </div>
       <div className="space-y-1">
-        <span className="text-xs text-hs-text-muted">Grouping</span>
+        <span className="text-xs text-hs-text-muted">{t('configSections.standings.grouping')}</span>
         <select
           value={c.grouping ?? 'conference'}
           onChange={(e) => set({ grouping: e.target.value as StandingsGrouping })}
@@ -77,12 +79,12 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         </select>
       </div>
       <Toggle
-        label="Playoff Cutoff Line"
+        label={t('configSections.standings.playoffCutoffLine')}
         checked={c.showPlayoffLine !== false}
         onChange={(v) => set({ showPlayoffLine: v })}
       />
       <Slider
-        label="Teams to Show (0 = all)"
+        label={t('configSections.standings.teamsToShow')}
         value={c.teamsToShow ?? 0}
         min={0}
         max={32}
@@ -90,7 +92,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         onChange={(v) => set({ teamsToShow: v })}
       />
       <Slider
-        label="Rotation (seconds)"
+        label={t('configSections.standings.rotationSeconds')}
         value={(c.rotationIntervalMs ?? 10000) / 1000}
         min={5}
         max={60}
@@ -98,7 +100,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         onChange={(v) => set({ rotationIntervalMs: v * 1000 })}
       />
       <Slider
-        label="Refresh (minutes)"
+        label={t('common.refreshMinutes')}
         value={(c.refreshIntervalMs ?? 300000) / 60000}
         min={1}
         max={60}

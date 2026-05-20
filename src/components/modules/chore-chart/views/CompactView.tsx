@@ -4,6 +4,7 @@ import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/con
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
 interface CompactViewProps {
@@ -23,6 +24,7 @@ export function CompactView({ config, data }: CompactViewProps) {
   const today = todayStr();
   const dayOfWeek = new Date().getDay();
   const allowTouch = config.allowDisplayComplete;
+  const t = useTranslate('modules');
 
   // Filter to today's chores
   const todayChores = chores.filter(
@@ -33,7 +35,7 @@ export function CompactView({ config, data }: CompactViewProps) {
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ opacity: TEXT_OPACITY.secondary }}>
-        <span style={{ fontSize: '0.8em', fontWeight: 600 }}>Chores</span>
+        <span style={{ fontSize: '0.8em', fontWeight: 600 }}>{t('chore-chart.chores')}</span>
         <div className="flex-1" />
         {members.map((m) => (
           <span key={m.id} title={m.name} className="flex items-center">
@@ -86,7 +88,7 @@ export function CompactView({ config, data }: CompactViewProps) {
       {/* Summary row */}
       <div style={{ borderTop: `1px solid ${DIVIDER.visible}`, marginTop: '0.3em', paddingTop: '0.3em' }}>
         <div className="flex items-center gap-2" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>
-          <span>Done:</span>
+          <span>{t('chore-chart.doneLabel')}</span>
           <div className="flex-1" />
           {members.map((m) => {
             const stats = memberStats.get(m.id);

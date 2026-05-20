@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface TagInfo {
   tag: string;
@@ -43,19 +44,28 @@ type PowerState =
   | { status: 'ok'; action: string }
   | { status: 'error'; message: string };
 
+// kind drives styling/role explicitly — don't sniff English prefixes from message.
+type RestoreStatusKind = 'progress' | 'success' | 'error';
+interface RestoreStatus {
+  message: string;
+  kind: RestoreStatusKind;
+}
+
 interface Props {
   onUpgrade: (tag: string) => void;
   onRollback: (tag: string) => void;
 }
 
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
+  const t = useTranslate('editor');
+  const locale = useFormattingLocale();
   const { updateSettings, saveConfig } = useEditorStore();
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [releases, setReleases] = useState<Release[]>([]);
   const [backups, setBackups] = useState<BackupFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
-  const [restoreStatus, setRestoreStatus] = useState<string | null>(null);
+  const [restoreStatus, setRestoreStatus] = useState<RestoreStatus | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
   const [channel, setChannel] = useState<'stable' | 'dev'>(() => {
@@ -149,9 +159,16 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   async function handleRestoreBackup(name: string) {
     await confirmAndRun(
-      { title: 'Restore Backup', message: `Restore configuration from ${name}? Current config will be overwritten.`, confirmLabel: 'Restore' },
+      {
+        title: t('settings.systemPage.restoreDialog.title'),
+        message: t('settings.systemPage.restoreDialog.message', { name }),
+        confirmLabel: t('settings.systemPage.restoreDialog.confirm'),
+      },
       async () => {
-        setRestoreStatus('Restoring...');
+        setRestoreStatus({
+          message: t('settings.systemPage.restoreStatus.restoring'),
+          kind: 'progress',
+        });
         try {
           const res = await editorFetch('/api/system/backups', {
             method: 'POST',
@@ -159,13 +176,22 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             body: JSON.stringify({ name }),
           });
           if (res.ok) {
-            setRestoreStatus('Restored! Reload the editor to see changes.');
+            setRestoreStatus({
+              message: t('settings.systemPage.restoreStatus.restored'),
+              kind: 'success',
+            });
           } else {
             const data = await res.json();
-            setRestoreStatus(`Error: ${data.error}`);
+            setRestoreStatus({
+              message: t('settings.systemPage.restoreStatus.error', { error: data.error }),
+              kind: 'error',
+            });
           }
         } catch {
-          setRestoreStatus('Failed to restore backup');
+          setRestoreStatus({
+            message: t('settings.systemPage.restoreStatus.failed'),
+            kind: 'error',
+          });
         }
       },
     );
@@ -173,22 +199,40 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   async function handleUpgrade(tag: string) {
     await confirmAndRun(
-      { title: 'Upgrade', message: `Upgrade to ${tag}? The server will restart and you may briefly lose connection.`, confirmLabel: 'Upgrade', variant: 'primary' },
+      {
+        title: t('settings.systemPage.upgradeDialog.title'),
+        message: t('settings.systemPage.upgradeDialog.message', { tag }),
+        confirmLabel: t('settings.systemPage.upgradeDialog.confirm'),
+        variant: 'primary',
+      },
       async () => { onUpgrade(tag); },
     );
   }
 
   async function handleRollback(tag: string) {
     await confirmAndRun(
-      { title: 'Rollback', message: `Roll back to ${tag}? The server will restart.`, confirmLabel: 'Roll Back' },
+      {
+        title: t('settings.systemPage.rollbackDialog.title'),
+        message: t('settings.systemPage.rollbackDialog.message', { tag }),
+        confirmLabel: t('settings.systemPage.rollbackDialog.confirm'),
+      },
       async () => { onRollback(tag); },
     );
   }
 
   async function handlePowerAction(action: 'reboot' | 'restart-service') {
-    const label = action === 'reboot' ? 'reboot the system' : 'restart the service';
     await confirmAndRun(
-      { title: action === 'reboot' ? 'Reboot System' : 'Restart Service', message: `Are you sure you want to ${label}? You may briefly lose connection.`, confirmLabel: action === 'reboot' ? 'Reboot' : 'Restart' },
+      {
+        title: action === 'reboot'
+          ? t('settings.systemPage.powerDialog.rebootTitle')
+          : t('settings.systemPage.powerDialog.restartTitle'),
+        message: action === 'reboot'
+          ? t('settings.systemPage.powerDialog.rebootMessage')
+          : t('settings.systemPage.powerDialog.restartMessage'),
+        confirmLabel: action === 'reboot'
+          ? t('settings.systemPage.powerDialog.rebootConfirm')
+          : t('settings.systemPage.powerDialog.restartConfirm'),
+      },
       async () => {
         setPowerState({ status: 'pending', action });
         try {
@@ -201,10 +245,16 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             setPowerState({ status: 'ok', action });
           } else {
             const data = await res.json();
-            setPowerState({ status: 'error', message: data.error || 'Unknown error' });
+            setPowerState({
+              status: 'error',
+              message: data.error || t('settings.systemPage.powerStatus.unknownError'),
+            });
           }
         } catch {
-          setPowerState({ status: 'error', message: 'Failed to reach server' });
+          setPowerState({
+            status: 'error',
+            message: t('common.serverUnreachable'),
+          });
         }
       },
     );
@@ -212,7 +262,11 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   async function handleCancelUpgrade() {
     await confirmAndRun(
-      { title: 'Cancel Upgrade', message: 'Are you sure? The running upgrade will be killed. You may need to retry afterwards.', confirmLabel: 'Cancel Upgrade' },
+      {
+        title: t('settings.systemPage.cancelUpgradeDialog.title'),
+        message: t('settings.systemPage.cancelUpgradeDialog.message'),
+        confirmLabel: t('settings.systemPage.cancelUpgradeDialog.confirm'),
+      },
       async () => {
         try {
           const res = await editorFetch('/api/system/upgrade', { method: 'DELETE' });
@@ -229,7 +283,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   if (loading) {
     return (
       <div className="text-sm text-hs-text-faint py-8 text-center">
-        Loading system info...
+        {t('settings.systemPage.loading')}
       </div>
     );
   }
@@ -237,7 +291,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   if (!versionInfo) {
     return (
       <div className="text-sm text-hs-danger py-8 text-center">
-        Failed to load system information
+        {t('settings.systemPage.loadFailed')}
       </div>
     );
   }
@@ -249,13 +303,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Advanced mode */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Advanced
+          {t('settings.systemPage.advanced.heading')}
         </h3>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-hs-text-primary">Show advanced options</p>
+            <p className="text-sm text-hs-text-primary">{t('settings.systemPage.advanced.toggleLabel')}</p>
             <p className="text-xs text-hs-text-faint mt-0.5">
-              Reveals developer-facing controls: pre-release channel, GitHub token, and plugin developer mode.
+              {t('settings.systemPage.advanced.help')}
             </p>
           </div>
           <button
@@ -279,7 +333,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Current Version */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Version
+          {t('settings.systemPage.version.heading')}
         </h3>
         <div className="flex items-center justify-between">
           <div>
@@ -291,8 +345,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             </p>
             <p className="text-xs text-hs-text-faint mt-0.5">
               {versionInfo.installedVia === 'git'
-                ? `Branch: ${versionInfo.channel}`
-                : 'Installed from release'}
+                ? t('settings.systemPage.version.branchLabel', { channel: versionInfo.channel })
+                : t('settings.systemPage.version.installedFromRelease')}
               {advancedMode && (
                 <>
                   {' · '}
@@ -300,7 +354,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                     onClick={handleToggleChannel}
                     className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
-                    {channel === 'stable' ? 'Stable' : 'Pre-release'} channel
+                    {channel === 'stable'
+                      ? t('settings.systemPage.version.stableChannel')
+                      : t('settings.systemPage.version.prereleaseChannel')}
                   </button>
                 </>
               )}
@@ -312,7 +368,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             onClick={handleCheckUpdates}
             disabled={checking}
           >
-            {checking ? 'Checking...' : 'Check for Updates'}
+            {checking
+              ? t('settings.systemPage.version.checking')
+              : t('settings.systemPage.version.checkButton')}
           </Button>
         </div>
 
@@ -321,10 +379,10 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-hs-warning font-medium">
-                  Upgrade in progress
+                  {t('settings.systemPage.upgradeInProgress.title')}
                 </p>
                 <p className="text-xs text-hs-warning/70 mt-0.5">
-                  An upgrade is currently running. If it appears stuck, you can cancel it.
+                  {t('settings.systemPage.upgradeInProgress.help')}
                 </p>
               </div>
               <Button
@@ -332,7 +390,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 size="sm"
                 onClick={handleCancelUpgrade}
               >
-                Cancel Upgrade
+                {t('settings.systemPage.upgradeInProgress.cancelButton')}
               </Button>
             </div>
           </div>
@@ -349,12 +407,14 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 <p className={`text-sm font-medium ${
                   latestIsPrerelease ? 'text-hs-warning' : 'text-hs-accent-hover'
                 }`}>
-                  {latestIsPrerelease ? 'Pre-release' : 'Update'} available: v{versionInfo.latest}
+                  {latestIsPrerelease
+                    ? t('settings.systemPage.updateAvailable.prereleaseTitle', { version: versionInfo.latest })
+                    : t('settings.systemPage.updateAvailable.updateTitle', { version: versionInfo.latest })}
                 </p>
                 <p className={`text-xs mt-0.5 ${
                   latestIsPrerelease ? 'text-hs-warning/70' : 'text-hs-accent-hover/70'
                 }`}>
-                  You are on v{versionInfo.current}
+                  {t('settings.systemPage.updateAvailable.currentLine', { version: versionInfo.current })}
                 </p>
               </div>
               <Button
@@ -362,7 +422,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 size="sm"
                 onClick={() => handleUpgrade(`v${versionInfo.latest}`)}
               >
-                {latestIsPrerelease ? 'Install' : 'Update Now'}
+                {latestIsPrerelease
+                  ? t('settings.systemPage.updateAvailable.installButton')
+                  : t('settings.systemPage.updateAvailable.updateButton')}
               </Button>
             </div>
           </div>
@@ -371,7 +433,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         {!versionInfo.updateAvailable && (
           <p className="text-xs text-hs-success/80 mt-2 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
-            You&apos;re on the latest version
+            {t('settings.systemPage.upToDate')}
           </p>
         )}
       </section>
@@ -380,14 +442,14 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
-            Changelog
+            {t('settings.systemPage.changelog.heading')}
           </h3>
           {!showChangelog && (
             <button
               onClick={() => { setShowChangelog(true); fetchChangelog(); }}
               className="text-xs text-hs-accent hover:text-hs-accent-hover"
             >
-              View Changelog
+              {t('settings.systemPage.changelog.viewButton')}
             </button>
           )}
         </div>
@@ -395,7 +457,9 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         {showChangelog && (
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {releases.length === 0 ? (
-              <p className="text-xs text-hs-text-faint">No releases found on GitHub.</p>
+              <p className="text-xs text-hs-text-faint">
+                {t('settings.systemPage.changelog.empty')}
+              </p>
             ) : (
               releases.map((r) => (
                 <div key={r.tag} className="rounded-md bg-hs-card border border-hs-border-strong p-3">
@@ -403,7 +467,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                     <span className="text-sm text-hs-text-body font-mono">{r.tag}</span>
                     {r.published && (
                       <span className="text-xs text-hs-text-faint">
-                        {new Date(r.published).toLocaleDateString()}
+                        {new Date(r.published).toLocaleDateString(locale)}
                       </span>
                     )}
                   </div>
@@ -423,30 +487,30 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {versionInfo.tags.length > 0 && (
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            Version History
+            {t('settings.systemPage.history.heading')}
           </h3>
           <div className="space-y-1 max-h-40 overflow-y-auto">
-            {versionInfo.tags.map((t) => {
-              const isCurrent = t.version === versionInfo.current;
+            {versionInfo.tags.map((tagInfo) => {
+              const isCurrent = tagInfo.version === versionInfo.current;
               return (
                 <div
-                  key={t.tag}
+                  key={tagInfo.tag}
                   className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-hs-text-primary font-mono">{t.tag}</span>
+                    <span className="text-sm text-hs-text-primary font-mono">{tagInfo.tag}</span>
                     {isCurrent && (
                       <span className="text-[10px] uppercase tracking-wider bg-hs-accent/30 text-hs-accent-hover px-1.5 py-0.5 rounded">
-                        current
+                        {t('settings.systemPage.history.currentBadge')}
                       </span>
                     )}
                   </div>
                   {!isCurrent && (
                     <button
-                      onClick={() => handleRollback(t.tag)}
+                      onClick={() => handleRollback(tagInfo.tag)}
                       className="text-xs text-hs-text-muted hover:text-hs-warning transition-colors"
                     >
-                      Rollback
+                      {t('settings.systemPage.history.rollback')}
                     </button>
                   )}
                 </div>
@@ -459,11 +523,11 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* Config Backups */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Config Backups
+          {t('settings.systemPage.backups.heading')}
         </h3>
         {backups.length === 0 ? (
           <p className="text-xs text-hs-text-faint">
-            No backups yet. Backups are created automatically before each upgrade.
+            {t('settings.systemPage.backups.empty')}
           </p>
         ) : (
           <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -475,7 +539,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 <div>
                   <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
                   <span className="text-xs text-hs-text-faint ml-2">
-                    {(b.size / 1024).toFixed(1)}KB
+                    {t('settings.systemPage.backups.sizeKb', { size: (b.size / 1024).toFixed(1) })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -484,13 +548,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                     download={b.name}
                     className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
-                    Download
+                    {t('settings.systemPage.backups.download')}
                   </a>
                   <button
                     onClick={() => handleRestoreBackup(b.name)}
                     className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
-                    Restore
+                    {t('settings.systemPage.backups.restore')}
                   </button>
                 </div>
               </div>
@@ -498,8 +562,18 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </div>
         )}
         {restoreStatus && (
-          <p className={`text-xs mt-2 ${restoreStatus.startsWith('Error') ? 'text-hs-danger' : 'text-hs-success'}`}>
-            {restoreStatus}
+          <p
+            className={`text-xs mt-2 ${
+              restoreStatus.kind === 'error'
+                ? 'text-hs-danger'
+                : restoreStatus.kind === 'progress'
+                  ? 'text-hs-text-faint'
+                  : 'text-hs-success'
+            }`}
+            aria-live="polite"
+            role={restoreStatus.kind === 'error' ? 'alert' : undefined}
+          >
+            {restoreStatus.message}
           </p>
         )}
       </section>
@@ -507,7 +581,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       {/* System Actions */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          System Actions
+          {t('settings.systemPage.actions.heading')}
         </h3>
         <div className="flex items-center gap-3">
           <Button
@@ -516,7 +590,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             onClick={() => handlePowerAction('restart-service')}
             disabled={powerState.status !== 'idle'}
           >
-            Restart Service
+            {t('settings.systemPage.actions.restartService')}
           </Button>
           <Button
             variant="danger"
@@ -524,17 +598,17 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             onClick={() => handlePowerAction('reboot')}
             disabled={powerState.status !== 'idle'}
           >
-            Reboot System
+            {t('settings.systemPage.actions.rebootSystem')}
           </Button>
         </div>
         {powerState.status === 'ok' && powerState.action === 'restart-service' && (
           <p className="text-xs text-hs-success mt-2">
-            Service restart scheduled. The page will reload momentarily...
+            {t('settings.systemPage.powerStatus.restartScheduled')}
           </p>
         )}
         {powerState.status === 'ok' && powerState.action === 'reboot' && (
           <p className="text-xs text-hs-success mt-2">
-            System reboot scheduled. The display will come back online shortly...
+            {t('settings.systemPage.powerStatus.rebootScheduled')}
           </p>
         )}
         {powerState.status === 'error' && (
@@ -543,10 +617,12 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           </p>
         )}
         {powerState.status === 'pending' && (
-          <p className="text-xs text-hs-text-faint mt-2">Processing...</p>
+          <p className="text-xs text-hs-text-faint mt-2">
+            {t('settings.systemPage.powerStatus.processing')}
+          </p>
         )}
         <p className="text-xs text-hs-text-faint mt-2">
-          Restart Service reloads the app. Reboot System restarts the entire Raspberry Pi.
+          {t('settings.systemPage.actions.help')}
         </p>
       </section>
     </div>

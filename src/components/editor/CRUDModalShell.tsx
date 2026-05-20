@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 interface CRUDModalShellProps {
   title: string;
@@ -25,6 +26,8 @@ export default function CRUDModalShell({
   onClose,
   children,
 }: CRUDModalShellProps) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const trapRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function CRUDModalShell({
           {headerActions ?? (
             <button
               onClick={onClose}
-              aria-label="Close"
+              aria-label={tCore('actions.close')}
               className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors"
             >
               &times;
@@ -67,7 +70,7 @@ export default function CRUDModalShell({
         {!hideFooter && (
           <div className="flex items-center justify-end px-5 py-3 border-t border-hs-border-strong">
             <Button size="sm" variant="primary" onClick={onClose}>
-              Done
+              {t('modals.crud.done')}
             </Button>
           </div>
         )}

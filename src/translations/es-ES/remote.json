@@ -1,0 +1,532 @@
+{
+  "tabs": {
+    "control": "Control",
+    "chores": "Tareas",
+    "meals": "Comidas",
+    "photos": "Fotos"
+  },
+  "statusBar": {
+    "title": "Mando",
+    "settingsAriaLabel": "Ajustes"
+  },
+  "connectionBanner": {
+    "unreachable": "Display inalcanzable — comprueba que el dispositivo esté encendido y conectado"
+  },
+  "backupReminder": {
+    "daysAgoSingular": "No has hecho copia de seguridad desde hace {n} día.",
+    "daysAgoPlural": "No has hecho copia de seguridad desde hace {n} días.",
+    "backupButton": "Copia de seguridad",
+    "savingButton": "Guardando…",
+    "dismissAriaLabel": "Descartar"
+  },
+  "displayHero": {
+    "stateActive": "Activo",
+    "stateDimmed": "Atenuado",
+    "stateAsleep": "Dormido",
+    "updatedTimeAgo": "Actualizado {ago}",
+    "screenIndex": "Pantalla {current} de {total}",
+    "waiting": "Esperando al display…",
+    "unreachable": "Display inalcanzable"
+  },
+  "screenControls": {
+    "prevAriaLabel": "Pantalla anterior",
+    "nextAriaLabel": "Pantalla siguiente"
+  },
+  "quickActions": {
+    "wakeDisplay": "Despertar display",
+    "sleepDisplay": "Dormir display",
+    "sendAlert": "Enviar aviso"
+  },
+  "brightnessCard": {
+    "label": "Brillo",
+    "valueAriaLabel": "Brillo {percent}%"
+  },
+  "profileSwitcher": {
+    "heading": "Perfiles"
+  },
+  "displayPicker": {
+    "targeting": "Destino",
+    "allLabel": "Todos"
+  },
+  "mobileColorPicker": {
+    "colorLabel": "Color",
+    "customColorTitle": "Color personalizado"
+  },
+  "choresTab": {
+    "header": "Tareas",
+    "subNav": {
+      "today": "Hoy",
+      "manage": "Gestionar",
+      "rewards": "Premios"
+    },
+    "empty": {
+      "title": "Aún no hay tareas",
+      "description": "Cambia a Gestionar para añadir miembros y tareas.",
+      "setUpButton": "Configurar tareas"
+    },
+    "warningDismissAriaLabel": "Descartar aviso",
+    "memberAriaLabel": "{name}",
+    "memberAriaLabelAllDone": "{name} (todo listo)",
+    "history": {
+      "editingPrefix": "Editando ",
+      "editingDaysAgoSingular": " (hace 1 día) — los tickets se suman al saldo de hoy.",
+      "editingDaysAgoPlural": " (hace {n} días) — los tickets se suman al saldo de hoy.",
+      "editingNote": " Nota: en días pasados se muestra la lista de tareas de hoy, así que las tareas añadidas hace poco pueden parecer perdidas.",
+      "lockedMessage": "Pídele a una persona mayor que añada las tareas que se te olvidaron."
+    },
+    "progress": {
+      "completion": "{done}/{total} hechas",
+      "allDone": "¡Todo listo!"
+    },
+    "noChoresToday": "¡Hoy no hay tareas!",
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "choreAriaLabelMarkComplete": "Marcar como hecha: {chore}",
+    "choreAriaLabelCompleted": "Hecha: {chore}"
+  },
+  "choreHistoryNav": {
+    "prevMonthAriaLabel": "Mes anterior",
+    "nextMonthAriaLabel": "Mes siguiente",
+    "jumpToTodayAriaLabel": "Ir a hoy",
+    "todayButton": "Hoy",
+    "tileAriaLabel": "Ver {date}, {earned} de {total} niños han hecho todas sus tareas",
+    "tileAriaLabelEmpty": "Ver {date}, sin tareas"
+  },
+  "choresManage": {
+    "tabs": {
+      "chores": "Tareas",
+      "members": "Miembros"
+    },
+    "members": {
+      "empty": "Aún no hay miembros",
+      "emptyHint": "Añade miembros de la familia para empezar",
+      "editAriaLabel": "Editar {name}",
+      "choreCountSingular": "{n} tarea asignada",
+      "choreCountPlural": "{n} tareas asignadas",
+      "addButton": "Añadir miembro"
+    },
+    "chores": {
+      "empty": "Aún no hay tareas",
+      "emptyHintNoMembers": "Añade primero miembros de la familia",
+      "emptyHintAddChores": "Añade tareas y asígnalas a los miembros",
+      "editAriaLabel": "Editar {name}",
+      "addButton": "Añadir tarea",
+      "frequencyDaily": "Diaria",
+      "frequencyWeekly": "Semanal",
+      "frequencyBiweekly": "Cada dos semanas",
+      "frequencyOnce": "Una vez · {date}",
+      "ticketCountSingular": "{n} ticket",
+      "ticketCountPlural": "{n} tickets",
+      "rotationDaily": "rotar a diario",
+      "rotationWeekly": "rotar semanalmente",
+      "rotationSchedule": "calendario",
+      "unknownAssignee": "?"
+    },
+    "memberForm": {
+      "titleNew": "Nuevo miembro",
+      "titleEdit": "Editar miembro",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Escribe el nombre...",
+      "avatarLabel": "Avatar",
+      "addSubmit": "Añadir miembro",
+      "saveSubmit": "Guardar miembro",
+      "deleteButton": "Eliminar miembro"
+    },
+    "memberDelete": {
+      "title": "¿Eliminar a «{name}»?",
+      "fallbackName": "esta persona",
+      "descriptionNoChores": "Se quitará a {name} de las tareas asignadas. Las tareas que se queden sin nadie también se eliminarán.",
+      "descriptionWithChoresSingular": "Se quitará a {name} de {count} tarea asignada. Las tareas que se queden sin nadie también se eliminarán.",
+      "descriptionWithChoresPlural": "Se quitará a {name} de las {count} tareas asignadas. Las tareas que se queden sin nadie también se eliminarán.",
+      "confirmLabel": "Eliminar miembro"
+    },
+    "choreForm": {
+      "titleNew": "Nueva tarea",
+      "titleEdit": "Editar tarea",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Nombre de la tarea...",
+      "iconLabel": "Icono",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Frecuencia",
+      "timeOfDayLabel": "Momento del día",
+      "dateLabel": "Fecha",
+      "daysLabel": "Días",
+      "assignToLabel": "Asignar a",
+      "weeklyScheduleLabel": "Calendario semanal",
+      "coverageLabel": "Cobertura: {covered} de 7 días",
+      "coverageUncovered": "· {days} sin cubrir",
+      "rotationLabel": "Rotación",
+      "addSubmit": "Añadir tarea",
+      "saveSubmit": "Guardar tarea",
+      "deleteButton": "Eliminar tarea",
+      "validation": {
+        "enterName": "Pon un nombre a la tarea",
+        "addPersonToSchedule": "Añade al menos una persona al calendario",
+        "selectAtLeastOnePerson": "Selecciona al menos una persona"
+      }
+    },
+    "choreDelete": {
+      "title": "¿Eliminar «{name}»?",
+      "description": "Se eliminará esta tarea y todo su historial.",
+      "confirmLabel": "Eliminar tarea"
+    },
+    "frequency": {
+      "daily": "Diaria",
+      "weekly": "Semanal",
+      "biweekly": "Cada dos semanas",
+      "once": "Una vez"
+    },
+    "rotation": {
+      "fixed": "Fija (todos la hacen)",
+      "rotateDaily": "Rotar a diario",
+      "rotateWeekly": "Rotar semanalmente",
+      "schedule": "Calendario"
+    }
+  },
+  "mealsTab": {
+    "header": "Comidas",
+    "loading": "Cargando comidas...",
+    "settingsButtonAriaLabel": "Abrir ajustes de comidas",
+    "settingsButtonTitle": "Ajustes",
+    "weekLabel": {
+      "thisWeek": "Esta semana"
+    },
+    "subNav": {
+      "plan": "Planificar",
+      "library": "Biblioteca",
+      "grocery": "Compra"
+    },
+    "weekNav": {
+      "prevAriaLabel": "Semana anterior",
+      "nextAriaLabel": "Semana siguiente",
+      "todayButton": "Hoy"
+    },
+    "confirm": {
+      "clearWeek": {
+        "title": "¿Vaciar el plan?",
+        "description": "Se quitarán todas las comidas planeadas para esta semana.",
+        "confirmLabel": "Vaciar semana"
+      },
+      "deleteMeal": {
+        "title": "¿Eliminar «{name}»?",
+        "description": "También se quitará de cualquier hueco planeado.",
+        "confirmLabel": "Eliminar comida"
+      }
+    },
+    "weekView": {
+      "todayBadge": "Hoy",
+      "notPlanned": "{slot} - No planeada",
+      "activeNowSuffix": " • Ahora",
+      "prepTimeMin": "{minutes} min",
+      "empty": {
+        "title": "No hay comidas planeadas esta semana",
+        "description": "Cambia a Planificar para empezar a añadir comidas.",
+        "planButton": "Planificar comidas"
+      }
+    },
+    "library": {
+      "searchPlaceholder": "Buscar comidas...",
+      "filterByAriaLabel": "Filtrar por {label}",
+      "empty": {
+        "titleNoMeals": "Aún no hay comidas",
+        "titleNoMatches": "Sin resultados",
+        "hintNoMeals": "Toca el botón + para añadir tu primera comida.",
+        "hintNoMatches": "Prueba otra búsqueda u otro filtro."
+      },
+      "prepTimeMin": "{minutes} min de prep.",
+      "favoriteAddAriaLabel": "Añadir a favoritos",
+      "favoriteRemoveAriaLabel": "Quitar de favoritos",
+      "fabAriaLabel": "Añadir nueva comida",
+      "filters": {
+        "all": "Todas",
+        "favorites": "Favoritas",
+        "quick": "Rápida",
+        "healthy": "Saludable",
+        "comfort": "Reconfortante",
+        "kid-friendly": "Para niños"
+      }
+    }
+  },
+  "mealForm": {
+    "titleNew": "Añadir comida",
+    "titleEdit": "Editar comida",
+    "saveSubmit": "Guardar comida",
+    "saveChangesSubmit": "Guardar cambios",
+    "savingSubmit": "Guardando…",
+    "deleteButton": "Eliminar comida",
+    "nameLabel": "Nombre de la comida",
+    "namePlaceholder": "p. ej. Pollo salteado",
+    "emojiLabel": "Emoji",
+    "emojiSelectAriaLabel": "Seleccionar {emoji}",
+    "prepTimeLabel": "Tiempo de preparación",
+    "cookTimeLabel": "Tiempo de cocción",
+    "minPlaceholder": "min",
+    "servingsLabel": "Raciones",
+    "servingsPlaceholder": "4",
+    "difficultyLabel": "Dificultad",
+    "tagsLabel": "Etiquetas",
+    "ingredientsLabel": "Ingredientes",
+    "ingredientNamePlaceholder": "Nombre",
+    "ingredientAmountPlaceholder": "Cantidad",
+    "removeIngredientAriaLabel": "Quitar ingrediente",
+    "addIngredientButton": "+ Añadir ingrediente",
+    "recipeUrlLabel": "URL de la receta",
+    "recipeUrlPlaceholder": "https://...",
+    "notesLabel": "Notas",
+    "notesPlaceholder": "Cualquier nota sobre esta comida...",
+    "ratingLabel": "Valoración",
+    "ratingStarAriaLabel": "Valorar con {n} de 5 estrellas",
+    "favoriteOn": "Favorita",
+    "favoriteOff": "Añadir a favoritas"
+  },
+  "mealsPlan": {
+    "actions": {
+      "suggest": "Sugerir",
+      "suggestAriaLabel": "Sugerir comidas al azar",
+      "copyLastWeek": "Copiar la semana pasada",
+      "copyLastWeekAriaLabel": "Copiar el plan de la semana pasada",
+      "clear": "Vaciar",
+      "clearAriaLabel": "Vaciar todas las comidas planeadas"
+    },
+    "empty": {
+      "title": "No hay comidas en tu biblioteca",
+      "description": "Añade comidas a tu biblioteca primero y luego planifica la semana.",
+      "addMealsButton": "Añadir comidas"
+    },
+    "slot": {
+      "addMeal": "+ Añadir comida",
+      "removeMealAriaLabel": "Quitar {meal} de {slot}",
+      "planSlotAriaLabel": "Planificar {slot} para {day}",
+      "mealFallback": "comida"
+    },
+    "picker": {
+      "title": "Elige una comida",
+      "emptyLibrary": "No hay comidas en la biblioteca. Añade alguna primero.",
+      "prepTimeShort": "{minutes} min",
+      "removeMealButton": "Quitar comida"
+    }
+  },
+  "mealsGrocery": {
+    "itemsCountSingular": "{checked} de {total} artículo",
+    "itemsCountPlural": "{checked} de {total} artículos",
+    "shareButton": "Compartir",
+    "shareCopiedButton": "¡Copiado!",
+    "autoGeneratedHint": "Generada a partir de las comidas de esta semana",
+    "shareHeading": "Lista de la compra",
+    "shareCompleteMessage": "¡La lista de la compra está completa!",
+    "empty": {
+      "title": "No hay artículos en la lista",
+      "description": "Planifica comidas con ingredientes para ver tu lista de la compra."
+    }
+  },
+  "mealsSettings": {
+    "ariaLabel": "Ajustes de comidas",
+    "title": "Ajustes de comidas",
+    "cancelAriaLabel": "Cancelar y cerrar",
+    "slots": {
+      "heading": "Comidas del día",
+      "description": "¿Qué comidas planificas? Afecta al editor y a todos los módulos mostrados.",
+      "toggleAriaLabelEnabled": "{label}, activado",
+      "toggleAriaLabelDisabled": "{label}, desactivado"
+    },
+    "weekStart": {
+      "heading": "La semana empieza en",
+      "sunday": "Domingo",
+      "monday": "Lunes"
+    },
+    "timeFormat": {
+      "heading": "Formato de hora",
+      "description": "Se aplica a todas las comidas mostradas en el kiosk y en este mando.",
+      "twelveHourLabel": "12 horas",
+      "twentyFourHourLabel": "24 horas"
+    },
+    "defaultTimes": {
+      "heading": "Horas por defecto para servir",
+      "description": "Se usan cuando una comida planeada no tiene su propia hora. Déjalo en blanco para huecos que cambian.",
+      "clear": "Vaciar",
+      "clearAriaLabel": "Vaciar la hora por defecto de {name}",
+      "timeInputAriaLabel": "Hora por defecto para {name}"
+    },
+    "save": {
+      "saving": "Guardando…",
+      "submit": "Guardar ajustes",
+      "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+      "networkError": "Error de red. Inténtalo de nuevo."
+    }
+  },
+  "rewardForm": {
+    "titleAdd": "Añadir premio",
+    "titleEdit": "Editar premio",
+    "saveButton": "Guardar premio",
+    "deleteButton": "Eliminar premio",
+    "iconLabel": "Icono",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "p. ej. Tiempo extra de pantalla",
+    "ticketCostLabel": "Coste en tickets",
+    "ticketCostPlaceholder": "10",
+    "enabledLabel": "Activado",
+    "visible": "Visible",
+    "hidden": "Oculto",
+    "descriptionLabel": "Descripción (opcional)",
+    "descriptionPlaceholder": "Descripción corta...",
+    "availableToLabel": "Disponible para",
+    "everyone": "Todos",
+    "deleteConfirm": {
+      "title": "Eliminar premio",
+      "description": "¿Seguro que quieres eliminar «{name}»? El historial de canjes se conservará."
+    }
+  },
+  "alertSender": {
+    "title": "Enviar aviso",
+    "closeAriaLabel": "Cerrar el envío de avisos",
+    "typeInfo": "Información",
+    "typeWarning": "Advertencia",
+    "typeUrgent": "Urgente",
+    "titleLabel": "Título",
+    "titlePlaceholder": "Opcional",
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "¿Qué debe mostrar el display?",
+    "durationLabel": "Duración",
+    "duration10s": "10 s",
+    "duration30s": "30 s",
+    "duration1Min": "1 min",
+    "duration5Min": "5 min",
+    "durationPersistent": "Permanente",
+    "sendButton": "Enviar aviso",
+    "sendingButton": "Enviando…",
+    "sentButton": "¡Enviado!",
+    "failedButton": "Error — vuelve a intentarlo"
+  },
+  "rewardsView": {
+    "nav": {
+      "redeem": "Canjear",
+      "rewards": "Premios",
+      "balances": "Saldos",
+      "history": "Historial"
+    },
+    "ticketCountSingular": "{n} ticket",
+    "ticketCountPlural": "{n} tickets",
+    "redeem": {
+      "balanceLabel": "tickets disponibles",
+      "availableHeading": "Premios disponibles",
+      "empty": "Aún no hay premios configurados",
+      "memberFallback": "esta persona",
+      "confirmTitle": "¿Canjear {name}?",
+      "confirmDescriptionSingular": "Se usará {cost} ticket del saldo de {memberName}. Quedan: {remaining}",
+      "confirmDescriptionPlural": "Se usarán {cost} tickets del saldo de {memberName}. Quedan: {remaining}",
+      "confirmLabelSingular": "Canjear — {cost} ticket",
+      "confirmLabelPlural": "Canjear — {cost} tickets"
+    },
+    "manage": {
+      "heading": "Premios",
+      "countSingular": "{n} premio",
+      "countPlural": "{n} premios",
+      "everyone": "Todos",
+      "disabled": "Desactivado",
+      "memberCountSingular": "{n} miembro",
+      "memberCountPlural": "{n} miembros",
+      "addButton": "Añadir premio"
+    },
+    "balances": {
+      "heading": "Saldos de tickets",
+      "adjustDownAriaLabel": "Quitar un ticket a {name}",
+      "adjustUpAriaLabel": "Añadir un ticket a {name}"
+    },
+    "history": {
+      "heading": "Canjes recientes",
+      "empty": "Aún no hay canjes",
+      "entry": {
+        "beforeReward": " ha canjeado ",
+        "afterRewardSingular": " — {n} ticket",
+        "afterRewardPlural": " — {n} tickets"
+      }
+    }
+  },
+  "settingsSheet": {
+    "title": "Ajustes",
+    "closeAriaLabel": "Cerrar ajustes",
+    "system": {
+      "heading": "Sistema",
+      "errorFailedToLoad": "Error al cargar",
+      "hostLabel": "Host",
+      "uptimeLabel": "Tiempo activo",
+      "memoryLabel": "Memoria",
+      "diskLabel": "Disco"
+    },
+    "theme": {
+      "heading": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "data": {
+      "heading": "Datos",
+      "backup": {
+        "label": "Hacer copia de todos los datos",
+        "savedLabel": "Copia guardada",
+        "busyLabel": "Descargando…",
+        "description": "Descargar configuración, tareas, comidas y premios"
+      },
+      "restore": {
+        "label": "Restaurar copia",
+        "confirmingLabel": "Toca otra vez para restaurar",
+        "busyLabel": "Restaurando…",
+        "doneLabel": "Restaurada",
+        "invalidFileLabel": "Archivo de copia no válido",
+        "failedLabel": "Error al restaurar",
+        "idleDescription": "Sube un archivo de copia desde este dispositivo",
+        "confirmingDescription": "Esto reemplazará todos los datos existentes"
+      }
+    },
+    "power": {
+      "heading": "Energía",
+      "restartService": {
+        "label": "Reiniciar servicio",
+        "description": "Reinicia la app de Home Screens",
+        "confirmLabel": "Toca otra vez para reiniciar"
+      },
+      "reboot": {
+        "label": "Reiniciar dispositivo",
+        "description": "Reinicio completo del sistema",
+        "confirmLabel": "Toca otra vez para reiniciar"
+      }
+    },
+    "confirmable": {
+      "sentLabel": "Enviado"
+    }
+  },
+  "photosTab": {
+    "header": "Fotos",
+    "newFolderButton": "Nueva carpeta",
+    "newFolderPlaceholder": "Nombre de carpeta",
+    "createButton": "Crear",
+    "allPhotosTab": "Todas las fotos",
+    "uploadingProgress": "Subiendo {current} de {total}...",
+    "uploadFailedFor": "Error al subir {name}",
+    "uploadFailed": "Error al subir",
+    "uploadedSingular": "{n} foto subida",
+    "uploadedPlural": "{n} fotos subidas",
+    "photoDeleted": "Foto eliminada",
+    "folderCreated": "Carpeta creada",
+    "failedCreateFolder": "No se pudo crear la carpeta",
+    "uploadButton": "Subir fotos",
+    "emptyTitle": "No hay fotos en esta carpeta",
+    "emptyHint": "Toca «Subir fotos» para añadir imágenes",
+    "deletePrompt": "¿Eliminar?",
+    "deletingButton": "Eliminando...",
+    "deleteAriaLabel": "Eliminar foto",
+    "dismissErrorAriaLabel": "Descartar error"
+  },
+  "choresKidView": {
+    "notConfigured": "No hay tareas configuradas. Pídele a una persona mayor que añada un módulo de Tabla de tareas en el editor."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Hora de servir {time}, haz clic para cambiar",
+    "servingTimeTitle": "Hora de servir: {time}",
+    "setServingTime": "Establecer hora de servir",
+    "setTime": "+ Establecer hora",
+    "setMealTime": "Establecer hora de la comida",
+    "servingTime": "Hora de servir",
+    "clearTime": "Borrar hora"
+  }
+}

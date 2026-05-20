@@ -13,6 +13,8 @@ import {
 } from 'next/font/google';
 import PluginGlobals from '@/components/PluginGlobals';
 import ThemeListener from '@/components/ThemeListener';
+import { readConfig } from '@/lib/config';
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import './globals.css';
 // Self-hosted Font Awesome 7 free. Importing the package CSS lets Next process
 // its `@font-face` URLs through the asset pipeline — the woff2 fonts are
@@ -98,9 +100,24 @@ export const metadata: Metadata = {
   description: 'Smart home display system',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// The root `<html lang>` is driven by `settings.locale`, which is mutable
+// at runtime. Opt out of static pre-rendering so a config change is
+// reflected on the next request rather than after a redeploy.
+export const dynamic = 'force-dynamic';
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read the active locale so `<html lang>` matches the rendered UI.
+  // Without this, browser-level locale features — hyphenation, spellcheck,
+  // screen-reader pronunciation, `:lang()` CSS selectors, and the "translate
+  // this page?" prompt — all behave as English even when the UI is
+  // rendering Spanish/German/French. The per-route layouts also re-read
+  // this value to wire `<I18nProvider locale>`, so the document and the
+  // provider stay in lockstep.
+  const config = await readConfig().catch(() => null);
+  const locale = config?.settings?.locale ?? DEFAULT_LOCALE;
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

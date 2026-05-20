@@ -10,6 +10,7 @@ import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
 import { AccentDivider } from './shared/AccentDivider';
+import { useTranslate } from '@/i18n';
 
 interface HistoryModuleProps {
   config: HistoryConfig;
@@ -23,6 +24,7 @@ interface HistoryEvent {
 }
 
 export default function HistoryModule({ config, style }: HistoryModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(config), config.refreshIntervalMs ?? 86400000);
   const events = data?.events ?? [];
 
@@ -32,7 +34,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading history…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('history.loading')} error={error} />;
   }
 
   const event = events[index % events.length];
@@ -45,7 +47,7 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
         className="flex flex-col items-center justify-center h-full gap-2 relative overflow-hidden"
         style={{ fontSize: `${scaledFontSize}px`, ...gradientStyle }}
       >
-        <SectionHeader>On This Day</SectionHeader>
+        <SectionHeader>{t('history.header')}</SectionHeader>
         {config.showDividers !== false && (
           <AccentDivider accentColor={accentColor} hasAccent={hasAccent} />
         )}
@@ -67,12 +69,12 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
                   color: hasAccent ? accentColor : 'rgba(255,255,255,0.7)',
                 }}
               >
-                {yearsAgo} years ago
+                {t('history.yearsAgo', { count: yearsAgo })}
               </span>
             )}
           </div>
         ) : (
-          <p className="text-center" style={{ opacity: TEXT_OPACITY.tertiary }}>No events found</p>
+          <p className="text-center" style={{ opacity: TEXT_OPACITY.tertiary }}>{t('history.noEvents')}</p>
         )}
       </div>
     </ModuleWrapper>

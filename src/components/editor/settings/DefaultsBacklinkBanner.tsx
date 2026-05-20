@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import type { DisplayOverrideSummary } from '@/lib/display-defaults-backlinks';
+import { useTranslate, type TranslateFn } from '@/i18n';
 
 /**
  * Banner rendered at the top of every `Defaults → X` page that lists which
@@ -31,18 +32,23 @@ interface DefaultsBacklinkBannerProps {
 
 export default function DefaultsBacklinkBanner({
   overrides,
-  pageLabel = 'this page',
+  pageLabel,
 }: DefaultsBacklinkBannerProps) {
+  const t = useTranslate('editor');
   if (overrides.length === 0) return null;
+
+  // Resolve `pageLabel` at render time so the default value follows the
+  // active locale. Callers can still pass an explicit override.
+  const resolvedPageLabel = pageLabel ?? t('settings.backlinkBanner.thisPage');
 
   return (
     <div className="mb-5 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
       <Info className="w-4 h-4 text-hs-accent-hover shrink-0 mt-0.5" />
       <div className="text-xs text-hs-accent-hover leading-relaxed">
         {overrides.length === 1 ? (
-          <SingleDisplayLine summary={overrides[0]} pageLabel={pageLabel} />
+          <SingleDisplayLine summary={overrides[0]} pageLabel={resolvedPageLabel} t={t} />
         ) : (
-          <MultiDisplayLine summaries={overrides} pageLabel={pageLabel} />
+          <MultiDisplayLine summaries={overrides} pageLabel={resolvedPageLabel} t={t} />
         )}
       </div>
     </div>
@@ -52,26 +58,31 @@ export default function DefaultsBacklinkBanner({
 function SingleDisplayLine({
   summary,
   pageLabel,
+  t,
 }: {
   summary: DisplayOverrideSummary;
   pageLabel: string;
+  t: TranslateFn;
 }) {
   const { displayId, displayName, overriddenFields } = summary;
   const fieldCount = overriddenFields.length;
+  const fieldText =
+    fieldCount === 1
+      ? t('settings.backlinkBanner.singleFieldCount', { count: fieldCount })
+      : t('settings.backlinkBanner.multiFieldCount', { count: fieldCount });
   return (
     <>
-      <strong className="text-hs-text-primary">{displayName}</strong> currently overrides{' '}
-      <strong className="text-hs-text-primary">
-        {fieldCount} {fieldCount === 1 ? 'field' : 'fields'}
-      </strong>{' '}
-      on {pageLabel}.{' '}
+      <strong className="text-hs-text-primary">{displayName}</strong>
+      {t('settings.backlinkBanner.singleDisplayCurrentlyOverrides')}
+      <strong className="text-hs-text-primary">{fieldText}</strong>
+      {t('settings.backlinkBanner.singleDisplayPart3', { pageLabel })}
       <Link
         href={`?section=display&id=${encodeURIComponent(displayId)}`}
         className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
       >
-        Open {displayName}
-      </Link>{' '}
-      to see or clear its overrides.
+        {t('settings.backlinkBanner.openDisplayLink', { name: displayName })}
+      </Link>
+      {t('settings.backlinkBanner.singleDisplayPart5')}
     </>
   );
 }
@@ -79,14 +90,18 @@ function SingleDisplayLine({
 function MultiDisplayLine({
   summaries,
   pageLabel,
+  t,
 }: {
   summaries: DisplayOverrideSummary[];
   pageLabel: string;
+  t: TranslateFn;
 }) {
   return (
     <>
-      <strong className="text-hs-text-primary">{summaries.length} displays</strong> currently override
-      fields on {pageLabel}:{' '}
+      <strong className="text-hs-text-primary">
+        {t('settings.backlinkBanner.multiDisplayLabel', { count: summaries.length })}
+      </strong>
+      {t('settings.backlinkBanner.multiDisplayCurrentlyOverride', { pageLabel })}
       {summaries.map((summary, idx) => (
         <span key={summary.displayId}>
           <Link

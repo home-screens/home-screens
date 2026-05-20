@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { format, addDays, isSameDay } from 'date-fns';
+import { addDays, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -16,6 +17,9 @@ interface AgendaViewProps {
 }
 
 export function AgendaView({ events, config, scale, today, now }: AgendaViewProps) {
+  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const daysAhead = config.agendaDaysAhead ?? 14;
   const isLandscape = scale.orientation === 'landscape';
@@ -59,7 +63,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
           alignItems: 'center',
           gap: scale.bu * 0.6,
         }}>
-          {format(date, 'EEEE, MMMM d')}
+          {formatDateSync(date, 'EEEE, MMMM d', { locale })}
           {isGroupToday && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
@@ -69,7 +73,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
               letterSpacing: '0.06em',
               color: 'var(--cal-accent)',
             }}>
-              &middot; Today
+              &middot; {tCore('today')}
             </span>
           )}
         </div>
@@ -82,7 +86,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
             color: 'var(--cal-text-tertiary)',
             padding: `${scale.bu * 0.5}px 0`,
           }}>
-            No events
+            {t('fullscreen-calendar.noEvents')}
           </div>
         )}
 
@@ -101,7 +105,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
                 key={ev.id}
                 className="fsc-event-block"
                 role="article"
-                aria-label={`${ev.title}, all day`}
+                aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
                 style={{
                   background: 'var(--cal-surface)',
                   borderRadius: 10,
@@ -118,7 +122,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
                   letterSpacing: '0.06em',
                   color: 'var(--cal-text-tertiary)',
                 }}>
-                  All Day
+                  {t('fullscreen-calendar.allDay')}
                 </div>
                 <div style={{
                   fontSize: fontSize * 1.2,
@@ -142,12 +146,27 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
             );
           }
 
+          const startLabel = formatDateSync(start, 'h:mm a', { locale });
+          const endLabel = formatDateSync(end, 'h:mm a', { locale });
+          const ariaLabel = ev.location
+            ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
+                title: ev.title,
+                start: startLabel,
+                end: endLabel,
+                location: ev.location,
+              })
+            : t('fullscreen-calendar.ariaLabels.eventTimed', {
+                title: ev.title,
+                start: startLabel,
+                end: endLabel,
+              });
+
           return (
             <div
               key={ev.id}
               className="fsc-event-block"
               role="article"
-              aria-label={`${ev.title}, ${format(start, 'h:mm a')} to ${format(end, 'h:mm a')}${ev.location ? `, at ${ev.location}` : ''}`}
+              aria-label={ariaLabel}
               style={{
                 background: 'var(--cal-surface)',
                 borderRadius: 10,
@@ -164,7 +183,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
                 color: 'var(--cal-text-tertiary)',
                 marginBottom: scale.bu * 0.1,
               }}>
-                {format(start, 'h:mm a')} &ndash; {format(end, 'h:mm a')}
+                {startLabel} &ndash; {endLabel}
               </div>
               <div style={{
                 fontSize: fontSize * 1.4,

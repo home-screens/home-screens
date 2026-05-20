@@ -6,29 +6,32 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, TodoItem } from '@/types/config';
 
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ title?: string; items?: TodoItem[]; accentColor?: string }>(mod, screenId);
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const items = c.items ?? [];
 
   const { add: addItem, remove: removeItem, update: updateItem } = useListEditor<TodoItem>(
     items,
     'items',
     set,
-    { text: 'New item', completed: false }
+    { text: t('configSections.todo.newItemText'), completed: false }
   );
 
   return (
     <div className="space-y-2">
       <LabeledInput
-        label="Title"
-        value={(c.title as string) || 'To Do'}
+        label={t('configSections.todo.title')}
+        value={(c.title as string) || t('configSections.todo.defaultTitle')}
         onChange={(v) => set({ title: v })}
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-hs-text-muted">Items</span>
-        <Button size="sm" onClick={addItem}>Add</Button>
+        <span className="text-xs text-hs-text-muted">{t('configSections.todo.items')}</span>
+        <Button size="sm" onClick={addItem}>{tCore('actions.add')}</Button>
       </div>
       {items.map((it) => (
         <div key={it.id} className="flex items-center gap-1 p-1 bg-hs-card rounded">

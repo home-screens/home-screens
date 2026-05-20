@@ -1,0 +1,2957 @@
+{
+  "languageAndRegion": {
+    "title": "Idioma y región",
+    "languageLabel": "Idioma",
+    "languageHelp": "Elige el idioma usado en el editor, todos los displays y /remote.",
+    "moreOptions": "Más opciones",
+    "formattingLocaleLabel": "Configuración regional para formato",
+    "formattingLocaleHelp": "Solo sobrescribe el formato de fecha y números. Mantiene el idioma de la interfaz sin cambios.",
+    "formattingLocaleSameAsLanguage": "Igual que el idioma"
+  },
+  "common": {
+    "saved": "Guardado",
+    "refreshMinutes": "Actualizar (minutos)",
+    "refreshSeconds": "Actualizar (segundos)",
+    "refresh": "Actualizar",
+    "theme": "Tema",
+    "density": "Densidad",
+    "objectFit": "Ajuste de imagen",
+    "objectFitCover": "Cubrir",
+    "objectFitContain": "Contener",
+    "objectFitFill": "Rellenar",
+    "showDescription": "Mostrar descripción",
+    "apiKey": "Clave de API",
+    "resolution": "Resolución",
+    "orientation": "Orientación",
+    "saveFailed": "Error al guardar",
+    "saveError": "Error al guardar",
+    "networkError": "Error de red",
+    "serverUnreachable": "No se pudo contactar con el servidor",
+    "typographySizes": {
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande",
+      "extra-large": "Muy Grande",
+      "2x-large": "2X Grande",
+      "3x-large": "3X Grande",
+      "4x-large": "4X Grande"
+    }
+  },
+  "fields": {
+    "rotation": "Rotación",
+    "color": "Color",
+    "icon": "Icono",
+    "days": "Días"
+  },
+  "modal": {
+    "closeAriaLabel": "Cerrar diálogo"
+  },
+  "page": {
+    "loading": "Cargando…",
+    "tooNarrowMessage": "El editor necesita una pantalla de al menos {minWidth}px de ancho.",
+    "tooNarrowHint": "Usa un navegador de escritorio o ensancha la ventana.",
+    "toolbar": {
+      "pluginsButton": "Plugins",
+      "settingsButton": "Ajustes",
+      "previewButton": "Vista previa",
+      "retryButton": "Reintentar"
+    }
+  },
+  "canvas": {
+    "noScreenSelected": "Ninguna pantalla seleccionada",
+    "ghostCoordinatesAriaLabel": "Posición de soltado {x}, {y}",
+    "undoTitle": "Deshacer (Cmd+Z)",
+    "undoAriaLabel": "Deshacer",
+    "redoTitle": "Rehacer (Cmd+Shift+Z)",
+    "redoAriaLabel": "Rehacer",
+    "snapOnTitle": "Ajustar a la cuadrícula (activado)",
+    "snapOffTitle": "Ajustar a la cuadrícula (desactivado)",
+    "zoomOutTitle": "Alejar (Cmd+-)",
+    "zoomOutAriaLabel": "Alejar",
+    "zoomInTitle": "Acercar (Cmd+=)",
+    "zoomInAriaLabel": "Acercar",
+    "zoomPercent": "{percent}%",
+    "fitTitle": "Ajustar a la pantalla (Cmd+0)",
+    "fitAriaLabel": "Ajustar a la pantalla"
+  },
+  "draggableModule": {
+    "scheduledActiveTitle": "Programado — activo ahora",
+    "scheduledInactiveTitle": "Programado — inactivo ahora"
+  },
+  "displaySwitcher": {
+    "title": "¿Qué display estás editando en este lienzo? (Las anulaciones de ajustes están en Ajustes → Por display.)",
+    "label": "¿Qué display estás editando en este lienzo?",
+    "optionWithDimensions": "{name} ({width}×{height})"
+  },
+  "screenTabs": {
+    "stickyTooltip": "fija — solo avance manual",
+    "secondsSuffix": "{seconds} s",
+    "scheduledTooltip": "programada",
+    "disabledTooltip": "desactivada — no se muestra en el display",
+    "disabledIndicatorAriaLabel": "Desactivada",
+    "stickyBadge": "0 s",
+    "screenOptionsTitle": "Opciones de la pantalla",
+    "screenOptionsAriaLabel": "Opciones de {name}",
+    "deleteTabAriaLabel": "Eliminar {name}",
+    "removeConfirmMessage": "¿Quitar «{name}»?",
+    "scrollLeftAriaLabel": "Desplazar pestañas a la izquierda",
+    "scrollLeftTitle": "Desplazar pestañas a la izquierda",
+    "scrollRightAriaLabel": "Desplazar pestañas a la derecha",
+    "scrollRightTitle": "Desplazar pestañas a la derecha",
+    "addScreenAriaLabel": "Añadir pantalla",
+    "addMenu": {
+      "blank": "Pantalla en blanco",
+      "fromTemplate": "Desde plantilla…"
+    },
+    "contextMenu": {
+      "moveLeft": "Mover a la izquierda",
+      "moveRight": "Mover a la derecha",
+      "exportThisScreen": "Exportar esta pantalla",
+      "enable": "Activar",
+      "disable": "Desactivar",
+      "rename": "Renombrar",
+      "delete": "Eliminar"
+    }
+  },
+  "screenSettings": {
+    "sectionTitle": "Ajustes de la pantalla",
+    "moduleCountSingular": "{count} módulo",
+    "moduleCountPlural": "{count} módulos",
+    "durationLabel": "Duración",
+    "secondsUnit": "s",
+    "stickyBadge": "Fija",
+    "stickyHint": "0 = quédate en esta pantalla (solo avance manual).",
+    "inheritsHintBefore": "Hereda el valor predeterminado: ",
+    "inheritsHintValue": "{seconds} s",
+    "inheritsHintAfter": ".",
+    "overrideButton": "Anular",
+    "resetButton": "Restablecer"
+  },
+  "scheduleEditor": {
+    "statusTitle": "Estado",
+    "enableLabel": "Activar programación",
+    "timeWindowTitle": "Ventana horaria",
+    "fromLabel": "Desde",
+    "untilLabel": "Hasta",
+    "behaviorTitle": "Comportamiento",
+    "invertLabel": "Invertir (ocultar durante la ventana)"
+  },
+  "registry": {
+    "categories": {
+      "fullScreen": "Pantalla completa",
+      "timeAndDate": "Hora y fecha",
+      "weatherAndEnvironment": "Tiempo y entorno",
+      "newsAndFinance": "Noticias y finanzas",
+      "knowledgeAndFun": "Conocimiento y diversión",
+      "personal": "Personal",
+      "mediaAndDisplay": "Medios y visualización",
+      "travel": "Viajes"
+    },
+    "types": {
+      "fullscreen-calendar": "Calendario en pantalla completa",
+      "fullscreen-chore-chart": "Tabla de tareas en pantalla completa",
+      "fullscreen-meal-planner": "Planificador de comidas en pantalla completa",
+      "fullscreen-photo": "Visor de fotos en pantalla completa",
+      "clock": "Reloj",
+      "calendar": "Calendario",
+      "countdown": "Cuenta atrás",
+      "date": "Fecha",
+      "year-progress": "Progreso del año",
+      "multi-month": "Calendario multimes",
+      "weather": "Tiempo",
+      "moon-phase": "Fase lunar",
+      "sunrise-sunset": "Amanecer / atardecer",
+      "air-quality": "Calidad del aire",
+      "rain-map": "Mapa de lluvia",
+      "news": "Titulares de noticias",
+      "stock-ticker": "Ticker bursátil",
+      "crypto": "Precio de criptomonedas",
+      "sports": "Resultados deportivos",
+      "standings": "Clasificaciones deportivas",
+      "dad-joke": "Chiste",
+      "quote": "Cita del día",
+      "word-of-day": "Palabra del día",
+      "history": "Un día como hoy",
+      "todo": "Lista de tareas",
+      "sticky-note": "Nota adhesiva",
+      "greeting": "Saludo",
+      "todoist": "Todoist",
+      "garbage-day": "Día de la basura",
+      "affirmations": "Afirmaciones",
+      "meal-planner": "Planificador de comidas",
+      "chore-chart": "Tabla de tareas",
+      "text": "Texto",
+      "image": "Imagen",
+      "photo-slideshow": "Pase de fotos",
+      "qr-code": "Código QR",
+      "iframe": "Embebido web",
+      "icon": "Icono",
+      "shape": "Forma y separador",
+      "display-control": "Control del display",
+      "traffic": "Tráfico / trayecto"
+    }
+  },
+  "settings": {
+    "sidebar": {
+      "defaults": "Valores predeterminados",
+      "defaultsHelp": "Los usa cada display hasta que se anulen.",
+      "perDisplay": "Por display",
+      "allDisplays": "Todos los displays",
+      "addDisplay": "Añadir display",
+      "displays": "Displays",
+      "websiteAriaLabel": "Visitar homescreens.dev",
+      "websiteTitle": "homescreens.dev",
+      "githubAriaLabel": "Ver en GitHub",
+      "githubTitle": "Ver en GitHub",
+      "navLabels": {
+        "calendar": "Calendario",
+        "weather": "Tiempo",
+        "location": "Ubicación e idioma",
+        "sleep": "Suspensión",
+        "alerts": "Avisos",
+        "display": "Pantalla",
+        "data": "Datos",
+        "docs": "Documentación",
+        "integrations": "Integraciones",
+        "meals": "Comidas",
+        "network": "Red",
+        "profiles": "Perfiles",
+        "security": "Seguridad",
+        "stats": "Estadísticas",
+        "system": "Sistema",
+        "displays": "Displays"
+      }
+    },
+    "overrideRow": {
+      "override": "Anular",
+      "resetToDefault": "Restablecer al valor predeterminado",
+      "overriddenForDisplay": "Anulado para {name}. Predeterminado: ",
+      "overriddenWithoutDisplay": "Anulado. Predeterminado: ",
+      "overriddenSuffix": " — editar en ",
+      "overriddenSuffixEnd": ".",
+      "usingDefault": "Usando el valor predeterminado. ",
+      "usingDefaultPart2": " usa ",
+      "usingDefaultPart3": " para todos los displays."
+    },
+    "backlinkBanner": {
+      "thisPage": "esta página",
+      "singleDisplayPart3": " en {pageLabel}. ",
+      "singleDisplayPart5": " para verlas o quitarlas.",
+      "singleDisplayCurrentlyOverrides": " anula actualmente ",
+      "singleFieldCount": "{count} campo",
+      "multiFieldCount": "{count} campos",
+      "openDisplayLink": "Abrir {name}",
+      "multiDisplayLabel": "{count} displays",
+      "multiDisplayCurrentlyOverride": " anulan actualmente campos en {pageLabel}: "
+    },
+    "defaultAlertsPage": {
+      "breadcrumb": "Valores predeterminados → Avisos",
+      "heading": "Ajustes predeterminados de avisos",
+      "description": "Posición, tamaño y duración predeterminados de la superposición de avisos en cada display. Un display concreto puede anular todo el bloque de avisos desde su propia página."
+    },
+    "defaultSleepPage": {
+      "breadcrumb": "Valores predeterminados → Suspensión",
+      "heading": "Ajustes predeterminados de suspensión",
+      "description": "Programación predeterminada de atenuación / suspensión y salvapantallas que se aplica a cada display. Un display concreto puede anular todo el bloque desde su propia página."
+    },
+    "locationAndLanguagePage": {
+      "breadcrumb": "Valores predeterminados → Ubicación e idioma",
+      "title": "Ubicación e idioma",
+      "description": "Elige el idioma que se usa en todas partes y luego define la ubicación que usan los módulos de tiempo y otros módulos basados en la ubicación."
+    },
+    "locationPage": {
+      "heading": "Ubicación",
+      "description": "La usan los módulos de tiempo, fase lunar, amanecer/atardecer y calidad del aire.",
+      "browserLabel": "Navegador",
+      "serverLabel": "Servidor",
+      "timezoneLabel": "Zona horaria",
+      "timezoneSystemDefault": "Predeterminada del sistema ({timezone})",
+      "timezoneHelp": "Sobrescribe la zona horaria del sistema operativo del servidor para el reloj, el saludo y otros módulos basados en la hora.",
+      "queryPlaceholder": "Código postal o nombre de la ciudad",
+      "lookUpButton": "Buscar",
+      "detectButton": "Detectar",
+      "editCoordinates": "Editar las coordenadas manualmente",
+      "latitudeLabel": "Latitud",
+      "longitudeLabel": "Longitud",
+      "latitudePlaceholder": "40.7128",
+      "longitudePlaceholder": "-74.006",
+      "status": {
+        "lookingUp": "Buscando…",
+        "found": "Encontrada: {name}",
+        "error": "Error: {message}",
+        "lookupFailed": "No se pudo buscar la ubicación",
+        "detecting": "Detectando…",
+        "detected": "Detectada: {name}",
+        "detectedViaIp": "Detectada: {name} (vía IP)",
+        "detectedCoords": "Detectada: {lat}, {lon}",
+        "detectFailed": "Error: no se pudo detectar la ubicación"
+      }
+    },
+    "calendarPage": {
+      "google": {
+        "heading": "Google Calendar",
+        "checkingConnection": "Comprobando conexión…",
+        "connected": "Conectado a Google",
+        "disconnect": "Desconectar",
+        "selectCalendars": "Selecciona los calendarios a mostrar",
+        "noCalendars": "No se han encontrado calendarios.",
+        "primaryBadge": "(principal)",
+        "credentialsRequired": "Se necesitan credenciales OAuth de Google para conectar tu calendario.",
+        "credentialsSetupPart1": "Configura primero tu Client ID y Client Secret en ",
+        "settingsIntegrationsLink": "Ajustes → Integraciones",
+        "credentialsSetupPart2": ".",
+        "deviceCodeIntro": "Abre el siguiente enlace en tu teléfono u ordenador y luego introduce el código:",
+        "waitingForAuthorization": "Esperando autorización…",
+        "signIn": "Iniciar sesión con Google",
+        "usingClientIdLabel": "Usando Client ID:",
+        "verifyCredentialsPart1": "Verifica tus credenciales en ",
+        "verifyCredentialsPart2": ", o revisa tu ",
+        "googleCloudConsoleLink": "Google Cloud Console",
+        "verifyCredentialsPart3": ".",
+        "signInHelp": "Inicia sesión para ver tus calendarios automáticamente. Requiere un cliente OAuth de Google de tipo «TVs and Limited Input devices» en la Cloud Console."
+      },
+      "holidays": {
+        "heading": "Festivos",
+        "none": "Ninguno",
+        "help": "Mostrar festivos en los widgets de calendario. Datos de Nager.Date."
+      },
+      "shared": {
+        "maxEventsLabel": "Máx. eventos",
+        "daysAheadLabel": "Días por delante"
+      }
+    },
+    "dataPage": {
+      "intervalOptions": {
+        "threeDays": "3 días",
+        "sevenDays": "7 días",
+        "fourteenDays": "14 días",
+        "thirtyDays": "30 días"
+      },
+      "alerts": {
+        "invalidLayoutFile": "Archivo de diseño no válido:\n{errors}",
+        "invalidJsonFile": "Archivo JSON no válido.",
+        "exportBackupFailed": "No se pudo exportar la copia de seguridad.",
+        "invalidBackupFile": "Archivo de copia de seguridad no válido."
+      },
+      "shareLayout": {
+        "heading": "Compartir diseño",
+        "description": "Exporta el diseño de tu pantalla (pantallas, módulos, ajustes visuales) sin datos personales como ubicación, IDs de calendario o ajustes del dispositivo. Se puede compartir con seguridad.",
+        "exportButton": "Exportar diseño",
+        "importButton": "Importar diseño"
+      },
+      "templates": {
+        "heading": "Plantillas",
+        "description": "Empieza desde una plantilla preconstruida. Tus ajustes existentes (ubicación, calendarios, etc.) se conservan.",
+        "browseButton": "Explorar plantillas"
+      },
+      "fullBackup": {
+        "heading": "Copia completa",
+        "description": "Exporta o restaura toda la configuración, incluidos los ajustes, datos de tareas e historial de finalización. Para copias de seguridad y migración entre dispositivos. No incluye claves de API.",
+        "working": "Trabajando…",
+        "backupButton": "Hacer copia de todos los datos",
+        "restoreButton": "Restaurar copia"
+      },
+      "backupReminder": {
+        "heading": "Recordatorio de copia",
+        "description": "Recibe un aviso en el editor cuando lleves un tiempo sin hacer copia de seguridad.",
+        "enableLabel": "Activar recordatorios de copia",
+        "remindAfterLabel": "Recordar tras",
+        "lastBackup": "Última copia: {date}",
+        "noBackups": "Aún no hay copias registradas"
+      }
+    },
+    "weatherPage": {
+      "heading": "Tiempo",
+      "description": "Configura cualquiera de los proveedores meteorológicos siguientes. Cada widget de tiempo puede elegir cualquier proveedor configurado; uno se usa como predeterminado.",
+      "unitsLabel": "Unidades",
+      "imperialOption": "Imperial (°F, mph)",
+      "metricOption": "Métrica (°C, km/h)",
+      "locationWarning": "Define tu ubicación para que el tiempo funcione. Introduce un código postal o nombre de ciudad, o usa Detectar.",
+      "providersLabel": "Proveedores",
+      "loadingProviderStatus": "Cargando estado de los proveedores…",
+      "providerCard": {
+        "currentlyDefault": "Actualmente el predeterminado",
+        "setAsDefault": "Establecer como predeterminado",
+        "testButton": "Probar",
+        "testingButton": "Probando…",
+        "testStatus": {
+          "success": "¡Funciona! Temp. actual: {temp}°",
+          "connectedNoData": "Conectado pero sin datos",
+          "errorWithDetail": "Error: {error}: {detail}",
+          "errorOnly": "Error: {error}",
+          "failed": "Falló: {message}",
+          "unknownError": "Error desconocido"
+        },
+        "status": {
+          "defaultReady": "Predeterminado · Listo",
+          "defaultConfigured": "Predeterminado · Configurado",
+          "defaultNeedsSetup": "Predeterminado · Falta configurar",
+          "ready": "Listo",
+          "configured": "Configurado",
+          "needsSetup": "Falta configurar"
+        }
+      },
+      "providers": {
+        "openMeteo": {
+          "tagline": "Gratis · global · sin clave",
+          "helperText": "No requiere clave de API. Open-Meteo es gratis y de código abierto, con cobertura global."
+        },
+        "weatherApi": {
+          "tagline": "Plan gratuito · sin tarjeta de crédito",
+          "keyHint": "Gratis en weatherapi.com — no se requiere tarjeta de crédito.",
+          "placeholder": "Pega tu clave de WeatherAPI"
+        },
+        "openWeatherMap": {
+          "tagline": "Suscripción a One Call 3.0",
+          "keyHint": "Requiere una suscripción a One Call 3.0 en openweathermap.org.",
+          "placeholder": "Pega tu clave de API de OpenWeatherMap"
+        },
+        "pirateWeather": {
+          "tagline": "Sustituto de Dark Sky",
+          "keyHint": "Gratis en pirateweather.net — sustituto directo de Dark Sky.",
+          "placeholder": "Pega tu clave de API de Pirate Weather"
+        },
+        "noaa": {
+          "tagline": "Gratis · solo EE. UU. · sin clave",
+          "helperText": "No requiere clave de API. Los datos de NOAA son gratuitos y públicos (solo EE. UU.)."
+        },
+        "yr": {
+          "tagline": "Gratis · global · sin clave",
+          "helperText": "No requiere clave de API. Proporcionado por el Instituto Meteorológico Noruego con cobertura global. Para probar, usa una latitud/longitud nórdica — p. ej. Oslo (59.9139, 10.7522) — donde la cobertura es más densa."
+        },
+        "smhi": {
+          "tagline": "Gratis · solo Nórdicos · sin clave",
+          "helperText": "No requiere clave de API. Proporcionado por el Instituto Meteorológico e Hidrológico Sueco. Cobertura solo nórdica — para probar, usa una latitud/longitud nórdica (p. ej. Estocolmo: 59.3293, 18.0686). No devuelve datos fuera de la región nórdica."
+        },
+        "metOffice": {
+          "tagline": "Freemium · enfoque UK · requiere clave",
+          "keyHint": "Regístrate en datahub.metoffice.gov.uk y suscríbete a la API Site-Specific para obtener una clave.",
+          "placeholder": "Pega tu clave de API de Met Office DataHub"
+        },
+        "envCanada": {
+          "tagline": "Gratis · solo Canadá · sin clave",
+          "helperText": "No requiere clave de API. Proporcionado por Environment and Climate Change Canada — la fuente oficial de previsión dentro de Canadá. Home Screens elige el más cercano de unos 844 sitios urbanos a tu latitud/longitud; las ubicaciones a más de 200 km de cualquier ciudad canadiense se rechazan. Para probar, usa Toronto (43.6532, -79.3832) o Vancouver (49.2827, -123.1207)."
+        }
+      }
+    },
+    "defaultDisplayPage": {
+      "breadcrumb": "Valores predeterminados → Pantalla",
+      "heading": "Ajustes predeterminados de pantalla",
+      "descriptionPart1": "Estos valores los usa cada display hasta que uno los anule. Cambia algo aquí y todos los displays que ",
+      "descriptionEmphasisNot": "no",
+      "descriptionPart2": " anulen ese campo recogerán el nuevo valor.",
+      "multiDisplayNotePart1": "La resolución, orientación y giro son ",
+      "multiDisplayNotePerDisplay": "por display",
+      "multiDisplayNotePart2": " — edítalos en la página propia de cada display dentro de ",
+      "multiDisplayNotePerDisplaySection": "Por display",
+      "multiDisplayNotePart3": ".",
+      "canvas": {
+        "heading": "Lienzo",
+        "orientationPortrait": "Vertical",
+        "orientationLandscape": "Horizontal",
+        "resolutionCustom": "Personalizada...",
+        "resolutionWidthPlaceholder": "Anchura",
+        "resolutionHeightPlaceholder": "Altura",
+        "resolutionHelp": "Haz que coincida con tu display físico. Cambiar la resolución afecta al tamaño del lienzo de los módulos.",
+        "flipLabel": "Voltear pantalla",
+        "flipToggle": "Montaje invertido",
+        "flipHelp": "Actívalo si tu monitor está montado al revés. Gira la pantalla 180° desde su orientación base."
+      },
+      "fields": {
+        "rotationIntervalLabel": "Intervalo de rotación de pantallas",
+        "rotationIntervalHelp": "Cuánto tiempo se muestra cada pantalla antes de pasar automáticamente a la siguiente. Solo se aplica si tienes varias pantallas configuradas.",
+        "pauseEnabledLabel": "Permitir pausa táctil",
+        "pauseEnabledToggle": "Activado",
+        "pauseEnabledHelp": "Toca dos veces el punto de paginación activo para pausar la rotación. Toca dos veces de nuevo para reanudar.",
+        "pauseTimeoutLabel": "Reanudar automáticamente tras",
+        "pauseTimeoutNever": "Nunca",
+        "pauseTimeoutSeconds": "{seconds} s",
+        "pauseTimeoutHelp": "Reanuda la rotación automáticamente tras estos segundos. Pon 0 para mantenerla en pausa hasta reanudar manualmente.",
+        "transitionEffectLabel": "Efecto de transición",
+        "transitionEffectHelp": "Estilo de animación al cambiar entre pantallas. El desenfoque puede consumir mucha GPU en dispositivos de baja potencia.",
+        "transitionDurationLabel": "Duración de la transición",
+        "transitionDurationValue": "{seconds} s",
+        "transitionDurationHelp": "Cuánto dura la animación de transición entre pantallas.",
+        "cursorHideLabel": "Ocultar cursor tras",
+        "cursorHideValue": "{seconds} s",
+        "cursorHideHelp": "El cursor del ratón se oculta tras estos segundos sin actividad. Mueve el ratón para mostrarlo de nuevo.",
+        "fullscreenThemeLabel": "Tema en pantalla completa",
+        "fullscreenThemeHelp": "Se aplica a todos los módulos en pantalla completa (Calendario, Tareas, Comidas) para que se vean continuos al rotar. Puedes cambiarlo por módulo en el editor."
+      },
+      "transitionOptions": {
+        "fade": "Fundido",
+        "slide": "Deslizar a la izquierda",
+        "slide-up": "Deslizar hacia arriba",
+        "zoom": "Zoom",
+        "flip": "Giro 3D",
+        "blur": "Desenfoque",
+        "crossfade": "Fundido cruzado (solapamiento)",
+        "none": "Ninguno (instantáneo)"
+      },
+      "themeGroups": {
+        "light": "claro",
+        "dark": "oscuro"
+      }
+    },
+    "perDisplayPage": {
+      "header": {
+        "openTitle": "Abrir la URL del kiosk de este display",
+        "openLabel": "Abrir",
+        "editScreensTitle": "Editar las pantallas de este display en el lienzo",
+        "editScreensLabel": "Editar pantallas",
+        "statusOnline": "En línea",
+        "statusIdle": "Inactivo",
+        "statusOffline": "Sin conexión",
+        "screenCountSingular": "1 pantalla",
+        "screenCountPlural": "{count} pantallas",
+        "notFound": "Display no encontrado",
+        "notFoundDescPart1": "No hay ningún display registrado con el id ",
+        "notFoundDescPart2": ".",
+        "subtabs": {
+          "overview": "resumen",
+          "display": "pantalla",
+          "sleep": "suspensión",
+          "alerts": "avisos",
+          "profile": "perfil",
+          "identity": "identidad"
+        }
+      },
+      "overview": {
+        "activeProfileLabel": "Perfil activo",
+        "noActiveProfile": "Ninguno",
+        "screensLabel": "Pantallas",
+        "overridesHeading": "Anulaciones de {name}",
+        "withOverridesPart1": "{name} usa los ",
+        "defaultsLink": "Valores predeterminados",
+        "withOverridesPart2": " para todo excepto:",
+        "noOverridesPart1": "{name} usa los ",
+        "noOverridesPart2": " para todos los campos. Anula uno desde la subpestaña Pantalla, Suspensión o Avisos.",
+        "chipBlockOverridden": "{label} anulado",
+        "chipFieldWithDefault": "{label}: {value} (predet.: {defaultValue})",
+        "chipFieldNoDefault": "{label}: {value}",
+        "fieldLabels": {
+          "rotationIntervalMs": "Intervalo de rotación",
+          "transitionEffect": "Transición",
+          "transitionDuration": "Duración de la transición",
+          "pauseEnabled": "Pausa al tocar",
+          "pauseTimeoutSeconds": "Tiempo de pausa",
+          "cursorHideSeconds": "Ocultar cursor",
+          "fullscreenTheme": "Tema",
+          "sleep": "Programa de suspensión",
+          "screensaver": "Salvapantallas",
+          "alerts": "Superposición de avisos"
+        },
+        "chipValues": {
+          "pauseOn": "Sí",
+          "pauseOff": "No",
+          "pauseNever": "Nunca"
+        },
+        "transitionLabels": {
+          "fade": "Fundido",
+          "slide": "Deslizar a la izquierda",
+          "slide-up": "Deslizar hacia arriba",
+          "zoom": "Zoom",
+          "flip": "Giro 3D",
+          "blur": "Desenfoque",
+          "crossfade": "Fundido cruzado",
+          "none": "Ninguno"
+        }
+      },
+      "identity": {
+        "displayNameLabel": "Nombre del display",
+        "displayNameHelp": "Se muestra en la barra lateral y en el kiosk del display. Se guarda automáticamente al perder el foco.",
+        "displayIdLabel": "ID del display",
+        "displayIdHelpPart1": "Se usa en la URL del kiosk ",
+        "displayIdHelpPart2": ". No se puede cambiar sin reconfigurar el Pi.",
+        "dangerZoneHeading": "Zona de peligro",
+        "dangerZoneMainHelp": "El display principal es el kiosk del hub y no se puede eliminar. Si se eliminara, sus pantallas quedarían huérfanas y el hub volvería a un estado no adoptado.",
+        "dangerZoneRemovableHelp": "Eliminar un display deja de servirlo y borra sus pantallas. El Pi puede volver a registrarse como no adoptado.",
+        "removeButton": "Eliminar {name}",
+        "removeConfirm": "¿Eliminar el display «{name}»? Esto borrará sus pantallas."
+      },
+      "profile": {
+        "activeProfileLabel": "Perfil activo",
+        "noneOption": "— Ninguno —",
+        "helpPart1": "Qué perfil muestra {name} actualmente. Las definiciones de los perfiles viven en ",
+        "helpLink": "Valores predeterminados → Perfiles",
+        "helpPart2": "."
+      },
+      "display": {
+        "defaultsLabel": "Valores predeterminados → Pantalla",
+        "bannerPart1": "Los campos de aquí muestran el valor ",
+        "bannerEmphasisDefault": "predeterminado",
+        "bannerPart2": " de ",
+        "bannerPart3": ". Pulsa ",
+        "bannerEmphasisOverride": "Anular",
+        "bannerPart4": " en cualquier campo para cambiarlo solo en {name}.",
+        "canvasHeading": "Lienzo",
+        "perDisplayBadge": "Por display",
+        "resolutionHelp": "Los módulos se distribuyen sobre este lienzo. Cada display tiene su propia resolución — no se comparte.",
+        "rotationOptionNormal": "Normal (horizontal)",
+        "rotationOption90": "90° en sentido horario (vertical)",
+        "rotationOption180": "180° (invertida)",
+        "rotationOption270": "270° en sentido horario (vertical)",
+        "rotationAndTransitionsHeading": "Rotación y transiciones",
+        "appearanceHeading": "Apariencia",
+        "fields": {
+          "rotationIntervalSeconds": "{seconds} segundos",
+          "pauseEnabledLabelDisabled": "Desactivado"
+        },
+        "footer": {
+          "overrideCountSingular": "{count} anulación de display",
+          "overrideCountPlural": "{count} anulaciones de display",
+          "activeForDisplay": " activas para {name}.",
+          "clearAllButton": "Quitar anulaciones del display",
+          "clearAllTitle": "Restablece cada campo de esta subpestaña a su valor predeterminado. Las anulaciones de Suspensión y Avisos no se ven afectadas."
+        }
+      },
+      "sleep": {
+        "label": "Programa de suspensión",
+        "defaultsLabel": "Valores predeterminados → Suspensión",
+        "infoPart1": "La suspensión se anula como bloque entero — no puedes bifurcar campos individuales como la hora de atenuación. El valor predeterminado vive en ",
+        "infoPart2": "."
+      },
+      "alerts": {
+        "label": "Superposición de avisos",
+        "defaultsLabel": "Valores predeterminados → Avisos",
+        "infoPart1": "Los avisos se anulan como bloque entero. El valor predeterminado vive en ",
+        "infoPart2": "."
+      },
+      "wholeBlockOverride": {
+        "overrideForButton": "Anular para {name}",
+        "usingDefaultPart1": "Usando el valor predeterminado de ",
+        "usingDefaultPart2": "."
+      }
+    },
+    "alertFormFields": {
+      "enableLabel": "Activar superposición de avisos",
+      "enableHelp": "Mostrar notificaciones en el display. Los avisos se pueden disparar desde la API y desde módulos que implementen funciones de aviso.",
+      "positionLabel": "Posición",
+      "positionTop": "Arriba",
+      "positionBottom": "Abajo",
+      "maxVisibleLabel": "Máximo de avisos visibles",
+      "defaultDurationLabel": "Duración predeterminada (segundos)",
+      "defaultDurationPerType": "Predeterminados por tipo",
+      "defaultDurationHelp": "Información: 10 s, Advertencia: 30 s, Urgente: permanente hasta descartarse.",
+      "alertSizeLabel": "Tamaño del aviso",
+      "activeAlertsHeading": "Avisos activos",
+      "clearAllButton": "Quitar todos los avisos",
+      "clearingButton": "Quitando...",
+      "cleared": "Quitados",
+      "failed": "Falló",
+      "clearHelp": "Descarta todos los avisos activos del display. Surte efecto en menos de 3 segundos.",
+      "apiUsageHeading": "Uso de la API",
+      "apiUsageIntro": "Envía avisos desde herramientas externas (Home Assistant, scripts, etc.):",
+      "apiTypesPart1": "Tipos: ",
+      "apiTypesPart2": ", ",
+      "apiTypesPart3": ", "
+    },
+    "sleepFormFields": {
+      "enableLabel": "Activar suspensión del display",
+      "enableHelp": "Atenúa y opcionalmente apaga el display tras un periodo de inactividad o por programación. Cualquier entrada de ratón, táctil o de teclado lo despierta.",
+      "dimAfterLabel": "Atenuar tras (minutos)",
+      "sleepAfterLabel": "Suspender tras atenuar (minutos)",
+      "sleepAfterOff": "No",
+      "sleepAfterHelp": "El display se atenuará pero nunca se apagará completamente por inactividad.",
+      "dimBrightnessLabel": "Brillo en atenuación (%)",
+      "screensaverLabel": "Salvapantallas",
+      "screensaverClock": "Reloj a la deriva",
+      "screensaverBlank": "En negro (solo atenuar)",
+      "screensaverOff": "Desactivado (pasar a suspensión)",
+      "screensaverHelp": "Se muestra durante el estado atenuado, antes de que el display entre en suspensión total.",
+      "dimScheduleLabel": "Atenuar por programación",
+      "dimAtLabel": "Atenuar a las",
+      "brightenAtLabel": "Iluminar a las",
+      "dimScheduleHelp": "Atenúa el display durante esta ventana y lo ilumina automáticamente al terminar. Admite franjas nocturnas.",
+      "sleepScheduleLabel": "Suspender por programación",
+      "sleepAtLabel": "Suspender a las",
+      "wakeAtLabel": "Despertar a las",
+      "sleepScheduleHelp": "Apaga el display por completo durante esta ventana y lo despierta automáticamente al terminar. Ignora la actividad. Admite franjas nocturnas."
+    },
+    "integrationsPage": {
+      "heading": "Integraciones",
+      "description": "Conecta servicios externos para desbloquear más módulos y funciones. Las claves de API se guardan localmente y nunca salen de tu dispositivo.",
+      "loadingStatus": "Cargando estado de las integraciones...",
+      "summary": {
+        "configuredCountPart1": " de ",
+        "configuredCountPart2": " integraciones configuradas"
+      },
+      "groups": {
+        "googleEcosystem": "Ecosistema Google",
+        "photosAndBackgrounds": "Fotos y fondos",
+        "services": "Servicios"
+      },
+      "google": {
+        "name": "Google",
+        "description": "Calendar, Maps",
+        "clientIdLabel": "OAuth Client ID",
+        "clientIdPlaceholder": "p. ej. 123456789-abc.apps.googleusercontent.com",
+        "clientIdHelp": "Créalo en console.cloud.google.com → APIs & Services → Credentials. Tipo: TVs and Limited Input devices.",
+        "clientSecretLabel": "OAuth Client Secret",
+        "clientSecretPlaceholder": "p. ej. GOCSPX-...",
+        "clientSecretHelp": "El client secret de la misma credencial OAuth de arriba.",
+        "mapsKeyLabel": "Clave de API de Maps",
+        "mapsKeyPlaceholder": "Pega tu clave de API de Google Maps",
+        "mapsKeyHelp": "Opcional — para el widget de tráfico/trayecto. Activa la Routes API en el mismo proyecto de Cloud Console."
+      },
+      "immich": {
+        "name": "Immich",
+        "description": "Biblioteca de fotos autoalojada",
+        "urlLabel": "URL del servidor",
+        "urlPlaceholder": "p. ej. http://192.168.1.50:2283",
+        "urlHelp": "La URL base de tu instancia de Immich.",
+        "apiKeyPlaceholder": "Pega tu clave de API de Immich",
+        "apiKeyHelp": "Créala en Immich → Account Settings → API Keys."
+      },
+      "unsplash": {
+        "name": "Unsplash",
+        "description": "Fondos fotográficos en HD por categoría",
+        "accessKeyLabel": "Access Key",
+        "accessKeyPlaceholder": "Pega tu access key de Unsplash",
+        "accessKeyHelp": "Gratis en unsplash.com/developers — 50 peticiones/hora en el plan gratuito."
+      },
+      "nasa": {
+        "name": "NASA",
+        "description": "Imagen astronómica del día",
+        "apiKeyPlaceholder": "Pega tu clave de API de NASA",
+        "apiKeyHelp": "Gratis en api.nasa.gov — 1.000 peticiones/hora. La búsqueda en Image Library funciona sin clave."
+      },
+      "todoist": {
+        "name": "Todoist",
+        "description": "Mostrar tareas de tus proyectos",
+        "tokenLabel": "Token de API",
+        "tokenPlaceholder": "Pega tu token de API de Todoist",
+        "tokenHelp": "Obtén tu token en app.todoist.com/app/settings/integrations/developer. Se valida al guardar."
+      },
+      "tomtom": {
+        "name": "TomTom",
+        "description": "Tráfico y tiempos de trayecto",
+        "keyPlaceholder": "Pega tu clave de API de TomTom",
+        "keyHelp": "Gratis en developer.tomtom.com — se necesita la Routing API. Alternativa a Google Maps."
+      },
+      "github": {
+        "name": "GitHub",
+        "description": "Mayor límite de peticiones para comprobar versiones",
+        "optionalBadge": "Opcional",
+        "tokenLabel": "Personal Access Token",
+        "tokenPlaceholder": "Pega tu token de GitHub",
+        "tokenHelp": "Aumenta el límite de peticiones de 60 a 5.000 por hora. Créalo en github.com/settings/tokens (no hacen falta scopes)."
+      },
+      "status": {
+        "notConfigured": "Sin configurar",
+        "connected": "Conectado",
+        "partial": "{configured} de {total}"
+      }
+    },
+    "networkPage": {
+      "loading": "Cargando información de red...",
+      "unavailable": {
+        "heading": "Red",
+        "message": "Los ajustes de red solo están disponibles en el dispositivo del display."
+      },
+      "interfaces": {
+        "heading": "Interfaces",
+        "noneDetected": "No se detectaron interfaces de red."
+      },
+      "hiddenNetwork": {
+        "connectButton": "Conectar a una red oculta..."
+      },
+      "hostname": {
+        "heading": "Hostname",
+        "placeholder": "home-screens",
+        "saveButton": "Guardar",
+        "savingButton": "Guardando...",
+        "successMessage": "Hostname actualizado",
+        "defaultErrorMessage": "No se pudo actualizar el hostname"
+      },
+      "interface": {
+        "type": {
+          "ethernet": "Ethernet",
+          "wifiBuiltIn": "Wi-Fi integrado",
+          "wifiUsb": "Wi-Fi USB ({driver})",
+          "wifi": "Wi-Fi"
+        },
+        "state": {
+          "connected": "Conectado",
+          "connectedToSsid": "Conectado a «{ssid}»",
+          "connectedWithAddress": "{state} ({address})",
+          "disconnected": "Desconectado",
+          "unavailable": "No disponible",
+          "unmanaged": "No gestionado"
+        },
+        "managementBadge": "Tu conexión",
+        "ipSettingsButton": "Ajustes de IP",
+        "disconnectButton": "Desconectar",
+        "disconnectingButton": "Desconectando...",
+        "signalLabel": "Señal {percent}%",
+        "addressing": {
+          "static": "Estática",
+          "dhcp": "DHCP"
+        }
+      },
+      "wifiScan": {
+        "heading": "Redes Wi-Fi disponibles",
+        "scanningInterface": "Buscando en {device}",
+        "scanButton": "Buscar",
+        "scanningButton": "Buscando...",
+        "scanCooldownButton": "Buscar ({seconds} s)",
+        "defaultScanError": "Error al buscar",
+        "emptyHint": "Pulsa Buscar para encontrar redes Wi-Fi cercanas.",
+        "badges": {
+          "connected": "Conectado",
+          "saved": "Guardada"
+        }
+      },
+      "wifiConnect": {
+        "titleNamed": "Conectar a «{ssid}»",
+        "titleHidden": "Conectar a una red oculta",
+        "ssidLabel": "Nombre de red (SSID)",
+        "ssidPlaceholder": "Introduce el nombre de la red",
+        "ssidRequiredError": "Se necesita el SSID",
+        "passwordLabel": "Contraseña",
+        "passwordPlaceholder": "Introduce la contraseña",
+        "showPassword": "Mostrar",
+        "hidePassword": "Ocultar",
+        "interfaceLabel": "Interfaz",
+        "cancelButton": "Cancelar",
+        "connectButton": "Conectar",
+        "connectingButton": "Conectando...",
+        "defaultConnectError": "Error de conexión"
+      },
+      "managementWarning": {
+        "heading": "Advertencia: interfaz de gestión",
+        "autoRevertHint": "Si este cambio rompe la conectividad, se revertirá automáticamente tras 60 segundos.",
+        "cancelButton": "Cancelar",
+        "proceedButton": "Lo entiendo, continuar"
+      },
+      "rollback": {
+        "polling": {
+          "heading": "Comprobando conectividad...",
+          "remaining": "Quedan {seconds} s para la reversión automática",
+          "warning": "Si esta página queda inalcanzable, se restaurarán automáticamente los ajustes anteriores."
+        },
+        "confirmed": {
+          "heading": "¡Conexión confirmada!",
+          "message": "El cambio de red se ha verificado y guardado."
+        },
+        "reverted": {
+          "heading": "Cambio revertido",
+          "message": "Se han restaurado los ajustes de red anteriores."
+        },
+        "dismissButton": "Descartar"
+      },
+      "savedNetworks": {
+        "heading": "Redes guardadas",
+        "loading": "Cargando redes guardadas...",
+        "loadError": "No se pudieron cargar las redes guardadas",
+        "empty": "No hay redes Wi-Fi guardadas.",
+        "showPasswords": "Mostrar contraseñas",
+        "hidePasswords": "Ocultar contraseñas",
+        "lastUsed": "Usada por última vez {date}",
+        "neverUsed": "Nunca usada",
+        "autoConnect": "Conectar automáticamente",
+        "forgetPrompt": "¿Olvidar?",
+        "forgetButton": "Olvidar",
+        "forgetConfirmYes": "Sí",
+        "forgetConfirmNo": "No",
+        "forgettingButton": "Quitando..."
+      },
+      "ipSettings": {
+        "heading": "Ajustes de IP ({device})",
+        "method": {
+          "auto": "DHCP (automático)",
+          "manual": "Estática (manual)"
+        },
+        "addressLabel": "Dirección IP",
+        "addressPlaceholder": "192.168.1.50",
+        "prefixLabel": "Prefijo de subred",
+        "prefixPlaceholder": "24",
+        "gatewayLabel": "Puerta de enlace",
+        "gatewayPlaceholder": "192.168.1.1",
+        "dnsLabel": "Servidores DNS",
+        "dnsPlaceholder": "8.8.8.8",
+        "removeDnsAriaLabel": "Quitar servidor DNS",
+        "addDnsButton": "+ Añadir servidor DNS",
+        "dhcpHint": "Asignado por DHCP",
+        "managementInterfaceHint": "Los cambios en esta interfaz se revertirán automáticamente si se pierde la conectividad.",
+        "applyButton": "Aplicar",
+        "applyingButton": "Aplicando...",
+        "successMessage": "Ajustes aplicados",
+        "defaultErrorMessage": "No se pudieron aplicar los ajustes de IP"
+      },
+      "diagnostics": {
+        "heading": "Diagnóstico",
+        "watchdog": {
+          "label": "Watchdog Wi-Fi:",
+          "active": "Activo",
+          "inactive": "Inactivo",
+          "lastRun": "Última ejecución del watchdog: {time}",
+          "never": "Nunca",
+          "secondsAgo": "hace {count} segundos",
+          "minuteAgoSingular": "hace {count} minuto",
+          "minutesAgoPlural": "hace {count} minutos",
+          "hourAgoSingular": "hace {count} hora",
+          "hoursAgoPlural": "hace {count} horas"
+        },
+        "host": {
+          "gatewayLabel": "Puerta de enlace",
+          "internetLabel": "Internet",
+          "reachable": "Alcanzable",
+          "reachableWithLatency": "Alcanzable ({latency})",
+          "unreachable": "Inalcanzable",
+          "latencyUnderOneMs": "<1 ms",
+          "latencyMs": "{ms} ms"
+        },
+        "unavailable": "El diagnóstico no está disponible en este dispositivo.",
+        "requestFailed": "La solicitud de diagnóstico falló",
+        "testButton": "Probar conexión",
+        "testingButton": "Probando..."
+      }
+    },
+    "mealsPage": {
+      "loading": "Cargando ajustes de comidas…",
+      "intro": {
+        "part1": "Ajustes compartidos del planificador de comidas. También aparecen en el cajón de ajustes de ",
+        "remoteLinkLabel": "remote",
+        "part2": " — los cambios desde cualquiera de los dos lados se sincronizan."
+      },
+      "status": {
+        "loadFailed": "No se pudieron cargar los ajustes de comidas.",
+        "networkLoad": "Error de red al cargar los ajustes de comidas.",
+        "saveFailed": "No se pudieron guardar los ajustes de comidas.",
+        "networkSave": "Error de red al guardar los ajustes de comidas.",
+        "unableToLoad": "No se pueden cargar los ajustes de comidas."
+      },
+      "slots": {
+        "heading": "Comidas del día",
+        "description": "¿Qué comidas planifica tu hogar? Afecta a todos los módulos de planificador de comidas en cualquier pantalla."
+      },
+      "weekStart": {
+        "heading": "La semana empieza en"
+      },
+      "timeFormat": {
+        "heading": "Formato de hora",
+        "description": "Se aplica a todas las comidas mostradas en el kiosk y en el mando.",
+        "twelveHourLabel": "12 horas",
+        "twentyFourHourLabel": "24 horas"
+      },
+      "defaultTimes": {
+        "heading": "Horas por defecto para servir",
+        "description": "Se usan cuando una comida planeada no tiene su propia hora. Déjalo en blanco para huecos que cambian de un día a otro.",
+        "clear": "Vaciar",
+        "clearAriaLabel": "Vaciar la hora por defecto de {name}",
+        "timeInputAriaLabel": "Hora por defecto para {name}",
+        "noSlotsHint": "Activa al menos un hueco arriba para poder definir horas por defecto."
+      },
+      "reset": {
+        "button": "Restablecer valores predeterminados",
+        "help": "Restaura desayuno/comida/cena, inicio de semana en domingo, formato 12 horas y borra todas las horas por defecto."
+      }
+    },
+    "systemPage": {
+      "loading": "Cargando información del sistema…",
+      "loadFailed": "No se pudo cargar la información del sistema",
+      "advanced": {
+        "heading": "Avanzado",
+        "toggleLabel": "Mostrar opciones avanzadas",
+        "help": "Muestra controles para desarrolladores: canal pre-release, token de GitHub y modo desarrollador de plugins."
+      },
+      "version": {
+        "heading": "Versión",
+        "branchLabel": "Rama: {channel}",
+        "installedFromRelease": "Instalada desde release",
+        "stableChannel": "Canal estable",
+        "prereleaseChannel": "Canal pre-release",
+        "checkButton": "Buscar actualizaciones",
+        "checking": "Comprobando…"
+      },
+      "upgradeInProgress": {
+        "title": "Actualización en curso",
+        "help": "Hay una actualización en marcha. Si parece bloqueada, puedes cancelarla.",
+        "cancelButton": "Cancelar actualización"
+      },
+      "updateAvailable": {
+        "updateTitle": "Actualización disponible: v{version}",
+        "prereleaseTitle": "Pre-release disponible: v{version}",
+        "currentLine": "Estás en la v{version}",
+        "updateButton": "Actualizar ahora",
+        "installButton": "Instalar"
+      },
+      "upToDate": "Estás en la última versión",
+      "changelog": {
+        "heading": "Changelog",
+        "viewButton": "Ver changelog",
+        "empty": "No se encontraron releases en GitHub."
+      },
+      "history": {
+        "heading": "Historial de versiones",
+        "currentBadge": "actual",
+        "rollback": "Rollback"
+      },
+      "backups": {
+        "heading": "Copias de configuración",
+        "empty": "Aún no hay copias. Las copias se crean automáticamente antes de cada actualización.",
+        "sizeKb": "{size} KB",
+        "download": "Descargar",
+        "restore": "Restaurar"
+      },
+      "restoreStatus": {
+        "restoring": "Restaurando…",
+        "restored": "¡Restaurada! Recarga el editor para ver los cambios.",
+        "error": "Error: {error}",
+        "failed": "No se pudo restaurar la copia"
+      },
+      "restoreDialog": {
+        "title": "Restaurar copia",
+        "message": "¿Restaurar la configuración desde {name}? La configuración actual se sobrescribirá.",
+        "confirm": "Restaurar"
+      },
+      "upgradeDialog": {
+        "title": "Actualizar",
+        "message": "¿Actualizar a {tag}? El servidor se reiniciará y puedes perder la conexión un momento.",
+        "confirm": "Actualizar"
+      },
+      "rollbackDialog": {
+        "title": "Rollback",
+        "message": "¿Volver a {tag}? El servidor se reiniciará.",
+        "confirm": "Volver atrás"
+      },
+      "powerDialog": {
+        "rebootTitle": "Reiniciar sistema",
+        "rebootMessage": "¿Seguro que quieres reiniciar el sistema? Puedes perder la conexión un momento.",
+        "rebootConfirm": "Reiniciar",
+        "restartTitle": "Reiniciar servicio",
+        "restartMessage": "¿Seguro que quieres reiniciar el servicio? Puedes perder la conexión un momento.",
+        "restartConfirm": "Reiniciar"
+      },
+      "cancelUpgradeDialog": {
+        "title": "Cancelar actualización",
+        "message": "¿Seguro? La actualización en curso se interrumpirá. Puede que tengas que reintentar después.",
+        "confirm": "Cancelar actualización"
+      },
+      "actions": {
+        "heading": "Acciones del sistema",
+        "restartService": "Reiniciar servicio",
+        "rebootSystem": "Reiniciar sistema",
+        "help": "«Reiniciar servicio» recarga la app. «Reiniciar sistema» reinicia toda la Raspberry Pi."
+      },
+      "powerStatus": {
+        "restartScheduled": "Reinicio del servicio programado. La página se recargará en breve…",
+        "rebootScheduled": "Reinicio del sistema programado. El display volverá a estar en línea en breve…",
+        "processing": "Procesando…",
+        "unknownError": "Error desconocido"
+      }
+    },
+    "profilesPage": {
+      "heading": "Perfiles",
+      "description": "Los perfiles controlan qué pantallas se muestran en el display y en qué orden. Crea distintos diseños para mañana, tarde, fines de semana, etc. Cuando ningún perfil está activo, todas las pantallas rotan en el orden de pestañas predeterminado.",
+      "displayPicker": {
+        "label": "Editando perfiles para",
+        "optionLabel": "{name} ({id})",
+        "help": "Los perfiles son por display porque hacen referencia a las pantallas propias de cada display. Cambiar aquí también cambia el display sobre el que está trabajando el lienzo del editor."
+      },
+      "active": {
+        "label": "Perfil activo",
+        "noneOption": "Ninguno (mostrar todas las pantallas)",
+        "help": "Establece manualmente qué perfil está activo. Los perfiles programados tienen prioridad sobre este ajuste."
+      },
+      "priority": {
+        "labelPrefix": "Orden de prioridad:",
+        "helpSuffix": " Cuando varios perfiles tienen programaciones que se solapan, gana el listado primero. Arrastra para reordenar."
+      },
+      "addButton": "Añadir perfil",
+      "newProfileName": "Perfil {number}",
+      "card": {
+        "activeBadge": "Activo",
+        "scheduledBadge": "Programado",
+        "renameTitle": "Renombrar",
+        "deleteTitle": "Eliminar perfil",
+        "removeFromProfileTitle": "Quitar del perfil",
+        "disabledLabel": "(desactivado)",
+        "screensHeading": "Pantallas",
+        "availableHeading": "Disponibles",
+        "addScreenSymbol": "+",
+        "noScreensWarning": "No hay pantallas seleccionadas — se mostrarán todas las pantallas como respaldo.",
+        "dragHelp": "Arrastra para fijar el orden de rotación dentro de este perfil.",
+        "scheduleToggleLabel": "Activar automáticamente por programación",
+        "fromLabel": "Desde",
+        "untilLabel": "Hasta",
+        "invertLabel": "Invertir (ocultar durante esta ventana en su lugar)"
+      },
+      "deleteDialog": {
+        "title": "Eliminar perfil",
+        "message": "¿Eliminar «{name}»?",
+        "confirm": "Eliminar"
+      }
+    },
+    "securityPage": {
+      "loading": "Comprobando estado de autenticación…",
+      "heading": "Autenticación",
+      "status": {
+        "enabled": "La autenticación está activada",
+        "disabled": "La autenticación está desactivada"
+      },
+      "setup": {
+        "description": "Define una contraseña para proteger el editor y los endpoints de la API. Se generará automáticamente un token de display para que el display pueda autenticarse sin problemas.",
+        "setPasswordButton": "Definir contraseña"
+      },
+      "actions": {
+        "changePassword": "Cambiar contraseña",
+        "disableAuth": "Desactivar autenticación",
+        "logOut": "Cerrar sesión"
+      },
+      "revokeSessions": {
+        "button": "Revocar todas las sesiones",
+        "warning": "Todas las sesiones quedarán invalidadas, incluida esta.",
+        "confirmButton": "Confirmar",
+        "revoking": "Revocando…",
+        "cancel": "Cancelar",
+        "success": "Todas las sesiones revocadas. Redirigiendo al inicio de sesión…",
+        "failed": "No se pudieron revocar las sesiones"
+      },
+      "displayToken": {
+        "heading": "Token del display",
+        "description": "El display usa este token para autenticar las peticiones a la API. Se generó automáticamente al definir una contraseña.",
+        "reveal": "Mostrar",
+        "hide": "Ocultar",
+        "copy": "Copiar",
+        "copied": "¡Copiado!",
+        "regenerateButton": "Regenerar token",
+        "regenerating": "Regenerando…",
+        "regenerateConfirm": "Confirmar",
+        "regenerateCancel": "Cancelar",
+        "regenerateWarning": "El display tendrá que recargarse para tomar el nuevo token.",
+        "errorRegenerate": "No se pudo regenerar el token",
+        "errorCopy": "No se pudo copiar — selecciona y copia manualmente",
+        "phoneHintPart1": "Para marcadores en el teléfono, añade ",
+        "phoneHintCode": "?token=TOKEN",
+        "phoneHintPart2": " a las URLs de comando."
+      },
+      "ipAllowlist": {
+        "heading": "Lista de IPs permitidas",
+        "bypassAuth": {
+          "label": "Saltar autenticación para IPs de confianza",
+          "help": "Los displays en estas redes no necesitarán token"
+        },
+        "restrictAccess": {
+          "label": "Restringir acceso a IPs de confianza",
+          "help": "Bloquear todas las demás IPs (excepto la página de inicio de sesión)"
+        },
+        "emptyHint": "Añade al menos un rango de IP para activar estas opciones.",
+        "removeAriaLabel": "Quitar {entry}",
+        "addPlaceholder": "192.168.1.0/24",
+        "addButton": "Añadir",
+        "errors": {
+          "invalidCidr": "Formato CIDR no válido",
+          "invalidIp": "Dirección IP no válida",
+          "invalidPrefix": "La longitud del prefijo debe ser 0-32",
+          "alreadyInList": "Ya está en la lista"
+        },
+        "callerIpLabel": "Tu IP: ",
+        "lockoutWarning": {
+          "title": "Podrías dejarte fuera",
+          "messagePart1": "Tu IP actual (",
+          "messagePart2": ") no está en la lista. Si la restricción de acceso está activa, perderás el acceso a este editor.",
+          "saveAnyway": "Guardar igualmente",
+          "cancel": "Cancelar"
+        },
+        "saveButton": "Guardar cambios",
+        "lockedOutHintPart1": "Si te quedas fuera, edita ",
+        "lockedOutHintCode": "data/auth.json",
+        "lockedOutHintPart2": " en el dispositivo para desactivarla.",
+        "ipv4Warning": {
+          "strong": "Solo IPv4.",
+          "part1": " Los clientes IPv6 (incluidos los Pis dual-stack que reportan ",
+          "loopback": "::1",
+          "or": " o ",
+          "linkLocal": "fe80::…",
+          "part2": ") no coinciden con ninguna entrada de la lista y serán bloqueados cuando la restricción esté activa. Comprueba «Tu IP» arriba — si empieza con dos puntos, esta función te bloqueará."
+        },
+        "trustedNetworksWarning": {
+          "strong": "Solo redes de confianza.",
+          "part1": " La restricción por IP lee la cabecera ",
+          "header": "X-Forwarded-For",
+          "part2": ". Si Home Screens está expuesto directamente a internet sin un proxy inverso de confianza, este ajuste se puede falsificar."
+        }
+      },
+      "forgotPasswordPart1": "¿Has olvidado la contraseña? Elimina ",
+      "forgotPasswordCode": "data/auth.json",
+      "forgotPasswordPart2": " en el dispositivo para restablecerla.",
+      "modal": {
+        "setTitle": "Definir contraseña",
+        "changeTitle": "Cambiar contraseña",
+        "disableTitle": "Desactivar autenticación",
+        "currentPasswordPlaceholder": "Contraseña actual",
+        "newPasswordPlaceholder": "Nueva contraseña (mín. 8 caracteres)",
+        "confirmPasswordPlaceholder": "Confirma la nueva contraseña",
+        "disableWarning": "Esto eliminará la contraseña y permitirá a cualquiera de tu red acceder al editor.",
+        "cancel": "Cancelar",
+        "setSubmit": "Definir contraseña",
+        "setting": "Definiendo…",
+        "changeSubmit": "Cambiar contraseña",
+        "changing": "Cambiando…",
+        "disableSubmit": "Desactivar",
+        "disabling": "Desactivando…"
+      },
+      "errors": {
+        "passwordsDoNotMatch": "Las contraseñas no coinciden",
+        "setFailed": "No se pudo definir la contraseña",
+        "changeFailed": "No se pudo cambiar la contraseña",
+        "disableFailed": "No se pudo desactivar la autenticación"
+      },
+      "success": {
+        "passwordSet": "¡Contraseña definida! La autenticación está ahora activada.",
+        "passwordChanged": "Contraseña cambiada. Las demás sesiones han sido invalidadas.",
+        "authDisabled": "Autenticación desactivada."
+      }
+    },
+    "docsPage": {
+      "intro": {
+        "part1": "La documentación completa está disponible en ",
+        "linkLabel": "homescreens.dev/docs",
+        "part2": ". Las guías cubren todo, desde la configuración inicial hasta el desarrollo de plugins."
+      },
+      "sections": {
+        "introduction": "Introducción",
+        "guides": "Guías",
+        "reference": "Referencia"
+      },
+      "links": {
+        "gettingStarted": {
+          "title": "Primeros pasos",
+          "description": "Visión general de Home Screens y conceptos clave"
+        },
+        "installation": {
+          "title": "Instalación",
+          "description": "Configura en Raspberry Pi o ejecútalo en local"
+        },
+        "raspberryPi": {
+          "title": "Raspberry Pi",
+          "description": "Despliegue en kiosk, gestión del servicio y consejos para la SD"
+        },
+        "editor": {
+          "title": "Editor",
+          "description": "Recorrido por el editor visual y las herramientas del lienzo"
+        },
+        "modules": {
+          "title": "Módulos",
+          "description": "Los 38 módulos y sus opciones de configuración"
+        },
+        "backgrounds": {
+          "title": "Fondos",
+          "description": "Subidas, Unsplash, NASA APOD y rotación"
+        },
+        "profiles": {
+          "title": "Perfiles y programación",
+          "description": "Automatización y diseños de pantalla por horario"
+        },
+        "configuration": {
+          "title": "Configuración",
+          "description": "Esquema JSON y referencia del archivo de configuración"
+        },
+        "remoteControl": {
+          "title": "Mando remoto",
+          "description": "Controla tu display desde el teléfono u otro dispositivo"
+        },
+        "multiDisplay": {
+          "title": "Multi-display",
+          "description": "Configuración hub-and-spoke para gestionar varios Pis desde un servidor"
+        },
+        "networking": {
+          "title": "Red",
+          "description": "Proxy inverso y acceso remoto desde fuera de tu LAN"
+        },
+        "troubleshooting": {
+          "title": "Solución de problemas",
+          "description": "Problemas comunes y soluciones"
+        },
+        "api": {
+          "title": "API",
+          "description": "Todos los endpoints de la API y sus parámetros"
+        },
+        "plugins": {
+          "title": "Plugins",
+          "description": "Crea módulos personalizados con el SDK de plugins"
+        },
+        "development": {
+          "title": "Desarrollo",
+          "description": "Visión general de la arquitectura y guía para contribuir"
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Preguntas frecuentes"
+        }
+      }
+    },
+    "shared": {
+      "secretField": {
+        "removeButton": "Quitar",
+        "savingButton": "…",
+        "saveButton": "Guardar",
+        "savedSuccess": "Guardado correctamente"
+      }
+    },
+    "localBackgrounds": {
+      "none": "Ninguno",
+      "deleteTitle": "Eliminar fondo",
+      "deleteMessage": "¿Eliminar «{filename}»?",
+      "deleteConfirmLabel": "Eliminar",
+      "deleteAriaLabel": "Eliminar",
+      "uploadButton": "Subir fondo",
+      "uploadingButton": "Subiendo…",
+      "uploadFailed": "Error al subir",
+      "uploadFailedWithStatus": "Error al subir ({status})"
+    },
+    "pluginInstallPreview": {
+      "verifiedTitle": "Verificado",
+      "versionPrefix": "v",
+      "external": {
+        "heading": "Instalando desde fuera del marketplace",
+        "message": "Este plugin no ha sido revisado por el equipo de Home Screens. Asegúrate de que confías en esta fuente."
+      },
+      "unverified": {
+        "heading": "Plugin no verificado",
+        "message": "Este plugin no ha sido revisado por el equipo de Home Screens. Instálalo bajo tu responsabilidad."
+      },
+      "permissionsHeading": "Permisos solicitados",
+      "permissions": {
+        "network": "Acceso a la red",
+        "secrets": "Almacén de secretos",
+        "events": "Eventos del host",
+        "storage": "Almacenamiento local",
+        "localNetwork": "Red local (LAN)"
+      },
+      "secretsHeading": "Claves de API necesarias",
+      "secretRequired": "(obligatoria)",
+      "sha256Heading": "SHA-256",
+      "sha256CopyButton": "Copiar",
+      "sha256CopyAriaLabel": "Copiar SHA-256"
+    },
+    "pluginSecrets": {
+      "loading": "Cargando estado de los secretos…",
+      "requiredBadge": "Obligatorio",
+      "removeButton": "Quitar",
+      "enterPlaceholder": "Introduce {label}",
+      "savingButton": "…",
+      "saveButton": "Guardar",
+      "savedSuccess": "Guardado correctamente"
+    },
+    "pluginStorePanel": {
+      "title": "Plugins",
+      "dismissErrorAriaLabel": "Descartar error",
+      "tabs": {
+        "browse": "Explorar",
+        "installed": "Instalados",
+        "updates": "Actualizaciones",
+        "developer": "Desarrollador"
+      },
+      "errors": {
+        "actionFailed": "La acción falló",
+        "requestFailed": "La petición falló ({status})"
+      },
+      "browse": {
+        "searchPlaceholder": "Buscar plugins…",
+        "installFromUrlButton": "Instalar desde URL…",
+        "noMatches": "Ningún plugin coincide con tu búsqueda",
+        "empty": "No hay plugins disponibles en el registro",
+        "installedBadge": "Instalado",
+        "installButton": "Instalar",
+        "installingButton": "Instalando…"
+      },
+      "installed": {
+        "empty": "No hay plugins instalados",
+        "externalBadge": "Externo",
+        "checkUpdateTitle": "Buscar actualización",
+        "checkUpdateAriaLabel": "Buscar actualización para {id}",
+        "enableTitle": "Activar",
+        "disableTitle": "Desactivar",
+        "enableAriaLabel": "Activar {id}",
+        "disableAriaLabel": "Desactivar {id}",
+        "uninstallTitle": "Desinstalar",
+        "uninstallAriaLabel": "Desinstalar {id}"
+      },
+      "updates": {
+        "allUpToDate": "Todos los plugins están al día",
+        "updateButton": "Actualizar",
+        "updatingButton": "Actualizando…"
+      },
+      "developer": {
+        "loadFromUrlLabel": "Cargar desde URL",
+        "loadFromUrlHelp": "Introduce la URL de tu servidor de desarrollo (p. ej. http://localhost:5173). El plugin se recargará automáticamente con los cambios.",
+        "loadButton": "Cargar",
+        "loadFailed": "No se pudo cargar el plugin de desarrollo",
+        "devPluginsHeading": "Plugins de desarrollo",
+        "devBadge": "Dev",
+        "unloadTitle": "Descargar",
+        "unloadAriaLabel": "Descargar {name}",
+        "tipsHeading": "Consejos",
+        "tips": {
+          "localStorage": "Los plugins de desarrollo se guardan solo en localStorage — no persisten entre navegadores",
+          "autoReload": "El plugin se recarga automáticamente cuando cambia el bundle (se sondea cada 2 s)",
+          "sourcemapsPart1": "Los source maps están soportados — añade ",
+          "sourcemapsPart2": " a tu configuración de Vite",
+          "devOverrides": "Los plugins de desarrollo sobrescriben las versiones instaladas con el mismo tipo de módulo"
+        }
+      },
+      "installConfirm": {
+        "heading": "Instalar plugin"
+      }
+    },
+    "statsSection": {
+      "loadingStats": "Cargando estadísticas…",
+      "failedToLoad": "No se pudieron cargar las estadísticas",
+      "configurationTitle": "Configuración",
+      "screens": "Pantallas",
+      "modules": "Módulos",
+      "profiles": "Perfiles",
+      "serverTitle": "Servidor",
+      "diagnosticsBundle": "Paquete de diagnóstico",
+      "generatingBundle": "Generando…",
+      "bundleFailed": "Error al generar el paquete: {error}",
+      "hostname": "Nombre de host",
+      "platform": "Plataforma",
+      "uptime": "Tiempo activo",
+      "hardwareTitle": "CPU y térmica",
+      "sourceReporter": "Reporter",
+      "sourceHub": "Hub (local)",
+      "piModel": "Modelo de Pi",
+      "unavailable": "No disponible",
+      "unknown": "Desconocido",
+      "cores": "{count} núcleos",
+      "loadLabel": "Carga (1/5/15 m)",
+      "throttling": "Limitación",
+      "throttleActive": "Activa ({raw})",
+      "previouslyThrottled": "Limitado previamente",
+      "throttleOk": "OK",
+      "temperature": "Temperatura",
+      "noHardwareStats": "Aún no se han reportado estadísticas de hardware para esta pantalla. Instala home-screens-reporter.timer en su Pi.",
+      "storageTitle": "Almacenamiento",
+      "used": "Usado",
+      "free": "libre",
+      "diskUnavailable": "Estadísticas de disco no disponibles",
+      "memoryTitle": "Memoria",
+      "inUse": "En uso",
+      "moduleBreakdown": "Desglose de módulos",
+      "moduleSummary": "{count} módulos · {types} tipos",
+      "moduleOther": "otros",
+      "integrations": "Integraciones",
+      "integrationsConfigured": "{count} / {total} configuradas",
+      "cacheTitle": "Caché de datos",
+      "hideDetails": "Ocultar detalles",
+      "showDetails": "Mostrar detalles",
+      "hitRate": "Tasa de aciertos",
+      "entries": "Entradas",
+      "fresh": "Reciente",
+      "stale": "Caducada",
+      "inflight": "En curso",
+      "entriesFill": "Llenado",
+      "evictions": {
+        "one": "{count} expulsión LRU",
+        "other": "{count} expulsiones LRU",
+        "many": "{count} expulsiones LRU"
+      },
+      "cacheUrl": "URL",
+      "cacheAge": "Antigüedad",
+      "cacheTtl": "TTL",
+      "cacheState": "Estado",
+      "cacheStaleLabel": "caducada",
+      "cacheFreshLabel": "reciente",
+      "cacheNoDisplay": "Las estadísticas de caché las reporta el cliente de pantalla. Ninguna pantalla conectada.",
+      "cacheNoDisplayForName": "Las estadísticas de caché las reporta el cliente de pantalla. Ninguna pantalla conectada para {name}.",
+      "telemetryTitle": "Telemetría anónima",
+      "telemetryDescription": "Home Screens recopila estadísticas de uso anónimas para priorizar funciones y entender cómo se usa la app. Nunca se recopilan datos personales, direcciones IP ni contenido.",
+      "telemetryToggle": "Enviar datos de uso anónimos",
+      "installId": "ID de instalación",
+      "lastBeacon": "Última baliza",
+      "never": "Nunca",
+      "whatWeCollect": "Qué recopilamos",
+      "telemetryDataDaily": "Datos enviados una vez al día:",
+      "telemetryItem1": "ID de instalación anónimo (UUID aleatorio)",
+      "telemetryItem2": "Versión de la app y plataforma (SO, arquitectura)",
+      "telemetryItem3": "Resolución y orientación de la pantalla",
+      "telemetryItem4": "Número de pantallas, módulos y perfiles",
+      "telemetryItem5": "Tipos de módulos en uso (p. ej. reloj, clima)",
+      "telemetryItem6": "Proveedor de clima y efecto de transición",
+      "telemetryItem7": "Si están habilitados suspensión, alertas y autenticación",
+      "telemetryItem8": "Si las integraciones de calendario están configuradas",
+      "telemetryItem9": "Número de plugins instalados",
+      "telemetryDisclaimer": "Nunca recopilamos: direcciones IP, ubicación, eventos de calendario, claves de API, contenido de módulos, nombres de host ni ninguna información personalmente identificable. Todo el código es de código abierto y puede verificarse.",
+      "dataDirTitle": "Datos de Home Screens",
+      "totalAppData": "Datos totales de la app",
+      "dataBackgrounds": "Fondos",
+      "dataBackups": "Copias de configuración",
+      "dataConfiguration": "Configuración",
+      "noAppData": "Aún no hay datos de la app.",
+      "displayTitle": "Pantalla",
+      "offline": "Desconectada",
+      "switchDisplay": "Cambiar pantalla",
+      "screen": "Pantalla",
+      "indexOf": "{index} de {total}",
+      "profile": "Perfil",
+      "viewport": "Área visible",
+      "notChromium": "No es Chromium",
+      "lastSeen": "Visto por última vez",
+      "timeAgo": "hace {age}",
+      "noDisplayPrefix": "Ninguna pantalla conectada. Abre",
+      "noDisplayForNamePrefix": "Ninguna pantalla conectada para {name}. Abre",
+      "noDisplayOpenSuffix": "para empezar.",
+      "displayHardwareTitle": "Hardware de pantalla",
+      "webglUnavailable": "WebGL no disponible",
+      "cpuCoresLabel": "Núcleos de CPU",
+      "deviceMemoryLabel": "Memoria del dispositivo",
+      "deviceMemoryGb": "{gb} GB",
+      "noBrowserStats": "La información del navegador la reporta el cliente de pantalla. Ninguna pantalla conectada.",
+      "noBrowserStatsForName": "La información del navegador la reporta el cliente de pantalla. Ninguna pantalla conectada para {name}."
+    },
+    "displaysIndex": {
+      "breadcrumb": "Pantallas",
+      "heroNew": "Ejecuta Home Screens en varias pantallas",
+      "heroExisting": {
+        "one": "{count} pantalla en este hogar",
+        "other": "{count} pantallas en este hogar",
+        "many": "{count} pantallas en este hogar"
+      },
+      "emptyDescriptionPrefix": "Controla más de una pantalla desde esta Pi — una pantalla táctil de cocina, un monitor de dormitorio, una TV de salón — cada una con su propia disposición, resolución y rotación. Esta Pi se convierte en el hub y las sirve todas; las pantallas secundarias pueden ser Pi Zeros económicos ejecutando ",
+      "emptyDescriptionSuffix": ".",
+      "populatedDescriptionPrefix": "Haz clic en una pantalla para editar sus ajustes. Todo lo demás usa los ",
+      "populatedDescriptionSuffix": " compartidos.",
+      "defaultsLink": "Valores predeterminados",
+      "refreshHeartbeatsTitle": "Actualizar latidos",
+      "addDisplay": "Añadir pantalla",
+      "emptyTitle": "Esta instalación funciona en modo de pantalla única",
+      "emptyParagraphPart1": "Tu configuración actual cuenta como una pantalla pero aún no está registrada aquí — la compatibilidad multipantalla es opcional para que las instalaciones existentes permanezcan iguales hasta que añadas explícitamente una segunda pantalla. En cuanto añadas la primera, la disposición actual de esta Pi se convierte en una pantalla llamada ",
+      "emptyParagraphPart2": " y sigue funcionando exactamente igual que hoy.",
+      "mainLabel": "Main",
+      "emptyBullet1Prefix": "Haz clic en ",
+      "emptyBullet1Suffix": " arriba para registrar una nueva pantalla — dale nombre, resolución y rotación, y luego diseña su disposición en el editor.",
+      "emptyBullet2Prefix": "O graba otra Pi con ",
+      "emptyBullet2Middle": ". Cuando arranque, aparecerá abajo como una ",
+      "emptyBullet2Suffix": " esperando ser adoptada con un clic.",
+      "unadoptedLabel": "pantalla no adoptada",
+      "unadoptedWaiting": {
+        "one": "{count} pantalla no adoptada esperando",
+        "other": "{count} pantallas no adoptadas esperando",
+        "many": "{count} pantallas no adoptadas esperando"
+      },
+      "unadoptedHintPrefix": "Estas Pis están conectadas al hub pero aún no se han registrado. Haz clic en ",
+      "unadoptedHintSuffix": " para asignarles pantallas.",
+      "adoptStrong": "Adoptar",
+      "adoptButton": "Adoptar",
+      "lastSeenLabel": "Visto por última vez {time}",
+      "reportedDimensions": "{width}×{height} informado",
+      "reportedFrom": "desde {address}",
+      "multipleClientsHeading": "{count} clientes informan con este ID",
+      "multipleClientsParagraphPrefix": "Dos o más clientes están haciendo POST con este ID de pantalla. Revisa las IP de origen arriba para identificar qué dispositivo está informando — normalmente una instalación con ",
+      "multipleClientsParagraphSuffix": " duplicado, una pestaña de Chromium perdida o un quiosco hub apuntando a la URL equivocada.",
+      "statusOnline": "En línea · {time}",
+      "statusIdle": "Inactiva · {time}",
+      "statusOffline": "Desconectada · {time}",
+      "rotationDegrees": "rotación de {degrees}°",
+      "rotationNormal": "normal",
+      "screenCount": {
+        "one": "{count} pantalla",
+        "other": "{count} pantallas",
+        "many": "{count} pantallas"
+      },
+      "multipleClientsCardHeading": "{count} clientes distintos informan para esta pantalla",
+      "tabsSuffix": "×{count} pestañas",
+      "formEditTitle": "Editar pantalla",
+      "formAdoptTitle": "Adoptar {id}",
+      "formAddTitle": "Añadir pantalla",
+      "formNameLabel": "Nombre",
+      "formNamePlaceholder": "Pantalla táctil de cocina",
+      "formIdLabel": "ID",
+      "formIdHint": "(usado en la URL: /display/<id>)",
+      "formIdPlaceholder": "cocina",
+      "formIdLocked": "El ID está fijado al de la pantalla que informa.",
+      "formReportedViewport": "(informado por la pantalla: {width} × {height})",
+      "formWidth": "Ancho",
+      "formHeight": "Alto",
+      "formResolutionHint": "Ajusta esto para que coincida con la pantalla física donde se renderiza el quiosco. Los módulos se distribuirán sobre este lienzo cuando edites las pantallas de este display.",
+      "formRotationNormal": "Normal (apaisado)",
+      "formRotation90": "90° horaria (vertical)",
+      "formRotation180": "180° (invertida)",
+      "formRotation270": "270° horaria (vertical)",
+      "formRotationHint": "Elige la orientación del lienzo. El ancho y el alto de arriba se intercambian automáticamente para que el lado más largo coincida con el eje elegido por la rotación.",
+      "formCancel": "Cancelar",
+      "formSaveChanges": "Guardar cambios",
+      "formAddDisplay": "Añadir pantalla",
+      "formErrorName": "El nombre es obligatorio",
+      "formErrorId": "El ID solo puede contener letras minúsculas, dígitos y guiones (p. ej. «kitchen»)",
+      "formErrorIdTaken": "Ya existe una pantalla con el ID «{id}»",
+      "formErrorWidth": "El ancho debe ser un entero positivo ≤ {max}",
+      "formErrorHeight": "El alto debe ser un entero positivo ≤ {max}"
+    },
+    "header": {
+      "backToEditor": "Editor",
+      "contextLabel": "Ajustes",
+      "theme": {
+        "dark": "Oscuro",
+        "light": "Claro",
+        "system": "Sistema",
+        "titleFormat": "Tema: {label}"
+      }
+    }
+  },
+  "backgroundPicker": {
+    "title": "Fondo",
+    "statusGroup": "Estado",
+    "autoRotate": "Rotar automáticamente",
+    "sourceLabel": "Fuente",
+    "searchQueryLabel": "Búsqueda",
+    "searchQueryPlaceholder": "paisaje natural",
+    "rotateEveryLabel": "Rotar cada",
+    "nasaInfo": "La NASA publica una imagen astronómica nueva al día. El display buscará actualizaciones en el intervalo elegido.",
+    "sources": {
+      "nasaApod": "Imagen del día de la NASA"
+    },
+    "tabs": {
+      "nasa": "NASA",
+      "local": "Local"
+    },
+    "intervals": {
+      "minutes": "{count} minutos",
+      "hourSingular": "1 hora",
+      "hours": "{count} horas"
+    },
+    "immich": {
+      "albumLabel": "Álbum",
+      "anyAlbum": "Cualquier álbum",
+      "albumOption": "{name} ({count})",
+      "personLabel": "Persona",
+      "anyone": "Cualquiera",
+      "favoritesOnly": "Solo favoritos"
+    }
+  },
+  "imageBrowserModal": {
+    "title": "Biblioteca de imágenes",
+    "tabs": {
+      "local": "Local",
+      "unsplash": "Unsplash"
+    },
+    "allPhotos": "Todas las fotos",
+    "newFolderPlaceholder": "Nombre de carpeta",
+    "newFolderConfirm": "OK",
+    "newFolderButton": "+ Nueva carpeta",
+    "deleteFolderButton": "Eliminar carpeta",
+    "uploadButton": "Subir fotos",
+    "uploadingButton": "Subiendo…",
+    "loadingImages": "Cargando imágenes...",
+    "emptyPhotos": "Aún no hay fotos. ¡Sube alguna!",
+    "photoCountSingular": "{count} foto",
+    "photoCountPlural": "{count} fotos",
+    "confirmSelectImage": "Seleccionar imagen",
+    "confirmUseFolder": "Usar esta carpeta",
+    "unsplashAttribution": "Fotos de Unsplash — guardadas en tu biblioteca local",
+    "unsplashSearchPlaceholder": "Buscar en Unsplash...",
+    "unsplashCategories": {
+      "nature": "Naturaleza",
+      "mountains": "Montañas",
+      "ocean": "Océano",
+      "holidays": "Vacaciones",
+      "birthday": "Cumpleaños",
+      "flowers": "Flores",
+      "seasons": "Estaciones",
+      "abstract": "Abstracto"
+    },
+    "errors": {
+      "searchUnsplash": "No se pudo buscar en Unsplash"
+    }
+  },
+  "choreChartModal": {
+    "title": "Tabla de tareas",
+    "subtitleMembersChores": "{members} miembros · {chores} tareas",
+    "loadError": "No se pudieron cargar las tareas — los cambios no se guardarán.",
+    "members": {
+      "columnTitle": "Miembros de la familia",
+      "empty": "Aún no hay miembros",
+      "addButton": "Añadir miembro",
+      "addSubmit": "Añadir miembro",
+      "saveSubmit": "Guardar",
+      "editAriaLabel": "Editar {name}",
+      "deleteAriaLabel": "Eliminar {name}",
+      "deleteConfirm": {
+        "title": "Quitar miembro",
+        "message": "¿Quitar a «{name}»? También se le quitará de todas las tareas.",
+        "confirmLabel": "Quitar"
+      }
+    },
+    "memberForm": {
+      "namePlaceholder": "Nombre...",
+      "avatarLabel": "Avatar",
+      "customColorTitle": "Elegir color personalizado"
+    },
+    "chores": {
+      "columnTitle": "Tareas",
+      "addButton": "Añadir tarea",
+      "searchPlaceholder": "Buscar tareas...",
+      "empty": "Aún no hay tareas",
+      "addMembersFirst": "Añade primero miembros de la familia",
+      "editAriaLabel": "Editar {name}",
+      "deleteAriaLabel": "Eliminar {name}",
+      "deleteConfirm": {
+        "title": "Eliminar tarea",
+        "message": "¿Eliminar «{name}»?",
+        "confirmLabel": "Eliminar"
+      }
+    },
+    "choreForm": {
+      "namePlaceholder": "Nombre de la tarea...",
+      "ticketsLabel": "Tickets",
+      "frequencyLabel": "Frecuencia",
+      "timeOfDayLabel": "Momento del día",
+      "dateLabel": "Fecha",
+      "assignToLabel": "Asignar a",
+      "weeklyScheduleLabel": "Calendario semanal",
+      "coverageLabel": "Cobertura: {covered} de 7 días",
+      "coverageUncovered": "{days} sin cubrir",
+      "addSubmit": "Añadir tarea",
+      "saveSubmit": "Guardar",
+      "validation": {
+        "enterName": "Pon un nombre a la tarea",
+        "addPersonToSchedule": "Añade al menos una persona al calendario",
+        "selectAtLeastOnePerson": "Selecciona al menos una persona"
+      }
+    },
+    "frequency": {
+      "daily": "Diaria",
+      "weekly": "Semanal",
+      "biweekly": "Cada dos semanas",
+      "once": "Una vez"
+    },
+    "rotation": {
+      "fixed": "Fija (todos la hacen)",
+      "rotateDaily": "Rotar a diario",
+      "rotateWeekly": "Rotar semanalmente",
+      "schedule": "Calendario"
+    },
+    "choreSummary": {
+      "daily": "Diaria",
+      "weekly": "Semanal",
+      "biweekly": "Cada dos semanas",
+      "once": "Una vez · {date}",
+      "onceNoDate": "Una vez",
+      "ticketCountSingular": "{count} ticket",
+      "ticketCountPlural": "{count} tickets",
+      "rotationDaily": "rotar a diario",
+      "rotationWeekly": "rotar semanalmente",
+      "rotationSchedule": "calendario",
+      "rotatedShort": "← rot",
+      "arrow": "→"
+    },
+    "preview": {
+      "columnTitleNew": "Nueva tarea",
+      "columnTitleEdit": "Editar tarea",
+      "columnTitleSchedule": "Calendario de esta semana",
+      "placeholder": "Añade miembros y tareas para ver el calendario semanal",
+      "todayLabel": "Hoy ({day})",
+      "noChores": "Sin tareas",
+      "weeklyTotalsHeading": "Totales semanales",
+      "memberLine": "{chores} tareas, {tickets} tickets"
+    }
+  },
+  "mealPlannerModal": {
+    "title": "Planificador de comidas",
+    "subtitleMealsPlanned": "{meals} comidas · {planned} planeadas",
+    "doneButton": "Hecho",
+    "newMealName": "Nueva comida",
+    "tabs": {
+      "library": "Biblioteca",
+      "detail": "Detalle",
+      "grocery": "Compra"
+    },
+    "toast": {
+      "changesSaved": "Cambios guardados",
+      "mealDeleted": "«{name}» eliminada",
+      "mealRemoved": "Comida quitada",
+      "randomSuggested": "¡Comidas al azar sugeridas!",
+      "lastWeekCopied": "¡Semana pasada copiada!",
+      "weekCleared": "Semana vaciada",
+      "undoButton": "Deshacer"
+    },
+    "library": {
+      "searchPlaceholder": "Buscar comidas...",
+      "noMealsMatch": "Ninguna comida coincide",
+      "noMealsYet": "Aún no hay comidas",
+      "addNewMealButton": "+ Añadir nueva comida",
+      "filters": {
+        "all": "Todas",
+        "favorites": "Favs"
+      }
+    },
+    "detail": {
+      "emptyLine1": "Selecciona una comida en la pestaña Biblioteca",
+      "emptyLine2": "para editar sus detalles",
+      "untitledFallback": "Sin título",
+      "nameLabel": "Nombre",
+      "emojiLabel": "Emoji",
+      "emojiSearchPlaceholder": "Buscar emojis (p. ej. pizza, desayuno, postre)...",
+      "noEmojisMatch": "Ningún emoji coincide con «{query}»",
+      "prepTimeLabel": "Tiempo de preparación",
+      "cookTimeLabel": "Tiempo de cocción",
+      "minPlaceholder": "min",
+      "servingsLabel": "Raciones",
+      "difficultyLabel": "Dificultad",
+      "tagsLabel": "Etiquetas",
+      "ingredientsLabel": "Ingredientes",
+      "ingredientNamePlaceholder": "Nombre del ingrediente",
+      "amountPlaceholder": "Cantidad",
+      "categoryPlaceholder": "Categoría",
+      "addIngredientButton": "+ Añadir ingrediente",
+      "recipeUrlLabel": "URL de la receta",
+      "recipeUrlPlaceholder": "https://...",
+      "notesLabel": "Notas",
+      "saveChangesButton": "Guardar cambios",
+      "deleteButton": "Eliminar"
+    },
+    "grocery": {
+      "itemsCount": "{checked} de {total} artículos",
+      "fromThisWeek": "De esta semana",
+      "emptyMessage": "Planifica comidas con ingredientes para ver tu lista de la compra"
+    },
+    "weekGrid": {
+      "todayLabel": "Hoy",
+      "todayChip": "Hoy",
+      "suggestButton": "Sugerir",
+      "copyLastWeekButton": "Copiar la semana pasada",
+      "clearButton": "Vaciar",
+      "prepTimeMin": "{minutes} min"
+    },
+    "picker": {
+      "title": "Elige una comida",
+      "searchPlaceholder": "Buscar comidas...",
+      "noMealsFound": "No se encontraron comidas",
+      "prepTimeShort": "{minutes} min"
+    }
+  },
+  "propertyPanel": {
+    "emptyState": "Selecciona un módulo para editarlo",
+    "moduleHeading": "Módulo {name}",
+    "pluginNotLoaded": "Plugin no instalado o no se pudo cargar",
+    "sections": {
+      "position": "Posición",
+      "size": "Tamaño",
+      "shape": "Forma",
+      "effects": "Efectos",
+      "text": "Texto",
+      "positionAndSize": "Posición y tamaño",
+      "style": "Estilo",
+      "config": "Configuración",
+      "settings": "Ajustes",
+      "secrets": "Secretos",
+      "credentials": "Credenciales",
+      "schedule": "Programación"
+    },
+    "fields": {
+      "x": "X",
+      "y": "Y",
+      "w": "An",
+      "h": "Al",
+      "borderRadius": "Radio del borde",
+      "padding": "Relleno",
+      "borderWidth": "Grosor del borde",
+      "opacity": "Opacidad",
+      "backdropBlur": "Desenfoque de fondo",
+      "shadowSize": "Tamaño de la sombra",
+      "background": "Fondo",
+      "borderColor": "Color del borde",
+      "textColor": "Color del texto",
+      "fontSize": "Tamaño de fuente"
+    },
+    "actions": {
+      "delete": "Eliminar módulo",
+      "confirmDelete": "¿Eliminar este módulo?"
+    }
+  },
+  "upgradeModal": {
+    "titleUpgrade": "Actualizando a {tag}",
+    "titleRollback": "Volviendo a {tag}",
+    "stepLabels": {
+      "preflight": "Comprobaciones previas",
+      "backup": "Hacer copia de la configuración",
+      "download": "Descargar actualización",
+      "migrate": "Migrar configuración",
+      "deploy": "Instalar actualización",
+      "setup-system": "Aplicar configuración del sistema",
+      "restart": "Reiniciar servicio",
+      "cleanup": "Finalizar",
+      "fetch": "Descargar el código más reciente",
+      "checkout": "Cambiar a la nueva versión",
+      "install": "Instalar dependencias",
+      "build": "Compilar la aplicación"
+    },
+    "warning": {
+      "installing": "Instalando actualización — no cierres ni apagues el dispositivo",
+      "inProgress": "No cierres esta página ni apagues el dispositivo"
+    },
+    "successDefault": "¡Actualización completada!",
+    "doneButton": "Hecho"
+  },
+  "holidayPickerModal": {
+    "title": "Añadir festivos",
+    "countryLabel": "País",
+    "countryPlaceholder": "Selecciona un país...",
+    "loadingHolidays": "Cargando festivos...",
+    "selectionCount": "{selected} de {total} seleccionados",
+    "selectAll": "Seleccionar todos",
+    "deselectAll": "Deseleccionar todos",
+    "noHolidays": "No se encontraron festivos próximos.",
+    "addEmpty": "Añadir festivos",
+    "addCountSingular": "Añadir {count} festivo",
+    "addCountPlural": "Añadir {count} festivos",
+    "errors": {
+      "loadCountries": "No se pudieron cargar los países",
+      "loadHolidays": "No se pudieron cargar los festivos"
+    }
+  },
+  "layoutExportModal": {
+    "title": "Exportar diseño",
+    "defaultName": "Mi diseño",
+    "nameLabel": "Nombre",
+    "descriptionLabel": "Descripción (opcional)",
+    "descriptionPlaceholder": "Panel familiar con tiempo y calendario",
+    "screensHeading": "Pantallas a incluir",
+    "selectAll": "Seleccionar todas",
+    "deselectAll": "Deseleccionar todas",
+    "moduleCountSingular": "{count} módulo",
+    "moduleCountPlural": "{count} módulos",
+    "exportButton": "Exportar"
+  },
+  "layoutImportModal": {
+    "title": "Importar diseño",
+    "screenCountSingular": "{count} pantalla",
+    "screenCountPlural": "{count} pantallas",
+    "moduleCountSingular": "{count} módulo",
+    "moduleCountPlural": "{count} módulos",
+    "countsLine": "{screens}, {modules}",
+    "sourceLine": "Origen: {width} x {height}",
+    "dimensionWarning": "Este diseño se hizo para {sourceWidth}x{sourceHeight} pero tu display es {currentWidth}x{currentHeight}. Los módulos se escalarán automáticamente, pero puede que necesiten ajustes finos.",
+    "applyVisualLabel": "Aplicar ajustes visuales",
+    "visualSummary": "Rotación: {seconds} s",
+    "visualSummaryWithTransition": "Rotación: {seconds} s, transición: {transition}",
+    "saveError": "No se pudo guardar — comprueba tu conexión y vuelve a intentarlo.",
+    "importButton": "Importar"
+  },
+  "installFromUrlModal": {
+    "title": "Instalar plugin desde URL",
+    "dialogAriaLabel": "Instalar plugin desde URL",
+    "tarballUrlLabel": "URL del tarball",
+    "tarballUrlHelpPart1": "URL HTTPS a un bundle de plugin ",
+    "tarballUrlHelpPart2": ". Reemplaza la versión por ",
+    "tarballUrlHelpPart3": " si quieres que las futuras actualizaciones solo necesiten un número de versión.",
+    "exampleLabel": "Ejemplo:",
+    "versionLabel": "Versión a instalar",
+    "externalSourceWarning": "Vas a instalar desde fuera del marketplace de plugins. Instala solo plugins de fuentes en las que confíes.",
+    "installingMessage": "Descargando e instalando…",
+    "doneButton": "Hecho",
+    "tryAgainButton": "Volver a intentarlo",
+    "installFailed": "Error de instalación",
+    "pluginFallbackName": "Plugin"
+  },
+  "externalUpdateModal": {
+    "title": "Actualizar {id}",
+    "dialogAriaLabel": "Actualizar {id}",
+    "currentVersionLabel": "Versión actual:",
+    "tarballUrlLabel": "URL del tarball",
+    "tarballUrlHelpPart1": "Edita la URL para apuntar a una nueva versión, o reemplaza la versión por ",
+    "tarballUrlHelpPart2": " para que las futuras actualizaciones solo necesiten un número de versión.",
+    "exampleLabel": "Ejemplo:",
+    "versionLabel": "Versión a instalar",
+    "workingMessage": "Descargando y actualizando…",
+    "updatedToVersion": "Actualizado a v{version}.",
+    "doneButton": "Hecho",
+    "tryAgainButton": "Volver a intentarlo",
+    "updateFailed": "Error de actualización"
+  },
+  "fontFamilyPicker": {
+    "label": "Tipo de letra",
+    "inheritLabel": "Heredar del módulo"
+  },
+  "iconPicker": {
+    "styleSolid": "Sólido",
+    "styleRegular": "Contorno",
+    "styleBrands": "Marcas",
+    "chooseTitle": "Elegir un icono",
+    "searchPlaceholder": "Busca entre 1.900+ iconos por nombre o palabra clave…",
+    "loadingCatalog": "Cargando catálogo completo…",
+    "iconCount": {
+      "one": "{count} icono",
+      "other": "{count} iconos",
+      "many": "{count} iconos"
+    },
+    "noMatch": "Ningún icono coincide con «{query}». Prueba otra palabra clave.",
+    "moreResults": "+{count} más — afina la búsqueda para verlos.",
+    "chooseIconPlaceholder": "Elegir un icono…",
+    "browse": "Explorar",
+    "kindAll": "Todos"
+  },
+  "configSections": {
+    "affirmations": {
+      "viewElegant": "Elegante (líneas de acento)",
+      "viewCard": "Tarjeta (tinte degradado)",
+      "viewMinimal": "Minimalista (solo texto)",
+      "viewTypewriter": "Máquina de escribir (animado)",
+      "categoryAffirmations": "Afirmaciones",
+      "categoryCompliments": "Cumplidos",
+      "categoryMotivational": "Motivación",
+      "categoryGratitude": "Gratitud",
+      "categoryMindfulness": "Mindfulness",
+      "contentCategories": "Categorías de contenido",
+      "rotationSeconds": "Rotación (segundos)",
+      "timeAware": "Contenido según la hora",
+      "weatherAware": "Contenido según el tiempo",
+      "weatherAwareLocationWarning": "Configura tu ubicación en Ajustes > Tiempo para activar el contenido según el tiempo.",
+      "showCategoryLabel": "Mostrar etiqueta de categoría",
+      "accentColor": "Color de acento",
+      "customEntriesCount": "Entradas personalizadas ({count})",
+      "newEntryPlaceholder": "Texto de la nueva afirmación…",
+      "attributionPlaceholder": "Atribución (opcional)",
+      "addEntry": "Añadir entrada"
+    },
+    "air-quality": {
+      "showAQI": "Mostrar AQI",
+      "showPollutants": "Mostrar contaminantes"
+    },
+    "calendar": {
+      "viewMode": "Modo de vista",
+      "viewDaily": "Columnas diarias",
+      "viewAgenda": "Lista de agenda",
+      "viewWeek": "Cuadrícula semanal",
+      "viewMonth": "Cuadrícula mensual",
+      "googleAuthExpired": "La autenticación de Google Calendar ha caducado. Vuelve a autenticarte en Ajustes → Calendario.",
+      "sources": "Fuentes",
+      "allSources": "Todas las fuentes",
+      "googleCalendar": "Google Calendar",
+      "googleCalendarNumbered": "Google Calendar {n}",
+      "publicHolidays": "Días festivos",
+      "daysToShow": "Días a mostrar",
+      "maxEvents": "Máx. de eventos",
+      "showTime": "Mostrar hora",
+      "showLocation": "Mostrar ubicación",
+      "showWeekNumbers": "Mostrar números de semana",
+      "accentColor": "Color de acento"
+    },
+    "chore-chart": {
+      "viewBoard": "Tablero (columna por miembro)",
+      "viewStarChart": "Star Chart (cuadrícula semanal)",
+      "viewToday": "Hoy (franja del día)",
+      "viewProgress": "Progreso (anillos)",
+      "viewCompact": "Compacto (cuadrícula densa)",
+      "weekStartsOn": "La semana empieza el",
+      "showTickets": "Mostrar tickets",
+      "showStreaks": "Mostrar rachas",
+      "showTimeOfDay": "Mostrar franja del día",
+      "tapToComplete": "Tocar para completar (display)",
+      "accentColor": "Color de acento",
+      "membersCount": "{count} miembros",
+      "choresCount": "{count} tareas",
+      "editChoreChart": "Editar tareas",
+      "mobileHintPrefix": "Los miembros de la familia pueden marcar sus tareas desde el móvil en la pestaña Tareas en"
+    },
+    "clock": {
+      "viewClassic": "Clásico (centrado)",
+      "viewDigital": "Digital (LED de 7 segmentos)",
+      "viewAnalog": "Analógico (esfera)",
+      "viewMinimal": "Minimalista (solo hora)",
+      "viewFlip": "Flip (paletas)",
+      "viewWord": "Palabras (texto en inglés)",
+      "viewBinary": "Binario (puntos BCD)",
+      "viewVertical": "Vertical (apilado)",
+      "viewSplit": "Dividido (hora + fecha)",
+      "viewProgress": "Progreso (anillo del día)",
+      "viewFuzzy": "Aproximado (difuso)",
+      "viewWorld": "Mundo (zonas horarias)",
+      "viewDotMatrix": "Matriz de puntos (rejilla LED)",
+      "viewRadial": "Radial (anillos concéntricos)",
+      "viewArc": "Arco (posición del sol)",
+      "viewNeon": "Neón (cartel luminoso)",
+      "viewBar": "Barra (barras de progreso)",
+      "viewElapsed": "Transcurrido (desde/hasta)",
+      "datePresetWeekdayMonthDay": "lunes, 5 de enero",
+      "datePresetShortWeekday": "lun, 5 ene",
+      "datePresetMonthDayYear": "5 de enero de 2026",
+      "datePresetShortMonthDayYear": "5 ene 2026",
+      "datePresetSlashMDY": "01/05/2026",
+      "datePresetSlashDMY": "05/01/2026",
+      "datePresetIso": "2026-01-05",
+      "datePresetWeekday": "lunes",
+      "invalidFormat": "Formato no válido",
+      "format24h": "Formato 24 horas",
+      "showSeconds": "Mostrar segundos",
+      "showDate": "Mostrar fecha",
+      "dateFormat": "Formato de fecha",
+      "customOption": "Personalizado…",
+      "dateFormatPlaceholder": "p. ej. EEEE, MMMM d",
+      "showWeekNumber": "Mostrar número de semana",
+      "showDayOfYear": "Mostrar día del año",
+      "showHourNumbers": "Mostrar números de las horas",
+      "flipAnimation": "Animación de volteo",
+      "accentColor": "Color de acento",
+      "timeZonesCount": "Zonas horarias ({count}/{max})",
+      "addTimezone": "Añadir una zona horaria…",
+      "referenceTime": "Hora de referencia",
+      "referenceLabel": "Etiqueta",
+      "referenceLabelPlaceholder": "p. ej. apertura de mercado",
+      "countUp": "Contar hacia adelante (transcurrido)"
+    },
+    "countdown": {
+      "viewAll": "Todos los eventos (apilados)",
+      "viewNext": "Próximo evento (único)",
+      "defaultEventName": "Nuevo evento",
+      "showPastEvents": "Mostrar eventos pasados",
+      "stayOnDay": "Mantener el día",
+      "stayOnDayHelp": "Cuando un evento llega a cero, se mantiene en pantalla hasta el final del día.",
+      "scalePercent": "Escala ({percent}%)",
+      "events": "Eventos",
+      "holidaysButton": "Festivos…",
+      "backgroundImageHelp": "La imagen de fondo del próximo evento se usará como fondo de la página.",
+      "holidayBadge": "Festivo",
+      "namePlaceholder": "Nombre",
+      "repeatYearly": "Repetir cada año",
+      "holidayRecurringInfo": "Anual · {date}",
+      "clear": "Borrar",
+      "setBackground": "Definir fondo…"
+    },
+    "dad-joke": {
+      "showDividers": "Mostrar separadores"
+    },
+    "date": {
+      "viewFull": "Completa (página de calendario)",
+      "viewMinimal": "Minimalista (una línea)",
+      "viewStacked": "Apilada (vertical)",
+      "viewEditorial": "Editorial (revista)",
+      "viewBanner": "Banner (horizontal)",
+      "datePresetMonthDay": "5 de enero",
+      "datePresetWeekdayMonthDay": "lunes, 5 de enero",
+      "datePresetShortWeekday": "lun, 5 ene",
+      "datePresetMonthDayYear": "5 de enero de 2026",
+      "datePresetShortMonthDayYear": "5 ene 2026",
+      "datePresetSlashMDY": "01/05/2026",
+      "datePresetSlashDMY": "05/01/2026",
+      "datePresetIso": "2026-01-05",
+      "invalidFormat": "Formato no válido",
+      "dateFormat": "Formato de fecha",
+      "customOption": "Personalizado…",
+      "dateFormatPlaceholder": "p. ej. EEEE, MMMM d",
+      "showDayName": "Mostrar nombre del día",
+      "showYear": "Mostrar año",
+      "showWeekNumber": "Mostrar número de semana",
+      "showDayOfYear": "Mostrar día del año",
+      "accentColor": "Color de acento"
+    },
+    "display-control": {
+      "layout": "Disposición",
+      "layoutBar": "Barra",
+      "layoutPad": "Panel táctil",
+      "layoutPanel": "Panel",
+      "defaultTarget": "Destino predeterminado",
+      "targetSelf": "Este display (propio)",
+      "targetAll": "Todos los displays",
+      "legacyHint": "Solo hay un display registrado: el destino está fijado a este display.",
+      "allowRetargeting": "Permitir al usuario cambiar el destino en tiempo de ejecución"
+    },
+    "financial": {
+      "viewCards": "Tarjetas",
+      "viewTicker": "Ticker (desplazamiento)",
+      "viewTable": "Tabla",
+      "viewCompact": "Compacto",
+      "scale": "Escala",
+      "tickerSpeed": "Velocidad del ticker ({unit})",
+      "stockSymbolsLabel": "Símbolos (separados por comas)",
+      "cryptoIdsLabel": "IDs de monedas (separados por comas, CoinGecko)",
+      "tickerUnitStock": "s/acción",
+      "tickerUnitCoin": "s/moneda"
+    },
+    "fullscreen-calendar": {
+      "viewSchedule": "Horario (cuadrícula de columnas)",
+      "viewWeekList": "Lista semanal",
+      "viewMonthGrid": "Cuadrícula mensual",
+      "viewDayTimeline": "Línea de tiempo diaria",
+      "viewAgenda": "Agenda",
+      "densityCozy": "Cómoda (lectura a distancia)",
+      "densitySnug": "Ajustada (más eventos)",
+      "typographySmall": "Pequeña",
+      "typographyMedium": "Mediana",
+      "typographyLarge": "Grande",
+      "typographyExtraLarge": "Extragrande",
+      "typography2xLarge": "2X grande",
+      "typography3xLarge": "3X grande",
+      "typography4xLarge": "4X grande",
+      "view": "Vista",
+      "typographySize": "Tamaño de la tipografía",
+      "themeDefault": "Predeterminado (de Ajustes)",
+      "accentColor": "Color de acento",
+      "dimPastEvents": "Atenuar eventos pasados",
+      "shadeWeekends": "Sombrear fines de semana",
+      "showWeather": "Mostrar el tiempo",
+      "showNowLine": "Mostrar línea de ahora",
+      "sources": "Fuentes",
+      "allSources": "Todas las fuentes",
+      "googleCalendar": "Google Calendar",
+      "googleCalendarNumbered": "Google Calendar {n}",
+      "publicHolidays": "Días festivos",
+      "startHour": "Hora de inicio",
+      "endHour": "Hora de fin",
+      "daysToShowAuto": "Días a mostrar (0 = auto)",
+      "collapsePastDays": "Contraer días pasados",
+      "showWeekNumbers": "Mostrar números de semana",
+      "maxEventsPerCellAuto": "Máx. de eventos por celda (0 = auto)",
+      "showLocation": "Mostrar ubicación",
+      "daysAhead": "Días por delante",
+      "hideEmptyDays": "Ocultar días vacíos"
+    },
+    "fullscreen-chore-chart": {
+      "view": "Vista",
+      "viewChoreBoard": "Tablero de tareas",
+      "viewRewardsStore": "Tienda de recompensas",
+      "showRewardsButton": "Mostrar botón de recompensas",
+      "showRewardsButtonHelp": "Añade un botón en el tablero de tareas para que los peques pasen a la tienda de recompensas. Ideal para displays táctiles.",
+      "themeDefault": "Predeterminado (de Ajustes)",
+      "densityCozy": "Cómoda",
+      "densitySnug": "Ajustada",
+      "typographySize": "Tamaño de la tipografía",
+      "accentColor": "Color de acento",
+      "weekStartsOn": "La semana empieza el",
+      "showTickets": "Mostrar tickets",
+      "showStreaks": "Mostrar rachas",
+      "showTimeOfDay": "Mostrar franja del día",
+      "tapToComplete": "Tocar para completar (display)",
+      "membersCount": "{count} miembros",
+      "choresCount": "{count} tareas",
+      "editChoreChart": "Editar tareas",
+      "mobileHintPrefix": "Los miembros de la familia pueden marcar las tareas en la pantalla táctil o desde el móvil en la pestaña Tareas en"
+    },
+    "fullscreen-meal-planner": {
+      "themeDefault": "Predeterminado (de Ajustes)",
+      "view": "Vista",
+      "viewWeek": "Semana",
+      "viewToday": "Hoy",
+      "viewMenuBoard": "Tablero de menú",
+      "viewNextMeal": "Próxima comida",
+      "densityCozy": "Cómoda",
+      "densitySnug": "Ajustada",
+      "typographySize": "Tamaño de la tipografía",
+      "showEmoji": "Mostrar emoji",
+      "showPrepTime": "Mostrar tiempo de preparación",
+      "showTags": "Mostrar etiquetas",
+      "showDifficulty": "Mostrar dificultad",
+      "accentColor": "Color de acento",
+      "savedMealsCount": "{count} comidas guardadas",
+      "plannedCount": "{count} planificadas",
+      "editMealPlanner": "Editar planificador de comidas",
+      "mobileHintPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se comparten entre todos los módulos de comidas. Edítalos desde",
+      "mobileHintSettingsLink": "Ajustes → Comidas",
+      "mobileHintSuffix": "o desde el",
+      "mobileHintEnd": "panel de ajustes."
+    },
+    "fullscreen-photo": {
+      "themeDefaultMidnight": "Predeterminado (Midnight)",
+      "photoSource": "Fuente de fotos",
+      "sourceLocal": "Fotos locales",
+      "sourceImmich": "Immich",
+      "mode": "Modo",
+      "modeSlideshow": "Pase de diapositivas",
+      "modeSingle": "Foto única",
+      "photo": "Foto",
+      "noneSelected": "Ninguna seleccionada",
+      "choose": "Elegir…",
+      "photoFolder": "Carpeta de fotos",
+      "allPhotosRoot": "Todas las fotos (raíz)",
+      "browse": "Examinar…",
+      "photoCountSingular": "{count} foto",
+      "photoCountPlural": "{count} fotos",
+      "noPhotosInFolder": "No hay fotos en esta carpeta",
+      "slideIntervalSeconds": "Intervalo de diapositiva (segundos)",
+      "transition": "Transición",
+      "transitionFade": "Fundido",
+      "transitionSlide": "Desplazamiento",
+      "transitionZoom": "Zoom",
+      "transitionNone": "Ninguna",
+      "shuffleOrder": "Orden aleatorio",
+      "kenBurnsEffect": "Efecto Ken Burns",
+      "showClockOverlay": "Mostrar reloj superpuesto",
+      "mobileHintPrefix": "Sube fotos desde tu móvil en la pestaña Fotos en"
+    },
+    "garbage-day": {
+      "frequencyWeekly": "Cada semana",
+      "frequencyBiweekly": "Cada dos semanas",
+      "highlightDayBefore": "Día anterior (sacar los cubos)",
+      "highlightDayOf": "Mismo día (día de recogida)",
+      "dayDisabled": "Desactivado",
+      "trash": "Basura",
+      "recycling": "Reciclaje",
+      "custom": "Personalizado",
+      "dayLabel": "Día de {label}",
+      "frequency": "Frecuencia",
+      "knownDateLabel": "Una fecha conocida de {label}",
+      "knownDateHelp": "Elige cualquier fecha en la que se recogió o se recogerá {label}",
+      "iconColor": "Color del icono",
+      "customCategoryName": "Nombre de categoría personalizada",
+      "defaultCustomLabel": "Restos de jardín",
+      "highlightWhen": "Resaltar cuándo"
+    },
+    "greeting": {
+      "name": "Nombre",
+      "defaultName": "Amigo",
+      "weatherAware": "Saludo según el tiempo",
+      "locationRequired": "Configura tu ubicación en Ajustes > Tiempo para activar los saludos según el tiempo."
+    },
+    "history": {
+      "cycleEventsSeconds": "Ciclo de eventos (segundos)",
+      "showDividers": "Mostrar separadores",
+      "sourceWikipedia": "Fuente: Wikipedia",
+      "sourceMuffinLabs": "Fuente: MuffinLabs"
+    },
+    "icon": {
+      "style": "Estilo",
+      "styleSolid": "Sólido",
+      "styleRegular": "Regular (contorno)",
+      "styleBrands": "Marcas (logos)",
+      "iconColor": "Color del icono",
+      "iconBackground": "Fondo del icono",
+      "autoFit": "Ajustar al tamaño del módulo",
+      "scale": "Escala",
+      "rotation0": "Sin rotación",
+      "rotation90": "90°",
+      "rotation180": "180°",
+      "rotation270": "270°",
+      "flip": "Voltear",
+      "flipNone": "Ninguno",
+      "flipHorizontal": "Horizontal",
+      "flipVertical": "Vertical",
+      "flipBoth": "Ambos",
+      "animation": "Animación",
+      "animationNone": "Ninguna",
+      "animationSpin": "Giro",
+      "animationSpinPulse": "Giro (a saltos)",
+      "animationSpinReverse": "Giro inverso",
+      "animationBeat": "Latido",
+      "animationFade": "Fundido",
+      "animationBeatFade": "Latido + fundido",
+      "animationBounce": "Rebote",
+      "animationShake": "Sacudida",
+      "animationFlip": "Volteo",
+      "animationSpeed": "Velocidad de animación",
+      "hideAdvanced": "▾ Ocultar avanzado",
+      "showAdvanced": "▸ Avanzado — pega una clase en bruto",
+      "customClass": "Clase personalizada"
+    },
+    "iframe": {
+      "url": "URL",
+      "titleAccessibility": "Título (accesibilidad)",
+      "titlePlaceholder": "p. ej. Panel de Home Assistant",
+      "autoRefreshSeconds": "Actualización automática (segundos, 0 = desactivado)",
+      "allowScrolling": "Permitir desplazamiento",
+      "enableSandbox": "Activar sandbox",
+      "sandboxPermissions": "Permisos del sandbox",
+      "sandboxDangerous": "Combinar allow-same-origin y allow-scripts desactiva el sandbox en la práctica.",
+      "unknownTokensSingular": "Token desconocido: {tokens}",
+      "unknownTokensPlural": "Tokens desconocidos: {tokens}",
+      "sandboxHelp": "Tokens separados por espacios. Déjalo vacío para máxima restricción."
+    },
+    "image": {
+      "imageSource": "Fuente de imagen",
+      "tabUrl": "URL",
+      "tabLibrary": "Biblioteca",
+      "imageUrl": "URL de la imagen",
+      "browseLibrary": "Examinar biblioteca…",
+      "uploadImage": "Subir imagen",
+      "uploading": "Subiendo…",
+      "uploadFailed": "Error al subir",
+      "preview": "Vista previa",
+      "altText": "Texto alternativo"
+    },
+    "immichSource": {
+      "connecting": "Conectando…",
+      "connected": "Conectado",
+      "connectedWithVersion": "Conectado (v{version})",
+      "apiKeyInvalid": "API key no válida",
+      "cannotReachServer": "No se puede acceder al servidor",
+      "retry": "Reintentar",
+      "album": "Álbum",
+      "anyAlbum": "Cualquier álbum",
+      "person": "Persona",
+      "anyone": "Cualquiera",
+      "favoritesOnly": "Solo favoritas",
+      "photosPerRefresh": "Fotos por actualización",
+      "photoInAlbumSingular": "{count} foto en el álbum",
+      "photoInAlbumPlural": "{count} fotos en el álbum"
+    },
+    "meal-planner": {
+      "viewWeek": "Cuadrícula semanal",
+      "viewToday": "Comidas de hoy",
+      "viewNextMeal": "Próxima comida (destacada)",
+      "viewCompact": "Compacto (hoy + mañana)",
+      "viewList": "Lista semanal completa",
+      "showEmoji": "Mostrar emoji",
+      "showPrepTime": "Mostrar tiempo de preparación",
+      "showTags": "Mostrar etiquetas",
+      "accentColor": "Color de acento",
+      "sharedSettingsPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se gestionan desde",
+      "sharedSettingsLink": "Ajustes → Comidas",
+      "sharedSettingsOr": "o",
+      "sharedSettingsSuffix": "para que todos tus módulos de comidas estén sincronizados.",
+      "savedMealsCount": "{count} comidas guardadas",
+      "plannedCount": "{count} planificadas",
+      "editMealPlan": "Editar plan de comidas"
+    },
+    "moon-phase": {
+      "showIllumination": "Mostrar % de iluminación",
+      "showMoonTimes": "Mostrar horas de la luna",
+      "locationHelp": "Usa la ubicación de los ajustes globales."
+    },
+    "multi-month": {
+      "layout": "Disposición",
+      "layoutVertical": "Vertical (apilada)",
+      "layoutHorizontal": "Horizontal (en paralelo)",
+      "monthsToShow": "Meses a mostrar",
+      "weekStartsOn": "La semana empieza el",
+      "showWeekNumbers": "Mostrar números de semana",
+      "highlightWeekends": "Resaltar fines de semana",
+      "showAdjacentDays": "Mostrar días adyacentes"
+    },
+    "news": {
+      "viewHeadline": "Titular (rotatorio)",
+      "viewList": "Lista",
+      "viewTicker": "Ticker (desplazamiento)",
+      "viewCompact": "Compacto",
+      "feedSource": "Fuente del feed",
+      "customUrlOption": "URL personalizada…",
+      "customRssFeedUrl": "URL del feed RSS personalizado",
+      "rotateHeadlines": "Rotar titulares (segundos)",
+      "maxItems": "Máx. de elementos",
+      "tickerSpeed": "Velocidad del ticker (s/elemento)",
+      "showTimestamp": "Mostrar marca de tiempo",
+      "bulletColor": "Color de la viñeta"
+    },
+    "photo-slideshow": {
+      "sourceLocal": "Fotos locales",
+      "sourceImmich": "Immich",
+      "transitionFade": "Fundido",
+      "transitionNone": "Ninguna",
+      "photoSource": "Fuente de fotos",
+      "folder": "Carpeta",
+      "allPhotosRoot": "Todas las fotos (raíz)",
+      "browse": "Examinar…",
+      "photoCountOne": "{count} foto",
+      "photoCountOther": "{count} fotos",
+      "noPhotosInFolder": "No hay fotos en esta carpeta",
+      "slideInterval": "Intervalo de diapositiva (segundos)",
+      "transition": "Transición"
+    },
+    "qr-code": {
+      "modeCustom": "Personalizado (URL / texto)",
+      "modeWifi": "Contraseña WiFi",
+      "authWPA": "WPA / WPA2 / WPA3",
+      "authWEP": "WEP",
+      "authNone": "Ninguna (abierta)",
+      "mode": "Modo",
+      "networkName": "Nombre de la red (SSID)",
+      "encryption": "Cifrado",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Contraseña WiFi",
+      "hiddenNetwork": "Red oculta",
+      "showNetworkName": "Mostrar nombre de la red",
+      "showPassword": "Mostrar contraseña",
+      "dataUrlOrText": "Datos (URL o texto)",
+      "label": "Etiqueta",
+      "qrColor": "Color del QR",
+      "background": "Fondo",
+      "networkNamePlaceholder": "MiRed",
+      "dataUrlOrTextPlaceholder": "https://example.com"
+    },
+    "rain-map": {
+      "styleDark": "Oscuro",
+      "styleStandard": "Estándar",
+      "latitude": "Latitud (0 = global)",
+      "longitude": "Longitud (0 = global)",
+      "zoom": "Zoom",
+      "animationSpeed": "Velocidad de animación (ms)",
+      "endPause": "Pausa final (ms)",
+      "radarOpacity": "Opacidad del radar %",
+      "smoothRadar": "Radar suavizado",
+      "showSnow": "Mostrar nieve",
+      "showTimestamp": "Mostrar marca de tiempo",
+      "showTimeline": "Mostrar línea de tiempo",
+      "mapStyle": "Estilo del mapa",
+      "locationHelp": "Usa la ubicación de los ajustes globales cuando lat/lon son 0."
+    },
+    "shape": {
+      "viewDivider": "Línea divisoria",
+      "viewDoubleLine": "Línea doble",
+      "viewWave": "Onda",
+      "viewZigzag": "Zigzag",
+      "viewDottedRow": "Fila de puntos",
+      "viewRectangle": "Rectángulo",
+      "viewCircle": "Círculo",
+      "viewTriangle": "Triángulo",
+      "viewPolygon": "Polígono",
+      "viewStar": "Estrella",
+      "viewArrow": "Flecha",
+      "viewGlow": "Resplandor (radial)",
+      "viewGradient": "Panel de degradado",
+      "viewGrid": "Patrón de cuadrícula",
+      "viewFrame": "Marco",
+      "fillSolid": "Color sólido",
+      "fillGradient": "Degradado",
+      "orientationHorizontal": "Horizontal",
+      "orientationVertical": "Vertical",
+      "orientationDiagonal": "Diagonal",
+      "lineStyleSolid": "Sólida",
+      "lineStyleDashed": "Discontinua",
+      "lineStyleDotted": "Punteada",
+      "endStyleFlat": "Plano",
+      "endStyleFade": "Difuminado",
+      "endStyleRounded": "Redondeado",
+      "arrowRight": "Derecha",
+      "arrowDown": "Abajo",
+      "arrowLeft": "Izquierda",
+      "arrowUp": "Arriba",
+      "gridDots": "Puntos",
+      "gridLines": "Líneas",
+      "gridCross": "Cruces",
+      "frameRectangle": "Contorno rectangular",
+      "frameBrackets": "Esquinas",
+      "shape": "Forma",
+      "fill": "Relleno",
+      "gradientFrom": "Degradado desde",
+      "gradientTo": "Degradado hasta",
+      "gradientAngle": "Ángulo del degradado",
+      "orientation": "Orientación",
+      "thickness": "Grosor",
+      "lineStyle": "Estilo de línea",
+      "edgeStyle": "Estilo de borde",
+      "amplitude": "Amplitud",
+      "frequency": "Frecuencia",
+      "lineGap": "Separación de líneas",
+      "dotCount": "Cantidad de puntos",
+      "dotSize": "Tamaño del punto",
+      "outlineOnly": "Solo contorno (hueco)",
+      "strokeWidth": "Grosor del trazo",
+      "cornerRadius": "Radio de esquina",
+      "sides": "Lados",
+      "points": "Puntas",
+      "pointSharpness": "Agudeza de las puntas",
+      "direction": "Dirección",
+      "headSize": "Tamaño de la punta",
+      "intensity": "Intensidad",
+      "softness": "Suavidad",
+      "pattern": "Patrón",
+      "spacing": "Espaciado",
+      "markSize": "Tamaño de marca",
+      "frameStyle": "Estilo de marco",
+      "bracketLength": "Longitud de la esquina"
+    },
+    "sports": {
+      "viewScoreboard": "Marcador",
+      "viewCards": "Tarjetas",
+      "viewList": "Lista",
+      "viewTicker": "Ticker",
+      "leagues": "Ligas",
+      "tickerSpeed": "Velocidad del ticker (s/partido)"
+    },
+    "standings": {
+      "viewTable": "Tabla",
+      "viewCompact": "Compacta",
+      "viewConference": "Conferencia",
+      "groupingDivision": "Por división",
+      "groupingConference": "Por conferencia",
+      "groupingLeague": "Liga completa",
+      "league": "Liga",
+      "grouping": "Agrupación",
+      "playoffCutoffLine": "Línea de corte de playoffs",
+      "teamsToShow": "Equipos a mostrar (0 = todos)",
+      "rotationSeconds": "Rotación (segundos)"
+    },
+    "sticky-note": {
+      "content": "Contenido",
+      "noteColor": "Color de la nota"
+    },
+    "sunrise-sunset": {
+      "views": {
+        "default": "Predeterminada (texto)",
+        "arc": "Arco solar (visual)"
+      },
+      "showDayLength": "Mostrar duración del día",
+      "showGoldenHour": "Mostrar hora dorada",
+      "locationHint": "Usa la ubicación de los ajustes globales."
+    },
+    "text": {
+      "content": "Contenido",
+      "contentPlaceholder": "¡Hola, mundo!",
+      "contentRotationPlaceholder": "Diapositiva 1\n---\nDiapositiva 2\n---\nDiapositiva 3",
+      "orientation": "Orientación",
+      "alignment": "Alineación",
+      "verticalAlign": "Alineación vertical",
+      "fontOverride": "Fuente (anulación)",
+      "fontWeight": "Grosor de fuente",
+      "italic": "Cursiva",
+      "lineHeight": "Altura de línea",
+      "textTransform": "Transformación de texto",
+      "letterSpacing": "Espaciado entre letras",
+      "wordSpacing": "Espaciado entre palabras",
+      "decoration": "Decoración",
+      "decorationColor": "Color de decoración",
+      "decorationThickness": "Grosor de decoración",
+      "emoji": "Emoji",
+      "clear": "Borrar",
+      "emojiHint": "Se muestra antes del texto",
+      "markdown": "Markdown",
+      "markdownHint": "**negrita**   *cursiva*   ~~tachado~~   `código`   saltos de línea → saltos de línea",
+      "autoFit": "Ajustar al contenedor",
+      "templateVariables": "Variables de plantilla",
+      "effect": "Efecto",
+      "animationSpeed": "Velocidad de animación",
+      "outlineWidth": "Grosor del contorno",
+      "outlineColor": "Color del contorno",
+      "shadowX": "Sombra X",
+      "shadowY": "Sombra Y",
+      "shadowBlur": "Desenfoque de sombra",
+      "shadowColor": "Color de sombra",
+      "gradientText": "Texto degradado",
+      "gradientFrom": "Desde",
+      "gradientTo": "Hasta",
+      "gradientAngle": "Ángulo",
+      "maxWidth": "Ancho máximo",
+      "maxWidthNoLimit": "Sin límite",
+      "wrap": "Ajuste",
+      "dropCap": "Capitular",
+      "dropCapColor": "Color de la capitular",
+      "textBackground": "Fondo del texto",
+      "bgPadding": "Relleno del fondo",
+      "bgRadius": "Radio del fondo",
+      "slideshow": "Pase de diapositivas",
+      "slidesHintPrefix": "Separa las diapositivas con",
+      "slidesHintSuffix": "en el contenido de arriba",
+      "interval": "Intervalo",
+      "separator": "Separador",
+      "revealAnimation": "Animación de aparición",
+      "scrollingMarquee": "Marquesina con desplazamiento",
+      "direction": "Dirección",
+      "speed": "Velocidad",
+      "dividers": "Separadores",
+      "accentColor": "Color de acento",
+      "colorCyclePalette": "Paleta de ciclo de colores",
+      "addColor": "+ Añadir",
+      "sections": {
+        "typography": "Tipografía",
+        "features": "Características",
+        "effect": "Efecto",
+        "gradient": "Degradado",
+        "layout": "Disposición",
+        "marquee": "Marquesina",
+        "decorative": "Decorativo"
+      },
+      "orientationOptions": {
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "sideways": "De lado"
+      },
+      "alignmentOptions": {
+        "left": "Izquierda",
+        "center": "Centro",
+        "right": "Derecha"
+      },
+      "verticalAlignOptions": {
+        "top": "Arriba",
+        "center": "Centro",
+        "bottom": "Abajo"
+      },
+      "textTransformOptions": {
+        "none": "Ninguna",
+        "uppercase": "MAYÚSCULAS",
+        "lowercase": "minúsculas",
+        "capitalize": "Capitalizar"
+      },
+      "effectOptions": {
+        "none": "Ninguno",
+        "typewriter": "Máquina de escribir",
+        "fade-in": "Aparición gradual",
+        "gradient-sweep": "Barrido degradado",
+        "glow": "Resplandor / pulso",
+        "outline": "Contorno",
+        "shadow": "Sombra paralela",
+        "3d": "3D / extruido",
+        "neon": "Neón",
+        "wave": "Onda (por carácter)",
+        "bounce": "Rebote (por carácter)",
+        "shake": "Sacudida (por carácter)",
+        "color-cycle": "Ciclo de colores"
+      },
+      "decorationOptions": {
+        "none": "Ninguna",
+        "underline": "Subrayado",
+        "overline": "Suprarrayado",
+        "line-through": "Tachado"
+      },
+      "revealOptions": {
+        "none": "Ninguna (cambio instantáneo)",
+        "fade": "Fundido",
+        "slide-up": "Deslizar hacia arriba",
+        "slide-down": "Deslizar hacia abajo",
+        "zoom": "Zoom"
+      },
+      "wrapOptions": {
+        "normal": "Normal",
+        "nowrap": "Sin ajuste (una sola línea)",
+        "balance": "Equilibrado (varias líneas)",
+        "pretty": "Bonito (evita huérfanas)"
+      },
+      "marqueeDirectionOptions": {
+        "left": "Izquierda",
+        "right": "Derecha",
+        "up": "Arriba",
+        "down": "Abajo"
+      }
+    },
+    "todo": {
+      "title": "Título",
+      "defaultTitle": "Por hacer",
+      "items": "Elementos",
+      "newItemText": "Nuevo elemento"
+    },
+    "todoist": {
+      "apiToken": "Token de API",
+      "checking": "Comprobando…",
+      "connected": "Conectado",
+      "notConfigured": "Sin configurar.",
+      "settingsIntegrationsLink": "Ajustes → Integraciones",
+      "title": "Título",
+      "viewMode": "Modo de vista",
+      "groupByLabel": "Agrupar por",
+      "sortByLabel": "Ordenar por",
+      "filterProjects": "Filtrar proyectos (separados por comas)",
+      "filterProjectsPlaceholder": "p. ej. Trabajo, Personal",
+      "filterLabels": "Filtrar etiquetas (separadas por comas)",
+      "filterLabelsPlaceholder": "p. ej. urgente, casa",
+      "showSubtasks": "Mostrar subtareas",
+      "showLabels": "Mostrar etiquetas",
+      "showProject": "Mostrar proyecto",
+      "showNoDueDate": "Mostrar tareas sin fecha",
+      "tapToComplete": "Tocar para completar (pantalla táctil)",
+      "maxTasks": "Máx. de tareas",
+      "viewModes": {
+        "list": "Lista",
+        "board": "Tablero",
+        "focus": "Enfoque (hoy)"
+      },
+      "groupBy": {
+        "none": "Ninguno",
+        "project": "Proyecto",
+        "priority": "Prioridad",
+        "date": "Fecha de vencimiento",
+        "label": "Etiqueta"
+      },
+      "sortBy": {
+        "default": "Orden predeterminado",
+        "priority": "Prioridad",
+        "due_date": "Fecha de vencimiento",
+        "alphabetical": "Alfabético"
+      }
+    },
+    "traffic": {
+      "routes": "Rutas",
+      "newRouteLabel": "Trabajo",
+      "labelPlaceholder": "Etiqueta",
+      "originPlaceholder": "Dirección de origen",
+      "destinationPlaceholder": "Dirección de destino"
+    },
+    "weather": {
+      "hideWhenNoAlerts": "Ocultar cuando no hay alertas",
+      "iconStyle": "Estilo de icono",
+      "dataProvider": "Proveedor de datos",
+      "hoursToShow": "Horas a mostrar",
+      "daysToShow": "Días a mostrar",
+      "feelsLike": "Sensación térmica",
+      "highLow": "Máx. / mín.",
+      "precipitation": "Precipitación",
+      "precipitationAmount": "Cantidad de precipitación",
+      "humidity": "Humedad",
+      "windSpeed": "Velocidad del viento",
+      "pressure": "Presión",
+      "visibility": "Visibilidad",
+      "dewPoint": "Punto de rocío",
+      "iconSets": {
+        "outline": "Contorno",
+        "color": "Color"
+      },
+      "views": {
+        "current": "Solo actual",
+        "hourly": "Por horas",
+        "daily": "Pronóstico diario",
+        "combined": "Combinada",
+        "compact": "Compacta",
+        "table": "Tabla",
+        "precipitation": "Precipitación",
+        "alerts": "Alertas meteorológicas"
+      },
+      "providers": {
+        "global": "Predeterminado global",
+        "openweathermap": "OpenWeatherMap",
+        "weatherapi": "WeatherAPI",
+        "pirateweather": "Pirate Weather",
+        "noaa": "NOAA / NWS (solo EE. UU.)",
+        "openMeteo": "Open-Meteo (gratis, global)",
+        "yr": "Yr.no / MET Norway (gratis, global)",
+        "smhi": "SMHI (gratis, solo nórdicos)",
+        "metoffice": "UK Met Office (Reino Unido)",
+        "envcanada": "Environment Canada (solo Canadá)"
+      }
+    },
+    "word-of-day": {
+      "showDividers": "Mostrar separadores"
+    },
+    "year-progress": {
+      "showYear": "Mostrar año",
+      "showMonth": "Mostrar mes",
+      "showWeek": "Mostrar semana",
+      "showDay": "Mostrar día",
+      "showPercentage": "Mostrar porcentaje"
+    }
+  },
+  "imageBrowsers": {
+    "errors": {
+      "saveImage": "Error al guardar la imagen"
+    },
+    "immich": {
+      "allPhotos": "Todas las fotos",
+      "noPhotos": "No se han encontrado fotos",
+      "attribution": "Fotos de tu biblioteca de Immich",
+      "notConfiguredPrefix": "Añade la URL de tu servidor de Immich y tu API key en",
+      "settingsWord": "Ajustes",
+      "notConfiguredSuffix": "para explorar tu biblioteca de fotos.",
+      "apiKeyHint": "Crea una API key en Immich → Ajustes de cuenta → API Keys",
+      "errors": {
+        "loadPhotos": "Error al cargar las fotos",
+        "fetchImage": "Error al obtener la imagen"
+      }
+    },
+    "unsplash": {
+      "attribution": "Fotos de Unsplash",
+      "searchPlaceholder": "Buscar cualquier cosa…",
+      "notConfiguredPrefix": "Añade una API key gratuita de Unsplash en",
+      "settingsWord": "Ajustes",
+      "notConfiguredSuffix": "para explorar miles de fondos HD.",
+      "apiKeyHint": "Consigue una en unsplash.com/developers",
+      "errors": {
+        "search": "Error al buscar en Unsplash"
+      },
+      "categories": {
+        "nature": "Naturaleza",
+        "mountains": "Montañas",
+        "ocean": "Océano",
+        "forest": "Bosque",
+        "sky": "Cielo",
+        "space": "Espacio",
+        "city": "Ciudad",
+        "abstract": "Abstracto",
+        "flowers": "Flores",
+        "seasons": "Estaciones"
+      }
+    },
+    "nasa": {
+      "attribution": "Imágenes cortesía de NASA",
+      "searchPlaceholder": "Buscar imágenes de NASA…",
+      "watermarkNote": "Nota: algunas imágenes de NASA incluyen marcas de agua o marcas de tiempo incrustadas que no se pueden eliminar.",
+      "notConfiguredPrefix": "Añade una API key gratuita de NASA en",
+      "settingsWord": "Ajustes",
+      "notConfiguredSuffix": "para explorar Astronomy Picture of the Day.",
+      "apiKeyHint": "Consigue una en api.nasa.gov",
+      "modes": {
+        "apod": "Imagen del día",
+        "library": "Biblioteca de imágenes"
+      },
+      "errors": {
+        "fetch": "Error al obtener imágenes de NASA"
+      },
+      "categories": {
+        "nebula": "Nebulosa",
+        "galaxy": "Galaxia",
+        "earth": "Tierra",
+        "mars": "Marte",
+        "moon": "Luna",
+        "saturn": "Saturno",
+        "jupiter": "Júpiter",
+        "sun": "Sol",
+        "aurora": "Aurora",
+        "iss": "ISS"
+      }
+    },
+    "search": {
+      "placeholder": "Buscar cualquier cosa…",
+      "searchButton": "Buscar",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "pageOf": "Página {page} de {total}",
+      "errors": {
+        "load": "Error al cargar las imágenes"
+      }
+    }
+  },
+  "modals": {
+    "crud": {
+      "done": "Hecho"
+    },
+    "icalFeeds": {
+      "title": "Feeds iCal / ICS",
+      "editLowercase": "editar",
+      "doneLowercase": "hecho",
+      "feedNamePlaceholder": "Nombre del feed",
+      "newFeedNamePlaceholder": "Nombre del feed (p. ej. Trabajo, Deportes)",
+      "addFeed": "+ Añadir feed",
+      "helpText": "Añade URLs de feeds ICS/iCal de Google Calendar, Apple Calendar, Outlook, Nextcloud o cualquier servicio que proporcione feeds .ics."
+    },
+    "orientation": {
+      "title": "Puede que haya módulos fuera de la pantalla",
+      "warning": "{offCanvasCount} de {totalModuleCount} módulos se saldrían del nuevo lienzo de {newWidth}×{newHeight}.",
+      "scaleToFit": "Escalar para ajustar",
+      "scaleToFitDescription": "encoge todos los módulos proporcionalmente para que nada quede cortado.",
+      "switchAnyway": "Cambiar igualmente",
+      "switchAnywayDescription": "mantiene los módulos en su posición actual: puedes recolocarlos manualmente."
+    }
+  },
+  "viewSelect": {
+    "defaultLabel": "Vista"
+  },
+  "accentColorPicker": {
+    "label": "Color de acento",
+    "customColor": "Color personalizado",
+    "presets": {
+      "none": "Ninguno",
+      "purple": "Violeta",
+      "blue": "Azul",
+      "cyan": "Cian",
+      "green": "Verde",
+      "amber": "Ámbar",
+      "orange": "Naranja",
+      "red": "Rojo",
+      "pink": "Rosa",
+      "custom": "Personalizado"
+    }
+  },
+  "templatePicker": {
+    "title": "Plantillas",
+    "loadFailed": "No se pudo cargar «{name}»"
+  },
+  "modulePalette": {
+    "modulesHeading": "Módulos",
+    "searchPlaceholder": "Buscar módulos…",
+    "noResults": "No se encontraron módulos",
+    "pluginBadge": "Plugin",
+    "communityPluginTooltip": "Plugin de la comunidad"
+  },
+  "backupReminder": {
+    "message": {
+      "one": "No has hecho una copia de seguridad en 1 día.",
+      "other": "No has hecho una copia de seguridad en {count} días.",
+      "many": "No has hecho una copia de seguridad en {count} días."
+    },
+    "downloading": "Descargando…",
+    "backupNow": "Hacer copia ahora",
+    "dismiss": "Descartar"
+  },
+  "statusDot": {
+    "configured": "Configurado",
+    "notConfigured": "Sin configurar"
+  }
+}

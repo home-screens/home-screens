@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 import type { IPv4Info } from './types';
 
 /* ─── Props ────────────────────────────────── */
@@ -29,6 +30,7 @@ export default function IPSettingsPanel({
   onRollbackStarted,
   onApplied,
 }: IPSettingsPanelProps) {
+  const t = useTranslate('editor');
   const currentMethod = currentIPv4?.method ?? 'auto';
 
   const [method, setMethod] = useState<'auto' | 'manual'>(currentMethod);
@@ -107,19 +109,19 @@ export default function IPSettingsPanel({
       }
 
       if (!res.ok || !data.ok) {
-        setErrorMsg(data.error ?? 'Failed to apply IP settings');
+        setErrorMsg(data.error ?? t('settings.networkPage.ipSettings.defaultErrorMessage'));
         return;
       }
 
       if (data.rollbackId) {
         onRollbackStarted(data.rollbackId);
       } else {
-        setSuccessMsg('Settings applied');
+        setSuccessMsg(t('settings.networkPage.ipSettings.successMessage'));
         setTimeout(() => setSuccessMsg(null), 3000);
         onApplied();
       }
     } catch {
-      setErrorMsg('Failed to reach server');
+      setErrorMsg(t('common.serverUnreachable'));
     } finally {
       setApplying(false);
     }
@@ -135,7 +137,7 @@ export default function IPSettingsPanel({
     <div className="bg-hs-card rounded-lg border border-hs-border p-4 mt-2">
       {/* Panel heading */}
       <h4 className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider mb-3">
-        IP Settings ({device})
+        {t('settings.networkPage.ipSettings.heading', { device })}
       </h4>
 
       {/* Method radio */}
@@ -149,7 +151,9 @@ export default function IPSettingsPanel({
             onChange={() => setMethod('auto')}
             className="accent-hs-accent"
           />
-          <span className="text-sm text-hs-text-body">DHCP (auto)</span>
+          <span className="text-sm text-hs-text-body">
+            {t('settings.networkPage.ipSettings.method.auto')}
+          </span>
         </label>
         <label className="flex items-center gap-1.5 cursor-pointer">
           <input
@@ -160,7 +164,9 @@ export default function IPSettingsPanel({
             onChange={() => setMethod('manual')}
             className="accent-hs-accent"
           />
-          <span className="text-sm text-hs-text-body">Static (manual)</span>
+          <span className="text-sm text-hs-text-body">
+            {t('settings.networkPage.ipSettings.method.manual')}
+          </span>
         </label>
       </div>
 
@@ -169,14 +175,14 @@ export default function IPSettingsPanel({
         {/* Address */}
         <div>
           <label className="block text-xs font-medium text-hs-text-muted mb-1">
-            IP Address
+            {t('settings.networkPage.ipSettings.addressLabel')}
           </label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             readOnly={isDhcp}
-            placeholder="192.168.1.50"
+            placeholder={t('settings.networkPage.ipSettings.addressPlaceholder')}
             className={`bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary w-full font-mono ${
               isDhcp ? 'opacity-60 cursor-default' : ''
             }`}
@@ -186,7 +192,7 @@ export default function IPSettingsPanel({
         {/* Subnet prefix */}
         <div>
           <label className="block text-xs font-medium text-hs-text-muted mb-1">
-            Subnet Prefix
+            {t('settings.networkPage.ipSettings.prefixLabel')}
           </label>
           <input
             type="number"
@@ -195,7 +201,7 @@ export default function IPSettingsPanel({
             value={prefix}
             onChange={(e) => setPrefix(e.target.value)}
             readOnly={isDhcp}
-            placeholder="24"
+            placeholder={t('settings.networkPage.ipSettings.prefixPlaceholder')}
             className={`bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary w-full font-mono ${
               isDhcp ? 'opacity-60 cursor-default' : ''
             }`}
@@ -205,14 +211,14 @@ export default function IPSettingsPanel({
         {/* Gateway */}
         <div>
           <label className="block text-xs font-medium text-hs-text-muted mb-1">
-            Gateway
+            {t('settings.networkPage.ipSettings.gatewayLabel')}
           </label>
           <input
             type="text"
             value={gateway}
             onChange={(e) => setGateway(e.target.value)}
             readOnly={isDhcp}
-            placeholder="192.168.1.1"
+            placeholder={t('settings.networkPage.ipSettings.gatewayPlaceholder')}
             className={`bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary w-full font-mono ${
               isDhcp ? 'opacity-60 cursor-default' : ''
             }`}
@@ -222,7 +228,7 @@ export default function IPSettingsPanel({
         {/* DNS servers */}
         <div>
           <label className="block text-xs font-medium text-hs-text-muted mb-1">
-            DNS Servers
+            {t('settings.networkPage.ipSettings.dnsLabel')}
           </label>
           <div className="space-y-1.5">
             {dnsList.map((dns, idx) => (
@@ -232,7 +238,7 @@ export default function IPSettingsPanel({
                   value={dns}
                   onChange={(e) => updateDns(idx, e.target.value)}
                   readOnly={isDhcp}
-                  placeholder="8.8.8.8"
+                  placeholder={t('settings.networkPage.ipSettings.dnsPlaceholder')}
                   className={`bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary flex-1 font-mono ${
                     isDhcp ? 'opacity-60 cursor-default' : ''
                   }`}
@@ -243,7 +249,7 @@ export default function IPSettingsPanel({
                     onClick={() => removeDns(idx)}
                     disabled={dnsList.length <= 1}
                     className="text-hs-text-faint hover:text-hs-danger transition-colors disabled:opacity-30 disabled:cursor-not-allowed px-1"
-                    aria-label="Remove DNS server"
+                    aria-label={t('settings.networkPage.ipSettings.removeDnsAriaLabel')}
                   >
                     ×
                   </button>
@@ -258,7 +264,7 @@ export default function IPSettingsPanel({
               onClick={addDns}
               className="mt-1.5 text-xs text-hs-accent hover:text-hs-accent-hover transition-colors"
             >
-              + Add DNS server
+              {t('settings.networkPage.ipSettings.addDnsButton')}
             </button>
           )}
         </div>
@@ -266,7 +272,7 @@ export default function IPSettingsPanel({
         {/* DHCP hint */}
         {isDhcp && (
           <p className="text-xs text-hs-text-faint italic">
-            Assigned by DHCP
+            {t('settings.networkPage.ipSettings.dhcpHint')}
           </p>
         )}
       </div>
@@ -278,7 +284,7 @@ export default function IPSettingsPanel({
           {successMsg && <p className="text-xs text-hs-success">{successMsg}</p>}
           {isManagementInterface && (
             <p className="text-xs text-hs-text-faint">
-              Changes to this interface will auto-revert if connectivity is lost.
+              {t('settings.networkPage.ipSettings.managementInterfaceHint')}
             </p>
           )}
         </div>
@@ -289,7 +295,9 @@ export default function IPSettingsPanel({
           disabled={applying}
           className="shrink-0 ml-3"
         >
-          {applying ? 'Applying...' : 'Apply'}
+          {applying
+            ? t('settings.networkPage.ipSettings.applyingButton')
+            : t('settings.networkPage.ipSettings.applyButton')}
         </Button>
       </div>
     </div>

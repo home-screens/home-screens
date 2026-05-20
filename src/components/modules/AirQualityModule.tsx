@@ -7,6 +7,7 @@ import { ModuleLoadingState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
 
 interface AirQualityModuleProps {
@@ -22,12 +23,12 @@ interface AirQualityData {
   no2: number;
 }
 
-const AQI_LABELS: Record<number, string> = {
-  1: 'Good',
-  2: 'Fair',
-  3: 'Moderate',
-  4: 'Poor',
-  5: 'Very Poor',
+const AQI_LABEL_KEYS: Record<number, string> = {
+  1: 'good',
+  2: 'fair',
+  3: 'moderate',
+  4: 'poor',
+  5: 'veryPoor',
 };
 
 const AQI_COLORS: Record<number, string> = {
@@ -69,16 +70,18 @@ function PollutantBar({ label, value, unit, threshold, color }: {
 }
 
 export default function AirQualityModule({ config, style }: AirQualityModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<AirQualityData>(
     airQualityUrl(),
     config.refreshIntervalMs ?? 600000,
   );
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading air quality…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('air-quality.loading')} error={error} />;
   }
 
-  const aqiLabel = AQI_LABELS[data.aqi] ?? 'Unknown';
+  const labelKey = AQI_LABEL_KEYS[data.aqi];
+  const aqiLabel = labelKey ? t(`air-quality.labels.${labelKey}`) : t('air-quality.labels.unknown');
   const aqiColor = AQI_COLORS[data.aqi] ?? '#6b7280';
 
   return (
@@ -98,16 +101,16 @@ export default function AirQualityModule({ config, style }: AirQualityModuleProp
             </span>
             <div className="flex flex-col gap-0.5">
               <span className="font-medium" style={{ fontSize: '0.9em' }}>{aqiLabel}</span>
-              <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>Air Quality Index</span>
+              <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>{t('air-quality.airQualityIndex')}</span>
             </div>
           </div>
         )}
 
         {config.showPollutants && (
           <div className="flex flex-col gap-1.5">
-            <PollutantBar label="PM2.5" value={data.pm25} unit="µg/m³" threshold={WHO_THRESHOLDS.pm25} color={aqiColor} />
-            <PollutantBar label="PM10" value={data.pm10} unit="µg/m³" threshold={WHO_THRESHOLDS.pm10} color={aqiColor} />
-            <PollutantBar label="O₃" value={data.o3} unit="µg/m³" threshold={WHO_THRESHOLDS.o3} color={aqiColor} />
+            <PollutantBar label={t('air-quality.pollutants.pm25')} value={data.pm25} unit="µg/m³" threshold={WHO_THRESHOLDS.pm25} color={aqiColor} />
+            <PollutantBar label={t('air-quality.pollutants.pm10')} value={data.pm10} unit="µg/m³" threshold={WHO_THRESHOLDS.pm10} color={aqiColor} />
+            <PollutantBar label={t('air-quality.pollutants.o3')} value={data.o3} unit="µg/m³" threshold={WHO_THRESHOLDS.o3} color={aqiColor} />
           </div>
         )}
       </div>

@@ -15,6 +15,7 @@ import { filterTasks, sortTasks } from './todoist/todoist-utils';
 import ListView from './todoist/ListView';
 import BoardView from './todoist/BoardView';
 import FocusView from './todoist/FocusView';
+import { useTranslate } from '@/i18n';
 
 interface TodoistModuleProps {
   config: TodoistConfig;
@@ -22,6 +23,7 @@ interface TodoistModuleProps {
 }
 
 export default function TodoistModule({ config, style }: TodoistModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? 300000);
 
   // Optimistic close: tasks the user has tapped, hidden locally until the next
@@ -98,7 +100,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
   const now = useMemo(() => new Date(), [data]);
 
   if (!data) {
-    return <ModuleLoadingState style={style} message="Loading tasks…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('todoist.loading')} error={error} />;
   }
 
   return (
@@ -110,7 +112,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
             {title}
           </h2>
           <MetadataText size="xs">
-            {totalCount} task{totalCount !== 1 ? 's' : ''}
+            {t('todoist.taskCount', { count: totalCount })}
           </MetadataText>
         </div>
 
@@ -129,7 +131,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
                 ✓
               </span>
               <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
-                No tasks to show
+                {t('todoist.empty')}
               </p>
             </div>
           </div>

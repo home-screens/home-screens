@@ -10,6 +10,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ViewSelect from '@/components/editor/ViewSelect';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
   ChoreChartView,
@@ -25,23 +26,25 @@ type Config = {
   accentColor?: string;
 };
 
-const VIEWS: { value: ChoreChartView; label: string }[] = [
-  { value: 'board', label: 'Board (Column per Member)' },
-  { value: 'star-chart', label: 'Star Chart (Weekly Grid)' },
-  { value: 'today', label: "Today (Time of Day)" },
-  { value: 'progress', label: 'Progress (Rings)' },
-  { value: 'compact', label: 'Compact (Dense Grid)' },
-];
-
-const WEEK_START_OPTIONS = [
-  { value: 'sunday', label: 'Sunday' },
-  { value: 'monday', label: 'Monday' },
-] as const;
-
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
   const [counts, setCounts] = useState({ members: 0, chores: 0 });
+
+  const VIEWS: { value: ChoreChartView; label: string }[] = [
+    { value: 'board', label: t('configSections.chore-chart.viewBoard') },
+    { value: 'star-chart', label: t('configSections.chore-chart.viewStarChart') },
+    { value: 'today', label: t('configSections.chore-chart.viewToday') },
+    { value: 'progress', label: t('configSections.chore-chart.viewProgress') },
+    { value: 'compact', label: t('configSections.chore-chart.viewCompact') },
+  ];
+
+  const WEEK_START_OPTIONS = [
+    { value: 'sunday' as const, label: tCore('days.sunday') },
+    { value: 'monday' as const, label: tCore('days.monday') },
+  ];
 
   useEffect(() => {
     editorFetch('/api/chores/data')
@@ -61,7 +64,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
       {/* Week Start */}
       <LabeledSelect
-        label="Week Starts On"
+        label={t('configSections.chore-chart.weekStartsOn')}
         value={c.weekStartDay ?? 'monday'}
         onChange={(v) => set({ weekStartDay: v })}
         options={WEEK_START_OPTIONS}
@@ -69,29 +72,29 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
 
       {/* Display Toggles */}
       <Toggle
-        label="Show Tickets"
+        label={t('configSections.chore-chart.showTickets')}
         checked={c.showPoints ?? true}
         onChange={(v) => set({ showPoints: v })}
       />
       <Toggle
-        label="Show Streaks"
+        label={t('configSections.chore-chart.showStreaks')}
         checked={c.showStreaks ?? true}
         onChange={(v) => set({ showStreaks: v })}
       />
       <Toggle
-        label="Show Time of Day"
+        label={t('configSections.chore-chart.showTimeOfDay')}
         checked={c.showTimeOfDay ?? true}
         onChange={(v) => set({ showTimeOfDay: v })}
       />
       <Toggle
-        label="Tap to Complete (Display)"
+        label={t('configSections.chore-chart.tapToComplete')}
         checked={c.allowDisplayComplete ?? true}
         onChange={(v) => set({ allowDisplayComplete: v })}
       />
 
       {/* Accent Color */}
       <ColorPicker
-        label="Accent Color"
+        label={t('configSections.chore-chart.accentColor')}
         value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
         onChange={(v) => set({ accentColor: v })}
       />
@@ -99,22 +102,22 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{counts.members} members</span>
+          <span>{t('configSections.chore-chart.membersCount', { count: counts.members })}</span>
           <span>&middot;</span>
-          <span>{counts.chores} chores</span>
+          <span>{t('configSections.chore-chart.choresCount', { count: counts.chores })}</span>
         </div>
         <Button
           variant="primary"
           className="w-full text-xs"
           onClick={() => setShowModal(true)}
         >
-          Edit Chore Chart
+          {t('configSections.chore-chart.editChoreChart')}
         </Button>
       </div>
 
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        Family members can check off chores from their phone via the Chores tab at{' '}
+        {t('configSections.chore-chart.mobileHintPrefix')}{' '}
         <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
       </p>
 

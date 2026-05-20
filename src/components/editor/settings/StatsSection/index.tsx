@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { fetchStats, fetchDisplayStatus, generateBundle } from './fetchers';
@@ -18,6 +19,7 @@ import { ServerCard } from './ServerCard';
 import { TelemetryCard } from './TelemetryCard';
 
 export default function StatsSection() {
+  const t = useTranslate('editor');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [displayStatus, setDisplayStatus] = useState<DisplayStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export default function StatsSection() {
   if (loading) {
     return (
       <div className="text-sm text-hs-text-faint py-8 text-center">
-        Loading stats...
+        {t('settings.statsSection.loadingStats')}
       </div>
     );
   }
@@ -94,7 +96,7 @@ export default function StatsSection() {
   if (error || !stats) {
     return (
       <div className="text-sm text-hs-danger py-8 text-center">
-        {error || 'Failed to load stats'}
+        {error || t('settings.statsSection.failedToLoad')}
       </div>
     );
   }

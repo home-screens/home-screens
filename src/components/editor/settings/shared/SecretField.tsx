@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
+import { useTranslate } from '@/i18n';
 
 export type SecretKey =
   // Integration keys
@@ -42,6 +43,7 @@ export default function SecretField({
   status,
   onSaved,
 }: Props) {
+  const t = useTranslate('editor');
   const [value, setValue] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -59,7 +61,7 @@ export default function SecretField({
       const data = await res.json();
       if (!res.ok) {
         setSaveStatus('error');
-        setErrorMsg(data.error ?? 'Failed to save');
+        setErrorMsg(data.error ?? t('common.saveError'));
         return;
       }
       setSaveStatus('saved');
@@ -68,7 +70,7 @@ export default function SecretField({
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
       setSaveStatus('error');
-      setErrorMsg('Network error');
+      setErrorMsg(t('common.networkError'));
     }
   }
 
@@ -96,7 +98,7 @@ export default function SecretField({
               onClick={handleDelete}
               className="text-xs text-hs-text-faint hover:text-hs-danger transition-colors"
             >
-              Remove
+              {t('settings.shared.secretField.removeButton')}
             </button>
           )}
         </div>
@@ -115,11 +117,15 @@ export default function SecretField({
           onClick={handleSave}
           disabled={!value.trim() || saveStatus === 'saving'}
         >
-          {saveStatus === 'saving' ? '...' : 'Save'}
+          {saveStatus === 'saving'
+            ? t('settings.shared.secretField.savingButton')
+            : t('settings.shared.secretField.saveButton')}
         </Button>
       </div>
       {saveStatus === 'saved' && (
-        <span className="text-xs text-hs-success">Saved successfully</span>
+        <span className="text-xs text-hs-success">
+          {t('settings.shared.secretField.savedSuccess')}
+        </span>
       )}
       {saveStatus === 'error' && (
         <span className="text-xs text-hs-danger">{errorMsg}</span>

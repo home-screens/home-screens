@@ -1,69 +1,11 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, ShapeConfig, ShapeView } from '@/types/config';
-
-const VIEW_OPTIONS = [
-  { value: 'divider',     label: 'Divider line' },
-  { value: 'double-line', label: 'Double line' },
-  { value: 'wave',        label: 'Wave' },
-  { value: 'zigzag',      label: 'Zigzag' },
-  { value: 'dotted-row',  label: 'Dotted row' },
-  { value: 'rectangle',   label: 'Rectangle' },
-  { value: 'circle',      label: 'Circle' },
-  { value: 'triangle',    label: 'Triangle' },
-  { value: 'polygon',     label: 'Polygon' },
-  { value: 'star',        label: 'Star' },
-  { value: 'arrow',       label: 'Arrow' },
-  { value: 'glow',        label: 'Glow (radial)' },
-  { value: 'gradient',    label: 'Gradient panel' },
-  { value: 'grid',        label: 'Grid pattern' },
-  { value: 'frame',       label: 'Frame' },
-] as const;
-
-const FILL_OPTIONS = [
-  { value: 'solid',    label: 'Solid color' },
-  { value: 'gradient', label: 'Gradient' },
-] as const;
-
-const ORIENTATION_OPTIONS = [
-  { value: 'horizontal', label: 'Horizontal' },
-  { value: 'vertical',   label: 'Vertical' },
-  { value: 'diagonal',   label: 'Diagonal' },
-] as const;
-
-const LINE_STYLE_OPTIONS = [
-  { value: 'solid',  label: 'Solid' },
-  { value: 'dashed', label: 'Dashed' },
-  { value: 'dotted', label: 'Dotted' },
-] as const;
-
-const END_STYLE_OPTIONS = [
-  { value: 'flat',    label: 'Flat' },
-  { value: 'fade',    label: 'Fade out' },
-  { value: 'rounded', label: 'Rounded' },
-] as const;
-
-const ARROW_DIRECTION_OPTIONS = [
-  { value: 'right', label: 'Right' },
-  { value: 'down',  label: 'Down' },
-  { value: 'left',  label: 'Left' },
-  { value: 'up',    label: 'Up' },
-] as const;
-
-const GRID_PATTERN_OPTIONS = [
-  { value: 'dots',  label: 'Dots' },
-  { value: 'lines', label: 'Lines' },
-  { value: 'cross', label: 'Crosses' },
-] as const;
-
-const FRAME_STYLE_OPTIONS = [
-  { value: 'rectangle', label: 'Rectangle outline' },
-  { value: 'brackets',  label: 'Corner brackets' },
-] as const;
 
 // ---------------------------------------------------------------------------
 // Predicates: which views show which fields
@@ -99,14 +41,74 @@ function showsGradientPair(view: ShapeView, fillMode: ShapeConfig['fillMode']): 
 // ---------------------------------------------------------------------------
 
 export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<ShapeConfig>(mod, screenId);
   const view: ShapeView = c.view ?? 'divider';
   const fillMode = c.fillMode ?? 'solid';
 
+  const VIEW_OPTIONS = [
+    { value: 'divider',     label: t('configSections.shape.viewDivider') },
+    { value: 'double-line', label: t('configSections.shape.viewDoubleLine') },
+    { value: 'wave',        label: t('configSections.shape.viewWave') },
+    { value: 'zigzag',      label: t('configSections.shape.viewZigzag') },
+    { value: 'dotted-row',  label: t('configSections.shape.viewDottedRow') },
+    { value: 'rectangle',   label: t('configSections.shape.viewRectangle') },
+    { value: 'circle',      label: t('configSections.shape.viewCircle') },
+    { value: 'triangle',    label: t('configSections.shape.viewTriangle') },
+    { value: 'polygon',     label: t('configSections.shape.viewPolygon') },
+    { value: 'star',        label: t('configSections.shape.viewStar') },
+    { value: 'arrow',       label: t('configSections.shape.viewArrow') },
+    { value: 'glow',        label: t('configSections.shape.viewGlow') },
+    { value: 'gradient',    label: t('configSections.shape.viewGradient') },
+    { value: 'grid',        label: t('configSections.shape.viewGrid') },
+    { value: 'frame',       label: t('configSections.shape.viewFrame') },
+  ] as const;
+
+  const FILL_OPTIONS = [
+    { value: 'solid',    label: t('configSections.shape.fillSolid') },
+    { value: 'gradient', label: t('configSections.shape.fillGradient') },
+  ] as const;
+
+  const ORIENTATION_OPTIONS = [
+    { value: 'horizontal', label: t('configSections.shape.orientationHorizontal') },
+    { value: 'vertical',   label: t('configSections.shape.orientationVertical') },
+    { value: 'diagonal',   label: t('configSections.shape.orientationDiagonal') },
+  ] as const;
+
+  const LINE_STYLE_OPTIONS = [
+    { value: 'solid',  label: t('configSections.shape.lineStyleSolid') },
+    { value: 'dashed', label: t('configSections.shape.lineStyleDashed') },
+    { value: 'dotted', label: t('configSections.shape.lineStyleDotted') },
+  ] as const;
+
+  const END_STYLE_OPTIONS = [
+    { value: 'flat',    label: t('configSections.shape.endStyleFlat') },
+    { value: 'fade',    label: t('configSections.shape.endStyleFade') },
+    { value: 'rounded', label: t('configSections.shape.endStyleRounded') },
+  ] as const;
+
+  const ARROW_DIRECTION_OPTIONS = [
+    { value: 'right', label: t('configSections.shape.arrowRight') },
+    { value: 'down',  label: t('configSections.shape.arrowDown') },
+    { value: 'left',  label: t('configSections.shape.arrowLeft') },
+    { value: 'up',    label: t('configSections.shape.arrowUp') },
+  ] as const;
+
+  const GRID_PATTERN_OPTIONS = [
+    { value: 'dots',  label: t('configSections.shape.gridDots') },
+    { value: 'lines', label: t('configSections.shape.gridLines') },
+    { value: 'cross', label: t('configSections.shape.gridCross') },
+  ] as const;
+
+  const FRAME_STYLE_OPTIONS = [
+    { value: 'rectangle', label: t('configSections.shape.frameRectangle') },
+    { value: 'brackets',  label: t('configSections.shape.frameBrackets') },
+  ] as const;
+
   return (
     <>
       <LabeledSelect
-        label="Shape"
+        label={t('configSections.shape.shape')}
         value={view}
         onChange={(v) => set({ view: v as ShapeView })}
         options={VIEW_OPTIONS}
@@ -115,7 +117,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Fill mode toggle (hidden for glow/gradient — those have fixed paint behavior) */}
       {showsGradient(view) && (
         <LabeledSelect
-          label="Fill"
+          label={t('configSections.shape.fill')}
           value={fillMode}
           onChange={(v) => set({ fillMode: v as ShapeConfig['fillMode'] })}
           options={FILL_OPTIONS}
@@ -124,7 +126,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {showsColor(view, fillMode) && (
         <ColorPicker
-          label="Color"
+          label={t('fields.color')}
           value={c.color ?? '#ffffff'}
           onChange={(v) => set({ color: v })}
         />
@@ -133,17 +135,17 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {showsGradientPair(view, fillMode) && (
         <>
           <ColorPicker
-            label="Gradient from"
+            label={t('configSections.shape.gradientFrom')}
             value={c.gradientFrom ?? '#a78bfa'}
             onChange={(v) => set({ gradientFrom: v })}
           />
           <ColorPicker
-            label="Gradient to"
+            label={t('configSections.shape.gradientTo')}
             value={c.gradientTo ?? '#22d3ee'}
             onChange={(v) => set({ gradientTo: v })}
           />
           <Slider
-            label="Gradient angle"
+            label={t('configSections.shape.gradientAngle')}
             value={c.gradientAngle ?? 90}
             min={0}
             max={360}
@@ -157,7 +159,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* ---- Line views ---- */}
       {ORIENTABLE.has(view) && (
         <LabeledSelect
-          label="Orientation"
+          label={t('configSections.shape.orientation')}
           value={c.orientation ?? 'horizontal'}
           onChange={(v) => set({ orientation: v as ShapeConfig['orientation'] })}
           options={ORIENTATION_OPTIONS}
@@ -166,7 +168,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {STROKED_LINE_VIEWS.has(view) && (
         <Slider
-          label="Thickness"
+          label={t('configSections.shape.thickness')}
           value={c.thickness ?? 2}
           min={1}
           max={20}
@@ -177,7 +179,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {STROKED_LINE_VIEWS.has(view) && (
         <LabeledSelect
-          label="Line style"
+          label={t('configSections.shape.lineStyle')}
           value={c.lineStyle ?? 'solid'}
           onChange={(v) => set({ lineStyle: v as ShapeConfig['lineStyle'] })}
           options={LINE_STYLE_OPTIONS}
@@ -186,7 +188,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {LINE_VIEWS.has(view) && (
         <LabeledSelect
-          label="Edge style"
+          label={t('configSections.shape.edgeStyle')}
           value={c.endStyle ?? 'fade'}
           onChange={(v) => set({ endStyle: v as ShapeConfig['endStyle'] })}
           // 'rounded' uses strokeLinecap, which has no effect on the fill-painted
@@ -203,7 +205,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {WAVE_VIEWS.has(view) && (
         <>
           <Slider
-            label="Amplitude"
+            label={t('configSections.shape.amplitude')}
             value={c.waveAmplitude ?? 18}
             min={2}
             max={45}
@@ -211,7 +213,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ waveAmplitude: v })}
           />
           <Slider
-            label="Frequency"
+            label={t('configSections.shape.frequency')}
             value={c.waveFrequency ?? 4}
             min={1}
             max={20}
@@ -223,7 +225,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {view === 'double-line' && (
         <Slider
-          label="Line gap"
+          label={t('configSections.shape.lineGap')}
           value={c.doubleLineGap ?? 6}
           min={2}
           max={40}
@@ -235,14 +237,14 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'dotted-row' && (
         <>
           <Slider
-            label="Dot count"
+            label={t('configSections.shape.dotCount')}
             value={c.dotCount ?? 5}
             min={2}
             max={50}
             onChange={(v) => set({ dotCount: v })}
           />
           <Slider
-            label="Dot size"
+            label={t('configSections.shape.dotSize')}
             value={c.dotSize ?? 4}
             min={1}
             max={20}
@@ -261,13 +263,13 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(e) => set({ outline: e.target.checked })}
             className="accent-cyan-500"
           />
-          <span className="text-xs text-hs-text-muted">Outline only (hollow)</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.shape.outlineOnly')}</span>
         </label>
       )}
 
       {FILLABLE_SHAPES.has(view) && c.outline && (
         <Slider
-          label="Stroke width"
+          label={t('configSections.shape.strokeWidth')}
           value={c.strokeWidth ?? 2}
           min={0.5}
           max={20}
@@ -279,7 +281,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {(view === 'rectangle' || view === 'gradient') && (
         <Slider
-          label="Corner radius"
+          label={t('configSections.shape.cornerRadius')}
           value={c.cornerRadius ?? 12}
           min={0}
           max={120}
@@ -290,7 +292,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {view === 'polygon' && (
         <Slider
-          label="Sides"
+          label={t('configSections.shape.sides')}
           value={c.sides ?? 6}
           min={3}
           max={12}
@@ -301,14 +303,14 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'star' && (
         <>
           <Slider
-            label="Points"
+            label={t('configSections.shape.points')}
             value={c.starPoints ?? 5}
             min={3}
             max={12}
             onChange={(v) => set({ starPoints: v })}
           />
           <Slider
-            label="Point sharpness"
+            label={t('configSections.shape.pointSharpness')}
             value={c.starInnerRatio ?? 0.4}
             min={0.2}
             max={0.8}
@@ -321,7 +323,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {ROTATABLE.has(view) && (
         <Slider
-          label="Rotation"
+          label={t('fields.rotation')}
           value={c.rotation ?? 0}
           min={0}
           max={360}
@@ -334,13 +336,13 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'arrow' && (
         <>
           <LabeledSelect
-            label="Direction"
+            label={t('configSections.shape.direction')}
             value={c.arrowDirection ?? 'right'}
             onChange={(v) => set({ arrowDirection: v as ShapeConfig['arrowDirection'] })}
             options={ARROW_DIRECTION_OPTIONS}
           />
           <Slider
-            label="Head size"
+            label={t('configSections.shape.headSize')}
             value={c.arrowHeadRatio ?? 0.35}
             min={0.1}
             max={0.6}
@@ -355,7 +357,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'glow' && (
         <>
           <Slider
-            label="Intensity"
+            label={t('configSections.shape.intensity')}
             value={c.intensity ?? 0.55}
             min={0}
             max={1}
@@ -364,7 +366,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ intensity: v })}
           />
           <Slider
-            label="Softness"
+            label={t('configSections.shape.softness')}
             value={c.softness ?? 0.55}
             min={0.2}
             max={1}
@@ -378,13 +380,13 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'grid' && (
         <>
           <LabeledSelect
-            label="Pattern"
+            label={t('configSections.shape.pattern')}
             value={c.gridPattern ?? 'dots'}
             onChange={(v) => set({ gridPattern: v as ShapeConfig['gridPattern'] })}
             options={GRID_PATTERN_OPTIONS}
           />
           <Slider
-            label="Spacing"
+            label={t('configSections.shape.spacing')}
             value={c.gridSpacing ?? 24}
             min={4}
             max={120}
@@ -392,7 +394,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ gridSpacing: v })}
           />
           <Slider
-            label="Mark size"
+            label={t('configSections.shape.markSize')}
             value={c.gridDotSize ?? 2}
             min={0.5}
             max={20}
@@ -407,13 +409,13 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {view === 'frame' && (
         <>
           <LabeledSelect
-            label="Frame style"
+            label={t('configSections.shape.frameStyle')}
             value={c.frameStyle ?? 'rectangle'}
             onChange={(v) => set({ frameStyle: v as ShapeConfig['frameStyle'] })}
             options={FRAME_STYLE_OPTIONS}
           />
           <Slider
-            label="Stroke width"
+            label={t('configSections.shape.strokeWidth')}
             value={c.strokeWidth ?? 2}
             min={0.5}
             max={20}
@@ -423,7 +425,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           />
           {c.frameStyle === 'rectangle' && (
             <Slider
-              label="Corner radius"
+              label={t('configSections.shape.cornerRadius')}
               value={c.cornerRadius ?? 12}
               min={0}
               max={120}
@@ -433,7 +435,7 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           )}
           {c.frameStyle === 'brackets' && (
             <Slider
-              label="Bracket length"
+              label={t('configSections.shape.bracketLength')}
               value={c.bracketLength ?? 25}
               min={5}
               max={50}

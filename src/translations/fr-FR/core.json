@@ -1,0 +1,135 @@
+{
+  "today": "Aujourd'hui",
+  "tomorrow": "Demain",
+  "yesterday": "Hier",
+  "loading": "Chargement…",
+  "actions": {
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "back": "Retour",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "done": "Terminé",
+    "edit": "Modifier",
+    "clear": "Vider",
+    "settings": "Paramètres",
+    "name": "Nom",
+    "color": "Couleur",
+    "icon": "Icône",
+    "label": "Étiquette"
+  },
+  "status": {
+    "saving": "Enregistrement…",
+    "connected": "Connecté",
+    "disabled": "Désactivé",
+    "never": "Jamais",
+    "none": "Aucun"
+  },
+  "relativeTime": {
+    "justNow": "à l'instant",
+    "secondsAgo": "il y a {n} s",
+    "minutesAgo": "il y a {n} min",
+    "hoursAgo": "il y a {n} h",
+    "daysAgo": "il y a {n} j",
+    "weeksAgo": "il y a {n} sem."
+  },
+  "displayNotFound": {
+    "notRegistered": "Affichage non enregistré",
+    "adoptionLine1": "Cet affichage est connecté au hub mais n'a pas encore été adopté.",
+    "adoptionLine2": "Ouvre l'éditeur sur le hub, va dans",
+    "settingsLink": "Paramètres → Affichages",
+    "andClick": "et clique sur",
+    "adoptLabel": "Adopter",
+    "nextTo": "à côté de",
+    "waitingForAdoption": "En attente d'adoption…",
+    "recoveryNotice": "Cet ID d'affichage n'est pas enregistré, mais ton hub a d'autres affichages configurés. Passage à l'affichage par défaut dans {seconds} s.",
+    "goToDefault": "Aller à l'affichage par défaut maintenant"
+  },
+  "login": {
+    "checkingAuth": "Vérification de l'authentification…",
+    "ipBlocked": "Ton adresse IP est bloquée",
+    "enterPasswordToContinue": "Saisis ton mot de passe pour continuer",
+    "accessRestricted": "Accès restreint",
+    "accessRestrictedDescription": "Ton adresse IP ne figure pas dans la liste autorisée. Te connecter n'aidera pas — le serveur rejettera toutes les requêtes de ton adresse. Contacte un administrateur pour ajouter ton IP à la liste, ou connecte-toi depuis un réseau autorisé.",
+    "passwordPlaceholder": "Mot de passe",
+    "rememberMe": "Se souvenir de moi pendant 90 jours",
+    "signingIn": "Connexion…",
+    "unlock": "Déverrouiller",
+    "loading": "Chargement…",
+    "backToDisplay": "Retour à l'affichage",
+    "loginFailed": "Échec de la connexion",
+    "unreachable": "Impossible de joindre le serveur"
+  },
+  "errors": {
+    "fetchFailed": "Échec du chargement des données",
+    "loadImagesFailed": "Échec du chargement des images",
+    "uploadFailed": "Échec de l'envoi",
+    "createFolderFailed": "Échec de la création du dossier",
+    "deleteFolderFailed": "Échec de la suppression du dossier",
+    "googleExpired": "Ta connexion Google a expiré. Reconnecte-toi.",
+    "deviceFlowFailed": "Échec du démarrage de l'authentification par appareil",
+    "codeExpired": "Code expiré. Réessaie.",
+    "authorizationFailed": "Échec de l'autorisation",
+    "startSignInFailed": "Impossible de démarrer la connexion"
+  },
+  "days": {
+    "sunday": "Dimanche",
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Facile",
+      "medium": "Moyenne",
+      "hard": "Difficile"
+    },
+    "tags": {
+      "breakfast": "Petit-déjeuner",
+      "lunch": "Déjeuner",
+      "dinner": "Dîner",
+      "snack": "Goûter",
+      "quick": "Rapide",
+      "healthy": "Sain",
+      "vegetarian": "Végétarien",
+      "vegan": "Végan",
+      "comfort": "Réconfortant",
+      "spicy": "Épicé",
+      "kid-friendly": "Pour enfants",
+      "meal-prep": "Meal-prep",
+      "gluten-free": "Sans gluten",
+      "dairy-free": "Sans lactose",
+      "batch-cook": "Batch cooking"
+    },
+    "ingredientCategories": {
+      "produce": "Fruits et légumes",
+      "dairy": "Produits laitiers",
+      "meat": "Viande",
+      "seafood": "Poisson",
+      "bakery": "Boulangerie",
+      "pantry": "Épicerie",
+      "frozen": "Surgelés",
+      "beverages": "Boissons",
+      "other": "Autre"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Fruits et légumes",
+        "dairy": "Produits laitiers et œufs",
+        "meat": "Viande et poisson",
+        "seafood": "Viande et poisson",
+        "bakery": "Boulangerie",
+        "pantry": "Épicerie",
+        "frozen": "Surgelés",
+        "beverages": "Boissons",
+        "other": "Autre"
+      }
+    }
+  }
+}

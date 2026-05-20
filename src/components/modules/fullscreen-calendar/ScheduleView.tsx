@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { format, addDays, isSameDay } from 'date-fns';
+import { addDays, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, computeOverlapColumns, eventBg, eventBorder } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
@@ -17,6 +19,10 @@ interface ScheduleViewProps {
 }
 
 export function ScheduleView({ events, config, scale, today, now }: ScheduleViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
+  const am = t('fullscreen-calendar.am');
+  const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
   const hourStart = config.scheduleHourStart ?? 6;
   const hourEnd = config.scheduleHourEnd ?? 22;
@@ -75,7 +81,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                   letterSpacing: '0.04em',
                   color: isWeekend ? 'var(--cal-text-tertiary)' : 'var(--cal-text-secondary)',
                 }}>
-                  {format(day, 'EEE')}
+                  {formatDateSync(day, 'EEE', { locale })}
                 </div>
                 <div style={{
                   fontSize: fontSize * 1.5,
@@ -95,9 +101,9 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                       background: 'var(--cal-accent)',
                       color: '#fff',
                     }}>
-                      {format(day, 'd')}
+                      {formatDateSync(day, 'd', { locale })}
                     </span>
-                  ) : format(day, 'd')}
+                  ) : formatDateSync(day, 'd', { locale })}
                 </div>
               </div>
             );
@@ -106,10 +112,10 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
       </div>
 
       {/* All-day events row */}
-      <AllDayRow events={events} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} />
+      <AllDayRow events={events} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} t={t} />
 
       {/* Time grid */}
-      <div ref={scrollRef} role="grid" aria-label="Schedule time grid" style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+      <div ref={scrollRef} role="grid" aria-label={t('fullscreen-calendar.ariaLabels.scheduleTimeGrid')} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         <div style={{ display: 'flex', height: gridHeight, position: 'relative' }}>
           {/* Time gutter */}
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>
@@ -132,13 +138,13 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
-                  {formatHourLabel(h)}
+                  {formatHourLabel(h, am, pm)}
                 </div>
               );
             })}
             {/* Now badge in gutter */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" locale={locale} />
             )}
           </div>
 
@@ -170,7 +176,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                 <div
                   key={day.toISOString()}
                   role="gridcell"
-                  aria-label={format(day, 'EEEE, MMMM d')}
+                  aria-label={formatDateSync(day, 'EEEE, MMMM d', { locale })}
                   style={{
                     position: 'relative',
                     borderLeft: '1px solid var(--cal-border-subtle)',
@@ -201,12 +207,27 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                     const color = ev.calendarColor ?? '#3B82F6';
                     const isPastEvent = isToday && evEnd <= nowHour;
 
+                    const evStartLabel = formatDateSync(parseEventDate(ev.start), 'h:mm a', { locale });
+                    const evEndLabel = formatDateSync(parseEventDate(ev.end), 'h:mm a', { locale });
+                    const evAriaLabel = ev.location
+                      ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
+                          title: ev.title,
+                          start: evStartLabel,
+                          end: evEndLabel,
+                          location: ev.location,
+                        })
+                      : t('fullscreen-calendar.ariaLabels.eventTimed', {
+                          title: ev.title,
+                          start: evStartLabel,
+                          end: evEndLabel,
+                        });
+
                     return (
                       <div
                         key={ev.id}
                         className="fsc-event-block"
                         role="article"
-                        aria-label={`${ev.title}, ${format(parseEventDate(ev.start), 'h:mm a')} to ${format(parseEventDate(ev.end), 'h:mm a')}${ev.location ? `, at ${ev.location}` : ''}`}
+                        aria-label={evAriaLabel}
                         style={{
                           position: 'absolute',
                           top,
@@ -239,7 +260,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                             color: 'var(--cal-text-secondary)',
                             lineHeight: 1.3,
                           }}>
-                            {format(parseEventDate(ev.start), 'h:mm a')}
+                            {evStartLabel}
                           </div>
                         )}
                         {config.scheduleShowDescription && height >= fontSize * 4 && (() => {
@@ -268,7 +289,13 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
             })}
 
             {/* Now line spanning all columns */}
-            {config.showNowLine && nowInRange && <NowLine nowY={nowY} now={now} />}
+            {config.showNowLine && nowInRange && (
+              <NowLine
+                nowY={nowY}
+                now={now}
+                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatDateSync(now, 'h:mm a', { locale }) })}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -278,7 +305,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
 
 // ─── All-Day Events Row ───
 
-function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today }: {
+function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, t }: {
   events: CalendarEvent[];
   days: Date[];
   config: FullscreenCalendarConfig;
@@ -286,6 +313,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today }
   gutterWidth: number;
   fontSize: number;
   today: Date;
+  t: TranslateFn;
 }) {
   const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day)));
   if (!hasAllDay) return null;
@@ -309,7 +337,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today }
         letterSpacing: '0.06em',
         color: 'var(--cal-text-tertiary)',
       }}>
-        All Day
+        {t('fullscreen-calendar.allDay')}
       </div>
       <div style={{
         flex: 1,
@@ -334,7 +362,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today }
                   <div
                     key={ev.id}
                     className="fsc-event-block"
-                    aria-label={`${ev.title}, all day`}
+                    aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
                     style={{
                       fontSize: fontSize * 0.65,
                       fontWeight: 600,

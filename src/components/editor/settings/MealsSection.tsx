@@ -8,10 +8,12 @@ import {
   SLOT_META,
   DEFAULT_MEAL_SETTINGS,
   formatMealTime,
+  getMealSlotLabelKey,
   getSlotTimePresets,
   normalizeMealSettings,
 } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
+import { useTranslate } from '@/i18n';
 import type { MealSettings, MealSlotType } from '@/types/config';
 
 /**
@@ -26,12 +28,28 @@ import type { MealSettings, MealSlotType } from '@/types/config';
  * because the meal settings live in `data/meals.json`, not `data/config.json`.
  */
 
+// kind drives styling/role explicitly — don't sniff English prefixes from message.
+// In-flight is tracked separately via a `saving: boolean` and drives its own
+// indicator; this status object only carries the terminal success/error
+// message that lingers after the PUT settles.
+type SaveStatusKind = 'success' | 'error';
+interface SaveStatus {
+  message: string;
+  kind: SaveStatusKind;
+}
+
 export default function MealsSection() {
+  const t = useTranslate('editor');
+  // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
+  // so we need a second translator to resolve `getMealSlotLabelKey` against
+  // the dictionary that already ships those keys (Step 4 / task 6.1).
+  const tModules = useTranslate('modules');
+  const tCore = useTranslate('core');
+
   const [settings, setSettings] = useState<MealSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<SaveStatus | null>(null);
   const saveMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Monotonic counter for in-flight persist requests. Used to discard
   // out-of-order responses — when a user toggles two fields rapidly, only the
@@ -60,19 +78,21 @@ export default function MealsSection() {
       try {
         const res = await editorFetch('/api/meals/data');
         if (!res.ok) {
-          if (!cancelled) setError('Failed to load meal settings.');
+          if (!cancelled) setStatus({ message: t('settings.mealsPage.status.loadFailed'), kind: 'error' });
           return;
         }
         const data = await res.json();
         if (cancelled) return;
         setSettings(normalizeMealSettings(data.settings));
       } catch {
-        if (!cancelled) setError('Network error loading meal settings.');
+        if (!cancelled) setStatus({ message: t('settings.mealsPage.status.networkLoad'), kind: 'error' });
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
+    // t is stable across renders for the same locale; intentionally only run on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Persist a settings change ──
@@ -90,7 +110,7 @@ export default function MealsSection() {
   const persist = useCallback(async (next: MealSettings, prev: MealSettings): Promise<boolean> => {
     const myReqId = ++persistReqIdRef.current;
     setSaving(true);
-    setError(null);
+    setStatus(null);
     try {
       // Settings-only PUT — the API now preserves savedMeals/plan/groceryChecked
       // when those fields are omitted from the body, so we don't have to GET
@@ -112,17 +132,20 @@ export default function MealsSection() {
         // error unconditionally, which overwrote a newer success's "Saved"
         // indicator with a phantom failure.
         if (!stillCurrent(myReqId)) return false;
-        setError(body.error ?? 'Failed to save meal settings.');
+        setStatus({
+          message: body.error ?? t('settings.mealsPage.status.saveFailed'),
+          kind: 'error',
+        });
         setSettings(prev); // rollback optimistic update
         return false;
       }
       const body = await putRes.json();
       if (!stillCurrent(myReqId)) return true;
       setSettings(normalizeMealSettings(body.settings));
-      setSaveMessage('Saved');
+      setStatus({ message: t('common.saved'), kind: 'success' });
       if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
       saveMsgTimerRef.current = setTimeout(() => {
-        if (isMountedRef.current) setSaveMessage(null);
+        if (isMountedRef.current) setStatus(null);
       }, 2500);
       // Notify the canvas preview (and any display polling this endpoint)
       // to refetch so the newly-saved settings propagate without waiting
@@ -131,7 +154,7 @@ export default function MealsSection() {
       return true;
     } catch {
       if (!stillCurrent(myReqId)) return false;
-      setError('Network error saving meal settings.');
+      setStatus({ message: t('settings.mealsPage.status.networkSave'), kind: 'error' });
       setSettings(prev); // rollback optimistic update
       return false;
     } finally {
@@ -139,7 +162,7 @@ export default function MealsSection() {
       // AND still mounted. Otherwise the newer request will manage it.
       if (stillCurrent(myReqId)) setSaving(false);
     }
-  }, [stillCurrent]);
+  }, [stillCurrent, t]);
 
   useEffect(() => {
     return () => { if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current); };
@@ -190,13 +213,15 @@ export default function MealsSection() {
 
   if (loading) {
     return (
-      <div className="text-sm text-hs-text-faint">Loading meal settings...</div>
+      <div className="text-sm text-hs-text-faint">{t('settings.mealsPage.loading')}</div>
     );
   }
 
   if (!settings) {
     return (
-      <div className="text-sm text-hs-danger">{error ?? 'Unable to load meal settings.'}</div>
+      <div className="text-sm text-hs-danger">
+        {status?.message ?? t('settings.mealsPage.status.unableToLoad')}
+      </div>
     );
   }
 
@@ -207,29 +232,36 @@ export default function MealsSection() {
       {/* Status row — mirrors the parent page's "Saved" indicator */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-hs-text-faint leading-relaxed">
-          Shared meal-planner settings. These also appear in the{' '}
-          <a href="/remote" className="text-hs-accent hover:text-hs-accent-hover underline">remote</a>{' '}
-          settings drawer — edits from either surface stay in sync.
+          {t('settings.mealsPage.intro.part1')}
+          <a href="/remote" className="text-hs-accent hover:text-hs-accent-hover underline">
+            {t('settings.mealsPage.intro.remoteLinkLabel')}
+          </a>
+          {t('settings.mealsPage.intro.part2')}
         </p>
         <div className="flex items-center gap-2 text-xs">
-          {saving && <span className="text-hs-text-faint">Saving...</span>}
-          {!saving && saveMessage && <span className="text-hs-success">{saveMessage}</span>}
-          {!saving && error && <span className="text-hs-danger">{error}</span>}
+          {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
+          {!saving && status && status.kind === 'success' && (
+            <span className="text-hs-success">{status.message}</span>
+          )}
+          {!saving && status && status.kind === 'error' && (
+            <span className="text-hs-danger">{status.message}</span>
+          )}
         </div>
       </div>
 
       {/* ── Meal Slots ── */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Meal Slots
+          {t('settings.mealsPage.slots.heading')}
         </h3>
         <p className="text-xs text-hs-text-faint mb-3">
-          Which meals does your household plan? Affects every meal-planner module across all screens.
+          {t('settings.mealsPage.slots.description')}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {SLOT_ORDER.map((slot) => {
             const isEnabled = settings.enabledSlots.includes(slot);
             const meta = SLOT_META[slot];
+            const slotLabel = tModules(getMealSlotLabelKey(slot));
             return (
               <button
                 key={slot}
@@ -256,7 +288,7 @@ export default function MealsSection() {
                     </svg>
                   )}
                 </div>
-                <span className="text-sm font-medium text-hs-text-body">{meta.label}</span>
+                <span className="text-sm font-medium text-hs-text-body">{slotLabel}</span>
               </button>
             );
           })}
@@ -266,7 +298,7 @@ export default function MealsSection() {
       {/* ── Week Start ── */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Week Starts On
+          {t('settings.mealsPage.weekStart.heading')}
         </h3>
         <div className="grid grid-cols-2 gap-2">
           {(['sunday', 'monday'] as const).map((day) => {
@@ -277,14 +309,14 @@ export default function MealsSection() {
                 type="button"
                 onClick={() => setWeekStartDay(day)}
                 disabled={saving}
-                className={`px-3 py-2.5 rounded-md border text-sm font-medium capitalize transition ${
+                className={`px-3 py-2.5 rounded-md border text-sm font-medium transition ${
                   isSelected
                     ? 'bg-hs-accent-soft border-hs-accent/40 text-hs-accent-hover'
                     : 'bg-hs-panel border-hs-border-strong text-hs-text-muted hover:border-hs-text-faint hover:text-hs-text-body'
                 }`}
                 aria-pressed={isSelected}
               >
-                {day}
+                {day === 'sunday' ? tCore('days.sunday') : tCore('days.monday')}
               </button>
             );
           })}
@@ -294,10 +326,10 @@ export default function MealsSection() {
       {/* ── Time Format ── */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Time Format
+          {t('settings.mealsPage.timeFormat.heading')}
         </h3>
         <p className="text-xs text-hs-text-faint mb-3">
-          Applies to every meal display across the kiosk and the remote.
+          {t('settings.mealsPage.timeFormat.description')}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {(['12h', '24h'] as const).map((fmt) => {
@@ -316,7 +348,11 @@ export default function MealsSection() {
                 }`}
                 aria-pressed={isSelected}
               >
-                <span className="text-sm font-semibold">{fmt === '12h' ? '12-hour' : '24-hour'}</span>
+                <span className="text-sm font-semibold">
+                  {fmt === '12h'
+                    ? t('settings.mealsPage.timeFormat.twelveHourLabel')
+                    : t('settings.mealsPage.timeFormat.twentyFourHourLabel')}
+                </span>
                 <span className="text-[11px] tabular-nums opacity-80">{sample}</span>
               </button>
             );
@@ -327,16 +363,17 @@ export default function MealsSection() {
       {/* ── Default Serving Times ── */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          Default Serving Times
+          {t('settings.mealsPage.defaultTimes.heading')}
         </h3>
         <p className="text-xs text-hs-text-faint mb-3">
-          Used when a planned meal doesn&apos;t have its own time. Leave blank for slots that vary day-to-day.
+          {t('settings.mealsPage.defaultTimes.description')}
         </p>
         <div className="space-y-2">
           {settings.enabledSlots.map((slot) => {
             const meta = SLOT_META[slot];
             const currentTime = settings.defaultSlotTimes[slot];
             const presets = getSlotTimePresets(slot);
+            const slotLabel = tModules(getMealSlotLabelKey(slot));
             return (
               <div
                 key={slot}
@@ -344,7 +381,7 @@ export default function MealsSection() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold" style={{ color: meta.color }}>
-                    {meta.label}
+                    {slotLabel}
                   </span>
                   {currentTime && (
                     <button
@@ -352,9 +389,9 @@ export default function MealsSection() {
                       onClick={() => setDefaultTime(slot, undefined)}
                       disabled={saving}
                       className="text-[11px] font-semibold text-hs-text-faint hover:text-hs-text-secondary px-2 py-0.5 rounded border border-hs-border-strong transition"
-                      aria-label={`Clear default time for ${meta.label}`}
+                      aria-label={t('settings.mealsPage.defaultTimes.clearAriaLabel', { name: slotLabel })}
                     >
-                      Clear
+                      {t('settings.mealsPage.defaultTimes.clear')}
                     </button>
                   )}
                 </div>
@@ -366,7 +403,7 @@ export default function MealsSection() {
                     disabled={saving}
                     className="flex-1 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
                     style={{ colorScheme: 'dark' }}
-                    aria-label={`Default time for ${meta.label}`}
+                    aria-label={t('settings.mealsPage.defaultTimes.timeInputAriaLabel', { name: slotLabel })}
                   />
                   <div className="flex gap-1">
                     {presets.map((preset) => {
@@ -398,7 +435,9 @@ export default function MealsSection() {
             );
           })}
           {settings.enabledSlots.length === 0 && (
-            <p className="text-xs text-hs-text-faint italic">Enable at least one slot above to set default times.</p>
+            <p className="text-xs text-hs-text-faint italic">
+              {t('settings.mealsPage.defaultTimes.noSlotsHint')}
+            </p>
           )}
         </div>
       </section>
@@ -419,10 +458,10 @@ export default function MealsSection() {
           }}
           disabled={saving}
         >
-          Reset to defaults
+          {t('settings.mealsPage.reset.button')}
         </Button>
         <p className="text-xs text-hs-text-faint mt-2">
-          Restores breakfast/lunch/dinner, Sunday week start, 12-hour format, and clears all default times.
+          {t('settings.mealsPage.reset.help')}
         </p>
       </section>
     </div>

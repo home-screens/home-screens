@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from './types';
 
 /* ─── Props ────────────────────────────────── */
@@ -35,6 +36,7 @@ export default function WifiConnectModal({
   onClose,
   onManagementWarning,
 }: WifiConnectModalProps) {
+  const t = useTranslate('editor');
   const ssid = network?.ssid ?? hiddenSsid ?? '';
   const isOpen = network
     ? network.security === '' || network.security === 'Open'
@@ -66,7 +68,7 @@ export default function WifiConnectModal({
   const doConnect = useCallback(
     async (confirmed?: boolean) => {
       if (!effectiveSsid.trim()) {
-        setError('SSID is required');
+        setError(t('settings.networkPage.wifiConnect.ssidRequiredError'));
         return;
       }
 
@@ -100,18 +102,18 @@ export default function WifiConnectModal({
         }
 
         if (!res.ok || data.ok === false) {
-          setError(data.error ?? 'Connection failed');
+          setError(data.error ?? t('settings.networkPage.wifiConnect.defaultConnectError'));
           setConnecting(false);
           return;
         }
 
         onConnected(data.rollbackId);
       } catch {
-        setError('Failed to reach server');
+        setError(t('common.serverUnreachable'));
         setConnecting(false);
       }
     },
-    [effectiveSsid, password, iface, isOpen, onConnected, onManagementWarning],
+    [effectiveSsid, password, iface, isOpen, onConnected, onManagementWarning, t],
   );
 
   useEffect(() => {
@@ -132,7 +134,9 @@ export default function WifiConnectModal({
     >
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-hs-text-primary mb-4">
-          {network ? `Connect to "${ssid}"` : 'Connect to Hidden Network'}
+          {network
+            ? t('settings.networkPage.wifiConnect.titleNamed', { ssid })
+            : t('settings.networkPage.wifiConnect.titleHidden')}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,14 +144,14 @@ export default function WifiConnectModal({
           {!network && (
             <div>
               <label className="block text-xs font-medium text-hs-text-secondary mb-1">
-                Network name (SSID)
+                {t('settings.networkPage.wifiConnect.ssidLabel')}
               </label>
               <input
                 type="text"
                 value={hiddenSsidInput}
                 onChange={(e) => setHiddenSsidInput(e.target.value)}
                 className="w-full bg-hs-bg border border-hs-border rounded px-3 py-2 text-sm text-hs-text-primary focus:outline-none focus:border-hs-accent"
-                placeholder="Enter network name"
+                placeholder={t('settings.networkPage.wifiConnect.ssidPlaceholder')}
                 autoFocus
               />
             </div>
@@ -157,7 +161,7 @@ export default function WifiConnectModal({
           {!isOpen && (
             <div>
               <label className="block text-xs font-medium text-hs-text-secondary mb-1">
-                Password
+                {t('settings.networkPage.wifiConnect.passwordLabel')}
               </label>
               <div className="relative">
                 <input
@@ -165,7 +169,7 @@ export default function WifiConnectModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-hs-bg border border-hs-border rounded px-3 py-2 pr-16 text-sm text-hs-text-primary focus:outline-none focus:border-hs-accent"
-                  placeholder="Enter password"
+                  placeholder={t('settings.networkPage.wifiConnect.passwordPlaceholder')}
                   autoFocus={!!network}
                 />
                 <button
@@ -173,7 +177,9 @@ export default function WifiConnectModal({
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-hs-text-muted hover:text-hs-text-body px-1.5 py-0.5"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword
+                    ? t('settings.networkPage.wifiConnect.hidePassword')
+                    : t('settings.networkPage.wifiConnect.showPassword')}
                 </button>
               </div>
             </div>
@@ -183,7 +189,7 @@ export default function WifiConnectModal({
           {wifiInterfaces.length > 1 && (
             <div>
               <label className="block text-xs font-medium text-hs-text-secondary mb-1">
-                Interface
+                {t('settings.networkPage.wifiConnect.interfaceLabel')}
               </label>
               <select
                 value={iface}
@@ -209,10 +215,12 @@ export default function WifiConnectModal({
           {/* Buttons */}
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="secondary" type="button" onClick={onClose} disabled={connecting}>
-              Cancel
+              {t('settings.networkPage.wifiConnect.cancelButton')}
             </Button>
             <Button variant="primary" type="submit" disabled={connecting || !effectiveSsid.trim()}>
-              {connecting ? 'Connecting...' : 'Connect'}
+              {connecting
+                ? t('settings.networkPage.wifiConnect.connectingButton')
+                : t('settings.networkPage.wifiConnect.connectButton')}
             </Button>
           </div>
         </form>

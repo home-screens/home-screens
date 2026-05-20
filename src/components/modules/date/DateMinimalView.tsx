@@ -1,20 +1,25 @@
 'use client';
 
-import { format } from 'date-fns';
-import { buildInfoParts } from '@/lib/date-info';
+import { getDateInfoValues } from '@/lib/date-info';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
 
 export default function DateMinimalView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const dateFormat = config.dateFormat || 'MMMM d';
   let dateStr: string;
   try {
-    dateStr = format(now, dateFormat);
+    dateStr = formatDateSync(now, dateFormat, { locale });
   } catch {
-    dateStr = format(now, 'MMMM d');
+    dateStr = formatDateSync(now, 'MMMM d', { locale });
   }
 
-  const infoParts = buildInfoParts(config, now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const infoParts: string[] = [];
+  if (config.showWeekNumber) infoParts.push(`${t('date.weekShort')} ${weekNumber}`);
+  if (config.showDayOfYear) infoParts.push(`${t('date.dayShort')} ${dayOfYear}`);
 
   return (
     <div
@@ -35,7 +40,7 @@ export default function DateMinimalView({ config, now, scaledFontSize, container
           style={{ fontSize: scaledFontSize * 0.8, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
-          {infoParts.join(' \u00b7 ')}
+          {infoParts.join(' · ')}
         </div>
       )}
     </div>

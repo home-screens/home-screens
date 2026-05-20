@@ -64,7 +64,7 @@ The `display-control` module is a touch widget that dispatches hub commands (wak
 - Display reads config server-side and renders modules
 
 ### API Pattern
-All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (~83 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
+All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (~85 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), i18n dictionaries, and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
 
 ### Key Files
 - `src/types/config.ts` — all TypeScript types (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode)
@@ -85,6 +85,12 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/components/editor/DisplaySwitcher.tsx`, `src/components/editor/settings/DisplaysIndexPage.tsx` — multi-display UI (toolbar pill + Per display > All displays index)
 - `src/components/editor/settings/SettingsSidebar.tsx`, `src/components/editor/settings/display/PerDisplayPage.tsx`, `src/lib/settings-route.ts` — Phase 4 settings split (Defaults / Per display) with URL-driven routing
 - `src/components/editor/settings/OverrideRow.tsx`, `src/lib/display-defaults-backlinks.ts` — per-display field overrides + the "which displays override this field?" backlink banner on Defaults pages
+- `src/i18n/` — i18n runtime (`provider.tsx`, `loader.ts`, `manifest.ts`, `formatters.ts`, `server-blob.ts`, `file-reader.ts`); `manifest.ts` is the source of truth for registered locales
+- `src/translations/<locale>/{core,editor,modules,remote,weather}.json` — host dictionaries, one folder per locale; fallback chain walks language siblings then `FALLBACK_LOCALE` (`en-US`)
+- `src/app/api/i18n/[locale]/route.ts` — serves `{ <namespace>: <dictionary>, ... }` for a `?ns=` list; unknown locales fall back silently; partial locales walk the per-namespace fallback chain
+
+### I18n
+The active locale lives in `GlobalSettings.locale` (BCP-47 tag, defaults to `en-US`); an optional `formattingLocale` overrides date/number formatting only. Seven locales ship out of the box: `en-US`, `de-DE`, `fr-FR`, `es-ES`, `nl-NL`, `pt-BR`, `da-DK`. Server-rendered pages get a pre-built locale blob via `buildLocaleBlob`; client pages hydrate the same dictionaries through `/api/i18n/[locale]` (per-namespace HTTP cache, full-URL keyed). Plugin manifests can declare `translations: { '<bcp47>': '<path>' }`; the loader registers them under namespace `plugin:<pluginId>` and exposes `__HS_SDK__.translate(...)` to plugin code.
 
 ### Website
 The marketing site and documentation live in `website/` as a separate Next.js app:

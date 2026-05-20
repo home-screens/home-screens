@@ -3,6 +3,7 @@
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats, WeekDayData } from '../types';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
 interface StarChartViewProps {
@@ -18,12 +19,14 @@ export function StarChartView({ config, data }: StarChartViewProps) {
   const { members, memberStats, weekData } = data;
   const accentColor = config.accentColor ?? '#f59e0b';
   const showStreaks = config.showStreaks;
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
 
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Title */}
       <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        &#11088; Star Chart &#11088;
+        &#11088; {t('chore-chart.starChart')} &#11088;
       </div>
 
       {/* Grid */}
@@ -32,21 +35,25 @@ export function StarChartView({ config, data }: StarChartViewProps) {
           <thead>
             <tr>
               <th style={{ textAlign: 'left', padding: '0.3em', fontWeight: 500, opacity: TEXT_OPACITY.dim }} />
-              {weekData.map((day) => (
-                <th
-                  key={day.date}
-                  style={{
-                    textAlign: 'center',
-                    padding: '0.3em',
-                    fontWeight: day.isToday ? 700 : 500,
-                    color: day.isToday ? accentColor : undefined,
-                    opacity: day.isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
-                    fontSize: '0.85em',
-                  }}
-                >
-                  {day.dayName}
-                </th>
-              ))}
+              {weekData.map((day) => {
+                const [y, m, d] = day.date.split('-').map(Number);
+                const dayDate = new Date(y, (m ?? 1) - 1, d ?? 1);
+                return (
+                  <th
+                    key={day.date}
+                    style={{
+                      textAlign: 'center',
+                      padding: '0.3em',
+                      fontWeight: day.isToday ? 700 : 500,
+                      color: day.isToday ? accentColor : undefined,
+                      opacity: day.isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
+                      fontSize: '0.85em',
+                    }}
+                  >
+                    {formatDateSync(dayDate, 'EEE', { locale })}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -105,7 +112,7 @@ export function StarChartView({ config, data }: StarChartViewProps) {
             const stats = memberStats.get(m.id);
             return (
               <span key={m.id} className="inline-flex items-center gap-1">
-                {m.emoji ? <ChoreIcon value={m.emoji} size={12} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {stats?.weeklyPoints ?? 0} tickets
+                {m.emoji ? <ChoreIcon value={m.emoji} size={12} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {t('chore-chart.ticketsCount', { count: stats?.weeklyPoints ?? 0 })}
               </span>
             );
           })}

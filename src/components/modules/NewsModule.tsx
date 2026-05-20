@@ -10,6 +10,8 @@ import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
 import { MetadataText } from './shared/MetadataText';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 
 interface NewsModuleProps {
   config: NewsConfig;
@@ -22,46 +24,47 @@ interface NewsItem {
   description: string;
 }
 
-function formatTime(pubDate: string): string {
+function formatTime(pubDate: string, t: TranslateFn): string {
   if (!pubDate) return '';
   const d = new Date(pubDate);
   if (isNaN(d.getTime())) return '';
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1) return t('news.timeAgo.justNow');
+  if (diffMin < 60) return t('news.timeAgo.minutes', { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t('news.timeAgo.hours', { count: diffHr });
   const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay}d ago`;
+  return t('news.timeAgo.days', { count: diffDay });
 }
 
 /** Headline view — single rotating headline (original behavior) */
-function HeadlineView({ items, rotateMs }: { items: NewsItem[]; rotateMs: number }) {
+function HeadlineView({ items, rotateMs, t }: { items: NewsItem[]; rotateMs: number; t: TranslateFn }) {
   const index = useRotatingIndex(items.length, rotateMs);
   const item = items[index % items.length];
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2">
-      <SectionHeader>News</SectionHeader>
+      <SectionHeader>{t('news.header')}</SectionHeader>
       <p className="text-center leading-relaxed">
-        {item?.title ?? 'Loading news...'}
+        {item?.title ?? t('news.loading')}
       </p>
     </div>
   );
 }
 
 /** List view — vertical scrollable list with optional timestamps and descriptions */
-function ListView({ items, showTimestamp, showDescription, accentColor }: {
+function ListView({ items, showTimestamp, showDescription, accentColor, t }: {
   items: NewsItem[];
   showTimestamp: boolean;
   showDescription: boolean;
   accentColor?: string;
+  t: TranslateFn;
 }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <SectionHeader className="shrink-0 mb-2">News</SectionHeader>
+      <SectionHeader className="shrink-0 mb-2">{t('news.header')}</SectionHeader>
       <div className="flex flex-col gap-2.5 overflow-y-auto min-h-0 pr-1">
         {items.map((item, i) => (
           <div key={i} className="flex gap-2" style={{ fontSize: '0.9em' }}>
@@ -78,7 +81,7 @@ function ListView({ items, showTimestamp, showDescription, accentColor }: {
               )}
               {showTimestamp && item.pubDate && (
                 <MetadataText size="xs">
-                  {formatTime(item.pubDate)}
+                  {formatTime(item.pubDate, t)}
                 </MetadataText>
               )}
             </div>
@@ -104,7 +107,7 @@ function TickerView({ items, speed }: { items: NewsItem[]; speed: number }) {
 }
 
 /** Compact view — minimal dense list */
-function CompactView({ items, showTimestamp }: { items: NewsItem[]; showTimestamp: boolean }) {
+function CompactView({ items, showTimestamp, t }: { items: NewsItem[]; showTimestamp: boolean; t: TranslateFn }) {
   return (
     <div className="flex flex-col justify-center h-full overflow-hidden gap-1 px-1">
       {items.map((item, i) => (
@@ -116,7 +119,7 @@ function CompactView({ items, showTimestamp }: { items: NewsItem[]; showTimestam
           <span className="truncate leading-snug">{item.title}</span>
           {showTimestamp && item.pubDate && (
             <MetadataText className="shrink-0 tabular-nums">
-              {formatTime(item.pubDate)}
+              {formatTime(item.pubDate, t)}
             </MetadataText>
           )}
         </div>
@@ -126,6 +129,7 @@ function CompactView({ items, showTimestamp }: { items: NewsItem[]; showTimestam
 }
 
 export default function NewsModule({ config, style }: NewsModuleProps) {
+  const t = useTranslate('modules');
   const [data, error] = useFetchData<{ items: NewsItem[] }>(
     newsUrl(config),
     config.refreshIntervalMs ?? 300000,
@@ -137,18 +141,18 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading news…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('news.loading')} error={error} />;
   }
 
   if (allItems.length === 0) {
-    return <ModuleEmptyState style={style} message="No headlines" />;
+    return <ModuleEmptyState style={style} message={t('news.empty')} />;
   }
 
   return (
     <ModuleWrapper style={style}>
       <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
       {view === 'headline' && (
-        <HeadlineView items={allItems} rotateMs={config.rotateIntervalMs ?? 10000} />
+        <HeadlineView items={allItems} rotateMs={config.rotateIntervalMs ?? 10000} t={t} />
       )}
       {view === 'list' && (
         <ListView
@@ -156,13 +160,14 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
           showTimestamp={config.showTimestamp ?? false}
           showDescription={config.showDescription ?? false}
           accentColor={config.accentColor}
+          t={t}
         />
       )}
       {view === 'ticker' && (
         <TickerView items={items} speed={config.tickerSpeed ?? 5} />
       )}
       {view === 'compact' && (
-        <CompactView items={items} showTimestamp={config.showTimestamp ?? false} />
+        <CompactView items={items} showTimestamp={config.showTimestamp ?? false} t={t} />
       )}
       </div>
     </ModuleWrapper>

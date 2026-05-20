@@ -11,6 +11,7 @@ import {
   buildTaskTree,
 } from './todoist-utils';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 
 // ─── Task Row ───
 
@@ -27,8 +28,10 @@ export function TaskRow({
   depth?: number;
   onComplete?: (taskId: string) => void;
 }) {
+  const tr = useTranslate('modules');
+  const locale = useFormattingLocale();
   const t = task.task;
-  const dueInfo = formatDueDate(t.due, now);
+  const dueInfo = formatDueDate(t.due, now, tr, locale);
   const isOverdue = t.due
     ? daysBetween(new Date(t.due.datetime ?? t.due.date + 'T23:59:59'), now) < 0
     : false;
@@ -61,7 +64,7 @@ export function TaskRow({
               borderColor: visiblePriorityColor,
               backgroundColor: 'transparent',
             }}
-            aria-label={`Complete: ${t.content}`}
+            aria-label={tr('todoist.completeAriaLabel', { content: t.content })}
           />
         ) : (
           <div
@@ -90,7 +93,7 @@ export function TaskRow({
                 <span
                   className="ml-1.5 inline-block"
                   style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}
-                  title="Recurring"
+                  title={tr('todoist.recurringTooltip')}
                 >
                   ↻
                 </span>
@@ -185,9 +188,10 @@ export default function ListView({
   now: Date;
   onComplete?: (taskId: string) => void;
 }) {
+  const tr = useTranslate('modules');
   const groups = useMemo(
-    () => groupTasks(tasks, config.groupBy, now),
-    [tasks, config.groupBy, now],
+    () => groupTasks(tasks, config.groupBy, now, tr),
+    [tasks, config.groupBy, now, tr],
   );
 
   return (
@@ -209,9 +213,9 @@ export default function ListView({
                   className="font-semibold uppercase tracking-wider shrink-0"
                   style={{
                     fontSize: '0.65em',
-                    opacity: group.key === 'Overdue' ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
+                    opacity: group.key === 'overdue' ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                     color:
-                      group.key === 'Overdue' ? '#ef4444' : undefined,
+                      group.key === 'overdue' ? '#ef4444' : undefined,
                   }}
                 >
                   {group.label}

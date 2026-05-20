@@ -26,8 +26,42 @@ import {
   SLOT_ORDER,
   SLOT_WINDOWS,
   SLOT_META,
+  getLocalizedDayNamesAsync,
 } from '@/lib/meal-constants';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+
+// ── getLocalizedDayNames ──
+
+describe('getLocalizedDayNames', () => {
+  it('returns 7 entries indexed 0=Sunday … 6=Saturday', async () => {
+    // Use the async variant so the date-fns en-US bundle is loaded
+    // before we read sync — the sync variant falls back silently when
+    // the cache is cold.
+    const names = await getLocalizedDayNamesAsync('en-US', 'full');
+    expect(names).toHaveLength(7);
+    expect(names[0]).toBe('Sunday');
+    expect(names[6]).toBe('Saturday');
+  });
+
+  it('returns short forms for format="short"', async () => {
+    const names = await getLocalizedDayNamesAsync('en-US', 'short');
+    expect(names).toHaveLength(7);
+    expect(names[0]).toBe('Sun');
+    expect(names[1]).toBe('Mon');
+  });
+
+  it('honors the locale argument (de-DE returns German names)', async () => {
+    // Regression guard for the en-US literal cutover. After preloading
+    // the de-DE date-fns bundle, the names array must be German.
+    const names = await getLocalizedDayNamesAsync('de-DE', 'full');
+    expect(names).toHaveLength(7);
+    // Sunday in German is "Sonntag", Saturday is "Samstag" — both
+    // distinct enough from English that an accidental fallback would
+    // be obvious.
+    expect(names[0]).toBe('Sonntag');
+    expect(names[6]).toBe('Samstag');
+  });
+});
 
 // ── getOrderedDays ──
 
@@ -384,7 +418,6 @@ describe('SLOT_META', () => {
   it('has entries for all slots in SLOT_ORDER', () => {
     for (const slot of SLOT_ORDER) {
       expect(SLOT_META[slot]).toBeDefined();
-      expect(SLOT_META[slot].label).toBeTruthy();
       expect(SLOT_META[slot].color).toBeTruthy();
     }
   });

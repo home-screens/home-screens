@@ -1,0 +1,680 @@
+{
+  "clock": {
+    "am": "AM",
+    "pm": "PM",
+    "weekShort": "Semana",
+    "dayShort": "Día",
+    "binaryHoursLabel": "H",
+    "binaryMinutesLabel": "M",
+    "binarySecondsLabel": "S",
+    "barHoursLabel": "H",
+    "barMinutesLabel": "M",
+    "barSecondsLabel": "S",
+    "arc": {
+      "morningLabel": "6:00",
+      "eveningLabel": "18:00",
+      "beforeDawn": "antes del amanecer",
+      "afterDusk": "después del anochecer"
+    },
+    "elapsed": {
+      "setReferenceTime": "Define una hora de referencia",
+      "since": "desde {label}",
+      "until": "hasta {label}",
+      "notYet": "aún no",
+      "elapsed": "transcurrido"
+    },
+    "fuzzy": {
+      "oclock": "{hour} en punto",
+      "justPast": "recién pasadas las {hour}",
+      "tenPast": "{hour} y diez",
+      "quarterPast": "{hour} y cuarto",
+      "twentyPast": "{hour} y veinte",
+      "twentyFivePast": "{hour} y veinticinco",
+      "halfPast": "{hour} y media",
+      "twentyFiveTo": "{next} menos veinticinco",
+      "twentyTo": "{next} menos veinte",
+      "quarterTo": "{next} menos cuarto",
+      "tenTo": "{next} menos diez",
+      "almost": "casi {next}"
+    },
+    "word": {
+      "oclock": "Son las {hour} en punto",
+      "atMinute": "Son las {hour} y {minute}",
+      "hours": {
+        "1": "una",
+        "2": "dos",
+        "3": "tres",
+        "4": "cuatro",
+        "5": "cinco",
+        "6": "seis",
+        "7": "siete",
+        "8": "ocho",
+        "9": "nueve",
+        "10": "diez",
+        "11": "once",
+        "12": "doce"
+      },
+      "onesCompound": {
+        "1": "uno",
+        "2": "dos",
+        "3": "tres",
+        "4": "cuatro",
+        "5": "cinco",
+        "6": "seis",
+        "7": "siete",
+        "8": "ocho",
+        "9": "nueve"
+      },
+      "minutes": {
+        "0": "cero",
+        "10": "diez",
+        "11": "once",
+        "12": "doce",
+        "13": "trece",
+        "14": "catorce",
+        "15": "quince",
+        "16": "dieciséis",
+        "17": "diecisiete",
+        "18": "dieciocho",
+        "19": "diecinueve",
+        "20": "veinte",
+        "30": "treinta",
+        "40": "cuarenta",
+        "50": "cincuenta"
+      },
+      "minuteJoin": "{tens} y {ones}"
+    }
+  },
+  "countdown": {
+    "noEvents": "Sin cuentas atrás",
+    "noUpcoming": "Sin eventos próximos",
+    "agoSuffix": "(pasado)",
+    "todayBang": "¡Hoy!",
+    "unitDays": "días",
+    "unitHours": "h",
+    "unitMinutes": "min",
+    "unitSeconds": "seg"
+  },
+  "date": {
+    "weekShort": "Semana",
+    "dayShort": "Día",
+    "weekAbbrev": "SEM",
+    "dayAbbrev": "DÍA"
+  },
+  "year-progress": {
+    "week": "Semana"
+  },
+  "garbage-day": {
+    "header": "Calendario de recogida",
+    "nextDay": "Próximo {day}",
+    "emptyState": "Configura los días de recogida en los ajustes del módulo",
+    "labels": {
+      "trash": "Basura",
+      "recycling": "Reciclaje",
+      "yardWaste": "Restos de jardín"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Cada dos {day}"
+    }
+  },
+  "calendar": {
+    "allDay": "Todo el día",
+    "noEvents": "Sin eventos",
+    "noUpcomingEvents": "Sin eventos próximos",
+    "weekShort": "Sem",
+    "moreCount": "+{count} más"
+  },
+  "fullscreen-calendar": {
+    "allDay": "Todo el día",
+    "noEvents": "Sin eventos",
+    "noEventsThisMonth": "Sin eventos este mes",
+    "noEventsThisWeek": "Sin eventos esta semana",
+    "noEventsToday": "Sin eventos hoy",
+    "noUpcomingEvents": "Sin eventos próximos",
+    "moreCount": "+{count} más",
+    "am": "AM",
+    "pm": "PM",
+    "headerUpcoming": "Próximamente",
+    "viewLabels": {
+      "schedule": "Agenda",
+      "weekList": "Semana",
+      "monthGrid": "Mes",
+      "dayTimeline": "Día",
+      "agenda": "Lista"
+    },
+    "zones": {
+      "morning": "Mañana",
+      "afternoon": "Tarde",
+      "evening": "Noche"
+    },
+    "ariaLabels": {
+      "currentTemperature": "Temperatura actual {temp} grados",
+      "view": "Vista: {label}",
+      "dayTimeline": "Cronología del día",
+      "scheduleTimeGrid": "Cuadrícula horaria de la agenda",
+      "currentTime": "Hora actual: {time}",
+      "eventAllDay": "{title}, todo el día",
+      "eventTimed": "{title}, de {start} a {end}",
+      "eventTimedAtLocation": "{title}, de {start} a {end}, en {location}",
+      "monthCell": "{date}, {count} eventos"
+    }
+  },
+  "weather": {
+    "tomorrowShort": "Mñn",
+    "feelsLike": "Sensación {temp}",
+    "feelsShort": "Sens. {temp}",
+    "highLow": "Máx:{high} Mín:{low}",
+    "hourlyForecast": "Previsión por horas",
+    "forecast": "Previsión",
+    "weatherAlerts": "Avisos meteorológicos",
+    "alertCount": "({count})",
+    "noActiveAlerts": "Sin avisos activos",
+    "alertDataRequires": "Los avisos requieren Pirate Weather o NOAA",
+    "alertSeverityExpires": "{severity} · Caduca {expires}",
+    "noWeatherData": "Sin datos meteorológicos",
+    "noForecastData": "Sin datos de previsión",
+    "locationNotSet": "Ubicación no establecida",
+    "setLocationInSettings": "Configura tu ubicación en Ajustes",
+    "next60Minutes": "Próximos 60 minutos",
+    "noPrecipitationExpected": "No se esperan precipitaciones",
+    "stoppingInMin": "Para en {minutes} min",
+    "precipitationForNextHour": "Precipitación para la próxima hora",
+    "startingInMin": "Empieza en {minutes} min",
+    "minutelyDataRequires": "Los datos por minuto requieren Pirate Weather",
+    "tableHeaders": {
+      "day": "Día",
+      "temp": "Temp",
+      "rain": "Lluvia",
+      "humidity": "Hum",
+      "wind": "Viento"
+    },
+    "timeline": {
+      "now": "Ahora",
+      "minutes15": "15 min",
+      "minutes30": "30 min",
+      "minutes45": "45 min",
+      "minutes60": "60 min"
+    },
+    "severity": {
+      "Extreme": "Extremo",
+      "Severe": "Grave",
+      "Moderate": "Moderado",
+      "Minor": "Leve",
+      "Unknown": "Desconocido"
+    }
+  },
+  "air-quality": {
+    "loading": "Cargando calidad del aire…",
+    "airQualityIndex": "Índice de calidad del aire",
+    "labels": {
+      "good": "Buena",
+      "fair": "Aceptable",
+      "moderate": "Moderada",
+      "poor": "Mala",
+      "veryPoor": "Muy mala",
+      "unknown": "Desconocida"
+    },
+    "pollutants": {
+      "pm25": "PM2,5",
+      "pm10": "PM10",
+      "o3": "O₃"
+    }
+  },
+  "moon-phase": {
+    "phases": {
+      "newMoon": "Luna nueva",
+      "waxingCrescent": "Creciente",
+      "firstQuarter": "Cuarto creciente",
+      "waxingGibbous": "Gibosa creciente",
+      "fullMoon": "Luna llena",
+      "waningGibbous": "Gibosa menguante",
+      "lastQuarter": "Cuarto menguante",
+      "waningCrescent": "Menguante"
+    },
+    "illuminated": "{percent}% iluminada",
+    "rise": "Salida",
+    "set": "Puesta"
+  },
+  "sunrise-sunset": {
+    "sunrise": "Amanecer",
+    "sunset": "Atardecer",
+    "dayLength": "Duración del día: {length}",
+    "goldenHour": "Hora dorada: {time}",
+    "midnightSun": "Sol de medianoche",
+    "sunDoesNotSet": "El sol no se pone",
+    "noSunriseToday": "Hoy no hay amanecer",
+    "noSunsetToday": "Hoy no hay atardecer",
+    "noon": "mediodía",
+    "riseShort": "↑ sale",
+    "setShort": "se pone ↓"
+  },
+  "rain-map": {
+    "loading": "Cargando mapa de lluvia…",
+    "noRadarData": "No hay datos de radar disponibles",
+    "now": "Ahora",
+    "minutesAgo": "hace {minutes} min",
+    "minutesAhead": "+{minutes} min"
+  },
+  "meal-planner": {
+    "noMealsPlannedYet": "Aún no hay comidas planeadas",
+    "addMealsInEditor": "Añade comidas en el editor",
+    "noMealsPlanned": "No hay comidas planeadas",
+    "noMealPlanned": "No hay comida planeada",
+    "nothingPlanned": "Nada planeado",
+    "todaysMeals": "Comidas de hoy",
+    "now": "ahora",
+    "servingAt": "se sirve a las {time}",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "slotShort": {
+      "breakfast": "D",
+      "lunch": "C",
+      "dinner": "Cn",
+      "snack": "M"
+    },
+    "slots": {
+      "breakfast": "Desayuno",
+      "lunch": "Comida",
+      "dinner": "Cena",
+      "snack": "Merienda"
+    },
+    "nextMealLabels": {
+      "now": "Ahora",
+      "comingUp": "Próximamente",
+      "tomorrow": "Mañana",
+      "next": "Siguiente"
+    }
+  },
+  "fullscreen-meal-planner": {
+    "thisWeeksMeals": "Comidas de esta semana",
+    "todaysMeals": "Comidas de hoy",
+    "todaysMenu": "Menú de hoy",
+    "alsoToday": "También hoy",
+    "noMealPlanned": "No hay comida planeada",
+    "notPlanned": "No planeada",
+    "noMealsPlannedToday": "Hoy no hay comidas planeadas",
+    "noUpcomingMeals": "No hay comidas próximas planeadas",
+    "mealsPlannedCount": "{filled} de {total} comidas planeadas",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "heroLabels": {
+      "now": "Ahora",
+      "upNext": "A continuación",
+      "tonight": "Esta noche"
+    },
+    "nextMealLabels": {
+      "now": "Ahora",
+      "comingUp": "Próximamente",
+      "tomorrow": "Mañana"
+    }
+  },
+  "chore-chart": {
+    "familyChores": "Tareas de la familia",
+    "familyProgress": "Progreso de la familia",
+    "starChart": "Tabla de estrellas",
+    "chores": "Tareas",
+    "thisWeek": "Esta semana",
+    "addMembersToStart": "Añade miembros de la familia para empezar",
+    "openEditorToSetUp": "Abre el editor para configurar tu tabla de tareas",
+    "noChoresConfigured": "No hay tareas configuradas",
+    "addChoresInEditor": "Añade algunas tareas en el editor",
+    "dayOff": "¡Día libre!",
+    "allDone": "¡Todo listo!",
+    "doneLabel": "Hechas:",
+    "progressLabel": "Progreso:",
+    "doneFraction": "{done}/{total} hechas",
+    "streakDays": "{count} días",
+    "totalTickets": "Tickets totales",
+    "bestStreak": "Mejor racha",
+    "bestStreakValue": "{name} ({count} días)",
+    "todaysCompletion": "Completado de hoy",
+    "rewardBalances": "Saldos de premios",
+    "ticketsCount": "{count} tickets",
+    "timeOfDay": {
+      "morning": "Mañana",
+      "afternoon": "Tarde",
+      "evening": "Noche",
+      "anytime": "Cualquier momento"
+    },
+    "iconPicker": {
+      "filter": "Filtrar iconos...",
+      "noMatch": "Ningún icono coincide",
+      "none": "Ninguno",
+      "clear": "Borrar"
+    },
+    "iconLabels": {
+      "user": "Persona",
+      "user-round": "Persona 2",
+      "baby": "Bebé",
+      "crown": "Realeza",
+      "star": "Estrella",
+      "heart": "Corazón",
+      "smile": "Sonrisa",
+      "person-standing": "De pie",
+      "circle-user": "Avatar",
+      "shield-user": "Guardián",
+      "cat": "Gato",
+      "dog": "Perro",
+      "sparkles": "Limpio",
+      "brush-cleaning": "Fregar",
+      "spray-can": "Espray",
+      "droplets": "Agua",
+      "bath": "Baño",
+      "shower-head": "Ducha",
+      "towel-rack": "Toallas",
+      "bed": "Cama",
+      "bed-double": "Camas",
+      "utensils": "Platos",
+      "utensils-crossed": "Cocinar",
+      "cooking-pot": "Olla",
+      "hand-platter": "Servir",
+      "glass-water": "Beber",
+      "shirt": "Ropa",
+      "washing-machine": "Lavadora",
+      "trash": "Basura",
+      "recycle": "Reciclar",
+      "bone": "Mascota",
+      "flower": "Jardín",
+      "leaf": "Patio",
+      "tree": "Árbol",
+      "car": "Coche",
+      "mail": "Correo",
+      "mailbox": "Buzón",
+      "shopping-cart": "Compra",
+      "shopping-bag": "Tienda",
+      "book-open": "Leer",
+      "notebook": "Tarea",
+      "music": "Música",
+      "lamp": "Lámpara",
+      "wrench": "Arreglar",
+      "scissors": "Cortar",
+      "package": "Paquete",
+      "home": "Casa",
+      "key": "Llave",
+      "lightbulb": "Luz",
+      "wifi": "WiFi",
+      "toilet": "Inodoro",
+      "soap": "Jabón",
+      "paw-print": "Mascota",
+      "footprints": "Paseo",
+      "shovel": "Pala",
+      "paint-roller": "Pintar",
+      "hammer": "Reparar",
+      "fence": "Valla",
+      "bike": "Bici",
+      "chef-hat": "Chef",
+      "microwave": "Microondas",
+      "refrigerator": "Nevera",
+      "apple": "Merienda",
+      "coffee": "Café",
+      "egg": "Desayuno",
+      "pill": "Medicina",
+      "alarm-clock": "Despertar",
+      "timer": "Temporizador",
+      "dumbbell": "Ejercicio",
+      "toy-brick": "Juguetes",
+      "backpack": "Escuela",
+      "blinds": "Persianas",
+      "gift": "Regalo",
+      "tv": "TV",
+      "ice-cream-cone": "Helado",
+      "clapperboard": "Película",
+      "pizza": "Pizza",
+      "banknote": "Dinero",
+      "circle-check-big": "Aprobado",
+      "party-popper": "Fiesta",
+      "rocket": "Cohete",
+      "gem": "Joya",
+      "trophy": "Trofeo",
+      "gamepad-2": "Juegos",
+      "headphones": "Música",
+      "candy": "Caramelo",
+      "cookie": "Galleta",
+      "cake": "Pastel",
+      "palette": "Arte",
+      "ticket": "Boleto",
+      "popcorn": "Palomitas",
+      "circle-dollar-sign": "Dólar",
+      "wallet": "Cartera",
+      "badge-check": "Insignia",
+      "plane": "Viaje",
+      "tent": "Camping",
+      "fish": "Pez",
+      "drama": "Teatro",
+      "puzzle": "Puzle",
+      "sticker": "Pegatina",
+      "volleyball": "Deportes"
+    }
+  },
+  "fullscreen-chore-chart": {
+    "rewardsButton": "Premios",
+    "complete": "Hecho",
+    "noChoresToday": "Hoy no hay tareas",
+    "weeklyTickets": "Tickets de la semana:",
+    "weeklyTicketsValue": "{earned} / {total}",
+    "bestStreakLabel": "Mejor racha:",
+    "bestStreakValue": "{name} — {count} días",
+    "bestStreakNone": "Ninguna",
+    "thisWeek": "Esta semana",
+    "tickets": "tickets",
+    "ticketCount": "{count} ticket",
+    "ticketsCount": "{count} tickets",
+    "verbs": {
+      "completed": "ha hecho",
+      "uncompleted": "ha desmarcado",
+      "redeemed": "ha canjeado"
+    },
+    "ariaLabels": {
+      "completeChore": "Marcar {chore} para {member}",
+      "undoChore": "Deshacer {chore} para {member}",
+      "undoCompleting": "Deshacer marcar {chore}",
+      "undoUncompleting": "Deshacer desmarcar {chore}"
+    },
+    "timeOfDay": {
+      "morning": "Mañana",
+      "afternoon": "Tarde",
+      "evening": "Noche",
+      "anytime": "Cualquier momento"
+    },
+    "rewardsStore": {
+      "title": "Premios",
+      "subtitle": "Elige algo chulo",
+      "backToChores": "← Tareas",
+      "noneAvailable": "Aún no hay premios disponibles",
+      "recentRedemptions": "Canjes recientes",
+      "redemptionCost": "−{cost} tickets",
+      "memberTickets": "Tickets de {member}",
+      "balanceCount": "{count} tickets",
+      "rewardCost": "{count} tickets",
+      "redeem": "Canjear",
+      "confirmTitle": "¿Gastar tus tickets?",
+      "confirmBody": "¿Gastar los tickets de {member} en {reward}? ({count} tickets)",
+      "confirmCancel": "Cancelar",
+      "confirmYes": "¡Sí!",
+      "errorGeneric": "Algo ha salido mal",
+      "errorOffline": "No se pudo conectar"
+    }
+  },
+  "sports": {
+    "loading": "Cargando resultados…",
+    "noGames": "No se encontraron partidos"
+  },
+  "stock-ticker": {
+    "loading": "Cargando…",
+    "empty": "Sin datos bursátiles",
+    "headers": {
+      "symbol": "Símbolo",
+      "price": "Precio",
+      "change": "Cambio",
+      "percent": "% Var"
+    }
+  },
+  "standings": {
+    "loading": "Cargando clasificación…",
+    "noStandings": "No hay clasificación disponible"
+  },
+  "todo": {
+    "defaultTitle": "Tareas",
+    "noTasksYet": "Aún no hay tareas"
+  },
+  "traffic": {
+    "sectionTitle": "Tráfico",
+    "noRoutes": "No hay rutas configuradas",
+    "loading": "Cargando tráfico…",
+    "unitMin": "min",
+    "mockNotice": "Datos de ejemplo — añade una clave de API de tráfico en Ajustes"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "No hay foto seleccionada",
+    "noPhotoSelectedHint": "Elige una foto en el panel del editor.",
+    "noPhotosYet": "Aún no hay fotos",
+    "noPhotosYetHint": "Sube fotos desde tu teléfono usando la pestaña Fotos en /remote, o elige una carpeta en el editor."
+  },
+  "dad-joke": {
+    "loading": "Cargando chiste…"
+  },
+  "quote": {
+    "loading": "Cargando cita…"
+  },
+  "history": {
+    "loading": "Cargando historia…",
+    "header": "Un día como hoy",
+    "noEvents": "No se encontraron eventos",
+    "yearsAgo": {
+      "one": "hace {count} año",
+      "other": "hace {count} años",
+      "many": "hace {count} años"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "adjetivo",
+      "noun": "sustantivo",
+      "verb": "verbo",
+      "adverb": "adverbio"
+    }
+  },
+  "news": {
+    "loading": "Cargando noticias…",
+    "empty": "Sin titulares",
+    "header": "Noticias",
+    "timeAgo": {
+      "justNow": "ahora mismo",
+      "minutes": "hace {count} min",
+      "hours": "hace {count} h",
+      "days": "hace {count} d"
+    }
+  },
+  "greeting": {
+    "morning": "Buenos días",
+    "afternoon": "Buenas tardes",
+    "evening": "Buenas tardes",
+    "night": "Buenas noches",
+    "defaultName": "Amigo",
+    "weather": {
+      "rain": "Día lluvioso por delante",
+      "snow": "Abrígate hoy",
+      "thunderstorm": "Se esperan tormentas",
+      "clear": "Día precioso por delante"
+    }
+  },
+  "affirmations": {
+    "noEntries": "No hay afirmaciones configuradas",
+    "categories": {
+      "affirmations": "Afirmación",
+      "compliments": "Cumplido",
+      "motivational": "Motivación",
+      "gratitude": "Gratitud",
+      "mindfulness": "Atención plena"
+    }
+  },
+  "crypto": {
+    "loading": "Cargando…",
+    "empty": "Sin datos de criptomonedas",
+    "headers": {
+      "coin": "Moneda",
+      "price": "Precio",
+      "percent": "% 24 h"
+    }
+  },
+  "todoist": {
+    "loading": "Cargando tareas…",
+    "empty": "No hay tareas que mostrar",
+    "taskCount": {
+      "one": "{count} tarea",
+      "other": "{count} tareas",
+      "many": "{count} tareas"
+    },
+    "recurringTooltip": "Recurrente",
+    "completeAriaLabel": "Completar: {content}",
+    "priority": {
+      "urgent": "Urgente",
+      "high": "Alta",
+      "medium": "Media",
+      "normal": "Normal"
+    },
+    "groups": {
+      "overdue": "Atrasadas",
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "thisWeek": "Esta semana",
+      "upcoming": "Próximas",
+      "noDate": "Sin fecha",
+      "noLabel": "Sin etiqueta"
+    },
+    "dueDate": {
+      "yesterday": "Ayer",
+      "today": "Hoy",
+      "todayAtTime": "Hoy {time}",
+      "tomorrow": "Mañana",
+      "daysOverdue": {
+        "one": "{count} d de retraso",
+        "other": "{count} d de retraso",
+        "many": "{count} d de retraso"
+      }
+    },
+    "focus": {
+      "allClear": "¡Todo despejado por hoy!",
+      "allCaughtUp": "¡Estás al día!",
+      "taskRemaining": {
+        "one": "tarea pendiente",
+        "other": "tareas pendientes",
+        "many": "tareas pendientes"
+      }
+    }
+  },
+  "photo-slideshow": {
+    "loading": "Cargando fotos…",
+    "empty": "No se encontraron fotos"
+  },
+  "icon": {
+    "empty": "Ningún icono seleccionado"
+  },
+  "sticky-note": {
+    "empty": "Sin contenido"
+  },
+  "iframe": {
+    "noUrl": "Ninguna URL definida",
+    "embeddedTitle": "Contenido incrustado"
+  },
+  "qr-code": {
+    "scanToConnect": "Escanea para conectar",
+    "configureWifi": "Configurar la red Wi-Fi",
+    "configureData": "Configurar los datos del QR"
+  },
+  "display-control": {
+    "prev": "Ant.",
+    "next": "Sig.",
+    "sleep": "Suspender",
+    "sleepHoldHint": "Suspender (mantén para confirmar)",
+    "brightness": "Brillo",
+    "closeBrightness": "Cerrar brillo",
+    "ariaPrev": "Pantalla anterior",
+    "ariaNext": "Pantalla siguiente"
+  },
+  "common": {
+    "locationNotConfigured": "Ubicación no configurada",
+    "pluginNotAvailable": "Complemento no disponible: {name}"
+  }
+}

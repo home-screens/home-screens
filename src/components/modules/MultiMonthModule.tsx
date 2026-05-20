@@ -1,6 +1,7 @@
 'use client';
 
 import { useTZClock } from '@/hooks/useTZClock';
+import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import type { MultiMonthConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -11,8 +12,20 @@ interface MultiMonthModuleProps {
   timezone?: string;
 }
 
-const DAY_HEADERS_SUN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DAY_HEADERS_MON = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+// Reference week starting Sunday 2024-01-07 (a known Sunday). Index 0 = Sunday, ... 6 = Saturday.
+// We derive the localized short day names ('EEE') from this seed week so the
+// headers honour the user's formatting locale instead of being hardcoded English.
+const DAY_HEADER_SEED_SUNDAY = new Date(2024, 0, 7);
+function getDayHeaders(startDay: 'sunday' | 'monday', locale: string) {
+  const headers: string[] = [];
+  const offset = startDay === 'monday' ? 1 : 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(DAY_HEADER_SEED_SUNDAY);
+    d.setDate(DAY_HEADER_SEED_SUNDAY.getDate() + i + offset);
+    headers.push(formatDateSync(d, 'EEE', { locale }));
+  }
+  return headers;
+}
 
 function getMonthGrid(year: number, month: number, startDay: 'sunday' | 'monday') {
   const firstOfMonth = new Date(year, month, 1);
@@ -58,6 +71,7 @@ function MonthGrid({
   showWeekNumbers,
   highlightWeekends,
   showAdjacentDays,
+  locale,
 }: {
   year: number;
   month: number;
@@ -66,10 +80,11 @@ function MonthGrid({
   showWeekNumbers: boolean;
   highlightWeekends: boolean;
   showAdjacentDays: boolean;
+  locale: string;
 }) {
   const cells = getMonthGrid(year, month, startDay);
-  const headers = startDay === 'monday' ? DAY_HEADERS_MON : DAY_HEADERS_SUN;
-  const monthName = new Date(year, month, 1).toLocaleString('default', { month: 'long' });
+  const headers = getDayHeaders(startDay, locale);
+  const monthName = formatDateSync(new Date(year, month, 1), 'MMMM', { locale });
   const isCurrentMonth = year === today.year && month === today.month;
   const gridCols = showWeekNumbers ? '1.4em repeat(7, 1fr)' : 'repeat(7, 1fr)';
 
@@ -190,6 +205,7 @@ function MonthGrid({
 
 export default function MultiMonthModule({ config, style, timezone }: MultiMonthModuleProps) {
   const now = useTZClock(timezone);
+  const locale = useFormattingLocale();
 
   const view = config.view ?? 'vertical';
   const monthCount = config.monthCount ?? 3;
@@ -242,6 +258,7 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
               showWeekNumbers={showWeekNumbers}
               highlightWeekends={highlightWeekends}
               showAdjacentDays={showAdjacentDays}
+              locale={locale}
             />
           </div>
         ))}

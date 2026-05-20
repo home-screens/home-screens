@@ -1,0 +1,532 @@
+{
+  "tabs": {
+    "control": "Kontrol",
+    "chores": "Pligter",
+    "meals": "Måltider",
+    "photos": "Billeder"
+  },
+  "statusBar": {
+    "title": "Remote",
+    "settingsAriaLabel": "Indstillinger"
+  },
+  "connectionBanner": {
+    "unreachable": "Skærm utilgængelig — tjek at skærmen er tændt og tilsluttet"
+  },
+  "backupReminder": {
+    "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
+    "daysAgoPlural": "Du har ikke foretaget i {n} dage.",
+    "backupButton": "Backup",
+    "savingButton": "Gemmer…",
+    "dismissAriaLabel": "Afvis"
+  },
+  "displayHero": {
+    "stateActive": "Aktiv",
+    "stateDimmed": "Deaktiveret",
+    "stateAsleep": "Slumrer",
+    "updatedTimeAgo": "Opdateret {ago}",
+    "screenIndex": "Skærm {current} af {total}",
+    "waiting": "Venter på skærm…",
+    "unreachable": "Skærm er ikke tilgængelig"
+  },
+  "screenControls": {
+    "prevAriaLabel": "Forrige skærm",
+    "nextAriaLabel": "Næste skærm"
+  },
+  "quickActions": {
+    "wakeDisplay": "Væk skærm",
+    "sleepDisplay": "Slumr skærm",
+    "sendAlert": "Send advarsel"
+  },
+  "brightnessCard": {
+    "label": "Lysstyrke",
+    "valueAriaLabel": "Lysstyrke {percent}%"
+  },
+  "profileSwitcher": {
+    "heading": "Profiler"
+  },
+  "displayPicker": {
+    "targeting": "Målretter",
+    "allLabel": "Alle"
+  },
+  "mobileColorPicker": {
+    "colorLabel": "Farve",
+    "customColorTitle": "Brugerdefineret farve"
+  },
+  "choresTab": {
+    "header": "Pligter",
+    "subNav": {
+      "today": "I dag",
+      "manage": "Administrér",
+      "rewards": "Belønninger"
+    },
+    "empty": {
+      "title": "Der er ikke tilføjet pligter endnu",
+      "description": "Skift til Administrér for at tilføje familiemedlemmer og pligter.",
+      "setUpButton": "Tilføj pligter"
+    },
+    "warningDismissAriaLabel": "Ignorér advarsel",
+    "memberAriaLabel": "{name}",
+    "memberAriaLabelAllDone": "{name} (afsluttet)",
+    "history": {
+      "editingPrefix": "Redigerer ",
+      "editingDaysAgoSingular": " (1 dag siden) — billetter tilføjet til balancen i dag.",
+      "editingDaysAgoPlural": " ({n} dage siden) — billetter tilføjet til balancen i dag.",
+      "editingNote": " Bemærk: Listen over pligter viser de seneste dages pligter. Pligter tilføjet for nyligt kan se ud som om de ikke tæller med.",
+      "lockedMessage": "Bed en voksen tilføje de pligter du mangler."
+    },
+    "progress": {
+      "completion": "{done}/{total} afsluttet",
+      "allDone": "Alle pligter er klaret!"
+    },
+    "noChoresToday": "Ingen pligter i dag!",
+    "ticketCountSingular": "{n} billet",
+    "ticketCountPlural": "{n} billetter",
+    "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
+    "choreAriaLabelCompleted": "Afsluttet: {chore}"
+  },
+  "choreHistoryNav": {
+    "prevMonthAriaLabel": "Forrige måned",
+    "nextMonthAriaLabel": "Næste måned",
+    "jumpToTodayAriaLabel": "Spring til i dag",
+    "todayButton": "I dag",
+    "tileAriaLabel": "Vis {date}, {earned} af {total} børn har udført alle sine pligter",
+    "tileAriaLabelEmpty": "Vis {date}, ingen pligter"
+  },
+  "choresManage": {
+    "tabs": {
+      "chores": "Pligter",
+      "members": "Medlemmer"
+    },
+    "members": {
+      "empty": "Ingen medlemmer endnu",
+      "emptyHint": "Start med at tilføje familiemedlemmer",
+      "editAriaLabel": "Redigér {name}",
+      "choreCountSingular": "{n} pligt tildelt",
+      "choreCountPlural": "{n} pligter tildelt",
+      "addButton": "Tilføj medlem"
+    },
+    "chores": {
+      "empty": "Ingen pligter endnu",
+      "emptyHintNoMembers": "Tilføj familiemedlemmer først",
+      "emptyHintAddChores": "Tilføj pligter og tildel dem til medlemmer",
+      "editAriaLabel": "Redigér {name}",
+      "addButton": "Tilføj pligt",
+      "frequencyDaily": "Daglig",
+      "frequencyWeekly": "Ugentlig",
+      "frequencyBiweekly": "Hver anden uge",
+      "frequencyOnce": "Én gang · {date}",
+      "ticketCountSingular": "{n} billet",
+      "ticketCountPlural": "{n} billetter",
+      "rotationDaily": "rotér dagligt",
+      "rotationWeekly": "rotér ugentligt",
+      "rotationSchedule": "skema",
+      "unknownAssignee": "?"
+    },
+    "memberForm": {
+      "titleNew": "Nyt medlem",
+      "titleEdit": "Redigér medlem",
+      "nameLabel": "Navn",
+      "namePlaceholder": "Indtast navn...",
+      "avatarLabel": "Avatar",
+      "addSubmit": "Tilføj medlem",
+      "saveSubmit": "Gem medlem",
+      "deleteButton": "Slet medlem"
+    },
+    "memberDelete": {
+      "title": "Slet \"{name}\"?",
+      "fallbackName": "dem",
+      "descriptionNoChores": "This will remove {name} from any assigned chores. Chores with no remaining assignees will also be deleted.",
+      "descriptionWithChoresSingular": "This will remove {name} from {count} assigned chore. Chores with no remaining assignees will also be deleted.",
+      "descriptionWithChoresPlural": "This will remove {name} from all {count} assigned chores. Chores with no remaining assignees will also be deleted.",
+      "confirmLabel": "Slet medlem"
+    },
+    "choreForm": {
+      "titleNew": "Ny pligt",
+      "titleEdit": "Redigér pligt",
+      "nameLabel": "Navn",
+      "namePlaceholder": "Titel på pligt...",
+      "iconLabel": "Ikon",
+      "ticketsLabel": "Billetter",
+      "frequencyLabel": "Frekvens",
+      "timeOfDayLabel": "Tid på dagen",
+      "dateLabel": "Dato",
+      "daysLabel": "Dage",
+      "assignToLabel": "Tildel",
+      "weeklyScheduleLabel": "Ugeskema",
+      "coverageLabel": "Dækning: {covered} af 7 dage",
+      "coverageUncovered": "· {days} ikke dækket",
+      "rotationLabel": "Rotation",
+      "addSubmit": "Tilføj pligt",
+      "saveSubmit": "Gem pligt",
+      "deleteButton": "Slet pligt",
+      "validation": {
+        "enterName": "Tilføj et navn på en pligt",
+        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
+        "selectAtLeastOnePerson": "Vælg mindst én person"
+      }
+    },
+    "choreDelete": {
+      "title": "Slet \"{name}\"?",
+      "description": "Denne pligt og hele dens historik vil blive fjernet.",
+      "confirmLabel": "Slet pligt"
+    },
+    "frequency": {
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hveranden uge",
+      "once": "Én gang"
+    },
+    "rotation": {
+      "fixed": "Fixed (all do it)",
+      "rotateDaily": "Rotatér dagligt",
+      "rotateWeekly": "Rotatér ugentligt",
+      "schedule": "Skema"
+    }
+  },
+  "mealsTab": {
+    "header": "Måltider",
+    "loading": "Henter måltider...",
+    "settingsButtonAriaLabel": "Åbn indstillinger for måltider",
+    "settingsButtonTitle": "Indstillinger",
+    "weekLabel": {
+      "thisWeek": "Denne uge"
+    },
+    "subNav": {
+      "plan": "Madplan",
+      "library": "Bibliotek",
+      "grocery": "Dagligvarer"
+    },
+    "weekNav": {
+      "prevAriaLabel": "Forrige uge",
+      "nextAriaLabel": "Næste uge",
+      "todayButton": "I dag"
+    },
+    "confirm": {
+      "clearWeek": {
+        "title": "Nulstil madplan?",
+        "description": "Dette til fjerne alle planlagte måltider i denne uge.",
+        "confirmLabel": "Nulstil uge"
+      },
+      "deleteMeal": {
+        "title": "Slet \"{name}\"?",
+        "description": "Dette vil også fjerne måltidet fra alle planlagte tidspunkter.",
+        "confirmLabel": "Slet måltid"
+      }
+    },
+    "weekView": {
+      "todayBadge": "I dag",
+      "notPlanned": "{slot} - Ikke planlagt",
+      "activeNowSuffix": " • Nu",
+      "prepTimeMin": "{minutes}m",
+      "empty": {
+        "title": "Ingen måltider planlagt i denne uge",
+        "description": "Gå til Planlæg for at tilføje måltider.",
+        "planButton": "Planlæg måltider"
+      }
+    },
+    "library": {
+      "searchPlaceholder": "Søg efter måltider...",
+      "filterByAriaLabel": "Filtrér på {label}",
+      "empty": {
+        "titleNoMeals": "No meals yet",
+        "titleNoMatches": "No matches",
+        "hintNoMeals": "Tap the + button to add your first meal.",
+        "hintNoMatches": "Try a different search or filter."
+      },
+      "prepTimeMin": "{minutes}m prep",
+      "favoriteAddAriaLabel": "Add to favorites",
+      "favoriteRemoveAriaLabel": "Remove from favorites",
+      "fabAriaLabel": "Add new meal",
+      "filters": {
+        "all": "All",
+        "favorites": "Favorites",
+        "quick": "Quick",
+        "healthy": "Healthy",
+        "comfort": "Comfort",
+        "kid-friendly": "Kid-Friendly"
+      }
+    }
+  },
+  "mealForm": {
+    "titleNew": "Add Meal",
+    "titleEdit": "Edit Meal",
+    "saveSubmit": "Save Meal",
+    "saveChangesSubmit": "Save Changes",
+    "savingSubmit": "Saving…",
+    "deleteButton": "Delete Meal",
+    "nameLabel": "Meal Name",
+    "namePlaceholder": "e.g. Chicken Stir Fry",
+    "emojiLabel": "Emoji",
+    "emojiSelectAriaLabel": "Select {emoji}",
+    "prepTimeLabel": "Prep Time",
+    "cookTimeLabel": "Cook Time",
+    "minPlaceholder": "min",
+    "servingsLabel": "Servings",
+    "servingsPlaceholder": "4",
+    "difficultyLabel": "Difficulty",
+    "tagsLabel": "Tags",
+    "ingredientsLabel": "Ingredients",
+    "ingredientNamePlaceholder": "Name",
+    "ingredientAmountPlaceholder": "Amount",
+    "removeIngredientAriaLabel": "Remove ingredient",
+    "addIngredientButton": "+ Add ingredient",
+    "recipeUrlLabel": "Recipe URL",
+    "recipeUrlPlaceholder": "https://...",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Any notes about this meal...",
+    "ratingLabel": "Rating",
+    "ratingStarAriaLabel": "Rate {n} of 5 stars",
+    "favoriteOn": "Favorited",
+    "favoriteOff": "Add to Favorites"
+  },
+  "mealsPlan": {
+    "actions": {
+      "suggest": "Suggest",
+      "suggestAriaLabel": "Suggest random meals",
+      "copyLastWeek": "Copy Last Week",
+      "copyLastWeekAriaLabel": "Copy last week's plan",
+      "clear": "Clear",
+      "clearAriaLabel": "Clear all planned meals"
+    },
+    "empty": {
+      "title": "No meals in your library",
+      "description": "Add meals to your library first, then plan your week.",
+      "addMealsButton": "Add Meals"
+    },
+    "slot": {
+      "addMeal": "+ Add meal",
+      "removeMealAriaLabel": "Remove {meal} from {slot}",
+      "planSlotAriaLabel": "Plan {slot} for {day}",
+      "mealFallback": "meal"
+    },
+    "picker": {
+      "title": "Choose a Meal",
+      "emptyLibrary": "No meals in library. Add some first.",
+      "prepTimeShort": "{minutes}m",
+      "removeMealButton": "Remove Meal"
+    }
+  },
+  "mealsGrocery": {
+    "itemsCountSingular": "{checked} of {total} item",
+    "itemsCountPlural": "{checked} of {total} items",
+    "shareButton": "Share",
+    "shareCopiedButton": "Copied!",
+    "autoGeneratedHint": "Auto-generated from this week's meals",
+    "shareHeading": "Grocery List",
+    "shareCompleteMessage": "Grocery list is complete!",
+    "empty": {
+      "title": "No grocery items",
+      "description": "Plan meals with ingredients to see your shopping list."
+    }
+  },
+  "mealsSettings": {
+    "ariaLabel": "Meal settings",
+    "title": "Meal Settings",
+    "cancelAriaLabel": "Cancel and close",
+    "slots": {
+      "heading": "Meal Slots",
+      "description": "Which meals do you plan? Affects the editor and all displayed modules.",
+      "toggleAriaLabelEnabled": "{label}, enabled",
+      "toggleAriaLabelDisabled": "{label}, disabled"
+    },
+    "weekStart": {
+      "heading": "Ugen starter",
+      "sunday": "søndag",
+      "monday": "mandag"
+    },
+    "timeFormat": {
+      "heading": "Time Format",
+      "description": "Applies to every meal display across the kiosk and this remote.",
+      "twelveHourLabel": "12-timer",
+      "twentyFourHourLabel": "24-timer"
+    },
+    "defaultTimes": {
+      "heading": "Default Serving Times",
+      "description": "Used when a planned meal doesn't have its own time. Leave blank for slots that vary.",
+      "clear": "Clear",
+      "clearAriaLabel": "Clear default time for {name}",
+      "timeInputAriaLabel": "Default time for {name}"
+    },
+    "save": {
+      "saving": "Saving…",
+      "submit": "Save Settings",
+      "saveFailed": "Failed to save. Please try again.",
+      "networkError": "Network error. Please try again."
+    }
+  },
+  "rewardForm": {
+    "titleAdd": "Add Reward",
+    "titleEdit": "Edit Reward",
+    "saveButton": "Save Reward",
+    "deleteButton": "Delete Reward",
+    "iconLabel": "Icon",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Extra Screen Time",
+    "ticketCostLabel": "Ticket Cost",
+    "ticketCostPlaceholder": "10",
+    "enabledLabel": "Enabled",
+    "visible": "Visible",
+    "hidden": "Hidden",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Short description...",
+    "availableToLabel": "Available To",
+    "everyone": "Everyone",
+    "deleteConfirm": {
+      "title": "Delete Reward",
+      "description": "Are you sure you want to delete \"{name}\"? Existing redemption history will be preserved."
+    }
+  },
+  "alertSender": {
+    "title": "Send besked",
+    "closeAriaLabel": "Luk afsendelse af besked",
+    "typeInfo": "Info",
+    "typeWarning": "Advarsel",
+    "typeUrgent": "Haster",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Valgfri",
+    "messageLabel": "Besked",
+    "messagePlaceholder": "Hvad skal skærmen vise?",
+    "durationLabel": "Varighed",
+    "duration10s": "10s",
+    "duration30s": "30s",
+    "duration1Min": "1 min",
+    "duration5Min": "5 min",
+    "durationPersistent": "Sticky",
+    "sendButton": "Send besked",
+    "sendingButton": "Sender…",
+    "sentButton": "Sendt!",
+    "failedButton": "Fejlede — prøv igen"
+  },
+  "rewardsView": {
+    "nav": {
+      "redeem": "Indløs",
+      "rewards": "Belønninger",
+      "balances": "Balances",
+      "history": "Historik"
+    },
+    "ticketCountSingular": "{n} billet",
+    "ticketCountPlural": "{n} billetter",
+    "redeem": {
+      "balanceLabel": "tilgængelige billetter",
+      "availableHeading": "Available Rewards",
+      "empty": "No rewards set up yet",
+      "memberFallback": "this member",
+      "confirmTitle": "Redeem {name}?",
+      "confirmDescriptionSingular": "This will use {cost} ticket from {memberName}'s balance. Remaining: {remaining}",
+      "confirmDescriptionPlural": "This will use {cost} tickets from {memberName}'s balance. Remaining: {remaining}",
+      "confirmLabelSingular": "Redeem — {cost} ticket",
+      "confirmLabelPlural": "Redeem — {cost} tickets"
+    },
+    "manage": {
+      "heading": "Rewards",
+      "countSingular": "{n} reward",
+      "countPlural": "{n} rewards",
+      "everyone": "Everyone",
+      "disabled": "Disabled",
+      "memberCountSingular": "{n} member",
+      "memberCountPlural": "{n} members",
+      "addButton": "Add Reward"
+    },
+    "balances": {
+      "heading": "Ticket Balances",
+      "adjustDownAriaLabel": "Subtract a ticket from {name}",
+      "adjustUpAriaLabel": "Add a ticket to {name}"
+    },
+    "history": {
+      "heading": "Recent Redemptions",
+      "empty": "No redemptions yet",
+      "entry": {
+        "beforeReward": " redeemed ",
+        "afterRewardSingular": " — {n} ticket",
+        "afterRewardPlural": " — {n} tickets"
+      }
+    }
+  },
+  "settingsSheet": {
+    "title": "Indstillinger",
+    "closeAriaLabel": "Luk indstillinger",
+    "system": {
+      "heading": "System",
+      "errorFailedToLoad": "Indlæsning fejlede",
+      "hostLabel": "Vært",
+      "uptimeLabel": "Oppetid",
+      "memoryLabel": "Hukommelse",
+      "diskLabel": "Harddisk"
+    },
+    "theme": {
+      "heading": "Tema",
+      "light": "Lys",
+      "dark": "Mørk",
+      "system": "System"
+    },
+    "data": {
+      "heading": "Data",
+      "backup": {
+        "label": "Backup alt data",
+        "savedLabel": "Backup gemt",
+        "busyLabel": "Henter…",
+        "description": "Hent konfiguration, pligter, måltider og belønninger"
+      },
+      "restore": {
+        "label": "Gendan backup",
+        "confirmingLabel": "Bekræft for at gendanne",
+        "busyLabel": "Gendanner…",
+        "doneLabel": "Gendannet",
+        "invalidFileLabel": "Ugyldig backupfil",
+        "failedLabel": "Gendannelse fejlede",
+        "idleDescription": "Upload en backupfil fra denne enhed",
+        "confirmingDescription": "Dette vil overskrive alle eksisterende data"
+      }
+    },
+    "power": {
+      "heading": "Genstart",
+      "restartService": {
+        "label": "Genstart applikation",
+        "description": "Genstart Home Screens applikationen",
+        "confirmLabel": "Bekræft for at genstarte"
+      },
+      "reboot": {
+        "label": "Genstart enhed",
+        "description": "Genstart af hele systemet",
+        "confirmLabel": "Bekræft for at genstarte"
+      }
+    },
+    "confirmable": {
+      "sentLabel": "Sendt"
+    }
+  },
+  "photosTab": {
+    "header": "Billeder",
+    "newFolderButton": "Ny mappe",
+    "newFolderPlaceholder": "Mappenavn",
+    "createButton": "Opret",
+    "allPhotosTab": "Alle billeder",
+    "uploadingProgress": "Uploader {current} af {total}...",
+    "uploadFailedFor": "Upload af {name} fejlede",
+    "uploadFailed": "Upload fejlede",
+    "uploadedSingular": "{n} billede uploadet",
+    "uploadedPlural": "{n} billeder uploaded",
+    "photoDeleted": "Billede blev slettet",
+    "folderCreated": "Mappe blev oprettet",
+    "failedCreateFolder": "Oprettelse af mappe fejlede",
+    "uploadButton": "Upload billeder",
+    "emptyTitle": "Ingen billeder i denne mappe",
+    "emptyHint": "Tryk Upload billeder for at tilføje billeder",
+    "deletePrompt": "Slet?",
+    "deletingButton": "Sletter...",
+    "deleteAriaLabel": "Slet billede",
+    "dismissErrorAriaLabel": "Afvis fejl"
+  },
+  "choresKidView": {
+    "notConfigured": "No chores configured. Add a Chore Chart module in the editor to get started."
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serveringstide {time}, klik for at ændre",
+    "servingTimeTitle": "Serveringstid: {time}",
+    "setServingTime": "Indstil serveringstid",
+    "setTime": "+ Indstil tid",
+    "setMealTime": "Indstil tid for måltid",
+    "servingTime": "Indstil tid for servering",
+    "clearTime": "Nulstil tid"
+  }
+}

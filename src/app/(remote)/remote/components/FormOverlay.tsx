@@ -2,18 +2,25 @@
 
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 
 export default function FormOverlay({
   title,
+  backLabel,
   onBack,
   children,
   footer,
 }: {
   title: string;
+  backLabel?: string;
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const tCore = useTranslate('core');
+  // Default the chevron-back label through `core.actions.back` so every
+  // caller picks up the active locale without forwarding props.
+  const resolvedBackLabel = backLabel ?? tCore('actions.back');
   const [visible, setVisible] = useState(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
@@ -66,7 +73,7 @@ export default function FormOverlay({
           }}
         >
           <ChevronLeft size={20} />
-          Back
+          {resolvedBackLabel}
         </button>
         <div
           style={{

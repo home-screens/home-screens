@@ -1,0 +1,20 @@
+{
+  "conditions": {
+    "sunny": "Sol",
+    "clearNight": "Klar nat",
+    "cloudy": "Skyet",
+    "partlyCloudy": "Delvist skyet",
+    "partlyCloudyNight": "Delvist skyet nat",
+    "mostlySunny": "Mest sol",
+    "mostlyCloudy": "Mest skyet",
+    "rain": "Regn",
+    "drizzle": "Let regn",
+    "snow": "Sne",
+    "thunderstorm": "Torden",
+    "fog": "Tåge",
+    "hail": "Hagl",
+    "sleet": "Slud",
+    "temperature": "Temperatur",
+    "weather": "Vejr"
+  }
+}

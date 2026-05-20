@@ -1,0 +1,676 @@
+{
+  "clock": {
+    "am": "AM",
+    "pm": "PM",
+    "weekShort": "Week",
+    "dayShort": "Dag",
+    "binaryHoursLabel": "U",
+    "binaryMinutesLabel": "M",
+    "binarySecondsLabel": "S",
+    "barHoursLabel": "U",
+    "barMinutesLabel": "M",
+    "barSecondsLabel": "S",
+    "arc": {
+      "morningLabel": "6 uur",
+      "eveningLabel": "18 uur",
+      "beforeDawn": "voor zonsopgang",
+      "afterDusk": "na zonsondergang"
+    },
+    "elapsed": {
+      "setReferenceTime": "Stel een referentietijd in",
+      "since": "sinds {label}",
+      "until": "tot {label}",
+      "notYet": "nog niet",
+      "elapsed": "verstreken"
+    },
+    "fuzzy": {
+      "oclock": "{hour} uur",
+      "justPast": "net na {hour}",
+      "tenPast": "tien over {hour}",
+      "quarterPast": "kwart over {hour}",
+      "twentyPast": "tien voor half {next}",
+      "twentyFivePast": "vijf voor half {next}",
+      "halfPast": "half {next}",
+      "twentyFiveTo": "vijf over half {next}",
+      "twentyTo": "tien over half {next}",
+      "quarterTo": "kwart voor {next}",
+      "tenTo": "tien voor {next}",
+      "almost": "bijna {next}"
+    },
+    "word": {
+      "oclock": "Het is {hour} uur",
+      "atMinute": "Het is {hour} uur {minute}",
+      "hours": {
+        "1": "een",
+        "2": "twee",
+        "3": "drie",
+        "4": "vier",
+        "5": "vijf",
+        "6": "zes",
+        "7": "zeven",
+        "8": "acht",
+        "9": "negen",
+        "10": "tien",
+        "11": "elf",
+        "12": "twaalf"
+      },
+      "onesCompound": {
+        "1": "een",
+        "2": "twee",
+        "3": "drie",
+        "4": "vier",
+        "5": "vijf",
+        "6": "zes",
+        "7": "zeven",
+        "8": "acht",
+        "9": "negen"
+      },
+      "minutes": {
+        "0": "nul",
+        "10": "tien",
+        "11": "elf",
+        "12": "twaalf",
+        "13": "dertien",
+        "14": "veertien",
+        "15": "vijftien",
+        "16": "zestien",
+        "17": "zeventien",
+        "18": "achttien",
+        "19": "negentien",
+        "20": "twintig",
+        "30": "dertig",
+        "40": "veertig",
+        "50": "vijftig"
+      },
+      "minuteJoin": "{ones}en{tens}"
+    }
+  },
+  "countdown": {
+    "noEvents": "Geen aftellingen ingesteld",
+    "noUpcoming": "Geen aankomende gebeurtenissen",
+    "agoSuffix": "(geleden)",
+    "todayBang": "Vandaag!",
+    "unitDays": "dagen",
+    "unitHours": "uur",
+    "unitMinutes": "min",
+    "unitSeconds": "sec"
+  },
+  "date": {
+    "weekShort": "Week",
+    "dayShort": "Dag",
+    "weekAbbrev": "WK",
+    "dayAbbrev": "DAG"
+  },
+  "year-progress": {
+    "week": "Week"
+  },
+  "garbage-day": {
+    "header": "Ophaalschema",
+    "nextDay": "Volgende {day}",
+    "emptyState": "Stel ophaaldagen in via de module-instellingen",
+    "labels": {
+      "trash": "Restafval",
+      "recycling": "Recycling",
+      "yardWaste": "Tuinafval"
+    },
+    "frequency": {
+      "weekly": "{day}",
+      "biweekly": "Om de week op {day}"
+    }
+  },
+  "calendar": {
+    "allDay": "Hele dag",
+    "noEvents": "Geen afspraken",
+    "noUpcomingEvents": "Geen aankomende afspraken",
+    "weekShort": "Wk",
+    "moreCount": "+{count} meer"
+  },
+  "fullscreen-calendar": {
+    "allDay": "Hele dag",
+    "noEvents": "Geen afspraken",
+    "noEventsThisMonth": "Geen afspraken deze maand",
+    "noEventsThisWeek": "Geen afspraken deze week",
+    "noEventsToday": "Geen afspraken vandaag",
+    "noUpcomingEvents": "Geen aankomende afspraken",
+    "moreCount": "+{count} meer",
+    "am": "AM",
+    "pm": "PM",
+    "headerUpcoming": "Binnenkort",
+    "viewLabels": {
+      "schedule": "Planning",
+      "weekList": "Week",
+      "monthGrid": "Maand",
+      "dayTimeline": "Dag",
+      "agenda": "Agenda"
+    },
+    "zones": {
+      "morning": "Ochtend",
+      "afternoon": "Middag",
+      "evening": "Avond"
+    },
+    "ariaLabels": {
+      "currentTemperature": "Huidige temperatuur {temp} graden",
+      "view": "Weergave: {label}",
+      "dayTimeline": "Dagtijdlijn",
+      "scheduleTimeGrid": "Planningsraster",
+      "currentTime": "Huidige tijd: {time}",
+      "eventAllDay": "{title}, hele dag",
+      "eventTimed": "{title}, {start} tot {end}",
+      "eventTimedAtLocation": "{title}, {start} tot {end}, bij {location}",
+      "monthCell": "{date}, {count} afspraken"
+    }
+  },
+  "weather": {
+    "tomorrowShort": "Morg",
+    "feelsLike": "Voelt als {temp}",
+    "feelsShort": "Voelt {temp}",
+    "highLow": "H:{high} L:{low}",
+    "hourlyForecast": "Uurverwachting",
+    "forecast": "Verwachting",
+    "weatherAlerts": "Weerwaarschuwingen",
+    "alertCount": "({count})",
+    "noActiveAlerts": "Geen actieve waarschuwingen",
+    "alertDataRequires": "Waarschuwingen vereisen Pirate Weather of NOAA",
+    "alertSeverityExpires": "{severity} · Verloopt {expires}",
+    "noWeatherData": "Geen weergegevens",
+    "noForecastData": "Geen verwachtingsgegevens",
+    "locationNotSet": "Locatie niet ingesteld",
+    "setLocationInSettings": "Stel je locatie in via Instellingen",
+    "next60Minutes": "Komende 60 minuten",
+    "noPrecipitationExpected": "Geen neerslag verwacht",
+    "stoppingInMin": "Stopt over {minutes} min",
+    "precipitationForNextHour": "Neerslag voor het komende uur",
+    "startingInMin": "Begint over {minutes} min",
+    "minutelyDataRequires": "Minuutgegevens vereisen Pirate Weather",
+    "tableHeaders": {
+      "day": "Dag",
+      "temp": "Temp",
+      "rain": "Regen",
+      "humidity": "Vocht",
+      "wind": "Wind"
+    },
+    "timeline": {
+      "now": "Nu",
+      "minutes15": "15 min",
+      "minutes30": "30 min",
+      "minutes45": "45 min",
+      "minutes60": "60 min"
+    },
+    "severity": {
+      "Extreme": "Extreem",
+      "Severe": "Ernstig",
+      "Moderate": "Matig",
+      "Minor": "Gering",
+      "Unknown": "Onbekend"
+    }
+  },
+  "air-quality": {
+    "loading": "Luchtkwaliteit laden…",
+    "airQualityIndex": "Luchtkwaliteitsindex",
+    "labels": {
+      "good": "Goed",
+      "fair": "Redelijk",
+      "moderate": "Matig",
+      "poor": "Slecht",
+      "veryPoor": "Zeer slecht",
+      "unknown": "Onbekend"
+    },
+    "pollutants": {
+      "pm25": "PM2,5",
+      "pm10": "PM10",
+      "o3": "O₃"
+    }
+  },
+  "moon-phase": {
+    "phases": {
+      "newMoon": "Nieuwe maan",
+      "waxingCrescent": "Wassende maansikkel",
+      "firstQuarter": "Eerste kwartier",
+      "waxingGibbous": "Wassende maan",
+      "fullMoon": "Volle maan",
+      "waningGibbous": "Afnemende maan",
+      "lastQuarter": "Laatste kwartier",
+      "waningCrescent": "Afnemende maansikkel"
+    },
+    "illuminated": "{percent}% verlicht",
+    "rise": "Opkomst",
+    "set": "Ondergang"
+  },
+  "sunrise-sunset": {
+    "sunrise": "Zonsopgang",
+    "sunset": "Zonsondergang",
+    "dayLength": "Daglengte: {length}",
+    "goldenHour": "Gouden uur: {time}",
+    "midnightSun": "Middernachtszon",
+    "sunDoesNotSet": "Zon gaat niet onder",
+    "noSunriseToday": "Vandaag geen zonsopgang",
+    "noSunsetToday": "Vandaag geen zonsondergang",
+    "noon": "middag",
+    "riseShort": "↑ op",
+    "setShort": "onder ↓"
+  },
+  "rain-map": {
+    "loading": "Regenkaart laden…",
+    "noRadarData": "Geen radargegevens beschikbaar",
+    "now": "Nu",
+    "minutesAgo": "{minutes} min geleden",
+    "minutesAhead": "+{minutes} min"
+  },
+  "meal-planner": {
+    "noMealsPlannedYet": "Nog geen maaltijden gepland",
+    "addMealsInEditor": "Voeg maaltijden toe in de editor",
+    "noMealsPlanned": "Geen maaltijden gepland",
+    "noMealPlanned": "Geen maaltijd gepland",
+    "nothingPlanned": "Niets gepland",
+    "todaysMeals": "Maaltijden vandaag",
+    "now": "nu",
+    "servingAt": "geserveerd om {time}",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "slotShort": {
+      "breakfast": "O",
+      "lunch": "L",
+      "dinner": "A",
+      "snack": "T"
+    },
+    "slots": {
+      "breakfast": "Ontbijt",
+      "lunch": "Lunch",
+      "dinner": "Avondeten",
+      "snack": "Tussendoortje"
+    },
+    "nextMealLabels": {
+      "now": "Nu",
+      "comingUp": "Binnenkort",
+      "tomorrow": "Morgen",
+      "next": "Volgende"
+    }
+  },
+  "fullscreen-meal-planner": {
+    "thisWeeksMeals": "Maaltijden deze week",
+    "todaysMeals": "Maaltijden vandaag",
+    "todaysMenu": "Menu vandaag",
+    "alsoToday": "Ook vandaag",
+    "noMealPlanned": "Geen maaltijd gepland",
+    "notPlanned": "Niet gepland",
+    "noMealsPlannedToday": "Vandaag geen maaltijden gepland",
+    "noUpcomingMeals": "Geen aankomende maaltijden gepland",
+    "mealsPlannedCount": "{filled} van {total} maaltijden gepland",
+    "prepTimeMin": "{minutes} min",
+    "prepTimeMinShort": "{minutes} min",
+    "heroLabels": {
+      "now": "Nu",
+      "upNext": "Hierna",
+      "tonight": "Vanavond"
+    },
+    "nextMealLabels": {
+      "now": "Nu",
+      "comingUp": "Binnenkort",
+      "tomorrow": "Morgen"
+    }
+  },
+  "chore-chart": {
+    "familyChores": "Klusjes voor het gezin",
+    "familyProgress": "Voortgang van het gezin",
+    "starChart": "Sterrenkaart",
+    "chores": "Klusjes",
+    "thisWeek": "Deze week",
+    "addMembersToStart": "Voeg gezinsleden toe om te beginnen",
+    "openEditorToSetUp": "Open de editor om je klusjeskaart in te stellen",
+    "noChoresConfigured": "Nog geen klusjes",
+    "addChoresInEditor": "Voeg klusjes toe in de editor",
+    "dayOff": "Vandaag vrij!",
+    "allDone": "Alles klaar!",
+    "doneLabel": "Gedaan:",
+    "progressLabel": "Voortgang:",
+    "doneFraction": "{done}/{total} gedaan",
+    "streakDays": "{count} dagen",
+    "totalTickets": "Totaal aantal tickets",
+    "bestStreak": "Beste reeks",
+    "bestStreakValue": "{name} ({count} dagen)",
+    "todaysCompletion": "Vandaag gedaan",
+    "rewardBalances": "Tickets over",
+    "ticketsCount": "{count} tickets",
+    "timeOfDay": {
+      "morning": "Ochtend",
+      "afternoon": "Middag",
+      "evening": "Avond",
+      "anytime": "Wanneer dan ook"
+    },
+    "iconPicker": {
+      "filter": "Pictogrammen filteren...",
+      "noMatch": "Geen overeenkomende pictogrammen",
+      "none": "Geen",
+      "clear": "Wissen"
+    },
+    "iconLabels": {
+      "user": "Persoon",
+      "user-round": "Persoon 2",
+      "baby": "Baby",
+      "crown": "Koninklijk",
+      "star": "Ster",
+      "heart": "Hart",
+      "smile": "Lach",
+      "person-standing": "Staand",
+      "circle-user": "Avatar",
+      "shield-user": "Beschermer",
+      "cat": "Kat",
+      "dog": "Hond",
+      "sparkles": "Schoon",
+      "brush-cleaning": "Schrobben",
+      "spray-can": "Sprayen",
+      "droplets": "Water",
+      "bath": "Bad",
+      "shower-head": "Douche",
+      "towel-rack": "Handdoeken",
+      "bed": "Bed",
+      "bed-double": "Bedden",
+      "utensils": "Vaat",
+      "utensils-crossed": "Koken",
+      "cooking-pot": "Pan",
+      "hand-platter": "Serveren",
+      "glass-water": "Drinken",
+      "shirt": "Was",
+      "washing-machine": "Wasmachine",
+      "trash": "Vuilnis",
+      "recycle": "Recyclen",
+      "bone": "Huisdier",
+      "flower": "Tuin",
+      "leaf": "Erf",
+      "tree": "Boom",
+      "car": "Auto",
+      "mail": "Post",
+      "mailbox": "Brievenbus",
+      "shopping-cart": "Boodschappen",
+      "shopping-bag": "Winkelen",
+      "book-open": "Lezen",
+      "notebook": "Huiswerk",
+      "music": "Muziek",
+      "lamp": "Lamp",
+      "wrench": "Repareren",
+      "scissors": "Knippen",
+      "package": "Pakket",
+      "home": "Thuis",
+      "key": "Sleutel",
+      "lightbulb": "Licht",
+      "wifi": "WiFi",
+      "toilet": "Toilet",
+      "soap": "Zeep",
+      "paw-print": "Dierenzorg",
+      "footprints": "Wandelen",
+      "shovel": "Schep",
+      "paint-roller": "Verven",
+      "hammer": "Repareren",
+      "fence": "Hek",
+      "bike": "Fiets",
+      "chef-hat": "Chef",
+      "microwave": "Magnetron",
+      "refrigerator": "Koelkast",
+      "apple": "Snack",
+      "coffee": "Koffie",
+      "egg": "Ontbijt",
+      "pill": "Medicijn",
+      "alarm-clock": "Wakker",
+      "timer": "Timer",
+      "dumbbell": "Sport",
+      "toy-brick": "Speelgoed",
+      "backpack": "School",
+      "blinds": "Jaloezieën",
+      "gift": "Cadeau",
+      "tv": "TV",
+      "ice-cream-cone": "IJsje",
+      "clapperboard": "Film",
+      "pizza": "Pizza",
+      "banknote": "Geld",
+      "circle-check-big": "Geslaagd",
+      "party-popper": "Feest",
+      "rocket": "Raket",
+      "gem": "Juweel",
+      "trophy": "Trofee",
+      "gamepad-2": "Gamen",
+      "headphones": "Muziek",
+      "candy": "Snoep",
+      "cookie": "Koekje",
+      "cake": "Taart",
+      "palette": "Kunst",
+      "ticket": "Ticket",
+      "popcorn": "Popcorn",
+      "circle-dollar-sign": "Dollar",
+      "wallet": "Portemonnee",
+      "badge-check": "Badge",
+      "plane": "Reizen",
+      "tent": "Kamperen",
+      "fish": "Vis",
+      "drama": "Theater",
+      "puzzle": "Puzzel",
+      "sticker": "Sticker",
+      "volleyball": "Sport"
+    }
+  },
+  "fullscreen-chore-chart": {
+    "rewardsButton": "Beloningen",
+    "complete": "Klaar",
+    "noChoresToday": "Vandaag geen klusjes",
+    "weeklyTickets": "Tickets deze week:",
+    "weeklyTicketsValue": "{earned} / {total}",
+    "bestStreakLabel": "Beste reeks:",
+    "bestStreakValue": "{name} — {count} dagen",
+    "bestStreakNone": "Geen",
+    "thisWeek": "Deze week",
+    "tickets": "tickets",
+    "ticketCount": "{count} ticket",
+    "ticketsCount": "{count} tickets",
+    "verbs": {
+      "completed": "heeft gedaan",
+      "uncompleted": "heeft afgevinkt teruggedraaid",
+      "redeemed": "heeft ingewisseld"
+    },
+    "ariaLabels": {
+      "completeChore": "{chore} afvinken voor {member}",
+      "undoChore": "{chore} voor {member} ongedaan maken",
+      "undoCompleting": "Afvinken van {chore} ongedaan maken",
+      "undoUncompleting": "Terugdraaien van {chore} ongedaan maken"
+    },
+    "timeOfDay": {
+      "morning": "Ochtend",
+      "afternoon": "Middag",
+      "evening": "Avond",
+      "anytime": "Wanneer dan ook"
+    },
+    "rewardsStore": {
+      "title": "Beloningen",
+      "subtitle": "Kies iets leuks",
+      "backToChores": "← Klusjes",
+      "noneAvailable": "Nog geen beloningen",
+      "recentRedemptions": "Onlangs ingewisseld",
+      "redemptionCost": "−{cost} tickets",
+      "memberTickets": "Tickets van {member}",
+      "balanceCount": "{count} tickets",
+      "rewardCost": "{count} tickets",
+      "redeem": "Inwisselen",
+      "confirmTitle": "Tickets uitgeven?",
+      "confirmBody": "Tickets van {member} uitgeven aan {reward}? ({count} tickets)",
+      "confirmCancel": "Annuleren",
+      "confirmYes": "Ja!",
+      "errorGeneric": "Er ging iets mis",
+      "errorOffline": "Geen verbinding"
+    }
+  },
+  "sports": {
+    "loading": "Uitslagen laden…",
+    "noGames": "Geen wedstrijden gevonden"
+  },
+  "stock-ticker": {
+    "loading": "Laden…",
+    "empty": "Geen aandelengegevens",
+    "headers": {
+      "symbol": "Symbool",
+      "price": "Koers",
+      "change": "Verandering",
+      "percent": "% Verand"
+    }
+  },
+  "standings": {
+    "loading": "Stand laden…",
+    "noStandings": "Geen stand beschikbaar"
+  },
+  "todo": {
+    "defaultTitle": "Taken",
+    "noTasksYet": "Nog geen taken"
+  },
+  "traffic": {
+    "sectionTitle": "Verkeer",
+    "noRoutes": "Geen routes ingesteld",
+    "loading": "Verkeer laden…",
+    "unitMin": "min",
+    "mockNotice": "Voorbeeldgegevens — voeg een verkeers-API-sleutel toe in Instellingen"
+  },
+  "fullscreen-photo": {
+    "noPhotoSelected": "Geen foto geselecteerd",
+    "noPhotoSelectedHint": "Kies een foto in het editorpaneel.",
+    "noPhotosYet": "Nog geen foto's",
+    "noPhotosYetHint": "Upload foto's vanaf je telefoon via het tabblad Foto's op /remote, of kies een map in de editor."
+  },
+  "dad-joke": {
+    "loading": "Mop laden…"
+  },
+  "quote": {
+    "loading": "Citaat laden…"
+  },
+  "history": {
+    "loading": "Geschiedenis laden…",
+    "header": "Op deze dag",
+    "noEvents": "Geen gebeurtenissen gevonden",
+    "yearsAgo": {
+      "one": "{count} jaar geleden",
+      "other": "{count} jaar geleden"
+    }
+  },
+  "word-of-day": {
+    "pos": {
+      "adjective": "bijvoeglijk naamwoord",
+      "noun": "zelfstandig naamwoord",
+      "verb": "werkwoord",
+      "adverb": "bijwoord"
+    }
+  },
+  "news": {
+    "loading": "Nieuws laden…",
+    "empty": "Geen koppen",
+    "header": "Nieuws",
+    "timeAgo": {
+      "justNow": "zojuist",
+      "minutes": "{count} min geleden",
+      "hours": "{count} uur geleden",
+      "days": "{count} d geleden"
+    }
+  },
+  "greeting": {
+    "morning": "Goedemorgen",
+    "afternoon": "Goedemiddag",
+    "evening": "Goedenavond",
+    "night": "Goedenacht",
+    "defaultName": "Vriend",
+    "weather": {
+      "rain": "Regenachtige dag op komst",
+      "snow": "Trek je warm aan vandaag",
+      "thunderstorm": "Onweer verwacht",
+      "clear": "Mooie dag op komst"
+    }
+  },
+  "affirmations": {
+    "noEntries": "Geen affirmaties geconfigureerd",
+    "categories": {
+      "affirmations": "Affirmatie",
+      "compliments": "Compliment",
+      "motivational": "Motivatie",
+      "gratitude": "Dankbaarheid",
+      "mindfulness": "Mindfulness"
+    }
+  },
+  "crypto": {
+    "loading": "Laden…",
+    "empty": "Geen cryptogegevens",
+    "headers": {
+      "coin": "Munt",
+      "price": "Koers",
+      "percent": "24u %"
+    }
+  },
+  "todoist": {
+    "loading": "Taken laden…",
+    "empty": "Geen taken om weer te geven",
+    "taskCount": {
+      "one": "{count} taak",
+      "other": "{count} taken"
+    },
+    "recurringTooltip": "Terugkerend",
+    "completeAriaLabel": "Voltooien: {content}",
+    "priority": {
+      "urgent": "Dringend",
+      "high": "Hoog",
+      "medium": "Gemiddeld",
+      "normal": "Normaal"
+    },
+    "groups": {
+      "overdue": "Te laat",
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "thisWeek": "Deze week",
+      "upcoming": "Binnenkort",
+      "noDate": "Geen datum",
+      "noLabel": "Geen label"
+    },
+    "dueDate": {
+      "yesterday": "Gisteren",
+      "today": "Vandaag",
+      "todayAtTime": "Vandaag {time}",
+      "tomorrow": "Morgen",
+      "daysOverdue": {
+        "one": "{count} d te laat",
+        "other": "{count} d te laat"
+      }
+    },
+    "focus": {
+      "allClear": "Vandaag alles gedaan!",
+      "allCaughtUp": "Je bent helemaal bij!",
+      "taskRemaining": {
+        "one": "taak over",
+        "other": "taken over"
+      }
+    }
+  },
+  "photo-slideshow": {
+    "loading": "Foto's worden geladen…",
+    "empty": "Geen foto's gevonden"
+  },
+  "icon": {
+    "empty": "Geen pictogram geselecteerd"
+  },
+  "sticky-note": {
+    "empty": "Geen inhoud"
+  },
+  "iframe": {
+    "noUrl": "Geen URL ingesteld",
+    "embeddedTitle": "Ingesloten inhoud"
+  },
+  "qr-code": {
+    "scanToConnect": "Scan om verbinding te maken",
+    "configureWifi": "Wifi-netwerk instellen",
+    "configureData": "QR-gegevens instellen"
+  },
+  "display-control": {
+    "prev": "Vorige",
+    "next": "Volgende",
+    "sleep": "Slaap",
+    "sleepHoldHint": "Slaap (vasthouden om te bevestigen)",
+    "brightness": "Helderheid",
+    "closeBrightness": "Helderheid sluiten",
+    "ariaPrev": "Vorig scherm",
+    "ariaNext": "Volgend scherm"
+  },
+  "common": {
+    "locationNotConfigured": "Locatie niet ingesteld",
+    "pluginNotAvailable": "Plug-in niet beschikbaar: {name}"
+  }
+}

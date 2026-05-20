@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
+
 interface QuickActionsProps {
   isAsleep: boolean;
   onSleepWake: () => void;
@@ -7,6 +9,7 @@ interface QuickActionsProps {
 }
 
 export default function QuickActions({ isAsleep, onSleepWake, onAlertOpen }: QuickActionsProps) {
+  const t = useTranslate('remote');
   return (
     <div className="grid grid-cols-2 gap-3 mx-5 mt-5">
       <button
@@ -25,7 +28,7 @@ export default function QuickActions({ isAsleep, onSleepWake, onAlertOpen }: Qui
           )}
         </div>
         <span className="text-[13px] font-semibold text-hs-text-primary">
-          {isAsleep ? 'Wake Display' : 'Sleep Display'}
+          {isAsleep ? t('quickActions.wakeDisplay') : t('quickActions.sleepDisplay')}
         </span>
       </button>
 
@@ -38,7 +41,7 @@ export default function QuickActions({ isAsleep, onSleepWake, onAlertOpen }: Qui
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
           </svg>
         </div>
-        <span className="text-[13px] font-semibold text-hs-text-primary">Send Alert</span>
+        <span className="text-[13px] font-semibold text-hs-text-primary">{t('quickActions.sendAlert')}</span>
       </button>
     </div>
   );

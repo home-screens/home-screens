@@ -1,10 +1,12 @@
-import { SLOT_META, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
 
 export default function NextMealView({
   settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
+  const t = useTranslate('modules');
   const next = getNextMeal(now, plan, savedMeals, slots);
 
   if (!next) {
@@ -15,7 +17,7 @@ export default function NextMealView({
         gap: s * 1, color: 'var(--fmp-text-3)',
       }}>
         <span style={{ fontSize: s * 3, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-        <span style={{ fontSize: s * 1.2, fontWeight: 500 }}>No upcoming meals planned</span>
+        <span style={{ fontSize: s * 1.2, fontWeight: 500 }}>{t('fullscreen-meal-planner.noUpcomingMeals')}</span>
       </div>
     );
   }
@@ -27,9 +29,9 @@ export default function NextMealView({
   const time = resolvePlannedMealTime(plannedEntry, slot, settings.defaultSlotTimes);
 
   const contextStyles: Record<string, { color: string; bg: string; label: string; icon: string }> = {
-    now:       { color: 'var(--fmp-accent)', bg: `color-mix(in srgb, var(--fmp-accent) 12%, transparent)`, label: 'Now', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-    upcoming:  { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.12)', label: 'Coming Up', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
-    tomorrow:  { color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', label: 'Tomorrow', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
+    now:       { color: 'var(--fmp-accent)', bg: `color-mix(in srgb, var(--fmp-accent) 12%, transparent)`, label: t('fullscreen-meal-planner.nextMealLabels.now'), icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+    upcoming:  { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.12)', label: t('fullscreen-meal-planner.nextMealLabels.comingUp'), icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
+    tomorrow:  { color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', label: t('fullscreen-meal-planner.nextMealLabels.tomorrow'), icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
   };
   const ctx = contextStyles[context] ?? contextStyles.now;
 
@@ -58,7 +60,7 @@ export default function NextMealView({
           fontSize: s * 0.8, fontWeight: 600, textTransform: 'uppercase' as const,
           letterSpacing: '0.1em', color: 'var(--fmp-text-3)',
         }}>
-          {meta.label}
+          {t(getMealSlotLabelKey(slot))}
         </span>
         {time && (
           <span style={{
@@ -107,7 +109,7 @@ export default function NextMealView({
               background: 'var(--fmp-border-sub)', padding: `${s * 0.15}px ${s * 0.6}px`,
               borderRadius: s * 0.3,
             }}>
-              &#9201; {meal.prepTime} min
+              &#9201; {t('fullscreen-meal-planner.prepTimeMin', { minutes: meal.prepTime })}
             </span>
           )}
           {showDifficulty && meal.difficulty && (() => {

@@ -1,0 +1,135 @@
+{
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "yesterday": "Yesterday",
+  "loading": "Loading…",
+  "actions": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "remove": "Remove",
+    "add": "Add",
+    "close": "Close",
+    "back": "Back",
+    "confirm": "Confirm",
+    "save": "Save",
+    "done": "Done",
+    "edit": "Edit",
+    "clear": "Clear",
+    "settings": "Settings",
+    "name": "Name",
+    "color": "Color",
+    "icon": "Icon",
+    "label": "Label"
+  },
+  "status": {
+    "saving": "Saving…",
+    "connected": "Connected",
+    "disabled": "Disabled",
+    "never": "Never",
+    "none": "None"
+  },
+  "relativeTime": {
+    "justNow": "just now",
+    "secondsAgo": "{n}s ago",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "weeksAgo": "{n}w ago"
+  },
+  "displayNotFound": {
+    "notRegistered": "Display Not Registered",
+    "adoptionLine1": "This display is connected to the hub but has not been adopted yet.",
+    "adoptionLine2": "Open the editor on the hub, go to",
+    "settingsLink": "Settings → Displays",
+    "andClick": "and click",
+    "adoptLabel": "Adopt",
+    "nextTo": "next to",
+    "waitingForAdoption": "Waiting for adoption…",
+    "recoveryNotice": "This display ID isn't registered, but your hub has other displays set up. Switching to the default display in {seconds}s.",
+    "goToDefault": "Go to default display now"
+  },
+  "login": {
+    "checkingAuth": "Checking authentication…",
+    "ipBlocked": "Your IP address is blocked",
+    "enterPasswordToContinue": "Enter your password to continue",
+    "accessRestricted": "Access restricted",
+    "accessRestrictedDescription": "Your IP address is not in the allowed list. Signing in won't help — the server will still reject every request from your address. Contact an administrator to add your IP to the allowlist, or sign in from a permitted network.",
+    "passwordPlaceholder": "Password",
+    "rememberMe": "Remember me for 90 days",
+    "signingIn": "Signing in…",
+    "unlock": "Unlock",
+    "loading": "Loading…",
+    "backToDisplay": "Back to display",
+    "loginFailed": "Login failed",
+    "unreachable": "Unable to reach server"
+  },
+  "errors": {
+    "fetchFailed": "Failed to fetch data",
+    "loadImagesFailed": "Failed to load images",
+    "uploadFailed": "Upload failed",
+    "createFolderFailed": "Failed to create folder",
+    "deleteFolderFailed": "Failed to delete folder",
+    "googleExpired": "Your Google connection has expired. Please sign in again.",
+    "deviceFlowFailed": "Failed to start device flow",
+    "codeExpired": "Code expired. Please try again.",
+    "authorizationFailed": "Authorization failed",
+    "startSignInFailed": "Failed to start sign-in"
+  },
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "tags": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack",
+      "quick": "Quick",
+      "healthy": "Healthy",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "comfort": "Comfort",
+      "spicy": "Spicy",
+      "kid-friendly": "Kid-Friendly",
+      "meal-prep": "Meal-Prep",
+      "gluten-free": "Gluten-Free",
+      "dairy-free": "Dairy-Free",
+      "batch-cook": "Batch-Cook"
+    },
+    "ingredientCategories": {
+      "produce": "Produce",
+      "dairy": "Dairy",
+      "meat": "Meat",
+      "seafood": "Seafood",
+      "bakery": "Bakery",
+      "pantry": "Pantry",
+      "frozen": "Frozen",
+      "beverages": "Beverages",
+      "other": "Other"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Produce",
+        "dairy": "Dairy & Eggs",
+        "meat": "Meat & Seafood",
+        "seafood": "Meat & Seafood",
+        "bakery": "Bakery",
+        "pantry": "Pantry",
+        "frozen": "Frozen",
+        "beverages": "Beverages",
+        "other": "Other"
+      }
+    }
+  }
+}

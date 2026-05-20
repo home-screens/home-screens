@@ -2,6 +2,7 @@
 
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
+import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { useChoreData } from './useChoreData';
 import { BoardView } from './views/BoardView';
@@ -19,6 +20,7 @@ interface ChoreChartModuleProps {
 export default function ChoreChartModule({ config, style, timezone }: ChoreChartModuleProps) {
   const view = config.view ?? 'board';
   const data = useChoreData(config);
+  const t = useTranslate('modules');
 
   // Empty state — no members
   if (data.members.length === 0) {
@@ -26,9 +28,9 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       <ModuleWrapper style={style}>
         <div className="flex flex-col items-center justify-center h-full gap-2">
           <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>Add family members to get started</p>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('chore-chart.addMembersToStart')}</p>
           <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            Open the editor to set up your chore chart
+            {t('chore-chart.openEditorToSetUp')}
           </p>
         </div>
       </ModuleWrapper>
@@ -41,9 +43,9 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       <ModuleWrapper style={style}>
         <div className="flex flex-col items-center justify-center h-full gap-2">
           <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>No chores configured</p>
+          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('chore-chart.noChoresConfigured')}</p>
           <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            Add some chores in the editor
+            {t('chore-chart.addChoresInEditor')}
           </p>
         </div>
       </ModuleWrapper>

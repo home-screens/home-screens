@@ -6,6 +6,7 @@ import type { TodoistTask } from './todoist-utils';
 import { daysBetween, buildTaskTree } from './todoist-utils';
 import { TaskRow } from './ListView';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate } from '@/i18n';
 
 export default function FocusView({
   allTasks,
@@ -18,6 +19,7 @@ export default function FocusView({
   now: Date;
   onComplete?: (taskId: string) => void;
 }) {
+  const tr = useTranslate('modules');
   // Show only today + overdue tasks
   const focusTasks = useMemo(() => {
     return allTasks.filter((t) => {
@@ -54,8 +56,8 @@ export default function FocusView({
           </span>
           <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.secondary }}>
             {totalToday === 0
-              ? 'All clear for today!'
-              : `task${totalToday !== 1 ? 's' : ''} remaining`}
+              ? tr('todoist.focus.allClear')
+              : tr('todoist.focus.taskRemaining', { count: totalToday })}
           </span>
         </div>
       </div>
@@ -67,7 +69,7 @@ export default function FocusView({
               ✓
             </span>
             <p className="mt-1" style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.tertiary }}>
-              You&apos;re all caught up!
+              {tr('todoist.focus.allCaughtUp')}
             </p>
           </div>
         </div>
@@ -81,7 +83,7 @@ export default function FocusView({
                   className="font-semibold uppercase tracking-wider"
                   style={{ fontSize: '0.65em', color: '#ef4444' }}
                 >
-                  Overdue
+                  {tr('todoist.groups.overdue')}
                 </span>
                 <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
                   {overdue.length}
@@ -115,7 +117,7 @@ export default function FocusView({
                   className="font-semibold uppercase tracking-wider"
                   style={{ fontSize: '0.65em', color: '#f59e0b' }}
                 >
-                  Today
+                  {tr('todoist.groups.today')}
                 </span>
                 <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
                   {today.length}

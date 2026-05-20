@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { format, startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
+import { startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getWeatherIcon } from '@/lib/weather-icons';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
@@ -99,37 +101,51 @@ function brightenForDark(color: string): string {
   return `rgb(${Math.min(255, Math.round(r * 1.15))},${Math.min(255, Math.round(g * 1.15))},${Math.min(255, Math.round(b * 1.15))})`;
 }
 
-function getHeaderTitle(view: string, today: Date, scheduleDays?: number): string {
+function getHeaderTitle(
+  view: string,
+  today: Date,
+  t: TranslateFn,
+  locale: string,
+  scheduleDays?: number,
+): string {
   switch (view) {
     case 'schedule': {
       const endDay = addDays(today, (scheduleDays ?? 7) - 1);
       if (today.getMonth() === endDay.getMonth()) {
-        return `${format(today, 'MMMM d')} \u2013 ${format(endDay, 'd, yyyy')}`;
+        return `${formatDateSync(today, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
       }
-      return `${format(today, 'MMMM d')} \u2013 ${format(endDay, 'MMMM d, yyyy')}`;
+      return `${formatDateSync(today, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
     }
     case 'week-list': {
       const weekStart = startOfWeek(today, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-      return `${format(weekStart, 'MMMM d')} \u2013 ${format(weekEnd, 'd, yyyy')}`;
+      return `${formatDateSync(weekStart, 'MMMM d', { locale })} \u2013 ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
     }
     case 'month-grid':
-      return format(today, 'MMMM yyyy');
+      return formatDateSync(today, 'MMMM yyyy', { locale });
     case 'day-timeline':
-      return format(today, 'EEEE, MMMM d');
+      return formatDateSync(today, 'EEEE, MMMM d', { locale });
     case 'agenda':
-      return 'Upcoming';
+      return t('fullscreen-calendar.headerUpcoming');
     default:
-      return format(today, 'MMMM yyyy');
+      return formatDateSync(today, 'MMMM yyyy', { locale });
   }
 }
 
-const VIEW_LABELS: Record<string, { label: string; icon: typeof Columns3 }> = {
-  'schedule': { label: 'Schedule', icon: Columns3 },
-  'week-list': { label: 'Week', icon: List },
-  'month-grid': { label: 'Month', icon: Grid3X3 },
-  'day-timeline': { label: 'Day', icon: CalendarClock },
-  'agenda': { label: 'Agenda', icon: ScrollText },
+const VIEW_ICONS: Record<string, typeof Columns3> = {
+  'schedule': Columns3,
+  'week-list': List,
+  'month-grid': Grid3X3,
+  'day-timeline': CalendarClock,
+  'agenda': ScrollText,
+};
+
+const VIEW_LABEL_KEYS: Record<string, string> = {
+  'schedule': 'fullscreen-calendar.viewLabels.schedule',
+  'week-list': 'fullscreen-calendar.viewLabels.weekList',
+  'month-grid': 'fullscreen-calendar.viewLabels.monthGrid',
+  'day-timeline': 'fullscreen-calendar.viewLabels.dayTimeline',
+  'agenda': 'fullscreen-calendar.viewLabels.agenda',
 };
 
 // ─── Overlap layout helper (shared by Schedule + DayTimeline) ───
@@ -212,11 +228,11 @@ function SkeletonLoading({ scale }: { scale: CalendarScale }) {
 
 // ─── Empty state ───
 
-function EmptyState({ scale, view }: { scale: CalendarScale; view: string }) {
-  const label = view === 'month-grid' ? 'No events this month'
-    : view === 'agenda' ? 'No upcoming events'
-    : view === 'day-timeline' ? 'No events today'
-    : 'No events this week';
+function EmptyState({ scale, view, t }: { scale: CalendarScale; view: string; t: TranslateFn }) {
+  const label = view === 'month-grid' ? t('fullscreen-calendar.noEventsThisMonth')
+    : view === 'agenda' ? t('fullscreen-calendar.noUpcomingEvents')
+    : view === 'day-timeline' ? t('fullscreen-calendar.noEventsToday')
+    : t('fullscreen-calendar.noEventsThisWeek');
   return (
     <div style={{
       display: 'flex',
@@ -262,6 +278,8 @@ export default function FullscreenCalendarModule({
   loading,
   fullscreenTheme,
 }: FullscreenCalendarModuleProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const rawEvents = useMemo(() => rawEventsRaw ?? [], [rawEventsRaw]);
   const { containerRef, dims } = useFullscreenDims();
 
@@ -290,7 +308,7 @@ export default function FullscreenCalendarModule({
   const scheduleDays = config.view === 'schedule'
     ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
     : undefined;
-  const headerTitle = getHeaderTitle(config.view, today, scheduleDays);
+  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays);
 
   // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;
@@ -300,8 +318,9 @@ export default function FullscreenCalendarModule({
   // Resolve weather Lucide icon
   const WeatherIcon = weatherIconId ? getWeatherIcon(weatherIconId, 'outline') : null;
 
-  const viewInfo = VIEW_LABELS[config.view] ?? { label: config.view, icon: Columns3 };
-  const ViewIcon = viewInfo.icon;
+  const ViewIcon = VIEW_ICONS[config.view] ?? Columns3;
+  const viewLabelKey = VIEW_LABEL_KEYS[config.view];
+  const viewLabel = viewLabelKey ? t(viewLabelKey) : config.view;
 
   const viewProps = { events, config, scale, today, now };
   const hasEvents = events.length > 0;
@@ -352,7 +371,7 @@ export default function FullscreenCalendarModule({
           <span
             className="fsc-weather-pill"
             style={{ fontSize: `${scale.bu * 1.3 * scale.typoMul}px` }}
-            aria-label={`Current temperature ${Math.round(currentTemp)} degrees`}
+            aria-label={t('fullscreen-calendar.ariaLabels.currentTemperature', { temp: Math.round(currentTemp) })}
           >
             {WeatherIcon && <WeatherIcon size={scale.bu * 1.6 * scale.typoMul} aria-hidden="true" />}
             {Math.round(currentTemp)}{tempUnit}
@@ -361,10 +380,10 @@ export default function FullscreenCalendarModule({
         <span
           className="fsc-view-badge"
           style={{ fontSize: `${scale.bu * 1.0 * scale.typoMul}px` }}
-          aria-label={`View: ${viewInfo.label}`}
+          aria-label={t('fullscreen-calendar.ariaLabels.view', { label: viewLabel })}
         >
           <ViewIcon size={scale.bu * 1.2 * scale.typoMul} aria-hidden="true" />
-          {viewInfo.label}
+          {viewLabel}
         </span>
       </header>
 
@@ -373,7 +392,7 @@ export default function FullscreenCalendarModule({
         {isLoading ? (
           <SkeletonLoading scale={scale} />
         ) : !hasEvents ? (
-          <EmptyState scale={scale} view={config.view} />
+          <EmptyState scale={scale} view={config.view} t={t} />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div

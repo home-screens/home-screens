@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useTranslate } from '@/i18n';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -31,6 +32,7 @@ function SlotCard({
   todayISO: string;
   isActive: boolean;
 }) {
+  const t = useTranslate('modules');
   const { meal, planned } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
@@ -52,7 +54,7 @@ function SlotCard({
         className="px-3 pt-2 pb-0.5 uppercase tracking-[0.15em] font-semibold flex items-center gap-2"
         style={{ fontSize: '0.5em', color: meta.color, opacity: isActive ? 1 : TEXT_OPACITY.secondary }}
       >
-        <span>{meta.label}</span>
+        <span>{t(getMealSlotLabelKey(slot))}</span>
         {time && (
           <span
             className="normal-case tracking-normal font-medium"
@@ -69,7 +71,7 @@ function SlotCard({
             className="rounded-full px-1.5 py-px normal-case tracking-normal font-normal ml-auto"
             style={{ backgroundColor: `${meta.color}20`, fontSize: '0.9em' }}
           >
-            now
+            {t('meal-planner.now')}
           </span>
         )}
       </div>
@@ -89,7 +91,7 @@ function SlotCard({
                 <div className="flex flex-wrap items-center gap-1.5 mt-1" style={{ fontSize: '0.55em' }}>
                   {showPrepTime && meal.prepTime && (
                     <span className="flex items-center gap-0.5" style={{ opacity: TEXT_OPACITY.dim }}>
-                      <span>&#9201;</span> {meal.prepTime} min
+                      <span>&#9201;</span> {t('meal-planner.prepTimeMin', { minutes: meal.prepTime })}
                     </span>
                   )}
                   {showTags && meal.tags?.map((tag) => (
@@ -107,7 +109,7 @@ function SlotCard({
           </div>
         ) : (
           <p className="opacity-20 italic" style={{ fontSize: '0.75em' }}>
-            No meal planned
+            {t('meal-planner.noMealPlanned')}
           </p>
         )}
       </div>
@@ -116,6 +118,7 @@ function SlotCard({
 }
 
 export function TodayView({ config, settings, plan, savedMeals, todayISO, currentHour }: TodayViewProps) {
+  const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const activeSlot = getActiveSlot(currentHour, slots);
 
@@ -131,7 +134,7 @@ export function TodayView({ config, settings, plan, savedMeals, todayISO, curren
           className="uppercase tracking-[0.2em] font-semibold shrink-0"
           style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
         >
-          Today&apos;s Meals
+          {t('meal-planner.todaysMeals')}
         </span>
         <div
           className="h-px flex-1 rounded-full"

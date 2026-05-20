@@ -6,6 +6,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl } from '@/lib/fetch-keys';
 import { useAuthImage } from '@/components/display/useAuthImage';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 // ── Ken Burns keyframes (injected once) ──────
 
@@ -97,16 +98,21 @@ function SlideLayer({
 
 function ClockOverlay({ textColor, textMuted }: { textColor: string; textMuted: string }) {
   const [time, setTime] = useState(() => new Date());
+  const locale = useFormattingLocale();
 
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const hours = time.getHours() % 12 || 12;
+  // Resolve the locale's hour cycle from Intl rather than guessing on the
+  // language tag — this gets en-GB (24h) and fr-CA (24h) right.
+  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
+  const is12Hour = cycle === 'h11' || cycle === 'h12';
+  const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
   const minutes = time.getMinutes().toString().padStart(2, '0');
-  const ampm = time.getHours() >= 12 ? 'PM' : 'AM';
-  const dateStr = time.toLocaleDateString('en-US', {
+  const ampm = is12Hour ? (time.getHours() >= 12 ? 'PM' : 'AM') : null;
+  const dateStr = time.toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -126,12 +132,14 @@ function ClockOverlay({ textColor, textMuted }: { textColor: string; textMuted: 
         >
           {hours}:{minutes}
         </span>
-        <span
-          className="font-medium leading-none"
-          style={{ color: textMuted, fontSize: 'min(3.5vw, 28px)' }}
-        >
-          {ampm}
-        </span>
+        {ampm !== null && (
+          <span
+            className="font-medium leading-none"
+            style={{ color: textMuted, fontSize: 'min(3.5vw, 28px)' }}
+          >
+            {ampm}
+          </span>
+        )}
       </div>
       <span
         className="font-normal mt-1 leading-none"
@@ -201,6 +209,7 @@ interface FullscreenPhotoModuleProps {
 }
 
 export default function FullscreenPhotoModule({ config, fullscreenTheme }: FullscreenPhotoModuleProps) {
+  const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isSinglePhoto = config.file !== undefined;
@@ -258,9 +267,9 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
               <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
             </svg>
-            <p className="text-lg font-medium" style={{ color: theme.text }}>No photo selected</p>
+            <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotoSelected')}</p>
             <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-              Choose a photo in the editor panel.
+              {t('fullscreen-photo.noPhotoSelectedHint')}
             </p>
           </div>
         </div>
@@ -296,9 +305,9 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
           </svg>
-          <p className="text-lg font-medium" style={{ color: theme.text }}>No photos yet</p>
+          <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
           <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-            Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.
+            {t('fullscreen-photo.noPhotosYetHint')}
           </p>
         </div>
       </div>

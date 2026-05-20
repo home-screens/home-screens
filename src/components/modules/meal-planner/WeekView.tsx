@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -13,6 +15,9 @@ interface WeekViewProps {
 }
 
 export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekViewProps) {
+  const t = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
@@ -20,15 +25,7 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekV
   const showEmoji = config.showEmoji ?? true;
 
   // Short slot labels for column headers
-  const slotLabel = (s: MealSlotType) => {
-    const labels: Record<MealSlotType, string> = {
-      breakfast: 'B',
-      lunch: 'L',
-      dinner: 'D',
-      snack: 'S',
-    };
-    return labels[s];
-  };
+  const slotLabel = (s: MealSlotType) => t(`meal-planner.slotShort.${s}`);
 
   return (
     <div className="flex flex-col h-full">
@@ -72,7 +69,7 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekV
                   color: isToday ? config.accentColor : undefined,
                 }}
               >
-                {DAY_NAMES_SHORT[dayIdx]}
+                {dayNames[dayIdx]}
               </div>
 
               {/* Meal cells */}

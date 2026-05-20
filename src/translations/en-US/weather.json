@@ -1,0 +1,20 @@
+{
+  "conditions": {
+    "sunny": "Sunny",
+    "clearNight": "Clear night",
+    "cloudy": "Cloudy",
+    "partlyCloudy": "Partly cloudy",
+    "partlyCloudyNight": "Partly cloudy night",
+    "mostlySunny": "Mostly sunny",
+    "mostlyCloudy": "Mostly cloudy",
+    "rain": "Rain",
+    "drizzle": "Drizzle",
+    "snow": "Snow",
+    "thunderstorm": "Thunderstorm",
+    "fog": "Fog",
+    "hail": "Hail",
+    "sleet": "Sleet",
+    "temperature": "Temperature",
+    "weather": "Weather"
+  }
+}

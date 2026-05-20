@@ -127,24 +127,24 @@ describe('getActiveSlot', () => {
 // ── getNextMealSlot ──────────────────────────────────────────────────
 
 describe('getNextMealSlot', () => {
-  it('returns current slot as "Now" when inside a window', () => {
+  it('returns current slot as "now" when inside a window', () => {
     const result = getNextMealSlot(7, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, label: 'Now' });
+    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'now' });
   });
 
-  it('returns next upcoming slot as "Coming Up" between windows', () => {
+  it('returns next upcoming slot as "comingUp" between windows', () => {
     // At 4am, before any window starts
     const result = getNextMealSlot(4, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, label: 'Coming Up' });
+    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'comingUp' });
   });
 
   it('wraps to tomorrow when all windows have passed', () => {
     const result = getNextMealSlot(22, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 1, label: 'Tomorrow' });
+    expect(result).toEqual({ slot: 'breakfast', dayOffset: 1, labelKey: 'tomorrow' });
   });
 
-  it('returns "Now" at exact window start boundary', () => {
-    expect(getNextMealSlot(10, ALL_SLOTS).label).toBe('Now');
+  it('returns "now" at exact window start boundary', () => {
+    expect(getNextMealSlot(10, ALL_SLOTS).labelKey).toBe('now');
     expect(getNextMealSlot(10, ALL_SLOTS).slot).toBe('lunch');
   });
 
@@ -152,26 +152,26 @@ describe('getNextMealSlot', () => {
     for (const hour of [5, 10, 14, 17]) {
       const active = getActiveSlot(hour, ALL_SLOTS);
       const next = getNextMealSlot(hour, ALL_SLOTS);
-      // When a slot is active, getNextMealSlot should show it as "Now"
+      // When a slot is active, getNextMealSlot should show it as "now"
       expect(next.slot).toBe(active);
-      expect(next.label).toBe('Now');
+      expect(next.labelKey).toBe('now');
     }
   });
 
   it('skips disabled slots', () => {
-    // At 15:00, snack disabled — next is dinner "Coming Up"
+    // At 15:00, snack disabled — next is dinner "comingUp"
     const result = getNextMealSlot(15, STANDARD_SLOTS);
-    expect(result).toEqual({ slot: 'dinner', dayOffset: 0, label: 'Coming Up' });
+    expect(result).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'comingUp' });
   });
 
   it('handles solo dinner correctly', () => {
-    expect(getNextMealSlot(5, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, label: 'Coming Up' });
-    expect(getNextMealSlot(18, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, label: 'Now' });
-    expect(getNextMealSlot(22, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 1, label: 'Tomorrow' });
+    expect(getNextMealSlot(5, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'comingUp' });
+    expect(getNextMealSlot(18, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'now' });
+    expect(getNextMealSlot(22, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 1, labelKey: 'tomorrow' });
   });
 
   it('returns fallback for empty slots', () => {
     const result = getNextMealSlot(12, []);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, label: 'Next' });
+    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'next' });
   });
 });

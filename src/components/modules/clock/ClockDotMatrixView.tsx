@@ -1,9 +1,9 @@
 'use client';
 
 import { memo } from 'react';
-import { format } from 'date-fns';
 import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
-import { parseClockTime, buildInfoParts } from '@/lib/date-info';
+import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
@@ -52,6 +52,8 @@ const DotCharacter = memo(function DotCharacter({
 });
 
 export default function ClockDotMatrixView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
   // Dot-matrix needs space-padded hours in 12h mode for consistent grid layout
   const hStr = config.format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
@@ -66,9 +68,14 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
   const charGap = dotGap * 3;
   const colonGap = dotGap * 1.5;
 
-  const dateStr = config.showDate ? format(now, config.dateFormat || 'EEEE, MMMM d') : null;
+  const dateStr = config.showDate
+    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    : null;
 
-  const infoParts = buildInfoParts(config, now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const infoParts: string[] = [];
+  if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
+  if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);
   const infoStr = infoParts.length > 0 ? infoParts.join(' \u00b7 ') : null;
 
   return (

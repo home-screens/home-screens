@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedMeal, MealSlotType } from '@/types/config';
-import { SLOT_META, DAY_NAMES_FULL, DEFAULT_MEAL_EMOJI, dateToDayIndex } from '@/lib/meal-constants';
+import { dateToDayIndex, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 
 interface MealPickerPopoverProps {
   target: { date: string; slot: MealSlotType };
@@ -18,6 +19,13 @@ export default function MealPickerPopover({
   onSelect,
   onClose,
 }: MealPickerPopoverProps) {
+  const t = useTranslate('editor');
+  const tModules = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
+  const dayNamesFull = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'full'),
+    [formattingLocale],
+  );
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,8 +56,8 @@ export default function MealPickerPopover({
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [onClose]);
 
-  const slotLabel = SLOT_META[target.slot]?.label ?? target.slot;
-  const dayName = DAY_NAMES_FULL[dateToDayIndex(target.date)] ?? '';
+  const slotLabel = tModules(getMealSlotLabelKey(target.slot));
+  const dayName = dayNamesFull[dateToDayIndex(target.date)] ?? '';
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
@@ -60,7 +68,7 @@ export default function MealPickerPopover({
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-[360px] max-h-[480px] flex flex-col shadow-2xl">
         {/* Header */}
         <div className="px-4 py-3 border-b border-hs-border-strong">
-          <div className="text-sm font-bold text-hs-text-body">Choose a Meal</div>
+          <div className="text-sm font-bold text-hs-text-body">{t('mealPlannerModal.picker.title')}</div>
           <div className="text-xs text-hs-text-faint">
             {dayName} &mdash; {slotLabel}
           </div>
@@ -72,7 +80,7 @@ export default function MealPickerPopover({
             ref={inputRef}
             type="text"
             className={MODAL_INPUT_CLASS}
-            placeholder="Search meals..."
+            placeholder={t('mealPlannerModal.picker.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -82,7 +90,7 @@ export default function MealPickerPopover({
         <div className="flex-1 overflow-y-auto p-2">
           {filteredMeals.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-xs text-hs-text-faint">
-              No meals found
+              {t('mealPlannerModal.picker.noMealsFound')}
             </div>
           ) : (
             filteredMeals.map((meal) => (
@@ -99,7 +107,7 @@ export default function MealPickerPopover({
                 </span>
                 {meal.prepTime && (
                   <span className="text-xs text-hs-text-faint shrink-0">
-                    {meal.prepTime}m
+                    {t('mealPlannerModal.picker.prepTimeShort', { minutes: meal.prepTime })}
                   </span>
                 )}
               </button>

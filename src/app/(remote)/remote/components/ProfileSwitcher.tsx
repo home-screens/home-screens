@@ -1,6 +1,7 @@
 'use client';
 
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 import { useCommand } from '../hooks';
 import { useDisplayTarget } from '../display-target';
 
@@ -10,6 +11,7 @@ interface ProfileSwitcherProps {
 }
 
 export default function ProfileSwitcher({ profiles, activeProfile }: ProfileSwitcherProps) {
+  const t = useTranslate('remote');
   const { state, execute } = useCommand();
   const { target } = useDisplayTarget();
 
@@ -30,7 +32,7 @@ export default function ProfileSwitcher({ profiles, activeProfile }: ProfileSwit
   return (
     <section className="mt-7 mx-5">
       <h2 className="text-[13px] font-semibold text-hs-text-faint uppercase tracking-wider mb-3">
-        Profiles
+        {t('profileSwitcher.heading')}
       </h2>
 
       <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">

@@ -3,11 +3,9 @@
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
-import { MEAL_TAGS, FOOD_EMOJIS, formatTagLabel, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
-import {
-  GROCERY_CATEGORIES,
-  GROCERY_CATEGORY_ORDER,
-} from '@/lib/grocery-utils';
+import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
+import { GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
+import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
 
 interface MealFormOverlayProps {
@@ -25,6 +23,11 @@ export default function MealFormOverlay({
   saving,
   saveError,
 }: MealFormOverlayProps) {
+  const t = useTranslate('remote');
+  // Difficulty / tags / ingredient-category labels live in `core.meal.*`
+  // so /remote doesn't have to lazy-fetch the 113KB editor.json. Core is
+  // already loaded by the remote layout.
+  const tCore = useTranslate('core');
   const {
     editingMeal,
     setEditingMeal,
@@ -54,6 +57,12 @@ export default function MealFormOverlay({
     setFormFavorite,
     nameInputRef,
   } = form;
+
+  const saveLabel = saving
+    ? t('mealForm.savingSubmit')
+    : editingMeal === 'new'
+      ? t('mealForm.saveSubmit')
+      : t('mealForm.saveChangesSubmit');
 
   const footer = (
     <div
@@ -85,7 +94,7 @@ export default function MealFormOverlay({
           transition: 'all 0.15s',
         }}
       >
-        {saving ? 'Saving...' : editingMeal === 'new' ? 'Save Meal' : 'Save Changes'}
+        {saveLabel}
       </button>
       {editingMeal !== 'new' && (
         <button
@@ -105,7 +114,7 @@ export default function MealFormOverlay({
             transition: 'all 0.15s',
           }}
         >
-          Delete Meal
+          {t('mealForm.deleteButton')}
         </button>
       )}
     </div>
@@ -113,19 +122,19 @@ export default function MealFormOverlay({
 
   return (
     <FormOverlay
-      title={editingMeal === 'new' ? 'Add Meal' : 'Edit Meal'}
+      title={editingMeal === 'new' ? t('mealForm.titleNew') : t('mealForm.titleEdit')}
       onBack={() => setEditingMeal(null)}
       footer={footer}
     >
       {/* Name */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Meal Name</div>
+        <div style={LABEL_STYLE}>{t('mealForm.nameLabel')}</div>
         <input
           ref={nameInputRef}
           type="text"
           value={formName}
           onChange={(e) => setFormName(e.target.value)}
-          placeholder="e.g. Chicken Stir Fry"
+          placeholder={t('mealForm.namePlaceholder')}
           style={INPUT_STYLE}
           autoFocus
         />
@@ -133,13 +142,13 @@ export default function MealFormOverlay({
 
       {/* Emoji picker */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Emoji</div>
+        <div style={LABEL_STYLE}>{t('mealForm.emojiLabel')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
           {FOOD_EMOJIS.map((emoji) => (
             <button
               key={emoji}
               onClick={() => setFormEmoji(emoji)}
-              aria-label={`Select ${emoji}`}
+              aria-label={t('mealForm.emojiSelectAriaLabel', { emoji })}
               aria-pressed={formEmoji === emoji}
               style={{
                 width: '100%',
@@ -163,22 +172,22 @@ export default function MealFormOverlay({
       {/* Prep time + Cook time */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
-          <div style={LABEL_STYLE}>Prep Time</div>
+          <div style={LABEL_STYLE}>{t('mealForm.prepTimeLabel')}</div>
           <input
             type="number"
             value={formPrepTime}
             onChange={(e) => setFormPrepTime(e.target.value ? Number(e.target.value) : '')}
-            placeholder="min"
+            placeholder={t('mealForm.minPlaceholder')}
             style={INPUT_STYLE}
           />
         </div>
         <div>
-          <div style={LABEL_STYLE}>Cook Time</div>
+          <div style={LABEL_STYLE}>{t('mealForm.cookTimeLabel')}</div>
           <input
             type="number"
             value={formCookTime}
             onChange={(e) => setFormCookTime(e.target.value ? Number(e.target.value) : '')}
-            placeholder="min"
+            placeholder={t('mealForm.minPlaceholder')}
             style={INPUT_STYLE}
           />
         </div>
@@ -187,17 +196,17 @@ export default function MealFormOverlay({
       {/* Servings + Difficulty */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
-          <div style={LABEL_STYLE}>Servings</div>
+          <div style={LABEL_STYLE}>{t('mealForm.servingsLabel')}</div>
           <input
             type="number"
             value={formServings}
             onChange={(e) => setFormServings(e.target.value ? Number(e.target.value) : '')}
-            placeholder="4"
+            placeholder={t('mealForm.servingsPlaceholder')}
             style={INPUT_STYLE}
           />
         </div>
         <div>
-          <div style={LABEL_STYLE}>Difficulty</div>
+          <div style={LABEL_STYLE}>{t('mealForm.difficultyLabel')}</div>
           <div style={{ display: 'flex', gap: 4 }}>
             {(['easy', 'medium', 'hard'] as const).map((d) => {
               const hex = DIFFICULTY_COLORS[d];
@@ -220,7 +229,7 @@ export default function MealFormOverlay({
                     transition: 'all 0.15s',
                   }}
                 >
-                  {d === 'easy' ? 'Easy' : d === 'medium' ? 'Med' : 'Hard'}
+                  {tCore(`meal.difficulty.${d}`)}
                 </button>
               );
             })}
@@ -230,16 +239,16 @@ export default function MealFormOverlay({
 
       {/* Tags */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Tags</div>
+        <div style={LABEL_STYLE}>{t('mealForm.tagsLabel')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {MEAL_TAGS.map((tag) => {
-            const isActive = formTags.some((t) => normalizeTag(t) === tag);
+            const isActive = formTags.some((tt) => normalizeTag(tt) === tag);
             return (
               <button
                 key={tag}
                 onClick={() => {
                   setFormTags((prev) =>
-                    isActive ? prev.filter((t) => normalizeTag(t) !== tag) : [...prev, tag],
+                    isActive ? prev.filter((tt) => normalizeTag(tt) !== tag) : [...prev, tag],
                   );
                 }}
                 style={{
@@ -255,7 +264,7 @@ export default function MealFormOverlay({
                   transition: 'all 0.15s',
                 }}
               >
-                {formatTagLabel(tag)}
+                {tCore(`meal.tags.${tag}`)}
               </button>
             );
           })}
@@ -264,12 +273,12 @@ export default function MealFormOverlay({
 
       {/* Ingredients */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Ingredients</div>
+        <div style={LABEL_STYLE}>{t('mealForm.ingredientsLabel')}</div>
         {formIngredients.map((ing: MealIngredient, idx: number) => (
           <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
             <input
               type="text"
-              placeholder="Name"
+              placeholder={t('mealForm.ingredientNamePlaceholder')}
               value={ing.name}
               onChange={(e) => {
                 const next = [...formIngredients];
@@ -280,7 +289,7 @@ export default function MealFormOverlay({
             />
             <input
               type="text"
-              placeholder="Amount"
+              placeholder={t('mealForm.ingredientAmountPlaceholder')}
               value={ing.amount ?? ''}
               onChange={(e) => {
                 const next = [...formIngredients];
@@ -305,7 +314,7 @@ export default function MealFormOverlay({
             >
               {GROCERY_CATEGORY_ORDER.map((cat) => (
                 <option key={cat} value={cat}>
-                  {GROCERY_CATEGORIES[cat]}
+                  {tCore(`meal.ingredientCategories.${cat}`)}
                 </option>
               ))}
             </select>
@@ -313,6 +322,7 @@ export default function MealFormOverlay({
               onClick={() => {
                 setFormIngredients((prev) => prev.filter((_, i) => i !== idx));
               }}
+              aria-label={t('mealForm.removeIngredientAriaLabel')}
               style={{
                 width: 44,
                 height: 44,
@@ -348,29 +358,29 @@ export default function MealFormOverlay({
             transition: 'all 0.15s',
           }}
         >
-          + Add ingredient
+          {t('mealForm.addIngredientButton')}
         </button>
       </div>
 
       {/* Recipe URL */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Recipe URL</div>
+        <div style={LABEL_STYLE}>{t('mealForm.recipeUrlLabel')}</div>
         <input
           type="url"
           value={formRecipeUrl}
           onChange={(e) => setFormRecipeUrl(e.target.value)}
-          placeholder="https://..."
+          placeholder={t('mealForm.recipeUrlPlaceholder')}
           style={INPUT_STYLE}
         />
       </div>
 
       {/* Notes */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Notes</div>
+        <div style={LABEL_STYLE}>{t('mealForm.notesLabel')}</div>
         <textarea
           value={formNotes}
           onChange={(e) => setFormNotes(e.target.value)}
-          placeholder="Any notes about this meal..."
+          placeholder={t('mealForm.notesPlaceholder')}
           rows={3}
           style={{
             ...INPUT_STYLE,
@@ -382,12 +392,13 @@ export default function MealFormOverlay({
 
       {/* Rating */}
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>Rating</div>
+        <div style={LABEL_STYLE}>{t('mealForm.ratingLabel')}</div>
         <div style={{ display: 'flex', gap: 6 }}>
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               onClick={() => setFormRating(formRating === star ? 0 : star)}
+              aria-label={t('mealForm.ratingStarAriaLabel', { n: star })}
               style={{
                 width: 44,
                 height: 44,
@@ -427,10 +438,10 @@ export default function MealFormOverlay({
         }}
       >
         <span style={{ fontSize: 22, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-border-strong)' }}>
-          {formFavorite ? '\u2665' : '\u2661'}
+          {formFavorite ? '♥' : '♡'}
         </span>
         <span style={{ fontSize: 14, fontWeight: 600, color: formFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}>
-          {formFavorite ? 'Favorited' : 'Add to Favorites'}
+          {formFavorite ? t('mealForm.favoriteOn') : t('mealForm.favoriteOff')}
         </span>
       </button>
     </FormOverlay>

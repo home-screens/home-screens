@@ -1,0 +1,135 @@
+{
+  "today": "Heute",
+  "tomorrow": "Morgen",
+  "yesterday": "Gestern",
+  "loading": "Lädt…",
+  "actions": {
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "add": "Hinzufügen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "done": "Fertig",
+    "edit": "Bearbeiten",
+    "clear": "Leeren",
+    "settings": "Einstellungen",
+    "name": "Name",
+    "color": "Farbe",
+    "icon": "Symbol",
+    "label": "Beschriftung"
+  },
+  "status": {
+    "saving": "Speichert…",
+    "connected": "Verbunden",
+    "disabled": "Deaktiviert",
+    "never": "Nie",
+    "none": "Keine"
+  },
+  "relativeTime": {
+    "justNow": "gerade eben",
+    "secondsAgo": "vor {n} Sek.",
+    "minutesAgo": "vor {n} Min.",
+    "hoursAgo": "vor {n} Std.",
+    "daysAgo": "vor {n} T.",
+    "weeksAgo": "vor {n} W."
+  },
+  "displayNotFound": {
+    "notRegistered": "Display nicht registriert",
+    "adoptionLine1": "Dieses Display ist mit dem Hub verbunden, wurde aber noch nicht hinzugefügt.",
+    "adoptionLine2": "Öffne den Editor am Hub, gehe zu",
+    "settingsLink": "Einstellungen → Displays",
+    "andClick": "und klicke",
+    "adoptLabel": "Hinzufügen",
+    "nextTo": "neben",
+    "waitingForAdoption": "Warte auf das Hinzufügen…",
+    "recoveryNotice": "Diese Display-ID ist nicht registriert, aber dein Hub hat andere Displays eingerichtet. Wechsle in {seconds} s zum Standard-Display.",
+    "goToDefault": "Jetzt zum Standard-Display wechseln"
+  },
+  "login": {
+    "checkingAuth": "Authentifizierung wird geprüft…",
+    "ipBlocked": "Deine IP-Adresse ist blockiert",
+    "enterPasswordToContinue": "Gib dein Passwort ein, um fortzufahren",
+    "accessRestricted": "Zugang eingeschränkt",
+    "accessRestrictedDescription": "Deine IP-Adresse ist nicht auf der zugelassenen Liste. Anmelden hilft nicht — der Server lehnt jede Anfrage von deiner Adresse ab. Wende dich an einen Administrator, um deine IP zur Zugriffsliste hinzuzufügen, oder melde dich aus einem zulässigen Netzwerk an.",
+    "passwordPlaceholder": "Passwort",
+    "rememberMe": "90 Tage angemeldet bleiben",
+    "signingIn": "Anmeldung läuft…",
+    "unlock": "Entsperren",
+    "loading": "Wird geladen…",
+    "backToDisplay": "Zurück zum Display",
+    "loginFailed": "Anmeldung fehlgeschlagen",
+    "unreachable": "Server nicht erreichbar"
+  },
+  "errors": {
+    "fetchFailed": "Daten konnten nicht geladen werden",
+    "loadImagesFailed": "Bilder konnten nicht geladen werden",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "createFolderFailed": "Ordner konnte nicht erstellt werden",
+    "deleteFolderFailed": "Ordner konnte nicht gelöscht werden",
+    "googleExpired": "Deine Google-Verbindung ist abgelaufen. Bitte melde dich erneut an.",
+    "deviceFlowFailed": "Geräte-Anmeldung konnte nicht gestartet werden",
+    "codeExpired": "Code abgelaufen. Bitte erneut versuchen.",
+    "authorizationFailed": "Autorisierung fehlgeschlagen",
+    "startSignInFailed": "Anmeldung konnte nicht gestartet werden"
+  },
+  "days": {
+    "sunday": "Sonntag",
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Einfach",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "tags": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Snack",
+      "quick": "Schnell",
+      "healthy": "Gesund",
+      "vegetarian": "Vegetarisch",
+      "vegan": "Vegan",
+      "comfort": "Wohlfühlessen",
+      "spicy": "Scharf",
+      "kid-friendly": "Kinderfreundlich",
+      "meal-prep": "Meal-Prep",
+      "gluten-free": "Glutenfrei",
+      "dairy-free": "Laktosefrei",
+      "batch-cook": "Vorratskochen"
+    },
+    "ingredientCategories": {
+      "produce": "Obst & Gemüse",
+      "dairy": "Milchprodukte",
+      "meat": "Fleisch",
+      "seafood": "Meeresfrüchte",
+      "bakery": "Backwaren",
+      "pantry": "Vorrat",
+      "frozen": "Tiefkühl",
+      "beverages": "Getränke",
+      "other": "Sonstiges"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Obst & Gemüse",
+        "dairy": "Milch & Eier",
+        "meat": "Fleisch & Fisch",
+        "seafood": "Fleisch & Fisch",
+        "bakery": "Backwaren",
+        "pantry": "Vorrat",
+        "frozen": "Tiefkühl",
+        "beverages": "Getränke",
+        "other": "Sonstiges"
+      }
+    }
+  }
+}

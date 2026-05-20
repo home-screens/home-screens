@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
 
 /**
@@ -10,6 +11,7 @@ import { useDisplayTarget } from '../display-target';
  * "All" plus a button per display.
  */
 export default function DisplayPicker() {
+  const t = useTranslate('remote');
   const { target, setTarget, displays } = useDisplayTarget();
 
   if (displays.length === 0) return null;
@@ -17,9 +19,11 @@ export default function DisplayPicker() {
   // Every option has an explicit string value — "all" for broadcast plus one
   // per registered display. The picker doesn't render in single-display mode,
   // so `target === undefined` is never possible here; we still normalize for
-  // defensive clarity when comparing against the selected option.
+  // defensive clarity when comparing against the selected option. Display
+  // names (`d.name`) are user-supplied identifiers and stay verbatim — only
+  // the synthetic "All" button is translated.
   const options: Array<{ value: string; label: string }> = [
-    { value: 'all', label: 'All' },
+    { value: 'all', label: t('displayPicker.allLabel') },
     ...displays.map((d) => ({ value: d.id, label: d.name })),
   ];
   const selected = target ?? 'all';
@@ -27,7 +31,7 @@ export default function DisplayPicker() {
   return (
     <section className="mt-4 mx-5">
       <div className="text-[11px] uppercase tracking-wider text-hs-text-faint mb-2">
-        Targeting
+        {t('displayPicker.targeting')}
       </div>
       <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-1">
         {options.map((opt) => {

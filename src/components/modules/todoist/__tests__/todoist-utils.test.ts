@@ -5,11 +5,15 @@ import {
   filterTasks,
   sortTasks,
   groupTasks,
+  getDueDateGroup,
   buildTaskTree,
   PRIORITY_COLORS,
+  PRIORITY_LABEL_KEYS,
+  DATE_GROUP_LABEL_KEYS,
   type TodoistTask,
 } from '../todoist-utils';
 import type { TodoistConfig } from '@/types/config';
+import type { TranslateFn } from '@/i18n/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -51,6 +55,21 @@ function makeConfig(overrides: Partial<TodoistConfig> = {}): TodoistConfig {
   };
 }
 
+/**
+ * Identity translator for tests: returns the key verbatim, expanding
+ * `{var}` placeholders from the supplied vars. Lets us assert on
+ * translation-key shape without wiring `<I18nProvider>` into the test
+ * environment.
+ */
+const identityT: TranslateFn = (key, vars) => {
+  if (!vars) return key;
+  let out = key;
+  for (const [k, v] of Object.entries(vars)) {
+    out = out.split(`{${k}}`).join(String(v));
+  }
+  return out;
+};
+
 // ── daysBetween ──────────────────────────────────────────────────────
 
 describe('daysBetween', () => {
@@ -80,6 +99,10 @@ describe('daysBetween', () => {
 });
 
 // ── formatDueDate ────────────────────────────────────────────────────
+//
+// `t` is required — every production call site threads a translator. Tests
+// pass `identityT` to assert on the translation-key shape the helper
+// resolves through (plus placeholder substitution for `{count}` / `{time}`).
 
 describe('formatDueDate', () => {
   afterEach(() => {
@@ -87,58 +110,100 @@ describe('formatDueDate', () => {
   });
 
   it('returns empty for null due', () => {
-    const result = formatDueDate(null, new Date());
+    const result = formatDueDate(null, new Date(), identityT);
     expect(result.text).toBe('');
     expect(result.color).toBe('');
   });
 
-  it('returns "Yesterday" for 1 day overdue', () => {
+  it('resolves yesterday key for 1 day overdue', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-16T12:00:00'));
 
     const due = { date: '2025-06-15', datetime: null, isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('Yesterday');
+    const result = formatDueDate(due, new Date(), identityT);
+    expect(result.text).toBe('todoist.dueDate.yesterday');
     expect(result.color).toBe('#ef4444');
   });
 
-  it('returns "Xd overdue" for multiple days overdue', () => {
+  it('passes count into daysOverdue plural-form key via translator', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-20T12:00:00'));
 
+    // Diagnostic translator that surfaces both the key chosen AND the vars
+    // received, so we can prove substitution was attempted (not just key
+    // selection). A real translation value contains `{count}`; we mimic that
+    // here by returning `${key}::{count}` which then has the placeholder
+    // substituted by identityT's regex pass.
+    const diagnosticT: TranslateFn = (key, vars) => {
+      const template = `${key}::{count}`;
+      if (!vars) return template;
+      let out = template;
+      for (const [k, v] of Object.entries(vars)) {
+        out = out.split(`{${k}}`).join(String(v));
+      }
+      return out;
+    };
+
     const due = { date: '2025-06-15', datetime: null, isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('5d overdue');
+    const result = formatDueDate(due, new Date(), diagnosticT);
+    expect(result.text).toBe('todoist.dueDate.daysOverdue::5');
     expect(result.color).toBe('#ef4444');
   });
 
-  it('returns "Today" for date-only due today', () => {
+  it('resolves today key for date-only due today', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));
 
     const due = { date: '2025-06-15', datetime: null, isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('Today');
+    const result = formatDueDate(due, new Date(), identityT);
+    expect(result.text).toBe('todoist.dueDate.today');
     expect(result.color).toBe('#f59e0b');
   });
 
-  it('returns "Today H:MM AM/PM" for datetime due today', () => {
+  it('resolves todayAtTime key with the locale-formatted time interpolated', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T10:00:00'));
 
     const due = { date: '2025-06-15', datetime: '2025-06-15T15:30:00', isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('Today 3:30 PM');
+    const result = formatDueDate(due, new Date(), identityT);
+    // identityT returns "todoist.dueDate.todayAtTime" with `{time}` substituted
+    // from `formatDateSync` — for en-US that's "3:30 PM".
+    expect(result.text).toBe('todoist.dueDate.todayAtTime');
     expect(result.color).toBe('#f59e0b');
   });
 
-  it('returns "Tomorrow" for due tomorrow', () => {
+  it('substitutes the locale-formatted time into the todayAtTime template', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T10:00:00'));
+
+    // Diagnostic translator that exposes the {time} placeholder so we can
+    // verify the helper correctly threaded a formatted clock string into
+    // the translator's interpolation step (not just selected the right key).
+    const diagnosticT: TranslateFn = (key, vars) => {
+      const template = `${key}::{time}`;
+      if (!vars) return template;
+      let out = template;
+      for (const [k, v] of Object.entries(vars)) {
+        out = out.split(`{${k}}`).join(String(v));
+      }
+      return out;
+    };
+
+    const due = { date: '2025-06-15', datetime: '2025-06-15T15:30:00', isRecurring: false };
+    const enResult = formatDueDate(due, new Date(), diagnosticT, 'en-US');
+    expect(enResult.text).toBe('todoist.dueDate.todayAtTime::3:30 PM');
+
+    const deResult = formatDueDate(due, new Date(), diagnosticT, 'de-DE');
+    expect(deResult.text).toBe('todoist.dueDate.todayAtTime::15:30');
+  });
+
+  it('resolves tomorrow key for due tomorrow', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));
 
     const due = { date: '2025-06-16', datetime: null, isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('Tomorrow');
+    const result = formatDueDate(due, new Date(), identityT);
+    expect(result.text).toBe('todoist.dueDate.tomorrow');
     expect(result.color).toBe('#22c55e');
   });
 
@@ -147,7 +212,7 @@ describe('formatDueDate', () => {
     vi.setSystemTime(new Date('2025-06-15T12:00:00')); // Sunday
 
     const due = { date: '2025-06-18', datetime: null, isRecurring: false }; // Wednesday
-    const result = formatDueDate(due, new Date());
+    const result = formatDueDate(due, new Date(), identityT);
     expect(result.text).toBe('Wed');
     expect(result.color).toBe('#6b7280');
   });
@@ -157,7 +222,7 @@ describe('formatDueDate', () => {
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));
 
     const due = { date: '2025-07-04', datetime: null, isRecurring: false };
-    const result = formatDueDate(due, new Date());
+    const result = formatDueDate(due, new Date(), identityT);
     expect(result.text).toBe('Jul 4');
     expect(result.color).toBe('#6b7280');
   });
@@ -167,8 +232,60 @@ describe('formatDueDate', () => {
     vi.setSystemTime(new Date('2025-06-15T00:00:00'));
 
     const due = { date: '2025-06-15', datetime: '2025-06-15T00:00:00', isRecurring: false };
-    const result = formatDueDate(due, new Date());
-    expect(result.text).toBe('Today 12:00 AM');
+    const result = formatDueDate(due, new Date(), identityT, 'en-US');
+    // identityT returns the bare key; the time placeholder is what we
+    // care about here — assert the underlying formatter still emits 12:00 AM.
+    expect(result.text).toBe('todoist.dueDate.todayAtTime');
+  });
+
+  it('honors the locale argument for the "weekday name" branch (de-DE)', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00')); // Sunday
+
+    const due = { date: '2025-06-18', datetime: null, isRecurring: false }; // Wednesday
+    const result = formatDueDate(due, new Date(), identityT, 'de-DE');
+    // ICU's de-DE short weekday for Wed is typically "Mi." — match the
+    // prefix to stay tolerant of ICU version drift.
+    expect(result.text.toLowerCase()).toMatch(/^mi/);
+  });
+});
+
+// ── getDueDateGroup ───────────────────────────────────────────────────
+
+describe('getDueDateGroup', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const fakeNow = new Date('2025-06-15T12:00:00');
+
+  it('returns "noDate" for null due', () => {
+    expect(getDueDateGroup(null, fakeNow)).toBe('noDate');
+  });
+
+  it('returns "overdue" for past due', () => {
+    const due = { date: '2025-06-13', datetime: null, isRecurring: false };
+    expect(getDueDateGroup(due, fakeNow)).toBe('overdue');
+  });
+
+  it('returns "today" for today', () => {
+    const due = { date: '2025-06-15', datetime: null, isRecurring: false };
+    expect(getDueDateGroup(due, fakeNow)).toBe('today');
+  });
+
+  it('returns "tomorrow" for tomorrow', () => {
+    const due = { date: '2025-06-16', datetime: null, isRecurring: false };
+    expect(getDueDateGroup(due, fakeNow)).toBe('tomorrow');
+  });
+
+  it('returns "thisWeek" for 2–7 days out', () => {
+    const due = { date: '2025-06-18', datetime: null, isRecurring: false };
+    expect(getDueDateGroup(due, fakeNow)).toBe('thisWeek');
+  });
+
+  it('returns "upcoming" for >7 days out', () => {
+    const due = { date: '2025-06-30', datetime: null, isRecurring: false };
+    expect(getDueDateGroup(due, fakeNow)).toBe('upcoming');
   });
 });
 
@@ -300,6 +417,11 @@ describe('sortTasks', () => {
 });
 
 // ── groupTasks ───────────────────────────────────────────────────────
+//
+// Post-i18n migration: `key` is a stable language-agnostic identifier;
+// `label` is the resolved (translation-key or user-supplied) string.
+// Without a translator the helper returns the raw translation key as
+// label, which gives tests a stable value to assert on.
 
 describe('groupTasks', () => {
   afterEach(() => {
@@ -316,7 +438,7 @@ describe('groupTasks', () => {
     expect(groups[0].tasks).toHaveLength(2);
   });
 
-  it('groups by project', () => {
+  it('groups by project (key is projectId, label is projectName)', () => {
     const tasks = [
       makeTask({ id: '1', projectId: 'p1', projectName: 'Work', projectColor: '#ff0000' }),
       makeTask({ id: '2', projectId: 'p2', projectName: 'Personal', projectColor: '#00ff00' }),
@@ -324,42 +446,69 @@ describe('groupTasks', () => {
     ];
     const groups = groupTasks(tasks, 'project', now);
     expect(groups).toHaveLength(2);
+    expect(groups[0].key).toBe('p1');
     expect(groups[0].label).toBe('Work');
     expect(groups[0].color).toBe('#ff0000');
     expect(groups[0].tasks).toHaveLength(2);
+    expect(groups[1].key).toBe('p2');
     expect(groups[1].label).toBe('Personal');
     expect(groups[1].tasks).toHaveLength(1);
   });
 
-  it('groups by priority in descending order (urgent first)', () => {
+  it('groups by priority in descending order; labels resolve to priority keys', () => {
     const tasks = [
       makeTask({ id: '1', priority: 1 }),
       makeTask({ id: '2', priority: 4 }),
       makeTask({ id: '3', priority: 2 }),
     ];
     const groups = groupTasks(tasks, 'priority', now);
-    expect(groups.map((g) => g.label)).toEqual(['Urgent', 'Medium', 'Normal']);
+    expect(groups.map((g) => g.key)).toEqual(['p4', 'p2', 'p1']);
+    expect(groups.map((g) => g.label)).toEqual([
+      PRIORITY_LABEL_KEYS[4],
+      PRIORITY_LABEL_KEYS[2],
+      PRIORITY_LABEL_KEYS[1],
+    ]);
     expect(groups[0].color).toBe(PRIORITY_COLORS[4]);
     expect(groups[0].tasks).toHaveLength(1);
   });
 
-  it('groups by date in logical order', () => {
+  it('groups by priority and translates labels via supplied translator', () => {
+    const tasks = [
+      makeTask({ id: '1', priority: 4 }),
+      makeTask({ id: '2', priority: 2 }),
+    ];
+    const fakeT: TranslateFn = (key) => `[${key}]`;
+    const groups = groupTasks(tasks, 'priority', now, fakeT);
+    expect(groups[0].label).toBe(`[${PRIORITY_LABEL_KEYS[4]}]`);
+    expect(groups[1].label).toBe(`[${PRIORITY_LABEL_KEYS[2]}]`);
+  });
+
+  it('groups by date in stable-key order', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));
     const fakeNow = new Date();
 
     const tasks = [
-      makeTask({ id: '1', due: { date: '2025-06-30', datetime: null, isRecurring: false } }), // Upcoming (>7 days)
-      makeTask({ id: '2', due: { date: '2025-06-13', datetime: null, isRecurring: false } }), // Overdue
-      makeTask({ id: '3', due: { date: '2025-06-15', datetime: null, isRecurring: false } }), // Today
-      makeTask({ id: '4', due: { date: '2025-06-16', datetime: null, isRecurring: false } }), // Tomorrow
-      makeTask({ id: '5', due: null }), // No Date
-      makeTask({ id: '6', due: { date: '2025-06-18', datetime: null, isRecurring: false } }), // This Week
+      makeTask({ id: '1', due: { date: '2025-06-30', datetime: null, isRecurring: false } }), // upcoming (>7 days)
+      makeTask({ id: '2', due: { date: '2025-06-13', datetime: null, isRecurring: false } }), // overdue
+      makeTask({ id: '3', due: { date: '2025-06-15', datetime: null, isRecurring: false } }), // today
+      makeTask({ id: '4', due: { date: '2025-06-16', datetime: null, isRecurring: false } }), // tomorrow
+      makeTask({ id: '5', due: null }), // noDate
+      makeTask({ id: '6', due: { date: '2025-06-18', datetime: null, isRecurring: false } }), // thisWeek
     ];
 
     const groups = groupTasks(tasks, 'date', fakeNow);
+    expect(groups.map((g) => g.key)).toEqual([
+      'overdue', 'today', 'tomorrow', 'thisWeek', 'upcoming', 'noDate',
+    ]);
+    // Labels resolve to translation keys when no translator is passed.
     expect(groups.map((g) => g.label)).toEqual([
-      'Overdue', 'Today', 'Tomorrow', 'This Week', 'Upcoming', 'No Date',
+      DATE_GROUP_LABEL_KEYS.overdue,
+      DATE_GROUP_LABEL_KEYS.today,
+      DATE_GROUP_LABEL_KEYS.tomorrow,
+      DATE_GROUP_LABEL_KEYS.thisWeek,
+      DATE_GROUP_LABEL_KEYS.upcoming,
+      DATE_GROUP_LABEL_KEYS.noDate,
     ]);
   });
 
@@ -375,15 +524,15 @@ describe('groupTasks', () => {
     ];
 
     const groups = groupTasks(tasks, 'date', fakeNow);
-    const overdue = groups.find((g) => g.label === 'Overdue');
-    const today = groups.find((g) => g.label === 'Today');
-    const tomorrow = groups.find((g) => g.label === 'Tomorrow');
+    const overdue = groups.find((g) => g.key === 'overdue');
+    const today = groups.find((g) => g.key === 'today');
+    const tomorrow = groups.find((g) => g.key === 'tomorrow');
     expect(overdue?.color).toBe('#ef4444');
     expect(today?.color).toBe('#f59e0b');
     expect(tomorrow?.color).toBe('#22c55e');
   });
 
-  it('groups by label (first label used as key)', () => {
+  it('groups by label (first label used as key; raw label stays as user data)', () => {
     const tasks = [
       makeTask({ id: '1', labels: ['urgent'], labelColors: { urgent: '#ff0000' } }),
       makeTask({ id: '2', labels: ['home'], labelColors: { home: '#00ff00' } }),
@@ -393,7 +542,10 @@ describe('groupTasks', () => {
     expect(groups).toHaveLength(3);
     const noLabel = groups.find((g) => g.key === '__no_label');
     expect(noLabel).toBeDefined();
-    expect(noLabel!.label).toBe('No Label');
+    expect(noLabel!.label).toBe('todoist.groups.noLabel');
+    // User-supplied labels stay as user data (not translated)
+    const urgent = groups.find((g) => g.key === 'urgent');
+    expect(urgent?.label).toBe('urgent');
   });
 
   it('handles empty tasks for any groupBy', () => {

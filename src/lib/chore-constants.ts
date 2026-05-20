@@ -1,19 +1,25 @@
 import type { ChoreResetFrequency, ChoreRotation } from '@/types/config';
+import type { TranslateFn } from '@/i18n/types';
 
-// ── Chore frequency & rotation labels (shared across editor + remote) ────
+// ── Chore frequency & rotation values (shared across editor + remote) ────
+//
+// Only the canonical `value` is exported. The previous `label` field was
+// dead — every consumer (`ChoresManageView`, `ChoreChartModal`) resolves
+// labels through `frequencyLabelMap[opt.value]` / `rotationLabelMap[opt.value]`,
+// which read from the active locale dictionary instead of the constant.
 
-export const CHORE_FREQUENCIES: { value: ChoreResetFrequency; label: string }[] = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Every Other Week' },
-  { value: 'once', label: 'One Time' },
+export const CHORE_FREQUENCIES: { value: ChoreResetFrequency }[] = [
+  { value: 'daily' },
+  { value: 'weekly' },
+  { value: 'biweekly' },
+  { value: 'once' },
 ];
 
-export const CHORE_ROTATIONS: { value: ChoreRotation; label: string }[] = [
-  { value: 'fixed', label: 'Fixed (all do it)' },
-  { value: 'rotate-daily', label: 'Rotate Daily' },
-  { value: 'rotate-weekly', label: 'Rotate Weekly' },
-  { value: 'schedule', label: 'Schedule' },
+export const CHORE_ROTATIONS: { value: ChoreRotation }[] = [
+  { value: 'fixed' },
+  { value: 'rotate-daily' },
+  { value: 'rotate-weekly' },
+  { value: 'schedule' },
 ];
 
 // ── Reward icon presets ────
@@ -35,18 +41,27 @@ export const REWARD_ICONS = [
 
 // ── Time formatting (shared across remote components) ────
 
-/** Format a relative time string from a Date or ISO string */
-export function formatTimeAgo(input: Date | string): string {
-  const ms = Math.max(0, Date.now() - (typeof input === 'string' ? new Date(input).getTime() : input.getTime()));
+/**
+ * Format a relative time string from a Date or ISO string. Output strings are
+ * pulled from translation keys under `core.relativeTime.*`. Callers bind a
+ * `TranslateFn` via `useTranslate('core')` and pass it in.
+ */
+export function formatTimeAgoLocalized(
+  input: Date | string,
+  t: TranslateFn,
+  now: Date = new Date(),
+): string {
+  const inputMs = typeof input === 'string' ? new Date(input).getTime() : input.getTime();
+  const ms = Math.max(0, now.getTime() - inputMs);
   const seconds = Math.floor(ms / 1000);
-  if (seconds < 5) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 5) return t('relativeTime.justNow');
+  if (seconds < 60) return t('relativeTime.secondsAgo', { n: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return t('relativeTime.minutesAgo', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('relativeTime.hoursAgo', { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t('relativeTime.daysAgo', { n: days });
   const weeks = Math.floor(days / 7);
-  return `${weeks}w ago`;
+  return t('relativeTime.weeksAgo', { n: weeks });
 }

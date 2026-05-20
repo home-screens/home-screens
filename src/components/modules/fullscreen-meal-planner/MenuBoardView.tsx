@@ -1,13 +1,16 @@
 import type { MealSlotType, SavedMeal } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
 
 export default function MenuBoardView({
   settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,
 }: MealPlannerViewProps) {
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const todayISO = toISODate(now);
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateStr = formatDateSync(now, 'EEEE, MMMM d', { locale });
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
   // Only show slots that have a meal planned
@@ -17,7 +20,7 @@ export default function MenuBoardView({
       const time = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
       return { slot: sl, meal, time, meta: SLOT_META[sl] };
     })
-    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; time: string | undefined; meta: { label: string; color: string } }[];
+    .filter((c) => c.meal !== null) as { slot: MealSlotType; meal: SavedMeal; time: string | undefined; meta: { color: string } }[];
 
   return (
     <div style={{
@@ -35,7 +38,7 @@ export default function MenuBoardView({
         fontFamily: headerFont, fontSize: s * 2.4, fontWeight: 400,
         color: 'var(--fmp-text)', marginBottom: s * 0.5,
       }}>
-        Today&rsquo;s Menu
+        {t('fullscreen-meal-planner.todaysMenu')}
       </div>
 
       {/* Date */}
@@ -60,7 +63,7 @@ export default function MenuBoardView({
       }}>
         {courses.length === 0 ? (
           <div style={{ color: 'var(--fmp-text-3)', fontSize: s * 1, padding: `${s * 3}px 0` }}>
-            No meals planned for today
+            {t('fullscreen-meal-planner.noMealsPlannedToday')}
           </div>
         ) : courses.map((course, i) => (
           <div key={course.slot}>
@@ -72,7 +75,7 @@ export default function MenuBoardView({
                 background: `${course.meta.color}1a`,
                 padding: `${s * 0.15}px ${s * 0.6}px`, borderRadius: s * 0.3,
               }}>
-                {course.meta.label}
+                {t(getMealSlotLabelKey(course.slot))}
               </span>
               {course.time && (
                 <span style={{
@@ -116,7 +119,7 @@ export default function MenuBoardView({
                 fontSize: s * 0.65, color: 'var(--fmp-text-3)',
               }}>
                 {showPrepTime && course.meal.prepTime && (
-                  <span>&#128339; {course.meal.prepTime} min</span>
+                  <span>&#128339; {t('fullscreen-meal-planner.prepTimeMin', { minutes: course.meal.prepTime })}</span>
                 )}
                 {showDifficulty && course.meal.difficulty && (() => {
                   const dc = getDifficultyColor(course.meal.difficulty);

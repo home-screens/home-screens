@@ -6,6 +6,7 @@ import Toggle from '@/components/ui/Toggle';
 import LabeledField from '@/components/ui/LabeledField';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useTranslate } from '@/i18n';
 
 interface ImmichAlbum {
   id: string;
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function ImmichPhotoSourceSection({ config, set }: Props) {
+  const t = useTranslate('editor');
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [checking, setChecking] = useState(true);
   const [albums, setAlbums] = useState<ImmichAlbum[]>([]);
@@ -105,16 +107,16 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
           }`}
         />
         <span className="text-xs text-hs-text-muted">
-          {checking ? 'Connecting...' :
-           status?.authenticated ? `Connected${status.version ? ` (v${status.version})` : ''}` :
-           status?.reachable ? 'API key invalid' : 'Cannot reach server'}
+          {checking ? t('configSections.immichSource.connecting') :
+           status?.authenticated ? (status.version ? t('configSections.immichSource.connectedWithVersion', { version: status.version }) : t('configSections.immichSource.connected')) :
+           status?.reachable ? t('configSections.immichSource.apiKeyInvalid') : t('configSections.immichSource.cannotReachServer')}
         </span>
         {!checking && !status?.authenticated && (
           <button
             onClick={checkConnection}
             className="text-[10px] text-hs-accent hover:text-hs-accent-hover"
           >
-            Retry
+            {t('configSections.immichSource.retry')}
           </button>
         )}
       </div>
@@ -122,13 +124,13 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
       {status?.authenticated && (
         <>
           {/* Album picker */}
-          <LabeledField label="Album">
+          <LabeledField label={t('configSections.immichSource.album')}>
             <select
               value={albumId}
               onChange={(e) => set({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
               className={INPUT_CLASS}
             >
-              <option value="">Any album</option>
+              <option value="">{t('configSections.immichSource.anyAlbum')}</option>
               {albums.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name} ({a.assetCount})
@@ -138,14 +140,14 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
           </LabeledField>
 
           {/* Person filter */}
-          <LabeledField label="Person">
+          <LabeledField label={t('configSections.immichSource.person')}>
             <div className="flex gap-1.5 items-center">
               <select
                 value={personId}
                 onChange={(e) => set({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
                 className={`${INPUT_CLASS} flex-1`}
               >
-                <option value="">Anyone</option>
+                <option value="">{t('configSections.immichSource.anyone')}</option>
                 {people.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -162,14 +164,14 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
 
           {/* Favorites toggle */}
           <Toggle
-            label="Favorites Only"
+            label={t('configSections.immichSource.favoritesOnly')}
             checked={favoritesOnly}
             onChange={(v) => set({ immichFavoritesOnly: v })}
           />
 
           {/* Photo count slider */}
           <Slider
-            label="Photos per Refresh"
+            label={t('configSections.immichSource.photosPerRefresh')}
             value={count}
             min={10}
             max={200}
@@ -182,7 +184,9 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
             <div className="mt-1.5">
               {photoCount !== null && (
                 <span className="text-[10px] text-hs-text-faint">
-                  {photoCount} {photoCount === 1 ? 'photo' : 'photos'} in album
+                  {photoCount === 1
+                    ? t('configSections.immichSource.photoInAlbumSingular', { count: photoCount })
+                    : t('configSections.immichSource.photoInAlbumPlural', { count: photoCount })}
                 </span>
               )}
               <div className="flex gap-1 mt-1 overflow-x-auto">

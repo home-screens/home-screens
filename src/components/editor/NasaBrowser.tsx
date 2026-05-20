@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 import ImageSearchBrowser, { type BrowsePhoto, type CategoryDef, type SearchResult } from './ImageSearchBrowser';
 
 interface NasaPhoto {
@@ -16,19 +17,6 @@ interface NasaPhoto {
   hdurl?: string;
   nasaId?: string;
 }
-
-const CATEGORIES: CategoryDef[] = [
-  { label: 'Nebula', query: 'nebula' },
-  { label: 'Galaxy', query: 'galaxy' },
-  { label: 'Earth', query: 'earth from space' },
-  { label: 'Mars', query: 'mars surface' },
-  { label: 'Moon', query: 'moon' },
-  { label: 'Saturn', query: 'saturn rings' },
-  { label: 'Jupiter', query: 'jupiter' },
-  { label: 'Sun', query: 'sun solar' },
-  { label: 'Aurora', query: 'aurora borealis' },
-  { label: 'ISS', query: 'international space station' },
-];
 
 /** Map from BrowsePhoto.id to the full NasaPhoto for use in the save handler */
 let photoCache: Map<string, NasaPhoto> = new Map();
@@ -55,20 +43,34 @@ interface Props {
 }
 
 export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
+  const t = useTranslate('editor');
   const [mode, setMode] = useState<'library' | 'apod'>(hasNasaKey ? 'apod' : 'library');
   const [apodRefreshKey, setApodRefreshKey] = useState(0);
   const { config, selectedDisplayId, updateScreen } = useEditorStore();
+
+  const CATEGORIES: CategoryDef[] = useMemo(() => [
+    { label: t('imageBrowsers.nasa.categories.nebula'), query: 'nebula' },
+    { label: t('imageBrowsers.nasa.categories.galaxy'), query: 'galaxy' },
+    { label: t('imageBrowsers.nasa.categories.earth'), query: 'earth from space' },
+    { label: t('imageBrowsers.nasa.categories.mars'), query: 'mars surface' },
+    { label: t('imageBrowsers.nasa.categories.moon'), query: 'moon' },
+    { label: t('imageBrowsers.nasa.categories.saturn'), query: 'saturn rings' },
+    { label: t('imageBrowsers.nasa.categories.jupiter'), query: 'jupiter' },
+    { label: t('imageBrowsers.nasa.categories.sun'), query: 'sun solar' },
+    { label: t('imageBrowsers.nasa.categories.aurora'), query: 'aurora borealis' },
+    { label: t('imageBrowsers.nasa.categories.iss'), query: 'international space station' },
+  ], [t]);
 
   const handleLibrarySearch = useCallback(async (query: string, pageNum: number): Promise<SearchResult> => {
     const url = `/api/nasa?type=search&query=${encodeURIComponent(query)}&page=${pageNum}`;
     const res = await editorFetch(url);
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || 'Failed to fetch NASA images');
+      throw new Error(data.error || t('imageBrowsers.nasa.errors.fetch'));
     }
     const nasaPhotos: NasaPhoto[] = data.photos ?? [];
     return { photos: toBrowsePhotos(nasaPhotos), totalPages: data.totalPages ?? 1 };
-  }, []);
+  }, [t]);
 
   const handleApodSearch = useCallback(async (): Promise<SearchResult> => {
     if (!hasNasaKey) {
@@ -78,11 +80,11 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
     const res = await editorFetch(url);
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || 'Failed to fetch NASA images');
+      throw new Error(data.error || t('imageBrowsers.nasa.errors.fetch'));
     }
     const nasaPhotos: NasaPhoto[] = data.photos ?? [];
     return { photos: toBrowsePhotos(nasaPhotos), totalPages: 1 };
-  }, [hasNasaKey]);
+  }, [hasNasaKey, t]);
 
   const handleUsePhoto = useCallback(async (photo: BrowsePhoto) => {
     if (!selectedScreenId) return;
@@ -116,7 +118,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || 'Failed to save image');
+      throw new Error(data.error || t('imageBrowsers.errors.saveImage'));
     }
     if (data.path) {
       const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -127,7 +129,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
       }
       updateScreen(selectedScreenId, updates);
     }
-  }, [selectedScreenId, config, selectedDisplayId, updateScreen]);
+  }, [selectedScreenId, config, selectedDisplayId, updateScreen, t]);
 
   const modeToggle = (
     <div className="flex gap-1 bg-hs-card rounded-md p-0.5">
@@ -137,7 +139,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
           mode === 'apod' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
         }`}
       >
-        Picture of the Day
+        {t('imageBrowsers.nasa.modes.apod')}
       </button>
       <button
         onClick={() => { setMode('library'); }}
@@ -145,14 +147,14 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
           mode === 'library' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
         }`}
       >
-        Image Library
+        {t('imageBrowsers.nasa.modes.library')}
       </button>
     </div>
   );
 
   const nasaNote = (
     <p className="text-[11px] text-hs-text-faint leading-snug">
-      Note: Some NASA images include embedded timestamps or watermarks that cannot be removed.
+      {t('imageBrowsers.nasa.watermarkNote')}
     </p>
   );
 
@@ -160,13 +162,13 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
     <>
       {!hasNasaKey && (
         <div className="text-xs text-hs-text-faint bg-hs-hover rounded-md p-3 space-y-2">
-          <p>Add a free NASA API key in <strong>Settings</strong> to browse Astronomy Picture of the Day.</p>
-          <p className="text-hs-text-faint">Get one at api.nasa.gov</p>
+          <p>{t('imageBrowsers.nasa.notConfiguredPrefix')} <strong>{t('imageBrowsers.nasa.settingsWord')}</strong> {t('imageBrowsers.nasa.notConfiguredSuffix')}</p>
+          <p className="text-hs-text-faint">{t('imageBrowsers.nasa.apiKeyHint')}</p>
         </div>
       )}
       {hasNasaKey && (
         <Button size="sm" onClick={() => setApodRefreshKey((k) => k + 1)} className="self-start">
-          Refresh
+          {t('common.refresh')}
         </Button>
       )}
       {nasaNote}
@@ -179,7 +181,7 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
         categories={[]}
         onSearch={handleApodSearch}
         onUsePhoto={handleUsePhoto}
-        attribution="Images courtesy of NASA"
+        attribution={t('imageBrowsers.nasa.attribution')}
         hideSearch
         headerSlot={modeToggle}
         beforeGrid={apodBeforeGrid}
@@ -193,8 +195,8 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
       categories={CATEGORIES}
       onSearch={handleLibrarySearch}
       onUsePhoto={handleUsePhoto}
-      attribution="Images courtesy of NASA"
-      searchPlaceholder="Search NASA images..."
+      attribution={t('imageBrowsers.nasa.attribution')}
+      searchPlaceholder={t('imageBrowsers.nasa.searchPlaceholder')}
       headerSlot={modeToggle}
       beforeGrid={nasaNote}
     />

@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslate } from '@/i18n';
+
 interface BackupReminderBannerProps {
   shouldShow: boolean;
   daysSinceBackup: number | null;
@@ -15,26 +17,35 @@ export default function BackupReminderBanner({
   onBackup,
   onDismiss,
 }: BackupReminderBannerProps) {
+  const t = useTranslate('remote');
   if (!shouldShow) return null;
+
+  // Pluralize via discrete keys so each locale picks the form it needs
+  // (English: 1 day / 2 days; German: 1 Tag / 2 Tagen). `daysSinceBackup`
+  // can be null when shouldShow guards against missing data — in practice
+  // the parent only renders when it has a real count, so default to 0
+  // for the rare null case.
+  const days = daysSinceBackup ?? 0;
+  const message = days === 1
+    ? t('backupReminder.daysAgoSingular', { n: days })
+    : t('backupReminder.daysAgoPlural', { n: days });
 
   return (
     <div className="mx-4 mt-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] text-hs-warning">
-          You haven&#x2019;t backed up in {daysSinceBackup} day{daysSinceBackup === 1 ? '' : 's'}.
-        </div>
+        <div className="text-[13px] text-hs-warning">{message}</div>
       </div>
       <button
         onClick={onBackup}
         disabled={busy}
         className="shrink-0 rounded-lg bg-amber-600 active:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
       >
-        {busy ? 'Saving\u2026' : 'Backup'}
+        {busy ? t('backupReminder.savingButton') : t('backupReminder.backupButton')}
       </button>
       <button
         onClick={onDismiss}
         className="shrink-0 text-hs-text-faint active:text-hs-text-secondary transition-colors p-1"
-        aria-label="Dismiss"
+        aria-label={t('backupReminder.dismissAriaLabel')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

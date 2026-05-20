@@ -13,6 +13,7 @@ import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import type { ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import PluginSecretsSection from './PluginSecretsSection';
 import { MousePointerClick } from 'lucide-react';
@@ -67,15 +68,15 @@ import {
 import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
 export { INPUT_CLASS, NESTED_INPUT_CLASS };
 
-function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+function PositionSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: string; t: TranslateFn }) {
   const { moveModule, resizeModule } = useEditorStore();
   return (
     <>
-      <PropertyGroup title="Position" accent={1}>
+      <PropertyGroup title={t('propertyPanel.sections.position')} accent={1}>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: 'X', value: mod.position.x, key: 'x' as const },
-            { label: 'Y', value: mod.position.y, key: 'y' as const },
+            { label: t('propertyPanel.fields.x'), value: mod.position.x, key: 'x' as const },
+            { label: t('propertyPanel.fields.y'), value: mod.position.y, key: 'y' as const },
           ].map(({ label, value, key }) => (
             <label key={key} className="flex flex-col gap-0.5">
               <span className="text-xs text-hs-text-muted">{label}</span>
@@ -94,11 +95,11 @@ function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: str
           ))}
         </div>
       </PropertyGroup>
-      <PropertyGroup title="Size" accent={2}>
+      <PropertyGroup title={t('propertyPanel.sections.size')} accent={2}>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: 'W', value: mod.size.w, key: 'w' as const },
-            { label: 'H', value: mod.size.h, key: 'h' as const },
+            { label: t('propertyPanel.fields.w'), value: mod.size.w, key: 'w' as const },
+            { label: t('propertyPanel.fields.h'), value: mod.size.h, key: 'h' as const },
           ].map(({ label, value, key }) => (
             <label key={key} className="flex flex-col gap-0.5">
               <span className="text-xs text-hs-text-muted">{label}</span>
@@ -121,40 +122,40 @@ function PositionSection({ mod, screenId }: { mod: ModuleInstance; screenId: str
   );
 }
 
-function StyleSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: string; t: TranslateFn }) {
   const { updateModuleStyle } = useEditorStore();
   const s = mod.style;
   const set = (updates: Partial<typeof s>) => updateModuleStyle(screenId, mod.id, updates);
 
   return (
     <>
-      <PropertyGroup title="Shape" accent={1}>
+      <PropertyGroup title={t('propertyPanel.sections.shape')} accent={1}>
         <div className="space-y-3">
-          <Slider label="Border Radius" value={s.borderRadius} min={0} max={50} onChange={(v) => set({ borderRadius: v })} />
-          <Slider label="Padding" value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
-          <Slider label="Border Width" value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
+          <Slider label={t('propertyPanel.fields.borderRadius')} value={s.borderRadius} min={0} max={50} onChange={(v) => set({ borderRadius: v })} />
+          <Slider label={t('propertyPanel.fields.padding')} value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
+          <Slider label={t('propertyPanel.fields.borderWidth')} value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
         </div>
       </PropertyGroup>
 
-      <PropertyGroup title="Effects" accent={2}>
+      <PropertyGroup title={t('propertyPanel.sections.effects')} accent={2}>
         <div className="space-y-3">
-          <Slider label="Opacity" value={s.opacity} min={0} max={1} step={0.05} onChange={(v) => set({ opacity: v })} />
-          <Slider label="Backdrop Blur" value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
-          <Slider label="Shadow Size" value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
+          <Slider label={t('propertyPanel.fields.opacity')} value={s.opacity} min={0} max={1} step={0.05} onChange={(v) => set({ opacity: v })} />
+          <Slider label={t('propertyPanel.fields.backdropBlur')} value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
+          <Slider label={t('propertyPanel.fields.shadowSize')} value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
         </div>
       </PropertyGroup>
 
-      <PropertyGroup title="Color" accent={3}>
+      <PropertyGroup title={t('fields.color')} accent={3}>
         <div className="space-y-3">
-          <ColorPicker label="Background" value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
-          <ColorPicker label="Border Color" value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
-          <ColorPicker label="Text Color" value={s.textColor} onChange={(v) => set({ textColor: v })} />
+          <ColorPicker label={t('propertyPanel.fields.background')} value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
+          <ColorPicker label={t('propertyPanel.fields.borderColor')} value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
+          <ColorPicker label={t('propertyPanel.fields.textColor')} value={s.textColor} onChange={(v) => set({ textColor: v })} />
         </div>
       </PropertyGroup>
 
-      <PropertyGroup title="Text" accent={4}>
+      <PropertyGroup title={t('propertyPanel.sections.text')} accent={4}>
         <div className="space-y-3">
-          <Slider label="Font Size" value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
+          <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
           <FontFamilyPicker value={s.fontFamily} onChange={(v) => set({ fontFamily: v })} />
         </div>
       </PropertyGroup>
@@ -208,6 +209,7 @@ const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: 
 };
 
 export default function PropertyPanel() {
+  const t = useTranslate('editor');
   const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, updateModule } = useEditorStore();
   const pluginMap = usePluginStore((s) => s.plugins);
 
@@ -220,7 +222,7 @@ export default function PropertyPanel() {
       <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
         <div className="flex flex-col items-center gap-2 py-6 text-hs-text-faint mb-5">
           <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
-          <p className="text-sm">Select a module to edit</p>
+          <p className="text-sm">{t('propertyPanel.emptyState')}</p>
         </div>
         <div>
           <ScreenSettingsSection />
@@ -241,35 +243,36 @@ export default function PropertyPanel() {
   const hasSchemaFallback = !BuiltinConfigSection && !pluginConfigSection && isPlugin && pluginDef?.configSchema;
 
   const moduleDef = getModuleDefinition(selectedModule.type);
-  const moduleLabel = pluginDef?.label
-    ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1));
+  const moduleLabel = isPlugin
+    ? (pluginDef?.label ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1)))
+    : t(`registry.types.${selectedModule.type}`);
 
   return (
     <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
       <div className="space-y-5">
         <div>
           <h3 className="text-sm font-semibold text-hs-text-body mb-3">
-            {moduleLabel} Module
+            {t('propertyPanel.moduleHeading', { name: moduleLabel })}
           </h3>
           {isPlugin && !loadedPlugin && (
-            <p className="text-xs text-hs-warning mb-2">Plugin not installed or failed to load</p>
+            <p className="text-xs text-hs-warning mb-2">{t('propertyPanel.pluginNotLoaded')}</p>
           )}
         </div>
 
         {!moduleDef?.fillsCanvas && (
-          <AccordionSection title="Position & Size" defaultOpen={false}>
-            <PositionSection mod={selectedModule} screenId={selectedScreenId} />
+          <AccordionSection title={t('propertyPanel.sections.positionAndSize')} defaultOpen={false}>
+            <PositionSection mod={selectedModule} screenId={selectedScreenId} t={t} />
           </AccordionSection>
         )}
         {!moduleDef?.fillsCanvas && (
-          <AccordionSection title="Style" defaultOpen={false}>
-            <StyleSection mod={selectedModule} screenId={selectedScreenId} />
+          <AccordionSection title={t('propertyPanel.sections.style')} defaultOpen={false}>
+            <StyleSection mod={selectedModule} screenId={selectedScreenId} t={t} />
           </AccordionSection>
         )}
 
         {BuiltinConfigSection && (
-          <AccordionSection title="Config">
-            <PropertyGroup title="Settings" accent={1}>
+          <AccordionSection title={t('propertyPanel.sections.config')}>
+            <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
               <div className="space-y-3">
                 <BuiltinConfigSection mod={selectedModule} screenId={selectedScreenId} />
               </div>
@@ -279,8 +282,8 @@ export default function PropertyPanel() {
         {pluginConfigSection && (() => {
           const PluginConfig = pluginConfigSection;
           return (
-            <AccordionSection title="Config">
-              <PropertyGroup title="Settings" accent={1}>
+            <AccordionSection title={t('propertyPanel.sections.config')}>
+              <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
                 <div className="space-y-3">
                   <PluginConfig
                     config={selectedModule.config}
@@ -298,8 +301,8 @@ export default function PropertyPanel() {
           );
         })()}
         {hasSchemaFallback && (
-          <AccordionSection title="Config">
-            <PropertyGroup title="Settings" accent={1}>
+          <AccordionSection title={t('propertyPanel.sections.config')}>
+            <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
               <div className="space-y-3">
                 <PluginConfigRenderer mod={selectedModule} screenId={selectedScreenId} schema={pluginDef!.configSchema!} />
               </div>
@@ -308,8 +311,8 @@ export default function PropertyPanel() {
         )}
 
         {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (
-          <AccordionSection title="Secrets" defaultOpen={false}>
-            <PropertyGroup title="Credentials" accent={2}>
+          <AccordionSection title={t('propertyPanel.sections.secrets')} defaultOpen={false}>
+            <PropertyGroup title={t('propertyPanel.sections.credentials')} accent={2}>
               <div className="space-y-3">
                 <PluginSecretsSection
                   pluginId={loadedPlugin.manifest.id}
@@ -320,7 +323,7 @@ export default function PropertyPanel() {
           </AccordionSection>
         )}
 
-        <AccordionSection title="Schedule" defaultOpen={false}>
+        <AccordionSection title={t('propertyPanel.sections.schedule')} defaultOpen={false}>
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
 
@@ -329,12 +332,12 @@ export default function PropertyPanel() {
             variant="danger"
             className="w-full"
             onClick={async () => {
-              if (await useConfirmStore.getState().confirm('Delete this module?')) {
+              if (await useConfirmStore.getState().confirm(t('propertyPanel.actions.confirmDelete'))) {
                 removeModule(selectedScreenId, selectedModule.id);
               }
             }}
           >
-            Delete Module
+            {t('propertyPanel.actions.delete')}
           </Button>
         </div>
 

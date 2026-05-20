@@ -1,11 +1,23 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useFormattingLocale } from '@/i18n';
+import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import FinancialCard from '../FinancialCard';
 import TickerMarquee from '../TickerMarquee';
 
-/** Format a price as USD: $1,234.56 */
-export function formatUSD(price: number): string {
-  return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/**
+ * Format a price as USD: $1,234.56
+ *
+ * `locale` controls thousands-separator / decimal style only — the `$`
+ * prefix is hard-coded because the rest of the financial module assumes
+ * USD pricing. Defaults to `DEFAULT_LOCALE` so out-of-scope callers
+ * (StockTickerModule / CryptoModule, migrated in Tasks 4–5) keep
+ * working unchanged.
+ */
+export function formatUSD(price: number, locale: string = DEFAULT_LOCALE): string {
+  return `$${price.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /** Format a percentage value with sign prefix */
@@ -57,13 +69,14 @@ export function FinancialCardsView({ items, scale }: { items: FinancialItem[]; s
 
 /** Shared ticker view — horizontal scrolling marquee */
 export function FinancialTickerView({ items, speed }: { items: FinancialItem[]; speed: number }) {
+  const locale = useFormattingLocale();
   return (
     <TickerMarquee itemCount={items.length} speed={speed}>
       {items.map((item) => (
         <span key={item.key} className="inline-flex items-center gap-2" style={{ fontSize: '0.875em' }}>
           <span className="font-semibold" style={{ opacity: TEXT_OPACITY.heading }}>{item.label}</span>
           <span className="font-bold">
-            {formatUSD(item.price)}
+            {formatUSD(item.price, locale)}
           </span>
           <ChangeColor value={item.changeValue}>
             {item.changeLabel}

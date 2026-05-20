@@ -10,39 +10,8 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
+import { useTranslate } from '@/i18n';
 import type { ModuleInstance, ClockView, WorldClockZone } from '@/types/config';
-
-const VIEWS: { value: ClockView; label: string }[] = [
-  { value: 'classic', label: 'Classic (Centered)' },
-  { value: 'digital', label: 'Digital (7-Segment LED)' },
-  { value: 'analog', label: 'Analog (Clock Face)' },
-  { value: 'minimal', label: 'Minimal (Time Only)' },
-  { value: 'flip', label: 'Flip (Split-Flap)' },
-  { value: 'word', label: 'Word (English Text)' },
-  { value: 'binary', label: 'Binary (BCD Dots)' },
-  { value: 'vertical', label: 'Vertical (Stacked)' },
-  { value: 'split', label: 'Split (Time + Date)' },
-  { value: 'progress', label: 'Progress (Day Ring)' },
-  { value: 'fuzzy', label: 'Fuzzy (Approximate)' },
-  { value: 'world', label: 'World (Time Zones)' },
-  { value: 'dot-matrix', label: 'Dot Matrix (LED Grid)' },
-  { value: 'radial', label: 'Radial (Concentric Rings)' },
-  { value: 'arc', label: 'Arc (Sun Position)' },
-  { value: 'neon', label: 'Neon (Glow Sign)' },
-  { value: 'bar', label: 'Bar (Progress Bars)' },
-  { value: 'elapsed', label: 'Elapsed (Since/Until)' },
-];
-
-const DATE_PRESETS: { label: string; value: string }[] = [
-  { label: 'Monday, January 5', value: 'EEEE, MMMM d' },
-  { label: 'Mon, Jan 5', value: 'EEE, MMM d' },
-  { label: 'January 5, 2026', value: 'MMMM d, yyyy' },
-  { label: 'Jan 5, 2026', value: 'MMM d, yyyy' },
-  { label: '01/05/2026', value: 'MM/dd/yyyy' },
-  { label: '05/01/2026', value: 'dd/MM/yyyy' },
-  { label: '2026-01-05', value: 'yyyy-MM-dd' },
-  { label: 'Monday', value: 'EEEE' },
-];
 
 // Shared across every timezone picker in the app — see `src/lib/timezone.ts`.
 
@@ -86,7 +55,40 @@ type ClockConfigType = {
 };
 
 export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<ClockConfigType>(mod, screenId);
+
+  const VIEWS: { value: ClockView; label: string }[] = [
+    { value: 'classic', label: t('configSections.clock.viewClassic') },
+    { value: 'digital', label: t('configSections.clock.viewDigital') },
+    { value: 'analog', label: t('configSections.clock.viewAnalog') },
+    { value: 'minimal', label: t('configSections.clock.viewMinimal') },
+    { value: 'flip', label: t('configSections.clock.viewFlip') },
+    { value: 'word', label: t('configSections.clock.viewWord') },
+    { value: 'binary', label: t('configSections.clock.viewBinary') },
+    { value: 'vertical', label: t('configSections.clock.viewVertical') },
+    { value: 'split', label: t('configSections.clock.viewSplit') },
+    { value: 'progress', label: t('configSections.clock.viewProgress') },
+    { value: 'fuzzy', label: t('configSections.clock.viewFuzzy') },
+    { value: 'world', label: t('configSections.clock.viewWorld') },
+    { value: 'dot-matrix', label: t('configSections.clock.viewDotMatrix') },
+    { value: 'radial', label: t('configSections.clock.viewRadial') },
+    { value: 'arc', label: t('configSections.clock.viewArc') },
+    { value: 'neon', label: t('configSections.clock.viewNeon') },
+    { value: 'bar', label: t('configSections.clock.viewBar') },
+    { value: 'elapsed', label: t('configSections.clock.viewElapsed') },
+  ];
+
+  const DATE_PRESETS: { label: string; value: string }[] = [
+    { label: t('configSections.clock.datePresetWeekdayMonthDay'), value: 'EEEE, MMMM d' },
+    { label: t('configSections.clock.datePresetShortWeekday'), value: 'EEE, MMM d' },
+    { label: t('configSections.clock.datePresetMonthDayYear'), value: 'MMMM d, yyyy' },
+    { label: t('configSections.clock.datePresetShortMonthDayYear'), value: 'MMM d, yyyy' },
+    { label: t('configSections.clock.datePresetSlashMDY'), value: 'MM/dd/yyyy' },
+    { label: t('configSections.clock.datePresetSlashDMY'), value: 'dd/MM/yyyy' },
+    { label: t('configSections.clock.datePresetIso'), value: 'yyyy-MM-dd' },
+    { label: t('configSections.clock.datePresetWeekday'), value: 'EEEE' },
+  ];
 
   const view = c.view ?? 'classic';
   const fields = VIEW_FIELDS[view] ?? new Set<string>();
@@ -101,7 +103,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   try {
     datePreview = format(new Date(), dateFormatVal);
   } catch {
-    datePreview = 'Invalid format';
+    datePreview = t('configSections.clock.invalidFormat');
   }
 
   const has = (field: string) => fields.has(field);
@@ -134,23 +136,23 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {/* Format */}
       {has('format24h') && (
-        <Toggle label="24-Hour Format" checked={!!c.format24h} onChange={(v) => set({ format24h: v })} />
+        <Toggle label={t('configSections.clock.format24h')} checked={!!c.format24h} onChange={(v) => set({ format24h: v })} />
       )}
 
       {/* Seconds */}
       {has('showSeconds') && (
-        <Toggle label="Show Seconds" checked={c.showSeconds !== false} onChange={(v) => set({ showSeconds: v })} />
+        <Toggle label={t('configSections.clock.showSeconds')} checked={c.showSeconds !== false} onChange={(v) => set({ showSeconds: v })} />
       )}
 
       {/* Show Date */}
       {has('showDate') && (
-        <Toggle label="Show Date" checked={c.showDate !== false} onChange={(v) => set({ showDate: v })} />
+        <Toggle label={t('configSections.clock.showDate')} checked={c.showDate !== false} onChange={(v) => set({ showDate: v })} />
       )}
 
       {/* Date Format (preset dropdown + custom input + live preview) */}
       {has('dateFormat') && (
         <div className="flex flex-col gap-1">
-          <LabeledField label="Date Format">
+          <LabeledField label={t('configSections.clock.dateFormat')}>
             <select
               value={showCustomDate ? '__custom__' : dateFormatVal}
               onChange={(e) => {
@@ -166,7 +168,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               {DATE_PRESETS.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
-              <option value="__custom__">Custom...</option>
+              <option value="__custom__">{t('configSections.clock.customOption')}</option>
             </select>
           </LabeledField>
           {showCustomDate && (
@@ -174,7 +176,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               type="text"
               value={dateFormatVal}
               onChange={(e) => set({ dateFormat: e.target.value })}
-              placeholder="e.g. EEEE, MMMM d"
+              placeholder={t('configSections.clock.dateFormatPlaceholder')}
               className={INPUT_CLASS}
             />
           )}
@@ -185,25 +187,25 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* Week/Day info */}
       {has('weekDay') && (
         <>
-          <Toggle label="Show Week Number" checked={!!c.showWeekNumber} onChange={(v) => set({ showWeekNumber: v })} />
-          <Toggle label="Show Day of Year" checked={!!c.showDayOfYear} onChange={(v) => set({ showDayOfYear: v })} />
+          <Toggle label={t('configSections.clock.showWeekNumber')} checked={!!c.showWeekNumber} onChange={(v) => set({ showWeekNumber: v })} />
+          <Toggle label={t('configSections.clock.showDayOfYear')} checked={!!c.showDayOfYear} onChange={(v) => set({ showDayOfYear: v })} />
         </>
       )}
 
       {/* Analog: show numerals */}
       {has('showNumerals') && (
-        <Toggle label="Show Hour Numbers" checked={!!c.showNumerals} onChange={(v) => set({ showNumerals: v })} />
+        <Toggle label={t('configSections.clock.showHourNumbers')} checked={!!c.showNumerals} onChange={(v) => set({ showNumerals: v })} />
       )}
 
       {/* Flip: animate */}
       {has('animateFlip') && (
-        <Toggle label="Flip Animation" checked={c.animateFlip !== false} onChange={(v) => set({ animateFlip: v })} />
+        <Toggle label={t('configSections.clock.flipAnimation')} checked={c.animateFlip !== false} onChange={(v) => set({ animateFlip: v })} />
       )}
 
       {/* Accent Color */}
       {has('accentColor') && (
         <ColorPicker
-          label="Accent Color"
+          label={t('configSections.clock.accentColor')}
           value={c.accentColor ?? '#22d3ee'}
           onChange={(v) => set({ accentColor: v })}
         />
@@ -212,7 +214,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {/* World: timezone list */}
       {has('worldZones') && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-hs-text-muted">Time Zones ({worldZones.length}/3)</span>
+          <span className="text-xs text-hs-text-muted">{t('configSections.clock.timeZonesCount', { count: worldZones.length, max: 3 })}</span>
           {worldZones.map((zone, i) => (
             <div key={i} className="flex items-center gap-1 text-xs bg-hs-card rounded p-1.5">
               <span className="flex-1 text-hs-text-secondary">{zone.label} — {zone.timezone}</span>
@@ -231,7 +233,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
               onChange={(e) => addZone(e.target.value)}
               className={INPUT_CLASS}
             >
-              <option value="">Add a timezone...</option>
+              <option value="">{t('configSections.clock.addTimezone')}</option>
               {availableZones.map((tz) => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
               ))}
@@ -244,19 +246,19 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {has('referenceTime') && (
         <>
           <LabeledInput
-            label="Reference Time"
+            label={t('configSections.clock.referenceTime')}
             type="datetime-local"
             value={c.referenceTime ?? ''}
             onChange={(v) => set({ referenceTime: v })}
           />
           <LabeledInput
-            label="Label"
+            label={t('configSections.clock.referenceLabel')}
             value={c.referenceLabel ?? ''}
             onChange={(v) => set({ referenceLabel: v })}
-            placeholder="e.g. market open"
+            placeholder={t('configSections.clock.referenceLabelPlaceholder')}
           />
           <Toggle
-            label="Count Up (elapsed)"
+            label={t('configSections.clock.countUp')}
             checked={c.countUp !== false}
             onChange={(v) => set({ countUp: v })}
           />

@@ -1,0 +1,135 @@
+{
+  "today": "Hoje",
+  "tomorrow": "Amanhã",
+  "yesterday": "Ontem",
+  "loading": "Carregando…",
+  "actions": {
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "remove": "Remover",
+    "add": "Adicionar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "done": "Pronto",
+    "edit": "Editar",
+    "clear": "Limpar",
+    "settings": "Configurações",
+    "name": "Nome",
+    "color": "Cor",
+    "icon": "Ícone",
+    "label": "Etiqueta"
+  },
+  "status": {
+    "saving": "Salvando…",
+    "connected": "Conectado",
+    "disabled": "Desativada",
+    "never": "Nunca",
+    "none": "Nenhum"
+  },
+  "relativeTime": {
+    "justNow": "agora mesmo",
+    "secondsAgo": "há {n}s",
+    "minutesAgo": "há {n} min",
+    "hoursAgo": "há {n}h",
+    "daysAgo": "há {n}d",
+    "weeksAgo": "há {n}sem"
+  },
+  "displayNotFound": {
+    "notRegistered": "Tela não registrada",
+    "adoptionLine1": "Esta tela está conectada ao hub, mas ainda não foi adotada.",
+    "adoptionLine2": "Abra o editor no hub, vá em",
+    "settingsLink": "Configurações → Telas",
+    "andClick": "e clique em",
+    "adoptLabel": "Adotar",
+    "nextTo": "ao lado de",
+    "waitingForAdoption": "Aguardando adoção…",
+    "recoveryNotice": "Este ID de tela não está registrado, mas seu hub tem outras telas configuradas. Trocando para a tela padrão em {seconds} s.",
+    "goToDefault": "Ir para a tela padrão agora"
+  },
+  "login": {
+    "checkingAuth": "Verificando autenticação…",
+    "ipBlocked": "Seu endereço IP está bloqueado",
+    "enterPasswordToContinue": "Digite sua senha para continuar",
+    "accessRestricted": "Acesso restrito",
+    "accessRestrictedDescription": "Seu endereço IP não está na lista permitida. Entrar não ajudará — o servidor rejeitará todas as solicitações do seu endereço. Entre em contato com um administrador para adicionar seu IP à lista, ou entre por uma rede permitida.",
+    "passwordPlaceholder": "Senha",
+    "rememberMe": "Lembrar-me por 90 dias",
+    "signingIn": "Entrando…",
+    "unlock": "Desbloquear",
+    "loading": "Carregando…",
+    "backToDisplay": "Voltar para a tela",
+    "loginFailed": "Falha ao entrar",
+    "unreachable": "Não foi possível alcançar o servidor"
+  },
+  "errors": {
+    "fetchFailed": "Falha ao carregar dados",
+    "loadImagesFailed": "Falha ao carregar imagens",
+    "uploadFailed": "Falha no envio",
+    "createFolderFailed": "Falha ao criar pasta",
+    "deleteFolderFailed": "Falha ao excluir pasta",
+    "googleExpired": "Sua conexão com o Google expirou. Entre novamente.",
+    "deviceFlowFailed": "Falha ao iniciar fluxo do dispositivo",
+    "codeExpired": "Código expirado. Tente novamente.",
+    "authorizationFailed": "Falha na autorização",
+    "startSignInFailed": "Falha ao iniciar o login"
+  },
+  "days": {
+    "sunday": "Domingo",
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado"
+  },
+  "meal": {
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Médio",
+      "hard": "Difícil"
+    },
+    "tags": {
+      "breakfast": "Café da manhã",
+      "lunch": "Almoço",
+      "dinner": "Jantar",
+      "snack": "Lanche",
+      "quick": "Rápida",
+      "healthy": "Saudável",
+      "vegetarian": "Vegetariana",
+      "vegan": "Vegana",
+      "comfort": "Reconfortante",
+      "spicy": "Apimentada",
+      "kid-friendly": "Para crianças",
+      "meal-prep": "Marmita",
+      "gluten-free": "Sem glúten",
+      "dairy-free": "Sem lactose",
+      "batch-cook": "Em grande quantidade"
+    },
+    "ingredientCategories": {
+      "produce": "Hortifrúti",
+      "dairy": "Laticínios",
+      "meat": "Carnes",
+      "seafood": "Frutos do mar",
+      "bakery": "Padaria",
+      "pantry": "Despensa",
+      "frozen": "Congelados",
+      "beverages": "Bebidas",
+      "other": "Outros"
+    },
+    "grocery": {
+      "categoryLabels": {
+        "produce": "Hortifrúti",
+        "dairy": "Laticínios e ovos",
+        "meat": "Carnes e frutos do mar",
+        "seafood": "Carnes e frutos do mar",
+        "bakery": "Padaria",
+        "pantry": "Despensa",
+        "frozen": "Congelados",
+        "beverages": "Bebidas",
+        "other": "Outros"
+      }
+    }
+  }
+}

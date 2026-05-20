@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 import {
   useUpgradeStream,
   useWaitForServer,
@@ -70,6 +71,9 @@ interface Props {
 }
 
 export default function UpgradeModal({ targetTag, isRollback, onComplete, onClose }: Props) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
+
   // Start with no steps; auto-detect tarball vs git from SSE events
   const [detectedSteps, setDetectedSteps] = useState<readonly string[]>([]);
 
@@ -92,6 +96,20 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
   const reloadStatus = useWaitForServer(done);
   const { expanded, toggleExpand } = useAccordionState(activeStep);
 
+  // Translate step IDs via dictionary; fall back to the imported English
+  // STEP_LABELS (or the raw ID for unknown plugin-introduced steps). t()
+  // returns the raw key path on miss, so we compare to detect a miss
+  // explicitly — `|| fallback` would silently render the dotted-path key.
+  const stepLabel = useCallback(
+    (step: string) => {
+      const key = `upgradeModal.stepLabels.${step}`;
+      const result = t(key);
+      if (result !== key) return result;
+      return STEP_LABELS[step] ?? step;
+    },
+    [t],
+  );
+
   const activeLogRef = useRef<HTMLDivElement>(null);
   const cancelBlocked = UNCANCELLABLE_STEPS.has(activeStep);
 
@@ -111,14 +129,20 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
     }
   }, [stepLogs, activeStep]);
 
+  const headerTitle = useMemo(
+    () =>
+      isRollback
+        ? t('upgradeModal.titleRollback', { tag: targetTag })
+        : t('upgradeModal.titleUpgrade', { tag: targetTag }),
+    [isRollback, targetTag, t],
+  );
+
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/70">
       <div className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="px-5 py-4 border-b border-hs-border-strong flex-shrink-0">
-          <h2 className="text-lg font-semibold text-hs-text-primary">
-            {`${isRollback ? 'Rolling back' : 'Upgrading'} to ${targetTag}`}
-          </h2>
+          <h2 className="text-lg font-semibold text-hs-text-primary">{headerTitle}</h2>
         </div>
 
         <div className="px-5 py-5 space-y-4 overflow-y-auto flex-1 min-h-0">
@@ -172,7 +196,7 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
                       {styles.icon}
                     </span>
                     <span className={`flex-1 ${styles.textClass}`}>
-                      {STEP_LABELS[step] ?? step}
+                      {stepLabel(step)}
                     </span>
                     {canExpand && (
                       <span className="text-hs-text-faint text-[10px]">{isOpen ? '▾' : '▸'}</span>
@@ -205,15 +229,15 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
           {!done && !failed && (
             <p className="text-xs text-hs-warning/70 text-center">
               {cancelBlocked
-                ? 'Installing update — do not close or power off the device'
-                : 'Do not close this page or power off the device'}
+                ? t('upgradeModal.warning.installing')
+                : t('upgradeModal.warning.inProgress')}
             </p>
           )}
 
           {/* Success — polling for server */}
           {done && (
             <p className="text-xs text-hs-success text-center">
-              {reloadStatus || 'Upgrade complete!'}
+              {reloadStatus || t('upgradeModal.successDefault')}
             </p>
           )}
         </div>
@@ -222,17 +246,17 @@ export default function UpgradeModal({ targetTag, isRollback, onComplete, onClos
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-hs-border-strong flex-shrink-0">
           {!done && !failed && (
             <Button variant="danger" size="sm" onClick={handleCancel} disabled={cancelBlocked}>
-              Cancel
+              {tCore('actions.cancel')}
             </Button>
           )}
           {done && (
             <Button variant="primary" onClick={onComplete}>
-              Done
+              {t('upgradeModal.doneButton')}
             </Button>
           )}
           {failed && (
             <Button variant="secondary" onClick={onClose}>
-              Close
+              {tCore('actions.close')}
             </Button>
           )}
         </div>

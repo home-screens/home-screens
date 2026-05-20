@@ -2,6 +2,7 @@
 
 import React from 'react';
 import type { ChoreMember } from '@/types/config';
+import { useTranslate } from '@/i18n';
 
 interface MemberPickerProps {
   members: ChoreMember[];
@@ -24,6 +25,7 @@ export default function MemberPicker({
   const gap = scale * 0.8;
   const padding = `${scale * 0.6}px ${scale * 0.8}px`;
   const borderRadius = scale * 0.8;
+  const t = useTranslate('modules');
 
   return (
     <div
@@ -99,7 +101,7 @@ export default function MemberPicker({
                 color: 'var(--fcc-accent)',
               }}
             >
-              {balance} tickets
+              {t('fullscreen-chore-chart.rewardsStore.balanceCount', { count: balance })}
             </div>
           </button>
         );

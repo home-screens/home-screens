@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 export interface BrowsePhoto {
   id: string;
@@ -46,13 +47,16 @@ export default function ImageSearchBrowser({
   onSearch,
   onUsePhoto,
   attribution,
-  searchPlaceholder = 'Search anything...',
+  searchPlaceholder,
   headerSlot,
   hideSearch = false,
   beforeGrid,
   refreshKey = 0,
   columns = 2,
 }: ImageSearchBrowserProps) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
+  const effectiveSearchPlaceholder = searchPlaceholder ?? t('imageBrowsers.search.placeholder');
   const [photos, setPhotos] = useState<BrowsePhoto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState<string | null>(null);
@@ -70,12 +74,12 @@ export default function ImageSearchBrowser({
       setPhotos(result.photos);
       setTotalPages(result.totalPages);
     } catch {
-      setError('Failed to load images');
+      setError(t('imageBrowsers.search.errors.load'));
       setPhotos([]);
     } finally {
       setIsLoading(false);
     }
-  }, [onSearch]);
+  }, [onSearch, t]);
 
   useEffect(() => {
     runSearch(selectedCategory, page);
@@ -99,7 +103,7 @@ export default function ImageSearchBrowser({
     try {
       await onUsePhoto(photo);
     } catch {
-      setError('Failed to save image');
+      setError(t('imageBrowsers.errors.saveImage'));
     }
     setIsSaving(null);
   };
@@ -132,11 +136,11 @@ export default function ImageSearchBrowser({
               value={customSearch}
               onChange={(e) => setCustomSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCustomSearch()}
-              placeholder={searchPlaceholder}
+              placeholder={effectiveSearchPlaceholder}
               className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1.5 focus:outline-none focus:border-hs-accent"
             />
             <Button size="sm" onClick={handleCustomSearch}>
-              Search
+              {t('imageBrowsers.search.searchButton')}
             </Button>
           </div>
         </>
@@ -147,7 +151,7 @@ export default function ImageSearchBrowser({
       {error && <p className="text-xs text-hs-danger">{error}</p>}
 
       {isLoading ? (
-        <div className="text-xs text-hs-text-faint py-4 text-center">Loading...</div>
+        <div className="text-xs text-hs-text-faint py-4 text-center">{tCore('loading')}</div>
       ) : (
         <div className={`grid gap-1.5 overflow-y-auto ${
           columns === 4 ? 'grid-cols-4' : columns === 3 ? 'grid-cols-3' : 'grid-cols-2 max-h-[300px]'
@@ -175,7 +179,7 @@ export default function ImageSearchBrowser({
               </div>
               {isSaving === photo.id && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-xs text-white">Saving...</span>
+                  <span className="text-xs text-white">{tCore('status.saving')}</span>
                 </div>
               )}
             </button>
@@ -190,17 +194,17 @@ export default function ImageSearchBrowser({
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
           >
-            Prev
+            {t('imageBrowsers.search.prev')}
           </Button>
           <span className="text-[10px] text-hs-text-faint">
-            Page {page} of {totalPages}
+            {t('imageBrowsers.search.pageOf', { page, total: totalPages })}
           </span>
           <Button
             size="sm"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {t('imageBrowsers.search.next')}
           </Button>
         </div>
       )}

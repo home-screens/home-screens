@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
+import { useTranslate } from '@/i18n';
 
 /* ─── Props ────────────────────────────────── */
 
@@ -18,6 +19,8 @@ export default function ManagementWarningModal({
   onProceed,
   onCancel,
 }: ManagementWarningModalProps) {
+  const t = useTranslate('editor');
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onCancel();
@@ -35,7 +38,7 @@ export default function ManagementWarningModal({
     >
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-hs-text-primary mb-3">
-          Management Interface Warning
+          {t('settings.networkPage.managementWarning.heading')}
         </h2>
 
         <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 mb-4">
@@ -43,16 +46,15 @@ export default function ManagementWarningModal({
         </div>
 
         <p className="text-sm text-hs-text-muted mb-5">
-          If this change breaks connectivity, it will be automatically reverted
-          after 60 seconds.
+          {t('settings.networkPage.managementWarning.autoRevertHint')}
         </p>
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onCancel}>
-            Cancel
+            {t('settings.networkPage.managementWarning.cancelButton')}
           </Button>
           <Button variant="danger" onClick={onProceed}>
-            I understand, proceed
+            {t('settings.networkPage.managementWarning.proceedButton')}
           </Button>
         </div>
       </div>

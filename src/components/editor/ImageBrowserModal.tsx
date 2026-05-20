@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Button from '@/components/ui/Button';
 import { useImageLibrary, type DirectoryInfo } from '@/hooks/useImageLibrary';
 import { editorFetch } from '@/lib/editor-fetch';
 import ImageSearchBrowser, { type BrowsePhoto, type SearchResult } from './ImageSearchBrowser';
+import { useTranslate } from '@/i18n';
 
 interface UnsplashPhoto {
   id: string;
@@ -15,16 +16,19 @@ interface UnsplashPhoto {
   downloadUrl: string;
 }
 
-const UNSPLASH_CATEGORIES = [
-  { label: 'Nature', query: 'nature landscape' },
-  { label: 'Mountains', query: 'mountains scenic' },
-  { label: 'Ocean', query: 'ocean sea coast' },
-  { label: 'Holidays', query: 'holiday celebration' },
-  { label: 'Birthday', query: 'birthday party' },
-  { label: 'Flowers', query: 'flowers botanical' },
-  { label: 'Seasons', query: 'seasons autumn winter' },
-  { label: 'Abstract', query: 'abstract gradient dark' },
-];
+// Module-level base list with English `query` keywords (Unsplash search terms;
+// the API expects English) and stable `key` slugs that map to translation
+// strings inside the component via `useMemo`.
+const UNSPLASH_CATEGORY_DEFS = [
+  { key: 'nature', query: 'nature landscape' },
+  { key: 'mountains', query: 'mountains scenic' },
+  { key: 'ocean', query: 'ocean sea coast' },
+  { key: 'holidays', query: 'holiday celebration' },
+  { key: 'birthday', query: 'birthday party' },
+  { key: 'flowers', query: 'flowers botanical' },
+  { key: 'seasons', query: 'seasons autumn winter' },
+  { key: 'abstract', query: 'abstract gradient dark' },
+] as const;
 
 interface ImageBrowserModalProps {
   mode: 'pick-image' | 'manage-directory';
@@ -41,9 +45,22 @@ export default function ImageBrowserModal({
   onSelectDirectory,
   onClose,
 }: ImageBrowserModalProps) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const lib = useImageLibrary({ initialDirectory });
   const [tab, setTab] = useState<'local' | 'unsplash'>('local');
   const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
+
+  // Translated category list. Categories are stable per-locale; rebuild only
+  // when `t` changes (i.e. on locale switch).
+  const unsplashCategories = useMemo(
+    () =>
+      UNSPLASH_CATEGORY_DEFS.map((c) => ({
+        label: t(`imageBrowserModal.unsplashCategories.${c.key}`),
+        query: c.query,
+      })),
+    [t],
+  );
 
   // Close on Escape
   useEffect(() => {
@@ -86,7 +103,7 @@ export default function ImageBrowserModal({
       `/api/unsplash?query=${encodeURIComponent(query)}&page=${pageNum}&per_page=16&orientation=portrait`
     );
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to search Unsplash');
+    if (!res.ok) throw new Error(data.error || t('imageBrowserModal.errors.searchUnsplash'));
 
     const unsplashPhotos: UnsplashPhoto[] = data.photos ?? [];
     const newCache = new Map<string, UnsplashPhoto>();
@@ -101,7 +118,7 @@ export default function ImageBrowserModal({
     });
     photoCacheRef.current = newCache;
     return { photos: browsePhotos, totalPages: data.totalPages ?? 1 };
-  }, []);
+  }, [t]);
 
   const handleUnsplashUsePhoto = useCallback(async (photo: BrowsePhoto) => {
     const original = photoCacheRef.current.get(photo.id);
@@ -117,13 +134,13 @@ export default function ImageBrowserModal({
         filename: `unsplash-${original.id}`,
       }),
     });
-    if (!res.ok) throw new Error('Failed to save image');
+    if (!res.ok) throw new Error(t('imageBrowsers.errors.saveImage'));
     const data = await res.json();
     if (data.path) {
       onSelectImage?.(data.path);
       onClose();
     }
-  }, [onSelectImage, onClose]);
+  }, [onSelectImage, onClose, t]);
 
   const currentDirInfo = lib.directories.find((d) => d.path === lib.selectedDir);
 
@@ -155,7 +172,7 @@ export default function ImageBrowserModal({
         <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-hs-text-primary">
-              Image Library
+              {t('imageBrowserModal.title')}
             </h2>
             {showTabs && (
               <div className="flex gap-0.5 bg-hs-card rounded-md p-0.5">
@@ -165,7 +182,7 @@ export default function ImageBrowserModal({
                     tab === 'local' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
                   }`}
                 >
-                  Local
+                  {t('imageBrowserModal.tabs.local')}
                 </button>
                 <button
                   onClick={() => setTab('unsplash')}
@@ -173,7 +190,7 @@ export default function ImageBrowserModal({
                     tab === 'unsplash' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
                   }`}
                 >
-                  Unsplash
+                  {t('imageBrowserModal.tabs.unsplash')}
                 </button>
               </div>
             )}
@@ -181,6 +198,7 @@ export default function ImageBrowserModal({
           <button
             onClick={onClose}
             className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none"
+            aria-label={t('modal.closeAriaLabel')}
           >
             &times;
           </button>
@@ -217,7 +235,7 @@ export default function ImageBrowserModal({
               loadingImages={lib.loadingImages}
               deletingImage={lib.deletingImage}
               onDeleteImage={lib.handleDeleteImage}
-              currentDirName={currentDirInfo?.name || 'All Photos'}
+              currentDirName={currentDirInfo?.name || t('imageBrowserModal.allPhotos')}
               selectedDir={lib.selectedDir}
               uploading={lib.uploading}
               uploadProgress={lib.uploadProgress}
@@ -230,11 +248,11 @@ export default function ImageBrowserModal({
         ) : (
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <ImageSearchBrowser
-              categories={UNSPLASH_CATEGORIES}
+              categories={unsplashCategories}
               onSearch={handleUnsplashSearch}
               onUsePhoto={handleUnsplashUsePhoto}
-              attribution="Photos by Unsplash — saved to your local library"
-              searchPlaceholder="Search Unsplash..."
+              attribution={t('imageBrowserModal.unsplashAttribution')}
+              searchPlaceholder={t('imageBrowserModal.unsplashSearchPlaceholder')}
               columns={4}
             />
           </div>
@@ -244,7 +262,7 @@ export default function ImageBrowserModal({
         {tab === 'local' && (
           <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
             <Button size="sm" onClick={onClose}>
-              Cancel
+              {tCore('actions.cancel')}
             </Button>
             <Button
               size="sm"
@@ -252,7 +270,9 @@ export default function ImageBrowserModal({
               onClick={handleConfirm}
               disabled={isConfirmDisabled}
             >
-              {mode === 'pick-image' ? 'Select Image' : 'Use This Folder'}
+              {mode === 'pick-image'
+                ? t('imageBrowserModal.confirmSelectImage')
+                : t('imageBrowserModal.confirmUseFolder')}
             </Button>
           </div>
         )}
@@ -290,16 +310,18 @@ function DirectorySidebar({
   onCreateFolder: () => void;
   newFolderInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   return (
     <div className="w-[180px] border-r border-hs-border-strong flex flex-col">
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {loadingDirs ? (
-          <p className="text-xs text-hs-text-faint p-2">Loading...</p>
+          <p className="text-xs text-hs-text-faint p-2">{tCore('loading')}</p>
         ) : (
           <>
             {/* Root (All Photos) */}
             <DirectoryButton
-              name="All Photos"
+              name={t('imageBrowserModal.allPhotos')}
               imageCount={directories.find((d) => d.path === '')?.imageCount ?? 0}
               selected={selectedDir === ''}
               onClick={() => onSelectDir('')}
@@ -337,14 +359,14 @@ function DirectorySidebar({
                   setNewFolderName('');
                 }
               }}
-              placeholder="Folder name"
+              placeholder={t('imageBrowserModal.newFolderPlaceholder')}
               className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-hs-card border border-hs-border-strong rounded text-hs-text-body"
             />
             <button
               onClick={onCreateFolder}
               className="px-1.5 py-0.5 text-xs bg-hs-accent hover:bg-hs-accent text-white rounded"
             >
-              OK
+              {t('imageBrowserModal.newFolderConfirm')}
             </button>
           </div>
         ) : (
@@ -352,7 +374,7 @@ function DirectorySidebar({
             onClick={() => setShowNewFolder(true)}
             className="w-full text-xs text-hs-text-muted hover:text-hs-text-body py-1"
           >
-            + New Folder
+            {t('imageBrowserModal.newFolderButton')}
           </button>
         )}
       </div>
@@ -393,6 +415,11 @@ function ImageGrid({
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   error: string | null;
 }) {
+  const t = useTranslate('editor');
+  const tCore = useTranslate('core');
+  const photoCountLabel = images.length === 1
+    ? t('imageBrowserModal.photoCountSingular', { count: images.length })
+    : t('imageBrowserModal.photoCountPlural', { count: images.length });
   return (
     <div className="flex-1 flex flex-col min-w-0">
       {/* Toolbar */}
@@ -401,7 +428,7 @@ function ImageGrid({
           {currentDirName}
           {!loadingImages && (
             <span className="text-hs-text-faint ml-1">
-              ({images.length} {images.length === 1 ? 'photo' : 'photos'})
+              ({photoCountLabel})
             </span>
           )}
         </span>
@@ -419,7 +446,7 @@ function ImageGrid({
             variant="danger"
             onClick={onDeleteFolder}
           >
-            Delete Folder
+            {t('imageBrowserModal.deleteFolderButton')}
           </Button>
         )}
         <Button
@@ -428,7 +455,9 @@ function ImageGrid({
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          {uploading ? uploadProgress || 'Uploading...' : 'Upload Photos'}
+          {uploading
+            ? (uploadProgress || t('imageBrowserModal.uploadingButton'))
+            : t('imageBrowserModal.uploadButton')}
         </Button>
       </div>
 
@@ -436,11 +465,11 @@ function ImageGrid({
       <div className="flex-1 overflow-y-auto p-3">
         {loadingImages ? (
           <div className="flex items-center justify-center h-32">
-            <p className="text-xs text-hs-text-faint">Loading images...</p>
+            <p className="text-xs text-hs-text-faint">{t('imageBrowserModal.loadingImages')}</p>
           </div>
         ) : images.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 gap-2">
-            <p className="text-xs text-hs-text-faint">No photos yet. Upload some!</p>
+            <p className="text-xs text-hs-text-faint">{t('imageBrowserModal.emptyPhotos')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -469,9 +498,10 @@ function ImageGrid({
                   }}
                   disabled={deletingImage === img}
                   className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                  title="Delete"
+                  title={tCore('actions.delete')}
+                  aria-label={tCore('actions.delete')}
                 >
-                  {deletingImage === img ? '...' : '\u00d7'}
+                  {deletingImage === img ? '...' : '×'}
                 </button>
               </div>
             ))}

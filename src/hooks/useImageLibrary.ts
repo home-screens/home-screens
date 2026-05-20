@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 
 export interface DirectoryInfo {
@@ -55,6 +56,7 @@ interface UseImageLibraryReturn {
 }
 
 export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): UseImageLibraryReturn {
+  const t = useTranslate('core');
   const [directories, setDirectories] = useState<DirectoryInfo[]>([]);
   const [selectedDir, setSelectedDir] = useState(initialDirectory);
   const [images, setImages] = useState<string[]>([]);
@@ -102,15 +104,15 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setImages(Array.isArray(data) ? data : []);
       } else {
         setImages([]);
-        if (!preserveError) setError('Failed to load images');
+        if (!preserveError) setError(t('errors.loadImagesFailed'));
       }
     } catch {
       if (id !== fetchIdRef.current) return;
       setImages([]);
-      if (!preserveError) setError('Failed to load images');
+      if (!preserveError) setError(t('errors.loadImagesFailed'));
     }
     if (id === fetchIdRef.current) setLoadingImages(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchDirectories();
@@ -155,7 +157,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
           hadSuccess = true;
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed');
+        setError(err instanceof Error ? err.message : t('errors.uploadFailed'));
         hadError = true;
       }
     }
@@ -169,7 +171,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       fetchImages(selectedDir, hadError);  // preserve error if some uploads failed
       fetchDirectories();
     }
-  }, [selectedDir, fetchImages, fetchDirectories]);
+  }, [selectedDir, fetchImages, fetchDirectories, t]);
 
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
     // Extract filename from serve URL
@@ -220,12 +222,12 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setSelectedDir(data.path);
       } else {
         const data = await res.json();
-        setError(data.error || 'Failed to create folder');
+        setError(data.error || t('errors.createFolderFailed'));
       }
     } catch {
-      setError('Failed to create folder');
+      setError(t('errors.createFolderFailed'));
     }
-  }, [newFolderName, selectedDir, fetchDirectories]);
+  }, [newFolderName, selectedDir, fetchDirectories, t]);
 
   const handleDeleteFolder = useCallback(async () => {
     if (!selectedDir) return;
@@ -240,12 +242,12 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         fetchDirectories();
       } else {
         const data = await res.json();
-        setError(data.error || 'Failed to delete folder');
+        setError(data.error || t('errors.deleteFolderFailed'));
       }
     } catch {
-      setError('Failed to delete folder');
+      setError(t('errors.deleteFolderFailed'));
     }
-  }, [selectedDir, fetchDirectories]);
+  }, [selectedDir, fetchDirectories, t]);
 
   return {
     directories,

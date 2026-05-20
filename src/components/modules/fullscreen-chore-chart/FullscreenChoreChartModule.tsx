@@ -5,8 +5,8 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
-import { DAY_NAMES_FULL } from '@/lib/meal-constants';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreToast, { type ToastItem } from './ChoreToast';
 import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';
@@ -41,6 +41,8 @@ export default function FullscreenChoreChartModule({
   timezone,
 }: FullscreenChoreChartModuleProps) {
   const { containerRef, dims } = useFullscreenDims();
+  const t = useTranslate('modules');
+  const locale = useFormattingLocale();
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
   const theme = getThemeTokens(themeId);
@@ -57,11 +59,11 @@ export default function FullscreenChoreChartModule({
   const { todayAssignments, memberStats, weekData, members, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
-  // configured IANA timezone — used by `getCurrentTimeOfDay`/DAY_NAMES_FULL
-  // which read `.getHours()`/`.getDay()`. `formatDateInTZ` further down
-  // takes a real UTC instant (`new Date()`) so it can do its own zone
-  // shift via `Intl.DateTimeFormat`; passing the shifted Date would
-  // double-shift and yield the wrong day near midnight.
+  // configured IANA timezone — used by `getCurrentTimeOfDay` which reads
+  // `.getHours()`. `formatDateInTZ` further down takes a real UTC instant
+  // (`new Date()`) so it can do its own zone shift via `Intl.DateTimeFormat`;
+  // passing the shifted Date would double-shift and yield the wrong day
+  // near midnight.
   const tzNow = createTZDate(timezone);
   const currentTod = getCurrentTimeOfDay(tzNow.getHours());
 
@@ -96,10 +98,10 @@ export default function FullscreenChoreChartModule({
         memberName: r.memberName,
         memberColor: member?.color ?? '#a3a3a3',
         wasCompleted: true,
-        verb: 'redeemed',
+        verb: t('fullscreen-chore-chart.verbs.redeemed'),
       }]);
     }
-  }, [recentRedemptions, members]);
+  }, [recentRedemptions, members, t]);
 
   // ── Rewards Store view switching ──
   const [showRewardsOverride, setShowRewardsOverride] = useState(false);
@@ -141,8 +143,8 @@ export default function FullscreenChoreChartModule({
   // Date — `tzNow.getDay()` is correct because shifted-Date local-time
   // methods read in target zone, but `formatDateInTZ` needs a real UTC
   // instant so its internal `Intl` shift doesn't double-apply.
-  const dayName = DAY_NAMES_FULL[tzNow.getDay()];
-  const dateStr = formatDateInTZ(new Date(), timezone, { month: 'long', day: 'numeric', year: 'numeric' });
+  const dayName = formatDateInTZ(new Date(), timezone, { weekday: 'long' }, locale);
+  const dateStr = formatDateInTZ(new Date(), timezone, { month: 'long', day: 'numeric', year: 'numeric' }, locale);
 
   // Member lookup
   const memberMap = useMemo(() => {
@@ -249,7 +251,7 @@ export default function FullscreenChoreChartModule({
                     flexShrink: 0,
                   }}
                 >
-                  ★ Rewards
+                  ★ {t('fullscreen-chore-chart.rewardsButton')}
                 </button>
               )}
             </div>
@@ -275,7 +277,7 @@ export default function FullscreenChoreChartModule({
                   {overallPct}<span style={{ fontSize: s * 1.2, color: 'var(--fcc-text-2)' }}>%</span>
                 </div>
                 <div style={{ fontSize: s * 0.85, fontWeight: 500, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Complete
+                  {t('fullscreen-chore-chart.complete')}
                 </div>
                 {config.showRewardsButton && (
                   <button
@@ -293,7 +295,7 @@ export default function FullscreenChoreChartModule({
                       boxShadow: 'var(--fcc-card-shadow)',
                     }}
                   >
-                    ★ Rewards
+                    ★ {t('fullscreen-chore-chart.rewardsButton')}
                   </button>
                 )}
               </div>
@@ -313,7 +315,7 @@ export default function FullscreenChoreChartModule({
         <div style={{ flex: 1, display: 'flex', gap: 1, background: 'var(--fcc-surface)', minHeight: 0, overflow: 'hidden' }}>
           {displayTods.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--fcc-bg)' }}>
-              <div style={{ textAlign: 'center', color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>No chores today</div>
+              <div style={{ textAlign: 'center', color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>{t('fullscreen-chore-chart.noChoresToday')}</div>
             </div>
           ) : displayTods.map((tod) => {
             const rows = displayGroups.get(tod) ?? [];
@@ -343,7 +345,7 @@ export default function FullscreenChoreChartModule({
             );
           })}
           {displayTods.length === 0 && (
-            <div style={{ textAlign: 'center', padding: `${s * 8}px 0`, color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>No chores today</div>
+            <div style={{ textAlign: 'center', padding: `${s * 8}px 0`, color: 'var(--fcc-text-2)', fontSize: s * 1.5 }}>{t('fullscreen-chore-chart.noChoresToday')}</div>
           )}
         </div>
       )}
@@ -372,21 +374,26 @@ export default function FullscreenChoreChartModule({
         }}>
           {config.showPoints && (
             <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-3)', fontWeight: 500 }}>
-              Weekly tickets: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
-                {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0)} / {Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPointsTotal, 0)}
+              {t('fullscreen-chore-chart.weeklyTickets')} <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
+                {t('fullscreen-chore-chart.weeklyTicketsValue', {
+                  earned: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0),
+                  total: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPointsTotal, 0),
+                })}
               </span>
             </div>
           )}
           {config.showStreaks && (
             <div style={{ fontSize: s * 0.9, color: 'var(--fcc-text-3)', fontWeight: 500 }}>
-              Best streak: <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
+              {t('fullscreen-chore-chart.bestStreakLabel')} <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
                 {(() => {
                   let best = { name: '', streak: 0 };
                   for (const m of members) {
                     const ms = memberStats.get(m.id);
                     if (ms && ms.streak > best.streak) best = { name: m.name, streak: ms.streak };
                   }
-                  return best.streak > 0 ? `${best.name} — ${best.streak} days` : 'None';
+                  return best.streak > 0
+                    ? t('fullscreen-chore-chart.bestStreakValue', { name: best.name, count: best.streak })
+                    : t('fullscreen-chore-chart.bestStreakNone');
                 })()}
               </span>
             </div>

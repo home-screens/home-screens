@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 
 interface UseGoogleDeviceFlowOptions {
@@ -18,6 +19,7 @@ interface UseGoogleDeviceFlowReturn {
 }
 
 export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): UseGoogleDeviceFlowReturn {
+  const t = useTranslate('core');
   const [userCode, setUserCode] = useState<string | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
   const [deviceFlowError, setDeviceFlowError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
       if (cancelledRef.current) return;
       if (Date.now() > deadline) {
         setDeviceFlowPolling(false);
-        setDeviceFlowError('Code expired. Please try again.');
+        setDeviceFlowError(t('errors.codeExpired'));
         setUserCode(null);
         return;
       }
@@ -71,7 +73,7 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
           return;
         }
         setDeviceFlowPolling(false);
-        setDeviceFlowError(data.error || 'Authorization failed');
+        setDeviceFlowError(data.error || t('errors.authorizationFailed'));
         setUserCode(null);
       } catch {
         if (!cancelledRef.current) scheduleNext(poll);
@@ -79,7 +81,7 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
     };
 
     scheduleNext(poll);
-  }, [onSuccess]);
+  }, [onSuccess, t]);
 
   const startDeviceFlow = useCallback(async () => {
     cancelledRef.current = true;
@@ -92,16 +94,16 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
       const data = await res.json();
       if (!res.ok) {
         if (data.clientIdHint) setClientIdHint(data.clientIdHint);
-        throw new Error(data.error || 'Failed to start device flow');
+        throw new Error(data.error || t('errors.deviceFlowFailed'));
       }
       setUserCode(data.user_code);
       setVerificationUrl(data.verification_url);
       setDeviceFlowPolling(true);
       pollForToken(data.device_code, data.interval || 5, data.expires_in || 1800);
     } catch (err) {
-      setDeviceFlowError(err instanceof Error ? err.message : 'Failed to start sign-in');
+      setDeviceFlowError(err instanceof Error ? err.message : t('errors.startSignInFailed'));
     }
-  }, [pollForToken]);
+  }, [pollForToken, t]);
 
   const clearError = useCallback(() => {
     setDeviceFlowError(null);

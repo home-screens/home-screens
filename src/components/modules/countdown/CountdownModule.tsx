@@ -4,6 +4,7 @@ import { useState, useEffect, useId, type ComponentType } from 'react';
 import type { CountdownConfig, CountdownView, ModuleStyle } from '@/types/config';
 import { usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { ModuleEmptyState } from '../ModuleStates';
 import { processEvents } from './countdown-utils';
@@ -29,6 +30,7 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   const basePx = 28 * scale;
   const view = config.view ?? 'all';
   const { register, unregister } = usePageBackground();
+  const t = useTranslate('modules');
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -60,7 +62,7 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
 
   if (events.length === 0) {
-    return <ModuleEmptyState style={style} message="No countdowns set" />;
+    return <ModuleEmptyState style={style} message={t('countdown.noEvents')} />;
   }
 
   return (

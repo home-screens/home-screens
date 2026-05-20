@@ -7,6 +7,7 @@ import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
+import { useTranslate } from '@/i18n';
 import { isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { resolveProvider } from '@/components/display/ScreenRenderer';
@@ -104,12 +105,19 @@ export default function DraggableModule({
   settings: PreviewSettings | null;
   now: Date;
 }) {
+  const t = useTranslate('editor');
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `module-${mod.id}`,
     data: { source: 'canvas', moduleId: mod.id },
   });
 
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+
+  const isPluginModule = mod.type.startsWith('plugin:');
+  const definition = getModuleDefinition(mod.type);
+  const labelText = isPluginModule
+    ? (definition?.label || mod.type)
+    : t(`registry.types.${mod.type}`);
 
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
@@ -192,7 +200,7 @@ export default function DraggableModule({
       </div>
       {/* Type label overlay */}
       <div className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white" style={{ fontSize: Math.max(7, 9 * scale) }}>
-        {getModuleDefinition(mod.type)?.label || mod.type}
+        {labelText}
       </div>
       {/* Schedule indicator badge */}
       {mod.schedule && (
@@ -202,7 +210,7 @@ export default function DraggableModule({
               ? 'bg-hs-accent/70 text-white'
               : 'bg-amber-600/70 text-amber-200'
           }`}
-          title={isModuleVisible(mod.schedule, now) ? 'Scheduled — currently active' : 'Scheduled — currently inactive'}
+          title={isModuleVisible(mod.schedule, now) ? t('draggableModule.scheduledActiveTitle') : t('draggableModule.scheduledInactiveTitle')}
         >
           <Clock style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
         </div>

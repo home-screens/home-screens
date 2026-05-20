@@ -11,16 +11,8 @@ import {
   parseISO,
   type DayEntry,
 } from '@/components/modules/chore-chart/types';
-
-/** Single-letter day-of-week labels, 0=Sunday … 6=Saturday. */
-const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-const MONTH_LONG = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
-const DATE_LONG = new Intl.DateTimeFormat('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-});
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 
 interface ChoreHistoryNavProps {
   /** Currently-viewed date as YYYY-MM-DD. */
@@ -43,6 +35,36 @@ export default function ChoreHistoryNav({
   accentColor,
   onSelect,
 }: ChoreHistoryNavProps) {
+  const locale = useFormattingLocale();
+  const t = useTranslate('remote');
+
+  // Single-letter day-of-week labels (0=Sunday … 6=Saturday) derived from
+  // the formatting locale's short day names. Taking the first character of
+  // `EEE` keeps the strip's narrow 52px tiles tight while still localizing
+  // — German "Mo/Di/Mi" collapses to "M/D/M", matching calendar conventions.
+  const dayLetters = useMemo(
+    () => getLocalizedDayNames(locale, 'short').map((name) => name.charAt(0)),
+    [locale],
+  );
+
+  // Locale-aware formatters — re-derived only when the locale changes.
+  // Keeping them here (instead of module scope) is what makes the
+  // surrounding tile/banner labels honor the household's
+  // formattingLocale at runtime instead of freezing at import time.
+  const monthLong = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }),
+    [locale],
+  );
+  const dateLong = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+    [locale],
+  );
+
   // Earliest visible date = realToday − (CHORE_HISTORY_DAYS − 1)
   const earliestDate = useMemo(
     () => addDaysISO(realToday, -(CHORE_HISTORY_DAYS - 1)),
@@ -59,13 +81,13 @@ export default function ChoreHistoryNav({
   const dayLabels = useMemo(() => {
     const map = new Map<string, string>();
     for (const day of days) {
-      map.set(day.date, DATE_LONG.format(parseISO(day.date)));
+      map.set(day.date, dateLong.format(parseISO(day.date)));
     }
     return map;
-  }, [days]);
+  }, [days, dateLong]);
 
   // Month label derived from viewingDate (not realToday) so the header follows navigation.
-  const monthLabel = useMemo(() => MONTH_LONG.format(parseISO(viewingDate)), [viewingDate]);
+  const monthLabel = useMemo(() => monthLong.format(parseISO(viewingDate)), [viewingDate, monthLong]);
 
   // Prev/next-month disabled state
   const prevDisabled = useMemo(() => {
@@ -145,7 +167,7 @@ export default function ChoreHistoryNav({
             type="button"
             onClick={handlePrevMonth}
             disabled={prevDisabled}
-            aria-label="Previous month"
+            aria-label={t('choreHistoryNav.prevMonthAriaLabel')}
             className="press-scale"
             style={{
               width: 44,
@@ -168,7 +190,7 @@ export default function ChoreHistoryNav({
             type="button"
             onClick={handleNextMonth}
             disabled={nextDisabled}
-            aria-label="Next month"
+            aria-label={t('choreHistoryNav.nextMonthAriaLabel')}
             className="press-scale"
             style={{
               width: 44,
@@ -191,7 +213,7 @@ export default function ChoreHistoryNav({
             <button
               type="button"
               onClick={() => onSelect(realToday)}
-              aria-label="Jump to today"
+              aria-label={t('choreHistoryNav.jumpToTodayAriaLabel')}
               className="press-scale"
               style={{
                 padding: '0 14px',
@@ -208,7 +230,7 @@ export default function ChoreHistoryNav({
                 alignItems: 'center',
               }}
             >
-              Today
+              {t('choreHistoryNav.todayButton')}
             </button>
           )}
         </div>
@@ -244,8 +266,12 @@ export default function ChoreHistoryNav({
           const numColor = isSelected ? accentColor : 'var(--hs-text-primary)';
           const longLabel = dayLabels.get(day.date) ?? '';
           const ariaLabel = hasData
-            ? `View ${longLabel}, ${day.earned} of ${day.total} kids earned all their chores`
-            : `View ${longLabel}, no chores`;
+            ? t('choreHistoryNav.tileAriaLabel', {
+                date: longLabel,
+                earned: day.earned,
+                total: day.total,
+              })
+            : t('choreHistoryNav.tileAriaLabelEmpty', { date: longLabel });
 
           return (
             <button
@@ -290,7 +316,7 @@ export default function ChoreHistoryNav({
                   lineHeight: 1,
                 }}
               >
-                {DAY_LETTERS[day.dayOfWeek]}
+                {dayLetters[day.dayOfWeek]}
               </span>
               <span
                 style={{

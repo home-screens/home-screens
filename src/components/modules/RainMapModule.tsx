@@ -6,6 +6,8 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { rainMapUrl } from '@/lib/fetch-keys';
+import { useTranslate } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 
 interface RainMapModuleProps {
   config: RainMapConfig;
@@ -56,12 +58,12 @@ const MAP_BG: Record<string, string> = {
   standard: '#f2efe9',
 };
 
-function formatFrameTime(unixTime: number): string {
+function formatFrameTime(unixTime: number, t: TranslateFn): string {
   const now = Date.now() / 1000;
   const diffMin = Math.round((unixTime - now) / 60);
-  if (Math.abs(diffMin) <= 1) return 'Now';
-  if (diffMin < 0) return `${Math.abs(diffMin)}m ago`;
-  return `+${diffMin}m`;
+  if (Math.abs(diffMin) <= 1) return t('rain-map.now');
+  if (diffMin < 0) return t('rain-map.minutesAgo', { minutes: Math.abs(diffMin) });
+  return t('rain-map.minutesAhead', { minutes: diffMin });
 }
 
 export default function RainMapModule({
@@ -70,6 +72,7 @@ export default function RainMapModule({
   latitude,
   longitude,
 }: RainMapModuleProps) {
+  const t = useTranslate('modules');
   const lat = config.latitude || latitude || 40;
   const lon = config.longitude || longitude || -74;
   const zoom = config.zoom ?? 6;
@@ -229,11 +232,11 @@ export default function RainMapModule({
   }, [frames, data?.host, radarTileGrid.tiles, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
 
   if (data === null) {
-    return <ModuleLoadingState style={style} message="Loading rain map…" error={error} />;
+    return <ModuleLoadingState style={style} message={t('rain-map.loading')} error={error} />;
   }
 
   if (!frames.length) {
-    return <ModuleEmptyState style={style} message="No radar data available" />;
+    return <ModuleEmptyState style={style} message={t('rain-map.noRadarData')} />;
   }
 
   const currentFrame = frames[displayIndex];
@@ -318,7 +321,7 @@ export default function RainMapModule({
         {/* Timestamp */}
         {showTimestamp && (
           <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded z-10 font-mono">
-            {formatFrameTime(currentFrame.time)}
+            {formatFrameTime(currentFrame.time, t)}
           </div>
         )}
 

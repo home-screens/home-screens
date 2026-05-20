@@ -10,6 +10,7 @@ import {
   groupTasks,
 } from './todoist-utils';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 
 export default function BoardView({
   tasks,
@@ -22,10 +23,12 @@ export default function BoardView({
   now: Date;
   onComplete?: (taskId: string) => void;
 }) {
+  const tr = useTranslate('modules');
+  const locale = useFormattingLocale();
   const groupBy = config.groupBy === 'none' ? 'project' : config.groupBy;
   const allGroups = useMemo(
-    () => groupTasks(tasks, groupBy as TodoistGroupBy, now),
-    [tasks, groupBy, now],
+    () => groupTasks(tasks, groupBy as TodoistGroupBy, now, tr),
+    [tasks, groupBy, now, tr],
   );
   // Cap at 3 columns to avoid broken multi-row layouts in fixed-height widget
   const groups = allGroups.slice(0, 3);
@@ -68,7 +71,7 @@ export default function BoardView({
           {/* Task cards */}
           <div className="flex flex-col gap-1 p-1.5 overflow-hidden flex-1">
             {group.tasks.map((t) => {
-              const dueInfo = formatDueDate(t.due, now);
+              const dueInfo = formatDueDate(t.due, now, tr, locale);
               const isOverdue = t.due
                 ? daysBetween(
                     new Date(t.due.datetime ?? t.due.date + 'T23:59:59'),
@@ -100,7 +103,7 @@ export default function BoardView({
                         borderColor: visiblePriorityColor,
                         backgroundColor: 'transparent',
                       }}
-                      aria-label={`Complete: ${t.content}`}
+                      aria-label={tr('todoist.completeAriaLabel', { content: t.content })}
                     />
                   ) : (
                     <div

@@ -1,10 +1,16 @@
-import { SLOT_META, DAY_NAMES_SHORT, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useMemo } from 'react';
+import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 
 export default function WeekView({
   settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
 }: MealPlannerViewProps) {
+  const t = useTranslate('modules');
+  const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
+  const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
   const weekStartDay = settings.weekStartDay;
   const { start } = getWeekRange(now, weekStartDay);
   const weekDates = getWeekDatesForRange(start, weekStartDay);
@@ -13,8 +19,7 @@ export default function WeekView({
   // Compute display range
   const weekStartDate = new Date(weekDates[0] + 'T12:00:00');
   const weekEndDate = new Date(weekDates[6] + 'T12:00:00');
-  const formatShort = (d: Date) =>
-    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatShort = (d: Date) => formatDateSync(d, 'MMM d', { locale });
   const dateRange = `${formatShort(weekStartDate)} – ${formatShort(weekEndDate)}`;
 
   const { filled, total, pct } = countPlanned(plan, weekDates.length * slots.length);
@@ -29,7 +34,7 @@ export default function WeekView({
         flexShrink: 0,
       }}>
         <div style={{ fontFamily: headerFont, fontSize: s * 2.8, fontWeight: 400, color: 'var(--fmp-text)' }}>
-          This Week&rsquo;s Meals
+          {t('fullscreen-meal-planner.thisWeeksMeals')}
         </div>
         <div style={{ fontSize: s * 1.1, color: 'var(--fmp-text-3)', marginTop: s * 0.3 }}>
           {dateRange}, {weekStartDate.getFullYear()}
@@ -62,10 +67,10 @@ export default function WeekView({
                   fontSize: s * 1.2, fontWeight: 700, textTransform: 'uppercase' as const,
                   letterSpacing: '0.06em', color: isToday ? 'var(--fmp-accent)' : 'var(--fmp-text-2)',
                 }}>
-                  {DAY_NAMES_SHORT[day]}
+                  {dayNamesShort[day]}
                 </span>
                 <span style={{ fontSize: s * 1.1, color: 'var(--fmp-text-3)', fontWeight: 500 }}>
-                  {dayDate.toLocaleDateString('en-US', { month: 'short' })} {dateNum}
+                  {formatDateSync(dayDate, 'MMM', { locale })} {dateNum}
                 </span>
                 {isToday && (
                   <span style={{
@@ -75,7 +80,7 @@ export default function WeekView({
                     textTransform: 'uppercase' as const, letterSpacing: '0.08em',
                     marginLeft: 'auto',
                   }}>
-                    Today
+                    {tCore('today')}
                   </span>
                 )}
               </div>
@@ -94,7 +99,7 @@ export default function WeekView({
                       textTransform: 'uppercase' as const, letterSpacing: '0.06em',
                       color: meta.color, opacity: 0.85,
                     }}>
-                      {meta.label}
+                      {t(getMealSlotLabelKey(slot))}
                     </span>
                   );
 
@@ -165,7 +170,7 @@ export default function WeekView({
                       )}
                       {showPrepTime && meal.prepTime && (
                         <span style={{ fontSize: s * 0.9, color: 'var(--fmp-text-3)' }}>
-                          {meal.prepTime} min
+                          {t('fullscreen-meal-planner.prepTimeMin', { minutes: meal.prepTime })}
                         </span>
                       )}
                     </div>
@@ -183,7 +188,7 @@ export default function WeekView({
         display: 'flex', alignItems: 'center', gap: s * 1,
       }}>
         <span style={{ fontSize: s * 1, color: 'var(--fmp-text-3)', fontWeight: 500, whiteSpace: 'nowrap' as const }}>
-          {filled} of {total} meals planned
+          {t('fullscreen-meal-planner.mealsPlannedCount', { filled, total })}
         </span>
         <div style={{
           width: s * 6, height: s * 0.25, background: 'var(--fmp-border-sub)',
