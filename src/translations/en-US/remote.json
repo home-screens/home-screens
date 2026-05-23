@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Add family members first",
       "emptyHintAddChores": "Add chores and assign them to members",
       "editAriaLabel": "Edit {name}",
-      "addButton": "Add Chore",
-      "frequencyDaily": "Daily",
-      "frequencyWeekly": "Weekly",
-      "frequencyBiweekly": "Every Other Week",
-      "frequencyOnce": "One time · {date}",
-      "ticketCountSingular": "{n} ticket",
-      "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "rotate daily",
-      "rotationWeekly": "rotate weekly",
-      "rotationSchedule": "schedule",
-      "unknownAssignee": "?"
+      "addButton": "Add Chore"
     },
     "memberForm": {
       "titleNew": "New Member",
@@ -158,33 +148,15 @@
       "assignToLabel": "Assign to",
       "weeklyScheduleLabel": "Weekly Schedule",
       "coverageLabel": "Coverage: {covered} of 7 days",
-      "coverageUncovered": "· {days} uncovered",
       "rotationLabel": "Rotation",
       "addSubmit": "Add Chore",
       "saveSubmit": "Save Chore",
-      "deleteButton": "Delete Chore",
-      "validation": {
-        "enterName": "Enter a chore name",
-        "addPersonToSchedule": "Add at least one person to the schedule",
-        "selectAtLeastOnePerson": "Select at least one person"
-      }
+      "deleteButton": "Delete Chore"
     },
     "choreDelete": {
       "title": "Delete \"{name}\"?",
       "description": "This chore and all its completion history will be removed.",
       "confirmLabel": "Delete Chore"
-    },
-    "frequency": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One Time"
-    },
-    "rotation": {
-      "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotate Daily",
-      "rotateWeekly": "Rotate Weekly",
-      "schedule": "Schedule"
     }
   },
   "mealsTab": {

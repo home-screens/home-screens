@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Adicione membros da família primeiro",
       "emptyHintAddChores": "Adicione tarefas e atribua-as aos membros",
       "editAriaLabel": "Editar {name}",
-      "addButton": "Adicionar tarefa",
-      "frequencyDaily": "Diária",
-      "frequencyWeekly": "Semanal",
-      "frequencyBiweekly": "A cada duas semanas",
-      "frequencyOnce": "Uma vez · {date}",
-      "ticketCountSingular": "{n} ticket",
-      "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "rodízio diário",
-      "rotationWeekly": "rodízio semanal",
-      "rotationSchedule": "agenda",
-      "unknownAssignee": "?"
+      "addButton": "Adicionar tarefa"
     },
     "memberForm": {
       "titleNew": "Novo membro",
@@ -158,33 +148,15 @@
       "assignToLabel": "Atribuir a",
       "weeklyScheduleLabel": "Agenda semanal",
       "coverageLabel": "Cobertura: {covered} de 7 dias",
-      "coverageUncovered": "· {days} sem cobertura",
       "rotationLabel": "Rodízio",
       "addSubmit": "Adicionar tarefa",
       "saveSubmit": "Salvar tarefa",
-      "deleteButton": "Excluir tarefa",
-      "validation": {
-        "enterName": "Digite um nome para a tarefa",
-        "addPersonToSchedule": "Adicione pelo menos uma pessoa à agenda",
-        "selectAtLeastOnePerson": "Selecione pelo menos uma pessoa"
-      }
+      "deleteButton": "Excluir tarefa"
     },
     "choreDelete": {
       "title": "Excluir \"{name}\"?",
       "description": "Esta tarefa e todo o histórico de conclusão serão removidos.",
       "confirmLabel": "Excluir tarefa"
-    },
-    "frequency": {
-      "daily": "Diária",
-      "weekly": "Semanal",
-      "biweekly": "A cada duas semanas",
-      "once": "Uma vez"
-    },
-    "rotation": {
-      "fixed": "Fixo (todos fazem)",
-      "rotateDaily": "Rodízio diário",
-      "rotateWeekly": "Rodízio semanal",
-      "schedule": "Agenda"
     }
   },
   "mealsTab": {

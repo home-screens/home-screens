@@ -27,7 +27,11 @@ import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
-import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import {
+  buildChoreSummaryLine,
+  getChoreValidationHintKind,
+} from '@/components/modules/chore-chart/chore-form-presentation';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
@@ -163,33 +167,6 @@ function MemberFormOverlay({
 
 // ── ChoreFormOverlay ──────────────────────────────────────────────
 
-/**
- * Discriminated kind for the chore-form validation hint. We compute it
- * locally inside the overlay (rather than reading the English literal
- * from `form-hooks.ts`, which is out of i18n scope for this task) so
- * the rendered hint always resolves through `t()`.
- */
-type ChoreValidationHintKind =
-  | 'enterName'
-  | 'addPersonToSchedule'
-  | 'selectAtLeastOnePerson';
-
-function getChoreValidationHintKind(args: {
-  name: string;
-  rotation: ChoreRotation;
-  scheduleHasAssignment: boolean;
-  assigneeIdsLength: number;
-}): ChoreValidationHintKind | null {
-  if (!args.name.trim()) return 'enterName';
-  if (args.rotation === 'schedule' && !args.scheduleHasAssignment) {
-    return 'addPersonToSchedule';
-  }
-  if (args.rotation !== 'schedule' && args.assigneeIdsLength === 0) {
-    return 'selectAtLeastOnePerson';
-  }
-  return null;
-}
-
 function ChoreFormOverlay({
   initial,
   members,
@@ -204,6 +181,7 @@ function ChoreFormOverlay({
   onBack: () => void;
 }) {
   const t = useTranslate('remote');
+  const tEditor = useTranslate('editor');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale, not the UI language.
@@ -246,21 +224,21 @@ function ChoreFormOverlay({
   // every keystroke that re-renders ChoreFormOverlay.
   const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
     () => ({
-      daily: t('choresManage.frequency.daily'),
-      weekly: t('choresManage.frequency.weekly'),
-      biweekly: t('choresManage.frequency.biweekly'),
-      once: t('choresManage.frequency.once'),
+      daily: tEditor('choreChartModal.frequency.daily'),
+      weekly: tEditor('choreChartModal.frequency.weekly'),
+      biweekly: tEditor('choreChartModal.frequency.biweekly'),
+      once: tEditor('choreChartModal.frequency.once'),
     }),
-    [t],
+    [tEditor],
   );
   const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
     () => ({
-      fixed: t('choresManage.rotation.fixed'),
-      'rotate-daily': t('choresManage.rotation.rotateDaily'),
-      'rotate-weekly': t('choresManage.rotation.rotateWeekly'),
-      schedule: t('choresManage.rotation.schedule'),
+      fixed: tEditor('choreChartModal.rotation.fixed'),
+      'rotate-daily': tEditor('choreChartModal.rotation.rotateDaily'),
+      'rotate-weekly': tEditor('choreChartModal.rotation.rotateWeekly'),
+      schedule: tEditor('choreChartModal.rotation.schedule'),
     }),
-    [t],
+    [tEditor],
   );
 
   return (
@@ -557,11 +535,14 @@ function ChoreFormOverlay({
             <div style={{ marginTop: 10, fontSize: 11, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>{t('choresManage.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
               {scheduleDays.length < 7 && (
-                <span style={{ color: 'var(--hs-warning)', fontSize: 10 }}>
-                  {t('choresManage.choreForm.coverageUncovered', {
-                    days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
-                  })}
-                </span>
+                <>
+                  {' · '}
+                  <span style={{ color: 'var(--hs-warning)', fontSize: 10 }}>
+                    {tEditor('choreChartModal.choreForm.coverageUncovered', {
+                      days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
+                    })}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -591,7 +572,7 @@ function ChoreFormOverlay({
         {/* Validation hint */}
         {validationHintKind && (
           <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
-            {t(`choresManage.choreForm.validation.${validationHintKind}`)}
+            {tEditor(`choreChartModal.choreForm.validation.${validationHintKind}`)}
           </p>
         )}
 
@@ -658,35 +639,6 @@ function ChoreFormOverlay({
   );
 }
 
-// ── Chore summary line builder ────────────────────────────────────
-
-/**
- * Compose the per-chore secondary line ("Daily · Morning · 2 tickets").
- *
- * Frequency, time-of-day, and ticket pluralization each route through
- * `t()` independently; the joiner ("·") stays a verbatim glyph.
- */
-function buildChoreSummaryLine(args: {
-  chore: ChoreDefinition;
-  t: TranslateFn;
-  tModules: TranslateFn;
-}): string {
-  const { chore, t, tModules } = args;
-  let frequencyLabel: string;
-  if (chore.frequency === 'daily') frequencyLabel = t('choresManage.chores.frequencyDaily');
-  else if (chore.frequency === 'biweekly') frequencyLabel = t('choresManage.chores.frequencyBiweekly');
-  else if (chore.frequency === 'once') {
-    frequencyLabel = t('choresManage.chores.frequencyOnce', { date: chore.specificDate ?? '' });
-  } else frequencyLabel = t('choresManage.chores.frequencyWeekly');
-
-  const timeOfDayLabel = tModules(getTimeOfDayLabelKey(chore.timeOfDay));
-  const ticketsLabel = chore.points === 1
-    ? t('choresManage.chores.ticketCountSingular', { n: chore.points })
-    : t('choresManage.chores.ticketCountPlural', { n: chore.points });
-
-  return `${frequencyLabel} · ${timeOfDayLabel} · ${ticketsLabel}`;
-}
-
 // ── Main Exported Component ───────────────────────────────────────
 
 interface ChoresManageViewProps {
@@ -703,6 +655,7 @@ export default function ChoresManageView({
   onChoresChange,
 }: ChoresManageViewProps) {
   const t = useTranslate('remote');
+  const tEditor = useTranslate('editor');
   const tModules = useTranslate('modules');
   const [section, setSection] = useState<'members' | 'chores'>('chores');
   const [overlay, setOverlay] = useState<
@@ -938,9 +891,9 @@ export default function ChoresManageView({
           {chores.map((chore) => {
             let rotationLabel: string | null = null;
             if ((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') {
-              if (chore.rotation === 'rotate-daily') rotationLabel = t('choresManage.chores.rotationDaily');
-              else if (chore.rotation === 'rotate-weekly') rotationLabel = t('choresManage.chores.rotationWeekly');
-              else rotationLabel = t('choresManage.chores.rotationSchedule');
+              if (chore.rotation === 'rotate-daily') rotationLabel = tEditor('choreChartModal.choreSummary.rotationDaily');
+              else if (chore.rotation === 'rotate-weekly') rotationLabel = tEditor('choreChartModal.choreSummary.rotationWeekly');
+              else rotationLabel = tEditor('choreChartModal.choreSummary.rotationSchedule');
             }
             return (
               <button
@@ -985,12 +938,12 @@ export default function ChoresManageView({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                    {buildChoreSummaryLine({ chore, t, tModules })}
+                    {buildChoreSummaryLine({ chore, t: tEditor, tModules })}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                     &rarr;{' '}
                     {chore.assigneeIds
-                      .map((id) => members.find((m) => m.id === id)?.name ?? t('choresManage.chores.unknownAssignee'))
+                      .map((id) => members.find((m) => m.id === id)?.name ?? tEditor('choreChartModal.chores.unknownAssignee'))
                       .join(', ')}
                     {rotationLabel && (
                       <span> ({rotationLabel})</span>

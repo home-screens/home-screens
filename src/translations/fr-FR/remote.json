@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Ajoute d'abord des membres de la famille",
       "emptyHintAddChores": "Ajoute des tâches et assigne-les aux membres",
       "editAriaLabel": "Modifier {name}",
-      "addButton": "Ajouter une tâche",
-      "frequencyDaily": "Quotidienne",
-      "frequencyWeekly": "Hebdomadaire",
-      "frequencyBiweekly": "Une semaine sur deux",
-      "frequencyOnce": "Une fois · {date}",
-      "ticketCountSingular": "{n} ticket",
-      "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "rotation quotidienne",
-      "rotationWeekly": "rotation hebdomadaire",
-      "rotationSchedule": "planning",
-      "unknownAssignee": "?"
+      "addButton": "Ajouter une tâche"
     },
     "memberForm": {
       "titleNew": "Nouveau membre",
@@ -158,33 +148,15 @@
       "assignToLabel": "Assigner à",
       "weeklyScheduleLabel": "Planning hebdomadaire",
       "coverageLabel": "Couverture : {covered} jours sur 7",
-      "coverageUncovered": "· {days} sans plan",
       "rotationLabel": "Qui s'en occupe ?",
       "addSubmit": "Ajouter la tâche",
       "saveSubmit": "Enregistrer la tâche",
-      "deleteButton": "Supprimer la tâche",
-      "validation": {
-        "enterName": "Saisis un nom de tâche",
-        "addPersonToSchedule": "Ajoute au moins une personne au planning",
-        "selectAtLeastOnePerson": "Sélectionne au moins une personne"
-      }
+      "deleteButton": "Supprimer la tâche"
     },
     "choreDelete": {
       "title": "Supprimer « {name} » ?",
       "description": "Cette tâche et tout son historique seront supprimés.",
       "confirmLabel": "Supprimer la tâche"
-    },
-    "frequency": {
-      "daily": "Quotidienne",
-      "weekly": "Hebdomadaire",
-      "biweekly": "Une semaine sur deux",
-      "once": "Une fois"
-    },
-    "rotation": {
-      "fixed": "Fixe (tout le monde la fait)",
-      "rotateDaily": "Rotation quotidienne",
-      "rotateWeekly": "Rotation hebdomadaire",
-      "schedule": "Planning"
     }
   },
   "mealsTab": {

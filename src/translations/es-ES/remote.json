@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Añade primero miembros de la familia",
       "emptyHintAddChores": "Añade tareas y asígnalas a los miembros",
       "editAriaLabel": "Editar {name}",
-      "addButton": "Añadir tarea",
-      "frequencyDaily": "Diaria",
-      "frequencyWeekly": "Semanal",
-      "frequencyBiweekly": "Cada dos semanas",
-      "frequencyOnce": "Una vez · {date}",
-      "ticketCountSingular": "{n} ticket",
-      "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "rotar a diario",
-      "rotationWeekly": "rotar semanalmente",
-      "rotationSchedule": "calendario",
-      "unknownAssignee": "?"
+      "addButton": "Añadir tarea"
     },
     "memberForm": {
       "titleNew": "Nuevo miembro",
@@ -158,33 +148,15 @@
       "assignToLabel": "Asignar a",
       "weeklyScheduleLabel": "Calendario semanal",
       "coverageLabel": "Cobertura: {covered} de 7 días",
-      "coverageUncovered": "· {days} sin cubrir",
       "rotationLabel": "Rotación",
       "addSubmit": "Añadir tarea",
       "saveSubmit": "Guardar tarea",
-      "deleteButton": "Eliminar tarea",
-      "validation": {
-        "enterName": "Pon un nombre a la tarea",
-        "addPersonToSchedule": "Añade al menos una persona al calendario",
-        "selectAtLeastOnePerson": "Selecciona al menos una persona"
-      }
+      "deleteButton": "Eliminar tarea"
     },
     "choreDelete": {
       "title": "¿Eliminar «{name}»?",
       "description": "Se eliminará esta tarea y todo su historial.",
       "confirmLabel": "Eliminar tarea"
-    },
-    "frequency": {
-      "daily": "Diaria",
-      "weekly": "Semanal",
-      "biweekly": "Cada dos semanas",
-      "once": "Una vez"
-    },
-    "rotation": {
-      "fixed": "Fija (todos la hacen)",
-      "rotateDaily": "Rotar a diario",
-      "rotateWeekly": "Rotar semanalmente",
-      "schedule": "Calendario"
     }
   },
   "mealsTab": {

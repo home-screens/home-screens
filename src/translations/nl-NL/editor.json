@@ -1690,6 +1690,7 @@
       "addMembersFirst": "Voeg eerst gezinsleden toe",
       "editAriaLabel": "{name} bewerken",
       "deleteAriaLabel": "{name} verwijderen",
+      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Klusje verwijderen",
         "message": "\"{name}\" verwijderen?",

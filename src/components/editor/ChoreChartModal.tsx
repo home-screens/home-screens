@@ -7,7 +7,7 @@ import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
-import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type {
   ChoreMember,
@@ -37,6 +37,10 @@ import ChoreIcon, {
 } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
+import {
+  buildChoreSummaryLine,
+  getChoreValidationHintKind,
+} from '@/components/modules/chore-chart/chore-form-presentation';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 
 // ── Props ─────────────────────────────────────────────────────────
@@ -131,33 +135,6 @@ function MemberForm({
 }
 
 // ── Chore Form ────────────────────────────────────────────────────
-
-/**
- * Discriminated kind for the chore-form validation hint. We compute it
- * locally inside the modal (rather than reading the English literal
- * from `form-hooks.ts`, which is out of i18n scope for this task) so
- * the rendered hint always resolves through `t()`.
- */
-type ChoreValidationHintKind =
-  | 'enterName'
-  | 'addPersonToSchedule'
-  | 'selectAtLeastOnePerson';
-
-function getChoreValidationHintKind(args: {
-  name: string;
-  rotation: ChoreRotation;
-  scheduleHasAssignment: boolean;
-  assigneeIdsLength: number;
-}): ChoreValidationHintKind | null {
-  if (!args.name.trim()) return 'enterName';
-  if (args.rotation === 'schedule' && !args.scheduleHasAssignment) {
-    return 'addPersonToSchedule';
-  }
-  if (args.rotation !== 'schedule' && args.assigneeIdsLength === 0) {
-    return 'selectAtLeastOnePerson';
-  }
-  return null;
-}
 
 function ChoreForm({
   initial,
@@ -734,36 +711,6 @@ interface ChoreColumnProps {
   setShowAddChore: (v: boolean) => void;
   setEditingChoreId: (v: string | null) => void;
   deleteChore: (id: string) => void;
-}
-
-/**
- * Compose the per-chore secondary line ("Daily · Morning · 2 tickets").
- *
- * Pulled out so the legacy English-literal mid-string conditionals don't
- * regrow. Frequency, time-of-day, and ticket pluralization each route
- * through `t()` independently and the joiner ("·") stays a verbatim glyph.
- */
-function buildChoreSummaryLine(args: {
-  chore: ChoreDefinition;
-  t: TranslateFn;
-  tModules: TranslateFn;
-}): string {
-  const { chore, t, tModules } = args;
-  let frequencyLabel: string;
-  if (chore.frequency === 'daily') frequencyLabel = t('choreChartModal.choreSummary.daily');
-  else if (chore.frequency === 'biweekly') frequencyLabel = t('choreChartModal.choreSummary.biweekly');
-  else if (chore.frequency === 'once') {
-    frequencyLabel = chore.specificDate
-      ? t('choreChartModal.choreSummary.once', { date: chore.specificDate })
-      : t('choreChartModal.choreSummary.onceNoDate');
-  } else frequencyLabel = t('choreChartModal.choreSummary.weekly');
-
-  const timeOfDayLabel = tModules(getTimeOfDayLabelKey(chore.timeOfDay));
-  const ticketsLabel = chore.points === 1
-    ? t('choreChartModal.choreSummary.ticketCountSingular', { count: chore.points })
-    : t('choreChartModal.choreSummary.ticketCountPlural', { count: chore.points });
-
-  return `${frequencyLabel} · ${timeOfDayLabel} · ${ticketsLabel}`;
 }
 
 function ChoreColumn({

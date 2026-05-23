@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Voeg eerst gezinsleden toe",
       "emptyHintAddChores": "Voeg klusjes toe en wijs ze aan gezinsleden toe",
       "editAriaLabel": "{name} bewerken",
-      "addButton": "Klusje toevoegen",
-      "frequencyDaily": "Dagelijks",
-      "frequencyWeekly": "Wekelijks",
-      "frequencyBiweekly": "Om de week",
-      "frequencyOnce": "Eenmalig · {date}",
-      "ticketCountSingular": "{n} ticket",
-      "ticketCountPlural": "{n} tickets",
-      "rotationDaily": "dagelijks wisselen",
-      "rotationWeekly": "wekelijks wisselen",
-      "rotationSchedule": "schema",
-      "unknownAssignee": "?"
+      "addButton": "Klusje toevoegen"
     },
     "memberForm": {
       "titleNew": "Nieuw gezinslid",
@@ -158,33 +148,15 @@
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
       "coverageLabel": "Dekking: {covered} van 7 dagen",
-      "coverageUncovered": "· {days} zonder iemand",
       "rotationLabel": "Wie doet het?",
       "addSubmit": "Klusje toevoegen",
       "saveSubmit": "Klusje opslaan",
-      "deleteButton": "Klusje verwijderen",
-      "validation": {
-        "enterName": "Geef het klusje een naam",
-        "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
-        "selectAtLeastOnePerson": "Kies minstens één persoon"
-      }
+      "deleteButton": "Klusje verwijderen"
     },
     "choreDelete": {
       "title": "\"{name}\" verwijderen?",
       "description": "Dit klusje en al zijn geschiedenis worden verwijderd.",
       "confirmLabel": "Klusje verwijderen"
-    },
-    "frequency": {
-      "daily": "Dagelijks",
-      "weekly": "Wekelijks",
-      "biweekly": "Om de week",
-      "once": "Eenmalig"
-    },
-    "rotation": {
-      "fixed": "Vast (iedereen doet mee)",
-      "rotateDaily": "Dagelijks wisselen",
-      "rotateWeekly": "Wekelijks wisselen",
-      "schedule": "Schema"
     }
   },
   "mealsTab": {

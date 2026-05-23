@@ -1690,6 +1690,7 @@
       "addMembersFirst": "Füge zuerst Familienmitglieder hinzu",
       "editAriaLabel": "{name} bearbeiten",
       "deleteAriaLabel": "{name} löschen",
+      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Aufgabe löschen",
         "message": "„{name}“ löschen?",

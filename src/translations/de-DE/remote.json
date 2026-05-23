@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Füge zuerst Familienmitglieder hinzu",
       "emptyHintAddChores": "Füge Aufgaben hinzu und weise sie Mitgliedern zu",
       "editAriaLabel": "{name} bearbeiten",
-      "addButton": "Aufgabe hinzufügen",
-      "frequencyDaily": "Täglich",
-      "frequencyWeekly": "Wöchentlich",
-      "frequencyBiweekly": "Alle zwei Wochen",
-      "frequencyOnce": "Einmalig · {date}",
-      "ticketCountSingular": "{n} Ticket",
-      "ticketCountPlural": "{n} Tickets",
-      "rotationDaily": "täglich wechseln",
-      "rotationWeekly": "wöchentlich wechseln",
-      "rotationSchedule": "Plan",
-      "unknownAssignee": "?"
+      "addButton": "Aufgabe hinzufügen"
     },
     "memberForm": {
       "titleNew": "Neues Mitglied",
@@ -158,33 +148,15 @@
       "assignToLabel": "Zuweisen an",
       "weeklyScheduleLabel": "Wochenplan",
       "coverageLabel": "Abdeckung: {covered} von 7 Tagen",
-      "coverageUncovered": "· {days} ohne Plan",
       "rotationLabel": "Wer macht's?",
       "addSubmit": "Aufgabe hinzufügen",
       "saveSubmit": "Aufgabe speichern",
-      "deleteButton": "Aufgabe löschen",
-      "validation": {
-        "enterName": "Gib einen Namen für die Aufgabe ein",
-        "addPersonToSchedule": "Füge mindestens eine Person zum Plan hinzu",
-        "selectAtLeastOnePerson": "Wähle mindestens eine Person"
-      }
+      "deleteButton": "Aufgabe löschen"
     },
     "choreDelete": {
       "title": "„{name}“ löschen?",
       "description": "Diese Aufgabe und der gesamte Verlauf werden entfernt.",
       "confirmLabel": "Aufgabe löschen"
-    },
-    "frequency": {
-      "daily": "Täglich",
-      "weekly": "Wöchentlich",
-      "biweekly": "Alle zwei Wochen",
-      "once": "Einmalig"
-    },
-    "rotation": {
-      "fixed": "Fest (alle machen mit)",
-      "rotateDaily": "Täglich wechseln",
-      "rotateWeekly": "Wöchentlich wechseln",
-      "schedule": "Plan"
     }
   },
   "mealsTab": {

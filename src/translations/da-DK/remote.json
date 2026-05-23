@@ -114,17 +114,7 @@
       "emptyHintNoMembers": "Tilføj familiemedlemmer først",
       "emptyHintAddChores": "Tilføj pligter og tildel dem til medlemmer",
       "editAriaLabel": "Redigér {name}",
-      "addButton": "Tilføj pligt",
-      "frequencyDaily": "Daglig",
-      "frequencyWeekly": "Ugentlig",
-      "frequencyBiweekly": "Hver anden uge",
-      "frequencyOnce": "Én gang · {date}",
-      "ticketCountSingular": "{n} billet",
-      "ticketCountPlural": "{n} billetter",
-      "rotationDaily": "rotér dagligt",
-      "rotationWeekly": "rotér ugentligt",
-      "rotationSchedule": "skema",
-      "unknownAssignee": "?"
+      "addButton": "Tilføj pligt"
     },
     "memberForm": {
       "titleNew": "Nyt medlem",
@@ -158,33 +148,15 @@
       "assignToLabel": "Tildel",
       "weeklyScheduleLabel": "Ugeskema",
       "coverageLabel": "Dækning: {covered} af 7 dage",
-      "coverageUncovered": "· {days} ikke dækket",
       "rotationLabel": "Rotation",
       "addSubmit": "Tilføj pligt",
       "saveSubmit": "Gem pligt",
-      "deleteButton": "Slet pligt",
-      "validation": {
-        "enterName": "Tilføj et navn på en pligt",
-        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
-        "selectAtLeastOnePerson": "Vælg mindst én person"
-      }
+      "deleteButton": "Slet pligt"
     },
     "choreDelete": {
       "title": "Slet \"{name}\"?",
       "description": "Denne pligt og hele dens historik vil blive fjernet.",
       "confirmLabel": "Slet pligt"
-    },
-    "frequency": {
-      "daily": "Daglig",
-      "weekly": "Ugentlig",
-      "biweekly": "Hveranden uge",
-      "once": "Én gang"
-    },
-    "rotation": {
-      "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotatér dagligt",
-      "rotateWeekly": "Rotatér ugentligt",
-      "schedule": "Skema"
     }
   },
   "mealsTab": {

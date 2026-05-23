@@ -1690,6 +1690,7 @@
       "addMembersFirst": "Add family members first",
       "editAriaLabel": "Edit {name}",
       "deleteAriaLabel": "Delete {name}",
+      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Delete chore",
         "message": "Delete \"{name}\"?",

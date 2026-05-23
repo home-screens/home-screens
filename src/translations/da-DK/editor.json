@@ -1690,6 +1690,7 @@
       "addMembersFirst": "Add family members first",
       "editAriaLabel": "Edit {name}",
       "deleteAriaLabel": "Delete {name}",
+      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Delete chore",
         "message": "Delete \"{name}\"?",
@@ -1697,46 +1698,46 @@
       }
     },
     "choreForm": {
-      "namePlaceholder": "Chore name...",
-      "ticketsLabel": "Tickets",
-      "frequencyLabel": "Frequency",
-      "timeOfDayLabel": "Time of Day",
-      "dateLabel": "Date",
-      "assignToLabel": "Assign to",
-      "weeklyScheduleLabel": "Weekly Schedule",
-      "coverageLabel": "Coverage: {covered} of 7 days",
-      "coverageUncovered": "{days} uncovered",
+      "namePlaceholder": "Titel på pligt...",
+      "ticketsLabel": "Billetter",
+      "frequencyLabel": "Frekvens",
+      "timeOfDayLabel": "Tid på dagen",
+      "dateLabel": "Dato",
+      "assignToLabel": "Tildel",
+      "weeklyScheduleLabel": "Ugeskema",
+      "coverageLabel": "Dækning: {covered} af 7 dage",
+      "coverageUncovered": "{days} ikke dækket",
       "addSubmit": "Add Chore",
       "saveSubmit": "Save",
       "validation": {
-        "enterName": "Enter a chore name",
-        "addPersonToSchedule": "Add at least one person to the schedule",
-        "selectAtLeastOnePerson": "Select at least one person"
+        "enterName": "Tilføj et navn på en pligt",
+        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
+        "selectAtLeastOnePerson": "Vælg mindst én person"
       }
     },
     "frequency": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One Time"
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hver anden uge",
+      "once": "Én gang"
     },
     "rotation": {
       "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotate Daily",
-      "rotateWeekly": "Rotate Weekly",
-      "schedule": "Schedule"
+      "rotateDaily": "Rotatér dagligt",
+      "rotateWeekly": "Rotatér ugentligt",
+      "schedule": "Skema"
     },
     "choreSummary": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One time · {date}",
-      "onceNoDate": "One time",
-      "ticketCountSingular": "{count} ticket",
-      "ticketCountPlural": "{count} tickets",
-      "rotationDaily": "rotate daily",
-      "rotationWeekly": "rotate weekly",
-      "rotationSchedule": "schedule",
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hver anden uge",
+      "once": "Én gang · {date}",
+      "onceNoDate": "Én gang",
+      "ticketCountSingular": "{count} billet",
+      "ticketCountPlural": "{count} billetter",
+      "rotationDaily": "rotér dagligt",
+      "rotationWeekly": "rotér ugentligt",
+      "rotationSchedule": "skema",
       "rotatedShort": "← rot",
       "arrow": "→"
     },

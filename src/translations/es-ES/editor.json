@@ -1694,6 +1694,7 @@
       "addMembersFirst": "Añade primero miembros de la familia",
       "editAriaLabel": "Editar {name}",
       "deleteAriaLabel": "Eliminar {name}",
+      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Eliminar tarea",
         "message": "¿Eliminar «{name}»?",
