@@ -80,6 +80,13 @@ export interface ModuleSchedule {
 
 export interface ModuleInstance {
   id: string;
+  /**
+   * When `false`, the module is excluded from the live display, prefetch,
+   * and schedule evaluation. The module is still rendered (dimmed) in the
+   * editor so users can re-enable it. Omitted / `true` = enabled.
+   * Mirrors `Screen.enabled`.
+   */
+  enabled?: boolean;
   type: ModuleType;
   position: ModulePosition;
   size: ModuleSize;

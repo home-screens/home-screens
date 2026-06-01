@@ -323,6 +323,30 @@ export default function PropertyPanel() {
           </AccordionSection>
         )}
 
+        <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={true}>
+          <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>
+            <label htmlFor={`module-enabled-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm">
+              <input
+                id={`module-enabled-toggle-${selectedModule.id}`}
+                type="checkbox"
+                className="mt-0.5"
+                checked={selectedModule.enabled !== false}
+                aria-describedby={`module-enabled-help-${selectedModule.id}`}
+                onChange={(e) =>
+                  updateModule(selectedScreenId, selectedModule.id, {
+                    // Omit the field entirely when re-enabling so configs stay clean.
+                    enabled: e.target.checked ? undefined : false,
+                  })
+                }
+              />
+              <span className="block">{t('propertyPanel.visibility.enabledLabel')}</span>
+            </label>
+            <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
+              {t('propertyPanel.visibility.enabledHelp')}
+            </p>
+          </PropertyGroup>
+        </AccordionSection>
+
         <AccordionSection title={t('propertyPanel.sections.schedule')} defaultOpen={false}>
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>

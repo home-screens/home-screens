@@ -227,6 +227,8 @@ type TransitionEffect =
 {
   id: string                    // Unique ID (UUID)
   type: ModuleType              // Module type (e.g. "clock", "weather")
+  enabled?: boolean             // false = hidden on display and excluded from
+                                // shared-data fetches; omitted/true = shown
   position: { x: number, y: number }   // Top-left position in pixels
   size: { w: number, h: number }       // Width and height in pixels
   zIndex: number                        // Stacking order

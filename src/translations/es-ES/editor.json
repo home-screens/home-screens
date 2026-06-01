@@ -76,7 +76,8 @@
   },
   "draggableModule": {
     "scheduledActiveTitle": "Programado — activo ahora",
-    "scheduledInactiveTitle": "Programado — inactivo ahora"
+    "scheduledInactiveTitle": "Programado — inactivo ahora",
+    "disabledTitle": "Desactivado — no se muestra en pantalla"
   },
   "displaySwitcher": {
     "title": "¿Qué display estás editando en este lienzo? (Las anulaciones de ajustes están en Ajustes → Por display.)",
@@ -1846,7 +1847,8 @@
       "settings": "Ajustes",
       "secrets": "Secretos",
       "credentials": "Credenciales",
-      "schedule": "Programación"
+      "schedule": "Programación",
+      "visibility": "Visibilidad"
     },
     "fields": {
       "x": "X",
@@ -1867,6 +1869,10 @@
     "actions": {
       "delete": "Eliminar módulo",
       "confirmDelete": "¿Eliminar este módulo?"
+    },
+    "visibility": {
+      "enabledLabel": "Mostrar en pantalla",
+      "enabledHelp": "Cuando está desactivado, este módulo se excluye de la pantalla en vivo y de la precarga, pero permanece en el editor para que puedas reactivarlo."
     }
   },
   "upgradeModal": {

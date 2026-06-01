@@ -2,13 +2,13 @@
 
 import { useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Clock } from 'lucide-react';
+import { Clock, PowerOff } from 'lucide-react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import { useTranslate } from '@/i18n';
-import { isModuleVisible } from '@/lib/schedule';
+import { isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { resolveProvider } from '@/components/display/ScreenRenderer';
 import type { ModuleInstance } from '@/types/config';
@@ -180,7 +180,7 @@ export default function DraggableModule({
         {...listeners}
         className={`w-full h-full overflow-hidden transition-shadow cursor-grab ${
           isSelected ? 'ring-2 ring-hs-accent ring-offset-1 ring-offset-transparent' : ''
-        }`}
+        } ${isModuleEnabled(mod) ? '' : 'opacity-40 grayscale'}`}
         style={{
           borderRadius: mod.style.borderRadius * scale,
         }}
@@ -202,8 +202,17 @@ export default function DraggableModule({
       <div className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white" style={{ fontSize: Math.max(7, 9 * scale) }}>
         {labelText}
       </div>
+      {/* Disabled indicator badge */}
+      {!isModuleEnabled(mod) && (
+        <div
+          className="absolute top-0 right-0 p-0.5 rounded-bl bg-red-700/70 text-red-100"
+          title={t('draggableModule.disabledTitle')}
+        >
+          <PowerOff style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
+        </div>
+      )}
       {/* Schedule indicator badge */}
-      {mod.schedule && (
+      {mod.schedule && isModuleEnabled(mod) && (
         <div
           className={`absolute top-0 right-0 p-0.5 rounded-bl ${
             isModuleVisible(mod.schedule, now)

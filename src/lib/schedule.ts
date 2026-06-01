@@ -1,4 +1,13 @@
-import type { ModuleSchedule, Profile, Screen } from '@/types/config';
+import type { ModuleInstance, ModuleSchedule, Profile, Screen } from '@/types/config';
+
+/**
+ * Returns false only when the module has been explicitly disabled
+ * (`enabled === false`). Undefined / true both mean "enabled".
+ * Mirrors the `Screen.enabled` convention used by ScreenRotator and the remote view.
+ */
+export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
+  return mod.enabled !== false;
+}
 
 /**
  * Determine whether a module should be visible right now based on its schedule.

@@ -11,6 +11,7 @@ import { pluginEventBus } from '@/lib/plugin-events';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import { getLocation } from '@/lib/location';
+import { isModuleEnabled } from '@/lib/schedule';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
@@ -41,6 +42,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     if (hasLocation) needed.add(globalProvider);
     for (const screen of screens) {
       for (const mod of screen.modules) {
+        if (!isModuleEnabled(mod)) continue;
         // Fetch weather for built-in weather modules
         if (mod.type === 'weather') {
           needed.add(resolveProvider(mod, globalProvider));

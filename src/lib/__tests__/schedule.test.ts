@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { isModuleVisible, resolveProfileScreens } from '../schedule';
-import type { Screen, Profile } from '@/types/config';
+import { isModuleEnabled, isModuleVisible, resolveProfileScreens } from '../schedule';
+import type { ModuleInstance, Screen, Profile } from '@/types/config';
 
 // Helper: create a Date for a specific day/time
 // day: 0=Sun, 1=Mon, ... 6=Sat
@@ -169,6 +169,34 @@ describe('isModuleVisible', () => {
       const schedule = { daysOfWeek: [1, 2, 3, 4, 5], startTime: '06:00', endTime: '09:00', invert: true };
       expect(isModuleVisible(schedule, sundayAt7am)).toBe(true);
     });
+  });
+});
+
+describe('isModuleEnabled', () => {
+  const baseMod: ModuleInstance = {
+    id: 'm1',
+    type: 'clock',
+    position: { x: 0, y: 0 },
+    size: { w: 100, h: 100 },
+    zIndex: 0,
+    config: {},
+    style: {
+      opacity: 1, borderRadius: 0, padding: 0,
+      backgroundColor: '#000', textColor: '#fff', fontFamily: 'sans',
+      fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '#000', shadowSize: 0,
+    },
+  };
+
+  it('treats omitted enabled as on', () => {
+    expect(isModuleEnabled(baseMod)).toBe(true);
+  });
+
+  it('treats enabled: true as on', () => {
+    expect(isModuleEnabled({ ...baseMod, enabled: true })).toBe(true);
+  });
+
+  it('treats enabled: false as off', () => {
+    expect(isModuleEnabled({ ...baseMod, enabled: false })).toBe(false);
   });
 });
 

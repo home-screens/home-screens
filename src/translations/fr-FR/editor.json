@@ -76,7 +76,8 @@
   },
   "draggableModule": {
     "scheduledActiveTitle": "Planifié — actuellement actif",
-    "scheduledInactiveTitle": "Planifié — actuellement inactif"
+    "scheduledInactiveTitle": "Planifié — actuellement inactif",
+    "disabledTitle": "Désactivé — non affiché sur l'écran"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -1846,7 +1847,8 @@
       "settings": "Paramètres",
       "secrets": "Secrets",
       "credentials": "Identifiants",
-      "schedule": "Planification"
+      "schedule": "Planification",
+      "visibility": "Visibilité"
     },
     "fields": {
       "x": "X",
@@ -1867,6 +1869,10 @@
     "actions": {
       "delete": "Supprimer le module",
       "confirmDelete": "Supprimer ce module ?"
+    },
+    "visibility": {
+      "enabledLabel": "Afficher sur l'écran",
+      "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver."
     }
   },
   "upgradeModal": {

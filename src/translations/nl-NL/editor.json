@@ -76,7 +76,8 @@
   },
   "draggableModule": {
     "scheduledActiveTitle": "Gepland — momenteel actief",
-    "scheduledInactiveTitle": "Gepland — momenteel inactief"
+    "scheduledInactiveTitle": "Gepland — momenteel inactief",
+    "disabledTitle": "Uitgeschakeld — niet getoond op display"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -1842,7 +1843,8 @@
       "settings": "Instellingen",
       "secrets": "Geheimen",
       "credentials": "Inloggegevens",
-      "schedule": "Schema"
+      "schedule": "Schema",
+      "visibility": "Zichtbaarheid"
     },
     "fields": {
       "x": "X",
@@ -1863,6 +1865,10 @@
     "actions": {
       "delete": "Module verwijderen",
       "confirmDelete": "Deze module verwijderen?"
+    },
+    "visibility": {
+      "enabledLabel": "Tonen op display",
+      "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen."
     }
   },
   "upgradeModal": {

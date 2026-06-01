@@ -76,7 +76,8 @@
   },
   "draggableModule": {
     "scheduledActiveTitle": "Scheduled — currently active",
-    "scheduledInactiveTitle": "Scheduled — currently inactive"
+    "scheduledInactiveTitle": "Scheduled — currently inactive",
+    "disabledTitle": "Disabled — not shown on display"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -1842,7 +1843,8 @@
       "settings": "Settings",
       "secrets": "Secrets",
       "credentials": "Credentials",
-      "schedule": "Schedule"
+      "schedule": "Schedule",
+      "visibility": "Visibility"
     },
     "fields": {
       "x": "X",
@@ -1863,6 +1865,10 @@
     "actions": {
       "delete": "Delete Module",
       "confirmDelete": "Delete this module?"
+    },
+    "visibility": {
+      "enabledLabel": "Show on display",
+      "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it."
     }
   },
   "upgradeModal": {

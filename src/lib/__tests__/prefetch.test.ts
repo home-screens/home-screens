@@ -6,22 +6,27 @@ import type { Screen } from '@/types/config';
 
 vi.mock('@/lib/schedule', () => ({
   isModuleVisible: vi.fn(() => true),
+  isModuleEnabled: vi.fn((mod: { enabled?: boolean }) => mod.enabled !== false),
 }));
 
-import { isModuleVisible } from '@/lib/schedule';
+import { isModuleVisible, isModuleEnabled } from '@/lib/schedule';
 const mockIsModuleVisible = vi.mocked(isModuleVisible);
+const mockIsModuleEnabled = vi.mocked(isModuleEnabled);
 
 beforeEach(() => {
   displayCache.clear();
   vi.restoreAllMocks();
   mockIsModuleVisible.mockReturnValue(true);
+  mockIsModuleEnabled.mockImplementation((mod: { enabled?: boolean }) => mod.enabled !== false);
 });
 
 afterEach(() => {
   vi.useRealTimers();
 });
 
-function makeScreen(modules: Array<{ type: string; config?: Record<string, unknown> }>): Screen {
+function makeScreen(
+  modules: Array<{ type: string; config?: Record<string, unknown>; enabled?: boolean }>,
+): Screen {
   return {
     id: 'test-screen',
     name: 'Test',
@@ -33,6 +38,7 @@ function makeScreen(modules: Array<{ type: string; config?: Record<string, unkno
       config: m.config ?? {},
       style: {} as Screen['modules'][0]['style'],
       zIndex: i,
+      ...(m.enabled === undefined ? {} : { enabled: m.enabled }),
     })),
     backgroundImage: '',
   };
@@ -83,6 +89,36 @@ describe('prefetchScreen', () => {
     const screen = makeScreen([{ type: 'quote' }]);
     await prefetchScreen(screen, new Date());
 
+    expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('skips disabled modules — does not queue their URLs', async () => {
+    const mock = mockFetchOk();
+
+    const screen = makeScreen([
+      { type: 'quote', enabled: true },
+      { type: 'dad-joke', enabled: false },
+    ]);
+
+    await prefetchScreen(screen, new Date());
+
+    const urls = mock.mock.calls.map((c) => c[0]);
+    expect(urls).toContain('/api/quote');
+    expect(urls).not.toContain('/api/jokes');
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('short-circuits before schedule evaluation for disabled modules', async () => {
+    const mock = mockFetchOk();
+    mockIsModuleVisible.mockClear();
+
+    const screen = makeScreen([
+      { type: 'quote', enabled: false },
+    ]);
+
+    await prefetchScreen(screen, new Date());
+
+    expect(mockIsModuleVisible).not.toHaveBeenCalled();
     expect(mock).not.toHaveBeenCalled();
   });
 

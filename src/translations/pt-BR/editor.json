@@ -76,7 +76,8 @@
   },
   "draggableModule": {
     "scheduledActiveTitle": "Agendado — atualmente ativo",
-    "scheduledInactiveTitle": "Agendado — atualmente inativo"
+    "scheduledInactiveTitle": "Agendado — atualmente inativo",
+    "disabledTitle": "Desativado — não exibido no display"
   },
   "displaySwitcher": {
     "title": "Qual tela este canvas está editando? (Substituições de configurações ficam em Configurações → Por tela.)",
@@ -1846,7 +1847,8 @@
       "settings": "Configurações",
       "secrets": "Segredos",
       "credentials": "Credenciais",
-      "schedule": "Agenda"
+      "schedule": "Agenda",
+      "visibility": "Visibilidade"
     },
     "fields": {
       "x": "X",
@@ -1867,6 +1869,10 @@
     "actions": {
       "delete": "Excluir módulo",
       "confirmDelete": "Excluir este módulo?"
+    },
+    "visibility": {
+      "enabledLabel": "Mostrar no display",
+      "enabledHelp": "Quando desativado, este módulo é excluído do display ao vivo e da pré-busca, mas permanece no editor para que você possa reativá-lo."
     }
   },
   "upgradeModal": {

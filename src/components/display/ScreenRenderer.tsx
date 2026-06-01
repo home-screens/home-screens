@@ -1,11 +1,20 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
-import type { Screen, GlobalSettings, ModuleType } from '@/types/config';
+import type { Screen, GlobalSettings, ModuleType, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getModuleDefinition } from '@/lib/module-registry';
-import { isModuleVisible } from '@/lib/schedule';
+import { isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import { useTZClock } from '@/hooks/useTZClock';
+
+/**
+ * Single source of truth for the renderer's module-visibility predicate.
+ * Exported so `__tests__/ScreenRenderer.test.tsx` can verify the exact
+ * contract used in production — the test cannot mirror a stale copy of
+ * the filter expression.
+ */
+export const isModuleRenderable = (mod: ModuleInstance, now: Date): boolean =>
+  isModuleEnabled(mod) && isModuleVisible(mod.schedule, now);
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';
@@ -141,7 +150,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   }, [timePeriod, settings.timezone]);
 
   const visibleModules = useMemo(
-    () => screen.modules.filter((mod) => isModuleVisible(mod.schedule, now)),
+    () => screen.modules.filter((mod) => isModuleRenderable(mod, now)),
     [screen.modules, now],
   );
 
