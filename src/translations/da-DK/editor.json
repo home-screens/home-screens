@@ -309,7 +309,9 @@
         "verifyCredentialsPart2": ", or check your ",
         "googleCloudConsoleLink": "Google Cloud Console",
         "verifyCredentialsPart3": ".",
-        "signInHelp": "Sign in to automatically see your calendars. Requires a Google OAuth client of type \"TVs and Limited Input devices\" in the Cloud Console."
+        "signInHelp": "Sign in to automatically see your calendars. Requires a Google OAuth client of type \"TVs and Limited Input devices\" in the Cloud Console.",
+        "copyCode": "Copy code",
+        "codeCopied": "Copied!"
       },
       "holidays": {
         "heading": "Public Holidays",

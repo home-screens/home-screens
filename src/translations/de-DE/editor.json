@@ -309,7 +309,9 @@
         "verifyCredentialsPart2": " oder prüfe die ",
         "googleCloudConsoleLink": "Google Cloud Console",
         "verifyCredentialsPart3": ".",
-        "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console."
+        "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console.",
+        "copyCode": "Code kopieren",
+        "codeCopied": "Kopiert!"
       },
       "holidays": {
         "heading": "Gesetzliche Feiertage",

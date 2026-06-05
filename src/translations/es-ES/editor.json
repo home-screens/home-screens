@@ -309,7 +309,9 @@
         "verifyCredentialsPart2": ", o revisa tu ",
         "googleCloudConsoleLink": "Google Cloud Console",
         "verifyCredentialsPart3": ".",
-        "signInHelp": "Inicia sesión para ver tus calendarios automáticamente. Requiere un cliente OAuth de Google de tipo «TVs and Limited Input devices» en la Cloud Console."
+        "signInHelp": "Inicia sesión para ver tus calendarios automáticamente. Requiere un cliente OAuth de Google de tipo «TVs and Limited Input devices» en la Cloud Console.",
+        "copyCode": "Copiar código",
+        "codeCopied": "¡Copiado!"
       },
       "holidays": {
         "heading": "Festivos",

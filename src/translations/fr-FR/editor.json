@@ -309,7 +309,9 @@
         "verifyCredentialsPart2": ", ou consulte ta ",
         "googleCloudConsoleLink": "console Google Cloud",
         "verifyCredentialsPart3": ".",
-        "signInHelp": "Connecte-toi pour voir automatiquement tes calendriers. Nécessite un client OAuth Google de type « TVs and Limited Input devices » dans la console Cloud."
+        "signInHelp": "Connecte-toi pour voir automatiquement tes calendriers. Nécessite un client OAuth Google de type « TVs and Limited Input devices » dans la console Cloud.",
+        "copyCode": "Copier le code",
+        "codeCopied": "Copié !"
       },
       "holidays": {
         "heading": "Jours fériés",

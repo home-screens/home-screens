@@ -309,7 +309,9 @@
         "verifyCredentialsPart2": ", of bekijk je ",
         "googleCloudConsoleLink": "Google Cloud Console",
         "verifyCredentialsPart3": ".",
-        "signInHelp": "Meld je aan om je kalenders automatisch te zien. Vereist een Google OAuth-client van het type \"TVs and Limited Input devices\" in de Cloud Console."
+        "signInHelp": "Meld je aan om je kalenders automatisch te zien. Vereist een Google OAuth-client van het type \"TVs and Limited Input devices\" in de Cloud Console.",
+        "copyCode": "Code kopiëren",
+        "codeCopied": "Gekopieerd!"
       },
       "holidays": {
         "heading": "Officiële feestdagen",
