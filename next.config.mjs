@@ -19,7 +19,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },
-  serverExternalPackages: ['node-ical'],
+  serverExternalPackages: ['node-ical', 'googleapis'],
   experimental: {
     workerThreads: false,
     cpus: 2,

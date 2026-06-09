@@ -43,14 +43,15 @@ describe('readSecrets', () => {
     expect(secrets).toEqual(store);
   });
 
-  it('returns empty object on invalid JSON', async () => {
+  it('throws on invalid JSON instead of silently returning empty', async () => {
+    // A corrupt secrets.json must fail loudly — falling back to {} means the
+    // next write would wipe every stored API key.
     const dataDir = path.join(tmpDir, 'data');
     await fs.mkdir(dataDir, { recursive: true });
     await fs.writeFile(path.join(dataDir, 'secrets.json'), '{{not valid json!!');
 
     const { readSecrets } = await loadSecrets();
-    const secrets = await readSecrets();
-    expect(secrets).toEqual({});
+    await expect(readSecrets()).rejects.toThrow();
   });
 });
 

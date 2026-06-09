@@ -33,6 +33,7 @@ const mealStore = createJsonStore<MealData>({
   path: 'data/meals.json',
   defaultValue: EMPTY,
   backup: true,
+  errorHandling: 'throw-corrupt',
 });
 
 // ── Migration: day-of-week → ISO date ──

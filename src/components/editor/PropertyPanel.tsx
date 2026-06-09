@@ -10,7 +10,7 @@ import ScreenSettingsSection from './ScreenSettingsSection';
 import SectionDivider from './SectionDivider';
 import PropertyGroup from './PropertyGroup';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
-import type { ModuleInstance } from '@/types/config';
+import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate, type TranslateFn } from '@/i18n';
@@ -164,7 +164,11 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
 }
 
 
-const CONFIG_SECTIONS: Record<string, React.FC<{ mod: ModuleInstance; screenId: string }>> = {
+type ConfigSectionFC = React.FC<{ mod: ModuleInstance; screenId: string }>;
+
+// Keyed by BuiltinModuleType so a module added without a config section is a
+// compile error, not a silently empty property panel.
+export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
   clock: ClockConfigSection,
   calendar: CalendarConfigSection,
   weather: WeatherConfigSection,
@@ -238,7 +242,8 @@ export default function PropertyPanel() {
   const loadedPlugin = isPlugin ? pluginMap.get(selectedModule.type) : undefined;
 
   // Priority: built-in section > plugin custom section > schema renderer > null
-  const BuiltinConfigSection = CONFIG_SECTIONS[selectedModule.type] ?? null;
+  const BuiltinConfigSection =
+    (CONFIG_SECTIONS as Partial<Record<string, ConfigSectionFC>>)[selectedModule.type] ?? null;
   const pluginConfigSection = !BuiltinConfigSection ? loadedPlugin?.configSection : undefined;
   const hasSchemaFallback = !BuiltinConfigSection && !pluginConfigSection && isPlugin && pluginDef?.configSchema;
 

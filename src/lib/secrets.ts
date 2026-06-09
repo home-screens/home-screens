@@ -43,6 +43,7 @@ const store = createJsonStore<SecretsStore>({
   path: 'data/secrets.json',
   defaultValue: {},
   chmod: 0o600,
+  errorHandling: 'throw-corrupt',
 });
 
 export const readSecrets = store.read;

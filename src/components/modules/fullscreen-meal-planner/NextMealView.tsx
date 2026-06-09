@@ -1,4 +1,4 @@
-import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
@@ -23,7 +23,6 @@ export default function NextMealView({
   }
 
   const { meal, slot, context, date } = next;
-  const meta = SLOT_META[slot];
   // Find the planned entry for this date+slot to grab its time
   const plannedEntry = plan.find((p) => p.date === date && p.slot === slot);
   const time = resolvePlannedMealTime(plannedEntry, slot, settings.defaultSlotTimes);

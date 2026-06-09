@@ -33,6 +33,7 @@ function localDateStr(d: Date): string {
 const store = createJsonStore<CompletionsData>({
   path: 'data/chore-completions.json',
   defaultValue: { completions: [] },
+  errorHandling: 'throw-corrupt',
 });
 
 /** Remove completions older than CHORE_HISTORY_DAYS days */

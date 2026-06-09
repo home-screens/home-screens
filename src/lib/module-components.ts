@@ -4,9 +4,11 @@ import type { BuiltinModuleType, ModuleType } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 
 // Module components have heterogeneous props (each module has its own config
-// type). We assert the record type because ComponentType is contravariant in
-// props, preventing direct assignment of specific component types.
-const builtinComponents = {
+// type). The `satisfies` clause makes a missing or extra BuiltinModuleType key
+// a compile error; the cast below widens the props because ComponentType is
+// contravariant in props, preventing direct assignment of specific component
+// types.
+const builtinComponentEntries = {
   clock: dynamic(() => import('@/components/modules/clock/ClockModule')),
   calendar: dynamic(() => import('@/components/modules/CalendarModule')),
   weather: dynamic(() => import('@/components/modules/weather/WeatherModule')),
@@ -48,7 +50,13 @@ const builtinComponents = {
   'fullscreen-chore-chart': dynamic(() => import('@/components/modules/fullscreen-chore-chart/FullscreenChoreChartModule')),
   'fullscreen-meal-planner': dynamic(() => import('@/components/modules/fullscreen-meal-planner/FullscreenMealPlannerModule')),
   'fullscreen-photo': dynamic(() => import('@/components/modules/fullscreen-photo/FullscreenPhotoModule')),
-} as unknown as Record<BuiltinModuleType, ComponentType<Record<string, unknown>>>;
+} satisfies Record<BuiltinModuleType, unknown>;
+
+const builtinComponents =
+  builtinComponentEntries as unknown as Record<BuiltinModuleType, ComponentType<Record<string, unknown>>>;
+
+/** All builtin module types with a registered component (for registry-sync tests). */
+export const BUILTIN_COMPONENT_TYPES = Object.keys(builtinComponents) as BuiltinModuleType[];
 
 /** Resolve a module type to its React component. Checks built-in first, then plugins. */
 export function getModuleComponent(type: ModuleType): ComponentType<Record<string, unknown>> | undefined {

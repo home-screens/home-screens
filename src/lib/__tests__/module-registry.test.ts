@@ -424,7 +424,7 @@ describe('Cross-wiring contract: every registered module is wired in all 4 place
 
   const componentKeys = extractKeysFromSource(
     path.join(srcRoot, 'lib/module-components.ts'),
-    'builtinComponents',
+    'builtinComponentEntries',
   );
 
   const configSectionKeys = extractKeysFromSource(
