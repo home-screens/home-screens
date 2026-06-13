@@ -2717,7 +2717,8 @@
       "title": "Titel",
       "defaultTitle": "Aufgaben",
       "items": "Einträge",
-      "newItemText": "Neuer Eintrag"
+      "newItemText": "Neuer Eintrag",
+      "interactive": "Antippen zum Abhaken erlauben (Touchscreen)"
     },
     "todoist": {
       "apiToken": "API-Token",

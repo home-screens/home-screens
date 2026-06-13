@@ -229,6 +229,15 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
           (extraProps as Record<string, unknown>).renderDisplayId = displayId;
         }
 
+        // Thread the module's instance address into the todo module so its
+        // interactive (tap-to-check) mode can locate itself in the config tree
+        // when POSTing a toggle. screen.id / mod.id / displayId are all in scope.
+        if (mod.type === 'todo') {
+          (extraProps as Record<string, unknown>).displayId = displayId;
+          (extraProps as Record<string, unknown>).screenId = screen.id;
+          (extraProps as Record<string, unknown>).moduleId = mod.id;
+        }
+
         return (
           <div
             key={mod.id}

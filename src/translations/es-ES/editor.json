@@ -2722,7 +2722,8 @@
       "title": "Título",
       "defaultTitle": "Por hacer",
       "items": "Elementos",
-      "newItemText": "Nuevo elemento"
+      "newItemText": "Nuevo elemento",
+      "interactive": "Permitir marcar con toque (pantalla táctil)"
     },
     "todoist": {
       "apiToken": "Token de API",

@@ -559,6 +559,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       title: 'To Do',
       items: [],
       accentColor: '#000000',
+      interactive: false,
     },
     defaultSize: { w: 350, h: 400 },
   },

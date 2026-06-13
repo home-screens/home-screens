@@ -2722,7 +2722,8 @@
       "title": "Titre",
       "defaultTitle": "À faire",
       "items": "Éléments",
-      "newItemText": "Nouvel élément"
+      "newItemText": "Nouvel élément",
+      "interactive": "Autoriser le pointage tactile (écran tactile)"
     },
     "todoist": {
       "apiToken": "Jeton API",

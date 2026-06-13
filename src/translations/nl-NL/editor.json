@@ -2717,7 +2717,8 @@
       "title": "Titel",
       "defaultTitle": "Te doen",
       "items": "Items",
-      "newItemText": "Nieuw item"
+      "newItemText": "Nieuw item",
+      "interactive": "Tikken om af te vinken toestaan (touchscreen)"
     },
     "todoist": {
       "apiToken": "API-token",

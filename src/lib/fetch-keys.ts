@@ -98,6 +98,10 @@ export function mealsDataUrl(): string {
   return '/api/meals/data';
 }
 
+export function todoStateUrl(): string {
+  return '/api/todo/state';
+}
+
 /** Registry of URL builders + TTLs for prefetching.
  *  TTLs are aligned with the corresponding server-side cache durations
  *  so the client doesn't consider data fresh when the server has newer data,
@@ -129,6 +133,11 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 5_000 },             // shared useChoreData hook
   'meal-planner':            { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
   'fullscreen-meal-planner': { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
+  // Only interactive todos poll runtime completion state; read-only todos carry
+  // their completion inline in config and need no fetch. 5s poll (like chores)
+  // so a tap on one display surfaces on another within ~5s; the same-device
+  // case is already instant via the toggle POST response.
+  todo:                      { buildUrl: (c) => (c.interactive ? todoStateUrl() : null), ttlMs: 5_000 },
 };
 
 /** Allow plugins to register their own fetch key entries for prefetching. */

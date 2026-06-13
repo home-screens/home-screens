@@ -2717,7 +2717,8 @@
       "title": "Title",
       "defaultTitle": "To Do",
       "items": "Items",
-      "newItemText": "New item"
+      "newItemText": "New item",
+      "interactive": "Tillad tryk for at markere (touchskærm)"
     },
     "todoist": {
       "apiToken": "API Token",

@@ -596,6 +596,12 @@ export interface QuoteConfig {
 export interface TodoItem {
   id: string;
   text: string;
+  /**
+   * Authored *default* completion, set in the editor. In interactive mode this
+   * is only the seed value: once a kiosk user taps an item, its live completion
+   * lives in the runtime `todo-state.json` store (keyed by item id) and
+   * overrides this default. See `lib/todo-data.ts`.
+   */
   completed: boolean;
 }
 
@@ -603,6 +609,15 @@ export interface TodoConfig {
   title: string;
   items: TodoItem[];
   accentColor?: string;
+  /**
+   * When true, the module renders each item as a tap target on the display so a
+   * kiosk user can check/uncheck it. The tap persists to the runtime
+   * `todo-state.json` store (NOT back into `config.json`, which the editor owns
+   * and would clobber on save) and syncs to every display showing the same item
+   * via the `/api/todo/state` poll. Defaults to false — existing read-only todos
+   * stay read-only until opted in.
+   */
+  interactive?: boolean;
 }
 
 // Sticky note module config

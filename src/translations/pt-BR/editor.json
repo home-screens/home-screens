@@ -2722,7 +2722,8 @@
       "title": "Título",
       "defaultTitle": "A fazer",
       "items": "Itens",
-      "newItemText": "Novo item"
+      "newItemText": "Novo item",
+      "interactive": "Permitir marcar com toque (tela sensível ao toque)"
     },
     "todoist": {
       "apiToken": "Token de API",
