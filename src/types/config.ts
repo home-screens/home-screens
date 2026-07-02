@@ -379,6 +379,8 @@ export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | '
 export type CalendarDensity = 'cozy' | 'snug';
 export type FullscreenTypographySize =
   | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large';
+export type TodayHighlightStyle = 'full' | 'subtle' | 'minimal' | 'off';
+export type EventOverlapMode = 'columns' | 'stacked';
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
@@ -391,6 +393,9 @@ export interface FullscreenCalendarConfig {
   sourceFilter?: string[];
   darkMode: boolean;
   theme?: string;
+  todayHighlightStyle?: TodayHighlightStyle;  // default 'full'; 'subtle' = faint bg, 'minimal' = marker only, 'off' = none
+  eventOverlap?: EventOverlapMode;            // default 'columns' (side-by-side); 'stacked' = cascading overlap
+  wrapEventTitles?: boolean;                  // default false; wrap long titles to 2 lines (schedule + month views)
 
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto

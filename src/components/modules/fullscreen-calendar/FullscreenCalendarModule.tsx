@@ -96,6 +96,24 @@ export function eventBorder(color: string, isDark: boolean): string {
   return `rgb(${r},${g},${b})`;
 }
 
+/** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */
+export function clampStyle(wrap: boolean): React.CSSProperties {
+  return wrap
+    ? {
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
+        overflow: 'hidden',
+      }
+    : {
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      };
+}
+
 function brightenForDark(color: string): string {
   const [r, g, b] = parseHexToRgb(color);
   return `rgb(${Math.min(255, Math.round(r * 1.15))},${Math.min(255, Math.round(g * 1.15))},${Math.min(255, Math.round(b * 1.15))})`;
@@ -147,61 +165,6 @@ const VIEW_LABEL_KEYS: Record<string, string> = {
   'day-timeline': 'fullscreen-calendar.viewLabels.dayTimeline',
   'agenda': 'fullscreen-calendar.viewLabels.agenda',
 };
-
-// ─── Overlap layout helper (shared by Schedule + DayTimeline) ───
-
-export interface LayoutColumn {
-  left: number; // 0-1 fraction
-  width: number; // 0-1 fraction
-}
-
-export function computeOverlapColumns(
-  events: Array<{ startHour: number; endHour: number; id: string }>,
-): Map<string, LayoutColumn> {
-  const result = new Map<string, LayoutColumn>();
-  if (events.length === 0) return result;
-
-  // Sort by start time, then by duration (longer first)
-  const sorted = [...events].sort((a, b) =>
-    a.startHour - b.startHour || (b.endHour - b.startHour) - (a.endHour - a.startHour),
-  );
-
-  // Greedy column assignment
-  const columns: Array<{ endHour: number; id: string }>[] = [];
-  const eventColumn = new Map<string, number>();
-
-  for (const ev of sorted) {
-    let placed = false;
-    for (let col = 0; col < columns.length; col++) {
-      const last = columns[col][columns[col].length - 1];
-      if (last.endHour <= ev.startHour) {
-        columns[col].push(ev);
-        eventColumn.set(ev.id, col);
-        placed = true;
-        break;
-      }
-    }
-    if (!placed) {
-      columns.push([ev]);
-      eventColumn.set(ev.id, columns.length - 1);
-    }
-  }
-
-  const maxCols = Math.min(columns.length, 3);
-  const colWidth = 1 / maxCols;
-
-  for (const ev of sorted) {
-    const col = eventColumn.get(ev.id) ?? 0;
-    if (col >= maxCols) {
-      // Overflow events get hidden (parent renders "+N more")
-      result.set(ev.id, { left: 0, width: 0 });
-    } else {
-      result.set(ev.id, { left: col * colWidth, width: colWidth });
-    }
-  }
-
-  return result;
-}
 
 // ─── Skeleton loading ───
 
@@ -295,6 +258,15 @@ export default function FullscreenCalendarModule({
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
   const theme = getThemeTokens(themeId);
 
+  // Today-highlight fill derived from the resolved accent color so the
+  // highlight follows accentColor (the fill was previously hardcoded orange).
+  const highlightStyle = config.todayHighlightStyle ?? 'full';
+  const resolvedAccent = config.accentColor || (theme.isDark ? '#F97316' : '#EA580C');
+  const todayFill =
+    highlightStyle === 'full' ? eventBg(resolvedAccent, theme.isDark ? 0.16 : 0.10, theme.isDark)
+    : highlightStyle === 'subtle' ? eventBg(resolvedAccent, theme.isDark ? 0.07 : 0.05, theme.isDark)
+    : 'transparent';
+
   const scale: CalendarScale = useMemo(() => ({
     bu: Math.min(dims.w, dims.h) / 100,
     width: dims.w,
@@ -352,8 +324,9 @@ export default function FullscreenCalendarModule({
         '--cal-accent': config.accentColor
           ? (theme.isDark ? brightenForDark(config.accentColor) : config.accentColor)
           : (theme.isDark ? '#F97316' : '#EA580C'),
-        '--cal-accent-bg': theme.isDark ? '#431407' : '#FFF7ED',
-        '--cal-accent-surface': theme.isDark ? '#7C2D12' : '#FFEDD5',
+        '--cal-accent-bg': eventBg(resolvedAccent, theme.isDark ? 0.20 : 0.12, theme.isDark),
+        '--cal-accent-surface': eventBg(resolvedAccent, theme.isDark ? 0.32 : 0.22, theme.isDark),
+        '--cal-today-fill': todayFill,
       } as React.CSSProperties}
     >
       <style>{cssTokens}</style>

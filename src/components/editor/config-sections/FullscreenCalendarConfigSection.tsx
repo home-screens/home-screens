@@ -12,8 +12,15 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
+
+const SHOW_DESCRIPTION_KEY = {
+  'schedule': 'scheduleShowDescription',
+  'week-list': 'weekShowDescription',
+  'day-timeline': 'dayShowDescription',
+  'agenda': 'agendaShowDescription',
+} as const;
 
 interface CalendarSource {
   id: string;
@@ -55,6 +62,18 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: '2x-large', label: t('configSections.fullscreen-calendar.typography2xLarge') },
     { value: '3x-large', label: t('configSections.fullscreen-calendar.typography3xLarge') },
     { value: '4x-large', label: t('configSections.fullscreen-calendar.typography4xLarge') },
+  ];
+
+  const TODAY_HIGHLIGHT_OPTIONS: { value: TodayHighlightStyle; label: string }[] = [
+    { value: 'full', label: t('configSections.fullscreen-calendar.todayHighlightFull') },
+    { value: 'subtle', label: t('configSections.fullscreen-calendar.todayHighlightSubtle') },
+    { value: 'minimal', label: t('configSections.fullscreen-calendar.todayHighlightMinimal') },
+    { value: 'off', label: t('configSections.fullscreen-calendar.todayHighlightOff') },
+  ];
+
+  const OVERLAP_OPTIONS: { value: EventOverlapMode; label: string }[] = [
+    { value: 'columns', label: t('configSections.fullscreen-calendar.overlapSideBySide') },
+    { value: 'stacked', label: t('configSections.fullscreen-calendar.overlapStacked') },
   ];
 
   // Build source list (same pattern as CalendarConfigSection)
@@ -153,11 +172,47 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* Accent Color */}
       <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
 
+      {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
+      {view !== 'day-timeline' && (
+        <LabeledSelect
+          label={t('configSections.fullscreen-calendar.todayHighlight')}
+          value={c.todayHighlightStyle ?? 'full'}
+          onChange={(v) => set({ todayHighlightStyle: v })}
+          options={TODAY_HIGHLIGHT_OPTIONS}
+        />
+      )}
+
       {/* Toggles */}
       <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.showWeather')} checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+
+      {(view === 'schedule' || view === 'day-timeline') && (
+        <LabeledSelect
+          label={t('configSections.fullscreen-calendar.overlappingEvents')}
+          value={c.eventOverlap ?? 'columns'}
+          onChange={(v) => set({ eventOverlap: v })}
+          options={OVERLAP_OPTIONS}
+        />
+      )}
+
+      {(view === 'schedule' || view === 'month-grid') && (
+        <Toggle
+          label={t('configSections.fullscreen-calendar.wrapEventTitles')}
+          checked={!!c.wrapEventTitles}
+          onChange={(v) => set({ wrapEventTitles: v })}
+        />
+      )}
+
+      {/* Show description — each view stores it under its own config key */}
+      {view !== 'month-grid' && (
+        <Toggle
+          label={t('common.showDescription')}
+          checked={!!c[SHOW_DESCRIPTION_KEY[view]]}
+          onChange={(v) => set({ [SHOW_DESCRIPTION_KEY[view]]: v })}
+        />
+      )}
 
       {/* Source filter */}
       {availableSources.length > 1 && (
@@ -204,24 +259,18 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {view === 'schedule' && (
-        <>
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.daysToShowAuto')}
-            type="number"
-            min={0}
-            max={7}
-            value={c.scheduleDaysToShow ?? 0}
-            onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
-          />
-          <Toggle label={t('common.showDescription')} checked={!!c.scheduleShowDescription} onChange={(v) => set({ scheduleShowDescription: v })} />
-        </>
+        <LabeledInput
+          label={t('configSections.fullscreen-calendar.daysToShowAuto')}
+          type="number"
+          min={0}
+          max={7}
+          value={c.scheduleDaysToShow ?? 0}
+          onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
+        />
       )}
 
       {view === 'week-list' && (
-        <>
-          <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
-          <Toggle label={t('common.showDescription')} checked={!!c.weekShowDescription} onChange={(v) => set({ weekShowDescription: v })} />
-        </>
+        <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
       )}
 
       {view === 'month-grid' && (
@@ -239,10 +288,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {view === 'day-timeline' && (
-        <>
-          <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
-          <Toggle label={t('common.showDescription')} checked={!!c.dayShowDescription} onChange={(v) => set({ dayShowDescription: v })} />
-        </>
+        <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
       )}
 
       {view === 'agenda' && (
@@ -256,7 +302,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
           <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
-          <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
         </>
       )}
     </>

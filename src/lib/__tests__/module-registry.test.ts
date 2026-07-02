@@ -147,6 +147,13 @@ describe('getModuleDefinition', () => {
       expect(Array.isArray(config.routes)).toBe(true);
     });
 
+    it('fullscreen-calendar has todayHighlightStyle, eventOverlap, wrapEventTitles', () => {
+      const config = getModuleDefinition('fullscreen-calendar')!.defaultConfig;
+      expect(config).toHaveProperty('todayHighlightStyle', 'full');
+      expect(config).toHaveProperty('eventOverlap', 'columns');
+      expect(config).toHaveProperty('wrapEventTitles', false);
+    });
+
     it('air-quality has showAQI, showPollutants, refreshIntervalMs', () => {
       const config = getModuleDefinition('air-quality')!.defaultConfig;
       expect(config).toHaveProperty('showAQI');

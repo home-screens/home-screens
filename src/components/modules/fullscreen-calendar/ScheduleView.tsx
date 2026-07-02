@@ -5,7 +5,8 @@ import { addDays, isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { autoScheduleDays, computeOverlapColumns, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
+import { computeOverlapLayout } from '@/lib/fullscreen-overlap';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
@@ -27,6 +28,12 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
   const hourStart = config.scheduleHourStart ?? 6;
   const hourEnd = config.scheduleHourEnd ?? 22;
   const totalHours = hourEnd - hourStart;
+
+  const highlightStyle = config.todayHighlightStyle ?? 'full';
+  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
+  const showTodayMarker = highlightStyle !== 'off';
+  const overlapMode = config.eventOverlap ?? 'columns';
+  const wrapTitles = config.wrapEventTitles === true;
 
   // Business hours for visual differentiation
   const businessStart = 8;
@@ -54,6 +61,36 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowInRange = nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
+
+  // Per-day event filtering and overlap layout don't depend on the 60s clock
+  // tick, so memoize them instead of recomputing for every day on each
+  // re-render. Events entirely outside the hour range are excluded up front —
+  // clamping alone would leave them as degenerate inputs that still occupy an
+  // overlap column.
+  const dayLayouts = useMemo(() => days.map(day => {
+    const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day));
+    const layoutInput = dayEvents
+      .map(ev => {
+        const rawStart = parseTimeToHours(ev.start);
+        const rawEnd = parseTimeToHours(ev.end);
+        return {
+          id: ev.id,
+          startHour: Math.max(rawStart, hourStart),
+          endHour: rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd),
+        };
+      })
+      .filter(e => e.startHour < hourEnd && e.endHour > e.startHour);
+    const overlapLayout = computeOverlapLayout(layoutInput, overlapMode);
+    // Columns mode hides overflow (width 0); aggregate hidden events by start
+    // position so the view can render a "+N" indicator instead of silence
+    const hiddenStarts = new Map<number, number>();
+    for (const input of layoutInput) {
+      if (overlapLayout.get(input.id)?.width === 0) {
+        hiddenStarts.set(input.startHour, (hiddenStarts.get(input.startHour) ?? 0) + 1);
+      }
+    }
+    return { dayEvents, overlapLayout, hiddenStarts };
+  }), [days, events, hourStart, hourEnd, overlapMode]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -90,7 +127,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                   lineHeight: 1,
                   marginTop: scale.bu * 0.2,
                 }}>
-                  {isToday ? (
+                  {isToday && showTodayMarker ? (
                     <span className="fsc-today-pulse" style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -155,22 +192,11 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
             gridTemplateColumns: `repeat(${daysToShow}, 1fr)`,
             position: 'relative',
           }}>
-            {days.map((day) => {
+            {days.map((day, dayIdx) => {
               const isToday = isSameDay(day, today);
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
               const isPast = day < today && !isToday;
-              const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day));
-
-              // Compute overlap layout for this day's events
-              const layoutInput = dayEvents.map(ev => ({
-                id: ev.id,
-                startHour: Math.max(parseTimeToHours(ev.start), hourStart),
-                endHour: Math.min(
-                  parseTimeToHours(ev.end) <= parseTimeToHours(ev.start) ? hourEnd : parseTimeToHours(ev.end),
-                  hourEnd,
-                ),
-              }));
-              const overlapLayout = computeOverlapColumns(layoutInput);
+              const { dayEvents, overlapLayout, hiddenStarts } = dayLayouts[dayIdx];
 
               return (
                 <div
@@ -180,8 +206,8 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                   style={{
                     position: 'relative',
                     borderLeft: '1px solid var(--cal-border-subtle)',
-                    background: isToday
-                      ? 'var(--cal-accent-bg)'
+                    background: isToday && showTodayBg
+                      ? 'var(--cal-today-fill)'
                       : isWeekend && config.shadeWeekends
                         ? 'var(--cal-weekend-shade)'
                         : undefined,
@@ -236,10 +262,13 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                           width: `calc(${layout.width * 100}% - 4px)`,
                           borderRadius: scale.bu * 0.4,
                           borderLeft: `3px solid ${eventBorder(color, scale.isDark)}`,
-                          background: eventBg(color, 0.09, scale.isDark),
+                          background: overlapMode === 'stacked'
+                            ? `linear-gradient(${eventBg(color, 0.13, scale.isDark)}, ${eventBg(color, 0.13, scale.isDark)}), var(--cal-bg)`
+                            : eventBg(color, 0.09, scale.isDark),
                           padding: `${scale.bu * 0.3}px ${scale.bu * 0.5}px`,
                           overflow: 'hidden',
-                          zIndex: 2,
+                          zIndex: layout.zIndex,
+                          boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
                           opacity: isPastEvent && config.dimPastEvents ? 0.4 : 1,
                         }}
                       >
@@ -248,9 +277,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                           fontWeight: 600,
                           color: 'var(--cal-text-primary)',
                           lineHeight: 1.3,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          ...clampStyle(wrapTitles),
                         }}>
                           {ev.title}
                         </div>
@@ -284,6 +311,30 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                       </div>
                     );
                   })}
+
+                  {/* Hidden-overflow indicators (columns mode) */}
+                  {Array.from(hiddenStarts, ([evStartHour, count]) => (
+                    <div
+                      key={evStartHour}
+                      aria-label={t('fullscreen-calendar.moreCount', { count })}
+                      style={{
+                        position: 'absolute',
+                        top: (evStartHour - hourStart) * hourHeight + 2,
+                        right: 2,
+                        zIndex: 3,
+                        fontSize: fontSize * 0.6,
+                        fontWeight: 600,
+                        color: 'var(--cal-text-secondary)',
+                        background: 'var(--cal-surface)',
+                        border: '1px solid var(--cal-border)',
+                        borderRadius: 999,
+                        padding: `${scale.bu * 0.05}px ${scale.bu * 0.3}px`,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      +{count}
+                    </div>
+                  ))}
                 </div>
               );
             })}
@@ -317,6 +368,8 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, 
 }) {
   const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day)));
   if (!hasAllDay) return null;
+
+  const wrapTitles = config.wrapEventTitles === true;
 
   return (
     <div style={{
@@ -371,9 +424,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, 
                       background: eventBg(color, 0.13, scale.isDark),
                       color: eventBorder(color, scale.isDark),
                       border: `1px solid ${eventBg(color, 0.20, scale.isDark)}`,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      ...clampStyle(wrapTitles),
                       lineHeight: 1.4,
                       marginBottom: 1,
                     }}

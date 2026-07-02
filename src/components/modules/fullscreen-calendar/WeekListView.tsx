@@ -23,6 +23,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.weekShowDescription === true;
+  const showTodayMarker = (config.todayHighlightStyle ?? 'full') !== 'off';
 
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const days = useMemo(
@@ -53,9 +54,9 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
         style={{
           marginBottom: scale.bu * 0.4,
           opacity: isPast && config.dimPastEvents ? 0.5 : 1,
-          borderLeft: isToday ? `3px solid var(--cal-accent)` : undefined,
-          paddingLeft: isToday ? scale.bu * 1.2 : undefined,
-          marginLeft: isToday ? -scale.bu * 1.5 : undefined,
+          borderLeft: isToday && showTodayMarker ? `3px solid var(--cal-accent)` : undefined,
+          paddingLeft: isToday && showTodayMarker ? scale.bu * 1.2 : undefined,
+          marginLeft: isToday && showTodayMarker ? -scale.bu * 1.5 : undefined,
         }}
       >
         {/* Day header */}
@@ -71,7 +72,7 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
           gap: scale.bu * 0.8,
         }}>
           {formatDateSync(day, 'EEEE, MMMM d', { locale })}
-          {isToday && (
+          {isToday && showTodayMarker && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
               fontSize: fontSize * 0.7,

@@ -7,6 +7,7 @@ import {
 } from 'date-fns';
 import { isEventOnDay } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { clampStyle } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 
@@ -23,6 +24,10 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const showWeekNumbers = config.monthShowWeekNumbers;
+  const highlightStyle = config.todayHighlightStyle ?? 'full';
+  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
+  const showTodayMarker = highlightStyle !== 'off';
+  const wrapTitles = config.wrapEventTitles === true;
 
   // Build calendar grid cells
   const { cells, weekCount } = useMemo(() => {
@@ -93,11 +98,13 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
           const allDayEvs = dayEvents.filter(ev => ev.allDay);
           const timedEvs = dayEvents.filter(ev => !ev.allDay);
 
-          // Auto-calculate max visible events from approximate cell height
+          // Auto-calculate max visible events from approximate cell height;
+          // wrapped titles can take two lines, so budget double the pill height
           const approxCellHeight = (scale.height - scale.bu * 7) / weekCount;
+          const pillHeight = fontSize * (wrapTitles ? 2.0 : 1.0);
           const autoMax = config.monthMaxEventsPerCell > 0
             ? config.monthMaxEventsPerCell
-            : Math.max(2, Math.floor((approxCellHeight - fontSize * 2) / (fontSize * 1.0)));
+            : Math.max(2, Math.floor((approxCellHeight - fontSize * 2) / pillHeight));
           const maxShow = Math.max(1, autoMax - allDayEvs.length);
           const overflow = timedEvs.length > maxShow ? timedEvs.length - maxShow : 0;
 
@@ -124,13 +131,13 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                 style={{
                   borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                   borderBottom: '1px solid var(--cal-border-subtle)',
-                  borderLeft: isToday ? '2px solid var(--cal-accent)' : undefined,
+                  borderLeft: isToday && showTodayMarker ? '2px solid var(--cal-accent)' : undefined,
                   padding: scale.bu * 0.3,
                   position: 'relative',
                   overflow: 'hidden',
                   opacity: isCurrentMonth ? 1 : 0.35,
-                  background: isToday
-                    ? 'var(--cal-accent-bg)'
+                  background: isToday && showTodayBg
+                    ? 'var(--cal-today-fill)'
                     : isWeekend && config.shadeWeekends
                       ? 'var(--cal-weekend-shade)'
                       : undefined,
@@ -138,7 +145,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
               >
                 {/* Day number */}
                 <div style={{ marginBottom: scale.bu * 0.15 }}>
-                  {isToday ? (
+                  {isToday && showTodayMarker ? (
                     <span className="fsc-today-pulse" style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -176,9 +183,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                       borderRadius: 2,
                       background: color,
                       marginBottom: 1,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      ...clampStyle(wrapTitles),
                     }}>
                       {ev.title}
                     </div>
@@ -208,9 +213,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                         fontSize: fontSize * 0.55,
                         fontWeight: 500,
                         color: 'var(--cal-text-primary)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        ...clampStyle(wrapTitles),
                       }}>
                         {ev.title}
                       </span>

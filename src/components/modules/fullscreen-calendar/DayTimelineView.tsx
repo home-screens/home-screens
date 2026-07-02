@@ -1,9 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { computeOverlapColumns, MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { computeOverlapLayout } from '@/lib/fullscreen-overlap';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
@@ -27,15 +29,12 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
   const totalHours = hourEnd - hourStart;
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const gutterWidth = scale.bu * 5.5;
+  const overlapMode = config.eventOverlap ?? 'columns';
 
   // Fit grid exactly to container — no scrolling on kiosk display
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 6.5 : 5.5);
   const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;
   const gridHeight = totalHours * hourHeight;
-
-  const dayEvents = events.filter(ev => isEventOnDay(ev, today));
-  const allDayEvs = dayEvents.filter(ev => ev.allDay);
-  const timedEvs = dayEvents.filter(ev => !ev.allDay);
 
   const isToday = isSameDay(now, today);
   const nowHour = now.getHours() + now.getMinutes() / 60;
@@ -46,16 +45,37 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
   const morningEnd = 12;
   const afternoonEnd = 17;
 
-  // Compute overlap layout for timed events
-  const layoutInput = timedEvs.map(ev => ({
-    id: ev.id,
-    startHour: Math.max(parseTimeToHours(ev.start), hourStart),
-    endHour: Math.min(
-      parseTimeToHours(ev.end) <= parseTimeToHours(ev.start) ? hourEnd : parseTimeToHours(ev.end),
-      hourEnd,
-    ),
-  }));
-  const overlapLayout = computeOverlapColumns(layoutInput);
+  // Day filtering and overlap layout don't depend on the 60s clock tick, so
+  // memoize them instead of recomputing on every re-render. Events entirely
+  // outside the hour range are excluded up front — clamping alone would leave
+  // them as degenerate inputs that still occupy an overlap column.
+  const { allDayEvs, timedEvs, overlapLayout, hiddenStarts } = useMemo(() => {
+    const dayEvents = events.filter(ev => isEventOnDay(ev, today));
+    const allDay = dayEvents.filter(ev => ev.allDay);
+    const timed = dayEvents.filter(ev => !ev.allDay);
+    const layoutInput = timed
+      .map(ev => {
+        const rawStart = parseTimeToHours(ev.start);
+        const rawEnd = parseTimeToHours(ev.end);
+        return {
+          id: ev.id,
+          startHour: Math.max(rawStart, hourStart),
+          endHour: rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd),
+        };
+      })
+      .filter(e => e.startHour < hourEnd && e.endHour > e.startHour);
+    const layout = computeOverlapLayout(layoutInput, overlapMode);
+    // Columns mode hides overflow (width 0); aggregate hidden events by start
+    // position so the view can render a "+N" indicator instead of silence
+    const hidden = new Map<number, number>();
+    for (const input of layoutInput) {
+      if (layout.get(input.id)?.width === 0) {
+        hidden.set(input.startHour, (hidden.get(input.startHour) ?? 0) + 1);
+      }
+    }
+    return { allDayEvs: allDay, timedEvs: timed, overlapLayout: layout, hiddenStarts: hidden };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
+  }, [events, today.toDateString(), hourStart, hourEnd, overlapMode]);
 
 
   return (
@@ -283,10 +303,13 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                     width: `calc(${layout.width * 100}% - ${scale.bu * 1.6}px)`,
                     borderRadius: 8,
                     borderLeft: `4px solid ${eventBorder(color, scale.isDark)}`,
-                    background: eventBg(color, 0.08, scale.isDark),
+                    background: overlapMode === 'stacked'
+                      ? `linear-gradient(${eventBg(color, 0.13, scale.isDark)}, ${eventBg(color, 0.13, scale.isDark)}), var(--cal-bg)`
+                      : eventBg(color, 0.08, scale.isDark),
                     padding: `${scale.bu * 0.6}px ${scale.bu * 0.8}px`,
                     overflow: 'hidden',
-                    zIndex: 2,
+                    zIndex: layout.zIndex,
+                    boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
                     opacity: isPast && config.dimPastEvents ? 0.4 : 1,
                   }}
                 >
@@ -337,6 +360,30 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                 </div>
               );
             })}
+
+            {/* Hidden-overflow indicators (columns mode) */}
+            {Array.from(hiddenStarts, ([startHour, count]) => (
+              <div
+                key={startHour}
+                aria-label={t('fullscreen-calendar.moreCount', { count })}
+                style={{
+                  position: 'absolute',
+                  top: (startHour - hourStart) * hourHeight + scale.bu * 0.3,
+                  right: scale.bu * 0.4,
+                  zIndex: 3,
+                  fontSize: fontSize * 0.65,
+                  fontWeight: 600,
+                  color: 'var(--cal-text-secondary)',
+                  background: 'var(--cal-surface)',
+                  border: '1px solid var(--cal-border)',
+                  borderRadius: 999,
+                  padding: `${scale.bu * 0.1}px ${scale.bu * 0.4}px`,
+                  pointerEvents: 'none',
+                }}
+              >
+                +{count}
+              </div>
+            ))}
 
             {/* Now line */}
             {config.showNowLine && nowInRange && (

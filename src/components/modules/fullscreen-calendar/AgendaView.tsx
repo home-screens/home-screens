@@ -24,6 +24,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
   const daysAhead = config.agendaDaysAhead ?? 14;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.agendaShowDescription === true;
+  const showTodayMarker = (config.todayHighlightStyle ?? 'full') !== 'off';
 
   const dayGroups = useMemo(() => {
     const groups: { date: Date; events: CalendarEvent[] }[] = [];
@@ -64,7 +65,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
           gap: scale.bu * 0.6,
         }}>
           {formatDateSync(date, 'EEEE, MMMM d', { locale })}
-          {isGroupToday && (
+          {isGroupToday && showTodayMarker && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
               fontSize: fontSize * 0.65,
