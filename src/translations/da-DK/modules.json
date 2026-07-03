@@ -548,10 +548,10 @@
   },
   "word-of-day": {
     "pos": {
-      "adjective": "adjective",
-      "noun": "noun",
-      "verb": "verb",
-      "adverb": "adverb"
+      "adjective": "adjektiv",
+      "noun": "substantiv",
+      "verb": "verbum",
+      "adverb": "adverbium"
     }
   },
   "news": {

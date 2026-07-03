@@ -17,6 +17,11 @@ import {
 } from '../word-of-day-data';
 import { EN_US_WORDS } from '../word-of-day-words/en-US';
 import { DE_DE_WORDS } from '../word-of-day-words/de-DE';
+import { FR_FR_WORDS } from '../word-of-day-words/fr-FR';
+import { ES_ES_WORDS } from '../word-of-day-words/es-ES';
+import { NL_NL_WORDS } from '../word-of-day-words/nl-NL';
+import { PT_BR_WORDS } from '../word-of-day-words/pt-BR';
+import { DA_DK_WORDS } from '../word-of-day-words/da-DK';
 
 const VALID_POS: PartOfSpeech[] = ['adjective', 'noun', 'verb', 'adverb'];
 const EXPECTED_COUNT = 732; // 2 × 366
@@ -24,6 +29,11 @@ const EXPECTED_COUNT = 732; // 2 × 366
 const LOCALE_LISTS = [
   { tag: 'en-US', words: EN_US_WORDS },
   { tag: 'de-DE', words: DE_DE_WORDS },
+  { tag: 'fr-FR', words: FR_FR_WORDS },
+  { tag: 'es-ES', words: ES_ES_WORDS },
+  { tag: 'nl-NL', words: NL_NL_WORDS },
+  { tag: 'pt-BR', words: PT_BR_WORDS },
+  { tag: 'da-DK', words: DA_DK_WORDS },
 ];
 
 describe('word-of-day seed lists', () => {
@@ -54,17 +64,18 @@ describe('word-of-day seed lists', () => {
 });
 
 describe('getWordsForLocale', () => {
-  it('resolves configured locales directly', () => {
-    expect(getWordsForLocale('en-US')).toBe(EN_US_WORDS);
-    expect(getWordsForLocale('de-DE')).toBe(DE_DE_WORDS);
+  it('resolves every configured locale directly', () => {
+    for (const { tag, words } of LOCALE_LISTS) {
+      expect(getWordsForLocale(tag)).toBe(words);
+    }
   });
 
   it('walks the fallback chain for regional variants', () => {
     expect(getWordsForLocale('de-AT')).toBe(DE_DE_WORDS);
+    expect(getWordsForLocale('fr-CA')).toBe(FR_FR_WORDS);
   });
 
   it('falls back to en-US for unconfigured locales', () => {
-    expect(getWordsForLocale('fr-FR')).toBe(EN_US_WORDS);
     expect(getWordsForLocale('xx-XX')).toBe(EN_US_WORDS);
   });
 });

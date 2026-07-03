@@ -21,6 +21,11 @@ import { getDayOfYear } from 'date-fns';
 import { resolveLocaleChain } from '@/i18n/fallback';
 import { EN_US_WORDS } from './word-of-day-words/en-US';
 import { DE_DE_WORDS } from './word-of-day-words/de-DE';
+import { FR_FR_WORDS } from './word-of-day-words/fr-FR';
+import { ES_ES_WORDS } from './word-of-day-words/es-ES';
+import { NL_NL_WORDS } from './word-of-day-words/nl-NL';
+import { PT_BR_WORDS } from './word-of-day-words/pt-BR';
+import { DA_DK_WORDS } from './word-of-day-words/da-DK';
 import type { WordEntry, PartOfSpeech } from './word-of-day-words/types';
 
 export type { WordEntry, PartOfSpeech };
@@ -31,6 +36,11 @@ const SLOTS_PER_YEAR = 366;
 const WORDS_BY_LOCALE: Record<string, WordEntry[]> = {
   'en-US': EN_US_WORDS,
   'de-DE': DE_DE_WORDS,
+  'fr-FR': FR_FR_WORDS,
+  'es-ES': ES_ES_WORDS,
+  'nl-NL': NL_NL_WORDS,
+  'pt-BR': PT_BR_WORDS,
+  'da-DK': DA_DK_WORDS,
 };
 
 /**
