@@ -330,7 +330,7 @@ export default function PropertyPanel() {
           </AccordionSection>
         )}
 
-        <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={true}>
+        <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={false}>
           <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>
             <label htmlFor={`module-enabled-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm">
               <input
