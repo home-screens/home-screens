@@ -23,7 +23,8 @@ const sampleHolidays = [
   { date: '2026-01-01', localName: "New Year's Day", name: "New Year's Day", countryCode: 'US', types: ['Public'] },
   { date: '2026-01-19', localName: 'Martin Luther King Jr. Day', name: 'Martin Luther King Jr. Day', countryCode: 'US', types: ['Public'] },
   { date: '2026-02-14', localName: "Valentine's Day", name: "Valentine's Day", countryCode: 'US', types: ['Observance'] },
-  { date: '2026-07-04', localName: 'Independence Day', name: 'Independence Day', countryCode: 'US', types: ['Public'] },
+  // Jul 4, 2026 is a Saturday — Nager reports the federally observed Friday
+  { date: '2026-07-03', localName: 'Independence Day', name: 'Independence Day', countryCode: 'US', types: ['Public'] },
   { date: '2026-12-25', localName: 'Christmas Day', name: 'Christmas Day', countryCode: 'US', types: ['Public'] },
 ];
 
@@ -138,6 +139,61 @@ describe('fetchHolidayEvents', () => {
   it('throws when API returns error', async () => {
     mockFetch.mockResolvedValueOnce(mockErrorResponse(404));
     await expect(fetchHolidayEvents('XX', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z')).rejects.toThrow('Failed to fetch holidays: 404');
+  });
+
+  it('pins fixed-date holidays back to their true calendar date', async () => {
+    // Jul 4, 2026 is a Saturday — Nager reports the observed Friday Jul 3
+    const observed = [
+      { date: '2026-07-03', localName: 'Independence Day', name: 'Independence Day', countryCode: 'US', types: ['Public'] },
+      { date: '2026-01-19', localName: 'Martin Luther King Jr. Day', name: 'Martin Luther King Jr. Day', countryCode: 'US', types: ['Public'] },
+    ];
+    mockFetch.mockResolvedValueOnce(mockJsonResponse(observed));
+
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z');
+
+    const july4 = events.find((e) => e.title === 'Independence Day')!;
+    expect(july4.start).toBe('2026-07-04');
+    expect(july4.end).toBe('2026-07-05');
+    expect(july4.id).toBe('holiday-US-2026-07-04');
+
+    // Floating holidays (defined by weekday rule, not fixed date) pass through
+    const mlk = events.find((e) => e.title === 'Martin Luther King Jr. Day')!;
+    expect(mlk.start).toBe('2026-01-19');
+  });
+
+  it('pins Sunday-shifted holidays back from their observed Monday', async () => {
+    // Jul 4, 2021 was a Sunday — observed Monday Jul 5; Dec 25, 2021 a Saturday — observed Dec 24
+    const observed = [
+      { date: '2021-07-05', localName: 'Independence Day', name: 'Independence Day', countryCode: 'US', types: ['Public'] },
+      { date: '2021-12-24', localName: 'Christmas Day', name: 'Christmas Day', countryCode: 'US', types: ['Public'] },
+    ];
+    mockFetch.mockResolvedValueOnce(mockJsonResponse(observed));
+
+    const events = await fetchHolidayEvents('US', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z');
+    expect(events.map((e) => e.start)).toEqual(['2021-07-04', '2021-12-25']);
+  });
+
+  it('pins New Year\'s Day observed in the prior December across the year boundary', async () => {
+    // Jan 1, 2022 was a Saturday — Nager's 2022 list reports "2021-12-31".
+    // Without pinning, this falls outside a 2022 range and disappears entirely.
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([
+      { date: '2021-12-31', localName: "New Year's Day", name: "New Year's Day", countryCode: 'US', types: ['Public'] },
+    ]));
+
+    const events = await fetchHolidayEvents('US', '2022-01-01T00:00:00Z', '2022-12-31T00:00:00Z');
+    expect(events).toHaveLength(1);
+    expect(events[0].start).toBe('2022-01-01');
+    expect(events[0].id).toBe('holiday-US-2022-01-01');
+  });
+
+  it('does not pin same-named holidays from other countries', async () => {
+    // GB substitute-day for Christmas — no US-style pinning should apply
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([
+      { date: '2021-12-27', localName: 'Christmas Day', name: 'Christmas Day', countryCode: 'GB', types: ['Public'] },
+    ]));
+
+    const events = await fetchHolidayEvents('GB', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z');
+    expect(events[0].start).toBe('2021-12-27');
   });
 
   it('returns empty array when no Public holidays in range', async () => {
