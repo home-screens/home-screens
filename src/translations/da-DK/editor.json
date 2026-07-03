@@ -2998,6 +2998,8 @@
       "not": "Ingen af…"
     },
     "sourceKeyLabel": "Tilstandsnøgle",
+    "sourceKeyHint": "Forslag kommer fra moduler, der udgiver tilstand. Opsæt først det modul, der udgiver, og vælg derefter dets nøgle her. Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
+    "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Match",
     "matchEquals": "Er",

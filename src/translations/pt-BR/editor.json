@@ -3004,6 +3004,8 @@
       "not": "Nenhuma…"
     },
     "sourceKeyLabel": "Chave de estado",
+    "sourceKeyHint": "As sugestões vêm de módulos que publicam estado. Configure primeiro o módulo que publica e depois escolha a chave dele aqui. Chaves digitadas à mão precisam corresponder exatamente, incluindo o prefixo plugin:.",
+    "sourceKeyUnknown": "Nenhum módulo deste display publica esta chave ainda. Até lá, esta condição conta como desconhecida e o módulo segue a configuração 'Antes de os dados chegarem'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Correspondência",
     "matchEquals": "É",

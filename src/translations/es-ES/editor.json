@@ -3004,6 +3004,8 @@
       "not": "Ninguna…"
     },
     "sourceKeyLabel": "Clave de estado",
+    "sourceKeyHint": "Las sugerencias provienen de módulos que publican estado. Configura primero el módulo que publica y luego elige su clave aquí. Las claves escritas a mano deben coincidir exactamente, incluido el prefijo plugin:.",
+    "sourceKeyUnknown": "Ningún módulo de esta pantalla publica esta clave todavía. Hasta entonces, esta condición cuenta como desconocida y el módulo sigue el ajuste 'Antes de que lleguen los datos'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Coincidencia",
     "matchEquals": "Es",

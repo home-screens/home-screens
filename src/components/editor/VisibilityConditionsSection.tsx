@@ -80,17 +80,26 @@ function SourceKeyInput({
   value,
   onChange,
   listId,
+  knownKeys,
   t,
 }: {
   value: string;
   onChange: (key: string) => void;
   listId: string;
+  knownKeys: ReadonlySet<string>;
   t: TranslateFn;
 }) {
   const invalid = !SHARED_STATE_KEY_RE.test(value);
+  // Charset-valid but not advertised by any provider on this display —
+  // either the publishing module isn't configured yet (condition authored
+  // first) or the key is a typo (e.g. missing the plugin: namespace). Both
+  // leave the condition permanently "unknown", which default-hides the
+  // module with no other feedback, so surface it here as a soft warning.
+  const unknown = !invalid && value !== '' && !knownKeys.has(value);
   return (
     <label className="flex flex-col gap-0.5">
       <span className="text-xs text-hs-text-muted">{t('visibilityConditions.sourceKeyLabel')}</span>
+      <span className="text-[10px] text-hs-text-dim">{t('visibilityConditions.sourceKeyHint')}</span>
       <input
         type="text"
         value={value}
@@ -103,6 +112,9 @@ function SourceKeyInput({
       {invalid && (
         <span className="text-[10px] text-hs-danger">{t('visibilityConditions.sourceKeyInvalid')}</span>
       )}
+      {unknown && (
+        <span className="text-[10px] text-hs-warning">{t('visibilityConditions.sourceKeyUnknown')}</span>
+      )}
     </label>
   );
 }
@@ -113,6 +125,7 @@ function ConditionEditor({
   onRemove,
   defaultKey,
   listId,
+  knownKeys,
   depth,
   t,
 }: {
@@ -121,6 +134,7 @@ function ConditionEditor({
   onRemove: () => void;
   defaultKey: string;
   listId: string;
+  knownKeys: ReadonlySet<string>;
   depth: number;
   t: TranslateFn;
 }) {
@@ -158,6 +172,7 @@ function ConditionEditor({
             value={condition.sourceKey}
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
             listId={listId}
+            knownKeys={knownKeys}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -207,6 +222,7 @@ function ConditionEditor({
             value={condition.sourceKey}
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
             listId={listId}
+            knownKeys={knownKeys}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -241,6 +257,7 @@ function ConditionEditor({
               depth={depth + 1}
               defaultKey={defaultKey}
               listId={listId}
+              knownKeys={knownKeys}
               t={t}
               onChange={(next) => {
                 const conditions = condition.conditions.slice();
@@ -280,6 +297,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
     [config, selectedDisplayId],
   );
   const defaultKey = providedKeys[0]?.key ?? '';
+  const knownKeys = useMemo(() => new Set(providedKeys.map((k) => k.key)), [providedKeys]);
 
   const visibility = mod.visibility;
   const enabled = !!visibility;
@@ -341,6 +359,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                   depth={0}
                   defaultKey={defaultKey}
                   listId={listId}
+                  knownKeys={knownKeys}
                   t={t}
                   onChange={(next) => {
                     const conditions = visibility.conditions.slice();

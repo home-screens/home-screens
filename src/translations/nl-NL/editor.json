@@ -2998,6 +2998,8 @@
       "not": "Geen van…"
     },
     "sourceKeyLabel": "Statussleutel",
+    "sourceKeyHint": "Suggesties komen van modules die status publiceren. Stel eerst de publicerende module in en kies daarna hier de sleutel. Handmatig getypte sleutels moeten exact overeenkomen, inclusief het plugin:-voorvoegsel.",
+    "sourceKeyUnknown": "Geen enkele module op dit scherm publiceert deze sleutel nog. Tot die tijd telt deze voorwaarde als onbekend en volgt de module de instelling 'Voordat gegevens binnenkomen'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Vergelijking",
     "matchEquals": "Is",

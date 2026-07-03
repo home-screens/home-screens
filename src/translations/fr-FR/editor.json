@@ -3004,6 +3004,8 @@
       "not": "Aucune…"
     },
     "sourceKeyLabel": "Clé d'état",
+    "sourceKeyHint": "Les suggestions proviennent des modules qui publient des états. Configurez d'abord le module qui publie, puis choisissez sa clé ici. Les clés saisies à la main doivent correspondre exactement, y compris le préfixe plugin:.",
+    "sourceKeyUnknown": "Aucun module de cet écran ne publie cette clé pour l'instant. D'ici là, cette condition est considérée comme inconnue et le module suit le réglage 'Avant l'arrivée des données'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Correspondance",
     "matchEquals": "Est",

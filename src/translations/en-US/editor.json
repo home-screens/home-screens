@@ -1874,7 +1874,7 @@
       "enabledLabel": "Show on display",
       "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
       "backgroundProviderLabel": "Run hidden in the background",
-      "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen — to also show the widget, add a second copy without this setting."
+      "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen - to also show the widget, add a second copy without this setting."
     }
   },
   "upgradeModal": {
@@ -2998,6 +2998,8 @@
       "not": "None of…"
     },
     "sourceKeyLabel": "State key",
+    "sourceKeyHint": "Suggestions come from modules that publish state, so set up the publishing module first, then pick its key here. Typed keys must match exactly, including the plugin: prefix.",
+    "sourceKeyUnknown": "Nothing on this display publishes this key yet. Until something does, this condition counts as unknown and the module follows the 'Before data arrives' setting.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Match",
     "matchEquals": "Is",

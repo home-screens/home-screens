@@ -2998,6 +2998,8 @@
       "not": "Keine von…"
     },
     "sourceKeyLabel": "Zustandsschlüssel",
+    "sourceKeyHint": "Vorschläge stammen von Modulen, die Zustände veröffentlichen. Richte zuerst das veröffentlichende Modul ein und wähle dann hier seinen Schlüssel aus. Eingetippte Schlüssel müssen exakt übereinstimmen, einschließlich des plugin:-Präfixes.",
+    "sourceKeyUnknown": "Kein Modul auf diesem Display veröffentlicht diesen Schlüssel bisher. Bis dahin gilt diese Bedingung als unbekannt und das Modul folgt der Einstellung 'Bevor Daten eintreffen'.",
     "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
     "matchLabel": "Vergleich",
     "matchEquals": "Ist",
