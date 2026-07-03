@@ -25,6 +25,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Profile system** — named screen groups with schedule-based auto-activation
 - **Remote display control** — wake, sleep, brightness, navigation, and alerts via HTTP
 - **Per-module scheduling** — show or hide modules by day of week and time window
+- **Conditional module visibility** — show or hide any module based on live values published by plugins (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
 - **Google Calendar + iCal** — display events from Google Calendar (OAuth device flow) or any iCal/ICS feed
 - **Background management** — upload images, browse Unsplash, or use NASA APOD with auto-rotation
 - **Per-module styling** — opacity, blur, colors, fonts, border radius, padding
@@ -317,6 +318,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/standings` | GET | League standings (ESPN, 12 leagues) |
 | `/api/air-quality` | GET | Air quality and UV index |
 | `/api/todoist` | GET | Todoist tasks |
+| `/api/todo/*` | GET, POST | Interactive todo tap-state (`/state` poll; `/toggle` atomic flip) |
 | `/api/rain-map` | GET | RainViewer precipitation tiles |
 | `/api/chores` | GET, POST | Chore chart completions |
 | `/api/holidays` | GET | Public holidays by country |
@@ -331,6 +333,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/chores`, `/api/rewards` | GET, POST | Family data (chore completions, reward redemptions) shared between editor and `/remote` |
 | `/api/meals/*` | GET, PUT, POST | Meal-planner shared state (`/data` GET+PUT saved meals/plan/settings; `/grocery` GET+POST checklist) |
 | `/api/plugins/*` | GET, POST, PUT, DELETE | Plugin registry, install (from registry **or URL**), proxy, secrets |
+| `/api/i18n/[locale]` | GET | UI translation dictionaries by namespace |
 
 ## Adding a Module
 

@@ -396,6 +396,15 @@ Individual modules can be shown or hidden based on a schedule:
 
 This is useful for showing a commute module only on weekday mornings or a sports scores module only on game days.
 
+## Module Visibility
+
+Beyond scheduling, each module has a **Visibility** section in the Property Panel:
+
+- **On/off toggle** — turn a module off without deleting it. A disabled module disappears from the display (and stops fetching data) but stays visible, dimmed, in the editor so you can turn it back on later.
+- **Conditions** — show the module only when live values match rules you define. Values come from plugins that publish state (for example, a Home Assistant plugin publishing sensor readings). Add one or more conditions — "sensor equals open", "temperature above 30" — and combine them with all/any/none groups. All top-level conditions must match for the module to show.
+
+Conditions pair well with an always-hidden provider module: the Visibility section also has a **background provider** option that keeps a module's data running behind the scenes (it never renders on screen) so the values it publishes stay fresh across screen rotation.
+
 ## Saving
 
 Changes are saved automatically when you modify settings. The editor fetches and pushes configuration via the `/api/config` endpoint, which reads and writes `data/config.json`.

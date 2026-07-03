@@ -563,6 +563,44 @@ Deletes an API key or credential. Requires a valid session.
 
 ---
 
+## To-Do
+
+### GET /api/todo/state
+
+Returns the runtime completion map for interactive To-Do items, keyed by item ID. To-Do modules with `interactive` enabled poll this endpoint so a tap on one display surfaces on every other display within the poll interval. The map is global; each module filters it to its own item IDs client-side. Completion state lives in `data/todo-state.json`, separate from `config.json`, so editor saves never clobber taps. Requires display auth.
+
+**Response:**
+```json
+{
+  "completed": {
+    "item-uuid-1": true,
+    "item-uuid-2": false
+  }
+}
+```
+
+An absent key means the item uses its authored default from the editor.
+
+### POST /api/todo/toggle
+
+Atomically flips one To-Do item's completion state. The addressed module must exist, be a To-Do module, and have `interactive` enabled — a stale or forged request cannot flip a read-only instance. Returns the full updated state map so the tapping client can reconcile its optimistic update against server truth. Requires display auth.
+
+**Body:**
+```json
+{
+  "displayId": "kitchen",
+  "screenId": "screen-1",
+  "moduleId": "module-uuid",
+  "itemId": "item-uuid"
+}
+```
+
+`displayId` is optional in legacy single-display mode but required to disambiguate in multi-display mode; an unknown `displayId` returns 404 rather than falling back.
+
+**Response:** the full updated completion map (same shape as `GET /api/todo/state`).
+
+---
+
 ## Todoist
 
 ### GET /api/todoist
@@ -1301,7 +1339,7 @@ Serves the plugin's JavaScript bundle.
 
 ### POST /api/plugins/proxy/:pluginId
 
-Server-side proxy for plugin API requests. Handles domain validation (only requests to the plugin's declared `allowedDomains` are allowed), secret injection (replaces `{{secret_key}}` placeholders with stored values), rate limiting (60 requests/minute per plugin), and response caching. Maximum response size is 5 MB.
+Server-side proxy for plugin API requests. Handles domain validation (only requests to the plugin's declared `allowedDomains` are allowed), secret injection (replaces `{{secret_key}}` placeholders with stored values), rate limiting (60 requests/minute per plugin; 240 for plugins with the `localNetwork` permission), and response caching. Maximum response size is 5 MB.
 
 **Body:**
 ```json

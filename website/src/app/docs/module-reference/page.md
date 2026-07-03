@@ -32,6 +32,9 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `showNowLine` | boolean | `true` | Show a line indicating the current time |
 | `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
 | `darkMode` | boolean | `false` | Use dark color scheme |
+| `todayHighlightStyle` | string | `"full"` | How strongly today is highlighted: `full` (accent-tinted fill), `subtle` (faint background), `minimal` (marker only), or `off` |
+| `eventOverlap` | string | `"columns"` | How overlapping events are laid out in schedule and day timeline views: `columns` (side-by-side, with a "+N" indicator when events don't fit) or `stacked` (cascading overlap) |
+| `wrapEventTitles` | boolean | `false` | Wrap long event titles onto a second line in schedule and month views instead of truncating |
 | `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
 | `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
 | `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
@@ -455,8 +458,9 @@ A checklist with completable items.
 | `title` | string | `"To Do"` | List title |
 | `items` | array | `[]` | Items with `id`, `text`, and `completed` fields |
 | `accentColor` | string | `"#000000"` | Accent color for checkboxes, strikethrough, and progress indicator |
+| `interactive` | boolean | `false` | Render items as tap targets on the display so anyone at the kiosk can check or uncheck them. Taps are stored separately from the editor's item list, so an editor save never wipes them, and every display showing the same list stays in sync (within about 5 seconds). |
 
-Items can be added, edited, and checked off in the editor.
+Items can be added, edited, and checked off in the editor. With `interactive` on, they can also be checked off directly on a touchscreen display.
 
 ### Todoist
 

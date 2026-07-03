@@ -500,7 +500,7 @@ For example, if a plugin declares a secret with key `api_key` and the user has c
 ### Proxy Constraints
 
 - **Domain allowlist** — the proxy only forwards requests to domains declared in the manifest's `allowedDomains`. Wildcard prefixes are supported (e.g., `*.example.com` matches `api.example.com`).
-- **Rate limiting** — 60 requests per minute per plugin. Returns HTTP 429 when exceeded.
+- **Rate limiting** — 60 requests per minute per plugin (240 for plugins with the `localNetwork` permission, since self-hosted LAN services like Home Assistant tolerate frequent polling). Returns HTTP 429 when exceeded.
 - **Response size** — maximum 5 MB per response.
 - **Timeout** — upstream requests time out after 15 seconds.
 - **Caching** — GET responses with text/JSON/XML content types are cached per URL + headers hash, with the TTL specified by `cacheTtlMs`.
@@ -740,7 +740,7 @@ Plugins have access to the full browser environment but should only interact wit
 
 ### Rate Limiting
 
-The proxy enforces a per-plugin rate limit of 60 requests per minute with a sliding window. This prevents a misbehaving plugin from overwhelming external APIs or the server itself.
+The proxy enforces a per-plugin rate limit of 60 requests per minute. Plugins with the `localNetwork` permission get a higher limit of 240 requests per minute — they target self-hosted services on your own LAN (like Home Assistant), where frequent polling is the norm and there is no third-party API to protect. The standard limit prevents a misbehaving plugin from overwhelming external APIs or the server itself.
 
 ### Integrity Verification
 

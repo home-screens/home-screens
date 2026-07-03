@@ -235,8 +235,14 @@ type TransitionEffect =
   config: Record<string, unknown>       // Module-specific configuration
   style: ModuleStyle                    // Visual styling
   schedule?: ModuleSchedule             // Optional show/hide schedule
+  visibility?: ModuleVisibility         // Optional conditions over shared state
+  backgroundProvider?: boolean          // true = never rendered on screen; mounts
+                                        // once in a hidden layer so its data loop
+                                        // (and published state) survives rotation
 }
 ```
+
+The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met.
 
 ### ModuleSchedule
 
@@ -250,6 +256,30 @@ Controls when a module (or profile) is active based on day of week and time wind
   invert?: boolean         // if true, HIDE during this window instead of show
 }
 ```
+
+### ModuleVisibility
+
+Shows or hides a module based on values published to the shared state bus (by plugins via `publishState`, or by background-provider module instances). Conditions follow Home Assistant-style semantics.
+
+```typescript
+{
+  conditions: VisibilityCondition[]   // Implicit AND across the array; met = show
+  whenUnknown?: 'show' | 'hide'       // Outcome while any referenced key is not yet
+                                      // published (default 'hide'); evaluated before
+                                      // the condition tree
+}
+```
+
+```typescript
+type VisibilityCondition =
+  | { kind: 'state';   sourceKey: string, equals?: string | string[], notEquals?: string | string[] }
+  | { kind: 'numeric'; sourceKey: string, above?: number, below?: number }
+  | { kind: 'and';     conditions: VisibilityCondition[] }
+  | { kind: 'or';      conditions: VisibilityCondition[] }
+  | { kind: 'not';     conditions: VisibilityCondition[] }
+```
+
+`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
 
 ### Profile
 
@@ -462,14 +492,24 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
   showNowLine: boolean
   sourceFilter?: string[]        // Calendar source IDs (empty = all)
   darkMode: boolean
+  theme?: string                 // Fullscreen theme preset (overrides settings.fullscreenTheme)
+  todayHighlightStyle?: 'full' | 'subtle' | 'minimal' | 'off'  // default 'full'; today fill
+                                 // derives from accentColor
+  eventOverlap?: 'columns' | 'stacked'  // default 'columns' (side-by-side with "+N"
+                                 // indicator); 'stacked' = cascading overlap.
+                                 // Applies to schedule and day-timeline views
+  wrapEventTitles?: boolean      // default false; wrap long titles to 2 lines
+                                 // (schedule + month views)
 
   // Schedule view
   scheduleDaysToShow: number     // 1-7, 0 = auto
   scheduleHourStart: number      // 0-23
   scheduleHourEnd: number        // 1-24
+  scheduleShowDescription?: boolean
 
   // Week list view
   weekCollapsePastDays: boolean
+  weekShowDescription?: boolean
 
   // Month grid view
   monthShowWeekNumbers: boolean
@@ -479,10 +519,12 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
   dayHourStart: number
   dayHourEnd: number
   dayShowLocation: boolean
+  dayShowDescription?: boolean
 
   // Agenda view
   agendaDaysAhead: number        // 7-30
   agendaHideEmptyDays: boolean
+  agendaShowDescription?: boolean
 }
 ```
 
