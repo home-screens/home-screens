@@ -1,90 +1,32 @@
 /**
- * Per-locale "Word of the Day" seed data.
+ * Per-locale "Word of the Day" seed data and selection logic.
  *
- * The seed list is content (not UI chrome), so it lives alongside the
- * module rather than in the translation dictionaries — keeping
- * `src/translations/*.json` to plain user-facing strings.
+ * The seed lists are content (not UI chrome), so they live alongside the
+ * module (in `word-of-day-words/`) rather than in the translation
+ * dictionaries — keeping `src/translations/*.json` to plain user-facing
+ * strings.
+ *
+ * Each locale ships 732 entries (2 × 366): a two-year supply with no
+ * repeats inside a cycle. `getWordEntryForDate` deterministically maps a
+ * date to an entry via a cycle-seeded Fisher–Yates shuffle, so every
+ * display shows the same word on the same day with no stored state, and
+ * each new two-year cycle re-deals the word→date pairing.
  *
  * `getWordsForLocale(tag)` returns the closest-match list, walking the
  * locale fallback chain so e.g. `de-AT` reuses the `de-DE` table.
  * Unconfigured locales fall back to en-US.
  */
 
+import { getDayOfYear } from 'date-fns';
 import { resolveLocaleChain } from '@/i18n/fallback';
+import { EN_US_WORDS } from './word-of-day-words/en-US';
+import { DE_DE_WORDS } from './word-of-day-words/de-DE';
+import type { WordEntry, PartOfSpeech } from './word-of-day-words/types';
 
-export type PartOfSpeech = 'adjective' | 'noun' | 'verb' | 'adverb';
+export type { WordEntry, PartOfSpeech };
 
-export interface WordEntry {
-  word: string;
-  pos: PartOfSpeech;
-  definition: string;
-}
-
-const EN_US_WORDS: WordEntry[] = [
-  { word: 'Ephemeral', pos: 'adjective', definition: 'Lasting for a very short time' },
-  { word: 'Serendipity', pos: 'noun', definition: 'The occurrence of events by chance in a happy way' },
-  { word: 'Eloquent', pos: 'adjective', definition: 'Fluent or persuasive in speaking or writing' },
-  { word: 'Resilient', pos: 'adjective', definition: 'Able to recover quickly from difficulties' },
-  { word: 'Ubiquitous', pos: 'adjective', definition: 'Present, appearing, or found everywhere' },
-  { word: 'Sanguine', pos: 'adjective', definition: 'Optimistic or positive, especially in a difficult situation' },
-  { word: 'Mellifluous', pos: 'adjective', definition: 'Sweet or musical; pleasant to hear' },
-  { word: 'Perspicacious', pos: 'adjective', definition: 'Having a ready insight into things; shrewd' },
-  { word: 'Ineffable', pos: 'adjective', definition: 'Too great or extreme to be expressed in words' },
-  { word: 'Luminous', pos: 'adjective', definition: 'Full of or shedding light; bright or shining' },
-  { word: 'Petrichor', pos: 'noun', definition: 'The pleasant smell of earth after rain' },
-  { word: 'Quintessential', pos: 'adjective', definition: 'Representing the most perfect example of a quality' },
-  { word: 'Ethereal', pos: 'adjective', definition: 'Extremely delicate and light, seeming heavenly' },
-  { word: 'Wanderlust', pos: 'noun', definition: 'A strong desire to travel and explore the world' },
-  { word: 'Halcyon', pos: 'adjective', definition: 'Denoting a period of time that was idyllically happy and peaceful' },
-  { word: 'Sonorous', pos: 'adjective', definition: 'Imposingly deep and full in sound' },
-  { word: 'Verdant', pos: 'adjective', definition: 'Green with grass or other rich vegetation' },
-  { word: 'Ebullient', pos: 'adjective', definition: 'Cheerful and full of energy' },
-  { word: 'Sublime', pos: 'adjective', definition: 'Of outstanding spiritual or intellectual worth' },
-  { word: 'Incandescent', pos: 'adjective', definition: 'Emitting light as a result of being heated; passionate' },
-  { word: 'Gossamer', pos: 'noun', definition: 'Something very light, thin, and insubstantial' },
-  { word: 'Aplomb', pos: 'noun', definition: 'Self-confidence or assurance, especially in a demanding situation' },
-  { word: 'Zenith', pos: 'noun', definition: 'The highest point reached; the peak or culmination' },
-  { word: 'Euphoria', pos: 'noun', definition: 'A feeling of intense excitement and happiness' },
-  { word: 'Cascade', pos: 'noun', definition: 'A small waterfall, or a succession of stages' },
-  { word: 'Resplendent', pos: 'adjective', definition: 'Impressive and attractive; brilliant' },
-  { word: 'Labyrinthine', pos: 'adjective', definition: 'Like a labyrinth; irregular and twisting' },
-  { word: 'Cerulean', pos: 'adjective', definition: 'Deep sky blue in color' },
-  { word: 'Transcendent', pos: 'adjective', definition: 'Beyond or above the range of normal experience' },
-  { word: 'Iridescent', pos: 'adjective', definition: 'Showing luminous colors that change when seen from different angles' },
-];
-
-const DE_DE_WORDS: WordEntry[] = [
-  { word: 'Vergänglich', pos: 'adjective', definition: 'Von sehr kurzer Dauer; flüchtig' },
-  { word: 'Glücksfall', pos: 'noun', definition: 'Ein unerwartet glückliches Zusammentreffen von Umständen' },
-  { word: 'Beredt', pos: 'adjective', definition: 'Sprachgewandt und überzeugend im Reden oder Schreiben' },
-  { word: 'Widerstandsfähig', pos: 'adjective', definition: 'In der Lage, sich rasch von Schwierigkeiten zu erholen' },
-  { word: 'Allgegenwärtig', pos: 'adjective', definition: 'Überall vorhanden oder anzutreffen' },
-  { word: 'Zuversichtlich', pos: 'adjective', definition: 'Optimistisch, besonders in einer schwierigen Lage' },
-  { word: 'Wohlklingend', pos: 'adjective', definition: 'Süß oder melodisch; angenehm zu hören' },
-  { word: 'Scharfsinnig', pos: 'adjective', definition: 'Mit raschem, sicherem Verständnis ausgestattet' },
-  { word: 'Unaussprechlich', pos: 'adjective', definition: 'Zu groß oder intensiv, um in Worte gefasst zu werden' },
-  { word: 'Leuchtend', pos: 'adjective', definition: 'Voller Licht; hell strahlend' },
-  { word: 'Petrichor', pos: 'noun', definition: 'Der angenehme Geruch der Erde nach einem Regen' },
-  { word: 'Quintessenziell', pos: 'adjective', definition: 'Das vollkommenste Beispiel einer Eigenschaft darstellend' },
-  { word: 'Ätherisch', pos: 'adjective', definition: 'Außerordentlich zart und leicht; himmlisch wirkend' },
-  { word: 'Fernweh', pos: 'noun', definition: 'Die starke Sehnsucht zu reisen und die Welt zu entdecken' },
-  { word: 'Friedvoll', pos: 'adjective', definition: 'Eine Zeit bezeichnend, die idyllisch glücklich und ruhig war' },
-  { word: 'Klangvoll', pos: 'adjective', definition: 'Eindrucksvoll tief und voll im Klang' },
-  { word: 'Grünend', pos: 'adjective', definition: 'Grün durch Gras oder üppige Vegetation' },
-  { word: 'Überschwänglich', pos: 'adjective', definition: 'Heiter und voller Energie' },
-  { word: 'Erhaben', pos: 'adjective', definition: 'Von herausragendem geistigem oder intellektuellem Wert' },
-  { word: 'Glühend', pos: 'adjective', definition: 'Durch Hitze leuchtend; leidenschaftlich' },
-  { word: 'Hauchdünn', pos: 'noun', definition: 'Etwas sehr Leichtes, Dünnes und Substanzloses' },
-  { word: 'Selbstsicherheit', pos: 'noun', definition: 'Sicheres Auftreten, besonders in einer fordernden Lage' },
-  { word: 'Zenit', pos: 'noun', definition: 'Der höchste erreichte Punkt; der Höhepunkt' },
-  { word: 'Euphorie', pos: 'noun', definition: 'Ein Gefühl intensiver Begeisterung und Freude' },
-  { word: 'Kaskade', pos: 'noun', definition: 'Ein kleiner Wasserfall oder eine Abfolge von Stufen' },
-  { word: 'Prachtvoll', pos: 'adjective', definition: 'Eindrucksvoll und anziehend; glanzvoll' },
-  { word: 'Labyrinthisch', pos: 'adjective', definition: 'Wie ein Labyrinth; unregelmäßig und verwinkelt' },
-  { word: 'Himmelblau', pos: 'adjective', definition: 'Tiefes Blau wie der Himmel' },
-  { word: 'Transzendent', pos: 'adjective', definition: 'Jenseits oder oberhalb der gewöhnlichen Erfahrung' },
-  { word: 'Schillernd', pos: 'adjective', definition: 'Mit leuchtenden Farben, die je nach Blickwinkel wechseln' },
-];
+/** Days reserved per year of the cycle (leap-year safe). */
+const SLOTS_PER_YEAR = 366;
 
 const WORDS_BY_LOCALE: Record<string, WordEntry[]> = {
   'en-US': EN_US_WORDS,
@@ -102,4 +44,48 @@ export function getWordsForLocale(locale: string): WordEntry[] {
     if (words) return words;
   }
   return EN_US_WORDS;
+}
+
+/**
+ * mulberry32 — tiny deterministic PRNG. Seeded with the cycle number so
+ * every client derives the identical permutation with no coordination.
+ */
+function mulberry32(seed: number): () => number {
+  let state = seed | 0;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Fisher–Yates shuffle of `[0..length)` driven by a seeded PRNG. */
+function seededPermutation(length: number, seed: number): number[] {
+  const rand = mulberry32(seed);
+  const order = Array.from({ length }, (_, i) => i);
+  for (let i = length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
+/**
+ * Deterministically pick the entry for `date`.
+ *
+ * The list is treated as an N-year cycle (N = ceil(length / 366)). Within
+ * a cycle every entry appears at most once; when the cycle rolls over, a
+ * new seed re-shuffles the deck so words never land on the same calendar
+ * date twice in a row. Non-leap years skip the day-366 slot — that one
+ * unused word per cycle is the cost of leap-year safety.
+ */
+export function getWordEntryForDate(words: WordEntry[], date: Date): WordEntry {
+  const year = date.getFullYear();
+  const cycleYears = Math.max(1, Math.ceil(words.length / SLOTS_PER_YEAR));
+  const cycle = Math.floor(year / cycleYears);
+  const order = seededPermutation(words.length, cycle);
+  const slot =
+    ((year % cycleYears) * SLOTS_PER_YEAR + (getDayOfYear(date) - 1)) % words.length;
+  return words[order[slot]];
 }

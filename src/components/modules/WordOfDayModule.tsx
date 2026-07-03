@@ -1,13 +1,12 @@
 'use client';
 
 import type { WordOfDayConfig, ModuleStyle } from '@/types/config';
-import { getDayOfYear } from 'date-fns';
 import ModuleWrapper from './ModuleWrapper';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { AccentDivider } from './shared/AccentDivider';
 import { useTranslate, useLocale } from '@/i18n';
-import { getWordsForLocale } from './word-of-day-data';
+import { getWordsForLocale, getWordEntryForDate } from './word-of-day-data';
 
 interface WordOfDayModuleProps {
   config: WordOfDayConfig;
@@ -18,8 +17,7 @@ export default function WordOfDayModule({ config, style }: WordOfDayModuleProps)
   const t = useTranslate('modules');
   const locale = useLocale();
   const words = getWordsForLocale(locale);
-  const dayOfYear = getDayOfYear(new Date());
-  const entry = words[dayOfYear % words.length];
+  const entry = getWordEntryForDate(words, new Date());
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
