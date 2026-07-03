@@ -266,3 +266,57 @@ describe('validateManifest — secrets and allowedDomains', () => {
     expect(validateManifest({ ...base, allowedDomains: [123, 'example.com'] })).toBe(false);
   });
 });
+
+describe('validateManifest — providesState', () => {
+  const base = {
+    id: 'test',
+    name: 'Test',
+    version: '1.0.0',
+    moduleType: 'widget',
+    category: 'Personal',
+  };
+
+  it('accepts valid entries with and without sampleValues', async () => {
+    const { validateManifest } = await loadModule();
+    expect(validateManifest({
+      ...base,
+      providesState: [
+        { key: 'binary_sensor.door', label: 'Door' },
+        { key: 'temp', label: 'Temperature', sampleValues: ['70', '71'] },
+      ],
+    })).toBe(true);
+  });
+
+  it('rejects non-array providesState', async () => {
+    const { validateManifest } = await loadModule();
+    expect(validateManifest({ ...base, providesState: 'door' })).toBe(false);
+    expect(validateManifest({ ...base, providesState: { key: 'k', label: 'L' } })).toBe(false);
+  });
+
+  it('rejects entries missing key or label', async () => {
+    const { validateManifest } = await loadModule();
+    expect(validateManifest({ ...base, providesState: [{ label: 'No key' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: '' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [null] })).toBe(false);
+  });
+
+  it('rejects keys outside the shared-state charset (uppercase, spaces)', async () => {
+    const { validateManifest } = await loadModule();
+    expect(validateManifest({ ...base, providesState: [{ key: 'Door', label: 'D' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'has space', label: 'D' }] })).toBe(false);
+  });
+
+  it('rejects keys that would exceed 128 chars once prefixed with plugin:<id>:', async () => {
+    const { validateManifest } = await loadModule();
+    // prefix "plugin:test:" is 12 chars → a 120-char key overflows, 116 fits
+    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(120), label: 'D' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(116), label: 'D' }] })).toBe(true);
+  });
+
+  it('rejects malformed sampleValues', async () => {
+    const { validateManifest } = await loadModule();
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: 'on' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: [1, 2] }] })).toBe(false);
+  });
+});

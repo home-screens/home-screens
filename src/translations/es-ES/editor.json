@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Programado — activo ahora",
     "scheduledInactiveTitle": "Programado — inactivo ahora",
-    "disabledTitle": "Desactivado — no se muestra en pantalla"
+    "disabledTitle": "Desactivado — no se muestra en pantalla",
+    "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones"
   },
   "displaySwitcher": {
     "title": "¿Qué display estás editando en este lienzo? (Las anulaciones de ajustes están en Ajustes → Por display.)",
@@ -1850,7 +1851,8 @@
       "secrets": "Secretos",
       "credentials": "Credenciales",
       "schedule": "Programación",
-      "visibility": "Visibilidad"
+      "visibility": "Visibilidad",
+      "conditions": "Condiciones"
     },
     "fields": {
       "x": "X",
@@ -1874,7 +1876,9 @@
     },
     "visibility": {
       "enabledLabel": "Mostrar en pantalla",
-      "enabledHelp": "Cuando está desactivado, este módulo se excluye de la pantalla en vivo y de la precarga, pero permanece en el editor para que puedas reactivarlo."
+      "enabledHelp": "Cuando está desactivado, este módulo se excluye de la pantalla en vivo y de la precarga, pero permanece en el editor para que puedas reactivarlo.",
+      "backgroundProviderLabel": "Ejecutar oculto en segundo plano",
+      "backgroundProviderHelp": "Proporciona estados a otros módulos. Esta copia nunca aparece en pantalla; para mostrar también el widget, añade una segunda copia sin este ajuste."
     }
   },
   "upgradeModal": {
@@ -2982,5 +2986,40 @@
   "statusDot": {
     "configured": "Configurado",
     "notConfigured": "Sin configurar"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Estado",
+    "enableLabel": "Mostrar solo si las condiciones coinciden",
+    "enableHelp": "Mostrar u ocultar este módulo según los valores publicados por módulos en segundo plano (por ejemplo, un sensor de Home Assistant).",
+    "conditionsTitle": "Condiciones",
+    "allMustMatchHint": "Todas las condiciones deben coincidir para que el módulo se muestre.",
+    "addCondition": "Añadir condición",
+    "removeCondition": "Eliminar condición",
+    "kindLabel": "Tipo de condición",
+    "kinds": {
+      "state": "El valor coincide",
+      "numeric": "El número está en el rango",
+      "and": "Todas…",
+      "or": "Cualquiera…",
+      "not": "Ninguna…"
+    },
+    "sourceKeyLabel": "Clave de estado",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Coincidencia",
+    "matchEquals": "Es",
+    "matchNotEquals": "No es",
+    "valueLabel": "Valor",
+    "valuePlaceholder": "on",
+    "valueListHint": "Separa varios valores con comas para coincidir con cualquiera de ellos.",
+    "aboveLabel": "Por encima de",
+    "belowLabel": "Por debajo de",
+    "whenUnknownTitle": "Antes de que lleguen los datos",
+    "whenUnknownLabel": "Mientras la fuente de datos aún no ha informado",
+    "whenUnknownHide": "Ocultar el módulo",
+    "whenUnknownShow": "Mostrar el módulo",
+    "noProvidersHint": "Ningún módulo de esta pantalla publica estados todavía. Las claves de estado suelen venir de plugins que publican valores en segundo plano. Los valores solo se comparten dentro de la pestaña del navegador de esta pantalla. También puedes escribir una clave manualmente.",
+    "noConditionsHint": "Aún no hay condiciones. El módulo se muestra siempre hasta que añadas una.",
+    "sourceKeyInvalid": "Escribe una clave de estado solo con letras minúsculas, números y _ : . -",
+    "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados."
   }
 }

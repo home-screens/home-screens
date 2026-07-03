@@ -1300,6 +1300,90 @@ describe('editor store', () => {
       expect(state.saveError).toBe('Failed to save');
     });
 
+    it('surfaces the server validator message from a 400 body in saveError', async () => {
+      const store = setupStoreWithConfig();
+      const detail = 'config screen "s1" module "m1": visibility sourceKey must match';
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: detail }),
+      });
+
+      await expect(store.getState().saveConfig()).rejects.toThrow(detail);
+      expect(store.getState().saveError).toBe(detail);
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('falls back to the generic message when the error body is not JSON', async () => {
+      const store = setupStoreWithConfig();
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => { throw new SyntaxError('not json'); },
+      });
+
+      await expect(store.getState().saveConfig()).rejects.toThrow('Save failed: 500');
+      expect(store.getState().saveError).toBe('Failed to save');
+    });
+
+    it('client pre-validation skips the network call for an invalid config', async () => {
+      // Auto-save fires 800ms after every edit; a transiently invalid state
+      // (empty visibility sourceKey mid-edit) must not PUT a guaranteed 400.
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules.push({
+        id: 'mod-1',
+        type: 'clock',
+        position: { x: 0, y: 0 },
+        size: { w: 100, h: 100 },
+        zIndex: 0,
+        config: {},
+        style: {} as ScreenConfiguration['screens'][0]['modules'][0]['style'],
+        visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+      });
+      store.setState({ config, isDirty: true, isSaving: false, saveError: null });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockFetchOk();
+
+      await expect(store.getState().saveConfig()).rejects.toThrow(/sourceKey must match/);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(store.getState().saveError).toMatch(/module "mod-1".*sourceKey/);
+      expect(store.getState().isDirty).toBe(true);
+      // Expected editing state → warn, not console.error (dev overlay noise)
+      expect(warn).toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it('save succeeds again once the invalid condition is fixed', async () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules.push({
+        id: 'mod-1',
+        type: 'clock',
+        position: { x: 0, y: 0 },
+        size: { w: 100, h: 100 },
+        zIndex: 0,
+        config: {},
+        style: {} as ScreenConfiguration['screens'][0]['modules'][0]['style'],
+        visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+      });
+      store.setState({ config, isDirty: true, isSaving: false, saveError: null });
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockFetchOk();
+
+      await expect(store.getState().saveConfig()).rejects.toThrow();
+
+      store.getState().updateModule('screen-1', 'mod-1', {
+        visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:ha:door', equals: 'open' }] },
+      });
+      await store.getState().saveConfig();
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(store.getState().saveError).toBeNull();
+      vi.restoreAllMocks();
+    });
+
     it('retry after error works correctly', async () => {
       const store = setupStoreWithConfig();
 

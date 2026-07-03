@@ -10,6 +10,8 @@ import ScreenSettingsSection from './ScreenSettingsSection';
 import SectionDivider from './SectionDivider';
 import PropertyGroup from './PropertyGroup';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
+import VisibilityConditionsSection from '@/components/editor/VisibilityConditionsSection';
+import { isStateProducerType } from '@/lib/provided-state-keys';
 import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -349,11 +351,38 @@ export default function PropertyPanel() {
             <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
               {t('propertyPanel.visibility.enabledHelp')}
             </p>
+            {isStateProducerType(selectedModule.type) && (
+              <>
+                <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
+                  <input
+                    id={`module-bg-provider-toggle-${selectedModule.id}`}
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={selectedModule.backgroundProvider === true}
+                    aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
+                    onChange={(e) =>
+                      updateModule(selectedScreenId, selectedModule.id, {
+                        // Omit the field entirely when off so configs stay clean.
+                        backgroundProvider: e.target.checked ? true : undefined,
+                      })
+                    }
+                  />
+                  <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
+                </label>
+                <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
+                  {t('propertyPanel.visibility.backgroundProviderHelp')}
+                </p>
+              </>
+            )}
           </PropertyGroup>
         </AccordionSection>
 
         <AccordionSection title={t('propertyPanel.sections.schedule')} defaultOpen={false}>
           <ScheduleSection mod={selectedModule} screenId={selectedScreenId} />
+        </AccordionSection>
+
+        <AccordionSection title={t('propertyPanel.sections.conditions')} defaultOpen={false}>
+          <VisibilityConditionsSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
 
         <div className="pt-3 border-t border-hs-border-strong">

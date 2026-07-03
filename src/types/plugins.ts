@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { ModuleStyle } from '@/types/config';
+import type { ProvidedStateKey } from '@/lib/shared-state-types';
 
 /** Declaration for a secret a plugin requires (e.g. an API key) */
 export interface PluginSecretDeclaration {
@@ -57,6 +58,14 @@ export interface PluginManifest {
    * before and `translate('plugin:<pluginId>.foo')` returns the raw key.
    */
   translations?: Record<string, string>;
+  /**
+   * Shared-state keys this plugin publishes via `__HS_SDK__.publishState`,
+   * advertised so the editor's visibility-condition picker can offer them.
+   * Static keys only — the manifest is JSON. Config-driven keys (e.g. a
+   * per-entity list) instead export a `deriveProvidedKeys(config)` function
+   * from the IIFE bundle, which the loader passes to the module registry.
+   */
+  providesState?: ProvidedStateKey[];
 }
 
 export type PluginDataRequirement = 'location' | 'weather' | 'calendar';

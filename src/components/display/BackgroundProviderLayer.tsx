@@ -1,0 +1,102 @@
+'use client';
+
+import { memo, useMemo } from 'react';
+import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
+import { getModuleComponent } from '@/lib/module-components';
+import { getLocation } from '@/lib/location';
+import { buildModuleProps, type SharedDisplayData } from './ScreenRenderer';
+
+/**
+ * JSON.stringify is key-order-sensitive, so two semantically identical
+ * configs authored in different key orders would defeat dedupe and
+ * double-mount a provider's fetch loop. Sort plain-object keys recursively;
+ * arrays keep their order (order is meaningful there).
+ */
+function stableConfigKey(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableConfigKey).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => `${JSON.stringify(k)}:${stableConfigKey(v)}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'undefined';
+}
+
+interface BackgroundProviderLayerProps {
+  /** ALL configured screens (pre-profile-filter) — a producer must run even
+   *  when its home screen is rotated out or excluded by the active profile. */
+  screens: Screen[];
+  settings: GlobalSettings;
+  sharedData: SharedDisplayData;
+}
+
+/**
+ * Root-resident layer that keeps `backgroundProvider: true` module instances
+ * mounted continuously, independent of which screen is showing.
+ *
+ * Why this exists: ScreenRotator unmounts off-screen modules, so a state
+ * producer placed on a screen would go stale exactly when the display rotates
+ * away — the documented anti-pattern of conflating "rendered" with "running".
+ * Mounting producers here, as a sibling of ScreenRenderer inside the stable
+ * outer div, decouples their data loop (and any `publishState` calls) from
+ * rotation.
+ *
+ * Instances render through their normal module component so plugin
+ * `pluginFetch` / `useFetchData` paths work unchanged; the layer is just
+ * visually hidden. Duplicate producers (same type + config on several
+ * screens) are deduped to a single mount — and the store's dedupe-on-equal
+ * makes any residual double-publish harmless.
+ *
+ * Memoized: ScreenRotator re-renders at least once a minute (clock tick), so
+ * this layer must not churn its providers' fetch loops on every parent render.
+ */
+function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundProviderLayerProps) {
+  const providers = useMemo(() => {
+    const seen = new Set<string>();
+    const result: ModuleInstance[] = [];
+    for (const screen of screens) {
+      for (const mod of screen.modules) {
+        if (!mod.backgroundProvider || mod.enabled === false) continue;
+        const key = `${mod.type}:${stableConfigKey(mod.config)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        result.push(mod);
+      }
+    }
+    return result;
+  }, [screens]);
+
+  if (providers.length === 0) return null;
+
+  const locationMissing = getLocation(settings) == null;
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        width: 0,
+        height: 0,
+        overflow: 'hidden',
+      }}
+    >
+      {providers.map((mod) => {
+        const Component = getModuleComponent(mod.type);
+        // Plugin not (yet) loaded — nothing to run; the plugin store re-renders
+        // this layer when the bundle registers.
+        if (!Component) return null;
+        const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
+        return (
+          <div key={mod.id} style={{ width: mod.size.w, height: mod.size.h }}>
+            <Component config={mod.config} style={mod.style} {...extraProps} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default memo(BackgroundProviderLayer);

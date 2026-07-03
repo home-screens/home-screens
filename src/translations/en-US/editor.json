@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Scheduled — currently active",
     "scheduledInactiveTitle": "Scheduled — currently inactive",
-    "disabledTitle": "Disabled — not shown on display"
+    "disabledTitle": "Disabled — not shown on display",
+    "conditionGatedTitle": "Shows only when its conditions are met"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -1846,7 +1847,8 @@
       "secrets": "Secrets",
       "credentials": "Credentials",
       "schedule": "Schedule",
-      "visibility": "Visibility"
+      "visibility": "Visibility",
+      "conditions": "Conditions"
     },
     "fields": {
       "x": "X",
@@ -1870,7 +1872,9 @@
     },
     "visibility": {
       "enabledLabel": "Show on display",
-      "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it."
+      "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
+      "backgroundProviderLabel": "Run hidden in the background",
+      "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen — to also show the widget, add a second copy without this setting."
     }
   },
   "upgradeModal": {
@@ -2976,5 +2980,40 @@
   "statusDot": {
     "configured": "Configured",
     "notConfigured": "Not configured"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Status",
+    "enableLabel": "Show only when conditions match",
+    "enableHelp": "Show or hide this module based on values published by background modules (for example a Home Assistant sensor).",
+    "conditionsTitle": "Conditions",
+    "allMustMatchHint": "All conditions must match for the module to show.",
+    "addCondition": "Add condition",
+    "removeCondition": "Remove condition",
+    "kindLabel": "Condition type",
+    "kinds": {
+      "state": "Value matches",
+      "numeric": "Number is in range",
+      "and": "All of…",
+      "or": "Any of…",
+      "not": "None of…"
+    },
+    "sourceKeyLabel": "State key",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Match",
+    "matchEquals": "Is",
+    "matchNotEquals": "Is not",
+    "valueLabel": "Value",
+    "valuePlaceholder": "on",
+    "valueListHint": "Separate several values with commas to match any of them.",
+    "aboveLabel": "Above",
+    "belowLabel": "Below",
+    "whenUnknownTitle": "Before data arrives",
+    "whenUnknownLabel": "While the data source hasn't reported yet",
+    "whenUnknownHide": "Hide the module",
+    "whenUnknownShow": "Show the module",
+    "noProvidersHint": "No modules on this display publish state yet. State keys usually come from plugins that publish values in the background. Values are only shared within this display's browser tab. You can also type a key manually.",
+    "noConditionsHint": "No conditions yet. The module always shows until you add one.",
+    "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
+    "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields."
   }
 }

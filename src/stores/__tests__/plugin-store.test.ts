@@ -210,3 +210,39 @@ describe('plugin-store loadPlugins re-entrancy', () => {
     consoleError.mockRestore();
   });
 });
+
+describe('plugin-store shared-state cleanup', () => {
+  // The store module is re-imported per test (vi.resetModules), so grab the
+  // SAME shared-state-store instance the fresh plugin-store closed over.
+  async function getSharedStateStore() {
+    const mod = await import('@/lib/shared-state-store');
+    return mod.sharedStateStore;
+  }
+
+  it('unregisterPlugin purges the plugin state-key namespace (lowercased id)', async () => {
+    const store = await getSharedStateStore();
+    usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('Foo', 'foo'));
+    store.publish('plugin:foo:door', 'open');
+    store.publish('plugin:bar:door', 'closed');
+
+    usePluginStore.getState().unregisterPlugin('plugin:foo');
+
+    expect(store.get('plugin:foo:door')).toBeUndefined();
+    expect(store.get('plugin:bar:door')?.value).toBe('closed');
+  });
+
+  it('clearPlugins purges every registered plugin namespace', async () => {
+    const store = await getSharedStateStore();
+    usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
+    usePluginStore.getState().registerPlugin('plugin:bar', FakeComponent, makeManifest('bar', 'bar'));
+    store.publish('plugin:foo:door', 'open');
+    store.publish('plugin:bar:door', 'closed');
+    store.publish('host.key', 'kept');
+
+    usePluginStore.getState().clearPlugins();
+
+    expect(store.get('plugin:foo:door')).toBeUndefined();
+    expect(store.get('plugin:bar:door')).toBeUndefined();
+    expect(store.get('host.key')?.value).toBe('kept');
+  });
+});

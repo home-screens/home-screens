@@ -240,7 +240,7 @@ export default function EditorPage() {
             </Button>
             <div className="min-w-24 flex items-center justify-end gap-1.5" aria-live="polite">
               {saveError ? (
-                <span role="alert" className="flex items-center gap-1.5">
+                <span role="alert" className="flex items-center gap-1.5" title={saveError ?? undefined}>
                   <AlertCircle className="w-3.5 h-3.5 text-hs-danger" />
                   <span className="text-xs text-hs-danger">{t('common.saveFailed')}</span>
                   <Button variant="secondary" size="sm" onClick={saveConfig}>

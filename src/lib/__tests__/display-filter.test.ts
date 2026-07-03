@@ -4,6 +4,8 @@ import {
   validateDisplays,
   validateAllSchedules,
   validateModuleSchedule,
+  validateModuleVisibility,
+  MAX_CONDITION_DEPTH,
   findScreenById,
   getDisplayScreens,
   getDisplayProfiles,
@@ -15,11 +17,13 @@ import {
 import type {
   AlertSettings,
   GlobalSettings,
+  ModuleInstance,
   Profile,
   Screen,
   ScreenConfiguration,
   DisplayNode,
   SleepSettings,
+  VisibilityCondition,
 } from '@/types/config';
 
 /** Minimal valid GlobalSettings — only the fields the filter touches. */
@@ -1140,5 +1144,116 @@ describe('validateAllSchedules', () => {
     const err = validateAllSchedules(config);
     expect(err).toMatch(/kitchen/);
     expect(err).not.toMatch(/bedroom/);
+  });
+});
+
+/* ─── validateModuleVisibility ───────────────────── */
+
+describe('validateModuleVisibility', () => {
+  const CTX = 'screen "s1" module "m1"';
+
+  function makeVisModule(visibility: unknown) {
+    return {
+      id: 'm1',
+      type: 'icon',
+      position: { x: 0, y: 0 },
+      size: { w: 1, h: 1 },
+      zIndex: 0,
+      config: {},
+      style: {
+        opacity: 1, borderRadius: 0, padding: 0, backgroundColor: '',
+        textColor: '', fontFamily: '', fontSize: 12, backdropBlur: 0,
+        borderWidth: 0, borderColor: '', shadowSize: 0,
+      },
+      visibility,
+    } as ModuleInstance;
+  }
+
+  it('accepts undefined and a well-formed condition tree', () => {
+    expect(validateModuleVisibility(undefined, CTX)).toBeNull();
+    expect(validateModuleVisibility({
+      conditions: [
+        { kind: 'state', sourceKey: 'plugin:ha:door', equals: ['open', 'alert'] },
+        {
+          kind: 'or',
+          conditions: [
+            { kind: 'numeric', sourceKey: 'sensor.temp', above: 32, below: 90 },
+            { kind: 'not', conditions: [{ kind: 'state', sourceKey: 'mode', notEquals: 'away' }] },
+          ],
+        },
+      ],
+      whenUnknown: 'show',
+    }, CTX)).toBeNull();
+  });
+
+  it('rejects an unknown condition kind', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'template', sourceKey: 'x' } as unknown as VisibilityCondition],
+    }, CTX)).toMatch(/unknown visibility condition kind/);
+  });
+
+  it('rejects a bad sourceKey', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'state', sourceKey: 'Bad Key!', equals: 'x' }],
+    }, CTX)).toMatch(/sourceKey/);
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'numeric', sourceKey: '' }],
+    }, CTX)).toMatch(/sourceKey/);
+  });
+
+  it('rejects non-numeric bounds and non-string values', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'numeric', sourceKey: 'temp', above: Infinity }],
+    }, CTX)).toMatch(/finite number/);
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'numeric', sourceKey: 'temp', below: '80' as unknown as number }],
+    }, CTX)).toMatch(/finite number/);
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'state', sourceKey: 'door', equals: 5 as unknown as string }],
+    }, CTX)).toMatch(/string or string array/);
+  });
+
+  it('rejects a bad whenUnknown value', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'state', sourceKey: 'door', equals: 'x' }],
+      whenUnknown: 'maybe' as unknown as 'hide',
+    }, CTX)).toMatch(/whenUnknown/);
+  });
+
+  it('rejects empty group conditions', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'and', conditions: [] }],
+    }, CTX)).toMatch(/non-empty/);
+  });
+
+  it('rejects over-deep nesting', () => {
+    let condition: VisibilityCondition = { kind: 'state', sourceKey: 'door', equals: 'x' };
+    for (let i = 0; i < MAX_CONDITION_DEPTH + 1; i++) {
+      condition = { kind: 'and', conditions: [condition] };
+    }
+    expect(validateModuleVisibility({ conditions: [condition] }, CTX)).toMatch(/nested too deeply/);
+  });
+
+  it('rejects too many total conditions', () => {
+    const leaves: VisibilityCondition[] = Array.from({ length: 40 }, () => (
+      { kind: 'state' as const, sourceKey: 'door', equals: 'x' }
+    ));
+    expect(validateModuleVisibility({ conditions: leaves }, CTX)).toMatch(/too many/);
+  });
+
+  it('is enforced by validateAllSchedules for both config surfaces', () => {
+    const badVisibility = { conditions: [{ kind: 'state', sourceKey: '!!', equals: 'x' }] };
+
+    const legacyScreen = makeScreen('s1');
+    legacyScreen.modules = [makeVisModule(badVisibility)];
+    expect(validateAllSchedules(makeConfig({ screens: [legacyScreen] })))
+      .toMatch(/screen "s1" module "m1".*sourceKey/);
+
+    const ownedScreen = makeScreen('k-s1');
+    ownedScreen.modules = [makeVisModule(badVisibility)];
+    expect(validateAllSchedules(makeConfig({
+      screens: [],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [ownedScreen] }],
+    }))).toMatch(/display "kitchen" screen "k-s1" module "m1"/);
   });
 });

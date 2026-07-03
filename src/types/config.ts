@@ -78,6 +78,30 @@ export interface ModuleSchedule {
   invert?: boolean;         // if true, HIDE during this window instead of show
 }
 
+/**
+ * Declarative condition over shared-state keys (see `shared-state-store.ts`).
+ * A closed, serializable union by design — no templates — so conditions stay
+ * visually editable, validatable, and dependency-trackable. Mirrors Home
+ * Assistant's conditional schema.
+ */
+export type VisibilityCondition =
+  | { kind: 'state'; sourceKey: string; equals?: string | string[]; notEquals?: string | string[] }
+  | { kind: 'numeric'; sourceKey: string; above?: number; below?: number }
+  | { kind: 'and'; conditions: VisibilityCondition[] }
+  | { kind: 'or'; conditions: VisibilityCondition[] }
+  | { kind: 'not'; conditions: VisibilityCondition[] };
+
+export interface ModuleVisibility {
+  /** Implicit AND across the array (Home Assistant semantics). Met → show, unmet → hide. */
+  conditions: VisibilityCondition[];
+  /**
+   * Outcome while ANY referenced key is not yet published (default 'hide').
+   * This is an all-or-nothing gate evaluated before the condition tree, so
+   * the boolean algebra never sees a three-valued input.
+   */
+  whenUnknown?: 'hide' | 'show';
+}
+
 export interface ModuleInstance {
   id: string;
   /**
@@ -94,6 +118,16 @@ export interface ModuleInstance {
   config: Record<string, unknown>;
   style: ModuleStyle;
   schedule?: ModuleSchedule;
+  /** Conditional visibility over shared state — AND-combined with schedule + enabled. */
+  visibility?: ModuleVisibility;
+  /**
+   * When true, this instance never renders on screen; it mounts once in the
+   * hidden BackgroundProviderLayer so its data loop (and any state it
+   * publishes) survives screen rotation. Background-ONLY, not "also run in
+   * background" — a user who wants the widget visible adds a second,
+   * un-flagged instance.
+   */
+  backgroundProvider?: boolean;
 }
 
 export interface BackgroundRotation {

@@ -4,7 +4,9 @@ import { useMemo, useEffect } from 'react';
 import type { Screen, GlobalSettings, ModuleType, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getModuleDefinition } from '@/lib/module-registry';
-import { isModuleEnabled, isModuleVisible } from '@/lib/schedule';
+import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys } from '@/lib/schedule';
+import type { SharedStateEntry } from '@/lib/shared-state-types';
+import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { useTZClock } from '@/hooks/useTZClock';
 
 /**
@@ -12,9 +14,19 @@ import { useTZClock } from '@/hooks/useTZClock';
  * Exported so `__tests__/ScreenRenderer.test.tsx` can verify the exact
  * contract used in production — the test cannot mirror a stale copy of
  * the filter expression.
+ *
+ * `backgroundProvider` instances are unconditionally excluded here: they are
+ * background-ONLY and render solely inside BackgroundProviderLayer.
  */
-export const isModuleRenderable = (mod: ModuleInstance, now: Date): boolean =>
-  isModuleEnabled(mod) && isModuleVisible(mod.schedule, now);
+export const isModuleRenderable = (
+  mod: ModuleInstance,
+  now: Date,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean =>
+  !mod.backgroundProvider &&
+  isModuleEnabled(mod) &&
+  isModuleVisible(mod.schedule, now) &&
+  evaluateVisibility(mod.visibility, states);
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';
@@ -77,7 +89,13 @@ function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'nig
   return 'night';
 }
 
-function buildModuleProps(
+/**
+ * Assemble the shared/extra props a module component needs (location,
+ * calendar events, weather data). Exported for BackgroundProviderLayer so
+ * background-provider instances receive exactly the props an on-screen
+ * instance would.
+ */
+export function buildModuleProps(
   mod: { type: ModuleType; config: Record<string, unknown> },
   settings: GlobalSettings,
   sharedData: SharedDisplayData,
@@ -149,9 +167,17 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timePeriod, settings.timezone]);
 
+  // Push-based subscription scoped to the keys this screen's conditions
+  // actually reference: entity-driven visibility still flips the instant a
+  // producer reports (the minute clock still drives time/day schedules), but
+  // publishes to unreferenced keys no longer re-render the module tree, and
+  // a screen with no visibility conditions never subscribes at all.
+  const conditionKeys = useMemo(() => collectConditionSourceKeys(screen.modules), [screen.modules]);
+  const states = useSharedStateKeys(conditionKeys);
+
   const visibleModules = useMemo(
-    () => screen.modules.filter((mod) => isModuleRenderable(mod, now)),
-    [screen.modules, now],
+    () => screen.modules.filter((mod) => isModuleRenderable(mod, now, states)),
+    [screen.modules, now, states],
   );
 
   const rotation = screen.backgroundRotation;

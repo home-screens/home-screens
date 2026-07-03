@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } fr
 import { flushSync } from 'react-dom';
 import type { Screen, GlobalSettings, Profile } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
+import BackgroundProviderLayer from './BackgroundProviderLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
 import NetworkIndicator from './NetworkIndicator';
@@ -350,6 +351,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       boxSizing: 'border-box',
     }}>
       <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+
+      {/* Sibling of ScreenRenderer inside the stable outer div, so state
+          producers persist across screen rotation. Uses allScreens (not the
+          profile-filtered list) — a producer must keep publishing even when
+          its home screen is currently excluded. */}
+      <BackgroundProviderLayer screens={allScreens} settings={settings} sharedData={sharedData} />
 
       {screens.length > 1 && (
         <div

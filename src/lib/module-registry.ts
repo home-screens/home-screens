@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { resolveLucideIcon } from './lucide-resolver';
+import { pluginStateKey } from '@/lib/plugin-state-keys';
+import type { ProvidedStateKey } from '@/lib/shared-state-types';
 
 type ModuleCategory =
   | 'Full Screen'
@@ -53,6 +55,10 @@ export function categorySlug(category: string): string | null {
   return (CATEGORY_SLUG_MAP as Record<string, string>)[category] ?? null;
 }
 
+// Re-exported for existing importers; the type lives in shared-state-types.ts
+// so plugin types and the loader can share it without a registry import cycle.
+export type { ProvidedStateKey } from '@/lib/shared-state-types';
+
 export interface ModuleDefinition {
   type: ModuleType;
   label: string;
@@ -63,6 +69,16 @@ export interface ModuleDefinition {
   defaultStyle?: Partial<import('@/types/config').ModuleStyle>;
   /** When true, the module snaps to full canvas size (position 0,0) on add. */
   fillsCanvas?: boolean;
+  /**
+   * Shared-state keys this module type publishes (see shared-state-store.ts).
+   * Declaring either field marks the type as a state producer: the editor
+   * offers the "run in background" toggle and lists these keys in the
+   * visibility-condition picker. Runtime keys can't be enumerated statically,
+   * so producers must advertise them here.
+   */
+  providesState?: ProvidedStateKey[];
+  /** For producers whose keys depend on instance config (e.g. an entity list). */
+  deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
   // Plugin-specific fields
   configSchema?: import('@/types/plugins').PluginConfigSchema;
   dataRequirements?: import('@/types/plugins').PluginDataRequirement[];
@@ -74,10 +90,45 @@ function registerModule(definition: ModuleDefinition): void {
   registry.set(definition.type, definition);
 }
 
-/** Register a plugin module from its manifest. Resolves icon string → component via lucide-resolver. */
-export function registerPluginModule(manifest: import('@/types/plugins').PluginManifest): void {
+/**
+ * Register a plugin module from its manifest. Resolves icon string → component
+ * via lucide-resolver. `runtime` carries values that can't live in the static
+ * JSON manifest — currently `deriveProvidedKeys`, a function exported by the
+ * plugin's IIFE bundle for config-driven state-key derivation.
+ *
+ * This is the namespacing choke point for advertised state keys: runtime
+ * publishes always go through `plugin:<id>:` (see the SDK's publishState), so
+ * both static `providesState` keys and `deriveProvidedKeys` results are
+ * prefixed the same way here — otherwise the editor's condition picker would
+ * offer keys that can never exist in the store. Malformed entries are dropped
+ * rather than trusted (the dev-plugin path skips validateManifest).
+ */
+export function registerPluginModule(
+  manifest: import('@/types/plugins').PluginManifest,
+  runtime?: { deriveProvidedKeys?: ModuleDefinition['deriveProvidedKeys'] },
+): void {
   const moduleType: ModuleType = `plugin:${manifest.moduleType}`;
   const icon = resolveLucideIcon(manifest.icon);
+
+  const namespaceEntries = (entries: unknown): ProvidedStateKey[] =>
+    (Array.isArray(entries) ? entries : [])
+      .filter((e): e is ProvidedStateKey =>
+        !!e && typeof e === 'object'
+        && typeof (e as ProvidedStateKey).key === 'string'
+        && typeof (e as ProvidedStateKey).label === 'string')
+      .map((e) => ({ ...e, key: pluginStateKey(manifest.id, e.key) }));
+
+  const providesState = manifest.providesState !== undefined
+    ? namespaceEntries(manifest.providesState)
+    : undefined;
+
+  const rawDerive = runtime?.deriveProvidedKeys;
+  const deriveProvidedKeys = rawDerive
+    ? (config: Record<string, unknown>): ProvidedStateKey[] =>
+        // Throws propagate — collectProvidedStateKeys try/catches third-party derivers.
+        namespaceEntries(rawDerive(config))
+    : undefined;
+
   registry.set(moduleType, {
     type: moduleType,
     label: manifest.name,
@@ -86,6 +137,8 @@ export function registerPluginModule(manifest: import('@/types/plugins').PluginM
     defaultConfig: manifest.defaultConfig ?? {},
     defaultSize: manifest.defaultSize ?? { w: 400, h: 300 },
     defaultStyle: manifest.defaultStyle,
+    providesState,
+    deriveProvidedKeys,
     configSchema: manifest.configSchema,
     dataRequirements: manifest.dataRequirements,
   });

@@ -2,7 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Clock, PowerOff } from 'lucide-react';
+import { Clock, PowerOff, Eye } from 'lucide-react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -222,6 +222,22 @@ export default function DraggableModule({
           title={isModuleVisible(mod.schedule, now) ? t('draggableModule.scheduledActiveTitle') : t('draggableModule.scheduledInactiveTitle')}
         >
           <Clock style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
+        </div>
+      )}
+      {/* Condition-gated indicator badge. Neutral tint only, no pass/fail
+          state: producers run on the display client, so the editor's
+          sharedStateStore is always empty and a live tint would permanently
+          read "unmet". The badge means "gated by shared-state conditions". */}
+      {(mod.visibility?.conditions?.length ?? 0) > 0 && isModuleEnabled(mod) && (
+        <div
+          className="absolute top-0 p-0.5 rounded-bl bg-slate-600/70 text-slate-200"
+          style={{
+            // Sit left of the schedule badge when both are shown
+            right: mod.schedule ? Math.max(12, 14 * scale) + 2 : 0,
+          }}
+          title={t('draggableModule.conditionGatedTitle')}
+        >
+          <Eye style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
         </div>
       )}
       {isSelected && (

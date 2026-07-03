@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { PluginManifest, InstalledPlugin, PluginConfigSectionProps } from '@/types/plugins';
+import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import { usePluginStore } from '@/stores/plugin-store';
 import { registerPluginModule } from '@/lib/module-registry';
 import { registerFetchKey } from '@/lib/fetch-keys';
@@ -71,7 +72,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   await loadPluginTranslations(manifest, base);
 
   // 3. Execute bundle
-  const { component, configSection } = executeBundle(bundleText, manifest);
+  const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
 
   // 4. Migrate configs if dev plugin version changed
   const devPlugins = getDevPlugins();
@@ -91,7 +92,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   });
 
   // 6. Register client-side
-  registerPluginModule(manifest);
+  registerPluginModule(manifest, { deriveProvidedKeys });
   store.registerPlugin(moduleType, component, manifest, configSection);
 
   // 7. Persist dev mapping in localStorage
@@ -409,7 +410,7 @@ async function loadSinglePlugin(
     await loadPluginTranslations(manifest);
 
     // 4. Execute IIFE bundle
-    const { component, configSection } = executeBundle(bundleText, manifest);
+    const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
 
     // 5. Queue migration if server reports a version change
     if (plugin.previousVersion && plugin.previousVersion !== manifest.version) {
@@ -421,7 +422,7 @@ async function loadSinglePlugin(
     }
 
     // 6. Register into module registry and Zustand store
-    registerPluginModule(manifest);
+    registerPluginModule(manifest, { deriveProvidedKeys });
     store.registerPlugin(moduleType, component, manifest, configSection);
 
     // 7. Wire prefetchUrl into the fetch key registry if declared
@@ -449,6 +450,7 @@ function executeBundle(
 ): {
   component: ComponentType<Record<string, unknown>>;
   configSection?: ComponentType<PluginConfigSectionProps>;
+  deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
 } {
   // Clean up any previous plugin global
   window.__HS_PLUGIN__ = undefined;
@@ -485,7 +487,17 @@ function executeBundle(
         | undefined;
     }
 
-    return { component, configSection };
+    // Optional config-driven state-key deriver. Lives on the runtime
+    // registration object (not the manifest) because the manifest is static
+    // JSON and this must be a function. Conventional export name.
+    const deriveProvidedKeys =
+      typeof pluginExports.deriveProvidedKeys === 'function'
+        ? (pluginExports.deriveProvidedKeys as (
+            config: Record<string, unknown>,
+          ) => ProvidedStateKey[])
+        : undefined;
+
+    return { component, configSection, deriveProvidedKeys };
   } catch (err) {
     throw new Error(`Bundle execution failed: ${err instanceof Error ? err.message : String(err)}`);
   } finally {

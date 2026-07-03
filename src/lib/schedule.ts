@@ -1,4 +1,12 @@
-import type { ModuleInstance, ModuleSchedule, Profile, Screen } from '@/types/config';
+import type {
+  ModuleInstance,
+  ModuleSchedule,
+  ModuleVisibility,
+  Profile,
+  Screen,
+  VisibilityCondition,
+} from '@/types/config';
+import type { SharedStateEntry } from '@/lib/shared-state-types';
 
 /**
  * Returns false only when the module has been explicitly disabled
@@ -34,6 +42,99 @@ export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date)
 
   const inWindow = dayMatch && timeMatch;
   return invert ? !inWindow : inWindow;
+}
+
+/**
+ * Evaluate a module's shared-state visibility conditions. Pure — takes a
+ * state snapshot, never touches the store. Returns true = visible.
+ *
+ * Semantics (see the ModuleVisibility type for rationale):
+ * - No visibility / empty conditions → visible.
+ * - If ANY sourceKey referenced anywhere in the tree is unpublished, return
+ *   the `whenUnknown` outcome (default hide) WITHOUT evaluating. Leaves are
+ *   therefore always plain true/false over known values, so `not`/`or` never
+ *   negate an "unknown" into a surprise "visible".
+ * - Top-level conditions AND together. Met → show, unmet → hide.
+ */
+export function evaluateVisibility(
+  visibility: ModuleVisibility | undefined,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean {
+  if (!visibility || visibility.conditions.length === 0) return true;
+
+  if (hasUnknownKey(visibility.conditions, states)) {
+    return (visibility.whenUnknown ?? 'hide') === 'show';
+  }
+
+  return visibility.conditions.every((c) => evaluateCondition(c, states));
+}
+
+function hasUnknownKey(
+  conditions: VisibilityCondition[],
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean {
+  for (const c of conditions) {
+    if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') {
+      if (hasUnknownKey(c.conditions, states)) return true;
+    } else if (!states.has(c.sourceKey)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function evaluateCondition(
+  condition: VisibilityCondition,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean {
+  switch (condition.kind) {
+    case 'state': {
+      const value = states.get(condition.sourceKey)?.value ?? '';
+      if (condition.equals !== undefined && !matchesAny(value, condition.equals)) return false;
+      if (condition.notEquals !== undefined && matchesAny(value, condition.notEquals)) return false;
+      return true;
+    }
+    case 'numeric': {
+      const raw = states.get(condition.sourceKey)?.value ?? '';
+      const num = raw.trim() === '' ? NaN : Number(raw);
+      // A published value that doesn't parse as a number fails the condition.
+      if (!Number.isFinite(num)) return false;
+      if (condition.above !== undefined && !(num > condition.above)) return false;
+      if (condition.below !== undefined && !(num < condition.below)) return false;
+      return true;
+    }
+    case 'and':
+      return condition.conditions.every((c) => evaluateCondition(c, states));
+    case 'or':
+      return condition.conditions.some((c) => evaluateCondition(c, states));
+    case 'not':
+      // HA semantics: `not` is true when NONE of its conditions are met.
+      return !condition.conditions.some((c) => evaluateCondition(c, states));
+  }
+}
+
+/**
+ * All sourceKeys referenced by any module's visibility tree, deduped and
+ * sorted (stable output for memoization). Lets the renderer subscribe to
+ * only the shared-state keys the current screen actually conditions on.
+ */
+export function collectConditionSourceKeys(modules: ModuleInstance[]): string[] {
+  const keys = new Set<string>();
+  const walk = (conditions: VisibilityCondition[]): void => {
+    for (const c of conditions) {
+      if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') walk(c.conditions);
+      else keys.add(c.sourceKey);
+    }
+  };
+  for (const mod of modules) {
+    if (mod.visibility?.conditions) walk(mod.visibility.conditions);
+  }
+  return Array.from(keys).sort();
+}
+
+/** String equality where an array means "matches any" (HA's array semantics). */
+function matchesAny(value: string, expected: string | string[]): boolean {
+  return Array.isArray(expected) ? expected.includes(value) : value === expected;
 }
 
 function isInTimeWindow(start: number, end: number, nowMinutes: number): boolean {

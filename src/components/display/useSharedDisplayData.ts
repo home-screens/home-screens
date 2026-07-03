@@ -118,5 +118,10 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     : '';
   const [calendarData] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
 
-  return { owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData };
+  // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
+  // a new object identity on every ScreenRotator render tick.
+  return useMemo(
+    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData }),
+    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData],
+  );
 }

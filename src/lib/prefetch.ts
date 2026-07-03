@@ -13,6 +13,11 @@ function getScreenFetchUrls(
   for (const mod of screen.modules) {
     if (!isModuleEnabled(mod)) continue;
     if (!isModuleVisible(mod.schedule, now)) continue;
+    // Intentional asymmetry with isModuleRenderable: mod.visibility (shared-
+    // state conditions) is NOT checked here. A module hidden by entity state
+    // may become visible the instant a producer publishes; prefetching its
+    // data is cheap and avoids a blank flash. Time/enabled skips stay because
+    // those can't flip until the next minute tick at the earliest.
     const entry = FETCH_KEY_REGISTRY[mod.type];
     if (!entry) continue;
     const url = entry.buildUrl(mod.config);

@@ -12,11 +12,14 @@ import type {
   GlobalSettings,
   ModuleInstance,
   ModuleSchedule,
+  ModuleVisibility,
   Profile,
   Screen,
   ScreenConfiguration,
   DisplayNode,
+  VisibilityCondition,
 } from '@/types/config';
+import { SHARED_STATE_KEY_RE } from '@/lib/shared-state-types';
 
 interface FilteredDisplayConfig {
   screens: Screen[];
@@ -395,11 +398,104 @@ export function validateModuleSchedule(
   return null;
 }
 
+/** Max nesting depth for and/or/not visibility-condition groups. */
+export const MAX_CONDITION_DEPTH = 5;
+
+/** Max total conditions (leaves + groups) per module, to bound evaluation cost. */
+export const MAX_CONDITIONS_PER_MODULE = 32;
+
+const CONDITION_KINDS = new Set(['state', 'numeric', 'and', 'or', 'not']);
+
+function isStringOrStringArray(value: unknown): boolean {
+  return typeof value === 'string'
+    || (Array.isArray(value) && value.every((v) => typeof v === 'string'));
+}
+
+/**
+ * Validate a single `ModuleVisibility` value at the config-write boundary.
+ * The runtime evaluator (`evaluateVisibility`) degrades quietly on bad input
+ * (a broken condition just hides the module), so — like schedules — catching
+ * malformed conditions here surfaces a save error instead of a module that
+ * mysteriously never appears.
+ *
+ * Returns an error string when malformed, or `null` when OK (including for
+ * an `undefined` visibility, which means "always visible").
+ */
+export function validateModuleVisibility(
+  visibility: ModuleVisibility | undefined,
+  context: string,
+): string | null {
+  if (!visibility) return null;
+
+  if (!Array.isArray(visibility.conditions)) {
+    return `${context}: visibility.conditions must be an array`;
+  }
+  if (visibility.whenUnknown !== undefined
+    && visibility.whenUnknown !== 'hide' && visibility.whenUnknown !== 'show') {
+    return `${context}: visibility.whenUnknown must be "hide" or "show" (got ${JSON.stringify(visibility.whenUnknown)})`;
+  }
+
+  let count = 0;
+  const checkCondition = (condition: VisibilityCondition, depth: number): string | null => {
+    if (!condition || typeof condition !== 'object') {
+      return `${context}: visibility condition must be an object`;
+    }
+    if (!CONDITION_KINDS.has(condition.kind)) {
+      return `${context}: unknown visibility condition kind ${JSON.stringify((condition as { kind?: unknown }).kind)}`;
+    }
+    if (++count > MAX_CONDITIONS_PER_MODULE) {
+      return `${context}: too many visibility conditions (max ${MAX_CONDITIONS_PER_MODULE} per module)`;
+    }
+
+    if (condition.kind === 'and' || condition.kind === 'or' || condition.kind === 'not') {
+      if (depth >= MAX_CONDITION_DEPTH) {
+        return `${context}: visibility conditions nested too deeply (max ${MAX_CONDITION_DEPTH})`;
+      }
+      if (!Array.isArray(condition.conditions) || condition.conditions.length === 0) {
+        return `${context}: "${condition.kind}" condition must have a non-empty conditions array`;
+      }
+      for (const child of condition.conditions) {
+        const err = checkCondition(child, depth + 1);
+        if (err) return err;
+      }
+      return null;
+    }
+
+    if (typeof condition.sourceKey !== 'string' || !SHARED_STATE_KEY_RE.test(condition.sourceKey)) {
+      return `${context}: visibility sourceKey must match ${SHARED_STATE_KEY_RE} (got ${JSON.stringify(condition.sourceKey)})`;
+    }
+
+    if (condition.kind === 'state') {
+      for (const field of ['equals', 'notEquals'] as const) {
+        const value = condition[field];
+        if (value !== undefined && !isStringOrStringArray(value)) {
+          return `${context}: visibility ${field} must be a string or string array`;
+        }
+      }
+    } else {
+      for (const field of ['above', 'below'] as const) {
+        const value = condition[field];
+        if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value))) {
+          return `${context}: visibility ${field} must be a finite number`;
+        }
+      }
+    }
+    return null;
+  };
+
+  for (const condition of visibility.conditions) {
+    const err = checkCondition(condition, 1);
+    if (err) return err;
+  }
+  return null;
+}
+
 /**
  * Walk every screen and every module on every screen in a config and validate
- * each schedule. Covers both single-display mode (config.screens) and
- * multi-display mode (each display.screens) so a malformed schedule cannot
- * sneak in via either surface.
+ * each schedule AND each module's visibility conditions (the two module-gating
+ * surfaces share one walk so neither can sneak past the write gate). Covers
+ * both single-display mode (config.screens) and multi-display mode (each
+ * display.screens).
  *
  * Returns the first error encountered, or `null` when everything validates.
  */
@@ -408,11 +504,11 @@ export function validateAllSchedules(config: ScreenConfiguration): string | null
     const screenError = validateModuleSchedule(screen.schedule, `${where} screen "${screen.id}"`);
     if (screenError) return screenError;
     for (const mod of screen.modules ?? []) {
-      const modError = validateModuleSchedule(
-        (mod as ModuleInstance).schedule,
-        `${where} screen "${screen.id}" module "${mod.id}"`,
-      );
+      const modContext = `${where} screen "${screen.id}" module "${mod.id}"`;
+      const modError = validateModuleSchedule((mod as ModuleInstance).schedule, modContext);
       if (modError) return modError;
+      const visibilityError = validateModuleVisibility((mod as ModuleInstance).visibility, modContext);
+      if (visibilityError) return visibilityError;
     }
     return null;
   };

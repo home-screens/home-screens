@@ -21,6 +21,8 @@ import { pluginEventBus } from '@/lib/plugin-events';
 import { displayFetch } from '@/lib/display-fetch';
 import { eventBus } from '@/lib/event-bus';
 import type { EventMap } from '@/lib/event-bus';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { pluginStateKey } from '@/lib/plugin-state-keys';
 
 // i18n — exposed read-only to plugins via window.__HS_SDK__.
 import {
@@ -117,6 +119,25 @@ export default function PluginGlobals() {
 
       // Event emitter — plugin → host communication
       emit: pluginEventBus.emit,
+
+      // Shared-state bus — publish named state for conditional module
+      // visibility. The key is force-prefixed with the plugin's namespace
+      // (`plugin:<id>:<rest>`, id lowercased) to prevent ACCIDENTAL key
+      // collisions between producers. This is not an anti-spoofing boundary:
+      // pluginId is caller-supplied inside the shared JS realm (same trust
+      // model as pluginFetch). The store additionally enforces key format
+      // plus key-count / value-length caps on this open write path.
+      publishState: (pluginId: string, key: string, value: string): void => {
+        if (typeof pluginId !== 'string' || typeof key !== 'string') return;
+        sharedStateStore.publish(pluginStateKey(pluginId, key), value);
+      },
+      // Clear a previously published key so conditions on it evaluate as
+      // unknown again. Same namespace enforcement as publishState. Keys are
+      // also cleared automatically when the plugin is unregistered/reloaded.
+      clearState: (pluginId: string, key: string): void => {
+        if (typeof pluginId !== 'string' || typeof key !== 'string') return;
+        sharedStateStore.clearKey(pluginStateKey(pluginId, key));
+      },
 
       // Event bus — subscribe to host-published data events (weather, time)
       on: (channel: string, handler: (data: unknown) => void): (() => void) => {

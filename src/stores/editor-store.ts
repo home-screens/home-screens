@@ -21,6 +21,8 @@ import {
   findMainDisplay,
   isMainDisplay,
   pruneDanglingScreenRefs,
+  validateAllSchedules,
+  validateDisplays,
 } from '@/lib/display-filter';
 import type { LayoutExport } from '@/types/layout-export';
 import {
@@ -275,18 +277,50 @@ export const useEditorStore = create<EditorState>((set, get) => {
     const configSnapshot = config;
     set({ isSaving: true, saveError: null });
     try {
+      // Pre-validate with the SAME validators the config route runs, in the
+      // same order. Auto-save fires 800ms after any edit, so a transiently
+      // invalid state (e.g. a just-added visibility condition with an empty
+      // key) would otherwise PUT a guaranteed 400 on every keystroke pause.
+      // Failing here skips the pointless network call; the editor panel is
+      // already showing the matching inline error.
+      const invalid = validateDisplays(configSnapshot) ?? validateAllSchedules(configSnapshot);
+      if (invalid) {
+        const preErr = new Error(invalid) as Error & { saveDetail?: string };
+        preErr.saveDetail = invalid;
+        throw preErr;
+      }
       const res = await editorFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(configSnapshot),
       });
-      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      if (!res.ok) {
+        // Surface the server validator's message (e.g. which module has a bad
+        // visibility condition) instead of a generic failure; network errors
+        // and non-JSON bodies keep the generic string below.
+        let detail: string | null = null;
+        try {
+          const body = await res.json();
+          if (body && typeof body.error === 'string' && body.error) detail = body.error;
+        } catch { /* non-JSON error body */ }
+        const saveErr = new Error(detail ?? `Save failed: ${res.status}`) as Error & { saveDetail?: string };
+        if (detail) saveErr.saveDetail = detail;
+        throw saveErr;
+      }
       // Only clear dirty if no new changes occurred during save
       const { config: current } = get();
       set({ isSaving: false, isDirty: current !== configSnapshot, saveError: null });
     } catch (err) {
-      set({ isSaving: false, saveError: 'Failed to save' });
-      console.error('Failed to save config:', err);
+      const detail = (err as { saveDetail?: string })?.saveDetail;
+      set({
+        isSaving: false,
+        saveError: detail ?? 'Failed to save',
+      });
+      // Validation failures (client pre-check or server 400) are an expected
+      // editing state surfaced in the toolbar — warn, don't error, so the
+      // Next.js dev overlay only interrupts for unexpected failures.
+      if (detail) console.warn('Config not saved:', detail);
+      else console.error('Failed to save config:', err);
       throw err;
     } finally {
       // Hand off to the queued re-save (if any). Tying the recursive

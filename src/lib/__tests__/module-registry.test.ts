@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -6,6 +6,8 @@ import {
   getModuleDefinition,
   getAllModuleDefinitions,
   getModulesByCategory,
+  registerPluginModule,
+  unregisterModule,
 } from '@/lib/module-registry';
 import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
@@ -475,5 +477,98 @@ describe('Cross-wiring contract: every registered module is wired in all 4 place
     for (const key of configSectionKeys) {
       expect(registeredSet.has(key as BuiltinModuleType), `CONFIG_SECTIONS has unregistered key: ${key}`).toBe(true);
     }
+  });
+});
+
+describe('registerPluginModule — providesState namespacing', () => {
+  const baseManifest = {
+    id: 'MyPlugin',
+    name: 'My Plugin',
+    version: '1.0.0',
+    moduleType: 'my-widget',
+    category: 'Personal',
+  } as unknown as import('@/types/plugins').PluginManifest;
+
+  afterEach(() => {
+    unregisterModule('plugin:my-widget' as ModuleType);
+  });
+
+  it('prefixes static providesState keys with the lowercased plugin namespace', () => {
+    registerPluginModule({
+      ...baseManifest,
+      providesState: [{ key: 'door', label: 'Door', sampleValues: ['open'] }],
+    });
+    const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.providesState).toEqual([
+      { key: 'plugin:myplugin:door', label: 'Door', sampleValues: ['open'] },
+    ]);
+  });
+
+  it('strips a pre-prefixed manifest key instead of double-prefixing', () => {
+    registerPluginModule({
+      ...baseManifest,
+      providesState: [{ key: 'plugin:MyPlugin:door', label: 'Door' }],
+    });
+    const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.providesState![0].key).toBe('plugin:myplugin:door');
+  });
+
+  it('drops malformed static entries and non-array providesState (dev-plugin path skips validateManifest)', () => {
+    registerPluginModule({
+      ...baseManifest,
+      providesState: [
+        { key: 'ok', label: 'OK' },
+        { key: 42, label: 'bad key' },
+        { label: 'missing key' },
+        null,
+      ] as unknown as import('@/lib/shared-state-types').ProvidedStateKey[],
+    });
+    let def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.providesState!.map((e) => e.key)).toEqual(['plugin:myplugin:ok']);
+
+    registerPluginModule({
+      ...baseManifest,
+      providesState: 'door' as unknown as import('@/lib/shared-state-types').ProvidedStateKey[],
+    });
+    def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.providesState).toEqual([]);
+  });
+
+  it('leaves providesState undefined when the manifest omits it', () => {
+    registerPluginModule(baseManifest);
+    expect(getModuleDefinition('plugin:my-widget' as ModuleType)!.providesState).toBeUndefined();
+  });
+
+  it('wraps deriveProvidedKeys to prefix and sanitize results', () => {
+    registerPluginModule(baseManifest, {
+      deriveProvidedKeys: (config) => [
+        { key: `${config.entity}`, label: 'Derived' },
+        { key: 'plugin:myplugin:already', label: 'Prefixed' },
+        { key: 7, label: 'bad' },
+      ] as unknown as import('@/lib/shared-state-types').ProvidedStateKey[],
+    });
+    const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.deriveProvidedKeys!({ entity: 'door' })).toEqual([
+      { key: 'plugin:myplugin:door', label: 'Derived' },
+      { key: 'plugin:myplugin:already', label: 'Prefixed' },
+    ]);
+  });
+
+  it('wrapped deriver returns [] for a non-array result', () => {
+    registerPluginModule(baseManifest, {
+      deriveProvidedKeys: (() => 'nope') as unknown as (
+        config: Record<string, unknown>,
+      ) => import('@/lib/shared-state-types').ProvidedStateKey[],
+    });
+    const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(def.deriveProvidedKeys!({})).toEqual([]);
+  });
+
+  it('wrapped deriver propagates throws (caller catches third-party errors)', () => {
+    registerPluginModule(baseManifest, {
+      deriveProvidedKeys: () => { throw new Error('plugin bug'); },
+    });
+    const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
+    expect(() => def.deriveProvidedKeys!({})).toThrow('plugin bug');
   });
 });

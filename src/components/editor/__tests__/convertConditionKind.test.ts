@@ -1,0 +1,51 @@
+import { describe, it, expect } from 'vitest';
+import type { VisibilityCondition } from '@/types/config';
+import { convertConditionKind } from '../VisibilityConditionsSection';
+
+describe('convertConditionKind', () => {
+  it('returns the same object when the kind is unchanged', () => {
+    const c: VisibilityCondition = { kind: 'state', sourceKey: 'door', equals: 'open' };
+    expect(convertConditionKind(c, 'state', '')).toBe(c);
+  });
+
+  it('state → numeric keeps the sourceKey', () => {
+    const c: VisibilityCondition = { kind: 'state', sourceKey: 'temp', equals: '70' };
+    expect(convertConditionKind(c, 'numeric', 'fallback')).toEqual({ kind: 'numeric', sourceKey: 'temp' });
+  });
+
+  it('numeric → state keeps the sourceKey', () => {
+    const c: VisibilityCondition = { kind: 'numeric', sourceKey: 'temp', above: 70 };
+    expect(convertConditionKind(c, 'state', 'fallback')).toEqual({ kind: 'state', sourceKey: 'temp', equals: '' });
+  });
+
+  it('leaf → group wraps the existing leaf as the first child', () => {
+    const c: VisibilityCondition = { kind: 'state', sourceKey: 'door', equals: 'open' };
+    expect(convertConditionKind(c, 'and', '')).toEqual({ kind: 'and', conditions: [c] });
+  });
+
+  it('group → group keeps the children', () => {
+    const child: VisibilityCondition = { kind: 'state', sourceKey: 'door', equals: 'open' };
+    const c: VisibilityCondition = { kind: 'and', conditions: [child] };
+    expect(convertConditionKind(c, 'or', '')).toEqual({ kind: 'or', conditions: [child] });
+  });
+
+  it('group → leaf recovers the first leaf descendant sourceKey', () => {
+    const c: VisibilityCondition = {
+      kind: 'and',
+      conditions: [
+        { kind: 'not', conditions: [{ kind: 'numeric', sourceKey: 'nested.temp' }] },
+      ],
+    };
+    expect(convertConditionKind(c, 'state', 'fallback')).toEqual({
+      kind: 'state', sourceKey: 'nested.temp', equals: '',
+    });
+  });
+
+  it('group → leaf falls back to defaultKey when no leaf descendant exists', () => {
+    // Groups always hold at least one child in the UI, but be defensive.
+    const c = { kind: 'and', conditions: [] } as unknown as VisibilityCondition;
+    expect(convertConditionKind(c, 'numeric', 'fallback')).toEqual({
+      kind: 'numeric', sourceKey: 'fallback',
+    });
+  });
+});

@@ -6,6 +6,8 @@ import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
+import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
+import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 
 const execFileAsync = promisify(execFile);
 
@@ -404,6 +406,22 @@ export function validateManifest(manifest: unknown): manifest is PluginManifest 
   if (m.allowedDomains !== undefined) {
     if (!Array.isArray(m.allowedDomains)) return false;
     if (!m.allowedDomains.every((d: unknown) => typeof d === 'string')) return false;
+  }
+  // Validate optional providesState array. Keys are declared un-prefixed;
+  // registration prefixes them with `plugin:<id>:`, so check the charset
+  // against the raw key and the length cap against the prefixed key.
+  if (m.providesState !== undefined) {
+    if (!Array.isArray(m.providesState)) return false;
+    const prefix = pluginStatePrefix(m.id);
+    for (const p of m.providesState) {
+      if (!p || typeof p !== 'object') return false;
+      const entry = p as Record<string, unknown>;
+      if (typeof entry.key !== 'string' || !SHARED_STATE_KEY_RE.test(entry.key)) return false;
+      if (prefix.length + entry.key.length > MAX_SHARED_STATE_KEY_LENGTH) return false;
+      if (typeof entry.label !== 'string' || !entry.label) return false;
+      if (entry.sampleValues !== undefined
+        && (!Array.isArray(entry.sampleValues) || !entry.sampleValues.every((v: unknown) => typeof v === 'string'))) return false;
+    }
   }
   return true;
 }

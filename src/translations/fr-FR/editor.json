@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Planifié — actuellement actif",
     "scheduledInactiveTitle": "Planifié — actuellement inactif",
-    "disabledTitle": "Désactivé — non affiché sur l'écran"
+    "disabledTitle": "Désactivé — non affiché sur l'écran",
+    "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -1850,7 +1851,8 @@
       "secrets": "Secrets",
       "credentials": "Identifiants",
       "schedule": "Planification",
-      "visibility": "Visibilité"
+      "visibility": "Visibilité",
+      "conditions": "Conditions"
     },
     "fields": {
       "x": "X",
@@ -1874,7 +1876,9 @@
     },
     "visibility": {
       "enabledLabel": "Afficher sur l'écran",
-      "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver."
+      "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver.",
+      "backgroundProviderLabel": "Exécuter masqué en arrière-plan",
+      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage."
     }
   },
   "upgradeModal": {
@@ -2982,5 +2986,40 @@
   "statusDot": {
     "configured": "Configuré",
     "notConfigured": "Non configuré"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Statut",
+    "enableLabel": "Afficher uniquement si les conditions correspondent",
+    "enableHelp": "Afficher ou masquer ce module selon les valeurs publiées par des modules en arrière-plan (par exemple un capteur Home Assistant).",
+    "conditionsTitle": "Conditions",
+    "allMustMatchHint": "Toutes les conditions doivent correspondre pour que le module s'affiche.",
+    "addCondition": "Ajouter une condition",
+    "removeCondition": "Supprimer la condition",
+    "kindLabel": "Type de condition",
+    "kinds": {
+      "state": "La valeur correspond",
+      "numeric": "Le nombre est dans la plage",
+      "and": "Toutes…",
+      "or": "N'importe laquelle…",
+      "not": "Aucune…"
+    },
+    "sourceKeyLabel": "Clé d'état",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Correspondance",
+    "matchEquals": "Est",
+    "matchNotEquals": "N'est pas",
+    "valueLabel": "Valeur",
+    "valuePlaceholder": "on",
+    "valueListHint": "Séparez plusieurs valeurs par des virgules pour correspondre à l'une d'elles.",
+    "aboveLabel": "Au-dessus de",
+    "belowLabel": "En dessous de",
+    "whenUnknownTitle": "Avant l'arrivée des données",
+    "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
+    "whenUnknownHide": "Masquer le module",
+    "whenUnknownShow": "Afficher le module",
+    "noProvidersHint": "Aucun module de cet écran ne publie encore d'état. Les clés d'état proviennent généralement de plugins qui publient des valeurs en arrière-plan. Les valeurs ne sont partagées qu'au sein de l'onglet de navigateur de cet écran. Vous pouvez aussi saisir une clé manuellement.",
+    "noConditionsHint": "Aucune condition pour l'instant. Le module reste affiché tant que vous n'en ajoutez pas.",
+    "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
+    "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés."
   }
 }

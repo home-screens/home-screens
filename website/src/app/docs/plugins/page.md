@@ -93,6 +93,7 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"localNetwork"`. The first four are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
 | `configMigrations` | object | Version-keyed migration rules for renaming or adding config fields on update. |
 | `translations` | object | BCP-47 tag → path to a dictionary JSON file inside the plugin (e.g. `{ "de-DE": "translations/de-DE.json" }`). Looked up under the namespace `plugin:<pluginId>` via `__HS_SDK__.translate`. See [Translations](#translations) below. |
+| `providesState` | array | Shared-state keys the plugin publishes via `__HS_SDK__.publishState`, so the editor's visibility-condition picker can offer them. Each entry is `{ "key": "...", "label": "...", "sampleValues": ["..."] }` (sampleValues optional). Keys are declared un-prefixed, use only `a-z 0-9 _ : . -`, and the host prefixes them with `plugin:<id>:` (id lowercased). See [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions). |
 
 ### Config Schema
 
@@ -278,6 +279,8 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `emit` | function | Emit events to the host (see [Plugin Events](#plugin-events)) |
 | `on` | function | Subscribe to host-published events such as `weather.conditions`, `weather.alerts`, and `time.period` (see [Subscribing to Host Events](#subscribing-to-host-events)) |
 | `pluginFetch` | function | Server-side proxy for API calls (see [API Proxy](#plugin-api-proxy)) |
+| `publishState` | function | `publishState(pluginId, key, value)` — publish a named string value other modules can condition their visibility on (see [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions)) |
+| `clearState` | function | `clearState(pluginId, key)` — remove a published value so conditions on it evaluate as unknown again |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |
 | `translate` | function | `translate(key, vars?)` — looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
@@ -365,6 +368,44 @@ Reference the export in your manifest:
   }
 }
 ```
+
+### Shared State and Visibility Conditions
+
+Plugins can publish named string values to a per-tab shared-state bus, and users can then show or hide any module based on those values (Conditions in the editor's module Visibility panel). A typical use is a Home Assistant plugin publishing sensor states that gate an alert widget.
+
+```js
+const { publishState, clearState } = window.__HS_SDK__;
+
+// Publish whenever your data changes; identical re-publishes are coalesced.
+publishState('my-plugin', 'binary_sensor.door', 'open');
+
+// Optional: clear a key so conditions on it fall back to their
+// "before data arrives" behavior. All of a plugin's keys are also
+// cleared automatically when the plugin is unregistered or reloaded.
+clearState('my-plugin', 'binary_sensor.door');
+```
+
+How keys work:
+
+- Every key is force-prefixed with your plugin's namespace: publishing `binary_sensor.door` from plugin `my-plugin` stores `plugin:my-plugin:binary_sensor.door`. Plugin ids are lowercased in the prefix. This prevents accidental collisions between producers; it is not a security boundary.
+- Keys use lowercase letters, digits, and `_ : . -`, up to 128 characters after prefixing. Values are strings capped at 1&nbsp;KB, and the store holds at most 256 keys. Writes that break these rules are dropped with a console warning.
+- Values live in the display's browser tab only. They are not persisted and not shared across displays; each kiosk tab sees only what its own plugin instances publish.
+
+Advertise your keys so they appear in the editor's condition picker:
+
+- **Static keys** go in the manifest's `providesState` array (declared un-prefixed; the host prefixes them).
+- **Config-driven keys** (e.g. a user-configured entity list) come from a `deriveProvidedKeys(config)` function exported from your bundle. It receives a module instance's config and returns `{ key, label, sampleValues? }[]`; the host prefixes and sanitizes the results, and errors thrown by it are caught by the editor.
+
+```js
+// In your IIFE bundle, next to the component export:
+window.__HS_PLUGIN__ = {
+  default: MyWidget,
+  deriveProvidedKeys: (config) =>
+    (config.entities || []).map((e) => ({ key: e, label: e })),
+};
+```
+
+For a value to stay fresh while the display rotates through screens, the publishing module instance must keep running: users mark an instance "Run hidden in the background" in the editor, which mounts it in a persistent background layer independent of screen rotation.
 
 ### Dev Mode
 

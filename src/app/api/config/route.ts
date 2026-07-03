@@ -32,8 +32,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: displayError }, { status: 400 });
   }
 
-  // Validate every screen and module schedule so a malformed schedule is
-  // rejected at write time instead of silently misbehaving at runtime.
+  // Validate every screen/module schedule and every module's visibility
+  // conditions so malformed gating is rejected at write time instead of
+  // silently misbehaving at runtime.
   const scheduleError = validateAllSchedules(config);
   if (scheduleError) {
     return NextResponse.json({ error: scheduleError }, { status: 400 });

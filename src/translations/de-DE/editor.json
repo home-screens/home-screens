@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Geplant – derzeit aktiv",
     "scheduledInactiveTitle": "Geplant – derzeit inaktiv",
-    "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt"
+    "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt",
+    "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind"
   },
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
@@ -1846,7 +1847,8 @@
       "secrets": "Geheimnisse",
       "credentials": "Anmeldedaten",
       "schedule": "Zeitplan",
-      "visibility": "Sichtbarkeit"
+      "visibility": "Sichtbarkeit",
+      "conditions": "Bedingungen"
     },
     "fields": {
       "x": "X",
@@ -1870,7 +1872,9 @@
     },
     "visibility": {
       "enabledLabel": "Auf Display anzeigen",
-      "enabledHelp": "Wenn deaktiviert, wird dieses Modul vom Live-Display und Prefetch ausgeschlossen, bleibt aber im Editor erhalten, damit du es wieder aktivieren kannst."
+      "enabledHelp": "Wenn deaktiviert, wird dieses Modul vom Live-Display und Prefetch ausgeschlossen, bleibt aber im Editor erhalten, damit du es wieder aktivieren kannst.",
+      "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
+      "backgroundProviderHelp": "Stellt anderen Modulen Zustandswerte bereit. Diese Kopie erscheint nie auf dem Display — um das Widget auch anzuzeigen, eine zweite Kopie ohne diese Einstellung hinzufügen."
     }
   },
   "upgradeModal": {
@@ -2976,5 +2980,40 @@
   "statusDot": {
     "configured": "Konfiguriert",
     "notConfigured": "Nicht konfiguriert"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Status",
+    "enableLabel": "Nur anzeigen, wenn Bedingungen zutreffen",
+    "enableHelp": "Dieses Modul anhand von Werten ein- oder ausblenden, die Hintergrundmodule veröffentlichen (z. B. ein Home-Assistant-Sensor).",
+    "conditionsTitle": "Bedingungen",
+    "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit das Modul angezeigt wird.",
+    "addCondition": "Bedingung hinzufügen",
+    "removeCondition": "Bedingung entfernen",
+    "kindLabel": "Bedingungstyp",
+    "kinds": {
+      "state": "Wert stimmt überein",
+      "numeric": "Zahl liegt im Bereich",
+      "and": "Alle von…",
+      "or": "Beliebige von…",
+      "not": "Keine von…"
+    },
+    "sourceKeyLabel": "Zustandsschlüssel",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Vergleich",
+    "matchEquals": "Ist",
+    "matchNotEquals": "Ist nicht",
+    "valueLabel": "Wert",
+    "valuePlaceholder": "on",
+    "valueListHint": "Mehrere Werte mit Kommas trennen, um einen beliebigen davon zu treffen.",
+    "aboveLabel": "Über",
+    "belowLabel": "Unter",
+    "whenUnknownTitle": "Bevor Daten eintreffen",
+    "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
+    "whenUnknownHide": "Modul ausblenden",
+    "whenUnknownShow": "Modul anzeigen",
+    "noProvidersHint": "Noch keine Module auf diesem Display veröffentlichen Zustände. Zustandsschlüssel stammen meist von Plugins, die Werte im Hintergrund veröffentlichen. Werte werden nur innerhalb des Browser-Tabs dieses Displays geteilt. Ein Schlüssel kann auch manuell eingegeben werden.",
+    "noConditionsHint": "Noch keine Bedingungen. Das Modul wird immer angezeigt, bis eine hinzugefügt wird.",
+    "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
+    "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren."
   }
 }

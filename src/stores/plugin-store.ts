@@ -3,6 +3,8 @@ import type { ComponentType } from 'react';
 import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps } from '@/types/plugins';
 import { unregisterModule } from '@/lib/module-registry';
 import { deregisterFetchKey } from '@/lib/fetch-keys';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 import type { ModuleType } from '@/types/config';
 
 interface PluginState {
@@ -77,6 +79,10 @@ export const usePluginStore = create<PluginState>((set, get) => ({
   },
 
   unregisterPlugin: (moduleType) => {
+    // Purge the plugin's shared-state keys so conditions on them go back to
+    // "unknown" instead of holding a dead producer's last value.
+    const manifest = get().plugins.get(moduleType)?.manifest;
+    if (manifest) sharedStateStore.clearKeysByPrefix(pluginStatePrefix(manifest.id));
     unregisterModule(moduleType as ModuleType);
     set((state) => {
       const plugins = new Map(state.plugins);
@@ -87,7 +93,8 @@ export const usePluginStore = create<PluginState>((set, get) => ({
 
   clearPlugins: () => {
     const { plugins } = get();
-    for (const moduleType of plugins.keys()) {
+    for (const [moduleType, entry] of plugins) {
+      sharedStateStore.clearKeysByPrefix(pluginStatePrefix(entry.manifest.id));
       unregisterModule(moduleType as ModuleType);
       deregisterFetchKey(moduleType);
     }

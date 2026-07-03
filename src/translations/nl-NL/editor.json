@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Gepland — momenteel actief",
     "scheduledInactiveTitle": "Gepland — momenteel inactief",
-    "disabledTitle": "Uitgeschakeld — niet getoond op display"
+    "disabledTitle": "Uitgeschakeld — niet getoond op display",
+    "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -1846,7 +1847,8 @@
       "secrets": "Geheimen",
       "credentials": "Inloggegevens",
       "schedule": "Schema",
-      "visibility": "Zichtbaarheid"
+      "visibility": "Zichtbaarheid",
+      "conditions": "Voorwaarden"
     },
     "fields": {
       "x": "X",
@@ -1870,7 +1872,9 @@
     },
     "visibility": {
       "enabledLabel": "Tonen op display",
-      "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen."
+      "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen.",
+      "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
+      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen."
     }
   },
   "upgradeModal": {
@@ -2976,5 +2980,40 @@
   "statusDot": {
     "configured": "Geconfigureerd",
     "notConfigured": "Niet geconfigureerd"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Status",
+    "enableLabel": "Alleen tonen als voorwaarden overeenkomen",
+    "enableHelp": "Toon of verberg deze module op basis van waarden die achtergrondmodules publiceren (bijvoorbeeld een Home Assistant-sensor).",
+    "conditionsTitle": "Voorwaarden",
+    "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om de module te tonen.",
+    "addCondition": "Voorwaarde toevoegen",
+    "removeCondition": "Voorwaarde verwijderen",
+    "kindLabel": "Type voorwaarde",
+    "kinds": {
+      "state": "Waarde komt overeen",
+      "numeric": "Getal ligt in bereik",
+      "and": "Alle…",
+      "or": "Willekeurige…",
+      "not": "Geen van…"
+    },
+    "sourceKeyLabel": "Statussleutel",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Vergelijking",
+    "matchEquals": "Is",
+    "matchNotEquals": "Is niet",
+    "valueLabel": "Waarde",
+    "valuePlaceholder": "on",
+    "valueListHint": "Scheid meerdere waarden met komma's om met een ervan overeen te komen.",
+    "aboveLabel": "Boven",
+    "belowLabel": "Onder",
+    "whenUnknownTitle": "Voordat gegevens binnenkomen",
+    "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
+    "whenUnknownHide": "Module verbergen",
+    "whenUnknownShow": "Module tonen",
+    "noProvidersHint": "Nog geen modules op dit scherm publiceren status. Statussleutels komen meestal van plugins die waarden op de achtergrond publiceren. Waarden worden alleen gedeeld binnen het browsertabblad van dit scherm. Je kunt ook handmatig een sleutel typen.",
+    "noConditionsHint": "Nog geen voorwaarden. De module wordt altijd getoond totdat je er een toevoegt.",
+    "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
+    "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden."
   }
 }

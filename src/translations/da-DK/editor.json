@@ -77,7 +77,8 @@
   "draggableModule": {
     "scheduledActiveTitle": "Scheduled — currently active",
     "scheduledInactiveTitle": "Scheduled — currently inactive",
-    "disabledTitle": "Disabled — not shown on display"
+    "disabledTitle": "Disabled — not shown on display",
+    "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -1846,7 +1847,8 @@
       "secrets": "Secrets",
       "credentials": "Credentials",
       "schedule": "Schedule",
-      "visibility": "Visibility"
+      "visibility": "Visibility",
+      "conditions": "Betingelser"
     },
     "fields": {
       "x": "X",
@@ -1870,7 +1872,9 @@
     },
     "visibility": {
       "enabledLabel": "Show on display",
-      "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it."
+      "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
+      "backgroundProviderLabel": "Kør skjult i baggrunden",
+      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten."
     }
   },
   "upgradeModal": {
@@ -2976,5 +2980,40 @@
   "statusDot": {
     "configured": "Konfigureret",
     "notConfigured": "Ikke konfigureret"
+  },
+  "visibilityConditions": {
+    "statusTitle": "Status",
+    "enableLabel": "Vis kun, når betingelserne passer",
+    "enableHelp": "Vis eller skjul dette modul baseret på værdier udgivet af baggrundsmoduler (f.eks. en Home Assistant-sensor).",
+    "conditionsTitle": "Betingelser",
+    "allMustMatchHint": "Alle betingelser skal passe, for at modulet vises.",
+    "addCondition": "Tilføj betingelse",
+    "removeCondition": "Fjern betingelse",
+    "kindLabel": "Betingelsestype",
+    "kinds": {
+      "state": "Værdi matcher",
+      "numeric": "Tal er i intervallet",
+      "and": "Alle…",
+      "or": "Enhver…",
+      "not": "Ingen af…"
+    },
+    "sourceKeyLabel": "Tilstandsnøgle",
+    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "matchLabel": "Match",
+    "matchEquals": "Er",
+    "matchNotEquals": "Er ikke",
+    "valueLabel": "Værdi",
+    "valuePlaceholder": "on",
+    "valueListHint": "Adskil flere værdier med kommaer for at matche en hvilken som helst af dem.",
+    "aboveLabel": "Over",
+    "belowLabel": "Under",
+    "whenUnknownTitle": "Før data ankommer",
+    "whenUnknownLabel": "Mens datakilden endnu ikke har rapporteret",
+    "whenUnknownHide": "Skjul modulet",
+    "whenUnknownShow": "Vis modulet",
+    "noProvidersHint": "Ingen moduler på denne skærm udgiver tilstande endnu. Tilstandsnøgler kommer typisk fra plugins, der udgiver værdier i baggrunden. Værdier deles kun inden for denne skærms browserfane. Du kan også skrive en nøgle manuelt.",
+    "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
+    "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
+    "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter."
   }
 }
