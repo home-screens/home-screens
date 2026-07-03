@@ -1,0 +1,1000 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_TELEMETRY",
+      "label": "Cloudflare D1 (Infinity)",
+      "description": "Infinity datasource configured with your Cloudflare API token",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "2.0.0"
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    }
+  ],
+  "title": "Home Screens Telemetry",
+  "uid": "home-screens-telemetry",
+  "tags": [
+    "home-screens",
+    "telemetry"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "refresh": "",
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "account_id",
+        "label": "Cloudflare account ID",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0
+      },
+      {
+        "name": "database_id",
+        "label": "D1 database ID",
+        "type": "constant",
+        "query": "8508ecf2-74e8-4c55-bc39-cf5f89f587ab",
+        "hide": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total installs",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COUNT(*) AS total FROM beacons\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "total",
+              "text": "total",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active (last 30 days)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COUNT(*) AS active FROM beacons WHERE last_seen_at >= datetime('now','-30 days')\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "active",
+              "text": "active",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active (last 7 days)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COUNT(*) AS active FROM beacons WHERE last_seen_at >= datetime('now','-7 days')\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "active",
+              "text": "active",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "New installs (last 30 days)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COUNT(*) AS new_installs FROM beacons WHERE first_seen_at >= datetime('now','-30 days')\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "new_installs",
+              "text": "new_installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "New installs per day",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT date(first_seen_at) AS day, COUNT(*) AS installs FROM beacons GROUP BY day ORDER BY day\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "day",
+              "text": "day",
+              "type": "timestamp"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 90,
+            "lineWidth": 0,
+            "barAlignment": 0
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Cumulative installs",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT date(first_seen_at) AS day, SUM(COUNT(*)) OVER (ORDER BY date(first_seen_at)) AS total FROM beacons GROUP BY day ORDER BY day\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "day",
+              "text": "day",
+              "type": "timestamp"
+            },
+            {
+              "selector": "total",
+              "text": "total",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never"
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "App version",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COALESCE(app_version,'unknown') AS version, COUNT(*) AS installs FROM beacons GROUP BY version ORDER BY installs DESC\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "version",
+              "text": "version",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "barchart",
+      "title": "Platform / arch",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COALESCE(platform,'unknown') || ' / ' || COALESCE(arch,'?') AS platform, COUNT(*) AS installs FROM beacons GROUP BY platform ORDER BY installs DESC\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "platform",
+              "text": "platform",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 9,
+      "type": "barchart",
+      "title": "Weather provider",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT COALESCE(weather_provider,'none') AS provider, COUNT(*) AS installs FROM beacons GROUP BY provider ORDER BY installs DESC\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "provider",
+              "text": "provider",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Module popularity (installs using each module, top 20)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT je.key AS module, COUNT(*) AS installs FROM beacons, json_each(COALESCE(beacons.module_types,'{}')) AS je GROUP BY je.key ORDER BY installs DESC LIMIT 20\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "module",
+              "text": "module",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 11,
+      "type": "barchart",
+      "title": "Feature adoption (installs)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT 'Sleep schedule' AS feature, COALESCE(SUM(sleep_enabled),0) AS installs FROM beacons UNION ALL SELECT 'Weather alerts', COALESCE(SUM(alerts_enabled),0) FROM beacons UNION ALL SELECT 'Authentication', COALESCE(SUM(auth_enabled),0) FROM beacons UNION ALL SELECT 'Google Calendar', COALESCE(SUM(has_google_calendar),0) FROM beacons UNION ALL SELECT 'iCal sources', COALESCE(SUM(has_ical_sources),0) FROM beacons UNION ALL SELECT 'Plugins', COALESCE(SUM(CASE WHEN plugin_count > 0 THEN 1 ELSE 0 END),0) FROM beacons UNION ALL SELECT 'Multi-display', COALESCE(SUM(CASE WHEN display_count > 0 THEN 1 ELSE 0 END),0) FROM beacons ORDER BY installs DESC\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "feature",
+              "text": "feature",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "type": "barchart",
+      "title": "Displays per install (multi-display mode)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 34
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT CAST(display_count AS TEXT) || ' displays' AS displays, COUNT(*) AS installs FROM beacons WHERE display_count IS NOT NULL AND display_count > 0 GROUP BY display_count ORDER BY display_count\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "displays",
+              "text": "displays",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Recent check-ins",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 8,
+        "y": 34
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT substr(install_id,1,8) AS install, app_version, platform, arch, screen_count, module_count, display_count, last_seen_at FROM beacons ORDER BY last_seen_at DESC LIMIT 25\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "install",
+              "text": "install",
+              "type": "string"
+            },
+            {
+              "selector": "app_version",
+              "text": "app_version",
+              "type": "string"
+            },
+            {
+              "selector": "platform",
+              "text": "platform",
+              "type": "string"
+            },
+            {
+              "selector": "arch",
+              "text": "arch",
+              "type": "string"
+            },
+            {
+              "selector": "screen_count",
+              "text": "screen_count",
+              "type": "number"
+            },
+            {
+              "selector": "module_count",
+              "text": "module_count",
+              "type": "number"
+            },
+            {
+              "selector": "display_count",
+              "text": "display_count",
+              "type": "number"
+            },
+            {
+              "selector": "last_seen_at",
+              "text": "last_seen_at",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    }
+  ]
+}
