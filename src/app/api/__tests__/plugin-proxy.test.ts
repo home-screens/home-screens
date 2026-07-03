@@ -366,6 +366,33 @@ describe('POST /api/plugins/proxy/[pluginId] — rate limiting', () => {
 
     expect(res.status).toBe(200);
   });
+
+  it('gives localNetwork plugins the higher 240/min budget', async () => {
+    const pluginId = 'rate-lan-test';
+    const installed = makeInstalled([{ id: pluginId, enabled: true }]);
+    vi.mocked(getInstalledPlugins).mockResolvedValue(installed);
+    vi.mocked(getPluginManifest).mockResolvedValue(makeManifest({
+      id: pluginId,
+      allowedDomains: ['ha.local'],
+      permissions: ['network', 'localNetwork'],
+    }));
+    mockUpstreamFetch('{"ok":true}');
+
+    // 240 requests all succeed — well past the standard 60 cap
+    for (let i = 0; i < 240; i++) {
+      const [req, ctx] = makeProxyRequest(pluginId, { url: uniqueUrl('ha.local') });
+      const res = await POST(req, ctx);
+      expect(res.status).toBe(200);
+    }
+
+    // 241st is rate limited
+    const [req, ctx] = makeProxyRequest(pluginId, { url: uniqueUrl('ha.local') });
+    const res = await POST(req, ctx);
+    const json = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(json.error).toMatch(/240 requests\/minute/);
+  });
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

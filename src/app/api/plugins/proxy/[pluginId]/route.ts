@@ -13,10 +13,14 @@ export const dynamic = 'force-dynamic';
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 60;
+// Plugins with the localNetwork permission target self-hosted LAN services
+// (e.g. Home Assistant), where near-realtime polling is reasonable and the
+// blast radius is the user's own hardware — allow a higher request budget.
+const RATE_LIMIT_MAX_LAN = 240;
 
 const rateLimits = new Map<string, { count: number; windowStart: number }>();
 
-function checkRateLimit(pluginId: string): boolean {
+function checkRateLimit(pluginId: string, max: number): boolean {
   const now = Date.now();
   const entry = rateLimits.get(pluginId);
   if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
@@ -27,7 +31,7 @@ function checkRateLimit(pluginId: string): boolean {
     }
     return true;
   }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
+  if (entry.count >= max) return false;
   entry.count++;
   return true;
 }
@@ -159,10 +163,13 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     return NextResponse.json({ error: 'Plugin manifest not found' }, { status: 404 });
   }
 
-  // Rate limit
-  if (!checkRateLimit(safeId)) {
+  // Rate limit — LAN-permitted plugins get the higher budget
+  const rateLimitMax = manifest.permissions?.includes('localNetwork')
+    ? RATE_LIMIT_MAX_LAN
+    : RATE_LIMIT_MAX;
+  if (!checkRateLimit(safeId, rateLimitMax)) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded (60 requests/minute)' },
+      { error: `Rate limit exceeded (${rateLimitMax} requests/minute)` },
       { status: 429 },
     );
   }
