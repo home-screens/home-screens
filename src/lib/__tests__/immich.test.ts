@@ -181,4 +181,15 @@ describe('validateImmichConnection', () => {
     const result = await validateImmichConnection();
     expect(result).toEqual({ reachable: true, authenticated: true, version: '1.106.4' });
   });
+
+  it('strips the leading v from Immich v3 version strings', async () => {
+    setupSecrets();
+    mockFetch
+      .mockResolvedValueOnce(new Response('pong', { status: 200 })) // ping
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ version: 'v3.0.1' }), { status: 200 }),
+      ); // about
+    const result = await validateImmichConnection();
+    expect(result).toEqual({ reachable: true, authenticated: true, version: '3.0.1' });
+  });
 });

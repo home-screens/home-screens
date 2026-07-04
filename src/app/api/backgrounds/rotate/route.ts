@@ -105,37 +105,23 @@ async function fetchAndSaveApod(): Promise<string | null> {
 }
 
 async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<string | null> {
-  let assetId: string | undefined;
+  // Immich v3 removed `assets` from the album detail response; search/random
+  // accepts albumIds on v2+ and handles all filter combinations server-side.
+  const body: Record<string, unknown> = { type: 'IMAGE', size: 1 };
+  if (rotation.immichAlbumId) body.albumIds = [rotation.immichAlbumId];
+  if (rotation.immichPersonId) body.personIds = [rotation.immichPersonId];
+  if (rotation.immichFavoritesOnly) body.isFavorite = true;
 
-  if (rotation.immichAlbumId) {
-    // Fetch album assets and pick one randomly (search/random doesn't support albumIds)
-    const albumRes = await immichFetch(`/api/albums/${rotation.immichAlbumId}`);
-    if (!albumRes.ok) return null;
-    const album = await albumRes.json();
-    let assets = ((album.assets ?? []) as { id: string; type: string; isFavorite: boolean }[])
-      .filter((a) => a.type === 'IMAGE');
-    if (rotation.immichFavoritesOnly) assets = assets.filter((a) => a.isFavorite);
-    if (assets.length === 0) return null;
-    assetId = assets[Math.floor(Math.random() * assets.length)].id;
-  } else {
-    // Use random search endpoint
-    const body: Record<string, unknown> = { type: 'IMAGE', size: 1 };
-    if (rotation.immichPersonId) body.personIds = [rotation.immichPersonId];
-    if (rotation.immichFavoritesOnly) body.isFavorite = true;
+  const res = await immichFetch('/api/search/random', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return null;
 
-    const res = await immichFetch('/api/search/random', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) return null;
-
-    const assets = await res.json();
-    if (!Array.isArray(assets) || assets.length === 0) return null;
-    assetId = assets[0].id as string;
-  }
-
-  if (!assetId) return null;
+  const assets = await res.json();
+  if (!Array.isArray(assets) || assets.length === 0) return null;
+  const assetId = assets[0].id as string;
 
   // Download preview-quality image
   const imgRes = await immichFetch(`/api/assets/${assetId}/thumbnail?size=preview`, { timeout: 15_000 });

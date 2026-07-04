@@ -75,7 +75,10 @@ export async function validateImmichConnection(): Promise<{
     });
     if (!about.ok) return { reachable: true, authenticated: false };
     const data = await about.json();
-    return { reachable: true, authenticated: true, version: data.version };
+    // Immich v3 self-reports "v3.0.1" while v2 reported "2.x.x"; normalize so
+    // UI templates can uniformly prepend "v"
+    const version = typeof data.version === 'string' ? data.version.replace(/^v/, '') : undefined;
+    return { reachable: true, authenticated: true, version };
   } catch {
     return { reachable: true, authenticated: false };
   }
