@@ -47,6 +47,19 @@ export function isEventOnDay(
   );
 }
 
+/**
+ * Whether an event is still relevant to an "upcoming" list: ongoing or future.
+ *
+ * Mirrors the calendar API's default `timeMin = now` semantics (Google
+ * filters on event *end*, exclusive), so list views behave identically
+ * whether or not the shared fetch window was widened for a co-present
+ * month/week grid view. All-day events use exclusive end dates (a single-day
+ * event on March 15 has end = March 16), so they stay "upcoming" all day.
+ */
+export function isEventUpcoming(ev: { end: string }, now: Date): boolean {
+  return parseEventDate(ev.end) > now;
+}
+
 const ENTITY_MAP: Record<string, string> = {
   amp: '&',
   lt: '<',

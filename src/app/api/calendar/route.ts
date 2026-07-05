@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
-import { compareEventStarts } from '@/lib/calendar-utils';
+import { compareEventStarts, isEventUpcoming } from '@/lib/calendar-utils';
+import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import type { CalendarEvent, ICalSource } from '@/types/config';
 
@@ -17,6 +18,13 @@ interface CalendarParams {
   maxEvents: number;
   icalKey: string;
 }
+
+// Hard ceiling on the requested window span. Bounds two costs that scale with
+// span and aren't capped by maxEvents: recurring-event expansion in the ICS
+// parser, and the number of distinct cache keys (which embed the window). The
+// widest in-app request is a ~6-week month grid, so this only ever clamps a
+// hand-crafted LAN request.
+const MAX_WINDOW_MS = 400 * 86400000;
 
 const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
   auth: 'display',
@@ -41,13 +49,35 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
 
     const icalSources = (config.settings.calendar.icalSources ?? []).filter(s => s.enabled);
     const holidayCountry = config.settings.calendar.holidayCountry;
-    const daysAhead = config.settings.calendar.daysAhead ?? 7;
+    const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
 
     // Round to nearest minute so cache keys are reusable
     const nowMs = Math.floor(Date.now() / 60000) * 60000;
-    const timeMin = searchParams.get('timeMin') ?? new Date(nowMs).toISOString();
-    const timeMax = searchParams.get('timeMax') ?? new Date(nowMs + daysAhead * 86400000).toISOString();
-    const maxEvents = config.settings.calendar.maxEvents ?? 100;
+    // Optional window overrides (displays widen the window for month/week
+    // grid views). Unparseable values fall back to the defaults, and both
+    // are re-serialized so cache keys stay canonical.
+    const parseTimeParam = (value: string | null): number | null => {
+      if (!value) return null;
+      const ms = Date.parse(value);
+      return Number.isFinite(ms) ? ms : null;
+    };
+    const defaultWindowMs = daysAhead * 86400000;
+    const timeMinMs = parseTimeParam(searchParams.get('timeMin')) ?? nowMs;
+    let timeMaxMs = parseTimeParam(searchParams.get('timeMax')) ?? nowMs + defaultWindowMs;
+    if (timeMaxMs <= timeMinMs) timeMaxMs = timeMinMs + defaultWindowMs;
+    if (timeMaxMs - timeMinMs > MAX_WINDOW_MS) timeMaxMs = timeMinMs + MAX_WINDOW_MS;
+    const timeMin = new Date(timeMinMs).toISOString();
+    const timeMax = new Date(timeMaxMs).toISOString();
+
+    const configuredMax = config.settings.calendar.maxEvents ?? 100;
+    // `maxEvents` bounds the *upcoming* list. When a grid view widens the
+    // window into the past (or far into the future), that budget can't cover a
+    // whole busy month, so scale it to the window and keep the density
+    // (events/day) the default window implies. Never below the configured cap.
+    const windowMs = timeMaxMs - timeMinMs;
+    const maxEvents = windowMs > defaultWindowMs
+      ? Math.max(configuredMax, Math.ceil((configuredMax * windowMs) / defaultWindowMs))
+      : configuredMax;
 
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
 
@@ -106,10 +136,26 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
       return errorResponse(null, 'Failed to fetch calendar events') as NextResponse;
     }
 
-    // Merge, sort, slice
-    return [...googleEvents, ...icalEvents, ...holidayEvents]
-      .sort((a, b) => compareEventStarts(a.start, b.start))
-      .slice(0, maxEvents);
+    const merged = [...googleEvents, ...icalEvents, ...holidayEvents]
+      .sort((a, b) => compareEventStarts(a.start, b.start));
+    if (merged.length <= maxEvents) return merged;
+
+    // Upcoming-first budgeting, applied only when even the window-scaled cap
+    // is exceeded (a pathologically dense window). A plain ascending slice
+    // would spend the whole budget on the earliest events — with a widened
+    // timeMin, that's the past — starving upcoming events and emptying later
+    // grid weeks and any co-present agenda/daily view sharing this payload.
+    // Keep the nearest maxEvents upcoming events (the pre-widening guarantee),
+    // then backfill leftover budget with the most recent past events (the ones
+    // nearest today, most likely visible in a grid). With the default
+    // timeMin = now, everything is upcoming and this degenerates to the
+    // original ascending slice.
+    const now = new Date();
+    const upcoming = merged.filter(ev => isEventUpcoming(ev, now));
+    const past = merged.filter(ev => !isEventUpcoming(ev, now));
+    const keptUpcoming = upcoming.slice(0, maxEvents);
+    const keptPast = past.slice(Math.max(0, past.length - (maxEvents - keptUpcoming.length)));
+    return [...keptPast, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start));
   },
   errorMessage: 'Failed to fetch calendar events',
 });

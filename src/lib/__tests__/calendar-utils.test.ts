@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseEventDate, compareEventStarts, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, compareEventStarts, isEventOnDay, isEventUpcoming, sanitizeEventDescription } from '@/lib/calendar-utils';
 
 describe('parseEventDate', () => {
   it('parses date-only strings as local midnight (not UTC)', () => {
@@ -196,5 +196,34 @@ describe('sanitizeEventDescription', () => {
     expect(sanitizeEventDescription('hi &#x110000; bye')).toBe('hi &#x110000; bye');
     // Negative or unparseable values also fall through safely.
     expect(sanitizeEventDescription('hi &#xZZZ; bye')).toBe('hi &#xZZZ; bye');
+  });
+});
+
+describe('isEventUpcoming', () => {
+  // Local reference time: June 15, 2026, 14:00
+  const now = new Date(2026, 5, 15, 14, 0, 0);
+
+  it('excludes timed events that already ended', () => {
+    expect(isEventUpcoming({ end: '2026-06-15T13:00:00' }, now)).toBe(false);
+  });
+
+  it('includes ongoing timed events (end in the future)', () => {
+    expect(isEventUpcoming({ end: '2026-06-15T15:00:00' }, now)).toBe(true);
+  });
+
+  it('includes future events', () => {
+    expect(isEventUpcoming({ end: '2026-06-20T10:00:00' }, now)).toBe(true);
+  });
+
+  it('excludes events ending exactly now (matches Google exclusive timeMin)', () => {
+    expect(isEventUpcoming({ end: '2026-06-15T14:00:00' }, now)).toBe(false);
+  });
+
+  it('includes an all-day event for today (exclusive date-only end = tomorrow)', () => {
+    expect(isEventUpcoming({ end: '2026-06-16' }, now)).toBe(true);
+  });
+
+  it('excludes a single-day all-day event from yesterday', () => {
+    expect(isEventUpcoming({ end: '2026-06-15' }, now)).toBe(false);
   });
 });

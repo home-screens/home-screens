@@ -33,6 +33,13 @@ export const WEATHER_REFRESH_MS = 5 * 60 * 1000;
 // Calendar refresh interval (5 minutes)
 export const CALENDAR_REFRESH_MS = 5 * 60 * 1000;
 
+// Fallback for settings.calendar.daysAhead. The calendar API route and the
+// client-side fetch-window computation (getCalendarFetchWindow callers) must
+// agree on this value: clients omit timeMax from the URL whenever the default
+// window already covers their grids, assuming the server fills in the same
+// default.
+export const DEFAULT_CALENDAR_DAYS_AHEAD = 7;
+
 
 // Grid snap size (in display pixels)
 export const GRID_SIZE = 20;

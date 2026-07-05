@@ -89,6 +89,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
           const dow = i % 7;
           const isToday = isSameDay(day, today);
           const isCurrentMonth = isSameMonth(day, today);
+          const isPastDay = isCurrentMonth && day < today;
           const isWeekend = dow === 0 || dow === 6;
 
           // Week number column
@@ -135,7 +136,9 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                   padding: scale.bu * 0.3,
                   position: 'relative',
                   overflow: 'hidden',
-                  opacity: isCurrentMonth ? 1 : 0.35,
+                  opacity: !isCurrentMonth ? 0.35
+                    : isPastDay && config.dimPastEvents ? 'var(--cal-past-opacity)'
+                    : 1,
                   background: isToday && showTodayBg
                     ? 'var(--cal-today-fill)'
                     : isWeekend && config.shadeWeekends

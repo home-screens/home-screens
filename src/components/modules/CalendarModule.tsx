@@ -2,7 +2,7 @@
 
 import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth, isToday as isDateToday } from 'date-fns';
 import { createTZDate } from '@/lib/timezone';
-import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
@@ -452,11 +452,18 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
   const locale = useFormattingLocale();
   const rawEvents = events ?? [];
   const sourceFilter = config.sourceFilter;
-  const allEvents = (sourceFilter && sourceFilter.length > 0)
+  const sourcedEvents = (sourceFilter && sourceFilter.length > 0)
     ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
     : rawEvents;
-  const today = startOfDay(createTZDate(timezone));
+  const now = createTZDate(timezone);
+  const today = startOfDay(now);
   const viewMode = config.viewMode ?? 'daily';
+  // Grid views (week/month) show their full visible range, past days
+  // included; list views stay upcoming-only even when the shared fetch
+  // window was widened for a grid view elsewhere on the display.
+  const allEvents = (viewMode === 'week' || viewMode === 'month')
+    ? sourcedEvents
+    : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
 

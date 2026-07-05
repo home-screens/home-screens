@@ -225,7 +225,7 @@ describe('ICS + Google Calendar merging', () => {
     expect(json[3].title).toBe('Google Afternoon');
   });
 
-  it('respects maxEvents limit (slices after sort)', async () => {
+  it('respects maxEvents limit, keeping the nearest upcoming events', async () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({
         googleCalendarIds: ['primary'],
@@ -236,23 +236,81 @@ describe('ICS + Google Calendar merging', () => {
       }),
     );
 
-    const googleEvents = [
-      makeEvent('g1', '2026-03-13T12:00:00Z', 'Google Noon'),
-      makeEvent('g2', '2026-03-13T16:00:00Z', 'Google Afternoon'),
-    ];
-    const icalEvents = [
-      makeEvent('i1', '2026-03-13T08:00:00Z', 'ICal Morning'),
-    ];
-    mockFetchGoogle.mockResolvedValue(googleEvents);
-    mockFetchICal.mockResolvedValue(icalEvents);
+    // Events relative to real "now" so they stay upcoming regardless of when
+    // the suite runs (the route reads the live clock, not a fake timer).
+    const inHours = (h: number) => new Date(Date.now() + h * 3600000).toISOString();
+    mockFetchGoogle.mockResolvedValue([
+      makeEvent('g1', inHours(2), 'Google Soon'),
+      makeEvent('g2', inHours(6), 'Google Later'),
+    ]);
+    mockFetchICal.mockResolvedValue([
+      makeEvent('i1', inHours(1), 'ICal First'),
+    ]);
 
     const req = makeRequest();
     const res = await GET(req);
     const json = await res.json();
 
+    // Nearest two upcoming survive, sorted ascending; the +6h one is dropped.
     expect(json).toHaveLength(2);
-    expect(json[0].title).toBe('ICal Morning');
-    expect(json[1].title).toBe('Google Noon');
+    expect(json.map((e: CalendarEvent) => e.title)).toEqual(['ICal First', 'Google Soon']);
+  });
+
+  // Anchor all offsets to one base so window spans are exact to the
+  // millisecond (a span computed from two Date.now() reads could drift past a
+  // scaling threshold and flake).
+  const atBase = Date.now();
+  const at = (h: number) => new Date(atBase + h * 3600000).toISOString();
+
+  it('scales the cap to the window so a widened grid fetch is not truncated to the upcoming budget', async () => {
+    // daysAhead 7 (default window). A ~28-day window should scale the cap ~4x,
+    // so a month's worth of events survives instead of being cut to maxEvents.
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 5, daysAhead: 7 }));
+
+    // 24 events spread across the widened window — well over the raw cap of 5.
+    const events = Array.from({ length: 24 }, (_, i) =>
+      makeEvent(`e${i}`, at((i - 12) * 24), `Event ${i}`),
+    );
+    mockFetchGoogle.mockResolvedValue(events);
+
+    const req = makeRequest({ timeMin: at(-14 * 24), timeMax: at(14 * 24) });
+    const res = await GET(req);
+    const json = await res.json();
+
+    // 28-day window / 7-day default → 4x → cap 20; all 24 don't fit but far
+    // more than the raw 5 survive (the whole point of issue #21).
+    expect(json.length).toBeGreaterThan(5);
+    expect(json.length).toBe(20);
+  });
+
+  it('does not let past events starve upcoming ones when the budget is exceeded', async () => {
+    // Regression for issue #21: when even the scaled cap is exceeded, a plain
+    // ascending slice would spend the whole budget on the earliest (past)
+    // events and drop every upcoming one. Upcoming-first budgeting keeps the
+    // upcoming event and backfills with the most-recent past. Window pinned to
+    // the default span (timeMax = timeMin + 7d) so no scaling applies.
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 3, daysAhead: 7 }));
+
+    mockFetchGoogle.mockResolvedValue([
+      makeEvent('p1', at(-96), 'Past A'),
+      makeEvent('p2', at(-72), 'Past B'),
+      makeEvent('p3', at(-48), 'Past C'),
+      makeEvent('p4', at(-24), 'Past D'),
+      makeEvent('u1', at(24), 'Upcoming'),
+    ]);
+
+    const req = makeRequest({ timeMin: at(-120), timeMax: at(48) });
+    const res = await GET(req);
+    const json = await res.json();
+
+    const titles = json.map((e: CalendarEvent) => e.title);
+    expect(json).toHaveLength(3);
+    // The single upcoming event is never sliced away...
+    expect(titles).toContain('Upcoming');
+    // ...and the retained past events are the two most recent, not the oldest.
+    expect(titles).toContain('Past D');
+    expect(titles).toContain('Past C');
+    expect(titles).not.toContain('Past A');
   });
 
   it('returns ICS events when Google fails (partial success)', async () => {
@@ -563,11 +621,46 @@ describe('time parameters', () => {
     });
     await GET(req);
 
+    // Params are re-serialized to canonical ISO form for stable cache keys
     expect(mockFetchGoogle).toHaveBeenCalledWith(
       ['primary'],
-      '2026-06-01T00:00:00Z',
-      '2026-06-08T00:00:00Z',
+      '2026-06-01T00:00:00.000Z',
+      '2026-06-08T00:00:00.000Z',
     );
+  });
+
+  it('falls back to defaults when timeMin/timeMax are unparseable', async () => {
+    const daysAhead = 7;
+    mockReadConfig.mockResolvedValue(
+      makeConfig({ googleCalendarIds: ['primary'], daysAhead }),
+    );
+    mockFetchGoogle.mockResolvedValue([]);
+
+    const before = Date.now();
+    const req = makeRequest({ timeMin: 'not-a-date', timeMax: 'also-junk' });
+    await GET(req);
+
+    const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
+    const timeMinMs = new Date(timeMinArg).getTime();
+    expect(timeMinMs).toBeGreaterThanOrEqual(Math.floor(before / 60000) * 60000);
+    expect(new Date(timeMaxArg).getTime() - timeMinMs).toBe(daysAhead * 86400000);
+  });
+
+  it('recovers from an inverted range (timeMax before timeMin)', async () => {
+    mockReadConfig.mockResolvedValue(
+      makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }),
+    );
+    mockFetchGoogle.mockResolvedValue([]);
+
+    const req = makeRequest({
+      timeMin: '2026-06-08T00:00:00Z',
+      timeMax: '2026-06-01T00:00:00Z',
+    });
+    await GET(req);
+
+    const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
+    expect(timeMinArg).toBe('2026-06-08T00:00:00.000Z');
+    expect(new Date(timeMaxArg).getTime() - new Date(timeMinArg).getTime()).toBe(7 * 86400000);
   });
 
   it('defaults to now + daysAhead when timeMin/timeMax not provided', async () => {

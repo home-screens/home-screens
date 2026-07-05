@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { getCalendarFetchWindow } from '@/lib/calendar-window';
+import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
+import { createTZDate } from '@/lib/timezone';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
@@ -111,13 +114,39 @@ export function usePreviewData(): PreviewData {
         }
       }
       setPreviewData((prev) => ({ ...prev, weatherByProvider: byProvider }));
+    }
 
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [providers, provider, latitude, longitude, units]);
+
+  // Calendar fetch window derived from the active display's screens — same
+  // computation the kiosk uses, so month/week grid views preview with past
+  // events (WYSIWYG). Selecting a query *string* keeps the effect below from
+  // re-running on unrelated store changes (module drags, style edits).
+  const calendarQuery = useEditorStore((s) => {
+    if (!s.config) return '';
+    const win = getCalendarFetchWindow(
+      getActiveScreens(s.config, s.selectedDisplayId),
+      createTZDate(s.config.settings.timezone),
+      s.config.settings.calendar?.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
+    );
+    if (!win) return '';
+    return `timeMin=${encodeURIComponent(win.timeMin)}`
+      + (win.timeMax ? `&timeMax=${encodeURIComponent(win.timeMax)}` : '');
+  });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
       try {
-        const calRes = await editorFetch('/api/calendar', { signal });
+        const calRes = await editorFetch(`/api/calendar${calendarQuery ? `?${calendarQuery}` : ''}`, { signal: controller.signal });
         if (calRes.ok) {
           const calData = await calRes.json();
           const events = Array.isArray(calData.events) ? calData.events : Array.isArray(calData) ? calData : [];
-          if (!signal.aborted) {
+          if (!controller.signal.aborted) {
             setPreviewData((prev) => ({ ...prev, calendarEvents: events }));
           }
         }
@@ -126,13 +155,13 @@ export function usePreviewData(): PreviewData {
           console.debug('Failed to fetch calendar preview:', err);
         }
       }
-    }
+    }, REFETCH_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [providers, provider, latitude, longitude, units]);
+  }, [calendarQuery]);
 
   // Publish weather events to the event bus so editor modules using
   // useEventBus('weather.conditions') see the same data as the display.

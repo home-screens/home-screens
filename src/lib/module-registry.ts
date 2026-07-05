@@ -81,6 +81,16 @@ export interface ModuleDefinition {
   deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
   // Plugin-specific fields
   configSchema?: import('@/types/plugins').PluginConfigSchema;
+  /**
+   * Shared data feeds injected as props by ScreenRenderer. Note for
+   * 'calendar' consumers: the shared feed's window widens to the start of
+   * the month when a grid view is on any screen, so modules rendering an
+   * upcoming-only list must filter with `isEventUpcoming` (calendar-utils)
+   * rather than assume the feed starts at "now". This is also where a
+   * window hint would live if plugin modules ever need to widen the fetch
+   * themselves (getCalendarFetchWindow currently recognizes only the two
+   * built-in calendar module types).
+   */
   dataRequirements?: import('@/types/plugins').PluginDataRequirement[];
 }
 

@@ -6,12 +6,14 @@ import { resolveProvider } from './ScreenRenderer';
 import type { SharedDisplayData } from './ScreenRenderer';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useFetchData } from '@/hooks/useFetchData';
-import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS } from '@/lib/constants';
+import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import { getLocation } from '@/lib/location';
 import { isModuleEnabled } from '@/lib/schedule';
+import { getCalendarFetchWindow, buildCalendarUrl } from '@/lib/calendar-window';
+import { createTZDate } from '@/lib/timezone';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
@@ -111,11 +113,16 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     : settings.calendar.googleCalendarId ? [settings.calendar.googleCalendarId] : [];
   const hasIcalSources = settings.calendar.icalSources?.some(s => s.enabled);
   const hasHolidays = !!settings.calendar.holidayCountry;
-  const calendarUrl = (calendarIdList.length || hasIcalSources || hasHolidays)
-    ? calendarIdList.length
-      ? `/api/calendar?calendarIds=${encodeURIComponent(calendarIdList.join(','))}${cacheBust}`
-      : `/api/calendar${cacheBust ? `?${cacheBust.slice(1)}` : ''}`
-    : '';
+  // Widen the fetch window when a month/week grid view is on some screen;
+  // day-boundary based, so the URL stays stable across renders.
+  const fetchWindow = getCalendarFetchWindow(
+    screens,
+    createTZDate(settings.timezone),
+    settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
+  );
+  const calendarUrl = buildCalendarUrl(
+    calendarIdList, !!hasIcalSources, hasHolidays, fetchWindow, refreshEpoch,
+  );
   const [calendarData] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
 
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see

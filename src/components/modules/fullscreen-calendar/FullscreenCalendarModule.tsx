@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
+import { isEventUpcoming } from '@/lib/calendar-utils';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -57,6 +58,26 @@ function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): Calenda
     if (!ev.sourceId) return true;
     return false;
   });
+}
+
+/**
+ * Events a fullscreen-calendar view should render: source-filtered, then —
+ * for the agenda view only — narrowed to upcoming events. The other views
+ * (schedule, week-list, month-grid, day-timeline) render fixed day/week/month
+ * ranges and intentionally show past events (dimmed via `dimPastEvents`), so
+ * they take the shared feed as-is. Exported for unit testing this branch
+ * without rendering the whole component.
+ */
+export function selectVisibleEvents(
+  events: CalendarEvent[],
+  view: FullscreenCalendarConfig['view'],
+  sourceFilter: string[] | undefined,
+  now: Date,
+): CalendarEvent[] {
+  const filtered = filterEvents(events, sourceFilter);
+  return view === 'agenda'
+    ? filtered.filter(ev => isEventUpcoming(ev, now))
+    : filtered;
 }
 
 // ─── Color helpers (safe alpha + dark-mode adjustment) ───
@@ -251,8 +272,8 @@ export default function FullscreenCalendarModule({
   const today = startOfDay(now);
 
   const events = useMemo(
-    () => filterEvents(rawEvents, config.sourceFilter),
-    [rawEvents, config.sourceFilter],
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now),
+    [rawEvents, config.view, config.sourceFilter, now],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
