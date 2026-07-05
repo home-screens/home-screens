@@ -79,11 +79,19 @@ describe('__HS_SDK__ shared-state surface', () => {
     expect(sharedStateStore.get('plugin:ha:plugin:other:door')?.value).toBe('open');
   });
 
-  it('clearState removes a published key under the same namespace rules', async () => {
+  it('clearState tombstones a published key under the same namespace rules', async () => {
     await mountSdk();
-    getSDK().publishState('MyPlugin', 'door', 'open');
-    getSDK().clearState('MyPlugin', 'plugin:MyPlugin:door');
-    expect(sharedStateStore.get('plugin:myplugin:door')).toBeUndefined();
+    vi.useFakeTimers();
+    try {
+      getSDK().publishState('MyPlugin', 'door', 'open');
+      getSDK().clearState('MyPlugin', 'plugin:MyPlugin:door');
+      // Grace window first (no blink on producer restarts), gone after TTL
+      expect(sharedStateStore.get('plugin:myplugin:door')?.staleAt).toBeTypeOf('number');
+      vi.advanceTimersByTime(15_000);
+      expect(sharedStateStore.get('plugin:myplugin:door')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('non-string arguments are no-ops', async () => {

@@ -6,6 +6,10 @@ import {
   getDisplayStatus,
   setDisplayStatus,
   recordViewportReport,
+  recordSharedStateReport,
+  getSharedStateReport,
+  markSharedStateInterest,
+  hasSharedStateInterest,
   type DisplayCommandType,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
@@ -65,19 +69,19 @@ function getDisplayIdFromQuery(
 
 /**
  * GET handler — used for:
- * - /api/display/commands?display=<id>  → drain that display's queue
- * - /api/display/status?display=<id>    → read last-known status (per display)
- * - /api/display/wake?display=<id>      → simple commands via GET (bookmarkable)
- * - /api/display/wake?display=all       → broadcast simple command to all displays
+ * - /api/display/commands?display=<id>      → drain that display's queue
+ * - /api/display/status?display=<id>        → read last-known status (per display)
+ * - /api/display/shared-state?display=<id>  → read last-reported shared-state snapshot
+ * - /api/display/wake?display=<id>          → simple commands via GET (bookmarkable)
+ * - /api/display/wake?display=all           → broadcast simple command to all displays
  */
 export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => {
   const { action } = await params;
 
-  // Drain and status are read-only and have no broadcast meaning. Simple
-  // commands and broadcast (`?display=all`) are only valid through the
-  // command-enqueue path below.
-  const isCommandAction =
-    action !== 'commands' && action !== 'status' && SIMPLE_COMMANDS.has(action as DisplayCommandType);
+  // Drain, status, and shared-state are read-only and have no broadcast
+  // meaning. Simple commands and broadcast (`?display=all`) are only valid
+  // through the command-enqueue path below.
+  const isCommandAction = SIMPLE_COMMANDS.has(action as DisplayCommandType);
   const validated = getDisplayIdFromQuery(request, { allowBroadcast: isCommandAction });
   if (validated instanceof NextResponse) return validated;
   const displayId = validated;
@@ -85,7 +89,13 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
   switch (action) {
     case 'commands': {
       const commands = drainCommands(displayId);
-      return NextResponse.json({ commands });
+      // `sharedStateWatched` tells the display whether an editor is
+      // currently polling its shared-state snapshot — only then does the
+      // client arm its fast bus-change status re-reporting.
+      return NextResponse.json({
+        commands,
+        sharedStateWatched: hasSharedStateInterest(displayId),
+      });
     }
     case 'status': {
       const status = getDisplayStatus(displayId);
@@ -93,6 +103,16 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
         return NextResponse.json({ error: 'No status reported yet' }, { status: 404 });
       }
       return NextResponse.json(status);
+    }
+    case 'shared-state': {
+      // Empty response (not a 404) when nothing has reported — the editor
+      // polls this while a condition panel is open and "no snapshot yet" is
+      // an expected state, not an error. The poll doubles as the editor's
+      // interest signal: it arms the display's fast bus-change re-reporting
+      // via the `sharedStateWatched` flag on the commands drain above.
+      markSharedStateInterest(displayId);
+      const report = getSharedStateReport(displayId);
+      return NextResponse.json(report ?? { entries: {}, reportedAt: null });
     }
     default:
       // Allow GET for simple commands (bookmarkable from phones)
@@ -315,11 +335,14 @@ async function handleStatus(
   // `/api/display/hw-stats` (adoption-gated, no display auth). Any `hwStats`
   // field in a browser-heartbeat body is silently dropped here to keep old
   // client builds safe if they straggle an upgrade.
+  // `sharedState` is likewise stripped — it goes into its own in-memory
+  // store (recordSharedStateReport) so the status body shape is unchanged.
   const {
     displayId: bodyDisplayId,
     clientId: bodyClientId,
     hwStats: _droppedHwStats,
     browserStats: bodyBrowserStats,
+    sharedState: bodySharedState,
     ...statusPayload
   } = body as Record<string, unknown>;
   void _droppedHwStats;
@@ -327,8 +350,8 @@ async function handleStatus(
     typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
   // Validate the body field too — `pickDisplayId` only validates the body
   // when `validateDisplayTarget` is invoked, so do it here for status reports.
-  const validatedStatus = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
-  if (validatedStatus instanceof NextResponse) return validatedStatus;
+  const validatedDisplayId = validateDisplayTarget(rawDisplayId, { allowBroadcast: false });
+  if (validatedDisplayId instanceof NextResponse) return validatedDisplayId;
 
   let browserStats: ReturnType<typeof validateBrowserStats> | undefined;
   if (bodyBrowserStats !== undefined) {
@@ -356,8 +379,14 @@ async function handleStatus(
       ...(browserStats ? { browserStats } : {}),
       ...(synthesizedViewport ? { reportedViewport: synthesizedViewport } : {}),
     } as unknown as Parameters<typeof setDisplayStatus>[0],
-    validatedStatus,
+    validatedDisplayId,
   );
+
+  // Shared-state bus snapshot piggybacking on the heartbeat — stored per
+  // display so the editor can show live values next to condition inputs.
+  if (bodySharedState !== undefined) {
+    recordSharedStateReport(validatedDisplayId, bodySharedState);
+  }
 
   // Track viewport per-client so the editor can surface "N things are
   // reporting with this display ID" instead of silently flapping between
@@ -386,14 +415,14 @@ async function handleStatus(
     }
   }
   if (
-    validatedStatus
+    validatedDisplayId
     && typeof bodyClientId === 'string'
     && bodyClientId.length > 0
     && typeof viewportWidth === 'number'
     && typeof viewportHeight === 'number'
   ) {
     recordViewportReport(
-      validatedStatus,
+      validatedDisplayId,
       bodyClientId,
       viewportWidth,
       viewportHeight,

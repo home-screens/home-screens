@@ -6,6 +6,8 @@ import ModuleWrapper from './ModuleWrapper';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { useTypewriter } from '@/hooks/useTypewriter';
 import { resolveTemplateVariables, parseMarkdown, splitRotationContent } from '@/lib/text-utils';
+import { extractSharedStateKeys, resolveSharedStateTokens } from '@/lib/shared-state-template';
+import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { resolveFontStack } from '@/lib/font-registry';
 
 interface TextModuleProps {
@@ -212,10 +214,20 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     return () => clearInterval(id);
   }, [config.templateVariables]);
 
-  const resolvedContent = useMemo(
+  const templateResolved = useMemo(
     () => (config.templateVariables ? resolveTemplateVariables(rawContent, timezone) : rawContent),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- tick drives periodic re-evaluation of time-based template variables
     [rawContent, config.templateVariables, timezone, tick],
+  );
+
+  // --- 2b. Substitute shared-state tokens ({plugin:ha:sensor.temp}) ---
+  // Push-based and cheap: useSharedStateKeys only re-renders when a
+  // referenced key's entry changes, and zero tokens means no subscription.
+  const stateKeys = useMemo(() => extractSharedStateKeys(templateResolved), [templateResolved]);
+  const sharedStates = useSharedStateKeys(stateKeys);
+  const resolvedContent = useMemo(
+    () => (stateKeys.length > 0 ? resolveSharedStateTokens(templateResolved, sharedStates) : templateResolved),
+    [templateResolved, stateKeys, sharedStates],
   );
 
   // --- 3. Typewriter ---

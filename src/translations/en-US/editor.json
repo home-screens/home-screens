@@ -78,7 +78,8 @@
     "scheduledActiveTitle": "Scheduled — currently active",
     "scheduledInactiveTitle": "Scheduled — currently inactive",
     "disabledTitle": "Disabled — not shown on display",
-    "conditionGatedTitle": "Shows only when its conditions are met"
+    "conditionGatedTitle": "Shows only when its conditions are met",
+    "backgroundProviderTitle": "Runs hidden in the background and never shown on the display"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -2724,7 +2725,9 @@
         "right": "Right",
         "up": "Up",
         "down": "Down"
-      }
+      },
+      "stateTokensHint": "Insert {example} to show a live value published by a background module.",
+      "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those tokens show '–' until a module publishes them."
     },
     "todo": {
       "title": "Title",
@@ -3013,9 +3016,11 @@
     "whenUnknownLabel": "While the data source hasn't reported yet",
     "whenUnknownHide": "Hide the module",
     "whenUnknownShow": "Show the module",
-    "noProvidersHint": "No modules on this display publish state yet. State keys usually come from plugins that publish values in the background. Values are only shared within this display's browser tab. You can also type a key manually.",
+    "noProvidersHint": "No modules on this display publish state yet. State keys usually come from plugins that publish values in the background. Values are only shared within this display's browser tab. You can also type a key manually. State keys appear here once a module with 'Run hidden in the background' turned on advertises them.",
     "noConditionsHint": "No conditions yet. The module always shows until you add one.",
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
-    "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields."
+    "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
+    "liveValueLabel": "On the display now:",
+    "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly."
   }
 }

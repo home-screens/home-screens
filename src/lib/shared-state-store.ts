@@ -31,11 +31,24 @@ export type { SharedStateEntry };
 const MAX_KEYS = 256;
 const MAX_VALUE_LENGTH = 1024;
 
+/**
+ * Grace window for cleared keys. `clearKey` / `clearKeysByPrefix` tombstone
+ * the entry (keep its last value, mark `staleAt`) and only delete for real
+ * after this long with no fresh publish. Consumers keep seeing the last
+ * value across routine producer restarts — plugin reloads, dev-plugin
+ * hot-reload, background-provider remounts — instead of every conditioned
+ * module unmounting the instant the old producer tears down. 15s covers a
+ * slow plugin's fetch+mount+first-publish cycle; a truly removed producer's
+ * keys still disappear shortly after.
+ */
+const TOMBSTONE_TTL_MS = 15_000;
+
 class SharedStateStore {
   private state = new Map<string, SharedStateEntry>();
   private subscribers = new Set<() => void>();
   private cachedSnapshot: ReadonlyMap<string, SharedStateEntry> | null = null;
   private claims = new Map<string, number>();
+  private tombstoneTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   // Arrow-function properties, NOT method shorthand — subscribe/snapshot are
   // handed unbound to useSyncExternalStore, so `this` must be captured at
@@ -55,14 +68,16 @@ class SharedStateStore {
     const existing = this.state.get(key);
     // Coalesce identical re-publishes: no state change, no snapshot
     // invalidation, no notify. This both avoids render churn and lets a
-    // duplicate producer instance publish harmlessly.
-    if (existing && existing.value === next) return;
+    // duplicate producer instance publish harmlessly. A tombstoned entry is
+    // never coalesced — the fresh publish must revive it.
+    if (existing && existing.staleAt === undefined && existing.value === next) return;
 
     if (!existing && this.state.size >= MAX_KEYS) {
       console.warn(`[shared-state] key cap (${MAX_KEYS}) reached; dropped "${key}"`);
       return;
     }
 
+    this.cancelTombstone(key);
     this.state.set(key, { value: next, updatedAt: Date.now() });
     this.cachedSnapshot = null;
     this.notify();
@@ -115,23 +130,25 @@ class SharedStateStore {
   };
 
   /**
-   * Unconditional explicit clear (SDK clearState, plugin unregister). Also
-   * drops any outstanding claim count — see the lifecycle contract in the
-   * module docblock.
+   * Explicit clear (SDK clearState, plugin unregister, last claim release).
+   * Also drops any outstanding claim count — see the lifecycle contract in
+   * the module docblock. The value is NOT deleted immediately: the entry is
+   * tombstoned and survives for TOMBSTONE_TTL_MS unless a fresh publish
+   * revives it, so consumers ride out routine producer restarts.
    */
   clearKey = (key: string): void => {
     this.claims.delete(key);
-    if (!this.state.delete(key)) return;
-    this.cachedSnapshot = null;
-    this.notify();
+    if (this.tombstone(key)) {
+      this.cachedSnapshot = null;
+      this.notify();
+    }
   };
 
-  /** Remove every key starting with `prefix` (plugin unregister/reload). Single notify. */
+  /** Tombstone every key starting with `prefix` (plugin unregister/reload). Single notify. */
   clearKeysByPrefix = (prefix: string): void => {
     let changed = false;
     for (const key of Array.from(this.state.keys())) {
-      if (key.startsWith(prefix)) {
-        this.state.delete(key);
+      if (key.startsWith(prefix) && this.tombstone(key)) {
         changed = true;
       }
     }
@@ -144,10 +161,44 @@ class SharedStateStore {
     }
   };
 
+  /**
+   * Mark an entry stale and arm its deletion timer. Returns true when the
+   * entry state changed (caller invalidates + notifies). Already-tombstoned
+   * keys keep their original timer — repeated clears must not extend the
+   * window indefinitely.
+   */
+  private tombstone(key: string): boolean {
+    const existing = this.state.get(key);
+    if (!existing || existing.staleAt !== undefined) return false;
+    this.state.set(key, { ...existing, staleAt: Date.now() });
+    const timer = setTimeout(() => {
+      this.tombstoneTimers.delete(key);
+      const entry = this.state.get(key);
+      if (entry?.staleAt === undefined) return; // revived meanwhile
+      this.state.delete(key);
+      this.cachedSnapshot = null;
+      this.notify();
+    }, TOMBSTONE_TTL_MS);
+    // Node (SSR/tests): don't let a pending sweep keep the process alive.
+    (timer as { unref?: () => void }).unref?.();
+    this.tombstoneTimers.set(key, timer);
+    return true;
+  }
+
+  private cancelTombstone(key: string): void {
+    const timer = this.tombstoneTimers.get(key);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      this.tombstoneTimers.delete(key);
+    }
+  }
+
   /** Test-only reset; not part of the producer/consumer contract. */
   __resetForTests = (): void => {
     this.state.clear();
     this.claims.clear();
+    for (const timer of this.tombstoneTimers.values()) clearTimeout(timer);
+    this.tombstoneTimers.clear();
     this.cachedSnapshot = null;
     this.subscribers.clear();
   };

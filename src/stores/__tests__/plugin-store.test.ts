@@ -219,7 +219,8 @@ describe('plugin-store shared-state cleanup', () => {
     return mod.sharedStateStore;
   }
 
-  it('unregisterPlugin purges the plugin state-key namespace (lowercased id)', async () => {
+  it('unregisterPlugin purges the plugin state-key namespace (lowercased id, after tombstone TTL)', async () => {
+    vi.useFakeTimers();
     const store = await getSharedStateStore();
     usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('Foo', 'foo'));
     store.publish('plugin:foo:door', 'open');
@@ -227,11 +228,16 @@ describe('plugin-store shared-state cleanup', () => {
 
     usePluginStore.getState().unregisterPlugin('plugin:foo');
 
+    // Tombstoned first (grace window), deleted for real after the TTL
+    expect(store.get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
+    vi.advanceTimersByTime(15_000);
     expect(store.get('plugin:foo:door')).toBeUndefined();
     expect(store.get('plugin:bar:door')?.value).toBe('closed');
+    vi.useRealTimers();
   });
 
-  it('clearPlugins purges every registered plugin namespace', async () => {
+  it('clearPlugins purges every registered plugin namespace (after tombstone TTL)', async () => {
+    vi.useFakeTimers();
     const store = await getSharedStateStore();
     usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
     usePluginStore.getState().registerPlugin('plugin:bar', FakeComponent, makeManifest('bar', 'bar'));
@@ -240,9 +246,32 @@ describe('plugin-store shared-state cleanup', () => {
     store.publish('host.key', 'kept');
 
     usePluginStore.getState().clearPlugins();
+    vi.advanceTimersByTime(15_000);
 
     expect(store.get('plugin:foo:door')).toBeUndefined();
     expect(store.get('plugin:bar:door')).toBeUndefined();
     expect(store.get('host.key')?.value).toBe('kept');
+    vi.useRealTimers();
+  });
+
+  it('clearPlugins({ preserveSharedState: true }) keeps every published key (reload swap)', async () => {
+    // The plugin reload path clears registrations but must NOT purge state
+    // keys — otherwise every module conditioned on a plugin key unmounts for
+    // the seconds between the purge and the reloaded producer's first publish.
+    const store = await getSharedStateStore();
+    usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
+    store.publish('plugin:foo:door', 'open');
+
+    usePluginStore.getState().clearPlugins({ preserveSharedState: true });
+
+    expect(usePluginStore.getState().plugins.size).toBe(0);
+    expect(store.get('plugin:foo:door')?.value).toBe('open');
+  });
+
+  it('clearPlugins({ preserveSharedState: true }) still unregisters modules and fetch keys', () => {
+    usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
+    usePluginStore.getState().clearPlugins({ preserveSharedState: true });
+    expect(mockUnregisterModule).toHaveBeenCalledWith('plugin:foo');
+    expect(mockDeregisterFetchKey).toHaveBeenCalledWith('plugin:foo');
   });
 });

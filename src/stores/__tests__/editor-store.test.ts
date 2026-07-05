@@ -1339,7 +1339,7 @@ describe('editor store', () => {
         zIndex: 0,
         config: {},
         style: {} as ScreenConfiguration['screens'][0]['modules'][0]['style'],
-        visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+        visibility: { conditions: [{ kind: 'state', sourceKey: 'Bad Key!', equals: '' }] },
       });
       store.setState({ config, isDirty: true, isSaving: false, saveError: null });
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -1366,7 +1366,7 @@ describe('editor store', () => {
         zIndex: 0,
         config: {},
         style: {} as ScreenConfiguration['screens'][0]['modules'][0]['style'],
-        visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+        visibility: { conditions: [{ kind: 'state', sourceKey: 'Bad Key!', equals: '' }] },
       });
       store.setState({ config, isDirty: true, isSaving: false, saveError: null });
       vi.spyOn(console, 'warn').mockImplementation(() => {});

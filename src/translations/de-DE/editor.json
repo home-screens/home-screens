@@ -78,7 +78,8 @@
     "scheduledActiveTitle": "Geplant – derzeit aktiv",
     "scheduledInactiveTitle": "Geplant – derzeit inaktiv",
     "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt",
-    "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind"
+    "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
+    "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt"
   },
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
@@ -2724,7 +2725,9 @@
         "right": "Rechts",
         "up": "Oben",
         "down": "Unten"
-      }
+      },
+      "stateTokensHint": "Füge {example} ein, um einen Live-Wert eines Hintergrundmoduls anzuzeigen.",
+      "stateTokenUnknown": "Kein Modul auf diesem Display veröffentlicht {keys} bisher. Diese Platzhalter zeigen '–', bis ein Modul sie veröffentlicht."
     },
     "todo": {
       "title": "Titel",
@@ -3013,9 +3016,11 @@
     "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
     "whenUnknownHide": "Modul ausblenden",
     "whenUnknownShow": "Modul anzeigen",
-    "noProvidersHint": "Noch keine Module auf diesem Display veröffentlichen Zustände. Zustandsschlüssel stammen meist von Plugins, die Werte im Hintergrund veröffentlichen. Werte werden nur innerhalb des Browser-Tabs dieses Displays geteilt. Ein Schlüssel kann auch manuell eingegeben werden.",
+    "noProvidersHint": "Noch keine Module auf diesem Display veröffentlichen Zustände. Zustandsschlüssel stammen meist von Plugins, die Werte im Hintergrund veröffentlichen. Werte werden nur innerhalb des Browser-Tabs dieses Displays geteilt. Ein Schlüssel kann auch manuell eingegeben werden. Zustandsschlüssel erscheinen hier, sobald ein Modul mit aktivierter Option 'Versteckt im Hintergrund ausführen' sie bereitstellt.",
     "noConditionsHint": "Noch keine Bedingungen. Das Modul wird immer angezeigt, bis eine hinzugefügt wird.",
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
-    "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren."
+    "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
+    "liveValueLabel": "Aktuell auf dem Display:",
+    "caseMismatchWarning": "Das Display veröffentlicht '{value}'. Der Vergleich unterscheidet Groß-/Kleinschreibung – der Wert muss exakt übereinstimmen."
   }
 }

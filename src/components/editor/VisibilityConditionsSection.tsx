@@ -1,27 +1,34 @@
 'use client';
 
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
+import { useDisplaySharedState, type DisplaySharedState } from '@/hooks/useDisplaySharedState';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { MAX_CONDITION_DEPTH, validateModuleVisibility } from '@/lib/display-filter';
-import { SHARED_STATE_KEY_RE } from '@/lib/shared-state-types';
+import { SHARED_STATE_KEY_RE, type ProvidedStateKey } from '@/lib/shared-state-types';
 import type { ModuleInstance, ModuleVisibility, VisibilityCondition } from '@/types/config';
 
 const CONDITION_KINDS = ['state', 'numeric', 'and', 'or', 'not'] as const;
 
-function defaultCondition(kind: VisibilityCondition['kind'], defaultKey = ''): VisibilityCondition {
+/**
+ * New conditions start blank — an empty sourceKey is saveable (the validator
+ * allows it; the runtime treats it as unknown, so whenUnknown governs) and
+ * forces a deliberate key choice instead of silently prefilling the first
+ * advertised provider key, which read as "copied from my other condition".
+ */
+function defaultCondition(kind: VisibilityCondition['kind']): VisibilityCondition {
   switch (kind) {
     case 'state':
-      return { kind: 'state', sourceKey: defaultKey, equals: '' };
+      return { kind: 'state', sourceKey: '', equals: '' };
     case 'numeric':
-      return { kind: 'numeric', sourceKey: defaultKey };
+      return { kind: 'numeric', sourceKey: '' };
     default:
-      return { kind, conditions: [defaultCondition('state', defaultKey)] };
+      return { kind, conditions: [defaultCondition('state')] };
   }
 }
 
@@ -76,65 +83,287 @@ function parseBound(raw: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-function SourceKeyInput({
+/**
+ * Keystroke state stays local to the input; the store (and therefore the
+ * 800ms autosave → 3s display poll pipeline) only sees the value on blur or
+ * Enter. Mid-edit keys like "plugin:home-assis" are charset-valid and
+ * saveable, so per-keystroke commits made the display hide the edited module
+ * until typing finished — visible as flicker on the kiosk.
+ */
+function useCommitOnBlur(value: string, commit: (next: string) => void) {
+  const [draft, setDraft] = useState(value);
+  // Reset the draft when the committed value changes underneath us — the
+  // inputs are reused across condition/module selection (keyed by index).
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(value);
+  }
+  // For deliberate selections (dropdown pick) that should commit immediately
+  // rather than wait for blur.
+  const commitNow = (next: string) => {
+    setDraft(next);
+    if (next !== value) commit(next);
+  };
+  return {
+    draft,
+    commitNow,
+    inputProps: {
+      value: draft,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDraft(e.target.value),
+      onBlur: () => {
+        if (draft !== value) commit(draft);
+      },
+      onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+      },
+    },
+  };
+}
+
+/** Exported for tests. */
+export function SourceKeyInput({
   value,
   onChange,
-  listId,
-  knownKeys,
+  options,
+  liveState,
   t,
 }: {
   value: string;
   onChange: (key: string) => void;
-  listId: string;
-  knownKeys: ReadonlySet<string>;
+  options: readonly ProvidedStateKey[];
+  liveState?: DisplaySharedState;
   t: TranslateFn;
 }) {
-  const invalid = !SHARED_STATE_KEY_RE.test(value);
+  const formattingLocale = useFormattingLocale();
+  const listboxId = useId();
+  const { draft, commitNow, inputProps } = useCommitOnBlur(value, onChange);
+  // Custom suggestion dropdown instead of a native <datalist>: browsers only
+  // open a datalist on arrow-down/double-click once the field has been
+  // touched (and there is no API to force it), so the suggestions were
+  // effectively invisible. This one opens on focus and while typing.
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(-1);
+
+  // Empty is not invalid — it's an incomplete condition still being authored
+  // (evaluates as unknown; whenUnknown governs until a key is picked).
+  const invalid = draft !== '' && !SHARED_STATE_KEY_RE.test(draft);
+  const known = options.some((o) => o.key === draft);
   // Charset-valid but not advertised by any provider on this display —
   // either the publishing module isn't configured yet (condition authored
   // first) or the key is a typo (e.g. missing the plugin: namespace). Both
   // leave the condition permanently "unknown", which default-hides the
   // module with no other feedback, so surface it here as a soft warning.
-  const unknown = !invalid && value !== '' && !knownKeys.has(value);
+  const unknown = !invalid && draft !== '' && !known;
+  // Live value straight from the display's last heartbeat — kills the
+  // "which exact string do I match against?" guessing game.
+  const liveEntry = liveState?.entries[draft];
+
+  // A draft that exactly matches a provided key (typical right after a pick)
+  // shows the full list so the user can still switch; otherwise filter.
+  const query = draft.trim().toLowerCase();
+  const suggestions = query === '' || known
+    ? options
+    : options.filter(
+        (o) => o.key.toLowerCase().includes(query) || o.label.toLowerCase().includes(query),
+      );
+  const listOpen = open && suggestions.length > 0;
+
+  const close = () => {
+    setOpen(false);
+    setHighlight(-1);
+  };
+  const pick = (key: string) => {
+    commitNow(key);
+    close();
+  };
+
   return (
-    <label className="flex flex-col gap-0.5">
+    // A div, not a label: a wrapping label forwards clicks anywhere in the
+    // block (caption, hint, live-value line) to the input, which focuses it
+    // and pops the dropdown. Only the text box itself should engage it, so
+    // the input is named via aria-label instead.
+    <div className="flex flex-col gap-0.5">
       <span className="text-xs text-hs-text-muted">{t('visibilityConditions.sourceKeyLabel')}</span>
       <span className="text-[10px] text-hs-text-dim">{t('visibilityConditions.sourceKeyHint')}</span>
-      <input
-        type="text"
-        value={value}
-        list={listId}
-        placeholder={t('visibilityConditions.sourceKeyPlaceholder')}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${INPUT_CLASS} ${invalid ? 'border-hs-danger' : ''}`}
-        aria-invalid={invalid || undefined}
-      />
+      <div className="relative">
+        <input
+          type="text"
+          placeholder={t('visibilityConditions.sourceKeyPlaceholder')}
+          aria-label={t('visibilityConditions.sourceKeyLabel')}
+          {...inputProps}
+          onFocus={() => {
+            setOpen(true);
+            setHighlight(-1);
+          }}
+          onChange={(e) => {
+            inputProps.onChange(e);
+            setOpen(true);
+            setHighlight(-1);
+          }}
+          onBlur={() => {
+            close();
+            inputProps.onBlur();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' && suggestions.length > 0) {
+              e.preventDefault();
+              setOpen(true);
+              setHighlight((h) => (h + 1) % suggestions.length);
+              return;
+            }
+            if (e.key === 'ArrowUp' && suggestions.length > 0) {
+              e.preventDefault();
+              setOpen(true);
+              setHighlight((h) => (h <= 0 ? suggestions.length - 1 : h - 1));
+              return;
+            }
+            if (e.key === 'Escape') {
+              close();
+              return;
+            }
+            if (e.key === 'Enter' && listOpen && highlight >= 0 && suggestions[highlight]) {
+              e.preventDefault();
+              pick(suggestions[highlight].key);
+              return;
+            }
+            inputProps.onKeyDown(e);
+          }}
+          className={`${INPUT_CLASS} w-full ${invalid ? 'border-hs-danger' : ''}`}
+          role="combobox"
+          aria-expanded={listOpen}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-invalid={invalid || undefined}
+        />
+        {listOpen && (
+          <ul
+            id={listboxId}
+            role="listbox"
+            aria-label={t('visibilityConditions.sourceKeyLabel')}
+            className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded border border-hs-border-strong bg-hs-card py-1 shadow-lg"
+          >
+            {suggestions.map((o, i) => (
+              <li
+                key={o.key}
+                role="option"
+                aria-selected={i === highlight}
+                // preventDefault on mousedown keeps the input focused — a
+                // blur here would commit the half-typed draft and unmount
+                // the list before the click could land on the option.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  pick(o.key);
+                }}
+                onMouseEnter={() => setHighlight(i)}
+                className={`cursor-pointer px-2 py-1 ${i === highlight ? 'bg-hs-hover' : ''}`}
+              >
+                <div className="font-mono text-xs text-hs-text-muted">{o.key}</div>
+                <div className="text-[10px] text-hs-text-dim">
+                  {o.sampleValues?.length ? `${o.label} (${o.sampleValues.join(', ')})` : o.label}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {invalid && (
         <span className="text-[10px] text-hs-danger">{t('visibilityConditions.sourceKeyInvalid')}</span>
       )}
-      {unknown && (
+      {liveEntry && (
+        <span className="text-[10px] text-hs-text-dim">
+          {t('visibilityConditions.liveValueLabel')}{' '}
+          <code className="rounded bg-hs-hover px-1 font-mono text-hs-text-muted">
+            {liveEntry.value === '' ? '""' : liveEntry.value}
+          </code>
+          {' · '}
+          {formatRelativeTime(
+            // Display and hub clocks can be skewed; never show a future age.
+            Math.min(liveEntry.updatedAt, Date.now()),
+            Date.now(),
+            { locale: formattingLocale },
+          )}
+        </span>
+      )}
+      {unknown && !liveEntry && (
         <span className="text-[10px] text-hs-warning">{t('visibilityConditions.sourceKeyUnknown')}</span>
       )}
+    </div>
+  );
+}
+
+/** Exported for tests. */
+export function ConditionValueInput({
+  value,
+  onCommit,
+  placeholder,
+}: {
+  value: string;
+  onCommit: (raw: string) => void;
+  placeholder: string;
+}) {
+  const { inputProps } = useCommitOnBlur(value, onCommit);
+  return <input type="text" placeholder={placeholder} {...inputProps} className={INPUT_CLASS} />;
+}
+
+/**
+ * Numeric bound (above/below) input, blur-committed like every other
+ * condition input: a half-typed value ("-", "1e") parses to "no bound",
+ * which per-keystroke commits would push through autosave and transiently
+ * flip the gated module's visibility on the display. Exported for tests.
+ */
+export function ConditionBoundInput({
+  value,
+  onCommit,
+  label,
+}: {
+  value: number | undefined;
+  onCommit: (bound: number | undefined) => void;
+  label: string;
+}) {
+  const { inputProps } = useCommitOnBlur(
+    value === undefined ? '' : String(value),
+    (raw) => onCommit(parseBound(raw)),
+  );
+  return (
+    <label className="flex flex-col gap-0.5">
+      <span className="text-xs text-hs-text-muted">{label}</span>
+      <input type="number" {...inputProps} className={INPUT_CLASS} />
     </label>
   );
+}
+
+/**
+ * True when the committed match value(s) miss the live value only by letter
+ * case — the exact failure mode of matching a card label ("Clear") against a
+ * raw HA state ("clear"). Exported for tests.
+ */
+export function isCaseOnlyMismatch(
+  expected: string | string[] | undefined,
+  liveValue: string | undefined,
+): boolean {
+  if (expected === undefined || liveValue === undefined) return false;
+  const list = Array.isArray(expected) ? expected : [expected];
+  if (list.includes(liveValue)) return false;
+  const lower = liveValue.toLowerCase();
+  return list.some((v) => v.toLowerCase() === lower);
 }
 
 function ConditionEditor({
   condition,
   onChange,
   onRemove,
-  defaultKey,
-  listId,
-  knownKeys,
+  options,
+  liveState,
   depth,
   t,
 }: {
   condition: VisibilityCondition;
   onChange: (next: VisibilityCondition) => void;
   onRemove: () => void;
-  defaultKey: string;
-  listId: string;
-  knownKeys: ReadonlySet<string>;
+  options: readonly ProvidedStateKey[];
+  liveState?: DisplaySharedState;
   depth: number;
   t: TranslateFn;
 }) {
@@ -147,7 +376,7 @@ function ConditionEditor({
         <select
           value={condition.kind}
           onChange={(e) =>
-            onChange(convertConditionKind(condition, e.target.value as VisibilityCondition['kind'], defaultKey))
+            onChange(convertConditionKind(condition, e.target.value as VisibilityCondition['kind'], ''))
           }
           className={`${INPUT_CLASS} flex-1`}
           aria-label={t('visibilityConditions.kindLabel')}
@@ -171,8 +400,8 @@ function ConditionEditor({
           <SourceKeyInput
             value={condition.sourceKey}
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
-            listId={listId}
-            knownKeys={knownKeys}
+            options={options}
+            liveState={liveState}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -196,22 +425,30 @@ function ConditionEditor({
             </label>
             <label className="flex flex-col gap-0.5">
               <span className="text-xs text-hs-text-muted">{t('visibilityConditions.valueLabel')}</span>
-              <input
-                type="text"
+              <ConditionValueInput
                 value={formatValueList(condition.equals ?? condition.notEquals)}
                 placeholder={t('visibilityConditions.valuePlaceholder')}
-                onChange={(e) => {
-                  const parsed = parseValueList(e.target.value);
+                onCommit={(raw) => {
+                  const parsed = parseValueList(raw);
                   onChange(
                     condition.notEquals !== undefined
                       ? { kind: 'state', sourceKey: condition.sourceKey, notEquals: parsed }
                       : { kind: 'state', sourceKey: condition.sourceKey, equals: parsed },
                   );
                 }}
-                className={INPUT_CLASS}
               />
             </label>
           </div>
+          {isCaseOnlyMismatch(
+            condition.equals ?? condition.notEquals,
+            liveState?.entries[condition.sourceKey]?.value,
+          ) && (
+            <p className="text-[10px] text-hs-warning">
+              {t('visibilityConditions.caseMismatchWarning', {
+                value: liveState!.entries[condition.sourceKey]!.value,
+              })}
+            </p>
+          )}
           <p className="text-[10px] text-hs-text-dim">{t('visibilityConditions.valueListHint')}</p>
         </div>
       )}
@@ -221,29 +458,21 @@ function ConditionEditor({
           <SourceKeyInput
             value={condition.sourceKey}
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
-            listId={listId}
-            knownKeys={knownKeys}
+            options={options}
+            liveState={liveState}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">{t('visibilityConditions.aboveLabel')}</span>
-              <input
-                type="number"
-                value={condition.above ?? ''}
-                onChange={(e) => onChange({ ...condition, above: parseBound(e.target.value) })}
-                className={INPUT_CLASS}
-              />
-            </label>
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">{t('visibilityConditions.belowLabel')}</span>
-              <input
-                type="number"
-                value={condition.below ?? ''}
-                onChange={(e) => onChange({ ...condition, below: parseBound(e.target.value) })}
-                className={INPUT_CLASS}
-              />
-            </label>
+            <ConditionBoundInput
+              label={t('visibilityConditions.aboveLabel')}
+              value={condition.above}
+              onCommit={(above) => onChange({ ...condition, above })}
+            />
+            <ConditionBoundInput
+              label={t('visibilityConditions.belowLabel')}
+              value={condition.below}
+              onCommit={(below) => onChange({ ...condition, below })}
+            />
           </div>
         </div>
       )}
@@ -255,9 +484,8 @@ function ConditionEditor({
               key={i}
               condition={child}
               depth={depth + 1}
-              defaultKey={defaultKey}
-              listId={listId}
-              knownKeys={knownKeys}
+              options={options}
+              liveState={liveState}
               t={t}
               onChange={(next) => {
                 const conditions = condition.conditions.slice();
@@ -274,7 +502,7 @@ function ConditionEditor({
           ))}
           <button
             type="button"
-            onClick={() => onChange({ ...condition, conditions: [...condition.conditions, defaultCondition('state', defaultKey)] })}
+            onClick={() => onChange({ ...condition, conditions: [...condition.conditions, defaultCondition('state')] })}
             className="flex items-center gap-1 text-xs text-hs-accent hover:underline"
           >
             <Plus size={12} /> {t('visibilityConditions.addCondition')}
@@ -287,17 +515,17 @@ function ConditionEditor({
 
 export default function VisibilityConditionsSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const listId = useId();
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const updateModule = useEditorStore((s) => s.updateModule);
+  // Live values from the selected display's last heartbeat, for the
+  // current-value hint and case-mismatch warning on condition inputs.
+  const liveState = useDisplaySharedState(selectedDisplayId);
 
   const providedKeys = useMemo(
     () => collectProvidedStateKeys(config ? getActiveScreens(config, selectedDisplayId) : []),
     [config, selectedDisplayId],
   );
-  const defaultKey = providedKeys[0]?.key ?? '';
-  const knownKeys = useMemo(() => new Set(providedKeys.map((k) => k.key)), [providedKeys]);
 
   const visibility = mod.visibility;
   const enabled = !!visibility;
@@ -345,21 +573,13 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                   <p className="text-[10px] text-hs-text-dim">{validationError}</p>
                 </div>
               )}
-              <datalist id={listId}>
-                {providedKeys.map((k) => (
-                  <option key={k.key} value={k.key}>
-                    {k.sampleValues?.length ? `${k.label} (${k.sampleValues.join(', ')})` : k.label}
-                  </option>
-                ))}
-              </datalist>
               {visibility.conditions.map((condition, i) => (
                 <ConditionEditor
                   key={i}
                   condition={condition}
                   depth={0}
-                  defaultKey={defaultKey}
-                  listId={listId}
-                  knownKeys={knownKeys}
+                  options={providedKeys}
+                  liveState={liveState}
                   t={t}
                   onChange={(next) => {
                     const conditions = visibility.conditions.slice();
@@ -371,7 +591,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
               ))}
               <button
                 type="button"
-                onClick={() => setConditions([...visibility.conditions, defaultCondition('state', defaultKey)])}
+                onClick={() => setConditions([...visibility.conditions, defaultCondition('state')])}
                 className="flex items-center gap-1 text-xs text-hs-accent hover:underline"
               >
                 <Plus size={12} /> {t('visibilityConditions.addCondition')}

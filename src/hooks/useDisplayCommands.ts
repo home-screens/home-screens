@@ -6,6 +6,7 @@ import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
 import { snapshotConsoleBuffer } from '@/lib/console-buffer';
+import { sharedStateStore } from '@/lib/shared-state-store';
 import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore } from '@/stores/alert-store';
 import type { AlertType } from '@/types/config';
@@ -71,6 +72,28 @@ function currentBrowserStats(): BrowserStats | undefined {
 const COMMAND_POLL_MS = 3_000;
 
 /**
+ * Whether an editor is currently watching this display's shared-state
+ * snapshot, as signaled by `sharedStateWatched` on the commands-drain
+ * response. Module-level because the poll (useDisplayCommands) and the
+ * status reporter (useStatusReporter) are separate hooks mounted by the
+ * same display page. Gates the fast bus-change re-reporting below so idle
+ * displays only ship their snapshot on the 30s heartbeat.
+ */
+let editorWatchingSharedState = false;
+
+/**
+ * Whether the previous status POST carried an empty (or omitted) snapshot —
+ * used to send exactly one empty snapshot after the last key clears.
+ */
+let lastReportedSharedStateEmpty = true;
+
+/** Test-only escape hatch; production code writes these from the poll/report. */
+export function __resetSharedStateReportingForTests(watching = false): void {
+  editorWatchingSharedState = watching;
+  lastReportedSharedStateEmpty = true;
+}
+
+/**
  * Append `?display=<id>` (or `&display=<id>`) when running in multi-display
  * mode. Single-display mode (no displayId) uses the bare URL exactly as today.
  */
@@ -101,9 +124,11 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
       try {
         const res = await displayFetch(withDisplayParam('/api/display/commands', displayId));
         if (!res.ok || !mounted) return;
-        const { commands } = (await res.json()) as {
+        const { commands, sharedStateWatched } = (await res.json()) as {
           commands: DisplayCommand[];
+          sharedStateWatched?: boolean;
         };
+        editorWatchingSharedState = sharedStateWatched === true;
         if (!Array.isArray(commands)) return;
 
         for (const cmd of commands) {
@@ -226,7 +251,40 @@ export function useStatusReporter(
     const id = setInterval(() => reportStatus(valuesRef.current), 30_000);
     return () => clearInterval(id);
   }, []);
+
+  // Re-report when the shared-state bus changes so the editor's live-value
+  // hints (visibility conditions) stay fresh, throttled to one POST per
+  // SHARED_STATE_REPORT_THROTTLE_MS with a trailing report so the last
+  // change in a burst always reaches the hub. Only armed while an editor is
+  // actually watching (per the commands-drain flag) — otherwise a chatty
+  // producer would multiply the full-payload heartbeat ~6x for data nobody
+  // is reading, and the snapshot just rides the 30s heartbeat instead.
+  useEffect(() => {
+    let lastReport = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = sharedStateStore.subscribe(() => {
+      if (!editorWatchingSharedState) return;
+      const now = Date.now();
+      const due = lastReport + SHARED_STATE_REPORT_THROTTLE_MS;
+      if (now >= due) {
+        lastReport = now;
+        reportStatus(valuesRef.current);
+      } else if (!timer) {
+        timer = setTimeout(() => {
+          timer = null;
+          lastReport = Date.now();
+          reportStatus(valuesRef.current);
+        }, due - now);
+      }
+    });
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 }
+
+const SHARED_STATE_REPORT_THROTTLE_MS = 5_000;
 
 function reportStatus(s: {
   currentScreenIndex: number;
@@ -246,6 +304,25 @@ function reportStatus(s: {
   // the editor can surface a multi-client conflict instead of silently
   // flapping between whichever tab POSTed last.
   const clientId = getDisplayClientId();
+
+  // Shared-state bus snapshot for the editor's live-value hints. Caps are
+  // bus-enforced (256 keys × 1KB values) so worst case is ~300KB and typical
+  // is under 1KB. Tombstoned entries are excluded — the hub would store them
+  // as live (it only keeps value/updatedAt), so the editor could show a
+  // value the display already cleared.
+  const sharedState: Record<string, { value: string; updatedAt: number }> = {};
+  for (const [key, entry] of sharedStateStore.snapshot()) {
+    if (entry.staleAt === undefined) {
+      sharedState[key] = { value: entry.value, updatedAt: entry.updatedAt };
+    }
+  }
+  // Omit the field while empty so installs with no producers never pay for
+  // it — but send ONE empty snapshot after the last key clears, otherwise
+  // the hub would keep serving the stale values until its 5-minute TTL.
+  const sharedStateEmpty = Object.keys(sharedState).length === 0;
+  const includeSharedState = !sharedStateEmpty || !lastReportedSharedStateEmpty;
+  lastReportedSharedStateEmpty = sharedStateEmpty;
+
   displayFetch('/api/display/status', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -262,6 +339,7 @@ function reportStatus(s: {
       cacheStats: displayCache.getStats(),
       clientId,
       browserStats: currentBrowserStats(),
+      ...(includeSharedState ? { sharedState } : {}),
       // Stripped server-side before storage; lets the hub key the report
       // under the right per-display slot in `statusMap`.
       ...(s.displayId ? { displayId: s.displayId } : {}),

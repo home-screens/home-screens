@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   enqueueCommand,
   drainCommands,
@@ -8,6 +8,10 @@ import {
   getUnadoptedDisplays,
   recordViewportReport,
   getViewportReports,
+  recordSharedStateReport,
+  getSharedStateReport,
+  markSharedStateInterest,
+  hasSharedStateInterest,
   __resetForTests,
   type DisplayStatus,
 } from '@/lib/display-commands';
@@ -339,5 +343,101 @@ describe('viewport reports (per-client tracking)', () => {
     recordViewportReport('kitchen', 'client-0', 5000, 6000);
     const reports = getViewportReports('kitchen');
     expect(reports.find((r) => r.width === 5000 && r.height === 6000)).toBeTruthy();
+  });
+});
+
+describe('shared-state reports', () => {
+  it('records and returns a valid snapshot for a display', () => {
+    recordSharedStateReport('kitchen', {
+      'plugin:ha:door': { value: 'open', updatedAt: 1234 },
+    });
+    const report = getSharedStateReport('kitchen');
+    expect(report).not.toBeNull();
+    expect(report!.entries['plugin:ha:door']).toEqual({ value: 'open', updatedAt: 1234 });
+    expect(report!.reportedAt).toBeTypeOf('number');
+  });
+
+  it('uses the legacy default slot when displayId is omitted', () => {
+    recordSharedStateReport(undefined, { 'host.key': { value: 'x', updatedAt: 1 } });
+    expect(getSharedStateReport()!.entries['host.key']?.value).toBe('x');
+    expect(getSharedStateReport('kitchen')).toBeNull();
+  });
+
+  it('skips malformed keys and entries instead of rejecting the whole report', () => {
+    recordSharedStateReport('kitchen', {
+      'UPPER:invalid': { value: 'x', updatedAt: 1 },
+      'ok.key': { value: 'kept', updatedAt: 1 },
+      'missing.value': { updatedAt: 1 },
+      'bad.updated': { value: 'x', updatedAt: 'nope' },
+      'not.object': 'x',
+    });
+    const report = getSharedStateReport('kitchen');
+    expect(Object.keys(report!.entries)).toEqual(['ok.key']);
+  });
+
+  it('rejects non-object payloads and invalid display ids', () => {
+    recordSharedStateReport('kitchen', 'garbage');
+    recordSharedStateReport('kitchen', ['array']);
+    expect(getSharedStateReport('kitchen')).toBeNull();
+    recordSharedStateReport('NOT VALID', { 'ok.key': { value: 'x', updatedAt: 1 } });
+    expect(getSharedStateReport('NOT VALID')).toBeNull();
+  });
+
+  it('drops values over the length cap', () => {
+    recordSharedStateReport('kitchen', {
+      'too.long': { value: 'x'.repeat(2000), updatedAt: 1 },
+      'ok.key': { value: 'v', updatedAt: 1 },
+    });
+    const report = getSharedStateReport('kitchen');
+    expect(report!.entries['too.long']).toBeUndefined();
+    expect(report!.entries['ok.key']?.value).toBe('v');
+  });
+
+  it('rejects a payload with more keys than a real display could ever publish', () => {
+    // The client bus caps at 256 keys, so an oversized payload is a
+    // malicious or broken poster — dropped wholesale, not trimmed.
+    const raw: Record<string, { value: string; updatedAt: number }> = {};
+    for (let i = 0; i < 300; i++) {
+      raw[`key.${String(i).padStart(3, '0')}`] = { value: 'v', updatedAt: 1 };
+    }
+    recordSharedStateReport('kitchen', raw);
+    expect(getSharedStateReport('kitchen')).toBeNull();
+  });
+
+  it('an empty snapshot overwrites a previous one (producer went quiet)', () => {
+    recordSharedStateReport('kitchen', { 'ok.key': { value: 'x', updatedAt: 1 } });
+    recordSharedStateReport('kitchen', {});
+    expect(getSharedStateReport('kitchen')!.entries).toEqual({});
+  });
+});
+
+describe('shared-state editor interest', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('reports interest per display after a mark, and none before', () => {
+    expect(hasSharedStateInterest('kitchen')).toBe(false);
+    markSharedStateInterest('kitchen');
+    expect(hasSharedStateInterest('kitchen')).toBe(true);
+    expect(hasSharedStateInterest('bedroom')).toBe(false);
+  });
+
+  it('tracks the legacy slot when no display id is given', () => {
+    markSharedStateInterest();
+    expect(hasSharedStateInterest()).toBe(true);
+    expect(hasSharedStateInterest('kitchen')).toBe(false);
+  });
+
+  it('expires interest after the TTL so idle displays fall back to the slow heartbeat', () => {
+    vi.useFakeTimers();
+    markSharedStateInterest('kitchen');
+    vi.advanceTimersByTime(15_001);
+    expect(hasSharedStateInterest('kitchen')).toBe(false);
+  });
+
+  it('ignores invalid display ids', () => {
+    markSharedStateInterest('NOT VALID');
+    expect(hasSharedStateInterest('NOT VALID')).toBe(false);
   });
 });

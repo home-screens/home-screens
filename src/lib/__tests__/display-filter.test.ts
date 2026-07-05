@@ -1197,8 +1197,19 @@ describe('validateModuleVisibility', () => {
       conditions: [{ kind: 'state', sourceKey: 'Bad Key!', equals: 'x' }],
     }, CTX)).toMatch(/sourceKey/);
     expect(validateModuleVisibility({
-      conditions: [{ kind: 'numeric', sourceKey: '' }],
+      conditions: [{ kind: 'numeric', sourceKey: 5 as unknown as string }],
     }, CTX)).toMatch(/sourceKey/);
+  });
+
+  it('accepts an empty sourceKey (incomplete condition, evaluates as unknown)', () => {
+    // The editor adds new conditions blank while the user picks a key; the
+    // config must stay saveable through that state.
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'state', sourceKey: '', equals: '' }],
+    }, CTX)).toBeNull();
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'numeric', sourceKey: '' }],
+    }, CTX)).toBeNull();
   });
 
   it('rejects non-numeric bounds and non-string values', () => {

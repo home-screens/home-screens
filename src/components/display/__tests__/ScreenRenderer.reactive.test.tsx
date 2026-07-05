@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
@@ -124,5 +124,36 @@ describe('ScreenRenderer shared-state reactivity', () => {
     const provider = makeModule({ id: 'bg-provider', backgroundProvider: true });
     render(renderScreen(makeScreen('screen-c', [provider])));
     expect(dom.queryByText(/test-widget/)).toBeNull();
+  });
+
+  it('keeps a conditioned module mounted through the tombstone grace window after a producer teardown', () => {
+    // Simulates a plugin reload/producer restart: clearKeysByPrefix used to
+    // delete the key instantly, unmounting every conditioned module until
+    // the reloaded producer's first publish (several seconds of blink).
+    vi.useFakeTimers();
+    try {
+      render(renderScreen(screenA));
+      act(() => sharedStateStore.publish(KEY, 'alert'));
+      expect(dom.getByText(/test-widget/)).toBeTruthy();
+
+      // Producer teardown — key is tombstoned, module must stay visible
+      act(() => sharedStateStore.clearKeysByPrefix('plugin:test-widget:'));
+      expect(dom.getByText(/test-widget/)).toBeTruthy();
+
+      // Restarted producer republishes within the window — no blink, and
+      // the key is live again afterwards
+      act(() => sharedStateStore.publish(KEY, 'alert'));
+      act(() => vi.advanceTimersByTime(60_000));
+      expect(dom.getByText(/test-widget/)).toBeTruthy();
+
+      // A teardown with NO republish deletes the key after the TTL and the
+      // module finally hides (whenUnknown default)
+      act(() => sharedStateStore.clearKeysByPrefix('plugin:test-widget:'));
+      expect(dom.getByText(/test-widget/)).toBeTruthy();
+      act(() => vi.advanceTimersByTime(15_000));
+      expect(dom.queryByText(/test-widget/)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

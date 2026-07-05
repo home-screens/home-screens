@@ -14,6 +14,11 @@ vi.mock('@/lib/display-commands', () => {
     setDisplayStatus: vi.fn((s: Record<string, unknown>) => {
       status = s;
     }),
+    getSharedStateReport: vi.fn(() => null),
+    recordSharedStateReport: vi.fn(),
+    recordViewportReport: vi.fn(),
+    markSharedStateInterest: vi.fn(),
+    hasSharedStateInterest: vi.fn(() => false),
     // Re-export for type usage
     DisplayCommandType: undefined,
   };
@@ -41,7 +46,15 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 import { GET, POST } from '@/app/api/display/[action]/route';
-import { enqueueCommand, drainCommands, getDisplayStatus, setDisplayStatus } from '@/lib/display-commands';
+import {
+  enqueueCommand,
+  drainCommands,
+  getDisplayStatus,
+  setDisplayStatus,
+  getSharedStateReport,
+  markSharedStateInterest,
+  hasSharedStateInterest,
+} from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
 import { __resetAdoptedCacheForTests } from '@/lib/adopted-display-cache';
@@ -84,6 +97,49 @@ describe('GET /api/display/commands', () => {
     expect(drainCommands).toHaveBeenCalled();
     expect(json.commands).toHaveLength(2);
     expect(json.commands[0].type).toBe('wake');
+  });
+
+  it('surfaces editor shared-state interest as sharedStateWatched', async () => {
+    vi.mocked(drainCommands).mockReturnValue([]);
+    vi.mocked(hasSharedStateInterest).mockReturnValue(true);
+
+    const res = await GET(makeRequest(), makeParams('commands'));
+    const json = await res.json();
+
+    expect(json.sharedStateWatched).toBe(true);
+  });
+});
+
+describe('GET /api/display/shared-state', () => {
+  it('returns an empty snapshot (not 404) when nothing has reported', async () => {
+    vi.mocked(getSharedStateReport).mockReturnValue(null);
+
+    const res = await GET(makeRequest(), makeParams('shared-state'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ entries: {}, reportedAt: null });
+  });
+
+  it('returns the stored report and marks editor interest', async () => {
+    vi.mocked(getSharedStateReport).mockReturnValue({
+      entries: { 'plugin:ha:door': { value: 'open', updatedAt: 1 } },
+      reportedAt: 99,
+    });
+
+    const res = await GET(makeRequest(), makeParams('shared-state'));
+    const json = await res.json();
+
+    expect(json.entries['plugin:ha:door'].value).toBe('open');
+    expect(json.reportedAt).toBe(99);
+    expect(markSharedStateInterest).toHaveBeenCalled();
+  });
+
+  it('rejects ?display=all (read-only action has no broadcast meaning)', async () => {
+    const req = new NextRequest('http://localhost/api/display/shared-state?display=all', { method: 'GET' });
+    const res = await GET(req, makeParams('shared-state'));
+    expect(res.status).toBe(400);
+    expect(markSharedStateInterest).not.toHaveBeenCalled();
   });
 });
 

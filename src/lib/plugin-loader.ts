@@ -6,6 +6,8 @@ import { registerPluginModule } from '@/lib/module-registry';
 import { registerFetchKey } from '@/lib/fetch-keys';
 import { compareSemver } from '@/lib/semver';
 import { displayFetch } from '@/lib/display-fetch';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 import {
   DEFAULT_LOCALE,
   FALLBACK_LOCALE,
@@ -299,6 +301,13 @@ interface PendingMigration {
   pluginId: string;
 }
 
+/** Tombstone every shared-state key namespace in `pluginIds`. */
+function purgePluginStateKeys(pluginIds: Iterable<string>): void {
+  for (const id of pluginIds) {
+    sharedStateStore.clearKeysByPrefix(pluginStatePrefix(id));
+  }
+}
+
 /**
  * Load all installed+enabled plugins. Called from the plugin Zustand store.
  *
@@ -312,27 +321,56 @@ interface PendingMigration {
 export async function loadAllPlugins(): Promise<void> {
   const store = usePluginStore.getState();
 
-  // Clear previous plugin registrations before reloading
-  store.clearPlugins();
+  // Reload is a swap, not a purge-then-load: registrations are rebuilt from
+  // scratch, but published shared-state keys survive so modules conditioned
+  // on a re-registered plugin's keys don't blink out during the seconds
+  // between the purge and the remounted producer's first publish. Keys for
+  // plugins that are actually gone are cleared below once the new set is
+  // known; `unregisterPlugin` (true removal) still purges unconditionally.
+  const previousPluginIds = new Set(
+    Array.from(store.plugins.values(), (p) => p.manifest.id.toLowerCase()),
+  );
+  store.clearPlugins({ preserveSharedState: true });
   stopAllDevPolling();
 
-  // Fetch installed plugins list
+  // Fetch installed plugins list. On failure, purge the preserved keys:
+  // every plugin is already unregistered at this point and nothing retries
+  // until the next config-driven reload, so keeping them would gate
+  // conditioned modules on a dead producer's values indefinitely. The purge
+  // tombstones (15s grace), so a quick successful retry still revives the
+  // values without a blink.
   let plugins: InstalledPlugin[];
   try {
     const res = await displayFetch('/api/plugins/installed');
-    if (!res.ok) return;
+    if (!res.ok) {
+      purgePluginStateKeys(previousPluginIds);
+      return;
+    }
     const data = await res.json();
     plugins = (data.plugins ?? []).filter((p: InstalledPlugin) => p.enabled);
   } catch {
+    purgePluginStateKeys(previousPluginIds);
     return;
   }
-
-  // Load installed plugins in parallel, collect pending migrations
-  const pendingMigrations: PendingMigration[] = [];
 
   // Skip installed plugins that have a dev override — dev plugins load from
   // the dev server and don't need a bundle on disk
   const devPluginIds = new Set(getDevPlugins().keys());
+
+  // Now that the new plugin set is known, purge shared-state keys only for
+  // plugins that are gone from it (uninstalled or disabled). A re-registered
+  // plugin keeps its last values until its producer publishes fresh ones.
+  const nextPluginIds = new Set(
+    [...plugins.map((p) => p.id), ...devPluginIds].map((id) => id.toLowerCase()),
+  );
+  for (const id of previousPluginIds) {
+    if (!nextPluginIds.has(id)) {
+      sharedStateStore.clearKeysByPrefix(pluginStatePrefix(id));
+    }
+  }
+
+  // Load installed plugins in parallel, collect pending migrations
+  const pendingMigrations: PendingMigration[] = [];
   const installedOnly = plugins.filter((p) => !devPluginIds.has(p.id));
 
   if (installedOnly.length > 0) {

@@ -28,6 +28,7 @@
 
 import type { CacheStats } from './display-cache';
 import { isValidDisplayId } from './display-filter';
+import { SHARED_STATE_KEY_RE, type SharedStateEntry } from './shared-state-types';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from './hardware-stats';
 
 export type DisplayCommandType =
@@ -181,6 +182,114 @@ export function getConsoleLog(displayId: string): ConsoleLogEntry[] | null {
  */
 export function clearConsoleLog(displayId: string): void {
   consoleLogMap.delete(displayId);
+}
+
+/**
+ * Latest shared-state bus snapshot per display, posted alongside the status
+ * heartbeat. In-memory only (like statusMap) — this exists so the editor can
+ * show "what value does this key have right now on the display" next to
+ * visibility-condition inputs; losing it on hub restart just means the hint
+ * reappears on the next heartbeat.
+ */
+export interface SharedStateReport {
+  entries: Record<string, SharedStateEntry>;
+  /** Server clock when the report arrived — display clocks may be skewed. */
+  reportedAt: number;
+}
+/** Mirror the client bus caps (shared-state-store.ts) so a malicious poster
+ *  can't store more than a real display could ever publish. */
+const MAX_SHARED_STATE_KEYS = 256;
+const MAX_SHARED_STATE_VALUE_LENGTH = 1024;
+/** A report older than this is dropped on read — the display stopped posting. */
+const SHARED_STATE_REPORT_TTL_MS = 5 * 60 * 1000;
+const sharedStateReports = new Map<string, SharedStateReport>();
+
+/**
+ * Store a shared-state snapshot posted with a display heartbeat. Unknown
+ * shapes and out-of-charset keys are skipped silently — the snapshot is a
+ * best-effort editor hint, never authoritative state.
+ */
+export function recordSharedStateReport(displayId: string | undefined, raw: unknown): void {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return;
+  if (
+    displayId
+    && knownDisplays.size >= MAX_KNOWN_DISPLAYS
+    && !knownDisplays.has(displayId)
+  ) {
+    // Same cap posture as setDisplayStatus: never let an unknown ID grow
+    // the in-memory maps past the display ceiling.
+    return;
+  }
+
+  // A real display can never exceed the bus key cap (the client store
+  // enforces it), so an oversized payload is a malicious or broken poster —
+  // reject it outright instead of materializing entries up to the cap.
+  if (Object.keys(raw).length > MAX_SHARED_STATE_KEYS) return;
+
+  const entries: Record<string, SharedStateEntry> = {};
+  for (const [key, val] of Object.entries(raw)) {
+    if (!SHARED_STATE_KEY_RE.test(key)) continue;
+    if (!val || typeof val !== 'object') continue;
+    const { value, updatedAt } = val as { value?: unknown; updatedAt?: unknown };
+    if (typeof value !== 'string' || value.length > MAX_SHARED_STATE_VALUE_LENGTH) continue;
+    if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) continue;
+    entries[key] = { value, updatedAt };
+  }
+  sharedStateReports.set(displayId ?? DEFAULT_DISPLAY_KEY, {
+    entries,
+    reportedAt: Date.now(),
+  });
+}
+
+/**
+ * Editor interest in a display's shared-state snapshot. Marked every time
+ * the editor polls GET /api/display/shared-state (5s cadence while a
+ * condition panel is open) and surfaced to the display client on its
+ * commands drain as `sharedStateWatched`. The display only arms its fast
+ * bus-change re-reporting while watched — otherwise the snapshot rides the
+ * normal 30s heartbeat, so idle displays never pay the fast full-payload
+ * cadence for data nobody is reading.
+ *
+ * The TTL covers two missed editor polls; the display's 3s command poll
+ * picks up a watch-state change within one cycle either way.
+ */
+const SHARED_STATE_INTEREST_TTL_MS = 15_000;
+const sharedStateInterest = new Map<string, number>();
+
+export function markSharedStateInterest(displayId?: string): void {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return;
+  const key = displayId ?? DEFAULT_DISPLAY_KEY;
+  // Same cap posture as the other per-display maps: never let unknown IDs
+  // grow the map past the display ceiling.
+  if (sharedStateInterest.size >= MAX_KNOWN_DISPLAYS && !sharedStateInterest.has(key)) return;
+  sharedStateInterest.set(key, Date.now());
+}
+
+/** True while an editor has polled this display's shared-state recently. */
+export function hasSharedStateInterest(displayId?: string): boolean {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return false;
+  const key = displayId ?? DEFAULT_DISPLAY_KEY;
+  const markedAt = sharedStateInterest.get(key);
+  if (markedAt === undefined) return false;
+  if (Date.now() - markedAt > SHARED_STATE_INTEREST_TTL_MS) {
+    sharedStateInterest.delete(key);
+    return false;
+  }
+  return true;
+}
+
+/** Latest shared-state snapshot for a display, or null if none/stale. */
+export function getSharedStateReport(displayId?: string): SharedStateReport | null {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return null;
+  const id = displayId ?? DEFAULT_DISPLAY_KEY;
+  const report = sharedStateReports.get(id);
+  if (!report) return null;
+  if (Date.now() - report.reportedAt > SHARED_STATE_REPORT_TTL_MS) {
+    sharedStateReports.delete(id);
+    return null;
+  }
+  return report;
 }
 
 function pruneStaleClients(perClient: Map<string, ViewportReport>): void {
@@ -475,6 +584,8 @@ export function getUnadoptedDisplays(configDisplayIds: string[]): string[] {
     statusMap.delete(id);
     viewportReports.delete(id);
     commandQueues.delete(id);
+    sharedStateReports.delete(id);
+    sharedStateInterest.delete(id);
   }
 
   return stillFresh;
@@ -490,4 +601,6 @@ export function __resetForTests(): void {
   knownDisplays.clear();
   viewportReports.clear();
   consoleLogMap.clear();
+  sharedStateReports.clear();
+  sharedStateInterest.clear();
 }

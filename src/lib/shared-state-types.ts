@@ -8,6 +8,13 @@
 export interface SharedStateEntry {
   value: string;
   updatedAt: number;
+  /**
+   * Set when the producer released/cleared this key: the entry is a
+   * tombstone holding its last value for a grace window so consumers
+   * (visibility conditions, text tokens) don't blink out during routine
+   * producer restarts. Deleted for real if no fresh publish arrives in time.
+   */
+  staleAt?: number;
 }
 
 /** Allowed key shape — lowercase alnum plus `_ : . -`, 1–128 chars. */

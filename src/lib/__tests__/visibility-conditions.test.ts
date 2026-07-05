@@ -192,6 +192,17 @@ describe('evaluateVisibility', () => {
       // unknown, so the known-true branch cannot rescue it from the gate.
       expect(evaluateVisibility(v, states({ known: 'yes' }))).toBe(false);
     });
+
+    it('an incomplete condition (empty sourceKey) gates on whenUnknown', () => {
+      // The editor saves new conditions blank while the user picks a key —
+      // an empty key can never be published, so it is permanently unknown.
+      const v = vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }] });
+      expect(evaluateVisibility(v, states({ door: 'open' }))).toBe(false);
+      expect(evaluateVisibility(
+        vis({ conditions: [{ kind: 'state', sourceKey: '', equals: '' }], whenUnknown: 'show' }),
+        states({}),
+      )).toBe(true);
+    });
   });
 
   describe('edge combinations', () => {

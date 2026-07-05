@@ -31,8 +31,9 @@ function invalidModule(): ModuleInstance {
     zIndex: 0,
     config: {},
     style: {} as ModuleInstance['style'],
-    // The "just clicked Add condition" draft state: empty key is invalid
-    visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+    // A committed typo (bad charset) — empty keys are legal "incomplete"
+    // conditions now, so this is the state the validity gate still guards.
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'Bad Key!', equals: '' }] },
   } as ModuleInstance;
 }
 

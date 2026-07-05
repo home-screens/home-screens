@@ -53,10 +53,18 @@ describe('useSharedStateKeys', () => {
     expect(subscribeSpy).not.toHaveBeenCalled();
   });
 
-  it('reflects a clear (key back to unknown)', () => {
-    sharedStateStore.publish('plugin:ha:door', 'open');
-    const { result } = renderHook(() => useSharedStateKeys(KEYS));
-    act(() => sharedStateStore.clearKey('plugin:ha:door'));
-    expect(result.current.has('plugin:ha:door')).toBe(false);
+  it('reflects a clear: tombstoned value survives the grace window, then goes unknown', () => {
+    vi.useFakeTimers();
+    try {
+      sharedStateStore.publish('plugin:ha:door', 'open');
+      const { result } = renderHook(() => useSharedStateKeys(KEYS));
+      act(() => sharedStateStore.clearKey('plugin:ha:door'));
+      // Grace window: consumers still see the last value (no blink)
+      expect(result.current.get('plugin:ha:door')?.value).toBe('open');
+      act(() => vi.advanceTimersByTime(15_000));
+      expect(result.current.has('plugin:ha:door')).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

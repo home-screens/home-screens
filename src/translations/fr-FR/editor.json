@@ -78,7 +78,8 @@
     "scheduledActiveTitle": "Planifié — actuellement actif",
     "scheduledInactiveTitle": "Planifié — actuellement inactif",
     "disabledTitle": "Désactivé — non affiché sur l'écran",
-    "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies"
+    "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
+    "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -2729,7 +2730,9 @@
         "right": "Droite",
         "up": "Haut",
         "down": "Bas"
-      }
+      },
+      "stateTokensHint": "Insérez {example} pour afficher une valeur en direct publiée par un module en arrière-plan.",
+      "stateTokenUnknown": "Aucun module de cet écran ne publie {keys} pour l'instant. Ces jetons affichent '–' jusqu'à ce qu'un module les publie."
     },
     "todo": {
       "title": "Titre",
@@ -3019,9 +3022,11 @@
     "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
     "whenUnknownHide": "Masquer le module",
     "whenUnknownShow": "Afficher le module",
-    "noProvidersHint": "Aucun module de cet écran ne publie encore d'état. Les clés d'état proviennent généralement de plugins qui publient des valeurs en arrière-plan. Les valeurs ne sont partagées qu'au sein de l'onglet de navigateur de cet écran. Vous pouvez aussi saisir une clé manuellement.",
+    "noProvidersHint": "Aucun module de cet écran ne publie encore d'état. Les clés d'état proviennent généralement de plugins qui publient des valeurs en arrière-plan. Les valeurs ne sont partagées qu'au sein de l'onglet de navigateur de cet écran. Vous pouvez aussi saisir une clé manuellement. Les clés d'état apparaissent ici dès qu'un module avec l'option 'Exécuter masqué en arrière-plan' activée les annonce.",
     "noConditionsHint": "Aucune condition pour l'instant. Le module reste affiché tant que vous n'en ajoutez pas.",
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
-    "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés."
+    "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
+    "liveValueLabel": "Sur l'écran actuellement :",
+    "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement."
   }
 }

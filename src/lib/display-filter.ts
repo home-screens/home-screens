@@ -461,7 +461,14 @@ export function validateModuleVisibility(
       return null;
     }
 
-    if (typeof condition.sourceKey !== 'string' || !SHARED_STATE_KEY_RE.test(condition.sourceKey)) {
+    // Empty sourceKey = an incomplete condition (the editor adds new
+    // conditions blank while the user picks a key). It can never exist on
+    // the bus, so the runtime evaluates it as unknown and the whenUnknown
+    // fallback governs — saveable and harmless, never a validation error.
+    if (
+      typeof condition.sourceKey !== 'string'
+      || (condition.sourceKey !== '' && !SHARED_STATE_KEY_RE.test(condition.sourceKey))
+    ) {
       return `${context}: visibility sourceKey must match ${SHARED_STATE_KEY_RE} (got ${JSON.stringify(condition.sourceKey)})`;
     }
 

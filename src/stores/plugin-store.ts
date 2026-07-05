@@ -26,8 +26,14 @@ interface PluginState {
   ) => void;
   /** Remove a plugin from reactive state and module registry */
   unregisterPlugin: (moduleType: string) => void;
-  /** Clear all plugins from reactive state and module registry */
-  clearPlugins: () => void;
+  /**
+   * Clear all plugins from reactive state and module registry.
+   * `preserveSharedState` keeps published shared-state keys alive — used by
+   * the reload path so modules conditioned on a re-registered plugin's keys
+   * don't blink out while its producer remounts. The reload path is then
+   * responsible for clearing keys of plugins that are actually gone.
+   */
+  clearPlugins: (opts?: { preserveSharedState?: boolean }) => void;
   /** Record a load error for a plugin */
   setError: (pluginId: string, error: PluginError) => void;
 }
@@ -91,10 +97,12 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     });
   },
 
-  clearPlugins: () => {
+  clearPlugins: (opts) => {
     const { plugins } = get();
     for (const [moduleType, entry] of plugins) {
-      sharedStateStore.clearKeysByPrefix(pluginStatePrefix(entry.manifest.id));
+      if (!opts?.preserveSharedState) {
+        sharedStateStore.clearKeysByPrefix(pluginStatePrefix(entry.manifest.id));
+      }
       unregisterModule(moduleType as ModuleType);
       deregisterFetchKey(moduleType);
     }

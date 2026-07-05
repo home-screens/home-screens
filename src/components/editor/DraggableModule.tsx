@@ -2,7 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Clock, PowerOff, Eye } from 'lucide-react';
+import { Clock, PowerOff, Eye, EyeOff } from 'lucide-react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -119,6 +119,53 @@ export default function DraggableModule({
     ? (definition?.label || mod.type)
     : t(`registry.types.${mod.type}`);
 
+  // Status badges stack right-to-left in the top-right corner; each entry
+  // occupies one fixed-width slot so any combination lines up.
+  const iconSize = Math.max(8, 10 * scale);
+  const badgeStep = Math.max(12, 14 * scale) + 2;
+  const badges: { key: string; className: string; title: string; icon: typeof Clock }[] = [];
+  if (!isModuleEnabled(mod)) {
+    badges.push({
+      key: 'disabled',
+      className: 'bg-red-700/70 text-red-100',
+      title: t('draggableModule.disabledTitle'),
+      icon: PowerOff,
+    });
+  } else {
+    if (mod.schedule) {
+      badges.push({
+        key: 'schedule',
+        className: isModuleVisible(mod.schedule, now)
+          ? 'bg-hs-accent/70 text-white'
+          : 'bg-amber-600/70 text-amber-200',
+        title: isModuleVisible(mod.schedule, now)
+          ? t('draggableModule.scheduledActiveTitle')
+          : t('draggableModule.scheduledInactiveTitle'),
+        icon: Clock,
+      });
+    }
+    // Neutral tint only, no pass/fail state: producers run on the display
+    // client, so the editor's sharedStateStore is always empty and a live
+    // tint would permanently read "unmet". The badge means "gated by
+    // shared-state conditions".
+    if ((mod.visibility?.conditions?.length ?? 0) > 0) {
+      badges.push({
+        key: 'condition',
+        className: 'bg-slate-600/70 text-slate-200',
+        title: t('draggableModule.conditionGatedTitle'),
+        icon: Eye,
+      });
+    }
+  }
+  if (mod.backgroundProvider) {
+    badges.push({
+      key: 'backgroundProvider',
+      className: 'bg-amber-600/70 text-amber-100',
+      title: t('draggableModule.backgroundProviderTitle'),
+      icon: EyeOff,
+    });
+  }
+
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -180,7 +227,7 @@ export default function DraggableModule({
         {...listeners}
         className={`w-full h-full overflow-hidden transition-shadow cursor-grab ${
           isSelected ? 'ring-2 ring-hs-accent ring-offset-1 ring-offset-transparent' : ''
-        } ${isModuleEnabled(mod) ? '' : 'opacity-40 grayscale'}`}
+        } ${!isModuleEnabled(mod) ? 'opacity-40 grayscale' : mod.backgroundProvider ? 'opacity-40' : ''}`}
         style={{
           borderRadius: mod.style.borderRadius * scale,
         }}
@@ -202,44 +249,17 @@ export default function DraggableModule({
       <div className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white" style={{ fontSize: Math.max(7, 9 * scale) }}>
         {labelText}
       </div>
-      {/* Disabled indicator badge */}
-      {!isModuleEnabled(mod) && (
+      {/* Status badges (disabled / schedule / condition / background provider) */}
+      {badges.map((badge, i) => (
         <div
-          className="absolute top-0 right-0 p-0.5 rounded-bl bg-red-700/70 text-red-100"
-          title={t('draggableModule.disabledTitle')}
+          key={badge.key}
+          className={`absolute top-0 p-0.5 rounded-bl ${badge.className}`}
+          style={{ right: i * badgeStep }}
+          title={badge.title}
         >
-          <PowerOff style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
+          <badge.icon style={{ width: iconSize, height: iconSize }} />
         </div>
-      )}
-      {/* Schedule indicator badge */}
-      {mod.schedule && isModuleEnabled(mod) && (
-        <div
-          className={`absolute top-0 right-0 p-0.5 rounded-bl ${
-            isModuleVisible(mod.schedule, now)
-              ? 'bg-hs-accent/70 text-white'
-              : 'bg-amber-600/70 text-amber-200'
-          }`}
-          title={isModuleVisible(mod.schedule, now) ? t('draggableModule.scheduledActiveTitle') : t('draggableModule.scheduledInactiveTitle')}
-        >
-          <Clock style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
-        </div>
-      )}
-      {/* Condition-gated indicator badge. Neutral tint only, no pass/fail
-          state: producers run on the display client, so the editor's
-          sharedStateStore is always empty and a live tint would permanently
-          read "unmet". The badge means "gated by shared-state conditions". */}
-      {(mod.visibility?.conditions?.length ?? 0) > 0 && isModuleEnabled(mod) && (
-        <div
-          className="absolute top-0 p-0.5 rounded-bl bg-slate-600/70 text-slate-200"
-          style={{
-            // Sit left of the schedule badge when both are shown
-            right: mod.schedule ? Math.max(12, 14 * scale) + 2 : 0,
-          }}
-          title={t('draggableModule.conditionGatedTitle')}
-        >
-          <Eye style={{ width: Math.max(8, 10 * scale), height: Math.max(8, 10 * scale) }} />
-        </div>
-      )}
+      ))}
       {isSelected && (
         <div
           onMouseDown={handleResizeStart}

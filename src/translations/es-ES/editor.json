@@ -78,7 +78,8 @@
     "scheduledActiveTitle": "Programado — activo ahora",
     "scheduledInactiveTitle": "Programado — inactivo ahora",
     "disabledTitle": "Desactivado — no se muestra en pantalla",
-    "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones"
+    "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones",
+    "backgroundProviderTitle": "Se ejecuta oculto en segundo plano — nunca se muestra en pantalla"
   },
   "displaySwitcher": {
     "title": "¿Qué display estás editando en este lienzo? (Las anulaciones de ajustes están en Ajustes → Por display.)",
@@ -2729,7 +2730,9 @@
         "right": "Derecha",
         "up": "Arriba",
         "down": "Abajo"
-      }
+      },
+      "stateTokensHint": "Inserta {example} para mostrar un valor en vivo publicado por un módulo en segundo plano.",
+      "stateTokenUnknown": "Ningún módulo de esta pantalla publica {keys} todavía. Esos marcadores muestran '–' hasta que un módulo los publique."
     },
     "todo": {
       "title": "Título",
@@ -3019,9 +3022,11 @@
     "whenUnknownLabel": "Mientras la fuente de datos aún no ha informado",
     "whenUnknownHide": "Ocultar el módulo",
     "whenUnknownShow": "Mostrar el módulo",
-    "noProvidersHint": "Ningún módulo de esta pantalla publica estados todavía. Las claves de estado suelen venir de plugins que publican valores en segundo plano. Los valores solo se comparten dentro de la pestaña del navegador de esta pantalla. También puedes escribir una clave manualmente.",
+    "noProvidersHint": "Ningún módulo de esta pantalla publica estados todavía. Las claves de estado suelen venir de plugins que publican valores en segundo plano. Los valores solo se comparten dentro de la pestaña del navegador de esta pantalla. También puedes escribir una clave manualmente. Las claves de estado aparecen aquí cuando un módulo con la opción 'Ejecutar oculto en segundo plano' activada las anuncia.",
     "noConditionsHint": "Aún no hay condiciones. El módulo se muestra siempre hasta que añadas una.",
     "sourceKeyInvalid": "Escribe una clave de estado solo con letras minúsculas, números y _ : . -",
-    "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados."
+    "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados.",
+    "liveValueLabel": "En la pantalla ahora:",
+    "caseMismatchWarning": "La pantalla publica '{value}'. La comparación distingue mayúsculas y minúsculas: el valor debe coincidir exactamente."
   }
 }

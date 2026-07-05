@@ -39,10 +39,17 @@ describe('usePublishState', () => {
     expect(sharedStateStore.get('sensor.temp')?.value).toBe('72');
   });
 
-  it('clears the key when the only publisher unmounts', () => {
-    const { unmount } = renderHook(() => usePublishState('sensor.temp', '72'));
-    unmount();
-    expect(sharedStateStore.get('sensor.temp')).toBeUndefined();
+  it('tombstones the key when the only publisher unmounts, then deletes after the grace window', () => {
+    vi.useFakeTimers();
+    try {
+      const { unmount } = renderHook(() => usePublishState('sensor.temp', '72'));
+      unmount();
+      expect(sharedStateStore.get('sensor.temp')?.staleAt).toBeTypeOf('number');
+      vi.advanceTimersByTime(15_000);
+      expect(sharedStateStore.get('sensor.temp')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps the value when one of two same-key publishers unmounts (dual-instance pattern)', () => {
@@ -53,9 +60,10 @@ describe('usePublishState', () => {
 
     visibleCopy.unmount();
     expect(sharedStateStore.get('sensor.temp')?.value).toBe('72');
+    expect(sharedStateStore.get('sensor.temp')?.staleAt).toBeUndefined();
 
     provider.unmount();
-    expect(sharedStateStore.get('sensor.temp')).toBeUndefined();
+    expect(sharedStateStore.get('sensor.temp')?.staleAt).toBeTypeOf('number');
   });
 
   it('releases the old key and claims the new one on key change', () => {
@@ -64,9 +72,10 @@ describe('usePublishState', () => {
       { initialProps: { key: 'sensor.old' } },
     );
     rerender({ key: 'sensor.new' });
-    expect(sharedStateStore.get('sensor.old')).toBeUndefined();
+    expect(sharedStateStore.get('sensor.old')?.staleAt).toBeTypeOf('number');
     expect(sharedStateStore.get('sensor.new')?.value).toBe('v');
+    expect(sharedStateStore.get('sensor.new')?.staleAt).toBeUndefined();
     unmount();
-    expect(sharedStateStore.get('sensor.new')).toBeUndefined();
+    expect(sharedStateStore.get('sensor.new')?.staleAt).toBeTypeOf('number');
   });
 });

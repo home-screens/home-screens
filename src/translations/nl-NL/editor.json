@@ -78,7 +78,8 @@
     "scheduledActiveTitle": "Gepland — momenteel actief",
     "scheduledInactiveTitle": "Gepland — momenteel inactief",
     "disabledTitle": "Uitgeschakeld — niet getoond op display",
-    "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan"
+    "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
+    "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -2724,7 +2725,9 @@
         "right": "Rechts",
         "up": "Omhoog",
         "down": "Omlaag"
-      }
+      },
+      "stateTokensHint": "Voeg {example} in om een live waarde van een achtergrondmodule te tonen.",
+      "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die tokens tonen '–' totdat een module ze publiceert."
     },
     "todo": {
       "title": "Titel",
@@ -3013,9 +3016,11 @@
     "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
     "whenUnknownHide": "Module verbergen",
     "whenUnknownShow": "Module tonen",
-    "noProvidersHint": "Nog geen modules op dit scherm publiceren status. Statussleutels komen meestal van plugins die waarden op de achtergrond publiceren. Waarden worden alleen gedeeld binnen het browsertabblad van dit scherm. Je kunt ook handmatig een sleutel typen.",
+    "noProvidersHint": "Nog geen modules op dit scherm publiceren status. Statussleutels komen meestal van plugins die waarden op de achtergrond publiceren. Waarden worden alleen gedeeld binnen het browsertabblad van dit scherm. Je kunt ook handmatig een sleutel typen. Statussleutels verschijnen hier zodra een module met 'Verborgen op de achtergrond uitvoeren' ingeschakeld ze aanbiedt.",
     "noConditionsHint": "Nog geen voorwaarden. De module wordt altijd getoond totdat je er een toevoegt.",
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
-    "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden."
+    "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
+    "liveValueLabel": "Nu op het display:",
+    "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen."
   }
 }
