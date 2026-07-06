@@ -2,7 +2,7 @@
 
 import type { SportsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from '../ModuleStates';
+import { moduleGate } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { sportsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
@@ -26,13 +26,12 @@ export default function SportsModule({ config, style }: SportsModuleProps) {
   const games = data?.games ?? [];
   const view = config.view ?? 'scoreboard';
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('sports.loading')} error={error} />;
-  }
-
-  if (games.length === 0) {
-    return <ModuleEmptyState style={style} message={t('sports.noGames')} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage: t('sports.loading'),
+    empty: games.length === 0 && t('sports.noGames'),
+  });
+  if (gate) return gate;
 
   return (
     <ModuleWrapper style={style}>

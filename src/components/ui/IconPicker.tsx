@@ -12,6 +12,7 @@ import {
   type FaIconKind,
 } from '@/lib/font-awesome-icons';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import LabeledField from './LabeledField';
 import { INPUT_CLASS } from './input-classes';
 
@@ -134,13 +135,7 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
 
   // Escape-to-close. `onClose` is the parent's stable `useCallback` handle,
   // so this listener is bound once and not churned on parent renders.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   const filtered = useMemo(() => {
     // The kind-filter predicate matches against the icon's full `styles[]`

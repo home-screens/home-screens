@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from './types';
 
@@ -53,13 +54,7 @@ export default function WifiConnectModal({
 
   /* ── Escape to close ───────────────────────── */
 
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   /* ── Connect handler ───────────────────────── */
 

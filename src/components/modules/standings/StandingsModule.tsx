@@ -2,7 +2,7 @@
 
 import type { StandingsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from '../ModuleStates';
+import { moduleGate } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { standingsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
@@ -28,13 +28,12 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
 
   const groups = data?.groups ?? [];
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('standings.loading')} error={error} />;
-  }
-
-  if (groups.length === 0) {
-    return <ModuleEmptyState style={style} message={t('standings.noStandings')} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage: t('standings.loading'),
+    empty: groups.length === 0 && t('standings.noStandings'),
+  });
+  if (gate) return gate;
 
   const teamsToShow = config.teamsToShow ?? 0;
   const showPlayoffLine = config.showPlayoffLine ?? true;

@@ -2,7 +2,7 @@
 
 import type { QuoteConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { quoteUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
@@ -20,9 +20,8 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('quote.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('quote.loading') });
+  if (gate || !data) return gate;
 
   return (
     <ModuleWrapper style={style}>

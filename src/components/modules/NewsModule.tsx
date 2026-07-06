@@ -3,7 +3,7 @@
 import type { NewsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import TickerMarquee from './TickerMarquee';
-import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { newsUrl } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
@@ -140,13 +140,12 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   const items = view === 'headline' ? allItems : allItems.slice(0, maxItems);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('news.loading')} error={error} />;
-  }
-
-  if (allItems.length === 0) {
-    return <ModuleEmptyState style={style} message={t('news.empty')} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage: t('news.loading'),
+    empty: allItems.length === 0 && t('news.empty'),
+  });
+  if (gate) return gate;
 
   return (
     <ModuleWrapper style={style}>

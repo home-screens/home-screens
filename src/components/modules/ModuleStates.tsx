@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -37,4 +38,45 @@ export function ModuleEmptyState({ style, message }: { style: ModuleStyle; messa
       </div>
     </ModuleWrapper>
   );
+}
+
+/**
+ * Standard state gate for modules driven by `useFetchData`. Enforces one
+ * ordering everywhere: loading (data still null; fetch errors render inside
+ * the loading state) → empty → content. Returns the state element to render,
+ * or null when the module should render its content.
+ *
+ * Not a hook — call it after data derivation and early-return the result:
+ *
+ *   const gate = moduleGate({
+ *     style, data, error,
+ *     loadingMessage: t('news.loading'),
+ *     empty: items.length === 0 && t('news.empty'),
+ *   });
+ *   if (gate) return gate;
+ *
+ * Pass `empty` as `<isEmpty> && <message>` so the condition and its message
+ * stay together at the call site. Checks that must render before the loading
+ * skeleton (e.g. "nothing configured yet") belong before the gate, not in it.
+ *
+ * Modules that read `data` fields after the gate should early-return with
+ * `if (gate || !data) return gate;` — the `!data` re-check is unreachable at
+ * runtime (the gate already returned for null data) but gives TypeScript the
+ * non-null narrowing without `data!` assertions.
+ */
+export function moduleGate({ style, data, error, loadingMessage, empty }: {
+  style: ModuleStyle;
+  /** The useFetchData result; null/undefined renders the loading state. */
+  data: unknown;
+  error?: string | null;
+  loadingMessage: string;
+  empty?: string | false;
+}): ReactElement | null {
+  if (data === null || data === undefined) {
+    return <ModuleLoadingState style={style} message={loadingMessage} error={error} />;
+  }
+  if (empty) {
+    return <ModuleEmptyState style={style} message={empty} />;
+  }
+  return null;
 }

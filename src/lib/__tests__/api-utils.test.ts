@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, assertOptionalArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -988,6 +988,60 @@ describe('parseTagParam', () => {
     expect((result as NextResponse).status).toBe(400);
     const json = await (result as NextResponse).json();
     expect(json.error).toBe('Invalid tag format');
+  });
+});
+
+describe('parseJsonBody', () => {
+  it('returns the parsed body for valid JSON', async () => {
+    const request = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({ ssid: 'HomeNet', confirmed: true }),
+    });
+    const result = await parseJsonBody<{ ssid: string; confirmed: boolean }>(request);
+    expect(result).toEqual({ ssid: 'HomeNet', confirmed: true });
+  });
+
+  it('returns a 400 NextResponse for malformed JSON', async () => {
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST', body: 'not json' });
+    const result = await parseJsonBody(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('Invalid JSON body');
+  });
+
+  it('returns a 400 NextResponse for an empty body', async () => {
+    const request = new NextRequest('http://localhost/api/test', { method: 'POST' });
+    const result = await parseJsonBody(request);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+  });
+});
+
+describe('execErrorMessage', () => {
+  it('returns trimmed stderr when the error carries one', () => {
+    const err = Object.assign(new Error('cmd failed'), { stderr: '  Error: device not found  \n' });
+    expect(execErrorMessage(err, 'fallback')).toBe('Error: device not found');
+  });
+
+  it('stringifies a non-string stderr', () => {
+    const err = { stderr: Buffer.from('nmcli: timeout') };
+    expect(execErrorMessage(err, 'fallback')).toBe('nmcli: timeout');
+  });
+
+  it('returns the fallback when the error has no stderr property', () => {
+    expect(execErrorMessage(new Error('plain'), 'fallback')).toBe('fallback');
+  });
+
+  it('returns the fallback for non-object errors', () => {
+    expect(execErrorMessage('boom', 'fallback')).toBe('fallback');
+    expect(execErrorMessage(null, 'fallback')).toBe('fallback');
+    expect(execErrorMessage(undefined, 'fallback')).toBe('fallback');
+  });
+
+  it('returns an empty string when stderr is present but empty (locks existing route behavior)', () => {
+    const err = Object.assign(new Error('killed'), { stderr: '' });
+    expect(execErrorMessage(err, 'fallback')).toBe('');
   });
 });
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import type { PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
@@ -71,13 +71,12 @@ export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowMo
     // eslint-disable-next-line react-hooks/exhaustive-deps -- layer crossfade uses refs (prevIndexRef, activeLayer) that shouldn't trigger re-runs
   }, [index, files]);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('photo-slideshow.loading')} error={error} />;
-  }
-
-  if (files.length === 0) {
-    return <ModuleEmptyState style={style} message={t('photo-slideshow.empty')} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage: t('photo-slideshow.loading'),
+    empty: files.length === 0 && t('photo-slideshow.empty'),
+  });
+  if (gate) return gate;
 
   const isFade = config.transition === 'fade';
 

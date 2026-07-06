@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import {
   getPendingRollback,
   confirmRollback,
@@ -29,12 +29,8 @@ export const GET = withAuth(async () => {
 /* ─── POST: Confirm network change ─────────── */
 
 export const POST = withAuth(async (request: NextRequest) => {
-  let body: { rollbackId: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<{ rollbackId: string }>(request);
+  if (body instanceof NextResponse) return body;
 
   const { rollbackId } = body;
 

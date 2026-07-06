@@ -83,17 +83,55 @@ export async function nmcliSudo(args: string[]): Promise<string> {
   return task;
 }
 
+/* ─── IPv4 settings capture ──────────────────── */
+
+export interface Ipv4Settings {
+  method: 'auto' | 'manual';
+  addresses?: string;
+  gateway?: string;
+  dns?: string;
+}
+
+/**
+ * Read the current IPv4 settings for a connection, for rollback capture.
+ *
+ * Throws when nmcli fails — callers choose their own fallback policy
+ * (wifi/connect skips scheduling a rollback; ip assumes `auto` so the
+ * rollback is still safe to schedule).
+ */
+export async function readConnectionIpv4Settings(connectionId: string): Promise<Ipv4Settings> {
+  const connOutput = await nmcli([
+    '-t', '-f', 'ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns',
+    'connection', 'show', connectionId,
+  ]);
+
+  let method: 'auto' | 'manual' = 'auto';
+  let addresses: string | undefined;
+  let gateway: string | undefined;
+  let dns: string | undefined;
+
+  for (const line of connOutput.split('\n')) {
+    if (!line.trim()) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx);
+    const value = line.slice(colonIdx + 1).replace(/\\:/g, ':').trim();
+
+    if (key === 'ipv4.method' && value === 'manual') method = 'manual';
+    if (key === 'ipv4.addresses' && value) addresses = value;
+    if (key === 'ipv4.gateway' && value) gateway = value;
+    if (key === 'ipv4.dns' && value) dns = value;
+  }
+
+  return { method, ...(addresses && { addresses }), ...(gateway && { gateway }), ...(dns && { dns }) };
+}
+
 /* ─── Rollback ───────────────────────────────── */
 
 export interface PendingRollback {
   id: string;
   connectionId: string;
-  previousSettings: {
-    method: 'auto' | 'manual';
-    addresses?: string;
-    gateway?: string;
-    dns?: string;
-  };
+  previousSettings: Ipv4Settings;
   timer: ReturnType<typeof setTimeout>;
   confirmed: boolean;
 }

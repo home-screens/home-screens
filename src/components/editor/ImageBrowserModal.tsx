@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Button from '@/components/ui/Button';
 import { useImageLibrary, type DirectoryInfo } from '@/hooks/useImageLibrary';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { editorFetch } from '@/lib/editor-fetch';
 import ImageSearchBrowser, { type BrowsePhoto, type SearchResult } from './ImageSearchBrowser';
 import { useTranslate } from '@/i18n';
@@ -62,14 +63,7 @@ export default function ImageBrowserModal({
     [t],
   );
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   // Check if Unsplash key is configured (only in pick-image mode)
   useEffect(() => {

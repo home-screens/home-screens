@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
-import { withAuth, getClientIP } from '@/lib/api-utils';
+import { withAuth, getClientIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import {
   nmcliSudo,
   nmcli,
@@ -12,6 +12,8 @@ import {
   hasActiveRollback,
   ensureSourceRouting,
   isPotentiallyManagementInterface,
+  readConnectionIpv4Settings,
+  type Ipv4Settings,
 } from '@/lib/network-commands';
 import {
   validateSSID,
@@ -74,7 +76,7 @@ async function disableCloudInitNetwork(): Promise<void> {
  */
 async function captureCurrentConnection(
   iface: string,
-): Promise<{ connectionId: string; settings: { method: 'auto' | 'manual'; addresses?: string; gateway?: string; dns?: string } } | null> {
+): Promise<{ connectionId: string; settings: Ipv4Settings } | null> {
   try {
     // Find the active connection on this interface
     const output = await nmcli([
@@ -94,34 +96,8 @@ async function captureCurrentConnection(
 
     if (!connectionId) return null;
 
-    // Read current IPv4 settings from the connection
-    const connOutput = await nmcli([
-      '-t', '-f', 'ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns',
-      'connection', 'show', connectionId,
-    ]);
-
-    let method: 'auto' | 'manual' = 'auto';
-    let addresses: string | undefined;
-    let gateway: string | undefined;
-    let dns: string | undefined;
-
-    for (const line of connOutput.split('\n')) {
-      if (!line.trim()) continue;
-      const colonIdx = line.indexOf(':');
-      if (colonIdx === -1) continue;
-      const key = line.slice(0, colonIdx);
-      const value = line.slice(colonIdx + 1).replace(/\\:/g, ':').trim();
-
-      if (key === 'ipv4.method' && value === 'manual') method = 'manual';
-      if (key === 'ipv4.addresses' && value) addresses = value;
-      if (key === 'ipv4.gateway' && value) gateway = value;
-      if (key === 'ipv4.dns' && value) dns = value;
-    }
-
-    return {
-      connectionId,
-      settings: { method, ...(addresses && { addresses }), ...(gateway && { gateway }), ...(dns && { dns }) },
-    };
+    const settings = await readConnectionIpv4Settings(connectionId);
+    return { connectionId, settings };
   } catch {
     return null;
   }
@@ -130,12 +106,8 @@ async function captureCurrentConnection(
 /* ─── Route handler ─────────────────────────── */
 
 export const POST = withAuth(async (request: NextRequest) => {
-  let body: ConnectRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<ConnectRequest>(request);
+  if (body instanceof NextResponse) return body;
 
   const { ssid, password, iface, confirmed } = body;
 
@@ -229,11 +201,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     });
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Connection failed';
-
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: execErrorMessage(err, 'Connection failed') },
+      { status: 500 },
+    );
   }
 }, 'Failed to connect to WiFi network');

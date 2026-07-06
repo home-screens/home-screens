@@ -2,7 +2,7 @@
 
 import type { ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from '../ModuleStates';
+import { moduleGate } from '../ModuleStates';
 import {
   FinancialCardsView,
   FinancialTickerView,
@@ -48,13 +48,12 @@ export default function FinancialDataModule<TItem>({
   const [data, error] = useFetchData<Record<string, TItem[]>>(url, refreshIntervalMs);
   const items = (data?.[dataKey] as TItem[] | undefined) ?? [];
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={loadingMessage} error={error} />;
-  }
-
-  if (items.length === 0) {
-    return <ModuleEmptyState style={style} message={emptyMessage} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage,
+    empty: items.length === 0 && emptyMessage,
+  });
+  if (gate) return gate;
 
   return (
     <ModuleWrapper style={style}>

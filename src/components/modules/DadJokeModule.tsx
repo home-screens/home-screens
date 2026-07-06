@@ -2,7 +2,7 @@
 
 import type { DadJokeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { dadJokeUrl } from '@/lib/fetch-keys';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
@@ -21,9 +21,8 @@ export default function DadJokeModule({ config, style }: DadJokeModuleProps) {
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('dad-joke.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('dad-joke.loading') });
+  if (gate || !data) return gate;
 
   return (
     <ModuleWrapper style={style}>

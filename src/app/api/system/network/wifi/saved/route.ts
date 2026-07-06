@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import { nmcli, nmcliSudo } from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
 import { parseTerseFields } from '@/lib/network-parse';
@@ -99,12 +99,8 @@ export const GET = withAuth(async (request: NextRequest) => {
 /* ─── DELETE: Forget a saved connection ──────── */
 
 export const DELETE = withAuth(async (request: NextRequest) => {
-  let body: { connectionId: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<{ connectionId: string }>(request);
+  if (body instanceof NextResponse) return body;
 
   const { connectionId } = body;
 
@@ -119,11 +115,9 @@ export const DELETE = withAuth(async (request: NextRequest) => {
     await nmcliSudo(['connection', 'delete', connectionId]);
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Failed to delete connection';
-
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: execErrorMessage(err, 'Failed to delete connection') },
+      { status: 500 },
+    );
   }
 }, 'Failed to manage saved WiFi networks');

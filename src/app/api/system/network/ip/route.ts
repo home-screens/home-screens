@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP } from '@/lib/api-utils';
+import { withAuth, getClientIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import {
   nmcli,
   nmcliSudo,
@@ -11,6 +11,8 @@ import {
   hasActiveRollback,
   ensureSourceRouting,
   isPotentiallyManagementInterface,
+  readConnectionIpv4Settings,
+  type Ipv4Settings,
 } from '@/lib/network-commands';
 import {
   validateUUID,
@@ -40,34 +42,9 @@ interface IPConfigRequest {
  * Capture the current IPv4 settings for a connection so we can
  * schedule a rollback if the new configuration causes a disconnection.
  */
-async function captureCurrentSettings(
-  connectionId: string,
-): Promise<{ method: 'auto' | 'manual'; addresses?: string; gateway?: string; dns?: string }> {
+async function captureCurrentSettings(connectionId: string): Promise<Ipv4Settings> {
   try {
-    const connOutput = await nmcli([
-      '-t', '-f', 'ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns',
-      'connection', 'show', connectionId,
-    ]);
-
-    let method: 'auto' | 'manual' = 'auto';
-    let addresses: string | undefined;
-    let gateway: string | undefined;
-    let dns: string | undefined;
-
-    for (const line of connOutput.split('\n')) {
-      if (!line.trim()) continue;
-      const colonIdx = line.indexOf(':');
-      if (colonIdx === -1) continue;
-      const key = line.slice(0, colonIdx);
-      const value = line.slice(colonIdx + 1).replace(/\\:/g, ':').trim();
-
-      if (key === 'ipv4.method' && value === 'manual') method = 'manual';
-      if (key === 'ipv4.addresses' && value) addresses = value;
-      if (key === 'ipv4.gateway' && value) gateway = value;
-      if (key === 'ipv4.dns' && value) dns = value;
-    }
-
-    return { method, ...(addresses && { addresses }), ...(gateway && { gateway }), ...(dns && { dns }) };
+    return await readConnectionIpv4Settings(connectionId);
   } catch {
     // Fallback: assume auto so rollback is safe
     return { method: 'auto' };
@@ -107,12 +84,8 @@ async function getDeviceForConnection(connectionId: string): Promise<string | nu
 /* ─── Route handler ─────────────────────────── */
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  let body: IPConfigRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<IPConfigRequest>(request);
+  if (body instanceof NextResponse) return body;
 
   const { connectionId, method, address, prefix, gateway, dns, confirmed } = body;
 
@@ -237,11 +210,10 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await nmcliSudo(modifyArgs);
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Failed to modify connection';
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: execErrorMessage(err, 'Failed to modify connection') },
+      { status: 500 },
+    );
   }
 
   // 10. Cycle the connection to apply the new settings
@@ -253,11 +225,10 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await ensureSourceRouting();
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Failed to cycle connection';
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: execErrorMessage(err, 'Failed to cycle connection') },
+      { status: 500 },
+    );
   }
 
   // 11. Schedule rollback for management interface changes

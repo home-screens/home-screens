@@ -2,7 +2,7 @@
 
 import type { TrafficConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
+import { ModuleEmptyState, moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { trafficUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -42,9 +42,8 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
     return <ModuleEmptyState style={style} message={t('traffic.noRoutes')} />;
   }
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('traffic.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('traffic.loading') });
+  if (gate) return gate;
 
   return (
     <ModuleWrapper style={style}>

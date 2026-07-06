@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useTranslate } from '@/i18n';
 
 /* ─── Props ────────────────────────────────── */
@@ -21,13 +21,7 @@ export default function ManagementWarningModal({
 }: ManagementWarningModalProps) {
   const t = useTranslate('editor');
 
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onCancel]);
+  useEscapeKey(onCancel);
 
   return (
     <div

@@ -3,7 +3,7 @@
 import type { HistoryConfig, ModuleStyle } from '@/types/config';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { historyUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
@@ -33,9 +33,8 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('history.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('history.loading') });
+  if (gate) return gate;
 
   const event = events[index % events.length];
   const yearsAgo = event ? new Date().getFullYear() - parseInt(event.year, 10) : 0;

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useTranslate } from '@/i18n';
 
 interface OrientationChangeModalProps {
@@ -25,13 +25,7 @@ export default function OrientationChangeModal({
 }: OrientationChangeModalProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onCancel]);
+  useEscapeKey(onCancel);
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">

@@ -514,18 +514,44 @@ export function parseCommaList(param: string | null): string[] {
 }
 
 /**
+ * Parse a JSON request body, returning a 400 NextResponse on malformed JSON.
+ * Only guards JSON syntax — callers still validate the parsed shape.
+ *
+ * Usage:
+ *   const body = await parseJsonBody<ConnectRequest>(request);
+ *   if (body instanceof NextResponse) return body;
+ */
+export async function parseJsonBody<T>(
+  request: NextRequest,
+): Promise<T | NextResponse> {
+  try {
+    return await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+}
+
+/**
+ * Extract a human-readable message from a child_process `execFile` rejection,
+ * preferring the captured stderr (nmcli, hostnamectl, etc. put their real
+ * diagnostics there). Falls back to `fallback` when the error carries no
+ * stderr property at all.
+ */
+export function execErrorMessage(err: unknown, fallback: string): string {
+  return err && typeof err === 'object' && 'stderr' in err
+    ? String((err as { stderr: unknown }).stderr).trim()
+    : fallback;
+}
+
+/**
  * Parse and validate a version tag from a JSON request body.
  * Returns the tag string on success, or a NextResponse error on failure.
  */
 export async function parseTagParam(
   request: NextRequest,
 ): Promise<string | NextResponse> {
-  let body: { tag?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<{ tag?: string }>(request);
+  if (body instanceof NextResponse) return body;
   const tag = body.tag;
   if (!tag || typeof tag !== 'string') {
     return NextResponse.json({ error: 'Missing "tag" in request body' }, { status: 400 });

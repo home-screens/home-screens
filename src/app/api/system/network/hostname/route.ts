@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { readFile } from 'fs/promises';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import { validateHostname } from '@/lib/network-validation';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +13,8 @@ const execFileAsync = promisify(execFileCb);
 /* ─── Route handler ─────────────────────────── */
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  let body: { hostname: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<{ hostname: string }>(request);
+  if (body instanceof NextResponse) return body;
 
   const { hostname } = body;
 
@@ -32,11 +28,10 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await execFileAsync('sudo', ['hostnamectl', 'set-hostname', hostname]);
   } catch (err: unknown) {
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Failed to set hostname';
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: execErrorMessage(err, 'Failed to set hostname') },
+      { status: 500 },
+    );
   }
 
   // 3. Update /etc/hosts so avahi advertises the correct .local name.
@@ -70,11 +65,10 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await execFileAsync('sudo', ['systemctl', 'restart', 'avahi-daemon']);
   } catch (err: unknown) {
     // Non-fatal: avahi may not be installed; hostname change still succeeded
-    const message =
-      err && typeof err === 'object' && 'stderr' in err
-        ? String((err as { stderr: unknown }).stderr).trim()
-        : 'Unknown error';
-    console.warn('[network/hostname] avahi-daemon restart failed (non-fatal):', message);
+    console.warn(
+      '[network/hostname] avahi-daemon restart failed (non-fatal):',
+      execErrorMessage(err, 'Unknown error'),
+    );
   }
 
   // 5. Tell cloud-init to keep its hands off the hostname. Raspberry Pi OS

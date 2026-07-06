@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { TodoistConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
@@ -99,9 +99,8 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed to data, not time; re-snapshot `now` only when fresh API data arrives
   const now = useMemo(() => new Date(), [data]);
 
-  if (!data) {
-    return <ModuleLoadingState style={style} message={t('todoist.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('todoist.loading') });
+  if (gate) return gate;
 
   return (
     <ModuleWrapper style={style}>

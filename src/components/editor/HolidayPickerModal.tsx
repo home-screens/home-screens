@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { getSupplementalHolidays } from '@/lib/supplemental-holidays';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { CountdownEvent } from '@/types/config';
 import { useTranslate } from '@/i18n';
 
@@ -40,14 +41,7 @@ export default function HolidayPickerModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   // Fetch available countries on mount
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import type { RainMapConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState, ModuleEmptyState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { rainMapUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
@@ -231,13 +231,12 @@ export default function RainMapModule({
     };
   }, [frames, data?.host, radarTileGrid.tiles, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('rain-map.loading')} error={error} />;
-  }
-
-  if (!frames.length) {
-    return <ModuleEmptyState style={style} message={t('rain-map.noRadarData')} />;
-  }
+  const gate = moduleGate({
+    style, data, error,
+    loadingMessage: t('rain-map.loading'),
+    empty: !frames.length && t('rain-map.noRadarData'),
+  });
+  if (gate || !data) return gate;
 
   const currentFrame = frames[displayIndex];
   if (!currentFrame) return null;

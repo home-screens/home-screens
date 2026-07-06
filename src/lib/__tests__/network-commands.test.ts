@@ -23,6 +23,7 @@ import {
   uninhibitWatchdog,
   getManagementInterface,
   isPotentiallyManagementInterface,
+  readConnectionIpv4Settings,
   __resetForTests,
 } from '@/lib/network-commands';
 
@@ -500,5 +501,51 @@ describe('isPotentiallyManagementInterface', () => {
 
   it('returns false only on a definitive mismatch', () => {
     expect(isPotentiallyManagementInterface('eth0', 'wlan0')).toBe(false);
+  });
+});
+
+/* ─── readConnectionIpv4Settings ─────────────── */
+
+describe('readConnectionIpv4Settings', () => {
+  it('parses manual settings with addresses, gateway, and dns', async () => {
+    mockExecFileSuccess(
+      'ipv4.method:manual\n' +
+      'ipv4.addresses:192.168.1.50/24\n' +
+      'ipv4.gateway:192.168.1.1\n' +
+      'ipv4.dns:1.1.1.1 8.8.8.8\n',
+    );
+
+    const settings = await readConnectionIpv4Settings('uuid-1');
+
+    expect(settings).toEqual({
+      method: 'manual',
+      addresses: '192.168.1.50/24',
+      gateway: '192.168.1.1',
+      dns: '1.1.1.1 8.8.8.8',
+    });
+  });
+
+  it('defaults to auto and omits empty fields', async () => {
+    mockExecFileSuccess(
+      'ipv4.method:auto\nipv4.addresses:\nipv4.gateway:\nipv4.dns:\n',
+    );
+
+    const settings = await readConnectionIpv4Settings('uuid-1');
+
+    expect(settings).toEqual({ method: 'auto' });
+  });
+
+  it('unescapes nmcli terse-format colons in values', async () => {
+    mockExecFileSuccess('ipv4.method:manual\nipv4.addresses:192.168.1.50/24\nipv4.gateway:192.168.1.1\nipv4.dns:fd00\\:\\:1\n');
+
+    const settings = await readConnectionIpv4Settings('uuid-1');
+
+    expect(settings.dns).toBe('fd00::1');
+  });
+
+  it('propagates nmcli failures so callers pick their own fallback', async () => {
+    mockExecFileFailure(new Error('nmcli failed'));
+
+    await expect(readConnectionIpv4Settings('uuid-1')).rejects.toThrow('nmcli failed');
   });
 });

@@ -3,7 +3,7 @@
 import { Wind } from 'lucide-react';
 import type { AirQualityConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleLoadingState } from './ModuleStates';
+import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -76,9 +76,8 @@ export default function AirQualityModule({ config, style }: AirQualityModuleProp
     config.refreshIntervalMs ?? 600000,
   );
 
-  if (data === null) {
-    return <ModuleLoadingState style={style} message={t('air-quality.loading')} error={error} />;
-  }
+  const gate = moduleGate({ style, data, error, loadingMessage: t('air-quality.loading') });
+  if (gate || !data) return gate;
 
   const labelKey = AQI_LABEL_KEYS[data.aqi];
   const aqiLabel = labelKey ? t(`air-quality.labels.${labelKey}`) : t('air-quality.labels.unknown');
