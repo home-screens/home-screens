@@ -10,13 +10,15 @@ import {
 } from './financial/shared';
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
 import FinancialDataModule from './financial/FinancialDataModule';
-import { cryptoUrl } from '@/lib/fetch-keys';
+import { cryptoUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 
 interface CryptoModuleProps {
   config: CryptoConfig;
   style: ModuleStyle;
 }
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['crypto']?.ttlMs ?? 30_000;
 
 interface CryptoData {
   name: string;
@@ -76,7 +78,7 @@ export default function CryptoModule({ config, style }: CryptoModuleProps) {
   return (
     <FinancialDataModule<CryptoData>
       url={cryptoUrl(config) ?? ''}
-      refreshIntervalMs={config.refreshIntervalMs ?? 60000}
+      refreshIntervalMs={config.refreshIntervalMs ?? DEFAULT_REFRESH_MS}
       dataKey="prices"
       toFinancialItems={toFinancialItems}
       toCompactRows={toCompactRows}

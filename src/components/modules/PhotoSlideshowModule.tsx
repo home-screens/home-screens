@@ -6,7 +6,7 @@ import type { PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { photoSlideshowUrl } from '@/lib/fetch-keys';
+import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { useAuthImage } from '@/components/display/useAuthImage';
 
@@ -38,9 +38,11 @@ interface PhotoSlideshowModuleProps {
   style: ModuleStyle;
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000;
+
 export default function PhotoSlideshowModule({ config, style }: PhotoSlideshowModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<string[]>(photoSlideshowUrl(config), 600000);
+  const [data, error] = useFetchData<string[]>(photoSlideshowUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const files = data ?? [];
   const intervalMs = config.intervalMs ?? 30000;
   const index = useRotatingIndex(files.length, intervalMs);

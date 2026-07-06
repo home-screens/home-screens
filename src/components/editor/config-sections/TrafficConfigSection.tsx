@@ -7,6 +7,9 @@ import { useIndexListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['traffic']?.ttlMs ?? 300_000;
 
 export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ routes?: { label: string; origin: string; destination: string }[]; refreshIntervalMs?: number }>(mod, screenId);
@@ -25,7 +28,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     <div className="space-y-2">
       <Slider
         label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? 300000) / 60000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
         min={1}
         max={30}
         onChange={(v) => set({ refreshIntervalMs: v * 60000 })}

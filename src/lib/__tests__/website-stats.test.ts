@@ -59,6 +59,7 @@ function countWeatherProviderFiles(): number {
     'types.ts',
     'units.ts',
     'derive.ts',
+    'daily.ts',
     'fetch.ts',
     'icons.ts',
     'eccc-stations.ts',

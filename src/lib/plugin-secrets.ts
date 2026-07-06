@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
+import { createJsonStore } from '@/lib/json-store';
 
 type PluginSecretsStore = Record<string, string>;
 
@@ -19,14 +20,26 @@ function legacyPluginSecretsPath(pluginId: string): string {
   return path.join(process.cwd(), 'data', 'plugins', safeId, 'secrets.json');
 }
 
-// --- Write serialization (prevents TOCTOU races on concurrent secret saves) ---
+// --- Per-plugin stores ---
+// One json-store per secrets file gives each plugin its own serialized
+// write queue (prevents TOCTOU races on concurrent secret saves) plus the
+// tmp+rename atomic write, 0o600 file mode, and 0o700 directory mode.
 
-let writeQueue: Promise<void> = Promise.resolve();
+const stores = new Map<string, ReturnType<typeof createJsonStore<PluginSecretsStore>>>();
 
-function serializedWrite(fn: () => Promise<void>): Promise<void> {
-  const next = writeQueue.then(fn);
-  writeQueue = next.catch(() => {});
-  return next;
+function storeFor(pluginId: string) {
+  const safeId = sanitizePluginId(pluginId);
+  let store = stores.get(safeId);
+  if (!store) {
+    store = createJsonStore<PluginSecretsStore>({
+      path: path.join('data', 'plugin-secrets', `${safeId}.json`),
+      defaultValue: {},
+      chmod: 0o600,
+      dirMode: 0o700,
+    });
+    stores.set(safeId, store);
+  }
+  return store;
 }
 
 // --- Internal helpers ---
@@ -45,19 +58,6 @@ async function readPluginSecrets(pluginId: string): Promise<PluginSecretsStore> 
   } catch {
     return {};
   }
-}
-
-async function writePluginSecrets(pluginId: string, store: PluginSecretsStore): Promise<void> {
-  const filePath = pluginSecretsPath(pluginId);
-  // 0o700 on the directory mirrors the 0o600 intent on each file — keeps the
-  // tree unreadable to other users even if the per-file chmod races.
-  await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-  const tmp = filePath + '.tmp';
-  await fs.writeFile(tmp, JSON.stringify(store, null, 2), 'utf-8');
-  await fs.chmod(tmp, 0o600);
-  await fs.rename(tmp, filePath);
-  // Clean up any legacy file so read-fallback never surfaces a stale value.
-  await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
 }
 
 /** Validate that a secret key is declared in the plugin's manifest */
@@ -80,21 +80,29 @@ export async function setPluginSecret(pluginId: string, key: string, value: stri
   if (!(await isValidSecretKey(pluginId, key))) {
     throw new Error(`Secret key "${key}" is not declared in plugin manifest`);
   }
-  return serializedWrite(async () => {
+  await storeFor(pluginId).updateAtomic(async () => {
+    // Read through the legacy-fallback path so keys still living only in the
+    // legacy file survive this write (which supersedes the legacy file).
     const store = await readPluginSecrets(pluginId);
-    store[key] = value;
-    await writePluginSecrets(pluginId, store);
+    return { ...store, [key]: value };
   });
+  // Clean up any legacy file so read-fallback never surfaces a stale value.
+  await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
 }
 
 /** Delete a single plugin secret. Skips write if key wasn't present. */
 export async function deletePluginSecret(pluginId: string, key: string): Promise<void> {
-  return serializedWrite(async () => {
+  let removed = false;
+  await storeFor(pluginId).updateAtomic(async (current) => {
     const store = await readPluginSecrets(pluginId);
-    if (!(key in store)) return;
-    delete store[key];
-    await writePluginSecrets(pluginId, store);
+    if (!(key in store)) return current; // no-op, skip write
+    removed = true;
+    const { [key]: _dropped, ...rest } = store;
+    return rest;
   });
+  if (removed) {
+    await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
+  }
 }
 
 /** Get configured status for all declared secrets (key → boolean). */
@@ -111,10 +119,10 @@ export async function getPluginSecretStatus(pluginId: string): Promise<Record<st
 
 /** Delete all secrets for a plugin (called on uninstall). */
 export async function deleteAllPluginSecrets(pluginId: string): Promise<void> {
-  return serializedWrite(async () => {
-    await fs.unlink(pluginSecretsPath(pluginId)).catch(() => {});
-    await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
-  });
+  // Legacy file goes first so a queued migration can't re-adopt it after the
+  // main file is removed.
+  await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
+  await storeFor(pluginId).remove().catch(() => {});
 }
 
 /**
@@ -126,27 +134,35 @@ export async function deleteAllPluginSecrets(pluginId: string): Promise<void> {
  * upgrade can't race the migration.
  */
 export async function migrateLegacyPluginSecrets(pluginId: string): Promise<void> {
-  return serializedWrite(async () => {
-    const legacyPath = legacyPluginSecretsPath(pluginId);
+  const legacyPath = legacyPluginSecretsPath(pluginId);
+  let migrated = false;
+  await storeFor(pluginId).updateAtomic(async (current) => {
     let data: string;
     try {
       data = await fs.readFile(legacyPath, 'utf-8');
     } catch {
-      return;
+      return current; // no legacy file — nothing to migrate
     }
-    const newPath = pluginSecretsPath(pluginId);
     try {
-      await fs.access(newPath);
+      await fs.access(pluginSecretsPath(pluginId));
+      // New-location file already exists — it wins; drop the stale legacy copy.
       await fs.unlink(legacyPath).catch(() => {});
-      return;
+      return current;
     } catch {
-      // new path absent — proceed
+      // new path absent — proceed with adoption
     }
-    await fs.mkdir(path.dirname(newPath), { recursive: true, mode: 0o700 });
-    const tmp = newPath + '.tmp';
-    await fs.writeFile(tmp, data, 'utf-8');
-    await fs.chmod(tmp, 0o600);
-    await fs.rename(tmp, newPath);
-    await fs.unlink(legacyPath).catch(() => {});
+    let parsed: PluginSecretsStore;
+    try {
+      parsed = JSON.parse(data) as PluginSecretsStore;
+    } catch {
+      return current; // corrupt legacy file — nothing usable to migrate
+    }
+    migrated = true;
+    return parsed;
   });
+  if (migrated) {
+    // Only after the new-location write has landed, so a crash mid-migration
+    // never leaves the token in neither place.
+    await fs.unlink(legacyPath).catch(() => {});
+  }
 }

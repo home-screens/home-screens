@@ -1,6 +1,7 @@
 import type { HourlyWeather, ForecastDay, WeatherAlert, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
 import { inferIconFromText } from './icons';
+import { createTTLCache } from '../api-utils';
 
 // ── NOAA/NWS API response types ──────────────────────────────────────
 
@@ -83,9 +84,8 @@ function enrichWithObservation(result: HourlyWeather, obs: NOAAObservation, isMe
 /** @internal */
 export class NOAAProvider implements WeatherProvider {
   private static USER_AGENT = '(home-screens, github.com/home-screens/home-screens)';
-  private static gridCache = new Map<string, { data: NOAAPointProperties; ts: number }>();
-  private static GRID_TTL = 24 * 60 * 60 * 1000; // 24 hours
-  private static MAX_CACHE = 20;
+  // Grid point resolution is stable for a location — resolve once, reuse for a day.
+  private static gridCache = createTTLCache<NOAAPointProperties>(24 * 60 * 60 * 1000);
 
   // No API key needed — NOAA is free and public
   constructor() {}
@@ -95,7 +95,7 @@ export class NOAAProvider implements WeatherProvider {
   private async getGridPoint(lat: number, lon: number): Promise<NOAAPointProperties> {
     const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
     const cached = NOAAProvider.gridCache.get(key);
-    if (cached && Date.now() - cached.ts < NOAAProvider.GRID_TTL) return cached.data;
+    if (cached) return cached;
 
     const data = await fetchWeatherJSON<{ properties: NOAAPointProperties }>(
       `https://api.weather.gov/points/${lat},${lon}`,
@@ -103,12 +103,7 @@ export class NOAAProvider implements WeatherProvider {
       NOAAProvider.fetchInit,
     );
     const grid = data.properties;
-    NOAAProvider.gridCache.set(key, { data: grid, ts: Date.now() });
-    // Evict oldest entry if cache is full
-    if (NOAAProvider.gridCache.size > NOAAProvider.MAX_CACHE) {
-      const oldest = NOAAProvider.gridCache.keys().next().value;
-      if (oldest) NOAAProvider.gridCache.delete(oldest);
-    }
+    NOAAProvider.gridCache.set(key, grid);
     return grid;
   }
 

@@ -5,7 +5,7 @@ import type { RainMapConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { rainMapUrl } from '@/lib/fetch-keys';
+import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 
@@ -45,6 +45,7 @@ function lat2tile(lat: number, zoom: number): number {
 
 const TILE_SIZE = 256;
 const MAX_RADAR_ZOOM = 7;
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000;
 
 const BASE_TILE_URLS: Record<string, string> = {
   dark: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
@@ -85,7 +86,7 @@ export default function RainMapModule({
   const showTimeline = config.showTimeline !== false;
   const mapStyle = config.mapStyle ?? 'dark';
   const colorScheme = config.colorScheme ?? 2;
-  const refreshMs = config.refreshIntervalMs ?? 600000;
+  const refreshMs = config.refreshIntervalMs ?? DEFAULT_REFRESH_MS;
 
   const [data, error] = useFetchData<RainViewerData>(rainMapUrl(), refreshMs);
 

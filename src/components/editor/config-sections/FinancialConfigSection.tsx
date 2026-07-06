@@ -6,6 +6,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 type FinancialView = StockTickerView | CryptoView;
 
@@ -66,7 +67,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
       )}
       <Slider
         label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? 60000) / 1000}
+        value={(c.refreshIntervalMs ?? (FETCH_KEY_REGISTRY[mod.type]?.ttlMs ?? 30_000)) / 1000}
         min={30}
         max={600}
         step={30}

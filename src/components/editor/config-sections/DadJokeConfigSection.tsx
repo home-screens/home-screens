@@ -6,6 +6,9 @@ import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['dad-joke']?.ttlMs ?? 60_000;
 
 export function DadJokeConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -15,7 +18,7 @@ export function DadJokeConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     <>
       <Slider
         label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? 60000) / 1000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 1000}
         min={30}
         max={3600}
         step={30}

@@ -5,6 +5,9 @@ import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['air-quality']?.ttlMs ?? 300_000;
 
 export function AirQualityConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -16,7 +19,7 @@ export function AirQualityConfigSection({ mod, screenId }: { mod: ModuleInstance
       <Toggle label={t('configSections.air-quality.showPollutants')} checked={!!c.showPollutants} onChange={(v) => set({ showPollutants: v })} />
       <Slider
         label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? 600000) / 60000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
         min={5}
         max={120}
         step={5}

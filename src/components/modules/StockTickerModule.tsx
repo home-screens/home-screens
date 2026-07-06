@@ -11,12 +11,14 @@ import {
 } from './financial/shared';
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
 import FinancialDataModule from './financial/FinancialDataModule';
-import { stocksUrl } from '@/lib/fetch-keys';
+import { stocksUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 interface StockTickerModuleProps {
   config: StockTickerConfig;
   style: ModuleStyle;
 }
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['stock-ticker']?.ttlMs ?? 30_000;
 
 interface StockData {
   symbol: string;
@@ -98,7 +100,7 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
   return (
     <FinancialDataModule<StockData>
       url={stocksUrl(config) ?? ''}
-      refreshIntervalMs={config.refreshIntervalMs ?? 60000}
+      refreshIntervalMs={config.refreshIntervalMs ?? DEFAULT_REFRESH_MS}
       dataKey="stocks"
       toFinancialItems={toFinancialItems}
       toCompactRows={toCompactRows}

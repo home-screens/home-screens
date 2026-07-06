@@ -7,6 +7,9 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000;
 
 export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -60,7 +63,7 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ mapStyle: v })}
         options={MAP_STYLE_OPTIONS}
       />
-      <Slider label={t('common.refreshMinutes')} value={(c.refreshIntervalMs ?? 600000) / 60000} min={5} max={30} step={5} onChange={(v) => set({ refreshIntervalMs: v * 60000 })} />
+      <Slider label={t('common.refreshMinutes')} value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000} min={5} max={30} step={5} onChange={(v) => set({ refreshIntervalMs: v * 60000 })} />
       <p className="text-xs text-hs-text-faint">{t('configSections.rain-map.locationHelp')}</p>
     </>
   );

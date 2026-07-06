@@ -4,7 +4,7 @@ import type { StandingsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
 import { moduleGate } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { standingsUrl } from '@/lib/fetch-keys';
+import { standingsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import { TableView } from './TableView';
 import { CompactView } from './CompactView';
@@ -16,6 +16,8 @@ interface StandingsModuleProps {
   style: ModuleStyle;
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['standings']?.ttlMs ?? 300_000;
+
 export default function StandingsModule({ config, style }: StandingsModuleProps) {
   const t = useTranslate('modules');
   const grouping = config.grouping ?? 'division';
@@ -23,7 +25,7 @@ export default function StandingsModule({ config, style }: StandingsModuleProps)
 
   const [data, error] = useFetchData<{ groups: StandingsGroup[] }>(
     standingsUrl(config),
-    config.refreshIntervalMs ?? 300000,
+    config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
   );
 
   const groups = data?.groups ?? [];

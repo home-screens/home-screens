@@ -10,6 +10,7 @@ import {
   Star, Shapes,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
+import { FETCH_KEY_REGISTRY } from './fetch-keys';
 import { resolveLucideIcon } from './lucide-resolver';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
@@ -464,7 +465,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       showAQI: true,
       showPollutants: false,
-      refreshIntervalMs: 900000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['air-quality']?.ttlMs ?? 300_000,
     },
     defaultSize: { w: 350, h: 250 },
   },
@@ -485,7 +486,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       opacity: 0.7,
       showTimestamp: true,
       showTimeline: true,
-      refreshIntervalMs: 600000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000,
       mapStyle: 'dark',
     },
     defaultSize: { w: 500, h: 500 },
@@ -501,7 +502,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       feedUrl: '',
       view: 'headline',
-      refreshIntervalMs: 300000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000,
       rotateIntervalMs: 10000,
       maxItems: 10,
       showTimestamp: false,
@@ -518,7 +519,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'News & Finance',
     defaultConfig: {
       symbols: 'AAPL,GOOGL,MSFT',
-      refreshIntervalMs: 60000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['stock-ticker']?.ttlMs ?? 30_000,
       view: 'cards',
       tickerSpeed: 5,
     },
@@ -531,7 +532,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'News & Finance',
     defaultConfig: {
       ids: 'bitcoin,ethereum',
-      refreshIntervalMs: 60000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['crypto']?.ttlMs ?? 30_000,
       view: 'cards',
       tickerSpeed: 5,
     },
@@ -545,7 +546,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       view: 'scoreboard',
       leagues: ['nba', 'nfl'],
-      refreshIntervalMs: 60000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000,
     },
     defaultSize: { w: 500, h: 300 },
   },
@@ -561,7 +562,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       teamsToShow: 0,
       showPlayoffLine: true,
       rotationIntervalMs: 10000,
-      refreshIntervalMs: 300000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['standings']?.ttlMs ?? 300_000,
     },
     defaultSize: { w: 500, h: 500 },
   },
@@ -573,7 +574,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: Laugh,
     category: 'Knowledge & Fun',
     defaultConfig: {
-      refreshIntervalMs: 60000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['dad-joke']?.ttlMs ?? 60_000,
       accentColor: '#000000',
       showDividers: true,
     },
@@ -585,7 +586,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: Quote,
     category: 'Knowledge & Fun',
     defaultConfig: {
-      refreshIntervalMs: 300000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['quote']?.ttlMs ?? 3_600_000,
       accentColor: '#000000',
     },
     defaultSize: { w: 500, h: 200 },
@@ -607,7 +608,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: History,
     category: 'Knowledge & Fun',
     defaultConfig: {
-      refreshIntervalMs: 3600000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000,
       rotationIntervalMs: 10000,
       accentColor: '#000000',
       showDividers: true,
@@ -668,7 +669,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showProject: true,
       showDescription: false,
       maxTasks: 30,
-      refreshIntervalMs: 300000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000,
       title: 'Todoist',
     },
     defaultSize: { w: 400, h: 550 },
@@ -788,7 +789,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       intervalMs: 30000,
       transition: 'fade',
       objectFit: 'cover',
-      refreshIntervalMs: 600000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000,
     },
     defaultSize: { w: 500, h: 400 },
   },
@@ -924,7 +925,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'Travel',
     defaultConfig: {
       routes: [],
-      refreshIntervalMs: 300000,
+      refreshIntervalMs: FETCH_KEY_REGISTRY['traffic']?.ttlMs ?? 300_000,
     },
     defaultSize: { w: 450, h: 300 },
   },

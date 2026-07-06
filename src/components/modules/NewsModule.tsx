@@ -5,7 +5,7 @@ import ModuleWrapper from './ModuleWrapper';
 import TickerMarquee from './TickerMarquee';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { newsUrl } from '@/lib/fetch-keys';
+import { newsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
@@ -17,6 +17,8 @@ interface NewsModuleProps {
   config: NewsConfig;
   style: ModuleStyle;
 }
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000;
 
 interface NewsItem {
   title: string;
@@ -132,7 +134,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   const t = useTranslate('modules');
   const [data, error] = useFetchData<{ items: NewsItem[] }>(
     newsUrl(config),
-    config.refreshIntervalMs ?? 300000,
+    config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
   );
   const allItems = data?.items ?? [];
   const view = config.view ?? 'headline';

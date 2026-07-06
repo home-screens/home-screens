@@ -1,5 +1,5 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
-import { fetchWithTimeout } from '@/lib/api-utils';
+import { fetchWithTimeout, createTTLCache } from '@/lib/api-utils';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, kmhToWindUnit } from './units';
@@ -25,7 +25,6 @@ import { ECCC_STATIONS, type EcccStation } from './eccc-stations';
 const ECCC_BASE = 'https://dd.weather.gc.ca/today/citypage_weather';
 const STATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const XML_CACHE_TTL_MS = 10 * 60 * 1000;
-const MAX_CACHE = 20;
 // Proximity guard, not a citizenship check: this lets US border towns near a
 // Canadian station (Detroit↔Windsor, Buffalo↔Hamilton, Blaine↔Surrey) pass
 // through and get a reasonable nearby forecast. Users well outside the zone
@@ -159,24 +158,14 @@ function parseTimeStamp14(ts: string | null): string | null {
 
 // ── Provider ─────────────────────────────────────────────────────────
 
-interface StationCacheEntry {
-  station: EcccStation;
-  ts: number;
-}
-
-interface XmlCacheEntry {
-  xml: string;
-  ts: number;
-}
-
 /** @internal */
 export class EnvCanadaProvider implements WeatherProvider {
   // Per-(lat,lon) nearest-station resolution. Same shape as NOAAProvider's
   // gridCache — resolve once, reuse for a day.
-  private static stationCache = new Map<string, StationCacheEntry>();
+  private static stationCache = createTTLCache<EcccStation>(STATION_CACHE_TTL_MS);
 
   // Per-siteCode XML cache. ECCC refreshes each site roughly every 10 minutes.
-  private static xmlCache = new Map<string, XmlCacheEntry>();
+  private static xmlCache = createTTLCache<string>(XML_CACHE_TTL_MS);
 
   // Coalesce concurrent XML fetches for the same site so we issue one upstream
   // call instead of one per caller when the hourly + forecast paths race.
@@ -188,9 +177,7 @@ export class EnvCanadaProvider implements WeatherProvider {
   private resolveStation(lat: number, lon: number): EcccStation {
     const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
     const cached = EnvCanadaProvider.stationCache.get(key);
-    if (cached && Date.now() - cached.ts < STATION_CACHE_TTL_MS) {
-      return cached.station;
-    }
+    if (cached) return cached;
 
     const nearest = findNearestStation(lat, lon);
     if (!nearest) {
@@ -205,14 +192,7 @@ export class EnvCanadaProvider implements WeatherProvider {
       );
     }
 
-    EnvCanadaProvider.stationCache.set(key, {
-      station: nearest.station,
-      ts: Date.now(),
-    });
-    if (EnvCanadaProvider.stationCache.size > MAX_CACHE) {
-      const oldest = EnvCanadaProvider.stationCache.keys().next().value;
-      if (oldest) EnvCanadaProvider.stationCache.delete(oldest);
-    }
+    EnvCanadaProvider.stationCache.set(key, nearest.station);
     return nearest.station;
   }
 
@@ -252,7 +232,7 @@ export class EnvCanadaProvider implements WeatherProvider {
   private async fetchSiteXml(station: EcccStation): Promise<string> {
     const key = station.site;
     const cached = EnvCanadaProvider.xmlCache.get(key);
-    if (cached && Date.now() - cached.ts < XML_CACHE_TTL_MS) return cached.xml;
+    if (cached != null) return cached;
 
     const existing = EnvCanadaProvider.inFlight.get(key);
     if (existing) return existing;
@@ -297,11 +277,7 @@ export class EnvCanadaProvider implements WeatherProvider {
 
       const xmlUrl = `${ECCC_BASE}/${station.prov}/${hour}/${filename}`;
       const xml = await this.fetchText(xmlUrl);
-      EnvCanadaProvider.xmlCache.set(key, { xml, ts: Date.now() });
-      if (EnvCanadaProvider.xmlCache.size > MAX_CACHE) {
-        const oldest = EnvCanadaProvider.xmlCache.keys().next().value;
-        if (oldest) EnvCanadaProvider.xmlCache.delete(oldest);
-      }
+      EnvCanadaProvider.xmlCache.set(key, xml);
       return xml;
     })().finally(() => {
       EnvCanadaProvider.inFlight.delete(key);

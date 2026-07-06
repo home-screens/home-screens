@@ -7,6 +7,9 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StandingsView, StandingsGrouping } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['standings']?.ttlMs ?? 300_000;
 
 const STANDINGS_LEAGUES: { value: string; label: string }[] = [
   { value: 'nfl', label: 'NFL' },
@@ -101,7 +104,7 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
       />
       <Slider
         label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? 300000) / 60000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
         min={1}
         max={60}
         step={1}

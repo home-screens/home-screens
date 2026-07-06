@@ -4,7 +4,7 @@ import type { SportsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
 import { moduleGate } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { sportsUrl } from '@/lib/fetch-keys';
+import { sportsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import { ScoreboardView } from './ScoreboardView';
 import { CardsView } from './CardsView';
@@ -17,11 +17,13 @@ interface SportsModuleProps {
   style: ModuleStyle;
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000;
+
 export default function SportsModule({ config, style }: SportsModuleProps) {
   const t = useTranslate('modules');
   const [data, error] = useFetchData<{ games: Game[] }>(
     sportsUrl(config),
-    config.refreshIntervalMs ?? 60000,
+    config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
   );
   const games = data?.games ?? [];
   const view = config.view ?? 'scoreboard';

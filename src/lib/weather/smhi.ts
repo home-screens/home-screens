@@ -3,6 +3,7 @@ import { fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
+import { aggregateDaily } from './daily';
 
 // ── SMHI (Swedish Meteorological and Hydrological Institute) ─────────
 // https://opendata.smhi.se/metfcst/snow1gv1
@@ -156,66 +157,31 @@ export class SMHIProvider implements WeatherProvider {
     const data = await this.fetchData(lat, lon);
     const isMetric = units === 'metric';
 
-    const byDate = new Map<string, {
-      temps: number[];
-      symbols: Map<number, number>;
-      precipMm: number;
-      maxPrecipProb: number;
-      windSpeedsMs: number[];
-      humidities: number[];
-    }>();
+    const days = aggregateDaily(
+      data.timeSeries.map((entry) => ({
+        date: entry.time.split('T')[0],
+        tempC: entry.data.air_temperature,
+        humidity: entry.data.relative_humidity,
+        windSpeedMs: entry.data.wind_speed,
+        symbol: entry.data.symbol_code,
+        precipMm: entry.data.precipitation_amount_mean,
+        precipProb: entry.data.probability_of_precipitation,
+      })),
+      7,
+    );
 
-    for (const entry of data.timeSeries) {
-      const date = entry.time.split('T')[0];
-      let day = byDate.get(date);
-      if (!day) {
-        day = { temps: [], symbols: new Map(), precipMm: 0, maxPrecipProb: 0, windSpeedsMs: [], humidities: [] };
-        byDate.set(date, day);
-      }
-      const d = entry.data;
-      if (d.air_temperature != null) day.temps.push(d.air_temperature);
-      if (d.relative_humidity != null) day.humidities.push(d.relative_humidity);
-      if (d.wind_speed != null) day.windSpeedsMs.push(d.wind_speed);
-      if (d.symbol_code != null) day.symbols.set(d.symbol_code, (day.symbols.get(d.symbol_code) ?? 0) + 1);
-      if (d.precipitation_amount_mean != null) day.precipMm += d.precipitation_amount_mean;
-      if (d.probability_of_precipitation != null && d.probability_of_precipitation > day.maxPrecipProb) {
-        day.maxPrecipProb = d.probability_of_precipitation;
-      }
-    }
-
-    return Array.from(byDate.entries()).slice(0, 7).map(([date, day]) => {
-      const high = day.temps.length ? Math.max(...day.temps) : 0;
-      const low = day.temps.length ? Math.min(...day.temps) : 0;
-
-      let dominantSymbol: number | undefined;
-      let dominantCount = 0;
-      for (const [sym, count] of day.symbols) {
-        if (count > dominantCount) {
-          dominantSymbol = sym;
-          dominantCount = count;
-        }
-      }
-
-      const avgWindMs = day.windSpeedsMs.length
-        ? day.windSpeedsMs.reduce((a, b) => a + b, 0) / day.windSpeedsMs.length
-        : undefined;
-      const avgHumidity = day.humidities.length
-        ? day.humidities.reduce((a, b) => a + b, 0) / day.humidities.length
-        : undefined;
-
-      return {
-        date,
-        high: Math.round(celsiusToUnit(high, isMetric)),
-        low: Math.round(celsiusToUnit(low, isMetric)),
-        icon: dominantSymbol != null ? wsymb2ToIcon(dominantSymbol, true) : FALLBACK_ICON,
-        description: dominantSymbol != null
-          ? (WSYMB2_DESCRIPTIONS[dominantSymbol] ?? 'Unknown')
-          : 'Unknown',
-        precipProbability: day.maxPrecipProb,
-        precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
-        humidity: avgHumidity != null ? Math.round(avgHumidity) : undefined,
-        windSpeed: avgWindMs != null ? Math.round(msToWindUnit(avgWindMs, isMetric)) : undefined,
-      };
-    });
+    return days.map((day) => ({
+      date: day.date,
+      high: Math.round(celsiusToUnit(day.highC, isMetric)),
+      low: Math.round(celsiusToUnit(day.lowC, isMetric)),
+      icon: day.symbol != null ? wsymb2ToIcon(day.symbol, true) : FALLBACK_ICON,
+      description: day.symbol != null
+        ? (WSYMB2_DESCRIPTIONS[day.symbol] ?? 'Unknown')
+        : 'Unknown',
+      precipProbability: day.precipProb,
+      precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
+      humidity: day.humidity,
+      windSpeed: day.windSpeedMs != null ? Math.round(msToWindUnit(day.windSpeedMs, isMetric)) : undefined,
+    }));
   }
 }

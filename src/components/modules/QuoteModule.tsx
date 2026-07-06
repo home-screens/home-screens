@@ -4,7 +4,7 @@ import type { QuoteConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { quoteUrl } from '@/lib/fetch-keys';
+import { quoteUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate } from '@/i18n';
@@ -14,9 +14,11 @@ interface QuoteModuleProps {
   style: ModuleStyle;
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['quote']?.ttlMs ?? 3_600_000;
+
 export default function QuoteModule({ config, style }: QuoteModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<{ quote: string; author: string }>(quoteUrl(), config.refreshIntervalMs ?? 300000);
+  const [data, error] = useFetchData<{ quote: string; author: string }>(quoteUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.10);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 

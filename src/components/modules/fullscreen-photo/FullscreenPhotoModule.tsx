@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { FullscreenPhotoConfig, ModuleStyle } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
-import { photoSlideshowUrl } from '@/lib/fetch-keys';
+import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useAuthImage } from '@/components/display/useAuthImage';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
@@ -213,7 +213,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   const isSinglePhoto = config.file !== undefined;
 
   // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo
-  const [data] = useFetchData<string[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), 600000);
+  const [data] = useFetchData<string[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
   const files = data ?? [];
 
   const intervalMs = config.intervalMs ?? 30000;

@@ -5,7 +5,7 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
-import { mealsDataUrl } from '@/lib/fetch-keys';
+import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
 import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
@@ -36,7 +36,7 @@ export default function FullscreenMealPlannerModule({
   fullscreenTheme,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
-  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
+  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings now come from the shared meals.json (edited via /remote), not per-module config

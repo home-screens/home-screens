@@ -10,6 +10,9 @@ interface JsonStoreOptions<T> {
   backup?: boolean;
   /** Set file permissions after write (e.g., 0o600 for secrets) */
   chmod?: number;
+  /** Mode for the containing directory when it has to be created
+   *  (e.g., 0o700 so a secrets tree stays unreadable to other users) */
+  dirMode?: number;
   /**
    * Read error strategy:
    * - 'default': return defaultValue for any error
@@ -41,7 +44,7 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
 
   async function writeImpl(data: T): Promise<void> {
     const filePath = resolvedPath();
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.mkdir(path.dirname(filePath), { recursive: true, mode: opts.dirMode });
     if (opts.backup) {
       try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
     }
@@ -105,10 +108,29 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
     });
   }
 
+  /**
+   * Queue deletion of the backing file (e.g. uninstall/cleanup flows).
+   * Serialized through the same queue as `write`/`updateAtomic`, so an
+   * earlier queued write can't land after the removal and resurrect the
+   * file. A missing file is a no-op; other unlink errors propagate.
+   */
+  function remove(): Promise<void> {
+    const next = writeQueue.then(async () => {
+      try {
+        await fs.unlink(resolvedPath());
+      } catch (err: unknown) {
+        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+      }
+    });
+    writeQueue = next.catch(() => {});
+    return next;
+  }
+
   return {
     read,
     write,
     updateAtomic,
+    remove,
     get filePath() { return resolvedPath(); },
   };
 }

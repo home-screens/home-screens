@@ -1,6 +1,7 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
 import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
+import { average } from './daily';
 
 // ── OpenWeatherMap API response types ────────────────────────────────
 
@@ -78,6 +79,10 @@ function groupByDate(entries: OWMForecastEntry[]): Map<string, DayAccumulator> {
 }
 
 function aggregateDay(date: string, day: DayAccumulator, units: string, mapIcon: (icon: string) => string): ForecastDay {
+  // Unlike the hourly-timeseries providers (yr/smhi, see daily.ts), OWM's
+  // 3-hourly data uses the middle-of-day entry as the representative
+  // icon/description rather than the most frequent symbol — deliberate, since
+  // with ≤8 samples/day the midday entry beats a frequency count.
   return {
     date,
     high: Math.round(Math.max(...day.temps)),
@@ -86,8 +91,8 @@ function aggregateDay(date: string, day: DayAccumulator, units: string, mapIcon:
     description: day.descs[Math.floor(day.descs.length / 2)] ?? '',
     precipProbability: Math.round(Math.max(...day.pop)),
     precipAmount: units === 'imperial' ? Math.round(day.rain / 25.4 * 100) / 100 : Math.round(day.rain * 10) / 10,
-    humidity: Math.round(day.humidity.reduce((a, b) => a + b, 0) / day.humidity.length),
-    windSpeed: Math.round(day.wind.reduce((a, b) => a + b, 0) / day.wind.length),
+    humidity: Math.round(average(day.humidity) ?? 0),
+    windSpeed: Math.round(average(day.wind) ?? 0),
   };
 }
 

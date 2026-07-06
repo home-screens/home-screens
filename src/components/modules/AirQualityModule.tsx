@@ -5,7 +5,7 @@ import type { AirQualityConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { airQualityUrl } from '@/lib/fetch-keys';
+import { airQualityUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
@@ -38,6 +38,8 @@ const AQI_COLORS: Record<number, string> = {
   4: '#ef4444',
   5: '#a855f7',
 };
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['air-quality']?.ttlMs ?? 300_000;
 
 // WHO guideline thresholds (µg/m³) for relative bar widths
 const WHO_THRESHOLDS: Record<string, number> = {
@@ -73,7 +75,7 @@ export default function AirQualityModule({ config, style }: AirQualityModuleProp
   const t = useTranslate('modules');
   const [data, error] = useFetchData<AirQualityData>(
     airQualityUrl(),
-    config.refreshIntervalMs ?? 600000,
+    config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
   );
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('air-quality.loading') });

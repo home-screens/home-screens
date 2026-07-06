@@ -3,6 +3,7 @@ import { fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
+import { createTTLCache } from '../api-utils';
 
 // ── UK Met Office Weather DataHub ────────────────────────────────────
 // https://datahub.metoffice.gov.uk/docs/f/category/site-specific
@@ -17,7 +18,6 @@ import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
 
 const ENDPOINT_BASE = 'https://data.hub.api.metoffice.gov.uk/sitespecific/v0/point';
 const CACHE_TTL_MS = 30 * 60 * 1000;
-const MAX_CACHE = 20;
 const DAILY_REQUEST_CAP = 320; // hard ceiling below the 360/day free-tier quota
 const DAILY_WARN_HIGH = 280;
 const DAILY_WARN_MED = 180;
@@ -148,17 +148,12 @@ export function weatherCodeDescription(code: number | undefined): string {
 
 // ── Met Office provider ──────────────────────────────────────────────
 
-interface CacheEntry {
-  data: MetOfficeResponse;
-  ts: number;
-}
-
 /** @internal */
 export class MetOfficeProvider implements WeatherProvider {
   // Per-frequency, per-location cache. 30-min TTL aligns with Met Office's
   // hourly model-run cadence — any call inside the window would return
   // identical data anyway.
-  private static cache = new Map<string, CacheEntry>();
+  private static cache = createTTLCache<MetOfficeResponse>(CACHE_TTL_MS);
 
   // Coalesces concurrent cache misses for the same key so we only issue one
   // upstream call and bump the counter once, instead of one per caller.
@@ -212,7 +207,7 @@ export class MetOfficeProvider implements WeatherProvider {
     const key = `${frequency}:${latStr},${lonStr}`;
 
     const cached = MetOfficeProvider.cache.get(key);
-    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return cached.data;
+    if (cached) return cached;
 
     // If another caller is already fetching this key, reuse its promise so we
     // don't issue duplicate upstream calls (each of which would bump the counter).
@@ -230,11 +225,7 @@ export class MetOfficeProvider implements WeatherProvider {
       headers: { apikey: this.apiKey, Accept: 'application/json' },
     })
       .then((data) => {
-        MetOfficeProvider.cache.set(key, { data, ts: Date.now() });
-        if (MetOfficeProvider.cache.size > MAX_CACHE) {
-          const oldest = MetOfficeProvider.cache.keys().next().value;
-          if (oldest) MetOfficeProvider.cache.delete(oldest);
-        }
+        MetOfficeProvider.cache.set(key, data);
         return data;
       })
       .finally(() => {

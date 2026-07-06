@@ -6,6 +6,9 @@ import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000;
 
 export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -23,7 +26,7 @@ export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       />
       <Slider
         label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? 86400000) / 60000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
         min={5}
         max={1440}
         step={5}

@@ -5,7 +5,7 @@ import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { historyUrl } from '@/lib/fetch-keys';
+import { historyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, resolveAccent } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { SectionHeader } from './shared/SectionHeader';
@@ -23,9 +23,11 @@ interface HistoryEvent {
   source?: 'muffinlabs' | 'wikipedia';
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000;
+
 export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(config), config.refreshIntervalMs ?? 86400000);
+  const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const events = data?.events ?? [];
 
   const rotationMs = config.rotationIntervalMs ?? 10000;

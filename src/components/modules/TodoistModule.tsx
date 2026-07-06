@@ -7,7 +7,7 @@ import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
-import { todoistUrl } from '@/lib/fetch-keys';
+import { todoistUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
 import type { TodoistData } from './todoist/todoist-utils';
@@ -22,9 +22,11 @@ interface TodoistModuleProps {
   style: ModuleStyle;
 }
 
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
+
 export default function TodoistModule({ config, style }: TodoistModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? 300000);
+  const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   // Optimistic close: tasks the user has tapped, hidden locally until the next
   // refresh confirms Todoist no longer returns them.

@@ -9,6 +9,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 function TodoistTokenStatus() {
   const t = useTranslate('editor');
@@ -53,6 +54,8 @@ function TodoistTokenStatus() {
     </div>
   );
 }
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
 export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -155,8 +158,8 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       />
       <Slider
         label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? 300000) / 60000}
-        min={5}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
+        min={1}
         max={30}
         onChange={(v) => set({ refreshIntervalMs: v * 60000 })}
       />

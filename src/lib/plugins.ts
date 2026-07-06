@@ -6,60 +6,53 @@ import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
+import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 
 const execFileAsync = promisify(execFile);
 
-const INSTALLED_FILE = 'data/plugins/installed.json';
 const REGISTRY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-function installedPath(): string {
-  return path.join(process.cwd(), INSTALLED_FILE);
-}
-
-// --- Write serialization (prevents TOCTOU races on installed.json) ---
-
-let writeQueue: Promise<void> = Promise.resolve();
-
-function serializedWrite(fn: () => Promise<void>): Promise<void> {
-  const next = writeQueue.then(fn);
-  writeQueue = next.catch(() => {});
-  return next;
-}
-
 // --- Installed plugins ---
+
+// Serialized read-modify-write on installed.json lives in the shared
+// json-store queue (prevents TOCTOU races between concurrent installs).
+const installedStore = createJsonStore<InstalledPluginsFile>({
+  path: 'data/plugins/installed.json',
+  defaultValue: { schemaVersion: 1, plugins: [] },
+});
 
 // In-memory cache for installed.json (avoids disk reads every 3s poll)
 let installedCache: { data: InstalledPluginsFile; mtime: number } | null = null;
 
 export async function getInstalledPlugins(): Promise<InstalledPluginsFile> {
   try {
-    const filePath = installedPath();
-    const stat = await fs.stat(filePath);
+    const stat = await fs.stat(installedStore.filePath);
     const mtime = stat.mtimeMs;
     // Return cached if file hasn't changed
     if (installedCache && installedCache.mtime === mtime) {
       return installedCache.data;
     }
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data) as InstalledPluginsFile;
-    installedCache = { data: parsed, mtime };
-    return parsed;
+    const data = await installedStore.read();
+    installedCache = { data, mtime };
+    return data;
   } catch {
     return { schemaVersion: 1, plugins: [] };
   }
 }
 
-function saveInstalledPlugins(data: InstalledPluginsFile): Promise<void> {
-  return serializedWrite(async () => {
-    const dir = path.dirname(installedPath());
-    await fs.mkdir(dir, { recursive: true });
-    const tmp = installedPath() + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-    await fs.rename(tmp, installedPath());
-    // Invalidate cache
+/** Atomic read-modify-write on installed.json. The mutator gets the freshest
+ *  on-disk state (prior queued writes have landed) and must return a NEW
+ *  object to persist changes, or its input unchanged to skip the write. */
+function updateInstalled(
+  mutator: (current: InstalledPluginsFile) => InstalledPluginsFile,
+): Promise<InstalledPluginsFile> {
+  return installedStore.updateAtomic(mutator).then((result) => {
+    // mtime-based cache invalidation is implicit, but sub-ms writes can
+    // collide on mtimeMs — drop the cache explicitly to be safe.
     installedCache = null;
+    return result;
   });
 }
 
@@ -183,29 +176,29 @@ export async function installPlugin(
       throw new Error('Plugin manifest missing after install');
     }
 
-    // Update installed.json (serialized to prevent TOCTOU races)
-    const installed = await getInstalledPlugins();
-    const existing = installed.plugins.findIndex((p) => p.id === registryEntry.id);
-
-    const entry: InstalledPlugin = {
-      id: registryEntry.id,
-      version,
-      installedAt: new Date().toISOString(),
-      enabled: true,
-      moduleType: manifest.moduleType,
-    };
-
-    if (existing >= 0) {
-      // Track the old version so the client-side loader can run config migrations
-      const oldVersion = installed.plugins[existing].version;
-      if (oldVersion !== version) {
-        entry.previousVersion = oldVersion;
+    // Update installed.json (queued read-modify-write, no TOCTOU)
+    await updateInstalled((installed) => {
+      const entry: InstalledPlugin = {
+        id: registryEntry.id,
+        version,
+        installedAt: new Date().toISOString(),
+        enabled: true,
+        moduleType: manifest.moduleType,
+      };
+      const plugins = [...installed.plugins];
+      const existing = plugins.findIndex((p) => p.id === registryEntry.id);
+      if (existing >= 0) {
+        // Track the old version so the client-side loader can run config migrations
+        const oldVersion = plugins[existing].version;
+        if (oldVersion !== version) {
+          entry.previousVersion = oldVersion;
+        }
+        plugins[existing] = entry;
+      } else {
+        plugins.push(entry);
       }
-      installed.plugins[existing] = entry;
-    } else {
-      installed.plugins.push(entry);
-    }
-    await saveInstalledPlugins(installed);
+      return { ...installed, plugins };
+    });
   } finally {
     installing.delete(registryEntry.id);
   }
@@ -254,8 +247,8 @@ export async function installExternalPlugin(
         // race: a concurrent marketplace install of the same ID could have
         // completed between the early check and the lock acquisition.
         const installed = await getInstalledPlugins();
-        const existing = installed.plugins.find((p) => p.id === manifest.id);
-        if (existing && existing.source !== 'external') {
+        const locked = installed.plugins.find((p) => p.id === manifest.id);
+        if (locked && locked.source !== 'external') {
           throw new Error(
             `A marketplace plugin with ID '${manifest.id}' is already installed. `
             + `Uninstall it first to replace with an external version.`,
@@ -264,26 +257,28 @@ export async function installExternalPlugin(
 
         await promotePluginDir(tmpDir, manifest.id);
 
-        const entry: InstalledPlugin = {
-          id: manifest.id,
-          version: manifest.version,
-          installedAt: new Date().toISOString(),
-          enabled: true,
-          moduleType: manifest.moduleType,
-          source: 'external',
-          externalUrl: tarballUrl,
-        };
-        if (existing && existing.version !== manifest.version) {
-          entry.previousVersion = existing.version;
-        }
-
-        const idx = installed.plugins.findIndex((p) => p.id === manifest.id);
-        if (idx >= 0) {
-          installed.plugins[idx] = entry;
-        } else {
-          installed.plugins.push(entry);
-        }
-        await saveInstalledPlugins(installed);
+        await updateInstalled((current) => {
+          const entry: InstalledPlugin = {
+            id: manifest.id,
+            version: manifest.version,
+            installedAt: new Date().toISOString(),
+            enabled: true,
+            moduleType: manifest.moduleType,
+            source: 'external',
+            externalUrl: tarballUrl,
+          };
+          const plugins = [...current.plugins];
+          const idx = plugins.findIndex((p) => p.id === manifest.id);
+          if (idx >= 0) {
+            if (plugins[idx].version !== manifest.version) {
+              entry.previousVersion = plugins[idx].version;
+            }
+            plugins[idx] = entry;
+          } else {
+            plugins.push(entry);
+          }
+          return { ...current, plugins };
+        });
 
         return { pluginId: manifest.id, version: manifest.version };
       } finally {
@@ -308,25 +303,36 @@ export async function uninstallPlugin(pluginId: string): Promise<void> {
   const dir = pluginDir(pluginId);
   await fs.rm(dir, { recursive: true, force: true });
 
-  const installed = await getInstalledPlugins();
-  installed.plugins = installed.plugins.filter((p) => p.id !== pluginId);
-  await saveInstalledPlugins(installed);
+  await updateInstalled((installed) => ({
+    ...installed,
+    plugins: installed.plugins.filter((p) => p.id !== pluginId),
+  }));
 }
 
 export async function clearPreviousVersion(pluginId: string): Promise<void> {
-  const installed = await getInstalledPlugins();
-  const plugin = installed.plugins.find((p) => p.id === pluginId);
-  if (!plugin || !plugin.previousVersion) return;
-  delete plugin.previousVersion;
-  await saveInstalledPlugins(installed);
+  await updateInstalled((installed) => {
+    const plugin = installed.plugins.find((p) => p.id === pluginId);
+    if (!plugin || !plugin.previousVersion) return installed; // no-op, skip write
+    return {
+      ...installed,
+      plugins: installed.plugins.map((p) => {
+        if (p.id !== pluginId) return p;
+        const { previousVersion: _dropped, ...rest } = p;
+        return rest;
+      }),
+    };
+  });
 }
 
 export async function setPluginEnabled(pluginId: string, enabled: boolean): Promise<void> {
-  const installed = await getInstalledPlugins();
-  const plugin = installed.plugins.find((p) => p.id === pluginId);
-  if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
-  plugin.enabled = enabled;
-  await saveInstalledPlugins(installed);
+  await updateInstalled((installed) => {
+    const plugin = installed.plugins.find((p) => p.id === pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return {
+      ...installed,
+      plugins: installed.plugins.map((p) => (p.id === pluginId ? { ...p, enabled } : p)),
+    };
+  });
 }
 
 // --- Dev plugin registration ---
@@ -348,23 +354,23 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
   );
 
   // Add/update installed.json entry
-  const installed = await getInstalledPlugins();
-  const existing = installed.plugins.findIndex((p) => p.id === manifest.id);
-
-  const entry: InstalledPlugin = {
-    id: manifest.id,
-    version: manifest.version,
-    installedAt: new Date().toISOString(),
-    enabled: true,
-    moduleType: manifest.moduleType,
-  };
-
-  if (existing >= 0) {
-    installed.plugins[existing] = entry;
-  } else {
-    installed.plugins.push(entry);
-  }
-  await saveInstalledPlugins(installed);
+  await updateInstalled((installed) => {
+    const entry: InstalledPlugin = {
+      id: manifest.id,
+      version: manifest.version,
+      installedAt: new Date().toISOString(),
+      enabled: true,
+      moduleType: manifest.moduleType,
+    };
+    const plugins = [...installed.plugins];
+    const existing = plugins.findIndex((p) => p.id === manifest.id);
+    if (existing >= 0) {
+      plugins[existing] = entry;
+    } else {
+      plugins.push(entry);
+    }
+    return { ...installed, plugins };
+  });
 }
 
 // --- Plugin hash (for display change detection) ---

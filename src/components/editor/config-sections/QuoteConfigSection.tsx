@@ -5,6 +5,9 @@ import Slider from '@/components/ui/Slider';
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['quote']?.ttlMs ?? 3_600_000;
 
 export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -14,7 +17,7 @@ export function QuoteConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     <>
       <Slider
         label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? 300000) / 1000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 1000}
         min={30}
         max={3600}
         step={30}

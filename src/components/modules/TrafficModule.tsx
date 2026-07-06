@@ -4,7 +4,7 @@ import type { TrafficConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState, moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
-import { trafficUrl } from '@/lib/fetch-keys';
+import { trafficUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
 import { ContentCard } from './shared/ContentCard';
@@ -14,6 +14,8 @@ interface TrafficModuleProps {
   config: TrafficConfig;
   style: ModuleStyle;
 }
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['traffic']?.ttlMs ?? 300_000;
 
 interface TrafficRouteData {
   label: string;
@@ -36,7 +38,7 @@ function delayColor(delayMinutes: number): string {
 export default function TrafficModule({ config, style }: TrafficModuleProps) {
   const t = useTranslate('modules');
   const routes = config.routes ?? [];
-  const [data, error] = useFetchData<TrafficData>(trafficUrl(config) ?? '', config.refreshIntervalMs ?? 300000);
+  const [data, error] = useFetchData<TrafficData>(trafficUrl(config) ?? '', config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   if (routes.length === 0) {
     return <ModuleEmptyState style={style} message={t('traffic.noRoutes')} />;

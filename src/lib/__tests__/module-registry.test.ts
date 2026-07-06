@@ -379,11 +379,12 @@ describe('Data correctness spot checks', () => {
     expect(config.showWind).toBe(false);
   });
 
-  it('air-quality defaultConfig: AQI on, pollutants off, 15min refresh', () => {
+  it('air-quality defaultConfig: AQI on, pollutants off, refresh follows FETCH_KEY_REGISTRY', () => {
     const config = getModuleDefinition('air-quality')!.defaultConfig;
     expect(config.showAQI).toBe(true);
     expect(config.showPollutants).toBe(false);
-    expect(config.refreshIntervalMs).toBe(900000);
+    // 5min — aligned with the air-quality server cache via FETCH_KEY_REGISTRY
+    expect(config.refreshIntervalMs).toBe(300000);
   });
 });
 

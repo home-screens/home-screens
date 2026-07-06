@@ -6,6 +6,9 @@ import Slider from '@/components/ui/Slider';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, SportsView } from '@/types/config';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+
+const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000;
 
 export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -62,7 +65,7 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       )}
       <Slider
         label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? 60000) / 1000}
+        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 1000}
         min={30}
         max={600}
         step={30}

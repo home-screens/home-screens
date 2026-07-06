@@ -5,7 +5,7 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
-import { mealsDataUrl } from '@/lib/fetch-keys';
+import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
@@ -35,7 +35,7 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
   const currentHour = now.getHours();
 
   // Fetch meal data from API (same source as fullscreen)
-  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), 60_000);
+  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['meal-planner']?.ttlMs ?? 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings now come from the shared meals.json (edited via /remote), not per-module config

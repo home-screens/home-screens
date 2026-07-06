@@ -3,6 +3,8 @@ import { fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
+import { aggregateDaily } from './daily';
+import { createTTLCache } from '../api-utils';
 import pkg from '../../../package.json';
 
 // ── Yr.no / MET Norway API response types ────────────────────────────
@@ -135,9 +137,7 @@ export class YrProvider implements WeatherProvider {
   // MET Norway asks clients to throttle to ≥10 minutes per location. The
   // route-level cache covers most cases, but this guards against accidental
   // hammering when the route cache is bypassed (cache busts, manual refresh).
-  private static MIN_INTERVAL_MS = 10 * 60 * 1000;
-  private static cache = new Map<string, { data: YrResponse; ts: number }>();
-  private static MAX_CACHE = 20;
+  private static cache = createTTLCache<YrResponse>(10 * 60 * 1000);
 
   // No API key needed
   constructor() {}
@@ -149,7 +149,7 @@ export class YrProvider implements WeatherProvider {
     const key = `${latStr},${lonStr}`;
 
     const cached = YrProvider.cache.get(key);
-    if (cached && Date.now() - cached.ts < YrProvider.MIN_INTERVAL_MS) return cached.data;
+    if (cached) return cached;
 
     const data = await fetchWeatherJSON<YrResponse>(
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${latStr}&lon=${lonStr}`,
@@ -157,11 +157,7 @@ export class YrProvider implements WeatherProvider {
       { headers: { 'User-Agent': YrProvider.USER_AGENT } },
     );
 
-    YrProvider.cache.set(key, { data, ts: Date.now() });
-    if (YrProvider.cache.size > YrProvider.MAX_CACHE) {
-      const oldest = YrProvider.cache.keys().next().value;
-      if (oldest) YrProvider.cache.delete(oldest);
-    }
+    YrProvider.cache.set(key, data);
     return data;
   }
 
@@ -201,70 +197,33 @@ export class YrProvider implements WeatherProvider {
 
     // Group timeseries by date, then derive high/low temps and the most
     // common 6-hour symbol per day.
-    const byDate = new Map<string, {
-      temps: number[];
-      symbols: Map<string, number>;
-      precipMm: number;
-      precipProb: number;
-      humidities: number[];
-      windSpeedsMs: number[];
-    }>();
+    const days = aggregateDaily(
+      data.properties.timeseries.map((entry) => {
+        const inst = entry.data.instant.details ?? {};
+        const next6 = entry.data.next_6_hours;
+        return {
+          date: entry.time.split('T')[0],
+          tempC: inst.air_temperature,
+          humidity: inst.relative_humidity,
+          windSpeedMs: inst.wind_speed,
+          symbol: next6?.summary?.symbol_code || undefined,
+          precipMm: next6?.details?.precipitation_amount,
+          precipProb: next6?.details?.probability_of_precipitation,
+        };
+      }),
+      7,
+    );
 
-    for (const entry of data.properties.timeseries) {
-      const date = entry.time.split('T')[0];
-      let day = byDate.get(date);
-      if (!day) {
-        day = { temps: [], symbols: new Map(), precipMm: 0, precipProb: 0, humidities: [], windSpeedsMs: [] };
-        byDate.set(date, day);
-      }
-
-      const inst = entry.data.instant.details ?? {};
-      if (inst.air_temperature != null) day.temps.push(inst.air_temperature);
-      if (inst.relative_humidity != null) day.humidities.push(inst.relative_humidity);
-      if (inst.wind_speed != null) day.windSpeedsMs.push(inst.wind_speed);
-
-      const next6 = entry.data.next_6_hours;
-      const sym = next6?.summary?.symbol_code;
-      if (sym) day.symbols.set(sym, (day.symbols.get(sym) ?? 0) + 1);
-      if (next6?.details?.precipitation_amount != null) {
-        day.precipMm += next6.details.precipitation_amount;
-      }
-      if (next6?.details?.probability_of_precipitation != null) {
-        day.precipProb = Math.max(day.precipProb, next6.details.probability_of_precipitation);
-      }
-    }
-
-    return Array.from(byDate.entries()).slice(0, 7).map(([date, day]) => {
-      const high = day.temps.length ? Math.max(...day.temps) : 0;
-      const low = day.temps.length ? Math.min(...day.temps) : 0;
-
-      let dominantSymbol: string | undefined;
-      let dominantCount = 0;
-      for (const [sym, count] of day.symbols) {
-        if (count > dominantCount) {
-          dominantSymbol = sym;
-          dominantCount = count;
-        }
-      }
-
-      const avgWindMs = day.windSpeedsMs.length
-        ? day.windSpeedsMs.reduce((a, b) => a + b, 0) / day.windSpeedsMs.length
-        : undefined;
-      const avgHumidity = day.humidities.length
-        ? day.humidities.reduce((a, b) => a + b, 0) / day.humidities.length
-        : undefined;
-
-      return {
-        date,
-        high: Math.round(celsiusToUnit(high, isMetric)),
-        low: Math.round(celsiusToUnit(low, isMetric)),
-        icon: symbolToIcon(dominantSymbol),
-        description: symbolDescription(dominantSymbol),
-        precipProbability: Math.round(day.precipProb),
-        precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
-        humidity: avgHumidity != null ? Math.round(avgHumidity) : undefined,
-        windSpeed: avgWindMs != null ? Math.round(msToWindUnit(avgWindMs, isMetric)) : undefined,
-      };
-    });
+    return days.map((day) => ({
+      date: day.date,
+      high: Math.round(celsiusToUnit(day.highC, isMetric)),
+      low: Math.round(celsiusToUnit(day.lowC, isMetric)),
+      icon: symbolToIcon(day.symbol),
+      description: symbolDescription(day.symbol),
+      precipProbability: Math.round(day.precipProb),
+      precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
+      humidity: day.humidity,
+      windSpeed: day.windSpeedMs != null ? Math.round(msToWindUnit(day.windSpeedMs, isMetric)) : undefined,
+    }));
   }
 }
