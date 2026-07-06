@@ -101,6 +101,21 @@ export function getDisplayProfiles(
 }
 
 /**
+ * Resolve the active profile id for the given display (or the legacy
+ * single-display config when `displayId` is null). Mirrors the ownership
+ * rule of `getDisplayProfiles`: a display that owns its `profiles` list
+ * also owns `activeProfile`; otherwise the global
+ * `settings.activeProfile` applies.
+ */
+export function getActiveProfileId(
+  config: ScreenConfiguration,
+  displayId: string | null | undefined,
+): string | undefined {
+  const display = displayId ? config.displays?.find((d) => d.id === displayId) : undefined;
+  return display?.profiles ? display.activeProfile : config.settings.activeProfile;
+}
+
+/**
  * Find a screen by ID across every place it might live: each display's
  * owned `screens` or the legacy global `config.screens` pool.
  * Server-side routes that only know a `screenId` (e.g. the background

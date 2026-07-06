@@ -300,11 +300,29 @@ async function handleAlert(
   return NextResponse.json({ ok: true, command: 'alert' });
 }
 
-async function handleStatus(
-  request: NextRequest,
+/** Validated + destructured status heartbeat, ready to apply. */
+interface ParsedStatusReport {
+  /** Body with the transport-only fields stripped; the persisted status shape. */
+  statusPayload: Record<string, unknown>;
+  bodyClientId: unknown;
+  bodySharedState: unknown;
+  browserStats: ReturnType<typeof validateBrowserStats> | undefined;
+  validatedDisplayId: string | undefined;
+}
+
+/**
+ * Validate the status heartbeat body and resolve the target display id.
+ * Returns a 400/validation NextResponse on failure, otherwise the parsed
+ * pieces the handler needs.
+ *
+ * The check order is load-bearing — the body-shape check, displayState enum,
+ * displayId slug, and browserStats each own a distinct 400 and must fire in
+ * this sequence.
+ */
+function parseStatusReport(
+  body: Record<string, unknown> | null,
   queryDisplayId: string | undefined,
-): Promise<NextResponse> {
-  const body = await safeJson(request);
+): ParsedStatusReport | NextResponse {
   if (
     !body?.currentScreen ||
     typeof body.currentScreen !== 'object' ||
@@ -362,10 +380,17 @@ async function handleStatus(
     browserStats = parsed;
   }
 
-  // Synthesize `reportedViewport` from browserStats so downstream
-  // consumers (/api/displays, editor panels, tests) keep reading from a
-  // single top-level field even though the client now sends the data
-  // only once (inside browserStats).
+  return { statusPayload, bodyClientId, bodySharedState, browserStats, validatedDisplayId };
+}
+
+/**
+ * Push the heartbeat into the in-memory statusMap. Synthesizes a top-level
+ * `reportedViewport` from browserStats so downstream consumers
+ * (/api/displays, editor panels, tests) keep reading from a single field
+ * even though the client now sends the data only inside browserStats.
+ */
+function applyStatusHeartbeat(parsed: ParsedStatusReport): void {
+  const { statusPayload, browserStats, validatedDisplayId } = parsed;
   const synthesizedViewport =
     browserStats &&
     typeof browserStats.viewportWidth === 'number' &&
@@ -381,31 +406,33 @@ async function handleStatus(
     } as unknown as Parameters<typeof setDisplayStatus>[0],
     validatedDisplayId,
   );
+}
 
-  // Shared-state bus snapshot piggybacking on the heartbeat — stored per
-  // display so the editor can show live values next to condition inputs.
-  if (bodySharedState !== undefined) {
-    recordSharedStateReport(validatedDisplayId, bodySharedState);
-  }
-
-  // Track viewport per-client so the editor can surface "N things are
-  // reporting with this display ID" instead of silently flapping between
-  // whichever client POSTed most recently. We also stash the source IP
-  // so the user can trace a phantom reporter back to its device on the
-  // LAN (critical when the Pi they *think* is posting is actually off).
-  //
-  // The viewport is carried inside `browserStats` on the wire (the client
-  // stopped sending a separate `reportedViewport` field to avoid on-wire
-  // duplication). We still accept a top-level `reportedViewport` as a
-  // legacy fallback so older display clients keep working through an
-  // upgrade window.
+/**
+ * Record the per-client viewport report so the editor can surface "N things
+ * are reporting with this display ID" instead of silently flapping between
+ * whichever client POSTed most recently. Also stashes the source IP so the
+ * user can trace a phantom reporter back to its device on the LAN (critical
+ * when the Pi they *think* is posting is actually off).
+ *
+ * The viewport is carried inside `browserStats` on the wire (the client
+ * stopped sending a separate `reportedViewport` field to avoid on-wire
+ * duplication). We still accept a top-level `reportedViewport` as a legacy
+ * fallback so older display clients keep working through an upgrade window.
+ */
+function recordStatusViewport(
+  request: NextRequest,
+  body: Record<string, unknown> | null,
+  parsed: ParsedStatusReport,
+): void {
+  const { browserStats, bodyClientId, validatedDisplayId } = parsed;
   let viewportWidth: number | undefined;
   let viewportHeight: number | undefined;
   if (browserStats) {
     viewportWidth = browserStats.viewportWidth;
     viewportHeight = browserStats.viewportHeight;
   } else {
-    const legacy = (body as { reportedViewport?: unknown }).reportedViewport;
+    const legacy = (body as { reportedViewport?: unknown } | null)?.reportedViewport;
     if (legacy && typeof legacy === 'object') {
       const v = legacy as { width?: unknown; height?: unknown };
       if (typeof v.width === 'number' && typeof v.height === 'number') {
@@ -429,6 +456,25 @@ async function handleStatus(
       getClientIP(request),
     );
   }
+}
+
+async function handleStatus(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const parsed = parseStatusReport(body, queryDisplayId);
+  if (parsed instanceof NextResponse) return parsed;
+
+  applyStatusHeartbeat(parsed);
+
+  // Shared-state bus snapshot piggybacking on the heartbeat — stored per
+  // display so the editor can show live values next to condition inputs.
+  if (parsed.bodySharedState !== undefined) {
+    recordSharedStateReport(parsed.validatedDisplayId, parsed.bodySharedState);
+  }
+
+  recordStatusViewport(request, body, parsed);
 
   return NextResponse.json({ ok: true });
 }

@@ -204,6 +204,21 @@ export async function installPlugin(
   }
 }
 
+/**
+ * Reject an external install when the target ID is already held by a
+ * non-external (marketplace) plugin. Shared by the pre-lock fast-fail and the
+ * post-lock TOCTOU recheck so both raise the identical error.
+ */
+function assertNoMarketplaceCollision(installed: InstalledPluginsFile, pluginId: string): void {
+  const existing = installed.plugins.find((p) => p.id === pluginId);
+  if (existing && existing.source !== 'external') {
+    throw new Error(
+      `A marketplace plugin with ID '${pluginId}' is already installed. `
+      + `Uninstall it first to replace with an external version.`,
+    );
+  }
+}
+
 export async function installExternalPlugin(
   tarballUrl: string,
   downloadBuffer: Buffer,
@@ -221,73 +236,57 @@ export async function installExternalPlugin(
     await fs.mkdir(pluginsDir(), { recursive: true });
     await fs.writeFile(tmpTarPath, downloadBuffer);
 
-    try {
-      await extractPluginTarball(tmpTarPath, tmpDir);
-      const manifest = await validateExtractedPlugin(tmpDir);
+    await extractPluginTarball(tmpTarPath, tmpDir);
+    const manifest = await validateExtractedPlugin(tmpDir);
 
-      // Fast-fail collision guard before extraction completes its side-effects
-      // (the fresh recheck below is what actually protects against overwrites).
-      const earlyInstalled = await getInstalledPlugins();
-      const earlyExisting = earlyInstalled.plugins.find((p) => p.id === manifest.id);
-      if (earlyExisting && earlyExisting.source !== 'external') {
-        throw new Error(
-          `A marketplace plugin with ID '${manifest.id}' is already installed. `
-          + `Uninstall it first to replace with an external version.`,
-        );
-      }
+    // Fast-fail collision guard before extraction completes its side-effects
+    // (the fresh recheck below is what actually protects against overwrites).
+    assertNoMarketplaceCollision(await getInstalledPlugins(), manifest.id);
 
-      // Acquire the ID-based lock now that we know the ID
-      if (installing.has(manifest.id)) {
-        throw new Error(`Plugin ${manifest.id} is already being installed`);
-      }
-      installing.add(manifest.id);
-
-      try {
-        // Re-read installed.json AFTER acquiring the ID lock to close a TOCTOU
-        // race: a concurrent marketplace install of the same ID could have
-        // completed between the early check and the lock acquisition.
-        const installed = await getInstalledPlugins();
-        const locked = installed.plugins.find((p) => p.id === manifest.id);
-        if (locked && locked.source !== 'external') {
-          throw new Error(
-            `A marketplace plugin with ID '${manifest.id}' is already installed. `
-            + `Uninstall it first to replace with an external version.`,
-          );
-        }
-
-        await promotePluginDir(tmpDir, manifest.id);
-
-        await updateInstalled((current) => {
-          const entry: InstalledPlugin = {
-            id: manifest.id,
-            version: manifest.version,
-            installedAt: new Date().toISOString(),
-            enabled: true,
-            moduleType: manifest.moduleType,
-            source: 'external',
-            externalUrl: tarballUrl,
-          };
-          const plugins = [...current.plugins];
-          const idx = plugins.findIndex((p) => p.id === manifest.id);
-          if (idx >= 0) {
-            if (plugins[idx].version !== manifest.version) {
-              entry.previousVersion = plugins[idx].version;
-            }
-            plugins[idx] = entry;
-          } else {
-            plugins.push(entry);
-          }
-          return { ...current, plugins };
-        });
-
-        return { pluginId: manifest.id, version: manifest.version };
-      } finally {
-        installing.delete(manifest.id);
-      }
-    } catch (err) {
-      await fs.rm(tmpDir, { recursive: true, force: true });
-      throw err;
+    // Acquire the ID-based lock now that we know the ID
+    if (installing.has(manifest.id)) {
+      throw new Error(`Plugin ${manifest.id} is already being installed`);
     }
+    installing.add(manifest.id);
+
+    try {
+      // Re-read installed.json AFTER acquiring the ID lock to close a TOCTOU
+      // race: a concurrent marketplace install of the same ID could have
+      // completed between the early check and the lock acquisition.
+      assertNoMarketplaceCollision(await getInstalledPlugins(), manifest.id);
+
+      await promotePluginDir(tmpDir, manifest.id);
+
+      await updateInstalled((current) => {
+        const entry: InstalledPlugin = {
+          id: manifest.id,
+          version: manifest.version,
+          installedAt: new Date().toISOString(),
+          enabled: true,
+          moduleType: manifest.moduleType,
+          source: 'external',
+          externalUrl: tarballUrl,
+        };
+        const plugins = [...current.plugins];
+        const idx = plugins.findIndex((p) => p.id === manifest.id);
+        if (idx >= 0) {
+          if (plugins[idx].version !== manifest.version) {
+            entry.previousVersion = plugins[idx].version;
+          }
+          plugins[idx] = entry;
+        } else {
+          plugins.push(entry);
+        }
+        return { ...current, plugins };
+      });
+
+      return { pluginId: manifest.id, version: manifest.version };
+    } finally {
+      installing.delete(manifest.id);
+    }
+  } catch (err) {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    throw err;
   } finally {
     await fs.unlink(tmpTarPath).catch(() => {});
     installingExternal.delete(tarballUrl);

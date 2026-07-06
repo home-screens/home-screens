@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
-import { Sunrise, Sun, Sunset, Clock, Check, Settings, Lock } from 'lucide-react';
+import { Sunrise, Sun, Sunset, Clock, Settings } from 'lucide-react';
 import type {
   ChoreChartConfig,
   ChoreMember,
@@ -25,24 +25,10 @@ import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
+import ChoreHistoryBanner from './ChoreHistoryBanner';
+import ChoreRow from './ChoreRow';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
-
-/** Format a YYYY-MM-DD string as a friendly long date for banner copy. */
-function formatLongDate(iso: string, locale: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Intl.DateTimeFormat(locale, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(y, m - 1, d));
-}
-function daysBetween(from: string, to: string): number {
-  const [fy, fm, fd] = from.split('-').map(Number);
-  const [ty, tm, td] = to.split('-').map(Number);
-  const msPerDay = 86_400_000;
-  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / msPerDay);
-}
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -430,56 +416,9 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
           />
 
           {/* History banner — visible only when the user has navigated away from today */}
-          {isViewingPast && (() => {
-            const daysAgo = Math.max(1, daysBetween(viewingDate, realToday));
-            return canEdit ? (
-            <div
-              role="status"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                background: 'color-mix(in srgb, var(--hs-warning) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--hs-warning) 25%, transparent)',
-                borderRadius: 10,
-                marginBottom: 10,
-                fontSize: 12,
-                color: 'var(--hs-warning)',
-                lineHeight: 1.4,
-              }}
-            >
-              <span>
-                {t('choresTab.history.editingPrefix')}
-                <strong style={{ fontWeight: 700 }}>{formatLongDate(viewingDate, locale)}</strong>
-                {daysAgo === 1
-                  ? t('choresTab.history.editingDaysAgoSingular')
-                  : t('choresTab.history.editingDaysAgoPlural', { n: daysAgo })}
-                {t('choresTab.history.editingNote')}
-              </span>
-            </div>
-          ) : (
-            <div
-              role="status"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                background: 'var(--hs-bg-hover)',
-                border: '1px solid var(--hs-border)',
-                borderRadius: 10,
-                marginBottom: 10,
-                fontSize: 12,
-                color: 'var(--hs-text-muted)',
-                lineHeight: 1.4,
-              }}
-            >
-              <Lock size={14} strokeWidth={2.25} aria-hidden="true" />
-              <span>{t('choresTab.history.lockedMessage')}</span>
-            </div>
-          );
-          })()}
+          {isViewingPast && (
+            <ChoreHistoryBanner viewingDate={viewingDate} realToday={realToday} canEdit={canEdit} />
+          )}
 
           {/* Member pills */}
           <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
@@ -591,138 +530,16 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
                   {/* Chore cards */}
                   {items.map((assignment) => {
                     const key = completionKey(assignment.choreId, selectedMemberId, viewingDate);
-                    const isToggling = toggling.has(key);
-                    const done = assignment.isCompleted;
-                    const readOnly = !canEdit;
-
-                    const rowStyle = {
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '14px 16px',
-                      background: done ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
-                      borderRadius: 12,
-                      marginBottom: 6,
-                      cursor: readOnly ? ('default' as const) : ('pointer' as const),
-                      transition: 'all 0.15s',
-                      border: 'none',
-                      color: 'inherit',
-                      textAlign: 'left' as const,
-                      opacity: isToggling ? 0.6 : 1,
-                    };
-
-                    const checkbox = readOnly ? (
-                      // Locked chip: kid-viewing-past — visually distinct, not interactive
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          background: done ? 'var(--hs-bg-hover)' : 'var(--hs-bg-card)',
-                          border: done ? 'none' : '1px dashed var(--hs-border-strong)',
-                          color: 'var(--hs-text-faint)',
-                        }}
-                        aria-hidden="true"
-                      >
-                        {done ? (
-                          <Check size={16} color="var(--hs-text-muted)" strokeWidth={2.5} />
-                        ) : (
-                          <Lock size={12} color="var(--hs-text-faint)" strokeWidth={2.25} />
-                        )}
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          transition: 'all 0.15s',
-                          background: done ? (selectedMember?.color ?? accentColor) : 'transparent',
-                          border: done ? 'none' : '2px solid var(--hs-border-strong)',
-                        }}
-                      >
-                        {done && <Check size={16} color="white" strokeWidth={2.5} />}
-                      </div>
-                    );
-
-                    const rowInner = (
-                      <>
-                        {checkbox}
-
-                        {/* Icon */}
-                        {assignment.choreEmoji && (
-                          <span style={{ flexShrink: 0 }}>
-                            <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? 'var(--hs-text-faint)' : 'var(--hs-text-muted)'} />
-                          </span>
-                        )}
-
-                        {/* Name */}
-                        <span
-                          style={{
-                            flex: 1,
-                            fontSize: 15,
-                            fontWeight: 500,
-                            textDecoration: done ? 'line-through' : 'none',
-                            color: done ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
-                          }}
-                        >
-                          {assignment.choreName}
-                        </span>
-
-                        {/* Points */}
-                        {config.showPoints && assignment.points > 0 && (
-                          <span
-                            style={{
-                              fontSize: 11,
-                              flexShrink: 0,
-                              padding: '2px 8px',
-                              borderRadius: 999,
-                              background: 'var(--hs-bg-hover)',
-                              color: 'var(--hs-text-faint)',
-                              opacity: done ? 0.3 : 1,
-                            }}
-                          >
-                            {assignment.points === 1
-                              ? t('choresTab.ticketCountSingular', { n: assignment.points })
-                              : t('choresTab.ticketCountPlural', { n: assignment.points })}
-                          </span>
-                        )}
-                      </>
-                    );
-
-                    if (readOnly) {
-                      // Non-interactive row: not a button, no press-scale, not announced as clickable.
-                      return (
-                        <div key={assignment.choreId} style={rowStyle}>
-                          {rowInner}
-                        </div>
-                      );
-                    }
-
                     return (
-                      <button
+                      <ChoreRow
                         key={assignment.choreId}
-                        className="press-scale"
-                        onClick={() => toggle(assignment.choreId)}
-                        disabled={isToggling}
-                        aria-label={
-                          done
-                            ? t('choresTab.choreAriaLabelCompleted', { chore: assignment.choreName })
-                            : t('choresTab.choreAriaLabelMarkComplete', { chore: assignment.choreName })
-                        }
-                        style={rowStyle}
-                      >
-                        {rowInner}
-                      </button>
+                        assignment={assignment}
+                        isToggling={toggling.has(key)}
+                        readOnly={!canEdit}
+                        checkedColor={selectedMember?.color ?? accentColor}
+                        showPoints={!!config.showPoints}
+                        onToggle={() => toggle(assignment.choreId)}
+                      />
                     );
                   })}
                 </div>

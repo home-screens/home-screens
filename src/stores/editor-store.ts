@@ -674,18 +674,26 @@ export const useEditorStore = create<EditorState>((set, get) => {
     mutateConfig((config) => {
       const existingDisplays = config.displays ?? [];
       const isFirstDisplay = existingDisplays.length === 0;
-      const hasMain = existingDisplays.some((d) => isMainDisplay(d.id));
-      const userAddingMainAsFirst = isFirstDisplay && isMainDisplay(display.id);
-      const userDidNotSpecifyScreens = !display.screens;
-      const inheritFromGlobal = userAddingMainAsFirst && userDidNotSpecifyScreens;
+
+      // Path 1: the first display the user adds is NOT `main`. Seed a sibling
+      // `main` from the legacy globals so the hub kiosk keeps rendering its
+      // existing layout. (An empty display list means there is no `main` yet,
+      // so `isFirstDisplay` alone is a sufficient trigger.)
+      const seedSiblingMain = isFirstDisplay && !isMainDisplay(display.id);
+
+      // Path 2: the first display added IS `main` and brings no screens of its
+      // own. It can't sibling-seed (there is only one `main`), so it inherits
+      // the legacy global screens/profiles/activeProfile directly.
+      const mainInheritsGlobals =
+        isFirstDisplay && isMainDisplay(display.id) && !display.screens;
 
       const nextDisplays = [...existingDisplays];
 
-      if (isFirstDisplay && !hasMain && !isMainDisplay(display.id)) {
+      if (seedSiblingMain) {
         nextDisplays.push(buildBootstrapMain(config));
       }
 
-      nextDisplays.push(buildNewDisplay(display, config, inheritFromGlobal));
+      nextDisplays.push(buildNewDisplay(display, config, mainInheritsGlobals));
 
       // Keep the editor focused on "main" so the user's existing screens stay
       // visible until they explicitly switch to the newly-added display.

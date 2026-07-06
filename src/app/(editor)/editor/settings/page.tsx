@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Suspense, useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslate } from '@/i18n';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
@@ -32,12 +32,11 @@ import OrientationChangeModal from '@/components/editor/settings/OrientationChan
 import UpgradeModal from '@/components/editor/UpgradeModal';
 import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
 import {
-  toConfigSettings,
   toFormState,
   type DisplayState,
-  type SettingsState,
   type WeatherState,
 } from '@/lib/settings-form';
+import { useSettingsAutosave } from '@/hooks/useSettingsAutosave';
 
 /* ─── Tab definitions ─────────────────────────────── */
 
@@ -103,8 +102,6 @@ export default function SettingsPage() {
   );
 }
 
-type SaveStatus = 'saved' | 'failed' | null;
-
 function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -151,130 +148,27 @@ function SettingsPageContent() {
   // surgical — only the sidebar and the URL parser need to know about
   // the new shape.
   const activeTab: TabId | null = sectionRoute.kind === 'defaults' ? sectionRoute.page : null;
-  const [state, setState] = useState<SettingsState>(() => toFormState(settings));
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<SaveStatus>(null);
-
   // Load config on mount (handles hard refresh / direct URL visit)
   useEffect(() => {
     if (!config) loadConfig();
   }, [config, loadConfig]);
 
-  // Re-initialize local state once config arrives (initial load only).
-  // Imports re-sync via DataSection's onSettingsImported callback.
-  // Profile actions that mutate config.settings (e.g. setActiveProfile) must NOT wipe unsaved form edits.
-  const settingsInitRef = useRef(false);
-  useEffect(() => {
-    if (settings && !settingsInitRef.current) {
-      settingsInitRef.current = true;
-      setState(toFormState(settings));
-    }
-  }, [settings]);
-
-  // Auto-save infrastructure.
-  //
-  // `userDirtyRef` flips to true the first time the user actually edits
-  // a form field, so the initial `settingsInitRef` hydration (which calls
-  // `setState(toFormState(settings))` once config loads) doesn't trigger
-  // a pointless write-back of config-to-itself. Every path that mutates
-  // `state` from user input funnels through `updateGroup` below, which
-  // sets the flag — so adding a new form field Just Works without having
-  // to remember to mark it dirty manually.
-  //
-  // `autoSaveTimerRef` holds the debounce timer. Every state change
-  // cancels any pending timer and schedules a fresh save 500ms out, so
-  // slider drags and per-keystroke number inputs collapse into a single
-  // PUT instead of hammering the disk on every tick.
-  //
-  // `latestStateRef` captures the most recent `state` without forcing
-  // the auto-save callback to re-capture on every render — the timer
-  // fires once and reads the latest state at the moment it runs,
-  // regardless of how many renders happened in between.
-  const userDirtyRef = useRef(false);
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestStateRef = useRef(state);
-  useEffect(() => {
-    latestStateRef.current = state;
-  }, [state]);
-
-  // Pulse a "Saved" toast whenever the store's isSaving flag transitions
-  // from true back to false without an error. This catches per-display
-  // subtab mutations (DisplaySubtab, SleepSubtab, AlertsSubtab, etc.)
-  // which call `saveConfig()` directly — their saves would otherwise
-  // complete silently with no header feedback. The local auto-save
-  // effect for Defaults pages also flips store.isSaving, so this fires
-  // for both paths via a single subscription.
-  //
-  // The save-coalescing retry previously lived here (watching the
-  // `isDirty` flag and re-firing saveConfig() after a concurrent
-  // subtab write) but it has moved into `saveConfig` itself — the
-  // store's `_pendingResave` flag flushes any mutation that landed
-  // while a save was in flight, so the race is handled at the source
-  // instead of observed from here.
-  const prevStoreIsSavingRef = useRef(storeIsSaving);
-  useEffect(() => {
-    const wasSaving = prevStoreIsSavingRef.current;
-    prevStoreIsSavingRef.current = storeIsSaving;
-    if (wasSaving && !storeIsSaving && !storeSaveError) {
-      // Coalesced-save flicker guard: when a mutation lands during an
-      // in-flight save, the store transitions isSaving true→false→true
-      // (first save lands, queueMicrotask schedules the re-save). The
-      // observer fires on the intermediate false, but a "Saved" toast at
-      // that moment is misleading because the latest mutation is still
-      // pending. Read the live store state imperatively (no subscription,
-      // no extra re-renders) to detect the in-progress re-save: if
-      // anything is still dirty or another save has already kicked off,
-      // skip the toast and wait for the final transition.
-      const live = useEditorStore.getState();
-      if (live.isSaving || live.isDirty) return;
-      setSaveMessage('saved');
-      const timer = setTimeout(
-        () => setSaveMessage((prev) => (prev === 'saved' ? null : prev)),
-        2000,
-      );
-      return () => clearTimeout(timer);
-    }
-  }, [storeIsSaving, storeSaveError]);
-
-  useEffect(() => {
-    if (!settingsInitRef.current || !userDirtyRef.current) return;
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(async () => {
-      setSaving(true);
-      setSaveMessage(null);
-      try {
-        updateSettings(toConfigSettings(latestStateRef.current));
-        await saveConfig();
-        setSaveMessage('saved');
-        // Clear the "Saved" toast after a couple of seconds so it
-        // disappears during long idle periods and reappears on the
-        // next change.
-        setTimeout(() => setSaveMessage((prev) => (prev === 'saved' ? null : prev)), 2000);
-      } catch (err) {
-        console.error('Auto-save failed:', err);
-        setSaveMessage('failed');
-      } finally {
-        setSaving(false);
-      }
-    }, 500);
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, [state, updateSettings, saveConfig]);
+  // Local form state + debounced auto-save state machine for Defaults
+  // pages. Extracted into a hook so the timing semantics (one-time
+  // hydration, dirty tracking, 500ms debounce, coalesced "Saved" toast)
+  // stay in one place. `storeIsSaving`/`storeSaveError` are passed in so
+  // the toast also fires for per-display subtab direct saves.
+  const { state, setState, updateGroup, saving, saveMessage } = useSettingsAutosave({
+    settings,
+    updateSettings,
+    saveConfig,
+    storeIsSaving,
+    storeSaveError,
+  });
 
   // Upgrade/rollback modal state
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [rollbackTarget, setRollbackTarget] = useState<string | null>(null);
-
-  const updateGroup = useCallback(<K extends keyof SettingsState>(group: K, updates: Partial<SettingsState[K]>) => {
-    // Mark the form as user-dirty so the auto-save effect knows the
-    // next state change is a real edit, not hydration. Set before
-    // setState so the effect's dependency update sees the flag already
-    // true on the subsequent render.
-    userDirtyRef.current = true;
-    setState((prev) => ({ ...prev, [group]: { ...prev[group], ...updates } }));
-    setSaveMessage(null);
-  }, []);
 
   // Orientation change modal state
   const [orientationModal, setOrientationModal] = useState<{

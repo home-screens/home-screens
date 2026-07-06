@@ -15,190 +15,18 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
-  useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useTranslate } from '@/i18n';
+import { useTabRename } from '@/hooks/useTabRename';
+import { useTabScroll } from '@/hooks/useTabScroll';
 import type { LayoutExport } from '@/types/layout-export';
-import type { Screen } from '@/types/config';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
 import TemplatePicker from './TemplatePicker';
-
-
-/* ─── Sortable tab ──────────────────────────── */
-
-function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
-  if (ms === 0) {
-    return (
-      <span
-        className="ml-1 text-[9px] font-semibold tracking-wide text-hs-warning bg-hs-warning/15 border border-hs-warning/35 rounded-full px-1.5 py-[1px]"
-        aria-hidden
-      >
-        {t('screenTabs.stickyBadge')}
-      </span>
-    );
-  }
-  const sec = Math.round(ms / 1000);
-  // Sub-second durations keep the raw "ms" suffix — too short to round to
-  // whole seconds without losing information. Translation surface stays at
-  // the seconds-suffix level to avoid a separate sub-second key for an edge
-  // case that already uses a non-localized number suffix.
-  const label = sec < 1 ? `${ms}ms` : t('screenTabs.secondsSuffix', { seconds: sec });
-  return (
-    <span
-      className="ml-1 text-[9px] font-semibold tracking-wide text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 rounded-full px-1.5 py-[1px]"
-      aria-hidden
-    >
-      {label}
-    </span>
-  );
-}
-
-interface SortableTabProps {
-  screen: Screen;
-  isSelected: boolean;
-  isEditing: boolean;
-  editValue: string;
-  onSelect: () => void;
-  onStartEditing: () => void;
-  onEditChange: (value: string) => void;
-  onCommitRename: () => void;
-  onCancelEditing: () => void;
-  onDelete: (e: React.MouseEvent) => void;
-  onContextMenu: (e: React.MouseEvent) => void;
-  canDelete: boolean;
-  t: TranslateFn;
-}
-
-function SortableTab({
-  screen,
-  isSelected,
-  isEditing,
-  editValue,
-  onSelect,
-  onStartEditing,
-  onEditChange,
-  onCommitRename,
-  onCancelEditing,
-  onDelete,
-  onContextMenu,
-  canDelete,
-  t,
-}: SortableTabProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: screen.id });
-
-  // Lock to horizontal axis (y: 0 prevents clipping by overflow-y-hidden)
-  // and preserve original size (scaleX/Y: 1 prevents resizing to match target slot)
-  const clampedTransform = transform ? { ...transform, y: 0, scaleX: 1, scaleY: 1 } : null;
-
-  const isDisabled = screen.enabled === false;
-
-  const style = {
-    transform: CSS.Transform.toString(clampedTransform),
-    transition,
-    zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.5 : (isDisabled && !isSelected ? 0.45 : undefined),
-  };
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      data-active={isSelected}
-      title={(() => {
-        const parts: string[] = [screen.name];
-        if (screen.rotationDurationMs === 0) parts.push(t('screenTabs.stickyTooltip'));
-        else if (screen.rotationDurationMs != null) parts.push(t('screenTabs.secondsSuffix', { seconds: Math.round(screen.rotationDurationMs / 1000) }));
-        if (screen.schedule) parts.push(t('screenTabs.scheduledTooltip'));
-        if (isDisabled) parts.push(t('screenTabs.disabledTooltip'));
-        return parts.join(' · ');
-      })()}
-      className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-        isSelected
-          ? 'bg-hs-card text-hs-text-primary'
-          : 'bg-hs-panel text-hs-text-muted hover:text-hs-text-body'
-      }`}
-      onClick={onSelect}
-      onDoubleClick={onStartEditing}
-      onContextMenu={onContextMenu}
-      {...attributes}
-      {...listeners}
-    >
-      {isEditing ? (
-        <input
-          ref={inputRef}
-          value={editValue}
-          onChange={(e) => onEditChange(e.target.value)}
-          onBlur={onCommitRename}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onCommitRename();
-            if (e.key === 'Escape') onCancelEditing();
-          }}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-28 border-b border-hs-border-strong bg-transparent text-sm text-hs-text-primary outline-none"
-        />
-      ) : (
-        <>
-          <span className="max-w-32 truncate">{screen.name}</span>
-          {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
-          {screen.schedule && (
-            <Clock
-              className="ml-0.5 h-3 w-3 text-hs-text-faint"
-              aria-hidden="true"
-            />
-          )}
-          {isDisabled && (
-            <span className="ml-0.5 text-[10px] text-hs-text-faint" aria-label={t('screenTabs.disabledIndicatorAriaLabel')}>
-              ⊘
-            </span>
-          )}
-          {isSelected && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextMenu(e);
-              }}
-              className="ml-1 text-xs text-hs-text-faint hover:text-hs-text-body"
-              title={t('screenTabs.screenOptionsTitle')}
-              aria-label={t('screenTabs.screenOptionsAriaLabel', { name: screen.name })}
-            >
-              &#9998;
-            </button>
-          )}
-        </>
-      )}
-      {canDelete && !isEditing && (
-        <button
-          onClick={onDelete}
-          className="ml-1 text-xs text-hs-text-faint hover:text-hs-danger"
-          aria-label={t('screenTabs.deleteTabAriaLabel', { name: screen.name })}
-        >
-          x
-        </button>
-      )}
-    </div>
-  );
-}
+import ScreenTab from './ScreenTab';
 
 
 /* ─── Main component ────────────────────────── */
@@ -210,11 +38,8 @@ export default function ScreenTabs() {
   // Screen operations target the currently-selected display's screens.
   // In legacy single-display mode this resolves to the global screen pool.
   const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const { editingId, editValue, setEditValue, beginEditing, commitRename, cancelEditing } =
+    useTabRename(screens, updateScreen);
 
   // Dropdown & context menu state
   const [addMenuPos, setAddMenuPos] = useState<{ top: number; right: number } | null>(null);
@@ -228,45 +53,17 @@ export default function ScreenTabs() {
   const [importLayout, setImportLayout] = useState<LayoutExport | null>(null);
 
   const screenSignature = screens.map((screen) => `${screen.id}:${screen.name}`).join('|');
+  const { scrollContainerRef, canScrollLeft, canScrollRight, scrollTabs } = useTabScroll({
+    screenSignature,
+    selectedScreenId,
+    editingId,
+  });
 
   // DnD sensors — distance constraint prevents drag from interfering with click/scroll
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const updateScrollState = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    setCanScrollLeft(container.scrollLeft > 8);
-    setCanScrollRight(maxScrollLeft > 8 && container.scrollLeft < maxScrollLeft - 8);
-  };
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    updateScrollState();
-
-    const handleScroll = () => updateScrollState();
-    const resizeObserver = new ResizeObserver(() => updateScrollState());
-
-    resizeObserver.observe(container);
-    container.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      resizeObserver.disconnect();
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [screenSignature]);
-
-  useEffect(() => {
-    const activeTab = scrollContainerRef.current?.querySelector<HTMLElement>('[data-active="true"]');
-    activeTab?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    updateScrollState();
-  }, [selectedScreenId, editingId, screenSignature]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -285,24 +82,6 @@ export default function ScreenTabs() {
   }, [setContextMenu]);
 
   if (!config) return null;
-
-  const commitRename = (screenId: string) => {
-    const trimmed = editValue.trim();
-    if (trimmed && trimmed !== screens.find((s) => s.id === screenId)?.name) {
-      updateScreen(screenId, { name: trimmed });
-    }
-    setEditingId(null);
-  };
-
-  const scrollTabs = (direction: 'left' | 'right') => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    container.scrollBy({
-      left: direction === 'left' ? -220 : 220,
-      behavior: 'smooth',
-    });
-  };
 
   const handleExportScreen = (screenId: string) => {
     setExportScreenId(screenId);
@@ -349,20 +128,17 @@ export default function ScreenTabs() {
                 className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto overflow-y-hidden px-9"
               >
                 {screens.map((screen) => (
-                  <SortableTab
+                  <ScreenTab
                     key={screen.id}
                     screen={screen}
                     isSelected={screen.id === selectedScreenId}
                     isEditing={editingId === screen.id}
                     editValue={editValue}
                     onSelect={() => selectScreen(screen.id)}
-                    onStartEditing={() => {
-                      setEditingId(screen.id);
-                      setEditValue(screen.name);
-                    }}
+                    onStartEditing={() => beginEditing(screen.id, screen.name)}
                     onEditChange={setEditValue}
                     onCommitRename={() => commitRename(screen.id)}
-                    onCancelEditing={() => setEditingId(null)}
+                    onCancelEditing={cancelEditing}
                     onDelete={async (e) => {
                       e.stopPropagation();
                       if (await useConfirmStore.getState().confirm({
@@ -375,7 +151,6 @@ export default function ScreenTabs() {
                     }}
                     onContextMenu={(e) => handleContextMenu(e, screen.id)}
                     canDelete={screens.length > 1}
-                    t={t}
                   />
                 ))}
               </div>
@@ -521,8 +296,7 @@ export default function ScreenTabs() {
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
             onClick={() => {
-              setEditingId(contextMenu.screenId);
-              setEditValue(screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
+              beginEditing(contextMenu.screenId, screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
               setContextMenu(null);
             }}
           >

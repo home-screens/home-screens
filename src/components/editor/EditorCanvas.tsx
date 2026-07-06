@@ -1,19 +1,22 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { useDroppable, useDndMonitor } from '@dnd-kit/core';
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3, LayoutDashboard } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
-import { editorFetch } from '@/lib/editor-fetch';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
+import { useCanvasBaseScale } from '@/hooks/useCanvasBaseScale';
+import { useCanvasDragState } from '@/hooks/useCanvasDragState';
+import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
 import type { PreviewSettings } from './DraggableModule';
+import CanvasToolbar from './CanvasToolbar';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 
 function GridOverlay({ scale }: { scale: number }) {
@@ -90,16 +93,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const t = useTranslate('editor');
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerCanvasRef = useRef<HTMLDivElement>(null);
-  const [baseScale, setBaseScale] = useState(0.4);
   const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, resizeModule } = useEditorStore();
   const previewData = usePreviewData();
-  const [dragState, setDragState] = useState<{
-    moduleId: string;
-    deltaX: number;
-    deltaY: number;
-  } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const scaleAtDragStartRef = useRef(0);
 
   // In multi-display mode, the canvas renders at the currently-selected
   // display's resolution so modules lay out against the actual target screen.
@@ -109,6 +104,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const displayWidth = dims.width;
   const displayHeight = dims.height;
 
+  const baseScale = useCanvasBaseScale(scrollRef, displayWidth, displayHeight);
+
   const { userZoom, effectiveScale, zoomIn, zoomOut, resetZoom } = useCanvasZoom(
     baseScale,
     scrollRef,
@@ -117,35 +114,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   const { setNodeRef } = useDroppable({ id: 'canvas-drop' });
 
-  // Track dnd-kit drag state — freeze scale at drag start for consistent coordinates
-  useDndMonitor({
-    onDragStart(event) {
-      setIsDragging(true);
-      scaleAtDragStartRef.current = effectiveScale;
-      const data = event.active.data.current;
-      if (data?.source === 'canvas') {
-        setDragState({ moduleId: data.moduleId as string, deltaX: 0, deltaY: 0 });
-      }
-    },
-    onDragMove(event) {
-      const data = event.active.data.current;
-      if (data?.source === 'canvas') {
-        setDragState({
-          moduleId: data.moduleId as string,
-          deltaX: event.delta.x,
-          deltaY: event.delta.y,
-        });
-      }
-    },
-    onDragEnd() {
-      setDragState(null);
-      setIsDragging(false);
-    },
-    onDragCancel() {
-      setDragState(null);
-      setIsDragging(false);
-    },
-  });
+  const { dragState, isDragging, scaleAtDragStartRef } = useCanvasDragState(effectiveScale);
 
   const now = useTZClock(config?.settings.timezone);
 
@@ -171,48 +140,10 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   // Poll the server-side background cache so the editor shows the same
   // rotating background that the display is using.
-  const [activeBackground, setActiveBackground] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!currentScreen?.backgroundRotation?.enabled) {
-      setActiveBackground(null);
-      return;
-    }
-
-    async function fetchActive() {
-      try {
-        const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(currentScreen!.id)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.path) setActiveBackground(data.path);
-        }
-      } catch (err) {
-        console.debug('Failed to fetch active background:', err);
-      }
-    }
-
-    fetchActive();
-    const id = setInterval(fetchActive, 30_000);
-    return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when screen ID or rotation toggle changes
-  }, [currentScreen?.id, currentScreen?.backgroundRotation?.enabled]);
-
-  // Compute base scale from container size via ResizeObserver
-  useEffect(() => {
-    const updateScale = () => {
-      if (!scrollRef.current) return;
-      const { clientWidth, clientHeight } = scrollRef.current;
-      const scaleX = (clientWidth - 32) / displayWidth;
-      const scaleY = (clientHeight - 32) / displayHeight;
-      const newBase = Math.min(scaleX, scaleY, 1);
-      setBaseScale(newBase);
-    };
-    updateScale();
-    const el = scrollRef.current;
-    const ro = new ResizeObserver(updateScale);
-    if (el) ro.observe(el);
-    return () => ro.disconnect();
-  }, [displayWidth, displayHeight]);
+  const activeBackground = useActiveBackground(
+    currentScreen?.id,
+    currentScreen?.backgroundRotation?.enabled ?? false,
+  );
 
   // Reset zoom when switching screens
   const prevScreenId = useRef(selectedScreenId);
@@ -305,84 +236,19 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
         </div>
       </div>
 
-      {/* Floating toolbar: undo/redo + zoom controls */}
-      <div className="absolute bottom-3 left-1/2 z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-lg border border-hs-border-strong bg-hs-panel/90 px-1 py-0.5 backdrop-blur-sm">
-        {/* Undo / Redo */}
-        <button
-          onClick={() => useEditorStore.getState().undo()}
-          disabled={!canUndo}
-          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title={t('canvas.undoTitle')}
-          aria-label={t('canvas.undoAriaLabel')}
-        >
-          <Undo2 className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={() => useEditorStore.getState().redo()}
-          disabled={!canRedo}
-          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title={t('canvas.redoTitle')}
-          aria-label={t('canvas.redoAriaLabel')}
-        >
-          <Redo2 className="h-3.5 w-3.5" />
-        </button>
-
-        <div className="mx-0.5 h-4 w-px bg-hs-card" />
-
-        {/* Snap toggle */}
-        <button
-          onClick={() => useEditorStore.getState().toggleSnap()}
-          className={`rounded p-1.5 transition-colors ${
-            snapEnabled
-              ? 'text-hs-accent-hover hover:bg-hs-card hover:text-hs-accent-hover'
-              : 'text-hs-text-muted hover:bg-hs-card hover:text-hs-text-body'
-          }`}
-          title={snapEnabled ? t('canvas.snapOnTitle') : t('canvas.snapOffTitle')}
-          aria-label={snapEnabled ? t('canvas.snapOnTitle') : t('canvas.snapOffTitle')}
-          aria-pressed={snapEnabled}
-        >
-          <Grid3x3 className="h-3.5 w-3.5" />
-        </button>
-
-        <div className="mx-0.5 h-4 w-px bg-hs-card" />
-
-        {/* Zoom controls */}
-        <button
-          onClick={zoomOut}
-          disabled={userZoom <= 0.25}
-          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title={t('canvas.zoomOutTitle')}
-          aria-label={t('canvas.zoomOutAriaLabel')}
-        >
-          <ZoomOut className="h-3.5 w-3.5" />
-        </button>
-        <span className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-hs-text-muted">
-          {t('canvas.zoomPercent', { percent: Math.round(userZoom * 100) })}
-        </span>
-        <button
-          onClick={zoomIn}
-          disabled={userZoom >= 3.0}
-          className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
-          title={t('canvas.zoomInTitle')}
-          aria-label={t('canvas.zoomInAriaLabel')}
-        >
-          <ZoomIn className="h-3.5 w-3.5" />
-        </button>
-
-        {userZoom !== 1.0 && (
-          <>
-            <div className="mx-0.5 h-4 w-px bg-hs-card" />
-            <button
-              onClick={resetZoom}
-              className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body"
-              title={t('canvas.fitTitle')}
-              aria-label={t('canvas.fitAriaLabel')}
-            >
-              <Maximize className="h-3.5 w-3.5" />
-            </button>
-          </>
-        )}
-      </div>
+      <CanvasToolbar
+        t={t}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        snapEnabled={snapEnabled}
+        userZoom={userZoom}
+        onUndo={() => useEditorStore.getState().undo()}
+        onRedo={() => useEditorStore.getState().redo()}
+        onToggleSnap={() => useEditorStore.getState().toggleSnap()}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onResetZoom={resetZoom}
+      />
     </div>
   );
 }

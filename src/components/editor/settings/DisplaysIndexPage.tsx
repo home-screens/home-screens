@@ -183,14 +183,9 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     ?? viewportH
     ?? config?.settings.displayHeight
     ?? DEFAULT_DISPLAY_HEIGHT;
-  const initialOriented = (() => {
-    const wantPortrait = initialTransform === '90' || initialTransform === '270';
-    const long = Math.max(initialRawW, initialRawH);
-    const short = Math.min(initialRawW, initialRawH);
-    return wantPortrait ? { w: short, h: long } : { w: long, h: short };
-  })();
-  const [width, setWidth] = useState<number>(initialOriented.w);
-  const [height, setHeight] = useState<number>(initialOriented.h);
+  const initialOriented = orientDimensions(initialRawW, initialRawH, initialTransform);
+  const [width, setWidth] = useState<number>(initialOriented.width);
+  const [height, setHeight] = useState<number>(initialOriented.height);
   const [transform, setTransform] = useState<'normal' | '90' | '180' | '270'>(initialTransform);
 
   const [error, setError] = useState<string | null>(null);
@@ -202,13 +197,9 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
    */
   const handleTransformChange = (next: 'normal' | '90' | '180' | '270') => {
     setTransform(next);
-    const wantPortrait = next === '90' || next === '270';
-    const isPortrait = height > width;
-    if (wantPortrait !== isPortrait) {
-      const w = width;
-      setWidth(height);
-      setHeight(w);
-    }
+    const oriented = orientDimensions(width, height, next);
+    setWidth(oriented.width);
+    setHeight(oriented.height);
   };
 
   // Auto-derive ID from name until the user types into the ID field
@@ -245,11 +236,7 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     // Normalize the stored dimensions so the long edge is on whichever axis
     // the rotation demands. This keeps data consistent even if something
     // upstream (tests, imports, hand-edits) passed a contradictory pair.
-    const wantPortrait = transform === '90' || transform === '270';
-    const long = Math.max(width, height);
-    const short = Math.min(width, height);
-    const finalWidth = wantPortrait ? short : long;
-    const finalHeight = wantPortrait ? long : short;
+    const { width: finalWidth, height: finalHeight } = orientDimensions(width, height, transform);
 
     // Edits: preserve the existing screens list via the `...initial` spread.
     // Creates: no `initial`, so the store's `addDisplay` defaults

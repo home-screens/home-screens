@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 
 // ---------------------------------------------------------------------------
@@ -79,6 +79,165 @@ export const STEP_LABELS: Record<string, string> = {
 // useUpgradeStream — SSE connection + upgrade trigger
 // ---------------------------------------------------------------------------
 
+/**
+ * Everything the SSE handlers need from the hook. Built once inside the
+ * mount effect so the handlers stay module-level named functions instead
+ * of one inline mega-effect; refs (not state) cross the closure boundary
+ * for values read at event time.
+ */
+interface StreamContext {
+  es: EventSource;
+  steps: readonly string[];
+  hasSeenRealStep: RefObject<boolean>;
+  progressRef: RefObject<ProgressData>;
+  activeStepRef: RefObject<string>;
+  setProgress: (p: ProgressData) => void;
+  setActiveStep: (s: string) => void;
+  setDone: (b: boolean) => void;
+  setFailed: (b: boolean) => void;
+}
+
+/** Progress events — step transitions. */
+function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
+  try {
+    const data = JSON.parse(event.data) as ProgressData & { type: string };
+
+    // Ignore the server's idle state — no upgrade is running yet.
+    // This arrives from subscribeToEvents() before our POST triggers the upgrade.
+    if (data.step === 'idle') return;
+
+    // Track whether we've seen any real pipeline step (not a terminal state).
+    // This prevents a stale 'complete' from subscribeToEvents closing the SSE
+    // before the upgrade has started.
+    if (data.step !== 'complete' && data.step !== 'error') {
+      ctx.hasSeenRealStep.current = true;
+    }
+
+    ctx.setProgress({
+      step: data.step,
+      progress: data.progress,
+      message: data.message,
+      error: data.error,
+    });
+
+    if (
+      data.step !== 'error' &&
+      data.step !== 'complete' &&
+      ctx.steps.includes(data.step)
+    ) {
+      // Only update activeStep for visible steps — hidden steps like
+      // 'stash'/'cleanup' would make indexOf return -1 and break the
+      // accordion state.
+      ctx.setActiveStep(data.step);
+    }
+
+    if (data.step === 'complete' && ctx.hasSeenRealStep.current) {
+      ctx.setDone(true);
+      ctx.es.close();
+    } else if (data.step === 'error' && ctx.hasSeenRealStep.current) {
+      ctx.setFailed(true);
+      ctx.es.close();
+    }
+  } catch {
+    // ignore parse errors
+  }
+}
+
+/** Output events — streaming log lines accumulated per step. */
+function handleOutputEvent(
+  setStepLogs: Dispatch<SetStateAction<Record<string, string>>>,
+  event: MessageEvent,
+): void {
+  try {
+    const data = JSON.parse(event.data) as { step: string; line: string };
+    setStepLogs((prev) => ({
+      ...prev,
+      [data.step]: (prev[data.step] || '') + data.line + '\n',
+    }));
+  } catch {
+    // ignore parse errors
+  }
+}
+
+/** SSE connection loss — expected during restart, an error anywhere else. */
+function handleStreamError(ctx: StreamContext): void {
+  ctx.es.close();
+  const current = ctx.progressRef.current;
+  const currentActive = ctx.activeStepRef.current;
+
+  if (
+    current.step === 'restart' ||
+    current.step === 'cleanup' ||
+    currentActive === 'restart' ||
+    currentActive === 'cleanup'
+  ) {
+    // SSE connection lost during restart/cleanup — expected, the server is restarting
+    ctx.setProgress({
+      step: 'complete',
+      progress: 100,
+      message: 'Server restarted. Reconnecting...',
+    });
+    ctx.setDone(true);
+  } else if (!ctx.hasSeenRealStep.current) {
+    // SSE failed before any upgrade events arrived — connection issue, not a step failure
+    ctx.setFailed(true);
+    ctx.setProgress({
+      step: 'error',
+      progress: 0,
+      message: 'Failed to connect to upgrade stream',
+      error:
+        'Could not establish a connection to monitor the upgrade. Try refreshing the page.',
+    });
+  } else if (current.step !== 'complete' && current.step !== 'error') {
+    // Unexpected disconnect mid-upgrade — show which step was active
+    const stepLabel = STEP_LABELS[currentActive] || currentActive;
+    ctx.setFailed(true);
+    ctx.setProgress({
+      step: 'error',
+      progress: 0,
+      message: `Connection lost during "${stepLabel}"`,
+      error:
+        'The server connection was lost unexpectedly. The upgrade may still be running — check server logs and try refreshing the page.',
+    });
+  }
+}
+
+/** POST the upgrade/rollback trigger; a failed trigger tears down the stream. */
+async function triggerUpgrade(
+  ctx: StreamContext,
+  isRollback: boolean,
+  targetTag: string,
+): Promise<void> {
+  const endpoint = isRollback ? '/api/system/rollback' : '/api/system/upgrade';
+  try {
+    const res = await editorFetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag: targetTag }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      ctx.es.close();
+      ctx.setFailed(true);
+      ctx.setProgress({
+        step: 'error',
+        progress: 0,
+        message: 'Failed to start upgrade',
+        error: body.error || `Server returned ${res.status}`,
+      });
+    }
+  } catch {
+    ctx.es.close();
+    ctx.setFailed(true);
+    ctx.setProgress({
+      step: 'error',
+      progress: 0,
+      message: 'Failed to start upgrade',
+      error: 'Could not connect to server',
+    });
+  }
+}
+
 export function useUpgradeStream(
   steps: readonly string[],
   targetTag: string,
@@ -121,152 +280,38 @@ export function useUpgradeStream(
     });
   }, [activeStep]);
 
-  // Connect SSE and trigger upgrade
+  // Connect SSE and trigger upgrade. Deliberately ONE mount-only effect —
+  // the EventSource lifecycle (open, wire handlers, trigger, close on
+  // unmount) is a single resource; the handler bodies live in the named
+  // module-level functions above.
   useEffect(() => {
     if (started) return;
     setStarted(true);
 
     const es = new EventSource('/api/system/status');
-
-    // Progress events — step transitions
-    es.addEventListener(
-      'progress',
-      ((event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data) as ProgressData & { type: string };
-
-          // Ignore the server's idle state — no upgrade is running yet.
-          // This arrives from subscribeToEvents() before our POST triggers the upgrade.
-          if (data.step === 'idle') return;
-
-          // Track whether we've seen any real pipeline step (not a terminal state).
-          // This prevents a stale 'complete' from subscribeToEvents closing the SSE
-          // before the upgrade has started.
-          if (data.step !== 'complete' && data.step !== 'error') {
-            hasSeenRealStep.current = true;
-          }
-
-          setProgress({
-            step: data.step,
-            progress: data.progress,
-            message: data.message,
-            error: data.error,
-          });
-
-          if (
-            data.step !== 'error' &&
-            data.step !== 'complete' &&
-            steps.includes(data.step)
-          ) {
-            // Only update activeStep for visible steps — hidden steps like
-            // 'stash'/'cleanup' would make indexOf return -1 and break the
-            // accordion state.
-            setActiveStep(data.step);
-          }
-
-          if (data.step === 'complete' && hasSeenRealStep.current) {
-            setDone(true);
-            es.close();
-          } else if (data.step === 'error' && hasSeenRealStep.current) {
-            setFailed(true);
-            es.close();
-          }
-        } catch {
-          // ignore parse errors
-        }
-      }) as EventListener,
-    );
-
-    // Output events — streaming log lines
-    es.addEventListener(
-      'output',
-      ((event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data) as { step: string; line: string };
-          setStepLogs((prev) => ({
-            ...prev,
-            [data.step]: (prev[data.step] || '') + data.line + '\n',
-          }));
-        } catch {
-          // ignore parse errors
-        }
-      }) as EventListener,
-    );
-
-    es.onerror = () => {
-      es.close();
-      const current = progressRef.current;
-      const currentActive = activeStepRef.current;
-
-      if (
-        current.step === 'restart' ||
-        current.step === 'cleanup' ||
-        currentActive === 'restart' ||
-        currentActive === 'cleanup'
-      ) {
-        // SSE connection lost during restart/cleanup — expected, the server is restarting
-        setProgress({
-          step: 'complete',
-          progress: 100,
-          message: 'Server restarted. Reconnecting...',
-        });
-        setDone(true);
-      } else if (!hasSeenRealStep.current) {
-        // SSE failed before any upgrade events arrived — connection issue, not a step failure
-        setFailed(true);
-        setProgress({
-          step: 'error',
-          progress: 0,
-          message: 'Failed to connect to upgrade stream',
-          error:
-            'Could not establish a connection to monitor the upgrade. Try refreshing the page.',
-        });
-      } else if (current.step !== 'complete' && current.step !== 'error') {
-        // Unexpected disconnect mid-upgrade — show which step was active
-        const stepLabel = STEP_LABELS[currentActive] || currentActive;
-        setFailed(true);
-        setProgress({
-          step: 'error',
-          progress: 0,
-          message: `Connection lost during "${stepLabel}"`,
-          error:
-            'The server connection was lost unexpectedly. The upgrade may still be running — check server logs and try refreshing the page.',
-        });
-      }
+    const ctx: StreamContext = {
+      es,
+      steps,
+      hasSeenRealStep,
+      progressRef,
+      activeStepRef,
+      setProgress,
+      setActiveStep,
+      setDone,
+      setFailed,
     };
 
-    // Trigger the upgrade/rollback
-    async function triggerUpgrade() {
-      const endpoint = isRollback ? '/api/system/rollback' : '/api/system/upgrade';
-      try {
-        const res = await editorFetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tag: targetTag }),
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-          es.close();
-          setFailed(true);
-          setProgress({
-            step: 'error',
-            progress: 0,
-            message: 'Failed to start upgrade',
-            error: body.error || `Server returned ${res.status}`,
-          });
-        }
-      } catch {
-        es.close();
-        setFailed(true);
-        setProgress({
-          step: 'error',
-          progress: 0,
-          message: 'Failed to start upgrade',
-          error: 'Could not connect to server',
-        });
-      }
-    }
-    triggerUpgrade();
+    es.addEventListener(
+      'progress',
+      ((event: MessageEvent) => handleProgressEvent(ctx, event)) as EventListener,
+    );
+    es.addEventListener(
+      'output',
+      ((event: MessageEvent) => handleOutputEvent(setStepLogs, event)) as EventListener,
+    );
+    es.onerror = () => handleStreamError(ctx);
+
+    triggerUpgrade(ctx, isRollback, targetTag);
 
     return () => {
       es.close();
