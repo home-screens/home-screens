@@ -11,6 +11,7 @@ import {
   scheduleRollback,
   hasActiveRollback,
   ensureSourceRouting,
+  isPotentiallyManagementInterface,
 } from '@/lib/network-commands';
 import {
   validateSSID,
@@ -163,7 +164,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   // could be management to avoid silently skipping safety guards
   const clientIP = getClientIP(request);
   const managementIface = await getManagementInterface(clientIP);
-  const isManagement = managementIface !== null ? managementIface === iface : true;
+  const isManagement = isPotentiallyManagementInterface(managementIface, iface);
 
   // 5. Reject if a rollback is already in progress
   if (isManagement && hasActiveRollback()) {

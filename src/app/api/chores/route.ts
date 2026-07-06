@@ -5,7 +5,7 @@ import { errorResponse } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
-import { createJsonStore } from '@/lib/json-store';
+import { updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 
 export const dynamic = 'force-dynamic';
@@ -21,20 +21,10 @@ function isValidISODate(s: string): boolean {
   return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
 }
 
-interface CompletionsData {
-  completions: ChoreCompletion[];
-}
-
 /** Format a Date as YYYY-MM-DD in local time */
 function localDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-
-const store = createJsonStore<CompletionsData>({
-  path: 'data/chore-completions.json',
-  defaultValue: { completions: [] },
-  errorHandling: 'throw-corrupt',
-});
 
 /** Remove completions older than CHORE_HISTORY_DAYS days */
 function purgeOld(completions: ChoreCompletion[]): ChoreCompletion[] {
@@ -55,7 +45,7 @@ export const GET = async () => {
     // only persist when purgeOld actually evicted something — otherwise a
     // quiescent display polling every 15s would churn the disk forever.
     // Returning the same reference signals "no-op, skip the write".
-    const result = await store.updateAtomic((data) => {
+    const result = await updateCompletionsAtomic((data) => {
       const cleaned = purgeOld(data.completions);
       if (cleaned.length === data.completions.length) return data; // nothing to purge
       return { completions: cleaned };
@@ -101,7 +91,7 @@ export const POST = async (request: NextRequest) => {
   // Read chore data in parallel with toggle (needed for point value lookup)
   const choreDataPromise = readChoreData();
 
-  const result = await store.updateAtomic((data) => {
+  const result = await updateCompletionsAtomic((data) => {
     const existing = data.completions.findIndex(
       (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
     );

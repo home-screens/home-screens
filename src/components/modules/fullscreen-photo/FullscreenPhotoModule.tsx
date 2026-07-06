@@ -5,6 +5,7 @@ import type { FullscreenPhotoConfig, ModuleStyle } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl } from '@/lib/fetch-keys';
 import { useAuthImage } from '@/components/display/useAuthImage';
+import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 
@@ -96,14 +97,10 @@ function SlideLayer({
 
 // ── Clock overlay ────────────────────────────
 
-function ClockOverlay({ textColor, textMuted }: { textColor: string; textMuted: string }) {
-  const [time, setTime] = useState(() => new Date());
+function ClockOverlay({ textColor, textMuted, timezone }: { textColor: string; textMuted: string; timezone?: string }) {
+  // Display-timezone clock, not browser-local — the Pi's OS timezone may differ
+  const time = useTZClock(timezone, 1000);
   const locale = useFormattingLocale();
-
-  useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   // Resolve the locale's hour cycle from Intl rather than guessing on the
   // language tag — this gets en-GB (24h) and fr-CA (24h) right.
@@ -205,10 +202,11 @@ function useShuffledRotatingIndex(count: number, intervalMs: number, shuffle: bo
 interface FullscreenPhotoModuleProps {
   config: FullscreenPhotoConfig;
   style: ModuleStyle;
+  timezone?: string;
   fullscreenTheme?: string;
 }
 
-export default function FullscreenPhotoModule({ config, fullscreenTheme }: FullscreenPhotoModuleProps) {
+export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -287,7 +285,7 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
           layerIndex={0}
         />
         {config.showClock && (
-          <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" />
+          <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" timezone={timezone} />
         )}
       </div>
     );
@@ -356,7 +354,7 @@ export default function FullscreenPhotoModule({ config, fullscreenTheme }: Fulls
 
       {/* Clock overlay */}
       {config.showClock && (
-        <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" />
+        <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" timezone={timezone} />
       )}
     </div>
   );

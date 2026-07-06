@@ -10,6 +10,7 @@ import {
   scheduleRollback,
   hasActiveRollback,
   ensureSourceRouting,
+  isPotentiallyManagementInterface,
 } from '@/lib/network-commands';
 import {
   validateUUID,
@@ -179,9 +180,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   const connectionDevice = await getDeviceForConnection(connectionId);
   // Fail-closed: if we can't determine the device or management interface,
   // treat it as potentially management to avoid silently skipping safety guards
-  const isManagement = managementIface !== null
-    ? connectionDevice === managementIface
-    : connectionDevice !== null; // can't determine mgmt iface → assume worst case
+  const isManagement = isPotentiallyManagementInterface(managementIface, connectionDevice);
 
   // 5. Reject if a rollback is already in progress
   if (isManagement && hasActiveRollback()) {

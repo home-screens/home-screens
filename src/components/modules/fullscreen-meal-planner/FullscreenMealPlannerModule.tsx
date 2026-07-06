@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
+import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl } from '@/lib/fetch-keys';
@@ -31,7 +32,7 @@ interface FullscreenMealPlannerModuleProps {
 export default function FullscreenMealPlannerModule({
   config,
   style: _style,
-  timezone: _timezone,
+  timezone,
   fullscreenTheme,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
@@ -53,12 +54,8 @@ export default function FullscreenMealPlannerModule({
   const s = bu * typoMul;
   const d = densityMul;
 
-  // ── Current time ──
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const tick = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(tick);
-  }, []);
+  // ── Current time (display timezone, not browser-local) ──
+  const now = useTZClock(timezone, 60_000);
 
   const currentHour = now.getHours();
   const slots = settings.enabledSlots;

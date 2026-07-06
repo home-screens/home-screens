@@ -299,6 +299,26 @@ export async function getManagementInterface(clientIP: string): Promise<string |
   }
 }
 
+/**
+ * Decide whether a candidate interface could be the management interface
+ * (the one serving the current HTTP session), for confirmation guards.
+ *
+ * Fail-closed: if either side is unknown (`null`), the candidate cannot be
+ * ruled out, so it is treated as potentially management and callers must
+ * require confirmation. Only a definitive mismatch returns `false`.
+ *
+ * All three network mutation routes (wifi/connect, wifi/disconnect, ip)
+ * share this helper — do not reimplement the boolean inline; a previous
+ * inline copy inverted the null case and silently skipped the guard.
+ */
+export function isPotentiallyManagementInterface(
+  managementIface: string | null,
+  candidate: string | null,
+): boolean {
+  if (managementIface === null || candidate === null) return true;
+  return managementIface === candidate;
+}
+
 /* ─── Source-based routing ───────────────────── */
 
 /**

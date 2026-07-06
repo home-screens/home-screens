@@ -22,6 +22,7 @@ import {
   inhibitWatchdog,
   uninhibitWatchdog,
   getManagementInterface,
+  isPotentiallyManagementInterface,
   __resetForTests,
 } from '@/lib/network-commands';
 
@@ -471,5 +472,33 @@ describe('getManagementInterface', () => {
 
     const iface = await getManagementInterface('0.0.0.0');
     expect(iface).toBe('lo');
+  });
+});
+
+/* ─── isPotentiallyManagementInterface ───────── */
+
+describe('isPotentiallyManagementInterface', () => {
+  it('fails closed when both sides are unknown (the fail-open regression case)', () => {
+    // The ip route's inline copy evaluated null/null to false, silently
+    // skipping the confirmation guard. Lock in the fail-closed semantics.
+    expect(isPotentiallyManagementInterface(null, null)).toBe(true);
+  });
+
+  it('fails closed when the management interface is unknown', () => {
+    expect(isPotentiallyManagementInterface(null, 'eth0')).toBe(true);
+  });
+
+  it('fails closed when the candidate device is unknown', () => {
+    // A known management interface with an unknown candidate can't be
+    // ruled out either — the connection could come up on that interface.
+    expect(isPotentiallyManagementInterface('eth0', null)).toBe(true);
+  });
+
+  it('returns true on an exact match', () => {
+    expect(isPotentiallyManagementInterface('wlan0', 'wlan0')).toBe(true);
+  });
+
+  it('returns false only on a definitive mismatch', () => {
+    expect(isPotentiallyManagementInterface('eth0', 'wlan0')).toBe(false);
   });
 });

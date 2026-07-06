@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, getClientIP } from '@/lib/api-utils';
-import { nmcli, nmcliSudo, getManagementInterface } from '@/lib/network-commands';
+import {
+  nmcli,
+  nmcliSudo,
+  getManagementInterface,
+  isPotentiallyManagementInterface,
+} from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
 import { parseTerseFields } from '@/lib/network-parse';
 
@@ -66,9 +71,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     const clientIP = getClientIP(request);
     const managementIface = await getManagementInterface(clientIP);
     // Fail-closed: if management detection fails, assume worst case
-    const isManagement = managementIface !== null
-      ? managementIface === activeDevice
-      : true;
+    const isManagement = isPotentiallyManagementInterface(managementIface, activeDevice);
 
     if (isManagement && !confirmed) {
       return NextResponse.json({
