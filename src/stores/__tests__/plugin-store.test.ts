@@ -229,10 +229,10 @@ describe('plugin-store shared-state cleanup', () => {
     usePluginStore.getState().unregisterPlugin('plugin:foo');
 
     // Tombstoned first (grace window), deleted for real after the TTL
-    expect(store.get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
+    expect(store.snapshot().get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
     vi.advanceTimersByTime(15_000);
-    expect(store.get('plugin:foo:door')).toBeUndefined();
-    expect(store.get('plugin:bar:door')?.value).toBe('closed');
+    expect(store.snapshot().get('plugin:foo:door')).toBeUndefined();
+    expect(store.snapshot().get('plugin:bar:door')?.value).toBe('closed');
     vi.useRealTimers();
   });
 
@@ -248,9 +248,9 @@ describe('plugin-store shared-state cleanup', () => {
     usePluginStore.getState().clearPlugins();
     vi.advanceTimersByTime(15_000);
 
-    expect(store.get('plugin:foo:door')).toBeUndefined();
-    expect(store.get('plugin:bar:door')).toBeUndefined();
-    expect(store.get('host.key')?.value).toBe('kept');
+    expect(store.snapshot().get('plugin:foo:door')).toBeUndefined();
+    expect(store.snapshot().get('plugin:bar:door')).toBeUndefined();
+    expect(store.snapshot().get('host.key')?.value).toBe('kept');
     vi.useRealTimers();
   });
 
@@ -265,7 +265,7 @@ describe('plugin-store shared-state cleanup', () => {
     usePluginStore.getState().clearPlugins({ preserveSharedState: true });
 
     expect(usePluginStore.getState().plugins.size).toBe(0);
-    expect(store.get('plugin:foo:door')?.value).toBe('open');
+    expect(store.snapshot().get('plugin:foo:door')?.value).toBe('open');
   });
 
   it('clearPlugins({ preserveSharedState: true }) still unregisters modules and fetch keys', () => {

@@ -9,8 +9,6 @@
 
 import type { ConsoleLogEntry } from '@/lib/hardware-stats';
 
-export type { ConsoleLogEntry };
-
 interface BufferOptions {
   /** Hard cap on number of entries (defaults to 500). */
   maxEntries?: number;

@@ -380,9 +380,3 @@ export function translate(
   }
   return key;
 }
-
-/** @internal — clears the dev warning set so tests don't leak. */
-export function __resetMissingKeyWarningsForTests(): void {
-  MISSING_KEY_WARNINGS.clear();
-  NO_PROVIDER_WARNINGS.clear();
-}

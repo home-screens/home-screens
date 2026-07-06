@@ -1196,7 +1196,6 @@ export interface ChoreCompletion {
   choreId: string;
   memberId: string;
   date: string;
-  completedAt: string;
 }
 
 /** Request body for POST /api/chores — toggles a single completion on or off. */

@@ -177,8 +177,7 @@ Returns chore completion records. Automatically purges entries older than 90 day
     {
       "choreId": "chore-1",
       "memberId": "member-1",
-      "date": "2026-03-08",
-      "completedAt": "2026-03-08T14:30:00.000Z"
+      "date": "2026-03-08"
     }
   ]
 }

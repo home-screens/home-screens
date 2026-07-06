@@ -269,7 +269,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       if (existing >= 0) {
         return prev.filter((_, i) => i !== existing);
       }
-      return [...prev, { choreId, memberId, date: today, completedAt: new Date().toISOString() }];
+      return [...prev, { choreId, memberId, date: today }];
     });
 
     try {

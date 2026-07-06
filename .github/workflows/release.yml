@@ -31,6 +31,12 @@ jobs:
           cp -r scripts .next/standalone/scripts
           cp .node-version .next/standalone/.node-version
 
+          # Bundle the config-check CLI so `npm run config:check` works on
+          # installs with no dev dependencies or src/ tree. The launcher
+          # (scripts/check-config.mjs) prefers this artifact when present.
+          npx esbuild scripts/check-config.ts --bundle --platform=node \
+            --format=cjs --outfile=.next/standalone/scripts/check-config.cjs
+
           # Seed config for fresh installs (data/config.json is gitignored)
           mkdir -p .next/standalone/data
           node -e "

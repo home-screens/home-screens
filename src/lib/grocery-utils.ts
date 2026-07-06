@@ -1,19 +1,5 @@
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 
-// ── Grocery category labels ──
-
-export const GROCERY_CATEGORIES: Record<string, string> = {
-  produce:   'Produce',
-  dairy:     'Dairy & Eggs',
-  meat:      'Meat & Seafood',
-  seafood:   'Meat & Seafood',
-  bakery:    'Bakery',
-  pantry:    'Pantry',
-  frozen:    'Frozen',
-  beverages: 'Beverages',
-  other:     'Other',
-};
-
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
 
 // SVG path data for grocery category icons (Lucide-style)

@@ -1105,7 +1105,7 @@ Home Screens ships a standalone validator for `data/config.json` that you can ru
 npm run config:check
 ```
 
-A clean config exits with status `0` and a "No issues found" summary. Any errors — unknown module types, duplicate screen IDs, profile references to non-existent screens, out-of-range display dimensions, etc. — exit with a non-zero status and a list of diagnostic entries, making the CLI safe to wire into a pre-commit hook or CI step on a server that mounts `data/`. The same validation rules are exposed programmatically from `src/lib/validate-config.ts` if you want to reuse them from your own tooling.
+A clean config exits with status `0` and a "Config is valid" summary. Any errors — unknown module types, duplicate screen IDs, profile references to non-existent screens, out-of-range display dimensions, etc. — exit with a non-zero status and a list of diagnostic entries, making the CLI safe to wire into a pre-commit hook or CI step on a server that mounts `data/`. The same validation rules are exposed programmatically from `src/lib/validate-config.ts` if you want to reuse them from your own tooling.
 
 ## Backup & Restore
 

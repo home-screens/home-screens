@@ -14,8 +14,8 @@ describe('sharedStateStore', () => {
 
   it('publishes and reads back a value', () => {
     sharedStateStore.publish('plugin:ha:door', 'alert');
-    expect(sharedStateStore.get('plugin:ha:door')?.value).toBe('alert');
-    expect(sharedStateStore.get('plugin:ha:door')?.updatedAt).toBeTypeOf('number');
+    expect(sharedStateStore.snapshot().get('plugin:ha:door')?.value).toBe('alert');
+    expect(sharedStateStore.snapshot().get('plugin:ha:door')?.updatedAt).toBeTypeOf('number');
   });
 
   it('replays current state via snapshot for late consumers', () => {
@@ -58,7 +58,7 @@ describe('sharedStateStore', () => {
 
   it('truncates values past the 1KB cap', () => {
     sharedStateStore.publish('big.value', 'x'.repeat(2000));
-    expect(sharedStateStore.get('big.value')?.value).toHaveLength(1024);
+    expect(sharedStateStore.snapshot().get('big.value')?.value).toHaveLength(1024);
     expect(console.warn).toHaveBeenCalled();
   });
 
@@ -67,10 +67,10 @@ describe('sharedStateStore', () => {
       sharedStateStore.publish(`key.${i}`, 'v');
     }
     sharedStateStore.publish('key.overflow', 'v');
-    expect(sharedStateStore.get('key.overflow')).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('key.overflow')).toBeUndefined();
     // Existing keys can still change value at the cap
     sharedStateStore.publish('key.0', 'updated');
-    expect(sharedStateStore.get('key.0')?.value).toBe('updated');
+    expect(sharedStateStore.snapshot().get('key.0')?.value).toBe('updated');
   });
 
   it('snapshot is referentially stable across calls until state changes', () => {
@@ -95,8 +95,8 @@ describe('sharedStateStore', () => {
     sharedStateStore.subscribe(fn);
     sharedStateStore.clearKey('a.key');
     // Grace window: last value still visible, marked stale
-    expect(sharedStateStore.get('a.key')?.value).toBe('1');
-    expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+    expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
+    expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
     expect(fn).toHaveBeenCalledTimes(1);
     // Re-clearing an already-tombstoned key is a no-op (no extra notify,
     // no timer extension)
@@ -104,7 +104,7 @@ describe('sharedStateStore', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     // After the TTL with no fresh publish, the key is deleted for real
     vi.advanceTimersByTime(15_000);
-    expect(sharedStateStore.get('a.key')).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
@@ -113,9 +113,9 @@ describe('sharedStateStore', () => {
     sharedStateStore.publish('a.key', '1');
     sharedStateStore.clearKey('a.key');
     sharedStateStore.publish('a.key', '1'); // same value must NOT be coalesced away
-    expect(sharedStateStore.get('a.key')?.staleAt).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeUndefined();
     vi.advanceTimersByTime(60_000);
-    expect(sharedStateStore.get('a.key')?.value).toBe('1');
+    expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
   });
 
   it('clearing a missing key is a silent no-op', () => {
@@ -140,10 +140,10 @@ describe('sharedStateStore', () => {
       const releaseB = sharedStateStore.claim('a.key');
       sharedStateStore.publish('a.key', '1');
       releaseA();
-      expect(sharedStateStore.get('a.key')?.value).toBe('1');
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeUndefined();
       releaseB();
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
     });
 
     it('releasing the last claim tombstones the key and notifies; TTL deletes it', () => {
@@ -153,10 +153,10 @@ describe('sharedStateStore', () => {
       const fn = vi.fn();
       sharedStateStore.subscribe(fn);
       release();
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
       expect(fn).toHaveBeenCalledTimes(1);
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('a.key')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
     });
 
     it('release is idempotent (double-release cannot underflow a second claimant)', () => {
@@ -165,17 +165,17 @@ describe('sharedStateStore', () => {
       sharedStateStore.publish('a.key', '1');
       releaseA();
       releaseA();
-      expect(sharedStateStore.get('a.key')?.value).toBe('1');
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeUndefined();
       releaseB();
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
     });
 
     it('claim on an invalid key is a no-op', () => {
       const release = sharedStateStore.claim('UPPER');
       sharedStateStore.publish('a.key', '1');
       release();
-      expect(sharedStateStore.get('a.key')?.value).toBe('1');
+      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
     });
 
     it('publish without claim then release still clears (single claimant)', () => {
@@ -183,9 +183,9 @@ describe('sharedStateStore', () => {
       sharedStateStore.publish('a.key', '1');
       const release = sharedStateStore.claim('a.key');
       release();
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('a.key')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
     });
 
     it('clearKey drops an outstanding claim count (unconditional teardown)', () => {
@@ -193,12 +193,12 @@ describe('sharedStateStore', () => {
       const release = sharedStateStore.claim('a.key');
       sharedStateStore.publish('a.key', '1');
       sharedStateStore.clearKey('a.key');
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
       // Late release of the dropped claim must not throw or resurrect anything
       release();
-      expect(sharedStateStore.get('a.key')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('a.key')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
     });
   });
 
@@ -214,14 +214,14 @@ describe('sharedStateStore', () => {
       const fn = vi.fn();
       sharedStateStore.subscribe(fn);
       sharedStateStore.clearKeysByPrefix('plugin:ha:');
-      expect(sharedStateStore.get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
-      expect(sharedStateStore.get('plugin:ha:temp')?.staleAt).toBeTypeOf('number');
-      expect(sharedStateStore.get('plugin:other:door')?.staleAt).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('plugin:ha:temp')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('plugin:other:door')?.staleAt).toBeUndefined();
       expect(fn).toHaveBeenCalledTimes(1);
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('plugin:ha:door')).toBeUndefined();
-      expect(sharedStateStore.get('plugin:ha:temp')).toBeUndefined();
-      expect(sharedStateStore.get('plugin:other:door')?.value).toBe('closed');
+      expect(sharedStateStore.snapshot().get('plugin:ha:door')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('plugin:ha:temp')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('plugin:other:door')?.value).toBe('closed');
     });
 
     it('is a silent no-op when nothing matches', () => {
@@ -236,11 +236,11 @@ describe('sharedStateStore', () => {
       const release = sharedStateStore.claim('plugin:ha:door');
       sharedStateStore.publish('plugin:ha:door', 'open');
       sharedStateStore.clearKeysByPrefix('plugin:ha:');
-      expect(sharedStateStore.get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
       release();
-      expect(sharedStateStore.get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('plugin:ha:door')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('plugin:ha:door')).toBeUndefined();
     });
   });
 });

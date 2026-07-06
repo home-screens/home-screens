@@ -14,5 +14,4 @@ export const v4ToV5 = {
   version: 5,
   description: 'Add optional locale to GlobalSettings (no field changes — defaults resolved at read time)',
   up: (config: ScreenConfiguration): ScreenConfiguration => ({ ...config, version: 5 }),
-  down: (config: ScreenConfiguration): ScreenConfiguration => ({ ...config, version: 4 }),
 };

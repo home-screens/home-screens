@@ -78,11 +78,6 @@ function scryptHash(password: string, salt: string): Promise<string> {
   });
 }
 
-/** @internal */
-export async function hashPassword(password: string, salt: string): Promise<string> {
-  return scryptHash(password, salt);
-}
-
 export async function verifyPassword(password: string): Promise<boolean> {
   const state = await readAuthState();
   if (!state.passwordHash || !state.salt) return false;

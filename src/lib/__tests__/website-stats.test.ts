@@ -11,7 +11,6 @@ import {
   MODULE_CATEGORY_COUNT,
   WEATHER_PROVIDER_COUNT,
   STANDINGS_LEAGUE_COUNT,
-  API_ROUTE_COUNT,
   CLOCK_VIEW_COUNT,
   WEATHER_VIEW_COUNT,
   SHAPE_VIEW_COUNT,
@@ -31,24 +30,6 @@ function readUnionMembers(typeName: string): string[] {
     throw new Error(`Could not find "export type ${typeName}" in config.ts`);
   }
   return Array.from(match[1].matchAll(/'([^']+)'/g)).map((m) => m[1]);
-}
-
-function countApiRouteFiles(): number {
-  const apiDir = path.join(REPO_ROOT, 'src/app/api');
-  let count = 0;
-  function walk(dir: string) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name === '__tests__') continue;
-        walk(full);
-      } else if (entry.name === 'route.ts') {
-        count++;
-      }
-    }
-  }
-  walk(apiDir);
-  return count;
 }
 
 function countWeatherProviderFiles(): number {
@@ -130,10 +111,6 @@ describe('website stats stay in sync with the codebase', () => {
 
   it('STANDINGS_LEAGUE_COUNT matches the editor StandingsConfigSection', () => {
     expect(STANDINGS_LEAGUE_COUNT).toBe(countStandingsLeagues());
-  });
-
-  it('API_ROUTE_COUNT matches the route.ts files under src/app/api', () => {
-    expect(API_ROUTE_COUNT).toBe(countApiRouteFiles());
   });
 
   it('LOCALE_COUNT matches the registered locales in src/i18n/manifest.ts', () => {

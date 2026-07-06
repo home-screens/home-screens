@@ -56,27 +56,27 @@ describe('__HS_SDK__ shared-state surface', () => {
   it('force-prefixes publishes with the plugin namespace', async () => {
     await mountSdk();
     getSDK().publishState('ha', 'door', 'open');
-    expect(sharedStateStore.get('plugin:ha:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:ha:door')?.value).toBe('open');
   });
 
   it('lowercases mixed-case plugin ids so the store accepts the key', async () => {
     await mountSdk();
     getSDK().publishState('MyPlugin', 'door', 'open');
-    expect(sharedStateStore.get('plugin:myplugin:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:myplugin:door')?.value).toBe('open');
   });
 
   it('strips an already-present own prefix instead of double-prefixing', async () => {
     await mountSdk();
     getSDK().publishState('ha', 'plugin:ha:door', 'open');
-    expect(sharedStateStore.get('plugin:ha:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:ha:door')?.value).toBe('open');
     expect(sharedStateStore.snapshot().size).toBe(1);
   });
 
   it('double-prefixes a key aimed at another plugin namespace (no cross-plugin writes)', async () => {
     await mountSdk();
     getSDK().publishState('ha', 'plugin:other:door', 'open');
-    expect(sharedStateStore.get('plugin:other:door')).toBeUndefined();
-    expect(sharedStateStore.get('plugin:ha:plugin:other:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:other:door')).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('plugin:ha:plugin:other:door')?.value).toBe('open');
   });
 
   it('clearState tombstones a published key under the same namespace rules', async () => {
@@ -86,9 +86,9 @@ describe('__HS_SDK__ shared-state surface', () => {
       getSDK().publishState('MyPlugin', 'door', 'open');
       getSDK().clearState('MyPlugin', 'plugin:MyPlugin:door');
       // Grace window first (no blink on producer restarts), gone after TTL
-      expect(sharedStateStore.get('plugin:myplugin:door')?.staleAt).toBeTypeOf('number');
+      expect(sharedStateStore.snapshot().get('plugin:myplugin:door')?.staleAt).toBeTypeOf('number');
       vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.get('plugin:myplugin:door')).toBeUndefined();
+      expect(sharedStateStore.snapshot().get('plugin:myplugin:door')).toBeUndefined();
     } finally {
       vi.useRealTimers();
     }
@@ -105,6 +105,6 @@ describe('__HS_SDK__ shared-state surface', () => {
     expect(sharedStateStore.snapshot().size).toBe(0);
     sharedStateStore.publish('plugin:ha:door', 'open');
     sdk.clearState(undefined, 'door');
-    expect(sharedStateStore.get('plugin:ha:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:ha:door')?.value).toBe('open');
   });
 });

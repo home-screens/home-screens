@@ -79,33 +79,6 @@ describe('EventBus', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('unsubscribeAll removes all handlers for an owner', () => {
-    const h1 = vi.fn();
-    const h2 = vi.fn();
-    const h3 = vi.fn();
-    bus.subscribe('weather.conditions', h1, { ownerId: 'plugin:foo' });
-    bus.subscribe('time.period', h2, { ownerId: 'plugin:foo' });
-    bus.subscribe('weather.conditions', h3); // no owner
-    bus.unsubscribeAll('plugin:foo');
-
-    bus.publish('weather.conditions', {
-      condition: 'clear',
-      temp: 80,
-      units: 'imperial',
-      icon: '01d',
-      summary: 'Clear',
-    });
-    bus.publish('time.period', {
-      period: 'afternoon',
-      hour: 14,
-      timezone: 'UTC',
-    });
-
-    expect(h1).not.toHaveBeenCalled();
-    expect(h2).not.toHaveBeenCalled();
-    expect(h3).toHaveBeenCalledTimes(1); // unaffected
-  });
-
   it('isolates errors — one throwing handler does not break others', () => {
     const bad = vi.fn(() => { throw new Error('boom'); });
     const good = vi.fn();

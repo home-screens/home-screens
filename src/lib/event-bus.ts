@@ -41,13 +41,11 @@ type Handler = (data: never) => void;
 
 export interface SubscriptionOptions {
   replay?: boolean;
-  ownerId?: string;
 }
 
 export class EventBus {
   private handlers = new Map<string, Set<Handler>>();
   private lastValues = new Map<string, unknown>();
-  private ownerSubs = new Map<string, Set<() => void>>();
 
   publish<K extends keyof EventMap>(channel: K, data: EventMap[K]): void {
     this.lastValues.set(channel, data);
@@ -82,23 +80,7 @@ export class EventBus {
       }
     }
 
-    const unsub = () => { set.delete(handler as Handler); };
-
-    if (options?.ownerId) {
-      if (!this.ownerSubs.has(options.ownerId)) {
-        this.ownerSubs.set(options.ownerId, new Set());
-      }
-      this.ownerSubs.get(options.ownerId)!.add(unsub);
-    }
-
-    return unsub;
-  }
-
-  unsubscribeAll(ownerId: string): void {
-    const subs = this.ownerSubs.get(ownerId);
-    if (!subs) return;
-    for (const unsub of subs) unsub();
-    this.ownerSubs.delete(ownerId);
+    return () => { set.delete(handler as Handler); };
   }
 
   getLastValue<K extends keyof EventMap>(channel: K): EventMap[K] | null {

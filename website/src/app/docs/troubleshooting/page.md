@@ -274,7 +274,7 @@ cd /opt/home-screens/current
 npm run config:check
 ```
 
-It reports schema violations with file paths and line hints. If the config is beyond repair, see [How do I reset to factory defaults?](/docs/faq#how-do-i-reset-to-factory-defaults) to start fresh while keeping a backup of the broken file.
+It reports schema violations with a dot-path to each problem (for example `screens[screen-1].modules[mod-3]`). If the config is beyond repair, see [How do I reset to factory defaults?](/docs/faq#how-do-i-reset-to-factory-defaults) to start fresh while keeping a backup of the broken file.
 
 ---
 

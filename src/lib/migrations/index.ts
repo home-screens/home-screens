@@ -5,7 +5,6 @@ interface Migration {
   version: number;
   description: string;
   up(config: ScreenConfiguration): ScreenConfiguration;
-  down(config: ScreenConfiguration): ScreenConfiguration;
 }
 
 // Import all migrations in order
@@ -16,7 +15,6 @@ const migrations: Migration[] = [
     version: 1,
     description: 'Baseline schema',
     up: (config) => ({ ...config, version: 1 }),
-    down: (config) => ({ ...config, version: 1 }),
   },
   // Migration 002: flag-status moved from built-in to plugin
   {
@@ -42,26 +40,6 @@ const migrations: Migration[] = [
         })),
       };
     },
-    down(config) {
-      return {
-        ...config,
-        version: 1,
-        screens: config.screens.map((screen) => ({
-          ...screen,
-          modules: screen.modules.map((mod) => {
-            if (mod.type !== ('plugin:flag-status' as string)) return mod;
-            const cfg = mod.config as Record<string, unknown>;
-            const refreshMin = cfg?.refreshIntervalMin as number | undefined;
-            const newConfig = { ...cfg };
-            if (refreshMin != null) {
-              delete newConfig.refreshIntervalMin;
-              newConfig.refreshIntervalMs = refreshMin * 60_000;
-            }
-            return { ...mod, type: 'flag-status' as ScreenConfiguration['screens'][number]['modules'][number]['type'], config: newConfig };
-          }),
-        })),
-      };
-    },
   },
   // Migration 003: signal that the multi-display registry feature is available.
   // No-op transform — the optional `displays` field is fully backward compatible.
@@ -71,7 +49,6 @@ const migrations: Migration[] = [
     version: 3,
     description: 'Multi-display registry available',
     up: (config) => ({ ...config, version: 3 }),
-    down: (config) => ({ ...config, version: 2 }),
   },
   // Migration 004: `DisplayNode.screenIds` / `DisplayNode.profileIds` removed
   // from the schema. Telemetry confirmed zero installs on the legacy shape,
@@ -81,7 +58,6 @@ const migrations: Migration[] = [
     version: 4,
     description: 'Owned screens/profiles required (screenIds/profileIds removed)',
     up: (config) => ({ ...config, version: 4 }),
-    down: (config) => ({ ...config, version: 3 }),
   },
   // Migration 005: locale field added to GlobalSettings. No-op transform —
   // the new optional `locale` and `formattingLocale` fields default to
@@ -114,28 +90,6 @@ export function migrateUp(
     }
   }
 
-  return { config: result, migrationsRun };
-}
-
-/** @internal Run migrations from currentVersion down to targetVersion */
-export function migrateDown(
-  config: ScreenConfiguration,
-  targetVersion: number,
-): { config: ScreenConfiguration; migrationsRun: string[] } {
-  const all = getMigrations().reverse(); // Process in reverse order
-  const currentVersion = config.version ?? 1;
-
-  const migrationsRun: string[] = [];
-  let result = structuredClone(config);
-
-  for (const migration of all) {
-    if (migration.version <= currentVersion && migration.version > targetVersion) {
-      result = migration.down(result);
-      migrationsRun.push(`v${migration.version} (rollback): ${migration.description}`);
-    }
-  }
-
-  result.version = targetVersion;
   return { config: result, migrationsRun };
 }
 

@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 
 function completion(choreId: string): ChoreCompletion {
-  return { choreId, memberId: 'kid-1', date: '2026-07-06', completedAt: '2026-07-06T10:00:00.000Z' };
+  return { choreId, memberId: 'kid-1', date: '2026-07-06' };
 }
 
 describe('chore-completion-data', () => {

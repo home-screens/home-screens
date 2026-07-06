@@ -12,7 +12,6 @@ export const MODULE_COUNT = 41;
 export const MODULE_CATEGORY_COUNT = 8;
 export const WEATHER_PROVIDER_COUNT = 9;
 export const STANDINGS_LEAGUE_COUNT = 12;
-export const API_ROUTE_COUNT = 88;
 export const CLOCK_VIEW_COUNT = 18;
 export const WEATHER_VIEW_COUNT = 8;
 export const SHAPE_VIEW_COUNT = 15;
@@ -35,7 +34,6 @@ export const stats = {
   categoryCount: MODULE_CATEGORY_COUNT,
   weatherProviderCount: WEATHER_PROVIDER_COUNT,
   standingsLeagueCount: STANDINGS_LEAGUE_COUNT,
-  apiRouteCount: API_ROUTE_COUNT,
   clockViewCount: CLOCK_VIEW_COUNT,
   weatherViewCount: WEATHER_VIEW_COUNT,
   shapeViewCount: SHAPE_VIEW_COUNT,

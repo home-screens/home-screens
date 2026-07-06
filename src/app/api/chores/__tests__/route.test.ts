@@ -142,8 +142,8 @@ describe('GET /api/chores', () => {
     const recent = daysAgo(CHORE_HISTORY_DAYS - 1); // 89 days ago — kept
     const stale = daysAgo(CHORE_HISTORY_DAYS + 1);  // 91 days ago — purged
     seedCompletions([
-      { choreId: 'chore-pts5', memberId: 'kid-1', date: recent, completedAt: 'x' },
-      { choreId: 'chore-pts5', memberId: 'kid-1', date: stale, completedAt: 'y' },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: recent },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: stale },
     ]);
 
     const res = await GET();
@@ -170,7 +170,6 @@ describe('GET /api/chores', () => {
         choreId: 'chore-pts5',
         memberId: 'kid-1',
         date: daysAgo(CHORE_HISTORY_DAYS + 5),
-        completedAt: 'z',
       },
     ]);
 
@@ -187,7 +186,6 @@ describe('GET /api/chores', () => {
         choreId: 'chore-pts5',
         memberId: 'kid-1',
         date: daysAgo(0),
-        completedAt: 'today',
       },
     ]);
 

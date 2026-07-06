@@ -2,7 +2,7 @@
  * Config validation — pure function that checks a ScreenConfiguration for
  * structural problems and returns a list of diagnostics.
  *
- * Used by the `npm run config:check` CLI and (eventually) the editor health panel.
+ * Used by the `npm run config:check` CLI (scripts/check-config.ts).
  */
 
 import type { ScreenConfiguration, Screen, ModuleInstance, BuiltinModuleType } from '@/types/config';
@@ -47,8 +47,7 @@ function isKnownModuleType(type: string): boolean {
 const LATEST_SCHEMA_VERSION = getLatestSchemaVersion();
 
 // Track whether we've already warned about an unknown locale this process —
-// `validateConfig` is called from a long-lived dev server and from the
-// config-check CLI, and a screaming-loud loop would be useless either way.
+// repeated `validateConfig` calls warning on every pass would be useless noise.
 let UNKNOWN_LOCALE_WARNED = false;
 
 /** @internal — for tests. Resets the warn-once latch. */

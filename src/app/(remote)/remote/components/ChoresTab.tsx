@@ -243,7 +243,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
       if (idx >= 0) {
         return prev.filter((_, i) => i !== idx);
       }
-      return [...prev, { choreId, memberId: selectedMemberId, date: day, completedAt: new Date().toISOString() }];
+      return [...prev, { choreId, memberId: selectedMemberId, date: day }];
     });
 
     try {

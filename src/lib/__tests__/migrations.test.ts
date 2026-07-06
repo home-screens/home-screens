@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { migrateUp, migrateDown, getMigrations, getLatestSchemaVersion } from '../migrations';
+import { migrateUp, getMigrations, getLatestSchemaVersion } from '../migrations';
 import type { ScreenConfiguration } from '@/types/config';
 
 function makeConfig(version: number): ScreenConfiguration {
@@ -56,13 +56,6 @@ describe('migrations', () => {
     expect(result.version).toBe(1);
   });
 
-  it('migrateDown with no needed migrations returns config unchanged', () => {
-    const config = makeConfig(1);
-    const { config: result, migrationsRun } = migrateDown(config, 1);
-    expect(migrationsRun).toHaveLength(0);
-    expect(result.version).toBe(1);
-  });
-
   it('migrateUp does not mutate the original config', () => {
     const config = makeConfig(1);
     const original = JSON.stringify(config);
@@ -84,13 +77,6 @@ describe('migration v3: multi-display registry available', () => {
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
-  });
-
-  it('round-trips down to v2', () => {
-    const config = makeConfig(2);
-    const { config: up } = migrateUp(config, 3);
-    const { config: down } = migrateDown(up, 2);
-    expect(down.version).toBe(2);
   });
 });
 
@@ -158,30 +144,5 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
 
     const { config: result } = migrateUp(config, 2);
     expect(result.screens[0].modules[0].type).toBe('clock');
-  });
-
-  it('round-trips: migrateDown restores original type and config key', () => {
-    const config = makeConfig(1);
-    config.screens[0].modules = [
-      {
-        id: 'flag3',
-        type: 'flag-status' as ScreenConfiguration['screens'][number]['modules'][number]['type'],
-        position: { x: 0, y: 0 },
-        size: { w: 300, h: 400 },
-        zIndex: 1,
-        config: { showReason: true, refreshIntervalMs: 3_600_000 },
-        style: { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 },
-      },
-    ];
-
-    const { config: up } = migrateUp(config, 2);
-    expect(up.screens[0].modules[0].type).toBe('plugin:flag-status');
-    expect(up.screens[0].modules[0].config).toHaveProperty('refreshIntervalMin', 60);
-
-    const { config: down } = migrateDown(up, 1);
-    expect(down.version).toBe(1);
-    expect(down.screens[0].modules[0].type).toBe('flag-status');
-    expect(down.screens[0].modules[0].config).toHaveProperty('refreshIntervalMs', 3_600_000);
-    expect(down.screens[0].modules[0].config).not.toHaveProperty('refreshIntervalMin');
   });
 });

@@ -36,7 +36,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/archiver": "^7.0.0",
     "@types/node": "^25",
@@ -44,10 +43,12 @@
     "@types/react-dom": "^19",
     "@types/suncalc": "^1.9.2",
     "@vitest/coverage-v8": "^4.1.2",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.4",
     "jsdom": "^29.0.2",
     "tailwindcss": "^4",
+    "tsx": "^4.20.0",
     "typescript": "^6.0.2",
     "vitest": "^4.0.18"
   }

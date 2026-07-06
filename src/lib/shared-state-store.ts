@@ -23,11 +23,6 @@
 
 import { SHARED_STATE_KEY_RE, type SharedStateEntry } from '@/lib/shared-state-types';
 
-// Re-exported for existing importers; new code should import from
-// shared-state-types.ts (server-safe, no store singleton).
-export { SHARED_STATE_KEY_RE };
-export type { SharedStateEntry };
-
 const MAX_KEYS = 256;
 const MAX_VALUE_LENGTH = 1024;
 
@@ -81,10 +76,6 @@ class SharedStateStore {
     this.state.set(key, { value: next, updatedAt: Date.now() });
     this.cachedSnapshot = null;
     this.notify();
-  };
-
-  get = (key: string): SharedStateEntry | undefined => {
-    return this.state.get(key);
   };
 
   /**

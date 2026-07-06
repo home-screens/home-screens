@@ -77,12 +77,11 @@ export function validateWPAPassword(pass: string): ValidationResult {
 /* ─── Interface name ──────────────────────────── */
 
 /**
- * Regex-only fallback for interface name validation.
+ * Interface name validation.
  *
  * Linux interface names: start with a letter, then up to 14 more
  * alphanumeric, hyphen, or underscore characters (max 15 total, per
- * IFNAMSIZ). This is a pre-flight check; prefer `validateInterface`
- * with a known-interfaces whitelist for full validation.
+ * IFNAMSIZ).
  */
 const IFACE_REGEX = /^[a-zA-Z][a-zA-Z0-9_-]{0,14}$/;
 
@@ -93,31 +92,6 @@ export function validateInterfaceRegex(iface: string): ValidationResult {
   if (!IFACE_REGEX.test(iface)) {
     return fail(
       'Interface name must start with a letter, contain only alphanumeric characters, hyphens, or underscores, and be at most 15 characters',
-    );
-  }
-  return ok;
-}
-
-/**
- * Validate an interface name against a known-interfaces whitelist.
- *
- * This is the primary validation path. The `knownInterfaces` array
- * should come from `nmcli -t -f DEVICE device status` or similar.
- * Falls back to regex validation when the interface is not in the list.
- */
-export function validateInterface(
-  iface: string,
-  knownInterfaces: string[],
-): ValidationResult {
-  // Always run regex validation first to catch malformed names
-  const regexResult = validateInterfaceRegex(iface);
-  if (!regexResult.valid) return regexResult;
-
-  if (!knownInterfaces.includes(iface)) {
-    // Safe to interpolate `iface` here because the regex gate above constrains
-    // it to [a-zA-Z][a-zA-Z0-9_-]{0,14} — no shell metacharacters, no HTML.
-    return fail(
-      `Unknown interface "${iface}". Known interfaces: ${knownInterfaces.join(', ') || '(none)'}`,
     );
   }
   return ok;

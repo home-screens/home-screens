@@ -102,15 +102,7 @@ export const POST = async (request: NextRequest) => {
     const completions =
       existing >= 0
         ? data.completions.filter((_, i) => i !== existing)
-        : [
-            ...data.completions,
-            {
-              choreId,
-              memberId,
-              date,
-              completedAt: new Date().toISOString(),
-            },
-          ];
+        : [...data.completions, { choreId, memberId, date }];
 
     return { completions };
   });

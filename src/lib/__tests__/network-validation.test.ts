@@ -3,7 +3,6 @@ import {
   validateSSID,
   validateWPAPassword,
   validateInterfaceRegex,
-  validateInterface,
   validateUUID,
   validateIPv4,
   validateCIDRPrefix,
@@ -191,36 +190,6 @@ describe('validateInterfaceRegex', () => {
 
   it('rejects names with spaces', () => {
     expect(validateInterfaceRegex('eth 0').valid).toBe(false);
-  });
-});
-
-/* ─── Interface name (whitelist) ──────────────── */
-
-describe('validateInterface', () => {
-  const knownInterfaces = ['eth0', 'wlan0', 'lo'];
-
-  it('accepts a known interface', () => {
-    expect(validateInterface('eth0', knownInterfaces)).toEqual({ valid: true });
-  });
-
-  it('rejects an unknown interface', () => {
-    const result = validateInterface('wlan1', knownInterfaces);
-    expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/Unknown interface/);
-    expect(result.error).toMatch(/wlan1/);
-    expect(result.error).toMatch(/eth0/);
-  });
-
-  it('rejects malformed names even if somehow in the list', () => {
-    // Regex check runs first
-    const result = validateInterface('../../etc', ['../../etc']);
-    expect(result.valid).toBe(false);
-  });
-
-  it('handles empty known-interfaces list', () => {
-    const result = validateInterface('eth0', []);
-    expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/\(none\)/);
   });
 });
 

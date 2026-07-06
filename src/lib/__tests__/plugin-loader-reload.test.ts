@@ -75,7 +75,7 @@ describe('loadAllPlugins reload swap', () => {
     mockInstalledList(['foo']);
     await loadAllPlugins();
 
-    expect(sharedStateStore.get('plugin:foo:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.value).toBe('open');
   });
 
   it('purges shared-state keys of plugins gone from the new set (tombstone, then delete)', async () => {
@@ -88,11 +88,11 @@ describe('loadAllPlugins reload swap', () => {
     mockInstalledList(['stays']);
     await loadAllPlugins();
 
-    expect(sharedStateStore.get('plugin:gone:door')?.staleAt).toBeTypeOf('number');
+    expect(sharedStateStore.snapshot().get('plugin:gone:door')?.staleAt).toBeTypeOf('number');
     vi.advanceTimersByTime(15_000);
-    expect(sharedStateStore.get('plugin:gone:door')).toBeUndefined();
-    expect(sharedStateStore.get('plugin:stays:door')?.value).toBe('closed');
-    expect(sharedStateStore.get('plugin:stays:door')?.staleAt).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('plugin:gone:door')).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('plugin:stays:door')?.value).toBe('closed');
+    expect(sharedStateStore.snapshot().get('plugin:stays:door')?.staleAt).toBeUndefined();
     vi.useRealTimers();
   });
 
@@ -109,9 +109,9 @@ describe('loadAllPlugins reload swap', () => {
     vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network down'));
     await loadAllPlugins();
 
-    expect(sharedStateStore.get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
     vi.advanceTimersByTime(15_000);
-    expect(sharedStateStore.get('plugin:foo:door')).toBeUndefined();
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')).toBeUndefined();
     vi.useRealTimers();
   });
 
@@ -122,6 +122,6 @@ describe('loadAllPlugins reload swap', () => {
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response('Server Error', { status: 500 }));
     await loadAllPlugins();
 
-    expect(sharedStateStore.get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
   });
 });

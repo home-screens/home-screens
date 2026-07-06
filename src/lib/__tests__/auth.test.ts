@@ -5,7 +5,6 @@ import os from 'os';
 import {
   readAuthState,
   isAuthEnabled,
-  hashPassword,
   verifyPassword,
   signSession,
   verifySession,
@@ -90,13 +89,6 @@ describe('isAuthEnabled', () => {
 });
 
 describe('password hashing', () => {
-  it('hashes and verifies a password correctly', async () => {
-    const salt = 'a'.repeat(64);
-    const hash = await hashPassword('mypassword', salt);
-    expect(hash).toBeTruthy();
-    expect(hash.length).toBe(128); // 64 bytes as hex
-  });
-
   it('verifyPassword returns true for correct password', async () => {
     await setPassword('correcthorse');
     clearAuthCache();
