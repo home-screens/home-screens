@@ -71,7 +71,7 @@ NOTES_FILE="RELEASE_NOTES/v${NEXT_VERSION}.md"
 if command -v claude &>/dev/null; then
   echo "Generating release notes..."
   mkdir -p RELEASE_NOTES
-  echo "/draft-release-notes ${NEXT_VERSION}" \
+  echo "/release-notes ${NEXT_VERSION}" \
     | claude -p --allowedTools 'Bash(git:*) Read Write' \
     || echo "Warning: release notes generation failed, continuing without them"
 else

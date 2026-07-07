@@ -112,3 +112,12 @@ The marketing site and documentation live in `website/` as a separate Next.js ap
 
 ### Testing
 Tests use Vitest with `@` path aliases configured. Test files live in `__tests__/` directories alongside the code they test. Environment is `node`.
+
+## Working Conventions
+
+- Plans and specs live in `.claude/plans/` (finished ones move to `.claude/plans-finished/`); mockups live in `.claude/mockups/`. None of these are committed.
+- UI features are mockup-first: real HTML mockup in `.claude/mockups/`, sign-off, implement, then audit the rendered implementation against the mockup before calling it done.
+- Preflight gate before any commit: `npx tsc --noEmit`, `npm run lint`, `npm test` must all pass.
+- Commit style: one summary line, blank line, bulleted body. No phase references, no review-finding references, no attribution, no em-dashes. Never commit until the user signs off; prefer one commit per unit of tested work.
+- User-visible strings are kid-friendly plain language: no "admin", "permission", "enum", "backfill", or node/chromium jargon (the chore chart and /remote are used by children; issue reporters are not developers).
+- Member-based UIs must work with 5+ members (aggregate indicators, not per-member visuals).
