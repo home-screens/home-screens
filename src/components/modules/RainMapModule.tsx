@@ -45,6 +45,50 @@ function lat2tile(lat: number, zoom: number): number {
 
 const TILE_SIZE = 256;
 const MAX_RADAR_ZOOM = 7;
+
+interface TileGrid {
+  tiles: Array<{ x: number; y: number; px: number; py: number }>;
+  totalSize: number;
+  scaledSize: number;
+}
+
+/**
+ * Assemble a centered slippy-map tile grid around (lat, lon) at the given tile
+ * zoom. `scale` upsamples each tile: the base map passes 1 (native tiles) while
+ * the radar layer passes >1 to stretch RainViewer's zoom-capped tiles up to the
+ * base map's zoom. The grid radius grows as the scale shrinks so a scaled grid
+ * still covers the viewport. `px`/`py` are top-left offsets inside a
+ * `totalSize`-square container centered over the location. Kept as one helper so
+ * the base and radar grids can never drift; the multiplication order matches the
+ * original per-caller code exactly (scale is always an exact power of two, so
+ * even the base map's added `* 1` is bit-identical).
+ */
+function computeTileGrid(lat: number, lon: number, tileZoom: number, scale: number): TileGrid {
+  const centerTileX = lon2tile(lon, tileZoom);
+  const centerTileY = lat2tile(lat, tileZoom);
+  const tileX = Math.floor(centerTileX);
+  const tileY = Math.floor(centerTileY);
+  const scaledSize = TILE_SIZE * scale;
+  const offsetX = (centerTileX - tileX) * TILE_SIZE * scale;
+  const offsetY = (centerTileY - tileY) * TILE_SIZE * scale;
+
+  // Match the base map's gridRadius — the extra +1 padding was causing
+  // 49 tiles/frame instead of 25, which overwhelms RainViewer's rate limit.
+  const gridRadius = Math.max(2, Math.ceil(2 / scale));
+  const totalSize = (gridRadius * 2 + 1) * scaledSize;
+  const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
+  for (let dy = -gridRadius; dy <= gridRadius; dy++) {
+    for (let dx = -gridRadius; dx <= gridRadius; dx++) {
+      tiles.push({
+        x: tileX + dx,
+        y: tileY + dy,
+        px: totalSize / 2 - offsetX + dx * scaledSize,
+        py: totalSize / 2 - offsetY + dy * scaledSize,
+      });
+    }
+  }
+  return { tiles, totalSize, scaledSize };
+}
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000;
 
 const BASE_TILE_URLS: Record<string, string> = {
@@ -106,58 +150,17 @@ export default function RainMapModule({
   const radarZoom = Math.min(zoom, MAX_RADAR_ZOOM);
   const radarScale = Math.pow(2, zoom - radarZoom); // 1 at zoom ≤ 7, 2 at 8, 4 at 9, etc.
 
-  // Calculate base map tile grid (uses full zoom)
-  const tileGrid = useMemo(() => {
-    const centerTileX = lon2tile(lon, zoom);
-    const centerTileY = lat2tile(lat, zoom);
-    const tileX = Math.floor(centerTileX);
-    const tileY = Math.floor(centerTileY);
-    const offsetX = (centerTileX - tileX) * TILE_SIZE;
-    const offsetY = (centerTileY - tileY) * TILE_SIZE;
+  // Base map tile grid (uses full zoom, native tile size)
+  const tileGrid = useMemo(
+    () => computeTileGrid(lat, lon, zoom, 1),
+    [lat, lon, zoom],
+  );
 
-    const gridRadius = 2;
-    const totalSize = (gridRadius * 2 + 1) * TILE_SIZE;
-    const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
-    for (let dy = -gridRadius; dy <= gridRadius; dy++) {
-      for (let dx = -gridRadius; dx <= gridRadius; dx++) {
-        tiles.push({
-          x: tileX + dx,
-          y: tileY + dy,
-          px: totalSize / 2 - offsetX + dx * TILE_SIZE,
-          py: totalSize / 2 - offsetY + dy * TILE_SIZE,
-        });
-      }
-    }
-    return { tiles, totalSize };
-  }, [lat, lon, zoom]);
-
-  // Calculate radar tile grid (uses capped zoom, scaled up to match base map)
-  const radarTileGrid = useMemo(() => {
-    const centerTileX = lon2tile(lon, radarZoom);
-    const centerTileY = lat2tile(lat, radarZoom);
-    const tileX = Math.floor(centerTileX);
-    const tileY = Math.floor(centerTileY);
-    const offsetX = (centerTileX - tileX) * TILE_SIZE * radarScale;
-    const offsetY = (centerTileY - tileY) * TILE_SIZE * radarScale;
-
-    // Match the base map's gridRadius — the extra +1 padding was causing
-    // 49 tiles/frame instead of 25, which overwhelms RainViewer's rate limit.
-    const gridRadius = Math.max(2, Math.ceil(2 / radarScale));
-    const scaledSize = TILE_SIZE * radarScale;
-    const totalSize = (gridRadius * 2 + 1) * scaledSize;
-    const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
-    for (let dy = -gridRadius; dy <= gridRadius; dy++) {
-      for (let dx = -gridRadius; dx <= gridRadius; dx++) {
-        tiles.push({
-          x: tileX + dx,
-          y: tileY + dy,
-          px: totalSize / 2 - offsetX + dx * scaledSize,
-          py: totalSize / 2 - offsetY + dy * scaledSize,
-        });
-      }
-    }
-    return { tiles, totalSize, scaledSize };
-  }, [lat, lon, radarZoom, radarScale]);
+  // Radar tile grid (uses capped zoom, scaled up to match the base map)
+  const radarTileGrid = useMemo(
+    () => computeTileGrid(lat, lon, radarZoom, radarScale),
+    [lat, lon, radarZoom, radarScale],
+  );
 
   // Build radar tile URL for a given frame
   const getRadarUrl = useCallback(
