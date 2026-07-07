@@ -313,6 +313,62 @@ describe('readConfig — migration race conditions', () => {
     expect(writeFileCount).toBeLessThanOrEqual(1);
   });
 
+  it('migrate-on-boot persist cannot clobber a concurrent editor save', async () => {
+    // Regression: the old code fired a bare writeConfig(migrated) from a
+    // snapshot read OUTSIDE the write queue. If an editor PUT landed between
+    // that read and the queued write, the migration write overwrote the
+    // editor's save with pre-save data. The persist now goes through
+    // updateConfigAtomic, which re-reads inside the queue and no-ops when
+    // the on-disk config is already at the latest version.
+    const configDir = path.join(tmpDir, 'data');
+    await fs.mkdir(configDir, { recursive: true });
+    const outdated = {
+      version: 0,
+      settings: { rotationIntervalMs: 5000, weather: {}, calendar: {} },
+      screens: [{ id: 'stale', name: 'Stale', backgroundImage: '', modules: [] }],
+    };
+    await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(outdated));
+
+    // Pause readConfig's (unqueued) file read AFTER it has captured the
+    // stale v0 content, so the editor save deterministically lands inside
+    // the exact race window.
+    const origReadFile = fsModule.promises.readFile.bind(fsModule.promises);
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => { release = r; });
+    let firstRead = true;
+    vi.spyOn(fsModule.promises, 'readFile').mockImplementation(
+      async (...args: Parameters<typeof fsModule.promises.readFile>) => {
+        const result = await origReadFile(...args);
+        if (firstRead) {
+          firstRead = false;
+          await gate;
+        }
+        return result;
+      },
+    );
+
+    const readPromise = readConfig(); // holding the stale v0 snapshot
+    const editorSave = {
+      ...outdated,
+      version: getLatestSchemaVersion(),
+      screens: [{ id: 'editor-save', name: 'Saved', backgroundImage: '', modules: [] }],
+    };
+    await writeConfig(editorSave as never); // lands while the read is paused
+    release();
+    const migrated = await readPromise; // enqueues the migration persist
+    expect(migrated.version).toBe(getLatestSchemaVersion());
+
+    // Drain the queue behind the migration persist, then confirm the
+    // editor's save survived on disk.
+    await updateConfigAtomic((c) => c);
+    vi.restoreAllMocks();
+    const onDisk = JSON.parse(
+      await fs.readFile(path.join(configDir, 'config.json'), 'utf-8'),
+    );
+    expect(onDisk.screens[0].id).toBe('editor-save');
+    expect(onDisk.version).toBe(getLatestSchemaVersion());
+  });
+
   it('migration failure does not corrupt the config state', async () => {
     // Seed a config with version 0
     const configDir = path.join(tmpDir, 'data');

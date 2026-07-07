@@ -2046,6 +2046,127 @@ describe('editor store', () => {
     });
   });
 
+  describe('multi-display: layout export/import routes profiles through the display-owned list', () => {
+    function makeMultiDisplayConfig(): ScreenConfiguration {
+      const config = makeConfig({
+        screens: [],
+        // Root pool profile references a screen that does NOT belong to the
+        // kitchen display — it must never leak into a kitchen export.
+        profiles: [{ id: 'root-p', name: 'Root Pool', screenIds: ['legacy-1'] }],
+        displays: [
+          {
+            id: 'kitchen',
+            name: 'Kitchen',
+            screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+            profiles: [{ id: 'kp', name: 'Kitchen Day', screenIds: ['k1'] }],
+          },
+        ],
+      });
+      config.settings.activeProfile = 'root-p';
+      return config;
+    }
+
+    function makeLayoutWithProfile() {
+      return {
+        _type: 'home-screens-layout' as const,
+        _version: 1 as const,
+        metadata: {
+          name: 'test',
+          exportedAt: new Date().toISOString(),
+          configVersion: 1,
+          sourceDisplay: { width: 1080, height: 1920 },
+          screenCount: 1,
+          moduleCount: 0,
+        },
+        visual: { rotationIntervalMs: 30000 },
+        screens: [{ id: 'imported-1', name: 'Imported', backgroundImage: '', modules: [] }],
+        profiles: [{ id: 'imp-p', name: 'Evening', screenIds: ['imported-1'] }],
+      };
+    }
+
+    it('exportLayout ships the display-owned profiles, not the root pool', async () => {
+      // Regression: exportLayout fed the root config.profiles pool to
+      // createLayoutExport, whose screen-overlap filter dropped every
+      // profile (the pool can't reference a display's owned screen IDs),
+      // so per-display exports arrived profile-less.
+      const store = useEditorStore;
+      store.setState({
+        config: makeMultiDisplayConfig(),
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+      });
+
+      let capturedBlob: Blob | null = null;
+      const g = globalThis as Record<string, unknown>;
+      const origDocument = g.document;
+      const origCreate = URL.createObjectURL;
+      const origRevoke = URL.revokeObjectURL;
+      URL.createObjectURL = ((blob: Blob) => {
+        capturedBlob = blob;
+        return 'blob:test';
+      }) as typeof URL.createObjectURL;
+      URL.revokeObjectURL = (() => {}) as typeof URL.revokeObjectURL;
+      g.document = { createElement: () => ({ click: () => {} }) };
+      try {
+        store.getState().exportLayout({ name: 'Kitchen' });
+      } finally {
+        g.document = origDocument;
+        URL.createObjectURL = origCreate;
+        URL.revokeObjectURL = origRevoke;
+      }
+
+      expect(capturedBlob).not.toBeNull();
+      const layout = JSON.parse(await capturedBlob!.text());
+      expect(layout.profiles?.map((p: { name: string }) => p.name)).toEqual(['Kitchen Day']);
+      expect(layout.profiles[0].screenIds).toEqual(['k1']);
+    });
+
+    it('importLayoutAction lands imported profiles on the selected display, not the root pool', () => {
+      // Regression: imported profiles were written to config.profiles, but
+      // getDisplayProfiles prefers the display's owned list — the import
+      // saved dead config nothing reads and the profiles "vanished".
+      const store = useEditorStore;
+      store.setState({
+        config: makeMultiDisplayConfig(),
+        selectedDisplayId: 'kitchen',
+        selectedScreenId: 'k1',
+      });
+
+      store.getState().importLayoutAction(makeLayoutWithProfile(), { mode: 'add' });
+
+      const state = store.getState();
+      const kitchen = state.config!.displays!.find((d) => d.id === 'kitchen')!;
+      // Add-mode merged against the OWNED list, and the imported profile's
+      // screenIds were remapped to the freshly-minted screen UUID.
+      expect(kitchen.profiles?.map((p) => p.name)).toEqual(['Kitchen Day', 'Evening']);
+      const imported = kitchen.profiles!.find((p) => p.name === 'Evening')!;
+      const newScreen = kitchen.screens.find((s) => s.id !== 'k1')!;
+      expect(imported.screenIds).toEqual([newScreen.id]);
+      // Root pool and global activeProfile are untouched.
+      expect(state.config!.profiles?.map((p) => p.id)).toEqual(['root-p']);
+      expect(state.config!.settings.activeProfile).toBe('root-p');
+    });
+
+    it('replace-mode import clears a display activeProfile that no longer exists', () => {
+      const store = useEditorStore;
+      const config = makeMultiDisplayConfig();
+      config.displays![0].activeProfile = 'kp';
+      store.setState({ config, selectedDisplayId: 'kitchen', selectedScreenId: 'k1' });
+
+      store.getState().importLayoutAction(makeLayoutWithProfile(), { mode: 'replace' });
+
+      const state = store.getState();
+      const kitchen = state.config!.displays!.find((d) => d.id === 'kitchen')!;
+      // Old owned profiles are gone (replace assigns fresh IDs), so the
+      // stale activeProfile pointer must be cleared for the save validator.
+      expect(kitchen.profiles?.map((p) => p.name)).toEqual(['Evening']);
+      expect(kitchen.activeProfile).toBeUndefined();
+      // importLayoutCore's replace-mode activeProfile clear belongs to the
+      // display; the global setting survives.
+      expect(state.config!.settings.activeProfile).toBe('root-p');
+    });
+  });
+
   describe('multi-display: getActiveScreens helper branches', () => {
     it('returns config.screens when selectedDisplayId is null (legacy mode)', async () => {
       const mod = await import('@/stores/editor-store');

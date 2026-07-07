@@ -16,6 +16,7 @@ const store = createJsonStore<CompletionsData>({
   path: 'data/chore-completions.json',
   defaultValue: { completions: [] },
   errorHandling: 'throw-corrupt',
+  backup: true,
 });
 
 export const readCompletions = store.read;

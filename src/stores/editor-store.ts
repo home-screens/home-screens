@@ -802,9 +802,17 @@ export const useEditorStore = create<EditorState>((set, get) => {
     // a per-display export in multi-display mode, the global pool in legacy.
     const activeScreens = getActiveScreens(config, selectedDisplayId);
     const dims = getActiveDimensions(config, selectedDisplayId);
+    // A display that owns its profile list exports THOSE profiles, not the
+    // legacy root pool — the root pool can't reference this display's
+    // screen IDs, so createLayoutExport's overlap filter would drop
+    // everything and the export would ship profile-less.
+    const profileTarget = resolveProfileTarget(config, selectedDisplayId);
     const tempConfig: ScreenConfiguration = {
       ...config,
       screens: activeScreens,
+      ...(profileTarget.kind === 'display'
+        ? { profiles: profileTarget.display.profiles }
+        : {}),
       settings: {
         ...config.settings,
         displayWidth: dims.width,
@@ -831,12 +839,19 @@ export const useEditorStore = create<EditorState>((set, get) => {
     mutateConfig((config) => {
       // Work against a temp single-display view of the active screens so
       // importLayoutCore's existing logic can scale/clamp modules to the
-      // target canvas without knowing about displays.
+      // target canvas without knowing about displays. When the display owns
+      // its profile list, the temp view also swaps in those profiles so
+      // add-mode merges against the list this display actually reads,
+      // not the legacy root pool.
       const activeScreens = getActiveScreens(config, selectedDisplayId);
       const dims = getActiveDimensions(config, selectedDisplayId);
+      const profileTarget = resolveProfileTarget(config, selectedDisplayId);
       const tempConfig: ScreenConfiguration = {
         ...config,
         screens: activeScreens,
+        ...(profileTarget.kind === 'display'
+          ? { profiles: profileTarget.display.profiles }
+          : {}),
         settings: {
           ...config.settings,
           displayWidth: dims.width,
@@ -863,13 +878,45 @@ export const useEditorStore = create<EditorState>((set, get) => {
             ...(config.settings.displayTransform != null
               ? { displayTransform: config.settings.displayTransform }
               : {}),
+            // A display-owned import must not touch the global activeProfile
+            // (importLayoutCore clears it in replace mode, but that clear
+            // belongs to the display, applied below).
+            ...(profileTarget.kind === 'display'
+              ? { activeProfile: config.settings.activeProfile }
+              : {}),
           }
         : updated.settings;
-      const merged: ScreenConfiguration = {
-        ...nextConfig,
-        settings: settingsOut,
-        ...(updated.profiles ? { profiles: updated.profiles } : {}),
-      };
+
+      // Imported profiles land where this display actually reads them:
+      // the display's owned `profiles` list when it has one, else the
+      // legacy root pool. Writing display-scoped profiles to the root
+      // pool would save dead config nothing reads (getDisplayProfiles
+      // prefers the owned list).
+      let merged: ScreenConfiguration;
+      if (profileTarget.kind === 'display') {
+        const nextDisplays = [...nextConfig.displays!];
+        const displayWithScreens = nextDisplays[profileTarget.idx];
+        const nextProfiles = updated.profiles ?? [];
+        const activeStillExists = displayWithScreens.activeProfile != null
+          && nextProfiles.some((p) => p.id === displayWithScreens.activeProfile);
+        nextDisplays[profileTarget.idx] = {
+          ...displayWithScreens,
+          profiles: nextProfiles,
+          // Replace-mode wipes the old owned profiles (new ones get fresh
+          // IDs), so a stale activeProfile must be cleared or the config
+          // validator rejects the save.
+          ...(displayWithScreens.activeProfile != null && !activeStillExists
+            ? { activeProfile: undefined }
+            : {}),
+        };
+        merged = { ...nextConfig, displays: nextDisplays, settings: settingsOut };
+      } else {
+        merged = {
+          ...nextConfig,
+          settings: settingsOut,
+          ...(updated.profiles ? { profiles: updated.profiles } : {}),
+        };
+      }
 
       const existingIds = new Set(activeScreens.map((s) => s.id));
       firstNewId = updated.screens.find((s) => !existingIds.has(s.id))?.id

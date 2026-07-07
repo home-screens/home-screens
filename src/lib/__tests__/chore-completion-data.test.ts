@@ -40,6 +40,19 @@ describe('chore-completion-data', () => {
     expect(data.completions).toEqual([]);
   });
 
+  it('keeps a .bak of the previous contents on every write (torn-write rollback)', async () => {
+    // This store must match its kid-data siblings (chore-data, reward-data,
+    // todo-data, meal-data): completions feed points/rewards, so a torn
+    // write needs a single-level rollback file.
+    await writeCompletions({ completions: [completion('first')] });
+    await writeCompletions({ completions: [completion('second')] });
+
+    const bak = JSON.parse(
+      await fs.readFile(path.join(tmpDir, 'data', 'chore-completions.json.bak'), 'utf-8'),
+    );
+    expect(bak.completions.map((c: ChoreCompletion) => c.choreId)).toEqual(['first']);
+  });
+
   it('a restore-style write racing an atomic toggle serializes — no lost updates', async () => {
     // Regression test for the backup-route bypass: the old restore path did a
     // raw tmp+rename write with its own fs helpers, so it could land in the

@@ -67,11 +67,18 @@ export async function readConfig(): Promise<ScreenConfiguration> {
   if ((config.version ?? 0) < target) {
     try {
       const { config: migrated } = migrateUp(config, target);
-      // Fire-and-forget write — don't block the read on disk I/O.
+      // Fire-and-forget persist — don't block the read on disk I/O.
       // The guard prevents duplicate writes from concurrent requests.
+      // Goes through updateConfigAtomic (not bare writeConfig) so the
+      // write re-reads inside the queue and re-checks the version: if a
+      // concurrent PUT /api/config landed first, its (already-migrated)
+      // save is observed and this becomes a no-op instead of clobbering
+      // the editor's save with this stale pre-migration snapshot.
       if (!migrating) {
         migrating = true;
-        writeConfig(migrated).catch(() => {}).finally(() => { migrating = false; });
+        updateConfigAtomic((current) => current)
+          .catch(() => {})
+          .finally(() => { migrating = false; });
       }
       return migrated;
     } catch {
