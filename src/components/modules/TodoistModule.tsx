@@ -5,6 +5,7 @@ import type { TodoistConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { todoistUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -16,6 +17,9 @@ import ListView from './todoist/ListView';
 import BoardView from './todoist/BoardView';
 import FocusView from './todoist/FocusView';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('todoist');
 
 interface TodoistModuleProps {
   config: TodoistConfig;
@@ -50,35 +54,39 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
     });
   }, [data]);
 
+  const { run: runComplete } = useOptimisticMutation();
+
   const handleComplete = useCallback((taskId: string) => {
-    setCompletedIds((prev) => {
-      if (prev.has(taskId)) return prev;
-      const next = new Set(prev);
-      next.add(taskId);
-      return next;
-    });
-    void displayFetch('/api/todoist/close', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId }),
-    })
-      .then((res) => {
+    void runComplete(taskId, {
+      apply: () => setCompletedIds((prev) => {
+        if (prev.has(taskId)) return prev;
+        const next = new Set(prev);
+        next.add(taskId);
+        return next;
+      }),
+      request: async () => {
+        const res = await displayFetch('/api/todoist/close', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId }),
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         // Bust the client-side cache so screen rotations within the 5-minute
         // refresh window don't re-show the closed task from a stale mount.
         // The server cache is already cleared by the POST handler.
         displayCache.invalidate(todoistUrl());
-      })
-      .catch((err) => {
-        console.error('Todoist close failed:', err);
+      },
+      rollback: (err) => {
+        log.error('Todoist close failed:', err);
         setCompletedIds((prev) => {
           if (!prev.has(taskId)) return prev;
           const next = new Set(prev);
           next.delete(taskId);
           return next;
         });
-      });
-  }, []);
+      },
+    });
+  }, [runComplete]);
 
   const allowComplete = config.allowComplete === true;
   const onComplete = allowComplete ? handleComplete : undefined;

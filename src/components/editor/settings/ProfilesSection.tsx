@@ -5,15 +5,10 @@ import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useEditorStore } from '@/stores/editor-store';
@@ -21,7 +16,11 @@ import { getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
 import Button from '@/components/ui/Button';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
+import { useSortableSensors } from '@/hooks/useDndSensors';
 import SortableProfileCard from './SortableProfileCard';
+import { logger } from '@/lib/logger';
+
+const log = logger('profiles');
 
 /* ─── Main section ───────────────────────────── */
 
@@ -42,10 +41,7 @@ export default function ProfilesSection() {
   const { config, selectedDisplayId, setSelectedDisplay, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const sensors = useSortableSensors();
 
   // Auto-save the slice of config this section can mutate. `config.profiles`
   // is the shared pool, `config.displays` covers per-display owned profiles
@@ -57,7 +53,7 @@ export default function ProfilesSection() {
     values: [config?.profiles, config?.displays, config?.settings.activeProfile],
     debounceMs: 500,
     save: () => saveConfig(),
-    onError: (err) => console.error('Profile auto-save failed:', err),
+    onError: (err) => log.error('Profile auto-save failed:', err),
   });
 
   if (!config) return null;

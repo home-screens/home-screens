@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorData } from '@/hooks/useEditorData';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
@@ -21,20 +22,13 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
     if (!s.config) return undefined;
     return getActiveScreens(s.config, s.selectedDisplayId).find((sc) => sc.id === selectedScreenId);
   });
-  const [albums, setAlbums] = useState<ImmichAlbum[]>([]);
+  const { data: albumsData } = useEditorData<ImmichAlbum[]>(hasImmichKey ? '/api/immich/albums' : null);
+  const albums = albumsData ?? [];
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch albums on mount
-  useEffect(() => {
-    if (!hasImmichKey) return;
-    editorFetch('/api/immich/albums').then(async (res) => {
-      if (res.ok) setAlbums(await res.json());
-    }).catch(() => {});
-  }, [hasImmichKey]);
 
   // Fetch photos when album changes
   const fetchPhotos = useCallback(async () => {

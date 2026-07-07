@@ -5,16 +5,11 @@ import clsx from 'clsx';
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   horizontalListSortingStrategy,
-  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
@@ -22,6 +17,7 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import { useTabRename } from '@/hooks/useTabRename';
 import { useTabScroll } from '@/hooks/useTabScroll';
+import { useSortableSensors } from '@/hooks/useDndSensors';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
@@ -59,11 +55,8 @@ export default function ScreenTabs() {
     editingId,
   });
 
-  // DnD sensors — distance constraint prevents drag from interfering with click/scroll
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  // DnD sensors — 8px distance constraint prevents drag from interfering with click/scroll
+  const sensors = useSortableSensors(8);
 
   // Close dropdowns on outside click
   useEffect(() => {

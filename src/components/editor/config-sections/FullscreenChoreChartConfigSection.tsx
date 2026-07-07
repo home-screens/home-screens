@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledSelect from '@/components/ui/LabeledSelect';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
@@ -59,16 +59,19 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   ] as const;
 
   const [showModal, setShowModal] = useState(false);
-  const [counts, setCounts] = useState({ members: 0, chores: 0 });
+  const { data: choreData, refetch: refetchCounts } = useEditorData<{ members?: unknown[]; chores?: unknown[] }>('/api/chores/data');
+  const counts = { members: choreData?.members?.length ?? 0, chores: choreData?.chores?.length ?? 0 };
 
   const isChoreBoard = (c.view ?? 'chores') === 'chores';
 
+  // Re-fetch member/chore counts when the modal closes (or opens). The hook
+  // already loads on mount, so skip this effect's initial run to keep mount
+  // at a single request.
+  const didMount = useRef(false);
   useEffect(() => {
-    editorFetch('/api/chores/data')
-      .then((r) => r.json())
-      .then((d) => setCounts({ members: d.members?.length ?? 0, chores: d.chores?.length ?? 0 }))
-      .catch(() => {});
-  }, [showModal]);
+    if (!didMount.current) { didMount.current = true; return; }
+    refetchCounts();
+  }, [showModal, refetchCounts]);
 
   return (
     <>

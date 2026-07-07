@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ViewSelect from '@/components/editor/ViewSelect';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
@@ -31,7 +31,8 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const [showModal, setShowModal] = useState(false);
-  const [counts, setCounts] = useState({ members: 0, chores: 0 });
+  const { data: choreData, refetch: refetchCounts } = useEditorData<{ members?: unknown[]; chores?: unknown[] }>('/api/chores/data');
+  const counts = { members: choreData?.members?.length ?? 0, chores: choreData?.chores?.length ?? 0 };
 
   const VIEWS: { value: ChoreChartView; label: string }[] = [
     { value: 'board', label: t('configSections.chore-chart.viewBoard') },
@@ -46,12 +47,14 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
     { value: 'monday' as const, label: tCore('days.monday') },
   ];
 
+  // Re-fetch member/chore counts when the modal closes (or opens). The hook
+  // already loads on mount, so skip this effect's initial run to keep mount
+  // at a single request.
+  const didMount = useRef(false);
   useEffect(() => {
-    editorFetch('/api/chores/data')
-      .then((r) => r.json())
-      .then((d) => setCounts({ members: d.members?.length ?? 0, chores: d.chores?.length ?? 0 }))
-      .catch(() => {});
-  }, [showModal]); // re-fetch when modal closes
+    if (!didMount.current) { didMount.current = true; return; }
+    refetchCounts();
+  }, [showModal, refetchCounts]);
 
   return (
     <>

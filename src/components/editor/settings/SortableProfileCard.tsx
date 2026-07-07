@@ -4,15 +4,10 @@ import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -21,6 +16,7 @@ import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-reac
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { getActiveProfileId } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle from '@/components/ui/Toggle';
 import type { TranslateFn } from '@/i18n';
 import type { ModuleSchedule, Profile } from '@/types/config';
@@ -122,10 +118,7 @@ export default function SortableProfileCard({ profile, index, isExpanded, onTogg
   };
 
   // DnD sensors for the nested screen reorder list
-  const screenSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const screenSensors = useSortableSensors();
 
   if (!config) return null;
 

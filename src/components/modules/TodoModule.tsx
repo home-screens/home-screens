@@ -10,6 +10,7 @@ import { MetadataText } from './shared/MetadataText';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate } from '@/i18n';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
 import { todoStateUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -93,9 +94,10 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
   // config, the 3s config poll carries no completion data and can't clobber a
   // tap — the only reconciliation is this dedicated poll, guarded below.
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
-  // Item ids with a toggle request in flight. Polls skip these so a response
-  // that predates the tap can't flash the old value back (the old flicker).
-  const pendingRef = useRef<Set<string>>(new Set());
+  // Shared optimistic-mutation runner. Its `pending` set holds ids with a
+  // toggle request in flight; polls skip these so a response that predates the
+  // tap can't flash the old value back (the old flicker).
+  const { run: runToggle, pending: pendingRef } = useOptimisticMutation();
   // After a successful toggle we hold server-confirmed local state for one poll
   // interval. `GET /api/todo/state` is a plain read, NOT serialized with the
   // toggle's atomic write, so a poll that read the file *before* our write
@@ -122,7 +124,9 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
       }
       return next;
     });
-  }, [fetchedState]);
+    // pendingRef is a stable ref from useOptimisticMutation; listed to satisfy
+    // exhaustive-deps without changing when this effect runs.
+  }, [fetchedState, pendingRef]);
 
   // Merge runtime overrides over authored defaults for render. When the module
   // is not interactive (read-only, or tap-mode turned off in the editor), render
@@ -140,47 +144,45 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
   );
 
   const toggle = useCallback(
-    async (itemId: string) => {
-      // Double-tap guard: ignore a second tap while the first is in flight.
-      if (pendingRef.current.has(itemId)) return;
-
-      const authored = authoredMapRef.current[itemId] ?? false;
-      // Optimistic flip — read the current effective value (override, else
-      // authored default) inside the updater so it's computed from live state.
-      setOverrides((prev) => {
-        const cur = itemId in prev ? prev[itemId] : authored;
-        return { ...prev, [itemId]: !cur };
-      });
-      pendingRef.current.add(itemId);
-
-      try {
-        const res = await displayFetch('/api/todo/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ displayId, screenId, moduleId, itemId }),
-        });
-        if (!res.ok) throw new Error('Failed to toggle');
-        const data: TodoState = await res.json();
-        const serverVal = data.completed?.[itemId];
-        if (typeof serverVal === 'boolean') {
-          setOverrides((prev) => ({ ...prev, [itemId]: serverVal }));
-        }
-        // Prime the shared cache so sibling todo instances / the next poll see
-        // post-write state, and hold local state for one TTL so a stale
-        // in-flight poll can't revert this confirmed flip.
-        displayCache.set(todoStateUrl(), data, TODO_STATE_TTL_MS);
-        overrideUntilRef.current = Date.now() + TODO_STATE_TTL_MS;
-      } catch {
+    (itemId: string) => {
+      void runToggle(itemId, {
+        apply: () => {
+          const authored = authoredMapRef.current[itemId] ?? false;
+          // Optimistic flip — read the current effective value (override, else
+          // authored default) inside the updater so it's computed from live state.
+          setOverrides((prev) => {
+            const cur = itemId in prev ? prev[itemId] : authored;
+            return { ...prev, [itemId]: !cur };
+          });
+        },
+        request: async () => {
+          const res = await displayFetch('/api/todo/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayId, screenId, moduleId, itemId }),
+          });
+          if (!res.ok) throw new Error('Failed to toggle');
+          const data: TodoState = await res.json();
+          const serverVal = data.completed?.[itemId];
+          if (typeof serverVal === 'boolean') {
+            setOverrides((prev) => ({ ...prev, [itemId]: serverVal }));
+          }
+          // Prime the shared cache so sibling todo instances / the next poll see
+          // post-write state, and hold local state for one TTL so a stale
+          // in-flight poll can't revert this confirmed flip.
+          displayCache.set(todoStateUrl(), data, TODO_STATE_TTL_MS);
+          overrideUntilRef.current = Date.now() + TODO_STATE_TTL_MS;
+        },
         // Surgical revert: flip ONLY this item back. The optimistic value is
         // still in `prev` (the pending guard kept polls from touching it and
         // the double-tap guard blocks a second toggle), so `!prev[itemId]`
         // restores the exact pre-toggle value without a stale snapshot.
-        setOverrides((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
-      } finally {
-        pendingRef.current.delete(itemId);
-      }
+        rollback: () => {
+          setOverrides((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
+        },
+      });
     },
-    [displayId, screenId, moduleId],
+    [displayId, screenId, moduleId, runToggle],
   );
 
   if (items.length === 0) {

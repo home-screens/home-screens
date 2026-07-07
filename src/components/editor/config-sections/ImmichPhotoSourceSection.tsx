@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import LabeledField from '@/components/ui/LabeledField';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorData } from '@/hooks/useEditorData';
 import { useTranslate } from '@/i18n';
 
 interface ImmichAlbum {
@@ -35,14 +36,32 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
   const t = useTranslate('editor');
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [checking, setChecking] = useState(true);
-  const [albums, setAlbums] = useState<ImmichAlbum[]>([]);
-  const [people, setPeople] = useState<ImmichPerson[]>([]);
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
 
   const albumId = (config.immichAlbumId as string) || '';
   const personId = (config.immichPersonId as string) || '';
   const favoritesOnly = (config.immichFavoritesOnly as boolean) || false;
   const count = (config.immichCount as number) || 50;
+
+  // Albums + people load once the connection authenticates; disabling the URL
+  // (null) until then mirrors the old `if (!status?.authenticated) return`.
+  const authed = !!status?.authenticated;
+  const { data: albumsData } = useEditorData<ImmichAlbum[]>(authed ? '/api/immich/albums' : null);
+  const albums = albumsData ?? [];
+  const { data: peopleData } = useEditorData<ImmichPerson[]>(authed ? '/api/immich/people' : null);
+  const people = peopleData ?? [];
+
+  // Preview strip re-fetches whenever the filter-derived URL changes; the
+  // hook's AbortController supersedes the old manual `cancelled` guard.
+  const previewParams = new URLSearchParams();
+  if (albumId) previewParams.set('albumId', albumId);
+  if (personId) previewParams.set('personId', personId);
+  if (favoritesOnly) previewParams.set('favorites', 'true');
+  previewParams.set('count', '4');
+  const { data: previewData } = useEditorData<string[]>(authed ? `/api/immich/photos?${previewParams}` : null);
+  const previewImages = useMemo(
+    () => (previewData ?? []).map((u) => u.replace('size=preview', 'size=thumbnail')),
+    [previewData],
+  );
 
   // Use album assetCount when available, otherwise null
   const selectedAlbum = albums.find((a) => a.id === albumId);
@@ -62,38 +81,6 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
   }, []);
 
   useEffect(() => { checkConnection(); }, [checkConnection]);
-
-  // Fetch albums + people when connected
-  useEffect(() => {
-    if (!status?.authenticated) return;
-    editorFetch('/api/immich/albums').then(async (res) => {
-      if (res.ok) setAlbums(await res.json());
-    }).catch(() => {});
-    editorFetch('/api/immich/people').then(async (res) => {
-      if (res.ok) setPeople(await res.json());
-    }).catch(() => {});
-  }, [status?.authenticated]);
-
-  // Fetch preview images when filters change (with cancellation)
-  useEffect(() => {
-    if (!status?.authenticated) return;
-    let cancelled = false;
-
-    const params = new URLSearchParams();
-    if (albumId) params.set('albumId', albumId);
-    if (personId) params.set('personId', personId);
-    if (favoritesOnly) params.set('favorites', 'true');
-    params.set('count', '4');
-    editorFetch(`/api/immich/photos?${params}`).then(async (res) => {
-      if (cancelled) return;
-      if (res.ok) {
-        const urls: string[] = await res.json();
-        setPreviewImages(urls.map((u) => u.replace('size=preview', 'size=thumbnail')));
-      }
-    }).catch(() => {});
-
-    return () => { cancelled = true; };
-  }, [status?.authenticated, albumId, personId, favoritesOnly]);
 
   return (
     <div className="space-y-2">

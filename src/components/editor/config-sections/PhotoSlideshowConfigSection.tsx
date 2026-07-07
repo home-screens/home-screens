@@ -6,6 +6,7 @@ import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
@@ -33,19 +34,11 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   const [showBrowser, setShowBrowser] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [photoCount, setPhotoCount] = useState(0);
-  const [hasImmichKey, setHasImmichKey] = useState(false);
+  const { data: secrets } = useEditorData<Record<string, boolean>>('/api/secrets');
+  const hasImmichKey = !!secrets?.immich_api_key && !!secrets?.immich_url;
 
   const source = (c.source as string) || 'local';
   const directory = (c.directory as string) || '';
-
-  useEffect(() => {
-    editorFetch('/api/secrets').then(async (res) => {
-      if (res.ok) {
-        const data: Record<string, boolean> = await res.json();
-        setHasImmichKey(!!data.immich_api_key && !!data.immich_url);
-      }
-    }).catch(() => {});
-  }, []);
 
   // Fetch preview images when directory changes
   const fetchPreviews = useCallback(async (dir: string) => {
