@@ -36,11 +36,8 @@ import ChoreIcon, {
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
-import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
-import {
-  buildChoreSummaryLine,
-  getChoreValidationHintKind,
-} from '@/components/modules/chore-chart/chore-form-presentation';
+import { useChoreForm, useMemberForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
+import { buildChoreSummaryLine } from '@/components/modules/chore-chart/chore-form-presentation';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 
 // ── Props ─────────────────────────────────────────────────────────
@@ -169,41 +166,11 @@ function ChoreForm({
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
     scheduleMembers, scheduleDays, unscheduledMembers,
-    canSave,
+    canSave, validationHintKind,
   } = f;
   const submit = () => f.submit(onSubmit);
 
-  const scheduleHasAssignment = rotation === 'schedule'
-    ? Object.values(schedule).some((days) => days.length > 0)
-    : true;
-  const validationHintKind = getChoreValidationHintKind({
-    name,
-    rotation,
-    scheduleHasAssignment,
-    assigneeIdsLength: assigneeIds.length,
-  });
-
-  // `t` is locale-stable per provider.tsx, so a `[t]` dep is the correct
-  // shape — the maps rebuild only when the active locale changes, not on
-  // every keystroke that re-renders ChoreForm.
-  const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
-    () => ({
-      daily: t('choreChartModal.frequency.daily'),
-      weekly: t('choreChartModal.frequency.weekly'),
-      biweekly: t('choreChartModal.frequency.biweekly'),
-      once: t('choreChartModal.frequency.once'),
-    }),
-    [t],
-  );
-  const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
-    () => ({
-      fixed: t('choreChartModal.rotation.fixed'),
-      'rotate-daily': t('choreChartModal.rotation.rotateDaily'),
-      'rotate-weekly': t('choreChartModal.rotation.rotateWeekly'),
-      schedule: t('choreChartModal.rotation.schedule'),
-    }),
-    [t],
-  );
+  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(t);
 
   return (
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">

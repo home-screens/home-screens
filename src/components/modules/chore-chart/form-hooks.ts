@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   ChoreMember,
   ChoreDefinition,
@@ -8,7 +8,12 @@ import type {
   ChoreTimeOfDay,
   ChoreRotation,
 } from '@/types/config';
+import type { TranslateFn } from '@/i18n';
 import { MEMBER_COLORS, todayStr } from './types';
+import {
+  getChoreValidationHintKind,
+  type ChoreValidationHintKind,
+} from './chore-form-presentation';
 
 /**
  * Shared form state for chore and member forms.
@@ -78,7 +83,7 @@ export interface ChoreFormState {
   unscheduledMembers: ChoreMember[];
 
   canSave: boolean;
-  validationHint: string | null;
+  validationHintKind: ChoreValidationHintKind | null;
   submit: (onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void) => void;
 }
 
@@ -148,15 +153,13 @@ export function useChoreForm(
   const scheduleHasAssignment = rotation === 'schedule'
     ? Object.values(schedule).some((days) => days.length > 0)
     : true;
-  const canSave = name.trim().length > 0
-    && (rotation === 'schedule' ? scheduleHasAssignment : assigneeIds.length > 0);
-  const validationHint = !name.trim()
-    ? 'Enter a chore name'
-    : rotation === 'schedule' && !scheduleHasAssignment
-      ? 'Add at least one person to the schedule'
-      : rotation !== 'schedule' && assigneeIds.length === 0
-        ? 'Select at least one person'
-        : null;
+  const validationHintKind = getChoreValidationHintKind({
+    name,
+    rotation,
+    scheduleHasAssignment,
+    assigneeIdsLength: assigneeIds.length,
+  });
+  const canSave = validationHintKind === null;
 
   const submit = (onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void) => {
     if (!canSave) return;
@@ -188,6 +191,41 @@ export function useChoreForm(
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
     scheduleMembers, scheduleDays, unscheduledMembers,
-    canSave, validationHint, submit,
+    canSave, validationHintKind, submit,
   };
+}
+
+export interface ChoreLabelMaps {
+  frequencyLabelMap: Record<ChoreResetFrequency, string>;
+  rotationLabelMap: Record<ChoreRotation, string>;
+}
+
+/**
+ * Frequency and rotation `<select>` option labels. Both the editor modal and
+ * the /remote overlay read the SAME `choreChartModal.frequency.*` and
+ * `choreChartModal.rotation.*` keys from the editor namespace, so callers pass
+ * a `t` bound to `useTranslate('editor')` (the /remote overlay passes its
+ * `tEditor`). Memoized on `t`, which is locale-stable per provider.tsx, so the
+ * maps rebuild only when the active locale changes, not on every keystroke.
+ */
+export function useChoreLabelMaps(t: TranslateFn): ChoreLabelMaps {
+  const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
+    () => ({
+      daily: t('choreChartModal.frequency.daily'),
+      weekly: t('choreChartModal.frequency.weekly'),
+      biweekly: t('choreChartModal.frequency.biweekly'),
+      once: t('choreChartModal.frequency.once'),
+    }),
+    [t],
+  );
+  const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
+    () => ({
+      fixed: t('choreChartModal.rotation.fixed'),
+      'rotate-daily': t('choreChartModal.rotation.rotateDaily'),
+      'rotate-weekly': t('choreChartModal.rotation.rotateWeekly'),
+      schedule: t('choreChartModal.rotation.schedule'),
+    }),
+    [t],
+  );
+  return { frequencyLabelMap, rotationLabelMap };
 }

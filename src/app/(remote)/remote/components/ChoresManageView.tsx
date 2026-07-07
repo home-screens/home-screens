@@ -24,14 +24,11 @@ import ChoreIcon, {
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
-import { useChoreForm, useMemberForm } from '@/components/modules/chore-chart/form-hooks';
+import { useChoreForm, useMemberForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import {
-  buildChoreSummaryLine,
-  getChoreValidationHintKind,
-} from '@/components/modules/chore-chart/chore-form-presentation';
+import { buildChoreSummaryLine } from '@/components/modules/chore-chart/chore-form-presentation';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
@@ -200,46 +197,15 @@ function ChoreFormOverlay({
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleScheduleDay, addMemberToSchedule,
     scheduleMembers, scheduleDays, unscheduledMembers,
-    canSave,
+    canSave, validationHintKind,
   } = f;
   const [showConfirm, setShowConfirm] = useState(false);
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
 
-  // Compute the validation kind locally so the hint always resolves
-  // through `t()` rather than reading the English literal that
-  // `useChoreForm` returns.
-  const scheduleHasAssignment = rotation === 'schedule'
-    ? Object.values(schedule).some((days) => days.length > 0)
-    : true;
-  const validationHintKind = getChoreValidationHintKind({
-    name,
-    rotation,
-    scheduleHasAssignment,
-    assigneeIdsLength: assigneeIds.length,
-  });
-
-  // `t` is locale-stable per provider.tsx, so a `[t]` dep is the correct
-  // shape — the maps rebuild only when the active locale changes, not on
-  // every keystroke that re-renders ChoreFormOverlay.
-  const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
-    () => ({
-      daily: tEditor('choreChartModal.frequency.daily'),
-      weekly: tEditor('choreChartModal.frequency.weekly'),
-      biweekly: tEditor('choreChartModal.frequency.biweekly'),
-      once: tEditor('choreChartModal.frequency.once'),
-    }),
-    [tEditor],
-  );
-  const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
-    () => ({
-      fixed: tEditor('choreChartModal.rotation.fixed'),
-      'rotate-daily': tEditor('choreChartModal.rotation.rotateDaily'),
-      'rotate-weekly': tEditor('choreChartModal.rotation.rotateWeekly'),
-      schedule: tEditor('choreChartModal.rotation.schedule'),
-    }),
-    [tEditor],
-  );
+  // The frequency/rotation labels resolve through the editor namespace on both
+  // surfaces, so this overlay passes its `tEditor` binding.
+  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tEditor);
 
   return (
     <>
