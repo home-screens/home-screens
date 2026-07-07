@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { MousePointerClick, Eye, Settings } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 
 const callouts = [
   {
@@ -39,13 +40,16 @@ export function EditorExperience() {
         >
           {/* Left: text + callouts */}
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              A real editor, not a config file
-            </h2>
-            <p className="mt-4 text-neutral-400">
-              Build your display visually. The editor runs in your browser, talks to
-              the Pi over your local network.
-            </p>
+            <SectionHeader
+              title="A real editor, not a config file"
+              description={
+                <>
+                  Build your display visually. The editor runs in your browser, talks to
+                  the Pi over your local network.
+                </>
+              }
+              descriptionClassName="mt-4 text-neutral-400"
+            />
 
             <div className="mt-10 space-y-6">
               {callouts.map(({ icon: Icon, title, description }) => (

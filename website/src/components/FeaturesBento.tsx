@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 import { LOCALE_COUNT, LOCALE_NATIVE_NAMES, WEATHER_PROVIDER_COUNT } from '@/lib/stats';
 
 interface Feature {
@@ -113,13 +114,15 @@ export function FeaturesBento() {
     <section id="features" className="py-20">
       <Container>
         <div className="mb-10">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            More than a dashboard
-          </h2>
-          <p className="mt-3 max-w-2xl text-neutral-400">
-            A full platform for wall-mounted displays. Scheduling, remote control,
-            plugins, OTA updates — not just widgets on a screen.
-          </p>
+          <SectionHeader
+            title="More than a dashboard"
+            description={
+              <>
+                A full platform for wall-mounted displays. Scheduling, remote control,
+                plugins, OTA updates — not just widgets on a screen.
+              </>
+            }
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">

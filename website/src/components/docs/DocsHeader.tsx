@@ -2,13 +2,11 @@
 
 import { usePathname } from 'next/navigation'
 
-import { navigation } from '@/lib/docs-navigation'
+import { findDocsPage } from '@/lib/docs-navigation'
 
 export function DocsHeader({ title }: { title?: string }) {
   const pathname = usePathname()
-  const section = navigation.find((section) =>
-    section.links.find((link) => link.href === pathname),
-  )
+  const { section } = findDocsPage(pathname)
 
   if (!title && !section) {
     return null

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 import { MODULE_COUNT } from '@/lib/stats';
 
 interface ModuleItem {
@@ -91,13 +92,19 @@ export function ModuleShowcase() {
     <section id="modules" className="py-24">
       <Container>
         <div className="mb-12">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            <span className="font-mono text-cyan-400">{MODULE_COUNT}</span> modules and counting
-          </h2>
-          <p className="mt-3 max-w-2xl text-neutral-400">
-            Everything from clocks and calendars to stocks, sports scores, and meal
-            planning. All configurable, all composable.
-          </p>
+          <SectionHeader
+            title={
+              <>
+                <span className="font-mono text-cyan-400">{MODULE_COUNT}</span> modules and counting
+              </>
+            }
+            description={
+              <>
+                Everything from clocks and calendars to stocks, sports scores, and meal
+                planning. All configurable, all composable.
+              </>
+            }
+          />
         </div>
 
         {/* Category tabs */}

@@ -2,7 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 
-import { navigation } from '@/lib/docs-navigation'
+import { JsonLd } from '@/components/JsonLd'
+import { findDocsPage } from '@/lib/docs-navigation'
 
 const BASE_URL = 'https://homescreens.dev'
 
@@ -15,9 +16,7 @@ const HS_ORG = {
 export function DocsJsonLd({ title }: { title?: string }) {
   const pathname = usePathname()
 
-  const link = navigation
-    .flatMap((section) => section.links)
-    .find((link) => link.href === pathname)
+  const { link } = findDocsPage(pathname)
 
   const pageTitle = title || link?.title || 'Documentation'
   const pageUrl = `${BASE_URL}${pathname}`
@@ -58,15 +57,5 @@ export function DocsJsonLd({ title }: { title?: string }) {
     },
   ]
 
-  return (
-    <>
-      {jsonLd.map((schema, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
-    </>
-  )
+  return <JsonLd schema={jsonLd} />
 }

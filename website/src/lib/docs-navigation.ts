@@ -32,3 +32,39 @@ export const navigation = [
     ],
   },
 ]
+
+export type DocsSection = (typeof navigation)[number]
+export type DocsLink = DocsSection['links'][number]
+
+/** Every doc link flattened in sidebar order. */
+export const allDocsLinks: DocsLink[] = navigation.flatMap(
+  (section) => section.links,
+)
+
+export interface DocsPageLocation {
+  /** The link matching the pathname, or null if the page isn't in the nav. */
+  link: DocsLink | null
+  /** The section containing that link, or null. */
+  section: DocsSection | null
+  /** Previous link in sidebar order, or null at the first page / not found. */
+  previous: DocsLink | null
+  /** Next link in sidebar order, or null at the last page / not found. */
+  next: DocsLink | null
+}
+
+/** Resolve a pathname to its nav link, containing section, and neighbours. */
+export function findDocsPage(pathname: string): DocsPageLocation {
+  const index = allDocsLinks.findIndex((link) => link.href === pathname)
+  if (index === -1) {
+    return { link: null, section: null, previous: null, next: null }
+  }
+  return {
+    link: allDocsLinks[index],
+    section:
+      navigation.find((section) =>
+        section.links.some((link) => link.href === pathname),
+      ) ?? null,
+    previous: allDocsLinks[index - 1] ?? null,
+    next: allDocsLinks[index + 1] ?? null,
+  }
+}

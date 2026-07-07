@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -58,20 +59,29 @@ export function FeaturedPlugin() {
         >
           {/* Left: text + callouts */}
           <div>
-            <Badge color="cyan" className="mb-6">
-              <Home className="h-3 w-3" />
-              Featured plugin
-            </Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Now talks to{' '}
-              <span className="text-cyan-400">Home Assistant</span>
-            </h2>
-            <p className="mt-4 max-w-lg text-neutral-400">
-              Beautiful entity cards, area grouping, and tap-to-toggle
-              controls for your Home Assistant instance — installable from
-              the plugin browser. The most-requested feature, finally
-              shipped.
-            </p>
+            <SectionHeader
+              eyebrow={
+                <Badge color="cyan" className="mb-6">
+                  <Home className="h-3 w-3" />
+                  Featured plugin
+                </Badge>
+              }
+              title={
+                <>
+                  Now talks to{' '}
+                  <span className="text-cyan-400">Home Assistant</span>
+                </>
+              }
+              description={
+                <>
+                  Beautiful entity cards, area grouping, and tap-to-toggle
+                  controls for your Home Assistant instance — installable from
+                  the plugin browser. The most-requested feature, finally
+                  shipped.
+                </>
+              }
+              descriptionClassName="mt-4 max-w-lg text-neutral-400"
+            />
 
             <div className="mt-10 space-y-6">
               {callouts.map(({ icon: Icon, title, description }) => (

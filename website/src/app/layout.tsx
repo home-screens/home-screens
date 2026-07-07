@@ -5,6 +5,7 @@ import Script from 'next/script'
 import clsx from 'clsx'
 
 import { Providers } from '@/app/providers'
+import { JsonLd } from '@/components/JsonLd'
 import { MODULE_COUNT } from '@/lib/stats'
 import './globals.css'
 
@@ -62,43 +63,40 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-white dark:bg-slate-900">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'SoftwareApplication',
+        <JsonLd
+          schema={{
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'Home Screens',
+            description: `An open-source smart display system for Raspberry Pi with ${MODULE_COUNT} built-in modules, a drag-and-drop visual editor, and a plugin system.`,
+            applicationCategory: 'UtilitiesApplication',
+            operatingSystem: 'Linux',
+            url: 'https://homescreens.dev',
+            author: {
+              '@type': 'Organization',
               name: 'Home Screens',
-              description: `An open-source smart display system for Raspberry Pi with ${MODULE_COUNT} built-in modules, a drag-and-drop visual editor, and a plugin system.`,
-              applicationCategory: 'UtilitiesApplication',
-              operatingSystem: 'Linux',
               url: 'https://homescreens.dev',
-              author: {
-                '@type': 'Organization',
-                name: 'Home Screens',
-                url: 'https://homescreens.dev',
-              },
-              softwareVersion: '1.3.0',
-              datePublished: '2026-03-07',
-              dateModified: '2026-04-11',
-              downloadUrl:
-                'https://github.com/home-screens/home-screens/releases',
-              softwareRequirements: 'Raspberry Pi 4 or 5, 2 GB+ RAM',
-              screenshot: [
-                'https://homescreens.dev/images/display-1.jpg',
-                'https://homescreens.dev/images/display-2.jpg',
-                'https://homescreens.dev/images/display-3.jpg',
-                'https://homescreens.dev/images/display-4.jpg',
-                'https://homescreens.dev/images/display-5.jpg',
-                'https://homescreens.dev/images/display-6.jpg',
-              ],
-              offers: {
-                '@type': 'Offer',
-                price: '0',
-                priceCurrency: 'USD',
-              },
-              license: 'https://opensource.org/licenses/MIT',
-            }),
+            },
+            softwareVersion: '1.3.0',
+            datePublished: '2026-03-07',
+            dateModified: '2026-04-11',
+            downloadUrl:
+              'https://github.com/home-screens/home-screens/releases',
+            softwareRequirements: 'Raspberry Pi 4 or 5, 2 GB+ RAM',
+            screenshot: [
+              'https://homescreens.dev/images/display-1.jpg',
+              'https://homescreens.dev/images/display-2.jpg',
+              'https://homescreens.dev/images/display-3.jpg',
+              'https://homescreens.dev/images/display-4.jpg',
+              'https://homescreens.dev/images/display-5.jpg',
+              'https://homescreens.dev/images/display-6.jpg',
+            ],
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'USD',
+            },
+            license: 'https://opensource.org/licenses/MIT',
           }}
         />
         <Script

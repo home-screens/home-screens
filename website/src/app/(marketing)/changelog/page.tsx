@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Changelog } from '@/components/Changelog';
+import { JsonLd } from '@/components/JsonLd';
 import { getChangelog, RECENT_ENTRY_LIMIT } from '@/lib/changelog';
+import { buildArticleSchema } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   title: {
@@ -34,21 +36,20 @@ export default function ChangelogPage() {
   const latest = entries[0];
   const earliest = entries[entries.length - 1];
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'Home Screens Changelog',
+  const jsonLd = buildArticleSchema({
+    title: 'Home Screens Changelog',
     description:
       'Release history for Home Screens — every stable version, the features it shipped, what improved, and what was fixed.',
-    mainEntityOfPage: 'https://homescreens.dev/changelog',
+    path: '/changelog',
+    datePublished: earliest?.date ?? undefined,
+    dateModified: latest?.date ?? undefined,
     author: {
-      '@type': 'Organization',
+      type: 'organization',
       name: 'Home Screens',
       url: 'https://homescreens.dev',
     },
-    ...(earliest?.date ? { datePublished: earliest.date } : {}),
-    ...(latest?.date ? { dateModified: latest.date } : {}),
-  };
+    includePublisher: false,
+  });
 
   return (
     <>
@@ -57,10 +58,7 @@ export default function ChangelogPage() {
         <Changelog entries={entries} hasArchive={hasArchive} />
       </main>
       <Footer />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd schema={jsonLd} />
     </>
   );
 }

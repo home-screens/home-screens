@@ -1,6 +1,7 @@
 import { type Node } from '@markdoc/markdoc'
 import Link from 'next/link'
 
+import { JsonLd } from '@/components/JsonLd'
 import { Prose } from '@/components/docs/Prose'
 import { TableOfContents } from '@/components/docs/TableOfContents'
 import { collectSections } from '@/lib/sections'
@@ -38,10 +39,11 @@ export function BlogPostLayout({
       buildArticleSchema({
         title,
         description: description ?? '',
-        date,
-        author: author ?? 'Bryan',
+        path: `/blog/${slug}`,
+        datePublished: date,
+        dateModified: date,
+        author: { type: 'person', name: author ?? 'Bryan' },
         image,
-        slug,
       }),
     )
     structuredData.push(buildBreadcrumbSchema(title, slug))
@@ -51,13 +53,8 @@ export function BlogPostLayout({
 
   return (
     <div className="relative mx-auto flex w-full max-w-7xl justify-center px-4 sm:px-6 lg:px-8">
-      {structuredData.map((data, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-        />
-      ))}
+      <JsonLd schema={structuredData} />
+
       <div className="min-w-0 max-w-3xl flex-auto py-16 xl:pr-16">
         <article>
           <header className="mb-10">

@@ -70,37 +70,54 @@ export function extractFaqEntries(nodes: Array<Node>): Array<FaqEntry> {
   return entries
 }
 
+type ArticleAuthor =
+  | { type: 'person'; name: string }
+  | { type: 'organization'; name: string; url: string }
+
 interface ArticleSchemaInput {
   title: string
   description: string
-  date: string
-  author: string
+  /** Site-relative path, e.g. `/blog/my-post` or `/changelog`. */
+  path: string
+  datePublished?: string
+  dateModified?: string
+  author: ArticleAuthor
   image?: string
-  slug: string
+  /** Defaults to true; pass false to omit the publisher block. */
+  includePublisher?: boolean
 }
 
 export function buildArticleSchema(input: ArticleSchemaInput) {
-  const url = `${SITE_URL}/blog/${input.slug}`
+  const url = `${SITE_URL}${input.path}`
+  const author =
+    input.author.type === 'organization'
+      ? {
+          '@type': 'Organization',
+          name: input.author.name,
+          url: input.author.url,
+        }
+      : { '@type': 'Person', name: input.author.name }
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: input.title,
     description: input.description,
-    datePublished: input.date,
-    dateModified: input.date,
-    author: {
-      '@type': 'Person',
-      name: input.author,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: ORG_NAME,
-      url: SITE_URL,
-      logo: {
-        '@type': 'ImageObject',
-        url: `${SITE_URL}/icon.svg`,
-      },
-    },
+    ...(input.datePublished ? { datePublished: input.datePublished } : {}),
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
+    author,
+    ...(input.includePublisher === false
+      ? {}
+      : {
+          publisher: {
+            '@type': 'Organization',
+            name: ORG_NAME,
+            url: SITE_URL,
+            logo: {
+              '@type': 'ImageObject',
+              url: `${SITE_URL}/icon.svg`,
+            },
+          },
+        }),
     ...(input.image ? { image: `${SITE_URL}${input.image}` } : {}),
     mainEntityOfPage: {
       '@type': 'WebPage',

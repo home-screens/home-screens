@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 
 const templates = [
   { name: 'Morning Dashboard', modules: 8, description: 'Weather, calendar, news, and commute time at a glance.' },
@@ -25,12 +26,10 @@ export function TemplatesGallery() {
     <section id="templates" className="py-24">
       <Container>
         <div className="mb-10">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Start from a template
-          </h2>
-          <p className="mt-3 max-w-2xl text-neutral-400">
-            Pre-built layouts for common setups. Customize from there.
-          </p>
+          <SectionHeader
+            title="Start from a template"
+            description="Pre-built layouts for common setups. Customize from there."
+          />
         </div>
       </Container>
 

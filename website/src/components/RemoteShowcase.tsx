@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Smartphone, ClipboardCheck, UtensilsCrossed, SlidersHorizontal } from 'lucide-react';
 import { Container } from '@/components/Container';
+import { SectionHeader } from '@/components/SectionHeader';
 
 const features = [
   {
@@ -139,17 +140,22 @@ export function RemoteShowcase() {
         >
           {/* Header */}
           <div className="text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#222] bg-[#161616] px-4 py-1.5 text-sm text-neutral-400">
-              <Smartphone className="h-4 w-4 text-cyan-400/70" />
-              Works on any phone
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Control everything from your phone
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-neutral-400">
-              No app to install. Open the remote on any device on your network to manage
-              your display, track chores, and plan meals.
-            </p>
+            <SectionHeader
+              eyebrow={
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#222] bg-[#161616] px-4 py-1.5 text-sm text-neutral-400">
+                  <Smartphone className="h-4 w-4 text-cyan-400/70" />
+                  Works on any phone
+                </div>
+              }
+              title="Control everything from your phone"
+              description={
+                <>
+                  No app to install. Open the remote on any device on your network to manage
+                  your display, track chores, and plan meals.
+                </>
+              }
+              descriptionClassName="mx-auto mt-4 max-w-2xl text-neutral-400"
+            />
           </div>
 
           {/* Phone screenshots */}
