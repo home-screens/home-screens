@@ -1,17 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { useEditorStore } from '@/stores/editor-store';
-import { editorFetch } from '@/lib/editor-fetch';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
+import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
@@ -21,19 +19,6 @@ const SHOW_DESCRIPTION_KEY = {
   'day-timeline': 'dayShowDescription',
   'agenda': 'agendaShowDescription',
 } as const;
-
-interface CalendarSource {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface GoogleCalendar {
-  id: string;
-  summary: string;
-  backgroundColor: string;
-  primary: boolean;
-}
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -76,58 +61,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'stacked', label: t('configSections.fullscreen-calendar.overlapStacked') },
   ];
 
-  // Build source list (same pattern as CalendarConfigSection)
-  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
-  const icalSources = useEditorStore((s) => s.config?.settings?.calendar?.icalSources ?? []);
-  const holidayCountry = useEditorStore((s) => s.config?.settings?.calendar?.holidayCountry);
-  const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
-
-  useEffect(() => {
-    async function fetchGoogleCals() {
-      try {
-        const res = await editorFetch('/api/calendars');
-        if (res.ok) setGoogleCalendars(await res.json());
-      } catch { /* ignore */ }
-    }
-    if (googleCalendarIds.length > 0) fetchGoogleCals();
-  }, [googleCalendarIds.length]);
-
-  const availableSources: CalendarSource[] = [];
-  let unnamedCount = 0;
-  for (const gid of googleCalendarIds) {
-    const cal = googleCalendars.find((c) => c.id === gid);
-    let name = cal?.summary;
-    if (!name) {
-      const local = gid.split('@')[0];
-      if (/^[a-z0-9]{20,}$/i.test(local)) {
-        unnamedCount++;
-        name = unnamedCount > 1
-          ? t('configSections.fullscreen-calendar.googleCalendarNumbered', { n: unnamedCount })
-          : t('configSections.fullscreen-calendar.googleCalendar');
-      } else {
-        name = local;
-      }
-    }
-    availableSources.push({ id: gid, name, color: cal?.backgroundColor ?? '#3b82f6' });
-  }
-  for (const src of icalSources) {
-    if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
-  }
-  if (holidayCountry) availableSources.push({ id: 'holidays', name: t('configSections.fullscreen-calendar.publicHolidays'), color: '#10b981' });
-
-  const allSelected = sourceFilter.length === 0;
-
-  function toggleSource(id: string) {
-    if (allSelected) {
-      set({ sourceFilter: availableSources.filter((s) => s.id !== id).map((s) => s.id) });
-    } else if (sourceFilter.includes(id)) {
-      const next = sourceFilter.filter((s) => s !== id);
-      set({ sourceFilter: next.length === 0 ? undefined : next });
-    } else {
-      const next = [...sourceFilter, id];
-      set({ sourceFilter: next.length >= availableSources.length ? undefined : next });
-    }
-  }
+  const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
 
   return (
     <>
@@ -215,26 +149,12 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {/* Source filter */}
-      {availableSources.length > 1 && (
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">{t('configSections.fullscreen-calendar.sources')}</span>
-          <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong max-h-40 overflow-y-auto">
-            <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
-              <input type="radio" checked={allSelected} onChange={() => set({ sourceFilter: undefined })}
-                className="border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0" />
-              <span className="text-sm text-hs-text-body">{t('configSections.fullscreen-calendar.allSources')}</span>
-            </label>
-            {availableSources.map((src) => (
-              <label key={src.id} className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-hs-hover">
-                <input type="checkbox" checked={allSelected || sourceFilter.includes(src.id)} onChange={() => toggleSource(src.id)}
-                  className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0" />
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: src.color }} />
-                <span className="text-sm text-hs-text-body truncate">{src.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+      <CalendarSourceFilter
+        keyPrefix="configSections.fullscreen-calendar"
+        availableSources={availableSources}
+        sourceFilter={sourceFilter}
+        onChange={(next) => set({ sourceFilter: next })}
+      />
 
       {/* View-specific settings */}
       {(view === 'schedule' || view === 'day-timeline') && (

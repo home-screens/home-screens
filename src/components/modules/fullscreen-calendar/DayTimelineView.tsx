@@ -5,7 +5,7 @@ import { isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
-import { computeOverlapLayout } from '@/lib/fullscreen-overlap';
+import { computeTimedEventLayout } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
@@ -53,27 +53,8 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
     const dayEvents = events.filter(ev => isEventOnDay(ev, today));
     const allDay = dayEvents.filter(ev => ev.allDay);
     const timed = dayEvents.filter(ev => !ev.allDay);
-    const layoutInput = timed
-      .map(ev => {
-        const rawStart = parseTimeToHours(ev.start);
-        const rawEnd = parseTimeToHours(ev.end);
-        return {
-          id: ev.id,
-          startHour: Math.max(rawStart, hourStart),
-          endHour: rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd),
-        };
-      })
-      .filter(e => e.startHour < hourEnd && e.endHour > e.startHour);
-    const layout = computeOverlapLayout(layoutInput, overlapMode);
-    // Columns mode hides overflow (width 0); aggregate hidden events by start
-    // position so the view can render a "+N" indicator instead of silence
-    const hidden = new Map<number, number>();
-    for (const input of layoutInput) {
-      if (layout.get(input.id)?.width === 0) {
-        hidden.set(input.startHour, (hidden.get(input.startHour) ?? 0) + 1);
-      }
-    }
-    return { allDayEvs: allDay, timedEvs: timed, overlapLayout: layout, hiddenStarts: hidden };
+    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(timed, hourStart, hourEnd, overlapMode);
+    return { allDayEvs: allDay, timedEvs: timed, overlapLayout, hiddenStarts };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [events, today.toDateString(), hourStart, hourEnd, overlapMode]);
 

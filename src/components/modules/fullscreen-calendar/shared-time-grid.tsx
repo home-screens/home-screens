@@ -2,15 +2,12 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { formatDateSync } from '@/i18n';
-import { parseEventDate } from '@/lib/calendar-utils';
 
 // ─── Utilities ───
 
-/** Convert an ISO date string to fractional hours (e.g. 14:30 → 14.5). */
-export function parseTimeToHours(dateStr: string): number {
-  const d = parseEventDate(dateStr);
-  return d.getHours() + d.getMinutes() / 60;
-}
+// Re-exported from the pure (React-free) layout module so existing callers can
+// keep importing it from here alongside the grid components below.
+export { parseTimeToHours } from './event-layout';
 
 /**
  * Format an hour number (0-23) as a 12-hour label using localized AM/PM

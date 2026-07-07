@@ -6,7 +6,7 @@ import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/ca
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
-import { computeOverlapLayout } from '@/lib/fullscreen-overlap';
+import { computeTimedEventLayout } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
@@ -69,26 +69,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
   // overlap column.
   const dayLayouts = useMemo(() => days.map(day => {
     const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day));
-    const layoutInput = dayEvents
-      .map(ev => {
-        const rawStart = parseTimeToHours(ev.start);
-        const rawEnd = parseTimeToHours(ev.end);
-        return {
-          id: ev.id,
-          startHour: Math.max(rawStart, hourStart),
-          endHour: rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd),
-        };
-      })
-      .filter(e => e.startHour < hourEnd && e.endHour > e.startHour);
-    const overlapLayout = computeOverlapLayout(layoutInput, overlapMode);
-    // Columns mode hides overflow (width 0); aggregate hidden events by start
-    // position so the view can render a "+N" indicator instead of silence
-    const hiddenStarts = new Map<number, number>();
-    for (const input of layoutInput) {
-      if (overlapLayout.get(input.id)?.width === 0) {
-        hiddenStarts.set(input.startHour, (hiddenStarts.get(input.startHour) ?? 0) + 1);
-      }
-    }
+    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(dayEvents, hourStart, hourEnd, overlapMode);
     return { dayEvents, overlapLayout, hiddenStarts };
   }), [days, events, hourStart, hourEnd, overlapMode]);
 
