@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
+import { errorResponse, publicErrorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -70,6 +70,25 @@ describe('errorResponse', () => {
   it('returns valid JSON response with correct content type', () => {
     const response = errorResponse(new Error('test'), 'fallback');
     expect(response.headers.get('content-type')).toContain('application/json');
+  });
+});
+
+describe('publicErrorResponse', () => {
+  silenceConsole();
+
+  it('never emits a detail field, even for Error instances', async () => {
+    const response = publicErrorResponse(
+      new Error("EACCES: permission denied, open '/opt/home-screens/current/data/chore-completions.json'"),
+      'Failed to read chore completions',
+    );
+    const json = await response.json();
+    expect(json).toEqual({ error: 'Failed to read chore completions' });
+    expect(response.status).toBe(500);
+  });
+
+  it('respects a custom status', () => {
+    const response = publicErrorResponse(new Error('boom'), 'fallback', 502);
+    expect(response.status).toBe(502);
   });
 });
 

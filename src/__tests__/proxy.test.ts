@@ -30,6 +30,9 @@ function makeRequest(
     cookie?: string;
     search?: string;
     authorization?: string;
+    /** Server-stamped x-hs-client-ip (what the instrumentation patch writes). */
+    clientIp?: string;
+    /** Client-supplied spoof headers — extractIp must ignore both. */
     xForwardedFor?: string;
     xRealIp?: string;
   },
@@ -39,6 +42,7 @@ function makeRequest(
   const url = `http://localhost:3000${pathname}${search}`;
   const cookieHeader = opts?.cookie ?? null;
   const authorizationHeader = opts?.authorization ?? null;
+  const clientIp = opts?.clientIp ?? null;
   const xForwardedFor = opts?.xForwardedFor ?? null;
   const xRealIp = opts?.xRealIp ?? null;
 
@@ -60,6 +64,7 @@ function makeRequest(
       get(name: string) {
         const lower = name.toLowerCase();
         if (lower === 'authorization') return authorizationHeader;
+        if (lower === 'x-hs-client-ip') return clientIp;
         if (lower === 'x-forwarded-for') return xForwardedFor;
         if (lower === 'x-real-ip') return xRealIp;
         return null;
@@ -912,7 +917,7 @@ describe('proxy — IP access restriction (feature inactive)', () => {
       ipAllowlist: ['192.168.1.0/24'],
       ipRestrictAccess: false,
     });
-    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/editor', { clientIp: '10.0.0.1' })))).toBe(true);
   });
 
   it('passes through when allowlist is empty, even if restrictAccess is true', async () => {
@@ -922,7 +927,7 @@ describe('proxy — IP access restriction (feature inactive)', () => {
       ipAllowlist: [],
       ipRestrictAccess: true,
     });
-    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/editor', { clientIp: '10.0.0.1' })))).toBe(true);
   });
 
   it('passes through when ipAllowlist field is missing entirely', async () => {
@@ -930,7 +935,7 @@ describe('proxy — IP access restriction (feature inactive)', () => {
       passwordHash: null,
       ipRestrictAccess: true, // enabled but no allowlist → effectively off
     });
-    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.1' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/editor', { clientIp: '10.0.0.1' })))).toBe(true);
   });
 });
 
@@ -946,25 +951,32 @@ describe('proxy — IP access restriction (allowlisted IPs)', () => {
   });
 
   it('allowlisted IP in a /24 subnet passes through to /editor', () => {
-    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '192.168.1.42' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/editor', { clientIp: '192.168.1.42' })))).toBe(true);
   });
 
   it('allowlisted single-host /32 passes through', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/weather', { xForwardedFor: '10.0.0.5' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/api/weather', { clientIp: '10.0.0.5' })))).toBe(true);
   });
 
   it('IPv4-mapped IPv6 ::ffff:192.168.1.50 is normalized and matches the /24', () => {
-    expect(isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '::ffff:192.168.1.50' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/editor', { clientIp: '::ffff:192.168.1.50' })))).toBe(true);
   });
 
-  it('accepts first IP from a multi-value x-forwarded-for chain', () => {
-    expect(
-      isPassThrough(proxy(makeRequest('/editor', { xForwardedFor: '192.168.1.10, 10.0.0.254' }))),
-    ).toBe(true);
+  it('ignores a spoofed x-forwarded-for — allowlisted value in it does not grant access', async () => {
+    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '192.168.1.42' }));
+    expect(await is403IpRestricted(result)).toBe(true);
   });
 
-  it('falls back to x-real-ip when x-forwarded-for is absent', () => {
-    expect(isPassThrough(proxy(makeRequest('/editor', { xRealIp: '192.168.1.99' })))).toBe(true);
+  it('ignores a spoofed x-real-ip — allowlisted value in it does not grant access', async () => {
+    const result = proxy(makeRequest('/api/weather', { xRealIp: '192.168.1.99' }));
+    expect(await is403IpRestricted(result)).toBe(true);
+  });
+
+  it('spoofed x-forwarded-for cannot override the stamped client IP', async () => {
+    const result = proxy(
+      makeRequest('/api/weather', { clientIp: '10.9.9.9', xForwardedFor: '192.168.1.42' }),
+    );
+    expect(await is403IpRestricted(result)).toBe(true);
   });
 });
 
@@ -980,12 +992,12 @@ describe('proxy — IP access restriction (blocked IPs)', () => {
   });
 
   it('non-allowlisted IP gets 403 with ip_restricted reason on /api/*', async () => {
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '10.0.0.99' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: '10.0.0.99' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 
   it('non-allowlisted IP gets redirected to /login on page routes', () => {
-    const result = proxy(makeRequest('/editor', { xForwardedFor: '10.0.0.99' }));
+    const result = proxy(makeRequest('/editor', { clientIp: '10.0.0.99' }));
     const redirect = isRedirect(result);
     expect(redirect).not.toBeNull();
     expect(redirect?.pathname).toBe('/login');
@@ -993,12 +1005,12 @@ describe('proxy — IP access restriction (blocked IPs)', () => {
 
   it('IPv6 loopback ::1 is blocked (IPv4-only enforcement)', async () => {
     // The IPv6 warning in the UI documents this limitation.
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '::1' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: '::1' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 
   it('link-local IPv6 (fe80::...) is blocked', async () => {
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: 'fe80::1234' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: 'fe80::1234' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 
@@ -1020,18 +1032,18 @@ describe('proxy — IP access restriction (exempt paths)', () => {
   });
 
   it('/login is exempt even for blocked IPs (so the banner can render)', () => {
-    expect(isPassThrough(proxy(makeRequest('/login', { xForwardedFor: '10.0.0.99' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/login', { clientIp: '10.0.0.99' })))).toBe(true);
   });
 
   it('/api/auth/status is exempt even for blocked IPs (login page fetches it)', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/auth/status', { xForwardedFor: '10.0.0.99' })))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/api/auth/status', { clientIp: '10.0.0.99' })))).toBe(true);
   });
 
   it('/api/auth/login is NOT exempt — POST from blocked IP is 403', async () => {
     // Even though /api/auth/login is in PUBLIC_AUTH_ROUTES for the auth gate,
     // the IP restriction runs first and doesn't exempt it. This prevents a
     // blocked client from even attempting credentials.
-    const result = proxy(makeRequest('/api/auth/login', { method: 'POST', xForwardedFor: '10.0.0.99' }));
+    const result = proxy(makeRequest('/api/auth/login', { method: 'POST', clientIp: '10.0.0.99' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 });
@@ -1045,7 +1057,7 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
       ipAllowlist: ['foo/24'],
       ipRestrictAccess: true,
     });
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '0.0.0.1' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: '0.0.0.1' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 
@@ -1056,7 +1068,7 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
       ipRestrictAccess: true,
     });
     return proxy.then((p) => {
-      expect(isPassThrough(p(makeRequest('/api/weather', { xForwardedFor: '192.168.1.50' })))).toBe(true);
+      expect(isPassThrough(p(makeRequest('/api/weather', { clientIp: '192.168.1.50' })))).toBe(true);
     });
   });
 
@@ -1067,7 +1079,7 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
       ipRestrictAccess: true,
     });
     // The /99 entry is invalid and skipped. No other entries → blocked.
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '192.168.1.50' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: '192.168.1.50' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 
@@ -1082,7 +1094,7 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
       ipRestrictAccess: true,
     });
     // Entry is invalid and skipped. Caller at 1.168.1.50 should NOT match.
-    const result = proxy(makeRequest('/api/weather', { xForwardedFor: '1.168.1.50' }));
+    const result = proxy(makeRequest('/api/weather', { clientIp: '1.168.1.50' }));
     expect(await is403IpRestricted(result)).toBe(true);
   });
 });

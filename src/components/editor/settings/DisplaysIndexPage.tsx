@@ -60,8 +60,8 @@ interface DisplaysApiResponse {
 }
 
 /**
- * Humanize the raw client address that `getClientIP` returned from
- * `x-forwarded-for` / `x-real-ip` / the connection peer. IPv6 loopback
+ * Humanize the raw client address that `getClientIP` returned from the
+ * server-stamped `x-hs-client-ip` header (the TCP peer address). IPv6 loopback
  * collapses to "localhost"; IPv4-mapped-IPv6 addresses drop their
  * `::ffff:` prefix so the editor shows plain dotted-quad IPs instead of
  * mixed-form strings; everything else is passed through. Returns null

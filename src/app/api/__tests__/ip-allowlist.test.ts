@@ -27,7 +27,7 @@ const ipAllowlistRoute = await import('@/app/api/auth/ip-allowlist/route');
 function makeGetRequest(ip = '192.168.1.50'): NextRequest {
   return new NextRequest('http://localhost/api/auth/ip-allowlist', {
     method: 'GET',
-    headers: { 'x-forwarded-for': ip },
+    headers: { 'x-hs-client-ip': ip },
   });
 }
 
@@ -37,7 +37,7 @@ function makePutRequest(body: unknown, ip = '192.168.1.50'): NextRequest {
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
-      'x-forwarded-for': ip,
+      'x-hs-client-ip': ip,
     },
   });
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { errorResponse } from '@/lib/api-utils';
+import { publicErrorResponse } from '@/lib/api-utils';
 import { readRewardData, redeemReward } from '@/lib/reward-data';
 import { readChoreData } from '@/lib/chore-data';
 
@@ -17,7 +17,7 @@ export const GET = async () => {
     const data = await readRewardData();
     return NextResponse.json(data);
   } catch (error) {
-    return errorResponse(error, 'Failed to read rewards');
+    return publicErrorResponse(error, 'Failed to read rewards');
   }
 };
 
@@ -77,6 +77,6 @@ export const POST = async (request: NextRequest) => {
     }
     return NextResponse.json({ balances: result.balances, redemptions: result.redemptions });
   } catch (error) {
-    return errorResponse(error, 'Failed to redeem reward');
+    return publicErrorResponse(error, 'Failed to redeem reward');
   }
 };

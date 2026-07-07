@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { requireSession, requireDisplayAuth } from '@/lib/auth';
 import { getSecret, type SecretKey } from '@/lib/secrets';
+import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
 
 const log = logger('api');
@@ -20,7 +21,7 @@ const log = logger('api');
  * credentials. `error.message` from Node builtins can include file paths,
  * upstream URLs, or command stderr, which is acceptable for authenticated
  * admin-only surfaces. Do NOT use this helper on unauthenticated public
- * endpoints; return a bare `{ error }` there instead.
+ * endpoints; use `publicErrorResponse` there instead.
  */
 export function errorResponse(
   error: unknown,
@@ -30,6 +31,24 @@ export function errorResponse(
   const detail = error instanceof Error ? error.message : undefined;
   log.error(fallbackMessage, error);
   return NextResponse.json({ error: fallbackMessage, detail }, { status });
+}
+
+/**
+ * Error response for UNAUTHENTICATED public endpoints (kid-view chores and
+ * rewards, plugin registry, pre-login auth status). Logs the full error
+ * server-side but never emits a `detail` field — `error.message` from Node
+ * builtins can carry absolute install paths (e.g. an EACCES on
+ * `data/chore-completions.json`) that must not reach an anonymous LAN
+ * caller. Keep the split greppable: public route → publicErrorResponse,
+ * auth-wrapped route → errorResponse.
+ */
+export function publicErrorResponse(
+  error: unknown,
+  fallbackMessage: string,
+  status = 500,
+): NextResponse {
+  log.error(fallbackMessage, error);
+  return NextResponse.json({ error: fallbackMessage }, { status });
 }
 
 /**
@@ -284,13 +303,21 @@ export function createRateLimiter(maxAttempts: number, windowMs: number) {
   };
 }
 
-/** Extract the client IP from standard proxy headers. */
+/**
+ * Client IP for auth / allowlist / rate-limit decisions.
+ *
+ * Reads only `x-hs-client-ip`, which the http-server patch installed by
+ * `src/instrumentation.ts` stamps from the real TCP peer on every request,
+ * overwriting anything the caller sent (see `lib/server-ip-patch.ts` and
+ * `lib/client-ip.ts` for the trusted-proxy escape hatch). Client-supplied
+ * `X-Forwarded-For` / `X-Real-IP` are deliberately NOT consulted — with no
+ * fronting proxy they are attacker-controlled and were previously usable to
+ * spoof the IP allowlist and rotate rate-limit buckets. A missing header
+ * (e.g. unit tests, patch not installed) fails closed as 'unknown': it never
+ * matches an allowlist entry, and rate limiting degrades to a shared bucket.
+ */
 export function getClientIP(request: NextRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
+  return request.headers.get(CLIENT_IP_HEADER) || 'unknown';
 }
 
 /**

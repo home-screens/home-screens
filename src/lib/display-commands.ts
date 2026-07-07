@@ -116,8 +116,8 @@ export interface ViewportReport {
   /** When this client last reported (ms since epoch) */
   lastSeen: number;
   /**
-   * Source IP the report arrived from (from `x-forwarded-for` /
-   * `x-real-ip` / the connection peer, via `getClientIP`). Lets the
+   * Source IP the report arrived from (the TCP peer address, via
+   * `getClientIP` reading the server-stamped `x-hs-client-ip` header). Lets the
    * editor surface "which device on the LAN is actually posting this"
    * so a phantom reporter (stale tab, stray curl loop, duplicate install)
    * can be traced back to a specific box instead of a mystery.

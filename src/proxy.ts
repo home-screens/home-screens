@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readFileSync } from 'fs';
 import path from 'path';
+import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 
 /* ─── Cached auth config ─────────────────────── */
 
@@ -55,13 +56,15 @@ function getAuthConfig(): AuthConfig {
 
 /* ─── IP allowlist helpers ───────────────────── */
 
-/** Extract client IP from proxy headers. Mirrors getClientIP in api-utils.ts. */
+/**
+ * Client IP for the access-restriction gate. Mirrors getClientIP in
+ * api-utils.ts: reads only the server-stamped `x-hs-client-ip` header
+ * (written from the TCP peer by the instrumentation patch in
+ * `lib/server-ip-patch.ts`), never the spoofable `X-Forwarded-For` /
+ * `X-Real-IP`. Missing header fails closed as 'unknown' (never allowlisted).
+ */
 function extractIp(request: NextRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
+  return request.headers.get(CLIENT_IP_HEADER) || 'unknown';
 }
 
 /**

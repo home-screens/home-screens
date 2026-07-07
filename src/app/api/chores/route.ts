@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
-import { errorResponse } from '@/lib/api-utils';
+import { publicErrorResponse } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
@@ -52,7 +52,7 @@ export const GET = async () => {
     });
     return NextResponse.json({ completions: result.completions });
   } catch (error) {
-    return errorResponse(error, 'Failed to read chore completions');
+    return publicErrorResponse(error, 'Failed to read chore completions');
   }
 };
 
@@ -144,6 +144,6 @@ export const POST = async (request: NextRequest) => {
     ...(warning ? { warning } : {}),
   });
   } catch (error) {
-    return errorResponse(error, 'Failed to update chore completions');
+    return publicErrorResponse(error, 'Failed to update chore completions');
   }
 };

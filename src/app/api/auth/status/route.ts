@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isAuthEnabled, readAuthState, verifySession, getDisplayToken, getIpAllowlistConfig } from '@/lib/auth';
-import { errorResponse, getClientIP } from '@/lib/api-utils';
+import { publicErrorResponse, getClientIP } from '@/lib/api-utils';
 import { isIpAllowed } from '@/lib/ip-allowlist';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +35,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ authEnabled, authenticated, hasDisplayToken, ipRestricted });
   } catch (error) {
-    return errorResponse(error, 'Failed to check auth status');
+    return publicErrorResponse(error, 'Failed to check auth status');
   }
 }

@@ -191,7 +191,7 @@ describe('POST /api/auth/login', () => {
     for (let i = 0; i < 5; i++) {
       const res = await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
-          'x-forwarded-for': '10.0.0.99',
+          'x-hs-client-ip': '10.0.0.99',
         }),
       );
       expect(res.status).toBe(401);
@@ -200,7 +200,7 @@ describe('POST /api/auth/login', () => {
     // 6th attempt should be rate-limited (returns 429 before even checking password)
     const res = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'wrong' }, {
-        'x-forwarded-for': '10.0.0.99',
+        'x-hs-client-ip': '10.0.0.99',
       }),
     );
     const json = await res.json();
@@ -219,7 +219,7 @@ describe('POST /api/auth/login', () => {
     for (let i = 0; i < 5; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
-          'x-forwarded-for': '10.0.0.50',
+          'x-hs-client-ip': '10.0.0.50',
         }),
       );
     }
@@ -236,7 +236,7 @@ describe('POST /api/auth/login', () => {
 
     const res = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'correct' }, {
-        'x-forwarded-for': '10.0.0.51',
+        'x-hs-client-ip': '10.0.0.51',
       }),
     );
 
@@ -250,7 +250,7 @@ describe('POST /api/auth/login', () => {
     for (let i = 0; i < 3; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
-          'x-forwarded-for': '10.0.0.200',
+          'x-hs-client-ip': '10.0.0.200',
         }),
       );
     }
@@ -267,7 +267,7 @@ describe('POST /api/auth/login', () => {
 
     const successRes = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'correct' }, {
-        'x-forwarded-for': '10.0.0.200',
+        'x-hs-client-ip': '10.0.0.200',
       }),
     );
     expect(successRes.status).toBe(200);
@@ -277,7 +277,7 @@ describe('POST /api/auth/login', () => {
     for (let i = 0; i < 5; i++) {
       const res = await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
-          'x-forwarded-for': '10.0.0.200',
+          'x-hs-client-ip': '10.0.0.200',
         }),
       );
       expect(res.status).toBe(401);
@@ -286,7 +286,7 @@ describe('POST /api/auth/login', () => {
     // Now rate-limited again
     const res = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'wrong' }, {
-        'x-forwarded-for': '10.0.0.200',
+        'x-hs-client-ip': '10.0.0.200',
       }),
     );
     expect(res.status).toBe(429);
@@ -299,7 +299,7 @@ describe('POST /api/auth/login', () => {
     for (let i = 0; i < 5; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
-          'x-forwarded-for': '10.0.0.77',
+          'x-hs-client-ip': '10.0.0.77',
         }),
       );
     }
@@ -308,10 +308,34 @@ describe('POST /api/auth/login', () => {
     vi.mocked(verifyPassword).mockResolvedValue(true);
     const res = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'correct' }, {
-        'x-forwarded-for': '10.0.0.77',
+        'x-hs-client-ip': '10.0.0.77',
       }),
     );
 
+    expect(res.status).toBe(429);
+  });
+
+  it('spoofed X-Forwarded-For does not rotate the rate-limit bucket', async () => {
+    vi.mocked(verifyPassword).mockResolvedValue(false);
+
+    // Without a server-stamped x-hs-client-ip, every caller lands in one
+    // shared 'unknown' bucket no matter what X-Forwarded-For claims.
+    // Exhaust it while varying the spoofed header each attempt.
+    for (let i = 0; i < 5; i++) {
+      await loginRoute.POST(
+        makePostRequest('/api/auth/login', { password: 'wrong' }, {
+          'x-forwarded-for': `1.2.3.${i}`,
+        }),
+      );
+    }
+
+    // A fresh spoofed identity must NOT get a fresh bucket.
+    vi.mocked(verifyPassword).mockResolvedValue(true);
+    const res = await loginRoute.POST(
+      makePostRequest('/api/auth/login', { password: 'correct' }, {
+        'x-forwarded-for': '1.2.3.99',
+      }),
+    );
     expect(res.status).toBe(429);
   });
 });
