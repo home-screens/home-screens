@@ -3,6 +3,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { logger } from '@/lib/logger';
+
+const log = logger('useImageLibrary');
 
 export interface DirectoryInfo {
   name: string;
@@ -83,7 +86,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setDirectories(data.directories ?? []);
       }
     } catch (err) {
-      console.debug('[useImageLibrary] fetchDirectories failed:', err);
+      log.debug('fetchDirectories failed:', err);
     }
     setLoadingDirs(false);
   }, []);
@@ -197,7 +200,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         fetchDirectories();
       }
     } catch (err) {
-      console.debug('[useImageLibrary] deleteImage failed:', err);
+      log.debug('deleteImage failed:', err);
     }
     setDeletingImage(null);
   }, [fetchDirectories]);

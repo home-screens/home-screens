@@ -6,6 +6,9 @@ import { withAuth, withDisplayAuth } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateDisplays, validateAllSchedules } from '@/lib/display-filter';
 import type { ScreenConfiguration } from '@/types/config';
+import { logger } from '@/lib/logger';
+
+const log = logger('kiosk');
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +46,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   await writeConfig(config);
 
   // Keep kiosk.conf in sync so kiosk-launcher.sh picks up changes on next boot
-  syncKioskConf(config).catch((e) => console.error('[kiosk] kiosk.conf sync failed:', e));
+  syncKioskConf(config).catch((e) => log.error('kiosk.conf sync failed:', e));
 
   // Apply display rotation/mode immediately via wlr-randr (no reboot needed).
   // Only attempt when display settings actually changed.

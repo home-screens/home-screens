@@ -8,6 +8,9 @@ import {
   groupByLeague,
   groupByDivision,
 } from '@/lib/espn-standings';
+import { logger } from '@/lib/logger';
+
+const log = logger('standings');
 
 export const dynamic = 'force-dynamic';
 
@@ -58,7 +61,7 @@ const { GET, cache } = cachedProxyRoute<{ groups: ParsedGroup[] }>({
     const url = `https://site.api.espn.com/apis/v2/sports/${path}/standings`;
     const res = await fetchWithTimeout(url);
     if (!res.ok) {
-      console.error(`[standings] ESPN API error for ${league}: ${res.status}`);
+      log.error(`ESPN API error for ${league}: ${res.status}`);
       return NextResponse.json(
         { error: `Failed to fetch ${league} standings` },
         { status: 502 },

@@ -21,6 +21,9 @@ import {
   validateInterfaceRegex,
 } from '@/lib/network-validation';
 import { parseTerseFields } from '@/lib/network-parse';
+import { logger } from '@/lib/logger';
+
+const log = logger('network/wifi/connect');
 
 export const dynamic = 'force-dynamic';
 
@@ -52,8 +55,8 @@ async function disableCloudInitNetwork(): Promise<void> {
       ['tee', '/etc/cloud/cloud.cfg.d/99-home-screens-network.cfg'],
       (err) => {
         if (err)
-          console.warn(
-            '[network/wifi/connect] Failed to write cloud-init drop-in (non-fatal):',
+          log.warn(
+            'Failed to write cloud-init drop-in (non-fatal):',
             err.message,
           );
       },

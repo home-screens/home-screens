@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server';
 import { NASA_APOD_API, NASA_IMAGE_API, getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { createImageDownloadHandler } from '@/lib/route-factories';
+import { logger } from '@/lib/logger';
+
+const log = logger('nasa');
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +45,7 @@ async function handleApod(params: URLSearchParams) {
   const url = `${NASA_APOD_API}?api_key=${apiKey}&count=${count}&thumbs=true`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
-    console.error(`[nasa] APOD API error ${res.status}: ${await res.text()}`);
+    log.error(`APOD API error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
       { error: 'Failed to fetch NASA Astronomy Picture of the Day' },
       { status: 502 },
@@ -74,7 +77,7 @@ async function handleSearch(params: URLSearchParams) {
   const url = `${NASA_IMAGE_API}/search?q=${encodeURIComponent(query)}&media_type=image&page=${page}&page_size=12`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
-    console.error(`[nasa] Image Library error ${res.status}: ${await res.text()}`);
+    log.error(`Image Library error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
       { error: 'Failed to search NASA Image Library' },
       { status: 502 },

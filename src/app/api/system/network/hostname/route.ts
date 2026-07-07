@@ -5,6 +5,9 @@ import { promisify } from 'util';
 import { readFile } from 'fs/promises';
 import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import { validateHostname } from '@/lib/network-validation';
+import { logger } from '@/lib/logger';
+
+const log = logger('network/hostname');
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +54,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     // Write back via sudo tee — hostname is a positional value in the
     // string, never a shell argument or sed expression
     const child = execFileCb('sudo', ['tee', '/etc/hosts'], (err) => {
-      if (err) console.warn('[network/hostname] Failed to update /etc/hosts:', err.message);
+      if (err) log.warn('Failed to update /etc/hosts:', err.message);
     });
     child.stdin?.write(updated);
     child.stdin?.end();
@@ -65,8 +68,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await execFileAsync('sudo', ['systemctl', 'restart', 'avahi-daemon']);
   } catch (err: unknown) {
     // Non-fatal: avahi may not be installed; hostname change still succeeded
-    console.warn(
-      '[network/hostname] avahi-daemon restart failed (non-fatal):',
+    log.warn(
+      'avahi-daemon restart failed (non-fatal):',
       execErrorMessage(err, 'Unknown error'),
     );
   }
@@ -83,8 +86,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
       ['tee', '/etc/cloud/cloud.cfg.d/99-home-screens-hostname.cfg'],
       (err) => {
         if (err)
-          console.warn(
-            '[network/hostname] Failed to write cloud-init drop-in (non-fatal):',
+          log.warn(
+            'Failed to write cloud-init drop-in (non-fatal):',
             err.message,
           );
       },

@@ -6,6 +6,9 @@ import { useEditorStore } from '@/stores/editor-store';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
+import { logger } from '@/lib/logger';
+
+const log = logger('plugin');
 
 /**
  * Convenience hook for plugin ConfigSection components.
@@ -35,7 +38,7 @@ function useModuleConfig<T = Record<string, unknown>>(moduleId: string, screenId
     const screen = state.config?.screens.find((sc) => sc.id === screenId);
     const currentMod = screen?.modules.find((m) => m.id === moduleId);
     if (!currentMod) {
-      console.warn('[plugin] useModuleConfig: module not found — is this running outside the editor?');
+      log.warn('useModuleConfig: module not found — is this running outside the editor?');
       return;
     }
     updateModule(screenId, moduleId, {
@@ -58,7 +61,7 @@ export default function PluginGlobalsEditor() {
 
   useLayoutEffect(() => {
     if (!window.__HS_SDK__) {
-      console.warn('[plugin] PluginGlobalsEditor: __HS_SDK__ not initialized — PluginGlobals must mount first');
+      log.warn('PluginGlobalsEditor: __HS_SDK__ not initialized — PluginGlobals must mount first');
       return;
     }
 

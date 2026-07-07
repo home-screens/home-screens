@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { logger } from '@/lib/logger';
+
+const log = logger('useActiveBackground');
 
 /**
  * Polls the server-side background cache so the editor shows the same rotating
@@ -24,7 +27,7 @@ export function useActiveBackground(screenId: string | undefined, rotationEnable
           if (data.path) setActiveBackground(data.path);
         }
       } catch (err) {
-        console.debug('Failed to fetch active background:', err);
+        log.debug('Failed to fetch active background:', err);
       }
     }
 

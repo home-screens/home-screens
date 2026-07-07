@@ -10,6 +10,9 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { logger } from '@/lib/logger';
+
+const log = logger('todoist');
 
 function TodoistTokenStatus() {
   const t = useTranslate('editor');
@@ -24,7 +27,7 @@ function TodoistTokenStatus() {
           setConfigured(!!data.todoist_token);
         }
       } catch (err) {
-        console.debug('Failed to check Todoist token status:', err);
+        log.debug('Failed to check Todoist token status:', err);
       }
     }
     check();

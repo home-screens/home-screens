@@ -11,6 +11,9 @@
 
 import type { Dictionary, Namespace } from './types';
 import { FALLBACK_LOCALE } from './manifest';
+import { logger } from '@/lib/logger';
+
+const log = logger('i18n');
 
 type CacheKey = string; // `${locale}:${namespace}`
 const CACHE = new Map<CacheKey, Dictionary>();
@@ -149,8 +152,8 @@ export function registerPluginNamespace(
     // is almost always a bug (duplicate install, stale dev plugin, etc.).
     // Last-write wins, but warn loudly in development so the cause is
     // visible.
-    console.warn(
-      `[i18n] Plugin "${pluginId}" registered translations for "${locale}" twice; `
+    log.warn(
+      `Plugin "${pluginId}" registered translations for "${locale}" twice; `
       + 'later registration overrides earlier.',
     );
   }

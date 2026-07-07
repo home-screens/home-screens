@@ -6,6 +6,9 @@
  */
 
 import { displayFetch } from '@/lib/display-fetch';
+import { logger } from '@/lib/logger';
+
+const log = logger('display-cache');
 
 interface CacheEntry {
   data: unknown;
@@ -149,7 +152,7 @@ class DisplayDataCache {
         this.set(url, data, ttlMs);
       }
     } catch (err) {
-      console.debug('[display-cache] fetch failed, keeping stale entry:', err);
+      log.debug('fetch failed, keeping stale entry:', err);
     }
   }
 

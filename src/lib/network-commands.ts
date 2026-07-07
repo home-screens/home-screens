@@ -17,6 +17,9 @@ import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { writeFile, unlink } from 'fs/promises';
 import { randomUUID } from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger('network-commands');
 
 const execFileAsync = promisify(execFileCb);
 
@@ -220,7 +223,7 @@ function executeRollback(
     .catch((err) => {
       // Best-effort rollback — if this fails, the network is already broken.
       // Log for operational visibility on headless Pi devices.
-      console.error('[network-commands] rollback failed:', err?.message ?? err);
+      log.error('rollback failed:', err?.message ?? err);
       // Still try to uninhibit watchdog so it can resume recovery
       uninhibitWatchdog().catch(() => {});
     });
@@ -480,7 +483,7 @@ async function _ensureSourceRoutingImpl(): Promise<void> {
       tableNum++;
     }
   } catch (err) {
-    console.error('[network-commands] ensureSourceRouting failed:', err);
+    log.error('ensureSourceRouting failed:', err);
   }
 }
 

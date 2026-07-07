@@ -12,6 +12,9 @@
 import type { Dictionary, Namespace } from './types';
 import { FALLBACK_LOCALE } from './manifest';
 import { readNamespaceWithFallback } from './file-reader';
+import { logger } from '@/lib/logger';
+
+const log = logger('i18n');
 
 // Conservative BCP-47-ish guard. Matches a sequence of 1–8 ASCII letters
 // followed by zero or more `-`-separated 1–8-alphanumeric subtags. That
@@ -39,8 +42,8 @@ export async function buildLocaleBlob(
 ): Promise<Record<string, Dictionary>> {
   let safeLocale = locale;
   if (!VALID_LOCALE_RE.test(locale)) {
-    console.warn(
-      `[i18n] buildLocaleBlob: locale "${locale}" is not a valid BCP-47-ish ` +
+    log.warn(
+      `buildLocaleBlob: locale "${locale}" is not a valid BCP-47-ish ` +
         `tag; falling back to ${FALLBACK_LOCALE}.`,
     );
     safeLocale = FALLBACK_LOCALE;

@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server';
 import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { createImageDownloadHandler } from '@/lib/route-factories';
+import { logger } from '@/lib/logger';
+
+const log = logger('unsplash');
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +30,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   });
 
   if (!res.ok) {
-    console.error(`[unsplash] API error ${res.status}: ${await res.text()}`);
+    log.error(`API error ${res.status}: ${await res.text()}`);
     return NextResponse.json(
       { error: 'Failed to search Unsplash' },
       { status: 502 },

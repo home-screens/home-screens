@@ -6,6 +6,9 @@ import { compareEventStarts, isEventUpcoming } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import type { CalendarEvent, ICalSource } from '@/types/config';
+import { logger } from '@/lib/logger';
+
+const log = logger('calendar');
 
 export const dynamic = 'force-dynamic';
 
@@ -102,7 +105,7 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
         googleEvents = await fetchCalendarEvents(calendarIds, timeMin, timeMax);
         googleOk = true;
       } catch (error) {
-        console.error('Google Calendar fetch failed', error);
+        log.error('Google Calendar fetch failed', error);
       }
     }
 
@@ -115,7 +118,7 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
         icalEvents = await fetchICalEvents(icalSources, timeMin, timeMax);
         icalOk = true;
       } catch (error) {
-        console.error('ICS calendar fetch failed', error);
+        log.error('ICS calendar fetch failed', error);
       }
     }
 
@@ -127,7 +130,7 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
         holidayEvents = await fetchHolidayEvents(holidayCountry, timeMin, timeMax);
         holidayOk = true;
       } catch (error) {
-        console.error('Holiday fetch failed', error);
+        log.error('Holiday fetch failed', error);
       }
     }
 

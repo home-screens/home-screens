@@ -13,6 +13,9 @@ import IPSettingsPanel from './network/IPSettingsPanel';
 import DiagnosticsSection from './network/DiagnosticsSection';
 import type { NetworkOverview, NetworkInterface, WifiNetwork } from './network/types';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('network-settings');
 
 /* ─── Constants ────────────────────────────── */
 
@@ -60,7 +63,7 @@ export default function NetworkSection() {
         }
       }
     } catch (err) {
-      console.debug('Failed to fetch network overview:', err);
+      log.debug('Failed to fetch network overview:', err);
     } finally {
       setLoading(false);
     }

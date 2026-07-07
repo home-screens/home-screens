@@ -48,6 +48,9 @@ import {
   type HistoryEntry,
   type PendingResave,
 } from '@/stores/editor-save';
+import { logger } from '@/lib/logger';
+
+const log = logger('editor-store');
 
 /**
  * Update the editor URL search params in place. Pass a string to set, null
@@ -236,7 +239,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
         _lastHistoryActionKey: '',
       });
     } catch (err) {
-      console.error('Failed to load config:', err);
+      log.error('Failed to load config:', err);
     }
   },
 
@@ -319,8 +322,8 @@ export const useEditorStore = create<EditorState>((set, get) => {
       // Validation failures (client pre-check or server 400) are an expected
       // editing state surfaced in the toolbar — warn, don't error, so the
       // Next.js dev overlay only interrupts for unexpected failures.
-      if (detail) console.warn('Config not saved:', detail);
-      else console.error('Failed to save config:', err);
+      if (detail) log.warn('Config not saved:', detail);
+      else log.error('Failed to save config:', err);
       throw err;
     } finally {
       // Hand off to the queued re-save (if any). Tying the recursive

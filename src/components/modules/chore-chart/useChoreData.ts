@@ -20,6 +20,9 @@ import {
 } from './types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('chores');
 
 /** Display-only settings accepted by useChoreData — no members/chores,
  *  those are fetched from the shared /api/chores/data endpoint. */
@@ -297,7 +300,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       // at least visible in the kiosk console — display modules don't have a UI for
       // these alerts, but the admin viewing dev tools can see them.
       if (data.warning) {
-        console.warn('[chores]', data.warning);
+        log.warn(data.warning);
       }
     } catch {
       // Revert optimistic update on error

@@ -10,6 +10,9 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import { logger } from '@/lib/logger';
+
+const log = logger('audit');
 
 /* ─── Constants ──────────────────────────────── */
 
@@ -57,7 +60,7 @@ export function audit(event: AuditEvent): void {
   writeQueue = writeQueue
     .then(() => appendAndRotate(line))
     .catch((err) => {
-      console.error('[audit] Failed to write audit log:', err);
+      log.error('Failed to write audit log:', err);
     });
 }
 

@@ -15,6 +15,9 @@ import {
   resolveLocaleChain,
 } from '@/i18n';
 import type { Dictionary } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('plugin');
 
 // ---------------------------------------------------------------------------
 // Dev-mode state — local plugin loading from dev server URLs
@@ -90,7 +93,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
     body: JSON.stringify({ manifest }),
   }).catch(() => {
     // Non-fatal — proxy features won't work but the plugin will still render
-    console.warn(`[plugin] Failed to register dev plugin "${manifest.id}" server-side — pluginFetch will not work`);
+    log.warn(`Failed to register dev plugin "${manifest.id}" server-side — pluginFetch will not work`);
   });
 
   // 6. Register client-side
@@ -286,7 +289,7 @@ async function migratePluginConfigs(
 
     return true;
   } catch (err) {
-    console.warn(`Config migration for ${manifest.id} failed:`, err);
+    log.warn(`Config migration for ${manifest.id} failed:`, err);
     return false;
   }
 }
@@ -405,7 +408,7 @@ export async function loadAllPlugins(): Promise<void> {
       startDevPolling(pluginId);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(`Dev plugin ${pluginId} failed to load:`, message);
+      log.warn(`Dev plugin ${pluginId} failed to load:`, message);
       store.setError(pluginId, { message, phase: 'load' });
     }
   }
@@ -473,7 +476,7 @@ async function loadSinglePlugin(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`Failed to load plugin ${plugin.id}:`, message);
+    log.error(`Failed to load plugin ${plugin.id}:`, message);
     store.setError(plugin.id, { message, phase: 'load' });
   }
 }
@@ -645,16 +648,16 @@ function buildTranslationUrl(
   // hatch and it's not in the manifest path — the manifest must always be
   // a relative path under the plugin root.
   if (/^[a-z][a-z0-9+.-]*:/i.test(relativePath)) {
-    console.warn(
-      `[plugin] translations path for "${pluginId}" rejected: absolute scheme not allowed (${relativePath}).`,
+    log.warn(
+      `translations path for "${pluginId}" rejected: absolute scheme not allowed (${relativePath}).`,
     );
     return null;
   }
   // Reject NUL bytes and backslashes — Windows-style separators or null
   // injection should never be in a sane manifest path.
   if (relativePath.includes('\0') || relativePath.includes('\\')) {
-    console.warn(
-      `[plugin] translations path for "${pluginId}" rejected: contains NUL or backslash.`,
+    log.warn(
+      `translations path for "${pluginId}" rejected: contains NUL or backslash.`,
     );
     return null;
   }
@@ -664,8 +667,8 @@ function buildTranslationUrl(
   const segments = relativePath.split('/');
   for (const seg of segments) {
     if (seg === '..') {
-      console.warn(
-        `[plugin] translations path for "${pluginId}" rejected: parent-directory traversal (${relativePath}).`,
+      log.warn(
+        `translations path for "${pluginId}" rejected: parent-directory traversal (${relativePath}).`,
       );
       return null;
     }
@@ -675,8 +678,8 @@ function buildTranslationUrl(
   // checks see exactly what the manifest declared.
   const safePath = relativePath.replace(/^\/+/, '');
   if (!safePath) {
-    console.warn(
-      `[plugin] translations path for "${pluginId}" rejected: empty path.`,
+    log.warn(
+      `translations path for "${pluginId}" rejected: empty path.`,
     );
     return null;
   }
@@ -703,8 +706,8 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
   // Fast path: trust a sane Content-Length header before consuming.
   const declaredLen = Number(res.headers.get('content-length'));
   if (Number.isFinite(declaredLen) && declaredLen > MAX_TRANSLATION_BYTES) {
-    console.warn(
-      `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
+    log.warn(
+      `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
       + `(declared ${declaredLen}B) — skipping.`,
     );
     return null;
@@ -717,8 +720,8 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
   if (!reader) {
     const text = await res.text();
     if (text.length > MAX_TRANSLATION_BYTES) {
-      console.warn(
-        `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B — skipping.`,
+      log.warn(
+        `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B — skipping.`,
       );
       return null;
     }
@@ -726,8 +729,8 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
       return JSON.parse(text);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `[plugin] translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
+      log.warn(
+        `translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
       );
       return null;
     }
@@ -744,8 +747,8 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
       // Cancel the body so the connection (and any upstream socket) is
       // released promptly instead of being read to completion.
       try { await reader.cancel(); } catch { /* ignore */ }
-      console.warn(
-        `[plugin] translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
+      log.warn(
+        `translations for ${pluginId} (${tag}) exceeds ${MAX_TRANSLATION_BYTES}B `
         + `(read ${received}B before abort) — skipping.`,
       );
       return null;
@@ -764,8 +767,8 @@ async function readBoundedJson(res: Response, pluginId: string, tag: string): Pr
     return JSON.parse(decoded);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[plugin] translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
+    log.warn(
+      `translations JSON parse failed for ${pluginId} (${tag}): ${message}`,
     );
     return null;
   }
@@ -818,8 +821,8 @@ export async function loadPluginTranslations(
     try {
       const res = await displayFetch(url);
       if (!res.ok) {
-        console.warn(
-          `[plugin] translations fetch failed for ${manifest.id} (${tag}): ${res.status}`,
+        log.warn(
+          `translations fetch failed for ${manifest.id} (${tag}): ${res.status}`,
         );
         continue;
       }
@@ -829,16 +832,16 @@ export async function loadPluginTranslations(
         continue;
       }
       if (!isDictionary(json)) {
-        console.warn(
-          `[plugin] translations payload for ${manifest.id} (${tag}) is not a JSON object — skipping`,
+        log.warn(
+          `translations payload for ${manifest.id} (${tag}) is not a JSON object — skipping`,
         );
         continue;
       }
       dict = json;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `[plugin] translations fetch threw for ${manifest.id} (${tag}): ${message}`,
+      log.warn(
+        `translations fetch threw for ${manifest.id} (${tag}): ${message}`,
       );
       continue;
     }
@@ -851,8 +854,8 @@ export async function loadPluginTranslations(
       // than letting the throw bubble — the rest of the plugin can still
       // load successfully.
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `[plugin] translations register failed for ${manifest.id}: ${message}`,
+      log.warn(
+        `translations register failed for ${manifest.id}: ${message}`,
       );
     }
     return;

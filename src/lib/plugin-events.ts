@@ -13,6 +13,11 @@ type PluginEvent =
   | { type: 'refresh' }
   | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string };
 
+import { logger } from '@/lib/logger';
+
+const pluginLog = logger('plugin');
+const log = logger('plugin-events');
+
 const VALID_TYPES = new Set(['navigate', 'refresh', 'log']);
 
 type PluginEventHandler = (event: PluginEvent) => void;
@@ -27,14 +32,13 @@ export const pluginEventBus = {
     // Handle log events immediately — no need for host subscription
     if (event.type === 'log') {
       const { level, message } = event as { type: 'log'; level: string; message: string };
-      const prefix = '[plugin]';
-      if (level === 'warn') console.warn(prefix, message);
-      else if (level === 'error') console.error(prefix, message);
-      else console.log(prefix, message);
+      if (level === 'warn') pluginLog.warn(message);
+      else if (level === 'error') pluginLog.error(message);
+      else pluginLog.log(message);
     }
 
     for (const handler of handlers) {
-      try { handler(event); } catch (err) { console.debug('[plugin-events] handler threw:', err); }
+      try { handler(event); } catch (err) { log.debug('handler threw:', err); }
     }
   },
 

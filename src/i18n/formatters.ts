@@ -15,6 +15,9 @@
 
 import { format as dfFormat } from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
+import { logger } from '@/lib/logger';
+
+const log = logger('i18n');
 
 interface DateFormatOpts {
   locale: string;
@@ -157,8 +160,8 @@ export function formatDateSync(
   }
   if (process.env.NODE_ENV === 'development' && !SYNC_CACHE_MISS_WARNINGS.has(opts.locale)) {
     SYNC_CACHE_MISS_WARNINGS.add(opts.locale);
-    console.warn(
-      `[i18n] formatDateSync: locale "${opts.locale}" not preloaded; ` +
+    log.warn(
+      `formatDateSync: locale "${opts.locale}" not preloaded; ` +
         `falling back to en-US. Call preloadDateLocale("${opts.locale}") at startup.`,
     );
   }

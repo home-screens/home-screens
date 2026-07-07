@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger('event-bus');
+
 // ── Event type definitions ──────────────────────────────────────────
 
 export type WeatherCondition =
@@ -55,7 +59,7 @@ export class EventBus {
       try {
         (handler as (data: EventMap[K]) => void)(data);
       } catch (err) {
-        console.debug('[event-bus] handler threw:', err);
+        log.debug('handler threw:', err);
       }
     }
   }
@@ -75,7 +79,7 @@ export class EventBus {
         try {
           handler(last as EventMap[K]);
         } catch (err) {
-          console.debug('[event-bus] replay handler threw:', err);
+          log.debug('replay handler threw:', err);
         }
       }
     }

@@ -6,6 +6,9 @@ import type { SecretStatus } from './shared/SecretField';
 import { WEATHER_PROVIDERS } from './weather/providers';
 import WeatherProviderCard from './weather/WeatherProviderCard';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('weather-settings');
 
 interface WeatherSettings {
   provider: string;
@@ -34,7 +37,7 @@ export default function WeatherSection({ values, onChange }: Props) {
         setStatus(data);
       }
     } catch (err) {
-      console.debug('Failed to fetch secret status:', err);
+      log.debug('Failed to fetch secret status:', err);
     } finally {
       setLoading(false);
     }

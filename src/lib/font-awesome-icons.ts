@@ -13,6 +13,10 @@
  * `kw` are search keywords that aren't already in the icon name itself,
  * so typing "search" finds `magnifying-glass` and "home" finds `house`.
  */
+import { logger } from '@/lib/logger';
+
+const log = logger('icon-picker');
+
 export type FaIconKind = 'solid' | 'regular' | 'brands';
 
 export interface FaIconEntry {
@@ -699,7 +703,7 @@ export function loadAllFaIcons(): Promise<readonly FaIconEntry[]> {
       // FA_ICONS as the catalog or we'll be stuck on the curated subset
       // for the rest of the session even if /public/font-awesome/ recovers.
       inFlightLoad = null;
-      console.warn('[icon-picker] Failed to load Font Awesome manifest; using curated subset for now.', err);
+      log.warn('Failed to load Font Awesome manifest; using curated subset for now.', err);
       return FA_ICONS;
     }
   })();

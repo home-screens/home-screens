@@ -165,6 +165,7 @@ describe('registerPluginNamespace', () => {
 
       registerPluginNamespace('my-plugin', 'en-US', { foo: 'baz' });
       expect(warnSpy).toHaveBeenCalledWith(
+        '[i18n]',
         expect.stringMatching(/registered translations for "en-US" twice/),
       );
       // Last write wins.

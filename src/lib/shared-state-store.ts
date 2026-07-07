@@ -22,6 +22,9 @@
  */
 
 import { SHARED_STATE_KEY_RE, type SharedStateEntry } from '@/lib/shared-state-types';
+import { logger } from '@/lib/logger';
+
+const log = logger('shared-state');
 
 const MAX_KEYS = 256;
 const MAX_VALUE_LENGTH = 1024;
@@ -51,12 +54,12 @@ class SharedStateStore {
 
   publish = (key: string, value: string): void => {
     if (typeof key !== 'string' || !SHARED_STATE_KEY_RE.test(key)) {
-      console.warn(`[shared-state] rejected invalid key ${JSON.stringify(key)}`);
+      log.warn(`rejected invalid key ${JSON.stringify(key)}`);
       return;
     }
     let next = typeof value === 'string' ? value : String(value);
     if (next.length > MAX_VALUE_LENGTH) {
-      console.warn(`[shared-state] value for "${key}" truncated to ${MAX_VALUE_LENGTH} chars`);
+      log.warn(`value for "${key}" truncated to ${MAX_VALUE_LENGTH} chars`);
       next = next.slice(0, MAX_VALUE_LENGTH);
     }
 
@@ -68,7 +71,7 @@ class SharedStateStore {
     if (existing && existing.staleAt === undefined && existing.value === next) return;
 
     if (!existing && this.state.size >= MAX_KEYS) {
-      console.warn(`[shared-state] key cap (${MAX_KEYS}) reached; dropped "${key}"`);
+      log.warn(`key cap (${MAX_KEYS}) reached; dropped "${key}"`);
       return;
     }
 
@@ -199,7 +202,7 @@ class SharedStateStore {
       try {
         fn();
       } catch (err) {
-        console.debug('[shared-state] subscriber threw:', err);
+        log.debug('subscriber threw:', err);
       }
     }
   }

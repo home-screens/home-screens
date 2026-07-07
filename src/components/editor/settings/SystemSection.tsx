@@ -7,6 +7,9 @@ import Toggle from '@/components/ui/Toggle';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('system-settings');
 
 interface TagInfo {
   tag: string;
@@ -97,7 +100,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         setBackups(data.backups ?? []);
       }
     } catch (err) {
-      console.debug('Failed to fetch system info:', err);
+      log.debug('Failed to fetch system info:', err);
     } finally {
       setLoading(false);
       setChecking(false);
@@ -113,7 +116,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         setReleases(data.releases ?? []);
       }
     } catch (err) {
-      console.debug('Failed to fetch changelog:', err);
+      log.debug('Failed to fetch changelog:', err);
     }
   }, [channel]);
 
@@ -287,7 +290,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             fetchAll();
           }
         } catch (err) {
-          console.debug('Failed to cancel upgrade:', err);
+          log.debug('Failed to cancel upgrade:', err);
         }
       },
     );

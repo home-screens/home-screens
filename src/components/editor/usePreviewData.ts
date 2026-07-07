@@ -9,6 +9,9 @@ import { createTZDate } from '@/lib/timezone';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
+import { logger } from '@/lib/logger';
+
+const log = logger('preview-data');
 
 interface ProviderWeatherData {
   hourly: unknown[] | null;
@@ -152,7 +155,7 @@ export function usePreviewData(): PreviewData {
         }
       } catch (err) {
         if ((err as Error)?.name !== 'AbortError') {
-          console.debug('Failed to fetch calendar preview:', err);
+          log.debug('Failed to fetch calendar preview:', err);
         }
       }
     }, REFETCH_DEBOUNCE_MS);

@@ -12,6 +12,9 @@ import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretF
 import IntegrationCard from './shared/IntegrationCard';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('integrations');
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -96,7 +99,7 @@ export default function IntegrationsSection() {
         setStatus(data);
       }
     } catch (err) {
-      console.debug('Failed to fetch secret status:', err);
+      log.debug('Failed to fetch secret status:', err);
     } finally {
       setLoading(false);
     }

@@ -233,6 +233,7 @@ describe('loadPluginTranslations', () => {
       expect(calls.some((u) => u.includes('/api/plugins/asset/'))).toBe(false);
       expect(calls.some((u) => u.includes('passwd'))).toBe(false);
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/parent-directory traversal/),
       );
       expect(getCachedNamespace('en-US', 'plugin:my-plugin')).toBeUndefined();
@@ -255,6 +256,7 @@ describe('loadPluginTranslations', () => {
       });
       expect(calls.some((u) => u.includes('evil.example.com'))).toBe(false);
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/absolute scheme/),
       );
     });
@@ -266,6 +268,7 @@ describe('loadPluginTranslations', () => {
       });
       await loadPluginTranslations(manifest);
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/absolute scheme/),
       );
     });
@@ -277,6 +280,7 @@ describe('loadPluginTranslations', () => {
       });
       await loadPluginTranslations(manifest);
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/NUL or backslash/),
       );
     });
@@ -288,6 +292,7 @@ describe('loadPluginTranslations', () => {
       });
       await loadPluginTranslations(manifest);
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/NUL or backslash/),
       );
     });
@@ -322,6 +327,7 @@ describe('loadPluginTranslations', () => {
       await loadPluginTranslations(manifest);
 
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/exceeds 1000000B/),
       );
       // Critical: the dictionary must NOT be registered even though the
@@ -357,6 +363,7 @@ describe('loadPluginTranslations', () => {
       await loadPluginTranslations(manifest);
 
       expect(warnSpy).toHaveBeenCalledWith(
+        '[plugin]',
         expect.stringMatching(/exceeds 1000000B/),
       );
       expect(getCachedNamespace('en-US', 'plugin:my-plugin')).toBeUndefined();

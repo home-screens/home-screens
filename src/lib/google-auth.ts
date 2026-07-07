@@ -4,6 +4,9 @@ import { writeSecureFile } from '@/lib/secure-file';
 import path from 'path';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('google-auth');
 
 const TOKENS_PATH = path.join(process.cwd(), 'data', 'google-tokens.json');
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
@@ -135,11 +138,11 @@ export async function loadTokens(): Promise<StoredTokens | null> {
 export async function getAuthenticatedClient(): Promise<import('googleapis').Common.OAuth2Client | null> {
   const tokens = await loadTokens();
   if (!tokens) {
-    console.error('[google-auth] No tokens file found at', TOKENS_PATH);
+    log.error('No tokens file found at', TOKENS_PATH);
     return null;
   }
   if (!tokens.refresh_token) {
-    console.error('[google-auth] Tokens file exists but has no refresh_token. Keys present:', Object.keys(tokens).join(', '));
+    log.error('Tokens file exists but has no refresh_token. Keys present:', Object.keys(tokens).join(', '));
     // Still try to use access_token if available and not expired
     if (!tokens.access_token) return null;
     if (tokens.expiry_date && tokens.expiry_date < Date.now()) return null;
@@ -167,7 +170,7 @@ export async function getAuthenticatedClient(): Promise<import('googleapis').Com
       await writeSecureFile(TOKENS_PATH, JSON.stringify(updated, null, 2));
       client.setCredentials(updated);
     } catch (err) {
-      console.error('[google-auth] Token refresh failed:', err instanceof Error ? err.message : err);
+      log.error('Token refresh failed:', err instanceof Error ? err.message : err);
       return null;
     }
   }

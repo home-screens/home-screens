@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cachedProxyRoute, getLocationFromConfig, fetchWithTimeout, requireSecret } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('air-quality');
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +35,7 @@ const { GET, cache } = cachedProxyRoute<Record<string, unknown>, AirQualityParam
     );
 
     if (!airRes.ok) {
-      console.error(`[air-quality] Air pollution API returned ${airRes.status}`);
+      log.error(`Air pollution API returned ${airRes.status}`);
       return NextResponse.json({ error: 'Failed to fetch air quality data' }, { status: 502 });
     }
 

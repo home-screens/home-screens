@@ -6,6 +6,9 @@ import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import type { PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('plugin-secrets');
 
 function PluginSecretField({
   decl,
@@ -58,7 +61,7 @@ function PluginSecretField({
       });
       if (res.ok) onSaved();
     } catch (err) {
-      console.debug('Failed to delete plugin secret:', err);
+      log.debug('Failed to delete plugin secret:', err);
     }
   }
 
@@ -136,7 +139,7 @@ export default function PluginSecretsSection({
         setStatus(data.keys ?? {});
       }
     } catch (err) {
-      console.debug('Failed to fetch plugin secret status:', err);
+      log.debug('Failed to fetch plugin secret status:', err);
     } finally {
       setLoading(false);
     }

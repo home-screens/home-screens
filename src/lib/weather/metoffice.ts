@@ -4,6 +4,9 @@ import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
 import { createTTLCache } from '../api-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('metoffice');
 
 // ── UK Met Office Weather DataHub ────────────────────────────────────
 // https://datahub.metoffice.gov.uk/docs/f/category/site-specific
@@ -191,9 +194,9 @@ export class MetOfficeProvider implements WeatherProvider {
       );
     }
     if (n === DAILY_WARN_HIGH) {
-      console.warn(`[metoffice] High request volume: ${n}/${DAILY_REQUEST_CAP} today`);
+      log.warn(`High request volume: ${n}/${DAILY_REQUEST_CAP} today`);
     } else if (n === DAILY_WARN_MED) {
-      console.warn(`[metoffice] Request volume: ${n}/${DAILY_REQUEST_CAP} today`);
+      log.warn(`Request volume: ${n}/${DAILY_REQUEST_CAP} today`);
     }
   }
 

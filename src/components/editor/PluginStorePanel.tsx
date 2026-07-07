@@ -13,6 +13,9 @@ import Button from '@/components/ui/Button';
 import type { RegistryPlugin, InstalledPlugin, PluginRegistry, PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import type { DevPlugin } from '@/lib/plugin-loader';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('plugin-store');
 
 interface PluginStorePanelProps {
   onClose: () => void;
@@ -66,7 +69,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         setInstalled(data.plugins ?? []);
       }
     } catch (err) {
-      console.debug('Failed to fetch plugin data:', err);
+      log.debug('Failed to fetch plugin data:', err);
     } finally {
       setLoading(false);
     }

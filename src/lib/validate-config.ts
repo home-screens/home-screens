@@ -9,6 +9,9 @@ import type { ScreenConfiguration, Screen, ModuleInstance, BuiltinModuleType } f
 import { validateDisplays } from './display-filter';
 import { getLatestSchemaVersion } from './migrations';
 import { LOCALES } from '@/i18n/manifest';
+import { logger } from '@/lib/logger';
+
+const log = logger('config');
 
 export interface ConfigDiagnostic {
   /** Machine-readable code, e.g. 'UNKNOWN_MODULE_TYPE'. */
@@ -126,7 +129,7 @@ export function validateConfig(config: ScreenConfiguration): ConfigDiagnostic[] 
     if (s.locale != null && !Object.prototype.hasOwnProperty.call(LOCALES, s.locale)) {
       if (!UNKNOWN_LOCALE_WARNED) {
         UNKNOWN_LOCALE_WARNED = true;
-        console.warn(`[config] Unknown locale "${s.locale}" — falling back to default. Pick one of: ${Object.keys(LOCALES).join(', ')}`);
+        log.warn(`Unknown locale "${s.locale}" — falling back to default. Pick one of: ${Object.keys(LOCALES).join(', ')}`);
       }
       s.locale = undefined;
     }

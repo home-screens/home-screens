@@ -3,6 +3,9 @@ import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType } from '@/types
 import { createJsonStore } from './json-store';
 import { readConfig } from './config';
 import { toISODate, DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from './meal-constants';
+import { logger } from '@/lib/logger';
+
+const log = logger('meal-settings-migration');
 
 // ── Data shape ────────────────────────────────
 
@@ -105,7 +108,7 @@ async function migrateLegacyMealSettings(): Promise<LegacyMealBackfill> {
     // skip migration.
     config = await readConfig();
   } catch (err) {
-    console.warn('[meal-settings-migration] Failed to read config.json for legacy meal-settings backfill:', err);
+    log.warn('Failed to read config.json for legacy meal-settings backfill:', err);
     return empty;
   }
 

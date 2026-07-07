@@ -5,6 +5,9 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('location');
 
 interface LocationSettings {
   lat: string;
@@ -50,7 +53,7 @@ export default function LocationSection({ values, onChange }: Props) {
         const serverMs = new Date(data.iso).getTime();
         setServerInfo({ offsetMs: serverMs - fetchedAt, timezone: data.timezone });
       } catch (err) {
-        console.debug('Failed to fetch server time:', err);
+        log.debug('Failed to fetch server time:', err);
       }
     }
     fetchServerTime();

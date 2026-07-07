@@ -1,5 +1,8 @@
 import type { ModuleType, Screen } from '@/types/config';
 import { getModuleDefinition, type ProvidedStateKey } from '@/lib/module-registry';
+import { logger } from '@/lib/logger';
+
+const log = logger('shared-state');
 
 /**
  * Aggregate the shared-state keys advertised by every background-provider
@@ -33,7 +36,7 @@ export function collectProvidedStateKeys(screens: Screen[]): ProvidedStateKey[] 
           }
         } catch (err) {
           // A plugin's deriver is third-party code — never let it break the panel.
-          console.warn(`[shared-state] deriveProvidedKeys threw for ${mod.type}:`, err);
+          log.warn(`deriveProvidedKeys threw for ${mod.type}:`, err);
         }
       }
     }

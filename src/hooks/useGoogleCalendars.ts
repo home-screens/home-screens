@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { ICalSource } from '@/types/config';
+import { logger } from '@/lib/logger';
+
+const log = logger('useGoogleCalendars');
 
 export interface GoogleCalendar {
   id: string;
@@ -64,7 +67,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
         onAuthError(errData?.error || t('errors.googleExpired'));
       }
     } catch (err) {
-      console.debug('[useGoogleCalendars] fetchCalendars failed (editorFetch handles 401 session errors):', err);
+      log.debug('fetchCalendars failed (editorFetch handles 401 session errors):', err);
     }
   }, [onChange, onAuthError, t]);
 
@@ -77,7 +80,7 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
         setGoogleConnected(data.connected);
         if (data.connected) await fetchCalendars();
       } catch (err) {
-        console.debug('[useGoogleCalendars] checkAuth failed:', err);
+        log.debug('checkAuth failed:', err);
       } finally {
         setGoogleLoading(false);
       }

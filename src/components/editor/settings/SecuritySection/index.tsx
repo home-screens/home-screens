@@ -9,6 +9,9 @@ import PasswordModal from './PasswordModal';
 import SessionRevocation from './SessionRevocation';
 import DisplayTokenPanel from './DisplayTokenPanel';
 import IpAllowlistPanel from './IpAllowlistPanel';
+import { logger } from '@/lib/logger';
+
+const log = logger('security');
 
 /**
  * Security settings page, one subcomponent per feature: password auth
@@ -48,12 +51,12 @@ export default function SecuritySection() {
                 setIpInitial(await ipRes.json());
               }
             } catch (err) {
-              console.debug('Failed to fetch IP allowlist:', err);
+              log.debug('Failed to fetch IP allowlist:', err);
             }
           }
         }
       } catch (err) {
-        console.debug('Failed to check auth status:', err);
+        log.debug('Failed to check auth status:', err);
       } finally {
         setLoading(false);
       }
@@ -66,7 +69,7 @@ export default function SecuritySection() {
       await editorFetch('/api/auth/logout', { method: 'POST' });
       window.location.href = '/login';
     } catch (err) {
-      console.debug('Logout request failed:', err);
+      log.debug('Logout request failed:', err);
     }
   }
 

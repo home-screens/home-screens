@@ -12,6 +12,9 @@ import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('background-picker');
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -118,7 +121,7 @@ export default function BackgroundPicker() {
           setHasImmichKey(!!data.immich_api_key && !!data.immich_url);
         }
       } catch (err) {
-        console.debug('Failed to check API key status:', err);
+        log.debug('Failed to check API key status:', err);
       }
     }
     checkKeys();

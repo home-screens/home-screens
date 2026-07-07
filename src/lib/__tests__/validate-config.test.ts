@@ -425,7 +425,7 @@ describe('validateConfig', () => {
       validateConfig(config);
 
       expect(warnSpy).toHaveBeenCalledTimes(1);
-      const message = warnSpy.mock.calls[0][0] as string;
+      const message = warnSpy.mock.calls[0][1] as string;
       expect(message).toContain('xx-YY');
       // Should suggest at least one known locale by tag.
       expect(message).toMatch(/en-US/);

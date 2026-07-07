@@ -8,6 +8,9 @@ import {
   type SettingsState,
 } from '@/lib/settings-form';
 import type { GlobalSettings } from '@/types/config';
+import { logger } from '@/lib/logger';
+
+const log = logger('useSettingsAutosave');
 
 type SaveStatus = 'saved' | 'failed' | null;
 
@@ -142,7 +145,7 @@ export function useSettingsAutosave({
         // next change.
         setTimeout(() => setSaveMessage((prev) => (prev === 'saved' ? null : prev)), 2000);
       } catch (err) {
-        console.error('Auto-save failed:', err);
+        log.error('Auto-save failed:', err);
         setSaveMessage('failed');
       } finally {
         setSaving(false);

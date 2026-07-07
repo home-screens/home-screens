@@ -6,6 +6,9 @@ import { deregisterFetchKey } from '@/lib/fetch-keys';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 import type { ModuleType } from '@/types/config';
+import { logger } from '@/lib/logger';
+
+const log = logger('plugin-store');
 
 interface PluginState {
   /** True until initial plugin loading completes */
@@ -64,7 +67,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
           await loadAllPlugins();
         }
       } catch (err) {
-        console.error('Failed to load plugins:', err);
+        log.error('Failed to load plugins:', err);
       } finally {
         set({ loading: false });
         loadPromise = null;

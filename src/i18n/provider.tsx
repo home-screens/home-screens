@@ -28,6 +28,9 @@ import { resolveLocaleChain, lookupKey } from './fallback';
 import { DEFAULT_LOCALE, FALLBACK_LOCALE } from './manifest';
 import { getCachedNamespace, hydrateFromBlob, loadNamespace } from './loader';
 import { preloadDateLocale } from './formatters';
+import { logger } from '@/lib/logger';
+
+const log = logger('i18n');
 
 interface I18nContextValue {
   locale: string;
@@ -248,7 +251,7 @@ function warnMissingKeyOnce(namespace: string, key: string, locale: string): voi
   const warningKey = `${locale}:${namespace}:${key}`;
   if (MISSING_KEY_WARNINGS.has(warningKey)) return;
   MISSING_KEY_WARNINGS.add(warningKey);
-  console.warn(`[i18n] missing key "${key}" in namespace "${namespace}" for locale "${locale}"`);
+  log.warn(`missing key "${key}" in namespace "${namespace}" for locale "${locale}"`);
 }
 
 // Warn-once when a hook is used outside <I18nProvider>. Same rationale as
@@ -258,8 +261,8 @@ function warnNoProviderOnce(hookName: string): void {
   if (process.env.NODE_ENV !== 'development') return;
   if (NO_PROVIDER_WARNINGS.has(hookName)) return;
   NO_PROVIDER_WARNINGS.add(hookName);
-  console.warn(
-    `[i18n] ${hookName}() called outside <I18nProvider>; falling back to ${DEFAULT_LOCALE}.`,
+  log.warn(
+    `${hookName}() called outside <I18nProvider>; falling back to ${DEFAULT_LOCALE}.`,
   );
 }
 

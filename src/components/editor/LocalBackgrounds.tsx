@@ -6,6 +6,9 @@ import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('backgrounds');
 
 interface Props {
   selectedScreenId: string;
@@ -30,7 +33,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         const data = await res.json();
         if (Array.isArray(data)) setLocalBackgrounds(data);
       } catch (err) {
-        console.debug('Failed to fetch backgrounds:', err);
+        log.debug('Failed to fetch backgrounds:', err);
       }
     }
     fetchBackgrounds();
@@ -93,7 +96,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         }
       }
     } catch (err) {
-      console.debug('Failed to delete background:', err);
+      log.debug('Failed to delete background:', err);
     }
     setDeleting(null);
   };

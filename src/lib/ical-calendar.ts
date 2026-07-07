@@ -4,6 +4,9 @@ import type { ICalSource } from '@/types/config';
 import type { CalendarEvent } from '@/types/config';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('ical');
 
 /** Extract the string value from a node-ical ParameterValue (string | {val, params}). */
 function paramValue(v: unknown): string {
@@ -42,7 +45,7 @@ export async function fetchICalEvents(
       try {
         parsed = new URL(fetchUrl);
       } catch {
-        console.warn(`[ical] Invalid URL for source "${source.name}" (${source.id})`);
+        log.warn(`Invalid URL for source "${source.name}" (${source.id})`);
         return [];
       }
       if (parsed.protocol === 'webcal:') {
@@ -50,14 +53,14 @@ export async function fetchICalEvents(
         parsed = new URL(fetchUrl);
       }
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        console.warn(`[ical] Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
+        log.warn(`Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
         return [];
       }
 
       // Fetch the ICS data
       const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
       if (!res.ok) {
-        console.warn(`[ical] Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
+        log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
         return [];
       }
       const icsText = await res.text();
@@ -104,7 +107,7 @@ export async function fetchICalEvents(
 
         return events;
       } catch (err) {
-        console.warn(`[ical] Parse failed for source "${source.name}" (${source.id})`, err);
+        log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
         return [];
       }
     }),
@@ -115,7 +118,7 @@ export async function fetchICalEvents(
       allEvents.push(...result.value);
     } else {
       // Log unexpected rejections (e.g. fetchWithTimeout network errors)
-      console.warn('[ical] Source fetch rejected', result.reason);
+      log.warn('Source fetch rejected', result.reason);
     }
   }
 

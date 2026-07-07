@@ -29,6 +29,9 @@ import ChoreHistoryBanner from './ChoreHistoryBanner';
 import ChoreRow from './ChoreRow';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
+import { logger } from '@/lib/logger';
+
+const log = logger('chores');
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -262,7 +265,7 @@ export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
       if (!isMountedRef.current) return;
       setCompletions(data.completions ?? []);
       if (data.warning) {
-        console.warn('[chores]', data.warning);
+        log.warn(data.warning);
         setLastWarning(data.warning);
       }
     } catch {

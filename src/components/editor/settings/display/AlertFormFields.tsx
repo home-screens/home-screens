@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
+import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('alerts');
 
 export interface AlertFormValues {
   alertsEnabled: boolean;
@@ -68,7 +72,7 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
       setClearStatus({ kind: res.ok ? 'success' : 'error' });
       setTimeout(() => setClearStatus(null), 2000);
     } catch (err) {
-      console.debug('Failed to clear alerts:', err);
+      log.debug('Failed to clear alerts:', err);
     } finally {
       setClearing(false);
     }
@@ -76,16 +80,12 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
 
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={alertsEnabled}
-          disabled={disabled}
-          onChange={(e) => onChange({ alertsEnabled: e.target.checked })}
-          className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-        />
-        <span className="text-sm text-hs-text-body">{t('settings.alertFormFields.enableLabel')}</span>
-      </label>
+      <Toggle
+        label={t('settings.alertFormFields.enableLabel')}
+        checked={alertsEnabled}
+        disabled={disabled}
+        onChange={(v) => onChange({ alertsEnabled: v })}
+      />
       <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.enableHelp')}</p>
 
       {alertsEnabled && (

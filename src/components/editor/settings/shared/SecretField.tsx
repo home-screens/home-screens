@@ -5,6 +5,9 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import { useTranslate } from '@/i18n';
+import { logger } from '@/lib/logger';
+
+const log = logger('secret-field');
 
 export type SecretKey =
   // Integration keys
@@ -83,7 +86,7 @@ export default function SecretField({
       });
       if (res.ok) onSaved();
     } catch (err) {
-      console.debug('Failed to delete secret:', err);
+      log.debug('Failed to delete secret:', err);
     }
   }
 
