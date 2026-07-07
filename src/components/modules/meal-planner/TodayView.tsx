@@ -5,6 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotT
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
+import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -13,6 +14,7 @@ interface TodayViewProps {
   savedMeals: SavedMeal[];
   todayISO: string;
   currentHour: number;
+  recipeTapMode: RecipeTapMode;
 }
 
 function SlotCard({
@@ -23,6 +25,7 @@ function SlotCard({
   savedMeals,
   todayISO,
   isActive,
+  recipeTapMode,
 }: {
   slot: MealSlotType;
   config: MealPlannerConfig;
@@ -31,6 +34,7 @@ function SlotCard({
   savedMeals: SavedMeal[];
   todayISO: string;
   isActive: boolean;
+  recipeTapMode: RecipeTapMode;
 }) {
   const t = useTranslate('modules');
   const { meal, planned } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
@@ -79,7 +83,7 @@ function SlotCard({
       {/* Meal content */}
       <div className="px-3 pb-2.5 pt-0.5">
         {meal ? (
-          <div className="flex items-start gap-2">
+          <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-start gap-2 w-full">
             {showEmoji && meal.emoji && (
               <span className="shrink-0 mt-0.5" style={{ fontSize: '1.4em' }}>{meal.emoji}</span>
             )}
@@ -106,7 +110,7 @@ function SlotCard({
                 </div>
               )}
             </div>
-          </div>
+          </MealTapTarget>
         ) : (
           <p className="opacity-20 italic" style={{ fontSize: '0.75em' }}>
             {t('meal-planner.noMealPlanned')}
@@ -117,7 +121,7 @@ function SlotCard({
   );
 }
 
-export function TodayView({ config, settings, plan, savedMeals, todayISO, currentHour }: TodayViewProps) {
+export function TodayView({ config, settings, plan, savedMeals, todayISO, currentHour, recipeTapMode }: TodayViewProps) {
   const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const activeSlot = getActiveSlot(currentHour, slots);
@@ -154,6 +158,7 @@ export function TodayView({ config, settings, plan, savedMeals, todayISO, curren
             savedMeals={savedMeals}
             todayISO={todayISO}
             isActive={slot === activeSlot}
+            recipeTapMode={recipeTapMode}
           />
         ))}
       </div>

@@ -284,7 +284,12 @@
       "comingUp": "Coming Up",
       "tomorrow": "Tomorrow",
       "next": "Next"
-    }
+    },
+    "scanToOpenRecipe": "Scan for at åbne opskriften",
+    "tapToDismiss": "Tryk hvor som helst for at lukke",
+    "openRecipeAria": "Åbn opskriften for {name}",
+    "showQrInstead": "Vis QR-kode",
+    "closeRecipe": "Luk"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",

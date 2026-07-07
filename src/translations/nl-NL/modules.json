@@ -284,7 +284,12 @@
       "comingUp": "Binnenkort",
       "tomorrow": "Morgen",
       "next": "Volgende"
-    }
+    },
+    "scanToOpenRecipe": "Scan om het recept te openen",
+    "tapToDismiss": "Tik ergens om te sluiten",
+    "openRecipeAria": "Recept voor {name} openen",
+    "showQrInstead": "QR-code tonen",
+    "closeRecipe": "Sluiten"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",

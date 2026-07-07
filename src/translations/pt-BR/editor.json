@@ -2270,7 +2270,11 @@
       "mobileHintPrefix": "Os horários, o início da semana, o formato de hora e os horários padrão de refeição são compartilhados entre todos os módulos de refeições. Edite-os em",
       "mobileHintSettingsLink": "Configurações → Refeições",
       "mobileHintSuffix": "ou na",
-      "mobileHintEnd": "gaveta de configurações."
+      "mobileHintEnd": "gaveta de configurações.",
+      "tapRecipeAction": "Tocar na refeição abre a receita",
+      "tapRecipeActionOff": "Desligado",
+      "tapRecipeActionQr": "Mostrar código QR",
+      "tapRecipeActionIframe": "Abrir a receita na tela"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Padrão (Midnight)",
@@ -2421,7 +2425,11 @@
       "sharedSettingsSuffix": "para que todos os seus módulos de refeições fiquem em sincronia.",
       "savedMealsCount": "{count} refeições salvas",
       "plannedCount": "{count} planejadas",
-      "editMealPlan": "Editar plano de refeições"
+      "editMealPlan": "Editar plano de refeições",
+      "tapRecipeAction": "Tocar na refeição abre a receita",
+      "tapRecipeActionOff": "Desligado",
+      "tapRecipeActionQr": "Mostrar código QR",
+      "tapRecipeActionIframe": "Abrir a receita na tela"
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminação",

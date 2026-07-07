@@ -2,9 +2,10 @@ import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/l
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
+import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function NextMealView({
-  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const next = getNextMeal(now, plan, savedMeals, slots);
@@ -71,21 +72,28 @@ export default function NextMealView({
         )}
       </div>
 
-      {/* Giant emoji */}
-      {showEmoji && meal.emoji && (
-        <span style={{ fontSize: s * 5.5, lineHeight: 1, margin: `${s * 0.5}px 0` }}>
-          {meal.emoji}
+      {/* Giant emoji + name */}
+      <MealTapTarget
+        meal={meal}
+        mode={recipeTapMode}
+        style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          gap: s * 0.8, maxWidth: '100%',
+        }}
+      >
+        {showEmoji && meal.emoji && (
+          <span style={{ fontSize: s * 5.5, lineHeight: 1, margin: `${s * 0.5}px 0` }}>
+            {meal.emoji}
+          </span>
+        )}
+        <span style={{
+          fontFamily: headerFont, fontSize: s * 2.5, fontWeight: 400,
+          color: 'var(--fmp-text)', textAlign: 'center' as const,
+          lineHeight: 1.2,
+        }}>
+          {meal.name}
         </span>
-      )}
-
-      {/* Meal name */}
-      <span style={{
-        fontFamily: headerFont, fontSize: s * 2.5, fontWeight: 400,
-        color: 'var(--fmp-text)', textAlign: 'center' as const,
-        lineHeight: 1.2,
-      }}>
-        {meal.name}
-      </span>
+      </MealTapTarget>
 
       {/* Notes */}
       {meal.notes && (

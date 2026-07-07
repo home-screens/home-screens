@@ -993,12 +993,20 @@ export interface MealSettings {
   timeFormat: '12h' | '24h';
 }
 
+/**
+ * What tapping a meal with a saved recipeUrl does on the display:
+ * 'qr' shows a fullscreen QR overlay, 'iframe' embeds the recipe page.
+ * In the editor preview the recipe always opens in a new tab instead.
+ */
+export type RecipeTapAction = 'off' | 'qr' | 'iframe';
+
 export interface MealPlannerConfig {
   view: MealPlannerView;
   showEmoji: boolean;
   showPrepTime: boolean;
   showTags: boolean;
   accentColor: string;
+  tapRecipeAction?: RecipeTapAction;
 }
 
 // Icon module config (Font Awesome)
@@ -1259,6 +1267,7 @@ export interface FullscreenMealPlannerConfig {
   showEmoji: boolean;
   showDifficulty: boolean;
   theme?: string;
+  tapRecipeAction?: RecipeTapAction;
 }
 
 // Fullscreen photo viewer module config

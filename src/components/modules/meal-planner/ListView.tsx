@@ -5,6 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -12,9 +13,10 @@ interface ListViewProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
+  recipeTapMode: RecipeTapMode;
 }
 
-export function ListView({ config, settings, plan, savedMeals, todayISO }: ListViewProps) {
+export function ListView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: ListViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
@@ -87,14 +89,14 @@ export function ListView({ config, settings, plan, savedMeals, todayISO }: ListV
                       </span>
 
                       {/* Meal info */}
-                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1.5 min-w-0 flex-1">
                         {showEmoji && meal.emoji && (
                           <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal.emoji}</span>
                         )}
                         <span className="truncate" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                           {meal.name}
                         </span>
-                      </div>
+                      </MealTapTarget>
 
                       {/* Meta */}
                       <div className="flex items-center gap-1.5 shrink-0" style={{ fontSize: '0.45em' }}>

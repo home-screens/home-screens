@@ -10,6 +10,7 @@ import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal 
 import type { ModuleStyle } from '@/types/config';
 import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
+import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
 import MenuBoardView from './MenuBoardView';
@@ -27,6 +28,8 @@ interface FullscreenMealPlannerModuleProps {
   style: ModuleStyle;
   timezone?: string;
   fullscreenTheme?: string;
+  screenId?: string;
+  moduleId?: string;
 }
 
 export default function FullscreenMealPlannerModule({
@@ -34,6 +37,8 @@ export default function FullscreenMealPlannerModule({
   style: _style,
   timezone,
   fullscreenTheme,
+  screenId,
+  moduleId,
 }: FullscreenMealPlannerModuleProps) {
   // ── Data fetching ──
   const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
@@ -83,6 +88,8 @@ export default function FullscreenMealPlannerModule({
     '--fmp-accent': config.accentColor ?? '#f59e0b',
   } as React.CSSProperties;
 
+  const recipeTapMode = resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId);
+
   // ── View props ──
   const viewProps: MealPlannerViewProps = {
     config, settings, savedMeals, plan, now, slots, activeSlot,
@@ -92,6 +99,7 @@ export default function FullscreenMealPlannerModule({
     showTags: config.showTags ?? true,
     showDifficulty: config.showDifficulty ?? false,
     headerFont, bodyFont,
+    recipeTapMode,
   };
 
   return (

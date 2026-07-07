@@ -3,9 +3,10 @@ import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISO
 import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
+import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function MenuBoardView({
-  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -87,20 +88,24 @@ export default function MenuBoardView({
               )}
             </div>
 
-            {/* Emoji */}
-            {showEmoji && course.meal.emoji && (
-              <div style={{ fontSize: s * 2, lineHeight: 1, marginBottom: s * 0.3 }}>
-                {course.meal.emoji}
+            {/* Emoji + name */}
+            <MealTapTarget
+              meal={course.meal}
+              mode={recipeTapMode}
+              style={{ display: 'block', width: '100%' }}
+            >
+              {showEmoji && course.meal.emoji && (
+                <div style={{ fontSize: s * 2, lineHeight: 1, marginBottom: s * 0.3 }}>
+                  {course.meal.emoji}
+                </div>
+              )}
+              <div style={{
+                fontFamily: headerFont, fontSize: s * 1.6, fontWeight: 400,
+                color: 'var(--fmp-text)', marginBottom: s * 0.3,
+              }}>
+                {course.meal.name}
               </div>
-            )}
-
-            {/* Meal name */}
-            <div style={{
-              fontFamily: headerFont, fontSize: s * 1.6, fontWeight: 400,
-              color: 'var(--fmp-text)', marginBottom: s * 0.3,
-            }}>
-              {course.meal.name}
-            </div>
+            </MealTapTarget>
 
             {/* Notes */}
             {course.meal.notes && (

@@ -2265,7 +2265,11 @@
       "mobileHintPrefix": "Mahlzeiten-Slots, Wochenbeginn, Zeitformat und Standard-Servierzeiten werden von allen Mahlzeiten-Modulen geteilt. Bearbeite sie unter",
       "mobileHintSettingsLink": "Einstellungen → Mahlzeiten",
       "mobileHintSuffix": "oder im",
-      "mobileHintEnd": "Einstellungs-Bereich."
+      "mobileHintEnd": "Einstellungs-Bereich.",
+      "tapRecipeAction": "Rezept per Tippen öffnen",
+      "tapRecipeActionOff": "Aus",
+      "tapRecipeActionQr": "QR-Code anzeigen",
+      "tapRecipeActionIframe": "Rezept auf dem Display öffnen"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (Midnight)",
@@ -2416,7 +2420,11 @@
       "sharedSettingsSuffix": "damit all deine Mahlzeiten-Module synchron bleiben.",
       "savedMealsCount": "{count} gespeicherte Mahlzeiten",
       "plannedCount": "{count} geplant",
-      "editMealPlan": "Mahlzeitenplan bearbeiten"
+      "editMealPlan": "Mahlzeitenplan bearbeiten",
+      "tapRecipeAction": "Rezept per Tippen öffnen",
+      "tapRecipeActionOff": "Aus",
+      "tapRecipeActionQr": "QR-Code anzeigen",
+      "tapRecipeActionIframe": "Rezept auf dem Display öffnen"
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",

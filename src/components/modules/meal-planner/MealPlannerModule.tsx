@@ -9,6 +9,7 @@ import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
+import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
 import { NextMealView } from './NextMealView';
@@ -25,12 +26,15 @@ interface MealPlannerModuleProps {
   config: MealPlannerConfig;
   style: ModuleStyle;
   timezone?: string;
+  screenId?: string;
+  moduleId?: string;
 }
 
-export default function MealPlannerModule({ config, style, timezone }: MealPlannerModuleProps) {
+export default function MealPlannerModule({ config, style, timezone, screenId, moduleId }: MealPlannerModuleProps) {
   const t = useTranslate('modules');
   const now = useTZClock(timezone, 60_000);
   const view = config.view ?? 'week';
+  const recipeTapMode = resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId);
   const todayISO = toISODate(now);
   const currentHour = now.getHours();
 
@@ -71,11 +75,11 @@ export default function MealPlannerModule({ config, style, timezone }: MealPlann
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'week' && <WeekView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
-      {view === 'today' && <TodayView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
-      {view === 'next-meal' && <NextMealView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} />}
-      {view === 'compact' && <CompactView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} />}
-      {view === 'list' && <ListView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} />}
+      {view === 'week' && <WeekView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'today' && <TodayView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
+      {view === 'next-meal' && <NextMealView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
+      {view === 'compact' && <CompactView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'list' && <ListView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
     </ModuleWrapper>
   );
 }

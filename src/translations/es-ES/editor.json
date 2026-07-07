@@ -2270,7 +2270,11 @@
       "mobileHintPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se comparten entre todos los módulos de comidas. Edítalos desde",
       "mobileHintSettingsLink": "Ajustes → Comidas",
       "mobileHintSuffix": "o desde el",
-      "mobileHintEnd": "panel de ajustes."
+      "mobileHintEnd": "panel de ajustes.",
+      "tapRecipeAction": "Tocar una comida abre la receta",
+      "tapRecipeActionOff": "Desactivado",
+      "tapRecipeActionQr": "Mostrar código QR",
+      "tapRecipeActionIframe": "Abrir la receta en la pantalla"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Predeterminado (Midnight)",
@@ -2421,7 +2425,11 @@
       "sharedSettingsSuffix": "para que todos tus módulos de comidas estén sincronizados.",
       "savedMealsCount": "{count} comidas guardadas",
       "plannedCount": "{count} planificadas",
-      "editMealPlan": "Editar plan de comidas"
+      "editMealPlan": "Editar plan de comidas",
+      "tapRecipeAction": "Tocar una comida abre la receta",
+      "tapRecipeActionOff": "Desactivado",
+      "tapRecipeActionQr": "Mostrar código QR",
+      "tapRecipeActionIframe": "Abrir la receta en la pantalla"
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",

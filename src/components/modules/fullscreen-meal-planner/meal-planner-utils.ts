@@ -1,5 +1,6 @@
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS, toISODate } from '@/lib/meal-constants';
+import type { RecipeTapMode } from '../shared/MealTapTarget';
 
 export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
@@ -19,6 +20,7 @@ export interface MealPlannerViewProps {
   showDifficulty: boolean;
   headerFont: string;
   bodyFont: string;
+  recipeTapMode: RecipeTapMode;
 }
 
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {

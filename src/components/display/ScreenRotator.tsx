@@ -14,6 +14,7 @@ import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
 import { useScreenRotationTimer } from './useScreenRotationTimer';
+import { useInteractionHeld } from '@/lib/interaction-hold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { useTZClock } from '@/hooks/useTZClock';
 import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
@@ -284,10 +285,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Rotation timer: schedules a single setTimeout per screen using the
   // screen's resolved duration. Sticky screens (0) skip scheduling entirely.
   // rotationEpoch resets the timer after manual navigation or on current-screen changes.
+  // interactionHeld pauses rotation while an overlay (e.g. an open recipe) is
+  // being read; the overlay's own auto-dismiss timers bound the hold.
+  const interactionHeld = useInteractionHeld();
   useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
-    active: screens.length > 1 && displayState !== 'asleep' && !paused,
+    active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld,
     resetKey: rotationEpoch,
   });
 

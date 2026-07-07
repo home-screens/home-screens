@@ -185,6 +185,18 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
       <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
 
+      {/* Tap-to-open recipe */}
+      <LabeledSelect
+        label={t('configSections.fullscreen-meal-planner.tapRecipeAction')}
+        value={c.tapRecipeAction ?? 'off'}
+        onChange={(v) => set({ tapRecipeAction: v })}
+        options={[
+          { value: 'off', label: t('configSections.fullscreen-meal-planner.tapRecipeActionOff') },
+          { value: 'qr', label: t('configSections.fullscreen-meal-planner.tapRecipeActionQr') },
+          { value: 'iframe', label: t('configSections.fullscreen-meal-planner.tapRecipeActionIframe') },
+        ]}
+      />
+
       {/* Accent Color */}
       <ColorPicker
         label={t('configSections.fullscreen-meal-planner.accentColor')}

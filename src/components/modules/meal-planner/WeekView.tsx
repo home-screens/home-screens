@@ -5,6 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotT
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -12,9 +13,10 @@ interface WeekViewProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
+  recipeTapMode: RecipeTapMode;
 }
 
-export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekViewProps) {
+export function WeekView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: WeekViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -87,15 +89,17 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO }: WeekV
                   >
                     {meal ? (
                       <>
-                        {showEmoji && meal.emoji && (
-                          <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal.emoji}</span>
-                        )}
-                        <span
-                          className="truncate font-medium"
-                          style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}
-                        >
-                          {meal.name}
-                        </span>
+                        <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1 min-w-0">
+                          {showEmoji && meal.emoji && (
+                            <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal.emoji}</span>
+                          )}
+                          <span
+                            className="truncate font-medium"
+                            style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}
+                          >
+                            {meal.name}
+                          </span>
+                        </MealTapTarget>
                         {time && (
                           <span
                             className="shrink-0"

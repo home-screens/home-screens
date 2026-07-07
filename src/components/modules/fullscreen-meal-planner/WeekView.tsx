@@ -3,9 +3,10 @@ import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEn
 import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
+import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function WeekView({
-  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -146,18 +147,27 @@ export default function WeekView({
                         }} />
                       )}
                       {slotLabel}
-                      {showEmoji && meal.emoji && (
-                        <span style={{ fontSize: s * 3.2, lineHeight: 1.2 }}>
-                          {meal.emoji}
+                      <MealTapTarget
+                        meal={meal}
+                        mode={recipeTapMode}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'center',
+                          gap: s * 0.15, maxWidth: '100%',
+                        }}
+                      >
+                        {showEmoji && meal.emoji && (
+                          <span style={{ fontSize: s * 3.2, lineHeight: 1.2 }}>
+                            {meal.emoji}
+                          </span>
+                        )}
+                        <span style={{
+                          fontSize: s * 1.1, fontWeight: 600, color: 'var(--fmp-text)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                          maxWidth: '100%',
+                        }}>
+                          {meal.name}
                         </span>
-                      )}
-                      <span style={{
-                        fontSize: s * 1.1, fontWeight: 600, color: 'var(--fmp-text)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
-                        maxWidth: '100%',
-                      }}>
-                        {meal.name}
-                      </span>
+                      </MealTapTarget>
                       {time && (
                         <span style={{
                           fontSize: s * 0.9,

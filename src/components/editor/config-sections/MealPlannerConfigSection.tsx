@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
@@ -17,6 +18,7 @@ import type {
   MealSettings,
   SavedMeal,
   PlannedMeal,
+  RecipeTapAction,
 } from '@/types/config';
 
 type Config = {
@@ -25,6 +27,7 @@ type Config = {
   showPrepTime?: boolean;
   showTags?: boolean;
   accentColor?: string;
+  tapRecipeAction?: RecipeTapAction;
 };
 
 interface MealsPayload {
@@ -148,6 +151,18 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         label={t('configSections.meal-planner.showTags')}
         checked={c.showTags ?? true}
         onChange={(v) => set({ showTags: v })}
+      />
+
+      {/* Tap-to-open recipe */}
+      <LabeledSelect
+        label={t('configSections.meal-planner.tapRecipeAction')}
+        value={c.tapRecipeAction ?? 'off'}
+        onChange={(v) => set({ tapRecipeAction: v })}
+        options={[
+          { value: 'off', label: t('configSections.meal-planner.tapRecipeActionOff') },
+          { value: 'qr', label: t('configSections.meal-planner.tapRecipeActionQr') },
+          { value: 'iframe', label: t('configSections.meal-planner.tapRecipeActionIframe') },
+        ]}
       />
 
       {/* Accent Color */}

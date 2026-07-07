@@ -2270,7 +2270,11 @@
       "mobileHintPrefix": "Les créneaux de repas, le début de semaine, le format d'heure et les heures de service par défaut sont partagés entre tous les modules de repas. Modifie-les depuis",
       "mobileHintSettingsLink": "Paramètres → Repas",
       "mobileHintSuffix": "ou via le",
-      "mobileHintEnd": "tiroir des paramètres."
+      "mobileHintEnd": "tiroir des paramètres.",
+      "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
+      "tapRecipeActionOff": "Désactivé",
+      "tapRecipeActionQr": "Afficher le code QR",
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Par défaut (Minuit)",
@@ -2421,7 +2425,11 @@
       "sharedSettingsSuffix": "pour que tous tes modules de repas restent synchronisés.",
       "savedMealsCount": "{count} repas enregistrés",
       "plannedCount": "{count} planifiés",
-      "editMealPlan": "Modifier le plan de repas"
+      "editMealPlan": "Modifier le plan de repas",
+      "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
+      "tapRecipeActionOff": "Désactivé",
+      "tapRecipeActionQr": "Afficher le code QR",
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran"
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",

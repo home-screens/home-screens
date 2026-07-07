@@ -5,6 +5,7 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { getNextMealSlot } from './types';
+import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
@@ -13,9 +14,10 @@ interface NextMealViewProps {
   savedMeals: SavedMeal[];
   todayISO: string;
   currentHour: number;
+  recipeTapMode: RecipeTapMode;
 }
 
-export function NextMealView({ config, settings, plan, savedMeals, todayISO, currentHour }: NextMealViewProps) {
+export function NextMealView({ config, settings, plan, savedMeals, todayISO, currentHour, recipeTapMode }: NextMealViewProps) {
   const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
@@ -54,18 +56,18 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
           key={`${mealDate}-${slot}-${meal.name}`}
           className="flex flex-col items-center gap-2"
         >
-            {/* Emoji */}
-            {(config.showEmoji ?? true) && meal.emoji && (
-              <span style={{ fontSize: '2.5em', lineHeight: 1 }}>{meal.emoji}</span>
-            )}
-
-            {/* Meal name */}
-            <p
-              className="font-semibold text-center leading-tight"
-              style={{ fontSize: '1.3em' }}
-            >
-              {meal.name}
-            </p>
+            {/* Emoji + name (time/tags/prep stay outside the tap target) */}
+            <MealTapTarget meal={meal} mode={recipeTapMode} className="flex flex-col items-center gap-2">
+              {(config.showEmoji ?? true) && meal.emoji && (
+                <span style={{ fontSize: '2.5em', lineHeight: 1 }}>{meal.emoji}</span>
+              )}
+              <p
+                className="font-semibold text-center leading-tight"
+                style={{ fontSize: '1.3em' }}
+              >
+                {meal.name}
+              </p>
+            </MealTapTarget>
 
             {/* Serving time */}
             {time && (

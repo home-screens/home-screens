@@ -2265,7 +2265,11 @@
       "mobileHintPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden gedeeld door alle maaltijdmodules. Bewerk ze via",
       "mobileHintSettingsLink": "Instellingen → Maaltijden",
       "mobileHintSuffix": "of via",
-      "mobileHintEnd": "het instellingenpaneel."
+      "mobileHintEnd": "het instellingenpaneel.",
+      "tapRecipeAction": "Tik op een maaltijd voor het recept",
+      "tapRecipeActionOff": "Uit",
+      "tapRecipeActionQr": "QR-code tonen",
+      "tapRecipeActionIframe": "Recept op het scherm openen"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standaard (Midnight)",
@@ -2416,7 +2420,11 @@
       "sharedSettingsSuffix": "zodat al je maaltijdmodules synchroon blijven.",
       "savedMealsCount": "{count} opgeslagen maaltijden",
       "plannedCount": "{count} gepland",
-      "editMealPlan": "Maaltijdplan bewerken"
+      "editMealPlan": "Maaltijdplan bewerken",
+      "tapRecipeAction": "Tik op een maaltijd voor het recept",
+      "tapRecipeActionOff": "Uit",
+      "tapRecipeActionQr": "QR-code tonen",
+      "tapRecipeActionIframe": "Recept op het scherm openen"
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

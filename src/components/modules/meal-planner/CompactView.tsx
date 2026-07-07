@@ -5,6 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -12,9 +13,10 @@ interface CompactViewProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
+  recipeTapMode: RecipeTapMode;
 }
 
-export function CompactView({ config, settings, plan, savedMeals, todayISO }: CompactViewProps) {
+export function CompactView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: CompactViewProps) {
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -71,12 +73,14 @@ export function CompactView({ config, settings, plan, savedMeals, todayISO }: Co
 
                   {meal ? (
                     <div className="flex items-center gap-1 min-w-0 flex-1">
-                      {showEmoji && meal.emoji && (
-                        <span className="shrink-0" style={{ fontSize: '0.7em' }}>{meal.emoji}</span>
-                      )}
-                      <span className="truncate" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
-                        {meal.name}
-                      </span>
+                      <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1 min-w-0">
+                        {showEmoji && meal.emoji && (
+                          <span className="shrink-0" style={{ fontSize: '0.7em' }}>{meal.emoji}</span>
+                        )}
+                        <span className="truncate" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
+                          {meal.name}
+                        </span>
+                      </MealTapTarget>
                       {time && (
                         <span
                           className="shrink-0 ml-auto"

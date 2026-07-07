@@ -2,9 +2,10 @@ import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, getMealSlotLabelKey, resolveMealWi
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor } from './meal-planner-utils';
+import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function TodayView({
-  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont,
+  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const currentHour = now.getHours();
@@ -88,15 +89,24 @@ export default function TodayView({
 
         {heroMeal ? (
           <>
-            {showEmoji && heroMeal.emoji && (
-              <span style={{ fontSize: s * 3.5, lineHeight: 1 }}>{heroMeal.emoji}</span>
-            )}
-            <span style={{
-              fontFamily: headerFont, fontSize: s * 1.8, fontWeight: 400,
-              color: 'var(--fmp-text)', textAlign: 'center' as const,
-            }}>
-              {heroMeal.name}
-            </span>
+            <MealTapTarget
+              meal={heroMeal}
+              mode={recipeTapMode}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: s * 0.8, maxWidth: '100%',
+              }}
+            >
+              {showEmoji && heroMeal.emoji && (
+                <span style={{ fontSize: s * 3.5, lineHeight: 1 }}>{heroMeal.emoji}</span>
+              )}
+              <span style={{
+                fontFamily: headerFont, fontSize: s * 1.8, fontWeight: 400,
+                color: 'var(--fmp-text)', textAlign: 'center' as const,
+              }}>
+                {heroMeal.name}
+              </span>
+            </MealTapTarget>
             {heroMeal.notes && (
               <span style={{
                 fontSize: s * 0.8, fontStyle: 'italic', color: 'var(--fmp-text-2)',
@@ -180,34 +190,41 @@ export default function TodayView({
                     width: s * 0.3, height: s * 2, borderRadius: s * 0.15,
                     background: meta.color, flexShrink: 0,
                   }} />
-                  {showEmoji && meal?.emoji && (
-                    <span style={{ fontSize: s * 1.2, lineHeight: 1, flexShrink: 0 }}>{meal.emoji}</span>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: s * 0.55, fontWeight: 600, textTransform: 'uppercase' as const,
-                      letterSpacing: '0.06em', color: meta.color, marginBottom: s * 0.1,
-                      display: 'flex', alignItems: 'baseline', gap: s * 0.4,
-                    }}>
-                      <span>{t(getMealSlotLabelKey(sl))}</span>
-                      {slotTime && (
-                        <span style={{
-                          color: 'var(--fmp-text-3)',
-                          textTransform: 'none' as const,
-                          letterSpacing: 0,
-                          fontVariantNumeric: 'tabular-nums',
-                        }}>
-                          {formatMealTime(slotTime, settings.timeFormat)}
-                        </span>
-                      )}
+                  <MealTapTarget
+                    meal={meal}
+                    mode={recipeTapMode}
+                    style={{ display: 'flex', alignItems: 'center', gap: s * 0.6, flex: 1, minWidth: 0 }}
+                  >
+                    {showEmoji && meal?.emoji && (
+                      <span style={{ fontSize: s * 1.2, lineHeight: 1, flexShrink: 0 }}>{meal.emoji}</span>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: s * 0.55, fontWeight: 600, textTransform: 'uppercase' as const,
+                        letterSpacing: '0.06em', color: meta.color, marginBottom: s * 0.1,
+                        display: 'flex', alignItems: 'baseline', gap: s * 0.4,
+                      }}>
+                        <span>{t(getMealSlotLabelKey(sl))}</span>
+                        {slotTime && (
+                          <span style={{
+                            color: 'var(--fmp-text-3)',
+                            textTransform: 'none' as const,
+                            letterSpacing: 0,
+                            fontVariantNumeric: 'tabular-nums',
+                          }}>
+                            {formatMealTime(slotTime, settings.timeFormat)}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{
+                        fontSize: s * 0.8, fontWeight: 600, color: 'var(--fmp-text)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                        textAlign: 'left' as const,
+                      }}>
+                        {meal?.name ?? t('fullscreen-meal-planner.notPlanned')}
+                      </div>
                     </div>
-                    <div style={{
-                      fontSize: s * 0.8, fontWeight: 600, color: 'var(--fmp-text)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
-                    }}>
-                      {meal?.name ?? t('fullscreen-meal-planner.notPlanned')}
-                    </div>
-                  </div>
+                  </MealTapTarget>
                   {showPrepTime && meal?.prepTime && (
                     <span style={{ fontSize: s * 0.6, color: 'var(--fmp-text-3)', flexShrink: 0 }}>
                       {t('fullscreen-meal-planner.prepTimeMinShort', { minutes: meal.prepTime })}

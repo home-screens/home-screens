@@ -284,7 +284,12 @@
       "comingUp": "Demnächst",
       "tomorrow": "Morgen",
       "next": "Nächste"
-    }
+    },
+    "scanToOpenRecipe": "Scannen, um das Rezept zu öffnen",
+    "tapToDismiss": "Zum Schließen irgendwo tippen",
+    "openRecipeAria": "Rezept für {name} öffnen",
+    "showQrInstead": "QR-Code anzeigen",
+    "closeRecipe": "Schließen"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Mahlzeiten diese Woche",

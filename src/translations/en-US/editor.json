@@ -2265,7 +2265,11 @@
       "mobileHintPrefix": "Meal slots, week start, time format, and default serving times are shared across all meal modules. Edit them from",
       "mobileHintSettingsLink": "Settings → Meals",
       "mobileHintSuffix": "or the",
-      "mobileHintEnd": "settings drawer."
+      "mobileHintEnd": "settings drawer.",
+      "tapRecipeAction": "Tap Meal to Open Recipe",
+      "tapRecipeActionOff": "Off",
+      "tapRecipeActionQr": "Show QR code",
+      "tapRecipeActionIframe": "Open recipe on display"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Default (Midnight)",
@@ -2416,7 +2420,11 @@
       "sharedSettingsSuffix": "so all your meal modules stay in sync.",
       "savedMealsCount": "{count} saved meals",
       "plannedCount": "{count} planned",
-      "editMealPlan": "Edit Meal Plan"
+      "editMealPlan": "Edit Meal Plan",
+      "tapRecipeAction": "Tap Meal to Open Recipe",
+      "tapRecipeActionOff": "Off",
+      "tapRecipeActionQr": "Show QR code",
+      "tapRecipeActionIframe": "Open recipe on display"
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",

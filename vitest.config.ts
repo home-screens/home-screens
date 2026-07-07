@@ -9,6 +9,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // Sandbox every test file's cwd so nothing can write to the real data/
+    // directory (see vitest.setup.ts for why per-test overrides fall short).
+    setupFiles: ['./vitest.setup.ts'],
     exclude: ['.worktrees/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
