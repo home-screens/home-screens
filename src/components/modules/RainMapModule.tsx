@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import type { RainMapConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
+import { createTilePreloader } from './rain-map-preload';
 import { useFetchData } from '@/hooks/useFetchData';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
@@ -138,7 +139,8 @@ export default function RainMapModule({
   const [_imagesReady, setImagesReady] = useState(false);
   const indexRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const preloadedRef = useRef<Set<string>>(new Set());
+  // Lazy init via useState so exactly one preloader lives per mount.
+  const [preloader] = useState(createTilePreloader);
 
   // Combine past + nowcast frames
   const frames = useMemo(() => {
@@ -172,31 +174,30 @@ export default function RainMapModule({
   );
 
   // Preload a single frame's radar tiles, returning a promise that resolves
-  // when all tiles for that frame have loaded (or errored). Skips tiles
-  // that were already loaded in a previous cycle.
+  // when all tiles for that frame have settled. Tiles already loaded in a
+  // previous cycle are skipped; failed tiles are retried on the next pass.
   const preloadFrame = useCallback(
-    (frame: RainFrame) => {
-      const promises = radarTileGrid.tiles.map((tile) => {
-        const url = getRadarUrl(frame, tile);
-        if (!url || preloadedRef.current.has(url)) return Promise.resolve();
-        return new Promise<void>((resolve) => {
-          const img = new Image();
-          img.onload = img.onerror = () => {
-            preloadedRef.current.add(url);
-            resolve();
-          };
-          img.src = url;
-        });
-      });
-      return Promise.all(promises);
-    },
-    [radarTileGrid.tiles, getRadarUrl],
+    (frame: RainFrame) =>
+      preloader.preload(radarTileGrid.tiles.map((tile) => getRadarUrl(frame, tile))),
+    [preloader, radarTileGrid.tiles, getRadarUrl],
   );
 
   // Preload the first frame, then start the animation loop.
   // Each animation step preloads the next frame before advancing.
   useEffect(() => {
     if (!frames.length || !data?.host || !radarTileGrid.tiles.length) return;
+
+    // Frame paths are timestamped, so each refresh brings a new URL set.
+    // Prune the preload cache to the current animation window or a
+    // never-unmounting display accumulates every URL it has ever seen.
+    const windowUrls = new Set<string>();
+    for (const frame of frames) {
+      for (const tile of radarTileGrid.tiles) {
+        const url = getRadarUrl(frame, tile);
+        if (url) windowUrls.add(url);
+      }
+    }
+    preloader.prune(windowUrls);
 
     let cancelled = false;
     indexRef.current = 0;
@@ -233,7 +234,7 @@ export default function RainMapModule({
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [frames, data?.host, radarTileGrid.tiles, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
+  }, [frames, data?.host, radarTileGrid.tiles, preloader, getRadarUrl, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
 
   const gate = moduleGate({
     style, data, error,
