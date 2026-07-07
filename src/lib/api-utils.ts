@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { requireSession, requireDisplayAuth } from '@/lib/auth';
 import { getSecret, type SecretKey } from '@/lib/secrets';
+import { logger } from '@/lib/logger';
+
+const log = logger('api');
 /**
  * Standardized error response for API routes.
  *
@@ -25,7 +28,7 @@ export function errorResponse(
   status = 500,
 ): NextResponse {
   const detail = error instanceof Error ? error.message : undefined;
-  console.error(fallbackMessage, error);
+  log.error(fallbackMessage, error);
   return NextResponse.json({ error: fallbackMessage, detail }, { status });
 }
 
@@ -387,6 +390,16 @@ function isCustomConfig<T>(config: CachedProxyRouteOptions<T> | CachedProxyRoute
   return 'execute' in config;
 }
 
+/**
+ * Build a cached GET route handler for external-data proxy endpoints.
+ *
+ * NOTE ON AUTH: routes built with this factory are authenticated via the
+ * `auth` field on their config (`'display'` → session OR display token,
+ * `'session'` → session only), enforced at the top of the generated GET.
+ * They contain no inline `requireDisplayAuth`/`requireSession` call, so a
+ * grep for those guard clauses will NOT find them — check the route's
+ * `cachedProxyRoute({ auth: ... })` config instead.
+ */
 export function cachedProxyRoute<T>(config: CachedProxyRouteOptions<T>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
 export function cachedProxyRoute<T>(config: CachedProxyRouteCustomOptions<T>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
 export function cachedProxyRoute<T, P>(config: CachedProxyRoutePreparedOptions<T, P>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
@@ -475,6 +488,23 @@ export function assertOptionalArrays(
   for (const key of keys) {
     const value = body[key];
     if (value !== undefined && !Array.isArray(value)) {
+      return NextResponse.json({ error: `${key} must be an array` }, { status: 400 });
+    }
+  }
+  return null;
+}
+
+/**
+ * Like assertOptionalArrays, but every named field must be present AND an
+ * array. Use in full-replace PUT handlers (chores, rewards) where a missing
+ * field would silently wipe data downstream.
+ */
+export function assertRequiredArrays(
+  body: Record<string, unknown>,
+  keys: string[],
+): NextResponse | null {
+  for (const key of keys) {
+    if (!Array.isArray(body[key])) {
       return NextResponse.json({ error: `${key} must be an array` }, { status: 400 });
     }
   }

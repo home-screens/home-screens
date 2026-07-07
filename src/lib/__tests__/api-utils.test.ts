@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
+import { errorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -1093,6 +1093,36 @@ describe('assertOptionalArrays', () => {
     expect(result).toBeInstanceOf(NextResponse);
     const json = await (result as NextResponse).json();
     expect(json.error).toBe('plan must be an array');
+  });
+});
+
+describe('assertRequiredArrays', () => {
+  it('returns null when every field is present and an array', () => {
+    const result = assertRequiredArrays({ members: [], chores: [{ id: 1 }] }, ['members', 'chores']);
+    expect(result).toBeNull();
+  });
+
+  it('returns 400 when a field is absent (require-present semantics)', async () => {
+    // This is the difference from assertOptionalArrays: missing fields fail.
+    const result = assertRequiredArrays({ members: [] }, ['members', 'chores']);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('chores must be an array');
+  });
+
+  it('returns 400 when a field is present but not an array', async () => {
+    const result = assertRequiredArrays({ rewards: 'oops' }, ['rewards']);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('rewards must be an array');
+  });
+
+  it('reports the first failing key in declared order', async () => {
+    const result = assertRequiredArrays({}, ['members', 'chores']);
+    const json = await (result as NextResponse).json();
+    expect(json.error).toBe('members must be an array');
   });
 });
 

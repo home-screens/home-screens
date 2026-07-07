@@ -3,7 +3,10 @@ import type { NextRequest } from 'next/server';
 import { readChoreData, writeChoreData } from '@/lib/chore-data';
 import { rewardCascadeDeleteMember } from '@/lib/reward-data';
 import type { ChoreMember, ChoreDefinition } from '@/types/config';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertRequiredArrays } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('chores');
 
 export const dynamic = 'force-dynamic';
 
@@ -20,12 +23,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
     force?: boolean;
   };
 
-  if (!Array.isArray(members) || !Array.isArray(chores)) {
-    return NextResponse.json(
-      { error: 'members and chores must be arrays' },
-      { status: 400 },
-    );
-  }
+  const invalid = assertRequiredArrays(body, ['members', 'chores']);
+  if (invalid) return invalid;
 
   const guard = await guardEmptyOverwrite(
     [members, chores],
@@ -50,7 +49,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     .filter((m) => !members.some((n) => n.id === m.id))
     .map((m) => m.id);
   for (const id of removedIds) {
-    rewardCascadeDeleteMember(id).catch(console.error);
+    rewardCascadeDeleteMember(id).catch((err) => log.error('reward cascade failed for removed member', err));
   }
 
   return NextResponse.json(data);

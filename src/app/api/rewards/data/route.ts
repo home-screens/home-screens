@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, guardEmptyOverwrite } from '@/lib/api-utils';
+import { withAuth, guardEmptyOverwrite, assertRequiredArrays } from '@/lib/api-utils';
 import {
   readRewardData,
   updateRewardDefinitions,
@@ -16,12 +16,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
   const body = await request.json();
   const { rewards, force } = body as { rewards: RewardDefinition[]; force?: boolean };
 
-  if (!Array.isArray(rewards)) {
-    return NextResponse.json(
-      { error: 'rewards must be an array' },
-      { status: 400 },
-    );
-  }
+  const invalid = assertRequiredArrays(body, ['rewards']);
+  if (invalid) return invalid;
 
   const guard = await guardEmptyOverwrite(
     [rewards],

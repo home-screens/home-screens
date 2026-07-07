@@ -77,7 +77,7 @@ describe('PUT /api/chores/data', () => {
 
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json.error).toContain('arrays');
+    expect(json.error).toBe('members must be an array');
   });
 
   it('returns 400 when chores is not an array', async () => {
