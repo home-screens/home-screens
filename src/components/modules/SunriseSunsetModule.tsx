@@ -3,7 +3,7 @@
 import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -317,7 +317,10 @@ function DefaultView({
 }
 
 export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone }: SunriseSunsetModuleProps) {
-  const now = useTZClock(timezone);
+  // Real instant, NOT the shifted TZ clock: SunCalc returns true UTC instants,
+  // so the arc position / isDaytime comparison and the solar-day selection
+  // must use a true epoch too. `timezone` is only for formatting the labels.
+  const now = useRealClock();
   const t = useTranslate('modules');
 
   if (latitude == null || longitude == null) {

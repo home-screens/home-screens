@@ -2,7 +2,7 @@
 
 import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useRealClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
@@ -77,7 +77,10 @@ function MoonVisual({ phase }: { phase: number }) {
 }
 
 export default function MoonPhaseModule({ config, style, latitude, longitude, timezone }: MoonPhaseModuleProps) {
-  const now = useTZClock(timezone);
+  // Real instant, NOT the shifted TZ clock: getMoonIllumination/getMoonTimes
+  // take true UTC instants; the shifted clock could resolve to the adjacent
+  // lunar day. `timezone` is only for formatting the rise/set labels.
+  const now = useRealClock();
   const t = useTranslate('modules');
 
   if (latitude == null || longitude == null) {

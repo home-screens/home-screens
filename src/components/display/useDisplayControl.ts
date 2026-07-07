@@ -7,6 +7,8 @@ import { useDisplayCommands, useStatusReporter } from '@/hooks/useDisplayCommand
 
 interface UseDisplayControlParams {
   sleep: SleepSettings | undefined;
+  /** Display timezone for evaluating sleep/dim schedule windows. */
+  timezone: string | undefined;
   screenIndex: number;
   screenId: string;
   screenName: string;
@@ -22,6 +24,7 @@ interface UseDisplayControlParams {
 
 export function useDisplayControl({
   sleep,
+  timezone,
   screenIndex,
   screenId,
   screenName,
@@ -33,7 +36,7 @@ export function useDisplayControl({
   clearPause,
   displayId,
 }: UseDisplayControlParams) {
-  const { displayState, dimOpacity, wake, forceSleep, setRemoteBrightness } = useSleepManager(sleep);
+  const { displayState, dimOpacity, wake, forceSleep, setRemoteBrightness } = useSleepManager(sleep, timezone);
 
   const remoteNext = useCallback(() => {
     nextScreen();

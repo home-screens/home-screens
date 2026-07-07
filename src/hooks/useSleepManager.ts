@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SleepSettings } from '@/types/config';
+import { createTZDate } from '@/lib/timezone';
 
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
@@ -41,6 +42,13 @@ interface UseSleepManagerResult {
 
 export function useSleepManager(
   sleep?: SleepSettings,
+  /**
+   * Display timezone (GlobalSettings.timezone). Schedule windows are
+   * evaluated against this zone via `createTZDate`, matching how screen,
+   * module, and profile schedules are evaluated in ScreenRotator — raw
+   * `new Date()` would use the Pi's OS timezone, which can differ.
+   */
+  timezone?: string,
 ): UseSleepManagerResult {
   const [displayState, setDisplayState] = useState<DisplayState>('active');
   const [brightnessOverride, setBrightnessOverride] = useState<number | null>(null);
@@ -102,8 +110,9 @@ export function useSleepManager(
     const sleepMs = sleep.sleepAfterMinutes * 60 * 1000;
 
     const interval = setInterval(() => {
-      const inSleepWindow = !!sleep.schedule && isInScheduleWindow(sleep.schedule);
-      const inDimWindow = !!sleep.dimSchedule && isInScheduleWindow(sleep.dimSchedule);
+      const tzNow = createTZDate(timezone);
+      const inSleepWindow = !!sleep.schedule && isInScheduleWindow(sleep.schedule, tzNow);
+      const inDimWindow = !!sleep.dimSchedule && isInScheduleWindow(sleep.dimSchedule, tzNow);
 
       // Detect leaving a sleep schedule window — wake the display
       if (wasSleepScheduleRef.current && !inSleepWindow) {
@@ -160,7 +169,7 @@ export function useSleepManager(
     }, 10_000); // check every 10 seconds
 
     return () => clearInterval(interval);
-  }, [enabled, sleep]);
+  }, [enabled, sleep, timezone]);
 
   // Calculate dim opacity — remote brightness override takes precedence
   const dimOpacity = (() => {

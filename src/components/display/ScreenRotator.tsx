@@ -223,6 +223,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   const { displayState, dimOpacity } = useDisplayControl({
     sleep: settings.sleep,
+    timezone: settings.timezone,
     screenIndex: safeIndex,
     screenId: currentScreen?.id ?? '',
     screenName: currentScreen?.name ?? '',
@@ -262,7 +263,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   }, [settings]);
 
   // Prefetch next screen's API data before rotation fires
-  usePrefetchNextScreen(screens, screenKey, currentIndex, currentDuration, displayState);
+  usePrefetchNextScreen(screens, screenKey, currentIndex, currentDuration, displayState, settings.timezone);
 
   // Reset currentIndex and pause state when the active screen set changes
   // (handles both length changes and same-length profile switches with
