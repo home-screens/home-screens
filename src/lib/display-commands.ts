@@ -355,13 +355,39 @@ export function getViewportReports(displayId: string): ViewportReport[] {
     .sort((a, b) => b.lastSeen - a.lastSeen);
 }
 
+/**
+ * Hard cap on commands buffered per queue. A live display drains its queue
+ * on a 3s poll cycle, so anything beyond a handful means the target is
+ * offline or never polls — keep only the newest commands (oldest dropped)
+ * so repeated enqueues to an unreachable target can't grow the buffer
+ * forever. Newest-wins is also the right semantic: a display coming back
+ * online should act on the latest brightness/sleep intent, not replay an
+ * hour of stale taps.
+ */
+const MAX_QUEUE_COMMANDS = 32;
+
 function pushTo(queueId: string, command: DisplayCommand): void {
   const queue = commandQueues.get(queueId);
   if (queue) {
     queue.push(command);
-  } else {
-    commandQueues.set(queueId, [command]);
+    if (queue.length > MAX_QUEUE_COMMANDS) {
+      queue.splice(0, queue.length - MAX_QUEUE_COMMANDS);
+    }
+    return;
   }
+  // Creating a queue for a target that has never polled: bound the total
+  // map size so enqueues fanned across distinct never-polling slugs can't
+  // grow it forever. Displays in `knownDisplays` are exempt — that set is
+  // already capped at MAX_KNOWN_DISPLAYS — and the default queue always
+  // exists conceptually.
+  if (
+    queueId !== DEFAULT_DISPLAY_KEY
+    && !knownDisplays.has(queueId)
+    && commandQueues.size >= MAX_KNOWN_DISPLAYS
+  ) {
+    return;
+  }
+  commandQueues.set(queueId, [command]);
 }
 
 /**
@@ -586,6 +612,19 @@ export function getUnadoptedDisplays(configDisplayIds: string[]): string[] {
     commandQueues.delete(id);
     sharedStateReports.delete(id);
     sharedStateInterest.delete(id);
+  }
+
+  // Also evict queues enqueued for slugs that have never polled at all —
+  // they never enter `knownDisplays`, so the loop above can't reach them.
+  // The newest command's timestamp stands in for a heartbeat: once it ages
+  // past the staleness window with no display ever draining it, the target
+  // is a typo or a permanently-offline slug and the buffer is dropped.
+  // Adopted displays keep their queues (same posture as statusMap).
+  for (const [queueId, queue] of commandQueues) {
+    if (queueId === DEFAULT_DISPLAY_KEY) continue;
+    if (configured.has(queueId) || knownDisplays.has(queueId)) continue;
+    const newest = queue[queue.length - 1]?.timestamp ?? 0;
+    if (now - newest > UNADOPTED_STALENESS_MS) commandQueues.delete(queueId);
   }
 
   return stillFresh;

@@ -40,8 +40,12 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
 
   const neededProviders = useMemo(() => {
     const needed = new Set<string>();
-    // Always fetch global-provider weather for the event bus when location is configured
-    if (hasLocation) needed.add(globalProvider);
+    // Without a configured location every weather fetch is a guaranteed 400
+    // and the modules render LocationRequired anyway, so don't start any
+    // provider poll loops — an empty set makes every weatherUrl() below ''.
+    if (!hasLocation) return needed;
+    // Always fetch global-provider weather for the event bus
+    needed.add(globalProvider);
     for (const screen of screens) {
       for (const mod of screen.modules) {
         if (!isModuleEnabled(mod)) continue;

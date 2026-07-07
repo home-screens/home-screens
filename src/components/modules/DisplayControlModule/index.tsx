@@ -51,6 +51,16 @@ export default function DisplayControlModule({
   // Collapses button-mashing into a single command so the queue doesn't flood.
   const debounceRef = useRef<{ type: 'prev-screen' | 'next-screen' | null; timer: ReturnType<typeof setTimeout> | null }>({ type: null, timer: null });
 
+  // Cancel a pending debounce on unmount so a tap made just before the
+  // screen rotates away doesn't dispatch from the dead component (with a
+  // possibly stale target captured when the debounce was created).
+  useEffect(() => {
+    const state = debounceRef.current;
+    return () => {
+      if (state.timer) clearTimeout(state.timer);
+    };
+  }, []);
+
   const dispatchDebounced = useCallback(
     (type: 'prev-screen' | 'next-screen') => {
       const state = debounceRef.current;

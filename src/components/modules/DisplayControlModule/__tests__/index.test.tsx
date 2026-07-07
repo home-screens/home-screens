@@ -107,6 +107,21 @@ describe('DisplayControlModule integration', () => {
     expect(fetch).toHaveBeenLastCalledWith('/api/display/next-screen?display=kitchen', expect.any(Object));
   });
 
+  it('cancels a pending debounced dispatch when unmounted before it fires', () => {
+    const { unmount } = render(wrap(
+      <DisplayControlModule
+        config={{ layout: 'panel', defaultTarget: 'self', allowRetargeting: false }}
+        availableDisplays={displays}
+      />,
+    ));
+    fireEvent.click(screen.getByRole('button', { name: /next screen/i }));
+    // Screen rotates away before the 200ms trailing edge — the dead
+    // component must not dispatch a command with its captured target.
+    unmount();
+    act(() => vi.advanceTimersByTime(200));
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('renders the Bar layout when configured', () => {
     render(wrap(
       <DisplayControlModule

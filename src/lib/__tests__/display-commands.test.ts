@@ -115,6 +115,68 @@ describe('broadcast (display=all)', () => {
   });
 });
 
+describe('queue growth bounds', () => {
+  it('caps a single queue at 32 commands, dropping the oldest', () => {
+    for (let i = 0; i < 40; i++) {
+      enqueueCommand('kitchen', 'brightness', { value: i });
+    }
+    const drained = drainCommands('kitchen');
+    expect(drained).toHaveLength(32);
+    // Newest-wins: the first 8 enqueues were dropped, the latest kept.
+    expect(drained[0].payload).toEqual({ value: 8 });
+    expect(drained[31].payload).toEqual({ value: 39 });
+  });
+
+  it('refuses to create new queues for never-polling slugs past the display cap', () => {
+    for (let i = 0; i < 64; i++) {
+      enqueueCommand(`slug-${i}`, 'wake');
+    }
+    enqueueCommand('slug-overflow', 'wake');
+    expect(drainCommands('slug-overflow')).toEqual([]);
+    // Queues created before the cap are intact.
+    expect(drainCommands('slug-0').map((c) => c.type)).toEqual(['wake']);
+  });
+
+  it('always accepts enqueues for displays that have polled, even at the queue cap', () => {
+    drainCommands('kitchen'); // registers in knownDisplays, leaves no queue
+    for (let i = 0; i < 64; i++) {
+      enqueueCommand(`slug-${i}`, 'wake');
+    }
+    enqueueCommand('kitchen', 'sleep');
+    expect(drainCommands('kitchen').map((c) => c.type)).toEqual(['sleep']);
+  });
+
+  it('evicts stale queues for slugs that never polled during the unadopted sweep', () => {
+    const realNow = Date.now;
+    const longAgo = realNow() - 5 * 60 * 1000;
+    try {
+      Date.now = () => longAgo;
+      enqueueCommand('ghost-display', 'wake');
+    } finally {
+      Date.now = realNow;
+    }
+    getUnadoptedDisplays([]);
+    expect(drainCommands('ghost-display')).toEqual([]);
+  });
+
+  it('keeps fresh never-polled queues and stale adopted queues through the sweep', () => {
+    // Fresh command to a never-polled slug: not evicted.
+    enqueueCommand('fresh-slug', 'wake');
+    // Stale command to an adopted display: not evicted either.
+    const realNow = Date.now;
+    const longAgo = realNow() - 5 * 60 * 1000;
+    try {
+      Date.now = () => longAgo;
+      enqueueCommand('kitchen', 'sleep');
+    } finally {
+      Date.now = realNow;
+    }
+    getUnadoptedDisplays(['kitchen']);
+    expect(drainCommands('fresh-slug').map((c) => c.type)).toEqual(['wake']);
+    expect(drainCommands('kitchen').map((c) => c.type)).toEqual(['sleep']);
+  });
+});
+
 describe('heartbeat tracking', () => {
   it('updates lastSeen when a display drains commands', () => {
     drainCommands('kitchen');
