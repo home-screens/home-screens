@@ -2269,7 +2269,8 @@
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
-      "tapRecipeActionIframe": "Åbn opskriften på skærmen"
+      "tapRecipeActionIframe": "Åbn opskriften på skærmen",
+      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Default (Midnight)",
@@ -2424,7 +2425,8 @@
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
-      "tapRecipeActionIframe": "Åbn opskriften på skærmen"
+      "tapRecipeActionIframe": "Åbn opskriften på skærmen",
+      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",

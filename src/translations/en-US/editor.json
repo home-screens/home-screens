@@ -2269,7 +2269,8 @@
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
-      "tapRecipeActionIframe": "Open recipe on display"
+      "tapRecipeActionIframe": "Open recipe on display",
+      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Default (Midnight)",
@@ -2424,7 +2425,8 @@
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
-      "tapRecipeActionIframe": "Open recipe on display"
+      "tapRecipeActionIframe": "Open recipe on display",
+      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",

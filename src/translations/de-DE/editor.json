@@ -2269,7 +2269,8 @@
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
-      "tapRecipeActionIframe": "Rezept auf dem Display öffnen"
+      "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
+      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (Midnight)",
@@ -2424,7 +2425,8 @@
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
-      "tapRecipeActionIframe": "Rezept auf dem Display öffnen"
+      "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
+      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",

@@ -2274,7 +2274,8 @@
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
-      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran"
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran",
+      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Par défaut (Minuit)",
@@ -2429,7 +2430,8 @@
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
-      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran"
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran",
+      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",

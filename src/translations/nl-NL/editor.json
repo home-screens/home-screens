@@ -2269,7 +2269,8 @@
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
-      "tapRecipeActionIframe": "Recept op het scherm openen"
+      "tapRecipeActionIframe": "Recept op het scherm openen",
+      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standaard (Midnight)",
@@ -2424,7 +2425,8 @@
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
-      "tapRecipeActionIframe": "Recept op het scherm openen"
+      "tapRecipeActionIframe": "Recept op het scherm openen",
+      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

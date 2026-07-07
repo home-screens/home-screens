@@ -196,6 +196,11 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           { value: 'iframe', label: t('configSections.fullscreen-meal-planner.tapRecipeActionIframe') },
         ]}
       />
+      {c.tapRecipeAction === 'iframe' && (
+        <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          {t('configSections.fullscreen-meal-planner.tapRecipeActionIframeHint')}
+        </p>
+      )}
 
       {/* Accent Color */}
       <ColorPicker

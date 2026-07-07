@@ -164,6 +164,11 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           { value: 'iframe', label: t('configSections.meal-planner.tapRecipeActionIframe') },
         ]}
       />
+      {c.tapRecipeAction === 'iframe' && (
+        <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          {t('configSections.meal-planner.tapRecipeActionIframeHint')}
+        </p>
+      )}
 
       {/* Accent Color */}
       <ColorPicker
