@@ -1,238 +1,53 @@
-import type { AffirmationsCategory } from '@/types/config';
-import type { WeatherCondition } from '@/lib/event-bus';
+/**
+ * Per-locale affirmations seed content and locale resolution.
+ *
+ * The seed lists are content (not UI chrome), so they live alongside the
+ * module (in `affirmations-content/`) rather than in the translation
+ * dictionaries — keeping `src/translations/*.json` to plain user-facing
+ * strings. Same layout as `word-of-day-data.ts` / `word-of-day-words/`.
+ *
+ * Every locale ships the same 198 entries, index-aligned with en-US: only
+ * `text` is translated; the scoring metadata (`category` / `time` / `days` /
+ * `season` / `weather`) and `attribution` are identical at each index, so
+ * the contextual rotation in AffirmationsModule behaves the same in every
+ * language (locked by affirmations-logic.test.ts).
+ *
+ * `getAffirmationsForLocale(tag)` returns the closest-match list, walking
+ * the locale fallback chain so e.g. `de-AT` reuses the `de-DE` list.
+ * Unconfigured locales fall back to en-US.
+ */
 
-export interface AffirmationEntry {
-  text: string;
-  attribution?: string;
-  category: AffirmationsCategory;
-  /** Time-of-day affinity: morning / afternoon / evening / night / anytime */
-  time?: 'morning' | 'afternoon' | 'evening' | 'night' | 'anytime';
-  /** Day-of-week affinity: 0=Sun..6=Sat */
-  days?: number[];
-  /** Season affinity */
-  season?: 'spring' | 'summer' | 'fall' | 'winter';
-  /** Weather condition affinity — boosts score when conditions match */
-  weather?: WeatherCondition;
+import { resolveLocaleChain } from '@/i18n/fallback';
+import { EN_US_AFFIRMATIONS } from './affirmations-content/en-US';
+import { DE_DE_AFFIRMATIONS } from './affirmations-content/de-DE';
+import { FR_FR_AFFIRMATIONS } from './affirmations-content/fr-FR';
+import { ES_ES_AFFIRMATIONS } from './affirmations-content/es-ES';
+import { NL_NL_AFFIRMATIONS } from './affirmations-content/nl-NL';
+import { PT_BR_AFFIRMATIONS } from './affirmations-content/pt-BR';
+import { DA_DK_AFFIRMATIONS } from './affirmations-content/da-DK';
+import type { AffirmationEntry } from './affirmations-content/types';
+
+export type { AffirmationEntry };
+
+const AFFIRMATIONS_BY_LOCALE: Record<string, AffirmationEntry[]> = {
+  'en-US': EN_US_AFFIRMATIONS,
+  'de-DE': DE_DE_AFFIRMATIONS,
+  'fr-FR': FR_FR_AFFIRMATIONS,
+  'es-ES': ES_ES_AFFIRMATIONS,
+  'nl-NL': NL_NL_AFFIRMATIONS,
+  'pt-BR': PT_BR_AFFIRMATIONS,
+  'da-DK': DA_DK_AFFIRMATIONS,
+};
+
+/**
+ * Resolve the seed list for `locale`, walking the same fallback chain as
+ * the rest of the i18n runtime (so `de-AT` picks up `de-DE`, etc.). Locales
+ * with no seed list fall through to en-US.
+ */
+export function getAffirmationsForLocale(locale: string): AffirmationEntry[] {
+  for (const tag of resolveLocaleChain(locale)) {
+    const entries = AFFIRMATIONS_BY_LOCALE[tag];
+    if (entries) return entries;
+  }
+  return EN_US_AFFIRMATIONS;
 }
-
-// ---------------------------------------------------------------------------
-// Built-in content library (190+ entries)
-// ---------------------------------------------------------------------------
-
-export const BUILT_IN: AffirmationEntry[] = [
-  // ── Affirmations ──────────────────────────────────────────────
-  { text: 'I am worthy of love and kindness.', category: 'affirmations', time: 'anytime' },
-  { text: 'I trust the journey, even when I cannot see the path.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am becoming the person I want to be.', category: 'affirmations', time: 'anytime' },
-  { text: 'My potential is limitless.', category: 'affirmations', time: 'anytime' },
-  { text: 'I release what no longer serves me.', category: 'affirmations', time: 'evening' },
-  { text: 'I choose peace over perfection.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am allowed to take up space.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am enough, exactly as I am.', category: 'affirmations', time: 'anytime' },
-  { text: 'I attract positive energy into my life.', category: 'affirmations', time: 'morning', weather: 'clear' },
-  { text: 'I am resilient, strong, and brave.', category: 'affirmations', time: 'anytime' },
-  { text: 'I give myself permission to rest.', category: 'affirmations', time: 'evening', weather: 'rain' },
-  { text: 'I honor my own boundaries.', category: 'affirmations', time: 'anytime' },
-  { text: 'Every setback is a setup for a comeback.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am at peace with who I am.', category: 'affirmations', time: 'night' },
-  { text: 'My voice matters. My story matters.', category: 'affirmations', time: 'anytime' },
-  { text: 'I welcome abundance in all its forms.', category: 'affirmations', time: 'morning' },
-  { text: 'I am deserving of the good things in my life.', category: 'affirmations', time: 'anytime' },
-  { text: 'I forgive myself for past mistakes. They helped me grow.', category: 'affirmations', time: 'evening' },
-  { text: 'My body is healthy, my mind is sharp, my spirit is calm.', category: 'affirmations', time: 'morning', weather: 'clear' },
-  { text: 'I radiate confidence and self-respect.', category: 'affirmations', time: 'morning' },
-  { text: 'I am open to new adventures and experiences.', category: 'affirmations', time: 'morning' },
-  { text: 'I let go of comparison. My path is my own.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am a work in progress, and that is perfectly fine.', category: 'affirmations', time: 'anytime' },
-  { text: 'My mistakes do not define me. My growth does.', category: 'affirmations', time: 'anytime' },
-  { text: 'I have the power to create the life I want.', category: 'affirmations', time: 'morning' },
-  { text: 'I choose to focus on what I can change.', category: 'affirmations', time: 'anytime' },
-  { text: 'I am surrounded by love, even when I cannot feel it.', category: 'affirmations', time: 'night' },
-  { text: 'Today I will be kind to myself.', category: 'affirmations', time: 'morning' },
-  { text: 'I am stronger than my doubts.', category: 'affirmations', time: 'anytime' },
-  { text: 'My happiness is my responsibility, and I embrace it.', category: 'affirmations', time: 'anytime' },
-  { text: 'The rain washes away what I no longer need.', category: 'affirmations', time: 'anytime', weather: 'rain' },
-  { text: 'I find beauty in every kind of sky.', category: 'affirmations', time: 'anytime', weather: 'clouds' },
-
-  // ── Compliments ───────────────────────────────────────────────
-  { text: 'You light up every room you walk into.', category: 'compliments', time: 'anytime' },
-  { text: 'Your smile is contagious — never stop sharing it.', category: 'compliments', time: 'morning' },
-  { text: 'You have a gift for making others feel seen.', category: 'compliments', time: 'anytime' },
-  { text: 'The world is better because you are in it.', category: 'compliments', time: 'anytime' },
-  { text: 'Your kindness ripples outward further than you know.', category: 'compliments', time: 'anytime' },
-  { text: 'You handle challenges with remarkable grace.', category: 'compliments', time: 'afternoon' },
-  { text: 'People are lucky to know you.', category: 'compliments', time: 'anytime' },
-  { text: 'Your energy is magnetic.', category: 'compliments', time: 'anytime' },
-  { text: 'You make hard things look easy.', category: 'compliments', time: 'afternoon' },
-  { text: 'You have incredible taste.', category: 'compliments', time: 'anytime' },
-  { text: 'Your creativity inspires everyone around you.', category: 'compliments', time: 'anytime' },
-  { text: 'You bring out the best in people.', category: 'compliments', time: 'anytime' },
-  { text: 'You deserve every good thing coming your way.', category: 'compliments', time: 'anytime' },
-  { text: 'Your laugh is the best sound.', category: 'compliments', time: 'anytime' },
-  { text: 'You are doing an amazing job.', category: 'compliments', time: 'afternoon' },
-  { text: 'Your patience is a superpower.', category: 'compliments', time: 'afternoon' },
-  { text: 'You have a beautiful way of looking at the world.', category: 'compliments', time: 'anytime' },
-  { text: 'Your determination is inspiring.', category: 'compliments', time: 'anytime' },
-  { text: 'You make people feel safe and valued.', category: 'compliments', time: 'anytime' },
-  { text: 'You have the courage to be yourself, and that is rare.', category: 'compliments', time: 'anytime' },
-  { text: 'Your perspective is unique and it matters.', category: 'compliments', time: 'anytime' },
-  { text: 'You lead with empathy and it shows.', category: 'compliments', time: 'afternoon' },
-  { text: 'There is nobody else quite like you. That is your strength.', category: 'compliments', time: 'anytime' },
-  { text: 'You carry yourself with quiet confidence.', category: 'compliments', time: 'anytime' },
-  { text: 'The effort you put in does not go unnoticed.', category: 'compliments', time: 'afternoon' },
-  { text: 'Your heart is bigger than you give yourself credit for.', category: 'compliments', time: 'evening' },
-  { text: 'You have great instincts. Trust them more.', category: 'compliments', time: 'anytime' },
-  { text: 'Your enthusiasm is infectious.', category: 'compliments', time: 'morning' },
-  { text: 'You handle pressure better than you think.', category: 'compliments', time: 'afternoon' },
-  { text: 'You are someone people can rely on.', category: 'compliments', time: 'anytime' },
-
-  // ── Motivational ──────────────────────────────────────────────
-  { text: 'Start where you are. Use what you have. Do what you can.', category: 'motivational', attribution: 'Arthur Ashe', time: 'morning' },
-  { text: 'The only way to do great work is to love what you do.', category: 'motivational', attribution: 'Steve Jobs', time: 'morning' },
-  { text: 'It does not matter how slowly you go, as long as you do not stop.', category: 'motivational', attribution: 'Confucius', time: 'anytime' },
-  { text: 'What you get by achieving your goals is not as important as what you become.', category: 'motivational', attribution: 'Zig Ziglar', time: 'anytime' },
-  { text: 'Believe you can and you are halfway there.', category: 'motivational', attribution: 'Theodore Roosevelt', time: 'morning' },
-  { text: 'Small daily improvements are the key to staggering long-term results.', category: 'motivational', time: 'morning' },
-  { text: 'Discipline is choosing between what you want now and what you want most.', category: 'motivational', attribution: 'Abraham Lincoln', time: 'anytime' },
-  { text: 'You did not come this far to only come this far.', category: 'motivational', time: 'afternoon' },
-  { text: 'Dream big. Start small. Act now.', category: 'motivational', time: 'morning' },
-  { text: 'The secret of getting ahead is getting started.', category: 'motivational', attribution: 'Mark Twain', time: 'morning' },
-  { text: 'Your future self is watching you right now through memories.', category: 'motivational', time: 'anytime' },
-  { text: 'The best time to plant a tree was 20 years ago. The second best time is now.', category: 'motivational', time: 'anytime' },
-  { text: 'Progress, not perfection.', category: 'motivational', time: 'anytime' },
-  { text: 'Hardships often prepare ordinary people for an extraordinary destiny.', category: 'motivational', attribution: 'C.S. Lewis', time: 'anytime' },
-  { text: 'Be so good they can\'t ignore you.', category: 'motivational', attribution: 'Steve Martin', time: 'morning' },
-  { text: 'You are never too old to set another goal or to dream a new dream.', category: 'motivational', attribution: 'C.S. Lewis', time: 'anytime' },
-  { text: 'The struggle you are in today is developing the strength you need for tomorrow.', category: 'motivational', time: 'afternoon' },
-  { text: 'Do something today that your future self will thank you for.', category: 'motivational', time: 'morning' },
-  { text: 'Success is the sum of small efforts, repeated day in and day out.', category: 'motivational', attribution: 'Robert Collier', time: 'morning' },
-  { text: 'Fall seven times, stand up eight.', category: 'motivational', time: 'anytime' },
-  { text: 'What seems impossible today will one day become your warm-up.', category: 'motivational', time: 'morning' },
-  { text: 'You do not have to be perfect to be amazing.', category: 'motivational', time: 'anytime' },
-  { text: 'Action is the foundational key to all success.', category: 'motivational', attribution: 'Pablo Picasso', time: 'morning' },
-  { text: 'The comeback is always stronger than the setback.', category: 'motivational', time: 'anytime' },
-  { text: 'A year from now you will wish you had started today.', category: 'motivational', time: 'morning' },
-  { text: 'Everything you have ever wanted is on the other side of fear.', category: 'motivational', attribution: 'George Addair', time: 'anytime' },
-  { text: 'Energy flows where attention goes.', category: 'motivational', time: 'morning' },
-  { text: 'Doubt kills more dreams than failure ever will.', category: 'motivational', attribution: 'Suzy Kassem', time: 'anytime' },
-  { text: 'If it were easy, everyone would do it. Keep going.', category: 'motivational', time: 'afternoon' },
-  { text: 'You are one decision away from a completely different life.', category: 'motivational', time: 'anytime' },
-  { text: 'Done is better than perfect.', category: 'motivational', time: 'afternoon' },
-  { text: 'The only limit to our realization of tomorrow will be our doubts of today.', category: 'motivational', attribution: 'Franklin D. Roosevelt', time: 'anytime' },
-  { text: 'Stars cannot shine without darkness.', category: 'motivational', time: 'evening' },
-  { text: 'Courage is not the absence of fear. It is acting in spite of it.', category: 'motivational', attribution: 'Mark Twain', time: 'anytime' },
-  { text: 'What would you attempt to do if you knew you could not fail?', category: 'motivational', time: 'morning' },
-  { text: 'The way to get started is to quit talking and begin doing.', category: 'motivational', attribution: 'Walt Disney', time: 'morning' },
-
-  // ── Day-of-week motivation ────────────────────────────────────
-  { text: 'New week, new possibilities. Make this one count.', category: 'motivational', time: 'morning', days: [1] },
-  { text: 'Mondays are for fresh starts and bold moves.', category: 'motivational', time: 'morning', days: [1] },
-  { text: 'Set the tone for the week. You have got this.', category: 'motivational', time: 'morning', days: [1] },
-  { text: 'Tuesday: proof that you survived Monday and kept going.', category: 'compliments', time: 'morning', days: [2] },
-  { text: 'Midweek check-in: you are closer than you think.', category: 'motivational', time: 'anytime', days: [3] },
-  { text: 'Wednesday — the halfway point. You are doing great.', category: 'compliments', time: 'afternoon', days: [3] },
-  { text: 'Almost there. Finish the week strong.', category: 'motivational', time: 'morning', days: [4] },
-  { text: 'Thursday energy: the weekend is in sight.', category: 'motivational', time: 'afternoon', days: [4] },
-  { text: 'You made it through the week. Be proud of yourself.', category: 'compliments', time: 'afternoon', days: [5] },
-  { text: 'Happy Friday. You earned every bit of this weekend.', category: 'compliments', time: 'afternoon', days: [5] },
-  { text: 'Enjoy the weekend — you have earned it.', category: 'compliments', time: 'anytime', days: [5, 6, 0] },
-  { text: 'Saturdays are for recharging. Do what fills your cup.', category: 'mindfulness', time: 'morning', days: [6] },
-  { text: 'Sunday: rest, reflect, and prepare to shine again.', category: 'mindfulness', time: 'morning', days: [0] },
-  { text: 'Use today to set yourself up for a great week ahead.', category: 'motivational', time: 'afternoon', days: [0] },
-
-  // ── Gratitude ─────────────────────────────────────────────────
-  { text: 'What are three things you are grateful for right now?', category: 'gratitude', time: 'morning' },
-  { text: 'Take a moment to appreciate how far you have come.', category: 'gratitude', time: 'evening' },
-  { text: 'Gratitude turns what we have into enough.', category: 'gratitude', time: 'anytime' },
-  { text: 'Today, notice one small thing that brings you joy.', category: 'gratitude', time: 'morning' },
-  { text: 'Who made you smile today? Hold that feeling.', category: 'gratitude', time: 'evening' },
-  { text: 'The ordinary moments are often the most beautiful.', category: 'gratitude', time: 'anytime' },
-  { text: 'Appreciate the lessons hidden in challenges.', category: 'gratitude', time: 'anytime' },
-  { text: 'You have so much to be grateful for.', category: 'gratitude', time: 'anytime' },
-  { text: 'What felt impossible last year is your reality today.', category: 'gratitude', time: 'anytime' },
-  { text: 'Let thankfulness be your default setting.', category: 'gratitude', time: 'morning' },
-  { text: 'Reflect on a kind word someone said to you recently.', category: 'gratitude', time: 'evening' },
-  { text: 'Your life is full of quiet miracles. Look for them.', category: 'gratitude', time: 'anytime' },
-  { text: 'Name one person who made your life better this year.', category: 'gratitude', time: 'evening' },
-  { text: 'The roof over your head, the food on your table — these are not small things.', category: 'gratitude', time: 'anytime' },
-  { text: 'Think of a challenge that made you stronger. Be thankful for it.', category: 'gratitude', time: 'evening' },
-  { text: 'Gratitude is the healthiest of all human emotions.', category: 'gratitude', attribution: 'Zig Ziglar', time: 'anytime' },
-  { text: 'What is one thing you have today that you once wished for?', category: 'gratitude', time: 'morning' },
-  { text: 'Every sunrise is an invitation to brighten someone\'s day.', category: 'gratitude', time: 'morning' },
-  { text: 'Today was a gift. What was your favorite part?', category: 'gratitude', time: 'evening' },
-  { text: 'The people in your life love you more than you realize.', category: 'gratitude', time: 'anytime' },
-  { text: 'Notice the beauty in something you see every day.', category: 'gratitude', time: 'anytime' },
-  { text: 'A grateful heart is a magnet for wonderful things.', category: 'gratitude', time: 'morning' },
-  { text: 'What simple pleasure did you enjoy today?', category: 'gratitude', time: 'evening' },
-  { text: 'Remember: someone out there is inspired by you.', category: 'gratitude', time: 'anytime' },
-  { text: 'I am grateful for sunny days that lift my spirits.', category: 'gratitude', time: 'anytime', weather: 'clear' },
-  { text: 'I am grateful for rainy days that nourish the earth.', category: 'gratitude', time: 'anytime', weather: 'rain' },
-
-  // ── Mindfulness ───────────────────────────────────────────────
-  { text: 'Take a deep breath. You are exactly where you need to be.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Be present. This moment is all there is.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Breathe in calm. Breathe out tension.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Slow down. There is no rush to be anywhere else.', category: 'mindfulness', time: 'evening' },
-  { text: 'Notice five things you can see right now.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Let go of what you cannot control.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Your thoughts are clouds. Let them pass.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Peace is not the absence of chaos — it is the calm within.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Right now, in this moment, you are safe.', category: 'mindfulness', time: 'night' },
-  { text: 'Silence is not empty — it is full of answers.', category: 'mindfulness', time: 'evening' },
-  { text: 'Feel your feet on the ground. You are anchored.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Pause. Breathe. Continue.', category: 'mindfulness', time: 'anytime' },
-  { text: 'You are not your thoughts. You are the awareness behind them.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Notice the space between your thoughts. That is where peace lives.', category: 'mindfulness', time: 'evening' },
-  { text: 'Listen to the sounds around you without naming them.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Place one hand on your chest. Feel your heartbeat. You are alive.', category: 'mindfulness', time: 'anytime' },
-  { text: 'The present moment is the only moment that truly exists.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Where is tension living in your body right now? Breathe into it.', category: 'mindfulness', time: 'afternoon' },
-  { text: 'Between stimulus and response there is a space. In that space is your power.', category: 'mindfulness', attribution: 'Viktor Frankl', time: 'anytime' },
-  { text: 'Inhale for four counts. Hold for four. Exhale for four. Repeat.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Do not borrow trouble from tomorrow. Today is enough.', category: 'mindfulness', time: 'evening' },
-  { text: 'Everything is temporary. The good and the hard. Savor and endure.', category: 'mindfulness', time: 'anytime' },
-  { text: 'You do not need to have it all figured out. Just take the next step.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Your breath is always there for you. Come back to it.', category: 'mindfulness', time: 'anytime' },
-  { text: 'What is one thing you can do right now to take care of yourself?', category: 'mindfulness', time: 'afternoon' },
-  { text: 'Nothing in nature blooms all year. Be patient with yourself.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Stillness is not laziness. It is how your soul catches up.', category: 'mindfulness', time: 'evening' },
-  { text: 'You are allowed to outgrow spaces that no longer fit.', category: 'mindfulness', time: 'anytime' },
-  { text: 'Listen to the rain. Let it quiet your thoughts.', category: 'mindfulness', time: 'anytime', weather: 'rain' },
-  { text: 'The snow reminds me to slow down and be still.', category: 'mindfulness', time: 'anytime', weather: 'snow' },
-  { text: 'Feel the warmth of the sun on your skin. You are here.', category: 'mindfulness', time: 'anytime', weather: 'clear' },
-
-  // ── Season-aware entries ──────────────────────────────────────
-  { text: 'Spring reminds us that new beginnings are always possible.', category: 'affirmations', time: 'anytime', season: 'spring' },
-  { text: 'Like the flowers, you too are blooming at your own pace.', category: 'affirmations', time: 'anytime', season: 'spring' },
-  { text: 'The earth is waking up. Let yourself wake up with it.', category: 'mindfulness', time: 'morning', season: 'spring' },
-  { text: 'Fresh air, fresh starts. Spring is on your side.', category: 'motivational', time: 'morning', season: 'spring' },
-  { text: 'Let the warmth of summer fill your spirit.', category: 'mindfulness', time: 'anytime', season: 'summer' },
-  { text: 'Long days, warm nights. Soak it all in.', category: 'gratitude', time: 'evening', season: 'summer' },
-  { text: 'Summer light reminds you there is always more day ahead.', category: 'motivational', time: 'morning', season: 'summer' },
-  { text: 'The sun is out. Let it warm more than just your skin.', category: 'mindfulness', time: 'anytime', season: 'summer' },
-  { text: 'Like autumn leaves, release what is ready to fall.', category: 'mindfulness', time: 'anytime', season: 'fall' },
-  { text: 'Fall teaches us that letting go can be beautiful.', category: 'affirmations', time: 'anytime', season: 'fall' },
-  { text: 'The world is changing colors. You are allowed to change too.', category: 'affirmations', time: 'anytime', season: 'fall' },
-  { text: 'Harvest season — gather the fruits of your hard work.', category: 'gratitude', time: 'anytime', season: 'fall' },
-  { text: 'Even in winter, growth happens beneath the surface.', category: 'affirmations', time: 'anytime', season: 'winter' },
-  { text: 'The quiet of winter is an invitation to go inward.', category: 'mindfulness', time: 'evening', season: 'winter' },
-  { text: 'Cold outside, warm within. Tend your inner fire.', category: 'affirmations', time: 'anytime', season: 'winter' },
-  { text: 'Winter nights are for rest. Spring will come again.', category: 'mindfulness', time: 'night', season: 'winter' },
-
-  // ── Night-specific ────────────────────────────────────────────
-  { text: 'Rest well. Tomorrow is a fresh start.', category: 'affirmations', time: 'night' },
-  { text: 'You accomplished enough today. Let yourself sleep.', category: 'mindfulness', time: 'night' },
-  { text: 'The night is for recovery, not for worry.', category: 'mindfulness', time: 'night' },
-  { text: 'Close your eyes knowing you did your best today.', category: 'affirmations', time: 'night' },
-  { text: 'Let the quiet of the night settle your mind.', category: 'mindfulness', time: 'night' },
-  { text: 'Sleep is not a luxury. It is how you recharge for greatness.', category: 'affirmations', time: 'night' },
-  { text: 'Tonight, release every worry. Tomorrow you can try again.', category: 'mindfulness', time: 'night' },
-
-  // ── Morning-specific ──────────────────────────────────────────
-  { text: 'Good morning. Today is full of possibility.', category: 'affirmations', time: 'morning' },
-  { text: 'The morning is yours. Set your intention and own it.', category: 'motivational', time: 'morning' },
-  { text: 'Rise and shine — not because you have to, but because you get to.', category: 'gratitude', time: 'morning' },
-  { text: 'What is one thing you want to feel today? Move toward it.', category: 'mindfulness', time: 'morning' },
-  { text: 'A new day means a new chance to make something wonderful.', category: 'motivational', time: 'morning' },
-  { text: 'Your morning routine is an act of self-love.', category: 'affirmations', time: 'morning' },
-];

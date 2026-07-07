@@ -6,10 +6,10 @@ import type { AffirmationsConfig, AffirmationsCategory, AffirmationsView, Module
 import { useTZClock } from '@/hooks/useTZClock';
 import { useEventBus } from '@/hooks/useEventBus';
 import ModuleWrapper from './ModuleWrapper';
-import { BUILT_IN, type AffirmationEntry as Entry } from './affirmations-data';
+import { getAffirmationsForLocale, type AffirmationEntry as Entry } from './affirmations-data';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 
 interface AffirmationsModuleProps {
@@ -24,8 +24,8 @@ interface AffirmationsModuleProps {
 // ---------------------------------------------------------------------------
 
 // Map of category enum → translation key. Resolve via `t(CATEGORY_LABEL_KEYS[category])`
-// at the call site. Note: the BUILT_IN affirmation `text` strings (in ./affirmations-data.ts)
-// remain English seed content — German seed content is future work.
+// at the call site. The built-in affirmation `text` strings ship per-locale
+// (./affirmations-content/), resolved via `getAffirmationsForLocale`.
 const CATEGORY_LABEL_KEYS: Record<AffirmationsCategory, string> = {
   affirmations: 'affirmations.categories.affirmations',
   compliments: 'affirmations.categories.compliments',
@@ -258,6 +258,7 @@ const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> 
 
 export default function AffirmationsModule({ config, style, timezone, latitude }: AffirmationsModuleProps) {
   const t = useTranslate('modules');
+  const locale = useLocale();
   const now = useTZClock(timezone, 60_000);
   const weather = useEventBus('weather.conditions');
 
@@ -268,12 +269,12 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   const weatherAware = config.weatherAware ?? true;
   const accentColor = config.accentColor ?? '#a78bfa';
 
-  // Merge built-in (filtered by category) + custom entries (always included)
+  // Merge built-in (per-locale, filtered by category) + custom entries (always included)
   const allEntries = useMemo(() => {
     const categories = config.categories ?? ['affirmations', 'compliments', 'motivational'];
     const customEntries = config.customEntries ?? [];
     const categorySet = new Set(categories);
-    const builtIn = BUILT_IN.filter((e) => categorySet.has(e.category));
+    const builtIn = getAffirmationsForLocale(locale).filter((e) => categorySet.has(e.category));
     const custom: Entry[] = customEntries.map((c) => ({
       text: c.text,
       attribution: c.attribution,
@@ -281,7 +282,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
       time: 'anytime' as const,
     }));
     return [...builtIn, ...custom];
-  }, [config.categories, config.customEntries]);
+  }, [config.categories, config.customEntries, locale]);
 
   const weatherCondition = weatherAware ? (weather?.condition ?? null) : null;
   const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0, weatherCondition);

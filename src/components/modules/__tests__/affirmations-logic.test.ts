@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { AffirmationsCategory } from '@/types/config';
-import { BUILT_IN, type AffirmationEntry as Entry } from '../affirmations-data';
+import type { AffirmationEntry as Entry } from '../affirmations-data';
+import { EN_US_AFFIRMATIONS } from '../affirmations-content/en-US';
 
 // ---------------------------------------------------------------------------
 // Replicate pure helper functions from AffirmationsModule.tsx for testing.
@@ -85,7 +86,7 @@ function mergeEntries(
   customEntries?: { text: string; attribution?: string }[],
 ): Entry[] {
   const categorySet = new Set(categories);
-  const builtIn = BUILT_IN.filter((e) => categorySet.has(e.category));
+  const builtIn = EN_US_AFFIRMATIONS.filter((e) => categorySet.has(e.category));
   const custom: Entry[] = (customEntries ?? []).map((c) => ({
     text: c.text,
     attribution: c.attribution,
@@ -490,43 +491,5 @@ describe('rotation index wrapping', () => {
   });
 });
 
-// ── BUILT_IN data integrity ───────────────────────────────────────────
-
-describe('BUILT_IN affirmations data', () => {
-  it('has at least 190 entries', () => {
-    expect(BUILT_IN.length).toBeGreaterThanOrEqual(190);
-  });
-
-  it('every entry has a non-empty text and a valid category', () => {
-    const validCategories: AffirmationsCategory[] = [
-      'affirmations', 'compliments', 'motivational', 'gratitude', 'mindfulness',
-    ];
-    for (const entry of BUILT_IN) {
-      expect(entry.text.length).toBeGreaterThan(0);
-      expect(validCategories).toContain(entry.category);
-    }
-  });
-
-  it('every entry has a valid time value if specified', () => {
-    const validTimes = ['morning', 'afternoon', 'evening', 'night', 'anytime', undefined];
-    for (const entry of BUILT_IN) {
-      expect(validTimes).toContain(entry.time);
-    }
-  });
-
-  it('every entry with days has valid day-of-week values (0-6)', () => {
-    for (const entry of BUILT_IN) {
-      if (entry.days) {
-        for (const d of entry.days) {
-          expect(d).toBeGreaterThanOrEqual(0);
-          expect(d).toBeLessThanOrEqual(6);
-        }
-      }
-    }
-  });
-
-  it('has entries across all five categories', () => {
-    const categories = new Set(BUILT_IN.map((e) => e.category));
-    expect(categories.size).toBe(5);
-  });
-});
+// Seed-list integrity and locale parity live in affirmations-data.test.ts,
+// which runs the checks over every shipped locale.
