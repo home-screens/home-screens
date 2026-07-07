@@ -1,6 +1,7 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 
 export interface SleepFormValues {
@@ -60,16 +61,12 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={sleepEnabled}
-          disabled={disabled}
-          onChange={(e) => onChange({ sleepEnabled: e.target.checked })}
-          className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-        />
-        <span className="text-sm text-hs-text-body">{t('settings.sleepFormFields.enableLabel')}</span>
-      </label>
+      <Toggle
+        label={t('settings.sleepFormFields.enableLabel')}
+        checked={sleepEnabled}
+        disabled={disabled}
+        onChange={(v) => onChange({ sleepEnabled: v })}
+      />
       <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.enableHelp')}</p>
 
       {sleepEnabled && (
@@ -119,16 +116,14 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
             <p className="text-xs text-hs-text-faint mt-1">{t('settings.sleepFormFields.screensaverHelp')}</p>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer mt-2">
-            <input
-              type="checkbox"
+          <div className="mt-2">
+            <Toggle
+              label={t('settings.sleepFormFields.dimScheduleLabel')}
               checked={dimScheduleEnabled}
               disabled={disabled}
-              onChange={(e) => onChange({ dimScheduleEnabled: e.target.checked })}
-              className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+              onChange={(v) => onChange({ dimScheduleEnabled: v })}
             />
-            <span className="text-sm text-hs-text-body">{t('settings.sleepFormFields.dimScheduleLabel')}</span>
-          </label>
+          </div>
 
           {dimScheduleEnabled && (
             <div className="grid grid-cols-2 gap-3">
@@ -158,16 +153,14 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
             </div>
           )}
 
-          <label className="flex items-center gap-2 cursor-pointer mt-2">
-            <input
-              type="checkbox"
+          <div className="mt-2">
+            <Toggle
+              label={t('settings.sleepFormFields.sleepScheduleLabel')}
               checked={sleepScheduleEnabled}
               disabled={disabled}
-              onChange={(e) => onChange({ sleepScheduleEnabled: e.target.checked })}
-              className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
+              onChange={(v) => onChange({ sleepScheduleEnabled: v })}
             />
-            <span className="text-sm text-hs-text-body">{t('settings.sleepFormFields.sleepScheduleLabel')}</span>
-          </label>
+          </div>
 
           {sleepScheduleEnabled && (
             <div className="grid grid-cols-2 gap-3">

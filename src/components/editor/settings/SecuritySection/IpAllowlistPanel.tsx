@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import type { IpAllowlistData } from './types';
 
@@ -135,41 +136,29 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
 
       <div className="space-y-4">
         {/* Toggles */}
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
+        <div>
+          <Toggle
+            label={t('settings.securityPage.ipAllowlist.bypassAuth.label')}
             checked={ipBypassAuth}
-            onChange={(e) => { setIpBypassAuth(e.target.checked); setIpDirty(true); }}
+            onChange={(v) => { setIpBypassAuth(v); setIpDirty(true); }}
             disabled={ipAllowlist.length === 0}
-            className="mt-0.5 accent-hs-accent rounded"
           />
-          <div>
-            <span className="text-sm text-hs-text-body">
-              {t('settings.securityPage.ipAllowlist.bypassAuth.label')}
-            </span>
-            <p className="text-xs text-hs-text-faint">
-              {t('settings.securityPage.ipAllowlist.bypassAuth.help')}
-            </p>
-          </div>
-        </label>
+          <p className="text-xs text-hs-text-faint">
+            {t('settings.securityPage.ipAllowlist.bypassAuth.help')}
+          </p>
+        </div>
 
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
+        <div>
+          <Toggle
+            label={t('settings.securityPage.ipAllowlist.restrictAccess.label')}
             checked={ipRestrictAccess}
-            onChange={(e) => { setIpRestrictAccess(e.target.checked); setIpDirty(true); }}
+            onChange={(v) => { setIpRestrictAccess(v); setIpDirty(true); }}
             disabled={ipAllowlist.length === 0}
-            className="mt-0.5 accent-hs-accent rounded"
           />
-          <div>
-            <span className="text-sm text-hs-text-body">
-              {t('settings.securityPage.ipAllowlist.restrictAccess.label')}
-            </span>
-            <p className="text-xs text-hs-text-faint">
-              {t('settings.securityPage.ipAllowlist.restrictAccess.help')}
-            </p>
-          </div>
-        </label>
+          <p className="text-xs text-hs-text-faint">
+            {t('settings.securityPage.ipAllowlist.restrictAccess.help')}
+          </p>
+        </div>
 
         {ipAllowlist.length === 0 && (
           <p className="text-xs text-hs-text-faint">

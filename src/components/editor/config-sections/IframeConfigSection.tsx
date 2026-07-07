@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
+import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
 import { useTranslate } from '@/i18n';
@@ -50,25 +51,17 @@ export function IframeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
         onChange={(v) => set({ refreshIntervalMs: Math.max(0, Number(v)) * 1000 })}
       />
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={c.scrollable ?? false}
-          onChange={(e) => set({ scrollable: e.target.checked })}
-          className="accent-cyan-500"
-        />
-        <span className="text-xs text-hs-text-secondary">{t('configSections.iframe.allowScrolling')}</span>
-      </label>
+      <Toggle
+        label={t('configSections.iframe.allowScrolling')}
+        checked={c.scrollable ?? false}
+        onChange={(v) => set({ scrollable: v })}
+      />
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={c.sandboxEnabled ?? false}
-          onChange={(e) => set({ sandboxEnabled: e.target.checked })}
-          className="accent-cyan-500"
-        />
-        <span className="text-xs text-hs-text-secondary">{t('configSections.iframe.enableSandbox')}</span>
-      </label>
+      <Toggle
+        label={t('configSections.iframe.enableSandbox')}
+        checked={c.sandboxEnabled ?? false}
+        onChange={(v) => set({ sandboxEnabled: v })}
+      />
 
       {c.sandboxEnabled && (
         <LabeledField label={t('configSections.iframe.sandboxPermissions')}>

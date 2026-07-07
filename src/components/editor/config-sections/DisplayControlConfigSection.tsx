@@ -3,6 +3,7 @@
 import { useEditorStore } from '@/stores/editor-store';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
+import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, DisplayControlConfig } from '@/types/config';
@@ -64,16 +65,12 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
         )}
       </LabeledField>
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={!legacy && (c.allowRetargeting ?? false)}
-          disabled={legacy}
-          onChange={(e) => set({ allowRetargeting: e.target.checked })}
-          className="accent-cyan-500"
-        />
-        <span className="text-xs text-hs-text-secondary">{t('configSections.display-control.allowRetargeting')}</span>
-      </label>
+      <Toggle
+        label={t('configSections.display-control.allowRetargeting')}
+        checked={!legacy && (c.allowRetargeting ?? false)}
+        disabled={legacy}
+        onChange={(v) => set({ allowRetargeting: v })}
+      />
     </div>
   );
 }

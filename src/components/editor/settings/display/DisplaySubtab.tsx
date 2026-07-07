@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Info } from 'lucide-react';
 import Link from 'next/link';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import OverrideRow from '@/components/editor/settings/OverrideRow';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
@@ -364,18 +365,12 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={value}
-                  disabled={disabled}
-                  onChange={(e) => onChange(e.target.checked)}
-                  className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-                />
-                <span className="text-sm text-hs-text-secondary">
-                  {t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
-                </span>
-              </label>
+              <Toggle
+                label={t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
+                checked={value}
+                disabled={disabled}
+                onChange={onChange}
+              />
             )}
           </OverrideRow>
 

@@ -4,6 +4,7 @@ import { useTranslate } from '@/i18n';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, ShapeConfig, ShapeView } from '@/types/config';
 
@@ -256,15 +257,11 @@ export function ShapeConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
       {/* ---- Geometric shapes ---- */}
       {FILLABLE_SHAPES.has(view) && (
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={c.outline ?? false}
-            onChange={(e) => set({ outline: e.target.checked })}
-            className="accent-cyan-500"
-          />
-          <span className="text-xs text-hs-text-muted">{t('configSections.shape.outlineOnly')}</span>
-        </label>
+        <Toggle
+          label={t('configSections.shape.outlineOnly')}
+          checked={c.outline ?? false}
+          onChange={(v) => set({ outline: v })}
+        />
       )}
 
       {FILLABLE_SHAPES.has(view) && c.outline && (

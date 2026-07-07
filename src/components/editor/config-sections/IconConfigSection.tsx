@@ -6,6 +6,7 @@ import IconPicker from '@/components/ui/IconPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { getFaIconKind, getFaIconStyles, pickStyleForIcon, type FaIconKind } from '@/lib/font-awesome-icons';
 import { useTranslate } from '@/i18n';
@@ -108,15 +109,11 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ iconBackground: v })}
       />
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={c.autoFit ?? true}
-          onChange={(e) => set({ autoFit: e.target.checked })}
-          className="accent-cyan-500"
-        />
-        <span className="text-xs text-hs-text-muted">{t('configSections.icon.autoFit')}</span>
-      </label>
+      <Toggle
+        label={t('configSections.icon.autoFit')}
+        checked={c.autoFit ?? true}
+        onChange={(v) => set({ autoFit: v })}
+      />
 
       {!c.autoFit && (
         <Slider

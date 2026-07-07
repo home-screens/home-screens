@@ -4,6 +4,7 @@ import { useTranslate } from '@/i18n';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, QRCodeConfig } from '@/types/config';
 
@@ -54,34 +55,22 @@ export function QRCodeConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
               placeholder={t('configSections.qr-code.passwordPlaceholder')}
             />
           )}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={c.hiddenNetwork ?? false}
-              onChange={(e) => set({ hiddenNetwork: e.target.checked })}
-              className="accent-cyan-500"
-            />
-            <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.hiddenNetwork')}</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={c.showNetworkName ?? true}
-              onChange={(e) => set({ showNetworkName: e.target.checked })}
-              className="accent-cyan-500"
-            />
-            <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.showNetworkName')}</span>
-          </label>
+          <Toggle
+            label={t('configSections.qr-code.hiddenNetwork')}
+            checked={c.hiddenNetwork ?? false}
+            onChange={(v) => set({ hiddenNetwork: v })}
+          />
+          <Toggle
+            label={t('configSections.qr-code.showNetworkName')}
+            checked={c.showNetworkName ?? true}
+            onChange={(v) => set({ showNetworkName: v })}
+          />
           {(c.authType || 'WPA') !== 'nopass' && (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={c.showPassword ?? true}
-                onChange={(e) => set({ showPassword: e.target.checked })}
-                className="accent-cyan-500"
-              />
-              <span className="text-xs text-hs-text-muted">{t('configSections.qr-code.showPassword')}</span>
-            </label>
+            <Toggle
+              label={t('configSections.qr-code.showPassword')}
+              checked={c.showPassword ?? true}
+              onChange={(v) => set({ showPassword: v })}
+            />
           )}
         </>
       ) : (

@@ -6,6 +6,7 @@ import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
 import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklinkBanner';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
@@ -301,17 +302,11 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
 
             <FieldRow>
               <FieldLabel>{t('settings.defaultDisplayPage.canvas.flipLabel')}</FieldLabel>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={flipped}
-                  onChange={(e) => setFlipped(e.target.checked)}
-                  className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-                />
-                <span className="text-sm text-hs-text-secondary">
-                  {t('settings.defaultDisplayPage.canvas.flipToggle')}
-                </span>
-              </label>
+              <Toggle
+                label={t('settings.defaultDisplayPage.canvas.flipToggle')}
+                checked={flipped}
+                onChange={(v) => setFlipped(v)}
+              />
               <FieldHelp>
                 {t('settings.defaultDisplayPage.canvas.flipHelp')}
               </FieldHelp>
@@ -341,17 +336,11 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
 
         <FieldRow>
           <FieldLabel>{t('settings.defaultDisplayPage.fields.pauseEnabledLabel')}</FieldLabel>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={pauseEnabled}
-              onChange={(e) => onChange({ pauseEnabled: e.target.checked })}
-              className="rounded bg-hs-card border-hs-border-strong text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
-            />
-            <span className="text-sm text-hs-text-secondary">
-              {t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
-            </span>
-          </label>
+          <Toggle
+            label={t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
+            checked={pauseEnabled}
+            onChange={(v) => onChange({ pauseEnabled: v })}
+          />
           <FieldHelp>
             {t('settings.defaultDisplayPage.fields.pauseEnabledHelp')}
           </FieldHelp>
