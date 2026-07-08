@@ -22,6 +22,8 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
 
+      - run: npm install -g npm@11.6.2
+
       - run: npm ci
 
       - run: npm run lint
@@ -36,6 +38,8 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
+
+      - run: npm install -g npm@11.6.2
 
       - run: npm ci
 
@@ -52,6 +56,8 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
 
+      - run: npm install -g npm@11.6.2
+
       - run: npm ci
 
       - run: npx tsc --noEmit
@@ -67,6 +73,8 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
+
+      - run: npm install -g npm@11.6.2
 
       - run: npm ci
 
@@ -86,6 +94,8 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
+
+      - run: npm install -g npm@11.6.2
 
       - run: npm ci
 
@@ -117,6 +127,8 @@ jobs:
         with:
           node-version-file: '.node-version'
           cache: npm
+
+      - run: npm install -g npm@11.6.2
 
       - run: npm ci
 
