@@ -35,6 +35,8 @@ import {
   withActiveScreens,
   getActiveDimensions,
   resolveProfileTarget,
+  withProfiles,
+  withActiveProfile,
   updateModuleInConfig,
   buildBootstrapMain,
   buildNewDisplay,
@@ -554,111 +556,62 @@ export const useEditorStore = create<EditorState>((set, get) => {
         name,
         screenIds: getActiveScreens(config, selectedDisplayId).map((s) => s.id),
       };
-      const target = resolveProfileTarget(config, selectedDisplayId);
-      if (target.kind === 'display') {
-        const nextDisplays = [...config.displays!];
-        nextDisplays[target.idx] = {
-          ...target.display,
-          profiles: [...(target.display.profiles ?? []), newProfile],
-        };
-        return { config: { ...config, displays: nextDisplays } };
-      }
       return {
-        config: { ...config, profiles: [...(config.profiles ?? []), newProfile] },
+        config: withProfiles(config, selectedDisplayId, (profiles) => [...profiles, newProfile]),
       };
     });
   },
 
   removeProfile: (id: string) => {
     const { selectedDisplayId } = get();
-    mutateConfig((config) => {
-      const target = resolveProfileTarget(config, selectedDisplayId);
-      if (target.kind === 'display') {
-        const nextDisplays = [...config.displays!];
-        nextDisplays[target.idx] = {
-          ...target.display,
-          profiles: (target.display.profiles ?? []).filter((p) => p.id !== id),
-          ...(target.display.activeProfile === id ? { activeProfile: undefined } : {}),
-        };
-        return { config: { ...config, displays: nextDisplays } };
-      }
-
-      const profiles = (config.profiles ?? []).filter((p) => p.id !== id);
-      const settings = config.settings.activeProfile === id
-        ? { ...config.settings, activeProfile: undefined }
-        : config.settings;
-      // Clear the removed profile from per-display activeProfile so the
-      // writeConfig validator stays happy.
-      const displays = config.displays?.map((d) => ({
-        ...d,
-        ...(d.activeProfile === id ? { activeProfile: undefined } : {}),
-      }));
-      return { config: { ...config, profiles, settings, displays } };
-    });
+    // clearActiveProfile drops the removed id from the owning display's
+    // activeProfile, or (in global mode) from config.settings plus every
+    // sibling display, so nothing dangles for the writeConfig validator.
+    mutateConfig((config) => ({
+      config: withProfiles(
+        config,
+        selectedDisplayId,
+        (profiles) => profiles.filter((p) => p.id !== id),
+        { clearActiveProfile: id },
+      ),
+    }));
   },
 
   updateProfile: (id: string, updates: Partial<Profile>) => {
     const { selectedDisplayId } = get();
-    mutateConfig((config) => {
-      const target = resolveProfileTarget(config, selectedDisplayId);
-      if (target.kind === 'display') {
-        const nextDisplays = [...config.displays!];
-        nextDisplays[target.idx] = {
-          ...target.display,
-          profiles: (target.display.profiles ?? []).map((p) =>
-            p.id === id ? { ...p, ...updates } : p,
-          ),
-        };
-        return { config: { ...config, displays: nextDisplays } };
-      }
-      return {
-        config: {
-          ...config,
-          profiles: (config.profiles ?? []).map((p) =>
-            p.id === id ? { ...p, ...updates } : p,
-          ),
-        },
-      };
-    }, { coalesce: `profile:${id}` });
+    mutateConfig((config) => ({
+      config: withProfiles(config, selectedDisplayId, (profiles) =>
+        profiles.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+      ),
+    }), { coalesce: `profile:${id}` });
   },
 
   reorderProfiles: (fromIndex: number, toIndex: number) => {
     const { config, selectedDisplayId } = get();
     if (!config) return;
-    const target = resolveProfileTarget(config, selectedDisplayId);
-    if (target.kind === 'display') {
-      const profiles = [...(target.display.profiles ?? [])];
-      const [moved] = profiles.splice(fromIndex, 1);
-      profiles.splice(toIndex, 0, moved);
-      const nextDisplays = [...config.displays!];
-      nextDisplays[target.idx] = { ...target.display, profiles };
-      mutateConfig(() => ({ config: { ...config, displays: nextDisplays } }), { coalesce: 'reorderProfiles' });
-      return;
-    }
-    if (!config.profiles) return;
-    const profiles = [...config.profiles];
-    const [moved] = profiles.splice(fromIndex, 1);
-    profiles.splice(toIndex, 0, moved);
-    mutateConfig(() => ({ config: { ...config, profiles } }), { coalesce: 'reorderProfiles' });
+    mutateConfig(() => ({
+      config: withProfiles(config, selectedDisplayId, (profiles) => {
+        // dnd-kit only fires this on a rendered list, so both indices are
+        // valid; the guard just keeps an empty/single list a no-op.
+        if (profiles.length < 2) return profiles;
+        const next = [...profiles];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        return next;
+      }),
+    }), { coalesce: 'reorderProfiles' });
   },
 
   setActiveProfile: (id: string | undefined) => {
     const { selectedDisplayId } = get();
-    mutateConfig((config) => {
-      // Match the sibling profile actions: only route to display.activeProfile
-      // when the display OWNS its profile list. Shared-pool displays and
-      // legacy single-display installs write to config.settings.activeProfile,
-      // which is what ProfilesSection's read path checks for those cases.
-      const target = resolveProfileTarget(config, selectedDisplayId);
-      if (target.kind === 'display') {
-        const nextDisplays = [...config.displays!];
-        nextDisplays[target.idx] = { ...target.display, activeProfile: id };
-        return { config: { ...config, displays: nextDisplays } };
-      }
-      return {
-        config: { ...config, settings: { ...config.settings, activeProfile: id } },
-      };
-    }, { coalesce: 'activeProfile' });
+    // withActiveProfile routes to display.activeProfile only when the display
+    // OWNS its profile list. Shared-pool displays and legacy single-display
+    // installs write to config.settings.activeProfile, which is what
+    // ProfilesSection's read path checks for those cases.
+    mutateConfig(
+      (config) => ({ config: withActiveProfile(config, selectedDisplayId, id) }),
+      { coalesce: 'activeProfile' },
+    );
   },
 
   addDisplay: (display) => {

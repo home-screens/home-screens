@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readMealData, updateMealData, prunePlan } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays } from '@/lib/api-utils';
+import { readMealData, updateMealData, prunePlan, type MealData } from '@/lib/meal-data';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +36,14 @@ export const GET = withDisplayAuth(async () => {
  * interleaving and silently losing each other's edits.
  */
 export const PUT = withAuth(async (req: NextRequest) => {
-  const body = await req.json();
+  const body = await parseJsonBody<{
+    savedMeals?: MealData['savedMeals'];
+    plan?: MealData['plan'];
+    groceryChecked?: MealData['groceryChecked'];
+    settings?: unknown;
+    force?: boolean;
+  }>(req);
+  if (body instanceof NextResponse) return body;
   const { savedMeals, plan, groceryChecked, settings, force } = body;
 
   const arrayCheck = assertOptionalArrays(body, ['savedMeals', 'plan', 'groceryChecked']);

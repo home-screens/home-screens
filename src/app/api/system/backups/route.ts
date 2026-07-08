@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { execFile } from 'child_process';
 import { readFile } from 'fs/promises';
 import path from 'path';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,12 +52,8 @@ export const GET = withAuth(async (request: NextRequest) => {
 }, 'Failed to list backups');
 
 export const POST = withAuth(async (request: NextRequest) => {
-  let body: { name?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const body = await parseJsonBody<{ name?: string }>(request);
+  if (body instanceof NextResponse) return body;
 
   const name = body.name;
   if (!name || typeof name !== 'string') {

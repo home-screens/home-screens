@@ -3,12 +3,10 @@
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import type { ModuleInstance, SportsView } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-
-const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000;
 
 export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -63,13 +61,15 @@ export function SportsConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
           onChange={(v) => set({ tickerSpeed: v })}
         />
       )}
-      <Slider
-        label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 1000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey="sports"
+        fallbackMs={60_000}
+        unit="seconds"
         min={30}
         max={600}
         step={30}
-        onChange={(v) => set({ refreshIntervalMs: v * 1000 })}
       />
     </>
   );

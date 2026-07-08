@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -105,7 +105,8 @@ async function fetchTodoistList(endpoint: string, token: string): Promise<Record
 // ─── PUT: Save token server-side ───
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
+  const body = await parseJsonBody<{ token?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
   const token = typeof body.token === 'string' ? body.token.trim() : '';
 
   if (!token) {

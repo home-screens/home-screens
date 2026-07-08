@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
-import { withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,7 +108,9 @@ export const POST = withAuth(async (request: NextRequest) => {
 }, 'Failed to upload background');
 
 export const DELETE = withAuth(async (request: NextRequest) => {
-  const { file, directory } = await request.json();
+  const body = await parseJsonBody<{ file?: unknown; directory?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { file, directory } = body;
   if (!file || typeof file !== 'string') {
     return NextResponse.json({ error: 'file parameter required' }, { status: 400 });
   }

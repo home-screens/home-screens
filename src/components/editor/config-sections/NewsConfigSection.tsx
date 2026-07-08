@@ -3,6 +3,7 @@
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -10,9 +11,6 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, NewsView } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-
-const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000;
 
 const NEWS_FEED_PRESETS = [
   { label: 'BBC News', url: '' },
@@ -123,13 +121,15 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           onChange={(v) => set({ accentColor: v || undefined })}
         />
       )}
-      <Slider
-        label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 1000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey="news"
+        fallbackMs={300_000}
+        unit="seconds"
         min={60}
         max={3600}
         step={60}
-        onChange={(v) => set({ refreshIntervalMs: v * 1000 })}
       />
     </>
   );

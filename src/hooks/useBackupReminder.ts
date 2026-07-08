@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { BackupState } from '@/lib/backup-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -26,24 +27,19 @@ export function useBackupReminder({
   const seedingRef = useRef(false);
 
   // Fetch backup state on mount, then optionally poll
-  useEffect(() => {
-    if (!enabled) return;
-    let mounted = true;
-
-    async function check() {
+  usePolledFetch(
+    async (isMounted) => {
       try {
         const res = await fetchFn('/api/backup/reminder');
-        if (!mounted) return;
+        if (!isMounted()) return;
         if (res.ok) setBackupState(await res.json());
       } catch {
         // Not critical
       }
-    }
-
-    check();
-    const id = pollIntervalMs ? setInterval(check, pollIntervalMs) : undefined;
-    return () => { mounted = false; if (id) clearInterval(id); };
-  }, [enabled, fetchFn, pollIntervalMs]);
+    },
+    [fetchFn],
+    { enabled, intervalMs: pollIntervalMs },
+  );
 
   // Seed lastBackupDate on first encounter when null (avoids nagging new users)
   useEffect(() => {

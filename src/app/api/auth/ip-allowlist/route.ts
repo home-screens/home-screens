@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, getClientIP } from '@/lib/api-utils';
+import { withAuth, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { getIpAllowlistConfig, setIpAllowlistConfig } from '@/lib/auth';
 import { validateCidr, isIpAllowed, normalizeIp } from '@/lib/ip-allowlist';
 import { audit } from '@/lib/audit';
@@ -21,7 +21,13 @@ export const GET = withAuth(async (request: NextRequest) => {
 }, 'Failed to read IP allowlist');
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
+  const body = await parseJsonBody<{
+    allowlist?: unknown;
+    bypassAuth?: unknown;
+    restrictAccess?: unknown;
+    force?: unknown;
+  }>(request);
+  if (body instanceof NextResponse) return body;
   const { allowlist, bypassAuth, restrictAccess, force } = body;
 
   // Validate types

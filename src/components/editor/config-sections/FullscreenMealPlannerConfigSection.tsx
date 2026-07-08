@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
-import LabeledField from '@/components/ui/LabeledField';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import FullscreenThemeSelect from './FullscreenThemeSelect';
+import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
 import { useTranslate } from '@/i18n';
 import type {
@@ -46,21 +45,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     { value: 'snug', label: t('configSections.fullscreen-meal-planner.densitySnug') },
   ] as const;
 
-  // Translate the shared TYPOGRAPHY_SIZES table at render time. See the
-  // matching pattern in FullscreenChoreChartConfigSection — both modules
-  // share the same dropdown options and the same `editor.common.typographySizes.*`
-  // keys, so the resolved labels stay consistent across modules.
-  const typographySizeOptions = useMemo(
-    () =>
-      TYPOGRAPHY_SIZES.map((opt) => {
-        const translated = t(opt.i18nKey);
-        return {
-          value: opt.value,
-          label: translated === opt.i18nKey ? opt.label : translated,
-        };
-      }),
-    [t],
-  );
+  const typographySizeOptions = useTypographySizeOptions();
 
   const [showModal, setShowModal] = useState(false);
   const [mealData, setMealData] = useState<MealsPayload>({
@@ -142,18 +127,11 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label={t('common.theme')}>
-        <select
-          value={c.theme ?? ''}
-          onChange={(e) => set({ theme: e.target.value || undefined })}
-          className={INPUT_CLASS}
-        >
-          <option value="">{t('configSections.fullscreen-meal-planner.themeDefault')}</option>
-          {FULLSCREEN_THEMES.map((theme) => (
-            <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
-          ))}
-        </select>
-      </LabeledField>
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-meal-planner.themeDefault"
+      />
 
       {/* View */}
       <LabeledSelect

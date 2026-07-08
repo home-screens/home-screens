@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
@@ -143,7 +143,8 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   }
 
   // Parse request body
-  const body: ProxyRequestBody = await request.json();
+  const body = await parseJsonBody<ProxyRequestBody>(request);
+  if (body instanceof NextResponse) return body;
   if (!body.url || typeof body.url !== 'string') {
     return NextResponse.json({ error: 'url is required' }, { status: 400 });
   }

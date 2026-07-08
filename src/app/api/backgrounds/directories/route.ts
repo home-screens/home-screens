@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,9 @@ export const GET = withAuth(async () => {
 }, 'Failed to list directories');
 
 export const POST = withAuth(async (request: NextRequest) => {
-  const { name, parent } = await request.json();
+  const body = await parseJsonBody<{ name?: unknown; parent?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
+  const { name, parent } = body;
 
   if (!name || typeof name !== 'string') {
     return NextResponse.json({ error: 'name is required' }, { status: 400 });
@@ -141,7 +143,9 @@ export const POST = withAuth(async (request: NextRequest) => {
 }, 'Failed to create directory');
 
 export const DELETE = withAuth(async (request: NextRequest) => {
-  const { path: dirPath } = await request.json();
+  const body = await parseJsonBody<{ path?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
+  const { path: dirPath } = body;
 
   if (!dirPath || typeof dirPath !== 'string') {
     return NextResponse.json({ error: 'path is required' }, { status: 400 });

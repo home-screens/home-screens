@@ -16,7 +16,6 @@ import {
   replaceWeekInPlan,
   copyWeekEntries,
   formatMealTime,
-  parseTimeToMinutes,
   resolvePlannedMealTime,
   getSlotTimePresets,
   SLOT_TIME_PRESETS,
@@ -26,25 +25,27 @@ import {
   SLOT_ORDER,
   SLOT_WINDOWS,
   SLOT_META,
-  getLocalizedDayNamesAsync,
+  getLocalizedDayNames,
 } from '@/lib/meal-constants';
+import { preloadDateLocale } from '@/i18n/formatters';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 
 // ── getLocalizedDayNames ──
 
 describe('getLocalizedDayNames', () => {
   it('returns 7 entries indexed 0=Sunday … 6=Saturday', async () => {
-    // Use the async variant so the date-fns en-US bundle is loaded
-    // before we read sync — the sync variant falls back silently when
-    // the cache is cold.
-    const names = await getLocalizedDayNamesAsync('en-US', 'full');
+    // Preload the date-fns en-US bundle before reading sync — the sync
+    // variant falls back silently when the cache is cold.
+    await preloadDateLocale('en-US');
+    const names = getLocalizedDayNames('en-US', 'full');
     expect(names).toHaveLength(7);
     expect(names[0]).toBe('Sunday');
     expect(names[6]).toBe('Saturday');
   });
 
   it('returns short forms for format="short"', async () => {
-    const names = await getLocalizedDayNamesAsync('en-US', 'short');
+    await preloadDateLocale('en-US');
+    const names = getLocalizedDayNames('en-US', 'short');
     expect(names).toHaveLength(7);
     expect(names[0]).toBe('Sun');
     expect(names[1]).toBe('Mon');
@@ -53,7 +54,8 @@ describe('getLocalizedDayNames', () => {
   it('honors the locale argument (de-DE returns German names)', async () => {
     // Regression guard for the en-US literal cutover. After preloading
     // the de-DE date-fns bundle, the names array must be German.
-    const names = await getLocalizedDayNamesAsync('de-DE', 'full');
+    await preloadDateLocale('de-DE');
+    const names = getLocalizedDayNames('de-DE', 'full');
     expect(names).toHaveLength(7);
     // Sunday in German is "Sonntag", Saturday is "Samstag" — both
     // distinct enough from English that an accidental fallback would
@@ -567,27 +569,6 @@ describe('formatMealTime', () => {
   });
 });
 
-// ── parseTimeToMinutes ──
-
-describe('parseTimeToMinutes', () => {
-  it('returns null for undefined / malformed', () => {
-    expect(parseTimeToMinutes(undefined)).toBeNull();
-    expect(parseTimeToMinutes('')).toBeNull();
-    expect(parseTimeToMinutes('abc')).toBeNull();
-    expect(parseTimeToMinutes('25:00')).toBeNull();
-    expect(parseTimeToMinutes('12:60')).toBeNull();
-  });
-
-  it('converts valid times to minutes since midnight', () => {
-    expect(parseTimeToMinutes('00:00')).toBe(0);
-    expect(parseTimeToMinutes('00:30')).toBe(30);
-    expect(parseTimeToMinutes('01:00')).toBe(60);
-    expect(parseTimeToMinutes('12:00')).toBe(720);
-    expect(parseTimeToMinutes('18:30')).toBe(1110);
-    expect(parseTimeToMinutes('23:59')).toBe(1439);
-  });
-});
-
 // ── resolvePlannedMealTime ──
 
 describe('resolvePlannedMealTime', () => {
@@ -662,7 +643,7 @@ describe('getSlotTimePresets / SLOT_TIME_PRESETS', () => {
       expect(presets).toHaveLength(4);
       // Each preset should be a valid HH:MM 24h string
       for (const p of presets) {
-        expect(parseTimeToMinutes(p)).not.toBeNull();
+        expect(p).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
       }
     }
   });

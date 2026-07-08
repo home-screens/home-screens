@@ -1,15 +1,12 @@
 'use client';
 
-import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useIndexListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-
-const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['traffic']?.ttlMs ?? 300_000;
 
 export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const { config: c, set } = useModuleConfig<{ routes?: { label: string; origin: string; destination: string }[]; refreshIntervalMs?: number }>(mod, screenId);
@@ -26,12 +23,14 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <div className="space-y-2">
-      <Slider
-        label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey="traffic"
+        fallbackMs={300_000}
+        unit="minutes"
         min={1}
         max={30}
-        onChange={(v) => set({ refreshIntervalMs: v * 60000 })}
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">{t('configSections.traffic.routes')}</span>

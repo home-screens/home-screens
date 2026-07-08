@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ScreenConfiguration } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { ALERT_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
-import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklinkBanner';
+import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
 import AlertFormFields, {
   type AlertFormValues,
 } from '@/components/editor/settings/display/AlertFormFields';
@@ -42,22 +42,19 @@ export default function DefaultAlertsSection({ config, values, onChange }: Defau
   );
 
   return (
-    <>
-      <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          {t('settings.defaultAlertsPage.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">
-          {t('settings.defaultAlertsPage.heading')}
-        </h1>
+    <DefaultsPageShell
+      breadcrumb={t('settings.defaultAlertsPage.breadcrumb')}
+      heading={t('settings.defaultAlertsPage.heading')}
+      description={
         <p className="text-sm text-hs-text-faint mt-1">
           {t('settings.defaultAlertsPage.description')}
         </p>
-      </div>
-      <DefaultsBacklinkBanner overrides={overrides} />
+      }
+      overrides={overrides}
+    >
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <AlertFormFields values={values} onChange={onChange} />
       </div>
-    </>
+    </DefaultsPageShell>
   );
 }

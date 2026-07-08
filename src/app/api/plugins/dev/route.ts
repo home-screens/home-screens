@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { validateManifest, registerDevPlugin } from '@/lib/plugins';
 import type { PluginManifest } from '@/types/plugins';
 
@@ -11,7 +11,9 @@ export const dynamic = 'force-dynamic';
  * Requires session auth — this is an editor/developer action.
  */
 export const POST = withAuth(async (request) => {
-  const { manifest } = (await request.json()) as { manifest: PluginManifest };
+  const body = await parseJsonBody<{ manifest?: PluginManifest }>(request);
+  if (body instanceof NextResponse) return body;
+  const { manifest } = body;
 
   if (!manifest || !validateManifest(manifest)) {
     return NextResponse.json({ error: 'Invalid manifest' }, { status: 400 });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { publicErrorResponse } from '@/lib/api-utils';
+import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
 import { readRewardData, redeemReward } from '@/lib/reward-data';
 import { readChoreData } from '@/lib/chore-data';
 
@@ -24,8 +24,9 @@ export const GET = async () => {
 /** POST — redeem a reward for a member. */
 export const POST = async (request: NextRequest) => {
   try {
-    const body = await request.json();
-    const { rewardId, memberId } = body as { rewardId: string; memberId: string };
+    const body = await parseJsonBody<{ rewardId?: string; memberId?: string }>(request);
+    if (body instanceof NextResponse) return body;
+    const { rewardId, memberId } = body;
 
     if (!rewardId || !memberId) {
       return NextResponse.json(

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { readChoreData, writeChoreData } from '@/lib/chore-data';
 import { rewardCascadeDeleteMember } from '@/lib/reward-data';
 import type { ChoreMember, ChoreDefinition } from '@/types/config';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertRequiredArrays } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertRequiredArrays, parseJsonBody } from '@/lib/api-utils';
 import { logger } from '@/lib/logger';
 
 const log = logger('chores');
@@ -16,12 +16,13 @@ export const GET = withDisplayAuth(async () => {
 }, 'Failed to read chore data');
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { members, chores, force } = body as {
+  const body = await parseJsonBody<{
     members: ChoreMember[];
     chores: ChoreDefinition[];
     force?: boolean;
-  };
+  }>(request);
+  if (body instanceof NextResponse) return body;
+  const { members, chores, force } = body;
 
   const invalid = assertRequiredArrays(body, ['members', 'chores']);
   if (invalid) return invalid;

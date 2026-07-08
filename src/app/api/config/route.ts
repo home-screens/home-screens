@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readConfig, writeConfig } from '@/lib/config';
 import { syncKioskConf, applyDisplaySettings } from '@/lib/kiosk';
-import { withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateDisplays, validateAllSchedules } from '@/lib/display-filter';
 import type { ScreenConfiguration } from '@/types/config';
@@ -19,14 +19,15 @@ export const GET = withDisplayAuth(async () => {
 }, 'Failed to read config');
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
+  const body = await parseJsonBody<ScreenConfiguration>(request);
+  if (body instanceof NextResponse) return body;
   if (!body || !Array.isArray(body.screens) || !body.settings) {
     return NextResponse.json(
       { error: 'Invalid config: must include screens array and settings' },
       { status: 400 },
     );
   }
-  const config = body as ScreenConfiguration;
+  const config = body;
 
   // Validate the multi-display registry if present. The validator enforces
   // unique URL-safe slugs and that screen/profile cross-references resolve.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseClockTime, parseDateParts, buildInfoParts, getDateInfoValues } from '../date-info';
+import { parseClockTime, buildInfoParts, getDateInfoValues } from '../date-info';
 
 // ---------------------------------------------------------------------------
 // parseClockTime
@@ -82,28 +82,6 @@ describe('parseClockTime', () => {
     expect(result.hours).toBe(14);
     expect(result.minutes).toBe(30);
     expect(result.seconds).toBe(45);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// parseDateParts
-// ---------------------------------------------------------------------------
-
-describe('parseDateParts', () => {
-  it('returns correct parts for a known date', () => {
-    const date = new Date(2024, 2, 15); // March 15, 2024 (Friday)
-    const result = parseDateParts(date);
-    expect(result.dayNumber).toBe('15');
-    expect(result.monthName).toBe('March');
-    expect(result.dayName).toBe('Friday');
-    expect(result.year).toBe('2024');
-  });
-
-  it('returns single-digit day without padding', () => {
-    const date = new Date(2024, 0, 5); // January 5, 2024
-    const result = parseDateParts(date);
-    expect(result.dayNumber).toBe('5');
-    expect(result.monthName).toBe('January');
   });
 });
 

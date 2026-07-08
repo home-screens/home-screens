@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawn, execSync } from 'child_process';
-import { errorResponse, withAuth } from '@/lib/api-utils';
+import { errorResponse, withAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,9 @@ export const dynamic = 'force-dynamic';
  * Both actions use a short delay so the API can respond before the process dies.
  */
 export const POST = withAuth(async (request) => {
-  const { action } = await request.json();
+  const body = await parseJsonBody<{ action?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
+  const { action } = body;
 
   if (action === 'restart-service') {
     return restartService();

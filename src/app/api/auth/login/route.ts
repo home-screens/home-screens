@@ -7,7 +7,7 @@ import {
   buildSessionCookie,
   getSessionMaxAge,
 } from '@/lib/auth';
-import { errorResponse, createRateLimiter, getClientIP } from '@/lib/api-utils';
+import { errorResponse, createRateLimiter, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await parseJsonBody<{ password?: unknown; rememberMe?: unknown }>(request);
+    if (body instanceof NextResponse) return body;
     const { password, rememberMe } = body;
 
     if (!password || typeof password !== 'string') {

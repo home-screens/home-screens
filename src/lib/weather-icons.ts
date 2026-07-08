@@ -28,26 +28,6 @@ const outlineIcons: Record<WeatherIconId, LucideIcon> = {
   'cloud-hail': CloudHail,
 };
 
-const iconLabels: Record<WeatherIconId, string> = {
-  sun: 'Sunny',
-  moon: 'Clear night',
-  cloud: 'Cloudy',
-  'cloud-sun': 'Partly cloudy',
-  'cloud-moon': 'Partly cloudy night',
-  'cloud-rain': 'Rain',
-  'cloud-drizzle': 'Drizzle',
-  'cloud-snow': 'Snow',
-  'cloud-lightning': 'Thunderstorm',
-  'cloud-fog': 'Fog',
-  snowflake: 'Snow',
-  thermometer: 'Temperature',
-  'cloud-hail': 'Hail',
-};
-
-export function getWeatherIconLabel(id: string): string {
-  return iconLabels[id as WeatherIconId] ?? 'Weather';
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type WeatherIcon = ComponentType<any>;
 

@@ -10,7 +10,7 @@ import {
   buildClearCookie,
   clearAuthCache,
 } from '@/lib/auth';
-import { errorResponse, createRateLimiter, getClientIP } from '@/lib/api-utils';
+import { errorResponse, createRateLimiter, getClientIP, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
       await requireSession(request);
     }
 
-    const body = await request.json();
+    const body = await parseJsonBody<{
+      currentPassword?: unknown;
+      newPassword?: unknown;
+      action?: unknown;
+    }>(request);
+    if (body instanceof NextResponse) return body;
     const { currentPassword, newPassword, action } = body;
 
     // Disable auth

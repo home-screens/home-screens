@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 
 /**
@@ -26,17 +27,14 @@ const EMPTY: DisplaySharedState = { entries: {}, reportedAt: null };
 export function useDisplaySharedState(displayId: string | null): DisplaySharedState {
   const [state, setState] = useState<DisplaySharedState>(EMPTY);
 
-  useEffect(() => {
-    let mounted = true;
-    setState(EMPTY);
-
-    async function poll() {
+  usePolledFetch(
+    async (isMounted) => {
       try {
         const url = displayId
           ? `/api/display/shared-state?display=${encodeURIComponent(displayId)}`
           : '/api/display/shared-state';
         const res = await editorFetch(url);
-        if (!res.ok || !mounted) return;
+        if (!res.ok || !isMounted()) return;
         const data = await res.json();
         if (data && typeof data === 'object' && data.entries && typeof data.entries === 'object') {
           setState({
@@ -47,15 +45,10 @@ export function useDisplaySharedState(displayId: string | null): DisplaySharedSt
       } catch {
         // Best-effort hint — keep showing the last snapshot on a failed poll.
       }
-    }
-
-    poll();
-    const id = setInterval(poll, POLL_MS);
-    return () => {
-      mounted = false;
-      clearInterval(id);
-    };
-  }, [displayId]);
+    },
+    [displayId],
+    { intervalMs: POLL_MS, onSetup: () => setState(EMPTY) },
+  );
 
   return state;
 }

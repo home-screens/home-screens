@@ -11,12 +11,14 @@ import {
   type ResolvedAssignment,
   type MemberStats,
   type WeekDayData,
-  localDateStr,
   todayStr,
-  resolveAssignee,
-  choreAppliesToday,
+  parseISO,
   completionKey,
   getWeekDatesFor,
+  resolveAssignmentsFor,
+  computeWeeklyPoints,
+  computeStreak,
+  isDayFullyComplete,
 } from './types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
@@ -113,95 +115,29 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   }, [completions]);
 
   // Resolve today's assignments
-  const todayAssignments = useMemo(() => {
-    const today = todayStr();
-    const dayOfWeek = new Date().getDay();
-    const assignments: ResolvedAssignment[] = [];
-
-    for (const chore of chores) {
-      if (!choreAppliesToday(chore, dayOfWeek, today)) continue;
-      const assignees = resolveAssignee(chore, today);
-      for (const memberId of assignees) {
-        if (!members.some((m) => m.id === memberId)) continue;
-        assignments.push({
-          chore,
-          memberId,
-          isCompleted: completionSet.has(completionKey(chore.id, memberId, today)),
-        });
-      }
-    }
-
-    return assignments;
-  }, [chores, members, completionSet]);
+  const todayAssignments = useMemo(
+    () => resolveAssignmentsFor(chores, members, todayStr(), completionSet),
+    [chores, members, completionSet],
+  );
 
   // Per-member stats (streaks computed client-side with config context)
   const memberStats = useMemo(() => {
     const stats = new Map<string, MemberStats>();
     const today = todayStr();
+    const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
 
     for (const member of members) {
       const myAssignments = todayAssignments.filter((a) => a.memberId === member.id);
       const completed = myAssignments.filter((a) => a.isCompleted).length;
       const total = myAssignments.length;
 
-      // Weekly points — aligned to configured week start day
-      const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
-      let weeklyPoints = 0;
-      let weeklyPointsTotal = 0;
-      for (const date of weekDates) {
-        const d = new Date(date + 'T00:00:00');
-        const dayOfWeek = d.getDay();
-        for (const chore of chores) {
-          if (!choreAppliesToday(chore, dayOfWeek, date)) continue;
-          if (!resolveAssignee(chore, date).includes(member.id)) continue;
-          weeklyPointsTotal += chore.points;
-          if (completionSet.has(completionKey(chore.id, member.id, date))) {
-            weeklyPoints += chore.points;
-          }
-        }
-      }
-
-      // Streak — consecutive past days with ALL assigned chores completed
-      let streak = 0;
-      const sd = new Date();
-      sd.setDate(sd.getDate() - 1); // start from yesterday
-      for (let i = 0; i < 30; i++) {
-        const date = localDateStr(sd);
-        const dayOfWeek = sd.getDay();
-        const assignedChores = chores.filter((c) => {
-          if (!choreAppliesToday(c, dayOfWeek, date)) return false;
-          return resolveAssignee(c, date).includes(member.id);
-        });
-
-        if (assignedChores.length === 0) {
-          // No chores assigned — skip day without breaking streak
-          sd.setDate(sd.getDate() - 1);
-          continue;
-        }
-
-        const allDone = assignedChores.every((c) =>
-          completionSet.has(completionKey(c.id, member.id, date)),
-        );
-
-        if (allDone) {
-          streak++;
-          sd.setDate(sd.getDate() - 1);
-        } else {
-          break;
-        }
-      }
-
-      // Include today if all today's chores are done
-      const todayDayOfWeek = new Date().getDay();
-      const todayAssigned = chores.filter((c) => {
-        if (!choreAppliesToday(c, todayDayOfWeek, today)) return false;
-        return resolveAssignee(c, today).includes(member.id);
-      });
-      if (todayAssigned.length > 0 && todayAssigned.every((c) =>
-        completionSet.has(completionKey(c.id, member.id, today)),
-      )) {
-        streak++;
-      }
+      const { earned: weeklyPoints, total: weeklyPointsTotal } = computeWeeklyPoints(
+        chores,
+        member.id,
+        weekDates,
+        completionSet,
+      );
+      const streak = computeStreak(chores, member.id, today, completionSet);
 
       stats.set(member.id, {
         total,
@@ -224,26 +160,13 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
 
     for (const date of weekDates) {
-      const d = new Date(date + 'T00:00:00');
-      const dayOfWeek = d.getDay();
+      const dayOfWeek = parseISO(date).getDay();
 
       const memberStars: Record<string, boolean> = {};
 
       for (const member of members) {
         // A star is earned when ALL assigned chores for that day are completed
-        const dayChores = chores.filter((c) => choreAppliesToday(c, dayOfWeek, date));
-        const assignedChores = dayChores.filter((c) => {
-          const assignees = resolveAssignee(c, date);
-          return assignees.includes(member.id);
-        });
-
-        if (assignedChores.length === 0) {
-          memberStars[member.id] = false;
-        } else {
-          memberStars[member.id] = assignedChores.every((c) =>
-            completionSet.has(completionKey(c.id, member.id, date)),
-          );
-        }
+        memberStars[member.id] = isDayFullyComplete(chores, member.id, date, completionSet);
       }
 
       days.push({

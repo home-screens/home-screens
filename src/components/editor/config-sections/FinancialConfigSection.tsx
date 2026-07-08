@@ -1,12 +1,12 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 type FinancialView = StockTickerView | CryptoView;
 
@@ -65,13 +65,15 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           onChange={(v) => set({ tickerSpeed: v })}
         />
       )}
-      <Slider
-        label={t('common.refreshSeconds')}
-        value={(c.refreshIntervalMs ?? (FETCH_KEY_REGISTRY[mod.type]?.ttlMs ?? 30_000)) / 1000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey={mod.type}
+        fallbackMs={30_000}
+        unit="seconds"
         min={30}
         max={600}
         step={30}
-        onChange={(v) => set({ refreshIntervalMs: v * 1000 })}
       />
     </>
   );

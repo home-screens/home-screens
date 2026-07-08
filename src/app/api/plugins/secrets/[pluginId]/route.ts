@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { getPluginManifest } from '@/lib/plugin-utils';
 import {
   getPluginSecretStatus,
@@ -30,8 +30,9 @@ export const PUT = withAuth<RouteContext>(async (request, ctx) => {
     return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
   }
 
-  const body = await request.json();
-  const { key, value } = body as { key: string; value: string };
+  const body = await parseJsonBody<{ key?: string; value?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { key, value } = body;
   if (!key || typeof value !== 'string' || !value.trim()) {
     return NextResponse.json({ error: 'key and non-empty value (string) are required' }, { status: 400 });
   }
@@ -48,8 +49,9 @@ export const DELETE = withAuth<RouteContext>(async (request, ctx) => {
     return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
   }
 
-  const body = await request.json();
-  const { key } = body as { key: string };
+  const body = await parseJsonBody<{ key?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { key } = body;
   if (!key) {
     return NextResponse.json({ error: 'key is required' }, { status: 400 });
   }

@@ -8,7 +8,6 @@ import {
   getCurrentTimeOfDay,
   completionKey,
   todayStr,
-  dateNDaysAgo,
   addDaysISO,
   getWeekDatesFor,
   addMemberToList,
@@ -20,10 +19,22 @@ import {
   parseISO,
   addMonthsClamped,
   computeDayEntries,
+  isAssignedOn,
+  choresAssignedTo,
+  isChoreComplete,
+  isDayFullyComplete,
+  resolveAssignmentsFor,
+  computeWeeklyPoints,
+  computeStreak,
   CHORE_HISTORY_DAYS,
   type ResolvedAssignment,
 } from '../types';
 import type { ChoreDefinition, ChoreMember } from '@/types/config';
+
+/** Build a completion Set from [choreId, memberId, date] triples. */
+function completionsFrom(triples: Array<[string, string, string]>): Set<string> {
+  return new Set(triples.map(([c, m, d]) => completionKey(c, m, d)));
+}
 
 function makeChore(overrides: Partial<ChoreDefinition> = {}): ChoreDefinition {
   return {
@@ -72,19 +83,6 @@ describe('todayStr', () => {
     const result = todayStr();
     expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(result).toBe(localDateStr(new Date()));
-  });
-});
-
-describe('dateNDaysAgo', () => {
-  it('returns today for n=0', () => {
-    expect(dateNDaysAgo(0)).toBe(todayStr());
-  });
-
-  it('returns a date in the past for positive n', () => {
-    const result = dateNDaysAgo(7);
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    expect(result).toBe(localDateStr(d));
   });
 });
 
@@ -786,5 +784,245 @@ describe('computeDayEntries', () => {
       '2026-04-01',
       '2026-04-02',
     ]);
+  });
+});
+
+// ── Assignment / completion predicates ──
+//
+// The canonical building blocks useChoreData's stats are made of.
+// Reference dates: 2026-04-06 Mon, 04-07 Tue, 04-08 Wed, 04-09 Thu.
+
+describe('isAssignedOn', () => {
+  it('is true for a fixed chore on any applicable day for an assignee', () => {
+    const chore = makeChore({ rotation: 'fixed', assigneeIds: ['alice', 'bob'] });
+    expect(isAssignedOn(chore, 'alice', '2026-04-09')).toBe(true);
+    expect(isAssignedOn(chore, 'bob', '2026-04-09')).toBe(true);
+  });
+
+  it('is false for a member who is not an assignee', () => {
+    const chore = makeChore({ assigneeIds: ['alice'] });
+    expect(isAssignedOn(chore, 'bob', '2026-04-09')).toBe(false);
+  });
+
+  it('respects daysOfWeek gating', () => {
+    const chore = makeChore({ assigneeIds: ['alice'], daysOfWeek: [1] }); // Monday only
+    expect(isAssignedOn(chore, 'alice', '2026-04-06')).toBe(true); // Monday
+    expect(isAssignedOn(chore, 'alice', '2026-04-09')).toBe(false); // Thursday
+  });
+
+  it('follows daily rotation — exactly one member owns the chore on a date', () => {
+    const chore = makeChore({ rotation: 'rotate-daily', assigneeIds: ['alice', 'bob'] });
+    const aliceOwns = isAssignedOn(chore, 'alice', '2026-04-06');
+    const bobOwns = isAssignedOn(chore, 'bob', '2026-04-06');
+    expect(aliceOwns).not.toBe(bobOwns);
+  });
+
+  it('follows schedule rotation — assigned only on the scheduled day', () => {
+    const chore = makeChore({
+      rotation: 'schedule',
+      assigneeIds: ['alice', 'bob'],
+      schedule: { alice: [1], bob: [3] }, // alice Mon, bob Wed
+    });
+    expect(isAssignedOn(chore, 'alice', '2026-04-06')).toBe(true); // Monday
+    expect(isAssignedOn(chore, 'alice', '2026-04-08')).toBe(false); // Wednesday
+    expect(isAssignedOn(chore, 'bob', '2026-04-08')).toBe(true); // Wednesday
+  });
+});
+
+describe('choresAssignedTo', () => {
+  it('returns only the chores the member owns on the date', () => {
+    const c1 = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+    const c2 = makeChore({ id: 'c2', assigneeIds: ['bob'] });
+    const c3 = makeChore({ id: 'c3', assigneeIds: ['alice'], daysOfWeek: [1] }); // Monday only
+    // 2026-04-09 is Thursday, so c3 does not apply.
+    const result = choresAssignedTo([c1, c2, c3], 'alice', '2026-04-09');
+    expect(result.map((c) => c.id)).toEqual(['c1']);
+  });
+
+  it('returns an empty array when the member has nothing that day', () => {
+    const c1 = makeChore({ id: 'c1', assigneeIds: ['bob'] });
+    expect(choresAssignedTo([c1], 'alice', '2026-04-09')).toEqual([]);
+  });
+});
+
+describe('isChoreComplete', () => {
+  it('reflects presence in the completion set', () => {
+    const set = completionsFrom([['c1', 'alice', '2026-04-09']]);
+    expect(isChoreComplete(set, 'c1', 'alice', '2026-04-09')).toBe(true);
+    expect(isChoreComplete(set, 'c1', 'bob', '2026-04-09')).toBe(false);
+    expect(isChoreComplete(set, 'c1', 'alice', '2026-04-08')).toBe(false);
+  });
+});
+
+describe('isDayFullyComplete', () => {
+  const c1 = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+  const c2 = makeChore({ id: 'c2', assigneeIds: ['alice'] });
+
+  it('is false when the member has no assigned chores (no star on a vacation day)', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['bob'] });
+    expect(isDayFullyComplete([chore], 'alice', '2026-04-09', new Set())).toBe(false);
+  });
+
+  it('is false when some assigned chores are incomplete', () => {
+    const set = completionsFrom([['c1', 'alice', '2026-04-09']]); // c2 missing
+    expect(isDayFullyComplete([c1, c2], 'alice', '2026-04-09', set)).toBe(false);
+  });
+
+  it('is true when every assigned chore is complete', () => {
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-09'],
+      ['c2', 'alice', '2026-04-09'],
+    ]);
+    expect(isDayFullyComplete([c1, c2], 'alice', '2026-04-09', set)).toBe(true);
+  });
+});
+
+describe('resolveAssignmentsFor', () => {
+  const alice: ChoreMember = { id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
+  const bob: ChoreMember = { id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
+
+  it('produces one row per applicable (chore, assignee) with completion flags', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice', 'bob'] });
+    const set = completionsFrom([['c1', 'alice', '2026-04-09']]);
+    const rows = resolveAssignmentsFor([chore], [alice, bob], '2026-04-09', set);
+    expect(rows).toHaveLength(2);
+    expect(rows.find((r) => r.memberId === 'alice')!.isCompleted).toBe(true);
+    expect(rows.find((r) => r.memberId === 'bob')!.isCompleted).toBe(false);
+  });
+
+  it('skips assignee ids that are not real members (stale rotation entries)', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice', 'ghost'] });
+    const rows = resolveAssignmentsFor([chore], [alice], '2026-04-09', new Set());
+    expect(rows.map((r) => r.memberId)).toEqual(['alice']);
+  });
+
+  it('excludes chores that do not apply on the date', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], daysOfWeek: [1] }); // Monday
+    // 2026-04-09 is Thursday
+    expect(resolveAssignmentsFor([chore], [alice], '2026-04-09', new Set())).toEqual([]);
+  });
+
+  it('fans a daily rotation out to whichever single member owns the chore', () => {
+    const chore = makeChore({ id: 'c1', rotation: 'rotate-daily', assigneeIds: ['alice', 'bob'] });
+    const rows = resolveAssignmentsFor([chore], [alice, bob], '2026-04-09', new Set());
+    expect(rows).toHaveLength(1);
+  });
+});
+
+describe('computeWeeklyPoints', () => {
+  it('sums earned and total points across the week, weighted by chore points', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], points: 3 });
+    const weekDates = getWeekDatesFor('2026-04-09', 'sunday'); // 04-05 .. 04-11
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-06'],
+      ['c1', 'alice', '2026-04-08'],
+    ]);
+    const { earned, total } = computeWeeklyPoints([chore], 'alice', weekDates, set);
+    expect(total).toBe(3 * 7); // assigned every day of the week
+    expect(earned).toBe(3 * 2); // completed on two days
+  });
+
+  it('counts only days the chore applies toward the total', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], points: 5, daysOfWeek: [1] }); // Monday
+    const weekDates = getWeekDatesFor('2026-04-09', 'sunday');
+    const { earned, total } = computeWeeklyPoints([chore], 'alice', weekDates, new Set());
+    expect(total).toBe(5); // only the single Monday in the week
+    expect(earned).toBe(0);
+  });
+
+  it('returns zeros when the member has no assigned chores', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['bob'], points: 2 });
+    const weekDates = getWeekDatesFor('2026-04-09', 'sunday');
+    expect(computeWeeklyPoints([chore], 'alice', weekDates, new Set())).toEqual({ earned: 0, total: 0 });
+  });
+
+  it('handles a week that crosses the year boundary', () => {
+    const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], points: 1 });
+    const weekDates = getWeekDatesFor('2026-01-02', 'sunday'); // 2025-12-28 .. 2026-01-03
+    const set = completionsFrom([['c1', 'alice', '2025-12-31']]);
+    const { earned, total } = computeWeeklyPoints([chore], 'alice', weekDates, set);
+    expect(total).toBe(7);
+    expect(earned).toBe(1);
+  });
+});
+
+describe('computeStreak', () => {
+  // 2026-04-09 is a Thursday; a daily fixed chore assigned to Alice.
+  const daily = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+
+  it('counts consecutive completed past days plus today', () => {
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-09'], // today
+      ['c1', 'alice', '2026-04-08'],
+      ['c1', 'alice', '2026-04-07'],
+      // 2026-04-06 intentionally missing → run stops there
+    ]);
+    expect(computeStreak([daily], 'alice', '2026-04-09', set)).toBe(3);
+  });
+
+  it('breaks the streak on the first incomplete past day', () => {
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-09'], // today done
+      // yesterday (04-08) missing
+      ['c1', 'alice', '2026-04-07'],
+    ]);
+    // Yesterday breaks immediately; only today contributes.
+    expect(computeStreak([daily], 'alice', '2026-04-09', set)).toBe(1);
+  });
+
+  it('does not add today when today is incomplete', () => {
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-08'],
+      ['c1', 'alice', '2026-04-07'],
+      // today missing
+    ]);
+    expect(computeStreak([daily], 'alice', '2026-04-09', set)).toBe(2);
+  });
+
+  it('returns 0 when nothing is completed', () => {
+    expect(computeStreak([daily], 'alice', '2026-04-09', new Set())).toBe(0);
+  });
+
+  it('skips days with no assigned chores without breaking the streak', () => {
+    // Chore applies Thursdays only; the six days between Thursdays are empty.
+    const thursday = makeChore({ id: 'c1', assigneeIds: ['alice'], daysOfWeek: [4] });
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-09'], // today (Thu)
+      ['c1', 'alice', '2026-04-02'], // previous Thu
+      // 2026-03-26 (Thu) missing → past run stops there
+    ]);
+    // Past run counts only 04-02 (empty days skipped, 03-26 breaks); today adds 1.
+    expect(computeStreak([thursday], 'alice', '2026-04-09', set)).toBe(2);
+  });
+
+  it('walks past a month boundary', () => {
+    // today = 2026-04-01 (Wednesday); walk back into March.
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-01'], // today
+      ['c1', 'alice', '2026-03-31'],
+      ['c1', 'alice', '2026-03-30'],
+      // 2026-03-29 missing
+    ]);
+    expect(computeStreak([daily], 'alice', '2026-04-01', set)).toBe(3);
+  });
+
+  it('skips days the member is not scheduled for under a rotation', () => {
+    // Alice scheduled Mon/Wed/Thu; her unscheduled days must not break the run.
+    const sched = makeChore({
+      id: 'c1',
+      rotation: 'schedule',
+      assigneeIds: ['alice', 'bob'],
+      schedule: { alice: [1, 3, 4], bob: [2, 5] },
+      daysOfWeek: [1, 2, 3, 4, 5],
+    });
+    const set = completionsFrom([
+      ['c1', 'alice', '2026-04-09'], // Thu today
+      ['c1', 'alice', '2026-04-08'], // Wed
+      ['c1', 'alice', '2026-04-06'], // Mon
+      // previous scheduled day (Thu 04-02) missing → past run stops there
+    ]);
+    // Back-walk: Wed done (1), Tue skipped, Mon done (2), weekend/Fri skipped,
+    // Thu 04-02 breaks. Past run = 2, plus today = 3.
+    expect(computeStreak([sched], 'alice', '2026-04-09', set)).toBe(3);
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { VersionInfo, TagInfo } from '@/lib/version';
 import type { UpdateNotificationState } from '@/lib/update-notification-state';
 
@@ -41,11 +42,8 @@ export function useUpdateNotification({
   //      so on the next tick latestTag !== lastDismissedVersion and the toast returns.
   //  (2) a dismissal on one surface (editor toast) propagates to the other
   //      (remote banner) within one poll tick.
-  useEffect(() => {
-    if (!enabled) return;
-    let mounted = true;
-
-    async function poll() {
+  usePolledFetch(
+    async (isMounted) => {
       try {
         const [vRes, dRes] = await Promise.all([
           fetchFn(`/api/system/version?channel=${channel}`),
@@ -53,24 +51,19 @@ export function useUpdateNotification({
         ]);
         if (vRes.ok) {
           const data = await vRes.json() as VersionResponse;
-          if (mounted) setVersionInfo(data);
+          if (isMounted()) setVersionInfo(data);
         }
         if (dRes.ok) {
           const state = await dRes.json() as UpdateNotificationState;
-          if (mounted) setLastDismissedVersion(state.lastDismissedVersion);
+          if (isMounted()) setLastDismissedVersion(state.lastDismissedVersion);
         }
       } catch {
         // Not critical
       }
-    }
-
-    poll();
-    const id = pollIntervalMs ? setInterval(poll, pollIntervalMs) : undefined;
-    return () => {
-      mounted = false;
-      if (id) clearInterval(id);
-    };
-  }, [enabled, fetchFn, pollIntervalMs, channel]);
+    },
+    [fetchFn, channel],
+    { enabled, intervalMs: pollIntervalMs },
+  );
 
   const latestVersion = versionInfo?.latest ?? null;
   const latestTag = versionInfo?.tags?.[0]?.tag ?? null;

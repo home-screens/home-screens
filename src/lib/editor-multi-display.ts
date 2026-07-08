@@ -119,6 +119,71 @@ export function resolveProfileTarget(
   return { kind: 'display', idx, display };
 }
 
+/**
+ * Apply a transform to the profile list the editor is currently targeting and
+ * return a new config with it written back. Resolves the display-vs-global
+ * branch once via `resolveProfileTarget` so the profile actions (addProfile,
+ * removeProfile, updateProfile, reorderProfiles) don't each hand-write the
+ * immutable splice and the `config.displays!` non-null assertion.
+ *
+ * `opts.clearActiveProfile` clears any `activeProfile` that points at the given
+ * id: on the owning display, or (in global mode) on `config.settings` plus every
+ * sibling display that still references it, so a removed profile can't be left
+ * dangling for the config validator.
+ */
+export function withProfiles(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  mutate: (profiles: Profile[]) => Profile[],
+  opts?: { clearActiveProfile?: string },
+): ScreenConfiguration {
+  const target = resolveProfileTarget(config, selectedDisplayId);
+  const clearId = opts?.clearActiveProfile;
+
+  if (target.kind === 'display') {
+    const nextDisplays = [...config.displays!];
+    nextDisplays[target.idx] = {
+      ...target.display,
+      profiles: mutate(target.display.profiles ?? []),
+      ...(clearId != null && target.display.activeProfile === clearId
+        ? { activeProfile: undefined }
+        : {}),
+    };
+    return { ...config, displays: nextDisplays };
+  }
+
+  const profiles = mutate(config.profiles ?? []);
+  if (clearId == null) return { ...config, profiles };
+
+  const settings = config.settings.activeProfile === clearId
+    ? { ...config.settings, activeProfile: undefined }
+    : config.settings;
+  const displays = config.displays?.map((d) =>
+    d.activeProfile === clearId ? { ...d, activeProfile: undefined } : d,
+  );
+  return { ...config, profiles, settings, displays };
+}
+
+/**
+ * Set the active profile on whichever container the editor is targeting: the
+ * owning display's `activeProfile`, or `config.settings.activeProfile` for the
+ * legacy/shared-pool case. Companion to `withProfiles` for the one action
+ * (setActiveProfile) that changes the selection without touching the list.
+ */
+export function withActiveProfile(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  activeProfile: string | undefined,
+): ScreenConfiguration {
+  const target = resolveProfileTarget(config, selectedDisplayId);
+  if (target.kind === 'display') {
+    const nextDisplays = [...config.displays!];
+    nextDisplays[target.idx] = { ...target.display, activeProfile };
+    return { ...config, displays: nextDisplays };
+  }
+  return { ...config, settings: { ...config.settings, activeProfile } };
+}
+
 export function updateModuleInConfig(
   config: ScreenConfiguration,
   selectedDisplayId: string | null,

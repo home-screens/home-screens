@@ -6,7 +6,7 @@ import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
 import { writeBackupState } from '@/lib/backup-state';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { validateDisplays } from '@/lib/display-filter';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -59,6 +59,20 @@ function validateRestoredConfig(config: unknown): string | null {
   return validateDisplays(config as ScreenConfiguration);
 }
 
+// Fields a restore bundle may carry. Each optional file mirrors the type its
+// writer expects; screens/settings let the legacy config-only format be
+// recognized before it is written as a full ScreenConfiguration.
+interface RestoreBundle {
+  _type?: unknown;
+  config?: ScreenConfiguration;
+  chores?: Parameters<typeof writeChoreData>[0];
+  choreCompletions?: Parameters<typeof writeCompletions>[0];
+  meals?: Parameters<typeof writeMealData>[0];
+  rewards?: Parameters<typeof writeRewardData>[0];
+  screens?: unknown;
+  settings?: unknown;
+}
+
 // POST — restore from a backup bundle (or a legacy config-only file).
 //
 // Two safety properties beyond the raw writes:
@@ -71,7 +85,8 @@ function validateRestoredConfig(config: unknown): string | null {
 //     a mid-bundle failure leaves mixed old/new data across config, chores,
 //     meals, rewards.
 export const POST = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
+  const body = await parseJsonBody<RestoreBundle>(request);
+  if (body instanceof NextResponse) return body;
 
   // New bundle format
   if (body._type === 'home-screens-backup') {
@@ -137,7 +152,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (body.screens && Array.isArray(body.screens) && body.settings) {
     const err = validateRestoredConfig(body);
     if (err) return NextResponse.json({ error: err }, { status: 400 });
-    await writeConfig(body);
+    await writeConfig(body as unknown as ScreenConfiguration);
     return NextResponse.json({ restored: { config: true } });
   }
 

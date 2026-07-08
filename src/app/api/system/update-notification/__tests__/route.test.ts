@@ -150,6 +150,6 @@ describe('POST /api/system/update-notification', () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json).toEqual({ error: 'Invalid request body' });
+    expect(json).toEqual({ error: 'Invalid JSON body' });
   });
 });

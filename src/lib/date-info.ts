@@ -1,4 +1,4 @@
-import { format, getWeek, getDayOfYear } from 'date-fns';
+import { getWeek, getDayOfYear } from 'date-fns';
 
 /**
  * Shared time-parsing and date-info utilities used by clock and date view components.
@@ -39,28 +39,6 @@ export function parseClockTime(format24h: boolean, now: Date): ParsedClockTime {
   const period = format24h ? '' : hours >= 12 ? ' PM' : ' AM';
 
   return { hours, minutes, seconds, h, hStr, mStr, sStr, period };
-}
-
-/** Parsed date parts for rendering */
-interface ParsedDateParts {
-  dayNumber: string;
-  monthName: string;
-  dayName: string;
-  year: string;
-}
-
-/**
- * Parse a Date into display-ready date parts.
- *
- * @param now - The current Date
- */
-export function parseDateParts(now: Date): ParsedDateParts {
-  return {
-    dayNumber: format(now, 'd'),
-    monthName: format(now, 'MMMM'),
-    dayName: format(now, 'EEEE'),
-    year: format(now, 'yyyy'),
-  };
 }
 
 /** Raw week-number and day-of-year values */

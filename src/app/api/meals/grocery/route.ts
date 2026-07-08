@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, writeMealData } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,9 @@ export const GET = withDisplayAuth(async () => {
 
 /** POST /api/meals/grocery — toggle a grocery item checked state */
 export const POST = withAuth(async (req: NextRequest) => {
-  const { item } = await req.json();
+  const body = await parseJsonBody<{ item?: unknown }>(req);
+  if (body instanceof NextResponse) return body;
+  const { item } = body;
 
   if (typeof item !== 'string' || !item.trim()) {
     return NextResponse.json(

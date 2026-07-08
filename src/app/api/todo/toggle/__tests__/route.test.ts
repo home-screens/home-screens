@@ -194,8 +194,8 @@ describe('POST /api/todo/toggle', () => {
       body: '{ not json',
     });
     const res = await POST(req);
-    // withDisplayAuth's error wrapper turns the thrown parse error into a 500.
-    expect(res.status).toBeGreaterThanOrEqual(400);
+    // parseJsonBody catches the syntax error and returns a 400 client error.
+    expect(res.status).toBe(400);
     expect(updateTodoState).not.toHaveBeenCalled();
   });
 });

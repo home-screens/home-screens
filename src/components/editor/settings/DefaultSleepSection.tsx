@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ScreenConfiguration } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { SLEEP_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
-import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklinkBanner';
+import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
 import SleepFormFields, {
   type SleepFormValues,
 } from '@/components/editor/settings/display/SleepFormFields';
@@ -41,22 +41,19 @@ export default function DefaultSleepSection({ config, values, onChange }: Defaul
   );
 
   return (
-    <>
-      <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          {t('settings.defaultSleepPage.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">
-          {t('settings.defaultSleepPage.heading')}
-        </h1>
+    <DefaultsPageShell
+      breadcrumb={t('settings.defaultSleepPage.breadcrumb')}
+      heading={t('settings.defaultSleepPage.heading')}
+      description={
         <p className="text-sm text-hs-text-faint mt-1">
           {t('settings.defaultSleepPage.description')}
         </p>
-      </div>
-      <DefaultsBacklinkBanner overrides={overrides} />
+      }
+      overrides={overrides}
+    >
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <SleepFormFields values={values} onChange={onChange} />
       </div>
-    </>
+    </DefaultsPageShell>
   );
 }

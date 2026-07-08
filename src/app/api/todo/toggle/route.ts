@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { Screen, TodoConfig } from '@/types/config';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { readConfig } from '@/lib/config';
 import { getDisplayScreens, findScreenById } from '@/lib/display-filter';
 import { updateTodoState } from '@/lib/todo-data';
@@ -31,7 +31,8 @@ interface TodoToggleRequest {
  * its optimistic state against server truth.
  */
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = (await request.json()) as Partial<TodoToggleRequest>;
+  const body = await parseJsonBody<Partial<TodoToggleRequest>>(request);
+  if (body instanceof NextResponse) return body;
   const { displayId, screenId, moduleId, itemId } = body;
 
   if (

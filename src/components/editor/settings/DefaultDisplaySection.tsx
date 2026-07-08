@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import type { ScreenConfiguration, TransitionEffect } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
-import DefaultsBacklinkBanner from '@/components/editor/settings/DefaultsBacklinkBanner';
+import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
@@ -171,39 +171,31 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
   };
 
   return (
-    <>
-      <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          {t('settings.defaultDisplayPage.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">
-          {t('settings.defaultDisplayPage.heading')}
-        </h1>
-        <p className="text-sm text-hs-text-faint mt-1">
-          {t('settings.defaultDisplayPage.descriptionPart1')}
-          <em>{t('settings.defaultDisplayPage.descriptionEmphasisNot')}</em>
-          {t('settings.defaultDisplayPage.descriptionPart2')}
-        </p>
-        {isMultiDisplay && (
-          <p className="text-xs text-hs-text-faint mt-2">
-            {t('settings.defaultDisplayPage.multiDisplayNotePart1')}
-            <strong className="text-hs-text-secondary">
-              {t('settings.defaultDisplayPage.multiDisplayNotePerDisplay')}
-            </strong>
-            {t('settings.defaultDisplayPage.multiDisplayNotePart2')}
-            <em>{t('settings.defaultDisplayPage.multiDisplayNotePerDisplaySection')}</em>
-            {t('settings.defaultDisplayPage.multiDisplayNotePart3')}
+    <DefaultsPageShell
+      breadcrumb={t('settings.defaultDisplayPage.breadcrumb')}
+      heading={t('settings.defaultDisplayPage.heading')}
+      description={
+        <>
+          <p className="text-sm text-hs-text-faint mt-1">
+            {t('settings.defaultDisplayPage.descriptionPart1')}
+            <em>{t('settings.defaultDisplayPage.descriptionEmphasisNot')}</em>
+            {t('settings.defaultDisplayPage.descriptionPart2')}
           </p>
-        )}
-      </div>
-
-      {/*
-        6.4a flagged the literal pageLabel="this page" here. The cleanest fix
-        is to omit the prop entirely — DefaultsBacklinkBanner already falls
-        back to t('settings.backlinkBanner.thisPage') so the locale resolves
-        at render time instead of being baked in English at the call site.
-       */}
-      <DefaultsBacklinkBanner overrides={overrides} />
+          {isMultiDisplay && (
+            <p className="text-xs text-hs-text-faint mt-2">
+              {t('settings.defaultDisplayPage.multiDisplayNotePart1')}
+              <strong className="text-hs-text-secondary">
+                {t('settings.defaultDisplayPage.multiDisplayNotePerDisplay')}
+              </strong>
+              {t('settings.defaultDisplayPage.multiDisplayNotePart2')}
+              <em>{t('settings.defaultDisplayPage.multiDisplayNotePerDisplaySection')}</em>
+              {t('settings.defaultDisplayPage.multiDisplayNotePart3')}
+            </p>
+          )}
+        </>
+      }
+      overrides={overrides}
+    >
 
       {/* Canvas controls — single-display installs only. In multi-display
           mode the global dims are vestigial (every DisplayNode owns its
@@ -461,7 +453,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           </div>
         </FieldRow>
       </div>
-    </>
+    </DefaultsPageShell>
   );
 }
 

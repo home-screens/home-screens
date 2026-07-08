@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSecretStatus, setSecret, deleteSecret, isValidSecretKey } from '@/lib/secrets';
-import { withAuth, validateTodoistToken } from '@/lib/api-utils';
+import { withAuth, validateTodoistToken, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +10,9 @@ export const GET = withAuth(async () => {
 }, 'Failed to read secret status');
 
 export const PUT = withAuth(async (request) => {
-  const body = await request.json();
-  const { key, value } = body as { key?: string; value?: string };
+  const body = await parseJsonBody<{ key?: string; value?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { key, value } = body;
 
   if (!key || typeof value !== 'string' || !value.trim()) {
     return NextResponse.json(
@@ -43,8 +44,9 @@ export const PUT = withAuth(async (request) => {
 }, 'Failed to save secret');
 
 export const DELETE = withAuth(async (request) => {
-  const body = await request.json();
-  const { key } = body as { key?: string };
+  const body = await parseJsonBody<{ key?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { key } = body;
 
   if (!key) {
     return NextResponse.json(

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
-import { publicErrorResponse } from '@/lib/api-utils';
+import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
@@ -58,8 +58,9 @@ export const GET = async () => {
 
 export const POST = async (request: NextRequest) => {
   try {
-  const body = await request.json();
-  const { choreId, memberId, date } = body as ChoreToggleRequest;
+  const body = await parseJsonBody<ChoreToggleRequest>(request);
+  if (body instanceof NextResponse) return body;
+  const { choreId, memberId, date } = body;
 
   if (!choreId || !memberId || !date) {
     return NextResponse.json(

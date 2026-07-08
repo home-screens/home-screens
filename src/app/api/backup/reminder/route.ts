@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,9 @@ export const GET = withDisplayAuth(async () => {
 }, 'Failed to read backup state');
 
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const { action } = await request.json();
+  const body = await parseJsonBody<{ action?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
+  const { action } = body;
   const state = await readBackupState();
 
   if (action === 'dismiss') {

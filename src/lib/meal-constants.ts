@@ -1,5 +1,5 @@
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize } from '@/types/config';
-import { formatDateSync, preloadDateLocale } from '@/i18n/formatters';
+import { formatDateSync } from '@/i18n/formatters';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
 // ── Shared defaults (used across editor + remote + config sections) ────
@@ -145,21 +145,6 @@ export function getLocalizedDayNames(
     result[dow] = formatDateSync(anchor, pattern, { locale });
   }
   return result;
-}
-
-/**
- * Async variant of `getLocalizedDayNames` — awaits the date-fns locale
- * import so the names are guaranteed correct on first call. Use this in
- * server components / setup paths where you can `await`; client
- * components on hot tick paths should prefer `getLocalizedDayNames`
- * after relying on the layout-level preload.
- */
-export async function getLocalizedDayNamesAsync(
-  locale: string = DEFAULT_LOCALE,
-  format: 'short' | 'full' = 'full',
-): Promise<string[]> {
-  await preloadDateLocale(locale);
-  return getLocalizedDayNames(locale, format);
 }
 
 /** Get ordered day indices based on week start */
@@ -440,20 +425,6 @@ export function formatMealTime(
   const period = h >= 12 ? 'PM' : 'AM';
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, '0')} ${period}`;
-}
-
-/**
- * Parse an "HH:MM" string to total minutes since midnight.
- * Returns null for invalid input.
- */
-export function parseTimeToMinutes(time: string | undefined): number | null {
-  if (!time) return null;
-  const match = /^(\d{1,2}):(\d{2})$/.exec(time);
-  if (!match) return null;
-  const h = Number(match[1]);
-  const m = Number(match[2]);
-  if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
-  return h * 60 + m;
 }
 
 /**

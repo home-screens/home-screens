@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { installExternalPlugin } from '@/lib/plugins';
-import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
+import { fetchWithTimeout, withAuth, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { resolveTarballUrl, validateExternalUrl, urlForAudit } from '@/lib/external-plugins';
 import { isSafeExternalUrl } from '@/lib/url-safety';
@@ -34,8 +34,9 @@ async function guardFetchUrl(url: string): Promise<string | null> {
 
 /** Install a plugin from a user-provided tarball URL (outside the marketplace). */
 export const POST = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { tarballUrl, version } = body as { tarballUrl?: string; version?: string };
+  const body = await parseJsonBody<{ tarballUrl?: string; version?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { tarballUrl, version } = body;
 
   if (!tarballUrl || typeof tarballUrl !== 'string') {
     return NextResponse.json({ error: 'tarballUrl is required' }, { status: 400 });

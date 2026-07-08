@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
-import Slider from '@/components/ui/Slider';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { logger } from '@/lib/logger';
 
 const log = logger('todoist');
@@ -57,8 +56,6 @@ function TodoistTokenStatus() {
     </div>
   );
 }
-
-const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
 export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -159,12 +156,14 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         value={c.maxTasks ?? 30}
         onChange={(v) => set({ maxTasks: Number(v) })}
       />
-      <Slider
-        label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey="todoist"
+        fallbackMs={60_000}
+        unit="minutes"
         min={1}
         max={30}
-        onChange={(v) => set({ refreshIntervalMs: v * 60000 })}
       />
     </div>
   );

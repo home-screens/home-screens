@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
-import LabeledField from '@/components/ui/LabeledField';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
-import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
@@ -81,18 +79,11 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   return (
     <>
       {/* Theme Override */}
-      <LabeledField label={t('common.theme')}>
-        <select
-          value={c.theme ?? ''}
-          onChange={(e) => set({ theme: e.target.value || undefined })}
-          className={INPUT_CLASS}
-        >
-          <option value="">{t('configSections.fullscreen-photo.themeDefaultMidnight')}</option>
-          {FULLSCREEN_THEMES.map((theme) => (
-            <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
-          ))}
-        </select>
-      </LabeledField>
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-photo.themeDefaultMidnight"
+      />
 
       {/* Source selector — only show if Immich is configured */}
       {hasImmichKey && (

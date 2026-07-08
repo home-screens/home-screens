@@ -18,6 +18,66 @@ interface DayTimelineViewProps {
   now: Date;
 }
 
+// Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
+// is clamped to the visible [hourStart, hourEnd] window; it renders only when the
+// clamped span has positive height.
+const ZONES = [
+  { start: 0, end: 12, tint: 'rgba(251,191,36,0.03)', labelKey: 'fullscreen-calendar.zones.morning' },
+  { start: 12, end: 17, tint: 'rgba(59,130,246,0.03)', labelKey: 'fullscreen-calendar.zones.afternoon' },
+  { start: 17, end: 24, tint: 'rgba(139,92,246,0.03)', labelKey: 'fullscreen-calendar.zones.evening' },
+] as const;
+
+function ZoneBand({
+  zone,
+  hourStart,
+  hourEnd,
+  hourHeight,
+  scale,
+  fontSize,
+  label,
+}: {
+  zone: (typeof ZONES)[number];
+  hourStart: number;
+  hourEnd: number;
+  hourHeight: number;
+  scale: CalendarScale;
+  fontSize: number;
+  label: string;
+}) {
+  const clampedStart = Math.max(zone.start, hourStart);
+  const clampedEnd = Math.min(zone.end, hourEnd);
+  if (clampedStart >= clampedEnd) return null;
+  const top = (clampedStart - hourStart) * hourHeight;
+  return (
+    <>
+      <div style={{
+        position: 'absolute',
+        top,
+        left: 0,
+        right: 0,
+        height: (clampedEnd - clampedStart) * hourHeight,
+        background: zone.tint,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: top + scale.bu * 0.3,
+        left: scale.bu * 0.5,
+        fontSize: fontSize * 0.55,
+        fontWeight: 400,
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        color: 'var(--cal-text-tertiary)',
+        opacity: 0.6,
+        pointerEvents: 'none',
+        zIndex: 1,
+      }}>
+        {label}
+      </div>
+    </>
+  );
+}
+
 export function DayTimelineView({ events, config, scale, today, now }: DayTimelineViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -40,10 +100,6 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowInRange = isToday && nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
-
-  // Zone boundaries
-  const morningEnd = 12;
-  const afternoonEnd = 17;
 
   // Day filtering and overlap layout don't depend on the 60s clock tick, so
   // memoize them instead of recomputing on every re-render. Events entirely
@@ -151,90 +207,18 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             borderLeft: '1px solid var(--cal-border-subtle)',
           }}>
             {/* Zone tints + labels */}
-            {hourStart < morningEnd && (
-              <>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: (Math.min(morningEnd, hourEnd) - hourStart) * hourHeight,
-                  background: 'rgba(251,191,36,0.03)',
-                  pointerEvents: 'none',
-                }} />
-                <div style={{
-                  position: 'absolute',
-                  top: scale.bu * 0.3,
-                  left: scale.bu * 0.5,
-                  fontSize: fontSize * 0.55,
-                  fontWeight: 400,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--cal-text-tertiary)',
-                  opacity: 0.6,
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                }}>
-                  {t('fullscreen-calendar.zones.morning')}
-                </div>
-              </>
-            )}
-            {hourStart < afternoonEnd && hourEnd > morningEnd && (
-              <>
-                <div style={{
-                  position: 'absolute',
-                  top: (Math.max(morningEnd, hourStart) - hourStart) * hourHeight,
-                  left: 0,
-                  right: 0,
-                  height: (Math.min(afternoonEnd, hourEnd) - Math.max(morningEnd, hourStart)) * hourHeight,
-                  background: 'rgba(59,130,246,0.03)',
-                  pointerEvents: 'none',
-                }} />
-                <div style={{
-                  position: 'absolute',
-                  top: (Math.max(morningEnd, hourStart) - hourStart) * hourHeight + scale.bu * 0.3,
-                  left: scale.bu * 0.5,
-                  fontSize: fontSize * 0.55,
-                  fontWeight: 400,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--cal-text-tertiary)',
-                  opacity: 0.6,
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                }}>
-                  {t('fullscreen-calendar.zones.afternoon')}
-                </div>
-              </>
-            )}
-            {hourEnd > afternoonEnd && (
-              <>
-                <div style={{
-                  position: 'absolute',
-                  top: (Math.max(afternoonEnd, hourStart) - hourStart) * hourHeight,
-                  left: 0,
-                  right: 0,
-                  height: (hourEnd - Math.max(afternoonEnd, hourStart)) * hourHeight,
-                  background: 'rgba(139,92,246,0.03)',
-                  pointerEvents: 'none',
-                }} />
-                <div style={{
-                  position: 'absolute',
-                  top: (Math.max(afternoonEnd, hourStart) - hourStart) * hourHeight + scale.bu * 0.3,
-                  left: scale.bu * 0.5,
-                  fontSize: fontSize * 0.55,
-                  fontWeight: 400,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--cal-text-tertiary)',
-                  opacity: 0.6,
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                }}>
-                  {t('fullscreen-calendar.zones.evening')}
-                </div>
-              </>
-            )}
+            {ZONES.map(zone => (
+              <ZoneBand
+                key={zone.labelKey}
+                zone={zone}
+                hourStart={hourStart}
+                hourEnd={hourEnd}
+                hourHeight={hourHeight}
+                scale={scale}
+                fontSize={fontSize}
+                label={t(zone.labelKey)}
+              />
+            ))}
 
             {/* Hour lines */}
             <HourLines totalHours={totalHours} hourHeight={hourHeight} hourStart={hourStart} />

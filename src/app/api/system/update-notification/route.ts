@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readUpdateNotificationState, writeUpdateNotificationState } from '@/lib/update-notification-state';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +11,9 @@ export const GET = withDisplayAuth(async () => {
 }, 'Failed to read update notification state');
 
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  let body: Record<string, unknown>;
-  try {
-    body = (await request.json()) ?? {};
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-  }
+  const parsed = await parseJsonBody<Record<string, unknown> | null>(request);
+  if (parsed instanceof NextResponse) return parsed;
+  const body = parsed ?? {};
   const { action, version } = body;
 
   if (action === 'dismiss') {

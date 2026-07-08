@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { requestDeviceCode, pollDeviceToken } from '@/lib/google-auth';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,9 @@ export const POST = withAuth(async () => {
 
 /** PUT — poll for token completion. Body: { device_code } */
 export const PUT = withAuth(async (request: NextRequest) => {
-  const { device_code } = await request.json();
+  const body = await parseJsonBody<{ device_code?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { device_code } = body;
   if (!device_code) {
     return NextResponse.json({ error: 'Missing device_code' }, { status: 400 });
   }

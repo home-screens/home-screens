@@ -3,13 +3,11 @@
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import type { ModuleInstance, StandingsView, StandingsGrouping } from '@/types/config';
-import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-
-const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['standings']?.ttlMs ?? 300_000;
 
 const STANDINGS_LEAGUES: { value: string; label: string }[] = [
   { value: 'nfl', label: 'NFL' },
@@ -102,13 +100,15 @@ export function StandingsConfigSection({ mod, screenId }: { mod: ModuleInstance;
         step={5}
         onChange={(v) => set({ rotationIntervalMs: v * 1000 })}
       />
-      <Slider
-        label={t('common.refreshMinutes')}
-        value={(c.refreshIntervalMs ?? DEFAULT_REFRESH_MS) / 60000}
+      <RefreshIntervalSlider
+        value={c.refreshIntervalMs}
+        onChange={(ms) => set({ refreshIntervalMs: ms })}
+        fetchKey="standings"
+        fallbackMs={300_000}
+        unit="minutes"
         min={1}
         max={60}
         step={1}
-        onChange={(v) => set({ refreshIntervalMs: v * 60000 })}
       />
     </>
   );

@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
-import LabeledField from '@/components/ui/LabeledField';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import FullscreenThemeSelect from './FullscreenThemeSelect';
+import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
-import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { DEFAULT_ACCENT_COLOR, TYPOGRAPHY_SIZES } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
@@ -26,22 +25,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
 
-  // Translate the shared TYPOGRAPHY_SIZES table at render time. Falls back
-  // to the English `label` if the key is missing — `t()` returns the raw
-  // dotted path on miss (not undefined), so `result === key` is the only
-  // reliable miss check. Mirrors the TRANSITION_OPTIONS pattern in
-  // DefaultDisplaySection.
-  const typographySizeOptions = useMemo(
-    () =>
-      TYPOGRAPHY_SIZES.map((opt) => {
-        const translated = t(opt.i18nKey);
-        return {
-          value: opt.value,
-          label: translated === opt.i18nKey ? opt.label : translated,
-        };
-      }),
-    [t],
-  );
+  const typographySizeOptions = useTypographySizeOptions();
 
   const VIEW_OPTIONS: { value: FullscreenChoreChartView; label: string }[] = [
     { value: 'chores', label: t('configSections.fullscreen-chore-chart.viewChoreBoard') },
@@ -98,18 +82,11 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       )}
 
       {/* Theme Override */}
-      <LabeledField label={t('common.theme')}>
-        <select
-          value={c.theme ?? ''}
-          onChange={(e) => set({ theme: e.target.value || undefined })}
-          className={INPUT_CLASS}
-        >
-          <option value="">{t('configSections.fullscreen-chore-chart.themeDefault')}</option>
-          {FULLSCREEN_THEMES.map((theme) => (
-            <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
-          ))}
-        </select>
-      </LabeledField>
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-chore-chart.themeDefault"
+      />
 
       {/* Density */}
       <LabeledSelect

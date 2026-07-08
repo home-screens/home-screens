@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { installPlugin, uninstallPlugin, setPluginEnabled, clearPreviousVersion, fetchRegistry } from '@/lib/plugins';
-import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
+import { fetchWithTimeout, withAuth, parseJsonBody } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
 /** Install a plugin from the registry */
 export const POST = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { pluginId, version } = body as { pluginId: string; version: string };
+  const body = await parseJsonBody<{ pluginId?: string; version?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { pluginId, version } = body;
   if (!pluginId || !version) {
     return NextResponse.json({ error: 'pluginId and version are required' }, { status: 400 });
   }
@@ -51,8 +52,9 @@ export const POST = withAuth(async (request: NextRequest) => {
 
 /** Uninstall a plugin */
 export const DELETE = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { pluginId } = body as { pluginId: string };
+  const body = await parseJsonBody<{ pluginId?: string }>(request);
+  if (body instanceof NextResponse) return body;
+  const { pluginId } = body;
   if (!pluginId) {
     return NextResponse.json({ error: 'pluginId is required' }, { status: 400 });
   }
@@ -64,12 +66,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
 
 /** Update a plugin — enable/disable or clear previousVersion after migration */
 export const PATCH = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
-  const { pluginId, enabled, clearPrevVersion } = body as {
-    pluginId: string;
+  const body = await parseJsonBody<{
+    pluginId?: string;
     enabled?: boolean;
     clearPrevVersion?: boolean;
-  };
+  }>(request);
+  if (body instanceof NextResponse) return body;
+  const { pluginId, enabled, clearPrevVersion } = body;
   if (!pluginId) {
     return NextResponse.json({ error: 'pluginId is required' }, { status: 400 });
   }

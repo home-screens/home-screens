@@ -90,13 +90,6 @@ export function todayStr(): string {
   return localDateStr(new Date());
 }
 
-/** Get date string for N days ago in local time */
-export function dateNDaysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return localDateStr(d);
-}
-
 /** Add (or subtract) days from a YYYY-MM-DD string. Local-time calendar arithmetic. */
 export function addDaysISO(iso: string, n: number): string {
   const [y, m, d] = iso.split('-').map(Number);
@@ -216,6 +209,56 @@ export function completionKey(choreId: string, memberId: string, date: string): 
   return `${choreId}-${memberId}-${date}`;
 }
 
+// ── Assignment / completion predicates ─────────────────────────────
+//
+// The canonical "does this person owe this chore, and did they do it?"
+// vocabulary. Every stat below (streaks, weekly points, star days, the
+// history strip) is built from these so the assignment rule lives in
+// exactly one place. `date` is a YYYY-MM-DD string; the day-of-week is
+// derived from it, so callers never pass a separately-computed dow that
+// could drift from the date.
+
+/** Whether `chore` applies to `memberId` on `date` — combines the
+ *  frequency/day-of-week gate with rotation resolution. */
+export function isAssignedOn(chore: ChoreDefinition, memberId: string, date: string): boolean {
+  const dayOfWeek = parseISO(date).getDay();
+  return choreAppliesToday(chore, dayOfWeek, date) && resolveAssignee(chore, date).includes(memberId);
+}
+
+/** The subset of `chores` that `memberId` is assigned on `date`. */
+export function choresAssignedTo(
+  chores: ChoreDefinition[],
+  memberId: string,
+  date: string,
+): ChoreDefinition[] {
+  return chores.filter((c) => isAssignedOn(c, memberId, date));
+}
+
+/** Whether `memberId` has a logged completion for `choreId` on `date`. */
+export function isChoreComplete(
+  completionSet: Set<string>,
+  choreId: string,
+  memberId: string,
+  date: string,
+): boolean {
+  return completionSet.has(completionKey(choreId, memberId, date));
+}
+
+/** Whether `memberId` completed every chore assigned to them on `date`.
+ *  A day with no assigned chores returns `false` (no chores earns no star);
+ *  callers that must distinguish "nothing assigned" from "assigned but not
+ *  done" (e.g. the streak walk) check `choresAssignedTo(...).length`. */
+export function isDayFullyComplete(
+  chores: ChoreDefinition[],
+  memberId: string,
+  date: string,
+  completionSet: Set<string>,
+): boolean {
+  const assigned = choresAssignedTo(chores, memberId, date);
+  if (assigned.length === 0) return false;
+  return assigned.every((c) => isChoreComplete(completionSet, c.id, memberId, date));
+}
+
 /** Parse a YYYY-MM-DD string as a local-midnight Date. */
 export function parseISO(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);
@@ -263,13 +306,10 @@ export function computeDayEntries(
     let total = 0;
     let earned = 0;
     for (const member of members) {
-      const assigned = chores.filter((c) => {
-        if (!choreAppliesToday(c, dow, cursor)) return false;
-        return resolveAssignee(c, cursor).includes(member.id);
-      });
+      const assigned = choresAssignedTo(chores, member.id, cursor);
       if (assigned.length === 0) continue; // vacation days aren't punished
       total += 1;
-      if (assigned.every((c) => completionSet.has(completionKey(c.id, member.id, cursor)))) {
+      if (assigned.every((c) => isChoreComplete(completionSet, c.id, member.id, cursor))) {
         earned += 1;
       }
     }
@@ -284,6 +324,97 @@ export function computeDayEntries(
     cursor = addDaysISO(cursor, 1);
   }
   return list;
+}
+
+// ── Per-member stats ───────────────────────────────────────────────
+//
+// Pure functions extracted from useChoreData so the streak / points math
+// is unit-testable and expressed once. Each takes only plain data (no
+// React, no clock) — `date`/`today` are always YYYY-MM-DD strings.
+
+/** Resolve everyone assigned a chore on `date` into flat completion rows.
+ *  Unlike the per-member helpers, this fans out over each chore's assignees
+ *  and skips ids that aren't real members (stale rotation entries). */
+export function resolveAssignmentsFor(
+  chores: ChoreDefinition[],
+  members: ChoreMember[],
+  date: string,
+  completionSet: Set<string>,
+): ResolvedAssignment[] {
+  const dayOfWeek = parseISO(date).getDay();
+  const assignments: ResolvedAssignment[] = [];
+  for (const chore of chores) {
+    if (!choreAppliesToday(chore, dayOfWeek, date)) continue;
+    for (const memberId of resolveAssignee(chore, date)) {
+      if (!members.some((m) => m.id === memberId)) continue;
+      assignments.push({
+        chore,
+        memberId,
+        isCompleted: isChoreComplete(completionSet, chore.id, memberId, date),
+      });
+    }
+  }
+  return assignments;
+}
+
+/** Sum a member's earned vs assigned points across a set of dates. */
+export function computeWeeklyPoints(
+  chores: ChoreDefinition[],
+  memberId: string,
+  weekDates: string[],
+  completionSet: Set<string>,
+): { earned: number; total: number } {
+  let earned = 0;
+  let total = 0;
+  for (const date of weekDates) {
+    for (const chore of choresAssignedTo(chores, memberId, date)) {
+      total += chore.points;
+      if (isChoreComplete(completionSet, chore.id, memberId, date)) {
+        earned += chore.points;
+      }
+    }
+  }
+  return { earned, total };
+}
+
+/** Consecutive days (ending today) on which a member completed all their
+ *  assigned chores. Walks back up to 30 days from yesterday: days with no
+ *  assigned chores are skipped without breaking the run, then today is
+ *  added on top if fully complete. */
+export function computeStreak(
+  chores: ChoreDefinition[],
+  memberId: string,
+  today: string,
+  completionSet: Set<string>,
+): number {
+  let streak = 0;
+  const sd = parseISO(today);
+  sd.setDate(sd.getDate() - 1); // start from yesterday
+  for (let i = 0; i < 30; i++) {
+    const date = localDateStr(sd);
+    const assigned = choresAssignedTo(chores, memberId, date);
+
+    if (assigned.length === 0) {
+      // No chores assigned — skip day without breaking streak
+      sd.setDate(sd.getDate() - 1);
+      continue;
+    }
+
+    const allDone = assigned.every((c) => isChoreComplete(completionSet, c.id, memberId, date));
+    if (allDone) {
+      streak++;
+      sd.setDate(sd.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  // Include today if all today's chores are done
+  if (isDayFullyComplete(chores, memberId, today, completionSet)) {
+    streak++;
+  }
+
+  return streak;
 }
 
 /**

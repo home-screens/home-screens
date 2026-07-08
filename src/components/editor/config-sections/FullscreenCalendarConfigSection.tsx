@@ -2,12 +2,10 @@
 
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
-import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
-import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode } from '@/types/config';
@@ -90,18 +88,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       />
 
       {/* Theme Override */}
-      <LabeledField label={t('common.theme')}>
-        <select
-          value={c.theme ?? ''}
-          onChange={(e) => set({ theme: e.target.value || undefined })}
-          className={INPUT_CLASS}
-        >
-          <option value="">{t('configSections.fullscreen-calendar.themeDefault')}</option>
-          {FULLSCREEN_THEMES.map((th) => (
-            <option key={th.id} value={th.id}>{th.name} ({th.group})</option>
-          ))}
-        </select>
-      </LabeledField>
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-calendar.themeDefault"
+      />
 
       {/* Accent Color */}
       <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
