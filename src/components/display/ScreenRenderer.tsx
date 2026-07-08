@@ -228,6 +228,8 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
             return (
               <div
                 key={mod.id}
+                data-module-id={mod.id}
+                data-module-type={mod.type}
                 style={{
                   position: 'absolute',
                   left: mod.position.x,
@@ -269,6 +271,8 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         return (
           <div
             key={mod.id}
+            data-module-id={mod.id}
+            data-module-type={mod.type}
             style={{
               position: 'absolute',
               left: mod.position.x,

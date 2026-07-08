@@ -6,7 +6,9 @@ type WorkerFixtures = { server: HsServer };
 
 // First type param redeclares the built-in `baseURL` option (string is
 // assignable to its string|undefined) so the override below typechecks.
-export const test = base.extend<{ baseURL: string }, WorkerFixtures>({
+// `sandboxDir` exposes the worker server's private data/ root so a spec can
+// drop files (e.g. a fixture plugin) into it before navigating.
+export const test = base.extend<{ baseURL: string; sandboxDir: string }, WorkerFixtures>({
   server: [
     async ({}, use) => {
       const server = await launchServer({ 'config.json': baseConfig() });
@@ -17,6 +19,9 @@ export const test = base.extend<{ baseURL: string }, WorkerFixtures>({
   ],
   baseURL: async ({ server }, use) => {
     await use(server.baseURL);
+  },
+  sandboxDir: async ({ server }, use) => {
+    await use(server.sandboxDir);
   },
 });
 

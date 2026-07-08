@@ -1,0 +1,11 @@
+{
+  "hourly": [
+    { "time": "2099-07-07T12:00:00Z", "temp": 72, "feelsLike": 70, "humidity": 55, "icon": "clear-day", "description": "Clear", "windSpeed": 8, "precipProbability": 10 },
+    { "time": "2099-07-07T13:00:00Z", "temp": 74, "feelsLike": 72, "humidity": 52, "icon": "clear-day", "description": "Clear", "windSpeed": 9, "precipProbability": 5 },
+    { "time": "2099-07-07T14:00:00Z", "temp": 75, "feelsLike": 73, "humidity": 50, "icon": "partly-cloudy-day", "description": "Partly cloudy", "windSpeed": 10, "precipProbability": 15 }
+  ],
+  "forecast": [
+    { "date": "2099-07-07", "high": 78, "low": 61, "icon": "clear-day", "description": "Sunny" },
+    { "date": "2099-07-08", "high": 80, "low": 63, "icon": "partly-cloudy-day", "description": "Partly cloudy" }
+  ]
+}

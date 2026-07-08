@@ -1,0 +1,6 @@
+{
+  "prices": [
+    { "id": "bitcoin", "name": "Bitcoin", "price": 43000.5, "change24h": 2.5 },
+    { "id": "ethereum", "name": "Ethereum", "price": 2300.75, "change24h": -1.1 }
+  ]
+}

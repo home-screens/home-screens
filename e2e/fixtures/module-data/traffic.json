@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "label": "Home to Work", "durationMinutes": 22, "durationInTrafficMinutes": 28, "delayMinutes": 6 },
+    { "label": "School Run", "durationMinutes": 10, "durationInTrafficMinutes": 11, "delayMinutes": 1 }
+  ]
+}

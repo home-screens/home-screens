@@ -20,6 +20,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
+    // Pure assertions (no browser/server) — the coverage ratchet lives here.
+    { name: 'meta',    testDir: './e2e/meta',    use: { viewport: { width: 1280, height: 800 } } },
     { name: 'smoke',   testDir: './e2e/smoke',   use: { viewport: { width: 1280, height: 800 } } },
     { name: 'editor',  testDir: './e2e/editor',  use: { viewport: { width: 1440, height: 900 } } },
     { name: 'display', testDir: './e2e/display', use: { viewport: { width: 1080, height: 1920 } } },

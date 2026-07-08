@@ -1,0 +1,13 @@
+[
+  {
+    "id": "evt-1",
+    "title": "Dentist Appointment",
+    "start": "2099-07-07T14:00:00",
+    "end": "2099-07-07T15:00:00",
+    "allDay": false,
+    "location": "123 Main St",
+    "calendarColor": "#4073ff",
+    "sourceId": "cal-primary",
+    "sourceName": "Personal"
+  }
+]

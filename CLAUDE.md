@@ -47,6 +47,7 @@ The codebase uses a **module registry pattern**. There are 41 built-in module ty
 6. A dynamic import in `src/lib/module-components.ts`
 7. An editor config section in `src/components/editor/PropertyPanel.tsx`
 8. Optionally an API route in `src/app/api/` for external data
+9. An E2E fixture row in `e2e/helpers/module-fixtures.ts` (the `meta` coverage ratchet fails otherwise). If the module fetches data, add a stub fixture too (see Testing below).
 
 Every `ModuleInstance` supports three visibility gates, AND-combined at render time: `enabled?: boolean` (per-module disable toggle, mirrors `Screen.enabled`; disabled modules are excluded from prefetch and shared-data fetches but stay dimmed-visible in the editor), `schedule?: ModuleSchedule` (day/time window), and `visibility?: ModuleVisibility` (declarative conditions over the shared state bus).
 
@@ -115,7 +116,9 @@ The marketing site and documentation live in `website/` as a separate Next.js ap
 ### Testing
 Tests use Vitest with `@` path aliases configured. Test files live in `__tests__/` directories alongside the code they test. Environment is `node`.
 
-E2E tests live in `e2e/` (Playwright, Chromium only). Each worker boots its own production `next start` from a sandboxed cwd with a private `data/` (`e2e/helpers/sandbox.ts`, mirroring `vitest.setup.ts`), so E2E runs never touch the real `data/` directory. Specs reset state via `PUT /api/config` in `beforeEach`. Requires a production build: `npm run build && npm run test:e2e`.
+E2E tests live in `e2e/` (Playwright, Chromium only). Each worker boots its own production `next start` from a sandboxed cwd with a private `data/` (`e2e/helpers/sandbox.ts`, mirroring `vitest.setup.ts`), so E2E runs never touch the real `data/` directory. Specs reset state via `PUT /api/config` in `beforeEach`. Requires a production build: `npm run build && npm run test:e2e`. CI shards the suite (`--shard=i/n`) and merges blob reports into one HTML report.
+
+**Module coverage is data-driven.** `e2e/helpers/module-fixtures.ts` holds one `ModuleFixture` row per built-in module type (config overrides + an assertion), and the render matrices (`e2e/display/modules-static.spec.ts`, `modules-data.spec.ts`, `module-views.spec.ts`) loop over it. The `meta` project's coverage ratchet (`e2e/meta/coverage.spec.ts`) fails if any built-in type lacks a fixture. **To test a new module: add its fixture row; if it fetches data, add a JSON fixture under `e2e/fixtures/module-data/` and a `stubKey` so `stubModuleData` (`e2e/helpers/stubs.ts`) serves it.** Module data is fetched client-side, so `page.route` intercepts it at the browser boundary — the `stubModuleData` external-block catch-all is the no-beacon safeguard (asserted via `externalHits`), guaranteeing a spec makes zero real upstream calls. Local-data modules (chore-chart, meal-planner, todo) seed via their real APIs (`seedChores` / `seedMeals`) instead of stubbing. Plugin specs seed a fixture plugin into the sandbox with `seedFixturePlugin` (`e2e/helpers/fixture-plugin.ts`).
 
 ## Working Conventions
 

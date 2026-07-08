@@ -1,0 +1,6 @@
+{
+  "stocks": [
+    { "symbol": "AAPL", "price": 150.25, "change": 1.23, "changePercent": 0.55 },
+    { "symbol": "MSFT", "price": 402.10, "change": -2.40, "changePercent": -0.59 }
+  ]
+}

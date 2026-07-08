@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {
+      "id": "1001",
+      "content": "Buy oat milk",
+      "description": "",
+      "priority": 1,
+      "due": { "date": "2099-01-15", "datetime": null, "isRecurring": false },
+      "labels": [],
+      "labelColors": {},
+      "projectId": "2001",
+      "projectName": "Inbox",
+      "projectColor": "#808080",
+      "sectionId": "",
+      "sectionName": "",
+      "parentId": null,
+      "order": 1,
+      "commentCount": 0
+    }
+  ],
+  "projects": [
+    { "id": "2001", "name": "Inbox", "color": "#808080", "order": 1 }
+  ]
+}

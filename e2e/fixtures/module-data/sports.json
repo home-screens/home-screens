@@ -1,0 +1,26 @@
+{
+  "games": [
+    {
+      "id": "401",
+      "league": "NFL",
+      "homeTeam": "Buffalo Bills",
+      "awayTeam": "Miami Dolphins",
+      "homeTeamAbbr": "BUF",
+      "awayTeamAbbr": "MIA",
+      "homeTeamLogo": "",
+      "awayTeamLogo": "",
+      "homeTeamColor": "00338d",
+      "awayTeamColor": "008e97",
+      "homeScore": 27,
+      "awayScore": 17,
+      "homeRecord": "10-3",
+      "awayRecord": "8-5",
+      "status": "Final",
+      "detail": "Final",
+      "shortDetail": "Final",
+      "state": "post",
+      "startTime": "2098-01-05T18:00:00Z",
+      "broadcast": "CBS"
+    }
+  ]
+}

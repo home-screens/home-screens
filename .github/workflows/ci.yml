@@ -73,8 +73,12 @@ jobs:
       - run: npm run build
 
   e2e:
-    name: E2E
+    name: E2E (shard ${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
 
@@ -89,10 +93,42 @@ jobs:
 
       - run: npm run build
 
-      - run: npx playwright test
+      # Each shard runs its slice and emits a blob report; the merge job below
+      # stitches them into one HTML report. Chromium-only, data/ isolation is
+      # unchanged (each worker still boots its own sandboxed server).
+      - run: npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} --reporter=blob
 
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: '!cancelled()'
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  e2e-report:
+    name: E2E report
+    if: '!cancelled()'
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/

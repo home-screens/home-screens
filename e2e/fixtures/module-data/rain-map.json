@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "generated": 4081276800,
+  "host": "https://tilecache.rainviewer.com",
+  "radar": {
+    "past": [
+      { "time": 4081276200, "path": "/v2/radar/4081276200" },
+      { "time": 4081276800, "path": "/v2/radar/4081276800" }
+    ],
+    "nowcast": [
+      { "time": 4081277400, "path": "/v2/radar/nowcast_4081277400" }
+    ]
+  },
+  "satellite": { "infrared": [] }
+}

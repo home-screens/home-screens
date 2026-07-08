@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "AFC East",
+      "league": "NFL",
+      "entries": [
+        {
+          "rank": 1, "team": "Buffalo Bills", "teamAbbr": "BUF", "teamShort": "Bills",
+          "teamLogo": "", "teamColor": "00338d",
+          "wins": 11, "losses": 3, "winPct": 0.786,
+          "streak": "W3", "pointsFor": 380, "pointsAgainst": 250, "differential": 130
+        },
+        {
+          "rank": 2, "team": "Miami Dolphins", "teamAbbr": "MIA", "teamShort": "Dolphins",
+          "teamLogo": "", "teamColor": "008e97",
+          "wins": 9, "losses": 5, "winPct": 0.643,
+          "streak": "L1", "pointsFor": 340, "pointsAgainst": 300, "differential": 40
+        }
+      ]
+    }
+  ]
+}
