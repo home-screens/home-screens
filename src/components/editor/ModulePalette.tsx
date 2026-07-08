@@ -22,6 +22,7 @@ function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinitio
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      data-testid={`palette-${definition.type}`}
       className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-hs-card border border-hs-border-strong cursor-grab hover:border-hs-accent/40 transition-colors ${
         isDragging ? 'opacity-50' : ''
       }`}

@@ -15,6 +15,8 @@ npm run lint         # ESLint (flat config, next/core-web-vitals + typescript)
 npm test             # Run all tests (vitest)
 npm run test:watch   # Watch mode
 npx vitest run src/lib/__tests__/config.test.ts  # Run a single test file
+npm run test:e2e     # Playwright E2E suite (run `npm run build` first)
+npx playwright test --project=editor   # Run one surface's E2E specs
 ```
 
 ## Tech Stack
@@ -112,6 +114,8 @@ The marketing site and documentation live in `website/` as a separate Next.js ap
 
 ### Testing
 Tests use Vitest with `@` path aliases configured. Test files live in `__tests__/` directories alongside the code they test. Environment is `node`.
+
+E2E tests live in `e2e/` (Playwright, Chromium only). Each worker boots its own production `next start` from a sandboxed cwd with a private `data/` (`e2e/helpers/sandbox.ts`, mirroring `vitest.setup.ts`), so E2E runs never touch the real `data/` directory. Specs reset state via `PUT /api/config` in `beforeEach`. Requires a production build: `npm run build && npm run test:e2e`.
 
 ## Working Conventions
 

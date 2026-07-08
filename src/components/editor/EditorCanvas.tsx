@@ -190,6 +190,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               innerCanvasRef.current = node;
               if (canvasRef) (canvasRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
             }}
+            data-testid="editor-canvas"
             className="relative bg-[#0f172a] ring-[6px] ring-[#1e293b] overflow-hidden shrink-0"
             style={{
               width: canvasW,

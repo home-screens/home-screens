@@ -205,6 +205,8 @@ export default function DraggableModule({
     <div
       ref={setNodeRef}
       {...attributes}
+      data-module-id={mod.id}
+      data-module-type={mod.type}
       onClick={(e) => {
         e.stopPropagation();
         onSelect();

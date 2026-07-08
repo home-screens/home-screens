@@ -12,7 +12,9 @@ export default defineConfig({
     // Sandbox every test file's cwd so nothing can write to the real data/
     // directory (see vitest.setup.ts for why per-test overrides fall short).
     setupFiles: ['./vitest.setup.ts'],
-    exclude: ['.worktrees/**', '**/node_modules/**'],
+    // `**/e2e/**` catches both the source e2e/ dir and the copy that `next build`
+    // places under .next/standalone/; `.next/**` keeps all build output out.
+    exclude: ['.worktrees/**', '**/node_modules/**', '**/e2e/**', '.next/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

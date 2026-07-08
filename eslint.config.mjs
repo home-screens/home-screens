@@ -64,6 +64,15 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-require-imports": "off",
     },
   },
+  {
+    files: ["e2e/**"],
+    rules: {
+      // Playwright fixtures take a parameter literally named `use`; the
+      // react-hooks rule mistakes `use(...)` calls for the React `use` hook.
+      // These files are Node test code, not React.
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

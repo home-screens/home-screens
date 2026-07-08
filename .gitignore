@@ -63,6 +63,10 @@ infrastructure/telemetry-worker/.wrangler
 # vercel
 .vercel
 
+# playwright
+/test-results/
+/playwright-report/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
