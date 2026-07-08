@@ -40,25 +40,51 @@ for (const fx of fixturesByKind('local-data')) {
  * here most often — a null/empty payload or a 500 should render a fallback,
  * never crash the display. We assert the module wrapper stays mounted and
  * does not surface its normal happy-path value.
+ *
+ * Each `empty` payload is a structurally valid but content-free version of the
+ * module's real fixture shape (see e2e/fixtures/module-data/*.json), so the
+ * fallback path exercised here matches what the app sees from a real upstream
+ * that returned nothing. `happy` is the substring the module renders on the
+ * happy path (from its MODULE_FIXTURES row) and must be ABSENT here.
  */
 const RESILIENCE = [
   { type: 'news', empty: { items: [] }, happy: 'Global markets' },
   { type: 'stock-ticker', stubKey: 'stocks', empty: { stocks: [] }, happy: 'AAPL' },
   { type: 'todoist', empty: { tasks: [], projects: [] }, happy: 'Buy oat milk' },
   { type: 'weather', empty: { hourly: [], forecast: [] }, happy: '72°' },
+  { type: 'sports', empty: { games: [] }, happy: 'BUF' },
+  { type: 'standings', empty: { groups: [] }, happy: 'Bills' },
+  { type: 'crypto', empty: { prices: [] }, happy: 'Bitcoin' },
+  { type: 'history', empty: { events: [] }, happy: 'Apollo 11 lands on the Moon.' },
+  { type: 'quote', empty: {}, happy: 'The only way to do great work' },
+  { type: 'dad-joke', empty: {}, happy: 'skeletons' },
+  // The calendar route returns a bare array of events, not a wrapped object.
+  { type: 'calendar', empty: [], happy: 'Dentist Appointment' },
+  {
+    type: 'fullscreen-calendar', stubKey: 'calendar', empty: [], happy: 'Dentist Appointment',
+    config: { view: 'agenda' },
+  },
+  // traffic gates rendering on config.routes.length, so it needs its routes
+  // carried through; the empty response ({ routes: [] }) surfaces no route rows,
+  // so the label ('Home to Work', which comes from the response) stays absent.
+  {
+    type: 'traffic', empty: { routes: [] }, happy: 'Home to Work',
+    config: { routes: [{ label: 'Home to Work', origin: 'A', destination: 'B' }] },
+  },
 ] as const;
 
 for (const r of RESILIENCE) {
   const fx = MODULE_FIXTURES[r.type];
-  const stubKey = fx.stubKey!;
+  const stubKey = ('stubKey' in r && r.stubKey) || fx.stubKey!;
+  const config = ('config' in r && r.config) || fx.config;
 
   test(`${r.type} survives an empty payload`, async ({ page, request }) => {
     await stubModuleData(page, { overrides: { [stubKey]: r.empty } });
-    const config = baseConfig({
-      screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, fx.config)])],
+    const cfg = baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, config)])],
       settings: matrixSettings(),
     });
-    const display = await renderOnDisplay(page, request, config);
+    const display = await renderOnDisplay(page, request, cfg);
     const mod = display.module(fx.type);
     await expect(mod).toBeVisible();
     await expect(mod).not.toContainText(r.happy);
@@ -66,13 +92,49 @@ for (const r of RESILIENCE) {
 
   test(`${r.type} survives a 500`, async ({ page, request }) => {
     await stubModuleData(page, { overrides: { [stubKey]: { status: 500 } } });
-    const config = baseConfig({
-      screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, fx.config)])],
+    const cfg = baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, config)])],
       settings: matrixSettings(),
     });
-    const display = await renderOnDisplay(page, request, config);
+    const display = await renderOnDisplay(page, request, cfg);
     const mod = display.module(fx.type);
     await expect(mod).toBeVisible();
     await expect(mod).not.toContainText(r.happy);
   });
+}
+
+/**
+ * Text-less data modules have no reliable happy-path substring to assert the
+ * ABSENCE of (their fixtures use hasSize / hasChild('img') / a weak numeric
+ * match), so resilience for them is a stricter shape: the module wrapper stays
+ * mounted AND the page throws no uncaught error on empty data or a 500.
+ */
+const RESILIENCE_NO_CRASH = [
+  { type: 'rain-map', stubKey: 'rain-map', empty: {} },
+  { type: 'air-quality', stubKey: 'air-quality', empty: {} },
+  // The backgrounds route returns a bare array of image URLs.
+  { type: 'photo-slideshow', stubKey: 'backgrounds', empty: [] },
+  { type: 'fullscreen-photo', stubKey: 'backgrounds', empty: [] },
+] as const;
+
+for (const r of RESILIENCE_NO_CRASH) {
+  const fx = MODULE_FIXTURES[r.type];
+
+  for (const scenario of ['empty', '500'] as const) {
+    test(`${r.type} does not crash on ${scenario === 'empty' ? 'an empty payload' : 'a 500'}`, async ({ page, request }) => {
+      const errors: Error[] = [];
+      page.on('pageerror', (e) => errors.push(e));
+
+      await stubModuleData(page, {
+        overrides: { [r.stubKey]: scenario === 'empty' ? r.empty : { status: 500 } },
+      });
+      const cfg = baseConfig({
+        screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, fx.config)])],
+        settings: matrixSettings(),
+      });
+      const display = await renderOnDisplay(page, request, cfg);
+      await expect(display.module(fx.type)).toBeVisible();
+      expect(errors).toHaveLength(0);
+    });
+  }
 }

@@ -62,9 +62,31 @@ const BUNDLE = `(function () {
   window.__HS_PLUGIN__ = { default: Component };
 })();`;
 
+/** A single declared secret, mirroring `PluginSecretDeclaration` in the manifest. */
+export interface FixtureSecretDeclaration {
+  key: string;
+  label: string;
+  required?: boolean;
+  description?: string;
+  placeholder?: string;
+}
+
+interface SeedFixturePluginOptions {
+  /**
+   * When provided, the seeded manifest declares these secrets so the editor
+   * PropertyPanel renders its "Secrets" section for the plugin module. Omit
+   * for the default no-secrets fixture used by the display/proxy specs.
+   */
+  secrets?: FixtureSecretDeclaration[];
+}
+
 /** Seed the fixture plugin (installed.json, manifest, bundle) into a sandbox. */
-export function seedFixturePlugin(sandboxDir: string): void {
+export function seedFixturePlugin(sandboxDir: string, opts: SeedFixturePluginOptions = {}): void {
+  const manifest = {
+    ...MANIFEST,
+    ...(opts.secrets ? { secrets: opts.secrets } : {}),
+  };
   writeSandboxFile(sandboxDir, 'plugins/installed.json', INSTALLED);
-  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, MANIFEST);
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, manifest);
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, BUNDLE);
 }

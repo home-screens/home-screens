@@ -72,3 +72,23 @@ test('the proxy rejects a request to a non-allowlisted domain (SSRF guard)', asy
   expect(res.ok()).toBe(false);
   expect(res.status()).toBeGreaterThanOrEqual(400);
 });
+
+test('the plugin proxy rate-limits after 60 requests/minute', async ({ request }) => {
+  // The rate-limit gate runs before the domain check, so requests to a
+  // disallowed host still count toward the budget (each returns 403) without
+  // any outbound network egress — until the limiter trips and returns 429.
+  // The fixture manifest declares only the `network` permission, so the
+  // non-LAN budget of 60/min applies. Loop past 61 to absorb the single
+  // request the SSRF test above may have already spent in this window.
+  let sawTooMany = false;
+  for (let i = 0; i < 62; i++) {
+    const res = await request.post(`/api/plugins/proxy/${FIXTURE_PLUGIN_ID}`, {
+      data: { url: 'https://evil.example.org/steal' },
+    });
+    if (res.status() === 429) {
+      sawTooMany = true;
+      break;
+    }
+  }
+  expect(sawTooMany).toBe(true);
+});

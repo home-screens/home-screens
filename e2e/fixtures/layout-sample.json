@@ -1,0 +1,49 @@
+{
+  "_type": "home-screens-layout",
+  "_version": 1,
+  "metadata": {
+    "name": "E2E Sample Layout",
+    "description": "Fixture consumed by e2e/editor/modals.spec.ts",
+    "exportedAt": "2026-01-01T00:00:00.000Z",
+    "configVersion": 4,
+    "sourceDisplay": { "width": 1080, "height": 1920 },
+    "screenCount": 1,
+    "moduleCount": 1
+  },
+  "visual": {
+    "rotationIntervalMs": 3600000,
+    "transitionEffect": "fade",
+    "transitionDuration": 500
+  },
+  "screens": [
+    {
+      "id": "imported-screen",
+      "name": "E2E Imported Screen",
+      "backgroundImage": "",
+      "modules": [
+        {
+          "id": "imported-text",
+          "type": "text",
+          "position": { "x": 100, "y": 100 },
+          "size": { "w": 800, "h": 200 },
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0.4)",
+            "borderRadius": 12,
+            "padding": 16,
+            "opacity": 1
+          },
+          "config": {
+            "content": "IMPORTED FROM FIXTURE",
+            "alignment": "center",
+            "orientation": "horizontal",
+            "verticalAlign": "center",
+            "effect": "none",
+            "textTransform": "none",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    }
+  ]
+}

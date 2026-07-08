@@ -6,12 +6,19 @@ import LabeledField from '@/components/ui/LabeledField';
 import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance, DisplayControlConfig } from '@/types/config';
+import type { ModuleInstance, DisplayControlConfig, DisplayNode } from '@/types/config';
+
+// A frozen module-level empty array so the Zustand selector below returns a
+// referentially-stable value when no displays registry is configured (legacy
+// single-display mode). Defaulting to a fresh `[]` inside the selector would
+// return a new reference every render, tripping useSyncExternalStore into an
+// infinite render loop (React #185) the moment this section mounts.
+const EMPTY_DISPLAYS: DisplayNode[] = [];
 
 export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<DisplayControlConfig>(mod, screenId);
-  const displays = useEditorStore((s) => s.config?.displays ?? []);
+  const displays = useEditorStore((s) => s.config?.displays ?? EMPTY_DISPLAYS);
 
   const legacy = displays.length === 0;
 
