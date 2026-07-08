@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -84,29 +84,102 @@ function arr(obj: Record<string, unknown>, ...keys: string[]): string[] {
   return [];
 }
 
-/** Fetch a list endpoint, handling { results: [...] } wrapper or bare array. */
+// ─── Resilient fetch helpers ───
+
+const MAX_RETRIES = 2; // total attempts = MAX_RETRIES + 1
+const RETRY_DELAY_MS = 500;
+const MAX_PAGES = 20; // sanity ceiling so a misbehaving cursor can't loop forever
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Fetch a single page from a Todoist endpoint, retrying once or twice on
+ * transient server errors (5xx) or network failures. 4xx errors (bad token,
+ * bad request) fail fast without retrying, since retrying won't help.
+ */
+async function fetchTodoistPage(
+  url: string,
+  token: string,
+): Promise<Record<string, unknown>> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetchWithTimeout(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        return await res.json();
+      }
+
+      const text = await res.text().catch(() => '');
+
+      // Don't retry client errors (bad token, malformed request, etc.) —
+      // a retry will just fail the same way.
+      if (res.status >= 400 && res.status < 500) {
+        throw new Error(`Todoist API ${url} returned ${res.status}: ${text}`);
+      }
+
+      // 5xx — likely transient, worth a retry.
+      lastError = new Error(`Todoist API ${url} returned ${res.status}: ${text}`);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    if (attempt < MAX_RETRIES) {
+      await sleep(RETRY_DELAY_MS * (attempt + 1)); // simple backoff
+    }
+  }
+
+  throw lastError ?? new Error(`Todoist API ${url} failed with no further detail`);
+}
+
+/**
+ * Fetch a full (paginated) list endpoint, following `next_cursor` until
+ * Todoist reports there's nothing left. Handles both a bare array response
+ * and the `{ results: [...] }` / `{ items: [...] }` wrapper shapes, and
+ * tolerates either snake_case or camelCase cursor field names.
+ */
 async function fetchTodoistList(endpoint: string, token: string): Promise<Record<string, unknown>[]> {
-  const res = await fetchWithTimeout(`${TODOIST_API}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Todoist API ${endpoint} returned ${res.status}: ${text}`);
-  }
-  const json = await res.json();
-  if (Array.isArray(json)) return json;
-  if (json && typeof json === 'object') {
-    if (Array.isArray(json.results)) return json.results;
-    if (Array.isArray(json.items)) return json.items;
-  }
-  return [];
+  const results: Record<string, unknown>[] = [];
+  let cursor: string | null = null;
+  let pageCount = 0;
+
+  do {
+    const url = new URL(`${TODOIST_API}${endpoint}`);
+    if (cursor) url.searchParams.set('cursor', cursor);
+
+    const json = await fetchTodoistPage(url.toString(), token);
+
+    if (Array.isArray(json)) {
+      // Bare array response — no pagination wrapper, so nothing more to fetch.
+      results.push(...(json as Record<string, unknown>[]));
+      cursor = null;
+    } else if (json && typeof json === 'object') {
+      const page = json as Record<string, unknown>;
+      if (Array.isArray(page.results)) {
+        results.push(...(page.results as Record<string, unknown>[]));
+      } else if (Array.isArray(page.items)) {
+        results.push(...(page.items as Record<string, unknown>[]));
+      }
+      cursor = strOrNull(page, 'next_cursor', 'nextCursor');
+    } else {
+      cursor = null;
+    }
+
+    pageCount++;
+  } while (cursor && pageCount < MAX_PAGES);
+
+  return results;
 }
 
 // ─── PUT: Save token server-side ───
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ token?: unknown }>(request);
-  if (body instanceof NextResponse) return body;
+  const body = await request.json();
   const token = typeof body.token === 'string' ? body.token.trim() : '';
 
   if (!token) {
@@ -134,12 +207,31 @@ const { GET, cache } = cachedProxyRoute<unknown>({
     const token = await requireSecret('todoist_token', 'Todoist');
     if (token instanceof NextResponse) return token;
 
-    const [rawTasks, rawProjects, rawSections, rawLabels] = await Promise.all([
-      fetchTodoistList('/tasks', token),
+    // Tasks are the critical resource — if this fails, the whole route
+    // should fail. Projects/sections/labels are enrichment only, so a
+    // failure there (e.g. a transient 502 on /projects) shouldn't take
+    // down tasks too — we fall back to empty maps instead.
+    const rawTasks = await fetchTodoistList('/tasks', token);
+
+    const [projectsResult, sectionsResult, labelsResult] = await Promise.allSettled([
       fetchTodoistList('/projects', token),
       fetchTodoistList('/sections', token),
       fetchTodoistList('/labels', token),
     ]);
+
+    const rawProjects = projectsResult.status === 'fulfilled' ? projectsResult.value : [];
+    const rawSections = sectionsResult.status === 'fulfilled' ? sectionsResult.value : [];
+    const rawLabels = labelsResult.status === 'fulfilled' ? labelsResult.value : [];
+
+    if (projectsResult.status === 'rejected') {
+      console.error('Failed to fetch Todoist projects (continuing without them):', projectsResult.reason);
+    }
+    if (sectionsResult.status === 'rejected') {
+      console.error('Failed to fetch Todoist sections (continuing without them):', sectionsResult.reason);
+    }
+    if (labelsResult.status === 'rejected') {
+      console.error('Failed to fetch Todoist labels (continuing without them):', labelsResult.reason);
+    }
 
     const projectMap = new Map<string, { name: string; color: string }>();
     for (const p of rawProjects) {
