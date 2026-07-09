@@ -570,9 +570,23 @@ export function parseCommaList(param: string | null): string[] {
   return param.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+export interface ParseJsonBodyOptions {
+  /**
+   * Maximum accepted body size in bytes. When set, an oversized request is
+   * rejected with a 413 before its JSON is parsed — via both a fast-path
+   * Content-Length check and a streaming byte cap that also catches an absent
+   * or dishonest Content-Length. Omit to accept any size (the default, so all
+   * existing callers keep their current behavior).
+   */
+  maxBytes?: number;
+}
+
 /**
  * Parse a JSON request body, returning a 400 NextResponse on malformed JSON.
  * Only guards JSON syntax — callers still validate the parsed shape.
+ *
+ * Pass `{ maxBytes }` to bound the body size (returns 413 when exceeded) for
+ * routes that accept untrusted uploads; without it the body is unbounded.
  *
  * Usage:
  *   const body = await parseJsonBody<ConnectRequest>(request);
@@ -580,12 +594,68 @@ export function parseCommaList(param: string | null): string[] {
  */
 export async function parseJsonBody<T>(
   request: NextRequest,
+  options?: ParseJsonBodyOptions,
 ): Promise<T | NextResponse> {
+  const maxBytes = options?.maxBytes;
+  if (maxBytes === undefined) {
+    try {
+      return await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+  }
+
+  // Fast-path: reject an honest, oversized Content-Length without reading the body.
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+  }
+
+  // Bounded read: stream the body and abort past the cap, so an absent or
+  // dishonest Content-Length can't force us to buffer an unbounded body.
+  const text = await readBodyCapped(request, maxBytes);
+  if (text instanceof NextResponse) return text;
   try {
-    return await request.json();
+    return JSON.parse(text) as T;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
+}
+
+/**
+ * Read a request body as text while enforcing a byte cap. Streams the body and
+ * cancels once `maxBytes` is exceeded (returning a 413) so a large or
+ * unbounded body is never fully buffered in memory.
+ */
+async function readBodyCapped(
+  request: NextRequest,
+  maxBytes: number,
+): Promise<string | NextResponse> {
+  const reader = request.body?.getReader();
+  if (!reader) {
+    // No readable stream (already-buffered body) — fall back to a measured read.
+    const text = await request.text();
+    if (Buffer.byteLength(text) > maxBytes) {
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+    }
+    return text;
+  }
+
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      // Cancel the body so the socket is released instead of read to completion.
+      try { await reader.cancel(); } catch { /* ignore */ }
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString('utf-8');
 }
 
 /**

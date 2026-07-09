@@ -25,7 +25,7 @@ npx playwright test --project=editor   # Run one surface's E2E specs
 - Tailwind CSS v4
 - @dnd-kit for drag-and-drop editor
 - Zustand for editor state management
-- Framer Motion for screen transitions
+- Framer Motion for UI animations (editor panels, some module content); screen transitions use the browser's View Transitions API (`ScreenRotator.startScreenTransition`), not Framer Motion
 - Vitest for testing
 - Path alias: `@/*` → `./src/*`
 

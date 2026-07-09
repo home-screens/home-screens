@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { LOCALES, FALLBACK_LOCALE } from '@/i18n/manifest';
 import { BUILT_IN_NAMESPACES } from '@/i18n/types';
+import { flatten, loadDict, ALLOWED_PLURAL_BRANCHES } from './helpers/dict';
 
 /**
  * Parity check between every shipped locale and the fallback (`en-US`)
@@ -25,41 +24,6 @@ import { BUILT_IN_NAMESPACES } from '@/i18n/types';
  *     separate coverage report is the right tool for that — failing the
  *     suite on coverage would block partial-translation PRs.
  */
-
-const TRANSLATIONS_ROOT = join(process.cwd(), 'src/translations');
-const ALLOWED_PLURAL_BRANCHES = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
-
-/**
- * Flatten a nested dictionary to dotted-path keys. Plural-form objects
- * (every value is a string and every key is a CLDR plural category) are
- * kept whole — they're a single logical entry at the call site, not a
- * dotted sub-tree.
- */
-function flatten(obj: Record<string, unknown>, prefix = ''): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    const path = prefix ? `${prefix}.${k}` : k;
-    if (v && typeof v === 'object' && !Array.isArray(v)) {
-      const inner = v as Record<string, unknown>;
-      const allStringValues = Object.values(inner).every((x) => typeof x === 'string');
-      const allPluralKeys = Object.keys(inner).every((x) => ALLOWED_PLURAL_BRANCHES.has(x));
-      if (allStringValues && allPluralKeys && Object.keys(inner).length > 0) {
-        out[path] = inner;
-      } else {
-        Object.assign(out, flatten(inner, path));
-      }
-    } else {
-      out[path] = v;
-    }
-  }
-  return out;
-}
-
-function loadDict(locale: string, namespace: string): Record<string, unknown> | null {
-  const path = join(TRANSLATIONS_ROOT, locale, `${namespace}.json`);
-  if (!existsSync(path)) return null;
-  return JSON.parse(readFileSync(path, 'utf-8'));
-}
 
 describe('locale parity', () => {
   const locales = Object.keys(LOCALES);

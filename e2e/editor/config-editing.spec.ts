@@ -542,3 +542,343 @@ test('fullscreen-photo: switching Mode persists', async ({ page, request }) => {
 
   expect((await moduleConfig(request, 'fullscreen-photo')).file).toBe('');
 });
+
+// ── Task 13: Deep per-module config — high-complexity modules ───────────────
+// The ratchet baseline above covers one field per module. These add breadth on
+// the six highest-surface-area modules (weather, text, chore-chart,
+// meal-planner, standings, sports), prioritizing branchy controls: enums,
+// toggles, multi-part gradient fields, and per-league selection.
+
+// ColorPicker nests a color input AND a text input inside one <label>, so
+// getByLabel is ambiguous. The text input commits on blur; drill to it by the
+// label whose span text is exactly `label`.
+function colorText(page: Page, label: string) {
+  return page
+    .locator('label')
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .locator('input[type="text"]');
+}
+
+// ---- weather ----
+
+test('weather: swapping the Data Provider persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('weather'));
+
+  // The Data Provider select only renders once /api/secrets resolves (it always
+  // lists the no-key providers: noaa, open-meteo, yr, smhi, envcanada).
+  await autosaved(page, async () => {
+    await page.getByLabel('Data Provider').selectOption('noaa');
+  });
+
+  expect((await moduleConfig(request, 'weather')).provider).toBe('noaa');
+});
+
+test('weather: switching the Icon Style persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('weather'));
+
+  // iconSet defaults to 'color'; switch to 'outline'.
+  await autosaved(page, async () => {
+    await page.getByLabel('Icon Style').selectOption('outline');
+  });
+
+  expect((await moduleConfig(request, 'weather')).iconSet).toBe('outline');
+});
+
+test('weather: toggling Humidity on persists', async ({ page, request }) => {
+  // showHumidity defaults off → one click flips it on.
+  await selectModule(page, request, buildModuleInstance('weather'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Humidity' }).click();
+  });
+
+  expect((await moduleConfig(request, 'weather')).showHumidity).toBe(true);
+});
+
+test('weather: toggling Wind Speed on persists', async ({ page, request }) => {
+  // showWind defaults off → one click flips it on.
+  await selectModule(page, request, buildModuleInstance('weather'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Wind Speed' }).click();
+  });
+
+  expect((await moduleConfig(request, 'weather')).showWind).toBe(true);
+});
+
+test('weather: editing Days to Show (daily view) persists', async ({ page, request }) => {
+  // "Days to Show" only renders for day-bearing views; seed `daily`.
+  await selectModule(page, request, buildModuleInstance('weather', { view: 'daily' }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Days to Show').fill('7');
+  });
+
+  expect((await moduleConfig(request, 'weather')).daysToShow).toBe(7);
+});
+
+test('weather: toggling Hide When No Alerts on the alerts view persists', async ({ page, request }) => {
+  // The alerts view + its "Hide When No Alerts" toggle only appear when the
+  // effective provider advertises alert support. noaa does (and needs no key),
+  // so seed provider+view to reach that branch.
+  await selectModule(page, request, buildModuleInstance('weather', { provider: 'noaa', view: 'alerts' }));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Hide When No Alerts' }).click();
+  });
+
+  expect((await moduleConfig(request, 'weather')).hideWhenNoAlerts).toBe(true);
+});
+
+// ---- text ----
+
+test('text: editing the gradient From color persists', async ({ page, request }) => {
+  // Gradient From/To/Angle only render once gradientEnabled is on.
+  await selectModule(page, request, buildModuleInstance('text', { content: 'GRAD', gradientEnabled: true }));
+
+  await autosaved(page, async () => {
+    await colorText(page, 'From').fill('#123456');
+    await colorText(page, 'From').blur();
+  });
+
+  expect((await moduleConfig(request, 'text')).gradientFrom).toBe('#123456');
+});
+
+test('text: adjusting the gradient Angle persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('text', { content: 'GRAD', gradientEnabled: true }));
+
+  // Angle is a Slider (default 90, step 15). One step right → 105.
+  await autosaved(page, async () => {
+    const slider = page.getByRole('slider', { name: 'Angle' });
+    await slider.focus();
+    await slider.press('ArrowRight');
+  });
+
+  expect((await moduleConfig(request, 'text')).gradientAngle).toBe(105);
+});
+
+test('text: enabling the scrolling marquee persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('text', { content: 'SCROLL ME' }));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Scrolling Marquee' }).click();
+  });
+
+  expect((await moduleConfig(request, 'text')).marquee).toBe(true);
+});
+
+test('text: choosing a text Effect persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('text', { content: 'GLOWY' }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Effect').selectOption('glow');
+  });
+
+  expect((await moduleConfig(request, 'text')).effect).toBe('glow');
+});
+
+test('text: switching Text Transform persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('text', { content: 'shout' }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Text Transform').selectOption('uppercase');
+  });
+
+  expect((await moduleConfig(request, 'text')).textTransform).toBe('uppercase');
+});
+
+test('text: a {state} token with no producer warns and persists the content', async ({ page, request }) => {
+  // The token helper renders when the content references any {key}; an unknown
+  // key (nothing on this display publishes it) surfaces the warning copy.
+  await selectModule(page, request, buildModuleInstance('text', { content: 'start' }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Content').fill('{plugin:foo:bar}');
+  });
+
+  expect((await moduleConfig(request, 'text')).content).toBe('{plugin:foo:bar}');
+  await expect(page.getByText('Nothing on this display publishes')).toBeVisible();
+});
+
+// ---- chore-chart ----
+
+test('chore-chart: switching Week Starts On persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('chore-chart'));
+
+  // weekStartDay defaults 'monday'; switch to 'sunday'.
+  await autosaved(page, async () => {
+    await page.getByLabel('Week Starts On').selectOption('sunday');
+  });
+
+  expect((await moduleConfig(request, 'chore-chart')).weekStartDay).toBe('sunday');
+});
+
+test('chore-chart: toggling Show Tickets off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('chore-chart'));
+
+  // showPoints defaults on (?? true) → one click flips it off.
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Show Tickets' }).click();
+  });
+
+  expect((await moduleConfig(request, 'chore-chart')).showPoints).toBe(false);
+});
+
+test('chore-chart: toggling Show Time of Day off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('chore-chart'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Show Time of Day' }).click();
+  });
+
+  expect((await moduleConfig(request, 'chore-chart')).showTimeOfDay).toBe(false);
+});
+
+test('chore-chart: toggling Tap to Complete off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('chore-chart'));
+
+  // allowDisplayComplete defaults on (?? true) → one click flips it off.
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Tap to Complete (Display)' }).click();
+  });
+
+  expect((await moduleConfig(request, 'chore-chart')).allowDisplayComplete).toBe(false);
+});
+
+test('chore-chart: editing the Accent Color persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('chore-chart'));
+
+  await autosaved(page, async () => {
+    await colorText(page, 'Accent Color').fill('#ff8800');
+    await colorText(page, 'Accent Color').blur();
+  });
+
+  expect((await moduleConfig(request, 'chore-chart')).accentColor).toBe('#ff8800');
+});
+
+// ---- meal-planner ----
+
+test('meal-planner: switching the View persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+
+  // View defaults 'week'; switch to 'today' via the ViewSelect.
+  await autosaved(page, async () => {
+    await viewSelect(page).selectOption('today');
+  });
+
+  expect((await moduleConfig(request, 'meal-planner')).view).toBe('today');
+});
+
+test('meal-planner: toggling Show Prep Time off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+
+  // showPrepTime defaults on (?? true) → one click flips it off.
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Show Prep Time' }).click();
+  });
+
+  expect((await moduleConfig(request, 'meal-planner')).showPrepTime).toBe(false);
+});
+
+test('meal-planner: toggling Show Tags off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Show Tags' }).click();
+  });
+
+  expect((await moduleConfig(request, 'meal-planner')).showTags).toBe(false);
+});
+
+test('meal-planner: switching the tap-to-open recipe action persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+
+  // tapRecipeAction defaults 'off'; switch to 'qr'.
+  await autosaved(page, async () => {
+    await page.getByLabel('Tap Meal to Open Recipe').selectOption('qr');
+  });
+
+  expect((await moduleConfig(request, 'meal-planner')).tapRecipeAction).toBe('qr');
+});
+
+// ---- standings ----
+
+// The League and Grouping controls are bare <select>s (span label sibling, not
+// a wrapping <label>), so getByLabel can't reach them. Target each by an option
+// unique to it.
+function standingsSelectByOption(page: Page, optionName: string) {
+  return page.locator('select').filter({ has: page.getByRole('option', { name: optionName, exact: true }) });
+}
+
+for (const { name, value } of [
+  { name: 'Premier League', value: 'epl' },
+  { name: 'MLB', value: 'mlb' },
+  { name: 'Bundesliga', value: 'bundesliga' },
+  { name: 'Liga MX', value: 'liga_mx' },
+]) {
+  test(`standings: selecting the ${name} league persists`, async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('standings'));
+
+    await autosaved(page, async () => {
+      await standingsSelectByOption(page, 'Premier League').selectOption(value);
+    });
+
+    expect((await moduleConfig(request, 'standings')).league).toBe(value);
+  });
+}
+
+test('standings: switching the Grouping persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('standings'));
+
+  // grouping defaults 'conference'; switch to 'league' (option "Full League").
+  await autosaved(page, async () => {
+    await standingsSelectByOption(page, 'Full League').selectOption('league');
+  });
+
+  expect((await moduleConfig(request, 'standings')).grouping).toBe('league');
+});
+
+test('standings: toggling the Playoff Cutoff Line off persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('standings'));
+
+  // showPlayoffLine defaults on (!== false) → one click flips it off.
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Playoff Cutoff Line' }).click();
+  });
+
+  expect((await moduleConfig(request, 'standings')).showPlayoffLine).toBe(false);
+});
+
+// ---- sports ----
+
+test('sports: enabling an additional league persists', async ({ page, request }) => {
+  // leagues defaults ['nba','nfl']; seed it explicitly for a deterministic base.
+  await selectModule(page, request, buildModuleInstance('sports', { leagues: ['nba', 'nfl'] }));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'MLB' }).click();
+  });
+
+  expect((await moduleConfig(request, 'sports')).leagues).toEqual(['nba', 'nfl', 'mlb']);
+});
+
+test('sports: disabling a default league persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('sports', { leagues: ['nba', 'nfl'] }));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'NBA' }).click();
+  });
+
+  expect((await moduleConfig(request, 'sports')).leagues).toEqual(['nfl']);
+});
+
+test('sports: switching the View persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('sports'));
+
+  // view defaults 'scoreboard'; switch to 'list' via the ViewSelect.
+  await autosaved(page, async () => {
+    await viewSelect(page).selectOption('list');
+  });
+
+  expect((await moduleConfig(request, 'sports')).view).toBe('list');
+});

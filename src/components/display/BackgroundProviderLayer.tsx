@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react';
 import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
+import { usePluginStore } from '@/stores/plugin-store';
 import { buildModuleProps, type SharedDisplayData } from './ScreenRenderer';
 
 /**
@@ -52,8 +53,17 @@ interface BackgroundProviderLayerProps {
  *
  * Memoized: ScreenRotator re-renders at least once a minute (clock tick), so
  * this layer must not churn its providers' fetch loops on every parent render.
+ * The memo blocks parent-driven re-renders, but plugin bundles register
+ * asynchronously after first render without changing any of the memoized props,
+ * so we subscribe to the plugin store's registration count directly — that
+ * subscription re-renders this component when a plugin registers, letting a
+ * plugin-only background provider finally resolve its component and mount.
  */
 function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundProviderLayerProps) {
+  // Re-render when a plugin registers so a plugin-only provider picks up its
+  // now-available component (memoized props don't change on registration).
+  usePluginStore((s) => s.plugins.size);
+
   const providers = useMemo(() => {
     const seen = new Set<string>();
     const result: ModuleInstance[] = [];
@@ -85,8 +95,9 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
     >
       {providers.map((mod) => {
         const Component = getModuleComponent(mod.type);
-        // Plugin not (yet) loaded — nothing to run; the plugin store re-renders
-        // this layer when the bundle registers.
+        // Plugin not yet loaded — nothing to run. The plugins.size subscription
+        // above re-renders this layer once the bundle registers, at which point
+        // getModuleComponent resolves and the provider mounts.
         if (!Component) return null;
         const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
         return (

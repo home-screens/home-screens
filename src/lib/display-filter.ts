@@ -190,7 +190,16 @@ export function filterConfigForDisplay(
     merged.displayHeight = oriented.height;
   }
 
-  if (display.activeProfile !== undefined) {
+  // Mirror `getActiveProfileId`'s ownership rule so the display-rendering
+  // path and the editor UI can never disagree: a display that OWNS a
+  // `profiles` array also owns `activeProfile` — set it explicitly (even to
+  // `undefined`, meaning "none active") so the global `settings.activeProfile`
+  // spread in above never leaks into an owning display. A display WITHOUT its
+  // own profiles keeps inheriting the global, only overridden by an explicit
+  // per-display value.
+  if (display.profiles) {
+    merged.activeProfile = display.activeProfile;
+  } else if (display.activeProfile !== undefined) {
     merged.activeProfile = display.activeProfile;
   }
 

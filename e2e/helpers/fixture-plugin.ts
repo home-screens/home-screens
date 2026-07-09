@@ -15,7 +15,14 @@ export const FIXTURE_PLUGIN_ID = 'e2e-fixture';
 export const FIXTURE_PLUGIN_TYPE = 'plugin:e2e-fixture';
 export const FIXTURE_STATE_KEY = 'plugin:e2e-fixture:flag';
 
-const MANIFEST = {
+/**
+ * The base fixture manifest (no `secrets`). Exported so the committed
+ * install-tarball fixture can be checked for drift against it — see the
+ * parity test in e2e/editor/plugin-lifecycle.spec.ts. Keep this the single
+ * source of truth; the tarball is regenerated from it via
+ * e2e/fixtures/plugins/build-plugin-fixtures.mjs.
+ */
+export const MANIFEST = {
   id: FIXTURE_PLUGIN_ID,
   name: 'E2E Fixture Plugin',
   version: '1.0.0',
@@ -46,7 +53,11 @@ const INSTALLED = {
   }],
 };
 
-const BUNDLE = `(function () {
+/**
+ * The base fixture bundle (IIFE). Exported alongside {@link MANIFEST} as the
+ * single source of truth the committed install tarball is verified against.
+ */
+export const BUNDLE = `(function () {
   var React = window.React;
   var SDK = window.__HS_SDK__;
   function Component(props) {
