@@ -81,6 +81,14 @@ test('/chores shows the empty state when no chore module is configured', async (
   await putConfig(request, baseConfig()); // no chore-chart module
   await page.goto('/chores');
   await expect(page.getByText('Feed the dog')).toBeHidden();
+
+  // With no chore module the page renders ChoresEmptyState, whose copy tells
+  // whoever set the display up how to enable chores. Pin the verbatim string
+  // (remote.choresKidView.notConfigured) — it's the only guidance a kid landing
+  // on an unconfigured /chores gets.
+  await expect(
+    page.getByText('No chores configured. Add a Chore Chart module in the editor to get started.'),
+  ).toBeVisible();
 });
 
 // ── Rewards on the kid surface ────────────────────────────────────────
@@ -152,6 +160,38 @@ test('an unaffordable reward is shown disabled in the kid view', async ({ page, 
   const rewardBtn = page.getByRole('button', { name: /Theme Park Day/ });
   await expect(rewardBtn).toBeVisible();
   await expect(rewardBtn).toBeDisabled();
+});
+
+test('kid sees a previously-redeemed reward in the History tab', async ({ page, request }) => {
+  // Unlike the redeem-flow spec above (which redeems through the UI then checks
+  // History), this seeds the redemption entirely through the API and asserts the
+  // kid can *read back* an existing history entry. Unique IDs keep the redemption
+  // out of the other rewards specs (redemptions persist per-worker).
+  await request.put('/api/chores/data', {
+    data: { members: [{ id: 'm-hist', name: 'Pip', emoji: '🦊', color: '#f59e0b' }], chores: [] },
+  });
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [{
+        id: 'rw-hist', name: 'Ice Cream Trip', emoji: 'lucide:ice-cream', cost: 2,
+        description: '', memberIds: [], enabled: true,
+      }],
+    },
+  });
+  await request.post('/api/rewards/data', { data: { memberId: 'm-hist', amount: 5 } }); // balance
+  // Redeem through the real POST /api/rewards endpoint — this writes the
+  // denormalized redemption record (memberName + rewardName) the History tab reads.
+  const redeemed = await request.post('/api/rewards', { data: { rewardId: 'rw-hist', memberId: 'm-hist' } });
+  expect(redeemed.ok()).toBe(true);
+
+  await page.goto('/chores');
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+
+  // The history entry reads "Pip redeemed Ice Cream Trip — 2 tickets" — assert
+  // the full attributed line (other specs' redemptions share this worker's log,
+  // so the member+reward pairing is what makes it unambiguously this one).
+  await expect(page.getByText('Pip redeemed Ice Cream Trip')).toBeVisible();
 });
 
 // ── Kid completion toggle & multi-member view ─────────────────────────

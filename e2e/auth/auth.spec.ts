@@ -41,6 +41,49 @@ test('enable a password via the API', async ({ request }) => {
   expect(status.authEnabled).toBe(true);
 });
 
+test('rememberMe:true issues a 90-day session cookie', async ({ request }) => {
+  // The login route picks SESSION_REMEMBER_ME_AGE (90d) vs SESSION_MAX_AGE (30d)
+  // off the rememberMe flag and stamps it as the Set-Cookie Max-Age. A correct
+  // password also clears the rate limiter for this IP, so this can't poison the
+  // shared peer bucket the way a failed attempt would.
+  const res = await request.post('/api/auth/login', { data: { password: PASSWORD, rememberMe: true } });
+  expect(res.ok()).toBe(true);
+  const setCookie = res
+    .headersArray()
+    .filter((h) => h.name.toLowerCase() === 'set-cookie')
+    .map((h) => h.value)
+    .join('\n');
+  expect(setCookie).toMatch(/hs-session=/);
+  const maxAge = Number(/Max-Age=(\d+)/.exec(setCookie)?.[1]);
+  expect(maxAge).toBe(90 * 24 * 60 * 60); // 7776000
+});
+
+test('rememberMe:false issues the shorter 30-day session cookie', async ({ request }) => {
+  const res = await request.post('/api/auth/login', { data: { password: PASSWORD, rememberMe: false } });
+  expect(res.ok()).toBe(true);
+  const setCookie = res
+    .headersArray()
+    .filter((h) => h.name.toLowerCase() === 'set-cookie')
+    .map((h) => h.value)
+    .join('\n');
+  const maxAge = Number(/Max-Age=(\d+)/.exec(setCookie)?.[1]);
+  expect(maxAge).toBe(30 * 24 * 60 * 60); // 2592000
+});
+
+test('a tampered session cookie is rejected and bounces to /login', async ({ page, context, baseURL }) => {
+  // Sessions are HMAC-signed with the server's cookieSecret, which the spec can't
+  // read, so a genuinely-expired-but-valid cookie can't be forged here. The
+  // reachable equivalent: a cookie whose signature doesn't verify must be treated
+  // exactly like no session — verifySession returns null, the editor's config
+  // fetch 401s, and editorFetch bounces to /login.
+  await context.addCookies([
+    { name: 'hs-session', value: 'Zm9yZ2Vk.bm90LWEtdmFsaWQtc2ln', url: baseURL },
+  ]);
+  await page.goto('/editor');
+  await page.waitForURL('**/login**');
+  await expect(page.locator('input[type="password"]')).toBeVisible();
+});
+
 test('editor redirects to login when signed out', async ({ page }) => {
   // Fresh page context has no hs-session cookie; the editor's own config
   // fetch 401s and editorFetch redirects to /login?from=...

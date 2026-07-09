@@ -35,16 +35,21 @@ async function renderVariant(page: Page, request: APIRequestContext, variant: Co
   }
   const stub = await stubModuleData(page, { overrides }); // also blocks external hosts
 
-  if (variant.seed === 'chores') await seedChores(request);
-  if (variant.seed === 'meals') await seedMeals(request);
+  if (variant.seed === 'chores') await seedChores(request, variant.seedData ?? undefined);
+  if (variant.seed === 'meals') await seedMeals(request, variant.seedData ?? undefined);
 
   const variantModule = buildModuleInstance(variant.type, variant.config);
   variantModule.id = `${variant.type}-v`;
   const anchor = buildModuleInstance('text', { content: 'E2E ANCHOR' });
   anchor.id = 'anchor';
+  const companions = (variant.companions ?? []).map((c, i) => {
+    const mod = buildModuleInstance(c.type, c.config ?? {});
+    mod.id = `companion-${i}`;
+    return mod;
+  });
 
   await putConfig(request, baseConfig({
-    screens: [makeScreen('s1', 'S1', [anchor, variantModule])],
+    screens: [makeScreen('s1', 'S1', [anchor, variantModule, ...companions])],
     settings: { ...matrixSettings(), ...(variant.settings ?? {}) },
   }));
   await page.goto('/display');

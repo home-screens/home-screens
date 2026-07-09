@@ -73,6 +73,15 @@ const containsText = (needle: string) => async (mod: Locator): Promise<void> => 
   await expect(mod).toContainText(needle);
 };
 
+/**
+ * Module textContent matches the regex (polls so async content can settle).
+ * textContent, not innerText, so CSS text-transform can't defeat the match.
+ */
+const matchesText = (re: RegExp) => async (mod: Locator): Promise<void> => {
+  await expect(mod).toBeVisible();
+  await expect.poll(async () => re.test((await mod.evaluate((el) => el.textContent)) || '')).toBe(true);
+};
+
 /** The module renders a matching descendant element (for text-less modules). */
 const hasChild = (selector: string) => async (mod: Locator): Promise<void> => {
   await expect(mod.locator(selector).first()).toBeVisible();
@@ -105,17 +114,38 @@ const STUB_BACKGROUND_SRC = /^data:image\/gif;base64,R0lGOD/;
 export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   // ---- Network-free ----
   text: { type: 'text', kind: 'network-free', config: { content: 'E2E TEXT MODULE' }, expect: containsText('E2E TEXT MODULE') },
-  clock: { type: 'clock', kind: 'network-free', expect: rendersText },
-  date: { type: 'date', kind: 'network-free', expect: rendersText },
+  clock: { type: 'clock', kind: 'network-free', expect: matchesText(/\d{1,2}:\d{2}/) },
+  // defaultConfig: view 'full', dateFormat 'MMMM d', showDayName true — assert
+  // today's actual day name and month (content-shaped, not just "some text").
+  date: {
+    type: 'date', kind: 'network-free',
+    expect: async (mod) => {
+      const now = new Date();
+      await containsText(now.toLocaleString('en-US', { weekday: 'long' }))(mod);
+      await containsText(now.toLocaleString('en-US', { month: 'long' }))(mod);
+    },
+  },
   countdown: {
     type: 'countdown', kind: 'network-free',
     config: { events: [{ id: 'e1', name: 'E2E LAUNCH', date: '2099-12-31' }], view: 'all' },
     expect: containsText('E2E LAUNCH'),
   },
-  'year-progress': { type: 'year-progress', kind: 'network-free', expect: rendersText },
-  'multi-month': { type: 'multi-month', kind: 'network-free', expect: rendersText },
+  // showYear + showPercentage default on — assert the live year and a percent.
+  'year-progress': {
+    type: 'year-progress', kind: 'network-free',
+    expect: async (mod) => {
+      await containsText(String(new Date().getFullYear()))(mod);
+      await matchesText(/%/)(mod);
+    },
+  },
+  'multi-month': {
+    type: 'multi-month', kind: 'network-free',
+    expect: async (mod) => { await containsText(new Date().toLocaleString('en-US', { month: 'long' }))(mod); },
+  },
   shape: { type: 'shape', kind: 'network-free', expect: hasSize },
-  icon: { type: 'icon', kind: 'network-free', expect: hasChild('i') },
+  // defaultConfig is iconName 'star' + style 'solid' — assert the exact FA
+  // classes so a wrong icon can't pass as "some <i> rendered".
+  icon: { type: 'icon', kind: 'network-free', expect: hasChild('i.fa-solid.fa-star') },
   'qr-code': {
     type: 'qr-code', kind: 'network-free',
     config: { mode: 'custom', data: 'https://example.com/e2e', label: 'E2E QR' },
@@ -131,15 +161,32 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     type: 'image', kind: 'network-free',
     // data: URL bypasses useAuthImage's /api fetch and renders verbatim.
     config: { src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', alt: 'e2e' },
-    expect: hasChild('img'),
+    // Assert the src actually resolved to the configured source (matching
+    // photo-slideshow's rigor), not merely that some <img> exists.
+    expect: hasImgSrc(/^data:image\/gif;base64,R0lGOD/),
   },
   'sticky-note': { type: 'sticky-note', kind: 'network-free', config: { content: 'E2E STICKY' }, expect: containsText('E2E STICKY') },
   greeting: { type: 'greeting', kind: 'network-free', config: { name: 'E2E PERSON' }, expect: containsText('E2E PERSON') },
-  'moon-phase': { type: 'moon-phase', kind: 'network-free', expect: rendersText },
-  'sunrise-sunset': { type: 'sunrise-sunset', kind: 'network-free', expect: rendersText },
-  'garbage-day': { type: 'garbage-day', kind: 'network-free', expect: rendersText },
-  'display-control': { type: 'display-control', kind: 'network-free', expect: hasChild('button') },
-  'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: rendersText },
+  'moon-phase': {
+    type: 'moon-phase', kind: 'network-free',
+    expect: matchesText(/New Moon|Waxing|Waning|Full Moon|First Quarter|Last Quarter/),
+  },
+  'sunrise-sunset': {
+    type: 'sunrise-sunset', kind: 'network-free',
+    expect: async (mod) => { await containsText('Sunrise')(mod); await matchesText(/\d{1,2}:\d{2}/)(mod); },
+  },
+  // defaultConfig has trashDay: 1 (weekly) — the Trash stream label renders.
+  'garbage-day': { type: 'garbage-day', kind: 'network-free', expect: containsText('Trash') },
+  // Default panel layout — assert the actual command buttons, not "a button".
+  'display-control': {
+    type: 'display-control', kind: 'network-free',
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label="Previous screen"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label="Next screen"]')).toBeVisible();
+    },
+  },
+  // Word + italic part-of-speech line (the module's two-part layout).
+  'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: matchesText(/noun|verb|adjective|adverb/) },
   affirmations: { type: 'affirmations', kind: 'network-free', expect: rendersText },
   // Non-interactive todo carries its items inline in config — no fetch.
   todo: {

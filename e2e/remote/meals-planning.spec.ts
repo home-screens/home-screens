@@ -48,7 +48,7 @@ async function getMealData(request: APIRequestContext) {
 }
 
 async function openMeals(page: Page) {
-  await page.getByRole('button', { name: 'Meals' }).click();
+  await page.getByRole('button', { name: 'Meals', exact: true }).click();
 }
 
 test.beforeEach(async ({ request }) => {

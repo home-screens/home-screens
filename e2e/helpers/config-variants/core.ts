@@ -1,153 +1,18 @@
-import { expect, type Locator, type Page } from '@playwright/test';
-import type { ModuleType } from '@/types/config';
+import { expect } from '@playwright/test';
+import type { ConfigVariant } from './types';
+import {
+  has, lacks, matches, notMatches, child, count, redBackground,
+  TINY_GIF, WEATHER_WIND, WEATHER_NO_ALERTS, STANDINGS_8, TODOIST_2,
+} from './shared';
 
 /**
- * Config-variant coverage data. The render matrices in modules-static/data.spec
- * exercise only each module's `defaultConfig`, and the view matrix mutates only
- * the view key — so every OTHER rendering-affecting config field is untested at
- * runtime. Each row here flips one such field (or a small related cluster) and
- * asserts a content-level marker proving the flip actually changed what renders.
- *
- * Mirrors the VIEW_MATRIX pattern (view-matrix.ts): a plain-module array the
- * spec (`module-config-variants.spec.ts`) loops over, grouped by `kind` for how
- * data is supplied. Every field name below was verified against the module's
- * config interface in src/types/config.ts and every asserted string / class /
- * attribute against the component source in src/components/modules/.
+ * The original config-variant rows (pre Phase-1 split). New rows land in the
+ * per-batch files alongside this one; index.ts concatenates them all.
  */
-export interface ConfigVariant {
-  type: ModuleType;
-  /** Short slug for the test title, e.g. 'wifi-mode', 'metric-units'. */
-  name: string;
-  kind: 'network-free' | 'networked' | 'local-data';
-  /** Stub key (see helpers/stubs.ts STUBS) — networked rows only. */
-  stubKey?: string;
-  /** Replace the stubKey's response body for this variant (else the shared fixture is used). */
-  stubBody?: unknown;
-  /** Which local API to seed before rendering — local-data rows only. */
-  seed?: 'chores' | 'meals';
-  /** Global-settings overrides merged over matrixSettings() (e.g. metric units). */
-  settings?: Record<string, unknown>;
-  /** Config overrides merged over the registry defaultConfig. */
-  config: Record<string, unknown>;
-  /**
-   * When true, the row is allowed to hit external hosts (blocked + recorded but
-   * not asserted zero). Only rain-map needs this — it loads basemap/radar tiles
-   * from CDNs unconditionally regardless of which field the row exercises.
-   */
-  allowsExternal?: boolean;
-  /** Content-level assertion proving the variant changed rendering. */
-  expect: (mod: Locator, page: Page) => Promise<void>;
-}
-
-// --- Shared assertion helpers ----------------------------------------------
-
-/** Module text contains the substring. */
-const has = (needle: string) => async (mod: Locator): Promise<void> => {
-  await expect(mod).toContainText(needle);
-};
-
-/** Module text does NOT contain the substring (waits for a stable render first). */
-const lacks = (present: string, absent: string) => async (mod: Locator): Promise<void> => {
-  await expect(mod).toContainText(present);
-  await expect(mod).not.toContainText(absent);
-};
-
-/**
- * Module textContent matches the regex (polls so async content can settle).
- * Uses textContent, not innerText — innerText applies CSS `text-transform`, so
- * a row styled `uppercase` would surface as "WEEK 28" and defeat a `/Week/` match.
- */
-const matches = (re: RegExp) => async (mod: Locator): Promise<void> => {
-  await expect.poll(async () => re.test((await mod.evaluate((el) => el.textContent)) || '')).toBe(true);
-};
-
-/** Module textContent does NOT match the regex. */
-const notMatches = (re: RegExp) => async (mod: Locator): Promise<void> => {
-  // First wait for the module to actually render text, so an empty first paint
-  // can't satisfy the negation vacuously.
-  await expect.poll(async () => ((await mod.evaluate((el) => el.textContent)) || '').trim().length).toBeGreaterThan(0);
-  // Auto-retrying negation (symmetric with `matches`): Playwright polls the
-  // element text against the regex and holds the not-match over the timeout
-  // window, so text that paints a beat later still fails the assertion. Default
-  // matching uses textContent, not innerText, so CSS text-transform is ignored.
-  await expect(mod).not.toContainText(re);
-};
-
-/** A descendant matching the selector is attached to the DOM. */
-const child = (selector: string) => async (mod: Locator): Promise<void> => {
-  await expect(mod.locator(selector).first()).toBeAttached();
-};
-
-/** Exactly `n` descendants match the selector. */
-const count = (selector: string, n: number) => async (mod: Locator): Promise<void> => {
-  await expect(mod.locator(selector)).toHaveCount(n);
-};
-
-/** The first element matching `selector` has a computed background-color of red-ish `255,0,0`. */
-const redBackground = (selector: string) => async (mod: Locator): Promise<void> => {
-  await expect(mod.locator(selector).first()).toBeAttached();
-  const bg = await mod.locator(selector).first().evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(bg.replace(/\s/g, '')).toMatch(/^rgba?\(255,0,0/);
-};
-
-// --- Shared fixture bodies (inline; never touch the shared JSON fixtures) ---
-
-/** 1×1 transparent GIF — renders verbatim through useAuthImage (no external fetch). */
-const TINY_GIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-
-/** Weather body with wind on the forecast days so the daily view renders a wind unit. */
-const WEATHER_WIND = {
-  hourly: [
-    { time: '2099-07-07T12:00:00Z', temp: 20, feelsLike: 19, humidity: 55, icon: 'sun', description: 'Clear', windSpeed: 12, precipProbability: 10 },
-  ],
-  forecast: [
-    { date: '2099-07-07', high: 22, low: 14, icon: 'sun', description: 'Sunny', windSpeed: 12 },
-    { date: '2099-07-08', high: 23, low: 15, icon: 'cloud-sun', description: 'Cloudy', windSpeed: 14 },
-  ],
-};
-
-/** Weather body with a DEFINED-but-empty alerts array so hideWhenNoAlerts can hide the module. */
-const WEATHER_NO_ALERTS = {
-  hourly: [{ time: '2099-07-07T12:00:00Z', temp: 72, feelsLike: 70, humidity: 55, icon: 'sun', description: 'Clear', windSpeed: 8, precipProbability: 10 }],
-  forecast: [{ date: '2099-07-07', high: 78, low: 61, icon: 'sun', description: 'Sunny' }],
-  alerts: [],
-};
-
-/** An 8-team NFL division group so rank 7 exists and gets the playoff-line divider. */
-const STANDINGS_8 = {
-  groups: [{
-    name: 'AFC East',
-    league: 'NFL',
-    entries: Array.from({ length: 8 }, (_, i) => ({
-      rank: i + 1,
-      team: `Team ${i + 1}`,
-      teamAbbr: `T${i + 1}`,
-      teamShort: `Team${i + 1}`,
-      teamLogo: '',
-      teamColor: '888888',
-      wins: 8 - i,
-      losses: i,
-      winPct: (8 - i) / 8,
-      streak: 'W1',
-      pointsFor: 300,
-      pointsAgainst: 250,
-      differential: 50,
-    })),
-  }],
-};
-
-/** Two due-dated Todoist tasks; the first carries a label. */
-const TODOIST_2 = {
-  tasks: [
-    { id: '1', content: 'FIRST TASK', description: '', priority: 1, due: { date: '2099-01-15', datetime: null, isRecurring: false }, labels: ['errands'], labelColors: {}, projectId: 'p1', projectName: 'Inbox', projectColor: '#808080', sectionId: '', sectionName: '', parentId: null, order: 1, commentCount: 0 },
-    { id: '2', content: 'SECOND TASK', description: '', priority: 1, due: { date: '2099-01-16', datetime: null, isRecurring: false }, labels: [], labelColors: {}, projectId: 'p1', projectName: 'Inbox', projectColor: '#808080', sectionId: '', sectionName: '', parentId: null, order: 2, commentCount: 0 },
-  ],
-  projects: [{ id: 'p1', name: 'Inbox', color: '#808080', order: 1 }],
-};
 
 // --- The matrix ------------------------------------------------------------
 
-export const CONFIG_VARIANTS: ConfigVariant[] = [
+export const CORE_VARIANTS: ConfigVariant[] = [
   // ================= NETWORK-FREE =================
 
   // -- qr-code --

@@ -136,6 +136,49 @@ test('display routes require the display token when auth is enabled', async ({ p
   await anon.dispose();
 });
 
+test('IP bypassAuth lets an allowlisted IP skip display auth while the editor still needs login', async ({ page, playwright, baseURL }) => {
+  const admin = await playwright.request.newContext({ baseURL });
+  // Auth is already enabled with PASSWORD by the serial tests above (re-setting a
+  // password would now require the current one), so just log in.
+  expect((await admin.post('/api/auth/login', { data: { password: PASSWORD } })).ok()).toBe(true);
+
+  // bypassAuth + our own IP (the server binds 127.0.0.1, so that's the peer):
+  // trusted IPs skip requireDisplayAuth. restrictAccess stays off so the proxy
+  // page gate is untouched.
+  expect(
+    (await admin.put('/api/auth/ip-allowlist', {
+      data: { allowlist: ['127.0.0.1/32'], bypassAuth: true, restrictAccess: false },
+    })).ok(),
+  ).toBe(true);
+
+  // A bare context with no cookie and no bearer token — normally 401 on a display
+  // route (see the display-token spec above) — is now accepted purely on its IP.
+  // Poll because the proxy/auth config caches are up to 5s stale after the PUT.
+  const anon = await playwright.request.newContext({ baseURL });
+  await expect
+    .poll(async () => (await anon.get('/api/display/commands?display=main')).status(), { timeout: 12_000 })
+    .toBe(200);
+
+  // The kiosk page renders without a session (it never was proxy-gated) …
+  await page.goto('/display');
+  await expect(page.getByText('E2E HOME SCREEN')).toBeVisible();
+
+  // … but bypassAuth is display-scoped: the proxy's session gate on /editor is
+  // driven by restrictAccess, not bypassAuth, so a sessionless editor still bounces.
+  await page.goto('/editor');
+  await page.waitForURL('**/login**');
+  await expect(page.locator('input[type="password"]')).toBeVisible();
+
+  // Hand off a clean IP config; afterAll also fully resets auth.
+  expect(
+    (await admin.put('/api/auth/ip-allowlist', {
+      data: { allowlist: [], bypassAuth: false, restrictAccess: false },
+    })).ok(),
+  ).toBe(true);
+  await anon.dispose();
+  await admin.dispose();
+});
+
 test('IP allowlist: a lockout is warned, can be forced, and is then enforced', async ({ playwright, baseURL }) => {
   const admin = await playwright.request.newContext({ baseURL });
   expect((await admin.post('/api/auth/login', { data: { password: PASSWORD } })).ok()).toBe(true);

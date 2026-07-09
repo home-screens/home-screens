@@ -82,6 +82,26 @@ test('the display token can be revealed and regenerated', async ({ page }) => {
     .not.toBe(before);
 });
 
+test('the IP allowlist rejects a malformed entry with an inline error', async ({ page }) => {
+  await login(page, NEW_PASSWORD);
+  await page.goto(SECURITY_URL);
+
+  const entryInput = page.getByPlaceholder('192.168.1.0/24');
+  await expect(entryInput).toBeVisible();
+
+  // A value that fails the dotted-quad shape → "Invalid IP address". The bad
+  // entry is never added to the list, so nothing gets saved.
+  await entryInput.fill('not-an-ip');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByText('Invalid IP address')).toBeVisible();
+  await expect(page.getByText('not-an-ip')).toHaveCount(0);
+
+  // A valid IP with an out-of-range prefix → "Prefix length must be 0-32".
+  await entryInput.fill('10.0.0.0/99');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByText('Prefix length must be 0-32')).toBeVisible();
+});
+
 test('the IP allowlist accepts an entry and saves', async ({ page }) => {
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);

@@ -86,7 +86,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        # 6 shards keep per-shard wall time in the pre-expansion envelope: the
+        # suite grew from ~390 to ~950 tests when the coverage ratchets landed.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
 

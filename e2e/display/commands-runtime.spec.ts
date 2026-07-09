@@ -186,6 +186,117 @@ test('alert renders its title and message; clear-alerts removes it', async ({ pa
   await expect(page.getByText('E2E ALERT BODY')).toHaveCount(0);
 });
 
+test('an alert with a short duration renders then auto-dismisses without a clear-alerts command', async ({ page, request }) => {
+  const id = 'cmd-alert-timeout';
+  await openDisplay(
+    page,
+    request,
+    displayConfig(id, [makeScreen('s', 'S', [textModule('ALERT TIMEOUT SCREEN')])]),
+    id,
+  );
+
+  // A non-persistent alert: showAlert (alert-store) arms a setTimeout for
+  // `duration` ms, so the overlay appears and then removes itself — no
+  // clear-alerts is sent. 1200ms is short enough to keep runtime sane but wide
+  // enough that Playwright's DOM polling reliably samples the visible window.
+  await sendCommand(request, id, 'alert', {
+    type: 'info',
+    title: 'AUTO DISMISS TITLE',
+    message: 'AUTO DISMISS BODY',
+    duration: 1200,
+  });
+  await expect(page.getByText('AUTO DISMISS TITLE')).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText('AUTO DISMISS BODY')).toBeVisible();
+
+  // The store's auto-dismiss timer fires ~1.2s after the alert was shown.
+  await expect(page.getByText('AUTO DISMISS TITLE')).toHaveCount(0, { timeout: 8000 });
+  await expect(page.getByText('AUTO DISMISS BODY')).toHaveCount(0);
+});
+
+test('multiple alerts respect maxVisible, showing only the most recent ones', async ({ page, request }) => {
+  const id = 'cmd-alert-queue';
+  await openDisplay(
+    page,
+    request,
+    // maxVisible 2 → AlertOverlay renders `alerts.slice(-2)`: the two newest
+    // alerts, oldest of the pair first. defaultDuration 0 keeps the per-type
+    // default in play, but each alert below carries an explicit duration 0 so
+    // none auto-dismiss and the queue state is stable to assert.
+    displayConfig(id, [makeScreen('s', 'S', [textModule('ALERT QUEUE SCREEN')])], {
+      alerts: { enabled: true, position: 'top', maxVisible: 2, defaultDuration: 0 },
+    }),
+    id,
+  );
+
+  // Four persistent alerts. They accumulate in the store regardless of whether
+  // they drain in one poll or several, so the final rendered set is deterministic.
+  for (const n of [1, 2, 3, 4]) {
+    await sendCommand(request, id, 'alert', {
+      type: 'info',
+      title: `QUEUE ALERT ${n}`,
+      message: `queue body ${n}`,
+      duration: 0,
+    });
+  }
+
+  // Only the two newest render (visible count === maxVisible === 2)...
+  await expect(page.getByText('QUEUE ALERT 3', { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText('QUEUE ALERT 4', { exact: true })).toBeVisible();
+  // ...and the two oldest are queued but not rendered, proving the cap trims the
+  // front of the list rather than the back.
+  await expect(page.getByText('QUEUE ALERT 1', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('QUEUE ALERT 2', { exact: true })).toHaveCount(0);
+});
+
+test('brightness 0 blacks the display out, a mid value dims it, and the dim survives a screen rotation', async ({ page, request }) => {
+  const id = 'cmd-bright-persist';
+  await openDisplay(
+    page,
+    request,
+    // Sleep ENABLED (idle windows pushed far out so they never fire during the
+    // test) because brightness 0 routes through the asleep state with a null
+    // override — dimOpacity only resolves to 1 there when sleep is enabled
+    // (otherwise it short-circuits to 0). Screensaver off so the overlay's
+    // single child div is the dim layer under test. Two screens with the global
+    // 1h rotation frozen, so ONLY the next-screen command changes which screen
+    // is mounted.
+    displayConfig(
+      id,
+      [
+        makeScreen('a', 'A', [textModule('BRIGHT SCREEN ALPHA')]),
+        makeScreen('b', 'B', [textModule('BRIGHT SCREEN BRAVO')]),
+      ],
+      {
+        screensaver: { mode: 'off' },
+        sleep: { enabled: true, dimAfterMinutes: 600, sleepAfterMinutes: 600, dimBrightness: 20 },
+      },
+    ),
+    id,
+  );
+
+  // value 0 → asleep: the black layer is fully opaque.
+  await sendCommand(request, id, 'brightness', { value: 0 });
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(OVERLAY).locator('> div').first()).toHaveCSS('opacity', '1');
+
+  // value 40 → dimmed: overlay opacity = 1 - 40/100 = 0.6. toHaveCSS polls out
+  // the 1s opacity transition down from 1.
+  await sendCommand(request, id, 'brightness', { value: 40 });
+  await expect(page.locator(OVERLAY).locator('> div').first()).toHaveCSS('opacity', '0.6');
+
+  // Record which screen we're parked on (rotation is frozen → ALPHA, but read
+  // it rather than assume).
+  const onAlpha = await page.getByText('BRIGHT SCREEN ALPHA', { exact: true }).isVisible();
+
+  // Advance to the other screen. The brightness override lives in
+  // useSleepManager, mounted once at the rotator level above the swapping
+  // ScreenRenderer, so it must survive the screen change — opacity stays 0.6.
+  await sendCommand(request, id, 'next-screen');
+  const nextText = onAlpha ? 'BRIGHT SCREEN BRAVO' : 'BRIGHT SCREEN ALPHA';
+  await expect(page.getByText(nextText, { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(OVERLAY).locator('> div').first()).toHaveCSS('opacity', '0.6');
+});
+
 test('reload reloads the kiosk page', async ({ page, request }) => {
   const id = 'cmd-reload';
   await openDisplay(

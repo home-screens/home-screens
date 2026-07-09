@@ -111,6 +111,62 @@ export const NAV_BUNDLE = `(function () {
   window.__HS_PLUGIN__ = { default: Component };
 })();`;
 
+/**
+ * A variant bundle that fetches an upstream URL through the host proxy
+ * (`SDK.pluginFetch` → `/api/plugins/proxy/<id>`) and renders a field from the
+ * JSON response. Used by the "successful proxy fetch end-to-end" spec, where
+ * the upstream is the sandbox server's own `/api/time` (loopback), so no
+ * external host is ever hit. Config-driven so any plugin id / URL can reuse it:
+ *   - `config.pluginId` — the plugin's own id (pluginFetch's first arg).
+ *   - `config.fetchUrl` — absolute upstream URL to proxy.
+ * Renders `data-plugin-marker="e2e-fetch"` with a `data-fetch-value` span whose
+ * text is the response's `iso` field (or an error/`no-iso` sentinel).
+ */
+export const FETCH_BUNDLE = `(function () {
+  var React = window.React;
+  var SDK = window.__HS_SDK__;
+  function Component(props) {
+    var cfg = (props && props.config) || {};
+    var s = React.useState('pending');
+    var value = s[0], setValue = s[1];
+    React.useEffect(function () {
+      var cancelled = false;
+      SDK.pluginFetch(cfg.pluginId, { url: cfg.fetchUrl, cacheTtlMs: 0 })
+        .then(function (res) { return res.ok ? res.json() : Promise.reject(new Error('status ' + res.status)); })
+        .then(function (data) { if (!cancelled) setValue(data && data.iso ? String(data.iso) : 'no-iso'); })
+        .catch(function () { if (!cancelled) setValue('fetch-error'); });
+      return function () { cancelled = true; };
+    }, []);
+    return React.createElement('div',
+      { 'data-plugin-marker': 'e2e-fetch', style: { width: '100%', height: '100%' } },
+      React.createElement('span', { 'data-fetch-value': '1' }, value));
+  }
+  window.__HS_PLUGIN__ = { default: Component };
+})();`;
+
+/**
+ * A variant bundle that renders host-resolved translations via
+ * `SDK.translate`. Used by the plugin-translations spec. Config-driven:
+ *   - `config.pluginId` — the plugin's own id; the translate namespace is
+ *     `plugin:<pluginId>`.
+ * Renders `data-plugin-marker="e2e-i18n"` with two spans: `data-i18n="greeting"`
+ * (a key expected in the plugin dictionary) and `data-i18n="missing"` (a key
+ * that is never defined, so translate returns the raw key — the miss signal).
+ */
+export const I18N_BUNDLE = `(function () {
+  var React = window.React;
+  var SDK = window.__HS_SDK__;
+  function Component(props) {
+    var cfg = (props && props.config) || {};
+    var ns = 'plugin:' + cfg.pluginId + '.';
+    return React.createElement('div',
+      { 'data-plugin-marker': 'e2e-i18n', style: { width: '100%', height: '100%' } },
+      React.createElement('span', { key: 'g', 'data-i18n': 'greeting' }, SDK.translate(ns + 'greeting')),
+      React.createElement('span', { key: 'm', 'data-i18n': 'missing' }, SDK.translate(ns + 'nope_missing')));
+  }
+  window.__HS_PLUGIN__ = { default: Component };
+})();`;
+
 /** A single declared secret, mirroring `PluginSecretDeclaration` in the manifest. */
 export interface FixtureSecretDeclaration {
   key: string;

@@ -304,3 +304,18 @@ test('aborting the status poll surfaces the disconnected banner', async ({ page,
   // second role="alert").
   await expect(page.getByText(/check that the device is on/)).toBeVisible({ timeout: 20000 });
 });
+
+test('the disconnected banner clears once the status poll recovers', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+
+  // Block the poll until the banner has appeared, then let real requests through.
+  // A recovered poll (200 or 404) resets the failure count and flips isConnected
+  // back to true, hiding the banner.
+  let blocked = true;
+  await page.route('**/api/display/status**', (route) => (blocked ? route.abort() : route.continue()));
+  await page.goto('/remote');
+  await expect(page.getByText(/check that the device is on/)).toBeVisible({ timeout: 20000 });
+
+  blocked = false;
+  await expect(page.getByText(/check that the device is on/)).toBeHidden({ timeout: 15000 });
+});

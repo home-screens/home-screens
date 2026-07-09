@@ -610,3 +610,216 @@ test.describe('display-control command surface', () => {
     expect(types.filter((t) => t === 'next-screen')).toHaveLength(1);
   });
 });
+
+/** GET /api/chores and return the completions array. */
+async function readCompletions(
+  request: APIRequestContext,
+): Promise<Array<{ choreId: string; memberId: string }>> {
+  const res = await request.get('/api/chores');
+  return (await res.json()).completions as Array<{ choreId: string; memberId: string }>;
+}
+
+/**
+ * Chore-chart tap-to-complete across the non-board views. Of the five chore-chart
+ * views only `today` and `compact` render interactive completion controls — the
+ * `star-chart` and `progress` views are read-only summaries whose view props
+ * carry no `toggleComplete`, so there is no tap to exercise there. `board` is
+ * covered above. As with the board tests, each case uses unique member/chore ids
+ * because completions persist per-worker across tests.
+ */
+test.describe('chore-chart tap-to-complete across views', () => {
+  test('today view: tapping a chore persists via /api/chores', async ({ page, request }) => {
+    await seedChores(request, {
+      members: [{ id: 'cct-m', name: 'Marlow', emoji: '🐰', color: '#f59e0b' }],
+      chores: [{
+        id: 'cct-c', name: 'Sort the mail', emoji: '📬', points: 1,
+        frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+        assigneeIds: ['cct-m'], rotation: 'fixed',
+      }],
+    });
+    const chart = buildModuleInstance('chore-chart', { view: 'today', allowDisplayComplete: true });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [chart])],
+    }));
+
+    // Each today-view chore is a real button whose label carries the chore name.
+    const btn = display.module('chore-chart').getByRole('button', { name: /Sort the mail/ });
+    await expect(btn).toBeEnabled();
+
+    const posted = page.waitForResponse(
+      (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+    );
+    await btn.click();
+    await posted;
+
+    await expect
+      .poll(() => readCompletions(request))
+      .toContainEqual(expect.objectContaining({ choreId: 'cct-c', memberId: 'cct-m' }));
+  });
+
+  test('compact view: tapping a chore cell persists via /api/chores', async ({ page, request }) => {
+    await seedChores(request, {
+      members: [{ id: 'ccc-m', name: 'Juno', emoji: '🐝', color: '#10b981' }],
+      chores: [{
+        id: 'ccc-c', name: 'Wipe the table', emoji: '🧽', points: 1,
+        frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+        assigneeIds: ['ccc-m'], rotation: 'fixed',
+      }],
+    });
+    const chart = buildModuleInstance('chore-chart', { view: 'compact', allowDisplayComplete: true });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [chart])],
+    }));
+
+    const mod = display.module('chore-chart');
+    await expect(mod).toContainText('Wipe the table');
+    // Compact renders one toggle button per assigned member cell; the single
+    // assigned chore yields exactly one, whose label is just the checkbox glyph.
+    const cell = mod.getByRole('button');
+    await expect(cell).toHaveCount(1);
+
+    const posted = page.waitForResponse(
+      (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+    );
+    await cell.click();
+    await posted;
+
+    await expect
+      .poll(() => readCompletions(request))
+      .toContainEqual(expect.objectContaining({ choreId: 'ccc-c', memberId: 'ccc-m' }));
+  });
+});
+
+/**
+ * Fullscreen chore-chart on the kiosk display. The chores view routes every
+ * completion through the same `toggleComplete` → POST /api/chores path via an
+ * accessible AssigneeDot (role=button, aria-label "Complete <chore> for
+ * <member>"). The rewards-store view lets a member spend earned tickets: an
+ * affordable RewardCard opens a RedeemConfirm dialog whose "Yes!" POSTs to
+ * /api/rewards, debiting the balance and recording a redemption. Balances and
+ * completions persist per-worker, so ids are unique and the balance assertion
+ * is a delta from a pre-redeem read (a CI retry re-credits, so the absolute
+ * value drifts).
+ */
+test.describe('fullscreen-chore-chart on display', () => {
+  test('chores view: tapping an assignee dot persists the completion', async ({ page, request }) => {
+    await seedChores(request, {
+      members: [{ id: 'fcc-m', name: 'Wren', emoji: '🦉', color: '#f59e0b' }],
+      chores: [{
+        id: 'fcc-c', name: 'Refill the water', emoji: '💧', points: 1,
+        frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+        assigneeIds: ['fcc-m'], rotation: 'fixed',
+      }],
+    });
+    const chart = buildModuleInstance('fullscreen-chore-chart', { allowDisplayComplete: true });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [chart])],
+    }));
+
+    const dot = display
+      .module('fullscreen-chore-chart')
+      .getByRole('button', { name: 'Complete Refill the water for Wren' });
+    await expect(dot).toBeVisible();
+
+    const posted = page.waitForResponse(
+      (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+    );
+    await dot.click();
+    await posted;
+
+    await expect
+      .poll(() => readCompletions(request))
+      .toContainEqual(expect.objectContaining({ choreId: 'fcc-c', memberId: 'fcc-m' }));
+  });
+
+  test('rewards-store: redeeming an affordable reward debits the balance and records it', async ({ page, request }) => {
+    await seedChores(request, {
+      members: [{ id: 'rwm-m', name: 'Sol', emoji: '🌞', color: '#f59e0b' }],
+      chores: [{
+        id: 'rwm-c', name: 'Make the bed', emoji: '🛏️', points: 1,
+        frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+        assigneeIds: ['rwm-m'], rotation: 'fixed',
+      }],
+    });
+    // A reward everyone can redeem (empty memberIds) plus a balance well above cost.
+    await request.put('/api/rewards/data', {
+      data: {
+        rewards: [{
+          id: 'rwm-reward', name: 'Extra Screen Time', emoji: 'lucide:tv', cost: 2,
+          description: '', memberIds: [], enabled: true,
+        }],
+      },
+    });
+    await request.post('/api/rewards/data', { data: { memberId: 'rwm-m', amount: 10 } });
+
+    const readRewards = async () => (await (await request.get('/api/rewards')).json());
+    const before = ((await readRewards()).balances as Record<string, number>)['rwm-m'] ?? 0;
+
+    const chart = buildModuleInstance('fullscreen-chore-chart', { view: 'rewards-store', showRewardsButton: true });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [chart])],
+    }));
+    const mod = display.module('fullscreen-chore-chart');
+
+    // Select the member in the picker (when the view boots before chore data
+    // has loaded, no member starts selected), then the reward is affordable
+    // (10 ≥ 2) and its card renders as an enabled button.
+    await mod.getByRole('button', { name: /Sol/ }).click();
+    const card = mod.getByRole('button', { name: /Extra Screen Time/ });
+    await expect(card).toBeEnabled();
+    await card.click();
+
+    // Confirm in the RedeemConfirm dialog (its confirm button reads "Yes!").
+    const redeemed = page.waitForResponse(
+      (r) => r.url().includes('/api/rewards') && r.request().method() === 'POST' && r.ok(),
+    );
+    await mod.getByRole('button', { name: 'Yes!' }).click();
+    await redeemed;
+
+    // Balance debited by the cost, and the redemption recorded server-side.
+    await expect
+      .poll(async () => ((await readRewards()).balances as Record<string, number>)['rwm-m'] ?? 0)
+      .toBe(before - 2);
+    await expect
+      .poll(async () => ((await readRewards()).redemptions as Array<{ rewardName: string }>).map((r) => r.rewardName))
+      .toContain('Extra Screen Time');
+  });
+});
+
+/**
+ * Fullscreen meal-planner recipe tap. The fullscreen views wrap each planned
+ * meal in the same `MealTapTarget`/`RecipeOverlay` the compact meal-planner uses,
+ * so `tapRecipeAction: 'qr'` opens the identical role="dialog" QR overlay (portaled
+ * to <body>) and dismisses on tap. ScreenRenderer threads screenId/moduleId to
+ * fullscreen-meal-planner, so the mode resolves to 'qr' rather than the editor's
+ * 'link' fallback.
+ */
+test.describe('fullscreen-meal-planner recipe tap', () => {
+  const RECIPE_URL = 'https://recipes.example.com/fmp-salmon';
+
+  test("'qr' opens the recipe QR overlay and dismisses", async ({ page, request }) => {
+    // Block external so the QR overlay proves it makes zero upstream calls.
+    await stubModuleData(page);
+    await seedMeals(request, {
+      savedMeals: [{ id: 'fmp-meal', name: 'Sheet Pan Salmon', emoji: '🐟', prepTime: 30, recipeUrl: RECIPE_URL }],
+      plan: [{ slot: 'dinner', mealId: 'fmp-meal', date: isoToday() }],
+    });
+    const meal = buildModuleInstance('fullscreen-meal-planner', { view: 'today', tapRecipeAction: 'qr' });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [meal])],
+    }));
+
+    // The dinner meal renders as the hero or in "Also Today"; either placement
+    // wraps the name in a MealTapTarget button.
+    await display.module('fullscreen-meal-planner').getByText('Sheet Pan Salmon').click();
+
+    const dialog = page.getByRole('dialog', { name: 'Sheet Pan Salmon' });
+    await expect(dialog).toBeVisible();
+    // QR is rendered as an inline SVG (qrcode.react).
+    await expect(dialog.locator('svg')).toBeVisible();
+
+    // The QR variant dismisses on tapping anywhere in the overlay.
+    await dialog.click();
+    await expect(dialog).toBeHidden();
+  });
+});
