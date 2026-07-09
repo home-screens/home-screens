@@ -4,13 +4,20 @@ import { withAuth, validateTodoistToken, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
+// Secrets are short strings (API keys, tokens); 64 KB is far beyond any
+// legitimate payload while keeping the route consistent with the bounded
+// parsing used by other write endpoints (e.g. /api/backup).
+const MAX_BODY_BYTES = 64 * 1024;
+
 export const GET = withAuth(async () => {
   const status = await getSecretStatus();
   return NextResponse.json(status);
 }, 'Failed to read secret status');
 
 export const PUT = withAuth(async (request) => {
-  const body = await parseJsonBody<{ key?: string; value?: string }>(request);
+  const body = await parseJsonBody<{ key?: string; value?: string }>(request, {
+    maxBytes: MAX_BODY_BYTES,
+  });
   if (body instanceof NextResponse) return body;
   const { key, value } = body;
 
@@ -44,7 +51,9 @@ export const PUT = withAuth(async (request) => {
 }, 'Failed to save secret');
 
 export const DELETE = withAuth(async (request) => {
-  const body = await parseJsonBody<{ key?: string }>(request);
+  const body = await parseJsonBody<{ key?: string }>(request, {
+    maxBytes: MAX_BODY_BYTES,
+  });
   if (body instanceof NextResponse) return body;
   const { key } = body;
 

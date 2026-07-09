@@ -54,7 +54,20 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   return NextResponse.json(paths);
 }, 'Failed to list backgrounds');
 
+const MAX_SIZE = 10 * 1024 * 1024; // 10 MB per file
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+
 export const POST = withAuth(async (request: NextRequest) => {
+  // Reject oversized uploads before parsing: a genuinely oversized multipart
+  // body makes request.formData() throw (surfacing as a 500), so the per-file
+  // 413 below never runs for them. Capping the whole body at MAX_SIZE keeps
+  // "max 10 MB" truthful; the few hundred bytes of multipart overhead only
+  // shave a byte-exact 10 MB file, which the friendly message still covers.
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > MAX_SIZE) {
+    return NextResponse.json({ error: 'File too large (max 10 MB)' }, { status: 413 });
+  }
+
   const formData = await request.formData();
   const directory = (formData.get('directory') as string) || '';
 
@@ -74,9 +87,6 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (files.length === 0 || !files[0]?.name) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
   }
-
-  const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
   // Validate all files first
   for (const file of files) {

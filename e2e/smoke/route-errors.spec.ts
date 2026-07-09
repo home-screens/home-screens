@@ -199,22 +199,18 @@ test.describe('POST /api/backgrounds', () => {
     expect((await res.json()).error).toContain('No file provided');
   });
 
-  test('rejects an oversized upload', async ({ request }) => {
-    // The handler declares a 10 MB per-file cap that returns 413, but a
-    // genuinely oversized multipart body is rejected by the framework's own
-    // multipart limit BEFORE request.formData() resolves, surfacing as a 500
-    // (verified empirically: 9 MB uploads succeed, 11 MB → 500). So the
-    // handler's 413 branch is effectively shadowed for real oversized uploads.
-    // We assert the observable contract: an 11 MB upload is rejected, not
-    // written. (See findings note in the accompanying report.)
+  test('rejects an oversized upload with a friendly 413', async ({ request }) => {
+    // The handler prechecks Content-Length before request.formData() — a
+    // genuinely oversized multipart body would otherwise make formData()
+    // throw (a bare 500) before the per-file 413 branch could run.
     const oversized = Buffer.alloc(11 * 1024 * 1024, 0);
     const res = await request.post('/api/backgrounds', {
       multipart: {
         file: { name: 'big.png', mimeType: 'image/png', buffer: oversized },
       },
     });
-    expect(res.ok()).toBe(false);
-    expect(res.status()).toBe(500);
+    expect(res.status()).toBe(413);
+    expect((await res.json()).error).toContain('File too large');
   });
 });
 

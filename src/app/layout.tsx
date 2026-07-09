@@ -11,7 +11,6 @@ import {
   Caveat,
   Pacifico,
 } from 'next/font/google';
-import PluginGlobals from '@/components/PluginGlobals';
 import ThemeListener from '@/components/ThemeListener';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -144,7 +143,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={`${FONT_VARIABLES} antialiased`}>
         <ThemeListener />
-        <PluginGlobals />
         {children}
       </body>
     </html>

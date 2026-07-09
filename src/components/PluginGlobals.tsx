@@ -83,9 +83,10 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
  * the display bundle.
  */
 export default function PluginGlobals() {
-  // Pull the active locale from the provider when one is mounted; falls
-  // back to the default if PluginGlobals renders outside an I18nProvider
-  // (still true today on /editor and /remote until later tasks wire it up).
+  // Pull the active locale from the provider. PluginGlobals mounts inside
+  // the display and editor layouts' <I18nProvider> — mounting it outside
+  // (as the root layout once did) makes `useLocale()` return the default,
+  // so SDK.translate would resolve en-US regardless of `settings.locale`.
   const locale = useLocale();
   const formattingLocale = useFormattingLocale();
 

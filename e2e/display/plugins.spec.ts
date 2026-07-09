@@ -227,16 +227,13 @@ test('a localNetwork plugin gets the elevated proxy rate limit (budget above 60)
  * only registers dictionaries whose tag is on the active locale's fallback
  * chain.
  *
- * NOTE ON LOCALE: `PluginGlobals` mounts in the ROOT layout, OUTSIDE the
- * display route group's `<I18nProvider>`, so `SDK.translate` resolves against
- * `DEFAULT_LOCALE` (en-US) on the display regardless of `settings.locale`. The
- * plugin loader independently reads `settings.locale` for which dictionary FILE
- * to load. The two only agree at en-US, so this test anchors on en-US and
- * proves: (a) a declared en-US dictionary resolves; (b) a key absent from it
+ * This test anchors on en-US (the default config locale) and proves:
+ * (a) a declared en-US dictionary resolves; (b) a key absent from it
  * returns the raw key (the visible-miss contract); (c) a plugin that declares
  * ONLY an off-chain locale (de-DE, not on the en-US chain) loads no dictionary,
  * so its keys stay unresolved — the loader honored the chain rather than
- * blindly loading any declared tag.
+ * blindly loading any declared tag. The non-English path is covered by the
+ * following test.
  */
 test('plugin translations resolve via SDK.translate and the loader honors the active locale chain', async ({ page, request, sandboxDir }) => {
   const OK = 'e2e-i18n-ok';   // ships the active locale (en-US) → resolves
@@ -273,6 +270,47 @@ test('plugin translations resolve via SDK.translate and the loader honors the ac
   const off = page.locator('[data-module-id="off-mod"]');
   await expect(off.locator('[data-plugin-marker="e2e-i18n"]')).toBeVisible();
   await expect(off.locator('[data-i18n="greeting"]')).toHaveText(`plugin:${OFF}.greeting`);
+});
+
+/**
+ * The non-English path: with `settings.locale` set to de-DE, SDK.translate
+ * resolves against the active locale (PluginGlobals mounts inside the display
+ * group's <I18nProvider>), so a plugin shipping a de-DE dictionary renders
+ * German — and a plugin shipping only en-US still resolves, because en-US is
+ * the fallback tail of the de-DE chain.
+ */
+test('plugin translations render the active non-English locale on the display', async ({ page, request, sandboxDir }) => {
+  const DE = 'e2e-i18n-de';  // ships the active locale (de-DE) → German
+  const EN = 'e2e-i18n-en';  // ships only en-US → resolves via the chain tail
+  seedPluginFiles(sandboxDir, {
+    id: DE,
+    manifest: baseManifest(DE, { translations: { 'de-DE': 'i18n/de-DE.json' } }),
+    bundle: I18N_BUNDLE,
+    files: { 'i18n/de-DE.json': { greeting: 'HALLO AUS PLUGIN' } },
+  });
+  seedPluginFiles(sandboxDir, {
+    id: EN,
+    manifest: baseManifest(EN, { translations: { 'en-US': 'i18n/en-US.json' } }),
+    bundle: I18N_BUNDLE,
+    files: { 'i18n/en-US.json': { greeting: 'HELLO FROM PLUGIN' } },
+  });
+  writeInstalledSet(sandboxDir, [{ id: DE }, { id: EN }]);
+
+  const deMod = customModule('de-mod', `plugin:${DE}`, { label: DE, pluginId: DE });
+  const enMod = customModule('en-mod', `plugin:${EN}`, { label: EN, pluginId: EN });
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [deMod, enMod])],
+    settings: { locale: 'de-DE' },
+  }));
+  await page.goto('/display');
+
+  const de = page.locator('[data-module-id="de-mod"]');
+  await expect(de.locator('[data-plugin-marker="e2e-i18n"]')).toBeVisible();
+  await expect(de.locator('[data-i18n="greeting"]')).toHaveText('HALLO AUS PLUGIN');
+
+  const en = page.locator('[data-module-id="en-mod"]');
+  await expect(en.locator('[data-plugin-marker="e2e-i18n"]')).toBeVisible();
+  await expect(en.locator('[data-i18n="greeting"]')).toHaveText('HELLO FROM PLUGIN');
 });
 
 /**

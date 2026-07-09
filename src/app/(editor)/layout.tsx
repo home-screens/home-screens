@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import PluginGlobals from '@/components/PluginGlobals';
 import PluginGlobalsEditor from '@/components/PluginGlobalsEditor';
 import BackupReminderToast from '@/components/editor/BackupReminderToast';
 import UpdateAvailableToast from '@/components/editor/UpdateAvailableToast';
@@ -55,6 +56,12 @@ export default async function EditorLayout({ children }: { children: React.React
       blob={blob}
     >
       <div className="bg-hs-body text-hs-text-primary font-sans antialiased h-screen overflow-hidden">
+        {/* Inside the provider so `useLocale()` (captured by SDK.translate)
+            sees the active locale. Order matters: PluginGlobals installs
+            `__HS_SDK__` in its layout effect; PluginGlobalsEditor extends
+            that object, so it must come second (sibling effects run in
+            tree order). */}
+        <PluginGlobals />
         <PluginGlobalsEditor />
         {children}
         <ConfirmModal />

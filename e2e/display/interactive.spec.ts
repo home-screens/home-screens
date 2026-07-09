@@ -761,10 +761,9 @@ test.describe('fullscreen-chore-chart on display', () => {
     }));
     const mod = display.module('fullscreen-chore-chart');
 
-    // Select the member in the picker (when the view boots before chore data
-    // has loaded, no member starts selected), then the reward is affordable
-    // (10 ≥ 2) and its card renders as an enabled button.
-    await mod.getByRole('button', { name: /Sol/ }).click();
+    // The view boots before chore data has loaded, so members arrive after
+    // mount — the first member auto-selects once they do, making the reward
+    // affordable (10 ≥ 2) with no tap on the picker.
     const card = mod.getByRole('button', { name: /Extra Screen Time/ });
     await expect(card).toBeEnabled();
     await card.click();

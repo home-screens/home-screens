@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
+import PluginGlobals from '@/components/PluginGlobals';
 import { readConfig } from '@/lib/config';
 import { I18nProvider, preloadDateLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -55,6 +56,10 @@ export default async function DisplayLayout({ children }: { children: React.Reac
 
   return (
     <I18nProvider locale={locale} formattingLocale={formattingLocale} blob={blob}>
+      {/* Inside the provider so `useLocale()` (captured by SDK.translate)
+          sees the active locale, not the default — and before {children}
+          so its layout effect installs the SDK before plugins load. */}
+      <PluginGlobals />
       {children}
     </I18nProvider>
   );

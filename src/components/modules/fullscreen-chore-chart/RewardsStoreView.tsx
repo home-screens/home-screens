@@ -50,6 +50,15 @@ export function RewardsStoreView({
   useEffect(() => { setLocalBalances(balances); }, [balances]);
   useEffect(() => { setLocalRedemptions(redemptions); }, [redemptions]);
 
+  // When the rewards store is the configured boot view, `members` is empty
+  // at mount (useChoreData hasn't resolved yet), so the useState initializer
+  // above selects nothing. Select the first member once data arrives.
+  useEffect(() => {
+    if (selectedMemberId === null && members.length > 0) {
+      setSelectedMemberId(members[0].id);
+    }
+  }, [members, selectedMemberId]);
+
   // Idle timeout: reset on pointer activity, call onBack when expired
   const resetIdleTimer = useCallback(() => {
     if (!idleTimeoutMs || !onBack) return;

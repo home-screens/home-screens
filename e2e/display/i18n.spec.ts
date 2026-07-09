@@ -104,9 +104,9 @@ test('formattingLocale overrides display formatting without changing dictionary 
 
 /**
  * Fallback chain end-to-end. `de-AT` is not registered; the chain resolves
- * the registered sibling `de-DE` for SSR surfaces (resolveLocaleChain →
- * readNamespaceWithFallback), while the API route normalizes unregistered
- * tags to en-US wholesale and says so in its headers.
+ * the registered sibling `de-DE` on every surface — SSR (resolveLocaleChain
+ * → readNamespaceWithFallback) and the API route walk the same chain, so
+ * server render and client dictionary fetches agree.
  */
 test('an unregistered sibling locale falls back to its registered language sibling on the display', async ({ page, request }) => {
   await stubModuleData(page, { overrides: { weather: WEATHER_SUN } });
@@ -130,13 +130,13 @@ test('the i18n API serves the fallback chain per namespace', async ({ request })
   expect(Object.keys(deBody).sort()).toEqual(['core', 'modules', 'weather']);
   expect(deBody.weather.conditions.sunny).toBe('Sonnig');
 
-  // An unregistered tag normalizes to the fallback locale, silently but
-  // observably via the response headers.
+  // An unregistered tag walks the same sibling chain as SSR (de-AT →
+  // de-DE), observably via the response headers.
   const at = await request.get('/api/i18n/de-AT?ns=weather');
   expect(at.ok()).toBe(true);
-  expect(at.headers()['x-locale']).toBe('en-US');
+  expect(at.headers()['x-locale']).toBe('de-AT');
   expect(at.headers()['x-locale-registered']).toBe('false');
-  expect((await at.json()).weather.conditions.sunny).toBe('Sunny');
+  expect((await at.json()).weather.conditions.sunny).toBe('Sonnig');
 
   // Unsafe namespace identifiers are rejected, not path-joined.
   const bad = await request.get('/api/i18n/en-US?ns=../secrets');
