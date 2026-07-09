@@ -70,6 +70,11 @@ test('broadcasting with All fans a command out to every display', async ({ page,
 
   await expect.poll(() => drainTypes(request, 'main'), { timeout: 5000 }).toContain('sleep');
   await expect.poll(() => drainTypes(request, 'kitchen'), { timeout: 5000 }).toContain('sleep');
+  // A broadcast ('all') also enqueues to the legacy __default__ queue
+  // (enqueueCommand fans out to every known display PLUS __default__). Drain it
+  // so the sleep doesn't linger for a later same-worker test whose real kiosk
+  // polls __default__, consumes the stale sleep, and heartbeats back asleep.
+  await drainTypes(request);
 });
 
 test('screen nav reflects the targeted display heartbeat and dispatches to it', async ({ page, request }) => {

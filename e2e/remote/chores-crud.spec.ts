@@ -381,3 +381,236 @@ test('the chore & reward management UI avoids developer jargon', async ({ page, 
   await expect(page.getByPlaceholder('e.g. Extra Screen Time')).toBeVisible();
   await expectNoJargon();
 });
+
+// ── Backdating & history navigation (admin) ───────────────────────────
+//
+// Admins keep edit rights on past days (`canEdit = !isViewingPast || isAdmin`,
+// the inverse of the kid-block already pinned above). These specs use their own
+// member/chore IDs: chore-completions.json persists per-worker across tests, so
+// unique IDs keep one test's backdated completion from bleeding into another.
+
+/** Yesterday as both a YYYY-MM-DD key and the long label the history strip renders. */
+function yesterdayInfo() {
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  const iso = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
+  // Matches ChoreHistoryNav's tile format under the default en-US formatting locale.
+  const label = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(y);
+  return { iso, label };
+}
+
+async function completionExists(
+  request: APIRequestContext,
+  choreId: string,
+  memberId: string,
+  date: string,
+): Promise<boolean> {
+  const res = await request.get('/api/chores');
+  const completions = (await res.json()).completions as Array<{ choreId: string; memberId: string; date: string }>;
+  return completions.some((c) => c.choreId === choreId && c.memberId === memberId && c.date === date);
+}
+
+// A member + a fixed daily chore (applies on every calendar day, past or present).
+const BACKDATE_DATA = {
+  members: [{ id: 'm-bd', name: 'Quinn', emoji: '🦊', color: '#f59e0b' }],
+  chores: [{
+    id: 'c-bd',
+    name: 'Wipe the table',
+    emoji: '🧽',
+    points: 2,
+    frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+    timeOfDay: 'anytime',
+    assigneeIds: ['m-bd'],
+    rotation: 'fixed',
+  }],
+};
+
+test('admin can backdate a completion on a past day and it persists', async ({ page, request }) => {
+  await seedChores(request, BACKDATE_DATA);
+  const { iso, label } = yesterdayInfo();
+  // Normalize to "not completed" — a CI retry (retries=1) could start with the
+  // completion already present, and re-toggling would remove it instead.
+  if (await completionExists(request, 'c-bd', 'm-bd', iso)) {
+    await request.post('/api/chores', { data: { choreId: 'c-bd', memberId: 'm-bd', date: iso } });
+  }
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+
+  // Walk the history strip back to yesterday (tile aria-label starts "View <date>").
+  await page.getByRole('button', { name: `View ${label}` }).click();
+
+  // Admin retains the toggle on a past day (kids get a locked, non-interactive row).
+  const markBtn = page.getByRole('button', { name: 'Mark complete: Wipe the table' });
+  await expect(markBtn).toBeVisible();
+  const toggled = page.waitForResponse(
+    (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+  );
+  await markBtn.click();
+  await toggled;
+
+  // Completion lands on the backdated day, and the row flips to done.
+  await expect.poll(async () => completionExists(request, 'c-bd', 'm-bd', iso)).toBe(true);
+  await expect(page.getByRole('button', { name: 'Completed: Wipe the table' })).toBeVisible();
+});
+
+test('admin sees the editing-a-past-day banner when viewing history', async ({ page, request }) => {
+  await seedChores(request, BACKDATE_DATA);
+  const { label } = yesterdayInfo();
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: `View ${label}` }).click();
+
+  // The editable-day banner (role="status") names the day and explains that
+  // backdated tickets add to today's balance — not the kid lock notice.
+  const banner = page.getByRole('status').filter({ hasText: 'Editing' });
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText(label);
+  await expect(banner).toContainText("tickets add to today's balance");
+  await expect(page.getByText('Ask a grown-up to add chores you missed.')).toHaveCount(0);
+});
+
+// ── Rewards: balances + reward form edit/delete (admin) ───────────────
+
+test('admin adjusts a ticket balance up and down from the Balances tab', async ({ page, request }) => {
+  await seedChores(request, {
+    members: [{ id: 'm-bal', name: 'Sasha', emoji: '🐼', color: '#3b82f6' }],
+    chores: [],
+  });
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  // "Balances" is unique to the admin-only inner rewards nav.
+  await page.getByRole('button', { name: 'Balances', exact: true }).click();
+
+  const readBalance = async () => {
+    const res = await request.get('/api/rewards');
+    return ((await res.json()).balances as Record<string, number>)['m-bal'] ?? 0;
+  };
+  // Balances persist per-worker, so assert on deltas rather than an absolute start.
+  const before = await readBalance();
+
+  const addBtn = page.getByRole('button', { name: 'Add a ticket to Sasha' });
+  const subBtn = page.getByRole('button', { name: 'Subtract a ticket from Sasha' });
+
+  // Each adjust is guarded against concurrent taps, so poll between clicks.
+  await addBtn.click();
+  await expect.poll(readBalance).toBe(before + 1);
+  await addBtn.click();
+  await expect.poll(readBalance).toBe(before + 2);
+  await subBtn.click();
+  await expect.poll(readBalance).toBe(before + 1);
+});
+
+test('admin edits a reward through the reward form and it round-trips', async ({ page, request }) => {
+  await seedChores(request, {
+    members: [{ id: 'm-rw', name: 'Toby', emoji: '🦊', color: '#f59e0b' }],
+    chores: [],
+  });
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [{
+        id: 'rw-edit', name: 'Movie Night', emoji: 'lucide:popcorn', cost: 5,
+        description: '', memberIds: [], enabled: true,
+      }],
+    },
+  });
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
+  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+
+  // Tapping the reward row opens RewardFormOverlay in edit mode (name pre-filled).
+  await page.getByRole('button', { name: /Movie Night/ }).click();
+  const nameInput = page.getByPlaceholder('e.g. Extra Screen Time');
+  await expect(nameInput).toHaveValue('Movie Night');
+  await nameInput.fill('Pizza Party');
+  await page.getByPlaceholder('10').fill('8'); // Ticket Cost input
+  await page.getByRole('button', { name: 'Save Reward' }).click();
+
+  await expect
+    .poll(async () => {
+      const rewards = (await (await request.get('/api/rewards')).json()).rewards as Array<{ id: string; name: string; cost: number }>;
+      const r = rewards.find((x) => x.id === 'rw-edit');
+      return r ? [r.name, r.cost] : null;
+    })
+    .toEqual(['Pizza Party', 8]);
+});
+
+test('admin deletes a reward through the reward form and it round-trips', async ({ page, request }) => {
+  await seedChores(request, {
+    members: [{ id: 'm-rd', name: 'Nina', emoji: '🐼', color: '#3b82f6' }],
+    chores: [],
+  });
+  // Seed a second reward so the post-delete list stays non-empty — the data
+  // route refuses an empty-array overwrite (guardEmptyOverwrite) without force,
+  // and RewardsView never sends force.
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [
+        { id: 'rw-del', name: 'Bike Ride', emoji: 'lucide:bike', cost: 4, description: '', memberIds: [], enabled: true },
+        { id: 'rw-keep', name: 'Board Game', emoji: 'lucide:puzzle', cost: 6, description: '', memberIds: [], enabled: true },
+      ],
+    },
+  });
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
+  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+
+  await page.getByRole('button', { name: /Bike Ride/ }).click();
+  await page.getByRole('button', { name: 'Delete Reward' }).click(); // footer → ConfirmSheet
+  // ConfirmSheet confirm reads "Delete" (core.actions.delete); the footer button
+  // is "Delete Reward", so exact match targets the sheet's confirm.
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+
+  await expect
+    .poll(async () => {
+      const rewards = (await (await request.get('/api/rewards')).json()).rewards as Array<{ id: string }>;
+      return rewards.some((x) => x.id === 'rw-del');
+    })
+    .toBe(false);
+});
+
+// ── Member avatar + color pickers (admin) ─────────────────────────────
+
+test('member avatar and color picks persist through the member form', async ({ page, request }) => {
+  await seedChores(request, {
+    members: [{ id: 'm-av', name: 'Pat', emoji: '🦊', color: '#f59e0b' }],
+    chores: [],
+  });
+
+  await page.goto('/remote');
+  await openManage(page);
+  await page.getByRole('button', { name: 'Members' }).click();
+  await page.getByRole('button', { name: 'Edit Pat' }).click();
+
+  // Avatar picker: the crown icon carries the visible label "Royal" and stores
+  // as "lucide:crown". (Members render initials when no avatar is picked — the
+  // no-emoji-in-assignee-dots convention — but an explicit avatar still persists.)
+  await page.getByRole('button', { name: 'Royal', exact: true }).click();
+
+  // Color picker: the preset swatches carry no accessible name, so pick a known
+  // index off the shared swatch class (MEMBER_COLORS[4] === '#a78bfa'). The count
+  // guard fails loudly if the member overlay ever grows other press-scale-xs buttons.
+  const swatches = page.locator('.press-scale-xs');
+  await expect(swatches).toHaveCount(10);
+  await swatches.nth(4).click();
+
+  await page.getByRole('button', { name: 'Save Member' }).click();
+
+  await expect
+    .poll(async () => {
+      const members = (await (await request.get('/api/chores/data')).json()).members as Array<{ id: string; emoji: string; color: string }>;
+      const m = members.find((x) => x.id === 'm-av');
+      return m ? [m.emoji, m.color] : null;
+    })
+    .toEqual(['lucide:crown', '#a78bfa']);
+});

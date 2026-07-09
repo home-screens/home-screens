@@ -1,10 +1,12 @@
 import { test, expect } from '../fixtures';
-import type { Page } from '@playwright/test';
+import type { Page, APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { putConfig } from '../helpers/api';
+import { writeSandboxFile } from '../helpers/sandbox';
 import {
   seedFixturePlugin,
+  FIXTURE_PLUGIN_ID,
   FIXTURE_PLUGIN_TYPE,
   FIXTURE_STATE_KEY,
 } from '../helpers/fixture-plugin';
@@ -27,6 +29,43 @@ import type { ModuleInstance, ModuleVisibility } from '@/types/config';
 
 // Second key the fixture plugin does NOT publish; the test drives it directly.
 const LEVEL_KEY = 'plugin:e2e-fixture:level';
+// A third key the fixture plugin never publishes — used by the watched/unwatched
+// timing test, which drives it through the SDK and reads it back off the hub.
+const WATCH_KEY = 'plugin:e2e-fixture:watch';
+
+/**
+ * Rewrite the sandbox's `plugins/installed.json` to hold exactly one entry per
+ * given version (or none). A live display polls `/api/plugins/installed` every
+ * 3s; changing the set changes the `pluginHash` it returns, which drives the
+ * display's `loadAllPlugins` reload on the next poll. An empty list removes the
+ * fixture plugin entirely; a bumped version keeps it installed across a reload.
+ */
+function writeInstalled(sandboxDir: string, versions: string[]): void {
+  writeSandboxFile(sandboxDir, 'plugins/installed.json', {
+    schemaVersion: 1,
+    plugins: versions.map((version) => ({
+      id: FIXTURE_PLUGIN_ID,
+      version,
+      installedAt: '2026-01-01T00:00:00.000Z',
+      enabled: true,
+      moduleType: FIXTURE_PLUGIN_ID,
+    })),
+  });
+}
+
+/** Read one key's value out of the hub's per-display shared-state snapshot.
+ *  NOTE: this GET also marks the editor's "interest" in the display (15s TTL),
+ *  which is what arms the display's fast bus-change re-reporting. */
+async function readHubSharedState(
+  request: APIRequestContext,
+  displayId: string,
+  key: string,
+): Promise<string | null> {
+  const res = await request.get(`/api/display/shared-state?display=${encodeURIComponent(displayId)}`);
+  if (!res.ok()) return null;
+  const body = (await res.json()) as { entries?: Record<string, { value?: string }> };
+  return body.entries?.[key]?.value ?? null;
+}
 
 function pluginModule(overrides: Partial<ModuleInstance> = {}): ModuleInstance {
   return {
@@ -276,4 +315,206 @@ test('the Text module resolves state tokens and template variables, en-dash for 
   // The token tracks live producer updates.
   await publishState(page, 'flag', 'off');
   await expect(tokens).toContainText('flag=[off]');
+});
+
+/**
+ * Plugin reload — PURGE side of the swap. When the plugin is uninstalled and
+ * the display reloads its plugin set, `loadAllPlugins` finds the plugin gone
+ * from the new set and tombstones its `plugin:<id>:*` keys
+ * (src/lib/plugin-loader.ts). A module conditioned on one of those keys then
+ * flips per its `whenUnknown` — but only AFTER the 15s tombstone grace, since a
+ * purge holds the last value first (routine restarts must not blink).
+ */
+test('uninstalling a plugin purges its shared-state keys on reload; the gated module hides after the grace window', async ({ page, request, sandboxDir }) => {
+  test.setTimeout(50_000);
+  const gate: ModuleVisibility = {
+    conditions: [{ kind: 'state', sourceKey: FIXTURE_STATE_KEY, equals: 'on' }],
+    whenUnknown: 'hide',
+  };
+  await renderOnDisplay(page, request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [pluginModule(), conditioned('gated', 'PURGE CONTENT', gate)])],
+  }));
+  await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
+  await expect(page.getByText('PURGE CONTENT')).toBeVisible();
+
+  // The display's config poll records the current plugin hash on its first
+  // pass WITHOUT reloading; mutating installed.json before that lands would
+  // just reset the baseline and never trigger a reload. One poll cycle (3s) is
+  // plenty — wait past it before removing the plugin.
+  await page.waitForTimeout(4000);
+
+  // Remove the plugin. Next poll (≤3s) sees a changed pluginHash → reload →
+  // e2e-fixture is gone from the new set → its keys tombstone (15s grace).
+  writeInstalled(sandboxDir, []);
+
+  // Through the grace window the gate still reads 'on', so the module stays.
+  // Once the tombstone expires the key is unknown and whenUnknown:hide drops
+  // it — the reload (≤3s) + grace (15s) fits comfortably under this bound.
+  await expect(page.locator('[data-module-id="gated"]')).toHaveCount(0, { timeout: 25_000 });
+});
+
+/**
+ * Plugin reload — PRESERVE side of the swap. When the plugin stays installed
+ * across a reload, `loadAllPlugins` keeps its shared-state keys (the reload is
+ * a swap, not a purge). We prove this with a key the plugin never republishes
+ * (`level`): if the reload had purged it, the level-gated module would tombstone
+ * and hide ~15s later; because the plugin is kept, the key is never touched and
+ * the module stays put well past that window.
+ *
+ * A second module gated on the plugin's OWN key (`flag`) is the reload witness:
+ * we force `flag=off` (hiding it) just before the reload, and only the plugin's
+ * remounted producer republishes `flag=on`, so its reappearance confirms the
+ * reload actually fired.
+ */
+test('reloading with the plugin still installed preserves its shared-state keys (swap, not purge)', async ({ page, request, sandboxDir }) => {
+  test.setTimeout(60_000);
+  const flagGate = conditioned('flag-mod', 'FLAG MOD', {
+    conditions: [{ kind: 'state', sourceKey: FIXTURE_STATE_KEY, equals: 'on' }],
+    whenUnknown: 'hide',
+  });
+  const levelGate = conditioned('level-mod', 'LEVEL MOD', {
+    conditions: [{ kind: 'numeric', sourceKey: LEVEL_KEY, above: 50 }],
+    whenUnknown: 'hide',
+  });
+  await renderOnDisplay(page, request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [pluginModule(), flagGate, levelGate])],
+  }));
+  await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
+  // Plugin published flag=on on mount → FLAG MOD visible.
+  await expect(page.getByText('FLAG MOD')).toBeVisible();
+
+  // Drive `level` (a key the plugin never publishes) high → LEVEL MOD visible.
+  await publishState(page, 'level', '75');
+  await expect(page.getByText('LEVEL MOD')).toBeVisible();
+
+  // Let the display record its baseline plugin hash before we bump it.
+  await page.waitForTimeout(4000);
+
+  // Force flag=off so FLAG MOD hides — its later reappearance can then only be
+  // the remounted plugin republishing flag=on, i.e. proof the reload happened.
+  await publishState(page, 'flag', 'off');
+  await expect(page.locator('[data-module-id="flag-mod"]')).toHaveCount(0);
+
+  // Keep the plugin installed but bump its version → changed pluginHash →
+  // reload. The plugin remounts (republishing flag=on) and its keys are NOT
+  // purged (it is still in the new set).
+  writeInstalled(sandboxDir, ['2.0.0']);
+
+  // Reload witnessed: only the remounted producer republishes flag=on.
+  await expect(page.getByText('FLAG MOD')).toBeVisible({ timeout: 20_000 });
+
+  // `level` survived the swap: LEVEL MOD is still up right after the reload and
+  // remains up past the tombstone TTL — had the reload purged the key, it would
+  // have gone unknown ~15s after the reload and hidden the module.
+  await expect(page.getByText('LEVEL MOD')).toBeVisible();
+  await page.waitForTimeout(16_000);
+  await expect(page.getByText('LEVEL MOD')).toBeVisible();
+});
+
+/**
+ * BackgroundProviderLayer mount accounting. Two provider instances with the
+ * same type + config (across two screens) dedupe to a SINGLE hidden mount via
+ * `stableConfigKey`; a provider with a DIFFERENT config gets its own mount; and
+ * an `enabled: false` provider mounts zero times
+ * (src/components/display/BackgroundProviderLayer.tsx).
+ *
+ * Background providers are excluded from ScreenRenderer, so every
+ * `data-plugin-marker="e2e"` in the DOM is a background-layer mount — the layer
+ * is hidden + zero-size, so we count with toHaveCount (attachment), never
+ * visibility. Distinct `config.label` values let each mount be counted apart.
+ */
+test('the background-provider layer dedupes identical providers and skips disabled ones', async ({ page, request }) => {
+  const bg = (id: string, label: string, extra: Partial<ModuleInstance> = {}) =>
+    pluginModule({ id, backgroundProvider: true, config: { label }, ...extra });
+
+  await renderOnDisplay(page, request, baseConfig({
+    screens: [
+      makeScreen('a', 'A', [
+        textModule('BG ANCHOR', { id: 'anchor' }),
+        bg('dedupe-1', 'DEDUPEME'),
+        bg('active-1', 'ACTIVEBG'),
+        bg('disabled-1', 'DISABLEDBG', { enabled: false }),
+      ]),
+      // Same type + config as dedupe-1 → collapses to one shared mount even
+      // though it lives on a different (rotated-out) screen; the layer sees all
+      // configured screens, not just the visible one.
+      makeScreen('b', 'B', [bg('dedupe-2', 'DEDUPEME')]),
+    ],
+  }));
+
+  const marker = page.locator('[data-plugin-marker="e2e"]');
+  // ACTIVEBG proves the plugin registered and the layer mounted its providers.
+  await expect(marker.filter({ hasText: 'ACTIVEBG' })).toHaveCount(1);
+  // Two identical providers across two screens → exactly one deduped mount.
+  await expect(marker.filter({ hasText: 'DEDUPEME' })).toHaveCount(1);
+  // The disabled provider never mounts.
+  await expect(marker.filter({ hasText: 'DISABLEDBG' })).toHaveCount(0);
+});
+
+/**
+ * `sharedStateWatched` arming. The editor polling GET /api/display/shared-state
+ * marks per-display interest (15s TTL); the kiosk's commands drain returns
+ * `sharedStateWatched:true`, which arms a fast throttled status re-report on bus
+ * changes. Unwatched, a bus change instead rides the 30s heartbeat.
+ *
+ * A distinct display id keeps this test's per-worker interest/report maps
+ * isolated from every other spec. Margins are deliberately wide: we prove the
+ * WATCHED path reaches the hub well under 30s and the UNWATCHED path does not
+ * arrive within a bounded short window — never exact intervals.
+ */
+test('an editor watching a display arms fast shared-state re-reporting; an unwatched change rides the heartbeat', async ({ page, request }) => {
+  test.setTimeout(60_000);
+  const DISPLAY = 'ss-timing';
+  await putConfig(request, baseConfig({
+    displays: [{
+      id: DISPLAY,
+      name: DISPLAY,
+      screens: [makeScreen('s1', 'S1', [textModule('TIMING ANCHOR', { id: 'anchor' })])],
+    }],
+  }));
+  await page.goto(`/display/${DISPLAY}`);
+  await expect(page.getByText('TIMING ANCHOR')).toBeVisible();
+  await waitForSdk(page);
+
+  // --- UNWATCHED: no editor has read this display's shared-state, so the
+  // command drain reports sharedStateWatched:false and never arms.
+  //
+  // First CONFIRM the display's initial status heartbeat has fired, so the
+  // "did not arrive" assertion below can't be undermined by a delayed first
+  // heartbeat coincidentally carrying `unwatched-1`. We probe GET /status (not
+  // GET /shared-state) because /status reads the heartbeat WITHOUT marking
+  // shared-state interest — reading /shared-state here would arm the display
+  // and defeat the unwatched premise. baseConfig has one screen and no sleep
+  // settings, so the display's status key never changes after mount: this
+  // first heartbeat is the only unforced status POST until the 30s periodic,
+  // and it carried an empty snapshot (published before `unwatched-1`).
+  await expect
+    .poll(async () => (await request.get(`/api/display/status?display=${DISPLAY}`)).status(), {
+      timeout: 15_000,
+      intervals: [500],
+    })
+    .toBe(200);
+
+  await publishState(page, 'watch', 'unwatched-1');
+  // Deliberately do NOT read the hub yet — the read itself marks interest.
+  // Let a window longer than the watched fast-path latency pass with no
+  // interest; the change must not have reached the hub. No status POST fires in
+  // this window: the display is unwatched (no armed bus-change report), the
+  // single significant-change heartbeat already fired above, and the 30s
+  // periodic is still far off this early in the page's life.
+  await page.waitForTimeout(6000);
+  expect(await readHubSharedState(request, DISPLAY, WATCH_KEY)).not.toBe('unwatched-1');
+
+  // --- WATCHED: the read above marked interest. Keep reading so interest stays
+  // fresh and the display's next command drains observe sharedStateWatched:true
+  // and arm fast reporting.
+  for (let i = 0; i < 4; i++) {
+    await readHubSharedState(request, DISPLAY, WATCH_KEY);
+    await page.waitForTimeout(2000);
+  }
+  // Now armed: a fresh bus change fast-reports and reaches the hub quickly.
+  await publishState(page, 'watch', 'watched-2');
+  await expect
+    .poll(() => readHubSharedState(request, DISPLAY, WATCH_KEY), { timeout: 15_000, intervals: [1000] })
+    .toBe('watched-2');
 });

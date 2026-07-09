@@ -1,12 +1,13 @@
 import { test, expect } from '../fixtures';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance } from '@/types/config';
+import { LOCALES } from '@/i18n/manifest';
 import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 
 /**
- * i18n locale switching (plan Task 15).
+ * i18n locale switching (plan Task 15 + Task 20).
  *
  * Two independent axes:
  *   - `GlobalSettings.locale` drives the UI language across editor / display
@@ -24,10 +25,78 @@ import { renderOnDisplay } from '../helpers/display';
  * Reload note: `LanguageFields.handleLocaleChange` awaits `saveConfig()` then
  * calls `router.refresh()`. The editor layout is `force-dynamic` and re-reads
  * `globalSettings.locale` server-side, re-rendering `<I18nProvider locale>`
- * with a fresh de-DE blob. So the chrome flips live — no `page.reload()` is
- * required for the new dictionary to take effect. The test below asserts the
- * German copy appears after `router.refresh()` alone, which confirms this.
+ * with a fresh locale blob. So the chrome flips live — no `page.reload()` is
+ * required for the new dictionary to take effect. The loop below asserts the
+ * translated copy appears after `router.refresh()` alone, which confirms this.
  */
+
+/**
+ * One distinctive, translated chrome string per locale — the Location page's
+ * `<h1>` (`settings.locationAndLanguagePage.title`), rendered by
+ * `src/app/(editor)/editor/settings/page.tsx`. Chosen over the Language card
+ * heading (`languageAndRegion.title`) because that card is only partially
+ * translated for some locales (e.g. da-DK still shows the English "Language &
+ * region"), whereas the page title is translated in all seven — so a
+ * fallback-to-English bug is caught for every locale.
+ *
+ * Each value below is verified to (a) exist in that locale's
+ * `src/translations/<locale>/editor.json` and (b) differ from the en-US string
+ * (so a silent fallback to English fails the assertion). en-US is included so
+ * the loop covers every manifest locale by construction: adding a locale to
+ * `manifest.ts` without a row here fails the `expect(chrome).toBeDefined()`
+ * guard at test-collection time.
+ */
+const LOCALE_CHROME: Record<string, string> = {
+  'en-US': 'Location & language',
+  'de-DE': 'Standort & Sprache',
+  'fr-FR': 'Lieu et langue',
+  'es-ES': 'Ubicación e idioma',
+  'nl-NL': 'Locatie & taal',
+  'pt-BR': 'Localização e idioma',
+  'da-DK': 'Placering & sprog',
+};
+
+for (const locale of Object.keys(LOCALES)) {
+  test(`switching the UI locale to ${locale} persists and re-renders editor chrome`, async ({
+    page,
+    request,
+  }) => {
+    const heading = LOCALE_CHROME[locale];
+    // Manifest ratchet: every registered locale must map to a chrome string.
+    expect(heading, `add a LOCALE_CHROME entry for ${locale}`).toBeDefined();
+
+    // Start from a locale guaranteed to differ from the target so the picker
+    // fires a real `change` (selecting the already-selected value wouldn't PUT,
+    // and the `waitForResponse` below would hang).
+    const startLocale = locale === 'en-US' ? 'de-DE' : 'en-US';
+    await putConfig(request, baseConfig({ settings: { locale: startLocale } }));
+    await page.goto('/editor/settings?section=defaults&page=location');
+
+    const saved = page.waitForResponse(
+      (r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok(),
+    );
+    // Address the picker by its stable id rather than its `<label>` — the label
+    // text ("Language" / "Sprache" / …) is itself translated by `startLocale`,
+    // so `getByLabel('Language')` only works when starting from English.
+    await page.locator('#hs-language-select').selectOption(locale);
+    await saved;
+
+    // The picker persisted the new tag to the shared config.
+    await expect.poll(async () => (await getConfig(request)).settings.locale).toBe(locale);
+
+    // `router.refresh()` re-rendered the editor chrome in the new language with
+    // no full page reload — the page heading now reads in the target tongue.
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+
+    // Fallback-to-English regression guard: once switched away from English,
+    // the English heading must be gone (skip when English *is* the target).
+    if (locale !== 'en-US') {
+      await expect(
+        page.getByRole('heading', { name: LOCALE_CHROME['en-US'] }),
+      ).toHaveCount(0);
+    }
+  });
+}
 
 /** A minimal `date` module whose short-date format (`P`) is locale-shaped:
  *  en-US renders "07/08/2026" (slash, month-first), de-DE "08.07.2026"
@@ -52,29 +121,6 @@ function dateModule(): ModuleInstance {
     },
   } as ModuleInstance;
 }
-
-test('switching the UI locale persists and changes visible editor copy', async ({ page, request }) => {
-  await putConfig(request, baseConfig());
-  await page.goto('/editor/settings?section=defaults&page=location');
-
-  // Sanity: the Language card renders in English before we switch.
-  await expect(page.getByRole('heading', { name: 'Language & region' })).toBeVisible();
-
-  const saved = page.waitForResponse(
-    (r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok(),
-  );
-  await page.getByLabel('Language', { exact: true }).selectOption('de-DE');
-  await saved;
-
-  // The picker persisted the new tag to the shared config.
-  await expect.poll(async () => (await getConfig(request)).settings.locale).toBe('de-DE');
-
-  // …and `router.refresh()` re-rendered the editor chrome in German with no
-  // full page reload. The card title is the tightest en/de translated pair:
-  // "Language & region" → "Sprache & Region".
-  await expect(page.getByRole('heading', { name: 'Sprache & Region' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Language & region' })).toHaveCount(0);
-});
 
 test('formattingLocale overrides date formatting without changing the UI language', async ({
   page,

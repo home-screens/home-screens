@@ -85,6 +85,21 @@ const hasSize = async (mod: Locator): Promise<void> => {
   expect(box && box.width > 0 && box.height > 0).toBeTruthy();
 };
 
+/**
+ * The module rendered a descendant `<img>` whose src matches `pattern`. Used
+ * for image modules where the meaningful proof is that the src resolved to the
+ * stubbed source (not merely that some `<img>` exists). `toBeAttached` rather
+ * than `toBeVisible` because the stub aborts the external/remote load, so the
+ * element carries the correct src attribute but never paints a bitmap.
+ */
+const hasImgSrc = (pattern: RegExp) => async (mod: Locator): Promise<void> => {
+  await expect(mod).toBeVisible();
+  await expect(mod.locator('img').first()).toHaveAttribute('src', pattern);
+};
+
+/** The stubbed backgrounds.json entry — a 1x1 transparent GIF as a data: URL. */
+const STUB_BACKGROUND_SRC = /^data:image\/gif;base64,R0lGOD/;
+
 // --- The registry ----------------------------------------------------------
 
 export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
@@ -135,8 +150,19 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
 
   // ---- Networked ----
   weather: { type: 'weather', kind: 'networked', stubKey: 'weather', expect: containsText('72°') },
-  'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: async (mod) => { await expect(mod).toBeVisible(); await expect(mod).toContainText('2'); } },
-  'rain-map': { type: 'rain-map', kind: 'networked', stubKey: 'rain-map', expect: hasSize },
+  // aqi 2 in air-quality.json maps to the 'fair' label ("Fair"), so assert the
+  // derived category rather than the bare index digit.
+  'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: containsText('Fair') },
+  // Radar tiles build their src from the fetched RainViewer host (rain-map.json:
+  // "https://tilecache.rainviewer.com"), so a tile carrying that host proves the
+  // payload rendered onto the map — not merely that the wrapper has size.
+  'rain-map': {
+    type: 'rain-map', kind: 'networked', stubKey: 'rain-map',
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect(mod.locator('img[src*="tilecache.rainviewer.com"]').first()).toBeAttached();
+    },
+  },
   news: { type: 'news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },
   'stock-ticker': { type: 'stock-ticker', kind: 'networked', stubKey: 'stocks', expect: containsText('AAPL') },
   crypto: { type: 'crypto', kind: 'networked', stubKey: 'crypto', expect: containsText('Bitcoin') },
@@ -160,8 +186,8 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     config: { view: 'agenda' },
     expect: containsText('Dentist Appointment'),
   },
-  'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasChild('img') },
-  'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasChild('img') },
+  'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
+  'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
 
   // ---- Local-data ----
   'chore-chart': { type: 'chore-chart', kind: 'local-data', seed: 'chores', config: { view: 'today' }, expect: containsText('Feed the dog') },

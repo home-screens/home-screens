@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 
@@ -276,4 +276,122 @@ test('in legacy single-display mode hw-stats accepts only "main"', async ({ requ
     data: { displayId: 'main', hwStats: validHwStats() },
   });
   expect(main.status()).toBe(200);
+});
+
+/**
+ * Page-driven half of the lifecycle: the actual kiosk tab reacting to the
+ * registry changing underneath it. Where the specs above assert on the hub's
+ * in-memory maps, these open a real `/display/<id>` tab and prove the two
+ * client-side recovery paths verified against source:
+ *
+ *  - `DisplayNotFound` (src/components/display/DisplayNotFound.tsx) — the
+ *    server route (`(display)/display/[displayId]/page.tsx`) renders it
+ *    whenever `filterConfigForDisplay` returns null, i.e. the id is absent
+ *    from `config.displays`. That null branch is hit BOTH in multi-display
+ *    mode (id not in a populated registry) and in legacy mode (no `displays`
+ *    array at all — `config.displays?.find(...)` is `undefined`). The
+ *    component then polls `/api/displays?id=<id>` every 5s (CHECK_POLL_MS)
+ *    and hard-reloads on `adopted: true`.
+ *
+ *  - `useLiveConfig` (src/components/display/useLiveConfig.ts) — a mounted
+ *    rotator polls `/api/config` every 3s (CONFIG_POLL_MS); if its display
+ *    vanishes from the config it navigates to `/display`, which the legacy
+ *    route renders as the main display inline.
+ *
+ * Distinct display ids per test keep the shared per-worker `statusMap` /
+ * `knownDisplays` from bleeding between tests, matching the isolation note
+ * at the top of this file.
+ */
+test.describe('DisplayNotFound and self-heal (page-driven)', () => {
+  /** True once the kiosk has mounted a real module (rotator is live). */
+  async function expectRotatorModule(page: Page): Promise<void> {
+    await expect(page.locator('[data-module-type]').first()).toBeVisible();
+  }
+
+  test('unregistered id in a populated registry renders DisplayNotFound with auto-recovery', async ({ page, request }) => {
+    // Registry has main + kitchen, but NOT this id → filterConfigForDisplay
+    // returns null → DisplayNotFound.
+    await putConfig(request, lifecycleConfig());
+    await page.goto('/display/ghost-populated');
+
+    // The fallback identifies itself and echoes the offending id in the heading.
+    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ghost-populated' })).toBeVisible();
+
+    // Because the hub reports OTHER registered displays, DisplayNotFound arms
+    // its 60s auto-recovery and surfaces the "go to default" escape hatch.
+    // This is the observable behavioral difference from legacy mode below.
+    await expect(page.getByRole('button', { name: 'Go to default display now' })).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('unregistered id in legacy mode renders DisplayNotFound with no auto-recovery', async ({ page, request }) => {
+    // No `displays` array at all → the [displayId] route still funnels through
+    // filterConfigForDisplay, whose `config.displays?.find(...)` is undefined,
+    // so it returns null and renders the SAME DisplayNotFound fallback.
+    await putConfig(request, baseConfig());
+
+    // /api/displays caches config for 1.5s and an earlier test seeded a
+    // populated registry into that cache. DisplayNotFound calls
+    // discoverOtherDisplays exactly once at mount, so wait for the cache to
+    // reflect the now-empty registry before navigating — otherwise the mount
+    // could read a stale non-empty list and arm recovery. Once /api/displays
+    // reports zero displays, the cache holds that empty value for the mount fetch.
+    await expect
+      .poll(async () => (await readRegistry(request)).displays.length, { timeout: 5_000 })
+      .toBe(0);
+
+    await page.goto('/display/ghost-legacy');
+
+    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ghost-legacy' })).toBeVisible();
+
+    // With an empty registry the hub has no default to fall back to, so
+    // DisplayNotFound never arms auto-recovery — no countdown, no button. It
+    // waits indefinitely for adoption instead.
+    await expect(page.getByRole('button', { name: 'Go to default display now' })).toHaveCount(0);
+    await expect(page.getByText('Waiting for adoption')).toBeVisible();
+  });
+
+  test('adopting a stranded id mid-poll navigates the tab onto the live display', async ({ page, request }) => {
+    // Seed main + kitchen; 'office' is NOT yet registered.
+    await putConfig(request, lifecycleConfig());
+    await page.goto('/display/office');
+
+    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'office' })).toBeVisible();
+
+    // Adopt 'office' the way the editor store does: write it into
+    // config.displays. lifecycleConfig seeds its single screen with a text
+    // module reading the upper-cased id ("OFFICE").
+    await putConfig(request, lifecycleConfig(['office']));
+
+    // DisplayNotFound's adoption check (5s poll) sees adopted:true — after the
+    // 1.5s /api/displays config cache turns over — and hard-reloads. The route
+    // then filters to the now-registered display and mounts ScreenRotator.
+    // Generous timeout covers one 5s poll + the cache turnover with headroom.
+    await expect(page.getByText('OFFICE', { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Display Not Registered')).toHaveCount(0);
+    await expectRotatorModule(page);
+  });
+
+  test('deleting the display a kiosk is on self-heals it back to /display', async ({ page, request }) => {
+    // Seed main + kitchen + a dedicated 'nook' display, then open the nook tab.
+    await putConfig(request, lifecycleConfig(['nook']));
+    await page.goto('/display/nook');
+    await expect(page.getByText('NOOK', { exact: true })).toBeVisible();
+    await expectRotatorModule(page);
+
+    // Delete 'nook' from the config (back to main + kitchen). The mounted
+    // rotator's useLiveConfig poll (3s) finds nook gone, filterConfigForDisplay
+    // returns null, and it navigates to /display rather than reloading a dead
+    // per-display URL.
+    await putConfig(request, lifecycleConfig());
+
+    // The legacy /display route renders the main display inline (text "MAIN").
+    // waitForURL confirms we left the dead /display/nook URL; the regex only
+    // matches the bare /display entry point.
+    await page.waitForURL(/\/display$/, { timeout: 20_000 });
+    await expect(page.getByText('MAIN', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('NOOK', { exact: true })).toHaveCount(0);
+  });
 });

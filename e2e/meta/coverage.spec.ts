@@ -2,8 +2,11 @@ import { readFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { test, expect } from '@playwright/test';
 import { getAllModuleDefinitions } from '@/lib/module-registry';
+import { DEFAULT_PAGE_IDS, PER_DISPLAY_SUBTABS } from '@/lib/settings-route';
+import { LOCALES } from '@/i18n/manifest';
 import { MODULE_FIXTURES } from '../helpers/module-fixtures';
 import { VIEW_MATRIX } from '../helpers/view-matrix';
+import { CONFIG_VARIANTS } from '../helpers/config-variants';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -228,5 +231,125 @@ test('every API route.ts has at least one test reference', () => {
   expect(
     stale,
     `ROUTE_TEST_ALLOWLIST entries that no longer match any route.ts — remove them: ${stale.join(', ')}`,
+  ).toEqual([]);
+});
+
+/**
+ * Module types that deliberately have NO row in CONFIG_VARIANTS
+ * (e2e/helpers/config-variants.ts). The variant matrix flips one
+ * rendering-affecting config field per row and asserts the render changed;
+ * a module lands here only when it has no field that produces a
+ * client-observable render difference the harness can drive. Each entry is
+ * a decision, not an omission — a NEW module with a rendering-affecting
+ * field must get a variant row, not an allowlist entry.
+ */
+const CONFIG_VARIANT_FREE_MODULES = new Set<string>([
+  // weatherAware branches on a shared-state weather producer that the render
+  // harness has no way to seed, so no field flip changes what renders.
+  'greeting',
+  // `leagues` only rewrites the fetch URL — the stubbed response, and thus the
+  // rendered table, is identical regardless of which leagues are selected.
+  'sports',
+  // No rendering-affecting config field identified (all config tunes the
+  // upstream fetch, not the client render).
+  'traffic',
+]);
+
+/**
+ * Config-variant coverage ratchet. Every built-in module type must have at
+ * least one CONFIG_VARIANTS row (exercising a non-default, non-view config
+ * field at runtime) or sit on the allowlist above. Adding a module with
+ * rendering-affecting config but no variant row turns this red with the type
+ * named — the render matrices only cover each module's defaultConfig, so this
+ * is the only thing policing the rest of the config surface.
+ */
+test('every built-in module type has a config-variant row or is explicitly allowlisted', () => {
+  const covered = new Set(CONFIG_VARIANTS.map((v) => v.type));
+
+  const missing = builtinTypes().filter(
+    (t) => !covered.has(t as (typeof CONFIG_VARIANTS)[number]['type']) && !CONFIG_VARIANT_FREE_MODULES.has(t),
+  );
+  expect(
+    missing,
+    `Built-in modules with no CONFIG_VARIANTS row (add one to e2e/helpers/config-variants.ts, or allowlist in CONFIG_VARIANT_FREE_MODULES if genuinely variant-free): ${missing.join(', ')}`,
+  ).toEqual([]);
+
+  // Keep the allowlist honest: an entry that now HAS a variant row is dead weight.
+  const stale = [...CONFIG_VARIANT_FREE_MODULES].filter((m) =>
+    covered.has(m as (typeof CONFIG_VARIANTS)[number]['type']),
+  );
+  expect(
+    stale,
+    `CONFIG_VARIANT_FREE_MODULES entries now covered by a CONFIG_VARIANTS row — remove them: ${stale.join(', ')}`,
+  ).toEqual([]);
+
+  // An allowlisted entry must name a real built-in type (guards against a rename
+  // leaving a dead allowlist entry that would silently excuse a future module).
+  const unknown = [...CONFIG_VARIANT_FREE_MODULES].filter((m) => !builtinTypes().includes(m));
+  expect(
+    unknown,
+    `CONFIG_VARIANT_FREE_MODULES entries that are not built-in module types — remove them: ${unknown.join(', ')}`,
+  ).toEqual([]);
+});
+
+/**
+ * Settings-page coverage ratchet. Every Defaults page id and every per-display
+ * subtab id (both exported from src/lib/settings-route.ts, the routing source of
+ * truth) must be referenced by at least one e2e/editor/*.spec.ts. Specs navigate
+ * to these surfaces via the canonical query shape — `?section=defaults&page=<id>`
+ * and `?section=display&id=…&subtab=<id>` — so a `page=<id>` / `subtab=<id>`
+ * boundary scan of the editor spec corpus is the reliable reference marker
+ * (mirrors the route ratchet's path-stem boundary technique). A new settings
+ * page or subtab that no editor spec visits turns this red with its id named —
+ * it cannot land dark.
+ */
+test('every settings Defaults page and per-display subtab is referenced by an editor spec', () => {
+  const editorSpecs = walk(path.resolve(REPO_ROOT, 'e2e/editor')).filter((f) =>
+    f.endsWith('.spec.ts'),
+  );
+  const corpus = editorSpecs.map((f) => readFileSync(f, 'utf8')).join('\n\n');
+
+  // `(?![\w-])` stops `page=network` from matching `page=networking` and keeps
+  // each id anchored to a real query value rather than an incidental substring.
+  const referenced = (param: string, id: string): boolean =>
+    new RegExp(`${param}=${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(corpus);
+
+  const darkPages = DEFAULT_PAGE_IDS.filter((id) => !referenced('page', id));
+  expect(
+    darkPages,
+    `Settings Defaults pages with no e2e/editor/*.spec.ts reference (navigate to ?section=defaults&page=<id> in a spec): ${darkPages.join(', ')}`,
+  ).toEqual([]);
+
+  const darkSubtabs = PER_DISPLAY_SUBTABS.filter((id) => !referenced('subtab', id));
+  expect(
+    darkSubtabs,
+    `Per-display subtabs with no e2e/editor/*.spec.ts reference (navigate to ?section=display&id=…&subtab=<id> in a spec): ${darkSubtabs.join(', ')}`,
+  ).toEqual([]);
+});
+
+/**
+ * Locale coverage ratchet. Every locale registered in src/i18n/manifest.ts must
+ * appear in e2e/editor/i18n.spec.ts, which loops over `Object.keys(LOCALES)` and
+ * asserts translated editor chrome per locale via its `LOCALE_CHROME` table.
+ * The spec's own `toBeDefined()` guard catches a missing table row at runtime,
+ * but only when the suite runs; this static scan turns red at the meta layer the
+ * moment a locale is added to the manifest without a matching reference in the
+ * i18n spec, so a new locale cannot ship untested.
+ */
+test('every manifest locale is referenced in i18n.spec.ts', () => {
+  const specSource = readFileSync(
+    path.resolve(REPO_ROOT, 'e2e/editor/i18n.spec.ts'),
+    'utf8',
+  );
+
+  const missing = Object.keys(LOCALES).filter(
+    (tag) =>
+      !new RegExp(`(?<![\\w-])${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(
+        specSource,
+      ),
+  );
+  expect(
+    missing,
+    `Manifest locales with no reference in e2e/editor/i18n.spec.ts (add a LOCALE_CHROME row so the locale loop covers it): ${missing.join(', ')}`,
   ).toEqual([]);
 });

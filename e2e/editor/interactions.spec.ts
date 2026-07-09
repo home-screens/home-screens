@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { getConfig, putConfig } from '../helpers/api';
@@ -11,6 +12,30 @@ async function openEditor(page: Page): Promise<void> {
 /** Poll the persisted config until `read` satisfies the matcher. */
 async function pollConfig<T>(request: APIRequestContext, read: (c: Awaited<ReturnType<typeof getConfig>>) => T) {
   return expect.poll(async () => read(await getConfig(request)));
+}
+
+/**
+ * Grab a canvas module by its center and drag it by a raw screen-pixel delta,
+ * waiting for the autosave PUT that follows the drop. Mirrors the resize test's
+ * mouse-driven pattern; dnd-kit's PointerSensor needs >5px of travel, so the
+ * final move is stepped rather than a single jump.
+ */
+async function dragModuleBy(page: Page, moduleId: string, dxPx: number, dyPx: number): Promise<void> {
+  const box = (await page.locator(`[data-module-id="${moduleId}"]`).boundingBox())!;
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + dxPx, cy + dyPx, { steps: 15 });
+  const saved = page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
+  await page.mouse.up();
+  await saved;
+}
+
+/** Rendered scale of the canvas: its on-screen width over the 1080px display width. */
+async function canvasScale(page: Page): Promise<number> {
+  const box = (await page.getByTestId('editor-canvas').boundingBox())!;
+  return box.width / 1080;
 }
 
 test.describe('module lifecycle', () => {
@@ -122,5 +147,163 @@ test.describe('screen management', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
 
     await pollConfig(request, (c) => c.screens.map((s) => s.id)).then((p) => p.toEqual(['a']));
+  });
+
+  test('adding a template-seeded screen appends its content and persists', async ({ page, request }) => {
+    await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Screen 1', [])] }));
+    await openEditor(page);
+
+    await page.getByRole('button', { name: 'Add screen' }).click();
+    await page.getByRole('button', { name: /From Template/ }).click();
+
+    // Template picker → pick the single-clock template → import modal → Import.
+    await expect(page.getByRole('heading', { name: 'Templates' })).toBeVisible();
+    await page.getByRole('button', { name: /Minimal Clock/ }).click();
+    await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
+    await page.getByRole('button', { name: 'Import', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    // The imported screen carries the template's clock module.
+    await pollConfig(
+      request,
+      (c) => c.screens.some((s) => s.modules.some((m) => m.type === 'clock')),
+    ).then((p) => p.toBe(true));
+  });
+});
+
+test.describe('canvas toolbar', () => {
+  test('snap toggle drives the grid overlay and where a drag lands', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [textModule('SNAP ME', { id: 'sm', position: { x: 100, y: 100 }, size: { w: 200, h: 200 } })])],
+    }));
+    await openEditor(page);
+
+    // Snap is on by default: the toolbar button reports pressed and the grid
+    // overlay pattern is mounted.
+    const snapOn = page.getByRole('button', { name: 'Snap to grid (on)' });
+    await expect(snapOn).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('pattern#editor-grid')).toBeAttached();
+
+    // With snap on, a drag lands on the 20px grid (both axes divisible by 20).
+    await dragModuleBy(page, 'sm', 60, 60);
+    await pollConfig(request, (c) => c.screens[0].modules[0].position.x % 20).then((p) => p.toBe(0));
+    await pollConfig(request, (c) => c.screens[0].modules[0].position.y % 20).then((p) => p.toBe(0));
+
+    // Toggle snap off: button flips to unpressed and the grid overlay unmounts.
+    await snapOn.click();
+    const snapOff = page.getByRole('button', { name: 'Snap to grid (off)' });
+    await expect(snapOff).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('pattern#editor-grid')).toHaveCount(0);
+
+    // With snap off the drop is free: choose screen-pixel deltas that map to a
+    // non-grid display offset (131 / 173 display px, both far from a multiple
+    // of 20) so the landing position cannot coincidentally align.
+    const scale = await canvasScale(page);
+    await dragModuleBy(page, 'sm', Math.round(131 * scale), Math.round(173 * scale));
+    await pollConfig(request, (c) => c.screens[0].modules[0].position.x % 20).then((p) => p.not.toBe(0));
+  });
+
+  test('zoom in / out / fit change the zoom level', async ({ page }) => {
+    await openEditor(page);
+
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    const startWidth = (await page.getByTestId('editor-canvas').boundingBox())!.width;
+
+    // Each step multiplies by 1.2: 100 → 120 → 144.
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(page.getByText('120%', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(page.getByText('144%', { exact: true })).toBeVisible();
+
+    // The canvas actually grew with the zoom, not just the label.
+    await expect
+      .poll(async () => (await page.getByTestId('editor-canvas').boundingBox())!.width)
+      .toBeGreaterThan(startWidth);
+
+    // Fit (reset) only appears once zoom leaves 100%; it returns to 100%.
+    await page.getByRole('button', { name: 'Fit to screen' }).click();
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+
+    // Zoom out divides by 1.2: 100 → 83.
+    await page.getByRole('button', { name: 'Zoom out' }).click();
+    await expect(page.getByText('83%', { exact: true })).toBeVisible();
+  });
+});
+
+test.describe('screen context menu', () => {
+  test('disabling then enabling a screen persists and toggles the dimmed indicator', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('a', 'Screen 1', []), makeScreen('b', 'Screen 2', [])],
+    }));
+    await openEditor(page);
+
+    // Disable the non-active screen via its context menu.
+    await page.locator('span.max-w-32', { hasText: 'Screen 2' }).click({ button: 'right' });
+    await page.getByRole('button', { name: 'Disable', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens.find((s) => s.id === 'b')!.enabled).then((p) => p.toBe(false));
+    await expect(page.getByLabel('Disabled', { exact: true })).toBeVisible();
+
+    // Re-open the menu — it now offers Enable — and clear the disabled state.
+    await page.locator('span.max-w-32', { hasText: 'Screen 2' }).click({ button: 'right' });
+    await page.getByRole('button', { name: 'Enable', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens.find((s) => s.id === 'b')!.enabled).then((p) => p.toBeUndefined());
+    await expect(page.getByLabel('Disabled', { exact: true })).toBeHidden();
+  });
+
+  test('export this screen downloads a layout file', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('k', 'Kitchen', [textModule('HELLO', { id: 't1' })])],
+    }));
+    await openEditor(page);
+
+    await page.locator('span.max-w-32', { hasText: 'Kitchen' }).click({ button: 'right' });
+    await page.getByRole('button', { name: 'Export This Screen' }).click();
+
+    // The export modal is pre-scoped to this screen; its Export button triggers
+    // the browser download.
+    await expect(page.getByRole('heading', { name: 'Export Layout' })).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toBe('home-screens-kitchen.json');
+
+    const path = await download.path();
+    const layout = JSON.parse(await readFile(path, 'utf-8'));
+    expect(layout._type).toBe('home-screens-layout');
+    expect(layout.screens).toHaveLength(1);
+    expect(layout.screens[0].name).toBe('Kitchen');
+    expect(layout.screens[0].modules).toHaveLength(1);
+  });
+});
+
+test.describe('per-screen rotation duration', () => {
+  test('override with seconds and sticky mode persist and badge the tab', async ({ page, request }) => {
+    await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Screen 1', [])] }));
+    await openEditor(page);
+
+    // With a screen (and no module) selected, the property panel shows the
+    // Screen settings section defaulting to "inherits the global default".
+    await page.getByRole('button', { name: 'Override', exact: true }).click();
+
+    // Enter a concrete duration → persists as milliseconds; the tab badges it.
+    const seconds = page.locator('#screen-rotation-duration');
+    await seconds.fill('45');
+    await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBe(45000));
+    await expect(page.getByText('45s', { exact: true })).toBeVisible();
+
+    // Zero = sticky (manual advance only): the panel shows a Sticky badge and
+    // the tab badge switches to 0s.
+    await seconds.fill('0');
+    await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBe(0));
+    await expect(page.getByText('Sticky', { exact: true })).toBeVisible();
+    await expect(page.getByText('0s', { exact: true })).toBeVisible();
+
+    // Reset clears the override back to inheriting the default.
+    await page.getByRole('button', { name: 'Reset', exact: true }).click();
+    await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBeUndefined());
+    await expect(page.getByText('0s', { exact: true })).toBeHidden();
   });
 });

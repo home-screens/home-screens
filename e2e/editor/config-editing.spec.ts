@@ -1,8 +1,11 @@
 import { test, expect } from '../fixtures';
-import type { Page } from '@playwright/test';
-import { getConfig } from '../helpers/api';
+import type { APIRequestContext, Page } from '@playwright/test';
+import { getConfig, putConfig } from '../helpers/api';
+import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
+import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 
 /**
  * PropertyPanel config editing. Config-section fields use the Labeled* UI
@@ -881,4 +884,288 @@ test('sports: switching the View persists', async ({ page, request }) => {
   });
 
   expect((await moduleConfig(request, 'sports')).view).toBe('list');
+});
+
+// ── Task 14: Position & Size, Style, and Defaults › Display ─────────────────
+// These target the PropertyPanel's structural sections (PositionSection,
+// StyleSection) rather than per-module config, plus one real field edit at the
+// Defaults level. Position/size/style live directly on the ModuleInstance
+// (mod.position / mod.size / mod.style), NOT in mod.config, so we read the whole
+// instance rather than via moduleConfig().
+
+/** Read back the full persisted first-screen module instance (position/size/style). */
+async function moduleInstance(request: APIRequestContext) {
+  const config = await getConfig(request);
+  // ModuleStyle has no index signature, so it doesn't structurally overlap
+  // Record<string, unknown>; route through unknown to read style fields freely.
+  return config.screens[0].modules[0] as unknown as {
+    position: { x: number; y: number };
+    size: { w: number; h: number };
+    style: Record<string, unknown>;
+  };
+}
+
+test.describe('PropertyPanel Position & Size', () => {
+  // PositionSection lives in a collapsed "Position & Size" accordion; open it
+  // before driving the X/Y/W/H number inputs. Each input is a <label> wrapping
+  // <span>X</span><input type=number>, so getByLabel reaches it by the span text.
+  // These four fields set exact values with no grid snapping (moveModule /
+  // resizeModule store the raw number), complementing the mouse-drag/resize
+  // coverage in interactions.spec.ts.
+
+  test('typing exact X/Y moves the module on canvas and persists', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('text', { content: 'MOVE ME' }));
+    const canvasModule = page.locator('[data-module-id="text-1"]');
+    const startBox = (await canvasModule.boundingBox())!;
+
+    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+
+    await autosaved(page, async () => {
+      await page.getByLabel('X', { exact: true }).fill('300');
+    });
+    await autosaved(page, async () => {
+      await page.getByLabel('Y', { exact: true }).fill('200');
+    });
+
+    // Persisted exactly, and the canvas wrapper (positioned at x*scale / y*scale)
+    // has visibly moved down-right from its origin.
+    await expect.poll(async () => (await moduleInstance(request)).position).toEqual({ x: 300, y: 200 });
+    await expect.poll(async () => (await canvasModule.boundingBox())!.x).toBeGreaterThan(startBox.x);
+    await expect.poll(async () => (await canvasModule.boundingBox())!.y).toBeGreaterThan(startBox.y);
+  });
+
+  test('typing exact W/H resizes the module on canvas and persists', async ({ page, request }) => {
+    // Seed a known small footprint so the typed 480×360 is unambiguously larger.
+    const mod = buildModuleInstance('text', { content: 'SIZE ME' });
+    mod.size = { w: 200, h: 160 };
+    await selectModule(page, request, mod);
+    const canvasModule = page.locator('[data-module-id="text-1"]');
+    const startBox = (await canvasModule.boundingBox())!;
+
+    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+
+    await autosaved(page, async () => {
+      await page.getByLabel('W', { exact: true }).fill('480');
+    });
+    await autosaved(page, async () => {
+      await page.getByLabel('H', { exact: true }).fill('360');
+    });
+
+    await expect.poll(async () => (await moduleInstance(request)).size).toEqual({ w: 480, h: 360 });
+    await expect.poll(async () => (await canvasModule.boundingBox())!.width).toBeGreaterThan(startBox.width);
+    await expect.poll(async () => (await canvasModule.boundingBox())!.height).toBeGreaterThan(startBox.height);
+  });
+});
+
+test.describe('PropertyPanel Style', () => {
+  // StyleSection lives in a collapsed "Style" accordion. We seed backdropBlur: 0
+  // so opacity renders as a plain CSS `opacity` (ModuleWrapper bakes opacity into
+  // the background alpha whenever backdropBlur > 0, which is the default). The
+  // inner ModuleWrapper is the only descendant carrying a `background-color`
+  // inline style, and it applies border-radius / font-size / opacity UNSCALED
+  // (the outer DraggableModule wrapper multiplies by the canvas scale + is inside
+  // a `zoom`, so its computed lengths are unreliable) — so we assert the inner
+  // wrapper's inline `style` attribute, which is the exact pre-zoom source.
+
+  /** Seed a greeting whose opacity is renderable (backdropBlur off) and open the Style accordion. */
+  async function selectStyledGreeting(page: Page, request: APIRequestContext) {
+    const mod = buildModuleInstance('greeting', { name: 'STYLE' });
+    mod.style = { ...mod.style, backdropBlur: 0 };
+    await selectModule(page, request, mod);
+    await page.getByRole('button', { name: 'Style', exact: true }).click();
+  }
+
+  /** The inner ModuleWrapper div — the sole descendant with an inline background-color. */
+  function styledWrapper(page: Page) {
+    return page.locator('[data-module-id="greeting-1"] div[style*="background-color"]').first();
+  }
+
+  test('border radius slider persists and enlarges the preview corner radius', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // Slider default 12; End jumps to max (50) deterministically.
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Border Radius' });
+      await slider.focus();
+      await slider.press('End');
+    });
+
+    expect((await moduleInstance(request)).style.borderRadius).toBe(50);
+    await expect(styledWrapper(page)).toHaveAttribute('style', /border-radius:\s*50px/);
+  });
+
+  test('opacity slider persists and dims the preview', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // Slider default 1 (max). Home → 0, then 10 steps of 0.05 → 0.5.
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Opacity' });
+      await slider.focus();
+      await slider.press('Home');
+      for (let i = 0; i < 10; i++) await slider.press('ArrowRight');
+    });
+
+    expect((await moduleInstance(request)).style.opacity).toBe(0.5);
+    await expect(styledWrapper(page)).toHaveAttribute('style', /opacity:\s*0\.5/);
+  });
+
+  test('font size slider persists and enlarges the preview text', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // End jumps to the slider max (72).
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Font Size' });
+      await slider.focus();
+      await slider.press('End');
+    });
+
+    expect((await moduleInstance(request)).style.fontSize).toBe(72);
+    await expect(styledWrapper(page)).toHaveAttribute('style', /font-size:\s*72px/);
+  });
+
+  test('background color picker persists and recolors the preview', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // ColorPicker's text input commits on blur (see the colorText helper above).
+    await autosaved(page, async () => {
+      await colorText(page, 'Background').fill('#123456');
+      await colorText(page, 'Background').blur();
+    });
+
+    expect((await moduleInstance(request)).style.backgroundColor).toBe('#123456');
+    // The browser serializes the inline style color to rgb().
+    await expect(styledWrapper(page)).toHaveAttribute('style', /background-color:\s*rgb\(18, 52, 86\)/);
+  });
+
+  test('font family picker persists and restyles the preview', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // FontFamilyPicker is a <select> (label "Font Family") of registry font ids;
+    // the stored value is the id, and the wrapper renders its resolved CSS stack.
+    await autosaved(page, async () => {
+      await page.getByLabel('Font Family').selectOption('poppins');
+    });
+
+    expect((await moduleInstance(request)).style.fontFamily).toBe('poppins');
+    await expect(styledWrapper(page)).toHaveAttribute('style', /font-family:[^;]*Poppins/i);
+  });
+});
+
+test('Defaults › Display: changing the transition effect persists to the shared config', async ({ page, request }) => {
+  // Complements settings.spec.ts, which only asserts the backlink banner on this
+  // page (via a per-display override). Here we edit the default itself. The
+  // transition <select> isn't label-associated, so target it by an option only
+  // it carries ("Crossfade (overlap)"), mirroring standingsSelectByOption above.
+  await putConfig(request, baseConfig()); // settings.transitionEffect defaults to 'fade'
+  await page.goto('/editor/settings?section=defaults&page=display');
+
+  const transitionSelect = page
+    .locator('select')
+    .filter({ has: page.getByRole('option', { name: 'Crossfade (overlap)', exact: true }) });
+  await expect(transitionSelect).toBeVisible();
+  await transitionSelect.selectOption('crossfade');
+
+  // The settings page autosaves on a 500ms debounce; poll the persisted config.
+  await expect
+    .poll(async () => (await getConfig(request)).settings.transitionEffect)
+    .toBe('crossfade');
+});
+
+// ── Task 15: module-level Schedule + backgroundProvider toggle ──────────────
+// These target two PropertyPanel structural sections that live on the
+// ModuleInstance itself (mod.schedule / mod.backgroundProvider), not in
+// mod.config. The screen-level schedule is covered in modals.spec.ts; this is
+// the MODULE-level schedule accordion. The backgroundProvider toggle only
+// renders for state-producing module types — no built-in declares
+// providesState, so it is driven on the fixture plugin.
+
+test.describe('PropertyPanel Schedule (module level)', () => {
+  // Schedule lives at mod.schedule, so read the raw first-screen instance.
+  async function moduleSchedule(request: APIRequestContext) {
+    const config = await getConfig(request);
+    return config.screens[0].modules[0].schedule as
+      | { daysOfWeek?: number[]; startTime?: string; endTime?: string; invert?: boolean }
+      | undefined;
+  }
+
+  test('enabling the schedule, toggling a day, and setting a time window persists to mod.schedule', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('text', { content: 'SCHEDULED' }));
+
+    // The module Schedule lives in its own collapsed accordion.
+    await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+
+    // Enabling seeds a weekday window (Mon–Fri = [1,2,3,4,5]); the day grid and
+    // time-window inputs appear only once enabled.
+    await autosaved(page, async () => {
+      await page.getByRole('switch', { name: 'Enable Schedule' }).click();
+    });
+    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([1, 2, 3, 4, 5]);
+
+    // Sunday (index 0) starts inactive; clicking its day button adds it. The
+    // editor sorts the result lexicographically, which for single digits is the
+    // numeric order [0,1,2,3,4,5].
+    await autosaved(page, async () => {
+      await page.getByRole('button', { name: 'Sun', exact: true }).click();
+    });
+    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([0, 1, 2, 3, 4, 5]);
+
+    // The From/Until <input type="time"> fields commit on change (not blur).
+    await autosaved(page, async () => {
+      await page.getByLabel('From', { exact: true }).fill('06:30');
+    });
+    await autosaved(page, async () => {
+      await page.getByLabel('Until', { exact: true }).fill('09:15');
+    });
+
+    expect(await moduleSchedule(request)).toMatchObject({
+      daysOfWeek: [0, 1, 2, 3, 4, 5],
+      startTime: '06:30',
+      endTime: '09:15',
+    });
+  });
+});
+
+test.describe('PropertyPanel background provider', () => {
+  // "Run hidden in the background" only renders for state-producing module
+  // types (isStateProducerType). The fixture plugin's manifest advertises a
+  // state key, so its registered definition makes the toggle appear; built-ins
+  // declare none. This complements shared-state.spec.ts, which seeds the flag
+  // via config — here we exercise the editor UI path that sets it.
+  function fixturePluginModule(): ModuleInstance {
+    return {
+      id: 'e2e-plugin-1',
+      type: FIXTURE_PLUGIN_TYPE,
+      position: { x: 0, y: 0 },
+      size: { w: 320, h: 200 },
+      zIndex: 1,
+      style: { ...DEFAULT_MODULE_STYLE },
+      config: { label: 'E2E PLUGIN' },
+    } as ModuleInstance;
+  }
+
+  test('toggling Run hidden in the background persists backgroundProvider on the instance', async ({ page, request, sandboxDir }) => {
+    seedFixturePlugin(sandboxDir);
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [fixturePluginModule()])],
+    }));
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+    // The toggle reads the registered plugin definition, which only exists once
+    // the bundle loads; its on-canvas marker proves registration completed.
+    await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
+
+    await page.locator('[data-module-id="e2e-plugin-1"]').click();
+    await page.getByRole('button', { name: 'Visibility' }).click();
+
+    const toggle = page.getByLabel('Run hidden in the background');
+    await expect(toggle).toBeVisible();
+    expect(await toggle.isChecked()).toBe(false);
+
+    await autosaved(page, async () => {
+      await toggle.check();
+    });
+
+    const config = await getConfig(request);
+    expect(config.screens[0].modules[0].backgroundProvider).toBe(true);
+  });
 });

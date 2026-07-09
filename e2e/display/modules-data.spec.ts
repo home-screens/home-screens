@@ -58,6 +58,9 @@ const RESILIENCE = [
   { type: 'history', empty: { events: [] }, happy: 'Apollo 11 lands on the Moon.' },
   { type: 'quote', empty: {}, happy: 'The only way to do great work' },
   { type: 'dad-joke', empty: {}, happy: 'skeletons' },
+  // An empty {} yields aqi undefined -> the "Unknown" label, and a 500 gates to
+  // the error state, so the happy-path "Fair" category is absent in both.
+  { type: 'air-quality', stubKey: 'air-quality', empty: {}, happy: 'Fair' },
   // The calendar route returns a bare array of events, not a wrapped object.
   { type: 'calendar', empty: [], happy: 'Dentist Appointment' },
   {
@@ -111,7 +114,6 @@ for (const r of RESILIENCE) {
  */
 const RESILIENCE_NO_CRASH = [
   { type: 'rain-map', stubKey: 'rain-map', empty: {} },
-  { type: 'air-quality', stubKey: 'air-quality', empty: {} },
   // The backgrounds route returns a bare array of image URLs.
   { type: 'photo-slideshow', stubKey: 'backgrounds', empty: [] },
   { type: 'fullscreen-photo', stubKey: 'backgrounds', empty: [] },

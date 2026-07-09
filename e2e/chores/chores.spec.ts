@@ -1,6 +1,24 @@
 import { test, expect } from '../fixtures';
+import type { APIRequestContext } from '@playwright/test';
 import { putConfig } from '../helpers/api';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
+
+/** Local YYYY-MM-DD for today, matching how the chore store keys completions. */
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function completionExists(
+  request: APIRequestContext,
+  choreId: string,
+  memberId: string,
+  date: string,
+): Promise<boolean> {
+  const res = await request.get('/api/chores');
+  const completions = (await res.json()).completions as Array<{ choreId: string; memberId: string; date: string }>;
+  return completions.some((c) => c.choreId === choreId && c.memberId === memberId && c.date === date);
+}
 
 const CHORE_DATA = {
   members: [{ id: 'm1', name: 'Avery', emoji: '🦊', color: '#f59e0b' }],
@@ -63,4 +81,168 @@ test('/chores shows the empty state when no chore module is configured', async (
   await putConfig(request, baseConfig()); // no chore-chart module
   await page.goto('/chores');
   await expect(page.getByText('Feed the dog')).toBeHidden();
+});
+
+// ── Rewards on the kid surface ────────────────────────────────────────
+//
+// The kid rewards view is redeem + history only (no manage/balances). These
+// specs use their own member/reward IDs because reward balances and chore
+// completions persist per-worker across tests.
+
+test('kid redeems a reward and the balance decrements with a history entry', async ({ page, request }) => {
+  await request.put('/api/chores/data', {
+    data: { members: [{ id: 'm-kr', name: 'Remy', emoji: '🦊', color: '#f59e0b' }], chores: [] },
+  });
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [{
+        id: 'rw-kr', name: 'Movie Night', emoji: 'lucide:popcorn', cost: 2,
+        description: '', memberIds: [], enabled: true,
+      }],
+    },
+  });
+  await request.post('/api/rewards/data', { data: { memberId: 'm-kr', amount: 5 } });
+
+  const readRewards = async () => (await (await request.get('/api/rewards')).json());
+  // Delta assertion (a CI retry credits again, so the absolute start can vary).
+  const before = ((await readRewards()).balances as Record<string, number>)['m-kr'] ?? 0;
+
+  await page.goto('/chores');
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+
+  // Redeem is the default kid rewards view; the reward is affordable (5 ≥ 2).
+  const redeemed = page.waitForResponse(
+    (r) => r.url().includes('/api/rewards') && r.request().method() === 'POST' && r.ok(),
+  );
+  await page.getByRole('button', { name: /Movie Night/ }).click();
+  // The ConfirmSheet's "Redeem — 2 tickets" button is the last Redeem match.
+  await page.getByRole('button', { name: /Redeem/ }).last().click();
+  await redeemed;
+
+  await expect
+    .poll(async () => ((await readRewards()).balances as Record<string, number>)['m-kr'] ?? 0)
+    .toBe(before - 2);
+  await expect
+    .poll(async () => ((await readRewards()).redemptions as Array<{ rewardName: string }>).map((r) => r.rewardName))
+    .toContain('Movie Night');
+
+  // The redemption also shows up in the kid-facing History tab.
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await expect(page.getByText('Movie Night')).toBeVisible();
+});
+
+test('an unaffordable reward is shown disabled in the kid view', async ({ page, request }) => {
+  await request.put('/api/chores/data', {
+    data: { members: [{ id: 'm-af', name: 'Kai', emoji: '🦊', color: '#f59e0b' }], chores: [] },
+  });
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [{
+        id: 'rw-af', name: 'Theme Park Day', emoji: 'lucide:ticket', cost: 50,
+        description: '', memberIds: [], enabled: true,
+      }],
+    },
+  });
+  await request.post('/api/rewards/data', { data: { memberId: 'm-af', amount: 3 } }); // well below cost
+
+  await page.goto('/chores');
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+
+  // Cost outstrips the balance, so the row renders as a disabled button.
+  const rewardBtn = page.getByRole('button', { name: /Theme Park Day/ });
+  await expect(rewardBtn).toBeVisible();
+  await expect(rewardBtn).toBeDisabled();
+});
+
+// ── Kid completion toggle & multi-member view ─────────────────────────
+
+test('kid unchecks a completed chore and the completion is removed', async ({ page, request }) => {
+  await request.put('/api/chores/data', {
+    data: {
+      members: [{ id: 'm-uc', name: 'Devon', emoji: '🦊', color: '#f59e0b' }],
+      chores: [{
+        id: 'c-uc', name: 'Water the plants', emoji: '🌱', points: 1,
+        frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+        assigneeIds: ['m-uc'], rotation: 'fixed',
+      }],
+    },
+  });
+  const today = todayISO();
+  // Normalize to "not completed" (completions persist per-worker; a CI retry
+  // could start already checked).
+  if (await completionExists(request, 'c-uc', 'm-uc', today)) {
+    await request.post('/api/chores', { data: { choreId: 'c-uc', memberId: 'm-uc', date: today } });
+  }
+
+  await page.goto('/chores');
+  const markBtn = page.getByRole('button', { name: 'Mark complete: Water the plants' });
+  const doneBtn = page.getByRole('button', { name: 'Completed: Water the plants' });
+
+  // Check on.
+  let posted = page.waitForResponse(
+    (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+  );
+  await markBtn.click();
+  await posted;
+  await expect(doneBtn).toBeVisible();
+
+  // Uncheck.
+  posted = page.waitForResponse(
+    (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+  );
+  await doneBtn.click();
+  await posted;
+  await expect(markBtn).toBeVisible();
+
+  // The un-check persisted — no completion for today remains.
+  await expect.poll(async () => completionExists(request, 'c-uc', 'm-uc', today)).toBe(false);
+});
+
+test('five-member kid view filters chores by member and keeps an aggregate day summary', async ({ page, request }) => {
+  const members = [
+    { id: 'k1', name: 'Ada', emoji: '', color: '#f472b6' },
+    { id: 'k2', name: 'Bram', emoji: '', color: '#60a5fa' },
+    { id: 'k3', name: 'Cleo', emoji: '', color: '#4ade80' },
+    { id: 'k4', name: 'Dax', emoji: '', color: '#fbbf24' },
+    { id: 'k5', name: 'Esme', emoji: '', color: '#a78bfa' },
+  ];
+  const mkChore = (id: string, name: string, memberId: string) => ({
+    id, name, emoji: '', points: 1, frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
+    assigneeIds: [memberId], rotation: 'fixed',
+  });
+  await request.put('/api/chores/data', {
+    data: {
+      members,
+      chores: [
+        mkChore('kc1', 'Set the table', 'k1'),
+        mkChore('kc2', 'Sweep the floor', 'k2'),
+        mkChore('kc3', 'Fold laundry', 'k3'),
+        mkChore('kc4', 'Wipe counters', 'k4'),
+        mkChore('kc5', 'Take out recycling', 'k5'),
+      ],
+    },
+  });
+
+  await page.goto('/chores');
+
+  // All five members render as pills — the view must stay usable past 2-3 kids.
+  for (const m of members) {
+    await expect(page.getByRole('button', { name: m.name, exact: true })).toBeVisible();
+  }
+
+  // The first member is selected by default: only their chore shows.
+  await expect(page.getByText('Set the table')).toBeVisible();
+  await expect(page.getByText('Sweep the floor')).toBeHidden();
+
+  // Switching members filters the Today list.
+  await page.getByRole('button', { name: 'Bram', exact: true }).click();
+  await expect(page.getByText('Sweep the floor')).toBeVisible();
+  await expect(page.getByText('Set the table')).toBeHidden();
+
+  // The day strip summarizes progress as an aggregate "N of 5 kids" fraction,
+  // not five separate per-member visuals.
+  await expect(
+    page.getByRole('button', { name: /of 5 kids earned all their chores/ }).first(),
+  ).toBeVisible();
 });

@@ -1,8 +1,10 @@
 import path from 'node:path';
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig } from '../helpers/api';
+import { getConfig, putConfig, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen, textModule, choreChartModule } from '../helpers/config-fixtures';
-import { autosaved } from '../helpers/editor';
+import { buildModuleInstance } from '../helpers/module-fixtures';
+import { autosaved, selectModule, moduleConfig } from '../helpers/editor';
+import { stubModuleData } from '../helpers/stubs';
 
 /**
  * Low-surface editor modals and pickers, grouped since each needs only one or
@@ -164,5 +166,108 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
         return (data.members as Array<{ name: string }>).map((m) => m.name);
       })
       .toContain('Robin');
+  });
+});
+
+test.describe('HolidayPickerModal (countdown module config)', () => {
+  // The picker fetches the country list and per-year holidays client-side from
+  // /api/holidays (a proxy for the Nager.Date service); stubbing at the browser
+  // boundary keeps the proxy's own upstream fetch from firing.
+  test('picking a holiday adds a recurring event to the countdown config', async ({ page, request }) => {
+    const handle = await stubModuleData(page, { blockExternal: true });
+    await page.route('**/api/holidays*', (route) => {
+      const url = new URL(route.request().url());
+      if (url.searchParams.has('countries')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([{ countryCode: 'US', name: 'United States' }]),
+        });
+      }
+      // Same list for both the current-year and next-year fetches; the modal
+      // dedupes by title. A far-future date keeps it in the upcoming window.
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ id: 'h-e2e', title: 'E2E Holiday', start: '2099-12-25' }]),
+      });
+    });
+
+    await selectModule(page, request, buildModuleInstance('countdown'));
+    await page.getByRole('button', { name: 'Holidays...' }).click();
+    await expect(page.getByRole('heading', { name: 'Add Holidays' })).toBeVisible();
+
+    // Selecting a country triggers the holiday fetch; its rows are <label>s
+    // wrapping a checkbox + the holiday title.
+    await page.getByLabel('Country').selectOption('US');
+    const row = page.locator('label', { hasText: 'E2E Holiday' });
+    await expect(row).toBeVisible();
+
+    await autosaved(page, async () => {
+      await row.getByRole('checkbox').click();
+      await page.getByRole('button', { name: 'Add 1 Holiday' }).click();
+    });
+
+    const events = (await moduleConfig(request, 'countdown')).events as Array<{ name: string; source?: string }>;
+    expect(events.some((e) => e.name === 'E2E Holiday' && e.source === 'holiday')).toBe(true);
+    expect(handle.externalHits).toEqual([]);
+  });
+});
+
+test.describe('Meal-planner editor modal', () => {
+  // The /remote side is covered by e2e/remote/meals-planning.spec.ts; this drives
+  // the editor-side modal (opened from the meal-planner module's config) and
+  // asserts the same meals.json round-trip via /api/meals/data.
+  async function openMealModal(page: import('@playwright/test').Page, request: import('@playwright/test').APIRequestContext) {
+    await selectModule(page, request, buildModuleInstance('meal-planner'));
+    await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+    await expect(page.getByRole('heading', { name: 'Meal Planner', exact: true })).toBeVisible();
+  }
+
+  async function savedMealNames(request: import('@playwright/test').APIRequestContext): Promise<string[]> {
+    const res = await request.get('/api/meals/data');
+    const data = await res.json();
+    return (data.savedMeals as Array<{ name: string }>).map((m) => m.name);
+  }
+
+  test('adding a meal persists it to meals.json', async ({ page, request }) => {
+    await seedMeals(request, { savedMeals: [], plan: [], force: true });
+    await openMealModal(page, request);
+
+    // Library tab is default; "Add New Meal" creates a local pending meal and
+    // switches to the Detail tab, where "Save Changes" is the first persist.
+    const saved = page.waitForResponse(
+      (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
+    );
+    await page.getByRole('button', { name: '+ Add New Meal' }).click();
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await saved;
+
+    // The pending meal persists under its default name.
+    await expect.poll(() => savedMealNames(request)).toContain('New Meal');
+  });
+
+  test('editing a saved meal round-trips the new name', async ({ page, request }) => {
+    await seedMeals(request, {
+      savedMeals: [{ id: 'meal-1', name: 'Pasta', emoji: '🍝' }],
+      plan: [],
+      force: true,
+    });
+    await openMealModal(page, request);
+
+    // Open the meal from the library list, rename it in Detail, and save.
+    const dialog = page.getByRole('dialog');
+    await dialog.getByText('Pasta', { exact: true }).click();
+    const nameInput = dialog.locator('input[type="text"]:not([placeholder])').first();
+    await expect(nameInput).toHaveValue('Pasta');
+    await nameInput.fill('Pasta Bake');
+
+    const saved = page.waitForResponse(
+      (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
+    );
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await saved;
+
+    await expect.poll(() => savedMealNames(request)).toContain('Pasta Bake');
   });
 });

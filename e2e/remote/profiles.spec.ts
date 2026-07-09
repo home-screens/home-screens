@@ -34,6 +34,10 @@ test('the profile switcher activates a profile and persists it to config', async
 test('the display resolves the active profile screens', async ({ page, request }) => {
   // p2 (Evening) is scoped to s2 only, so the display must show s2 and hide s1.
   await putConfig(request, profileConfig('p2'));
+  // Drain any command left in the legacy __default__ queue by an earlier
+  // same-worker test (e.g. a broadcast sleep). A real kiosk polling here would
+  // otherwise consume it, go asleep/reload, and poison downstream tests.
+  await request.get('/api/display/commands');
   await page.goto('/display');
 
   await expect(page.getByText('SCREEN TWO')).toBeVisible();
