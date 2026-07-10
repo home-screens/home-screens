@@ -1084,6 +1084,54 @@ Proxies an Immich image through the server. Validates the asset ID format and ca
 
 **Response:** The image binary with appropriate `Content-Type` header and a 24-hour browser cache (`Cache-Control: public, max-age=86400, immutable`).
 
+### GET /api/immich/video
+
+Streams a video asset from Immich. The incoming `Range` header is forwarded and the response body is piped straight through — never buffered or cached — so seeking works and large files can't exhaust the server's memory.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `assetId` | string | *(required)* | UUID of the Immich video asset |
+| `mt` | string | — | Media token bound to this asset, for `<video src>` playback where a Bearer header can't be sent |
+
+**Response:** The video stream with `Content-Type`, `Content-Range`, `Content-Length`, and `Accept-Ranges` passed through from Immich.
+
+---
+
+## iCloud
+
+iCloud shared albums work without an Apple account or API key — the album's public share link is all that's needed. Asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN.
+
+### GET /api/icloud/photos
+
+Lists media from an iCloud shared album. Album contents are cached for 5 minutes per token; results are shuffled per request. A missing or malformed album link returns an empty list rather than an error.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `album` | string | *(required)* | Shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token |
+| `media` | string | — | Filter: `photos`, `videos`, or `both`. Omitted = photos only, returned as a plain URL array |
+| `count` | number | `50` | Number of items to return (1–200) |
+
+**Response (with `media`):**
+```json
+[
+  { "url": "https://cvws.icloud-content.com/...", "type": "image" },
+  { "url": "https://cvws.icloud-content.com/...", "type": "video" }
+]
+```
+
+### POST /api/icloud/import
+
+Starts downloading everything an Apple link (Shared Album or "Copy iCloud Link") contains into the local media library. Requires a valid editor session. Returns `202` with a job descriptor, `409` if another import is already running.
+
+**Request body:**
+```json
+{ "url": "https://www.icloud.com/sharedalbum/#B0abc...", "folder": "family" }
+```
+
+### GET /api/icloud/import?jobId=...
+
+Polls a running import job's progress: `state` (`running`, `done`, or `error`) plus `total`, `done`, `skipped` (already in the library), and `failed` counts.
+
 ---
 
 ## Unsplash

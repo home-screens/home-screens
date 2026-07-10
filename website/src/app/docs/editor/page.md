@@ -181,6 +181,8 @@ Open the **Background Picker** to manage screen backgrounds.
 3. Maximum file size: 10 MB (videos for the Video module can be up to 200 MB)
 4. Supported image formats: JPEG, PNG, WebP, GIF, AVIF. Supported video formats: MP4, WebM, MOV
 
+You can also fill your library from Apple Photos: in the media library browser, use **Import from an iCloud link** to download everything a shared album link (or a "Copy iCloud Link" photo link) contains into the selected folder. See the [Backgrounds guide](/docs/backgrounds#icloud-shared-albums) for details.
+
 ### Unsplash Integration
 
 If you've set an Unsplash access key in Settings, you can:

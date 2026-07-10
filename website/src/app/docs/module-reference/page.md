@@ -96,6 +96,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `showEmoji` | boolean | `true` | Show meal emoji |
 | `showDifficulty` | boolean | `false` | Show difficulty indicator |
 | `theme` | string | — | Color theme preset |
+| `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change.
 
@@ -108,7 +109,7 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 ### Full-Screen Photo Viewer
 
-A fullscreen digital photo frame that cycles through photos from a local directory or an Immich library, **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay.
+A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, or an iCloud shared album, **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
 
 The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label — nothing stores a "mode" setting on the module itself.
 
@@ -122,11 +123,14 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `shuffle` | boolean | `false` | Randomize photo order |
 | `showClock` | boolean | `true` | Show clock overlay on photos |
 | `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
-| `source` | string | `"local"` | Photo source: `local` or `immich` (Immich requires keys in Settings > Integrations) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > Integrations), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
+| `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
+| `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
+| `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 {% callout type="note" title="Immich source" %}
 The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > Integrations. Album and person filters are mutually exclusive — selecting one clears the other.
@@ -566,6 +570,9 @@ A meal planning module for organizing daily meals across configurable slots (bre
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+| `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
+
+**Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding — the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings — every meal-planner module across every display picks them up from `data/meals.json` automatically. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
@@ -688,7 +695,7 @@ MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone re
 
 ### Photo Slideshow
 
-Rotates through images from a local directory or an Immich photo library. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade.
+Rotates through images from a local directory, an Immich photo library, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -697,15 +704,18 @@ Rotates through images from a local directory or an Immich photo library. Can mi
 | `transition` | string | `"fade"` | Transition effect: `fade` or `none` |
 | `objectFit` | string | `"cover"` | Image fit mode |
 | `refreshIntervalMs` | number | `600000` | How often to re-scan the directory for new images (10 min) |
-| `source` | string | `"local"` | Photo source: `local` or `immich` (Immich requires keys in Settings > Integrations) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > Integrations), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
+| `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
+
+When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed — the display loads photos straight from Apple's servers. The album must have a public website link enabled.
 
 **Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; local videos are any MP4/WebM/MOV files in the same backgrounds folder.
 

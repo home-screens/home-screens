@@ -203,12 +203,13 @@ type TransitionEffect =
   backgroundImage: string       // Path to background image
   backgroundRotation?: {        // Optional background rotation
     enabled: boolean
-    source?: 'unsplash' | 'nasa-apod' | 'immich'  // Image source
+    source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud'  // Image source
     query: string               // Unsplash search query (ignored for other sources)
     intervalMinutes: number
     immichAlbumId?: string      // Immich album filter
     immichPersonId?: string     // Immich person (face) filter
     immichFavoritesOnly?: boolean  // Only use Immich favorites
+    icloudAlbumUrl?: string     // iCloud shared album link or bare token (icloud source)
   }
   modules: ModuleInstance[]     // Modules on this screen
   rotationDurationMs?: number   // Per-screen override of settings.rotationIntervalMs.
@@ -368,6 +369,7 @@ type BuiltinModuleType =
   | 'dad-joke'
   | 'text'
   | 'image'
+  | 'video'
   | 'quote'
   | 'todo'
   | 'sticky-note'
@@ -625,6 +627,22 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 }
 ```
 
+### VideoConfig
+
+Plays a video clip from the media library, a direct URL, or a YouTube link. Videos are muted by default; sound additionally requires the display's autoplay setting.
+
+```typescript
+{
+  source: 'file' | 'url'
+  file?: string                  // Media library path (file source)
+  url?: string                   // Direct MP4/WebM URL or any YouTube link (url source)
+  objectFit: 'cover' | 'contain' | 'fill'
+  muted: boolean                 // Default true
+  loop: boolean                  // Restart when the clip ends
+  maxDurationMs?: number         // Force-advance a stalled clip; 0/undefined = uncapped
+}
+```
+
 ### QuoteConfig
 
 ```typescript
@@ -756,11 +774,14 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
   transition: 'fade' | 'none'
   objectFit: 'cover' | 'contain' | 'fill'
   refreshIntervalMs: number
-  source?: 'local' | 'immich'          // Photo source (default: local)
+  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
   immichAlbumId?: string               // Immich album filter
   immichPersonId?: string              // Immich person (face) filter
   immichFavoritesOnly?: boolean        // Only use Immich favorites
   immichCount?: number                 // Photos per refresh (10–200, default 50)
+  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
+  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
+  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
 }
 ```
 
@@ -974,6 +995,8 @@ Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlight
   showPrepTime: boolean
   showTags: boolean
   accentColor: string
+  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
+                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
 }
 ```
 
@@ -1078,6 +1101,52 @@ Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size
   density: 'cozy' | 'snug'
   typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
   accentColor: string
+}
+```
+
+### FullscreenMealPlannerConfig
+
+Fullscreen ambient meal planner with 4 views. Uses the `fillsCanvas` flag to auto-size to display dimensions. Reads meal data from shared `data/meals.json` like the standard meal planner module.
+
+```typescript
+{
+  view: 'week' | 'today' | 'menu-board' | 'next-meal'
+  density: 'cozy' | 'snug'
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
+  accentColor: string
+  showPrepTime: boolean
+  showTags: boolean
+  showEmoji: boolean
+  showDifficulty: boolean
+  theme?: string                             // Color theme preset
+  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
+                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
+}
+```
+
+### FullscreenPhotoConfig
+
+Fullscreen photo frame with slideshow and single-photo modes. Uses the `fillsCanvas` flag to auto-size to display dimensions. When `file` is set, the viewer shows that one photo statically and ignores the rotation fields.
+
+```typescript
+{
+  directory: string
+  file?: string                        // Single pinned photo (overrides slideshow fields)
+  intervalMs: number
+  transition: 'fade' | 'slide' | 'zoom' | 'none'
+  objectFit: 'cover' | 'contain' | 'fill'
+  shuffle: boolean
+  showClock: boolean
+  kenBurns: boolean                    // Slow pan/zoom effect
+  theme?: string                       // Color theme preset (empty states + clock overlay)
+  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
+  immichAlbumId?: string               // Immich album filter
+  immichPersonId?: string              // Immich person (face) filter
+  immichFavoritesOnly?: boolean        // Only use Immich favorites
+  immichCount?: number                 // Photos per refresh (10–200, default 50)
+  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
+  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
+  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
 }
 ```
 

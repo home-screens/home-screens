@@ -16,7 +16,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Features
 
-- **41 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow, QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (5 views), chore chart (5 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
+- **42 built-in modules** — clock (18 views), calendar, weather (8 views), countdown, dad jokes, text (rich with gradient/marquee), image, video (library file, direct URL, or YouTube link), quote, todo, sticky note, greeting, news, stock ticker, crypto, word of the day, this day in history, moon phase, sunrise/sunset, photo slideshow (photos, videos, or both), QR code (custom + WiFi), year progress, traffic/commute, sports scores, air quality, todoist, rain map, multi-month calendar, garbage day, standings (12 leagues), affirmations (4 views), date (5 views), display control (touch widget for wake/sleep/brightness/navigation), meal planner (5 views), chore chart (5 views), iframe, icon (Font Awesome picker), shape & divider (15 views), and 4 fullscreen modules — fullscreen calendar (5 views), fullscreen chore chart, fullscreen meal planner, and fullscreen photo viewer
 - **Drag-and-drop editor** — visually arrange modules on a configurable canvas
 - **Multi-screen rotation** — cycle through screens with 8 transition effects
 - **Multi-display hub-and-spoke** — one hub Pi can drive several physical displays, each with its own screens, dimensions, rotation, and active profile; spoke Pis are adopted from the editor and can be targeted individually from `/remote`
@@ -27,7 +27,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Per-module scheduling** — show or hide modules by day of week and time window
 - **Conditional module visibility** — show or hide any module based on live values published by plugins (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
 - **Google Calendar + iCal** — display events from Google Calendar (OAuth device flow) or any iCal/ICS feed
-- **Background management** — upload images, browse Unsplash, or use NASA APOD with auto-rotation
+- **Background management** — upload images and videos, browse Unsplash or NASA APOD, or pull from an Immich library or iCloud shared album, with auto-rotation
 - **Per-module styling** — opacity, blur, colors, fonts, border radius, padding
 - **System management** — upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk** — one-command setup with boot splash, auto-login, and display orientation
@@ -224,9 +224,9 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 
 - [Getting Started](https://homescreens.dev/docs/getting-started) — installation and setup
 - [Editor Guide](https://homescreens.dev/docs/editor) — visual editor walkthrough
-- [Modules](https://homescreens.dev/docs/modules) — overview of the 41 built-in modules
+- [Modules](https://homescreens.dev/docs/modules) — overview of the 42 built-in modules
 - [Module Reference](https://homescreens.dev/docs/module-reference) — every setting, default value, and allowed option for each module
-- [Backgrounds](https://homescreens.dev/docs/backgrounds) — uploads, Unsplash, NASA APOD, rotation
+- [Backgrounds](https://homescreens.dev/docs/backgrounds) — uploads, Unsplash, NASA APOD, Immich, iCloud, rotation
 - [Profiles & Scheduling](https://homescreens.dev/docs/profiles) — automation and time-based layouts
 - [Raspberry Pi](https://homescreens.dev/docs/raspberry-pi) — kiosk deployment
 - [Networking](https://homescreens.dev/docs/networking) — reverse proxy, remote access, multi-display
@@ -313,6 +313,8 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/backgrounds/directories` | GET, POST, DELETE | Background directory management |
 | `/api/unsplash` | GET, POST | Unsplash photo search and download |
 | `/api/nasa` | GET, POST | NASA APOD and image library |
+| `/api/immich/*` | GET | Immich photo library proxy (validate, albums, people, photos, image serve, video streaming) |
+| `/api/icloud/*` | GET, POST | iCloud shared albums (`/photos` lists an album; `/import` downloads a shared link into the media library) |
 | `/api/traffic` | GET | Traffic/commute times (Google Routes / TomTom) |
 | `/api/sports` | GET | Live sports scores (ESPN) |
 | `/api/standings` | GET | League standings (ESPN, 12 leagues) |
@@ -345,6 +347,7 @@ All API routes are server-side proxies that keep credentials off the client.
 6. Add a dynamic import in `src/lib/module-components.ts`
 7. Add an editor config section in `src/components/editor/PropertyPanel.tsx`
 8. (Optional) Create an API route in `src/app/api/` if external data is needed
+9. Add an E2E fixture row in `e2e/helpers/module-fixtures.ts` (plus a data stub under `e2e/fixtures/module-data/` if the module fetches data) — the E2E coverage checks fail without it
 
 Or build it as a [plugin](https://homescreens.dev/docs/plugins) — no core changes required.
 

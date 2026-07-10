@@ -38,7 +38,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Fullscreen Calendar** — five views (schedule, week-list, month-grid, day-timeline, agenda), Skylight-inspired
 - **Fullscreen Chore Chart** — kid-friendly ambient chore surface
 - **Fullscreen Meal Planner** — four views for the weekly meal plan
-- **Fullscreen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich support, and a single-photo "static wallpaper" mode
+- **Fullscreen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
 ### Time & Date
 

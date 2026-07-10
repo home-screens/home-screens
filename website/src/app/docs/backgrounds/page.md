@@ -3,12 +3,12 @@ title: Backgrounds
 nextjs:
   metadata:
     title: Backgrounds
-    description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, Immich, and auto-rotation.
+    description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, Immich, iCloud shared albums, and auto-rotation.
     alternates:
       canonical: /docs/backgrounds
 ---
 
-Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, and optionally enable auto-rotation to keep things fresh.
+Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, pull from an iCloud shared album, and optionally enable auto-rotation to keep things fresh.
 
 ---
 
@@ -191,18 +191,36 @@ The Immich browser shows a grid of 20 random photos from your library at a time.
 
 ---
 
+## iCloud shared albums
+
+iCloud shared albums work without an Apple account or API key — all you need is the album's public link.
+
+### Getting a shared album link
+
+1. In Apple Photos, open (or create) a shared album
+2. In the album's settings, turn on **Public Website**
+3. Copy the link (it looks like `https://www.icloud.com/sharedalbum/#B0abc...`)
+
+### Using it
+
+- **As a rotation source** — in the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers.
+- **Importing into your library** — in the media library browser, use **Import from an iCloud link** to download everything a link contains into the selected folder. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days — importing keeps the photos even after the link dies.
+
+---
+
 ## Background rotation
 
-Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, or Immich.
+Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, Immich, or an iCloud shared album.
 
 ### Enabling rotation
 
 1. Open the **Background** section in the right sidebar
 2. Toggle **Auto-rotate background** on
-3. Choose a **Source**: Unsplash, NASA Picture of the Day, or Immich
+3. Choose a **Source**: Unsplash, NASA Picture of the Day, Immich, or iCloud Shared Album
 4. For Unsplash, enter a **Search query** (default: "nature landscape")
 5. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
-6. Set the **Rotate every** interval
+6. For iCloud, paste the shared album link
+7. Set the **Rotate every** interval
 
 ### Interval options
 
@@ -222,6 +240,7 @@ The display client polls the server every 60 seconds. The server maintains a cac
 - **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
 - **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
 - **Immich rotation** fetches a random photo from your Immich library, optionally filtered by album, person, or favorites. The server caches Immich filter parameters so changing your album or person selection immediately busts the cache and fetches a fresh photo.
+- **iCloud rotation** fetches a random photo from the shared album. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 
 If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
 

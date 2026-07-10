@@ -86,6 +86,7 @@ flowchart LR
 6. Dynamic import (`src/lib/module-components.ts`)
 7. Editor controls (`src/components/editor/PropertyPanel.tsx`)
 8. (Optional) API route (`src/app/api/*/route.ts`)
+9. E2E fixture row (`e2e/helpers/module-fixtures.ts`) — the E2E suite's coverage checks fail for any module type without one; modules that fetch data also need a stub fixture under `e2e/fixtures/module-data/`
 
 ### State Management
 
@@ -320,7 +321,10 @@ const [data] = useFetchData('/api/my-data?param=value', 60000)
 ```bash
 npm run test        # Run tests with Vitest
 npm run lint        # Run ESLint
+npm run build && npm run test:e2e   # Playwright end-to-end suite (needs a production build)
 ```
+
+The E2E suite (`e2e/`, Playwright) boots each test worker against its own production server with a private `data/` sandbox, so it never touches your real config. It covers every module type, config field, empty state, and locale via data-driven fixture registries — coverage checks fail the suite if a new module, field, or API route lacks a fixture or an explicit opt-out entry.
 
 ## Scripts
 
