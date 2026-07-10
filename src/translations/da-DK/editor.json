@@ -321,6 +321,23 @@
         "copyCode": "Copy code",
         "codeCopied": "Copied!"
       },
+      "icloud": {
+        "heading": "iCloud-kalender",
+        "checkingAccounts": "Tjekker konti…",
+        "disconnect": "Afbryd",
+        "disconnectFailed": "Kontoen kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen.",
+        "loadingCalendars": "Indlæser kalendere…",
+        "calendarsError": "Kunne ikke indlæse kontoens kalendere. Afbryd kontoen, og forbind igen.",
+        "noCalendars": "Ingen kalendere fundet.",
+        "selectCalendars": "Vælg kalendere, der skal vises",
+        "birthdays": "Fødselsdage",
+        "appleIdPlaceholder": "Apple-id-mail",
+        "connect": "Forbind",
+        "connecting": "Forbinder…",
+        "connectFailed": "Kunne ikke forbinde til iCloud. Tjek din internetforbindelse, og prøv igen.",
+        "addAccount": "Tilføj iCloud-konto",
+        "helpText": "Log ind med en app-adgangskode, ikke din almindelige Apple-adgangskode. Opret en på account.apple.com under Log ind og sikkerhed → App-specifikke adgangskoder."
+      },
       "holidays": {
         "heading": "Public Holidays",
         "none": "None",

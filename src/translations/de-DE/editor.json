@@ -321,6 +321,23 @@
         "copyCode": "Code kopieren",
         "codeCopied": "Kopiert!"
       },
+      "icloud": {
+        "heading": "iCloud-Kalender",
+        "checkingAccounts": "Konten werden geprüft…",
+        "disconnect": "Trennen",
+        "disconnectFailed": "Das Konto konnte nicht getrennt werden. Prüfe deine Internetverbindung und versuche es erneut.",
+        "loadingCalendars": "Kalender werden geladen…",
+        "calendarsError": "Die Kalender dieses Kontos konnten nicht geladen werden. Trenne das Konto und verbinde es erneut.",
+        "noCalendars": "Keine Kalender gefunden.",
+        "selectCalendars": "Kalender zum Anzeigen auswählen",
+        "birthdays": "Geburtstage",
+        "appleIdPlaceholder": "Apple-ID-E-Mail",
+        "connect": "Verbinden",
+        "connecting": "Verbinden…",
+        "connectFailed": "Verbindung zu iCloud fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut.",
+        "addAccount": "iCloud-Konto hinzufügen",
+        "helpText": "Melde dich mit einem App-Passwort an, nicht mit deinem normalen Apple-Passwort. Erstelle eines auf account.apple.com unter Anmeldung und Sicherheit → App-spezifische Passwörter."
+      },
       "holidays": {
         "heading": "Gesetzliche Feiertage",
         "none": "Keine",

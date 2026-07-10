@@ -321,6 +321,23 @@
         "copyCode": "Copy code",
         "codeCopied": "Copied!"
       },
+      "icloud": {
+        "heading": "iCloud Calendar",
+        "checkingAccounts": "Checking accounts…",
+        "disconnect": "Disconnect",
+        "disconnectFailed": "Couldn't disconnect this account. Check your internet connection and try again.",
+        "loadingCalendars": "Loading calendars…",
+        "calendarsError": "Couldn't load this account's calendars. Try disconnecting and connecting again.",
+        "noCalendars": "No calendars found.",
+        "selectCalendars": "Select calendars to display",
+        "birthdays": "Birthdays",
+        "appleIdPlaceholder": "Apple ID email",
+        "connect": "Connect",
+        "connecting": "Connecting…",
+        "connectFailed": "Couldn't connect to iCloud. Check your internet connection and try again.",
+        "addAccount": "Add iCloud account",
+        "helpText": "Sign in with an app password, not your regular Apple password. Create one at account.apple.com under Sign-In and Security → App-Specific Passwords."
+      },
       "holidays": {
         "heading": "Public Holidays",
         "none": "None",

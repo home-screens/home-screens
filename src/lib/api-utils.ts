@@ -468,12 +468,34 @@ export function cachedProxyRoute<T, P>(config: CachedProxyRoutePreparedOptions<T
 export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T, P>) {
   const cache = createTTLCache<T>(config.ttlMs);
 
+  // Single-flight: when the TTL lapses, every display polling the endpoint
+  // misses at once — coalesce concurrent misses on one key into a single
+  // upstream call instead of firing one per caller. A NextResponse outcome
+  // (error paths) goes to the initiating request as-is; joiners get clones of
+  // a never-consumed copy, since a Response body can only be read once.
+  const inflight = new Map<string, Promise<{ data: T } | { response: NextResponse; copy: Response }>>();
+
+  const runShared = async (key: string, execute: () => Promise<T | NextResponse>): Promise<NextResponse> => {
+    const existing = inflight.get(key);
+    if (existing) {
+      const settled = await existing;
+      return 'data' in settled ? NextResponse.json(settled.data) : (settled.copy.clone() as NextResponse);
+    }
+    const run = (async () => {
+      const result = await execute();
+      if (result instanceof NextResponse) return { response: result, copy: result.clone() };
+      cache.set(key, result);
+      return { data: result };
+    })().finally(() => inflight.delete(key));
+    inflight.set(key, run);
+    const settled = await run;
+    return 'data' in settled ? NextResponse.json(settled.data) : settled.response;
+  };
+
   const GET = async (request: NextRequest) => {
     try {
       if (config.auth === 'display') await requireDisplayAuth(request, getClientIP(request));
       else if (config.auth === 'session') await requireSession(request);
-
-      let result: T | NextResponse;
 
       if (isPreparedConfig(config)) {
         const prepared = await config.prepare(request);
@@ -481,10 +503,7 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
         const cached = cache.get(key);
         if (cached) return NextResponse.json(cached);
 
-        result = await config.execute(prepared, request);
-        if (result instanceof NextResponse) return result;
-        cache.set(key, result);
-        return NextResponse.json(result);
+        return await runShared(key, () => config.execute(prepared, request));
       }
 
       const keyFn = config.cacheKey ?? (() => '_');
@@ -493,20 +512,18 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
       if (cached) return NextResponse.json(cached);
 
       if (isCustomConfig(config)) {
-        result = await config.execute(request);
-      } else {
+        return await runShared(key, () => config.execute(request));
+      }
+
+      return await runShared(key, async () => {
         const resolvedUrl = typeof config.url === 'function' ? config.url(request) : config.url;
         const res = await fetchWithTimeout(resolvedUrl, config.fetchInit);
         if (!res.ok) {
           return NextResponse.json({ error: config.errorMessage }, { status: 502 });
         }
         const data = await res.json();
-        result = config.transform(data, request);
-      }
-
-      if (result instanceof NextResponse) return result;
-      cache.set(key, result);
-      return NextResponse.json(result);
+        return config.transform(data, request);
+      });
     } catch (error) {
       if (error instanceof Response) return error;
       return errorResponse(error, config.errorMessage);

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { ICalSource } from '@/types/config';
+import type { ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import ICalFeedManager from './ICalFeedManager';
+import ICloudCalendarManager from './ICloudCalendarManager';
 import { useTranslate } from '@/i18n';
 
 interface HolidayCountry {
@@ -18,6 +19,7 @@ interface HolidayCountry {
 interface CalendarSettings {
   selectedCalendarIds: string[];
   icalSources: ICalSource[];
+  icloudSources: ICloudSource[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string;
@@ -29,7 +31,7 @@ interface Props {
 }
 
 export default function CalendarSection({ values, onChange }: Props) {
-  const { selectedCalendarIds, icalSources, maxEvents, daysAhead, holidayCountry } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, maxEvents, daysAhead, holidayCountry } = values;
   const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
@@ -279,6 +281,9 @@ export default function CalendarSection({ values, onChange }: Props) {
           )}
         </div>
       </section>
+
+      {/* iCloud Calendar section */}
+      <ICloudCalendarManager icloudSources={icloudSources} onChange={onChange} />
 
       {/* ICS / iCal Feeds section */}
       <ICalFeedManager icalSources={icalSources} onChange={onChange} />

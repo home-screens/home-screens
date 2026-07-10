@@ -190,10 +190,24 @@ export interface ICalSource {
   enabled: boolean;
 }
 
+export interface ICloudSource {
+  id: string;
+  /** ICloudAccount.id in data/icloud-accounts.json (credentials never live in config) */
+  accountId: string;
+  /** 'calendar' = a CalDAV calendar; 'birthdays' = contact birthdays via CardDAV */
+  kind: 'calendar' | 'birthdays';
+  /** CalDAV calendar URL; empty for kind 'birthdays' */
+  url: string;
+  name: string;
+  color: string;
+  enabled: boolean;
+}
+
 export interface CalendarSettings {
   googleCalendarId: string;
   googleCalendarIds: string[];
   icalSources: ICalSource[];
+  icloudSources?: ICloudSource[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')

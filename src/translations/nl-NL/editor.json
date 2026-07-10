@@ -321,6 +321,23 @@
         "copyCode": "Code kopiëren",
         "codeCopied": "Gekopieerd!"
       },
+      "icloud": {
+        "heading": "iCloud-agenda",
+        "checkingAccounts": "Accounts controleren…",
+        "disconnect": "Loskoppelen",
+        "disconnectFailed": "Kon dit account niet loskoppelen. Controleer je internetverbinding en probeer het opnieuw.",
+        "loadingCalendars": "Agenda's laden…",
+        "calendarsError": "De agenda's van dit account konden niet worden geladen. Koppel het account los en verbind opnieuw.",
+        "noCalendars": "Geen agenda's gevonden.",
+        "selectCalendars": "Kies welke agenda's je wilt tonen",
+        "birthdays": "Verjaardagen",
+        "appleIdPlaceholder": "E-mail van Apple ID",
+        "connect": "Verbinden",
+        "connecting": "Verbinden…",
+        "connectFailed": "Kon geen verbinding maken met iCloud. Controleer je internetverbinding en probeer het opnieuw.",
+        "addAccount": "iCloud-account toevoegen",
+        "helpText": "Log in met een app-wachtwoord, niet met je gewone Apple-wachtwoord. Maak er een aan op account.apple.com onder Inloggen en beveiliging → App-specifieke wachtwoorden."
+      },
       "holidays": {
         "heading": "Officiële feestdagen",
         "none": "Geen",

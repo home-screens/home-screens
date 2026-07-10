@@ -5,7 +5,7 @@ import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
 import { compareEventStarts, isEventUpcoming } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
-import type { CalendarEvent, ICalSource } from '@/types/config';
+import type { CalendarEvent, ICalSource, ICloudSource } from '@/types/config';
 import { logger } from '@/lib/logger';
 
 const log = logger('calendar');
@@ -15,11 +15,13 @@ export const dynamic = 'force-dynamic';
 interface CalendarParams {
   calendarIds: string[];
   icalSources: ICalSource[];
+  icloudSources: ICloudSource[];
   holidayCountry: string | undefined;
   timeMin: string;
   timeMax: string;
   maxEvents: number;
   icalKey: string;
+  icloudKey: string;
 }
 
 // Hard ceiling on the requested window span. Bounds two costs that scale with
@@ -51,6 +53,7 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
           : [];
 
     const icalSources = (config.settings.calendar.icalSources ?? []).filter(s => s.enabled);
+    const icloudSources = (config.settings.calendar.icloudSources ?? []).filter(s => s.enabled);
     const holidayCountry = config.settings.calendar.holidayCountry;
     const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
 
@@ -83,15 +86,16 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
       : configuredMax;
 
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
+    const icloudKey = icloudSources.map(s => `${s.id}:${s.color}:${s.kind}:${s.url}`).join(',');
 
-    return { calendarIds, icalSources, holidayCountry, timeMin, timeMax, maxEvents, icalKey };
+    return { calendarIds, icalSources, icloudSources, holidayCountry, timeMin, timeMax, maxEvents, icalKey, icloudKey };
   },
-  cacheKey: ({ calendarIds, icalKey, holidayCountry, timeMin, timeMax, maxEvents }) =>
-    `g:${[...calendarIds].sort().join(',')};i:${icalKey};h:${holidayCountry ?? ''};${timeMin}:${timeMax}:${maxEvents}`,
-  execute: async ({ calendarIds, icalSources, holidayCountry, timeMin, timeMax, maxEvents }) => {
-    if (calendarIds.length === 0 && icalSources.length === 0 && !holidayCountry) {
+  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, timeMin, timeMax, maxEvents }) =>
+    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};${timeMin}:${timeMax}:${maxEvents}`,
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, timeMin, timeMax, maxEvents }) => {
+    if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
-        { error: 'No calendars configured. Add a Google account or ICS feed in editor settings.' },
+        { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
         { status: 400 },
       );
     }
@@ -122,6 +126,21 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
       }
     }
 
+    let icloudEvents: CalendarEvent[] = [];
+    let icloudOk = false;
+    if (icloudSources.length) {
+      try {
+        // Lazy-import so the route still works when tsdav isn't installed
+        const { fetchICloudEvents } = await import('@/lib/caldav-calendar');
+        const { listICloudAccounts } = await import('@/lib/icloud-accounts');
+        const accounts = await listICloudAccounts();
+        icloudEvents = await fetchICloudEvents(icloudSources, accounts, timeMin, timeMax);
+        icloudOk = true;
+      } catch (error) {
+        log.error('iCloud calendar fetch failed', error);
+      }
+    }
+
     // Fetch public holidays if a country is configured
     let holidayEvents: CalendarEvent[] = [];
     let holidayOk = false;
@@ -135,11 +154,11 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
     }
 
     // If every attempted source failed, return an error instead of caching empty
-    if (!googleOk && !icalOk && !holidayOk) {
+    if (!googleOk && !icalOk && !icloudOk && !holidayOk) {
       return errorResponse(null, 'Failed to fetch calendar events') as NextResponse;
     }
 
-    const merged = [...googleEvents, ...icalEvents, ...holidayEvents]
+    const merged = [...googleEvents, ...icalEvents, ...icloudEvents, ...holidayEvents]
       .sort((a, b) => compareEventStarts(a.start, b.start));
     if (merged.length <= maxEvents) return merged;
 

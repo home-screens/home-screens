@@ -321,6 +321,23 @@
         "copyCode": "Copiar código",
         "codeCopied": "¡Copiado!"
       },
+      "icloud": {
+        "heading": "Calendario de iCloud",
+        "checkingAccounts": "Comprobando cuentas…",
+        "disconnect": "Desconectar",
+        "disconnectFailed": "No se pudo desconectar esta cuenta. Comprueba tu conexión a Internet e inténtalo de nuevo.",
+        "loadingCalendars": "Cargando calendarios…",
+        "calendarsError": "No se pudieron cargar los calendarios de esta cuenta. Desconéctala y vuelve a conectarla.",
+        "noCalendars": "No se encontraron calendarios.",
+        "selectCalendars": "Selecciona los calendarios que quieres mostrar",
+        "birthdays": "Cumpleaños",
+        "appleIdPlaceholder": "Correo del Apple ID",
+        "connect": "Conectar",
+        "connecting": "Conectando…",
+        "connectFailed": "No se pudo conectar con iCloud. Comprueba tu conexión a Internet e inténtalo de nuevo.",
+        "addAccount": "Añadir cuenta de iCloud",
+        "helpText": "Inicia sesión con una contraseña de aplicación, no con tu contraseña normal de Apple. Crea una en account.apple.com, en Inicio de sesión y seguridad → Contraseñas de aplicaciones."
+      },
       "holidays": {
         "heading": "Festivos",
         "none": "Ninguno",
