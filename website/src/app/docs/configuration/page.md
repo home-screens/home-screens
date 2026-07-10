@@ -25,6 +25,8 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/chores.json` | Chore definitions, members, completion records | `/api/chores/data` |
 | `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
+| `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
+| `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
 
@@ -166,6 +168,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   googleCalendarId: string         // Primary calendar ID (legacy)
   googleCalendarIds: string[]      // Multiple calendar IDs
   icalSources: ICalSource[]        // iCal/ICS feed sources
+  icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
   maxEvents: number                // Max events to display
   daysAhead: number                // Days to look ahead
   holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
@@ -184,6 +187,22 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   enabled: boolean
 }
 ```
+
+### ICloudSource
+
+```typescript
+{
+  id: string
+  accountId: string                // ICloudAccount.id in data/icloud-accounts.json
+  kind: 'calendar' | 'birthdays'   // A CalDAV calendar, or contact birthdays via CardDAV
+  url: string                      // CalDAV calendar URL; empty for kind 'birthdays'
+  name: string
+  color: string                    // Apple's calendar color, preserved from iCloud
+  enabled: boolean
+}
+```
+
+Account credentials (Apple ID + app-specific password) are **not** stored in the config file — they live in `data/icloud-accounts.json` and are referenced by `accountId`.
 
 ### TransitionEffect
 

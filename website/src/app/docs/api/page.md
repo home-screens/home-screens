@@ -82,7 +82,7 @@ The `minutely` and `alerts` fields are included when the provider supports them 
 
 ### GET /api/calendar
 
-Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars **and** iCal/ICS feeds — plus optional public holidays. Returns 400 if no source is configured.
+Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source) — plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -1099,7 +1099,7 @@ Streams a video asset from Immich. The incoming `Range` header is forwarded and 
 
 ## iCloud
 
-iCloud shared albums work without an Apple account or API key — the album's public share link is all that's needed. Asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN.
+There are two iCloud integrations. **Shared albums** (photos) work without an Apple account or API key — the album's public share link is all that's needed, and asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN. **Calendar sync** signs in to an iCloud account with an app-specific password; credentials live in `data/icloud-accounts.json` (never in the config file) and are never returned by the API.
 
 ### GET /api/icloud/photos
 
@@ -1131,6 +1131,52 @@ Starts downloading everything an Apple link (Shared Album or "Copy iCloud Link")
 ### GET /api/icloud/import?jobId=...
 
 Polls a running import job's progress: `state` (`running`, `done`, or `error`) plus `total`, `done`, `skipped` (already in the library), and `failed` counts.
+
+### GET /api/icloud/accounts
+
+Lists connected iCloud accounts as credential-free `{ id, appleId }` pairs. Requires a valid editor session.
+
+**Response:**
+```json
+[
+  { "id": "a1b2c3...", "appleId": "user@icloud.com" }
+]
+```
+
+### POST /api/icloud/accounts
+
+Connects an iCloud account. The credentials are verified against iCloud before saving — a failed sign-in returns `400` with a friendly message (not `401`, which the editor would treat as an expired session). Re-adding an existing Apple ID replaces its stored password instead of duplicating the account. Requires a valid editor session.
+
+**Request body:**
+```json
+{ "appleId": "user@icloud.com", "appPassword": "abcd-efgh-ijkl-mnop" }
+```
+
+**Response:** the new account's `{ id, appleId }` — the password is never echoed back.
+
+### DELETE /api/icloud/accounts
+
+Removes a connected account by `id` (request body: `{ "id": "a1b2c3..." }`). Requires a valid editor session.
+
+### GET /api/icloud/calendars
+
+Lists one account's calendars for the editor picker, plus whether a contact-birthdays calendar is available. Requires a valid editor session.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `account` | string | *(required)* | Account `id` from `/api/icloud/accounts` |
+
+**Response:**
+```json
+{
+  "calendars": [
+    { "url": "https://caldav.icloud.com/...", "name": "Family", "color": "#ff2d55" }
+  ],
+  "birthdaysAvailable": true
+}
+```
+
+Returns `404` if the account has been removed.
 
 ---
 

@@ -26,7 +26,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Remote display control** — wake, sleep, brightness, navigation, and alerts via HTTP
 - **Per-module scheduling** — show or hide modules by day of week and time window
 - **Conditional module visibility** — show or hide any module based on live values published by plugins (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
-- **Google Calendar + iCal** — display events from Google Calendar (OAuth device flow) or any iCal/ICS feed
+- **Google Calendar, iCloud + iCal** — display events from Google Calendar (OAuth device flow), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed
 - **Background management** — upload images and videos, browse Unsplash or NASA APOD, or pull from an Immich library or iCloud shared album, with auto-rotation
 - **Per-module styling** — opacity, blur, colors, fonts, border radius, padding
 - **System management** — upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
@@ -95,9 +95,17 @@ Uses **OAuth 2.0 Device Flow** — authorize from any device, no redirect URI re
 4. Enable the **Google Calendar API** in APIs & Services > Library
 5. **Settings > Calendar > Sign in with Google** — enter the code at `google.com/device`
 
+### iCloud Calendar
+
+Sign in with an **app-specific password** — no public sharing links needed:
+
+1. Create an app-specific password at [account.apple.com](https://account.apple.com) > **Sign-In and Security > App-Specific Passwords**
+2. In **Settings > Calendar > iCloud Accounts**, add your Apple ID and the app-specific password (multiple accounts supported)
+3. Pick which calendars to show — Apple's calendar colors carry over, and you can add a birthdays calendar built from your contacts
+
 ### iCal Feeds
 
-Add any iCal/ICS URL in **Settings > Calendar** — works with Outlook, Apple iCloud, Fastmail, and any service that provides an ICS subscription URL.
+Add any iCal/ICS URL in **Settings > Calendar** — works with Outlook, Fastmail, and any service that provides an ICS subscription URL.
 
 ## Multi-Display Setup
 
@@ -173,6 +181,8 @@ Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
 | `rewards.json` | Kid rewards and redemption history |
 | `auth.json` | Editor password hash and session secret |
 | `google-tokens.json` | Google Calendar OAuth tokens |
+| `icloud-accounts.json` | iCloud calendar sign-ins (app-specific passwords) |
+| `todo-state.json` | Checked-off state for interactive todo lists |
 | `telemetry.json` · `audit.log` | Anonymous telemetry state and editor audit trail |
 | `kiosk.conf` · `port.conf` | Display resolution/rotation and server port overrides |
 

@@ -67,13 +67,14 @@ The `display-control` module is a touch widget that dispatches hub commands (wak
 - Meal-planner state + shared settings: `data/meals.json` (atomic writes via `src/lib/meal-data.ts`; settings live here so /remote and all meal-planner module instances stay in sync)
 - Interactive todo tap-state: `data/todo-state.json` (via `src/lib/todo-data.ts`, keyed by item UUID — kept out of config.json to avoid editor write-contention; displays poll `/api/todo/state` and flip via `/api/todo/toggle`)
 - API keys: `data/secrets.json`
+- iCloud account credentials: `data/icloud-accounts.json` (via `src/lib/icloud-accounts.ts` — CalDAV app-specific passwords, kept out of config.json; the API never returns passwords, picked calendars persist as `icloudSources` in config)
 - Plugin bundles: `data/plugins/`
 - `/api/config` handles GET/PUT for the config file
 - Editor loads config into a Zustand store (`src/stores/editor-store.ts`), edits in-memory, saves via PUT
 - Display reads config server-side and renders modules
 
 ### API Pattern
-All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (91 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), i18n dictionaries, interactive todo state (`/api/todo/state` poll + `/api/todo/toggle` atomic flip), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
+All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (93 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), i18n dictionaries, interactive todo state (`/api/todo/state` poll + `/api/todo/toggle` atomic flip), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
 
 ### Key Files
 - `src/types/config.ts` — all TypeScript types (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode)
@@ -83,6 +84,7 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/lib/config.ts` — config file read/write (also exposes `updateConfigAtomic` for queued read-modify-write)
 - `src/lib/weather/` — 9 weather providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada) with shared types and factory
 - `src/lib/google-calendar.ts` — Google Calendar integration (OAuth device flow)
+- `src/lib/caldav-calendar.ts` + `src/lib/icloud-accounts.ts` — iCloud calendar sync (CalDAV via tsdav, per-calendar failure isolation, optional CardDAV contact-birthday source); accounts managed by `/api/icloud/accounts`, calendars listed by `/api/icloud/calendars`
 - `src/lib/meal-data.ts` — shared meal-planner store (`data/meals.json`), atomic writes, settings + savedMeals + plan + groceryChecked
 - `src/stores/editor-store.ts` — Zustand store for all editor state and actions; multi-display helpers (`selectedDisplayId`, `getActiveScreens`, `getActiveDimensions`, `withActiveScreens`, `addDisplay`, `orientDimensions`)
 - `src/lib/plugin-loader.ts` — plugin loading, registration, and dev mode

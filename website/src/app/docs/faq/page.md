@@ -178,7 +178,7 @@ The most common cause is a missing or invalid API key. Check the following:
 
 1. Open the editor and go to **Settings > Integrations**
 2. Verify that the relevant API key is entered and correct
-3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth, confirm the sign-in flow has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for the two options.
+3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth or an iCloud account, confirm the sign-in has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for all the options.
 4. Check the browser console or server logs for error messages
 
 Some modules also have a refresh interval --- data won't update more frequently than the configured interval.

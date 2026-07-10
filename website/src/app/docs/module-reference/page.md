@@ -18,7 +18,7 @@ These modules are designed to fill the entire display as ambient, always-on scre
 
 ### Full-Screen Calendar
 
-A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Pulls from any iCal feed or Google Calendar (via iCal URL or OAuth) — see [Calendar setup](/docs/getting-started#calendar-setup).
+A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Pulls from any iCal feed, Google Calendar (via iCal URL or OAuth), or iCloud (app-specific password) — see [Calendar setup](/docs/getting-started#calendar-setup).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -163,7 +163,7 @@ Displays the current time with optional date information. Supports {% $stats.clo
 
 ### Calendar
 
-Shows upcoming events from any iCal feed or Google Calendar (via iCal URL or OAuth), with multiple view modes.
+Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth), or iCloud (app-specific password), with multiple view modes.
 
 | Option | Type | Default | Description |
 |---|---|---|---|

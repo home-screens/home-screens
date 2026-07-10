@@ -283,6 +283,7 @@ Profiles let you define named groups of screens that activate based on a schedul
 - **iCal / ICS Feeds** — add calendar feeds by URL. Works with Google Calendar's [private iCal address](https://support.google.com/calendar/answer/37648?hl=en), Apple iCloud, Outlook, Fastmail, and anything else that publishes ICS. Simplest path — no credentials needed.
 - **Google Calendar (OAuth)** — optional advanced path: sign in with Google via OAuth device flow to get native multi-calendar selection and Google's own color-coding. Requires OAuth credentials in Integrations first.
 - **Calendar Selection** — after OAuth sign-in, choose which Google calendars to display (multi-select with color indicators)
+- **iCloud Accounts** — sign in with your Apple ID and an [app-specific password](https://account.apple.com) to sync iCloud calendars directly (multiple accounts supported). Pick which calendars to show — Apple's colors carry over — and optionally add a **Birthdays** calendar built from your contacts. Your password is checked against iCloud before saving and never leaves the server.
 - **Public Holidays** — select a country to show public holidays on calendar modules (data from Nager.Date)
 - **Max Events** — limit the number of events shown (1–100, default 10)
 - **Days Ahead** — how far ahead to look for events (1–90, default 7)
