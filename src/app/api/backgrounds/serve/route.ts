@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { promises as fs } from 'fs';
+import { promises as fs, createReadStream } from 'fs';
+import { Readable } from 'stream';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withMediaTokenAuth } from '@/lib/api-utils';
+import { parseRangeHeader } from '@/lib/http-range';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +20,12 @@ const MIME_TYPES: Record<string, string> = {
   '.avif': 'image/avif',
 };
 
+const VIDEO_MIME_TYPES: Record<string, string> = {
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+};
+
 /** Validate and resolve a relative path within BGS, preventing directory traversal */
 function safePath(relativePath: string): string | null {
   const resolved = path.resolve(BGS, relativePath);
@@ -26,13 +34,63 @@ function safePath(relativePath: string): string | null {
 }
 
 /**
- * GET /api/backgrounds/serve?file=unsplash-xyz.jpg
- * GET /api/backgrounds/serve?file=themes/christmas/photo.jpg
- *
- * Serves background images directly from the filesystem, bypassing
- * Next.js static file caching (which doesn't pick up files added at runtime).
+ * Streams a video file with HTTP Range support (206 partial content), so the
+ * <video> element can seek and the hub never buffers a whole clip in memory.
  */
-export const GET = withDisplayAuth(async (request: NextRequest) => {
+async function serveVideo(request: NextRequest, filePath: string, contentType: string): Promise<Response> {
+  let stat;
+  try {
+    stat = await fs.stat(filePath);
+  } catch {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  const range = parseRangeHeader(request.headers.get('range'), stat.size);
+  if (range === 'unsatisfiable') {
+    return new NextResponse(null, {
+      status: 416,
+      headers: { 'Content-Range': `bytes */${stat.size}` },
+    });
+  }
+
+  const baseHeaders = {
+    'Content-Type': contentType,
+    'Accept-Ranges': 'bytes',
+    'Cache-Control': 'public, max-age=86400',
+  };
+
+  if (!range) {
+    const stream = Readable.toWeb(createReadStream(filePath)) as ReadableStream;
+    return new Response(stream, {
+      status: 200,
+      headers: { ...baseHeaders, 'Content-Length': String(stat.size) },
+    });
+  }
+
+  const stream = Readable.toWeb(
+    createReadStream(filePath, { start: range.start, end: range.end }),
+  ) as ReadableStream;
+  return new Response(stream, {
+    status: 206,
+    headers: {
+      ...baseHeaders,
+      'Content-Range': `bytes ${range.start}-${range.end}/${stat.size}`,
+      'Content-Length': String(range.end - range.start + 1),
+    },
+  });
+}
+
+/**
+ * GET /api/backgrounds/serve?file=unsplash-xyz.jpg
+ * GET /api/backgrounds/serve?file=themes/christmas/clip.mp4&mt=<token>
+ *
+ * Serves background media directly from the filesystem, bypassing
+ * Next.js static file caching (which doesn't pick up files added at runtime).
+ * Images are buffered (small, cached client-side); videos stream with Range
+ * support. The `mt` media token exists because a bare <video src> cannot send
+ * the display Bearer header — see lib/media-token.ts.
+ */
+export const GET = withMediaTokenAuth(async (request: NextRequest) => {
   const filename = request.nextUrl.searchParams.get('file');
   if (!filename) {
     return NextResponse.json({ error: 'file parameter required' }, { status: 400 });
@@ -44,9 +102,14 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }
 
+  const ext = path.extname(filePath).toLowerCase();
+  const videoType = VIDEO_MIME_TYPES[ext];
+  if (videoType) {
+    return serveVideo(request, filePath, videoType);
+  }
+
   try {
     const buffer = await fs.readFile(filePath);
-    const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
     return new NextResponse(buffer, {
@@ -58,4 +121,4 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   } catch {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-}, 'Failed to serve background');
+}, 'Failed to serve background', (request) => request.nextUrl.searchParams.get('file'));

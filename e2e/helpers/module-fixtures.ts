@@ -235,6 +235,16 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   },
   'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
   'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
+  // The stub aborts the media load itself, so assert the <video> resolved its
+  // src from the typed list (mirroring hasImgSrc's toBeAttached rationale).
+  video: {
+    type: 'video', kind: 'networked', stubKey: 'backgrounds-videos',
+    config: { source: 'file', file: 'e2e-clip.mp4' },
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect(mod.locator('video').first()).toHaveAttribute('src', /e2e-clip\.mp4/);
+    },
+  },
 
   // ---- Local-data ----
   'chore-chart': { type: 'chore-chart', kind: 'local-data', seed: 'chores', config: { view: 'today' }, expect: containsText('Feed the dog') },

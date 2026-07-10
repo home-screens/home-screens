@@ -178,8 +178,8 @@ Open the **Background Picker** to manage screen backgrounds.
 
 1. Click the upload area or drag an image file onto it
 2. Images are stored in `public/backgrounds/`
-3. Maximum file size: 10 MB
-4. Supported formats: JPEG, PNG, WebP, GIF
+3. Maximum file size: 10 MB (videos for the Video module can be up to 200 MB)
+4. Supported image formats: JPEG, PNG, WebP, GIF, AVIF. Supported video formats: MP4, WebM, MOV
 
 ### Unsplash Integration
 

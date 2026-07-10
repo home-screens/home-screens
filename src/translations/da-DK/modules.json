@@ -649,6 +649,11 @@
     "loading": "Loading photos…",
     "empty": "No photos found"
   },
+  "video": {
+    "loading": "Indlæser video…",
+    "empty": "Vælg en video at afspille",
+    "unavailable": "Denne video er ikke længere tilgængelig"
+  },
   "icon": {
     "empty": "No icon selected"
   },

@@ -5,6 +5,7 @@ export { CountdownConfigSection } from './CountdownConfigSection';
 export { DadJokeConfigSection } from './DadJokeConfigSection';
 export { TextConfigSection } from './TextConfigSection';
 export { ImageConfigSection } from './ImageConfigSection';
+export { VideoConfigSection } from './VideoConfigSection';
 export { QuoteConfigSection } from './QuoteConfigSection';
 export { TodoConfigSection } from './TodoConfigSection';
 export { StickyNoteConfigSection } from './StickyNoteConfigSection';

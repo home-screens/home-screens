@@ -17,7 +17,7 @@ src/
     (editor)/editor/         # Configuration editor
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 41 module components + ModuleWrapper
+    modules/                 # All 42 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)

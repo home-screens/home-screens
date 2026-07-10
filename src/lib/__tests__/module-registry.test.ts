@@ -13,7 +13,7 @@ import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
 const ALL_MODULE_TYPES: ModuleType[] = [
   'clock', 'calendar', 'weather',
-  'countdown', 'dad-joke', 'text', 'image', 'quote', 'todo',
+  'countdown', 'dad-joke', 'text', 'image', 'video', 'quote', 'todo',
   'sticky-note', 'greeting', 'news', 'stock-ticker', 'crypto',
   'word-of-day', 'history', 'moon-phase', 'sunrise-sunset',
   'photo-slideshow', 'qr-code', 'year-progress', 'traffic',
@@ -40,7 +40,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 41 module types', () => {
+  it('registers all 42 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -166,8 +166,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 41', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(41);
+  it('returns an array of length 42', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(42);
   });
 
   it('all items have required fields', () => {
@@ -285,7 +285,7 @@ describe('getModulesByCategory', () => {
     expect(types).toHaveLength(1);
   });
 
-  it('total modules across all categories equals 41 (no duplicates, no missing)', () => {
+  it('total modules across all categories equals 42 (no duplicates, no missing)', () => {
     const grouped = getModulesByCategory();
     let total = 0;
     const allTypes = new Set<string>();
@@ -295,8 +295,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(41);
-    expect(allTypes.size).toBe(41);
+    expect(total).toBe(42);
+    expect(allTypes.size).toBe(42);
   });
 });
 

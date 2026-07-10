@@ -939,13 +939,13 @@ Lists all uploaded background images.
 
 ### POST /api/backgrounds
 
-Uploads a new background image.
+Uploads a new background image or video.
 
 **Body:** `multipart/form-data` with `file` field
 
 **Constraints:**
-- Max size: 10 MB
-- Accepted types: JPEG, PNG, WebP, GIF
+- Max size: 10 MB per image, 200 MB per video
+- Accepted types: JPEG, PNG, WebP, GIF, AVIF, MP4, WebM, MOV
 
 **Response:** `{ success: true, filename: "uploaded-name.jpg" }`
 

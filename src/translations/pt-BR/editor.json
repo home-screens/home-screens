@@ -35,7 +35,12 @@
       "2x-large": "2X Grande",
       "3x-large": "3X Grande",
       "4x-large": "4X Grande"
-    }
+    },
+    "mediaTypes": "Mostrar",
+    "mediaTypesPhotos": "Somente fotos",
+    "mediaTypesVideos": "Somente vídeos",
+    "mediaTypesBoth": "Fotos + vídeos",
+    "maxVideoDurationSeconds": "Duração máxima por vídeo (segundos)"
   },
   "fields": {
     "rotation": "Rotação",
@@ -185,6 +190,7 @@
       "chore-chart": "Quadro de tarefas",
       "text": "Texto",
       "image": "Imagem",
+      "video": "Vídeo",
       "photo-slideshow": "Apresentação de fotos",
       "qr-code": "QR Code",
       "iframe": "Incorporação web",
@@ -1666,7 +1672,16 @@
     },
     "errors": {
       "searchUnsplash": "Falha ao pesquisar no Unsplash"
-    }
+    },
+    "confirmSelectVideo": "Selecionar vídeo",
+    "videoCountSingular": "{count} vídeo",
+    "videoCountPlural": "{count} vídeos",
+    "titleVideos": "Biblioteca de vídeos",
+    "uploadVideosButton": "Enviar vídeos",
+    "allVideos": "Todos os vídeos",
+    "titleMedia": "Biblioteca de mídia",
+    "allMedia": "Todas as fotos e vídeos",
+    "uploadMediaButton": "Enviar"
   },
   "choreChartModal": {
     "title": "Quadro de tarefas",
@@ -2393,6 +2408,25 @@
       "uploadFailed": "Falha no envio",
       "preview": "Pré-visualização",
       "altText": "Texto alternativo"
+    },
+    "video": {
+      "videoSource": "Origem do vídeo",
+      "tabLibrary": "Biblioteca",
+      "tabUrl": "URL",
+      "videoUrl": "URL do vídeo",
+      "chooseVideo": "Vídeo",
+      "chooseVideoPlaceholder": "Escolher um vídeo…",
+      "noVideosYet": "Ainda não há vídeos na sua biblioteca. Envie um para começar.",
+      "uploadVideo": "Enviar vídeo",
+      "movHint": "Vídeos de iPhone (.mov) nem sempre funcionam em telas Raspberry Pi. Vídeos MP4 (H.264) funcionam melhor.",
+      "playSound": "Reproduzir som",
+      "soundHint": "O som exige uma configuração única na tela (veja o guia de vídeo). Até lá, os vídeos tocam sem som.",
+      "loop": "Reproduzir em repetição",
+      "maxDurationSeconds": "Parar após (segundos, 0 = continuar)",
+      "uploading": "Enviando...",
+      "uploadFailed": "Falha no envio",
+      "browseLibrary": "Navegar na biblioteca...",
+      "urlHint": "Você pode colar um link do YouTube ou um link direto de vídeo (MP4/WebM)."
     },
     "immichSource": {
       "connecting": "Conectando...",

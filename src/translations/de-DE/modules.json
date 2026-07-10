@@ -649,6 +649,11 @@
     "loading": "Fotos werden geladen…",
     "empty": "Keine Fotos gefunden"
   },
+  "video": {
+    "loading": "Video wird geladen…",
+    "empty": "Wähle ein Video aus",
+    "unavailable": "Dieses Video ist nicht mehr verfügbar"
+  },
   "icon": {
     "empty": "Kein Symbol ausgewählt"
   },

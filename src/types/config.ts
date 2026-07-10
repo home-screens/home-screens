@@ -8,6 +8,7 @@ export type BuiltinModuleType =
   | 'dad-joke'
   | 'text'
   | 'image'
+  | 'video'
   | 'quote'
   | 'todo'
   | 'sticky-note'
@@ -741,6 +742,24 @@ export interface SunriseSunsetConfig {
 }
 
 // Photo slideshow module config
+/**
+ * One entry in a typed media list. `/api/backgrounds` and `/api/immich/photos`
+ * return plain `string[]` URL lists unless a `media=` query param is present
+ * (set only when a slideshow's `mediaTypes` is not 'photos'), in which case
+ * they return this shape — so pre-video configs keep their old responses.
+ */
+export interface MediaListItem {
+  url: string;
+  type: 'image' | 'video';
+  /** Thumbnail for video entries (shown while the decoder spins up, and in the editor). */
+  posterUrl?: string;
+  /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
+  durationMs?: number;
+}
+
+/** Which media kinds a slideshow should pull from its source. */
+export type SlideshowMediaTypes = 'photos' | 'videos' | 'both';
+
 export interface PhotoSlideshowConfig {
   directory: string;
   intervalMs: number;
@@ -752,6 +771,10 @@ export interface PhotoSlideshowConfig {
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Default 'photos' — existing photo-only behavior. */
+  mediaTypes?: SlideshowMediaTypes;
+  /** Force-advance cap for video slides. Default 60000. */
+  maxVideoDurationMs?: number;
 }
 
 // QR code module config
@@ -1288,5 +1311,24 @@ export interface FullscreenPhotoConfig {
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Default 'photos' — existing photo-only behavior. */
+  mediaTypes?: SlideshowMediaTypes;
+  /** Force-advance cap for video slides. Default 60000. */
+  maxVideoDurationMs?: number;
+}
+
+// Video module config
+export interface VideoConfig {
+  source: 'file' | 'url';
+  /** Relative path under data backgrounds (same store as photo slideshows). */
+  file?: string;
+  /** Direct https mp4/webm URL. HLS is deliberately not supported yet. */
+  url?: string;
+  objectFit: 'cover' | 'contain' | 'fill';
+  /** Default true. Sound additionally requires the kiosk autoplay launcher flag. */
+  muted: boolean;
+  loop: boolean;
+  /** Safety cap that force-advances a stalled clip; 0/undefined = uncapped (loop covers it). */
+  maxDurationMs?: number;
 }
 

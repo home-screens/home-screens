@@ -10,6 +10,7 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { MediaTypesFields } from './MediaTypesFields';
 import type { ModuleInstance } from '@/types/config';
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -117,6 +118,8 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
           </div>
         </>
       )}
+
+      <MediaTypesFields config={c as Record<string, unknown>} set={set} />
 
       <Slider
         label={t('configSections.photo-slideshow.slideInterval')}

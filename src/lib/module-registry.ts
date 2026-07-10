@@ -7,7 +7,7 @@ import {
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
-  Star, Shapes,
+  Star, Shapes, Video,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { FETCH_KEY_REGISTRY } from './fetch-keys';
@@ -302,6 +302,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       shuffle: false,
       showClock: true,
       kenBurns: false,
+      mediaTypes: 'photos',
+      maxVideoDurationMs: 60_000,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -781,6 +783,22 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultSize: { w: 400, h: 300 },
   },
   {
+    type: 'video',
+    label: 'Video',
+    icon: Video,
+    category: 'Media & Display',
+    defaultConfig: {
+      source: 'file',
+      file: '',
+      url: '',
+      objectFit: 'cover',
+      muted: true,
+      loop: true,
+    },
+    defaultSize: { w: 500, h: 400 },
+    defaultStyle: { padding: 0 },
+  },
+  {
     type: 'photo-slideshow',
     label: 'Photo Slideshow',
     icon: Image,
@@ -792,6 +810,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       transition: 'fade',
       objectFit: 'cover',
       refreshIntervalMs: FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000,
+      mediaTypes: 'photos',
+      maxVideoDurationMs: 60_000,
     },
     defaultSize: { w: 500, h: 400 },
   },

@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { promises as fs } from 'fs';
+import { promises as fs, createWriteStream } from 'fs';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { mintMediaToken } from '@/lib/media-token';
+import type { MediaListItem } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,8 +26,44 @@ function serveUrl(filename: string, directory?: string) {
   return `/api/backgrounds/serve?file=${encodeURIComponent(filePath)}`;
 }
 
+const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif)$/i;
+const VIDEO_RE = /\.(mp4|webm|mov)$/i;
+
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   const directory = request.nextUrl.searchParams.get('directory') || '';
+  const media = request.nextUrl.searchParams.get('media');
+  if (media && !['photos', 'videos', 'both'].includes(media)) {
+    return NextResponse.json({ error: 'Invalid media parameter' }, { status: 400 });
+  }
+
+  // `file=` is a point lookup: resolve one known relative path to a
+  // single-item MediaListItem[] (always the typed shape, never the legacy
+  // string[]) without enumerating — or minting tokens for — its whole
+  // directory. Missing or media-filtered files return [] like an empty list.
+  const file = request.nextUrl.searchParams.get('file');
+  if (file) {
+    const resolved = safePath(file);
+    if (!resolved) {
+      return NextResponse.json({ error: 'Invalid file' }, { status: 400 });
+    }
+    const isVideo = VIDEO_RE.test(file);
+    const isImage = IMAGE_RE.test(file);
+    const matchesMedia = media === 'videos' ? isVideo : media === 'photos' ? isImage : isVideo || isImage;
+    if (!matchesMedia) return NextResponse.json([]);
+    try {
+      if (!(await fs.stat(resolved)).isFile()) return NextResponse.json([]);
+    } catch {
+      return NextResponse.json([]);
+    }
+    let url = `/api/backgrounds/serve?file=${encodeURIComponent(file)}`;
+    if (isVideo) {
+      // Bind the token to the same `file` value the serve route reads back.
+      const token = await mintMediaToken(file);
+      if (token) url += `&mt=${encodeURIComponent(token)}`;
+    }
+    const item: MediaListItem = { url, type: isVideo ? 'video' : 'image' };
+    return NextResponse.json([item]);
+  }
 
   let dir: string;
   if (directory) {
@@ -47,25 +87,45 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     }
   }
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  const images = entries
-    .filter((e) => e.isFile() && /\.(jpe?g|png|webp|gif|avif)$/i.test(e.name))
-    .map((e) => e.name);
-  const paths = images.map((name) => serveUrl(name, directory || undefined));
-  return NextResponse.json(paths);
+  const files = entries.filter((e) => e.isFile()).map((e) => e.name);
+
+  // No media param → legacy string[] of image URLs, exactly as before videos existed.
+  if (!media) {
+    const paths = files
+      .filter((name) => IMAGE_RE.test(name))
+      .map((name) => serveUrl(name, directory || undefined));
+    return NextResponse.json(paths);
+  }
+
+  const items: MediaListItem[] = [];
+  for (const name of files) {
+    if (IMAGE_RE.test(name) && media !== 'videos') {
+      items.push({ url: serveUrl(name, directory || undefined), type: 'image' });
+    } else if (VIDEO_RE.test(name) && media !== 'photos') {
+      // Bind the token to the same `file` value the serve route reads back.
+      const filePath = directory ? `${directory}/${name}` : name;
+      const token = await mintMediaToken(filePath);
+      const url = serveUrl(name, directory || undefined) + (token ? `&mt=${encodeURIComponent(token)}` : '');
+      items.push({ url, type: 'video' });
+    }
+  }
+  return NextResponse.json(items);
 }, 'Failed to list backgrounds');
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB per file
+const MAX_SIZE = 10 * 1024 * 1024; // 10 MB per image file
+const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200 MB per video file
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 export const POST = withAuth(async (request: NextRequest) => {
   // Reject oversized uploads before parsing: a genuinely oversized multipart
   // body makes request.formData() throw (surfacing as a 500), so the per-file
-  // 413 below never runs for them. Capping the whole body at MAX_SIZE keeps
-  // "max 10 MB" truthful; the few hundred bytes of multipart overhead only
-  // shave a byte-exact 10 MB file, which the friendly message still covers.
+  // 413 below never runs for them. Capping the whole body at the video max
+  // keeps "max 200 MB" truthful; the few hundred bytes of multipart overhead
+  // only shave a byte-exact 200 MB file, which the friendly message still covers.
   const declared = Number(request.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > MAX_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 10 MB)' }, { status: 413 });
+  if (Number.isFinite(declared) && declared > MAX_VIDEO_SIZE) {
+    return NextResponse.json({ error: 'File too large (max 200 MB)' }, { status: 413 });
   }
 
   const formData = await request.formData();
@@ -90,11 +150,14 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   // Validate all files first
   for (const file of files) {
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: `File too large: ${file.name} (max 10 MB)` }, { status: 413 });
-    }
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    if (!isVideo && !ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json({ error: `Invalid file type: ${file.name}` }, { status: 400 });
+    }
+    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_SIZE;
+    const maxLabel = isVideo ? '200 MB' : '10 MB';
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: `File too large: ${file.name} (max ${maxLabel})` }, { status: 413 });
     }
   }
 
@@ -105,8 +168,13 @@ export const POST = withAuth(async (request: NextRequest) => {
   for (const file of files) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filePath = path.join(dir, safeName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(filePath, buffer);
+    // Stream to disk in chunks. formData() above already holds the one
+    // unavoidable in-memory copy; buffering again via arrayBuffer() would
+    // peak at 2-3x the file size, enough to OOM a Pi hub on a 200 MB video.
+    await pipeline(
+      Readable.fromWeb(file.stream() as import('stream/web').ReadableStream),
+      createWriteStream(filePath),
+    );
     uploadedPaths.push(serveUrl(safeName, directory || undefined));
   }
 

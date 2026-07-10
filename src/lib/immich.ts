@@ -1,5 +1,5 @@
 import { getSecret } from './secrets';
-import { fetchWithTimeout } from './api-utils';
+import { fetchWithTimeout, type FetchRetryOptions } from './api-utils';
 
 // -- Types matching Immich API response shapes --
 
@@ -17,6 +17,30 @@ export interface ImmichAsset {
   thumbhash: string | null;
   fileCreatedAt: string;
   isFavorite: boolean;
+  /**
+   * Nominally "H:MM:SS.mmm" for videos and "0:00:00.00000" or absent for
+   * images, but real servers have returned non-string values — always go
+   * through parseImmichDurationMs, never assume string.
+   */
+  duration?: unknown;
+}
+
+/**
+ * Parse Immich's "H:MM:SS.mmm" duration string into milliseconds.
+ * Returns null for absent, malformed, or zero durations. Accepts `unknown`
+ * because real servers have returned non-string values here — anything that
+ * isn't a parseable string is treated as "duration not reported" rather than
+ * guessed at (a bare number's unit is ambiguous), since durationMs is
+ * optional metadata and the slideshow cap paces playback regardless.
+ */
+export function parseImmichDurationMs(duration: unknown): number | null {
+  if (typeof duration !== 'string' || !duration) return null;
+  const match = /^(\d+):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(duration.trim());
+  if (!match) return null;
+  const [, h, m, s, frac] = match;
+  const ms = (Number(h) * 3600 + Number(m) * 60 + Number(s)) * 1000
+    + (frac ? Math.round(Number(`0.${frac}`) * 1000) : 0);
+  return ms > 0 ? ms : null;
 }
 
 export interface ImmichPerson {
@@ -37,15 +61,13 @@ export async function getImmichConfig(): Promise<{ url: string; apiKey: string }
 
 export async function immichFetch(
   path: string,
-  init?: RequestInit & { timeout?: number },
+  init?: FetchRetryOptions,
 ): Promise<Response> {
   const cfg = await getImmichConfig();
   if (!cfg) throw new Error('Immich not configured');
-  const { timeout, ...rest } = init ?? {};
   return fetchWithTimeout(`${cfg.url}${path}`, {
-    ...rest,
-    timeout,
-    headers: { 'x-api-key': cfg.apiKey, ...rest.headers },
+    ...init,
+    headers: { 'x-api-key': cfg.apiKey, ...init?.headers },
   });
 }
 

@@ -23,6 +23,12 @@ const nextConfig = {
   experimental: {
     workerThreads: false,
     cpus: 2,
+    // The proxy (src/proxy.ts) buffers request bodies with a 10MB default cap
+    // and silently TRUNCATES anything larger, which made >10MB video uploads
+    // die in formData() parsing with a 500. Sized above the 200MB per-video
+    // upload limit (plus multipart overhead) so /api/backgrounds' own friendly
+    // 413 is the only size gate a user ever hits.
+    proxyClientMaxBodySize: '205mb',
   },
   outputFileTracingIncludes: {
     '/api/calendar': ['./node_modules/temporal-polyfill/**/*'],

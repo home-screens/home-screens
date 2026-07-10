@@ -423,6 +423,16 @@ test('image: editing Alt Text persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'image')).alt).toBe('E2E alt text');
 });
 
+test('video: toggling Play on repeat persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('video'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('switch', { name: 'Play on repeat' }).click();
+  });
+
+  expect((await moduleConfig(request, 'video')).loop).toBe(false);
+});
+
 test('photo-slideshow: switching Transition persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('photo-slideshow'));
 

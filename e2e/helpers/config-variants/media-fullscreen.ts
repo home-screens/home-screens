@@ -226,4 +226,64 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
     },
   },
+
+  // ================= video =================
+  // The stub serves the media list; the <video> element's own media fetch 404s
+  // under the stub, so assertions are attribute/property-level (matching the
+  // hasImgSrc rationale for images).
+  {
+    // source 'url' bypasses the media-list fetch and renders the URL verbatim
+    // (same-origin path so the element's media request never leaves the app).
+    type: 'video', name: 'url-source', kind: 'network-free',
+    config: { source: 'url', url: '/e2e-direct.mp4' },
+    expect: child('video[src="/e2e-direct.mp4"]'),
+  },
+  {
+    // A YouTube URL flips the render path from <video> to the iframe embed
+    // player. allowsExternal: the iframe's (blocked) load targets YouTube.
+    type: 'video', name: 'youtube-url', kind: 'network-free', allowsExternal: true,
+    config: { source: 'url', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    expect: async (mod) => {
+      await child('iframe[src*="youtube-nocookie.com/embed/dQw4w9WgXcQ"]')(mod);
+      await count('video', 0)(mod);
+    },
+  },
+  {
+    type: 'video', name: 'object-fit-contain', kind: 'networked', stubKey: 'backgrounds-videos',
+    config: { source: 'file', file: 'e2e-clip.mp4', objectFit: 'contain' },
+    expect: async (mod) => { await expect(mod.locator('video').first()).toHaveCSS('object-fit', 'contain'); },
+  },
+  {
+    // muted:false clears the DOM muted property (VideoLayer syncs it imperatively).
+    type: 'video', name: 'sound-on', kind: 'networked', stubKey: 'backgrounds-videos',
+    config: { source: 'file', file: 'e2e-clip.mp4', muted: false },
+    expect: async (mod) => { await expect(mod.locator('video').first()).toHaveJSProperty('muted', false); },
+  },
+  {
+    // loop:false drops the loop attribute (default true sets it).
+    type: 'video', name: 'loop-off', kind: 'networked', stubKey: 'backgrounds-videos',
+    config: { source: 'file', file: 'e2e-clip.mp4', loop: false },
+    expect: child('video:not([loop])'),
+  },
+
+  // ================= mixed-media slideshows =================
+  // A single-video list keeps the <video> layer stably attached: the sandbox
+  // can't serve real decodable bytes, so a multi-item list would error the
+  // clip and force-advance to the next slide (detaching the src) before the
+  // assertion can observe it. With one item, advance() is a no-op and the
+  // layer loops in place — proving mediaTypes flipped the pipeline to
+  // rendering a <video> slide instead of an <img>.
+  {
+    type: 'photo-slideshow', name: 'media-videos-video-slide', kind: 'networked', stubKey: 'backgrounds',
+    stubBody: [{ url: '/api/backgrounds/serve?file=e2e-clip.mp4&mt=e2e-token', type: 'video' }],
+    config: { mediaTypes: 'videos' },
+    expect: child('video[src*="e2e-clip.mp4"]'),
+  },
+  {
+    // Same pipeline flip for the fullscreen viewer.
+    type: 'fullscreen-photo', name: 'media-videos-video-slide', kind: 'networked', stubKey: 'backgrounds',
+    stubBody: [{ url: '/api/backgrounds/serve?file=e2e-clip.mp4&mt=e2e-token', type: 'video' }],
+    config: { mediaTypes: 'videos' },
+    expect: child('video[src*="e2e-clip.mp4"]'),
+  },
 ];

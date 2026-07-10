@@ -11,7 +11,7 @@ vi.mock('../api-utils', () => ({
 
 import { getSecret } from '../secrets';
 import { fetchWithTimeout } from '../api-utils';
-import { getImmichConfig, immichFetch, validateImmichConnection } from '../immich';
+import { getImmichConfig, immichFetch, validateImmichConnection, parseImmichDurationMs } from '../immich';
 
 const mockGetSecret = vi.mocked(getSecret);
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -191,5 +191,30 @@ describe('validateImmichConnection', () => {
       ); // about
     const result = await validateImmichConnection();
     expect(result).toEqual({ reachable: true, authenticated: true, version: '3.0.1' });
+  });
+});
+
+describe('parseImmichDurationMs', () => {
+  it('parses the nominal H:MM:SS.mmm shape', () => {
+    expect(parseImmichDurationMs('0:00:30.00000')).toBe(30_000);
+    expect(parseImmichDurationMs('0:01:05.500')).toBe(65_500);
+    expect(parseImmichDurationMs('1:00:00')).toBe(3_600_000);
+  });
+
+  it('returns null for zero, absent, and malformed durations', () => {
+    expect(parseImmichDurationMs('0:00:00.00000')).toBeNull();
+    expect(parseImmichDurationMs(null)).toBeNull();
+    expect(parseImmichDurationMs(undefined)).toBeNull();
+    expect(parseImmichDurationMs('')).toBeNull();
+    expect(parseImmichDurationMs('not-a-duration')).toBeNull();
+  });
+
+  it('returns null (instead of throwing) for non-string values real servers send', () => {
+    // Regression: a live Immich server returned a non-string here, which
+    // crashed /api/immich/photos with "duration.trim is not a function".
+    expect(parseImmichDurationMs(30.5 as unknown)).toBeNull();
+    expect(parseImmichDurationMs(0 as unknown)).toBeNull();
+    expect(parseImmichDurationMs({ seconds: 30 } as unknown)).toBeNull();
+    expect(parseImmichDurationMs(true as unknown)).toBeNull();
   });
 });

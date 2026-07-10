@@ -67,8 +67,8 @@ The multi-file response returns an array of paths:
 
 ### Constraints
 
-- **Maximum file size:** 10 MB per file
-- **Allowed types:** JPEG, PNG, WebP, GIF, AVIF
+- **Maximum file size:** 10 MB per image, 200 MB per video
+- **Allowed types:** JPEG, PNG, WebP, GIF, AVIF images; MP4, WebM, MOV videos (used by the Video module and mixed-media slideshows)
 - Filenames are sanitized on upload — special characters are replaced with underscores
 
 ---

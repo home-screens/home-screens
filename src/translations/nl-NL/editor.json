@@ -35,7 +35,12 @@
       "2x-large": "2X Groot",
       "3x-large": "3X Groot",
       "4x-large": "4X Groot"
-    }
+    },
+    "mediaTypes": "Tonen",
+    "mediaTypesPhotos": "Alleen foto's",
+    "mediaTypesVideos": "Alleen video's",
+    "mediaTypesBoth": "Foto's + video's",
+    "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)"
   },
   "fields": {
     "rotation": "Rotatie",
@@ -185,6 +190,7 @@
       "chore-chart": "Klusjeskaart",
       "text": "Tekst",
       "image": "Afbeelding",
+      "video": "Video",
       "photo-slideshow": "Fotodiavoorstelling",
       "qr-code": "QR-code",
       "iframe": "Webinsluiting",
@@ -1662,7 +1668,16 @@
     },
     "errors": {
       "searchUnsplash": "Zoeken op Unsplash mislukt"
-    }
+    },
+    "confirmSelectVideo": "Video selecteren",
+    "videoCountSingular": "{count} video",
+    "videoCountPlural": "{count} video's",
+    "titleVideos": "Videobibliotheek",
+    "uploadVideosButton": "Video's uploaden",
+    "allVideos": "Alle video's",
+    "titleMedia": "Mediabibliotheek",
+    "allMedia": "Alle foto's en video's",
+    "uploadMediaButton": "Uploaden"
   },
   "choreChartModal": {
     "title": "Klusjeskaart",
@@ -2388,6 +2403,25 @@
       "uploadFailed": "Uploaden mislukt",
       "preview": "Voorbeeld",
       "altText": "Alt-tekst"
+    },
+    "video": {
+      "videoSource": "Videobron",
+      "tabLibrary": "Bibliotheek",
+      "tabUrl": "URL",
+      "videoUrl": "Video-URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Kies een video…",
+      "noVideosYet": "Nog geen video's in je bibliotheek. Upload er een om te beginnen.",
+      "uploadVideo": "Video uploaden",
+      "movHint": "iPhone-video's (.mov) spelen niet altijd af op Raspberry Pi-schermen. MP4-video's (H.264) werken het best.",
+      "playSound": "Geluid afspelen",
+      "soundHint": "Geluid vereist een eenmalige instelling op het scherm (zie de videogids). Tot die tijd spelen video's zonder geluid af.",
+      "loop": "Herhaald afspelen",
+      "maxDurationSeconds": "Stoppen na (seconden, 0 = blijven spelen)",
+      "uploading": "Uploaden...",
+      "uploadFailed": "Uploaden mislukt",
+      "browseLibrary": "Bibliotheek doorzoeken...",
+      "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken."
     },
     "immichSource": {
       "connecting": "Verbinden...",

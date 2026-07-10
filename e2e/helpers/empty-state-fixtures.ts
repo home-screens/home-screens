@@ -61,6 +61,12 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('No routes configured'),
   },
   {
+    // No file chosen (file source, empty path) — the module never fetches.
+    type: 'video', name: 'not-configured', kind: 'network-free',
+    config: { source: 'file', file: '' },
+    expect: showsCopy('Choose a video to play'),
+  },
+  {
     type: 'moon-phase', name: 'missing-location', kind: 'network-free', noLocation: true,
     expect: showsCopy('Location not configured'),
   },

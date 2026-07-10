@@ -35,7 +35,12 @@
       "2x-large": "2X Grande",
       "3x-large": "3X Grande",
       "4x-large": "4X Grande"
-    }
+    },
+    "mediaTypes": "Mostrar",
+    "mediaTypesPhotos": "Solo fotos",
+    "mediaTypesVideos": "Solo vídeos",
+    "mediaTypesBoth": "Fotos + vídeos",
+    "maxVideoDurationSeconds": "Duración máxima por vídeo (segundos)"
   },
   "fields": {
     "rotation": "Rotación",
@@ -185,6 +190,7 @@
       "chore-chart": "Tabla de tareas",
       "text": "Texto",
       "image": "Imagen",
+      "video": "Vídeo",
       "photo-slideshow": "Pase de fotos",
       "qr-code": "Código QR",
       "iframe": "Embebido web",
@@ -1666,7 +1672,16 @@
     },
     "errors": {
       "searchUnsplash": "No se pudo buscar en Unsplash"
-    }
+    },
+    "confirmSelectVideo": "Seleccionar vídeo",
+    "videoCountSingular": "{count} vídeo",
+    "videoCountPlural": "{count} vídeos",
+    "titleVideos": "Biblioteca de vídeos",
+    "uploadVideosButton": "Subir vídeos",
+    "allVideos": "Todos los vídeos",
+    "titleMedia": "Biblioteca multimedia",
+    "allMedia": "Todas las fotos y vídeos",
+    "uploadMediaButton": "Subir"
   },
   "choreChartModal": {
     "title": "Tabla de tareas",
@@ -2393,6 +2408,25 @@
       "uploadFailed": "Error al subir",
       "preview": "Vista previa",
       "altText": "Texto alternativo"
+    },
+    "video": {
+      "videoSource": "Origen del vídeo",
+      "tabLibrary": "Biblioteca",
+      "tabUrl": "URL",
+      "videoUrl": "URL del vídeo",
+      "chooseVideo": "Vídeo",
+      "chooseVideoPlaceholder": "Elegir un vídeo…",
+      "noVideosYet": "Aún no hay vídeos en tu biblioteca. Sube uno para empezar.",
+      "uploadVideo": "Subir vídeo",
+      "movHint": "Los vídeos de iPhone (.mov) no siempre se reproducen en pantallas Raspberry Pi. Los vídeos MP4 (H.264) funcionan mejor.",
+      "playSound": "Reproducir sonido",
+      "soundHint": "El sonido requiere una configuración única en la pantalla (consulta la guía de vídeo). Hasta entonces, los vídeos se reproducen en silencio.",
+      "loop": "Reproducir en bucle",
+      "maxDurationSeconds": "Detener tras (segundos, 0 = seguir reproduciendo)",
+      "uploading": "Subiendo…",
+      "uploadFailed": "Error al subir",
+      "browseLibrary": "Examinar biblioteca…",
+      "urlHint": "Puedes pegar un enlace de YouTube o un enlace directo a un vídeo (MP4/WebM)."
     },
     "immichSource": {
       "connecting": "Conectando…",

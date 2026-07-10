@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
-import { requireSession, requireDisplayAuth } from '@/lib/auth';
+import { requireSession, requireDisplayAuth, getMediaTokenSecret } from '@/lib/auth';
+import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
@@ -366,6 +367,40 @@ export function withDisplayAuth<C = unknown>(
   return async (request: NextRequest, context?: C): Promise<Response> => {
     try {
       await requireDisplayAuth(request, getClientIP(request));
+      return await handler(request, context as C);
+    } catch (error) {
+      if (error instanceof Response) return error;
+      return errorResponse(error, errorMsg);
+    }
+  };
+}
+
+/**
+ * Like `withDisplayAuth`, but additionally accepts a signed media token in
+ * the `mt` query param (see `lib/media-token.ts`). Only for media-serving
+ * routes whose URLs land in bare `<video src>` attributes, which cannot send
+ * a Bearer header. `resourceFromRequest` returns the string the token must be
+ * bound to (e.g. the `file` or `assetId` query param), so a leaked URL cannot
+ * be replayed for other assets.
+ */
+export function withMediaTokenAuth<C = unknown>(
+  handler: (request: NextRequest, context: C) => Promise<Response>,
+  errorMsg: string,
+  resourceFromRequest: (request: NextRequest) => string | null,
+) {
+  return async (request: NextRequest, context?: C): Promise<Response> => {
+    try {
+      try {
+        await requireDisplayAuth(request, getClientIP(request));
+      } catch (authError) {
+        if (!(authError instanceof Response)) throw authError;
+        const token = request.nextUrl.searchParams.get('mt');
+        const resource = resourceFromRequest(request);
+        const secret = await getMediaTokenSecret();
+        if (!token || !resource || !secret || !verifyMediaToken(secret, resource, token)) {
+          throw authError;
+        }
+      }
       return await handler(request, context as C);
     } catch (error) {
       if (error instanceof Response) return error;

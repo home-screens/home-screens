@@ -11,6 +11,7 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { MediaTypesFields } from './MediaTypesFields';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
 
@@ -174,6 +175,11 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
             </div>
           )}
         </>
+      )}
+
+      {/* Photos / videos mix — only for slideshow mode */}
+      {!isSinglePhoto && (
+        <MediaTypesFields config={c as Record<string, unknown>} set={set} />
       )}
 
       {/* Slide interval — only for slideshow mode */}

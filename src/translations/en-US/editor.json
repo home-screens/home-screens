@@ -35,7 +35,12 @@
       "2x-large": "2X Large",
       "3x-large": "3X Large",
       "4x-large": "4X Large"
-    }
+    },
+    "mediaTypes": "Show",
+    "mediaTypesPhotos": "Photos only",
+    "mediaTypesVideos": "Videos only",
+    "mediaTypesBoth": "Photos + videos",
+    "maxVideoDurationSeconds": "Longest a video can play (seconds)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -185,6 +190,7 @@
       "chore-chart": "Chore Chart",
       "text": "Text",
       "image": "Image",
+      "video": "Video",
       "photo-slideshow": "Photo Slideshow",
       "qr-code": "QR Code",
       "iframe": "Web Embed",
@@ -1662,7 +1668,16 @@
     },
     "errors": {
       "searchUnsplash": "Failed to search Unsplash"
-    }
+    },
+    "confirmSelectVideo": "Select Video",
+    "videoCountSingular": "{count} video",
+    "videoCountPlural": "{count} videos",
+    "titleVideos": "Video Library",
+    "uploadVideosButton": "Upload Videos",
+    "allVideos": "All Videos",
+    "titleMedia": "Media Library",
+    "allMedia": "All Photos & Videos",
+    "uploadMediaButton": "Upload"
   },
   "choreChartModal": {
     "title": "Chore Chart",
@@ -2388,6 +2403,25 @@
       "uploadFailed": "Upload failed",
       "preview": "Preview",
       "altText": "Alt Text"
+    },
+    "video": {
+      "videoSource": "Video Source",
+      "tabLibrary": "Library",
+      "tabUrl": "URL",
+      "videoUrl": "Video URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Choose a video…",
+      "noVideosYet": "No videos in your library yet. Upload one to get started.",
+      "uploadVideo": "Upload Video",
+      "movHint": "iPhone videos (.mov) may not always play on Raspberry Pi displays. MP4 (H.264) videos work best.",
+      "playSound": "Play sound",
+      "soundHint": "Sound needs a one-time setup on the display (see the video guide). Until then, videos play silently.",
+      "loop": "Play on repeat",
+      "maxDurationSeconds": "Stop after (seconds, 0 = keep playing)",
+      "uploading": "Uploading...",
+      "uploadFailed": "Upload failed",
+      "browseLibrary": "Browse Library...",
+      "urlHint": "You can paste a YouTube link or a direct video file link (MP4/WebM)."
     },
     "immichSource": {
       "connecting": "Connecting...",

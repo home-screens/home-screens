@@ -35,7 +35,12 @@
       "2x-large": "2X Stor",
       "3x-large": "3X Stor",
       "4x-large": "4X Stor"
-    }
+    },
+    "mediaTypes": "Vis",
+    "mediaTypesPhotos": "Kun fotos",
+    "mediaTypesVideos": "Kun videoer",
+    "mediaTypesBoth": "Fotos + videoer",
+    "maxVideoDurationSeconds": "Maksimal afspilningstid pr. video (sekunder)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -185,6 +190,7 @@
       "chore-chart": "Chore Chart",
       "text": "Text",
       "image": "Image",
+      "video": "Video",
       "photo-slideshow": "Photo Slideshow",
       "qr-code": "QR Code",
       "iframe": "Web Embed",
@@ -1662,7 +1668,16 @@
     },
     "errors": {
       "searchUnsplash": "Kunne ikke søge i Unsplash"
-    }
+    },
+    "confirmSelectVideo": "Vælg video",
+    "videoCountSingular": "{count} video",
+    "videoCountPlural": "{count} videoer",
+    "titleVideos": "Videobibliotek",
+    "uploadVideosButton": "Upload videoer",
+    "allVideos": "Alle videoer",
+    "titleMedia": "Mediebibliotek",
+    "allMedia": "Alle fotos og videoer",
+    "uploadMediaButton": "Upload"
   },
   "choreChartModal": {
     "title": "Chore Chart",
@@ -2388,6 +2403,25 @@
       "uploadFailed": "Upload failed",
       "preview": "Preview",
       "altText": "Alt Text"
+    },
+    "video": {
+      "videoSource": "Videokilde",
+      "tabLibrary": "Bibliotek",
+      "tabUrl": "URL",
+      "videoUrl": "Video-URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Vælg en video…",
+      "noVideosYet": "Ingen videoer i dit bibliotek endnu. Upload en for at komme i gang.",
+      "uploadVideo": "Upload video",
+      "movHint": "iPhone-videoer (.mov) afspilles ikke altid på Raspberry Pi-skærme. MP4-videoer (H.264) fungerer bedst.",
+      "playSound": "Afspil lyd",
+      "soundHint": "Lyd kræver en engangsopsætning på skærmen (se videoguiden). Indtil da afspilles videoer uden lyd.",
+      "loop": "Afspil gentagne gange",
+      "maxDurationSeconds": "Stop efter (sekunder, 0 = fortsæt)",
+      "uploading": "Uploading...",
+      "uploadFailed": "Upload failed",
+      "browseLibrary": "Browse Library...",
+      "urlHint": "Du kan indsætte et YouTube-link eller et direkte videolink (MP4/WebM)."
     },
     "immichSource": {
       "connecting": "Connecting...",

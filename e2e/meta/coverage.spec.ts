@@ -79,7 +79,7 @@ test('every built-in module type has an E2E fixture, and no fixture is stale', (
   expect(stale, `Fixtures reference unknown module types: ${stale.join(', ')}`).toEqual([]);
 
   // Guards against a silent registry shrink (e.g. a bad merge dropping types).
-  expect(builtin.length).toBe(41);
+  expect(builtin.length).toBe(42);
 });
 
 /**
@@ -496,6 +496,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-photo.immichFavoritesOnly': 'fetch-only',
   'fullscreen-photo.immichPersonId': 'fetch-only',
   'fullscreen-photo.intervalMs': 'timing-only',
+  'fullscreen-photo.maxVideoDurationMs': 'timing-only',
   'fullscreen-photo.shuffle': 'not-observable',
   'history.refreshIntervalMs': 'timing-only',
   'history.rotationIntervalMs': 'timing-only',
@@ -510,8 +511,12 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'photo-slideshow.immichCount': 'fetch-only',
   'photo-slideshow.immichFavoritesOnly': 'fetch-only',
   'photo-slideshow.immichPersonId': 'fetch-only',
+  'photo-slideshow.maxVideoDurationMs': 'timing-only',
   'photo-slideshow.refreshIntervalMs': 'timing-only',
   'qr-code.hiddenNetwork': 'not-observable',
+  // Force-advance cap; the timer behavior is covered by jsdom unit tests
+  // (VideoLayer.test.tsx force-advance) — no stable E2E render marker exists.
+  'video.maxDurationMs': 'timing-only',
   'quote.refreshIntervalMs': 'timing-only',
   'rain-map.animationSpeedMs': 'timing-only',
   'rain-map.extraDelayLastFrameMs': 'timing-only',
@@ -621,6 +626,7 @@ const DISCRIMINATOR_UNION_DECISIONS: Record<string, string> = {
   ShapeArrowDirection: 'rotation transform of one arrow renderer; field-level row suffices',
   ShapeLineStyle: 'stroke dash pattern; field-level row (dashed) suffices',
   ShapeOrientation: 'axis transform of the same line renderer; field-level row (vertical) suffices',
+  SlideshowMediaTypes: 'source-mix selection, not a render mode; the media-videos variant rows prove the video pipeline and photos is the default matrix render',
   StandingsGrouping: 'grouping strategies share the table renderer; field-level rows suffice',
   TextDecoration: 'CSS text-decoration values; field-level row suffices',
   TextRevealOnRotation: 'reveal animation flavors on the rotation feature; field-level row suffices',

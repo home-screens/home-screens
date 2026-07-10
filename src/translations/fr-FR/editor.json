@@ -35,7 +35,12 @@
       "2x-large": "2X Grand",
       "3x-large": "3X Grand",
       "4x-large": "4X Grand"
-    }
+    },
+    "mediaTypes": "Afficher",
+    "mediaTypesPhotos": "Photos uniquement",
+    "mediaTypesVideos": "Vidéos uniquement",
+    "mediaTypesBoth": "Photos + vidéos",
+    "maxVideoDurationSeconds": "Durée maximale par vidéo (secondes)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -185,6 +190,7 @@
       "chore-chart": "Tableau de tâches",
       "text": "Texte",
       "image": "Image",
+      "video": "Vidéo",
       "photo-slideshow": "Diaporama photo",
       "qr-code": "Code QR",
       "iframe": "Intégration web",
@@ -1666,7 +1672,16 @@
     },
     "errors": {
       "searchUnsplash": "Échec de la recherche Unsplash"
-    }
+    },
+    "confirmSelectVideo": "Sélectionner la vidéo",
+    "videoCountSingular": "{count} vidéo",
+    "videoCountPlural": "{count} vidéos",
+    "titleVideos": "Bibliothèque de vidéos",
+    "uploadVideosButton": "Téléverser des vidéos",
+    "allVideos": "Toutes les vidéos",
+    "titleMedia": "Bibliothèque multimédia",
+    "allMedia": "Toutes les photos et vidéos",
+    "uploadMediaButton": "Téléverser"
   },
   "choreChartModal": {
     "title": "Tableau de tâches",
@@ -2393,6 +2408,25 @@
       "uploadFailed": "Échec du téléversement",
       "preview": "Aperçu",
       "altText": "Texte alternatif"
+    },
+    "video": {
+      "videoSource": "Source vidéo",
+      "tabLibrary": "Bibliothèque",
+      "tabUrl": "URL",
+      "videoUrl": "URL de la vidéo",
+      "chooseVideo": "Vidéo",
+      "chooseVideoPlaceholder": "Choisir une vidéo…",
+      "noVideosYet": "Aucune vidéo dans votre bibliothèque pour le moment. Téléversez-en une pour commencer.",
+      "uploadVideo": "Téléverser une vidéo",
+      "movHint": "Les vidéos iPhone (.mov) ne se lisent pas toujours sur les écrans Raspberry Pi. Les vidéos MP4 (H.264) fonctionnent le mieux.",
+      "playSound": "Jouer le son",
+      "soundHint": "Le son nécessite une configuration unique de l'écran (voir le guide vidéo). D'ici là, les vidéos sont lues en silence.",
+      "loop": "Lire en boucle",
+      "maxDurationSeconds": "Arrêter après (secondes, 0 = continuer)",
+      "uploading": "Téléversement…",
+      "uploadFailed": "Échec du téléversement",
+      "browseLibrary": "Parcourir la bibliothèque…",
+      "urlHint": "Vous pouvez coller un lien YouTube ou un lien direct vers un fichier vidéo (MP4/WebM)."
     },
     "immichSource": {
       "connecting": "Connexion…",

@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 41 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 42 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
@@ -664,9 +664,31 @@ Displays a static image.
 | `objectFit` | string | `"cover"` | How the image fills the container: `cover`, `contain`, or `fill` |
 | `alt` | string | `""` | Alt text |
 
+### Video
+
+Plays a video clip — a file from your media library, a direct video URL, or a YouTube link. In the editor the module shows a still frame with a play badge; the video only plays on the actual display.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `source` | string | `"file"` | Where the video comes from: `file` (media library) or `url` (direct link or YouTube) |
+| `file` | string | — | Path to a video in the media library (file source) |
+| `url` | string | — | Direct link to an MP4/WebM video, or any YouTube link (url source) |
+| `objectFit` | string | `"cover"` | How the video fills the container: `cover`, `contain`, or `fill` |
+| `muted` | boolean | `true` | Keep the video silent. Turning sound on also needs the display's autoplay setting (see below) |
+| `loop` | boolean | `true` | Start the video over when it ends |
+| `maxDurationMs` | number | — | Stop playing after this many milliseconds (0 or unset = keep playing) |
+
+{% callout type="note" title="Best format for Raspberry Pi" %}
+MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4 — if a clip shows a black box, convert it to MP4 (H.264) first. If a video ever fails to load or stalls, the display skips past it instead of freezing.
+{% /callout %}
+
+**Sound:** Videos are silent by default. To play sound, turn on the module's sound toggle. Displays installed or upgraded from this release onward allow video sound automatically; older installs pick it up on their next upgrade.
+
+**YouTube links:** Paste any YouTube link (`youtube.com/watch`, `youtu.be`, or a Short) into the URL field and the module plays it with YouTube's own player — autoplaying, without on-screen controls, using the privacy-friendly no-cookie player. The sound and repeat toggles work; the time limit doesn't apply (YouTube controls its own playback). Needs internet access on the display, and the video must allow embedding.
+
 ### Photo Slideshow
 
-Rotates through images from a local directory or an Immich photo library.
+Rotates through images from a local directory or an Immich photo library. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -680,8 +702,12 @@ Rotates through images from a local directory or an Immich photo library.
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
+| `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
+| `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
+
+**Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; local videos are any MP4/WebM/MOV files in the same backgrounds folder.
 
 ### QR Code
 
@@ -715,6 +741,8 @@ Embeds any web page or dashboard. Acts as a universal adapter for Home Assistant
 | `sandbox` | string | `"allow-scripts allow-forms allow-popups"` | Sandbox permission tokens (when enabled) |
 
 **Note:** Some websites (e.g. YouTube, Yahoo Finance, Twitter) set `frame-ancestors` or `X-Frame-Options` headers that prevent embedding. Self-hosted services, published Google Docs/Sheets, and sites that explicitly support embedding will work.
+
+**Embedding video pages:** Pages that host a video player (a YouTube *embed* URL, a self-hosted stream page) can be shown through this module too. If the player doesn't start with sandbox enabled, the default sandbox permissions (`allow-scripts allow-forms allow-popups`) may need adjusting for that player — or turn the sandbox off. For plain video files, the dedicated **Video** module is simpler.
 
 ### Icon
 

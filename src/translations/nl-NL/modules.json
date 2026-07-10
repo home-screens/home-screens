@@ -649,6 +649,11 @@
     "loading": "Foto's worden geladen…",
     "empty": "Geen foto's gevonden"
   },
+  "video": {
+    "loading": "Video laden…",
+    "empty": "Kies een video om af te spelen",
+    "unavailable": "Deze video is niet meer beschikbaar"
+  },
   "icon": {
     "empty": "Geen pictogram geselecteerd"
   },

@@ -35,7 +35,12 @@
       "2x-large": "2X Groß",
       "3x-large": "3X Groß",
       "4x-large": "4X Groß"
-    }
+    },
+    "mediaTypes": "Anzeigen",
+    "mediaTypesPhotos": "Nur Fotos",
+    "mediaTypesVideos": "Nur Videos",
+    "mediaTypesBoth": "Fotos + Videos",
+    "maxVideoDurationSeconds": "Maximale Abspielzeit pro Video (Sekunden)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -185,6 +190,7 @@
       "chore-chart": "Aufgabentafel",
       "text": "Text",
       "image": "Bild",
+      "video": "Video",
       "photo-slideshow": "Foto-Diashow",
       "qr-code": "QR-Code",
       "iframe": "Web-Einbettung",
@@ -1662,7 +1668,16 @@
     },
     "errors": {
       "searchUnsplash": "Unsplash-Suche fehlgeschlagen"
-    }
+    },
+    "confirmSelectVideo": "Video auswählen",
+    "videoCountSingular": "{count} Video",
+    "videoCountPlural": "{count} Videos",
+    "titleVideos": "Videobibliothek",
+    "uploadVideosButton": "Videos hochladen",
+    "allVideos": "Alle Videos",
+    "titleMedia": "Medienbibliothek",
+    "allMedia": "Alle Fotos & Videos",
+    "uploadMediaButton": "Hochladen"
   },
   "choreChartModal": {
     "title": "Aufgabentafel",
@@ -2388,6 +2403,25 @@
       "uploadFailed": "Hochladen fehlgeschlagen",
       "preview": "Vorschau",
       "altText": "Alternativtext"
+    },
+    "video": {
+      "videoSource": "Videoquelle",
+      "tabLibrary": "Bibliothek",
+      "tabUrl": "URL",
+      "videoUrl": "Video-URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Video auswählen…",
+      "noVideosYet": "Noch keine Videos in deiner Bibliothek. Lade eins hoch, um zu starten.",
+      "uploadVideo": "Video hochladen",
+      "movHint": "iPhone-Videos (.mov) laufen auf Raspberry-Pi-Displays nicht immer. MP4-Videos (H.264) funktionieren am besten.",
+      "playSound": "Ton abspielen",
+      "soundHint": "Für Ton ist eine einmalige Einrichtung am Display nötig (siehe Video-Anleitung). Bis dahin werden Videos stumm abgespielt.",
+      "loop": "Wiederholt abspielen",
+      "maxDurationSeconds": "Stoppen nach (Sekunden, 0 = weiterlaufen)",
+      "uploading": "Lädt hoch …",
+      "uploadFailed": "Hochladen fehlgeschlagen",
+      "browseLibrary": "Bibliothek durchsuchen …",
+      "urlHint": "Du kannst einen YouTube-Link oder einen direkten Videolink (MP4/WebM) einfügen."
     },
     "immichSource": {
       "connecting": "Verbindung wird hergestellt …",

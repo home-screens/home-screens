@@ -73,7 +73,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 ### Media & Display
 
 - **Text** — rich formatting, gradients, marquee
-- **Image** · **Photo Slideshow** · **QR Code** (custom or WiFi)
+- **Image** · **Video** (library file, direct URL, or YouTube link; loop, optional sound) · **Photo Slideshow** (photos, videos, or both) · **QR Code** (custom or WiFi)
 - **iFrame** — embed any web page (Home Assistant, Grafana, Google Sheets, etc.)
 - **Icon** — a single Font Awesome 7 glyph with color, rotation, flip, and animation (spin, beat, bounce, shake)
 - **Shape & Divider** — {% $stats.shapeViewCount %} views (dividers, waves, dots, geometric shapes, frames, glow, gradients) for layout polish
