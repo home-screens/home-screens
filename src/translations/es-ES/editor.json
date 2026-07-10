@@ -1959,7 +1959,16 @@
       "inProgress": "No cierres esta página ni apagues el dispositivo"
     },
     "successDefault": "¡Actualización completada!",
-    "doneButton": "Hecho"
+    "doneButton": "Hecho",
+    "status": {
+      "inProgress": "En curso",
+      "complete": "Completado",
+      "failed": "Error"
+    },
+    "console": {
+      "live": "En vivo",
+      "waiting": "Esperando salida..."
+    }
   },
   "holidayPickerModal": {
     "title": "Añadir festivos",

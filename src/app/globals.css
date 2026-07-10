@@ -175,6 +175,12 @@ body {
   100% { transform: translateX(-50%); }
 }
 
+/* Highlight sweep across the upgrade modal's progress bar while running */
+@keyframes hs-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
 .animate-ticker-scroll {
   animation: ticker-scroll linear infinite;
 }

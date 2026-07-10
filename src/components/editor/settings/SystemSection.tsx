@@ -56,8 +56,8 @@ interface RestoreStatus {
 }
 
 interface Props {
-  onUpgrade: (tag: string) => void;
-  onRollback: (tag: string) => void;
+  onUpgrade: (tag: string, currentVersion: string | null) => void;
+  onRollback: (tag: string, currentVersion: string | null) => void;
 }
 
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
@@ -221,7 +221,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         confirmLabel: t('settings.systemPage.upgradeDialog.confirm'),
         variant: 'primary',
       },
-      async () => { onUpgrade(tag); },
+      async () => { onUpgrade(tag, versionInfo?.current ?? null); },
     );
   }
 
@@ -232,7 +232,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         message: t('settings.systemPage.rollbackDialog.message', { tag }),
         confirmLabel: t('settings.systemPage.rollbackDialog.confirm'),
       },
-      async () => { onRollback(tag); },
+      async () => { onRollback(tag, versionInfo?.current ?? null); },
     );
   }
 

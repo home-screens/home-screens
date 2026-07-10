@@ -1955,7 +1955,16 @@
       "inProgress": "Diese Seite nicht schließen und das Gerät nicht ausschalten"
     },
     "successDefault": "Aktualisierung abgeschlossen!",
-    "doneButton": "Fertig"
+    "doneButton": "Fertig",
+    "status": {
+      "inProgress": "Läuft",
+      "complete": "Abgeschlossen",
+      "failed": "Fehlgeschlagen"
+    },
+    "console": {
+      "live": "Live",
+      "waiting": "Warten auf Ausgabe..."
+    }
   },
   "holidayPickerModal": {
     "title": "Feiertage hinzufügen",

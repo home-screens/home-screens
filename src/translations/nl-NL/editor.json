@@ -1955,7 +1955,16 @@
       "inProgress": "Sluit deze pagina niet en zet het apparaat niet uit"
     },
     "successDefault": "Upgrade voltooid!",
-    "doneButton": "Klaar"
+    "doneButton": "Klaar",
+    "status": {
+      "inProgress": "Bezig",
+      "complete": "Voltooid",
+      "failed": "Mislukt"
+    },
+    "console": {
+      "live": "Live",
+      "waiting": "Wachten op uitvoer..."
+    }
   },
   "holidayPickerModal": {
     "title": "Feestdagen toevoegen",

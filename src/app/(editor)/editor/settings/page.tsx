@@ -169,6 +169,7 @@ function SettingsPageContent() {
   // Upgrade/rollback modal state
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [rollbackTarget, setRollbackTarget] = useState<string | null>(null);
+  const [upgradeFromVersion, setUpgradeFromVersion] = useState<string | null>(null);
 
   // Orientation change modal state
   const [orientationModal, setOrientationModal] = useState<{
@@ -247,6 +248,7 @@ function SettingsPageContent() {
       <UpgradeModal
         targetTag={activeTarget}
         isRollback={!!rollbackTarget}
+        currentVersion={upgradeFromVersion}
         onComplete={handleUpgradeComplete}
         onClose={() => { setUpgradeTarget(null); setRollbackTarget(null); }}
       />
@@ -457,8 +459,8 @@ function SettingsPageContent() {
 
             {activeTab === 'system' && (
               <SystemSection
-                onUpgrade={(tag) => setUpgradeTarget(tag)}
-                onRollback={(tag) => setRollbackTarget(tag)}
+                onUpgrade={(tag, from) => { setUpgradeFromVersion(from); setUpgradeTarget(tag); }}
+                onRollback={(tag, from) => { setUpgradeFromVersion(from); setRollbackTarget(tag); }}
               />
             )}
 

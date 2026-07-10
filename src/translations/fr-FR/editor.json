@@ -1959,7 +1959,16 @@
       "inProgress": "Ne ferme pas cette page et n'éteins pas l'appareil"
     },
     "successDefault": "Mise à niveau terminée !",
-    "doneButton": "Terminé"
+    "doneButton": "Terminé",
+    "status": {
+      "inProgress": "En cours",
+      "complete": "Terminé",
+      "failed": "Échec"
+    },
+    "console": {
+      "live": "En direct",
+      "waiting": "En attente de sortie..."
+    }
   },
   "holidayPickerModal": {
     "title": "Ajouter des jours fériés",

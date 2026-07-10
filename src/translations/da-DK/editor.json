@@ -1955,7 +1955,16 @@
       "inProgress": "Do not close this page or power off the device"
     },
     "successDefault": "Upgrade complete!",
-    "doneButton": "Done"
+    "doneButton": "Done",
+    "status": {
+      "inProgress": "I gang",
+      "complete": "Fuldført",
+      "failed": "Mislykkedes"
+    },
+    "console": {
+      "live": "Live",
+      "waiting": "Venter på output..."
+    }
   },
   "holidayPickerModal": {
     "title": "Add Holidays",

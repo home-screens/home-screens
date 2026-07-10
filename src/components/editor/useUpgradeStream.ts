@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useState, useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 
 // ---------------------------------------------------------------------------
@@ -22,6 +22,7 @@ export interface UpgradeStreamState {
   activeStep: string;
   visitedSteps: Set<string>;
   stepLogs: Record<string, string>;
+  stepDurations: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +272,13 @@ export function useUpgradeStream(
   progressRef.current = progress;
   activeStepRef.current = activeStep;
 
+  // Per-step wall-clock durations, derived client-side from activeStep
+  // transitions (the SSE payload carries no timing data). The first step's
+  // timer starts in the mount effect below, when the upgrade is triggered.
+  const [stepDurations, setStepDurations] = useState<Record<string, number>>({});
+  const stepStartRef = useRef<Record<string, number>>({});
+  const prevDurationStepRef = useRef(firstStep);
+
   // Track visited steps whenever activeStep changes
   useEffect(() => {
     setVisitedSteps((prev) => {
@@ -280,6 +288,28 @@ export function useUpgradeStream(
     });
   }, [activeStep]);
 
+  // Close out the previous step's timer on each transition
+  useEffect(() => {
+    const prev = prevDurationStepRef.current;
+    if (prev === activeStep) return;
+    const now = Date.now();
+    const startedAt = stepStartRef.current[prev];
+    if (startedAt != null) {
+      setStepDurations((d) => ({ ...d, [prev]: now - startedAt }));
+    }
+    stepStartRef.current[activeStep] ??= now;
+    prevDurationStepRef.current = activeStep;
+  }, [activeStep]);
+
+  // Finalize the last active step's timer when the upgrade completes
+  useEffect(() => {
+    if (!done) return;
+    const step = prevDurationStepRef.current;
+    const startedAt = stepStartRef.current[step];
+    if (startedAt == null) return;
+    setStepDurations((d) => (d[step] != null ? d : { ...d, [step]: Date.now() - startedAt }));
+  }, [done]);
+
   // Connect SSE and trigger upgrade. Deliberately ONE mount-only effect —
   // the EventSource lifecycle (open, wire handlers, trigger, close on
   // unmount) is a single resource; the handler bodies live in the named
@@ -287,6 +317,8 @@ export function useUpgradeStream(
   useEffect(() => {
     if (started) return;
     setStarted(true);
+
+    stepStartRef.current[firstStep] = Date.now();
 
     const es = new EventSource('/api/system/status');
     const ctx: StreamContext = {
@@ -319,7 +351,7 @@ export function useUpgradeStream(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time SSE connection on mount; deps are stable refs
   }, []);
 
-  return { progress, started, done, failed, activeStep, visitedSteps, stepLogs };
+  return { progress, started, done, failed, activeStep, visitedSteps, stepLogs, stepDurations };
 }
 
 // ---------------------------------------------------------------------------
@@ -390,38 +422,3 @@ export function useWaitForServer(done: boolean): string | null {
   return reloadStatus;
 }
 
-// ---------------------------------------------------------------------------
-// useAccordionState — manage expanded/collapsed step panels
-// ---------------------------------------------------------------------------
-
-export function useAccordionState(activeStep: string) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set([activeStep]));
-  const prevActiveRef = useRef(activeStep);
-
-  // Track visited steps + auto-expand active, collapse previous
-  useEffect(() => {
-    if (activeStep !== prevActiveRef.current) {
-      setExpanded((prev) => {
-        const next = new Set(prev);
-        next.delete(prevActiveRef.current);
-        next.add(activeStep);
-        return next;
-      });
-      prevActiveRef.current = activeStep;
-    }
-  }, [activeStep]);
-
-  const toggleExpand = useCallback((step: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(step)) {
-        next.delete(step);
-      } else {
-        next.add(step);
-      }
-      return next;
-    });
-  }, []);
-
-  return { expanded, toggleExpand };
-}
