@@ -168,14 +168,16 @@ describe('PUT /api/secrets', () => {
     );
   });
 
-  it('returns 401 when Todoist token validation fails', async () => {
+  it('returns 400 when Todoist token validation fails', async () => {
+    // 400 rather than 401: editorFetch redirects the editor to /login on any
+    // 401, which would swallow the message before SecretField renders it.
     vi.mocked(requireSession).mockResolvedValue(undefined);
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401 });
 
     const res = await PUT(makeRequest('PUT', { key: 'todoist_token', value: 'bad-token' }));
     const json = await res.json();
 
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(400);
     expect(json.error).toMatch(/Invalid Todoist token/);
     expect(setSecret).not.toHaveBeenCalled();
   });

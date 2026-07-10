@@ -35,13 +35,15 @@ export const PUT = withAuth(async (request) => {
     );
   }
 
-  // Validate Todoist token before saving
+  // Validate Todoist token before saving. Rejection is a 400, not 401 —
+  // editorFetch treats any 401 as an expired editor session and redirects
+  // to /login, which would swallow the message before SecretField shows it.
   if (key === 'todoist_token') {
     const result = await validateTodoistToken(value);
     if (!result.valid) {
       return NextResponse.json(
-        { error: 'Invalid Todoist token — API returned ' + result.status },
-        { status: 401 },
+        { error: 'Invalid Todoist token; Todoist returned ' + result.status },
+        { status: 400 },
       );
     }
   }
