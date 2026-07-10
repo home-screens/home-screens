@@ -534,7 +534,8 @@
     "noPhotoSelected": "Nenhuma foto selecionada",
     "noPhotoSelectedHint": "Escolha uma foto no painel do editor.",
     "noPhotosYet": "Nenhuma foto ainda",
-    "noPhotosYetHint": "Envie fotos do seu celular pela aba Fotos em /remote, ou escolha uma pasta no editor."
+    "noPhotosYetHint": "Envie fotos do seu celular pela aba Fotos em /remote, ou escolha uma pasta no editor.",
+    "noPhotosYetHintICloud": "Verifique o link do álbum no editor e confira se o \"Site público\" do álbum está ativado."
   },
   "dad-joke": {
     "loading": "Carregando piada…"
@@ -651,7 +652,8 @@
   },
   "photo-slideshow": {
     "loading": "Carregando fotos…",
-    "empty": "Nenhuma foto encontrada"
+    "empty": "Nenhuma foto encontrada",
+    "emptyICloud": "Nenhuma foto ainda. Verifique o link do álbum e confira se o \"Site público\" está ativado."
   },
   "video": {
     "loading": "Carregando vídeo…",

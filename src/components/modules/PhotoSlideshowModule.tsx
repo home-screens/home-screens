@@ -92,7 +92,10 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const gate = moduleGate({
     style, data, error,
     loadingMessage: t('photo-slideshow.loading'),
-    empty: items.length === 0 && t('photo-slideshow.empty'),
+    // An empty iCloud album usually means a bad link or the album's public
+    // website being off — say that instead of a generic "no photos".
+    empty: items.length === 0
+      && t(config.source === 'icloud' ? 'photo-slideshow.emptyICloud' : 'photo-slideshow.empty'),
   });
   if (gate) return gate;
 

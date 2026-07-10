@@ -6,7 +6,9 @@ import { useImageLibrary, type DirectoryInfo } from '@/hooks/useImageLibrary';
 import type { MediaListItem } from '@/types/config';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCache } from '@/lib/display-cache';
 import ImageSearchBrowser, { type BrowsePhoto, type SearchResult } from './ImageSearchBrowser';
+import ICloudImportPanel from './ICloudImportPanel';
 import { useTranslate } from '@/i18n';
 
 interface UnsplashPhoto {
@@ -151,6 +153,8 @@ export default function ImageBrowserModal({
     if (!res.ok) throw new Error(t('imageBrowsers.errors.saveImage'));
     const data = await res.json();
     if (data.path) {
+      // The Unsplash save wrote a new file into the library.
+      displayCache.invalidateByPrefix('/api/backgrounds');
       onSelectImage?.(data.path);
       onClose();
     }
@@ -256,30 +260,35 @@ export default function ImageBrowserModal({
               newFolderInputRef={lib.newFolderInputRef}
             />
 
-            {/* Main area — Media Grid */}
-            <MediaGrid
-              items={visibleItems}
-              mode={mode}
-              selectedUrl={lib.selectedImage}
-              onSelectItem={(url) => {
-                if (mode !== 'manage-directory') {
-                  lib.setSelectedImage(lib.selectedImage === url ? null : url);
-                }
-              }}
-              loadingImages={lib.loadingImages}
-              deletingImage={lib.deletingImage}
-              onDeleteItem={lib.handleDeleteImage}
-              // The directories endpoint names the root "All Photos"; override
-              // with the mode label rather than echo its image-centric name.
-              currentDirName={lib.selectedDir === '' ? rootLabel : currentDirInfo?.name || rootLabel}
-              selectedDir={lib.selectedDir}
-              uploading={lib.uploading}
-              uploadProgress={lib.uploadProgress}
-              onUpload={lib.handleUpload}
-              onDeleteFolder={lib.handleDeleteFolder}
-              fileInputRef={lib.fileInputRef}
-              error={lib.error}
-            />
+            {/* Main area — Media Grid. The iCloud import strip is available in
+                every mode: the pick-video and pick-image libraries are the
+                same library, and "get my stuff in here" applies equally. */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <ICloudImportPanel selectedDir={lib.selectedDir} onImported={lib.refresh} />
+              <MediaGrid
+                items={visibleItems}
+                mode={mode}
+                selectedUrl={lib.selectedImage}
+                onSelectItem={(url) => {
+                  if (mode !== 'manage-directory') {
+                    lib.setSelectedImage(lib.selectedImage === url ? null : url);
+                  }
+                }}
+                loadingImages={lib.loadingImages}
+                deletingImage={lib.deletingImage}
+                onDeleteItem={lib.handleDeleteImage}
+                // The directories endpoint names the root "All Photos"; override
+                // with the mode label rather than echo its image-centric name.
+                currentDirName={lib.selectedDir === '' ? rootLabel : currentDirInfo?.name || rootLabel}
+                selectedDir={lib.selectedDir}
+                uploading={lib.uploading}
+                uploadProgress={lib.uploadProgress}
+                onUpload={lib.handleUpload}
+                onDeleteFolder={lib.handleDeleteFolder}
+                fileInputRef={lib.fileInputRef}
+                error={lib.error}
+              />
+            </div>
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-4 space-y-3">

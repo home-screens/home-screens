@@ -11,6 +11,7 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
 import { MediaTypesFields } from './MediaTypesFields';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
@@ -19,11 +20,6 @@ type Config = Partial<FullscreenPhotoConfig>;
 
 export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-
-  const SOURCE_OPTIONS = [
-    { value: 'local', label: t('configSections.fullscreen-photo.sourceLocal') },
-    { value: 'immich', label: t('configSections.fullscreen-photo.sourceImmich') },
-  ] as const;
 
   const MODE_OPTIONS = [
     { value: 'slideshow', label: t('configSections.fullscreen-photo.modeSlideshow') },
@@ -50,6 +46,14 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   const [photoCount, setPhotoCount] = useState(0);
   const { data: secrets } = useEditorData<Record<string, boolean>>('/api/secrets');
   const hasImmichKey = !!secrets?.immich_api_key && !!secrets?.immich_url;
+
+  // iCloud needs no key, so the source select is always shown; Immich joins
+  // the list only once its server + API key are configured.
+  const SOURCE_OPTIONS = [
+    { value: 'local', label: t('configSections.fullscreen-photo.sourceLocal') },
+    ...(hasImmichKey ? [{ value: 'immich', label: t('configSections.fullscreen-photo.sourceImmich') }] : []),
+    { value: 'icloud', label: t('configSections.fullscreen-photo.sourceICloud') },
+  ];
 
   const source = (c.source as string) || 'local';
   const directory = (c.directory as string) || '';
@@ -86,18 +90,17 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         defaultOptionKey="configSections.fullscreen-photo.themeDefaultMidnight"
       />
 
-      {/* Source selector — only show if Immich is configured */}
-      {hasImmichKey && (
-        <LabeledSelect
-          label={t('configSections.fullscreen-photo.photoSource')}
-          value={source as 'local' | 'immich'}
-          onChange={(v) => set({ source: v })}
-          options={SOURCE_OPTIONS}
-        />
-      )}
+      <LabeledSelect
+        label={t('configSections.fullscreen-photo.photoSource')}
+        value={source}
+        onChange={(v) => set({ source: v })}
+        options={SOURCE_OPTIONS}
+      />
 
       {source === 'immich' ? (
         <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
+      ) : source === 'icloud' ? (
+        <ICloudAlbumSourceSection config={c as Record<string, unknown>} set={set} />
       ) : (
         <>
           {/* Mode toggle: Slideshow vs Single Photo */}

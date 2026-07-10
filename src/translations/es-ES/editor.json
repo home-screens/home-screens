@@ -1619,7 +1619,8 @@
     "rotateEveryLabel": "Rotar cada",
     "nasaInfo": "La NASA publica una imagen astronómica nueva al día. El display buscará actualizaciones en el intervalo elegido.",
     "sources": {
-      "nasaApod": "Imagen del día de la NASA"
+      "nasaApod": "Imagen del día de la NASA",
+      "icloud": "Álbum compartido de iCloud"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1637,6 +1638,10 @@
       "personLabel": "Persona",
       "anyone": "Cualquiera",
       "favoritesOnly": "Solo favoritos"
+    },
+    "icloud": {
+      "albumLabel": "Enlace del álbum",
+      "albumHelp": "En tu iPhone, abre el álbum, activa \"Sitio web público\" y pega el enlace aquí."
     }
   },
   "imageBrowserModal": {
@@ -1682,6 +1687,24 @@
     "titleMedia": "Biblioteca multimedia",
     "allMedia": "Todas las fotos y vídeos",
     "uploadMediaButton": "Subir"
+  },
+  "icloudImport": {
+    "toggle": "Importar desde un enlace de iCloud",
+    "placeholder": "Pega un enlace de álbum o fotos de iCloud",
+    "start": "Importar",
+    "importing": "Importando…",
+    "progress": "Descargando {done} de {total}…",
+    "summary": "Se añadieron {done} elementos nuevos. {skipped} ya estaban aquí.",
+    "summaryFailed": "{failed} no se pudieron descargar.",
+    "help": "Funciona con enlaces de álbumes compartidos (icloud.com/sharedalbum/#…) y enlaces de \"Copiar enlace de iCloud\" (share.icloud.com). Todo el contenido del enlace se guarda en la carpeta actual.",
+    "albumTip": "Consejo: los álbumes compartidos también pueden mostrarse en vivo, sin descargar. Elige \"Álbum compartido de iCloud\" como fuente de fotos en los ajustes de una presentación.",
+    "errors": {
+      "invalid": "Eso no parece un enlace de iCloud. Copia el enlace de nuevo e inténtalo otra vez.",
+      "expired": "Este enlace ya no funciona. Los enlaces de fotos de iCloud dejan de funcionar después de un mes aproximadamente; pide uno nuevo e inténtalo de nuevo.",
+      "busy": "Ya hay otra importación en curso. Espera a que termine.",
+      "tooMany": "Este enlace tiene demasiadas fotos para guardarlas todas a la vez. Prueba con un álbum o enlace más pequeño.",
+      "lost": "Se perdió el seguimiento de esta importación. Revisa la carpeta para ver qué se añadió."
+    }
   },
   "choreChartModal": {
     "title": "Tabla de tareas",
@@ -2297,6 +2320,7 @@
       "photoSource": "Fuente de fotos",
       "sourceLocal": "Fotos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Álbum compartido de iCloud",
       "mode": "Modo",
       "modeSlideshow": "Pase de diapositivas",
       "modeSingle": "Foto única",
@@ -2426,7 +2450,9 @@
       "uploading": "Subiendo…",
       "uploadFailed": "Error al subir",
       "browseLibrary": "Examinar biblioteca…",
-      "urlHint": "Puedes pegar un enlace de YouTube o un enlace directo a un vídeo (MP4/WebM)."
+      "urlHint": "Puedes pegar un enlace de YouTube o un enlace directo a un vídeo (MP4/WebM).",
+      "icloudLinkDetected": "Este es un enlace de fotos de iCloud y no se puede reproducir directamente. Guarda sus videos en tu biblioteca y úsalos desde ahí.",
+      "icloudNoVideos": "Este enlace no contiene videos."
     },
     "immichSource": {
       "connecting": "Conectando…",
@@ -2443,6 +2469,14 @@
       "photosPerRefresh": "Fotos por actualización",
       "photoInAlbumSingular": "{count} foto en el álbum",
       "photoInAlbumPlural": "{count} fotos en el álbum"
+    },
+    "icloudSource": {
+      "albumLink": "Enlace del álbum",
+      "albumHelp": "En tu iPhone, abre el álbum, activa \"Sitio web público\" y pega el enlace aquí.",
+      "noItemsFound": "Aún no se encontró nada. Revisa el enlace y asegúrate de que el \"Sitio web público\" del álbum esté activado.",
+      "photoLinkDetected": "Este es un enlace de fotos, no un enlace de álbum compartido. Los enlaces de fotos dejan de funcionar después de un mes aproximadamente, así que guardamos copias en tu biblioteca y mostramos esas.",
+      "photoLinkAction": "Guardar en la biblioteca",
+      "videoHint": "Algunos videos de iPhone pueden no reproducirse en pantallas más antiguas. Los videos que no se pueden reproducir se omiten automáticamente."
     },
     "meal-planner": {
       "viewWeek": "Cuadrícula semanal",
@@ -2499,6 +2533,7 @@
     "photo-slideshow": {
       "sourceLocal": "Fotos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Álbum compartido de iCloud",
       "transitionFade": "Fundido",
       "transitionNone": "Ninguna",
       "photoSource": "Fuente de fotos",

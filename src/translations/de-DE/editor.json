@@ -1615,7 +1615,8 @@
     "rotateEveryLabel": "Wechseln alle",
     "nasaInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Das Display prüft im gewählten Intervall auf Updates.",
     "sources": {
-      "nasaApod": "NASA-Bild des Tages"
+      "nasaApod": "NASA-Bild des Tages",
+      "icloud": "Geteiltes iCloud-Album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1633,6 +1634,10 @@
       "personLabel": "Person",
       "anyone": "Beliebige Person",
       "favoritesOnly": "Nur Favoriten"
+    },
+    "icloud": {
+      "albumLabel": "Album-Link",
+      "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein."
     }
   },
   "imageBrowserModal": {
@@ -1678,6 +1683,24 @@
     "titleMedia": "Medienbibliothek",
     "allMedia": "Alle Fotos & Videos",
     "uploadMediaButton": "Hochladen"
+  },
+  "icloudImport": {
+    "toggle": "Aus einem iCloud-Link importieren",
+    "placeholder": "iCloud-Album- oder Fotolink einfügen",
+    "start": "Importieren",
+    "importing": "Wird importiert…",
+    "progress": "Lade {done} von {total} herunter…",
+    "summary": "{done} neue Elemente hinzugefügt. {skipped} waren schon da.",
+    "summaryFailed": "{failed} konnten nicht heruntergeladen werden.",
+    "help": "Funktioniert mit Links zu geteilten Alben (icloud.com/sharedalbum/#…) und „iCloud-Link kopieren“-Links (share.icloud.com). Alles aus dem Link wird im aktuellen Ordner gespeichert.",
+    "albumTip": "Tipp: Geteilte Alben können auch live abgespielt werden, ohne Download. Wähle in den Einstellungen einer Diashow „Geteiltes iCloud-Album“ als Fotoquelle.",
+    "errors": {
+      "invalid": "Das sieht nicht wie ein iCloud-Link aus. Kopiere den Link erneut und versuche es noch einmal.",
+      "expired": "Dieser Link funktioniert nicht mehr. iCloud-Fotolinks laufen nach etwa einem Monat ab. Bitte um einen neuen Link und versuche es erneut.",
+      "busy": "Es läuft bereits ein Import. Warte kurz, bis er fertig ist.",
+      "tooMany": "Dieser Link enthält zu viele Fotos, um alle auf einmal zu speichern. Versuche es mit einem kleineren Album oder Link.",
+      "lost": "Der Import ist aus dem Blick geraten. Sieh im Ordner nach, was hinzugefügt wurde."
+    }
   },
   "choreChartModal": {
     "title": "Aufgabentafel",
@@ -2292,6 +2315,7 @@
       "photoSource": "Fotoquelle",
       "sourceLocal": "Lokale Fotos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Geteiltes iCloud-Album",
       "mode": "Modus",
       "modeSlideshow": "Diashow",
       "modeSingle": "Einzelnes Foto",
@@ -2421,7 +2445,9 @@
       "uploading": "Lädt hoch …",
       "uploadFailed": "Hochladen fehlgeschlagen",
       "browseLibrary": "Bibliothek durchsuchen …",
-      "urlHint": "Du kannst einen YouTube-Link oder einen direkten Videolink (MP4/WebM) einfügen."
+      "urlHint": "Du kannst einen YouTube-Link oder einen direkten Videolink (MP4/WebM) einfügen.",
+      "icloudLinkDetected": "Das ist ein iCloud-Fotolink, der nicht direkt abgespielt werden kann. Speichere seine Videos in deiner Mediathek und nutze sie von dort.",
+      "icloudNoVideos": "Dieser Link enthält keine Videos."
     },
     "immichSource": {
       "connecting": "Verbindung wird hergestellt …",
@@ -2438,6 +2464,14 @@
       "photosPerRefresh": "Fotos pro Aktualisierung",
       "photoInAlbumSingular": "{count} Foto im Album",
       "photoInAlbumPlural": "{count} Fotos im Album"
+    },
+    "icloudSource": {
+      "albumLink": "Album-Link",
+      "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein.",
+      "noItemsFound": "Noch nichts gefunden. Prüfe den Link und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist.",
+      "photoLinkDetected": "Das ist ein Fotolink, kein Link zu einem geteilten Album. Fotolinks funktionieren nach etwa einem Monat nicht mehr. Deshalb speichern wir Kopien in deiner Mediathek und zeigen diese an.",
+      "photoLinkAction": "In Mediathek speichern",
+      "videoHint": "Manche iPhone-Videos lassen sich auf älteren Displays nicht abspielen. Solche Videos werden automatisch übersprungen."
     },
     "meal-planner": {
       "viewWeek": "Wochenraster",
@@ -2494,6 +2528,7 @@
     "photo-slideshow": {
       "sourceLocal": "Lokale Fotos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Geteiltes iCloud-Album",
       "transitionFade": "Überblenden",
       "transitionNone": "Keiner",
       "photoSource": "Fotoquelle",

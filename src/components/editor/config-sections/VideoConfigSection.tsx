@@ -2,13 +2,16 @@
 
 import { useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCache } from '@/lib/display-cache';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import { ICloudLinkImportBridge, ICLOUD_IMPORT_FOLDER } from './ICloudLinkImportBridge';
 import { parseYouTubeVideoId } from '@/lib/youtube';
+import { detectICloudSource } from '@/lib/icloud-parse';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
@@ -39,9 +42,27 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const muted = c.muted !== false;
 
   const [showBrowser, setShowBrowser] = useState(false);
+  const [browserDir, setBrowserDir] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // An iCloud link pasted as the video URL can never play (it's a share page,
+  // not a media file) — bridge it into a library import instead.
+  const pastedICloudLink = source === 'url' && detectICloudSource((c.url as string) || '') !== null;
+
+  const handleICloudSaved = (videoFiles: string[]) => {
+    if (videoFiles.length === 1) {
+      // The link held exactly one clip — wire it straight into the module.
+      set({ source: 'file', file: videoFiles[0], url: undefined });
+    } else if (videoFiles.length > 1) {
+      // Several clips — switch to the library and let the user pick.
+      set({ source: 'file', url: undefined });
+      setBrowserDir(ICLOUD_IMPORT_FOLDER);
+      setShowBrowser(true);
+    }
+    // Zero videos: the bridge shows its own "no videos in this link" note.
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files?.[0];
@@ -54,6 +75,9 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.path) {
+        // The module preview's point lookup for this file may be cached as
+        // missing from before the upload — clear it so the poster shows now.
+        displayCache.invalidateByPrefix('/api/backgrounds');
         const uploaded = fileParamOf(data.path);
         if (uploaded) set({ file: uploaded });
       } else {
@@ -104,7 +128,17 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ url: v })}
             placeholder="https://youtube.com/watch?v=... or https://example.com/clip.mp4"
           />
-          <p className="text-[10px] text-hs-text-faint">{t('configSections.video.urlHint')}</p>
+          {pastedICloudLink ? (
+            <ICloudLinkImportBridge
+              url={(c.url as string) || ''}
+              introKey="configSections.video.icloudLinkDetected"
+              noItemsKey="configSections.video.icloudNoVideos"
+              savedSomething={(job) => (job.videoFiles ?? []).length > 0}
+              onSaved={(job) => handleICloudSaved(job.videoFiles ?? [])}
+            />
+          ) : (
+            <p className="text-[10px] text-hs-text-faint">{t('configSections.video.urlHint')}</p>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -176,8 +210,9 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       {showBrowser && (
         <ImageBrowserModal
           mode="pick-video"
+          initialDirectory={browserDir}
           onSelectVideo={(filePath) => set({ file: filePath })}
-          onClose={() => setShowBrowser(false)}
+          onClose={() => { setShowBrowser(false); setBrowserDir(''); }}
         />
       )}
     </>

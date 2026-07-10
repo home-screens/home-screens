@@ -1619,7 +1619,8 @@
     "rotateEveryLabel": "Trocar a cada",
     "nasaInfo": "A NASA publica uma nova imagem astronômica por dia. A tela vai verificar atualizações no intervalo escolhido.",
     "sources": {
-      "nasaApod": "Foto da NASA do dia"
+      "nasaApod": "Foto da NASA do dia",
+      "icloud": "Álbum Compartilhado do iCloud"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1637,6 +1638,10 @@
       "personLabel": "Pessoa",
       "anyone": "Qualquer pessoa",
       "favoritesOnly": "Só favoritas"
+    },
+    "icloud": {
+      "albumLabel": "Link do álbum",
+      "albumHelp": "No seu iPhone, abra o álbum, ative \"Site público\" e cole o link aqui."
     }
   },
   "imageBrowserModal": {
@@ -1682,6 +1687,24 @@
     "titleMedia": "Biblioteca de mídia",
     "allMedia": "Todas as fotos e vídeos",
     "uploadMediaButton": "Enviar"
+  },
+  "icloudImport": {
+    "toggle": "Importar de um link do iCloud",
+    "placeholder": "Cole um link de álbum ou fotos do iCloud",
+    "start": "Importar",
+    "importing": "Importando…",
+    "progress": "Baixando {done} de {total}…",
+    "summary": "{done} itens novos adicionados. {skipped} já estavam aqui.",
+    "summaryFailed": "{failed} não puderam ser baixados.",
+    "help": "Funciona com links de álbuns compartilhados (icloud.com/sharedalbum/#…) e links de \"Copiar Link do iCloud\" (share.icloud.com). Tudo o que está no link é salvo na pasta atual.",
+    "albumTip": "Dica: Álbuns Compartilhados também podem tocar ao vivo, sem baixar. Escolha \"Álbum Compartilhado do iCloud\" como fonte de fotos nas configurações de uma apresentação.",
+    "errors": {
+      "invalid": "Isso não parece um link do iCloud. Copie o link de novo e tente outra vez.",
+      "expired": "Este link não funciona mais. Links de fotos do iCloud param de funcionar depois de mais ou menos um mês; peça um link novo e tente de novo.",
+      "busy": "Outra importação já está em andamento. Espere ela terminar.",
+      "tooMany": "Este link tem fotos demais para salvar de uma vez. Tente um álbum ou link menor.",
+      "lost": "Perdemos o andamento desta importação. Veja na pasta o que foi adicionado."
+    }
   },
   "choreChartModal": {
     "title": "Quadro de tarefas",
@@ -2297,6 +2320,7 @@
       "photoSource": "Fonte das fotos",
       "sourceLocal": "Fotos locais",
       "sourceImmich": "Immich",
+      "sourceICloud": "Álbum Compartilhado do iCloud",
       "mode": "Modo",
       "modeSlideshow": "Apresentação de slides",
       "modeSingle": "Foto única",
@@ -2426,7 +2450,9 @@
       "uploading": "Enviando...",
       "uploadFailed": "Falha no envio",
       "browseLibrary": "Navegar na biblioteca...",
-      "urlHint": "Você pode colar um link do YouTube ou um link direto de vídeo (MP4/WebM)."
+      "urlHint": "Você pode colar um link do YouTube ou um link direto de vídeo (MP4/WebM).",
+      "icloudLinkDetected": "Este é um link de fotos do iCloud e não toca diretamente. Salve os vídeos na sua biblioteca e use eles de lá.",
+      "icloudNoVideos": "Este link não tem nenhum vídeo."
     },
     "immichSource": {
       "connecting": "Conectando...",
@@ -2443,6 +2469,14 @@
       "photosPerRefresh": "Fotos por atualização",
       "photoInAlbumSingular": "{count} foto no álbum",
       "photoInAlbumPlural": "{count} fotos no álbum"
+    },
+    "icloudSource": {
+      "albumLink": "Link do álbum",
+      "albumHelp": "No seu iPhone, abra o álbum, ative \"Site público\" e cole o link aqui.",
+      "noItemsFound": "Nada encontrado ainda. Verifique o link e confira se o \"Site público\" do álbum está ativado.",
+      "photoLinkDetected": "Este é um link de fotos, não um link de Álbum Compartilhado. Links de fotos param de funcionar depois de mais ou menos um mês, então salvamos cópias na sua biblioteca e mostramos elas.",
+      "photoLinkAction": "Salvar na biblioteca",
+      "videoHint": "Alguns vídeos do iPhone podem não tocar em telas mais antigas. Vídeos que não tocam são pulados automaticamente."
     },
     "meal-planner": {
       "viewWeek": "Grade semanal",
@@ -2499,6 +2533,7 @@
     "photo-slideshow": {
       "sourceLocal": "Fotos locais",
       "sourceImmich": "Immich",
+      "sourceICloud": "Álbum Compartilhado do iCloud",
       "transitionFade": "Fade",
       "transitionNone": "Nenhuma",
       "photoSource": "Fonte das fotos",

@@ -43,6 +43,10 @@ const STUBS: Record<string, { glob: string; file: string }> = {
   // Immich photo listing (photo modules with source 'immich'); serves the same
   // bare-array-of-URLs shape as the local backgrounds route.
   immich:       { glob: '**/api/immich/photos*', file: 'backgrounds' },
+  // iCloud Shared Album listing (photo modules with source 'icloud'); same
+  // legacy bare-array shape — real responses carry absolute Apple CDN URLs,
+  // but data: URLs keep the render fully offline under blockExternal.
+  icloud:       { glob: '**/api/icloud/photos*', file: 'backgrounds' },
 };
 
 type Override =

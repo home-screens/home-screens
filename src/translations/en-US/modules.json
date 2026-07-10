@@ -534,7 +534,8 @@
     "noPhotoSelected": "No photo selected",
     "noPhotoSelectedHint": "Choose a photo in the editor panel.",
     "noPhotosYet": "No photos yet",
-    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor."
+    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.",
+    "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on."
   },
   "dad-joke": {
     "loading": "Loading joke…"
@@ -647,7 +648,8 @@
   },
   "photo-slideshow": {
     "loading": "Loading photos…",
-    "empty": "No photos found"
+    "empty": "No photos found",
+    "emptyICloud": "No photos yet. Check the album link and make sure Public Website is turned on."
   },
   "video": {
     "loading": "Loading video…",

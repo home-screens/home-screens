@@ -130,14 +130,15 @@ export default function BackgroundPicker() {
   if (!currentScreen || !selectedScreenId) return null;
 
   const rotationEnabled = currentScreen?.backgroundRotation?.enabled ?? false;
-  const anySourceAvailable = hasUnsplashKey || hasNasaKey || hasImmichKey;
+  // iCloud Shared Albums need no API key, so rotation is always offerable.
+  const anySourceAvailable = true;
 
   const setRotationEnabled = (enabled: boolean) => {
     if (!selectedScreenId) return;
     const current = currentScreen?.backgroundRotation;
     const updated: BackgroundRotation = {
       enabled,
-      source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : 'immich'),
+      source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : hasImmichKey ? 'immich' : 'icloud'),
       query: current?.query || 'nature landscape',
       intervalMinutes: current?.intervalMinutes || 60,
     };
@@ -171,7 +172,7 @@ export default function BackgroundPicker() {
                         backgroundRotation: {
                           ...currentScreen.backgroundRotation!,
                           source,
-                          query: source === 'nasa-apod' || source === 'immich' ? '' : (currentScreen.backgroundRotation!.query || 'nature landscape'),
+                          query: source === 'unsplash' ? (currentScreen.backgroundRotation!.query || 'nature landscape') : '',
                           intervalMinutes: source === 'nasa-apod' ? 240 : (currentScreen.backgroundRotation!.intervalMinutes || 60),
                         },
                       });
@@ -181,6 +182,7 @@ export default function BackgroundPicker() {
                     {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
                     {hasNasaKey && <option value="nasa-apod">{t('backgroundPicker.sources.nasaApod')}</option>}
                     {hasImmichKey && <option value="immich">Immich</option>}
+                    <option value="icloud">{t('backgroundPicker.sources.icloud')}</option>
                   </select>
                 </label>
                 {rotationSource === 'unsplash' && (
@@ -198,6 +200,26 @@ export default function BackgroundPicker() {
                       placeholder={t('backgroundPicker.searchQueryPlaceholder')}
                       className={rotationFieldClass}
                     />
+                  </label>
+                )}
+                {rotationSource === 'icloud' && (
+                  <label className="block">
+                    <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.icloud.albumLabel')}</span>
+                    <input
+                      type="url"
+                      value={currentScreen.backgroundRotation!.icloudAlbumUrl || ''}
+                      onChange={(e) => {
+                        if (!selectedScreenId) return;
+                        updateScreen(selectedScreenId, {
+                          backgroundRotation: { ...currentScreen.backgroundRotation!, icloudAlbumUrl: e.target.value || undefined },
+                        });
+                      }}
+                      placeholder="https://www.icloud.com/sharedalbum/#..."
+                      className={rotationFieldClass}
+                    />
+                    <span className="block mt-1 text-[10px] text-hs-text-faint leading-relaxed">
+                      {t('backgroundPicker.icloud.albumHelp')}
+                    </span>
                   </label>
                 )}
                 {rotationSource === 'immich' && (

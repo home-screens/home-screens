@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { promises as fs, createWriteStream } from 'fs';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
+import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import {
+  safeLibraryPath,
+  writeLibraryFile,
+  MAX_IMAGE_BYTES,
+  MAX_VIDEO_BYTES,
+} from '@/lib/library-files';
 import { mintMediaToken } from '@/lib/media-token';
 import type { MediaListItem } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
-
-/** Validate and resolve a relative path within BGS, preventing directory traversal */
-function safePath(relativePath: string): string | null {
-  const resolved = path.resolve(BGS, relativePath);
-  if (!resolved.startsWith(BGS + path.sep) && resolved !== BGS) return null;
-  return resolved;
-}
 
 /** Helper: resolve a background filename to its serve URL */
 function serveUrl(filename: string, directory?: string) {
@@ -42,7 +39,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // directory. Missing or media-filtered files return [] like an empty list.
   const file = request.nextUrl.searchParams.get('file');
   if (file) {
-    const resolved = safePath(file);
+    const resolved = safeLibraryPath(file);
     if (!resolved) {
       return NextResponse.json({ error: 'Invalid file' }, { status: 400 });
     }
@@ -67,7 +64,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
 
   let dir: string;
   if (directory) {
-    const resolved = safePath(directory);
+    const resolved = safeLibraryPath(directory);
     if (!resolved) {
       return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
     }
@@ -112,8 +109,6 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   return NextResponse.json(items);
 }, 'Failed to list backgrounds');
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB per image file
-const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200 MB per video file
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
@@ -124,7 +119,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   // keeps "max 200 MB" truthful; the few hundred bytes of multipart overhead
   // only shave a byte-exact 200 MB file, which the friendly message still covers.
   const declared = Number(request.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > MAX_VIDEO_SIZE) {
+  if (Number.isFinite(declared) && declared > MAX_VIDEO_BYTES) {
     return NextResponse.json({ error: 'File too large (max 200 MB)' }, { status: 413 });
   }
 
@@ -133,7 +128,7 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   let dir: string;
   if (directory) {
-    const resolved = safePath(directory);
+    const resolved = safeLibraryPath(directory);
     if (!resolved) {
       return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
     }
@@ -154,7 +149,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     if (!isVideo && !ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json({ error: `Invalid file type: ${file.name}` }, { status: 400 });
     }
-    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_SIZE;
+    const maxSize = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     const maxLabel = isVideo ? '200 MB' : '10 MB';
     if (file.size > maxSize) {
       return NextResponse.json({ error: `File too large: ${file.name} (max ${maxLabel})` }, { status: 413 });
@@ -171,10 +166,8 @@ export const POST = withAuth(async (request: NextRequest) => {
     // Stream to disk in chunks. formData() above already holds the one
     // unavoidable in-memory copy; buffering again via arrayBuffer() would
     // peak at 2-3x the file size, enough to OOM a Pi hub on a 200 MB video.
-    await pipeline(
-      Readable.fromWeb(file.stream() as import('stream/web').ReadableStream),
-      createWriteStream(filePath),
-    );
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    await writeLibraryFile(filePath, file.stream(), isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES);
     uploadedPaths.push(serveUrl(safeName, directory || undefined));
   }
 
@@ -195,7 +188,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
 
   // Resolve file within optional directory
   const relativePath = directory ? `${directory}/${path.basename(file)}` : path.basename(file);
-  const filePath = safePath(relativePath);
+  const filePath = safeLibraryPath(relativePath);
   if (!filePath) {
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }

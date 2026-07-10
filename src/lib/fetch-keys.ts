@@ -83,6 +83,12 @@ export function photoSlideshowUrl(config: AnyConfig): string {
     if (wantsMedia) params.set('media', media!);
     return `/api/immich/photos?${params}`;
   }
+  if (config.source === 'icloud') {
+    const params = new URLSearchParams();
+    if (config.icloudAlbumUrl) params.set('album', config.icloudAlbumUrl as string);
+    if (wantsMedia) params.set('media', media!);
+    return `/api/icloud/photos?${params}`;
+  }
   const dir = config.directory as string | undefined;
   const params = new URLSearchParams();
   if (dir) params.set('directory', dir);

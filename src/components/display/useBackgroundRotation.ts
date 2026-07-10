@@ -31,6 +31,7 @@ export function buildRotationKey(screens: Screen[]): string {
           immichAlbumId: r.immichAlbumId ?? null,
           immichPersonId: r.immichPersonId ?? null,
           immichFavoritesOnly: r.immichFavoritesOnly ?? false,
+          icloudAlbumUrl: r.icloudAlbumUrl ?? null,
         };
       }),
   );

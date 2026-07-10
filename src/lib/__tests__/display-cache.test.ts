@@ -173,6 +173,26 @@ describe('displayCache', () => {
 
   // ── clear ────────────────────────────────────────────────────────
 
+  describe('invalidateByPrefix', () => {
+    it('drops every entry under the prefix and leaves the rest', () => {
+      displayCache.set('/api/backgrounds', ['a'], 60_000);
+      displayCache.set('/api/backgrounds?media=videos&file=clip.mp4', [], 60_000);
+      displayCache.set('/api/weather?provider=noaa', { temp: 1 }, 60_000);
+
+      displayCache.invalidateByPrefix('/api/backgrounds');
+
+      expect(displayCache.get('/api/backgrounds')).toBeNull();
+      expect(displayCache.get('/api/backgrounds?media=videos&file=clip.mp4')).toBeNull();
+      expect(displayCache.get('/api/weather?provider=noaa')).not.toBeNull();
+    });
+
+    it('is a no-op when nothing matches', () => {
+      displayCache.set('/api/weather', 1, 60_000);
+      displayCache.invalidateByPrefix('/api/backgrounds');
+      expect(displayCache.get('/api/weather')).not.toBeNull();
+    });
+  });
+
   describe('clear', () => {
     it('removes all cached entries', () => {
       displayCache.set('/api/a', 1, 60_000);

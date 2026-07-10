@@ -270,7 +270,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
           </svg>
           <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
           <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-            {t('fullscreen-photo.noPhotosYetHint')}
+            {/* An empty iCloud album usually means a bad link or the album's
+                public website being off — say that instead of upload advice. */}
+            {t(config.source === 'icloud' ? 'fullscreen-photo.noPhotosYetHintICloud' : 'fullscreen-photo.noPhotosYetHint')}
           </p>
         </div>
       </div>

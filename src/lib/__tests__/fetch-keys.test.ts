@@ -180,6 +180,25 @@ describe('photoSlideshowUrl', () => {
     expect(photoSlideshowUrl({ source: 'immich', mediaTypes: 'photos' }))
       .toBe('/api/immich/photos?');
   });
+
+  it('returns icloud endpoint with the album link when source is icloud', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC' }))
+      .toBe(`/api/icloud/photos?album=${encodeURIComponent('https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC')}`);
+  });
+
+  it('adds media= for icloud sources', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'both' }))
+      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC&media=both');
+  });
+
+  it('omits media= for photo-only icloud configs (legacy string[] back-compat)', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'photos' }))
+      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC');
+  });
+
+  it('omits album= when the icloud link is unset', () => {
+    expect(photoSlideshowUrl({ source: 'icloud' })).toBe('/api/icloud/photos?');
+  });
 });
 
 describe('videoModuleUrl', () => {

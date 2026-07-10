@@ -1615,7 +1615,8 @@
     "rotateEveryLabel": "Wisselen elke",
     "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day"
+      "nasaApod": "NASA Picture of the Day",
+      "icloud": "Gedeeld iCloud-album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1633,6 +1634,10 @@
       "personLabel": "Persoon",
       "anyone": "Iedereen",
       "favoritesOnly": "Alleen favorieten"
+    },
+    "icloud": {
+      "albumLabel": "Albumlink",
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier."
     }
   },
   "imageBrowserModal": {
@@ -1678,6 +1683,24 @@
     "titleMedia": "Mediabibliotheek",
     "allMedia": "Alle foto's en video's",
     "uploadMediaButton": "Uploaden"
+  },
+  "icloudImport": {
+    "toggle": "Importeren via een iCloud-link",
+    "placeholder": "Plak een iCloud-album- of fotolink",
+    "start": "Importeren",
+    "importing": "Bezig met importeren…",
+    "progress": "Bezig met downloaden: {done} van {total}…",
+    "summary": "{done} nieuwe items toegevoegd. {skipped} waren er al.",
+    "summaryFailed": "{failed} konden niet worden gedownload.",
+    "help": "Werkt met links van gedeelde albums (icloud.com/sharedalbum/#…) en 'Kopieer iCloud-link'-links (share.icloud.com). Alles uit de link wordt opgeslagen in de huidige map.",
+    "albumTip": "Tip: gedeelde albums kunnen ook live worden getoond, zonder downloaden. Kies 'Gedeeld iCloud-album' als fotobron in de instellingen van een diavoorstelling.",
+    "errors": {
+      "invalid": "Dit lijkt geen iCloud-link te zijn. Kopieer de link opnieuw en probeer het nog eens.",
+      "expired": "Deze link werkt niet meer. iCloud-fotolinks stoppen na ongeveer een maand; vraag een nieuwe link en probeer het opnieuw.",
+      "busy": "Er loopt al een import. Wacht even tot die klaar is.",
+      "tooMany": "Deze link bevat te veel foto's om in één keer op te slaan. Probeer een kleiner album of een kleinere link.",
+      "lost": "Deze import is uit beeld geraakt. Kijk in de map wat er is toegevoegd."
+    }
   },
   "choreChartModal": {
     "title": "Klusjeskaart",
@@ -2292,6 +2315,7 @@
       "photoSource": "Fotobron",
       "sourceLocal": "Lokale foto's",
       "sourceImmich": "Immich",
+      "sourceICloud": "Gedeeld iCloud-album",
       "mode": "Modus",
       "modeSlideshow": "Diavoorstelling",
       "modeSingle": "Enkele foto",
@@ -2421,7 +2445,9 @@
       "uploading": "Uploaden...",
       "uploadFailed": "Uploaden mislukt",
       "browseLibrary": "Bibliotheek doorzoeken...",
-      "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken."
+      "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken.",
+      "icloudLinkDetected": "Dit is een iCloud-fotolink en kan niet direct worden afgespeeld. Bewaar de video's in je bibliotheek en gebruik ze van daaruit.",
+      "icloudNoVideos": "Deze link bevat geen video's."
     },
     "immichSource": {
       "connecting": "Verbinden...",
@@ -2438,6 +2464,14 @@
       "photosPerRefresh": "Foto's per vernieuwing",
       "photoInAlbumSingular": "{count} foto in album",
       "photoInAlbumPlural": "{count} foto's in album"
+    },
+    "icloudSource": {
+      "albumLink": "Albumlink",
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier.",
+      "noItemsFound": "Nog niets gevonden. Controleer de link en zorg dat 'Openbare website' aanstaat voor het album.",
+      "photoLinkDetected": "Dit is een fotolink, geen link van een gedeeld album. Fotolinks stoppen na ongeveer een maand, dus we bewaren kopieën in je bibliotheek en tonen die.",
+      "photoLinkAction": "Opslaan in bibliotheek",
+      "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen."
     },
     "meal-planner": {
       "viewWeek": "Weekraster",
@@ -2494,6 +2528,7 @@
     "photo-slideshow": {
       "sourceLocal": "Lokale foto's",
       "sourceImmich": "Immich",
+      "sourceICloud": "Gedeeld iCloud-album",
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
       "photoSource": "Fotobron",

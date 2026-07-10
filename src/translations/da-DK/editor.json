@@ -1615,7 +1615,8 @@
     "rotateEveryLabel": "Rotate every",
     "nasaInfo": "NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day"
+      "nasaApod": "NASA Picture of the Day",
+      "icloud": "Delt iCloud-album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1633,6 +1634,10 @@
       "personLabel": "Person",
       "anyone": "Anyone",
       "favoritesOnly": "Favorites only"
+    },
+    "icloud": {
+      "albumLabel": "Albumlink",
+      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her."
     }
   },
   "imageBrowserModal": {
@@ -1678,6 +1683,24 @@
     "titleMedia": "Mediebibliotek",
     "allMedia": "Alle fotos og videoer",
     "uploadMediaButton": "Upload"
+  },
+  "icloudImport": {
+    "toggle": "Importér fra et iCloud-link",
+    "placeholder": "Indsæt et iCloud-album- eller fotolink",
+    "start": "Importér",
+    "importing": "Importerer…",
+    "progress": "Henter {done} af {total}…",
+    "summary": "{done} nye elementer tilføjet. {skipped} var her allerede.",
+    "summaryFailed": "{failed} kunne ikke hentes.",
+    "help": "Virker med links til delte album (icloud.com/sharedalbum/#…) og 'Kopiér iCloud-link'-links (share.icloud.com). Alt i linket gemmes i den aktuelle mappe.",
+    "albumTip": "Tip: Delte album kan også vises live uden at blive hentet. Vælg 'Delt iCloud-album' som fotokilde i et diasshows indstillinger.",
+    "errors": {
+      "invalid": "Det ligner ikke et iCloud-link. Kopiér linket igen, og prøv en gang til.",
+      "expired": "Dette link virker ikke længere. iCloud-fotolinks holder op med at virke efter cirka en måned; bed om et nyt link, og prøv igen.",
+      "busy": "En anden import kører allerede. Vent, til den er færdig.",
+      "tooMany": "Dette link har for mange billeder til at gemme på én gang. Prøv et mindre album eller link.",
+      "lost": "Vi mistede overblikket over denne import. Tjek mappen for at se, hvad der blev tilføjet."
+    }
   },
   "choreChartModal": {
     "title": "Chore Chart",
@@ -2292,6 +2315,7 @@
       "photoSource": "Photo Source",
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Delt iCloud-album",
       "mode": "Mode",
       "modeSlideshow": "Slideshow",
       "modeSingle": "Single Photo",
@@ -2421,7 +2445,9 @@
       "uploading": "Uploading...",
       "uploadFailed": "Upload failed",
       "browseLibrary": "Browse Library...",
-      "urlHint": "Du kan indsætte et YouTube-link eller et direkte videolink (MP4/WebM)."
+      "urlHint": "Du kan indsætte et YouTube-link eller et direkte videolink (MP4/WebM).",
+      "icloudLinkDetected": "Dette er et iCloud-fotolink og kan ikke afspilles direkte. Gem videoerne i dit bibliotek, og brug dem derfra.",
+      "icloudNoVideos": "Dette link indeholder ingen videoer."
     },
     "immichSource": {
       "connecting": "Connecting...",
@@ -2438,6 +2464,14 @@
       "photosPerRefresh": "Photos per Refresh",
       "photoInAlbumSingular": "{count} photo in album",
       "photoInAlbumPlural": "{count} photos in album"
+    },
+    "icloudSource": {
+      "albumLink": "Albumlink",
+      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her.",
+      "noItemsFound": "Intet fundet endnu. Tjek linket, og sørg for, at 'Offentligt websted' er slået til for albummet.",
+      "photoLinkDetected": "Dette er et fotolink, ikke et link til et delt album. Fotolinks holder op med at virke efter cirka en måned, så vi gemmer kopier i dit bibliotek og viser dem i stedet.",
+      "photoLinkAction": "Gem i biblioteket",
+      "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over."
     },
     "meal-planner": {
       "viewWeek": "Week Grid",
@@ -2494,6 +2528,7 @@
     "photo-slideshow": {
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Delt iCloud-album",
       "transitionFade": "Fade",
       "transitionNone": "None",
       "photoSource": "Photo Source",

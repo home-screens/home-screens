@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCache } from '@/lib/display-cache';
 import { logger } from '@/lib/logger';
 import type { MediaListItem } from '@/types/config';
 
@@ -53,6 +54,9 @@ interface UseImageLibraryReturn {
   handleDeleteImage: (imageUrl: string) => Promise<void>;
   handleCreateFolder: () => Promise<void>;
   handleDeleteFolder: () => Promise<void>;
+  /** Re-fetch the current directory's media and the folder tree (e.g. after
+   *  a server-side import added files outside the upload flow). */
+  refresh: () => void;
 
   // Refs
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -174,6 +178,9 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     if (hadSuccess) {
       fetchImages(selectedDir, hadError);  // preserve error if some uploads failed
       fetchDirectories();
+      // Canvas module previews cache their backgrounds lists — without this
+      // they'd show the pre-upload library for up to a full TTL.
+      displayCache.invalidateByPrefix('/api/backgrounds');
     }
   }, [selectedDir, fetchImages, fetchDirectories, t]);
 
@@ -199,6 +206,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setItems((prev) => prev.filter((item) => item.url !== imageUrl));
         setSelectedImage((prev) => prev === imageUrl ? null : prev);
         fetchDirectories();
+        displayCache.invalidateByPrefix('/api/backgrounds');
       }
     } catch (err) {
       log.debug('deleteImage failed:', err);
@@ -233,6 +241,11 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     }
   }, [newFolderName, selectedDir, fetchDirectories, t]);
 
+  const refresh = useCallback(() => {
+    fetchImages(selectedDir);
+    fetchDirectories();
+  }, [fetchImages, fetchDirectories, selectedDir]);
+
   const handleDeleteFolder = useCallback(async () => {
     if (!selectedDir) return;
     try {
@@ -244,6 +257,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       if (res.ok) {
         setSelectedDir('');
         fetchDirectories();
+        displayCache.invalidateByPrefix('/api/backgrounds');
       } else {
         const data = await res.json();
         setError(data.error || t('errors.deleteFolderFailed'));
@@ -275,6 +289,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     handleDeleteImage,
     handleCreateFolder,
     handleDeleteFolder,
+    refresh,
     fileInputRef,
     newFolderInputRef,
   };

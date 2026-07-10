@@ -1615,7 +1615,8 @@
     "rotateEveryLabel": "Rotate every",
     "nasaInfo": "NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day"
+      "nasaApod": "NASA Picture of the Day",
+      "icloud": "iCloud Shared Album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1633,6 +1634,10 @@
       "personLabel": "Person",
       "anyone": "Anyone",
       "favoritesOnly": "Favorites only"
+    },
+    "icloud": {
+      "albumLabel": "Album link",
+      "albumHelp": "On your iPhone, open the album, turn on Public Website, then paste the link here."
     }
   },
   "imageBrowserModal": {
@@ -1678,6 +1683,24 @@
     "titleMedia": "Media Library",
     "allMedia": "All Photos & Videos",
     "uploadMediaButton": "Upload"
+  },
+  "icloudImport": {
+    "toggle": "Import from an iCloud link",
+    "placeholder": "Paste an iCloud album or photo link",
+    "start": "Import",
+    "importing": "Importing…",
+    "progress": "Downloading {done} of {total}…",
+    "summary": "Added {done} new items. {skipped} were already here.",
+    "summaryFailed": "{failed} couldn't be downloaded.",
+    "help": "Works with Shared Album links (icloud.com/sharedalbum/#…) and \"Copy iCloud Link\" links (share.icloud.com). Everything in the link is saved into the current folder.",
+    "albumTip": "Tip: Shared Albums can also play live without downloading. Pick \"iCloud Shared Album\" as the photo source in a slideshow's settings.",
+    "errors": {
+      "invalid": "That doesn't look like an iCloud link. Copy the link again and try once more.",
+      "expired": "This link isn't working anymore. iCloud photo links stop working after about a month, so ask for a fresh one and try again.",
+      "busy": "Another import is already running. Give it a moment to finish.",
+      "tooMany": "This link has too many photos to save all at once. Try a smaller album or link.",
+      "lost": "Lost track of this import. Check the folder to see what was added."
+    }
   },
   "choreChartModal": {
     "title": "Chore Chart",
@@ -2292,6 +2315,7 @@
       "photoSource": "Photo Source",
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "iCloud Shared Album",
       "mode": "Mode",
       "modeSlideshow": "Slideshow",
       "modeSingle": "Single Photo",
@@ -2421,7 +2445,9 @@
       "uploading": "Uploading...",
       "uploadFailed": "Upload failed",
       "browseLibrary": "Browse Library...",
-      "urlHint": "You can paste a YouTube link or a direct video file link (MP4/WebM)."
+      "urlHint": "You can paste a YouTube link or a direct video file link (MP4/WebM).",
+      "icloudLinkDetected": "This is an iCloud photos link, so it can't play directly. Save its videos to your library and use them from there.",
+      "icloudNoVideos": "This link doesn't have any videos in it."
     },
     "immichSource": {
       "connecting": "Connecting...",
@@ -2438,6 +2464,14 @@
       "photosPerRefresh": "Photos per Refresh",
       "photoInAlbumSingular": "{count} photo in album",
       "photoInAlbumPlural": "{count} photos in album"
+    },
+    "icloudSource": {
+      "albumLink": "Album link",
+      "albumHelp": "On your iPhone, open the album, turn on Public Website, then paste the link here.",
+      "noItemsFound": "Nothing found yet. Check the link and make sure the album's Public Website is turned on.",
+      "photoLinkDetected": "This is a photo link, not a Shared Album link. Photo links stop working after about a month, so we save copies into your library and show those instead.",
+      "photoLinkAction": "Save to library",
+      "videoHint": "Some iPhone videos may not play on older displays. Videos that can't play are skipped automatically."
     },
     "meal-planner": {
       "viewWeek": "Week Grid",
@@ -2494,6 +2528,7 @@
     "photo-slideshow": {
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "iCloud Shared Album",
       "transitionFade": "Fade",
       "transitionNone": "None",
       "photoSource": "Photo Source",

@@ -98,6 +98,19 @@ class DisplayDataCache {
     }
   }
 
+  /**
+   * Invalidate every cached URL under a prefix. Editor actions that mutate
+   * the media library (uploads, deletes, iCloud imports) call this with
+   * '/api/backgrounds' so canvas module previews re-fetch immediately instead
+   * of serving the pre-mutation list for up to a full TTL (useFetchData skips
+   * fetching entirely while a cache entry is fresh).
+   */
+  invalidateByPrefix(prefix: string): void {
+    for (const url of [...this.cache.keys()]) {
+      if (url.startsWith(prefix)) this.invalidate(url);
+    }
+  }
+
   /** Clear all entries and reset stats (call on config change) */
   clear(): void {
     this.generation++;

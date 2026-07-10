@@ -534,7 +534,8 @@
     "noPhotoSelected": "Aucune photo sélectionnée",
     "noPhotoSelectedHint": "Choisis une photo dans le panneau de l'éditeur.",
     "noPhotosYet": "Aucune photo pour l'instant",
-    "noPhotosYetHint": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur /remote, ou choisis un dossier dans l'éditeur."
+    "noPhotosYetHint": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur /remote, ou choisis un dossier dans l'éditeur.",
+    "noPhotosYetHintICloud": "Vérifiez le lien de l'album dans l'éditeur et assurez-vous que « Site web public » est activé pour l'album."
   },
   "dad-joke": {
     "loading": "Chargement de la blague…"
@@ -651,7 +652,8 @@
   },
   "photo-slideshow": {
     "loading": "Chargement des photos…",
-    "empty": "Aucune photo trouvée"
+    "empty": "Aucune photo trouvée",
+    "emptyICloud": "Pas encore de photos. Vérifiez le lien de l'album et assurez-vous que « Site web public » est activé."
   },
   "video": {
     "loading": "Chargement de la vidéo…",

@@ -1619,7 +1619,8 @@
     "rotateEveryLabel": "Tourner toutes les",
     "nasaInfo": "La NASA publie une nouvelle image astronomique par jour. L'affichage vérifiera les mises à jour à l'intervalle choisi.",
     "sources": {
-      "nasaApod": "Image du jour NASA"
+      "nasaApod": "Image du jour NASA",
+      "icloud": "Album partagé iCloud"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1637,6 +1638,10 @@
       "personLabel": "Personne",
       "anyone": "N'importe qui",
       "favoritesOnly": "Favoris uniquement"
+    },
+    "icloud": {
+      "albumLabel": "Lien de l'album",
+      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici."
     }
   },
   "imageBrowserModal": {
@@ -1682,6 +1687,24 @@
     "titleMedia": "Bibliothèque multimédia",
     "allMedia": "Toutes les photos et vidéos",
     "uploadMediaButton": "Téléverser"
+  },
+  "icloudImport": {
+    "toggle": "Importer depuis un lien iCloud",
+    "placeholder": "Collez un lien d'album ou de photos iCloud",
+    "start": "Importer",
+    "importing": "Importation…",
+    "progress": "Téléchargement de {done} sur {total}…",
+    "summary": "{done} nouveaux éléments ajoutés. {skipped} étaient déjà là.",
+    "summaryFailed": "{failed} n'ont pas pu être téléchargés.",
+    "help": "Fonctionne avec les liens d'albums partagés (icloud.com/sharedalbum/#…) et les liens « Copier le lien iCloud » (share.icloud.com). Tout le contenu du lien est enregistré dans le dossier actuel.",
+    "albumTip": "Astuce : les albums partagés peuvent aussi être affichés en direct, sans téléchargement. Choisissez « Album partagé iCloud » comme source de photos dans les réglages d'un diaporama.",
+    "errors": {
+      "invalid": "Cela ne ressemble pas à un lien iCloud. Copiez le lien à nouveau et réessayez.",
+      "expired": "Ce lien ne fonctionne plus. Les liens photos iCloud expirent après environ un mois ; demandez un nouveau lien et réessayez.",
+      "busy": "Un autre import est déjà en cours. Attendez qu'il se termine.",
+      "tooMany": "Ce lien contient trop de photos pour tout enregistrer d'un coup. Essayez avec un album ou un lien plus petit.",
+      "lost": "Impossible de suivre cet import. Vérifiez le dossier pour voir ce qui a été ajouté."
+    }
   },
   "choreChartModal": {
     "title": "Tableau de tâches",
@@ -2297,6 +2320,7 @@
       "photoSource": "Source des photos",
       "sourceLocal": "Photos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Album partagé iCloud",
       "mode": "Mode",
       "modeSlideshow": "Diaporama",
       "modeSingle": "Photo unique",
@@ -2426,7 +2450,9 @@
       "uploading": "Téléversement…",
       "uploadFailed": "Échec du téléversement",
       "browseLibrary": "Parcourir la bibliothèque…",
-      "urlHint": "Vous pouvez coller un lien YouTube ou un lien direct vers un fichier vidéo (MP4/WebM)."
+      "urlHint": "Vous pouvez coller un lien YouTube ou un lien direct vers un fichier vidéo (MP4/WebM).",
+      "icloudLinkDetected": "Ceci est un lien de photos iCloud, il ne peut pas être lu directement. Enregistrez ses vidéos dans votre bibliothèque et utilisez-les depuis là.",
+      "icloudNoVideos": "Ce lien ne contient aucune vidéo."
     },
     "immichSource": {
       "connecting": "Connexion…",
@@ -2443,6 +2469,14 @@
       "photosPerRefresh": "Photos par actualisation",
       "photoInAlbumSingular": "{count} photo dans l'album",
       "photoInAlbumPlural": "{count} photos dans l'album"
+    },
+    "icloudSource": {
+      "albumLink": "Lien de l'album",
+      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici.",
+      "noItemsFound": "Rien trouvé pour l'instant. Vérifiez le lien et assurez-vous que « Site web public » est activé pour l'album.",
+      "photoLinkDetected": "Ceci est un lien de photos, pas un lien d'album partagé. Les liens photos expirent après environ un mois ; nous enregistrons donc des copies dans votre bibliothèque et les affichons à la place.",
+      "photoLinkAction": "Enregistrer dans la bibliothèque",
+      "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement."
     },
     "meal-planner": {
       "viewWeek": "Grille hebdomadaire",
@@ -2499,6 +2533,7 @@
     "photo-slideshow": {
       "sourceLocal": "Photos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Album partagé iCloud",
       "transitionFade": "Fondu",
       "transitionNone": "Aucune",
       "photoSource": "Source des photos",

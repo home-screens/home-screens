@@ -133,12 +133,14 @@ export interface ModuleInstance {
 
 export interface BackgroundRotation {
   enabled: boolean;
-  source?: 'unsplash' | 'nasa-apod' | 'immich';
+  source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud';
   query: string;
   intervalMinutes: number;
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
 }
 
 export interface Screen {
@@ -766,11 +768,13 @@ export interface PhotoSlideshowConfig {
   transition: 'fade' | 'none';
   objectFit: 'cover' | 'contain' | 'fill';
   refreshIntervalMs: number;
-  source?: 'local' | 'immich';
+  source?: 'local' | 'immich' | 'icloud';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
   /** Default 'photos' — existing photo-only behavior. */
   mediaTypes?: SlideshowMediaTypes;
   /** Force-advance cap for video slides. Default 60000. */
@@ -1306,11 +1310,13 @@ export interface FullscreenPhotoConfig {
   showClock: boolean;
   kenBurns: boolean;
   theme?: string;
-  source?: 'local' | 'immich';
+  source?: 'local' | 'immich' | 'icloud';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
   /** Default 'photos' — existing photo-only behavior. */
   mediaTypes?: SlideshowMediaTypes;
   /** Force-advance cap for video slides. Default 60000. */

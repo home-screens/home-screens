@@ -226,6 +226,24 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
     },
   },
+  {
+    // source 'icloud' + a pasted share link route the fetch to
+    // /api/icloud/photos (legacy bare-array shape), and the image renders
+    // from that payload.
+    type: 'photo-slideshow', name: 'source-icloud', kind: 'networked', stubKey: 'icloud',
+    config: { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' },
+    expect: async (mod) => {
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+    },
+  },
+  {
+    // Same icloud routing for the fullscreen viewer.
+    type: 'fullscreen-photo', name: 'source-icloud', kind: 'networked', stubKey: 'icloud',
+    config: { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' },
+    expect: async (mod) => {
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+    },
+  },
 
   // ================= video =================
   // The stub serves the media list; the <video> element's own media fetch 404s
