@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { promises as fs, createReadStream } from 'fs';
-import { Readable } from 'stream';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withMediaTokenAuth } from '@/lib/api-utils';
 import { parseRangeHeader } from '@/lib/http-range';
+import { toWebStream } from '@/lib/web-stream';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,16 +60,16 @@ async function serveVideo(request: NextRequest, filePath: string, contentType: s
   };
 
   if (!range) {
-    const stream = Readable.toWeb(createReadStream(filePath)) as ReadableStream;
+    const stream = toWebStream(createReadStream(filePath));
     return new Response(stream, {
       status: 200,
       headers: { ...baseHeaders, 'Content-Length': String(stat.size) },
     });
   }
 
-  const stream = Readable.toWeb(
+  const stream = toWebStream(
     createReadStream(filePath, { start: range.start, end: range.end }),
-  ) as ReadableStream;
+  );
   return new Response(stream, {
     status: 206,
     headers: {

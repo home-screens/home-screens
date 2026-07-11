@@ -19,8 +19,8 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import os from 'os';
-import { Readable } from 'stream';
 import { withAuth } from '@/lib/api-utils';
+import { toWebStream } from '@/lib/web-stream';
 import { readConfig } from '@/lib/config';
 import { getSecretStatus, readSecrets } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
@@ -281,7 +281,7 @@ export const GET = withAuth(async (request) => {
   });
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  const webStream = Readable.toWeb(stream) as unknown as ReadableStream;
+  const webStream = toWebStream(stream);
 
   return new NextResponse(webStream, {
     headers: {
