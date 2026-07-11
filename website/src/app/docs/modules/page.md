@@ -3,7 +3,7 @@ title: Modules
 nextjs:
   metadata:
     title: Modules
-    description: Overview of the Home Screens module system — how modules work, the 8 categories of built-in modules, and how to add them to your display.
+    description: Overview of the Home Screens module system — how modules work, the 9 categories of built-in modules, and how to add them to your display.
     alternates:
       canonical: /docs/modules
 ---
@@ -69,6 +69,10 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Garbage Day** — trash/recycling reminders
 - **Affirmations** — 4 views
 - **Meal Planner** (5 views) · **Chore Chart** (5 views, rewards, rotation schedules)
+
+### Health & Fitness
+
+- Home to activity and wellness widgets from [plugins](/docs/plugins), like the Strava plugin's dashboards, route art, and training views. No built-in modules live here yet — the section appears in the palette once you install a plugin that uses it.
 
 ### Media & Display
 

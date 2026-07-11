@@ -22,6 +22,7 @@ type ModuleCategory =
   | 'News & Finance'
   | 'Knowledge & Fun'
   | 'Personal'
+  | 'Health & Fitness'
   | 'Media & Display'
   | 'Travel';
 
@@ -32,6 +33,7 @@ export const MODULE_CATEGORIES: ModuleCategory[] = [
   'News & Finance',
   'Knowledge & Fun',
   'Personal',
+  'Health & Fitness',
   'Media & Display',
   'Travel',
 ];
@@ -43,6 +45,7 @@ const CATEGORY_SLUG_MAP: Record<ModuleCategory, string> = {
   'News & Finance': 'newsAndFinance',
   'Knowledge & Fun': 'knowledgeAndFun',
   'Personal': 'personal',
+  'Health & Fitness': 'healthAndFitness',
   'Media & Display': 'mediaAndDisplay',
   'Travel': 'travel',
 };
