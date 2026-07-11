@@ -40,6 +40,11 @@ type AuditEvent =
   | { action: 'plugin_install_external'; pluginId: string; version: string; tarballUrl: string }
   | { action: 'plugin_uninstall'; pluginId: string }
   | { action: 'plugin_proxy'; pluginId: string; domain: string; method: string; status: number }
+  | { action: 'plugin_auth_start'; pluginId: string; flow: string }
+  | { action: 'plugin_auth_complete'; pluginId: string }
+  | { action: 'plugin_auth_failure'; pluginId: string; error: string }
+  | { action: 'plugin_auth_revoke'; pluginId: string }
+  | { action: 'plugin_token_refresh'; pluginId: string }
   | { action: 'session_revoke_all' }
   | { action: 'ip_allowlist_change'; ip: string; entryCount: number };
 

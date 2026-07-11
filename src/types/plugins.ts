@@ -34,6 +34,13 @@ export interface PluginManifest {
   dataRequirements?: PluginDataRequirement[];
   prefetchUrl?: string | null;
   secrets?: PluginSecretDeclaration[];
+  /**
+   * Server-side auth adapter for APIs that need more than a static key:
+   * OAuth2 flows or a named proprietary adapter (e.g. Garmin SSO). The host
+   * runs the flow, stores tokens out-of-tree at `data/plugin-tokens/`, and
+   * transparently injects/refreshes the access token on proxy requests.
+   */
+  auth?: PluginAuth;
   allowedDomains?: string[];  // e.g. ["api.spotify.com", "*.openweathermap.org"]
   permissions?: PluginPermission[];
   /** Maps fromVersion → { renames, defaults } for config migration on update */
@@ -71,11 +78,60 @@ export interface PluginManifest {
 export type PluginDataRequirement = 'location' | 'weather' | 'calendar';
 
 /** Declared plugin capabilities.
- *  Most are transparency-only ('network', 'secrets', 'events', 'storage').
+ *  Most are transparency-only ('network', 'secrets', 'events', 'storage', 'oauth').
  *  'localNetwork' is RUNTIME-ENFORCED: without it, the proxy rejects URLs
  *  that resolve to RFC1918 / mDNS / link-local addresses. With it, the
  *  relaxed check is applied — still blocks loopback and cloud-metadata IPs. */
-export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage' | 'localNetwork';
+export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage' | 'localNetwork' | 'oauth';
+
+/**
+ * Server-side auth adapter declaration. The host implements every flow —
+ * plugins never run server-side code; they declare which flow they need and
+ * the host injects the resulting token into proxy requests.
+ */
+export type PluginAuth = OAuth2Auth | GarminAuth;
+
+/**
+ * Named proprietary adapter for Garmin Connect's mobile SSO flow
+ * (email/password + optional MFA → DI bearer tokens). No URLs, scopes, or
+ * client credentials — the flow is fixed and implemented by the host
+ * (`src/lib/plugin-auth-garmin.ts`). Tokens are injected as an
+ * `Authorization: Bearer` header on proxy requests to the plugin's
+ * garmin.com allowedDomains entries.
+ */
+export interface GarminAuth {
+  type: 'garmin';
+}
+
+/** Declarative OAuth2 configuration covering the three standard grant flows. */
+export interface OAuth2Auth {
+  type: 'oauth2';
+  flow: 'authorization_code' | 'device_code' | 'client_credentials';
+  authorizationUrl?: string;       // required for authorization_code and device_code
+  tokenUrl: string;
+  revokeUrl?: string;
+  revokeTokenType?: 'access_token' | 'refresh_token'; // default 'access_token'
+  scopes: string[];
+  scopeSeparator?: string;         // default ' '
+  pkce?: boolean;                  // default true for authorization_code
+  clientAuthentication?: 'body' | 'header' | 'none'; // default 'body'
+  tokenPlacement: 'header' | 'query';
+  tokenParamName?: string;         // required for query placement
+  tokenTargetDomains: string[];    // required, non-empty subset of allowedDomains that receive the token
+  extraAuthParams?: Record<string, string>;
+  extraTokenParams?: Record<string, string>;
+  /** Handle non-standard token responses (dot paths into the response JSON). */
+  tokenResponseTransform?: {
+    accessTokenPath?: string;      // default "access_token"
+    refreshTokenPath?: string;     // default "refresh_token"
+    expiresInPath?: string;        // default "expires_in"
+    expiresInUnit?: 'seconds' | 'milliseconds'; // default 'seconds'
+  };
+  secrets: {
+    clientId: string;              // key name in plugin secrets[]
+    clientSecret?: string;         // optional for public PKCE clients
+  };
+}
 
 /** JSON Schema with UI widget annotations for declarative config rendering */
 export interface PluginConfigSchema {

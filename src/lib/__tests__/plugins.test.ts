@@ -127,6 +127,89 @@ describe('validateManifest', () => {
     expect(validateManifest({ ...validManifest, category: 'Smart Home' })).toBe(true);
     expect(validateManifest({ ...validManifest, category: 'My Custom Category' })).toBe(true);
   });
+
+  describe('auth config', () => {
+    const oauthManifest = {
+      ...validManifest,
+      secrets: [
+        { key: 'client_id', label: 'Client ID', required: true },
+        { key: 'client_secret', label: 'Client Secret', required: true },
+      ],
+      allowedDomains: ['api.spotify.com'],
+      auth: {
+        type: 'oauth2',
+        flow: 'authorization_code',
+        authorizationUrl: 'https://accounts.spotify.com/authorize',
+        tokenUrl: 'https://accounts.spotify.com/api/token',
+        scopes: ['user-read-playback-state'],
+        tokenPlacement: 'header',
+        tokenTargetDomains: ['api.spotify.com'],
+        secrets: { clientId: 'client_id', clientSecret: 'client_secret' },
+      },
+    };
+
+    it('accepts a valid oauth2 authorization_code manifest', () => {
+      expect(validateManifest(oauthManifest)).toBe(true);
+    });
+
+    it('rejects oauth2 with no tokenTargetDomains declared', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: undefined } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects oauth2 with an empty tokenTargetDomains', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: [] } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('accepts oauth2 client_credentials without an authorizationUrl', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'client_credentials', authorizationUrl: undefined } };
+      expect(validateManifest(m)).toBe(true);
+    });
+
+    it('rejects authorization_code / device_code missing an authorizationUrl', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, authorizationUrl: undefined } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects oauth2 with an unknown flow', () => {
+      expect(validateManifest({ ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'implicit' } })).toBe(false);
+    });
+
+    it('rejects oauth2 whose clientId does not reference a declared secret', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, secrets: { clientId: 'nope' } } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects query token placement without a tokenParamName', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenPlacement: 'query' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects tokenTargetDomains outside allowedDomains', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: ['evil.example.com'] } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('accepts a garmin manifest that declares a garmin.com domain', () => {
+      const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin' } };
+      expect(validateManifest(m)).toBe(true);
+    });
+
+    it('rejects a garmin manifest with no garmin.com domain', () => {
+      const m = { ...validManifest, allowedDomains: ['api.example.com'], auth: { type: 'garmin' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects a garmin manifest carrying extra fields', () => {
+      const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin', tokenUrl: 'x' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects an unknown auth type', () => {
+      expect(validateManifest({ ...validManifest, auth: { type: 'saml' } })).toBe(false);
+    });
+  });
 });
 
 /** Build a minimal valid plugin tarball in a temp dir, return its buffer. */

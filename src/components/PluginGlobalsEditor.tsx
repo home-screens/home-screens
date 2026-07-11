@@ -68,11 +68,19 @@ export default function PluginGlobalsEditor() {
     // Editor-only SDK additions
     window.__HS_SDK__.AccordionSection = AccordionSection;
     window.__HS_SDK__.useModuleConfig = useModuleConfig;
+    // Lets a plugin's configSection embed its own "Connect" button with custom
+    // placement. Dispatches a window event the Connection panel listens for,
+    // keeping the two decoupled (the plugin never imports host components).
+    window.__HS_SDK__.startAuth = (pluginId: string) => {
+      if (typeof pluginId !== 'string') return;
+      window.dispatchEvent(new CustomEvent('hs-plugin-start-auth', { detail: { pluginId } }));
+    };
 
     return () => {
       if (!window.__HS_SDK__) return;
       delete window.__HS_SDK__.AccordionSection;
       delete window.__HS_SDK__.useModuleConfig;
+      delete window.__HS_SDK__.startAuth;
     };
   }, []);
 

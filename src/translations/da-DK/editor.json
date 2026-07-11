@@ -1352,13 +1352,15 @@
         "secrets": "Secret storage",
         "events": "Host events",
         "storage": "Local storage",
-        "localNetwork": "Local network (LAN)"
+        "localNetwork": "Local network (LAN)",
+        "oauth": "Kontologin (OAuth)"
       },
       "secretsHeading": "API keys required",
       "secretRequired": "(required)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copy",
-      "sha256CopyAriaLabel": "Copy SHA-256"
+      "sha256CopyAriaLabel": "Copy SHA-256",
+      "connectionRequired": "Dette plugin kræver, at du forbinder en konto efter installationen."
     },
     "pluginSecrets": {
       "loading": "Loading secrets status…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Save",
       "savedSuccess": "Saved successfully"
+    },
+    "pluginAuth": {
+      "loading": "Kontrollerer forbindelse…",
+      "connectedLabel": "Forbundet",
+      "disconnectButton": "Afbryd",
+      "autoRenewNote": "Din forbindelse forbliver logget ind automatisk.",
+      "connectButton": "Forbind",
+      "connecting": "Forbinder…",
+      "redirectUriLabel": "Tilføj denne omdirigerings-URL, når du opsætter forbindelsen:",
+      "deviceCodeIntro": "Åbn dette link, og indtast koden:",
+      "devicePolling": "Venter på din godkendelse…",
+      "errorGeneric": "Noget gik galt. Prøv igen.",
+      "popupBlocked": "Din browser blokerede login-vinduet. Tillad pop op-vinduer for dette websted, og prøv igen.",
+      "garmin": {
+        "intro": "Log ind med din Garmin Connect-konto.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Adgangskode",
+        "signInButton": "Log ind",
+        "mfaSent": "Indtast den kode, Garmin lige har sendt dig.",
+        "mfaPlaceholder": "Kode",
+        "mfaButton": "Bekræft"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1904,7 +1928,9 @@
       "credentials": "Credentials",
       "schedule": "Schedule",
       "visibility": "Visibility",
-      "conditions": "Betingelser"
+      "conditions": "Betingelser",
+      "connection": "Forbindelse",
+      "connectionSetup": "Opsætning af forbindelse"
     },
     "fields": {
       "x": "X",

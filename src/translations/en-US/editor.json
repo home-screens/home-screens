@@ -1352,13 +1352,15 @@
         "secrets": "Secret storage",
         "events": "Host events",
         "storage": "Local storage",
-        "localNetwork": "Local network (LAN)"
+        "localNetwork": "Local network (LAN)",
+        "oauth": "Account sign-in (OAuth)"
       },
       "secretsHeading": "API keys required",
       "secretRequired": "(required)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copy",
-      "sha256CopyAriaLabel": "Copy SHA-256"
+      "sha256CopyAriaLabel": "Copy SHA-256",
+      "connectionRequired": "This plugin needs you to connect an account after installing."
     },
     "pluginSecrets": {
       "loading": "Loading secrets status…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Save",
       "savedSuccess": "Saved successfully"
+    },
+    "pluginAuth": {
+      "loading": "Checking connection…",
+      "connectedLabel": "Connected",
+      "disconnectButton": "Disconnect",
+      "autoRenewNote": "Your connection stays signed in automatically.",
+      "connectButton": "Connect",
+      "connecting": "Connecting…",
+      "redirectUriLabel": "Add this redirect URL when you set up the connection:",
+      "deviceCodeIntro": "Open this link and enter the code:",
+      "devicePolling": "Waiting for you to approve…",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "popupBlocked": "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.",
+      "garmin": {
+        "intro": "Sign in with your Garmin Connect account.",
+        "emailPlaceholder": "Email",
+        "passwordPlaceholder": "Password",
+        "signInButton": "Sign in",
+        "mfaSent": "Enter the code Garmin just sent you.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Verify"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1904,7 +1928,9 @@
       "credentials": "Credentials",
       "schedule": "Schedule",
       "visibility": "Visibility",
-      "conditions": "Conditions"
+      "conditions": "Conditions",
+      "connection": "Connection",
+      "connectionSetup": "Connection Setup"
     },
     "fields": {
       "x": "X",

@@ -656,6 +656,7 @@ function InstallConfirmModal({
   const latest = plugin.versions[0];
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
   const [manifestSecrets, setManifestSecrets] = useState<PluginSecretDeclaration[]>([]);
+  const [requiresConnection, setRequiresConnection] = useState(false);
 
   // Fetch the actual manifest to get secrets declarations (not available in registry metadata)
   useEffect(() => {
@@ -669,6 +670,7 @@ function InstallConfirmModal({
         if (cancelled) return;
         if (manifest.permissions?.length) setManifestPermissions(manifest.permissions);
         if (manifest.secrets?.length) setManifestSecrets(manifest.secrets);
+        if (manifest.auth) setRequiresConnection(true);
       } catch {
         // Plugin not installed yet — registry permissions are the best we have
       }
@@ -695,6 +697,7 @@ function InstallConfirmModal({
           verified={plugin.verified}
           permissions={manifestPermissions}
           secrets={manifestSecrets}
+          requiresConnection={requiresConnection}
         />
 
         {/* Actions */}

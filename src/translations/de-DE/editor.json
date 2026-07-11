@@ -1352,13 +1352,15 @@
         "secrets": "Secret-Speicher",
         "events": "Host-Events",
         "storage": "Lokaler Speicher",
-        "localNetwork": "Lokales Netzwerk (LAN)"
+        "localNetwork": "Lokales Netzwerk (LAN)",
+        "oauth": "Kontoanmeldung (OAuth)"
       },
       "secretsHeading": "Benötigte API-Schlüssel",
       "secretRequired": "(erforderlich)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Kopieren",
-      "sha256CopyAriaLabel": "SHA-256 kopieren"
+      "sha256CopyAriaLabel": "SHA-256 kopieren",
+      "connectionRequired": "Dieses Plugin erfordert nach der Installation die Verbindung eines Kontos."
     },
     "pluginSecrets": {
       "loading": "Secret-Status wird geladen …",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Speichern",
       "savedSuccess": "Erfolgreich gespeichert"
+    },
+    "pluginAuth": {
+      "loading": "Verbindung wird geprüft…",
+      "connectedLabel": "Verbunden",
+      "disconnectButton": "Trennen",
+      "autoRenewNote": "Deine Verbindung bleibt automatisch angemeldet.",
+      "connectButton": "Verbinden",
+      "connecting": "Verbinde…",
+      "redirectUriLabel": "Füge diese Weiterleitungs-URL beim Einrichten der Verbindung hinzu:",
+      "deviceCodeIntro": "Öffne diesen Link und gib den Code ein:",
+      "devicePolling": "Warte auf deine Bestätigung…",
+      "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "popupBlocked": "Dein Browser hat das Anmeldefenster blockiert. Erlaube Pop-ups für diese Seite und versuche es erneut.",
+      "garmin": {
+        "intro": "Melde dich mit deinem Garmin Connect-Konto an.",
+        "emailPlaceholder": "E-Mail",
+        "passwordPlaceholder": "Passwort",
+        "signInButton": "Anmelden",
+        "mfaSent": "Gib den Code ein, den Garmin dir gerade gesendet hat.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Bestätigen"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1904,7 +1928,9 @@
       "credentials": "Anmeldedaten",
       "schedule": "Zeitplan",
       "visibility": "Sichtbarkeit",
-      "conditions": "Bedingungen"
+      "conditions": "Bedingungen",
+      "connection": "Verbindung",
+      "connectionSetup": "Verbindungseinrichtung"
     },
     "fields": {
       "x": "X",

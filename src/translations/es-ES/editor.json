@@ -1352,13 +1352,15 @@
         "secrets": "Almacén de secretos",
         "events": "Eventos del host",
         "storage": "Almacenamiento local",
-        "localNetwork": "Red local (LAN)"
+        "localNetwork": "Red local (LAN)",
+        "oauth": "Inicio de sesión de cuenta (OAuth)"
       },
       "secretsHeading": "Claves de API necesarias",
       "secretRequired": "(obligatoria)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copiar",
-      "sha256CopyAriaLabel": "Copiar SHA-256"
+      "sha256CopyAriaLabel": "Copiar SHA-256",
+      "connectionRequired": "Este complemento requiere conectar una cuenta tras la instalación."
     },
     "pluginSecrets": {
       "loading": "Cargando estado de los secretos…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Guardar",
       "savedSuccess": "Guardado correctamente"
+    },
+    "pluginAuth": {
+      "loading": "Comprobando la conexión…",
+      "connectedLabel": "Conectado",
+      "disconnectButton": "Desconectar",
+      "autoRenewNote": "Tu conexión permanece iniciada automáticamente.",
+      "connectButton": "Conectar",
+      "connecting": "Conectando…",
+      "redirectUriLabel": "Añade esta URL de redirección al configurar la conexión:",
+      "deviceCodeIntro": "Abre este enlace e introduce el código:",
+      "devicePolling": "Esperando tu aprobación…",
+      "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+      "popupBlocked": "Tu navegador bloqueó la ventana de inicio de sesión. Permite las ventanas emergentes en este sitio e inténtalo de nuevo.",
+      "garmin": {
+        "intro": "Inicia sesión con tu cuenta de Garmin Connect.",
+        "emailPlaceholder": "Correo electrónico",
+        "passwordPlaceholder": "Contraseña",
+        "signInButton": "Iniciar sesión",
+        "mfaSent": "Introduce el código que Garmin acaba de enviarte.",
+        "mfaPlaceholder": "Código",
+        "mfaButton": "Verificar"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1908,7 +1932,9 @@
       "credentials": "Credenciales",
       "schedule": "Programación",
       "visibility": "Visibilidad",
-      "conditions": "Condiciones"
+      "conditions": "Condiciones",
+      "connection": "Conexión",
+      "connectionSetup": "Configuración de conexión"
     },
     "fields": {
       "x": "X",

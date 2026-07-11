@@ -18,6 +18,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import PluginSecretsSection from './PluginSecretsSection';
+import PluginAuthSection from './PluginAuthSection';
 import { MousePointerClick } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
@@ -319,18 +320,58 @@ export default function PropertyPanel() {
           </AccordionSection>
         )}
 
-        {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (
-          <AccordionSection title={t('propertyPanel.sections.secrets')} defaultOpen={false}>
-            <PropertyGroup title={t('propertyPanel.sections.credentials')} accent={2}>
-              <div className="space-y-3">
-                <PluginSecretsSection
-                  pluginId={loadedPlugin.manifest.id}
-                  secrets={loadedPlugin.manifest.secrets}
-                />
-              </div>
-            </PropertyGroup>
-          </AccordionSection>
-        )}
+        {isPlugin && loadedPlugin?.manifest.auth && (() => {
+          const auth = loadedPlugin.manifest.auth;
+          // OAuth client credentials belong with the connect button, not the
+          // general secrets list. Garmin has no such secrets.
+          const authSecretKeys = auth.type === 'oauth2'
+            ? [auth.secrets.clientId, auth.secrets.clientSecret].filter((k): k is string => Boolean(k))
+            : [];
+          const declaredSecrets = loadedPlugin.manifest.secrets ?? [];
+          return (
+            <AccordionSection title={t('propertyPanel.sections.connection')} defaultOpen>
+              {authSecretKeys.length > 0 && (
+                <PropertyGroup title={t('propertyPanel.sections.connectionSetup')} accent={2}>
+                  <div className="space-y-3">
+                    <PluginSecretsSection
+                      pluginId={loadedPlugin.manifest.id}
+                      secrets={declaredSecrets}
+                      keyFilter={authSecretKeys}
+                    />
+                  </div>
+                </PropertyGroup>
+              )}
+              <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
+                <PluginAuthSection pluginId={loadedPlugin.manifest.id} auth={auth} />
+              </PropertyGroup>
+            </AccordionSection>
+          );
+        })()}
+
+        {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (() => {
+          // Exclude OAuth client credentials — they render under Connection.
+          const auth = loadedPlugin.manifest.auth;
+          const authSecretKeys = auth?.type === 'oauth2'
+            ? [auth.secrets.clientId, auth.secrets.clientSecret].filter((k): k is string => Boolean(k))
+            : [];
+          const otherKeys = loadedPlugin.manifest.secrets
+            .map((s) => s.key)
+            .filter((k) => !authSecretKeys.includes(k));
+          if (otherKeys.length === 0) return null;
+          return (
+            <AccordionSection title={t('propertyPanel.sections.secrets')} defaultOpen={false}>
+              <PropertyGroup title={t('propertyPanel.sections.credentials')} accent={2}>
+                <div className="space-y-3">
+                  <PluginSecretsSection
+                    pluginId={loadedPlugin.manifest.id}
+                    secrets={loadedPlugin.manifest.secrets}
+                    keyFilter={otherKeys}
+                  />
+                </div>
+              </PropertyGroup>
+            </AccordionSection>
+          );
+        })()}
 
         <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={false}>
           <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>

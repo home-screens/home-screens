@@ -1352,13 +1352,15 @@
         "secrets": "Geheimopslag",
         "events": "Host-events",
         "storage": "Lokale opslag",
-        "localNetwork": "Lokaal netwerk (LAN)"
+        "localNetwork": "Lokaal netwerk (LAN)",
+        "oauth": "Accountaanmelding (OAuth)"
       },
       "secretsHeading": "Vereiste API-sleutels",
       "secretRequired": "(vereist)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Kopiëren",
-      "sha256CopyAriaLabel": "SHA-256 kopiëren"
+      "sha256CopyAriaLabel": "SHA-256 kopiëren",
+      "connectionRequired": "Deze plug-in vereist dat je na de installatie een account koppelt."
     },
     "pluginSecrets": {
       "loading": "Status van geheimen laden…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Opslaan",
       "savedSuccess": "Succesvol opgeslagen"
+    },
+    "pluginAuth": {
+      "loading": "Verbinding controleren…",
+      "connectedLabel": "Verbonden",
+      "disconnectButton": "Verbinding verbreken",
+      "autoRenewNote": "Je verbinding blijft automatisch aangemeld.",
+      "connectButton": "Verbinden",
+      "connecting": "Verbinden…",
+      "redirectUriLabel": "Voeg deze omleidings-URL toe bij het instellen van de verbinding:",
+      "deviceCodeIntro": "Open deze link en voer de code in:",
+      "devicePolling": "Wachten op je goedkeuring…",
+      "errorGeneric": "Er ging iets mis. Probeer het opnieuw.",
+      "popupBlocked": "Je browser heeft het aanmeldvenster geblokkeerd. Sta pop-ups voor deze site toe en probeer het opnieuw.",
+      "garmin": {
+        "intro": "Meld je aan met je Garmin Connect-account.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Wachtwoord",
+        "signInButton": "Aanmelden",
+        "mfaSent": "Voer de code in die Garmin je zojuist heeft gestuurd.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Verifiëren"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1904,7 +1928,9 @@
       "credentials": "Inloggegevens",
       "schedule": "Schema",
       "visibility": "Zichtbaarheid",
-      "conditions": "Voorwaarden"
+      "conditions": "Voorwaarden",
+      "connection": "Verbinding",
+      "connectionSetup": "Verbinding instellen"
     },
     "fields": {
       "x": "X",

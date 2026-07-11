@@ -1352,13 +1352,15 @@
         "secrets": "Stockage de secrets",
         "events": "Événements de l'hôte",
         "storage": "Stockage local",
-        "localNetwork": "Réseau local (LAN)"
+        "localNetwork": "Réseau local (LAN)",
+        "oauth": "Connexion au compte (OAuth)"
       },
       "secretsHeading": "Clés API requises",
       "secretRequired": "(requis)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copier",
-      "sha256CopyAriaLabel": "Copier le SHA-256"
+      "sha256CopyAriaLabel": "Copier le SHA-256",
+      "connectionRequired": "Ce plugin nécessite de connecter un compte après l'installation."
     },
     "pluginSecrets": {
       "loading": "Chargement de l'état des secrets…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Enregistrer",
       "savedSuccess": "Enregistré avec succès"
+    },
+    "pluginAuth": {
+      "loading": "Vérification de la connexion…",
+      "connectedLabel": "Connecté",
+      "disconnectButton": "Déconnecter",
+      "autoRenewNote": "Votre connexion reste active automatiquement.",
+      "connectButton": "Connecter",
+      "connecting": "Connexion…",
+      "redirectUriLabel": "Ajoutez cette URL de redirection lors de la configuration de la connexion :",
+      "deviceCodeIntro": "Ouvrez ce lien et saisissez le code :",
+      "devicePolling": "En attente de votre approbation…",
+      "errorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
+      "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les fenêtres pop-up pour ce site, puis réessayez.",
+      "garmin": {
+        "intro": "Connectez-vous avec votre compte Garmin Connect.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Mot de passe",
+        "signInButton": "Se connecter",
+        "mfaSent": "Saisissez le code que Garmin vient de vous envoyer.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Vérifier"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1908,7 +1932,9 @@
       "credentials": "Identifiants",
       "schedule": "Planification",
       "visibility": "Visibilité",
-      "conditions": "Conditions"
+      "conditions": "Conditions",
+      "connection": "Connexion",
+      "connectionSetup": "Configuration de la connexion"
     },
     "fields": {
       "x": "X",

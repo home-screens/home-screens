@@ -1352,13 +1352,15 @@
         "secrets": "Armazenamento de segredos",
         "events": "Eventos do host",
         "storage": "Armazenamento local",
-        "localNetwork": "Rede local (LAN)"
+        "localNetwork": "Rede local (LAN)",
+        "oauth": "Login de conta (OAuth)"
       },
       "secretsHeading": "Chaves de API necessárias",
       "secretRequired": "(obrigatória)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copiar",
-      "sha256CopyAriaLabel": "Copiar SHA-256"
+      "sha256CopyAriaLabel": "Copiar SHA-256",
+      "connectionRequired": "Este plugin exige conectar uma conta após a instalação."
     },
     "pluginSecrets": {
       "loading": "Carregando status dos segredos…",
@@ -1368,6 +1370,28 @@
       "savingButton": "…",
       "saveButton": "Salvar",
       "savedSuccess": "Salvo com sucesso"
+    },
+    "pluginAuth": {
+      "loading": "Verificando a conexão…",
+      "connectedLabel": "Conectado",
+      "disconnectButton": "Desconectar",
+      "autoRenewNote": "Sua conexão permanece conectada automaticamente.",
+      "connectButton": "Conectar",
+      "connecting": "Conectando…",
+      "redirectUriLabel": "Adicione esta URL de redirecionamento ao configurar a conexão:",
+      "deviceCodeIntro": "Abra este link e insira o código:",
+      "devicePolling": "Aguardando sua aprovação…",
+      "errorGeneric": "Algo deu errado. Tente novamente.",
+      "popupBlocked": "Seu navegador bloqueou a janela de login. Permita pop-ups para este site e tente novamente.",
+      "garmin": {
+        "intro": "Entre com sua conta do Garmin Connect.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Senha",
+        "signInButton": "Entrar",
+        "mfaSent": "Insira o código que a Garmin acabou de enviar.",
+        "mfaPlaceholder": "Código",
+        "mfaButton": "Verificar"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1908,7 +1932,9 @@
       "credentials": "Credenciais",
       "schedule": "Agenda",
       "visibility": "Visibilidade",
-      "conditions": "Condições"
+      "conditions": "Condições",
+      "connection": "Conexão",
+      "connectionSetup": "Configuração da conexão"
     },
     "fields": {
       "x": "X",

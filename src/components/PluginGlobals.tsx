@@ -162,6 +162,7 @@ export default function PluginGlobals() {
             query?: Record<string, string>;
           };
           cacheTtlMs?: number;
+          skipAuth?: boolean;
         },
       ): Promise<Response> => {
         return displayFetch(`/api/plugins/proxy/${encodeURIComponent(pluginId)}`, {
@@ -169,6 +170,23 @@ export default function PluginGlobals() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(options),
         });
+      },
+
+      // Auth adapter status — lets a plugin component show connection-dependent
+      // UI (e.g. "Connect your account to see playback"). Read-only; the connect
+      // flow itself is editor-only (see __HS_SDK__.startAuth).
+      getAuthStatus: async (
+        pluginId: string,
+      ): Promise<{ connected: boolean; expiresAt?: number }> => {
+        try {
+          const res = await displayFetch(
+            `/api/plugins/auth/${encodeURIComponent(pluginId)}/status`,
+          );
+          if (!res.ok) return { connected: false };
+          return await res.json();
+        } catch {
+          return { connected: false };
+        }
       },
 
       // ── i18n surface ────────────────────────────────────────────────

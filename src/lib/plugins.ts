@@ -5,6 +5,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
+import { deletePluginTokens, deletePendingAuth } from '@/lib/plugin-auth';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
@@ -294,10 +295,13 @@ export async function installExternalPlugin(
 }
 
 export async function uninstallPlugin(pluginId: string): Promise<void> {
-  // Secrets live outside the plugin directory, but we still clear them
-  // explicitly so an uninstall doesn't leave per-plugin credentials behind.
+  // Secrets and auth tokens live outside the plugin directory (upgrades wipe
+  // that dir wholesale), but we still clear them explicitly so an uninstall
+  // doesn't leave per-plugin credentials behind.
   // (Also removes any leftover legacy in-plugin-dir secrets.json.)
   await deleteAllPluginSecrets(pluginId);
+  await deletePluginTokens(pluginId);
+  await deletePendingAuth(pluginId);
 
   const dir = pluginDir(pluginId);
   await fs.rm(dir, { recursive: true, force: true });
@@ -385,6 +389,65 @@ export async function getPluginHash(): Promise<string> {
 
 // --- Manifest validation ---
 
+const OAUTH2_FLOWS = new Set(['authorization_code', 'device_code', 'client_credentials']);
+
+function isGarminDomain(domain: string): boolean {
+  return domain === 'garmin.com' || domain.endsWith('.garmin.com');
+}
+
+/** Validate the optional `auth` field. `m` is the whole manifest (auth rules
+ *  cross-reference `secrets` and `allowedDomains`). */
+function validateAuthConfig(m: Record<string, unknown>): boolean {
+  const auth = m.auth as Record<string, unknown>;
+  if (!auth || typeof auth !== 'object') return false;
+  const allowedDomains = Array.isArray(m.allowedDomains) ? (m.allowedDomains as string[]) : [];
+
+  if (auth.type === 'garmin') {
+    // The flow is fixed and host-implemented — extra fields signal a
+    // misauthored manifest, so reject rather than silently ignore.
+    if (Object.keys(auth).length !== 1) return false;
+    // Token injection only fires on garmin.com hosts; a manifest without one
+    // declared could never receive the token it asked for.
+    return allowedDomains.some(isGarminDomain);
+  }
+
+  if (auth.type !== 'oauth2') return false;
+  if (typeof auth.flow !== 'string' || !OAUTH2_FLOWS.has(auth.flow)) return false;
+  if (typeof auth.tokenUrl !== 'string' || !auth.tokenUrl) return false;
+  if (auth.flow !== 'client_credentials' && (typeof auth.authorizationUrl !== 'string' || !auth.authorizationUrl)) {
+    return false;
+  }
+  if (!Array.isArray(auth.scopes) || auth.scopes.length === 0
+    || !auth.scopes.every((s: unknown) => typeof s === 'string')) return false;
+  if (auth.tokenPlacement !== 'header' && auth.tokenPlacement !== 'query') return false;
+  if (auth.tokenPlacement === 'query' && (typeof auth.tokenParamName !== 'string' || !auth.tokenParamName)) {
+    return false;
+  }
+
+  // Client credentials must reference keys the plugin actually declares —
+  // otherwise the editor has no input to collect them with.
+  const secretKeys = new Set(
+    Array.isArray(m.secrets) ? (m.secrets as Array<{ key?: unknown }>).map((s) => s?.key) : [],
+  );
+  const authSecrets = auth.secrets as Record<string, unknown> | undefined;
+  if (!authSecrets || typeof authSecrets !== 'object') return false;
+  if (typeof authSecrets.clientId !== 'string' || !secretKeys.has(authSecrets.clientId)) return false;
+  if (authSecrets.clientSecret !== undefined
+    && (typeof authSecrets.clientSecret !== 'string' || !secretKeys.has(authSecrets.clientSecret))) {
+    return false;
+  }
+
+  // tokenTargetDomains is REQUIRED and must be a non-empty subset of
+  // allowedDomains: the plugin author names exactly which hosts receive the
+  // bearer, so it never fans out to an unrelated allowed host (e.g. a CDN),
+  // and a missing declaration is caught here rather than silently injecting
+  // nothing at runtime.
+  if (!Array.isArray(auth.tokenTargetDomains) || auth.tokenTargetDomains.length === 0) return false;
+  const declared = new Set(allowedDomains);
+  if (!auth.tokenTargetDomains.every((d: unknown) => typeof d === 'string' && declared.has(d))) return false;
+  return true;
+}
+
 export function validateManifest(manifest: unknown): manifest is PluginManifest {
   if (!manifest || typeof manifest !== 'object') return false;
   const m = manifest as Record<string, unknown>;
@@ -412,6 +475,8 @@ export function validateManifest(manifest: unknown): manifest is PluginManifest 
     if (!Array.isArray(m.allowedDomains)) return false;
     if (!m.allowedDomains.every((d: unknown) => typeof d === 'string')) return false;
   }
+  // Validate optional auth adapter declaration
+  if (m.auth !== undefined && !validateAuthConfig(m)) return false;
   // Validate optional providesState array. Keys are declared un-prefixed;
   // registration prefixes them with `plugin:<id>:`, so check the charset
   // against the raw key and the length cap against the prefixed key.
