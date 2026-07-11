@@ -1506,7 +1506,7 @@
       "telemetryItem6": "Weerprovider en overgangseffect",
       "telemetryItem7": "Of slaapstand, meldingen en authenticatie zijn ingeschakeld",
       "telemetryItem8": "Of agenda-integraties zijn geconfigureerd",
-      "telemetryItem9": "Aantal geïnstalleerde plug-ins",
+      "telemetryItem9": "Geïnstalleerde plug-ins (marketplace-namen en versies; plug-ins van buiten de marketplace worden geteld maar nooit benoemd)",
       "telemetryDisclaimer": "We verzamelen nooit: IP-adressen, locatie, agenda-items, API-sleutels, module-inhoud, hostnamen of andere persoonlijk identificeerbare informatie. Alle code is open source en kan worden geverifieerd.",
       "dataDirTitle": "Home Screens-gegevens",
       "totalAppData": "Totale appgegevens",

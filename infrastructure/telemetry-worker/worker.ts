@@ -39,13 +39,14 @@ const worker = {
 
     try {
       // Read body as text and enforce actual size limit (don't trust content-length).
-      // 16KB ceiling sized for the multi-display beacon (v2): a maxed-out
-      // 64-display install pushes ~12KB of `displays[]` plus moduleTypes and
-      // raw_payload, and we don't want a permanent silent telemetry blackout
-      // for those installs (the host advances `lastBeaconAt` before sending,
-      // so a 413 turns into a 24h-cycle-forever loss).
+      // 24KB ceiling sized for the worst-case beacon: a maxed-out 64-display
+      // install pushes ~12KB of `displays[]` plus moduleTypes (v2), and the
+      // v4 `plugins[]` array (host-capped at 100 entries) adds up to ~6KB.
+      // We don't want a permanent silent telemetry blackout for those
+      // installs (the host advances `lastBeaconAt` before sending, so a 413
+      // turns into a 24h-cycle-forever loss).
       const text = await request.text();
-      if (new TextEncoder().encode(text).byteLength > 16_000) {
+      if (new TextEncoder().encode(text).byteLength > 24_000) {
         return new Response(JSON.stringify({ error: 'Payload too large' }), {
           status: 413,
           headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -91,6 +92,7 @@ const worker = {
           display_count, displays,
           has_owned_screens, has_legacy_screen_ids, has_owned_profiles,
           has_settings_override,
+          plugins,
           raw_payload
         ) VALUES (
           ?1, datetime('now'), datetime('now'),
@@ -104,7 +106,8 @@ const worker = {
           ?22, ?23,
           ?24, ?25, ?26,
           ?27,
-          ?28
+          ?28,
+          ?29
         )
         ON CONFLICT(install_id) DO UPDATE SET
           last_seen_at = datetime('now'),
@@ -134,6 +137,7 @@ const worker = {
           has_legacy_screen_ids = excluded.has_legacy_screen_ids,
           has_owned_profiles = excluded.has_owned_profiles,
           has_settings_override = excluded.has_settings_override,
+          plugins = excluded.plugins,
           raw_payload = excluded.raw_payload
       `)
         .bind(
@@ -165,6 +169,8 @@ const worker = {
           boolToSqlite(body.hasLegacyScreenIds),
           boolToSqlite(body.hasOwnedProfiles),
           boolToSqlite(body.hasSettingsOverride),
+          // Plugins column (NULL on pre-v4 payloads — "unknown", not "none")
+          Array.isArray(body.plugins) ? JSON.stringify(body.plugins) : null,
           JSON.stringify(body),
         )
         .run();

@@ -1506,7 +1506,7 @@
       "telemetryItem6": "Weather provider and transition effect",
       "telemetryItem7": "Whether sleep, alerts, and auth are enabled",
       "telemetryItem8": "Whether calendar integrations are configured",
-      "telemetryItem9": "Number of installed plugins",
+      "telemetryItem9": "Installed plugins (marketplace names and versions; plugins from outside the marketplace are counted but never named)",
       "telemetryDisclaimer": "We never collect: IP addresses, location, calendar events, API keys, module content, hostnames, or any personally identifiable information. All of the code is Open Source and can be verified.",
       "dataDirTitle": "Home Screens Data",
       "totalAppData": "Total app data",

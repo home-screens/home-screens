@@ -1506,7 +1506,7 @@
       "telemetryItem6": "Wetteranbieter und Übergangseffekt",
       "telemetryItem7": "Ob Ruhemodus, Warnungen und Authentifizierung aktiviert sind",
       "telemetryItem8": "Ob Kalender-Integrationen konfiguriert sind",
-      "telemetryItem9": "Anzahl der installierten Plug-ins",
+      "telemetryItem9": "Installierte Plug-ins (Marketplace-Namen und Versionen; Plug-ins von außerhalb des Marketplace werden gezählt, aber nie benannt)",
       "telemetryDisclaimer": "Wir erfassen niemals: IP-Adressen, Standort, Kalendereinträge, API-Schlüssel, Modulinhalte, Hostnamen oder andere personenbezogene Daten. Der gesamte Code ist Open Source und kann überprüft werden.",
       "dataDirTitle": "Home-Screens-Daten",
       "totalAppData": "App-Daten gesamt",

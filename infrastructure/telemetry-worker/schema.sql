@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS beacons (
   has_owned_profiles     INTEGER,  -- 0/1, any display uses owned `profiles`
   has_settings_override  INTEGER,  -- 0/1, any display carries a non-empty `settings` override block
 
+  -- Installed plugins (beacon v4+; NULL on pre-v4 rows — "unknown", not "none")
+  plugins          TEXT,  -- JSON array of {id,version,enabled}; side-loaded plugins arrive anonymized as id 'external'
+
   -- Raw payload for forward compatibility
   raw_payload      TEXT
 );
@@ -53,6 +56,6 @@ CREATE INDEX IF NOT EXISTS idx_beacons_last_seen ON beacons(last_seen_at);
 CREATE INDEX IF NOT EXISTS idx_beacons_app_version ON beacons(app_version);
 CREATE INDEX IF NOT EXISTS idx_beacons_display_count ON beacons(display_count);
 
--- Upgrading an existing deployment? See `schema-v2-migration.sql` for the
--- ALTER TABLE statements that bring a v1 `beacons` table in line with the
--- column list above.
+-- Upgrading an existing deployment? See `schema-v2-migration.sql` and
+-- `schema-v4-migration.sql` for the ALTER TABLE statements that bring an
+-- older `beacons` table in line with the column list above.

@@ -1507,7 +1507,7 @@
       "telemetryItem6": "Proveedor de clima y efecto de transición",
       "telemetryItem7": "Si están habilitados suspensión, alertas y autenticación",
       "telemetryItem8": "Si las integraciones de calendario están configuradas",
-      "telemetryItem9": "Número de plugins instalados",
+      "telemetryItem9": "Plugins instalados (nombres y versiones del marketplace; los plugins de fuera del marketplace se cuentan pero nunca se nombran)",
       "telemetryDisclaimer": "Nunca recopilamos: direcciones IP, ubicación, eventos de calendario, claves de API, contenido de módulos, nombres de host ni ninguna información personalmente identificable. Todo el código es de código abierto y puede verificarse.",
       "dataDirTitle": "Datos de Home Screens",
       "totalAppData": "Datos totales de la app",

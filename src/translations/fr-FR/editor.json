@@ -1507,7 +1507,7 @@
       "telemetryItem6": "Fournisseur météo et effet de transition",
       "telemetryItem7": "Si la mise en veille, les alertes et l’authentification sont activées",
       "telemetryItem8": "Si les intégrations de calendrier sont configurées",
-      "telemetryItem9": "Nombre de plugins installés",
+      "telemetryItem9": "Plugins installés (noms et versions du marketplace ; les plugins hors marketplace sont comptés mais jamais nommés)",
       "telemetryDisclaimer": "Nous ne collectons jamais : adresses IP, localisation, événements de calendrier, clés d’API, contenu de modules, noms d’hôte ni aucune information personnellement identifiable. Tout le code est Open Source et peut être vérifié.",
       "dataDirTitle": "Données Home Screens",
       "totalAppData": "Données totales de l’application",

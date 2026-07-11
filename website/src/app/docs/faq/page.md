@@ -26,7 +26,7 @@ Home Screens ships with **anonymous telemetry on by default**. It sends one beac
 - App version and update channel
 - Platform (e.g. "linux-arm64")
 - How many displays, screens, and modules you have (counts only, no content)
-- Which module types and plugins are installed (names, no settings)
+- Which module types and plugins are installed (marketplace plugin names and versions only, no settings; plugins installed from outside the marketplace are counted but never named)
 
 It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Stats > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
 

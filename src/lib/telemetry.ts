@@ -7,6 +7,7 @@ import { getInstalledPlugins } from '@/lib/plugins';
 import { createJsonStore } from '@/lib/json-store';
 import { filterConfigForDisplay } from '@/lib/display-filter';
 import type { ScreenConfiguration, Screen, DisplayNode } from '@/types/config';
+import type { InstalledPlugin } from '@/types/plugins';
 
 /* ─── Constants ──────────────────────────────── */
 
@@ -23,7 +24,13 @@ const BEACON_TIMEOUT_MS = 5_000;
 // v3 (2026-04-19) — DisplayNode.screenIds and DisplayNode.profileIds were
 // removed from the schema. `hasLegacyScreenIds` (both on the beacon and each
 // per-display entry) is gone because the legacy shape no longer exists.
-const BEACON_VERSION = 3;
+// v4 (2026-07-10) — added plugins[]: id + version + enabled per installed
+// plugin. Marketplace-sourced plugins report their registry ID (a public
+// vocabulary, not user-authored); external side-loaded plugins report the
+// literal id 'external' so user-chosen identifiers and tarball URLs never
+// reach the wire. moduleTypes still collapses plugin:* to a single 'plugin'
+// bucket for on-screen placement counts.
+const BEACON_VERSION = 4;
 
 const TELEMETRY_ENDPOINT = 'https://home-screens-telemetry.agent462.workers.dev/beacon';
 
@@ -56,6 +63,21 @@ interface DisplayBeaconEntry {
   hasSettingsOverride: boolean;
 }
 
+/**
+ * One entry per installed plugin on the beacon's `plugins` array.
+ *
+ * Only marketplace registry IDs go on the wire — they're drawn from the
+ * public registry vocabulary, so they can't carry anything user-authored.
+ * External (side-loaded) plugins are anonymized to the literal id
+ * 'external'; their manifest IDs and tarball URLs stay on the host.
+ */
+interface PluginBeaconEntry {
+  /** Marketplace registry ID, or the literal 'external' for side-loaded plugins */
+  id: string;
+  version: string;
+  enabled: boolean;
+}
+
 interface TelemetryBeacon {
   installId: string;
   appVersion: string;
@@ -77,6 +99,8 @@ interface TelemetryBeacon {
   hasGoogleCalendar: boolean;
   hasIcalSources: boolean;
   pluginCount: number;
+  /** Installed plugins; external plugins are anonymized (see PluginBeaconEntry) */
+  plugins: PluginBeaconEntry[];
   /** 0 = legacy single-display mode, otherwise the number of registered displays */
   displayCount: number;
   /** Per-display breakdown; empty array in legacy single-display mode */
@@ -291,23 +315,45 @@ function countProfiles(
   return (profiles?.length ?? 0) + ownedProfileSum;
 }
 
+/**
+ * Cap on the beacon's plugins[] array. Real installs have a handful of
+ * plugins; the cap only bounds payload size against a corrupted or
+ * hand-edited installed.json.
+ */
+const MAX_PLUGIN_ENTRIES = 100;
+
+/**
+ * Map installed.json entries to wire entries. `source` undefined means
+ * 'marketplace' (legacy entries, see InstalledPlugin), so only an explicit
+ * 'external' is anonymized.
+ */
+function buildPluginEntries(plugins: InstalledPlugin[]): PluginBeaconEntry[] {
+  return plugins.slice(0, MAX_PLUGIN_ENTRIES).map((p) => ({
+    id: p.source === 'external' ? 'external' : p.id,
+    version: p.version,
+    enabled: p.enabled,
+  }));
+}
+
 /** Platform info and feature flags gathered in parallel. */
 interface BeaconEnvironment {
   appVersion: string;
   authActive: boolean;
   pluginCount: number;
+  plugins: PluginBeaconEntry[];
 }
 
 async function gatherEnvironment(): Promise<BeaconEnvironment> {
   const [appVersion, authActive, installedPlugins] = await Promise.all([
     getPackageVersion(),
     isAuthEnabled().catch(() => false),
-    getInstalledPlugins().catch(() => ({ plugins: [] })),
+    getInstalledPlugins().catch(() => ({ plugins: [] as InstalledPlugin[] })),
   ]);
   return {
     appVersion,
     authActive,
     pluginCount: installedPlugins.plugins.length,
+    plugins: buildPluginEntries(installedPlugins.plugins),
   };
 }
 
@@ -343,7 +389,7 @@ export async function buildBeaconPayload(
     ? breakdown.anyDisplayAlerts
     : (settings.alerts?.enabled ?? false);
 
-  const { appVersion, authActive, pluginCount } = await gatherEnvironment();
+  const { appVersion, authActive, pluginCount, plugins } = await gatherEnvironment();
 
   return {
     installId: telemetryData.installId,
@@ -369,6 +415,7 @@ export async function buildBeaconPayload(
     hasGoogleCalendar: (settings.calendar?.googleCalendarIds?.length ?? 0) > 0,
     hasIcalSources: (settings.calendar?.icalSources?.length ?? 0) > 0,
     pluginCount,
+    plugins,
     displayCount: displays.length,
     displays: breakdown.displayEntries,
     hasOwnedProfiles: breakdown.hasOwnedProfiles,
