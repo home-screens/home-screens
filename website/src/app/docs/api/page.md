@@ -1491,6 +1491,40 @@ Deletes a secret for a plugin. Requires a valid session.
 
 **Response:** `{ "ok": true }`
 
+### POST /api/plugins/auth/:pluginId/start
+
+Begins the sign-in flow for a plugin that declares a [server-side auth adapter](/docs/plugins#server-side-auth). Requires a valid session. Returns 404 if the plugin isn't installed and enabled, 400 if its manifest declares no `auth` field.
+
+**Body:** none for OAuth2 flows; `{ "email": "...", "password": "..." }` for the Garmin adapter.
+
+**Response** (by flow):
+```json
+{ "authUrl": "https://...", "redirectUri": "https://..." }   // authorization_code
+{ "userCode": "...", "verificationUrl": "...", "expiresIn": 600, "interval": 5 }   // device_code
+{ "status": "connected" }                                     // client_credentials
+{ "status": "mfa_required" }                                  // garmin, when a one-time code is needed
+```
+
+### GET /api/plugins/auth/callback
+
+Shared OAuth redirect target for every plugin's `authorization_code` flow. The plugin ID travels inside an HMAC-signed `state` parameter, so a provider only ever needs this one callback URL registered.
+
+### PUT /api/plugins/auth/:pluginId/poll
+
+Advances a pending flow. Requires a valid session. For `device_code`, polls the provider for approval and returns `{ "status": "pending" | "connected", ... }`. For the Garmin adapter, submits the one-time code as `{ "mfaCode": "..." }`; returns 409 if the sign-in attempt has expired.
+
+### GET /api/plugins/auth/:pluginId/status
+
+Returns the connection state for a plugin's auth adapter. Accepts display requests as well as editor sessions (backs the SDK's `getAuthStatus`). Never returns token values.
+
+**Response:** `{ "connected": true, "expiresAt": 1760000000000 }`
+
+### DELETE /api/plugins/auth/:pluginId/disconnect
+
+Revokes (best-effort, when the adapter declares a `revokeUrl`) and deletes the plugin's stored tokens and any pending sign-in state. Requires a valid session.
+
+**Response:** `{ "connected": false }`
+
 ### POST /api/plugins/dev
 
 Registers a development plugin on the server. Called automatically by the client-side dev plugin loader. Validates the manifest before accepting.

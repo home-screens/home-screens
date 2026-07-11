@@ -29,6 +29,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
+| `data/plugin-tokens/` | Per-plugin account tokens from server-side auth adapters | `/api/plugins/auth/*` |
 
 The main config is read via `GET /api/config` and written via `PUT /api/config`.
 

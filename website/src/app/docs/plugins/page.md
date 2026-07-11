@@ -89,8 +89,9 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `dataRequirements` | array | Data the plugin needs from the host: `"location"`, `"weather"`, `"calendar"`. |
 | `prefetchUrl` | string | URL to prefetch on the display for faster initial load. Registered with a 5-minute TTL. |
 | `secrets` | array | API keys and credentials the plugin requires (see [Plugin Secrets](#plugin-secrets)). |
+| `auth` | object | Server-side auth adapter for APIs that need more than a static key: a declarative OAuth2 flow or the named Garmin Connect adapter. The host runs the entire sign-in flow and injects the resulting token into proxy requests (see [Server-Side Auth](#server-side-auth)). |
 | `allowedDomains` | array | Domains the plugin proxy can reach (e.g., `["api.example.com", "*.openweathermap.org"]`). Required for `pluginFetch` to work. |
-| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"localNetwork"`. The first four are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
+| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"oauth"`, `"localNetwork"`. All except `"localNetwork"` are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
 | `configMigrations` | object | Version-keyed migration rules for renaming or adding config fields on update. |
 | `translations` | object | BCP-47 tag → path to a dictionary JSON file inside the plugin (e.g. `{ "de-DE": "translations/de-DE.json" }`). Looked up under the namespace `plugin:<pluginId>` via `__HS_SDK__.translate`. See [Translations](#translations) below. |
 | `providesState` | array | Shared-state keys the plugin publishes via `__HS_SDK__.publishState`, so the editor's visibility-condition picker can offer them. Each entry is `{ "key": "...", "label": "...", "sampleValues": ["..."] }` (sampleValues optional). Keys are declared un-prefixed, use only `a-z 0-9 _ : . -`, and the host prefixes them with `plugin:<id>:` (id lowercased). See [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions). |
@@ -281,6 +282,7 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `pluginFetch` | function | Server-side proxy for API calls (see [API Proxy](#plugin-api-proxy)) |
 | `publishState` | function | `publishState(pluginId, key, value)` — publish a named string value other modules can condition their visibility on (see [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions)) |
 | `clearState` | function | `clearState(pluginId, key)` — remove a published value so conditions on it evaluate as unknown again |
+| `getAuthStatus` | function | `getAuthStatus(pluginId)` — returns `{ connected, expiresAt? }` for a plugin with an [auth adapter](#server-side-auth), so a component can show connection-dependent UI. Read-only; connecting happens in the editor. |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |
 | `translate` | function | `translate(key, vars?)` — looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
@@ -291,6 +293,7 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 |---|---|---|
 | `AccordionSection` | component | Collapsible section for editor property panels |
 | `useModuleConfig` | hook | `useModuleConfig(moduleId, screenId)` — returns `{ config, set }` for reading and updating module config |
+| `startAuth` | function | `startAuth(pluginId)` — opens the Connection panel's sign-in flow, so a custom config section can embed its own "Connect" button (see [Server-Side Auth](#server-side-auth)) |
 
 ### Translations
 
@@ -552,6 +555,82 @@ Plugins that need API keys or credentials declare them in the manifest's `secret
 | `/api/plugins/secrets/<pluginId>` | DELETE | Remove a secret (`{ key }`) |
 
 The GET endpoint only returns whether each declared secret has a value configured -- it never exposes the raw secret values. Setting a secret validates the key against the manifest's declarations; you cannot store arbitrary keys that aren't declared.
+
+---
+
+## Server-Side Auth
+
+Some APIs need more than a static key: OAuth2 sign-in, token refresh, or a proprietary login flow. Plugins never run server-side code, so the manifest's optional `auth` field declares an adapter and the **host** runs the entire flow -- sign-in UI, token exchange, storage, and refresh. The plugin's client code just calls `pluginFetch` as usual and the proxy injects a valid token.
+
+Tokens are stored at `data/plugin-tokens/<pluginId>.json` (owner-only file permissions), outside the plugin's installation directory so plugin upgrades can't wipe a user's connection. Uninstalling a plugin deletes its tokens.
+
+### Declaring an OAuth2 Adapter
+
+```json
+{
+  "auth": {
+    "type": "oauth2",
+    "flow": "authorization_code",
+    "authorizationUrl": "https://example.com/oauth/authorize",
+    "tokenUrl": "https://example.com/oauth/token",
+    "scopes": ["read"],
+    "tokenPlacement": "header",
+    "tokenTargetDomains": ["api.example.com"],
+    "secrets": { "clientId": "client_id", "clientSecret": "client_secret" }
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `flow` | string | `"authorization_code"` (browser redirect, PKCE on by default), `"device_code"` (enter a code on another device, polled until approved), or `"client_credentials"` (no user interaction; runs from configured secrets alone). |
+| `authorizationUrl` | string | Authorization endpoint. Required for `authorization_code` and `device_code`. |
+| `tokenUrl` | string | Token endpoint. Always required. |
+| `revokeUrl` | string | Optional revocation endpoint called on disconnect. `revokeTokenType` picks which token to revoke (`"access_token"` default, or `"refresh_token"`). |
+| `scopes` | array | OAuth scopes to request. `scopeSeparator` overrides the default space separator. |
+| `pkce` | boolean | Default `true` for `authorization_code`. |
+| `clientAuthentication` | string | How client credentials are sent to the token endpoint: `"body"` (default), `"header"`, or `"none"`. |
+| `tokenPlacement` | string | How the access token rides on proxy requests: `"header"` (`Authorization: Bearer ...`) or `"query"` (requires `tokenParamName`). |
+| `tokenTargetDomains` | array | The subset of `allowedDomains` that receive the token. Required and non-empty; other allowed domains are proxied without it. |
+| `extraAuthParams` / `extraTokenParams` | object | Extra key-value pairs appended to the authorization / token requests, for providers with non-standard parameters. |
+| `tokenResponseTransform` | object | Dot paths for non-standard token responses (`accessTokenPath`, `refreshTokenPath`, `expiresInPath`, `expiresInUnit`). |
+| `secrets` | object | Which entries in the manifest's `secrets` array hold the OAuth client credentials: `{ "clientId": "<secret key>", "clientSecret": "<secret key>" }`. `clientSecret` is optional for public PKCE clients. |
+
+### The Garmin Adapter
+
+Garmin Connect has no public OAuth endpoint, so the host ships a named adapter for its mobile SSO flow (email + password + optional one-time code). The declaration is just:
+
+```json
+{ "auth": { "type": "garmin" } }
+```
+
+No URLs, scopes, or client credentials -- the flow is fixed and implemented by the host. Tokens are injected as an `Authorization: Bearer` header on proxy requests to the plugin's `garmin.com` domains.
+
+### Connecting and Token Refresh
+
+Users connect through the **Connection panel** the editor renders automatically for any plugin that declares `auth`. A plugin with a [custom config section](#custom-config-section) can place its own "Connect" button instead by calling `__HS_SDK__.startAuth(pluginId)` (editor-only), and any component can read `__HS_SDK__.getAuthStatus(pluginId)` to show connection-dependent UI.
+
+On proxy requests to a `tokenTargetDomains` domain, the host injects the stored token and refreshes it transparently when expired. If the upstream still answers 401 after one refresh-and-retry, the proxy returns HTTP 401 with a structured body:
+
+```json
+{ "error": "auth_expired", "message": "Plugin authentication expired. Reconnect in the module settings." }
+```
+
+Plugins should surface this as a "reconnect" prompt rather than a generic fetch error.
+
+### Auth API Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/plugins/auth/<pluginId>/start` | POST | Begins the flow. Returns `{ authUrl, redirectUri }` for `authorization_code`, the device-code details for `device_code`, `{ status: "connected" }` for `client_credentials`, or (Garmin) accepts `{ email, password }` and may return `{ status: "mfa_required" }`. |
+| `/api/plugins/auth/callback` | GET | Shared OAuth redirect target. The plugin ID travels in an HMAC-signed `state` parameter, so one callback URL serves every plugin. |
+| `/api/plugins/auth/<pluginId>/poll` | PUT | Advances a pending flow: polls `device_code` approval, or (Garmin) submits `{ mfaCode }`. |
+| `/api/plugins/auth/<pluginId>/status` | GET | Returns `{ connected, expiresAt? }`. Never returns token values. |
+| `/api/plugins/auth/<pluginId>/disconnect` | DELETE | Deletes stored tokens (and calls `revokeUrl` when declared). |
+
+All endpoints except `status` require a valid editor session; `status` also accepts display requests so `getAuthStatus` works on the kiosk.
+
+Plugins using an auth adapter should declare the `"oauth"` permission so the install preview discloses it.
 
 ---
 

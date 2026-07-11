@@ -181,6 +181,7 @@ Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
 | `rewards.json` | Kid rewards and redemption history |
 | `auth.json` | Editor password hash and session secret |
 | `google-tokens.json` | Google Calendar OAuth tokens |
+| `plugin-tokens/` | Plugin account connections (OAuth and sign-in tokens) |
 | `icloud-accounts.json` | iCloud calendar sign-ins (app-specific passwords) |
 | `todo-state.json` | Checked-off state for interactive todo lists |
 | `telemetry.json` · `audit.log` | Anonymous telemetry state and editor audit trail |
@@ -344,7 +345,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/system/network/*` | GET, POST | WiFi scan/connect, IP/hostname, network diagnostics (ping + watchdog) |
 | `/api/chores`, `/api/rewards` | GET, POST | Family data (chore completions, reward redemptions) shared between editor and `/remote` |
 | `/api/meals/*` | GET, PUT, POST | Meal-planner shared state (`/data` GET+PUT saved meals/plan/settings; `/grocery` GET+POST checklist) |
-| `/api/plugins/*` | GET, POST, PUT, DELETE | Plugin registry, install (from registry **or URL**), proxy, secrets |
+| `/api/plugins/*` | GET, POST, PUT, DELETE | Plugin registry, install (from registry **or URL**), proxy, secrets, account connections (`auth/*`) |
 | `/api/i18n/[locale]` | GET | UI translation dictionaries by namespace |
 
 ## Adding a Module

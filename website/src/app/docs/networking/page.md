@@ -392,6 +392,8 @@ data/config.json         # Screen configuration
 data/secrets.json        # API keys
 data/auth.json           # Password hash and session secret
 data/google-tokens.json  # Google OAuth tokens
+data/icloud-accounts.json # iCloud calendar sign-ins (app-specific passwords)
+data/plugin-tokens/      # Plugin account connection tokens
 data/port.conf           # Custom port (if set)
 data/meals.json          # Meal planner data (saved meals, weekly plan, grocery list)
 data/chores.json         # Chore chart data (members, chores, completions)
