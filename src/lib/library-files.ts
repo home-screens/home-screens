@@ -22,6 +22,11 @@ export function libraryRoot(): string {
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB per image file
 export const MAX_VIDEO_BYTES = 200 * 1024 * 1024; // 200 MB per video file
 
+/** Server-fetched images (iCloud imports, background rotation) get a higher
+ *  ceiling than uploads: Apple originals (48 MP photos) legitimately exceed
+ *  10 MB. */
+export const MAX_IMPORT_IMAGE_BYTES = 50 * 1024 * 1024;
+
 /** Validate and resolve a library-relative path, preventing directory traversal. */
 export function safeLibraryPath(relativePath: string): string | null {
   const root = libraryRoot();

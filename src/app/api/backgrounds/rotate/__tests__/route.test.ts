@@ -11,6 +11,8 @@ vi.mock('@/lib/auth', () => ({
 // `public/backgrounds` is a symlink to the real repo in the test sandbox, so the
 // fetch-and-save path must never reach the real filesystem. Mock fs entirely.
 // vi.hoisted so the object exists when the hoisted vi.mock factory references it.
+// createWriteStream backs writeLibraryFile's streaming save (the iCloud path);
+// it must hand back a real Writable or stream.pipeline rejects.
 const fsMock = vi.hoisted(() => ({
   readFile: vi.fn(),
   writeFile: vi.fn(),
@@ -18,13 +20,16 @@ const fsMock = vi.hoisted(() => ({
   readdir: vi.fn(),
   stat: vi.fn(),
   unlink: vi.fn(),
+  rm: vi.fn(),
 }));
-vi.mock('fs', () => ({ promises: fsMock }));
+const createWriteStreamMock = vi.hoisted(() => vi.fn());
+vi.mock('fs', () => ({ promises: fsMock, createWriteStream: createWriteStreamMock }));
 
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn().mockResolvedValue({}) }));
 vi.mock('@/lib/display-filter', () => ({ findScreenById: vi.fn() }));
 vi.mock('@/lib/immich', () => ({ immichFetch: vi.fn() }));
-vi.mock('@/lib/icloud-album', () => ({ fetchICloudAlbum: vi.fn() }));
+vi.mock('@/lib/icloud-album', () => ({ fetchSharedStreamsAlbum: vi.fn() }));
+vi.mock('@/lib/icloud-link', () => ({ fetchCloudKitAlbum: vi.fn() }));
 vi.mock('@/lib/unsplash', () => ({
   getUnsplashAccessKey: vi.fn(),
   trackDownload: vi.fn(),
@@ -38,9 +43,11 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
 
+import { Writable } from 'stream';
 import { findScreenById } from '@/lib/display-filter';
 import { immichFetch } from '@/lib/immich';
-import { fetchICloudAlbum } from '@/lib/icloud-album';
+import { fetchSharedStreamsAlbum } from '@/lib/icloud-album';
+import { fetchCloudKitAlbum } from '@/lib/icloud-link';
 import { getUnsplashAccessKey } from '@/lib/unsplash';
 import { getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout } from '@/lib/api-utils';
@@ -48,7 +55,8 @@ import { GET } from '@/app/api/backgrounds/rotate/route';
 
 const mockFindScreen = vi.mocked(findScreenById);
 const mockImmichFetch = vi.mocked(immichFetch);
-const mockICloudAlbum = vi.mocked(fetchICloudAlbum);
+const mockICloudAlbum = vi.mocked(fetchSharedStreamsAlbum);
+const mockCloudKit = vi.mocked(fetchCloudKitAlbum);
 const mockUnsplashKey = vi.mocked(getUnsplashAccessKey);
 const mockNasaKey = vi.mocked(getNasaApiKey);
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -69,6 +77,10 @@ beforeEach(() => {
   fsMock.readdir.mockResolvedValue([]); // nothing to prune by default
   fsMock.stat.mockResolvedValue({ mtimeMs: 0 });
   fsMock.unlink.mockResolvedValue(undefined);
+  fsMock.rm.mockResolvedValue(undefined);
+  createWriteStreamMock.mockImplementation(
+    () => new Writable({ write(_chunk, _encoding, callback) { callback(); } }),
+  );
 });
 
 describe('GET /api/backgrounds/rotate — validation & fallbacks', () => {
@@ -334,7 +346,29 @@ describe('GET /api/backgrounds/rotate — iCloud rotation', () => {
     // alphanumerics; extension mapped from the response Content-Type.
     expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-pic1.png', fresh: true });
     expect(String(mockFetch.mock.calls[0][0])).toBe('https://cvws.icloud-content.com/p');
-    expect(fsMock.writeFile).toHaveBeenCalled();
+    // The image streams to disk (writeLibraryFile) rather than buffering whole.
+    expect(String(createWriteStreamMock.mock.calls[0][0])).toContain('rotation-icloud-pic1.png');
+  });
+
+  it('rotates from a new-format album through the CloudKit backend', async () => {
+    mockFindScreen.mockReturnValue(screen({
+      backgroundRotation: {
+        enabled: true,
+        source: 'icloud',
+        icloudAlbumUrl: 'https://photos.icloud.com/shared/album/03c4SA2q7HwyPw7YOwfXTn0mg',
+        intervalMinutes: 60,
+      } as never,
+    }));
+    mockCloudKit.mockResolvedValue([
+      { url: 'https://cvws.icloud-content.com/p', type: 'image', guid: 'ck-1' },
+    ]);
+    mockFetch.mockResolvedValue(pngResponse());
+
+    const json = await (await GET(rotateReq())).json();
+
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-ck-1.png', fresh: true });
+    expect(mockCloudKit).toHaveBeenCalledWith('03c4SA2q7HwyPw7YOwfXTn0mg');
+    expect(mockICloudAlbum).not.toHaveBeenCalled();
   });
 
   it('falls back to the static background when the album has no photos', async () => {

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
-import { fetchICloudAlbum } from '@/lib/icloud-album';
-import { parseICloudAlbumToken } from '@/lib/icloud-parse';
+import { fetchICloudMedia } from '@/lib/icloud-media';
 import { shuffleArray } from '@/lib/shuffle';
 import type { MediaListItem } from '@/types/config';
 
@@ -28,11 +27,11 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'Invalid media parameter' }, { status: 400 });
   }
   const count = Math.min(Math.max(Number(params.get('count')) || 50, 1), 200);
-  const token = parseICloudAlbumToken(params.get('album') || '');
 
-  // fetchICloudAlbum caches per token (5 min); shuffling per request keeps
+  // fetchICloudMedia dispatches by link shape (new CloudKit album vs. legacy
+  // sharedstreams) and caches per token (5 min); shuffling per request keeps
   // the rotation varied between refreshes without re-hitting Apple.
-  const all = token ? await fetchICloudAlbum(token) : [];
+  const all = await fetchICloudMedia(params.get('album') || '');
 
   // No media param → legacy string[] of image URLs, matching the other list
   // endpoints so photo-only configs never see the typed shape.

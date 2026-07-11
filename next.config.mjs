@@ -52,6 +52,11 @@ const nextConfig = {
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' blob: https: http: data:",
+              // Mirrors img-src: slideshow video plays straight from remote CDNs
+              // (iCloud shared albums serve raw Apple-signed URLs, no proxy).
+              // Without this, <video> falls back to default-src 'self' and every
+              // cross-origin clip is blocked.
+              "media-src 'self' blob: https: http: data:",
               "connect-src 'self' https: http://localhost:*",
               "frame-src 'self' https: http:",
               "font-src 'self' data:",

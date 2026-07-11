@@ -2,10 +2,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { fetchWithTimeout } from './api-utils';
-import { safeLibraryPath, writeLibraryFile, MAX_VIDEO_BYTES } from './library-files';
-import { fetchICloudAlbum } from './icloud-album';
+import { safeLibraryPath, writeLibraryFile, MAX_VIDEO_BYTES, MAX_IMPORT_IMAGE_BYTES } from './library-files';
+import { fetchICloudMedia } from './icloud-media';
 import { listICloudLinkItems } from './icloud-link';
-import { detectICloudSource, parseICloudAlbumToken, parseICloudLinkToken } from './icloud-parse';
+import { detectICloudSource, parseICloudLinkToken } from './icloud-parse';
 import { logger } from './logger';
 
 const log = logger('icloud-import');
@@ -67,13 +67,6 @@ const PER_FILE_TIMEOUT_MS = 120_000;
  */
 const MAX_IMPORT_ITEMS = 2000;
 
-/**
- * Per-file byte caps while streaming to disk. Videos share the upload
- * route's 200 MB cap; images get a higher ceiling than uploads because
- * Apple originals (48 MP photos) legitimately exceed 10 MB.
- */
-const MAX_IMPORT_IMAGE_BYTES = 50 * 1024 * 1024;
-
 const jobs = new Map<string, ICloudImportJob>();
 
 /** Test hook. */
@@ -122,8 +115,9 @@ const EXT_BY_CONTENT_TYPE: Record<string, string> = {
 async function buildPlans(url: string): Promise<DownloadPlan[] | 'invalid-link' | 'link-expired'> {
   const source = detectICloudSource(url);
   if (source === 'album') {
-    const token = parseICloudAlbumToken(url)!;
-    const items = await fetchICloudAlbum(token);
+    // fetchICloudMedia dispatches both album backends (legacy sharedstreams and
+    // new-format CloudKit), so importing works for either album link shape.
+    const items = await fetchICloudMedia(url);
     return items.map((item) => ({
       url: item.url,
       type: item.type,

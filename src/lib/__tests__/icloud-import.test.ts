@@ -14,7 +14,7 @@ vi.mock('@/lib/icloud-album', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/icloud-album')>();
   return {
     ...actual,
-    fetchICloudAlbum: vi.fn(),
+    fetchSharedStreamsAlbum: vi.fn(),
   };
 });
 
@@ -23,12 +23,13 @@ vi.mock('@/lib/icloud-link', async (importOriginal) => {
   return {
     ...actual,
     listICloudLinkItems: vi.fn(),
+    fetchCloudKitAlbum: vi.fn(),
   };
 });
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { fetchICloudAlbum } from '@/lib/icloud-album';
-import { listICloudLinkItems } from '@/lib/icloud-link';
+import { fetchSharedStreamsAlbum } from '@/lib/icloud-album';
+import { listICloudLinkItems, fetchCloudKitAlbum } from '@/lib/icloud-link';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import {
   clearICloudImportJobs,
@@ -39,10 +40,12 @@ import {
 import { detectICloudSource } from '@/lib/icloud-parse';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
-const mockAlbum = vi.mocked(fetchICloudAlbum);
+const mockAlbum = vi.mocked(fetchSharedStreamsAlbum);
 const mockLink = vi.mocked(listICloudLinkItems);
+const mockCloudKit = vi.mocked(fetchCloudKitAlbum);
 
 const ALBUM_URL = 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC';
+const NEW_ALBUM_URL = 'https://photos.icloud.com/shared/album/03c4SA2q7HwyPw7YOwfXTn0mg';
 const LINK_URL = 'https://share.icloud.com/photos/0f0a3hdUxHZ0-C8uQ7Dq1JxLw';
 
 // The vitest sandbox chdirs each test file into an isolated cwd with an empty
@@ -168,6 +171,41 @@ describe('startICloudImport — shared albums', () => {
   });
 });
 
+describe('startICloudImport — new-format shared albums (CloudKit)', () => {
+  it('imports a photos.icloud.com/shared/album link through the CloudKit backend', async () => {
+    mockCloudKit.mockResolvedValue([
+      { url: 'https://cvws.icloud-content.com/a', type: 'image', guid: 'ck-photo' },
+      { url: 'https://cvws.icloud-content.com/b', type: 'video', guid: 'ck-video' },
+    ]);
+    mockFetch.mockImplementation(async (url) =>
+      String(url).endsWith('/b') ? mediaResponse('video/mp4') : mediaResponse('image/jpeg'));
+
+    const started = await startICloudImport(NEW_ALBUM_URL, 'family');
+    if ('error' in started) throw new Error(started.error);
+    expect(started.total).toBe(2);
+
+    const job = await waitForFinished(started.jobId);
+    expect(job).toMatchObject({ state: 'done', done: 2, skipped: 0, failed: 0 });
+    expect(job.videoFiles).toEqual(['family/icloud-ck-video.mp4']);
+
+    expect(mockCloudKit).toHaveBeenCalledWith('03c4SA2q7HwyPw7YOwfXTn0mg');
+    expect(mockAlbum).not.toHaveBeenCalled();
+    const files = (await fs.readdir(path.join(BGS, 'family'))).sort();
+    expect(files).toEqual(['icloud-ck-photo.jpg', 'icloud-ck-video.mp4']);
+  });
+
+  it('imports nothing (without erroring) when the new-format album is private or expired', async () => {
+    // The CloudKit backend reports missing/private as null; the dispatcher
+    // maps it to [], which imports as an empty album rather than a hard error.
+    mockCloudKit.mockResolvedValue(null);
+
+    const started = await startICloudImport(NEW_ALBUM_URL, 'empty');
+    if ('error' in started) throw new Error(started.error);
+    expect(started.total).toBe(0);
+    expect(getICloudImport(started.jobId)?.state).toBe('done');
+  });
+});
+
 describe('startICloudImport — iCloud Links', () => {
   it('downloads link items under their pre-computed filenames', async () => {
     mockLink.mockResolvedValue([
@@ -238,7 +276,7 @@ describe('startICloudImport — guards', () => {
     // The album listing takes 15-30s of network I/O in real life. Leave it
     // unresolved so the second start arrives mid-listing — before this fix,
     // both passed the busy check and ran concurrently.
-    let releaseListing!: (items: Awaited<ReturnType<typeof fetchICloudAlbum>>) => void;
+    let releaseListing!: (items: Awaited<ReturnType<typeof fetchSharedStreamsAlbum>>) => void;
     mockAlbum.mockReturnValue(new Promise((resolve) => { releaseListing = resolve; }));
 
     const firstPromise = startICloudImport(ALBUM_URL, 'busy');

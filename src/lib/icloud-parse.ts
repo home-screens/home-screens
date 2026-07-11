@@ -1,12 +1,16 @@
 /**
- * Pure parsers for the two kinds of Apple photo-sharing links. Client-safe on
- * purpose (no server imports): the editor uses the SAME detection the server
- * acts on, so "what kind of link did the user paste?" can never drift between
- * the paste-time UI hints and the import/list endpoints.
+ * Pure parsers for Apple's photo-sharing links. Client-safe on purpose (no
+ * server imports): the editor uses the SAME detection the server acts on, so
+ * "what kind of link did the user paste?" can never drift between the
+ * paste-time UI hints and the import/list endpoints.
  *
- *   Shared Album  icloud.com/sharedalbum/#TOKEN      → live slideshow source
- *   iCloud Link   share.icloud.com/photos/TOKEN      → import-only (expires ~30 days)
+ *   Shared Album  icloud.com/sharedalbum/#TOKEN           → live slideshow source (legacy sharedstreams backend)
+ *                 photos.icloud.com/shared/album/TOKEN     → live slideshow source (new CloudKit backend, iOS 27+)
+ *   iCloud Link   share.icloud.com/photos/TOKEN           → import-only (expires ~30 days)
  *                 icloud.com/photos/#/icloudlinks/TOKEN
+ *
+ * Both album forms are "album" sources to the UI (live, no import); which
+ * backend fetches them is decided downstream by URL shape, not here.
  */
 
 /**
@@ -22,6 +26,28 @@ export function parseICloudAlbumToken(input: string): string | null {
     .split(';')[0]
     .trim();
   return /^[A-Za-z0-9]{6,128}$/.test(candidate) ? candidate : null;
+}
+
+/**
+ * Extract the token from a new-format (iOS 27+ / macOS 27+) shared album link:
+ *   https://photos.icloud.com/shared/album/TOKEN
+ * These resolve via the CloudKit backend (icloud-link.ts), not the legacy
+ * sharedstreams webstream. Only a real icloud.com host with a /shared/album/
+ * path counts, so a bare token never routes here by accident.
+ */
+export function parseICloudSharedAlbumUrl(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed || !trimmed.includes('/shared/album/')) return null;
+  let pathname: string;
+  try {
+    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    if (!/(^|\.)icloud\.com$/i.test(url.hostname)) return null;
+    pathname = url.pathname;
+  } catch {
+    return null;
+  }
+  const match = /\/shared\/album\/([A-Za-z0-9_-]{6,128})\/?$/.exec(pathname);
+  return match ? match[1] : null;
 }
 
 /**
@@ -54,12 +80,16 @@ export function parseICloudLinkToken(input: string): string | null {
 }
 
 /**
- * Which Apple product a pasted link belongs to. Shared Album links carry a
- * #TOKEN fragment on /sharedalbum/; iCloud Links live at share.icloud.com or
- * /photos/#/icloudlinks/. Bare tokens disambiguate by charset: album tokens
- * are pure base62, link short-GUIDs contain '-'/'_'.
+ * Which Apple product a pasted link belongs to. Shared Albums come in two
+ * forms — a #TOKEN fragment on /sharedalbum/ (legacy) or /shared/album/TOKEN
+ * (new CloudKit format) — and both are live "album" sources. iCloud Links live
+ * at share.icloud.com or /photos/#/icloudlinks/. Bare tokens disambiguate by
+ * charset: album tokens are pure base62, link short-GUIDs contain '-'/'_'.
  */
 export function detectICloudSource(url: string): 'album' | 'link' | null {
+  // New-format shared albums (photos.icloud.com/shared/album/…) are live
+  // sources like classic Shared Albums — only the backend differs.
+  if (parseICloudSharedAlbumUrl(url)) return 'album';
   if (url.includes('sharedalbum')) {
     return parseICloudAlbumToken(url) ? 'album' : null;
   }

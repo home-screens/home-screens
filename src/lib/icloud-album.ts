@@ -1,4 +1,5 @@
-import { createTTLCache, fetchWithTimeout } from './api-utils';
+import { createResolverCache, fetchWithTimeout } from './api-utils';
+import type { ICloudAlbumItem } from './icloud-types';
 
 /**
  * Client for Apple's undocumented iCloud Shared Album web API — the only file
@@ -17,15 +18,6 @@ import { createTTLCache, fetchWithTimeout } from './api-utils';
  * network-level failures throw, so a display holds its last good list through
  * an Apple blip instead of blanking.
  */
-
-export interface ICloudAlbumItem {
-  url: string;
-  type: 'image' | 'video';
-  posterUrl?: string;
-  /** Apple's stable per-item GUID — the signed URLs churn on every resolve,
-   *  so this is the only durable identity (e.g. for cache filenames). */
-  guid: string;
-}
 
 interface RawDerivative {
   checksum?: string;
@@ -54,24 +46,14 @@ const APPLE_HEADERS = {
 
 const WEBASSETURLS_BATCH_SIZE = 25;
 
-/** Resolved item lists are short-lived because the signed CDN URLs expire
- *  (~1h); 5 minutes keeps every consumer comfortably inside that window. */
-const albumCache = createTTLCache<ICloudAlbumItem[]>(5 * 60_000);
-
 /** Partition 330-redirect targets are stable per album; cache indefinitely
  *  and drop on failure so the next call re-resolves from scratch. */
 const resolvedHostByToken = new Map<string, string>();
 
-/** Collapses concurrent cold fetches for one token into a single Apple
- *  round-trip: several displays polling an expired cache entry at once would
- *  otherwise each run the full two-call dance. */
-const inflightByToken = new Map<string, Promise<ICloudAlbumItem[]>>();
-
 /** Test hook — clears all caches. */
 export function clearICloudCaches(): void {
-  albumCache.clear();
+  albumResolver.clear();
   resolvedHostByToken.clear();
-  inflightByToken.clear();
 }
 
 const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -207,26 +189,25 @@ function posterDerivative(derivatives: Record<string, RawDerivative>): RawDeriva
   return bestImageDerivative(derivatives);
 }
 
+/** Resolved item lists are short-lived because the signed CDN URLs expire
+ *  (~1h); 5 minutes keeps every consumer comfortably inside that window. A
+ *  missing/private album resolves to [] (never null), so the negative TTL is
+ *  along for the ride here — the empty list caches for the full window,
+ *  matching the CloudKit backend's posture of not re-hammering broken links. */
+const albumResolver = createResolverCache(5 * 60_000, 60_000, resolveAlbum);
+
 /**
  * Fetch a shared album's full media list. Cached for 5 minutes per token so
- * the two-call Apple dance doesn't run on every display poll.
+ * the two-call Apple dance doesn't run on every display poll, with concurrent
+ * cold fetches collapsed into a single Apple round-trip.
  */
-export async function fetchICloudAlbum(token: string): Promise<ICloudAlbumItem[]> {
-  const cached = albumCache.get(token);
-  if (cached) return cached;
-
-  const inflight = inflightByToken.get(token);
-  if (inflight) return inflight;
-
-  const promise = resolveAlbum(token).finally(() => inflightByToken.delete(token));
-  inflightByToken.set(token, promise);
-  return promise;
+export async function fetchSharedStreamsAlbum(token: string): Promise<ICloudAlbumItem[]> {
+  return (await albumResolver.fetch(token)) ?? [];
 }
 
 async function resolveAlbum(token: string): Promise<ICloudAlbumItem[]> {
   const photos = await fetchWebstream(token);
   if (!photos) {
-    albumCache.set(token, []);
     return [];
   }
 
@@ -259,7 +240,6 @@ async function resolveAlbum(token: string): Promise<ICloudAlbumItem[]> {
   }
 
   if (plans.length === 0) {
-    albumCache.set(token, []);
     return [];
   }
 
@@ -277,6 +257,5 @@ async function resolveAlbum(token: string): Promise<ICloudAlbumItem[]> {
     }
   }
 
-  albumCache.set(token, items);
   return items;
 }

@@ -1,11 +1,16 @@
-import { fetchWithTimeout } from './api-utils';
+import { createHash } from 'crypto';
+import { createResolverCache, fetchWithTimeout } from './api-utils';
+import type { ICloudAlbumItem } from './icloud-types';
 
 /**
- * Client for Apple's CloudKit web API behind iCloud Links — the
- * share.icloud.com/photos/… links produced by "Copy Link" in the Photos app.
- * A different product from Shared Albums (see icloud-album.ts): these are
- * CloudKit "moment" shares that expire after ~30 days, so they are only ever
- * used for one-time IMPORT into the local library, never as a live source.
+ * Client for Apple's CloudKit web API, which backs two Apple products:
+ *   - iCloud Links (share.icloud.com/photos/…) — "moment" shares that expire
+ *     after ~30 days, only ever IMPORTED into the local library.
+ *   - New-format Shared Albums (photos.icloud.com/shared/album/…, iOS 27+) —
+ *     persistent albums that replace the legacy sharedstreams ones and are used
+ *     as a LIVE slideshow source (see fetchCloudKitAlbum).
+ * Both resolve through the same anonymous flow; only the output shape differs
+ * (downloadable items for import vs. display items for live rendering).
  *
  * The anonymous flow (verified live against real links):
  *   1. POST public/records/resolve with the link's short GUID
@@ -97,6 +102,16 @@ function isAppleApiBase(rawUrl: string): boolean {
   }
 }
 
+/**
+ * Stop paging once this many records are buffered. Each asset arrives as a
+ * CPLAsset + CPLMaster pair, so this is ~2,200 assets — comfortably above the
+ * import ceiling (MAX_IMPORT_ITEMS, 2000) so "too many items" is still
+ * detected, while bounding the transient CloudKit JSON a giant album can pile
+ * up in Pi memory during one resolve. Live slideshows just show the first
+ * ~2,200 items of a larger album.
+ */
+const MAX_QUERY_RECORDS = 4400;
+
 /** Query all records in the shared zone, following continuation markers. */
 async function queryRecords(link: ResolvedLink): Promise<CloudKitRecord[]> {
   const params = new URLSearchParams({
@@ -128,7 +143,7 @@ async function queryRecords(link: ResolvedLink): Promise<CloudKitRecord[]> {
     if (!data) break;
     records.push(...(data.records ?? []));
     continuationMarker = data.continuationMarker;
-    if (!continuationMarker) break;
+    if (!continuationMarker || records.length >= MAX_QUERY_RECORDS) break;
   }
   return records;
 }
@@ -194,6 +209,23 @@ function sanitizeStem(name: string): string {
   return name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'icloud';
 }
 
+/** Apple base64-encodes the original filename in filenameEnc. */
+function decodeFilename(fields: Record<string, RecordField>): string {
+  const enc = fieldString(fields, 'filenameEnc');
+  if (!enc) return '';
+  try {
+    return Buffer.from(enc, 'base64').toString('utf-8');
+  } catch {
+    return '';
+  }
+}
+
+/** True for a CPLMaster that Apple has flagged (or whose filename reads) as a
+ *  video — shared by the import and live paths so both classify identically. */
+function isVideoMaster(fields: Record<string, RecordField>, decodedName: string): boolean {
+  return isVideoItemType(fieldString(fields, 'itemType')) || /\.(mp4|mov|m4v)$/i.test(decodedName);
+}
+
 /**
  * Concrete video UTIs Apple emits as itemType. `public.movie` is the abstract
  * family (kept as a prefix guard); real-world values are
@@ -229,18 +261,11 @@ export async function listICloudLinkItems(token: string): Promise<ICloudLinkItem
     if (record.recordType !== 'CPLMaster' || !record.fields) continue;
     const fields = record.fields;
 
-    const filenameEnc = fieldString(fields, 'filenameEnc');
-    let decodedName = '';
-    if (filenameEnc) {
-      try {
-        decodedName = Buffer.from(filenameEnc, 'base64').toString('utf-8');
-      } catch { /* fall through to record name */ }
-    }
+    const decodedName = decodeFilename(fields);
 
     // Filename-extension fallback (as pyicloud does): itemType is not always
     // present or concrete, but the original filename still tells the truth.
-    const itemType = fieldString(fields, 'itemType');
-    const isVideo = isVideoItemType(itemType) || /\.(mp4|mov|m4v)$/i.test(decodedName);
+    const isVideo = isVideoMaster(fields, decodedName);
     const picked = pickRendition(fields, isVideo);
     if (!picked?.res.downloadURL) continue;
 
@@ -257,4 +282,79 @@ export async function listICloudLinkItems(token: string): Promise<ICloudLinkItem
     });
   }
   return items;
+}
+
+// ── Live shared-album source (new-format photos.icloud.com/shared/album/…) ──
+
+/** Test hook — clears the live-album cache. */
+export function clearICloudLinkCaches(): void {
+  liveAlbumResolver.clear();
+}
+
+/** A web-safe JPEG poster for a video item; omitted when none is available
+ *  (VideoLayer handles a missing poster). */
+function pickPosterUrl(fields: Record<string, RecordField>): string | undefined {
+  for (const key of ['resJPEGFullRes', 'resJPEGMedRes', 'resJPEGThumbRes'] as const) {
+    const res = rendition(fields, key);
+    if (res?.downloadURL) return res.downloadURL;
+  }
+  return undefined;
+}
+
+/** Apple's fingerprint is the durable per-asset identity (the signed URLs
+ *  churn every resolve); fall back to the record name, then a short hash of
+ *  the URL. The hash keeps the guid filename-safe when consumers build cache
+ *  names from it (the raw signed URL runs hundreds of chars — past the FS
+ *  name limit); it still churns with the URL, but no real CPLMaster has been
+ *  seen missing both fingerprint and record name. */
+function stableGuid(fields: Record<string, RecordField>, recordName: string | undefined, url: string): string {
+  return (
+    fieldString(fields, 'resOriginalFingerprint') ||
+    recordName ||
+    createHash('sha256').update(url).digest('hex').slice(0, 16)
+  );
+}
+
+async function resolveLiveAlbum(token: string): Promise<ICloudAlbumItem[] | null> {
+  const link = await resolveLink(token);
+  if (!link) return null;
+
+  const records = await queryRecords(link);
+  const items: ICloudAlbumItem[] = [];
+  for (const record of records) {
+    if (record.recordType !== 'CPLMaster' || !record.fields) continue;
+    const fields = record.fields;
+    const isVideo = isVideoMaster(fields, decodeFilename(fields));
+    const picked = pickRendition(fields, isVideo);
+    if (!picked?.res.downloadURL) continue;
+
+    const guid = stableGuid(fields, record.recordName, picked.res.downloadURL);
+    if (isVideo) {
+      const posterUrl = pickPosterUrl(fields);
+      items.push({ url: picked.res.downloadURL, type: 'video', guid, ...(posterUrl ? { posterUrl } : {}) });
+    } else {
+      items.push({ url: picked.res.downloadURL, type: 'image', guid });
+    }
+  }
+  return items;
+}
+
+/** Signed CloudKit download URLs expire (the resolve grant lives ~20 min); a
+ *  5-minute cache keeps every display poll well inside that window, matching
+ *  the legacy sharedstreams album cache. A null (private/expired/deleted)
+ *  caches for just 60s: long enough that a wall-mounted kiosk pointed at a
+ *  dead link stops hammering Apple on every poll, short enough that a
+ *  fixed-up album reappears within a minute. */
+const liveAlbumResolver = createResolverCache(5 * 60_000, 60_000, resolveLiveAlbum);
+
+/**
+ * Live media list for a new-format shared album, shaped like a legacy album
+ * (fetchSharedStreamsAlbum) so /api/icloud/photos treats both backends
+ * identically. Returns null when the album is missing/private/expired (vs. []
+ * for empty), so the route can fall through to its friendly empty state.
+ * Cached per token with concurrent cold fetches collapsed into one Apple
+ * round-trip.
+ */
+export async function fetchCloudKitAlbum(token: string): Promise<ICloudAlbumItem[] | null> {
+  return liveAlbumResolver.fetch(token);
 }

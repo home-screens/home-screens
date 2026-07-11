@@ -11,7 +11,7 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 import { fetchWithTimeout } from '@/lib/api-utils';
 import {
   clearICloudCaches,
-  fetchICloudAlbum,
+  fetchSharedStreamsAlbum,
   getICloudBaseUrl,
 } from '@/lib/icloud-album';
 import { parseICloudAlbumToken } from '@/lib/icloud-parse';
@@ -125,11 +125,11 @@ describe('getICloudBaseUrl', () => {
   });
 });
 
-describe('fetchICloudAlbum', () => {
+describe('fetchSharedStreamsAlbum', () => {
   it('resolves photos and videos with poster URLs', async () => {
     routeFetch({ webstream: () => webstreamResponse([photoItem('p1'), videoItem('v1')]) });
 
-    const items = await fetchICloudAlbum('B125ON9t3mbLNC');
+    const items = await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
 
     expect(items).toEqual([
       // Photo: largest numeric derivative (2049) wins.
@@ -159,7 +159,7 @@ describe('fetchICloudAlbum', () => {
       return assetUrlsResponse(body.photoGuids);
     });
 
-    const items = await fetchICloudAlbum('B125ON9t3mbLNC');
+    const items = await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
 
     expect(items).toHaveLength(1);
     expect(calls[0]).toContain('p64-sharedstreams.icloud.com');
@@ -173,24 +173,24 @@ describe('fetchICloudAlbum', () => {
       webstream: () => new Response(JSON.stringify({ 'X-Apple-MMe-Host': 'evil.example.com' }), { status: 330 }),
     });
 
-    expect(await fetchICloudAlbum('B125ON9t3mbLNC')).toEqual([]);
+    expect(await fetchSharedStreamsAlbum('B125ON9t3mbLNC')).toEqual([]);
     // Only the initial webstream call — the redirect target was never fetched.
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it('returns an empty list for a 404 (album gone or public website off)', async () => {
     routeFetch({ webstream: () => new Response('', { status: 404 }) });
-    expect(await fetchICloudAlbum('B125ON9t3mbLNC')).toEqual([]);
+    expect(await fetchSharedStreamsAlbum('B125ON9t3mbLNC')).toEqual([]);
   });
 
   it('throws on a 5xx so callers keep their last good list', async () => {
     routeFetch({ webstream: () => new Response('', { status: 500 }) });
-    await expect(fetchICloudAlbum('B125ON9t3mbLNC')).rejects.toThrow('500');
+    await expect(fetchSharedStreamsAlbum('B125ON9t3mbLNC')).rejects.toThrow('500');
   });
 
   it('returns an empty list for malformed webstream JSON', async () => {
     routeFetch({ webstream: () => new Response('not json', { status: 200 }) });
-    expect(await fetchICloudAlbum('B125ON9t3mbLNC')).toEqual([]);
+    expect(await fetchSharedStreamsAlbum('B125ON9t3mbLNC')).toEqual([]);
   });
 
   it('skips items with unusable derivatives instead of failing the album', async () => {
@@ -202,7 +202,7 @@ describe('fetchICloudAlbum', () => {
       ]),
     });
 
-    const items = await fetchICloudAlbum('B125ON9t3mbLNC');
+    const items = await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
     expect(items.map((i) => i.guid)).toEqual(['p1']);
   });
 
@@ -212,7 +212,7 @@ describe('fetchICloudAlbum', () => {
       webasseturls: () => assetUrlsResponse(['p1']),
     });
 
-    const items = await fetchICloudAlbum('B125ON9t3mbLNC');
+    const items = await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
     expect(items.map((i) => i.guid)).toEqual(['p1']);
   });
 
@@ -227,7 +227,7 @@ describe('fetchICloudAlbum', () => {
       },
     });
 
-    const items = await fetchICloudAlbum('B125ON9t3mbLNC');
+    const items = await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
     expect(items).toHaveLength(60);
     expect(batchSizes).toEqual([25, 25, 10]);
   });
@@ -235,9 +235,9 @@ describe('fetchICloudAlbum', () => {
   it('caches resolved albums per token', async () => {
     routeFetch({ webstream: () => webstreamResponse([photoItem('p1')]) });
 
-    await fetchICloudAlbum('B125ON9t3mbLNC');
+    await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
     const callsAfterFirst = mockFetch.mock.calls.length;
-    await fetchICloudAlbum('B125ON9t3mbLNC');
+    await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
 
     expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
   });
@@ -250,9 +250,9 @@ describe('fetchICloudAlbum', () => {
 
     // Three displays polling an expired entry at once.
     const fetches = [
-      fetchICloudAlbum('B125ON9t3mbLNC'),
-      fetchICloudAlbum('B125ON9t3mbLNC'),
-      fetchICloudAlbum('B125ON9t3mbLNC'),
+      fetchSharedStreamsAlbum('B125ON9t3mbLNC'),
+      fetchSharedStreamsAlbum('B125ON9t3mbLNC'),
+      fetchSharedStreamsAlbum('B125ON9t3mbLNC'),
     ];
     releaseWebstream(webstreamResponse([photoItem('p1')]));
     const results = await Promise.all(fetches);
@@ -267,8 +267,8 @@ describe('fetchICloudAlbum', () => {
   it('caches empty results too (a private album is not re-hammered)', async () => {
     routeFetch({ webstream: () => new Response('', { status: 404 }) });
 
-    await fetchICloudAlbum('B125ON9t3mbLNC');
-    await fetchICloudAlbum('B125ON9t3mbLNC');
+    await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
+    await fetchSharedStreamsAlbum('B125ON9t3mbLNC');
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });

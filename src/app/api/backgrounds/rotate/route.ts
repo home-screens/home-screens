@@ -7,8 +7,8 @@ import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
 import { immichFetch } from '@/lib/immich';
-import { fetchICloudAlbum } from '@/lib/icloud-album';
-import { parseICloudAlbumToken } from '@/lib/icloud-parse';
+import { fetchICloudMedia } from '@/lib/icloud-media';
+import { writeLibraryFile, MAX_IMPORT_IMAGE_BYTES } from '@/lib/library-files';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { findScreenById } from '@/lib/display-filter';
 import type { BackgroundRotation } from '@/types/config';
@@ -194,18 +194,14 @@ async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<st
 }
 
 async function fetchAndSaveICloudPhoto(rotation: BackgroundRotation): Promise<string | null> {
-  const token = parseICloudAlbumToken(rotation.icloudAlbumUrl || '');
-  if (!token) return null;
-
   // Backgrounds are photos only — a video can't be a CSS background image.
-  const images = (await fetchICloudAlbum(token)).filter((item) => item.type === 'image');
+  const images = (await fetchICloudMedia(rotation.icloudAlbumUrl || '')).filter((item) => item.type === 'image');
   if (images.length === 0) return null;
   const pick = images[Math.floor(Math.random() * images.length)];
 
   const imgRes = await fetchWithTimeout(pick.url, { timeout: 30_000 });
   if (!imgRes.ok) return null;
 
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
   const contentType = imgRes.headers.get('content-type') ?? '';
   const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
   // Keyed by the photo's stable GUID (like rotation-immich-<assetId>): the
@@ -216,7 +212,9 @@ async function fetchAndSaveICloudPhoto(rotation: BackgroundRotation): Promise<st
   const filePath = path.join(BGS, filename);
 
   await fs.mkdir(BGS, { recursive: true });
-  await fs.writeFile(filePath, buffer);
+  // Stream to disk like the import path — an Apple original can be tens of
+  // MB, too much to buffer whole on a Pi hub, and the cap applies mid-stream.
+  await writeLibraryFile(filePath, imgRes.body, MAX_IMPORT_IMAGE_BYTES);
 
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
 }

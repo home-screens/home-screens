@@ -257,6 +257,48 @@ export function createTTLCache<T>(ttlMs: number) {
 }
 
 /**
+ * Key-scoped resolver cache: positive results cache for ttlMs; a null result
+ * (the resolver saying "gone/private", distinct from an outage, which throws
+ * and stays uncached) is remembered for negativeTtlMs so always-on pollers
+ * back off a broken key briefly instead of re-hitting the upstream forever.
+ * Concurrent cold fetches for one key collapse into a single upstream call.
+ */
+export function createResolverCache<T>(
+  ttlMs: number,
+  negativeTtlMs: number,
+  resolve: (key: string) => Promise<T | null>,
+) {
+  const positive = createTTLCache<T>(ttlMs);
+  const negative = createTTLCache<true>(negativeTtlMs);
+  const inflight = new Map<string, Promise<T | null>>();
+  return {
+    async fetch(key: string): Promise<T | null> {
+      const cached = positive.get(key);
+      if (cached) return cached;
+      if (negative.get(key)) return null;
+
+      const existing = inflight.get(key);
+      if (existing) return existing;
+
+      const promise = resolve(key)
+        .then((result) => {
+          if (result) positive.set(key, result);
+          else negative.set(key, true);
+          return result;
+        })
+        .finally(() => inflight.delete(key));
+      inflight.set(key, promise);
+      return promise;
+    },
+    clear() {
+      positive.clear();
+      negative.clear();
+      inflight.clear();
+    },
+  };
+}
+
+/**
  * Validates a Todoist API token by making a lightweight request to the
  * Todoist projects endpoint. Returns `true` if the token is valid, or an
  * object with the HTTP status code if it is not.

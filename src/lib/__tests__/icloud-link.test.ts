@@ -8,8 +8,9 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   };
 });
 
+import { createHash } from 'crypto';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { listICloudLinkItems } from '@/lib/icloud-link';
+import { listICloudLinkItems, fetchCloudKitAlbum, clearICloudLinkCaches } from '@/lib/icloud-link';
 import { parseICloudLinkToken } from '@/lib/icloud-parse';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -136,6 +137,7 @@ function routeFetch(handlers: {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clearICloudLinkCaches();
 });
 
 describe('parseICloudLinkToken', () => {
@@ -292,5 +294,135 @@ describe('listICloudLinkItems', () => {
     routeFetch({ query: () => new Response('', { status: 500 }) });
 
     await expect(listICloudLinkItems(TOKEN)).rejects.toThrow('500');
+  });
+});
+
+describe('fetchCloudKitAlbum', () => {
+  it('returns display items (url/type/guid) for photos', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200'), heicMaster('0100')]) });
+
+    const items = await fetchCloudKitAlbum(TOKEN);
+
+    expect(items).toEqual([
+      { url: 'https://cvws.icloud-content.com/orig-0200', type: 'image', guid: 'Aq1w2e/0200==' },
+      { url: 'https://cvws.icloud-content.com/jpegmed-0100', type: 'image', guid: 'AbCdEf/0100==' },
+    ]);
+  });
+
+  it('gives videos the MP4 rendition plus a JPEG poster', async () => {
+    routeFetch({ query: () => queryResponse([videoMaster('0333')]) });
+
+    const items = await fetchCloudKitAlbum(TOKEN);
+
+    expect(items).toEqual([{
+      url: 'https://cvws.icloud-content.com/vidmed-0333',
+      type: 'video',
+      guid: 'AXaxFKq1/0333==',
+      posterUrl: 'https://cvws.icloud-content.com/poster-0333',
+    }]);
+  });
+
+  it('omits posterUrl when a video has no JPEG rendition', async () => {
+    routeFetch({ query: () => queryResponse([mp4Master('0500')]) });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    expect(items[0].type).toBe('video');
+    expect(items[0]).not.toHaveProperty('posterUrl');
+  });
+
+  it('handles a mixed photo + video album in one pass', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200'), videoMaster('0333'), heicMaster('0100')]) });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    expect(items.map((i) => i.type)).toEqual(['image', 'video', 'image']);
+    expect(items[1]).toMatchObject({
+      url: 'https://cvws.icloud-content.com/vidmed-0333',
+      posterUrl: 'https://cvws.icloud-content.com/poster-0333',
+    });
+    expect(items[2].url).toBe('https://cvws.icloud-content.com/jpegmed-0100');
+  });
+
+  it('prefers the full-res JPEG poster, falling back to med then thumb', async () => {
+    const master = videoMaster('0700');
+    (master.fields as Record<string, unknown>).resJPEGFullRes =
+      field({ downloadURL: 'https://cvws.icloud-content.com/posterfull-0700', size: 1 });
+    const thumbOnly = videoMaster('0701');
+    delete (thumbOnly.fields as Record<string, unknown>).resJPEGMedRes;
+    (thumbOnly.fields as Record<string, unknown>).resJPEGThumbRes =
+      field({ downloadURL: 'https://cvws.icloud-content.com/posterthumb-0701', size: 1 });
+    routeFetch({ query: () => queryResponse([master, thumbOnly]) });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    expect(items[0].posterUrl).toBe('https://cvws.icloud-content.com/posterfull-0700');
+    expect(items[1].posterUrl).toBe('https://cvws.icloud-content.com/posterthumb-0701');
+  });
+
+  it('falls back to the record name, then a short URL hash, for the guid', async () => {
+    const noFingerprint = jpegMaster('0800');
+    delete (noFingerprint.fields as Record<string, unknown>).resOriginalFingerprint;
+    const bareMaster = jpegMaster('0801');
+    delete (bareMaster.fields as Record<string, unknown>).resOriginalFingerprint;
+    delete (bareMaster as Record<string, unknown>).recordName;
+    routeFetch({ query: () => queryResponse([noFingerprint, bareMaster]) });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    expect(items[0].guid).toBe('master-0800');
+    // The hash keeps the guid short and filename-safe — never the raw signed
+    // URL, which runs past the filesystem name limit.
+    expect(items[1].guid).toBe(
+      createHash('sha256').update('https://cvws.icloud-content.com/orig-0801').digest('hex').slice(0, 16),
+    );
+  });
+
+  it('caches per token so repeat polls make no second Apple round-trip', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+
+    await fetchCloudKitAlbum(TOKEN);
+    const callsAfterFirst = mockFetch.mock.calls.length;
+    await fetchCloudKitAlbum(TOKEN);
+
+    expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it('negative-caches a private/expired album briefly, then re-resolves', async () => {
+    vi.useFakeTimers();
+    try {
+      routeFetch({
+        resolve: () => resolveResponse({ anonymousPublicAccess: undefined }),
+        query: () => queryResponse([]),
+      });
+
+      expect(await fetchCloudKitAlbum(TOKEN)).toBeNull();
+      const callsAfterFirst = mockFetch.mock.calls.length;
+
+      // Inside the negative TTL a kiosk polling a dead link gets the cached
+      // null without another Apple round-trip.
+      expect(await fetchCloudKitAlbum(TOKEN)).toBeNull();
+      expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
+
+      // After the TTL a fixed-up album re-resolves rather than staying blank.
+      vi.advanceTimersByTime(61_000);
+      routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+      expect(await fetchCloudKitAlbum(TOKEN)).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stops paging a giant album at the record ceiling', async () => {
+    // 300 masters per page, continuation marker always present: an unbounded
+    // loop would run all 100 pages; the ceiling (4400 records) stops it at 15.
+    const page = Array.from({ length: 300 }, (_, i) => jpegMaster(`p${i}`));
+    routeFetch({ query: () => queryResponse(page, 'more') });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    const queryCalls = mockFetch.mock.calls.filter(([u]) => String(u).includes('/shared/records/query'));
+    expect(queryCalls).toHaveLength(15);
+    expect(items).toHaveLength(4500);
   });
 });
