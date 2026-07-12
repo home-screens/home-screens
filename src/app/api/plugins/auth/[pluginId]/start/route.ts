@@ -64,7 +64,7 @@ export const POST = withAuth<RouteContext>(async (request, ctx) => {
     }
 
     if (auth.flow === 'authorization_code') {
-      const { authUrl, redirectUri } = await startAuthorizationCodeFlow(pluginId, auth, request.url);
+      const { authUrl, redirectUri } = await startAuthorizationCodeFlow(pluginId, auth, request);
       return NextResponse.json({ authUrl, redirectUri });
     }
     if (auth.flow === 'device_code') {

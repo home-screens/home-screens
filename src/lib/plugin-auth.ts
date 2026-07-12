@@ -195,10 +195,16 @@ export async function verifyAuthFlowState(state: string): Promise<string | null>
 
 /* ─── OAuth2 helpers ─────────────────────────── */
 
-/** The single callback URL to register with providers, derived per-request. */
-export function getPluginAuthRedirectUri(requestUrl: string): string {
-  const url = new URL(requestUrl);
-  return `${url.protocol}//${url.host}/api/plugins/auth/callback`;
+/** The single callback URL to register with providers, derived per-request.
+ *  Derived from the Host header (or x-forwarded-* behind a proxy) rather than
+ *  request.url, whose host is the server's bind address (e.g. 0.0.0.0) — the
+ *  redirect must match the origin the browser is actually using. */
+export function getPluginAuthRedirectUri(request: Request): string {
+  const url = new URL(request.url);
+  const host =
+    request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? url.host;
+  const proto = request.headers.get('x-forwarded-proto') ?? url.protocol.replace(':', '');
+  return `${proto}://${host}/api/plugins/auth/callback`;
 }
 
 async function getOAuthClientCredentials(
@@ -303,11 +309,11 @@ function applyClientAuth(
 export async function startAuthorizationCodeFlow(
   pluginId: string,
   auth: OAuth2Auth,
-  requestUrl: string,
+  request: Request,
 ): Promise<{ authUrl: string; redirectUri: string }> {
   if (!auth.authorizationUrl) throw new Error('Plugin auth config is missing authorizationUrl');
   const { clientId } = await getOAuthClientCredentials(pluginId, auth);
-  const redirectUri = getPluginAuthRedirectUri(requestUrl);
+  const redirectUri = getPluginAuthRedirectUri(request);
   const state = await signAuthFlowState(pluginId);
 
   const usePkce = auth.pkce !== false;

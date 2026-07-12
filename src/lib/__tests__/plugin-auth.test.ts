@@ -109,6 +109,41 @@ describe('plugin-auth token storage', () => {
   });
 });
 
+describe('plugin-auth redirect URI derivation', () => {
+  it('uses the Host header over the bind-address host in request.url', async () => {
+    const { getPluginAuthRedirectUri } = await import('../plugin-auth');
+    const request = new Request('http://0.0.0.0:3000/api/plugins/auth/strava/start', {
+      headers: { host: '192.168.86.175:3000' },
+    });
+    expect(getPluginAuthRedirectUri(request)).toBe(
+      'http://192.168.86.175:3000/api/plugins/auth/callback',
+    );
+  });
+
+  it('prefers x-forwarded-host and x-forwarded-proto behind a reverse proxy', async () => {
+    const { getPluginAuthRedirectUri } = await import('../plugin-auth');
+    const request = new Request('http://0.0.0.0:3000/api/plugins/auth/strava/start', {
+      headers: {
+        host: '192.168.86.175:3000',
+        'x-forwarded-host': 'screens.example.com',
+        'x-forwarded-proto': 'https',
+      },
+    });
+    expect(getPluginAuthRedirectUri(request)).toBe(
+      'https://screens.example.com/api/plugins/auth/callback',
+    );
+  });
+
+  it('falls back to the request URL host when no Host header is present', async () => {
+    const { getPluginAuthRedirectUri } = await import('../plugin-auth');
+    const request = new Request('http://localhost:3000/api/plugins/auth/strava/start');
+    request.headers.delete('host');
+    expect(getPluginAuthRedirectUri(request)).toBe(
+      'http://localhost:3000/api/plugins/auth/callback',
+    );
+  });
+});
+
 describe('plugin-auth state signing', () => {
   it('signs and verifies a state parameter round-trip', async () => {
     const { signAuthFlowState, verifyAuthFlowState } = await import('../plugin-auth');
