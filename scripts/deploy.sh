@@ -75,20 +75,21 @@ fi
 
 # --- Sync files ---
 step "Syncing files..."
+# Code only. Device state (installed plugins, secrets, tokens, uploaded
+# backgrounds, .env files) is never synced or deleted — mirrors .gitignore:
+# data/* and public/backgrounds/* are state except the tracked entries below.
 rsync -azP --delete \
   --exclude 'node_modules' \
   --exclude '.next' \
   --exclude '.git' \
   --exclude '*.tsbuildinfo' \
-  --exclude '.env.local' \
-  --include 'data/plugins/' \
-  --include 'data/plugins/**' \
+  --exclude '.env*' \
   --include 'data/secrets.example.json' \
   --exclude 'data/*' \
-  --exclude 'public/backgrounds/*.jpg' \
-  --exclude 'public/backgrounds/*.jpeg' \
-  --exclude 'public/backgrounds/*.png' \
-  --exclude 'public/backgrounds/*.webp' \
+  --include 'public/backgrounds/default.svg' \
+  --include 'public/backgrounds/themes/' \
+  --include 'public/backgrounds/themes/**' \
+  --exclude 'public/backgrounds/*' \
   --exclude '.emulate' \
   --exclude 'scripts/emulate-install.sh' \
   "$PROJECT_DIR/" "$HOST:$REMOTE_DIR/"
