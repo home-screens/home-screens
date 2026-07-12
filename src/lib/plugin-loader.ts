@@ -387,6 +387,44 @@ export async function loadAllPlugins(): Promise<void> {
   const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
   if (!isEditor) return;
 
+  // Load dev plugins from localStorage (these override installed versions).
+  // Runs before the migration loop: a failed override falls back to
+  // loadSinglePlugin, which can queue a migration the loop must still process.
+  const devPlugins = getDevPlugins();
+  for (const [pluginId, dev] of devPlugins) {
+    try {
+      await loadDevPlugin(dev.url);
+      startDevPolling(pluginId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.warn(`Dev plugin ${pluginId} failed to load from ${dev.url}:`, message);
+
+      // A dead dev server must not take the module off the palette: fall
+      // back to the installed copy that was skipped in favor of the override.
+      const installed = plugins.find((p) => p.id === pluginId);
+      if (!installed) {
+        store.setError(pluginId, {
+          message: `Could not load the dev version from ${dev.url} — ${message}`,
+          phase: 'load',
+        });
+        continue;
+      }
+      await loadSinglePlugin(installed, store, pendingMigrations);
+
+      // loadSinglePlugin clears the error on success; only replace it with
+      // the informational notice if the fallback actually registered (a
+      // fresh getState() — `store` predates the await and holds the old map).
+      const registered = usePluginStore.getState()
+        .plugins.has(`plugin:${installed.moduleType}`);
+      if (registered) {
+        store.setError(pluginId, {
+          message: `Dev version at ${dev.url} isn't responding — using installed v${installed.version} instead. Remove it from the Developer tab if you're done developing.`,
+          phase: 'load',
+        });
+      }
+    }
+  }
+
   // Run config migrations sequentially to avoid concurrent read-modify-write
   for (const { manifest, oldVersion, pluginId } of pendingMigrations) {
     const migrated = await migratePluginConfigs(manifest, oldVersion);
@@ -397,19 +435,6 @@ export async function loadAllPlugins(): Promise<void> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pluginId, clearPrevVersion: true }),
       }).catch(() => {}); // fire-and-forget
-    }
-  }
-
-  // Load dev plugins from localStorage (these override installed versions)
-  const devPlugins = getDevPlugins();
-  for (const [pluginId, dev] of devPlugins) {
-    try {
-      await loadDevPlugin(dev.url);
-      startDevPolling(pluginId);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      log.warn(`Dev plugin ${pluginId} failed to load:`, message);
-      store.setError(pluginId, { message, phase: 'load' });
     }
   }
 }
