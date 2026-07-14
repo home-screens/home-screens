@@ -402,6 +402,47 @@ test('the updates tab flags an installed plugin when the registry advertises a n
   await expect(dialog.getByText('Big update')).toBeVisible();
 });
 
+test('update detection ignores registry array order and app-incompatible versions', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir); // installed at v1.0.0
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // Versions listed ASCENDING (the 2026-07-12 Garmin registry mistake: the newest
+  // entry appended instead of prepended), with an extra entry that needs a far
+  // newer app. The panel must pick 2.0.0 — not versions[0] (1.1.0), and not the
+  // incompatible 9.9.9.
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'appended release',
+    author: 'e2e',
+    version: '2.0.0',
+    changelog: 'Appended release',
+  });
+  entry.versions.unshift({
+    version: '1.1.0',
+    minAppVersion: '1.0.0',
+    releaseDate: '2026-01-01',
+    downloadUrl: 'https://plugin.invalid/old.tar.gz',
+    sha256: '0'.repeat(64),
+  });
+  entry.versions.push({
+    version: '9.9.9',
+    minAppVersion: '99.0.0',
+    releaseDate: '2026-01-01',
+    downloadUrl: 'https://plugin.invalid/future.tar.gz',
+    sha256: '0'.repeat(64),
+  });
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: /Updates/ }).click();
+
+  await expect(dialog.getByText('v1.0.0 → v2.0.0')).toBeVisible();
+  await expect(dialog.getByText('Appended release')).toBeVisible();
+});
+
 test('the external update modal swaps an external plugin to a newer bundle version', async ({ page, request, sandboxDir }) => {
   const v1 = buildTarball(FIXTURE_PLUGIN_ID, MANIFEST, BUNDLE);
   const v2 = buildTarball(FIXTURE_PLUGIN_ID, { ...MANIFEST, version: '2.0.0' }, BUNDLE);

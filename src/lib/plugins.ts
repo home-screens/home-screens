@@ -10,6 +10,8 @@ import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_P
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
+import { isVersionCompatible } from '@/lib/plugin-versions';
+import { getPackageVersion } from '@/lib/version';
 
 const execFileAsync = promisify(execFile);
 
@@ -113,6 +115,15 @@ async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> 
   } catch {
     throw new Error(
       'Plugin bundle is missing at dist/bundle.js — the tarball must contain a dist/ directory with bundle.js',
+    );
+  }
+  // Enforce the manifest's own minAppVersion here so every tarball install
+  // path (registry, external URL, update swaps) is covered. Fail open when
+  // the app version can't be read, matching the registry install route.
+  const appVersion = await getPackageVersion().catch(() => undefined);
+  if (!isVersionCompatible(manifest, appVersion)) {
+    throw new Error(
+      `This plugin needs Home Screens ${manifest.minAppVersion} or newer. Update Home Screens first.`,
     );
   }
   return manifest;

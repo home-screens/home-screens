@@ -43,7 +43,7 @@ function exec(cmd: string, args: string[], cwd?: string): Promise<string> {
 }
 
 /** Read version from package.json */
-async function getPackageVersion(): Promise<string> {
+export async function getPackageVersion(): Promise<string> {
   const pkgPath = path.join(process.cwd(), 'package.json');
   const data = await fs.readFile(pkgPath, 'utf-8');
   const pkg = JSON.parse(data);

@@ -7,6 +7,7 @@ import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
+import { latestVersion, hasUpdate } from '@/lib/plugin-versions';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -16,6 +17,10 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
 
 const log = logger('plugin-store');
+
+// Inlined from package.json at build time (next.config.mjs) — the running app version,
+// used to hide registry versions that need a newer Home Screens.
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 
 interface PluginStorePanelProps {
   onClose: () => void;
@@ -129,9 +134,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
   const updatable = installed.filter((inst) => {
     const reg = registry.find((r) => r.id === inst.id);
-    if (!reg) return false;
-    const latest = reg.versions[0];
-    return latest && latest.version !== inst.version;
+    return !!reg && hasUpdate(reg, inst.version, APP_VERSION);
   });
 
   const trapRef = useFocusTrap<HTMLDivElement>();
@@ -307,7 +310,7 @@ function BrowseTab({
         </div>
       ) : (
         plugins.map((plugin) => {
-          const latest = plugin.versions[0];
+          const latest = latestVersion(plugin, APP_VERSION);
           const isInstalled = installedIds.has(plugin.id);
           return (
             <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
@@ -469,7 +472,7 @@ function UpdatesTab({
     <div className="space-y-2">
       {updatable.map((plugin) => {
         const reg = registry.find((r) => r.id === plugin.id);
-        const latest = reg?.versions[0];
+        const latest = reg ? latestVersion(reg, APP_VERSION) : null;
         return (
           <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
             <div className="flex-1 min-w-0">
@@ -653,7 +656,7 @@ function InstallConfirmModal({
 }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const latest = plugin.versions[0];
+  const latest = latestVersion(plugin, APP_VERSION);
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
   const [manifestSecrets, setManifestSecrets] = useState<PluginSecretDeclaration[]>([]);
   const [requiresConnection, setRequiresConnection] = useState(false);

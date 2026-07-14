@@ -138,7 +138,7 @@ const VALID_MANIFEST = {
   category: 'fun',
 };
 
-function registryWith(id: string, version: string, downloadUrl: string, sha256: string): PluginRegistry {
+function registryWith(id: string, version: string, downloadUrl: string, sha256: string, minAppVersion = '0.0.0'): PluginRegistry {
   return {
     schemaVersion: 1,
     lastUpdated: '2026-01-01',
@@ -157,7 +157,7 @@ function registryWith(id: string, version: string, downloadUrl: string, sha256: 
         versions: [
           {
             version,
-            minAppVersion: '0.0.0',
+            minAppVersion,
             releaseDate: '2026-01-01',
             downloadUrl,
             sha256,
@@ -219,6 +219,42 @@ describe('POST /api/plugins/install — request validation', () => {
     const res = await POST(makeRequest('POST', { pluginId: 'test-plugin', version: '9.9.9' }));
     expect(res.status).toBe(404);
     expect((await res.json()).error).toMatch(/version not found/i);
+  });
+});
+
+describe('POST /api/plugins/install — minAppVersion enforcement', () => {
+  it('returns 400 when the version needs a newer app', async () => {
+    await fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    mockRegistry.mockResolvedValue(
+      registryWith('test-plugin', '2.0.0', 'https://x/p.tgz', 'a'.repeat(64), '2.0.0'),
+    );
+    const res = await POST(makeRequest('POST', { pluginId: 'test-plugin', version: '2.0.0' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/newer home screens/i);
+    // Enforcement fired before any download attempt.
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('installs when the app version meets minAppVersion exactly', async () => {
+    await fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    const { buffer, sha256 } = buildTarball(VALID_MANIFEST);
+    mockRegistry.mockResolvedValue(
+      registryWith('test-plugin', '1.0.0', 'https://x/p.tgz', sha256, '1.7.1'),
+    );
+    mockFetch.mockResolvedValue(new Response(new Uint8Array(buffer), { status: 200 }));
+    const res = await POST(makeRequest('POST', { pluginId: 'test-plugin', version: '1.0.0' }));
+    expect(res.status).toBe(200);
+  });
+
+  it('skips the check when the app version cannot be read', async () => {
+    // No package.json in the sandboxed cwd — enforcement must fail open.
+    const { buffer, sha256 } = buildTarball(VALID_MANIFEST);
+    mockRegistry.mockResolvedValue(
+      registryWith('test-plugin', '1.0.0', 'https://x/p.tgz', sha256, '9.9.9'),
+    );
+    mockFetch.mockResolvedValue(new Response(new Uint8Array(buffer), { status: 200 }));
+    const res = await POST(makeRequest('POST', { pluginId: 'test-plugin', version: '1.0.0' }));
+    expect(res.status).toBe(200);
   });
 });
 

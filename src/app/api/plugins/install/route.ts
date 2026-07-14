@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { installPlugin, uninstallPlugin, setPluginEnabled, clearPreviousVersion, fetchRegistry } from '@/lib/plugins';
 import { fetchWithTimeout, withAuth, parseJsonBody } from '@/lib/api-utils';
+import { isVersionCompatible } from '@/lib/plugin-versions';
+import { getPackageVersion } from '@/lib/version';
 import { audit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +26,16 @@ export const POST = withAuth(async (request: NextRequest) => {
   const versionEntry = entry.versions.find((v) => v.version === version);
   if (!versionEntry) {
     return NextResponse.json({ error: 'Version not found' }, { status: 404 });
+  }
+
+  // The store UI already hides incompatible versions; this is the enforcement point.
+  // If the app version can't be read, skip the check rather than block installs.
+  const appVersion = await getPackageVersion().catch(() => undefined);
+  if (!isVersionCompatible(versionEntry, appVersion)) {
+    return NextResponse.json(
+      { error: 'This plugin version needs a newer Home Screens. Update Home Screens first.' },
+      { status: 400 },
+    );
   }
 
   // Download the tarball

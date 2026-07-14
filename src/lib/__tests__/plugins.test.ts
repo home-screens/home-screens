@@ -311,6 +311,28 @@ describe('installExternalPlugin', () => {
     ).rejects.toThrow(/manifest is invalid/i);
   });
 
+  it('rejects a manifest whose minAppVersion exceeds the app version', async () => {
+    await fs.writeFile(path.join(tmpCwd, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: '999.0.0' });
+    await expect(
+      installExternalPlugin('https://example.com/p.tar.gz', buf),
+    ).rejects.toThrow(/needs Home Screens 999\.0\.0/);
+  });
+
+  it('installs when the app version cannot be read (fail open)', async () => {
+    // The sandboxed cwd has no package.json, so getPackageVersion() rejects.
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: '999.0.0' });
+    await installExternalPlugin('https://example.com/p.tar.gz', buf);
+    expect((await getInstalledPlugins()).plugins).toHaveLength(1);
+  });
+
+  it('installs when minAppVersion is unparsable (no constraint)', async () => {
+    await fs.writeFile(path.join(tmpCwd, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: 'v999.0.0' });
+    await installExternalPlugin('https://example.com/p.tar.gz', buf);
+    expect((await getInstalledPlugins()).plugins).toHaveLength(1);
+  });
+
   // Security regression: a manifest ID like "foo/bar" must NOT silently install
   // over a legitimate "foobar" plugin's directory. Before the fix, validateManifest
   // accepted any non-empty string ID, the early collision check used the raw ID
