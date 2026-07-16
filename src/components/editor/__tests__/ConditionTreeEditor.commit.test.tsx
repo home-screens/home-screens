@@ -2,7 +2,7 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/react';
-import { SourceKeyInput, ConditionValueInput, ConditionBoundInput, isCaseOnlyMismatch } from '../VisibilityConditionsSection';
+import { SourceKeyInput, ConditionValueInput, ConditionBoundInput, isCaseOnlyMismatch } from '../ConditionTreeEditor';
 import type { TranslateFn } from '@/i18n';
 
 /**

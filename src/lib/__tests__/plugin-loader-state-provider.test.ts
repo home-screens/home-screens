@@ -61,6 +61,20 @@ const BUNDLE_WITH_PROVIDER =
 const BUNDLE_NO_PROVIDER =
   'window.__HS_PLUGIN__ = { default: function Noop() { return null; } };';
 
+/** Bundle with the conventional `searchStateKeys` export (a function). */
+const BUNDLE_WITH_SEARCH =
+  'window.__HS_PLUGIN__ = {' +
+  ' default: function Noop() { return null; },' +
+  ' searchStateKeys: function search() { return []; }' +
+  '};';
+
+/** Bundle whose `searchStateKeys` export is NOT a function (junk shape). */
+const BUNDLE_WITH_BAD_SEARCH =
+  'window.__HS_PLUGIN__ = {' +
+  ' default: function Noop() { return null; },' +
+  ' searchStateKeys: 42' +
+  '};';
+
 /** jsdom's localStorage is non-functional under this setup; stub an in-memory one. */
 function makeLocalStorage() {
   const store: Record<string, string> = {};
@@ -207,5 +221,39 @@ describe('loadAllPlugins state provider + settings seeding', () => {
     expect(settings.get('nosettings')).toEqual({});
     // Keyed by lowercased id — original casing is not a key.
     expect(settings.has('HAlink')).toBe(false);
+  });
+
+  it('5d: resolves the conventional searchStateKeys export when it is a function', async () => {
+    const manifest = makeManifest('searchy', 'searchy');
+    mockFetch({
+      installed: [{ id: 'searchy', moduleType: 'searchy', version: '1.0.0' }],
+      manifests: { searchy: manifest },
+      bundles: { searchy: BUNDLE_WITH_SEARCH },
+    });
+
+    await loadAllPlugins();
+
+    const state = usePluginStore.getState();
+    expect(state.plugins.get('plugin:searchy')?.searchStateKeys).toBeTypeOf('function');
+    expect(state.errors.get('searchy')).toBeUndefined();
+  });
+
+  it('5e: coerces a non-function searchStateKeys export to undefined without failing the load', async () => {
+    const manifest = makeManifest('junky', 'junky');
+    mockFetch({
+      installed: [{ id: 'junky', moduleType: 'junky', version: '1.0.0' }],
+      manifests: { junky: manifest },
+      bundles: { junky: BUNDLE_WITH_BAD_SEARCH },
+    });
+
+    await loadAllPlugins();
+
+    const state = usePluginStore.getState();
+    const entry = state.plugins.get('plugin:junky');
+    // Component still registered — the plugin loaded successfully.
+    expect(entry?.component).toBeTypeOf('function');
+    // But the junk export never reaches the registration as a callable.
+    expect(entry?.searchStateKeys).toBeUndefined();
+    expect(state.errors.get('junky')).toBeUndefined();
   });
 });

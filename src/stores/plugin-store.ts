@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ComponentType } from 'react';
-import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps, StateProviderProps } from '@/types/plugins';
+import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps, StateProviderProps, SearchStateKeys } from '@/types/plugins';
 import { unregisterModule } from '@/lib/module-registry';
 import { deregisterFetchKey } from '@/lib/fetch-keys';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -36,6 +36,7 @@ interface PluginState {
     manifest: PluginManifest,
     configSection?: ComponentType<PluginConfigSectionProps>,
     stateProvider?: ComponentType<StateProviderProps>,
+    searchStateKeys?: SearchStateKeys,
   ) => void;
   /** Replace the plugin-settings map (loadAllPlugins pass or settings-only update) */
   setPluginSettingsMap: (settings: Map<string, Record<string, unknown>>) => void;
@@ -89,10 +90,10 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     return loadPromise;
   },
 
-  registerPlugin: (moduleType, component, manifest, configSection, stateProvider) => {
+  registerPlugin: (moduleType, component, manifest, configSection, stateProvider, searchStateKeys) => {
     set((state) => {
       const plugins = new Map(state.plugins);
-      plugins.set(moduleType, { component, manifest, configSection, stateProvider });
+      plugins.set(moduleType, { component, manifest, configSection, stateProvider, searchStateKeys });
       // Clear any prior error for this plugin
       const errors = new Map(state.errors);
       errors.delete(manifest.id);

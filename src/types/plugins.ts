@@ -235,7 +235,52 @@ export interface LoadedPlugin {
   manifest: PluginManifest;
   configSection?: ComponentType<PluginConfigSectionProps>;
   stateProvider?: ComponentType<StateProviderProps>;
+  searchStateKeys?: SearchStateKeys;
 }
+
+/** One selectable raw value for an enum-like state key. `label` carries the
+ *  friendly vocabulary ("Alert"); `value` is the raw string conditions must
+ *  store ("on"). The editor renders "Alert (on)" and stores "on". */
+export interface StateKeyValueOption {
+  value: string;
+  label?: string;
+}
+
+/**
+ * A state key described by a plugin's `searchStateKeys` export, rich enough
+ * for the editor's condition builder to offer selection instead of
+ * transcription: friendly label, grouping, and the raw value vocabulary.
+ */
+export interface StateKeyDescriptor {
+  /** FULL bus key, prefixed (`plugin:<id>:<rest>`). */
+  key: string;
+  /** Friendly name: "Back Door Sensor". */
+  label: string;
+  /** Grouping header inside the plugin's results: an area or domain. */
+  group?: string;
+  valueType: 'enum' | 'numeric' | 'string';
+  /** For `enum`: the selectable raw values (with optional friendly labels). */
+  valueOptions?: StateKeyValueOption[];
+  /** For `numeric`: unit hint, e.g. "°F". */
+  unit?: string;
+  /** Live raw value if cheaply known (shown as a hint, never stored). */
+  currentValue?: string;
+}
+
+/**
+ * Optional plugin export (conventional named export, resolved from the IIFE
+ * bundle like `deriveProvidedKeys`): search everything the plugin can publish,
+ * in friendly terms, for the editor's condition-builder combobox. Editor-only
+ * — never called on the display path. Implementations should serve results
+ * from a short-TTL cache (the editor debounces but a keystroke burst still
+ * fans out) and must tolerate being called with an empty query (return the
+ * most useful `limit` keys). Errors/timeouts degrade to the static
+ * suggestions path, so throwing is safe but wasteful.
+ */
+export type SearchStateKeys = (
+  query: string,
+  opts: { limit: number; settings: Record<string, unknown> },
+) => Promise<StateKeyDescriptor[]>;
 
 /**
  * Props the host passes to a plugin's `stateProvider` component. Keys arrive

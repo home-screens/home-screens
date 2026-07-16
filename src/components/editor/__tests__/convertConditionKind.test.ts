@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { VisibilityCondition } from '@/types/config';
-import { convertConditionKind } from '../VisibilityConditionsSection';
+import { convertConditionKind } from '../ConditionTreeEditor';
 
 describe('convertConditionKind', () => {
   it('returns the same object when the kind is unchanged', () => {

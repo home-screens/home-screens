@@ -205,6 +205,49 @@ export const PROVIDER_BUNDLE = `(function () {
   window.__HS_PLUGIN__ = { default: Component, StateProvider: StateProvider };
 })();`;
 
+/**
+ * A variant bundle that additionally exports `searchStateKeys` (conventional
+ * named export, no manifest entry) — the editor condition builder's friendly
+ * key search. Returns two descriptors, filtered by the query against label
+ * and key: an enum door sensor (friendly value vocabulary + grouping) and a
+ * numeric temperature (unit + current value). The visible component is
+ * unchanged from {@link BUNDLE}.
+ */
+export const SEARCH_BUNDLE = `(function () {
+  var React = window.React;
+  var SDK = window.__HS_SDK__;
+  function Component(props) {
+    var cfg = (props && props.config) || {};
+    var label = cfg.label || 'E2E PLUGIN';
+    return React.createElement('div', { 'data-plugin-marker': 'e2e', style: { width: '100%', height: '100%' } }, label);
+  }
+  var DESCRIPTORS = [
+    {
+      key: '${FIXTURE_PLUGIN_TYPE}:door',
+      label: 'Back Door Sensor',
+      group: 'Porch',
+      valueType: 'enum',
+      valueOptions: [{ value: 'on', label: 'Open' }, { value: 'off', label: 'Closed' }],
+      currentValue: 'on',
+    },
+    {
+      key: '${FIXTURE_PLUGIN_TYPE}:temp',
+      label: 'Kitchen Temperature',
+      group: 'Kitchen',
+      valueType: 'numeric',
+      unit: '\\u00B0F',
+      currentValue: '72.5',
+    },
+  ];
+  function searchStateKeys(query) {
+    var q = String(query || '').toLowerCase();
+    return Promise.resolve(DESCRIPTORS.filter(function (d) {
+      return q === '' || d.label.toLowerCase().indexOf(q) >= 0 || d.key.toLowerCase().indexOf(q) >= 0;
+    }));
+  }
+  window.__HS_PLUGIN__ = { default: Component, searchStateKeys: searchStateKeys };
+})();`;
+
 /** A single declared secret, mirroring `PluginSecretDeclaration` in the manifest. */
 export interface FixtureSecretDeclaration {
   key: string;
@@ -234,6 +277,11 @@ interface SeedFixturePluginOptions {
    */
   stateProvider?: boolean;
   /**
+   * When true, seed {@link SEARCH_BUNDLE} so the fixture exports
+   * `searchStateKeys` for the editor's friendly condition builder.
+   */
+  search?: boolean;
+  /**
    * When provided, the seeded manifest declares this `settingsSchema` so the
    * plugin manager renders its "Plugin settings" section.
    */
@@ -252,7 +300,9 @@ export function seedFixturePlugin(sandboxDir: string, opts: SeedFixturePluginOpt
       ? { exports: { ...MANIFEST.exports, stateProvider: 'StateProvider' } }
       : {}),
   };
-  const bundle = opts.stateProvider ? PROVIDER_BUNDLE : opts.nav ? NAV_BUNDLE : BUNDLE;
+  const bundle = opts.stateProvider ? PROVIDER_BUNDLE
+    : opts.search ? SEARCH_BUNDLE
+    : opts.nav ? NAV_BUNDLE : BUNDLE;
   writeSandboxFile(sandboxDir, 'plugins/installed.json', installedFile(opts.settings));
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, manifest);
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, bundle);

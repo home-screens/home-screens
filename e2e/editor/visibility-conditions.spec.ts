@@ -222,6 +222,71 @@ test('the live display value shows next to the condition key input', async ({ pa
   await expect(page.locator('code', { hasText: 'sunny' })).toBeVisible();
 });
 
+// ── Friendly condition builder: plugin searchStateKeys → picker → value select ─
+// The fixture's SEARCH_BUNDLE exports searchStateKeys with two descriptors
+// (an enum door sensor and a numeric temperature). No fixture module is
+// placed on any screen: key discovery must work from the loaded plugin alone,
+// which is the whole point of search over static provider advertising.
+
+test('searching by friendly name picks a key and the value select stores the raw vocabulary value', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir, { search: true });
+
+  const gated = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+  });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [gated])] }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator('[data-module-id="text-gated"]').click();
+  await page.getByRole('button', { name: 'Conditions' }).click();
+
+  // Type a friendly-name fragment; the plugin's search answers with the door
+  // descriptor (grouped under the plugin name + area header).
+  const keyInput = page.getByRole('combobox', { name: 'State key' });
+  await keyInput.click();
+  await keyInput.fill('door');
+  const option = page.getByRole('option').filter({ hasText: 'Back Door Sensor' });
+  await expect(option).toBeVisible();
+  await expect(option).toContainText('plugin:e2e-fixture:door');
+  await autosaved(page, async () => {
+    await option.click();
+  });
+  await expect(keyInput).toHaveValue('plugin:e2e-fixture:door');
+
+  // The value control switches from free text to the raw-vocabulary select;
+  // "Open (on)" displays both vocabularies and stores the raw `on`.
+  const valueSelect = page.locator('select[aria-label="Value"]');
+  await expect(valueSelect).toBeVisible();
+  await expect(valueSelect.locator('option', { hasText: 'Open (on)' })).toHaveCount(1);
+  await autosaved(page, async () => {
+    await valueSelect.selectOption('on');
+  });
+
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toMatchObject({ kind: 'state', sourceKey: 'plugin:e2e-fixture:door', equals: 'on' });
+});
+
+test('a stored numeric condition on a searchable key shows its current value and unit', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir, { search: true });
+
+  // Round-trip path: the key was committed in an earlier session; on reopen
+  // the editor resolves its descriptor (useStateKeyDescriptor) and surfaces
+  // the numeric hint without any user interaction.
+  const gated = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'numeric', sourceKey: 'plugin:e2e-fixture:temp', above: 70 }] },
+  });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [gated])] }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator('[data-module-id="text-gated"]').click();
+  await page.getByRole('button', { name: 'Conditions' }).click();
+
+  await expect(page.getByText('Current value: 72.5 °F')).toBeVisible();
+  // Numeric conditions keep the bounds inputs (no value select).
+  await expect(page.getByLabel('Above')).toHaveValue('70');
+});
+
 test('the source-key suggestion dropdown commits a key via ArrowDown + Enter', async ({ page, request, sandboxDir }) => {
   // Suggestions are sourced from background-provider modules on this display, so
   // seed the fixture plugin as a background provider — its advertised key
