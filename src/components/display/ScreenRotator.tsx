@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom';
 import type { Screen, GlobalSettings, Profile } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
 import BackgroundProviderLayer from './BackgroundProviderLayer';
+import PluginServiceLayer from './PluginServiceLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
 import NetworkIndicator from './NetworkIndicator';
@@ -362,6 +363,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           profile-filtered list) — a producer must keep publishing even when
           its home screen is currently excluded. */}
       <BackgroundProviderLayer screens={allScreens} settings={settings} sharedData={sharedData} />
+
+      {/* Demand-driven plugin state providers — one headless mount per
+          loaded plugin exporting `stateProvider`, fed every key this
+          display's conditions and Text tokens reference. Also uses
+          allScreens: demand must survive profile filtering. */}
+      <PluginServiceLayer screens={allScreens} />
 
       {screens.length > 1 && (
         <div

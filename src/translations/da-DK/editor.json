@@ -1372,6 +1372,15 @@
       "saveButton": "Save",
       "savedSuccess": "Saved successfully"
     },
+    "pluginSettings": {
+      "loading": "Indlæser indstillinger…",
+      "loadFailed": "Kunne ikke indlæse disse indstillinger. Luk og åbn igen for at prøve en gang til.",
+      "saveButton": "Gem",
+      "savingButton": "…",
+      "savedSuccess": "Gemt",
+      "toggleTitle": "Plugin-indstillinger",
+      "toggleAriaLabel": "Plugin-indstillinger for {id}"
+    },
     "pluginAuth": {
       "loading": "Kontrollerer forbindelse…",
       "connectedLabel": "Forbundet",
@@ -1957,7 +1966,8 @@
       "enabledLabel": "Show on display",
       "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
       "backgroundProviderLabel": "Kør skjult i baggrunden",
-      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten."
+      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten.",
+      "backgroundProviderObsoleteHint": "Dette plugin deler nu sine data automatisk. Denne skjulte kopi er ikke længere nødvendig og kan slettes."
     }
   },
   "upgradeModal": {

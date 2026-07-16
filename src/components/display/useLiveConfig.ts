@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { Screen, GlobalSettings, ScreenConfiguration, Profile } from '@/types/config';
+import type { InstalledPlugin } from '@/types/plugins';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { filterConfigForDisplay } from '@/lib/display-filter';
+import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
 
 /** Minimal display descriptor surfaced to modules that need to target displays */
@@ -12,6 +14,17 @@ export type DisplayDescriptor = { id: string; name: string };
 
 /** How often the display polls for config changes (ms) */
 const CONFIG_POLL_MS = 3_000;
+
+/** Per-plugin settings fingerprints (lowercased id → stable-stringified settings). */
+type SettingsFingerprints = Map<string, string>;
+
+function fingerprintsEqual(a: SettingsFingerprints, b: SettingsFingerprints): boolean {
+  if (a.size !== b.size) return false;
+  for (const [id, fp] of a) {
+    if (b.get(id) !== fp) return false;
+  }
+  return true;
+}
 
 /**
  * Poll /api/config and return live screens + settings + profiles,
@@ -37,6 +50,11 @@ export function useLiveConfig(
   const configJsonRef = useRef<string>('');
   const buildIdRef = useRef<string>('');
   const pluginHashRef = useRef<string>('');
+  const settingsFpsRef = useRef<SettingsFingerprints | null>(null);
+  // Re-entrancy guard: a plugin reload can outlast the poll interval on a
+  // slow Pi — without this, the next tick would start a second reload while
+  // the first is still swapping registrations.
+  const pollInFlightRef = useRef(false);
   // Self-heal on display deletion: once the first successful poll has landed,
   // if a later poll finds the display missing from the config we hard-reload.
   // The server-side per-display page then either renders DisplayNotFound
@@ -47,6 +65,8 @@ export function useLiveConfig(
     let mounted = true;
 
     async function poll() {
+      if (pollInFlightRef.current) return;
+      pollInFlightRef.current = true;
       try {
         // Check for new build — reload the page if the server was redeployed
         const buildRes = await displayFetch('/api/system/build-id');
@@ -106,16 +126,41 @@ export function useLiveConfig(
           if (pluginRes.ok && mounted) {
             const pluginData = await pluginRes.json();
             const newHash = pluginData.pluginHash ?? '';
+            const enabled: InstalledPlugin[] =
+              (pluginData.plugins ?? []).filter((p: InstalledPlugin) => p.enabled);
+            const newFps: SettingsFingerprints = new Map(
+              enabled.map((p) => [p.id.toLowerCase(), stableStringify(p.settings ?? {})]),
+            );
             if (pluginHashRef.current && newHash !== pluginHashRef.current) {
               // Plugin set changed — reload plugins, only commit hash on success
               try {
                 await usePluginStore.getState().loadPlugins();
                 pluginHashRef.current = newHash;
+                // loadAllPlugins refreshed the settings map wholesale
+                settingsFpsRef.current = newFps;
               } catch {
                 // Don't advance hash — retry on next poll
               }
             } else {
+              // The hash deliberately excludes settings (a settings save must
+              // not remount every plugin) — diff them here and push into the
+              // store instead. Entries whose settings didn't change keep
+              // their object identity so their ProviderMount props stay
+              // stable and provider effects don't re-fire.
+              const prevFps = settingsFpsRef.current;
+              if (prevFps && !fingerprintsEqual(prevFps, newFps)) {
+                const store = usePluginStore.getState();
+                const next = new Map<string, Record<string, unknown>>();
+                for (const p of enabled) {
+                  const id = p.id.toLowerCase();
+                  const existing = store.pluginSettings.get(id);
+                  const unchanged = existing && prevFps.get(id) === newFps.get(id);
+                  next.set(id, unchanged ? existing : (p.settings ?? {}));
+                }
+                store.setPluginSettingsMap(next);
+              }
               pluginHashRef.current = newHash;
+              settingsFpsRef.current = newFps;
             }
           }
         } catch {
@@ -123,6 +168,8 @@ export function useLiveConfig(
         }
       } catch {
         // keep current config on failure
+      } finally {
+        pollInFlightRef.current = false;
       }
     }
 

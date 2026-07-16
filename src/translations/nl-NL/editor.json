@@ -1372,6 +1372,15 @@
       "saveButton": "Opslaan",
       "savedSuccess": "Succesvol opgeslagen"
     },
+    "pluginSettings": {
+      "loading": "Instellingen laden…",
+      "loadFailed": "Kon deze instellingen niet laden. Sluit en open opnieuw om het nog eens te proberen.",
+      "saveButton": "Opslaan",
+      "savingButton": "…",
+      "savedSuccess": "Succesvol opgeslagen",
+      "toggleTitle": "Plugin-instellingen",
+      "toggleAriaLabel": "Plugin-instellingen voor {id}"
+    },
     "pluginAuth": {
       "loading": "Verbinding controleren…",
       "connectedLabel": "Verbonden",
@@ -1957,7 +1966,8 @@
       "enabledLabel": "Tonen op display",
       "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen.",
       "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
-      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen."
+      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen.",
+      "backgroundProviderObsoleteHint": "Deze plugin deelt zijn gegevens nu automatisch. Deze verborgen kopie is niet meer nodig en kan worden verwijderd."
     }
   },
   "upgradeModal": {

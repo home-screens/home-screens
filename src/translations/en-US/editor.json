@@ -1372,6 +1372,15 @@
       "saveButton": "Save",
       "savedSuccess": "Saved successfully"
     },
+    "pluginSettings": {
+      "loading": "Loading settings…",
+      "loadFailed": "Couldn't load these settings. Close and reopen to try again.",
+      "saveButton": "Save",
+      "savingButton": "…",
+      "savedSuccess": "Saved successfully",
+      "toggleTitle": "Plugin settings",
+      "toggleAriaLabel": "Plugin settings for {id}"
+    },
     "pluginAuth": {
       "loading": "Checking connection…",
       "connectedLabel": "Connected",
@@ -1957,7 +1966,8 @@
       "enabledLabel": "Show on display",
       "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
       "backgroundProviderLabel": "Run hidden in the background",
-      "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen - to also show the widget, add a second copy without this setting."
+      "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen - to also show the widget, add a second copy without this setting.",
+      "backgroundProviderObsoleteHint": "This plugin now shares its data automatically. This hidden copy is no longer needed and can be deleted."
     }
   },
   "upgradeModal": {

@@ -1372,6 +1372,15 @@
       "saveButton": "Salvar",
       "savedSuccess": "Salvo com sucesso"
     },
+    "pluginSettings": {
+      "loading": "Carregando configurações…",
+      "loadFailed": "Não foi possível carregar estas configurações. Feche e abra novamente para tentar de novo.",
+      "saveButton": "Salvar",
+      "savingButton": "…",
+      "savedSuccess": "Salvo com sucesso",
+      "toggleTitle": "Configurações do plugin",
+      "toggleAriaLabel": "Configurações do plugin {id}"
+    },
     "pluginAuth": {
       "loading": "Verificando a conexão…",
       "connectedLabel": "Conectado",
@@ -1961,7 +1970,8 @@
       "enabledLabel": "Mostrar no display",
       "enabledHelp": "Quando desativado, este módulo é excluído do display ao vivo e da pré-busca, mas permanece no editor para que você possa reativá-lo.",
       "backgroundProviderLabel": "Executar oculto em segundo plano",
-      "backgroundProviderHelp": "Fornece estados a outros módulos. Esta cópia nunca aparece na tela — para também mostrar o widget, adicione uma segunda cópia sem esta configuração."
+      "backgroundProviderHelp": "Fornece estados a outros módulos. Esta cópia nunca aparece na tela — para também mostrar o widget, adicione uma segunda cópia sem esta configuração.",
+      "backgroundProviderObsoleteHint": "Este plugin agora compartilha seus dados automaticamente. Esta cópia oculta não é mais necessária e pode ser excluída."
     }
   },
   "upgradeModal": {

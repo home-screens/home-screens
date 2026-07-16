@@ -49,7 +49,7 @@ export async function getInstalledPlugins(): Promise<InstalledPluginsFile> {
  *  on-disk state (prior queued writes have landed) and must return a NEW
  *  object to persist changes, or its input unchanged to skip the write. */
 function updateInstalled(
-  mutator: (current: InstalledPluginsFile) => InstalledPluginsFile,
+  mutator: (current: InstalledPluginsFile) => InstalledPluginsFile | Promise<InstalledPluginsFile>,
 ): Promise<InstalledPluginsFile> {
   return installedStore.updateAtomic(mutator).then((result) => {
     // mtime-based cache invalidation is implicit, but sub-ms writes can
@@ -205,6 +205,10 @@ export async function installPlugin(
         if (oldVersion !== version) {
           entry.previousVersion = oldVersion;
         }
+        // Settings survive upgrades (the documented InstalledPlugin contract).
+        if (plugins[existing].settings) {
+          entry.settings = plugins[existing].settings;
+        }
         plugins[existing] = entry;
       } else {
         plugins.push(entry);
@@ -285,6 +289,10 @@ export async function installExternalPlugin(
           if (plugins[idx].version !== manifest.version) {
             entry.previousVersion = plugins[idx].version;
           }
+          // Settings survive upgrades (the documented InstalledPlugin contract).
+          if (plugins[idx].settings) {
+            entry.settings = plugins[idx].settings;
+          }
           plugins[idx] = entry;
         } else {
           plugins.push(entry);
@@ -349,6 +357,69 @@ export async function setPluginEnabled(pluginId: string, enabled: boolean): Prom
   });
 }
 
+// --- Plugin-level settings (manifest settingsSchema values) ---
+
+const MAX_SETTINGS_JSON_BYTES = 32 * 1024;
+
+/** Read a plugin's stored settings ({} when unset or plugin unknown). */
+export async function getPluginSettings(pluginId: string): Promise<Record<string, unknown>> {
+  const installed = await getInstalledPlugins();
+  const plugin = installed.plugins.find((p) => p.id === pluginId);
+  return plugin?.settings ?? {};
+}
+
+/**
+ * Validate + persist plugin-level settings. Unknown keys (not declared in the
+ * manifest's `settingsSchema`) are dropped; declared keys are type-checked
+ * against the schema property type. Returns the sanitized object that was
+ * stored. Throws when the plugin isn't installed or declares no settings.
+ */
+export async function setPluginSettings(
+  pluginId: string,
+  settings: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  // Manifest read + validation run INSIDE the queued mutator so a concurrent
+  // plugin upgrade can't land between validation and persistence — the schema
+  // we validate against is the one on disk at write time.
+  let sanitized: Record<string, unknown> = {};
+  await updateInstalled(async (installed) => {
+    const plugin = installed.plugins.find((p) => p.id === pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+
+    const manifest = await getPluginManifest(pluginId);
+    if (!manifest) throw new Error(`Plugin ${pluginId} not found`);
+    const schema = manifest.settingsSchema;
+    if (!schema?.properties) {
+      throw new Error(`Plugin ${pluginId} does not declare settings`);
+    }
+
+    sanitized = {};
+    for (const [key, prop] of Object.entries(schema.properties)) {
+      if (!(key in settings)) continue;
+      const value = settings[key];
+      const ok =
+        (prop.type === 'string' && typeof value === 'string')
+        || (prop.type === 'number' && typeof value === 'number' && Number.isFinite(value))
+        || (prop.type === 'boolean' && typeof value === 'boolean')
+        || (prop.type === 'array' && Array.isArray(value))
+        || (prop.type === 'object' && typeof value === 'object' && value !== null && !Array.isArray(value));
+      if (!ok) throw new Error(`Setting "${key}" must be a ${prop.type}`);
+      sanitized[key] = value;
+    }
+    if (JSON.stringify(sanitized).length > MAX_SETTINGS_JSON_BYTES) {
+      throw new Error('Settings payload too large');
+    }
+
+    return {
+      ...installed,
+      plugins: installed.plugins.map((p) =>
+        p.id === pluginId ? { ...p, settings: sanitized } : p,
+      ),
+    };
+  });
+  return sanitized;
+}
+
 // --- Dev plugin registration ---
 
 /**
@@ -379,6 +450,11 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
     const plugins = [...installed.plugins];
     const existing = plugins.findIndex((p) => p.id === manifest.id);
     if (existing >= 0) {
+      // Settings survive re-registration — a dev iteration must not wipe the
+      // values the developer just saved through the plugin manager.
+      if (plugins[existing].settings) {
+        entry.settings = plugins[existing].settings;
+      }
       plugins[existing] = entry;
     } else {
       plugins.push(entry);
@@ -391,6 +467,11 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
 
 export async function getPluginHash(): Promise<string> {
   const installed = await getInstalledPlugins();
+  // Deliberately excludes settings: a settings save must NOT trigger the full
+  // bundle-reload path (which remounts every plugin on every display and
+  // cold-starts every provider's fetch loop). Settings ride the same
+  // /api/plugins/installed payload and are diffed separately by useLiveConfig,
+  // which pushes them into the plugin store without a reload.
   const content = installed.plugins
     .map((p) => `${p.id}:${p.version}:${p.enabled}`)
     .sort()
@@ -488,6 +569,15 @@ export function validateManifest(manifest: unknown): manifest is PluginManifest 
   }
   // Validate optional auth adapter declaration
   if (m.auth !== undefined && !validateAuthConfig(m)) return false;
+  // Validate optional settingsSchema — same declarative shape as configSchema.
+  // Light structural check only; the PUT settings path type-checks values.
+  if (m.settingsSchema !== undefined) {
+    const s = m.settingsSchema as Record<string, unknown> | null;
+    if (!s || typeof s !== 'object' || s.type !== 'object'
+      || !s.properties || typeof s.properties !== 'object' || Array.isArray(s.properties)) {
+      return false;
+    }
+  }
   // Validate optional providesState array. Keys are declared un-prefixed;
   // registration prefixes them with `plugin:<id>:`, so check the charset
   // against the raw key and the length cap against the prefixed key.

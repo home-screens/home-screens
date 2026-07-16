@@ -5,26 +5,8 @@ import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
 import { usePluginStore } from '@/stores/plugin-store';
+import { stableStringify } from '@/lib/stable-stringify';
 import { buildModuleProps, type SharedDisplayData } from './ScreenRenderer';
-
-/**
- * JSON.stringify is key-order-sensitive, so two semantically identical
- * configs authored in different key orders would defeat dedupe and
- * double-mount a provider's fetch loop. Sort plain-object keys recursively;
- * arrays keep their order (order is meaningful there).
- */
-function stableConfigKey(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(stableConfigKey).join(',')}]`;
-  }
-  if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([k, v]) => `${JSON.stringify(k)}:${stableConfigKey(v)}`);
-    return `{${entries.join(',')}}`;
-  }
-  return JSON.stringify(value) ?? 'undefined';
-}
 
 interface BackgroundProviderLayerProps {
   /** ALL configured screens (pre-profile-filter) — a producer must run even
@@ -70,7 +52,10 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
     for (const screen of screens) {
       for (const mod of screen.modules) {
         if (!mod.backgroundProvider || mod.enabled === false) continue;
-        const key = `${mod.type}:${stableConfigKey(mod.config)}`;
+        // JSON.stringify is key-order-sensitive, so two semantically identical
+        // configs authored in different key orders would defeat dedupe and
+        // double-mount a provider's fetch loop.
+        const key = `${mod.type}:${stableStringify(mod.config)}`;
         if (seen.has(key)) continue;
         seen.add(key);
         result.push(mod);

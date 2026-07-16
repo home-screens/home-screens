@@ -1372,6 +1372,15 @@
       "saveButton": "Speichern",
       "savedSuccess": "Erfolgreich gespeichert"
     },
+    "pluginSettings": {
+      "loading": "Einstellungen werden geladen…",
+      "loadFailed": "Einstellungen konnten nicht geladen werden. Schließen und erneut öffnen, um es noch einmal zu versuchen.",
+      "saveButton": "Speichern",
+      "savingButton": "…",
+      "savedSuccess": "Erfolgreich gespeichert",
+      "toggleTitle": "Plugin-Einstellungen",
+      "toggleAriaLabel": "Plugin-Einstellungen für {id}"
+    },
     "pluginAuth": {
       "loading": "Verbindung wird geprüft…",
       "connectedLabel": "Verbunden",
@@ -1957,7 +1966,8 @@
       "enabledLabel": "Auf Display anzeigen",
       "enabledHelp": "Wenn deaktiviert, wird dieses Modul vom Live-Display und Prefetch ausgeschlossen, bleibt aber im Editor erhalten, damit du es wieder aktivieren kannst.",
       "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
-      "backgroundProviderHelp": "Stellt anderen Modulen Zustandswerte bereit. Diese Kopie erscheint nie auf dem Display — um das Widget auch anzuzeigen, eine zweite Kopie ohne diese Einstellung hinzufügen."
+      "backgroundProviderHelp": "Stellt anderen Modulen Zustandswerte bereit. Diese Kopie erscheint nie auf dem Display — um das Widget auch anzuzeigen, eine zweite Kopie ohne diese Einstellung hinzufügen.",
+      "backgroundProviderObsoleteHint": "Dieses Plugin teilt seine Daten jetzt automatisch. Diese versteckte Kopie wird nicht mehr benötigt und kann gelöscht werden."
     }
   },
   "upgradeModal": {

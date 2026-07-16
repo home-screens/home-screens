@@ -27,9 +27,46 @@ export interface PluginManifest {
   defaultSize: { w: number; h: number };
   defaultStyle?: Partial<ModuleStyle>;
   configSchema?: PluginConfigSchema;
+  /**
+   * Declarative schema for plugin-level settings (connection URLs, poll
+   * cadence) — values shared by every instance of the plugin, stored on the
+   * plugin's `installed.json` record rather than any module's config. The
+   * editor renders it in the plugin manager with the same widget renderer as
+   * `configSchema`; values reach plugin code via `__HS_SDK__.getPluginSettings`
+   * and are passed to the `stateProvider` component as a prop. Secrets never
+   * go here — they stay in the manifest `secrets` declarations.
+   */
+  settingsSchema?: PluginConfigSchema;
   exports: {
     component: string; // typically "default"
     configSection?: string; // optional named export
+    /**
+     * Optional headless state-provider component. The host mounts one
+     * instance per plugin (in `PluginServiceLayer`, alive across screen
+     * rotation) and hands it the demand-driven key set — every shared-state
+     * key of this plugin's namespace referenced by any visibility condition
+     * or Text-module token on the display. The component publishes exactly
+     * those keys via `publishState` and renders null. Plugins that export
+     * this no longer need `backgroundProvider` module instances.
+     *
+     * Contract obligations beyond "publish the demanded keys":
+     *
+     * - **Clear on shrink.** When a key drops out of `demandedKeys` (the
+     *   user deleted or re-pointed the referencing condition), the provider
+     *   must `clearState` it so conditions elsewhere fall back to their
+     *   `whenUnknown` behavior instead of holding a stale value forever.
+     *   Diff the previous key set against the new prop and clear the
+     *   difference.
+     *
+     * - **Idle when empty.** The provider stays mounted even while
+     *   `demandedKeys` is empty — the host cannot unmount it on demand
+     *   shrinking to zero without skipping the clear pass above. Open
+     *   connections and start polling only when `demandedKeys` is
+     *   non-empty, and tear them down when it empties; a provider that
+     *   polls unconditionally from a mount effect will hit its upstream
+     *   forever on every install with zero conditions.
+     */
+    stateProvider?: string;
   };
   dataRequirements?: PluginDataRequirement[];
   prefetchUrl?: string | null;
@@ -179,6 +216,12 @@ export interface InstalledPlugin {
   source?: 'marketplace' | 'external';
   /** For source === 'external': the URL the tarball was downloaded from (with {version} intact). */
   externalUrl?: string;
+  /**
+   * Plugin-level settings, shaped by the manifest's `settingsSchema`.
+   * Stored here (not in config.json) so they survive plugin upgrades and
+   * ride the existing `/api/plugins/installed` payload to the display.
+   */
+  settings?: Record<string, unknown>;
 }
 
 export interface InstalledPluginsFile {
@@ -191,6 +234,22 @@ export interface LoadedPlugin {
   component: ComponentType<Record<string, unknown>>;
   manifest: PluginManifest;
   configSection?: ComponentType<PluginConfigSectionProps>;
+  stateProvider?: ComponentType<StateProviderProps>;
+}
+
+/**
+ * Props the host passes to a plugin's `stateProvider` component. Keys arrive
+ * UNPREFIXED (the part after `plugin:<id>:`), matching what the plugin passes
+ * to `publishState`. See the `exports.stateProvider` typedoc for the full
+ * contract: clear keys that drop out of `demandedKeys`, and stay idle (no
+ * polling, no open connections) while the array is empty.
+ */
+export interface StateProviderProps {
+  /** Deduped, sorted, referentially stable across renders when unchanged.
+   *  May be empty — the provider stays mounted and must idle, not poll. */
+  demandedKeys: string[];
+  /** Plugin-level settings (manifest `settingsSchema` values). */
+  settings: Record<string, unknown>;
 }
 
 /** Error state for a plugin that failed to load */

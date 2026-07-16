@@ -374,6 +374,56 @@ test('uninstalling removes the plugin files, its installed entry, and its palett
 });
 
 // ---------------------------------------------------------------------------
+// Installed tab — plugin-level settings (manifest settingsSchema)
+// ---------------------------------------------------------------------------
+
+test('the plugin settings section round-trips plugin-level settings from the Installed tab', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir, {
+    settingsSchema: { type: 'object', properties: { publishValue: { type: 'string', title: 'Publish value' } } },
+    settings: { publishValue: 'before' },
+  });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [])] }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  await stubRegistry(page);
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: 'Installed' }).click();
+
+  // The gear affordance renders only for plugins whose loaded manifest
+  // declares a settingsSchema; it toggles the schema-rendered form open.
+  await dialog.getByRole('button', { name: `Plugin settings for ${FIXTURE_PLUGIN_ID}` }).click();
+  const section = dialog.getByTestId(`plugin-settings-${FIXTURE_PLUGIN_ID}`);
+  await expect(section).toBeVisible();
+
+  // The stored value round-trips into the schema-rendered field.
+  const field = section.getByLabel('Publish value');
+  await expect(field).toHaveValue('before');
+  await field.fill('after');
+
+  const put = page.waitForResponse(
+    (r) => r.url().includes('/api/plugins/settings/') && r.request().method() === 'PUT' && r.ok(),
+  );
+  await section.getByRole('button', { name: 'Save' }).click();
+  await put;
+
+  // The save pushes settings into the plugin store without a bundle reload,
+  // so the section stays mounted and the confirmation actually renders.
+  await expect(section.getByText('Saved successfully')).toBeVisible();
+
+  // Persisted onto the plugin's installed.json record (not config.json).
+  const installed = await readInstalled(sandboxDir);
+  expect(installed.plugins.find((p) => p.id === FIXTURE_PLUGIN_ID)?.settings).toEqual({ publishValue: 'after' });
+
+  // The section survived the save (no remount) — toggle it closed, then
+  // reopen: the persisted value round-trips back through the GET.
+  await dialog.getByRole('button', { name: `Plugin settings for ${FIXTURE_PLUGIN_ID}` }).click();
+  await expect(section).toBeHidden();
+  await dialog.getByRole('button', { name: `Plugin settings for ${FIXTURE_PLUGIN_ID}` }).click();
+  await expect(dialog.getByTestId(`plugin-settings-${FIXTURE_PLUGIN_ID}`).getByLabel('Publish value')).toHaveValue('after');
+});
+
+// ---------------------------------------------------------------------------
 // Updates tab + ExternalUpdateModal
 // ---------------------------------------------------------------------------
 

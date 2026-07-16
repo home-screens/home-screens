@@ -1372,6 +1372,15 @@
       "saveButton": "Enregistrer",
       "savedSuccess": "Enregistré avec succès"
     },
+    "pluginSettings": {
+      "loading": "Chargement des réglages…",
+      "loadFailed": "Impossible de charger ces réglages. Fermez et rouvrez pour réessayer.",
+      "saveButton": "Enregistrer",
+      "savingButton": "…",
+      "savedSuccess": "Enregistré avec succès",
+      "toggleTitle": "Réglages du plugin",
+      "toggleAriaLabel": "Réglages du plugin {id}"
+    },
     "pluginAuth": {
       "loading": "Vérification de la connexion…",
       "connectedLabel": "Connecté",
@@ -1961,7 +1970,8 @@
       "enabledLabel": "Afficher sur l'écran",
       "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver.",
       "backgroundProviderLabel": "Exécuter masqué en arrière-plan",
-      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage."
+      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage.",
+      "backgroundProviderObsoleteHint": "Ce plugin partage désormais ses données automatiquement. Cette copie masquée n’est plus nécessaire et peut être supprimée."
     }
   },
   "upgradeModal": {

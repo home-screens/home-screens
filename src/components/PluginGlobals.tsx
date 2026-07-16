@@ -23,6 +23,7 @@ import { eventBus } from '@/lib/event-bus';
 import type { EventMap } from '@/lib/event-bus';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
+import { usePluginStore } from '@/stores/plugin-store';
 
 // i18n — exposed read-only to plugins via window.__HS_SDK__.
 import {
@@ -117,6 +118,19 @@ export default function PluginGlobals() {
 
       // Host settings — read-only snapshot of display configuration
       getHostSettings,
+
+      // Plugin-level settings — read-only snapshot of the values saved in
+      // the plugin manager against the manifest's `settingsSchema`. Module
+      // instances use this to fall back to plugin-wide values (e.g. a
+      // connection URL) so new instances need zero per-module setup.
+      getPluginSettings: (pluginId: string): Record<string, unknown> => {
+        if (typeof pluginId !== 'string') return {};
+        const settings = usePluginStore.getState().pluginSettings.get(pluginId.toLowerCase());
+        // Deep copy: settings may hold arrays/objects, and a plugin mutating
+        // a shallow copy's nested value would corrupt the store-held object
+        // every other reader (including the stateProvider prop) sees.
+        return structuredClone(settings ?? {});
+      },
 
       // Event emitter — plugin → host communication
       emit: pluginEventBus.emit,

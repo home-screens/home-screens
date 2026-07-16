@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { PluginManifest, InstalledPlugin, PluginConfigSectionProps } from '@/types/plugins';
+import type { PluginManifest, InstalledPlugin, PluginConfigSectionProps, StateProviderProps } from '@/types/plugins';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import { usePluginStore } from '@/stores/plugin-store';
 import { registerPluginModule } from '@/lib/module-registry';
@@ -77,7 +77,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   await loadPluginTranslations(manifest, base);
 
   // 3. Execute bundle
-  const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
+  const { component, configSection, stateProvider, deriveProvidedKeys } = executeBundle(bundleText, manifest);
 
   // 4. Migrate configs if dev plugin version changed
   const devPlugins = getDevPlugins();
@@ -98,7 +98,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
 
   // 6. Register client-side
   registerPluginModule(manifest, { deriveProvidedKeys });
-  store.registerPlugin(moduleType, component, manifest, configSection);
+  store.registerPlugin(moduleType, component, manifest, configSection, stateProvider);
 
   // 7. Persist dev mapping in localStorage
   devPlugins.set(manifest.id, { url: base, manifest });
@@ -356,6 +356,13 @@ export async function loadAllPlugins(): Promise<void> {
     return;
   }
 
+  // Refresh plugin-level settings wholesale from the installed payload —
+  // covers dev-overridden plugins too (their installed.json record is the
+  // settings source even when the bundle loads from the dev server).
+  store.setPluginSettingsMap(
+    new Map(plugins.map((p) => [p.id.toLowerCase(), p.settings ?? {}])),
+  );
+
   // Skip installed plugins that have a dev override — dev plugins load from
   // the dev server and don't need a bundle on disk
   const devPluginIds = new Set(getDevPlugins().keys());
@@ -476,7 +483,7 @@ async function loadSinglePlugin(
     await loadPluginTranslations(manifest);
 
     // 4. Execute IIFE bundle
-    const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
+    const { component, configSection, stateProvider, deriveProvidedKeys } = executeBundle(bundleText, manifest);
 
     // 5. Queue migration if server reports a version change
     if (plugin.previousVersion && plugin.previousVersion !== manifest.version) {
@@ -489,7 +496,7 @@ async function loadSinglePlugin(
 
     // 6. Register into module registry and Zustand store
     registerPluginModule(manifest, { deriveProvidedKeys });
-    store.registerPlugin(moduleType, component, manifest, configSection);
+    store.registerPlugin(moduleType, component, manifest, configSection, stateProvider);
 
     // 7. Wire prefetchUrl into the fetch key registry if declared
     if (manifest.prefetchUrl) {
@@ -516,6 +523,7 @@ function executeBundle(
 ): {
   component: ComponentType<Record<string, unknown>>;
   configSection?: ComponentType<PluginConfigSectionProps>;
+  stateProvider?: ComponentType<StateProviderProps>;
   deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
 } {
   // Clean up any previous plugin global
@@ -553,6 +561,15 @@ function executeBundle(
         | undefined;
     }
 
+    // Resolve optional headless state provider (manifest-declared export,
+    // mounted by PluginServiceLayer with the demand-driven key set).
+    let stateProvider: ComponentType<StateProviderProps> | undefined;
+    if (manifest.exports?.stateProvider) {
+      stateProvider = pluginExports[manifest.exports.stateProvider] as
+        | ComponentType<StateProviderProps>
+        | undefined;
+    }
+
     // Optional config-driven state-key deriver. Lives on the runtime
     // registration object (not the manifest) because the manifest is static
     // JSON and this must be a function. Conventional export name.
@@ -563,7 +580,7 @@ function executeBundle(
           ) => ProvidedStateKey[])
         : undefined;
 
-    return { component, configSection, deriveProvidedKeys };
+    return { component, configSection, stateProvider, deriveProvidedKeys };
   } catch (err) {
     throw new Error(`Bundle execution failed: ${err instanceof Error ? err.message : String(err)}`);
   } finally {

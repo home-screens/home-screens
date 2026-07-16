@@ -27,6 +27,24 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
     });
   };
 
+  return <PluginSchemaFields schema={schema} values={config} onFieldChange={setConfig} />;
+}
+
+/**
+ * The schema→widgets renderer behind PluginConfigRenderer, decoupled from the
+ * editor store so other value stores can reuse it — PluginSettingsSection
+ * renders a manifest `settingsSchema` against plugin-level settings with the
+ * exact same widgets and grouping.
+ */
+export function PluginSchemaFields({
+  schema,
+  values,
+  onFieldChange,
+}: {
+  schema: PluginConfigSchema;
+  values: Record<string, unknown>;
+  onFieldChange: (key: string, value: unknown) => void;
+}) {
   if (!schema?.properties) return null;
 
   // Group fields by ui:group
@@ -48,12 +66,12 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
     <div className="space-y-3">
       {/* Ungrouped fields first */}
       {ungrouped.map(([key, prop]) => (
-        <ConditionalField key={key} prop={prop} config={config} schemaProperties={schema.properties}>
+        <ConditionalField key={key} prop={prop} config={values} schemaProperties={schema.properties}>
           <ConfigField
             fieldKey={key}
             prop={prop}
-            value={config[key]}
-            onChange={(v) => setConfig(key, v)}
+            value={values[key]}
+            onChange={(v) => onFieldChange(key, v)}
           />
         </ConditionalField>
       ))}
@@ -61,7 +79,7 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
           hidden by ui:showWhen renders nothing — no orphaned header. */}
       {[...groups.entries()].map(([groupName, fields]) => {
         const visible = fields.filter(([, prop]) =>
-          isFieldVisible(prop, config, schema.properties),
+          isFieldVisible(prop, values, schema.properties),
         );
         if (visible.length === 0) return null;
         return (
@@ -74,8 +92,8 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
                 key={key}
                 fieldKey={key}
                 prop={prop}
-                value={config[key]}
-                onChange={(v) => setConfig(key, v)}
+                value={values[key]}
+                onChange={(v) => onFieldChange(key, v)}
               />
             ))}
           </div>

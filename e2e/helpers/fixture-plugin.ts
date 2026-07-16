@@ -42,16 +42,19 @@ export const MANIFEST = {
   permissions: ['network'],
 };
 
-const INSTALLED = {
-  schemaVersion: 1,
-  plugins: [{
-    id: FIXTURE_PLUGIN_ID,
-    version: '1.0.0',
-    installedAt: '2026-01-01T00:00:00.000Z',
-    enabled: true,
-    moduleType: FIXTURE_PLUGIN_ID,
-  }],
-};
+function installedFile(settings?: Record<string, unknown>) {
+  return {
+    schemaVersion: 1,
+    plugins: [{
+      id: FIXTURE_PLUGIN_ID,
+      version: '1.0.0',
+      installedAt: '2026-01-01T00:00:00.000Z',
+      enabled: true,
+      moduleType: FIXTURE_PLUGIN_ID,
+      ...(settings ? { settings } : {}),
+    }],
+  };
+}
 
 /**
  * The base fixture bundle (IIFE). Exported alongside {@link MANIFEST} as the
@@ -167,6 +170,41 @@ export const I18N_BUNDLE = `(function () {
   window.__HS_PLUGIN__ = { default: Component };
 })();`;
 
+/**
+ * A variant bundle that additionally exports a demand-driven `StateProvider`
+ * (manifest `exports.stateProvider`). The provider publishes every demanded
+ * key with `settings.publishValue` (default `'on'`) and clears keys that drop
+ * out of the demand set — the reference implementation of the stateProvider
+ * contract, exercised by the display state-provider spec with ZERO fixture
+ * modules placed. The visible component is unchanged from {@link BUNDLE}.
+ */
+export const PROVIDER_BUNDLE = `(function () {
+  var React = window.React;
+  var SDK = window.__HS_SDK__;
+  function Component(props) {
+    var cfg = (props && props.config) || {};
+    var label = cfg.label || 'E2E PLUGIN';
+    return React.createElement('div', { 'data-plugin-marker': 'e2e', style: { width: '100%', height: '100%' } }, label);
+  }
+  function StateProvider(props) {
+    var demandedKeys = (props && props.demandedKeys) || [];
+    var settings = (props && props.settings) || {};
+    var value = typeof settings.publishValue === 'string' ? settings.publishValue : 'on';
+    var prevRef = React.useRef([]);
+    React.useEffect(function () {
+      demandedKeys.forEach(function (key) {
+        SDK.publishState('${FIXTURE_PLUGIN_ID}', key, value);
+      });
+      prevRef.current.forEach(function (key) {
+        if (demandedKeys.indexOf(key) < 0) SDK.clearState('${FIXTURE_PLUGIN_ID}', key);
+      });
+      prevRef.current = demandedKeys;
+    }, [demandedKeys, value]);
+    return null;
+  }
+  window.__HS_PLUGIN__ = { default: Component, StateProvider: StateProvider };
+})();`;
+
 /** A single declared secret, mirroring `PluginSecretDeclaration` in the manifest. */
 export interface FixtureSecretDeclaration {
   key: string;
@@ -189,6 +227,19 @@ interface SeedFixturePluginOptions {
    * other consumer gets the unchanged default bundle.
    */
   nav?: boolean;
+  /**
+   * When true, seed {@link PROVIDER_BUNDLE} and declare
+   * `exports.stateProvider` in the manifest, turning the fixture into a
+   * demand-driven state provider.
+   */
+  stateProvider?: boolean;
+  /**
+   * When provided, the seeded manifest declares this `settingsSchema` so the
+   * plugin manager renders its "Plugin settings" section.
+   */
+  settingsSchema?: Record<string, unknown>;
+  /** Initial plugin-level settings stored on the installed.json record. */
+  settings?: Record<string, unknown>;
 }
 
 /** Seed the fixture plugin (installed.json, manifest, bundle) into a sandbox. */
@@ -196,8 +247,13 @@ export function seedFixturePlugin(sandboxDir: string, opts: SeedFixturePluginOpt
   const manifest = {
     ...MANIFEST,
     ...(opts.secrets ? { secrets: opts.secrets } : {}),
+    ...(opts.settingsSchema ? { settingsSchema: opts.settingsSchema } : {}),
+    ...(opts.stateProvider
+      ? { exports: { ...MANIFEST.exports, stateProvider: 'StateProvider' } }
+      : {}),
   };
-  writeSandboxFile(sandboxDir, 'plugins/installed.json', INSTALLED);
+  const bundle = opts.stateProvider ? PROVIDER_BUNDLE : opts.nav ? NAV_BUNDLE : BUNDLE;
+  writeSandboxFile(sandboxDir, 'plugins/installed.json', installedFile(opts.settings));
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, manifest);
-  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, opts.nav ? NAV_BUNDLE : BUNDLE);
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, bundle);
 }

@@ -394,29 +394,45 @@ export default function PropertyPanel() {
             <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
               {t('propertyPanel.visibility.enabledHelp')}
             </p>
-            {isStateProducerType(selectedModule.type) && (
-              <>
-                <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
-                  <input
-                    id={`module-bg-provider-toggle-${selectedModule.id}`}
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={selectedModule.backgroundProvider === true}
-                    aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
-                    onChange={(e) =>
-                      updateModule(selectedScreenId, selectedModule.id, {
-                        // Omit the field entirely when off so configs stay clean.
-                        backgroundProvider: e.target.checked ? true : undefined,
-                      })
-                    }
-                  />
-                  <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
-                </label>
-                <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
-                  {t('propertyPanel.visibility.backgroundProviderHelp')}
-                </p>
-              </>
-            )}
+            {(() => {
+              // Plugins that export a stateProvider publish automatically —
+              // the background flag is meaningless for them, so hide the
+              // toggle. Instances still flagged (from before the plugin
+              // adopted stateProvider) get a hint that they can be deleted,
+              // plus the toggle so the flag can be switched off.
+              const hasStateProvider = Boolean(loadedPlugin?.manifest.exports?.stateProvider);
+              const isFlagged = selectedModule.backgroundProvider === true;
+              if (hasStateProvider && !isFlagged) return null;
+              if (!hasStateProvider && !isStateProducerType(selectedModule.type)) return null;
+              return (
+                <>
+                  <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
+                    <input
+                      id={`module-bg-provider-toggle-${selectedModule.id}`}
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={isFlagged}
+                      aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
+                      onChange={(e) =>
+                        updateModule(selectedScreenId, selectedModule.id, {
+                          // Omit the field entirely when off so configs stay clean.
+                          backgroundProvider: e.target.checked ? true : undefined,
+                        })
+                      }
+                    />
+                    <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
+                  </label>
+                  <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
+                    {t('propertyPanel.visibility.backgroundProviderHelp')}
+                  </p>
+                  {hasStateProvider && isFlagged && (
+                    <p className="text-xs text-hs-warning mt-1 ml-6">
+                      {t('propertyPanel.visibility.backgroundProviderObsoleteHint')}
+                    </p>
+                  )}
+                </>
+              );
+            })()}
           </PropertyGroup>
         </AccordionSection>
 

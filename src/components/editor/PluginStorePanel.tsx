@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download } from 'lucide-react';
+import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
+import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -374,6 +375,8 @@ function InstalledTab({
   onUpdateExternal: (plugin: InstalledPlugin) => void;
 }) {
   const t = useTranslate('editor');
+  const loadedPlugins = usePluginStore((s) => s.plugins);
+  const [settingsOpenFor, setSettingsOpenFor] = useState<string | null>(null);
   if (installed.length === 0) {
     return <p className="text-sm text-hs-text-faint text-center py-8">{t('settings.pluginStorePanel.installed.empty')}</p>;
   }
@@ -382,8 +385,16 @@ function InstalledTab({
     <div className="space-y-2">
       {installed.map((plugin) => {
         const error = errors.get(plugin.id);
+        // Plugin-level settings need the loaded manifest (settingsSchema is
+        // not in installed.json) — absent for disabled/broken plugins, which
+        // simply hides the settings affordance.
+        const settingsSchema = plugin.enabled
+          ? [...loadedPlugins.values()].find((lp) => lp.manifest.id === plugin.id)?.manifest.settingsSchema
+          : undefined;
+        const settingsOpen = settingsOpenFor === plugin.id;
         return (
-          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
+          <div key={plugin.id} className="rounded-lg border border-hs-border-strong bg-hs-hover">
+          <div className="flex items-center gap-3 p-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
@@ -401,6 +412,18 @@ function InstalledTab({
                 </div>
               )}
             </div>
+            {settingsSchema && (
+              <button
+                type="button"
+                onClick={() => setSettingsOpenFor(settingsOpen ? null : plugin.id)}
+                className={`p-1 ${settingsOpen ? 'text-hs-accent-hover' : 'text-hs-text-muted hover:text-hs-text-body'}`}
+                title={t('settings.pluginSettings.toggleTitle')}
+                aria-label={t('settings.pluginSettings.toggleAriaLabel', { id: plugin.id })}
+                aria-expanded={settingsOpen}
+              >
+                <Settings2 className="w-4 h-4" />
+              </button>
+            )}
             {plugin.source === 'external' && (
               <button
                 type="button"
@@ -441,6 +464,12 @@ function InstalledTab({
             >
               <Trash2 className="w-4 h-4" />
             </button>
+          </div>
+          {settingsSchema && settingsOpen && (
+            <div className="px-3 pb-3 pt-1 border-t border-hs-border-strong/50">
+              <PluginSettingsSection pluginId={plugin.id} schema={settingsSchema} />
+            </div>
+          )}
           </div>
         );
       })}
