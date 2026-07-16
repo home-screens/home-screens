@@ -144,4 +144,123 @@ describe('useDisplaySharedState', () => {
     });
     expect(fetchMock).toHaveBeenCalledOnce();
   });
+
+  it('does not fetch when disabled and returns the empty snapshot', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    const { result } = renderHook(() => useDisplaySharedState('kitchen', false));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.current.entries).toEqual({});
+    expect(result.current.reportedAt).toBeNull();
+    expect(result.current.states).toBeNull();
+  });
+
+  it('resets to empty and stops polling when enabled flips off, resumes when flipped on', async () => {
+    vi.setSystemTime(1_000_000);
+    const body = () => jsonResponse({ entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 1_000_000 });
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(body()));
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useDisplaySharedState('kitchen', enabled),
+      { initialProps: { enabled: true } },
+    );
+    await flushPoll();
+    expect(result.current.entries.k?.value).toBe('a');
+
+    rerender({ enabled: false });
+    expect(result.current.entries).toEqual({});
+    const callsWhileDisabled = fetchMock.mock.calls.length;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(fetchMock.mock.calls.length).toBe(callsWhileDisabled);
+
+    rerender({ enabled: true });
+    await flushPoll();
+    expect(result.current.entries.k?.value).toBe('a');
+  });
+
+  it('keeps the snapshot identity across polls that report nothing new', async () => {
+    vi.setSystemTime(1_000_000);
+    const body = { entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 1_000_000 };
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(jsonResponse(body)));
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    const first = result.current;
+    expect(first.states?.get('k')?.value).toBe('a');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    // Two more polls with a byte-identical response: no state churn at all.
+    expect(result.current).toBe(first);
+  });
+
+  it('preserves entries/states identity when only reportedAt advances', async () => {
+    vi.setSystemTime(1_000_000);
+    const entries = { k: { value: 'a', updatedAt: 1 } };
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({ entries, reportedAt: 1_000_000 }))
+      .mockResolvedValueOnce(jsonResponse({ entries, reportedAt: 1_005_000 }));
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    const first = result.current;
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    // The heartbeat is newer, so reportedAt updates — but the unchanged
+    // entries keep their references so memoized consumers don't recompute.
+    expect(result.current).not.toBe(first);
+    expect(result.current.reportedAt).toBe(1_005_000);
+    expect(result.current.entries).toBe(first.entries);
+    expect(result.current.states).toBe(first.states);
+  });
+
+  it('exposes states as null for a stale report and flips fresh verdicts to null once the report ages out', async () => {
+    vi.setSystemTime(1_000_000);
+    // Stale from the start: a minute-old report must never produce verdicts.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(jsonResponse({ entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 900_000 })),
+    );
+    const stale = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(stale.result.current.entries.k?.value).toBe('a');
+    expect(stale.result.current.states).toBeNull();
+    stale.unmount();
+
+    // Fresh report, then the display goes silent (reportedAt frozen while the
+    // wall clock advances): the poll loop re-evaluates freshness every tick,
+    // so states flips to null right after the 60s cutoff.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(jsonResponse({ entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 1_000_000 })),
+    );
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(result.current.states?.get('k')?.value).toBe('a');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(65_000);
+    });
+    expect(result.current.states).toBeNull();
+    expect(result.current.entries.k?.value).toBe('a');
+  });
+
+  it('shares one poll loop between consumers of the same display', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse({ entries: {}, reportedAt: null }),
+    );
+    renderHook(() => useDisplaySharedState('kitchen'));
+    renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    // One interval for the slot, not one per consumer.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

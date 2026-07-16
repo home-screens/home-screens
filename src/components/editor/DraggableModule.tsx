@@ -1,16 +1,18 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { memo, useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Clock, PowerOff, Eye, EyeOff } from 'lucide-react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
+import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import { useTranslate } from '@/i18n';
-import { isModuleEnabled, isModuleVisible } from '@/lib/schedule';
+import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { resolveProvider } from '@/components/display/ScreenRenderer';
+import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleInstance } from '@/types/config';
 import { buildModuleShadow } from '@/lib/module-style';
 import type { PreviewData } from './usePreviewData';
@@ -24,9 +26,18 @@ export interface PreviewSettings {
   fullscreenTheme: string | undefined;
 }
 
-function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
+// Memoized: this renders the real module component (animations, canvases,
+// videos), and the canvas re-renders on every shared-state poll and clock
+// tick — none of which may reset module-internal state.
+const ModulePreview = memo(function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
   const displays = useEditorStore((s) => s.config?.displays);
-  const Component = getModuleComponent(mod.type);
+  // Plugin components resolve through the reactive store, not the static
+  // getModuleComponent lookup: the memo pins this render, so a plugin reload
+  // swapping the registration under the same type must trigger it directly.
+  const plugins = usePluginStore((s) => s.plugins);
+  const Component = mod.type.startsWith('plugin:')
+    ? plugins.get(mod.type)?.component
+    : getModuleComponent(mod.type);
   if (!Component) {
     if (mod.type.startsWith('plugin:')) {
       return <PluginPlaceholder moduleType={mod.type} />;
@@ -84,7 +95,7 @@ function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; pr
   }
 
   return <Component config={mod.config} style={mod.style} {...extraProps} />;
-}
+});
 
 export default function DraggableModule({
   mod,
@@ -95,6 +106,7 @@ export default function DraggableModule({
   previewData,
   settings,
   now,
+  verdictStates,
 }: {
   mod: ModuleInstance;
   scale: number;
@@ -104,6 +116,9 @@ export default function DraggableModule({
   previewData: PreviewData;
   settings: PreviewSettings | null;
   now: Date;
+  /** Fresh shared-state snapshot from the selected display, or null when the
+   *  display hasn't reported recently — the condition badge stays neutral. */
+  verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
 }) {
   const t = useTranslate('editor');
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -123,7 +138,7 @@ export default function DraggableModule({
   // occupies one fixed-width slot so any combination lines up.
   const iconSize = Math.max(8, 10 * scale);
   const badgeStep = Math.max(12, 14 * scale) + 2;
-  const badges: { key: string; className: string; title: string; icon: typeof Clock }[] = [];
+  const badges: { key: string; className: string; title: string; icon: typeof Clock; data?: Record<string, string> }[] = [];
   if (!isModuleEnabled(mod)) {
     badges.push({
       key: 'disabled',
@@ -144,16 +159,29 @@ export default function DraggableModule({
         icon: Clock,
       });
     }
-    // Neutral tint only, no pass/fail state: producers run on the display
-    // client, so the editor's sharedStateStore is always empty and a live
-    // tint would permanently read "unmet". The badge means "gated by
-    // shared-state conditions".
+    // Live pass/fail tint from the display's last-reported snapshot (the
+    // same evaluateVisibility the display runs). Neutral when no fresh
+    // snapshot exists — display offline must never read as a stale verdict.
     if ((mod.visibility?.conditions?.length ?? 0) > 0) {
+      const verdict = verdictStates
+        ? (evaluateVisibility(mod.visibility, verdictStates) ? 'met' : 'unmet')
+        : null;
       badges.push({
         key: 'condition',
-        className: 'bg-slate-600/70 text-slate-200',
-        title: t('draggableModule.conditionGatedTitle'),
-        icon: Eye,
+        data: { 'data-condition-badge': verdict ?? 'neutral' },
+        className:
+          verdict === 'met'
+            ? 'bg-hs-accent/70 text-white'
+            : verdict === 'unmet'
+              ? 'bg-amber-600/70 text-amber-200'
+              : 'bg-slate-600/70 text-slate-200',
+        title:
+          verdict === 'met'
+            ? t('draggableModule.conditionMetTitle')
+            : verdict === 'unmet'
+              ? t('draggableModule.conditionUnmetTitle')
+              : t('draggableModule.conditionGatedTitle'),
+        icon: verdict === 'unmet' ? EyeOff : Eye,
       });
     }
   }
@@ -255,6 +283,7 @@ export default function DraggableModule({
       {badges.map((badge, i) => (
         <div
           key={badge.key}
+          {...badge.data}
           className={`absolute top-0 p-0.5 rounded-bl ${badge.className}`}
           style={{ right: i * badgeStep }}
           title={badge.title}

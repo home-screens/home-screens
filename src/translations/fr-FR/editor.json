@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Planifié — actuellement inactif",
     "disabledTitle": "Désactivé — non affiché sur l'écran",
     "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
-    "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran"
+    "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran",
+    "conditionMetTitle": "Conditions remplies — affiché sur l'écran en ce moment",
+    "conditionUnmetTitle": "Conditions non remplies — masqué sur l'écran en ce moment"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -227,6 +229,7 @@
         "network": "Réseau",
         "profiles": "Profils",
         "rules": "Règles",
+        "sharedState": "État partagé",
         "security": "Sécurité",
         "stats": "Statistiques",
         "system": "Système",
@@ -1163,6 +1166,24 @@
         "message": "Supprimer « {name} » ?",
         "confirm": "Supprimer"
       }
+    },
+    "sharedStatePage": {
+      "heading": "État partagé",
+      "description": "Toutes les valeurs que cet écran publie pour les conditions, les règles et les jetons de texte — ainsi que tout ce qui est référencé mais n'arrive jamais.",
+      "displayPicker": {
+        "label": "Écran",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Dernier rapport de l'écran : {time}",
+      "noReportHint": "Cet écran n'a pas encore envoyé de valeurs. Elles apparaîtront ici dès que l'écran sera allumé et que quelque chose publiera.",
+      "emptyHint": "Rien ne publie ni ne référence de valeur sur cet écran pour l'instant.",
+      "neverPublished": "Jamais publiée",
+      "neverPublishedDetail": "Rien sur l'écran ne publie cette clé ; tout ce qui l'utilise suit son réglage « Avant l'arrivée des données ».",
+      "unreferencedLabel": "Rien ne référence cette clé.",
+      "referencedByLabel": "Utilisée par",
+      "ruleRefLabel": "Règle : {name}",
+      "builtInProducer": "Intégré",
+      "producerLabel": "De {producer}"
     },
     "securityPage": {
       "loading": "Vérification de l'état d'authentification…",
@@ -3218,6 +3239,22 @@
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
     "liveValueLabel": "Sur l'écran actuellement :",
-    "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement."
+    "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement.",
+    "verdicts": {
+      "met": "Remplie",
+      "unmet": "Non remplie",
+      "unknown": "En attente",
+      "metTitle": "Cette condition correspond sur l'écran en ce moment.",
+      "unmetTitle": "Cette condition ne correspond pas sur l'écran en ce moment.",
+      "unknownTitle": "Une clé utilisée par cette condition n'a pas encore été publiée."
+    },
+    "outcome": {
+      "noLiveData": "L'écran n'a pas envoyé de rapport récemment, les résultats en direct ne sont donc pas affichés.",
+      "shownNow": "Affiché sur l'écran en ce moment",
+      "hiddenNow": "Masqué sur l'écran en ce moment",
+      "waitingForKeys": "en attente de {keys}",
+      "keyNotPicked": "une condition n'a pas encore de clé choisie",
+      "conditionsNotMet": "les conditions ne correspondent pas"
+    }
   }
 }

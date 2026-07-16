@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Scheduled — currently inactive",
     "disabledTitle": "Disabled — not shown on display",
     "conditionGatedTitle": "Shows only when its conditions are met",
-    "backgroundProviderTitle": "Runs hidden in the background and never shown on the display"
+    "backgroundProviderTitle": "Runs hidden in the background and never shown on the display",
+    "conditionMetTitle": "Conditions met — showing on the display now",
+    "conditionUnmetTitle": "Conditions not met — hidden on the display now"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -227,6 +229,7 @@
         "network": "Network",
         "profiles": "Profiles",
         "rules": "Rules",
+        "sharedState": "Shared state",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1163,6 +1166,24 @@
         "message": "Delete \"{name}\"?",
         "confirm": "Delete"
       }
+    },
+    "sharedStatePage": {
+      "heading": "Shared state",
+      "description": "Every value this display publishes for conditions, rules, and text tokens — plus anything referenced that never arrives.",
+      "displayPicker": {
+        "label": "Display",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Last report from the display: {time}",
+      "noReportHint": "This display hasn't reported any values yet. Values appear here once the display is on and something publishes them.",
+      "emptyHint": "Nothing publishes or references any values on this display yet.",
+      "neverPublished": "Never published",
+      "neverPublishedDetail": "Nothing on the display publishes this key, so anything using it follows its 'Before data arrives' setting.",
+      "unreferencedLabel": "Nothing references this key.",
+      "referencedByLabel": "Used by",
+      "ruleRefLabel": "Rule: {name}",
+      "builtInProducer": "Built-in",
+      "producerLabel": "From {producer}"
     },
     "securityPage": {
       "loading": "Checking authentication status…",
@@ -3212,6 +3233,22 @@
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
     "liveValueLabel": "On the display now:",
-    "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly."
+    "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly.",
+    "verdicts": {
+      "met": "Met",
+      "unmet": "Not met",
+      "unknown": "Waiting",
+      "metTitle": "This condition matches on the display right now.",
+      "unmetTitle": "This condition doesn't match on the display right now.",
+      "unknownTitle": "A key this condition uses hasn't been published yet."
+    },
+    "outcome": {
+      "noLiveData": "The display hasn't reported recently, so live results aren't shown.",
+      "shownNow": "Shown on the display right now",
+      "hiddenNow": "Hidden on the display right now",
+      "waitingForKeys": "waiting for {keys}",
+      "keyNotPicked": "a condition doesn't have a key picked yet",
+      "conditionsNotMet": "the conditions don't match"
+    }
   }
 }

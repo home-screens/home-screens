@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ModuleInstance, Screen, VisibilityCondition } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import { collectDemandedKeys, demandByPlugin } from '../state-demand';
+import { collectDemandedKeys, collectKeyReferences, demandByPlugin } from '../state-demand';
 
 let nextId = 0;
 function makeModule(overrides: Partial<ModuleInstance>): ModuleInstance {
@@ -166,6 +166,73 @@ describe('collectDemandedKeys', () => {
     ];
     expect(collectDemandedKeys([], rules)).toEqual(
       new Set(['plugin:ha:doorbell', 'plugin:ha:motion']),
+    );
+  });
+});
+
+describe('collectKeyReferences', () => {
+  it('maps each key to every module and rule that references it', () => {
+    const door = makeModule({ visibility: { conditions: [stateCondition('plugin:ha:door')] } });
+    const text = makeModule({
+      type: 'text' as ModuleInstance['type'],
+      config: { content: 'Door: {plugin:ha:door} Temp: {plugin:ha:temp}' },
+    });
+    const screens = [makeScreen('a', [door]), makeScreen('b', [text])];
+    const rules = [
+      { id: 'r1', name: 'Doorbell', when: [stateCondition('plugin:ha:door')] },
+    ];
+
+    const refs = collectKeyReferences(screens, rules);
+    expect(refs.get('plugin:ha:door')).toEqual([
+      { kind: 'module', screenId: 'a', screenName: 'a', moduleId: door.id, moduleType: 'icon' },
+      { kind: 'module', screenId: 'b', screenName: 'b', moduleId: text.id, moduleType: 'text' },
+      { kind: 'rule', ruleId: 'r1', ruleName: 'Doorbell' },
+    ]);
+    expect(refs.get('plugin:ha:temp')).toEqual([
+      { kind: 'module', screenId: 'b', screenName: 'b', moduleId: text.id, moduleType: 'text' },
+    ]);
+  });
+
+  it('lists a module once per key even when conditions and tokens both reference it', () => {
+    const mod = makeModule({
+      type: 'text' as ModuleInstance['type'],
+      config: { content: '{plugin:ha:door}' },
+      visibility: { conditions: [stateCondition('plugin:ha:door')] },
+    });
+    const refs = collectKeyReferences([makeScreen('a', [mod])]);
+    expect(refs.get('plugin:ha:door')).toHaveLength(1);
+  });
+
+  it('skips disabled screens, modules, and rules, and the empty authoring key', () => {
+    const screens: Screen[] = [
+      { ...makeScreen('off', [makeModule({ visibility: { conditions: [stateCondition('plugin:ha:a')] } })]), enabled: false },
+      makeScreen('on', [
+        makeModule({ enabled: false, visibility: { conditions: [stateCondition('plugin:ha:b')] } }),
+        makeModule({ visibility: { conditions: [stateCondition('')] } }),
+      ]),
+    ];
+    const rules = [
+      { id: 'r1', name: 'Off', enabled: false, when: [stateCondition('plugin:ha:c')] },
+    ];
+    expect(collectKeyReferences(screens, rules).size).toBe(0);
+  });
+
+  it('always agrees with collectDemandedKeys on the key set — the inspector and demand must not drift', () => {
+    const screens: Screen[] = [
+      makeScreen('a', [
+        makeModule({ visibility: { conditions: [stateCondition('plugin:ha:door')] } }),
+        makeModule({ type: 'text' as ModuleInstance['type'], config: { content: '{plugin:ha:temp}' } }),
+        makeModule({ enabled: false, visibility: { conditions: [stateCondition('plugin:ha:skipped')] } }),
+        makeModule({ visibility: { conditions: [stateCondition('')] } }),
+      ]),
+      { ...makeScreen('b', [makeModule({ visibility: { conditions: [stateCondition('plugin:ha:off')] } })]), enabled: false },
+    ];
+    const rules = [
+      { id: 'r1', name: 'Bell', when: [stateCondition('plugin:ha:doorbell')] },
+      { id: 'r2', name: 'Off', enabled: false, when: [stateCondition('plugin:ha:ruleoff')] },
+    ];
+    expect(new Set(collectKeyReferences(screens, rules).keys())).toEqual(
+      collectDemandedKeys(screens, rules),
     );
   });
 });

@@ -10,8 +10,8 @@
  * `backgroundProvider` flag, no entity-list sync.
  */
 
-import type { DisplayRule, Screen } from '@/types/config';
-import { collectConditionSourceKeys, collectSourceKeys } from '@/lib/schedule';
+import type { DisplayRule, ModuleInstance, Screen } from '@/types/config';
+import { collectSourceKeys } from '@/lib/schedule';
 import { extractSharedStateKeys } from '@/lib/shared-state-template';
 
 /**
@@ -22,51 +22,107 @@ import { extractSharedStateKeys } from '@/lib/shared-state-template';
 type RuleConditions = Pick<DisplayRule, 'when' | 'enabled'>;
 
 /**
- * All shared-state keys referenced anywhere on this display: module
- * visibility conditions + Text module tokens + display-rule conditions.
+ * The single config traversal behind both `collectDemandedKeys` and
+ * `collectKeyReferences`: every key source (module visibility conditions,
+ * Text module tokens, display-rule conditions) and every skip rule (disabled
+ * screens/modules/rules, empty authoring-time keys) lives here exactly once,
+ * so the demand-driven providers and the editor's bus inspector can never
+ * disagree about which keys the config references.
  *
- * Callers pass ALL of the display's screens, pre-profile-filter, for the
- * same reason `BackgroundProviderLayer` does: a profile switch must not
- * cold-start providers. Disabled screens and disabled modules are skipped —
- * ScreenRotator excludes disabled screens before profile resolution, so
- * their conditions are never evaluated and demanding their keys would make
- * providers poll for consumers that can never render. Unlike the
- * profile-filter case there is no blink-window rationale for including
- * them: re-enabling is a config edit, and demand recomputes on the same
- * poll that delivers it.
+ * Disabled screens, modules, and rules are skipped: ScreenRotator excludes
+ * disabled screens before profile resolution and the rule engine never
+ * evaluates disabled rules, so their conditions can never run and demanding
+ * their keys would make providers poll for consumers that can never render.
+ * Empty sourceKeys are dropped — a condition may legally hold one while
+ * being authored, evaluated as unknown and never publishable.
  */
-export function collectDemandedKeys(screens: Screen[], rules?: readonly RuleConditions[]): Set<string> {
-  const demanded = new Set<string>();
-
+function walkReferencedKeys<R extends RuleConditions>(
+  screens: Screen[],
+  rules: readonly R[] | undefined,
+  onModuleKey: (key: string, screen: Screen, mod: ModuleInstance) => void,
+  onRuleKey: (key: string, rule: R) => void,
+): void {
   for (const screen of screens) {
     if (screen.enabled === false) continue;
-    const activeModules = screen.modules.filter((m) => m.enabled !== false);
-    for (const key of collectConditionSourceKeys(activeModules)) {
-      demanded.add(key);
-    }
-    for (const mod of activeModules) {
-      if (mod.type !== 'text') continue;
-      const content = mod.config?.content;
-      if (typeof content !== 'string') continue;
-      for (const key of extractSharedStateKeys(content)) {
-        demanded.add(key);
+    for (const mod of screen.modules) {
+      if (mod.enabled === false) continue;
+      const keys = new Set<string>();
+      if (mod.visibility?.conditions) collectSourceKeys(mod.visibility.conditions, keys);
+      if (mod.type === 'text' && typeof mod.config?.content === 'string') {
+        for (const key of extractSharedStateKeys(mod.config.content)) keys.add(key);
       }
+      keys.delete('');
+      for (const key of keys) onModuleKey(key, screen, mod);
     }
   }
 
   if (rules) {
     for (const rule of rules) {
-      // Disabled rules are never evaluated, so their keys are not a demand —
-      // same reasoning as disabled screens/modules above.
       if (rule.enabled === false) continue;
-      if (rule.when) collectSourceKeys(rule.when, demanded);
+      const keys = new Set<string>();
+      if (rule.when) collectSourceKeys(rule.when, keys);
+      keys.delete('');
+      for (const key of keys) onRuleKey(key, rule);
     }
   }
+}
 
-  // Conditions may legally hold an empty sourceKey while being authored —
-  // evaluated as unknown, never publishable, so it is not a demand.
-  demanded.delete('');
+/**
+ * All shared-state keys referenced anywhere on this display: module
+ * visibility conditions + Text module tokens + display-rule conditions.
+ *
+ * Callers pass ALL of the display's screens, pre-profile-filter, for the
+ * same reason `BackgroundProviderLayer` does: a profile switch must not
+ * cold-start providers. Re-enabling a disabled screen/module is a config
+ * edit, and demand recomputes on the same poll that delivers it.
+ */
+export function collectDemandedKeys(screens: Screen[], rules?: readonly RuleConditions[]): Set<string> {
+  const demanded = new Set<string>();
+  const add = (key: string) => demanded.add(key);
+  walkReferencedKeys(screens, rules, add, add);
   return demanded;
+}
+
+/** One consumer of a shared-state key, for the editor's bus inspector. */
+export type StateKeyReference =
+  | { kind: 'module'; screenId: string; screenName: string; moduleId: string; moduleType: string }
+  | { kind: 'rule'; ruleId: string; ruleName: string };
+
+/** Rules need id + name here (the inspector lists them), unlike demand. */
+type RuleReference = Pick<DisplayRule, 'id' | 'name' | 'when' | 'enabled'>;
+
+/**
+ * Key → every module/rule that references it. The inspector's view over the
+ * same `walkReferencedKeys` traversal that feeds `collectDemandedKeys`, so
+ * the key set of the returned map always equals the demand set for the same
+ * input — by construction, and asserted by a unit test.
+ */
+export function collectKeyReferences(
+  screens: Screen[],
+  rules?: readonly RuleReference[],
+): Map<string, StateKeyReference[]> {
+  const refs = new Map<string, StateKeyReference[]>();
+  const add = (key: string, ref: StateKeyReference) => {
+    const list = refs.get(key);
+    if (list) list.push(ref);
+    else refs.set(key, [ref]);
+  };
+
+  walkReferencedKeys(
+    screens,
+    rules,
+    (key, screen, mod) =>
+      add(key, {
+        kind: 'module',
+        screenId: screen.id,
+        screenName: screen.name,
+        moduleId: mod.id,
+        moduleType: mod.type,
+      }),
+    (key, rule) => add(key, { kind: 'rule', ruleId: rule.id, ruleName: rule.name }),
+  );
+
+  return refs;
 }
 
 const PLUGIN_KEY_RE = /^plugin:([^:]+):(.+)$/;

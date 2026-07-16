@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Agendado — atualmente inativo",
     "disabledTitle": "Desativado — não exibido no display",
     "conditionGatedTitle": "Só aparece quando suas condições são atendidas",
-    "backgroundProviderTitle": "Executa oculto em segundo plano — nunca é exibido no display"
+    "backgroundProviderTitle": "Executa oculto em segundo plano — nunca é exibido no display",
+    "conditionMetTitle": "Condições atendidas — visível na tela agora",
+    "conditionUnmetTitle": "Condições não atendidas — oculto na tela agora"
   },
   "displaySwitcher": {
     "title": "Qual tela este canvas está editando? (Substituições de configurações ficam em Configurações → Por tela.)",
@@ -227,6 +229,7 @@
         "network": "Rede",
         "profiles": "Perfis",
         "rules": "Regras",
+        "sharedState": "Estado compartilhado",
         "security": "Segurança",
         "stats": "Estatísticas",
         "system": "Sistema",
@@ -1163,6 +1166,24 @@
         "message": "Excluir \"{name}\"?",
         "confirm": "Excluir"
       }
+    },
+    "sharedStatePage": {
+      "heading": "Estado compartilhado",
+      "description": "Todos os valores que esta tela publica para condições, regras e tokens de texto — e tudo o que é referenciado mas nunca chega.",
+      "displayPicker": {
+        "label": "Tela",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Último relatório da tela: {time}",
+      "noReportHint": "Esta tela ainda não informou nenhum valor. Os valores aparecem aqui quando a tela estiver ligada e algo os publicar.",
+      "emptyHint": "Nada publica ou referencia valores nesta tela ainda.",
+      "neverPublished": "Nunca publicada",
+      "neverPublishedDetail": "Nada na tela publica esta chave, então tudo que a usa segue a configuração 'Antes dos dados chegarem'.",
+      "unreferencedLabel": "Nada referencia esta chave.",
+      "referencedByLabel": "Usada por",
+      "ruleRefLabel": "Regra: {name}",
+      "builtInProducer": "Integrado",
+      "producerLabel": "De {producer}"
     },
     "securityPage": {
       "loading": "Verificando status de autenticação…",
@@ -3218,6 +3239,22 @@
     "sourceKeyInvalid": "Digite uma chave de estado apenas com letras minúsculas, números e _ : . -",
     "invalidHint": "Estas condições ainda não podem ser salvas. Corrija os campos destacados.",
     "liveValueLabel": "No display agora:",
-    "caseMismatchWarning": "O display publica '{value}'. A comparação diferencia maiúsculas de minúsculas — o valor deve corresponder exatamente."
+    "caseMismatchWarning": "O display publica '{value}'. A comparação diferencia maiúsculas de minúsculas — o valor deve corresponder exatamente.",
+    "verdicts": {
+      "met": "Atendida",
+      "unmet": "Não atendida",
+      "unknown": "Aguardando",
+      "metTitle": "Esta condição corresponde na tela agora mesmo.",
+      "unmetTitle": "Esta condição não corresponde na tela agora mesmo.",
+      "unknownTitle": "Uma chave usada por esta condição ainda não foi publicada."
+    },
+    "outcome": {
+      "noLiveData": "A tela não enviou relatórios recentemente, então os resultados ao vivo não são exibidos.",
+      "shownNow": "Visível na tela agora mesmo",
+      "hiddenNow": "Oculto na tela agora mesmo",
+      "waitingForKeys": "aguardando {keys}",
+      "keyNotPicked": "uma condição ainda não tem chave escolhida",
+      "conditionsNotMet": "as condições não correspondem"
+    }
   }
 }

@@ -23,6 +23,7 @@ import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
 import ProfilesSection from '@/components/editor/settings/ProfilesSection';
 import RulesSection from '@/components/editor/settings/RulesSection';
+import SharedStateSection from '@/components/editor/settings/SharedStateSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
@@ -60,6 +61,7 @@ type TabId =
   | 'displays'
   | 'profiles'
   | 'rules'
+  | 'shared-state'
   | 'sleep'
   | 'alerts'
   | 'location'
@@ -368,6 +370,10 @@ function SettingsPageContent() {
 
             {activeTab === 'rules' && (
               <RulesSection />
+            )}
+
+            {activeTab === 'shared-state' && (
+              <SharedStateSection />
             )}
 
             {activeTab === 'sleep' && config && (

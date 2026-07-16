@@ -20,8 +20,9 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { DisplaySharedState } from '@/hooks/useDisplaySharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
+import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
-import { SHARED_STATE_KEY_RE, type ProvidedStateKey } from '@/lib/shared-state-types';
+import { SHARED_STATE_KEY_RE, type ProvidedStateKey, type SharedStateEntry } from '@/lib/shared-state-types';
 import type { StateKeyDescriptor } from '@/types/plugins';
 import type { VisibilityCondition } from '@/types/config';
 
@@ -523,12 +524,44 @@ export function isCaseOnlyMismatch(
   return list.some((v) => v.toLowerCase() === lower);
 }
 
+/**
+ * Live pass/fail chip for one condition node, computed by the SAME
+ * three-valued evaluator the display-rule engine uses over the display's
+ * last-reported snapshot. Rendered only when a fresh snapshot exists —
+ * offline displays show nothing rather than a stale verdict. Exported for
+ * tests.
+ */
+export function ConditionVerdictChip({
+  verdict,
+  t,
+}: {
+  verdict: ConditionVerdict;
+  t: TranslateFn;
+}) {
+  const className =
+    verdict === 'met'
+      ? 'bg-hs-success/15 text-hs-success border-hs-success/30'
+      : verdict === 'unmet'
+        ? 'bg-amber-600/15 text-amber-500 border-amber-600/30'
+        : 'bg-hs-hover text-hs-text-dim border-hs-border-strong';
+  return (
+    <span
+      data-condition-verdict={verdict}
+      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${className}`}
+      title={t(`visibilityConditions.verdicts.${verdict}Title`)}
+    >
+      {t(`visibilityConditions.verdicts.${verdict}`)}
+    </span>
+  );
+}
+
 function ConditionEditor({
   condition,
   onChange,
   onRemove,
   options,
   liveState,
+  verdictStates,
   depth,
   t,
 }: {
@@ -537,6 +570,7 @@ function ConditionEditor({
   onRemove: () => void;
   options: readonly ProvidedStateKey[];
   liveState?: DisplaySharedState;
+  verdictStates: ReadonlyMap<string, SharedStateEntry> | null;
   depth: number;
   t: TranslateFn;
 }) {
@@ -560,6 +594,9 @@ function ConditionEditor({
             <option key={k} value={k}>{t(`visibilityConditions.kinds.${k}`)}</option>
           ))}
         </select>
+        {verdictStates && (
+          <ConditionVerdictChip verdict={conditionVerdict(condition, verdictStates)} t={t} />
+        )}
         <button
           type="button"
           onClick={onRemove}
@@ -673,6 +710,7 @@ function ConditionEditor({
               depth={depth + 1}
               options={options}
               liveState={liveState}
+              verdictStates={verdictStates}
               t={t}
               onChange={(next) => {
                 const conditions = condition.conditions.slice();
@@ -718,6 +756,10 @@ export default function ConditionTreeEditor({
   liveState?: DisplaySharedState;
   t: TranslateFn;
 }) {
+  // One states map per snapshot for the whole tree; null (no fresh report)
+  // renders every node without a verdict chip. Freshness is owned by the
+  // poll loop in useDisplaySharedState, which re-evaluates it every tick.
+  const verdictStates = liveState?.states ?? null;
   return (
     <>
       {conditions.map((condition, i) => (
@@ -727,6 +769,7 @@ export default function ConditionTreeEditor({
           depth={0}
           options={options}
           liveState={liveState}
+          verdictStates={verdictStates}
           t={t}
           onChange={(next) => {
             const updated = conditions.slice();

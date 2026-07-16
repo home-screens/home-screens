@@ -30,6 +30,7 @@ export const DEFAULT_PAGE_IDS = [
   'meals',
   'profiles',
   'rules',
+  'shared-state',
   'integrations',
   'security',
   'data',

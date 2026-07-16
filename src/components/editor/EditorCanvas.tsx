@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
+import { useDisplaySharedState } from '@/hooks/useDisplaySharedState';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale } from '@/hooks/useCanvasBaseScale';
@@ -126,17 +127,32 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     }
   }, [effectiveScale, onScaleChange, isDragging]);
 
-  const previewLocation = config ? getLocation(config.settings) : null;
-  const previewSettings: PreviewSettings | null = config ? {
-    latitude: previewLocation?.lat,
-    longitude: previewLocation?.lon,
-    timezone: config.settings.timezone,
-    globalProvider: config.settings.weather.provider,
-    units: config.settings.weather.units,
-    fullscreenTheme: config.settings.fullscreenTheme,
-  } : null;
+  // Stable identity while settings are untouched so the memoized module
+  // previews don't re-render on unrelated canvas re-renders (polls, clock).
+  const settings = config?.settings;
+  const previewSettings: PreviewSettings | null = useMemo(() => {
+    if (!settings) return null;
+    const previewLocation = getLocation(settings);
+    return {
+      latitude: previewLocation?.lat,
+      longitude: previewLocation?.lon,
+      timezone: settings.timezone,
+      globalProvider: settings.weather.provider,
+      units: settings.weather.units,
+      fullscreenTheme: settings.fullscreenTheme,
+    };
+  }, [settings]);
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
+
+  // Live shared-state snapshot for the condition badges. Poll only while
+  // something on this display is actually gated — the GET also arms the
+  // display's fast re-reporting, so an idle editor shouldn't hold it open.
+  const anyConditionGated = activeScreens.some((s) =>
+    s.modules.some((m) => (m.visibility?.conditions?.length ?? 0) > 0),
+  );
+  const liveState = useDisplaySharedState(selectedDisplayId, anyConditionGated);
+  const verdictStates = liveState.states;
 
   // Poll the server-side background cache so the editor shows the same
   // rotating background that the display is using.
@@ -215,6 +231,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   previewData={previewData}
                   settings={previewSettings}
                   now={now}
+                  verdictStates={verdictStates}
                 />
               ))}
               {dragState && (() => {

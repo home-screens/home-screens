@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Scheduled — currently inactive",
     "disabledTitle": "Disabled — not shown on display",
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
-    "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen"
+    "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen",
+    "conditionMetTitle": "Betingelser opfyldt — vises på skærmen nu",
+    "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -227,6 +229,7 @@
         "network": "Network",
         "profiles": "Profiles",
         "rules": "Regler",
+        "sharedState": "Delte værdier",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1163,6 +1166,24 @@
         "message": "Slet \"{name}\"?",
         "confirm": "Slet"
       }
+    },
+    "sharedStatePage": {
+      "heading": "Delte værdier",
+      "description": "Alle værdier denne skærm udgiver til betingelser, regler og teksttokens — samt alt der refereres, men aldrig ankommer.",
+      "displayPicker": {
+        "label": "Skærm",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Seneste rapport fra skærmen: {time}",
+      "noReportHint": "Denne skærm har endnu ikke rapporteret nogen værdier. Værdier vises her, når skærmen er tændt, og noget udgiver dem.",
+      "emptyHint": "Intet udgiver eller refererer værdier på denne skærm endnu.",
+      "neverPublished": "Aldrig udgivet",
+      "neverPublishedDetail": "Intet på skærmen udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
+      "unreferencedLabel": "Intet refererer denne nøgle.",
+      "referencedByLabel": "Bruges af",
+      "ruleRefLabel": "Regel: {name}",
+      "builtInProducer": "Indbygget",
+      "producerLabel": "Fra {producer}"
     },
     "securityPage": {
       "loading": "Checking authentication status…",
@@ -3212,6 +3233,22 @@
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
     "liveValueLabel": "På skærmen lige nu:",
-    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist."
+    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist.",
+    "verdicts": {
+      "met": "Opfyldt",
+      "unmet": "Ikke opfyldt",
+      "unknown": "Venter",
+      "metTitle": "Denne betingelse passer på skærmen lige nu.",
+      "unmetTitle": "Denne betingelse passer ikke på skærmen lige nu.",
+      "unknownTitle": "En nøgle i denne betingelse er endnu ikke udgivet."
+    },
+    "outcome": {
+      "noLiveData": "Skærmen har ikke rapporteret for nylig, så live-resultater vises ikke.",
+      "shownNow": "Vises på skærmen lige nu",
+      "hiddenNow": "Skjult på skærmen lige nu",
+      "waitingForKeys": "venter på {keys}",
+      "keyNotPicked": "en betingelse mangler stadig en nøgle",
+      "conditionsNotMet": "betingelserne passer ikke"
+    }
   }
 }

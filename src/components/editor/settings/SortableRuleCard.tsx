@@ -8,8 +8,9 @@ import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { DisplaySharedState } from '@/hooks/useDisplaySharedState';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
+import { conditionsVerdict } from '@/lib/condition-verdicts';
 import { validateDisplayRules } from '@/lib/display-filter';
-import ConditionTreeEditor from '@/components/editor/ConditionTreeEditor';
+import ConditionTreeEditor, { ConditionVerdictChip } from '@/components/editor/ConditionTreeEditor';
 import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import type { TranslateFn } from '@/i18n';
@@ -115,6 +116,15 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
     [rule, screens],
   );
 
+  // Live would-it-fire indicator: the same three-valued evaluation the rule
+  // engine runs, over the display's last-reported snapshot. "Met" means the
+  // conditions hold RIGHT NOW — the rule itself still fires only on a fresh
+  // not-met → met transition. Null (no fresh report) hides the chip.
+  const verdictStates = liveState.states;
+  const verdict = rule.enabled !== false && rule.when.length > 0 && verdictStates
+    ? conditionsVerdict(rule.when, verdictStates)
+    : null;
+
   if (!config) return null;
 
   const enabled = rule.enabled !== false;
@@ -194,6 +204,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 {t('settings.rulesPage.card.offBadge')}
               </span>
             )}
+            {verdict && <ConditionVerdictChip verdict={verdict} t={t} />}
           </button>
         )}
 

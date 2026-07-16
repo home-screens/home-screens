@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Geplant – derzeit inaktiv",
     "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt",
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
-    "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt"
+    "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
+    "conditionMetTitle": "Bedingungen erfüllt — wird auf dem Display angezeigt",
+    "conditionUnmetTitle": "Bedingungen nicht erfüllt — auf dem Display ausgeblendet"
   },
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
@@ -227,6 +229,7 @@
         "network": "Netzwerk",
         "profiles": "Profile",
         "rules": "Regeln",
+        "sharedState": "Geteilte Werte",
         "security": "Sicherheit",
         "stats": "Statistik",
         "system": "System",
@@ -1163,6 +1166,24 @@
         "message": "„{name}“ löschen?",
         "confirm": "Löschen"
       }
+    },
+    "sharedStatePage": {
+      "heading": "Geteilte Werte",
+      "description": "Alle Werte, die dieses Display für Bedingungen, Regeln und Text-Platzhalter veröffentlicht — und alles, was referenziert wird, aber nie ankommt.",
+      "displayPicker": {
+        "label": "Display",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Letzte Meldung des Displays: {time}",
+      "noReportHint": "Dieses Display hat noch keine Werte gemeldet. Werte erscheinen hier, sobald das Display läuft und etwas veröffentlicht.",
+      "emptyHint": "Auf diesem Display veröffentlicht oder referenziert noch nichts einen Wert.",
+      "neverPublished": "Nie veröffentlicht",
+      "neverPublishedDetail": "Nichts auf dem Display veröffentlicht diesen Schlüssel; alles, was ihn nutzt, folgt der Einstellung 'Bevor Daten ankommen'.",
+      "unreferencedLabel": "Nichts referenziert diesen Schlüssel.",
+      "referencedByLabel": "Genutzt von",
+      "ruleRefLabel": "Regel: {name}",
+      "builtInProducer": "Integriert",
+      "producerLabel": "Von {producer}"
     },
     "securityPage": {
       "loading": "Anmeldungsstatus wird geprüft …",
@@ -3212,6 +3233,22 @@
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
     "liveValueLabel": "Aktuell auf dem Display:",
-    "caseMismatchWarning": "Das Display veröffentlicht '{value}'. Der Vergleich unterscheidet Groß-/Kleinschreibung – der Wert muss exakt übereinstimmen."
+    "caseMismatchWarning": "Das Display veröffentlicht '{value}'. Der Vergleich unterscheidet Groß-/Kleinschreibung – der Wert muss exakt übereinstimmen.",
+    "verdicts": {
+      "met": "Erfüllt",
+      "unmet": "Nicht erfüllt",
+      "unknown": "Wartet",
+      "metTitle": "Diese Bedingung trifft auf dem Display gerade zu.",
+      "unmetTitle": "Diese Bedingung trifft auf dem Display gerade nicht zu.",
+      "unknownTitle": "Ein Schlüssel dieser Bedingung wurde noch nicht veröffentlicht."
+    },
+    "outcome": {
+      "noLiveData": "Das Display hat sich zuletzt nicht gemeldet, daher werden keine Live-Ergebnisse angezeigt.",
+      "shownNow": "Wird auf dem Display gerade angezeigt",
+      "hiddenNow": "Auf dem Display gerade ausgeblendet",
+      "waitingForKeys": "wartet auf {keys}",
+      "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
+      "conditionsNotMet": "die Bedingungen treffen nicht zu"
+    }
   }
 }

@@ -1,10 +1,10 @@
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig } from '../helpers/api';
+import { getConfig, putConfig, seedDisplaySharedState } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { autosaved } from '../helpers/editor';
 import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE, FIXTURE_STATE_KEY } from '../helpers/fixture-plugin';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { DEFAULT_MODULE_STYLE, type ModuleInstance, type VisibilityCondition } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance, type ScreenConfiguration, type VisibilityCondition } from '@/types/config';
 
 /**
  * Editor-form coverage for VisibilityConditionsSection.tsx: enabling the
@@ -17,10 +17,25 @@ import { DEFAULT_MODULE_STYLE, type ModuleInstance, type VisibilityCondition } f
  * exercises the *authoring UI* instead.
  */
 
+/**
+ * A config owning the given modules on one screen. With a `display` id the
+ * screen lives on that display (multi-display registry) so the editor polls
+ * that display's own shared-state slot — tests that seed or assert live
+ * verdicts use a per-purpose display id to stay isolated from every other
+ * test and spec file on the shared worker server (the hub's in-memory
+ * snapshot slots have no reset seam).
+ */
+function conditionsConfig(modules: ModuleInstance[], display?: string): ScreenConfiguration {
+  if (!display) return baseConfig({ screens: [makeScreen('s1', 'S1', modules)] });
+  const config = baseConfig({ screens: [] });
+  config.displays = [{ id: display, name: 'Live', screens: [makeScreen('s1', 'S1', modules)] }];
+  return config;
+}
+
 /** PUT a single-module config, open the editor, select the module, and open the Conditions accordion. */
-async function openConditions(page: Page, request: APIRequestContext, mod: ModuleInstance): Promise<void> {
-  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [mod])] }));
-  await page.goto('/editor');
+async function openConditions(page: Page, request: APIRequestContext, mod: ModuleInstance, display?: string): Promise<void> {
+  await putConfig(request, conditionsConfig([mod], display));
+  await page.goto(display ? `/editor?display=${display}` : '/editor');
   await expect(page.getByTestId('editor-canvas')).toBeVisible();
   await page.locator(`[data-module-id="${mod.id}"]`).click();
   // The conditions UI is its own accordion (propertyPanel.sections.conditions),
@@ -153,52 +168,40 @@ test('condition type options exclude group kinds at max nesting depth', async ({
   expect(await optionValues(kindSelects.last())).toEqual(['state', 'numeric']);
 });
 
+test('verdicts stay neutral when the display has never reported', async ({ page, request }) => {
+  // 'vc-fresh' is never seeded anywhere: no chip and no verdict may render —
+  // only the neutral no-live-data line, never a stale or default-false
+  // verdict. The canvas condition badge stays neutral for the same reason.
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:e2e-fixture:mode', equals: 'sunny' }] },
+  });
+  await openConditions(page, request, mod, 'vc-fresh');
+
+  await expect(page.locator('[data-visibility-outcome="offline"]')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('[data-condition-verdict]')).toHaveCount(0);
+  await expect(page.locator('[data-condition-badge]')).toHaveAttribute('data-condition-badge', 'neutral');
+});
+
 // ── Task 15: live-value hint, case-mismatch warning, suggestion keyboard nav ─
 // The editor's only window into a display's live shared-state is
-// useDisplaySharedState, which polls GET /api/display/shared-state. In legacy
-// single-display mode selectedDisplayId is null, so the editor reads the
-// `__default__` slot — the same slot a status heartbeat with no displayId
-// writes to. That heartbeat is the seam these specs seed through.
-
-/**
- * Seed a display shared-state snapshot into the hub the way a Pi kiosk does: a
- * status heartbeat carrying a `sharedState` field. With no displayId it lands
- * in the legacy `__default__` slot the editor polls in single-display mode.
- * recordSharedStateReport replaces the whole slot, so each call is the latest
- * snapshot. requireDisplayAuth is a no-op while auth is disabled.
- */
-async function seedDisplaySharedState(
-  request: APIRequestContext,
-  entries: Record<string, string>,
-): Promise<void> {
-  const now = Date.now();
-  const sharedState: Record<string, { value: string; updatedAt: number }> = {};
-  for (const [key, value] of Object.entries(entries)) sharedState[key] = { value, updatedAt: now };
-  const res = await request.post('/api/display/status', {
-    data: {
-      currentScreen: { index: 0, id: 's1', name: 'S1' },
-      screenCount: 1,
-      displayState: 'active',
-      timestamp: now,
-      sharedState,
-    },
-  });
-  expect(res.ok()).toBe(true);
-}
+// useDisplaySharedState, which polls GET /api/display/shared-state for the
+// selected display. These specs seed through the status-heartbeat seam into
+// this file's own 'vc-live' display slot and open the editor on it.
 
 // Shared-state keys are lowercase-only (SHARED_STATE_KEY_RE); the case mismatch
 // this warns about is on the matched VALUE, so the live value is mixed-case.
 const LIVE_KEY = 'plugin:e2e-fixture:mode';
+const LIVE_DISPLAY = 'vc-live';
 
 test('a case-only value mismatch against the live display value surfaces a warning', async ({ page, request }) => {
   // The display currently publishes 'Clear'; the condition matches 'clear' —
   // right letters, wrong case. isCaseOnlyMismatch flips the warning on.
-  await seedDisplaySharedState(request, { [LIVE_KEY]: 'Clear' });
+  await seedDisplaySharedState(request, { [LIVE_KEY]: 'Clear' }, LIVE_DISPLAY);
 
   const mod = textModule('GATED', {
     visibility: { conditions: [{ kind: 'state', sourceKey: LIVE_KEY, equals: 'clear' }] },
   });
-  await openConditions(page, request, mod);
+  await openConditions(page, request, mod, LIVE_DISPLAY);
 
   // The warning interpolates the live value and calls out case-sensitivity. The
   // editor polls the seeded snapshot on mount (immediate) then every 5s.
@@ -207,14 +210,14 @@ test('a case-only value mismatch against the live display value surfaces a warni
 });
 
 test('the live display value shows next to the condition key input', async ({ page, request }) => {
-  await seedDisplaySharedState(request, { [LIVE_KEY]: 'sunny' });
+  await seedDisplaySharedState(request, { [LIVE_KEY]: 'sunny' }, LIVE_DISPLAY);
 
   // equals matches the live value exactly (same case) so no mismatch warning
   // competes — only the live-value hint should render.
   const mod = textModule('GATED', {
     visibility: { conditions: [{ kind: 'state', sourceKey: LIVE_KEY, equals: 'sunny' }] },
   });
-  await openConditions(page, request, mod);
+  await openConditions(page, request, mod, LIVE_DISPLAY);
 
   // SourceKeyInput renders the "On the display now:" label and the value in a
   // <code>, straight from the display's last heartbeat.
@@ -339,3 +342,88 @@ test('the source-key suggestion dropdown commits a key via ArrowDown + Enter', a
     sourceKey: FIXTURE_STATE_KEY,
   });
 });
+
+// ── Condition inspector: live verdict chips + header outcome line ──────────
+// The editor runs the display's own evaluators over the last-reported
+// snapshot: each condition node gets a met/unmet/unknown chip and the header
+// states the final outcome, calling out the whenUnknown gate explicitly when
+// a referenced key was never published.
+
+test('condition nodes show live verdicts and the header explains the outcome', async ({ page, request }) => {
+  await seedDisplaySharedState(request, { [LIVE_KEY]: 'sunny' }, LIVE_DISPLAY);
+
+  const mod = textModule('GATED', {
+    visibility: {
+      conditions: [
+        { kind: 'state', sourceKey: LIVE_KEY, equals: 'sunny' },
+        { kind: 'state', sourceKey: LIVE_KEY, equals: 'rainy' },
+      ],
+    },
+  });
+  await openConditions(page, request, mod, LIVE_DISPLAY);
+
+  // Node chips from the three-valued evaluator: first matches, second doesn't.
+  await expect(page.locator('[data-condition-verdict="met"]')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('[data-condition-verdict="unmet"]')).toBeVisible();
+
+  // AND semantics: one unmet node hides the module, and the header says so.
+  const outcome = page.locator('[data-visibility-outcome]');
+  await expect(outcome).toHaveAttribute('data-visibility-outcome', 'hidden');
+  await expect(outcome).toContainText('Hidden on the display right now');
+});
+
+test('the header calls out an unpublished key as the reason for the outcome', async ({ page, request }) => {
+  // The snapshot exists (display online) but publishes a different key, so
+  // the condition's key is unknown and the whenUnknown gate decides.
+  await seedDisplaySharedState(request, { [LIVE_KEY]: 'sunny' }, LIVE_DISPLAY);
+
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:e2e-fixture:never', equals: 'on' }] },
+  });
+  await openConditions(page, request, mod, LIVE_DISPLAY);
+
+  await expect(page.locator('[data-condition-verdict="unknown"]')).toBeVisible({ timeout: 10_000 });
+  const outcome = page.locator('[data-visibility-outcome="hidden"]');
+  await expect(outcome).toContainText('waiting for plugin:e2e-fixture:never');
+});
+
+// ── Canvas condition badges: the live met/unmet tint on gated modules ──────
+// DraggableModule runs the display's own evaluateVisibility over the same
+// snapshot the panels use and tags the badge with data-condition-badge.
+
+test('canvas condition badges show live met and unmet verdicts', async ({ page, request }) => {
+  await seedDisplaySharedState(request, { [LIVE_KEY]: 'sunny' }, LIVE_DISPLAY);
+
+  const met = textModule('SHOWN', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: LIVE_KEY, equals: 'sunny' }] },
+  });
+  const unmet = textModule('HIDDEN', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: LIVE_KEY, equals: 'rainy' }] },
+  });
+  await putConfig(request, conditionsConfig([met, unmet], LIVE_DISPLAY));
+  await page.goto(`/editor?display=${LIVE_DISPLAY}`);
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // No module selected, no panel open — the badge verdicts come from the
+  // canvas's own poll (armed because the screen has gated modules).
+  await expect(page.locator(`[data-module-id="${met.id}"] [data-condition-badge="met"]`)).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(`[data-module-id="${unmet.id}"] [data-condition-badge="unmet"]`)).toBeVisible();
+});
+
+test('the canvas does not poll shared state while nothing is gated', async ({ page, request }) => {
+  // The shared-state GET arms the display's fast re-reporting, so an editor
+  // showing zero condition-gated modules must not fire it at all.
+  await putConfig(request, conditionsConfig([textModule('PLAIN')]));
+  let polled = false;
+  await page.route('**/api/display/shared-state*', async (route) => {
+    polled = true;
+    await route.continue();
+  });
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  // The poll fires immediately on mount when armed, so a short settle after
+  // the canvas renders is enough to prove its absence.
+  await page.waitForTimeout(1_000);
+  expect(polled).toBe(false);
+});
+

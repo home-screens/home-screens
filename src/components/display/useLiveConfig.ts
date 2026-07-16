@@ -6,6 +6,7 @@ import type { InstalledPlugin } from '@/types/plugins';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { filterConfigForDisplay } from '@/lib/display-filter';
+import { dataFingerprint } from '@/lib/config-data-fingerprint';
 import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
 
@@ -50,6 +51,7 @@ export function useLiveConfig(
   const [rules, setRules] = useState(initialRules);
   const [displays, setDisplays] = useState<DisplayDescriptor[]>(initialDisplays ?? []);
   const configJsonRef = useRef<string>('');
+  const dataFingerprintRef = useRef<string>('');
   const buildIdRef = useRef<string>('');
   const pluginHashRef = useRef<string>('');
   const settingsFpsRef = useRef<SettingsFingerprints | null>(null);
@@ -86,9 +88,23 @@ export function useLiveConfig(
         const text = await res.text();
         // Only update state when the JSON actually changed
         if (text !== configJsonRef.current) {
-          configJsonRef.current = text;
-          displayCache.clear(); // invalidate client cache on config change
           const cfg: ScreenConfiguration = JSON.parse(text);
+          // Scoped invalidation: only clear the client cache when the change
+          // can affect fetched data. Moves, resizes, restyles, schedule and
+          // visibility edits keep every module's cached data warm — editing
+          // one condition must not refetch the whole display.
+          //
+          // The dedupe ref advances only after the throwable parse +
+          // fingerprint succeed: advancing first would let a thrown error
+          // (swallowed by the outer catch) mark a config as "seen" without
+          // ever applying it, freezing the display on the previous config
+          // until the next byte-distinct change.
+          const fingerprint = cfg.screens && cfg.settings ? dataFingerprint(cfg) : null;
+          configJsonRef.current = text;
+          if (fingerprint !== null && fingerprint !== dataFingerprintRef.current) {
+            dataFingerprintRef.current = fingerprint;
+            displayCache.clear();
+          }
           if (cfg.screens && cfg.settings) {
             // Update the displays registry for any module that needs it (e.g. display-control)
             setDisplays(

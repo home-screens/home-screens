@@ -84,7 +84,9 @@
     "scheduledInactiveTitle": "Gepland — momenteel inactief",
     "disabledTitle": "Uitgeschakeld — niet getoond op display",
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
-    "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond"
+    "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond",
+    "conditionMetTitle": "Voorwaarden voldaan — nu zichtbaar op het scherm",
+    "conditionUnmetTitle": "Voorwaarden niet voldaan — nu verborgen op het scherm"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -227,6 +229,7 @@
         "network": "Netwerk",
         "profiles": "Profielen",
         "rules": "Regels",
+        "sharedState": "Gedeelde waarden",
         "security": "Beveiliging",
         "stats": "Statistieken",
         "system": "Systeem",
@@ -1163,6 +1166,24 @@
         "message": "“{name}” verwijderen?",
         "confirm": "Verwijderen"
       }
+    },
+    "sharedStatePage": {
+      "heading": "Gedeelde waarden",
+      "description": "Alle waarden die dit scherm publiceert voor voorwaarden, regels en teksttokens — plus alles wat wordt gebruikt maar nooit aankomt.",
+      "displayPicker": {
+        "label": "Scherm",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Laatste melding van het scherm: {time}",
+      "noReportHint": "Dit scherm heeft nog geen waarden gemeld. Waarden verschijnen hier zodra het scherm aanstaat en iets publiceert.",
+      "emptyHint": "Niets publiceert of gebruikt nog waarden op dit scherm.",
+      "neverPublished": "Nooit gepubliceerd",
+      "neverPublishedDetail": "Niets op het scherm publiceert deze sleutel; alles wat hem gebruikt volgt de instelling 'Voordat gegevens aankomen'.",
+      "unreferencedLabel": "Niets gebruikt deze sleutel.",
+      "referencedByLabel": "Gebruikt door",
+      "ruleRefLabel": "Regel: {name}",
+      "builtInProducer": "Ingebouwd",
+      "producerLabel": "Van {producer}"
     },
     "securityPage": {
       "loading": "Authenticatiestatus controleren…",
@@ -3212,6 +3233,22 @@
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
     "liveValueLabel": "Nu op het display:",
-    "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen."
+    "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen.",
+    "verdicts": {
+      "met": "Voldaan",
+      "unmet": "Niet voldaan",
+      "unknown": "Wachten",
+      "metTitle": "Deze voorwaarde klopt op dit moment op het scherm.",
+      "unmetTitle": "Deze voorwaarde klopt op dit moment niet op het scherm.",
+      "unknownTitle": "Een sleutel van deze voorwaarde is nog niet gepubliceerd."
+    },
+    "outcome": {
+      "noLiveData": "Het scherm heeft zich recent niet gemeld, dus live resultaten worden niet getoond.",
+      "shownNow": "Nu zichtbaar op het scherm",
+      "hiddenNow": "Nu verborgen op het scherm",
+      "waitingForKeys": "wacht op {keys}",
+      "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
+      "conditionsNotMet": "de voorwaarden kloppen niet"
+    }
   }
 }
