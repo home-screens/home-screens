@@ -9,6 +9,7 @@
  */
 
 import type {
+  DisplayRule,
   GlobalSettings,
   ModuleInstance,
   ModuleSchedule,
@@ -27,6 +28,8 @@ interface FilteredDisplayConfig {
   settings: GlobalSettings;
   /** Per-display active profile (falls back to settings.activeProfile when undefined) */
   activeProfile?: string;
+  /** Rules owned by this display (no global fallback — ownership mirrors screens). */
+  rules?: DisplayRule[];
 }
 
 /**
@@ -208,13 +211,17 @@ export function filterConfigForDisplay(
     profiles,
     settings: merged,
     activeProfile: display.activeProfile,
+    rules: display.rules,
   };
 }
 
 /**
  * Remove every reference to a deleted screen id across every place it can
- * live: the global profile pool and each `display.profiles[*].screenIds`
- * (owned-profiles mode).
+ * live: the global profile pool, each `display.profiles[*].screenIds`
+ * (owned-profiles mode), and any display rule whose `showScreen` action
+ * targets the deleted screen (the target is blanked, which turns the rule
+ * into a saveable never-fires "incomplete" rule rather than deleting the
+ * user's conditions with it).
  *
  * Takes a config that already has the screen removed from
  * `config.screens` / the active display's owned screens, and returns a
@@ -255,6 +262,26 @@ export function pruneDanglingScreenRefs(
         })),
       };
     });
+    next = { ...next, displays: updatedDisplays };
+  }
+
+  // Blank rule targets pointing at the deleted screen — legacy list plus the
+  // selected display's owned rules (a screen belongs to exactly one display,
+  // so no other display's rules can reference it).
+  const blankRuleTargets = (rules: DisplayRule[] | undefined): DisplayRule[] | undefined =>
+    rules?.map((r) =>
+      r.action.kind === 'showScreen' && r.action.screenId === deletedScreenId
+        ? { ...r, action: { ...r.action, screenId: '' } }
+        : r,
+    );
+
+  if (next.rules?.some((r) => r.action.kind === 'showScreen' && r.action.screenId === deletedScreenId)) {
+    next = { ...next, rules: blankRuleTargets(next.rules) };
+  }
+  if (next.displays && selectedDisplayId) {
+    const updatedDisplays = next.displays.map((d) =>
+      d.id === selectedDisplayId && d.rules ? { ...d, rules: blankRuleTargets(d.rules) } : d,
+    );
     next = { ...next, displays: updatedDisplays };
   }
 
@@ -521,12 +548,95 @@ export function validateModuleVisibility(
   return null;
 }
 
+/** Hard upper bound on rules per display — bounds per-tick evaluation cost. */
+export const MAX_RULES_PER_DISPLAY = 64;
+
+const RULE_ACTION_KINDS = new Set(['showScreen', 'wake']);
+
+/**
+ * Validate a display's rules list at the config-write boundary. Like
+ * schedules and visibility conditions, the runtime degrades quietly on bad
+ * input (a broken rule just never fires), so catching it here surfaces a
+ * save error instead of a doorbell screen that mysteriously never appears.
+ *
+ * `screens` is the owning display's own screen list — `showScreen` targets
+ * must resolve within it, mirroring the owned-profile screenIds rule.
+ * Returns the first error, or `null` when OK (including `undefined` rules).
+ */
+export function validateDisplayRules(
+  rules: DisplayRule[] | undefined,
+  screens: Screen[],
+  context: string,
+): string | null {
+  if (!rules) return null;
+  if (!Array.isArray(rules)) {
+    return `${context}: rules must be an array`;
+  }
+  if (rules.length > MAX_RULES_PER_DISPLAY) {
+    return `${context}: too many rules: ${rules.length} (max ${MAX_RULES_PER_DISPLAY})`;
+  }
+
+  const screenIds = new Set(screens.map((s) => s.id));
+  const seenIds = new Set<string>();
+
+  for (const rule of rules) {
+    if (!rule || typeof rule !== 'object') {
+      return `${context}: rule must be an object`;
+    }
+    const where = `${context} rule "${rule.id ?? '?'}"`;
+
+    if (typeof rule.id !== 'string' || rule.id === '') {
+      return `${where}: missing id`;
+    }
+    if (seenIds.has(rule.id)) {
+      return `${context}: duplicate rule id "${rule.id}"`;
+    }
+    seenIds.add(rule.id);
+
+    if (typeof rule.name !== 'string') {
+      return `${where}: name must be a string`;
+    }
+
+    // The condition tree shares the visibility validator wholesale — same
+    // kinds, same depth/count caps, same empty-sourceKey authoring allowance.
+    const conditionError = validateModuleVisibility({ conditions: rule.when }, where);
+    if (conditionError) return conditionError;
+
+    if (rule.cooldownSeconds !== undefined
+      && (typeof rule.cooldownSeconds !== 'number' || !Number.isFinite(rule.cooldownSeconds) || rule.cooldownSeconds < 0)) {
+      return `${where}: cooldownSeconds must be a non-negative number`;
+    }
+
+    const action = rule.action;
+    if (!action || typeof action !== 'object' || !RULE_ACTION_KINDS.has(action.kind)) {
+      return `${where}: unknown action kind ${JSON.stringify((action as { kind?: unknown } | undefined)?.kind)}`;
+    }
+    if (action.kind === 'showScreen') {
+      // Empty screenId = an incomplete rule being authored (same allowance
+      // as an empty condition sourceKey). The engine can never fire it —
+      // '' is not a renderable screen id — so it is saveable and harmless.
+      if (action.screenId !== '' && !screenIds.has(action.screenId)) {
+        return `${where}: action references unknown screen "${action.screenId}"`;
+      }
+      if (action.mode !== 'while' && action.mode !== 'for') {
+        return `${where}: action mode must be "while" or "for"`;
+      }
+      if (action.mode === 'for'
+        && (typeof action.seconds !== 'number' || !Number.isFinite(action.seconds) || action.seconds <= 0)) {
+        return `${where}: action seconds must be a positive number when mode is "for"`;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Walk every screen and every module on every screen in a config and validate
  * each schedule AND each module's visibility conditions (the two module-gating
- * surfaces share one walk so neither can sneak past the write gate). Covers
- * both single-display mode (config.screens) and multi-display mode (each
- * display.screens).
+ * surfaces share one walk so neither can sneak past the write gate), plus the
+ * display rules owned by each container. Covers both single-display mode
+ * (config.screens + config.rules) and multi-display mode (each
+ * display.screens + display.rules).
  *
  * Returns the first error encountered, or `null` when everything validates.
  */
@@ -548,12 +658,16 @@ export function validateAllSchedules(config: ScreenConfiguration): string | null
     const err = checkScreen(screen, 'config');
     if (err) return err;
   }
+  const globalRulesError = validateDisplayRules(config.rules, config.screens ?? [], 'config');
+  if (globalRulesError) return globalRulesError;
 
   for (const display of config.displays ?? []) {
     for (const screen of display.screens ?? []) {
       const err = checkScreen(screen, `display "${display.id}"`);
       if (err) return err;
     }
+    const rulesError = validateDisplayRules(display.rules, display.screens ?? [], `display "${display.id}"`);
+    if (rulesError) return rulesError;
   }
 
   return null;

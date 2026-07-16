@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { flushSync } from 'react-dom';
-import type { Screen, GlobalSettings, Profile } from '@/types/config';
+import type { Screen, GlobalSettings, Profile, DisplayRule } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
 import BackgroundProviderLayer from './BackgroundProviderLayer';
 import PluginServiceLayer from './PluginServiceLayer';
@@ -10,6 +10,7 @@ import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
 import NetworkIndicator from './NetworkIndicator';
 import { useDisplayControl } from './useDisplayControl';
+import { useDisplayRules } from './useDisplayRules';
 import { useBackgroundRotation } from './useBackgroundRotation';
 import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
@@ -34,6 +35,8 @@ interface ScreenRotatorProps {
   screens: Screen[];
   settings: GlobalSettings;
   profiles?: Profile[];
+  /** Condition → action rules owned by this display (config.rules in legacy mode). */
+  rules?: DisplayRule[];
   displayToken?: string | null;
   /**
    * Multi-display routing key. When set, the live config hook re-filters
@@ -97,11 +100,11 @@ function startScreenTransition(
 
 // ---- Main component ----
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, displayToken, displayId, initialDisplays }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, profiles, displays } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId, initialDisplays);
+  const { screens: allScreens, settings, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId, initialDisplays, initialRules);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
@@ -165,9 +168,6 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     [scheduledScreens, profiles, settings.activeProfile, now],
   );
 
-  // Only poll background rotation for screens visible under the active profile
-  const rotatingBackgrounds = useBackgroundRotation(screens);
-
   // Stable key derived from resolved screen IDs — changes only when actual set changes
   const screenKey = screens.map((s) => s.id).join(',');
 
@@ -177,6 +177,27 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const currentDuration = currentScreen
     ? resolveScreenDuration(currentScreen, settings)
     : settings.rotationIntervalMs;
+
+  // Display rules: a firing `showScreen` rule pins its target as a takeover
+  // render source, without touching currentIndex — rotation resumes exactly
+  // where it left off when the takeover ends. The `wake` action routes to the
+  // sleep manager through a ref because useDisplayControl (which owns the
+  // sleep manager) is called further down with callbacks defined below.
+  const wakeRef = useRef<() => void>(() => {});
+  const onRuleWake = useCallback(() => { wakeRef.current(); }, []);
+  const { takeoverScreen, releaseActiveTakeover } = useDisplayRules(rules, allScreens, onRuleWake);
+  const renderedScreen = takeoverScreen ?? currentScreen;
+
+  // Poll background rotation for the profile-visible screens plus, while a
+  // takeover pins a screen excluded from normal rotation (the feature's
+  // primary alert-screen shape), that screen — its rotating background must
+  // keep cycling for the takeover's duration. Not allScreens: that would
+  // poll every off-rotation screen's background around the clock.
+  const backgroundScreens = useMemo(() => {
+    if (!takeoverScreen || screens.some((s) => s.id === takeoverScreen.id)) return screens;
+    return [...screens, takeoverScreen];
+  }, [screens, takeoverScreen]);
+  const rotatingBackgrounds = useBackgroundRotation(backgroundScreens);
 
   // Transition config — stored in refs so callbacks don't recreate on config changes
   const tc = getTransitionConfig(settings.transitionEffect, settings.transitionDuration);
@@ -192,30 +213,36 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Navigation wrapped in View Transitions.
   // Timer reset is handled by the `[safeIndex]` effect below — no explicit
   // epoch bump needed here (would otherwise fire twice per nav).
+  // Every navigation releases an active rule takeover (human wins): the
+  // rotation timer is suspended during a takeover, so any call here is a
+  // human or remote action. The release is a no-op when no takeover is up.
   const goToScreen = useCallback((index: number) => {
+    releaseActiveTakeover();
     startScreenTransition(
       () => { setCurrentIndex(index); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
-  }, []);
+  }, [releaseActiveTakeover]);
 
   const nextScreen = useCallback(() => {
+    releaseActiveTakeover();
     if (screens.length <= 1) return;
     startScreenTransition(
       () => { setCurrentIndex((prev) => (prev + 1) % screens.length); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- effectRef/durationMsRef/easingRef are stable refs, not deps
-  }, [screens.length, screenKey]);
+  }, [screens.length, screenKey, releaseActiveTakeover]);
 
   const prevScreen = useCallback(() => {
+    releaseActiveTakeover();
     if (screens.length <= 1) return;
     startScreenTransition(
       () => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); },
       effectRef.current, durationMsRef.current, easingRef.current,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- effectRef/durationMsRef/easingRef are stable refs, not deps
-  }, [screens.length, screenKey]);
+  }, [screens.length, screenKey, releaseActiveTakeover]);
 
   const resetRotation = useCallback(() => {
     setRotationEpoch((e) => e + 1);
@@ -223,12 +250,14 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   const clearPause = useCallback(() => setPaused(false), []);
 
-  const { displayState, dimOpacity } = useDisplayControl({
+  // Status reports name the takeover screen when one is pinned, so the
+  // editor's "currently showing" readout stays truthful during a rule firing.
+  const { displayState, dimOpacity, wake } = useDisplayControl({
     sleep: settings.sleep,
     timezone: settings.timezone,
     screenIndex: safeIndex,
-    screenId: currentScreen?.id ?? '',
-    screenName: currentScreen?.name ?? '',
+    screenId: renderedScreen?.id ?? '',
+    screenName: renderedScreen?.name ?? '',
     screenCount: screens.length,
     activeProfile: settings.activeProfile,
     nextScreen,
@@ -237,6 +266,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     clearPause,
     displayId,
   });
+
+  // Late-bind the sleep manager's wake for `wake`-action rules. The rules
+  // hook runs above useDisplayControl (it feeds renderedScreen into it), so
+  // it reaches wake through this ref instead of a direct dependency.
+  useEffect(() => { wakeRef.current = wake; }, [wake]);
 
   // Subscribe to plugin navigate events
   useEffect(() => {
@@ -292,7 +326,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
-    active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld,
+    // A rule takeover suspends rotation: currentIndex is untouched, so the
+    // rotation resumes exactly where it was when the takeover releases.
+    active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld && !takeoverScreen,
     resetKey: rotationEpoch,
   });
 
@@ -356,7 +392,10 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
       boxSizing: 'border-box',
     }}>
-      <ScreenRenderer screen={currentScreen} settings={settings} rotatingBackground={rotatingBackgrounds[currentScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+      {/* renderedScreen is the takeover screen while a rule is firing,
+          resolved from the display's full screen list (an alert screen may
+          be deliberately excluded from normal rotation). */}
+      <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
 
       {/* Sibling of ScreenRenderer inside the stable outer div, so state
           producers persist across screen rotation. Uses allScreens (not the
@@ -366,9 +405,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
       {/* Demand-driven plugin state providers — one headless mount per
           loaded plugin exporting `stateProvider`, fed every key this
-          display's conditions and Text tokens reference. Also uses
+          display's conditions, Text tokens, and rules reference. Also uses
           allScreens: demand must survive profile filtering. */}
-      <PluginServiceLayer screens={allScreens} />
+      <PluginServiceLayer screens={allScreens} rules={rules} />
 
       {screens.length > 1 && (
         <div
@@ -473,9 +512,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       <NetworkIndicator displayState={displayState} scale={scale} />
       <AlertOverlay alertSettings={settings.alerts} displayState={displayState} scale={scale} />
 
+      {/* A takeover implies wake: suppress the sleep overlay rather than
+          calling wake() — the sleep manager re-asserts a scheduled sleep
+          window every 10s, so suppression is the only way an asleep display
+          shows the alert screen AND resumes sleeping when it releases. */}
       <SleepOverlay
-        displayState={displayState}
-        dimOpacity={dimOpacity}
+        displayState={takeoverScreen ? 'active' : displayState}
+        dimOpacity={takeoverScreen ? 0 : dimOpacity}
         screensaver={settings.screensaver}
         timezone={settings.timezone}
       />

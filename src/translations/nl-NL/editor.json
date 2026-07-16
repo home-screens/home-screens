@@ -226,6 +226,7 @@
         "meals": "Maaltijden",
         "network": "Netwerk",
         "profiles": "Profielen",
+        "rules": "Regels",
         "security": "Beveiliging",
         "stats": "Statistieken",
         "system": "Systeem",
@@ -1115,6 +1116,51 @@
       "deleteDialog": {
         "title": "Profiel verwijderen",
         "message": "\"{name}\" verwijderen?",
+        "confirm": "Verwijderen"
+      }
+    },
+    "rulesPage": {
+      "heading": "Regels",
+      "description": "Met regels reageert het scherm op wat er thuis gebeurt. Als de voorwaarden van een regel waar worden, kan die naar een scherm wisselen of het display wekken — bijvoorbeeld het camerascherm tonen als er wordt aangebeld.",
+      "displayPicker": {
+        "label": "Regels bewerken voor",
+        "optionLabel": "{name} ({id})",
+        "help": "Regels zijn per display, omdat ze verwijzen naar de eigen schermen van elk display. Hier wisselen verandert ook aan welk display de editor werkt."
+      },
+      "emptyHint": "Nog geen regels. Voeg er een toe zodat het display reageert als er iets gebeurt.",
+      "priority": {
+        "labelPrefix": "Prioriteitsvolgorde:",
+        "helpSuffix": " Als meerdere regels tegelijk afgaan, wint de regel die het eerst in de lijst staat. Sleep om te herschikken."
+      },
+      "addButton": "Regel toevoegen",
+      "newRuleName": "Regel {number}",
+      "card": {
+        "offBadge": "Uit",
+        "renameTitle": "Hernoemen",
+        "deleteTitle": "Regel verwijderen",
+        "enabledLabel": "Regel staat aan",
+        "whenHeading": "Als",
+        "thenHeading": "Dan",
+        "noConditionsHint": "Nog geen voorwaarden — deze regel gaat pas af als je er een toevoegt.",
+        "invalidHint": "Deze regel kan nog niet worden opgeslagen:",
+        "allMustMatchHint": "Alle voorwaarden moeten kloppen om de regel af te laten gaan.",
+        "actionKindLabel": "Actie",
+        "actionShowScreen": "Een scherm tonen",
+        "actionWake": "Het display wekken",
+        "screenLabel": "Scherm",
+        "screenNoneOption": "Kies een scherm…",
+        "screenDisabledSuffix": "(uitgeschakeld)",
+        "screenMissingWarning": "Kies een scherm dat deze regel moet tonen.",
+        "modeLabel": "Hoe lang",
+        "modeWhile": "Zolang de voorwaarden waar zijn",
+        "modeFor": "Voor een vaste tijd",
+        "secondsLabel": "Seconden",
+        "cooldownLabel": "Wachttijd (seconden)",
+        "cooldownHelp": "Nadat de regel is afgegaan, wacht die zoveel seconden voordat hij opnieuw kan afgaan. Laat leeg voor geen wachttijd."
+      },
+      "deleteDialog": {
+        "title": "Regel verwijderen",
+        "message": "“{name}” verwijderen?",
         "confirm": "Verwijderen"
       }
     },

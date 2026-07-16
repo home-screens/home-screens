@@ -10,21 +10,20 @@
  * `backgroundProvider` flag, no entity-list sync.
  */
 
-import type { Screen, VisibilityCondition } from '@/types/config';
-import { collectConditionSourceKeys } from '@/lib/schedule';
+import type { DisplayRule, Screen } from '@/types/config';
+import { collectConditionSourceKeys, collectSourceKeys } from '@/lib/schedule';
 import { extractSharedStateKeys } from '@/lib/shared-state-template';
 
 /**
- * Structural stand-in for item 3's `DisplayRule` — rules join the demand set
- * through their condition tree only, so only `when` matters here.
+ * Rules join the demand set through their condition tree only, so demand
+ * computation needs just `when` and the disable toggle — but the fields are
+ * pinned to `DisplayRule` so a schema rename can't silently strand this.
  */
-interface RuleLike {
-  when: VisibilityCondition[];
-}
+type RuleConditions = Pick<DisplayRule, 'when' | 'enabled'>;
 
 /**
  * All shared-state keys referenced anywhere on this display: module
- * visibility conditions + Text module tokens + (item 3) rule conditions.
+ * visibility conditions + Text module tokens + display-rule conditions.
  *
  * Callers pass ALL of the display's screens, pre-profile-filter, for the
  * same reason `BackgroundProviderLayer` does: a profile switch must not
@@ -36,7 +35,7 @@ interface RuleLike {
  * them: re-enabling is a config edit, and demand recomputes on the same
  * poll that delivers it.
  */
-export function collectDemandedKeys(screens: Screen[], rules?: RuleLike[]): Set<string> {
+export function collectDemandedKeys(screens: Screen[], rules?: readonly RuleConditions[]): Set<string> {
   const demanded = new Set<string>();
 
   for (const screen of screens) {
@@ -56,14 +55,11 @@ export function collectDemandedKeys(screens: Screen[], rules?: RuleLike[]): Set<
   }
 
   if (rules) {
-    const walk = (conditions: VisibilityCondition[]): void => {
-      for (const c of conditions) {
-        if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') walk(c.conditions);
-        else if (c.sourceKey) demanded.add(c.sourceKey);
-      }
-    };
     for (const rule of rules) {
-      if (rule.when) walk(rule.when);
+      // Disabled rules are never evaluated, so their keys are not a demand —
+      // same reasoning as disabled screens/modules above.
+      if (rule.enabled === false) continue;
+      if (rule.when) collectSourceKeys(rule.when, demanded);
     }
   }
 

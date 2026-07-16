@@ -226,6 +226,7 @@
         "meals": "Comidas",
         "network": "Red",
         "profiles": "Perfiles",
+        "rules": "Reglas",
         "security": "Seguridad",
         "stats": "Estadísticas",
         "system": "Sistema",
@@ -1115,6 +1116,51 @@
       "deleteDialog": {
         "title": "Eliminar perfil",
         "message": "¿Eliminar «{name}»?",
+        "confirm": "Eliminar"
+      }
+    },
+    "rulesPage": {
+      "heading": "Reglas",
+      "description": "Las reglas hacen que la pantalla reaccione a lo que pasa en casa. Cuando las condiciones de una regla se cumplen, puede cambiar a una pantalla o despertar el visor — por ejemplo, mostrar la pantalla de cámaras cuando suena el timbre.",
+      "displayPicker": {
+        "label": "Editando reglas de",
+        "optionLabel": "{name} ({id})",
+        "help": "Las reglas son por pantalla, porque apuntan a las pantallas propias de cada visor. Cambiar aquí también cambia el visor en el que trabaja el editor."
+      },
+      "emptyHint": "Aún no hay reglas. Añade una para que la pantalla reaccione cuando algo ocurra.",
+      "priority": {
+        "labelPrefix": "Orden de prioridad:",
+        "helpSuffix": " Si varias reglas se activan a la vez, gana la primera de la lista. Arrastra para reordenar."
+      },
+      "addButton": "Añadir regla",
+      "newRuleName": "Regla {number}",
+      "card": {
+        "offBadge": "Apagada",
+        "renameTitle": "Renombrar",
+        "deleteTitle": "Eliminar regla",
+        "enabledLabel": "Regla activada",
+        "whenHeading": "Cuando",
+        "thenHeading": "Entonces",
+        "noConditionsHint": "Aún no hay condiciones — esta regla no se activará hasta que añadas una.",
+        "invalidHint": "Esta regla todavía no se puede guardar:",
+        "allMustMatchHint": "Todas las condiciones deben cumplirse para que la regla se active.",
+        "actionKindLabel": "Acción",
+        "actionShowScreen": "Mostrar una pantalla",
+        "actionWake": "Despertar el visor",
+        "screenLabel": "Pantalla",
+        "screenNoneOption": "Elige una pantalla…",
+        "screenDisabledSuffix": "(desactivada)",
+        "screenMissingWarning": "Elige la pantalla que esta regla debe mostrar.",
+        "modeLabel": "Duración",
+        "modeWhile": "Mientras las condiciones se cumplan",
+        "modeFor": "Durante un tiempo fijo",
+        "secondsLabel": "Segundos",
+        "cooldownLabel": "Espera (segundos)",
+        "cooldownHelp": "Después de activarse, la regla espera estos segundos antes de poder activarse de nuevo. Déjalo vacío para no esperar."
+      },
+      "deleteDialog": {
+        "title": "Eliminar regla",
+        "message": "¿Eliminar \"{name}\"?",
         "confirm": "Eliminar"
       }
     },

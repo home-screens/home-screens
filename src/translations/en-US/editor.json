@@ -226,6 +226,7 @@
         "meals": "Meals",
         "network": "Network",
         "profiles": "Profiles",
+        "rules": "Rules",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1114,6 +1115,51 @@
       },
       "deleteDialog": {
         "title": "Delete profile",
+        "message": "Delete \"{name}\"?",
+        "confirm": "Delete"
+      }
+    },
+    "rulesPage": {
+      "heading": "Rules",
+      "description": "Rules make the display react to what's happening at home. When a rule's conditions become true, it can switch to a screen or wake the display — like showing the camera screen when the doorbell rings.",
+      "displayPicker": {
+        "label": "Editing rules for",
+        "optionLabel": "{name} ({id})",
+        "help": "Rules are per-display because they point at each display's own screens. Switching here changes which display the editor canvas is also working on."
+      },
+      "emptyHint": "No rules yet. Add one to make the display react when something happens.",
+      "priority": {
+        "labelPrefix": "Priority order:",
+        "helpSuffix": " When multiple rules trigger at once, the rule listed first wins. Drag to reorder."
+      },
+      "addButton": "Add Rule",
+      "newRuleName": "Rule {number}",
+      "card": {
+        "offBadge": "Off",
+        "renameTitle": "Rename",
+        "deleteTitle": "Delete rule",
+        "enabledLabel": "Rule is on",
+        "whenHeading": "When",
+        "thenHeading": "Then",
+        "noConditionsHint": "No conditions yet — this rule won't trigger until you add one.",
+        "invalidHint": "This rule can't be saved yet:",
+        "allMustMatchHint": "All conditions must match for the rule to trigger.",
+        "actionKindLabel": "Action",
+        "actionShowScreen": "Show a screen",
+        "actionWake": "Wake the display",
+        "screenLabel": "Screen",
+        "screenNoneOption": "Pick a screen…",
+        "screenDisabledSuffix": "(disabled)",
+        "screenMissingWarning": "Pick a screen for this rule to show.",
+        "modeLabel": "How long",
+        "modeWhile": "While the conditions are true",
+        "modeFor": "For a set time",
+        "secondsLabel": "Seconds",
+        "cooldownLabel": "Cooldown (seconds)",
+        "cooldownHelp": "After the rule triggers, it waits this many seconds before it can trigger again. Leave empty for no wait."
+      },
+      "deleteDialog": {
+        "title": "Delete rule",
         "message": "Delete \"{name}\"?",
         "confirm": "Delete"
       }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { Screen, GlobalSettings, ScreenConfiguration, Profile } from '@/types/config';
+import type { Screen, GlobalSettings, ScreenConfiguration, Profile, DisplayRule } from '@/types/config';
 import type { InstalledPlugin } from '@/types/plugins';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
@@ -42,10 +42,12 @@ export function useLiveConfig(
   initialProfiles?: Profile[],
   displayId?: string,
   initialDisplays?: DisplayDescriptor[],
+  initialRules?: DisplayRule[],
 ) {
   const [screens, setScreens] = useState(initialScreens);
   const [settings, setSettings] = useState(initialSettings);
   const [profiles, setProfiles] = useState(initialProfiles);
+  const [rules, setRules] = useState(initialRules);
   const [displays, setDisplays] = useState<DisplayDescriptor[]>(initialDisplays ?? []);
   const configJsonRef = useRef<string>('');
   const buildIdRef = useRef<string>('');
@@ -100,6 +102,7 @@ export function useLiveConfig(
                 setScreens(filtered.screens);
                 setSettings(filtered.settings);
                 setProfiles(filtered.profiles);
+                setRules(filtered.rules);
               } else if (!displayReloadingRef.current) {
                 // Display was removed from the config while this Pi was
                 // running. Navigate to the canonical `/display` entry point
@@ -117,6 +120,7 @@ export function useLiveConfig(
               setScreens(cfg.screens);
               setSettings(cfg.settings);
               setProfiles(cfg.profiles);
+              setRules(cfg.rules);
             }
           }
         }
@@ -181,5 +185,5 @@ export function useLiveConfig(
     };
   }, [displayId]);
 
-  return { screens, settings, profiles, displays };
+  return { screens, settings, profiles, rules, displays };
 }

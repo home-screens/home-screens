@@ -429,6 +429,156 @@ describe('editor store', () => {
     });
   });
 
+  describe('addRule', () => {
+    it('adds a rule with a valid default action targeting the first screen', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig(), isDirty: false });
+
+      store.getState().addRule('Doorbell');
+
+      const state = store.getState();
+      expect(state.config!.rules).toHaveLength(1);
+      expect(state.config!.rules![0].name).toBe('Doorbell');
+      expect(state.config!.rules![0].when).toEqual([]);
+      expect(state.config!.rules![0].action).toEqual({
+        kind: 'showScreen', screenId: 'screen-1', mode: 'for', seconds: 60,
+      });
+      expect(state.isDirty).toBe(true);
+    });
+
+    it('targets the selected display in multi-display mode', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'main', name: 'Main', screens: [{ id: 'm1', name: 'M1', backgroundImage: '', modules: [] }] },
+          { id: 'kitchen', name: 'Kitchen', screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }] },
+        ],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().addRule('Kitchen rule');
+
+      const displays = store.getState().config!.displays!;
+      const kitchen = displays.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.rules).toHaveLength(1);
+      // The default action targets the OWNING display's first screen.
+      expect((kitchen.rules![0].action as { screenId: string }).screenId).toBe('k1');
+      expect(displays.find((d) => d.id === 'main')!.rules ?? []).toHaveLength(0);
+      expect(store.getState().config!.rules ?? []).toHaveLength(0);
+    });
+  });
+
+  describe('removeRule', () => {
+    it('removes a rule by ID, leaving others untouched', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        rules: [
+          { id: 'r1', name: 'A', when: [], action: { kind: 'wake' } },
+          { id: 'r2', name: 'B', when: [], action: { kind: 'wake' } },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().removeRule('r1');
+
+      const rules = store.getState().config!.rules!;
+      expect(rules).toHaveLength(1);
+      expect(rules[0].id).toBe('r2');
+    });
+
+    it('removes from the selected display only in multi-display mode', () => {
+      const store = useEditorStore;
+      const makeRule = () => ({ id: 'r1', name: 'A', when: [], action: { kind: 'wake' as const } });
+      const config = makeConfig({
+        displays: [
+          { id: 'main', name: 'Main', screens: [], rules: [makeRule()] },
+          { id: 'kitchen', name: 'Kitchen', screens: [], rules: [makeRule()] },
+        ],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().removeRule('r1');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays.find((d) => d.id === 'kitchen')!.rules).toHaveLength(0);
+      expect(displays.find((d) => d.id === 'main')!.rules).toHaveLength(1);
+    });
+  });
+
+  describe('updateRule', () => {
+    it('merges partial updates into the matching rule only', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        rules: [
+          { id: 'r1', name: 'A', when: [], action: { kind: 'wake' } },
+          { id: 'r2', name: 'B', when: [], action: { kind: 'wake' } },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().updateRule('r1', { name: 'Updated', cooldownSeconds: 120 });
+
+      const rules = store.getState().config!.rules!;
+      expect(rules[0]).toMatchObject({ id: 'r1', name: 'Updated', cooldownSeconds: 120 });
+      expect(rules[1].name).toBe('B'); // untouched
+    });
+  });
+
+  describe('reorderRules', () => {
+    const threeRules = () => [
+      { id: 'r1', name: 'A', when: [], action: { kind: 'wake' } as const },
+      { id: 'r2', name: 'B', when: [], action: { kind: 'wake' } as const },
+      { id: 'r3', name: 'C', when: [], action: { kind: 'wake' } as const },
+    ];
+
+    it('moves a rule from one index to another (priority is list order)', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig({ rules: threeRules() }), isDirty: false });
+
+      store.getState().reorderRules(0, 2);
+
+      const ids = store.getState().config!.rules!.map((r) => r.id);
+      expect(ids).toEqual(['r2', 'r3', 'r1']);
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('moves the last rule to the top', () => {
+      const store = useEditorStore;
+      store.setState({ config: makeConfig({ rules: threeRules() }) });
+
+      store.getState().reorderRules(2, 0);
+
+      expect(store.getState().config!.rules!.map((r) => r.id)).toEqual(['r3', 'r1', 'r2']);
+    });
+
+    it('is a no-op with fewer than two rules', () => {
+      const store = useEditorStore;
+      const rules = [{ id: 'only', name: 'Only', when: [], action: { kind: 'wake' } as const }];
+      store.setState({ config: makeConfig({ rules }) });
+
+      store.getState().reorderRules(0, 5);
+
+      expect(store.getState().config!.rules!.map((r) => r.id)).toEqual(['only']);
+    });
+
+    it('reorders the selected display\'s rules in multi-display mode', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [
+          { id: 'main', name: 'Main', screens: [], rules: threeRules() },
+          { id: 'kitchen', name: 'Kitchen', screens: [], rules: threeRules() },
+        ],
+      });
+      store.setState({ config, selectedDisplayId: 'kitchen' });
+
+      store.getState().reorderRules(1, 0);
+
+      const displays = store.getState().config!.displays!;
+      expect(displays.find((d) => d.id === 'kitchen')!.rules!.map((r) => r.id)).toEqual(['r2', 'r1', 'r3']);
+      expect(displays.find((d) => d.id === 'main')!.rules!.map((r) => r.id)).toEqual(['r1', 'r2', 'r3']);
+    });
+  });
+
   describe('setActiveProfile', () => {
     it('sets activeProfile on settings', () => {
       const store = useEditorStore;

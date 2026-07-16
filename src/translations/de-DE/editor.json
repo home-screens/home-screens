@@ -226,6 +226,7 @@
         "meals": "Mahlzeiten",
         "network": "Netzwerk",
         "profiles": "Profile",
+        "rules": "Regeln",
         "security": "Sicherheit",
         "stats": "Statistik",
         "system": "System",
@@ -1114,6 +1115,51 @@
       },
       "deleteDialog": {
         "title": "Profil löschen",
+        "message": "„{name}“ löschen?",
+        "confirm": "Löschen"
+      }
+    },
+    "rulesPage": {
+      "heading": "Regeln",
+      "description": "Mit Regeln reagiert das Display auf das, was zu Hause passiert. Wenn die Bedingungen einer Regel zutreffen, kann sie zu einem Bildschirm wechseln oder das Display aufwecken — zum Beispiel den Kamera-Bildschirm zeigen, wenn es an der Tür klingelt.",
+      "displayPicker": {
+        "label": "Regeln bearbeiten für",
+        "optionLabel": "{name} ({id})",
+        "help": "Regeln gelten pro Display, weil sie auf die eigenen Bildschirme des jeweiligen Displays zeigen. Ein Wechsel hier ändert auch, an welchem Display der Editor gerade arbeitet."
+      },
+      "emptyHint": "Noch keine Regeln. Füge eine hinzu, damit das Display reagiert, wenn etwas passiert.",
+      "priority": {
+        "labelPrefix": "Prioritätsreihenfolge:",
+        "helpSuffix": " Wenn mehrere Regeln gleichzeitig auslösen, gewinnt die zuerst aufgeführte Regel. Zum Umsortieren ziehen."
+      },
+      "addButton": "Regel hinzufügen",
+      "newRuleName": "Regel {number}",
+      "card": {
+        "offBadge": "Aus",
+        "renameTitle": "Umbenennen",
+        "deleteTitle": "Regel löschen",
+        "enabledLabel": "Regel ist aktiv",
+        "whenHeading": "Wenn",
+        "thenHeading": "Dann",
+        "noConditionsHint": "Noch keine Bedingungen — diese Regel löst erst aus, wenn du eine hinzufügst.",
+        "invalidHint": "Diese Regel kann noch nicht gespeichert werden:",
+        "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit die Regel auslöst.",
+        "actionKindLabel": "Aktion",
+        "actionShowScreen": "Einen Bildschirm zeigen",
+        "actionWake": "Display aufwecken",
+        "screenLabel": "Bildschirm",
+        "screenNoneOption": "Bildschirm wählen…",
+        "screenDisabledSuffix": "(deaktiviert)",
+        "screenMissingWarning": "Wähle einen Bildschirm, den diese Regel zeigen soll.",
+        "modeLabel": "Wie lange",
+        "modeWhile": "Solange die Bedingungen zutreffen",
+        "modeFor": "Für eine feste Zeit",
+        "secondsLabel": "Sekunden",
+        "cooldownLabel": "Wartezeit (Sekunden)",
+        "cooldownHelp": "Nachdem die Regel ausgelöst hat, wartet sie so viele Sekunden, bevor sie erneut auslösen kann. Leer lassen für keine Wartezeit."
+      },
+      "deleteDialog": {
+        "title": "Regel löschen",
         "message": "„{name}“ löschen?",
         "confirm": "Löschen"
       }

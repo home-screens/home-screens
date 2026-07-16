@@ -22,6 +22,7 @@ import IntegrationsSection from '@/components/editor/settings/IntegrationsSectio
 import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
 import ProfilesSection from '@/components/editor/settings/ProfilesSection';
+import RulesSection from '@/components/editor/settings/RulesSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
@@ -58,6 +59,7 @@ type TabId =
   | 'display'
   | 'displays'
   | 'profiles'
+  | 'rules'
   | 'sleep'
   | 'alerts'
   | 'location'
@@ -362,6 +364,10 @@ function SettingsPageContent() {
 
             {activeTab === 'profiles' && (
               <ProfilesSection />
+            )}
+
+            {activeTab === 'rules' && (
+              <RulesSection />
             )}
 
             {activeTab === 'sleep' && config && (

@@ -114,20 +114,89 @@ function evaluateCondition(
 }
 
 /**
+ * Three-valued evaluation of a condition list (top-level AND): `undefined`
+ * means the value cannot be determined from the published keys. Kleene
+ * semantics — an `or` with one known-true branch is definitively true even
+ * when a sibling key is unpublished, so "smoke OR co" resolves off the smoke
+ * sensor alone. Module visibility keeps the coarser whenUnknown gate in
+ * `evaluateVisibility`; the display-rule engine needs this finer result.
+ *
+ * Adding a condition kind means updating `evaluateCondition` AND
+ * `evaluateConditionTri` below — both switches live here so neither can
+ * drift out of sight of the other.
+ */
+export function evaluateConditionsTri(
+  conditions: VisibilityCondition[],
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean | undefined {
+  let unknown = false;
+  for (const c of conditions) {
+    const v = evaluateConditionTri(c, states);
+    if (v === false) return false;
+    if (v === undefined) unknown = true;
+  }
+  return unknown ? undefined : true;
+}
+
+function evaluateConditionTri(
+  condition: VisibilityCondition,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean | undefined {
+  switch (condition.kind) {
+    case 'state':
+    case 'numeric':
+      // Unpublished (or still-blank) keys are unknown, never plain false —
+      // `not`/`or` must not launder an unknown into a definite value.
+      if (!states.has(condition.sourceKey)) return undefined;
+      return evaluateCondition(condition, states);
+    case 'and':
+      return evaluateConditionsTri(condition.conditions, states);
+    case 'or': {
+      let unknown = false;
+      for (const c of condition.conditions) {
+        const v = evaluateConditionTri(c, states);
+        if (v === true) return true;
+        if (v === undefined) unknown = true;
+      }
+      return unknown ? undefined : false;
+    }
+    case 'not': {
+      // `not` is true when NONE of its conditions are met (HA semantics):
+      // one met → definitively false; any unknown → could be met → unknown.
+      let unknown = false;
+      for (const c of condition.conditions) {
+        const v = evaluateConditionTri(c, states);
+        if (v === true) return false;
+        if (v === undefined) unknown = true;
+      }
+      return unknown ? undefined : true;
+    }
+  }
+}
+
+/**
+ * Collect every sourceKey referenced anywhere in a condition tree into
+ * `into`. The ONE walker every consumer of the closed `VisibilityCondition`
+ * union shares (module subscriptions, rule subscriptions, demand
+ * computation) — a new condition kind added here is picked up by all of
+ * them at once instead of silently missing from some.
+ */
+export function collectSourceKeys(conditions: VisibilityCondition[], into: Set<string>): void {
+  for (const c of conditions) {
+    if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') collectSourceKeys(c.conditions, into);
+    else into.add(c.sourceKey);
+  }
+}
+
+/**
  * All sourceKeys referenced by any module's visibility tree, deduped and
  * sorted (stable output for memoization). Lets the renderer subscribe to
  * only the shared-state keys the current screen actually conditions on.
  */
 export function collectConditionSourceKeys(modules: ModuleInstance[]): string[] {
   const keys = new Set<string>();
-  const walk = (conditions: VisibilityCondition[]): void => {
-    for (const c of conditions) {
-      if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') walk(c.conditions);
-      else keys.add(c.sourceKey);
-    }
-  };
   for (const mod of modules) {
-    if (mod.visibility?.conditions) walk(mod.visibility.conditions);
+    if (mod.visibility?.conditions) collectSourceKeys(mod.visibility.conditions, keys);
   }
   return Array.from(keys).sort();
 }

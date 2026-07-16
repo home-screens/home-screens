@@ -226,6 +226,7 @@
         "meals": "Repas",
         "network": "Réseau",
         "profiles": "Profils",
+        "rules": "Règles",
         "security": "Sécurité",
         "stats": "Statistiques",
         "system": "Système",
@@ -1115,6 +1116,51 @@
       "deleteDialog": {
         "title": "Supprimer le profil",
         "message": "Supprimer « {name} » ?",
+        "confirm": "Supprimer"
+      }
+    },
+    "rulesPage": {
+      "heading": "Règles",
+      "description": "Les règles permettent à l'écran de réagir à ce qui se passe à la maison. Quand les conditions d'une règle deviennent vraies, elle peut afficher un écran ou réveiller l'affichage — par exemple montrer l'écran des caméras quand on sonne à la porte.",
+      "displayPicker": {
+        "label": "Modifier les règles de",
+        "optionLabel": "{name} ({id})",
+        "help": "Les règles sont propres à chaque affichage, car elles pointent vers ses propres écrans. Changer ici change aussi l'affichage sur lequel l'éditeur travaille."
+      },
+      "emptyHint": "Aucune règle pour l'instant. Ajoutez-en une pour que l'affichage réagisse quand quelque chose se produit.",
+      "priority": {
+        "labelPrefix": "Ordre de priorité :",
+        "helpSuffix": " Quand plusieurs règles se déclenchent en même temps, la première de la liste gagne. Faites glisser pour réorganiser."
+      },
+      "addButton": "Ajouter une règle",
+      "newRuleName": "Règle {number}",
+      "card": {
+        "offBadge": "Inactive",
+        "renameTitle": "Renommer",
+        "deleteTitle": "Supprimer la règle",
+        "enabledLabel": "Règle active",
+        "whenHeading": "Quand",
+        "thenHeading": "Alors",
+        "noConditionsHint": "Pas encore de conditions — cette règle ne se déclenchera pas tant que vous n'en ajoutez pas une.",
+        "invalidHint": "Cette règle ne peut pas encore être enregistrée :",
+        "allMustMatchHint": "Toutes les conditions doivent correspondre pour que la règle se déclenche.",
+        "actionKindLabel": "Action",
+        "actionShowScreen": "Afficher un écran",
+        "actionWake": "Réveiller l'affichage",
+        "screenLabel": "Écran",
+        "screenNoneOption": "Choisir un écran…",
+        "screenDisabledSuffix": "(désactivé)",
+        "screenMissingWarning": "Choisissez un écran que cette règle doit afficher.",
+        "modeLabel": "Durée",
+        "modeWhile": "Tant que les conditions sont vraies",
+        "modeFor": "Pendant une durée définie",
+        "secondsLabel": "Secondes",
+        "cooldownLabel": "Délai (secondes)",
+        "cooldownHelp": "Après son déclenchement, la règle attend ce nombre de secondes avant de pouvoir se déclencher à nouveau. Laissez vide pour aucun délai."
+      },
+      "deleteDialog": {
+        "title": "Supprimer la règle",
+        "message": "Supprimer « {name} » ?",
         "confirm": "Supprimer"
       }
     },

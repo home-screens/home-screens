@@ -297,6 +297,48 @@ export interface Profile {
 }
 
 /**
+ * What a display rule does when its conditions become true.
+ * A closed, serializable union for the same reasons `VisibilityCondition`
+ * is one: actions stay visually editable, validatable, and safe to evaluate.
+ * Deliberately NOT in v1: webhooks, service calls, sounds, module-level
+ * actions, else-branches.
+ */
+export type RuleAction =
+  | {
+      kind: 'showScreen';
+      /** Target screen id, resolved against the owning display's full screen list. */
+      screenId: string;
+      /**
+       * 'while': pinned while the condition holds (min hold 5s to ride out
+       * flaps; the shared-state tombstone grace already smooths producer
+       * restarts). 'for': shown for `seconds`, then rotation resumes.
+       */
+      mode: 'while' | 'for';
+      /** Required when mode === 'for'. */
+      seconds?: number;
+    }
+  | { kind: 'wake' }; // wake from sleep; no-op if awake
+
+/**
+ * A condition → action rule owned by a display. Rules reuse the visibility
+ * condition tree and evaluator unchanged; they are edge-triggered (fire on
+ * the false→true transition only, so a reboot never slams the display onto
+ * an alert screen for a condition that has been true for days).
+ */
+export interface DisplayRule {
+  id: string;
+  /** "Doorbell → front camera" */
+  name: string;
+  /** Default true, mirrors ModuleInstance.enabled. */
+  enabled?: boolean;
+  /** Implicit AND, same tree + evaluator as ModuleVisibility. */
+  when: VisibilityCondition[];
+  action: RuleAction;
+  /** Seconds after a firing during which the rule will not re-fire. Default 0. */
+  cooldownSeconds?: number;
+}
+
+/**
  * Per-display settings overrides. Any field omitted falls back to GlobalSettings.
  * Nested objects (sleep, screensaver, alerts) are full-replacement, NOT deep-merged —
  * partial overrides would create surprising fallback chains. Override the whole
@@ -369,6 +411,11 @@ export interface DisplayNode {
   activeProfile?: string;
   /** Per-display setting overrides (rotation interval, sleep, etc.) */
   settings?: DisplayNodeSettings;
+  /**
+   * Condition → action rules owned by this display. Owned like `screens` —
+   * there is no shared pool or global fallback in multi-display mode.
+   */
+  rules?: DisplayRule[];
 }
 
 export interface ScreenConfiguration {
@@ -376,6 +423,8 @@ export interface ScreenConfiguration {
   settings: GlobalSettings;
   screens: Screen[];
   profiles?: Profile[];
+  /** Display rules for legacy single-display mode (multi-display rules live on each DisplayNode). */
+  rules?: DisplayRule[];
   /** Multi-display registry. Omitted = single-display mode (backward compat). */
   displays?: DisplayNode[];
 }

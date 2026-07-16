@@ -237,14 +237,17 @@ export function useStatusReporter(
     };
   });
 
-  // Report immediately on significant changes
+  // Report immediately on significant changes. The screen ID is part of the
+  // key (not just the index) because a rule takeover swaps the rendered
+  // screen without touching the rotation index — the editor's "currently
+  // showing" readout must reflect the takeover, not wait for the 30s beat.
   const prevKeyRef = useRef('');
   useEffect(() => {
-    const key = `${currentScreenIndex}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}`;
+    const key = `${currentScreenIndex}:${currentScreenId}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}`;
     if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
     reportStatus(valuesRef.current);
-  }, [currentScreenIndex, screenCount, displayState, activeProfile, displayId]);
+  }, [currentScreenIndex, currentScreenId, screenCount, displayState, activeProfile, displayId]);
 
   // Periodic report every 30s for freshness
   useEffect(() => {

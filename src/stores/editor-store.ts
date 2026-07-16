@@ -12,6 +12,7 @@ import type {
   Profile,
   DisplayNode,
   DisplayNodeSettings,
+  DisplayRule,
 } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -37,6 +38,7 @@ import {
   resolveProfileTarget,
   withProfiles,
   withActiveProfile,
+  withRules,
   updateModuleInConfig,
   buildBootstrapMain,
   buildNewDisplay,
@@ -76,7 +78,7 @@ function syncEditorUrl({ screen, display }: { screen?: string | null; display?: 
 
 // Re-export pure multi-display helpers so existing consumers that import
 // them from `@/stores/editor-store` keep working after the split.
-export { getActiveScreens, getActiveDimensions } from '@/lib/editor-multi-display';
+export { getActiveScreens, getActiveDimensions, getActiveRules } from '@/lib/editor-multi-display';
 
 // `orientDimensions` now lives in `@/lib/display-filter` so the server-side
 // per-display filter can share it. Re-exported here for existing callers.
@@ -133,6 +135,10 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
+  addRule: (name: string) => void;
+  removeRule: (id: string) => void;
+  updateRule: (id: string, updates: Partial<DisplayRule>) => void;
+  reorderRules: (fromIndex: number, toIndex: number) => void;
   addDisplay: (display: Omit<DisplayNode, 'screens'> & { screens?: Screen[] }) => void;
   updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
   removeDisplay: (id: string) => void;
@@ -612,6 +618,53 @@ export const useEditorStore = create<EditorState>((set, get) => {
       (config) => ({ config: withActiveProfile(config, selectedDisplayId, id) }),
       { coalesce: 'activeProfile' },
     );
+  },
+
+  addRule: (name: string) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => {
+      // Default the action to the first screen so a new rule saves valid;
+      // 'for' 60s is the doorbell-style shape most rules start from.
+      const firstScreenId = getActiveScreens(config, selectedDisplayId)[0]?.id ?? '';
+      const newRule: DisplayRule = {
+        id: uuidv4(),
+        name,
+        when: [],
+        action: { kind: 'showScreen', screenId: firstScreenId, mode: 'for', seconds: 60 },
+      };
+      return {
+        config: withRules(config, selectedDisplayId, (rules) => [...rules, newRule]),
+      };
+    });
+  },
+
+  removeRule: (id: string) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) => rules.filter((r) => r.id !== id)),
+    }));
+  },
+
+  updateRule: (id: string, updates: Partial<DisplayRule>) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) =>
+        rules.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+      ),
+    }), { coalesce: `rule:${id}` });
+  },
+
+  reorderRules: (fromIndex: number, toIndex: number) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) => {
+        if (rules.length < 2) return rules;
+        const next = [...rules];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        return next;
+      }),
+    }), { coalesce: 'reorderRules' });
   },
 
   addDisplay: (display) => {

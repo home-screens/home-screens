@@ -226,6 +226,7 @@
         "meals": "Meals",
         "network": "Network",
         "profiles": "Profiles",
+        "rules": "Regler",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1116,6 +1117,51 @@
         "title": "Delete profile",
         "message": "Delete \"{name}\"?",
         "confirm": "Delete"
+      }
+    },
+    "rulesPage": {
+      "heading": "Regler",
+      "description": "Regler får skærmen til at reagere på, hvad der sker derhjemme. Når en regels betingelser bliver sande, kan den skifte til en skærm eller vække displayet — fx vise kameraskærmen, når det ringer på døren.",
+      "displayPicker": {
+        "label": "Redigerer regler for",
+        "optionLabel": "{name} ({id})",
+        "help": "Regler er pr. display, fordi de peger på hvert displays egne skærme. Skifter du her, skifter du også, hvilket display editoren arbejder på."
+      },
+      "emptyHint": "Ingen regler endnu. Tilføj en, så displayet reagerer, når der sker noget.",
+      "priority": {
+        "labelPrefix": "Prioritetsrækkefølge:",
+        "helpSuffix": " Når flere regler udløses samtidig, vinder den regel, der står først. Træk for at ændre rækkefølgen."
+      },
+      "addButton": "Tilføj regel",
+      "newRuleName": "Regel {number}",
+      "card": {
+        "offBadge": "Slukket",
+        "renameTitle": "Omdøb",
+        "deleteTitle": "Slet regel",
+        "enabledLabel": "Reglen er slået til",
+        "whenHeading": "Når",
+        "thenHeading": "Så",
+        "noConditionsHint": "Ingen betingelser endnu — reglen udløses først, når du tilføjer en.",
+        "invalidHint": "Denne regel kan ikke gemmes endnu:",
+        "allMustMatchHint": "Alle betingelser skal passe, før reglen udløses.",
+        "actionKindLabel": "Handling",
+        "actionShowScreen": "Vis en skærm",
+        "actionWake": "Væk displayet",
+        "screenLabel": "Skærm",
+        "screenNoneOption": "Vælg en skærm…",
+        "screenDisabledSuffix": "(slået fra)",
+        "screenMissingWarning": "Vælg den skærm, reglen skal vise.",
+        "modeLabel": "Hvor længe",
+        "modeWhile": "Så længe betingelserne er sande",
+        "modeFor": "I et fast tidsrum",
+        "secondsLabel": "Sekunder",
+        "cooldownLabel": "Ventetid (sekunder)",
+        "cooldownHelp": "Når reglen er udløst, venter den så mange sekunder, før den kan udløses igen. Lad feltet stå tomt for ingen ventetid."
+      },
+      "deleteDialog": {
+        "title": "Slet regel",
+        "message": "Slet \"{name}\"?",
+        "confirm": "Slet"
       }
     },
     "securityPage": {

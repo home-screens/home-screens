@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from 'react';
 import type { ComponentType } from 'react';
-import type { Screen } from '@/types/config';
+import type { DisplayRule, Screen } from '@/types/config';
 import type { StateProviderProps } from '@/types/plugins';
 import { usePluginStore } from '@/stores/plugin-store';
 import { collectDemandedKeys, demandByPlugin } from '@/lib/state-demand';
@@ -11,6 +11,9 @@ interface PluginServiceLayerProps {
   /** ALL configured screens (pre-profile-filter) — a provider must publish
    *  even when every referencing module is on a profile-excluded screen. */
   screens: Screen[];
+  /** This display's rules — their condition keys join the demand set, so a
+   *  rule on a never-displayed entity publishes automatically. */
+  rules?: DisplayRule[];
 }
 
 const EMPTY_SETTINGS: Record<string, unknown> = {};
@@ -43,7 +46,7 @@ const EMPTY_SETTINGS: Record<string, unknown> = {};
  * once a minute (clock tick) and this layer must not churn provider effects.
  * The plugin-store subscriptions re-render it when a bundle registers.
  */
-function PluginServiceLayer({ screens }: PluginServiceLayerProps) {
+function PluginServiceLayer({ screens, rules }: PluginServiceLayerProps) {
   const plugins = usePluginStore((s) => s.plugins);
   const pluginSettings = usePluginStore((s) => s.pluginSettings);
 
@@ -60,13 +63,13 @@ function PluginServiceLayer({ screens }: PluginServiceLayerProps) {
   const demandStrings = useMemo(() => {
     const map = new Map<string, string>();
     if (providers.length === 0) return map;
-    const demanded = collectDemandedKeys(screens);
+    const demanded = collectDemandedKeys(screens, rules);
     const byPlugin = demandByPlugin(demanded, providers.map((p) => p.id));
     for (const { id } of providers) {
       map.set(id, (byPlugin.get(id) ?? []).join('\n'));
     }
     return map;
-  }, [screens, providers]);
+  }, [screens, rules, providers]);
 
   if (providers.length === 0) return null;
 

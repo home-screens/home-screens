@@ -226,6 +226,7 @@
         "meals": "Refeições",
         "network": "Rede",
         "profiles": "Perfis",
+        "rules": "Regras",
         "security": "Segurança",
         "stats": "Estatísticas",
         "system": "Sistema",
@@ -1114,6 +1115,51 @@
       },
       "deleteDialog": {
         "title": "Excluir perfil",
+        "message": "Excluir \"{name}\"?",
+        "confirm": "Excluir"
+      }
+    },
+    "rulesPage": {
+      "heading": "Regras",
+      "description": "As regras fazem a tela reagir ao que acontece em casa. Quando as condições de uma regra ficam verdadeiras, ela pode trocar para uma tela ou acordar o display — como mostrar a tela das câmeras quando a campainha toca.",
+      "displayPicker": {
+        "label": "Editando regras de",
+        "optionLabel": "{name} ({id})",
+        "help": "As regras são por display, porque apontam para as telas próprias de cada display. Trocar aqui também muda em qual display o editor está trabalhando."
+      },
+      "emptyHint": "Nenhuma regra ainda. Adicione uma para a tela reagir quando algo acontecer.",
+      "priority": {
+        "labelPrefix": "Ordem de prioridade:",
+        "helpSuffix": " Quando várias regras disparam ao mesmo tempo, a primeira da lista vence. Arraste para reordenar."
+      },
+      "addButton": "Adicionar regra",
+      "newRuleName": "Regra {number}",
+      "card": {
+        "offBadge": "Desligada",
+        "renameTitle": "Renomear",
+        "deleteTitle": "Excluir regra",
+        "enabledLabel": "Regra ligada",
+        "whenHeading": "Quando",
+        "thenHeading": "Então",
+        "noConditionsHint": "Nenhuma condição ainda — esta regra só dispara depois que você adicionar uma.",
+        "invalidHint": "Esta regra ainda não pode ser salva:",
+        "allMustMatchHint": "Todas as condições precisam bater para a regra disparar.",
+        "actionKindLabel": "Ação",
+        "actionShowScreen": "Mostrar uma tela",
+        "actionWake": "Acordar o display",
+        "screenLabel": "Tela",
+        "screenNoneOption": "Escolha uma tela…",
+        "screenDisabledSuffix": "(desativada)",
+        "screenMissingWarning": "Escolha a tela que esta regra deve mostrar.",
+        "modeLabel": "Por quanto tempo",
+        "modeWhile": "Enquanto as condições forem verdadeiras",
+        "modeFor": "Por um tempo definido",
+        "secondsLabel": "Segundos",
+        "cooldownLabel": "Espera (segundos)",
+        "cooldownHelp": "Depois de disparar, a regra espera esses segundos antes de poder disparar de novo. Deixe vazio para não esperar."
+      },
+      "deleteDialog": {
+        "title": "Excluir regra",
         "message": "Excluir \"{name}\"?",
         "confirm": "Excluir"
       }

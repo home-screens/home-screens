@@ -21,6 +21,7 @@ import {
   Shield,
   UtensilsCrossed,
   Wifi,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -103,6 +104,7 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon }> =
   calendar: { labelKey: 'calendar', icon: Calendar },
   meals: { labelKey: 'meals', icon: UtensilsCrossed },
   profiles: { labelKey: 'profiles', icon: Layers },
+  rules: { labelKey: 'rules', icon: Zap },
   integrations: { labelKey: 'integrations', icon: Plug },
   security: { labelKey: 'security', icon: Shield },
   data: { labelKey: 'data', icon: Database },
