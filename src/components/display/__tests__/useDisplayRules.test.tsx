@@ -95,7 +95,7 @@ describe('useDisplayRules', () => {
   it('manual release wins and the rule does not reassert while still true', () => {
     const onWake = vi.fn();
     const rules = [makeRule({ action: { kind: 'showScreen', screenId: 'cameras', mode: 'while' } })];
-    const { result } = renderHook(() => useDisplayRules(rules, screens, onWake));
+    const { result } = renderHook(() => useDisplayRules(rules, screens, undefined, onWake));
     act(() => sharedStateStore.publish(KEY, 'off'));
     act(() => sharedStateStore.publish(KEY, 'on'));
     expect(result.current.takeoverScreen?.id).toBe('cameras');
@@ -117,7 +117,7 @@ describe('useDisplayRules', () => {
   it('invokes onWake for wake-action rules without taking over the render', () => {
     const onWake = vi.fn();
     const rules = [makeRule({ action: { kind: 'wake' } })];
-    const { result } = renderHook(() => useDisplayRules(rules, screens, onWake));
+    const { result } = renderHook(() => useDisplayRules(rules, screens, undefined, onWake));
     act(() => sharedStateStore.publish(KEY, 'off'));
     act(() => sharedStateStore.publish(KEY, 'on'));
     expect(onWake).toHaveBeenCalledTimes(1);

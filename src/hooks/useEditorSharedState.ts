@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { providerHealthStore, type ProviderHealthEntry } from '@/lib/provider-health-store';
 import { useDisplaySharedState, type DisplaySharedState } from '@/hooks/useDisplaySharedState';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 
@@ -49,6 +50,24 @@ export function useEditorSharedState(
   );
   const localRaw = useSyncExternalStore(subscribe, getSnapshot, serverSnapshot);
 
+  // The editor tab's own provider-health store, fed by editor-mounted
+  // providers (EditorStateProviderLayer). Same subscribe/snapshot posture as
+  // the local bus above; disabled polling short-circuits to an empty map.
+  const healthSubscribe = useCallback(
+    (onStoreChange: () => void) => (enabled ? providerHealthStore.subscribe(onStoreChange) : () => {}),
+    [enabled],
+  );
+  const healthGetSnapshot = useCallback(
+    () => (enabled ? providerHealthStore.snapshot() : EMPTY_HEALTH),
+    [enabled],
+  );
+  const localHealthRaw = useSyncExternalStore(healthSubscribe, healthGetSnapshot, serverHealthSnapshot);
+  const localHealth = useMemo(() => {
+    const out: Record<string, ProviderHealthEntry> = {};
+    for (const [id, entry] of localHealthRaw) out[id] = entry;
+    return out;
+  }, [localHealthRaw]);
+
   // `snapshot()` is referentially stable between bus changes, so this memo
   // recomputes only when something actually published/cleared.
   const local = useMemo(() => {
@@ -65,11 +84,16 @@ export function useEditorSharedState(
   }, [localRaw]);
 
   return useMemo<EditorSharedState>(() => {
+    // Provider health follows the same authority as the values: a fresh
+    // display report wins; otherwise the editor tab's own health store (its
+    // editor-mounted providers report locally).
     if (display.states !== null) return { ...display, source: 'display' };
-    if (local) return { ...local, source: 'editor' };
-    return { ...display, source: null };
-  }, [display, local]);
+    if (local) return { ...local, providerHealth: localHealth, source: 'editor' };
+    return { ...display, providerHealth: localHealth, source: null };
+  }, [display, local, localHealth]);
 }
 
 const EMPTY_BUS: ReadonlyMap<string, SharedStateEntry> = new Map();
 const serverSnapshot = () => EMPTY_BUS;
+const EMPTY_HEALTH: ReadonlyMap<string, ProviderHealthEntry> = new Map();
+const serverHealthSnapshot = () => EMPTY_HEALTH;

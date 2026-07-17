@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Só aparece quando suas condições são atendidas",
     "backgroundProviderTitle": "Executa oculto em segundo plano — nunca é exibido no display",
     "conditionMetTitle": "Condições atendidas — visível na tela agora",
-    "conditionUnmetTitle": "Condições não atendidas — oculto na tela agora"
+    "conditionUnmetTitle": "Condições não atendidas — oculto na tela agora",
+    "conditionMetTitleEditor": "Condições atendidas, apareceria agora",
+    "conditionUnmetTitleEditor": "Condições não atendidas, ficaria oculto agora"
   },
   "displaySwitcher": {
     "title": "Qual tela este canvas está editando? (Substituições de configurações ficam em Configurações → Por tela.)",
@@ -229,7 +231,7 @@
         "network": "Rede",
         "profiles": "Perfis",
         "rules": "Regras",
-        "sharedState": "Estado compartilhado",
+        "sharedState": "Valores ao vivo",
         "security": "Segurança",
         "stats": "Estatísticas",
         "system": "Sistema",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Ação",
         "actionShowScreen": "Mostrar uma tela",
         "actionWake": "Acordar o display",
+        "wakeSleepHint": "Se o display estiver dormindo por um horário, isto o acorda e o mantém ligado por 5 minutos, depois ele volta a dormir.",
         "screenLabel": "Tela",
         "screenNoneOption": "Escolha uma tela…",
         "screenDisabledSuffix": "(desativada)",
@@ -1159,7 +1162,13 @@
         "modeFor": "Por um tempo definido",
         "secondsLabel": "Segundos",
         "cooldownLabel": "Espera (segundos)",
-        "cooldownHelp": "Depois de disparar, a regra espera esses segundos antes de poder disparar de novo. Deixe vazio para não esperar."
+        "cooldownHelp": "Depois de disparar, a regra espera esses segundos antes de poder disparar de novo. Deixe vazio para não esperar.",
+        "actionSleep": "Colocar o display para dormir",
+        "sleepHint": "Desliga a tela, igual ao botão de dormir. Um toque ou o horário de acordar liga de novo.",
+        "copyToDisplayLabel": "Copiar para outro display",
+        "copyToDisplayPlaceholder": "Escolha um display…",
+        "copyToDisplayHelp": "Copia esta regra para outro display. Você vai precisar escolher a tela que ela mostra lá.",
+        "copiedNotice": "Copiado para {name}."
       },
       "deleteDialog": {
         "title": "Excluir regra",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Usada por",
       "ruleRefLabel": "Regra: {name}",
       "builtInProducer": "Integrado",
-      "producerLabel": "De {producer}"
+      "producerLabel": "De {producer}",
+      "providerHealthSince": "desde {time}"
     },
     "securityPage": {
       "loading": "Verificando status de autenticação…",
@@ -3206,7 +3216,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Mostrar apenas quando as condições corresponderem",
-    "enableHelp": "Mostrar ou ocultar este módulo com base em valores publicados por módulos em segundo plano (por exemplo, um sensor do Home Assistant).",
+    "enableHelp": "Mostrar ou ocultar este módulo com base em valores ao vivo dos serviços conectados (por exemplo, um sensor do Home Assistant).",
     "conditionsTitle": "Condições",
     "allMustMatchHint": "Todas as condições devem corresponder para o módulo aparecer.",
     "addCondition": "Adicionar condição",
@@ -3217,12 +3227,13 @@
       "numeric": "Número está no intervalo",
       "and": "Todas…",
       "or": "Qualquer…",
-      "not": "Nenhuma…"
+      "not": "Nenhuma…",
+      "time": "Hora do dia"
     },
-    "sourceKeyLabel": "Chave de estado",
-    "sourceKeyHint": "Pesquise pelo nome para encontrar uma chave, ou digite uma você mesmo. Chaves digitadas à mão precisam corresponder exatamente, incluindo o prefixo plugin:.",
+    "sourceKeyLabel": "O que verificar",
+    "sourceKeyHint": "Chaves digitadas devem corresponder exatamente, incluindo o prefixo plugin:.",
     "sourceKeyUnknown": "Nenhum módulo deste display publica esta chave ainda. Até lá, esta condição conta como desconhecida e o módulo segue a configuração 'Antes de os dados chegarem'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Buscar sensores, luzes e mais…",
     "matchLabel": "Correspondência",
     "matchEquals": "É",
     "matchNotEquals": "Não é",
@@ -3239,7 +3250,7 @@
     "whenUnknownLabel": "Enquanto a fonte de dados ainda não informou",
     "whenUnknownHide": "Ocultar o módulo",
     "whenUnknownShow": "Mostrar o módulo",
-    "noProvidersHint": "Ainda não há chaves de estado para escolher. As chaves vêm de plugins que compartilham valores (como o Home Assistant). Os valores são compartilhados apenas dentro da aba do navegador desta tela. Você também pode digitar uma chave.",
+    "noProvidersHint": "Ainda não há chaves de estado para escolher. As chaves vêm de plugins que compartilham valores (como o Home Assistant). Você também pode digitar uma chave.",
     "noConditionsHint": "Nenhuma condição ainda. O módulo sempre aparece até você adicionar uma.",
     "sourceKeyInvalid": "Digite uma chave de estado apenas com letras minúsculas, números e _ : . -",
     "invalidHint": "Estas condições ainda não podem ser salvas. Corrija os campos destacados.",
@@ -3252,7 +3263,9 @@
       "unknown": "Aguardando",
       "metTitle": "Esta condição corresponde na tela agora mesmo.",
       "unmetTitle": "Esta condição não corresponde na tela agora mesmo.",
-      "unknownTitle": "Uma chave usada por esta condição ainda não foi publicada."
+      "unknownTitle": "Uma chave usada por esta condição ainda não foi publicada.",
+      "metTitleEditor": "Esta condição corresponde agora mesmo.",
+      "unmetTitleEditor": "Esta condição não corresponde agora mesmo."
     },
     "outcome": {
       "noLiveData": "A tela não enviou relatórios recentemente, então os resultados ao vivo não são exibidos.",
@@ -3263,7 +3276,15 @@
       "hiddenNowEditor": "Seria ocultado agora mesmo",
       "waitingForKeys": "aguardando {keys}",
       "keyNotPicked": "uma condição ainda não tem chave escolhida",
-      "conditionsNotMet": "as condições não correspondem"
-    }
+      "conditionsNotMet": "as condições não correspondem",
+      "seeLiveValues": "Você pode ver todos os valores ao vivo em Configurações → Valores ao vivo."
+    },
+    "time": {
+      "daysLabel": "Dias",
+      "fromLabel": "De",
+      "untilLabel": "Até",
+      "hint": "Deixe os dois horários vazios para o dia todo. Se o fim for antes do início, ele cruza a meia-noite (como das 22:00 às 6:00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

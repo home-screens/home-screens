@@ -35,6 +35,7 @@ import {
   getActiveScreens,
   withActiveScreens,
   getActiveDimensions,
+  getActiveRules,
   resolveProfileTarget,
   withProfiles,
   withActiveProfile,
@@ -139,6 +140,9 @@ interface EditorState {
   removeRule: (id: string) => void;
   updateRule: (id: string, updates: Partial<DisplayRule>) => void;
   reorderRules: (fromIndex: number, toIndex: number) => void;
+  /** Copy a rule from the active display to another display, with a fresh id
+   *  and (for showScreen actions) a blanked screen target. Multi-display only. */
+  copyRuleToDisplay: (ruleId: string, targetDisplayId: string) => void;
   addDisplay: (display: Omit<DisplayNode, 'screens'> & { screens?: Screen[] }) => void;
   updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
   removeDisplay: (id: string) => void;
@@ -667,6 +671,31 @@ export const useEditorStore = create<EditorState>((set, get) => {
     }), { coalesce: 'reorderRules' });
   },
 
+  copyRuleToDisplay: (ruleId: string, targetDisplayId: string) => {
+    const { config, selectedDisplayId } = get();
+    // Multi-display only — legacy single-display installs have nowhere to copy.
+    if (!config?.displays) return;
+    const source = getActiveRules(config, selectedDisplayId).find((r) => r.id === ruleId);
+    if (!source || !config.displays.some((d) => d.id === targetDisplayId)) return;
+
+    mutateConfig((cfg) => {
+      const displays = cfg.displays;
+      if (!displays) return {};
+      const idx = displays.findIndex((d) => d.id === targetDisplayId);
+      if (idx === -1) return {};
+      // Fresh id; blank a showScreen target since screens are per-display and
+      // the source screen id won't exist on the target (empty screenId is the
+      // established saveable-incomplete posture). enabled: undefined lands it on.
+      const clone: DisplayRule = { ...structuredClone(source), id: uuidv4(), enabled: undefined };
+      if (clone.action.kind === 'showScreen') {
+        clone.action = { ...clone.action, screenId: '' };
+      }
+      const nextDisplays = [...displays];
+      nextDisplays[idx] = { ...nextDisplays[idx], rules: [...(nextDisplays[idx].rules ?? []), clone] };
+      return { config: { ...cfg, displays: nextDisplays } };
+    });
+  },
+
   addDisplay: (display) => {
     // Multi-display bootstrap has two paths, both handled below via
     // `buildBootstrapMain` / `buildNewDisplay`:
@@ -925,10 +954,27 @@ export const useEditorStore = create<EditorState>((set, get) => {
       }
 
       const existingIds = new Set(activeScreens.map((s) => s.id));
+
+      // Replace mode swaps the screen list wholesale but leaves the display's
+      // rules untouched, so any `showScreen` rule still points at a now-gone
+      // screen id — which `validateDisplayRules` rejects, making the config
+      // unsaveable. Blank those targets the same way a screen deletion does,
+      // reusing `pruneDanglingScreenRefs` per removed id (add mode removes
+      // nothing, so it's skipped entirely).
+      let pruned = merged;
+      if (options.mode === 'replace') {
+        const newIds = new Set(updated.screens.map((s) => s.id));
+        for (const removedId of existingIds) {
+          if (!newIds.has(removedId)) {
+            pruned = pruneDanglingScreenRefs(pruned, removedId, selectedDisplayId);
+          }
+        }
+      }
+
       firstNewId = updated.screens.find((s) => !existingIds.has(s.id))?.id
         ?? updated.screens[0]?.id ?? null;
       return {
-        config: merged,
+        config: pruned,
         selectedScreenId: firstNewId,
         selectedModuleId: null,
       };

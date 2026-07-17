@@ -579,6 +579,84 @@ describe('editor store', () => {
     });
   });
 
+  describe('copyRuleToDisplay', () => {
+    const multiConfig = () => makeConfig({
+      displays: [
+        {
+          id: 'main', name: 'Main',
+          screens: [{ id: 'm1', name: 'M1', backgroundImage: '', modules: [] }],
+          rules: [{
+            id: 'src', name: 'Doorbell', enabled: false,
+            when: [{ kind: 'state', sourceKey: 'plugin:ha:door', equals: 'on' }],
+            action: { kind: 'showScreen', screenId: 'm1', mode: 'for', seconds: 30 },
+          }],
+        },
+        {
+          id: 'kitchen', name: 'Kitchen',
+          screens: [{ id: 'k1', name: 'K1', backgroundImage: '', modules: [] }],
+          rules: [],
+        },
+      ],
+    });
+
+    it('clones the rule onto the target with a fresh id, blanked screen, and enabled', () => {
+      const store = useEditorStore;
+      store.setState({ config: multiConfig(), selectedDisplayId: 'main', isDirty: false });
+
+      store.getState().copyRuleToDisplay('src', 'kitchen');
+
+      const displays = store.getState().config!.displays!;
+      const kitchenRules = displays.find((d) => d.id === 'kitchen')!.rules!;
+      expect(kitchenRules).toHaveLength(1);
+      const copy = kitchenRules[0];
+      expect(copy.id).not.toBe('src');
+      expect(copy.name).toBe('Doorbell');
+      expect(copy.enabled).toBeUndefined(); // lands enabled even though source was off
+      expect(copy.when).toEqual([{ kind: 'state', sourceKey: 'plugin:ha:door', equals: 'on' }]);
+      expect(copy.action).toEqual({ kind: 'showScreen', screenId: '', mode: 'for', seconds: 30 });
+      // Source is untouched.
+      expect(displays.find((d) => d.id === 'main')!.rules!.map((r) => r.id)).toEqual(['src']);
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('deep-clones conditions so editing the copy does not mutate the source', () => {
+      const store = useEditorStore;
+      store.setState({ config: multiConfig(), selectedDisplayId: 'main' });
+      store.getState().copyRuleToDisplay('src', 'kitchen');
+
+      const displays = store.getState().config!.displays!;
+      const copy = displays.find((d) => d.id === 'kitchen')!.rules![0];
+      const source = displays.find((d) => d.id === 'main')!.rules![0];
+      expect(copy.when).not.toBe(source.when);
+      expect(copy.when[0]).not.toBe(source.when[0]);
+    });
+
+    it('keeps a non-showScreen action intact (only screenId is blanked)', () => {
+      const store = useEditorStore;
+      const config = multiConfig();
+      config.displays![0].rules = [{ id: 'src', name: 'Sleep at night', when: [{ kind: 'time', startTime: '22:00', endTime: '06:00' }], action: { kind: 'sleep' } }];
+      store.setState({ config, selectedDisplayId: 'main' });
+
+      store.getState().copyRuleToDisplay('src', 'kitchen');
+
+      const copy = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!.rules![0];
+      expect(copy.action).toEqual({ kind: 'sleep' });
+      expect(copy.when).toEqual([{ kind: 'time', startTime: '22:00', endTime: '06:00' }]);
+    });
+
+    it('is a no-op for an unknown source rule or target display', () => {
+      const store = useEditorStore;
+      store.setState({ config: multiConfig(), selectedDisplayId: 'main', isDirty: false });
+
+      store.getState().copyRuleToDisplay('nope', 'kitchen');
+      store.getState().copyRuleToDisplay('src', 'nowhere');
+
+      const displays = store.getState().config!.displays!;
+      expect(displays.find((d) => d.id === 'kitchen')!.rules).toHaveLength(0);
+      expect(store.getState().isDirty).toBe(false);
+    });
+  });
+
   describe('setActiveProfile', () => {
     it('sets activeProfile on settings', () => {
       const store = useEditorStore;
@@ -805,6 +883,49 @@ describe('editor store', () => {
       const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
       expect(kitchen.profiles).toEqual([]);
       expect(kitchen.activeProfile).toBeUndefined();
+    });
+
+    it('auto-migrates legacy config.rules onto the seeded Main on first addDisplay', () => {
+      // Rules follow the same seed path as screens/profiles: without this the
+      // legacy config.rules would be stranded (getActiveRules reads
+      // display.rules once displays exist) and stop firing on the hub kiosk.
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [] }],
+        rules: [
+          { id: 'r1', name: 'Doorbell', when: [], action: { kind: 'showScreen', screenId: 's1', mode: 'for', seconds: 60 } },
+        ],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      const main = store.getState().config!.displays!.find((d) => d.id === 'main')!;
+      expect(main.rules?.map((r) => r.id)).toEqual(['r1']);
+      // The copied rule keeps targeting a valid (deep-cloned) screen id.
+      expect((main.rules![0].action as { screenId: string }).screenId).toBe('s1');
+      // New non-main displays never inherit rules.
+      const kitchen = store.getState().config!.displays!.find((d) => d.id === 'kitchen')!;
+      expect(kitchen.rules ?? []).toHaveLength(0);
+    });
+
+    it('rule migration is a deep clone (no back-leak from later edits)', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [] }],
+        rules: [{ id: 'r1', name: 'Doorbell', when: [], action: { kind: 'wake' } }],
+      });
+      store.setState({ config });
+
+      store.getState().addDisplay({ id: 'kitchen', name: 'Kitchen' });
+
+      store.setState({ selectedDisplayId: 'main' });
+      store.getState().updateRule('r1', { name: 'Renamed' });
+
+      // The stranded legacy pool keeps its original name; main owns its clone.
+      expect(store.getState().config!.rules?.[0].name).toBe('Doorbell');
+      const main = store.getState().config!.displays!.find((d) => d.id === 'main')!;
+      expect(main.rules?.[0].name).toBe('Renamed');
     });
 
     it('does not double-create main when explicitly adding a display called "main"', () => {
@@ -2090,6 +2211,9 @@ describe('editor store', () => {
         profiles: [
           { id: 'day', name: 'Day', screenIds: ['s1', 's2'] },
         ],
+        rules: [
+          { id: 'r1', name: 'Doorbell', when: [], action: { kind: 'showScreen', screenId: 's1', mode: 'for', seconds: 60 } },
+        ],
       });
       config.settings.activeProfile = 'day';
       store.setState({ config });
@@ -2109,6 +2233,8 @@ describe('editor store', () => {
       // deep-cloned copy of the legacy pool.
       expect(displays[0].profiles?.map((p) => p.id)).toEqual(['day']);
       expect(displays[0].activeProfile).toBe('day');
+      // Rules inherit on the explicit-main path too (buildNewDisplay).
+      expect(displays[0].rules?.map((r) => r.id)).toEqual(['r1']);
       // User-provided dims are still respected (not overwritten by global).
       expect(displays[0].displayWidth).toBe(1920);
       expect(displays[0].displayHeight).toBe(1080);
@@ -2193,6 +2319,47 @@ describe('editor store', () => {
       const main = state.config!.displays!.find((d) => d.id === 'main')!;
       expect(main.screens).toHaveLength(1);
       expect(main.screens?.[0].id).toBe('main-1');
+    });
+  });
+
+  describe('importLayoutAction replace mode blanks dangling rule targets', () => {
+    it('blanks a showScreen rule pointing at a replaced screen so the config stays saveable', async () => {
+      const { validateAllSchedules } = await import('@/lib/display-filter');
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 'screen-1', name: 'Screen 1', backgroundImage: '', modules: [] }],
+        rules: [
+          {
+            id: 'r1',
+            name: 'Doorbell',
+            when: [{ kind: 'state', sourceKey: 'plugin:ha:binary_sensor.doorbell', equals: 'on' }],
+            action: { kind: 'showScreen', screenId: 'screen-1', mode: 'for', seconds: 60 },
+          },
+        ],
+      });
+      store.setState({ config, selectedDisplayId: null, selectedScreenId: 'screen-1' });
+
+      const layoutJson = {
+        _type: 'home-screens-layout' as const,
+        _version: 1 as const,
+        metadata: {
+          name: 'test', description: '', exportedAt: new Date().toISOString(),
+          configVersion: 1, sourceDisplay: { width: 1080, height: 1920 },
+          screenCount: 1, moduleCount: 0,
+        },
+        visual: { rotationIntervalMs: 30000 },
+        screens: [{ id: 'imported-1', name: 'Imported', backgroundImage: '', modules: [] }],
+      };
+
+      store.getState().importLayoutAction(layoutJson, { mode: 'replace' });
+
+      const next = store.getState().config!;
+      // The old screen is gone (replace swapped the whole list)...
+      expect(next.screens.some((s) => s.id === 'screen-1')).toBe(false);
+      // ...so the rule target that pointed at it is blanked, not left dangling.
+      expect(next.rules?.[0].action).toMatchObject({ kind: 'showScreen', screenId: '' });
+      // And the resulting config passes the write-gate validator.
+      expect(validateAllSchedules(next)).toBeNull();
     });
   });
 

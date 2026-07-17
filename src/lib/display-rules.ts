@@ -36,7 +36,7 @@
 
 import type { DisplayRule } from '@/types/config';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
-import { collectSourceKeys, evaluateConditionsTri } from '@/lib/schedule';
+import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri } from '@/lib/schedule';
 
 /** Minimum time a `while`-mode takeover stays up, to ride out condition flaps. */
 export const MIN_WHILE_HOLD_MS = 5_000;
@@ -61,6 +61,14 @@ export interface RuleEngineState {
    */
   prev: ReadonlyMap<string, boolean | 'unknown'>;
   /**
+   * Condition-content fingerprint per rule id as of the last advance — a
+   * stable stringify of `rule.when`. When a rule's fingerprint changes, the
+   * user edited its condition; the resulting advance re-baselines that rule
+   * (records prev, never arms) so streaming an autosave that happens to make
+   * a rule's condition true does not fire it — the config changed, not the home.
+   */
+  fingerprints: ReadonlyMap<string, string>;
+  /**
    * Keys published as of the last advance. Lets the next advance tell an
    * unknown→true caused by a KNOWN key changing (fires) apart from one
    * caused by a key arriving (never fires — boot / cold-start safety).
@@ -73,16 +81,22 @@ export interface RuleEngineState {
   takeover: ActiveTakeover | null;
 }
 
-/** Result of one engine step. `wake` is true when a firing implies waking the display. */
+/**
+ * Result of one engine step. `wake`/`sleep` are true when a firing implies
+ * waking or sleeping the display; they never fire together in one step (a
+ * sleep firing releases any takeover — see `advanceRuleEngine`).
+ */
 export interface RuleEngineStep {
   next: RuleEngineState;
   wake: boolean;
+  sleep: boolean;
 }
 
 export function createRuleEngineState(): RuleEngineState {
   return {
     initialized: false,
     prev: new Map(),
+    fingerprints: new Map(),
     knownKeys: new Set(),
     armed: new Set(),
     lastFiredAt: new Map(),
@@ -90,20 +104,38 @@ export function createRuleEngineState(): RuleEngineState {
   };
 }
 
+/**
+ * Stable fingerprint of a rule's condition tree. Conditions come from config
+ * JSON with a fixed key order, so a plain stringify is stable enough to detect
+ * a content edit — the only thing this needs to distinguish.
+ */
+function conditionFingerprint(rule: DisplayRule): string {
+  // A hand-edited config.json rule may omit `when` entirely; treat a missing
+  // tree as the empty tree so the fingerprint stays a stable string.
+  return JSON.stringify(rule.when ?? []);
+}
+
 /** All sourceKeys referenced by any enabled rule's condition tree, deduped and sorted. */
 export function collectRuleSourceKeys(rules: readonly DisplayRule[]): string[] {
   const keys = new Set<string>();
   for (const rule of rules) {
     if (rule.enabled === false) continue;
-    collectSourceKeys(rule.when, keys);
+    // A hand-edited rule can be missing `when` — guard like state-demand.ts.
+    if (rule.when) collectSourceKeys(rule.when, keys);
   }
   keys.delete('');
   return Array.from(keys).sort();
 }
 
+/** True when any enabled rule's condition tree contains a `time` condition —
+ *  arms the wall-clock re-evaluation tick in `useDisplayRules`. */
+export function rulesContainTimeCondition(rules: readonly DisplayRule[]): boolean {
+  return rules.some((r) => r.enabled !== false && !!r.when && containsTimeCondition(r.when));
+}
+
 /** True when the rule's condition tree references any of the given keys. */
 function ruleReferencesAny(rule: DisplayRule, keys: ReadonlySet<string>): boolean {
-  if (keys.size === 0) return false;
+  if (keys.size === 0 || !rule.when) return false;
   const referenced = new Set<string>();
   collectSourceKeys(rule.when, referenced);
   for (const key of referenced) {
@@ -120,13 +152,15 @@ function ruleReferencesAny(rule: DisplayRule, keys: ReadonlySet<string>): boolea
 export function evaluateRuleCondition(
   rule: DisplayRule,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): boolean | 'unknown' {
   // An empty tree means "always true" for visibility; for a RULE it must
   // mean "never fires" — an always-true rule can never produce an edge into
   // true anyway, and treating it as false keeps a freshly-added blank rule
-  // inert while the user is still authoring it.
-  if (rule.when.length === 0) return false;
-  return evaluateConditionsTri(rule.when, states) ?? 'unknown';
+  // inert while the user is still authoring it. A hand-edited config.json rule
+  // can omit `when` entirely; a missing tree is the same as an empty one.
+  if (!rule.when || rule.when.length === 0) return false;
+  return evaluateConditionsTri(rule.when, states, now) ?? 'unknown';
 }
 
 /**
@@ -139,6 +173,7 @@ export function takeoverDeadline(
   state: RuleEngineState,
   rules: readonly DisplayRule[],
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): number | null {
   const takeover = state.takeover;
   if (!takeover) return null;
@@ -146,7 +181,7 @@ export function takeoverDeadline(
   const rule = rules.find((r) => r.id === takeover.ruleId);
   const holdEnd = takeover.startedAt + MIN_WHILE_HOLD_MS;
   // Condition already false → release exactly when the min hold elapses.
-  if (!rule || rule.enabled === false || evaluateRuleCondition(rule, states) !== true) return holdEnd;
+  if (!rule || rule.enabled === false || evaluateRuleCondition(rule, states, now) !== true) return holdEnd;
   return null;
 }
 
@@ -166,10 +201,20 @@ export function advanceRuleEngine(
   states: ReadonlyMap<string, SharedStateEntry>,
   renderableScreenIds: ReadonlySet<string>,
   now: number,
+  /**
+   * Wall-clock instant, shifted to the display's timezone, used ONLY to
+   * evaluate `time` conditions. Separate from the epoch `now` above, which
+   * drives cooldown/hold math and must stay a real UTC epoch. Defaults to
+   * `new Date(now)` so callers that don't use time conditions (and tests) can
+   * pass the epoch alone.
+   */
+  nowDate: Date = new Date(now),
 ): RuleEngineStep {
   const current = new Map<string, boolean | 'unknown'>();
+  const fingerprints = new Map<string, string>();
   for (const rule of rules) {
-    current.set(rule.id, evaluateRuleCondition(rule, states));
+    current.set(rule.id, evaluateRuleCondition(rule, states, nowDate));
+    fingerprints.set(rule.id, conditionFingerprint(rule));
   }
   const knownKeys: ReadonlySet<string> = new Set(states.keys());
 
@@ -177,8 +222,9 @@ export function advanceRuleEngine(
   // true right now fires only after leaving and re-entering true.
   if (!state.initialized) {
     return {
-      next: { ...state, initialized: true, prev: current, knownKeys, armed: new Set() },
+      next: { ...state, initialized: true, prev: current, fingerprints, knownKeys, armed: new Set() },
       wake: false,
+      sleep: false,
     };
   }
 
@@ -197,7 +243,15 @@ export function advanceRuleEngine(
   for (const rule of rules) {
     const is = current.get(rule.id);
     const was = state.prev.get(rule.id);
+    // A rule whose condition CONTENT changed since the last advance was just
+    // edited: re-baseline it (like `was === undefined`), never arm on this
+    // advance. Otherwise autosaving a condition into an already-true state
+    // would read as a false→true (or unknown→true) edge and fire mid-edit.
+    const contentEdited =
+      state.prev.has(rule.id) && state.fingerprints.get(rule.id) !== fingerprints.get(rule.id);
     if (is !== true || rule.enabled === false) {
+      armed.delete(rule.id);
+    } else if (contentEdited) {
       armed.delete(rule.id);
     } else if (was === false) {
       armed.add(rule.id);
@@ -233,17 +287,21 @@ export function advanceRuleEngine(
 
   const lastFiredAt = new Map(state.lastFiredAt);
   let wake = false;
+  let sleep = false;
 
   for (const rule of rules) {
     if (!armed.has(rule.id)) continue;
 
-    if (rule.action.kind === 'wake') {
-      // Wake doesn't contend for the render, so it skips the takeover gate
-      // and fires immediately (still subject to its own cooldown).
+    if (rule.action.kind === 'wake' || rule.action.kind === 'sleep') {
+      // Neither contends for the render, so both skip the takeover gate and
+      // fire immediately (still subject to their own cooldown). A `sleep`
+      // firing additionally releases any active takeover below — a black
+      // sleep overlay must never sit on top of a live takeover render.
       armed.delete(rule.id);
       if (!inCooldown(rule, lastFiredAt, now)) {
         lastFiredAt.set(rule.id, now);
-        wake = true;
+        if (rule.action.kind === 'wake') wake = true;
+        else sleep = true;
       }
       continue;
     }
@@ -272,12 +330,25 @@ export function advanceRuleEngine(
         : {}),
     };
     // First armed showScreen rule in list order wins; later showScreen
-    // rules now hit the `takeover` gate above, later wake rules still fire.
+    // rules now hit the `takeover` gate above, later wake/sleep rules fire.
+  }
+
+  // Sleep wins over any takeover, regardless of rule order: releasing here
+  // (rather than gating the showScreen loop on `sleep`) guarantees both a
+  // takeover carried in from a previous advance AND one that fired earlier in
+  // THIS loop are gone, so the display genuinely blacks out. Armed showScreen
+  // rules are dropped too so the next advance can't immediately re-take the
+  // sleeping display — they re-fire only on a fresh edge (same posture as a
+  // manual-navigation release).
+  if (sleep) {
+    takeover = null;
+    armed.clear();
   }
 
   return {
-    next: { initialized: true, prev: current, knownKeys, armed, lastFiredAt, takeover },
+    next: { initialized: true, prev: current, fingerprints, knownKeys, armed, lastFiredAt, takeover },
     wake,
+    sleep,
   };
 }
 
@@ -296,8 +367,16 @@ function inCooldown(
  * Release the active takeover because the user navigated (human wins). The
  * firing rule stays fired (`lastFiredAt` was set when it fired), and it is
  * not re-armed — it can only fire again from a fresh edge into true.
+ *
+ * Manual navigation also disarms every rule waiting behind the takeover: a
+ * second showScreen rule that armed while blocked must not re-take the display
+ * against the person at the next advance. It re-fires only on its own fresh
+ * false→true edge. (Only showScreen rules are ever left armed between advances
+ * — wake rules disarm the moment they fire — so clearing `armed` is exactly
+ * "disarm every armed showScreen rule".) Natural release runs inside
+ * `advanceRuleEngine` and keeps the armed-rule-fires-at-release semantics.
  */
 export function releaseTakeover(state: RuleEngineState): RuleEngineState {
-  if (!state.takeover) return state;
-  return { ...state, takeover: null };
+  if (!state.takeover && state.armed.size === 0) return state;
+  return { ...state, takeover: null, armed: new Set() };
 }

@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Shows only when its conditions are met",
     "backgroundProviderTitle": "Runs hidden in the background and never shown on the display",
     "conditionMetTitle": "Conditions met — showing on the display now",
-    "conditionUnmetTitle": "Conditions not met — hidden on the display now"
+    "conditionUnmetTitle": "Conditions not met — hidden on the display now",
+    "conditionMetTitleEditor": "Conditions met, would show right now",
+    "conditionUnmetTitleEditor": "Conditions not met, would hide right now"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -229,7 +231,7 @@
         "network": "Network",
         "profiles": "Profiles",
         "rules": "Rules",
-        "sharedState": "Shared state",
+        "sharedState": "Live values",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Action",
         "actionShowScreen": "Show a screen",
         "actionWake": "Wake the display",
+        "wakeSleepHint": "If the display is sleeping on a schedule, this wakes it and keeps it awake for 5 minutes, then it goes back to sleep.",
         "screenLabel": "Screen",
         "screenNoneOption": "Pick a screen…",
         "screenDisabledSuffix": "(disabled)",
@@ -1159,7 +1162,13 @@
         "modeFor": "For a set time",
         "secondsLabel": "Seconds",
         "cooldownLabel": "Cooldown (seconds)",
-        "cooldownHelp": "After the rule triggers, it waits this many seconds before it can trigger again. Leave empty for no wait."
+        "cooldownHelp": "After the rule triggers, it waits this many seconds before it can trigger again. Leave empty for no wait.",
+        "actionSleep": "Put the display to sleep",
+        "sleepHint": "Turns the screen off, just like the sleep button. A tap or the wake schedule turns it back on.",
+        "copyToDisplayLabel": "Copy to another display",
+        "copyToDisplayPlaceholder": "Pick a display…",
+        "copyToDisplayHelp": "Copies this rule to another display. You will need to pick the screen it shows there.",
+        "copiedNotice": "Copied to {name}."
       },
       "deleteDialog": {
         "title": "Delete rule",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Used by",
       "ruleRefLabel": "Rule: {name}",
       "builtInProducer": "Built-in",
-      "producerLabel": "From {producer}"
+      "producerLabel": "From {producer}",
+      "providerHealthSince": "since {time}"
     },
     "securityPage": {
       "loading": "Checking authentication status…",
@@ -3200,7 +3210,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Show only when conditions match",
-    "enableHelp": "Show or hide this module based on values published by background modules (for example a Home Assistant sensor).",
+    "enableHelp": "Show or hide this module based on live values from your connected services (for example a Home Assistant sensor).",
     "conditionsTitle": "Conditions",
     "allMustMatchHint": "All conditions must match for the module to show.",
     "addCondition": "Add condition",
@@ -3211,12 +3221,13 @@
       "numeric": "Number is in range",
       "and": "All of…",
       "or": "Any of…",
-      "not": "None of…"
+      "not": "None of…",
+      "time": "Time of day"
     },
-    "sourceKeyLabel": "State key",
-    "sourceKeyHint": "Search by name to find a key, or type one yourself. Typed keys must match exactly, including the plugin: prefix.",
+    "sourceKeyLabel": "What to check",
+    "sourceKeyHint": "Typed keys must match exactly, including the plugin: prefix.",
     "sourceKeyUnknown": "Nothing on this display publishes this key yet. Until something does, this condition counts as unknown and the module follows the 'Before data arrives' setting.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Search sensors, lights, and more…",
     "matchLabel": "Match",
     "matchEquals": "Is",
     "matchNotEquals": "Is not",
@@ -3233,7 +3244,7 @@
     "whenUnknownLabel": "While the data source hasn't reported yet",
     "whenUnknownHide": "Hide the module",
     "whenUnknownShow": "Show the module",
-    "noProvidersHint": "No state keys are available to pick from yet. Keys come from plugins that share values (like Home Assistant). Values are only shared within this display's browser tab. You can also type a key yourself.",
+    "noProvidersHint": "No state keys are available to pick from yet. Keys come from plugins that share values (like Home Assistant). You can also type a key yourself.",
     "noConditionsHint": "No conditions yet. The module always shows until you add one.",
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
@@ -3246,7 +3257,9 @@
       "unknown": "Waiting",
       "metTitle": "This condition matches on the display right now.",
       "unmetTitle": "This condition doesn't match on the display right now.",
-      "unknownTitle": "A key this condition uses hasn't been published yet."
+      "unknownTitle": "A key this condition uses hasn't been published yet.",
+      "metTitleEditor": "This condition matches right now.",
+      "unmetTitleEditor": "This condition doesn't match right now."
     },
     "outcome": {
       "noLiveData": "The display hasn't reported recently, so live results aren't shown.",
@@ -3257,7 +3270,15 @@
       "hiddenNowEditor": "Would be hidden right now",
       "waitingForKeys": "waiting for {keys}",
       "keyNotPicked": "a condition doesn't have a key picked yet",
-      "conditionsNotMet": "the conditions don't match"
-    }
+      "conditionsNotMet": "the conditions don't match",
+      "seeLiveValues": "You can see every live value under Settings → Live values."
+    },
+    "time": {
+      "daysLabel": "Days",
+      "fromLabel": "From",
+      "untilLabel": "Until",
+      "hint": "Leave both times empty for all day. An end earlier than the start crosses midnight (like 10:00 PM to 6:00 AM)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

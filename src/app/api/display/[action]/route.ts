@@ -8,6 +8,8 @@ import {
   recordViewportReport,
   recordSharedStateReport,
   getSharedStateReport,
+  recordProviderHealthReport,
+  getProviderHealthReport,
   markSharedStateInterest,
   hasSharedStateInterest,
   type DisplayCommandType,
@@ -112,7 +114,15 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
       // via the `sharedStateWatched` flag on the commands drain above.
       markSharedStateInterest(displayId);
       const report = getSharedStateReport(displayId);
-      return NextResponse.json(report ?? { entries: {}, reportedAt: null });
+      const base = report ?? { entries: {}, reportedAt: null };
+      // `providerHealth` rides the same response — only unhealthy plugins,
+      // and the field is omitted while empty (same convention as the snapshot).
+      const health = getProviderHealthReport(displayId);
+      return NextResponse.json(
+        health && Object.keys(health.health).length > 0
+          ? { ...base, providerHealth: health.health }
+          : base,
+      );
     }
     default:
       // Allow GET for simple commands (bookmarkable from phones)
@@ -306,6 +316,7 @@ interface ParsedStatusReport {
   statusPayload: Record<string, unknown>;
   bodyClientId: unknown;
   bodySharedState: unknown;
+  bodyProviderHealth: unknown;
   browserStats: ReturnType<typeof validateBrowserStats> | undefined;
   validatedDisplayId: string | undefined;
 }
@@ -355,12 +366,14 @@ function parseStatusReport(
   // client builds safe if they straggle an upgrade.
   // `sharedState` is likewise stripped — it goes into its own in-memory
   // store (recordSharedStateReport) so the status body shape is unchanged.
+  // `providerHealth` rides the same way into recordProviderHealthReport.
   const {
     displayId: bodyDisplayId,
     clientId: bodyClientId,
     hwStats: _droppedHwStats,
     browserStats: bodyBrowserStats,
     sharedState: bodySharedState,
+    providerHealth: bodyProviderHealth,
     ...statusPayload
   } = body as Record<string, unknown>;
   void _droppedHwStats;
@@ -380,7 +393,7 @@ function parseStatusReport(
     browserStats = parsed;
   }
 
-  return { statusPayload, bodyClientId, bodySharedState, browserStats, validatedDisplayId };
+  return { statusPayload, bodyClientId, bodySharedState, bodyProviderHealth, browserStats, validatedDisplayId };
 }
 
 /**
@@ -472,6 +485,11 @@ async function handleStatus(
   // display so the editor can show live values next to condition inputs.
   if (parsed.bodySharedState !== undefined) {
     recordSharedStateReport(parsed.validatedDisplayId, parsed.bodySharedState);
+  }
+  // Provider-health snapshot piggybacks the same heartbeat, stored per display
+  // so the editor can explain an unhealthy plugin next to its keys.
+  if (parsed.bodyProviderHealth !== undefined) {
+    recordProviderHealthReport(parsed.validatedDisplayId, parsed.bodyProviderHealth);
   }
 
   recordStatusViewport(request, body, parsed);

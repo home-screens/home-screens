@@ -71,10 +71,10 @@ test('filling a state condition source key and value persists on blur', async ({
   const mod = textModule('GATED', { visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] } });
   await openConditions(page, request, mod);
 
-  // Focusing Value blurs (and commits) the State key; Value.blur() commits the
+  // Focusing Value blurs (and commits) the key field; Value.blur() commits the
   // value. Two commits can coalesce into one debounced PUT, so poll for the
   // final persisted shape rather than reading immediately after one save.
-  await page.getByLabel('State key').fill('plugin:e2e-fixture:flag');
+  await page.getByLabel('What to check').fill('plugin:e2e-fixture:flag');
   await page.getByLabel('Value').fill('on');
   await page.getByLabel('Value').blur();
 
@@ -104,6 +104,44 @@ test('switching condition kind to numeric preserves the source key and exposes A
   await expect
     .poll(async () => (await savedVisibility(request))!.conditions[0])
     .toMatchObject({ above: 10 });
+});
+
+test('authoring a time condition persists a window and a day toggle', async ({ page, request }) => {
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:e2e-fixture:flag', equals: 'on' }] },
+  });
+  await openConditions(page, request, mod);
+
+  // Switch the leaf to a Time of day condition — it defaults to a daytime window.
+  await autosaved(page, async () => {
+    await page.getByLabel('Condition type').first().selectOption('time');
+  });
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toEqual({ kind: 'time', startTime: '07:00', endTime: '21:00' });
+
+  // Narrow the window (time inputs commit on change).
+  await autosaved(page, async () => {
+    await page.getByLabel('From', { exact: true }).fill('08:30');
+  });
+  await autosaved(page, async () => {
+    await page.getByLabel('Until', { exact: true }).fill('17:00');
+  });
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toMatchObject({ kind: 'time', startTime: '08:30', endTime: '17:00' });
+
+  // Deselecting Sunday leaves the remaining six days (all-days is stored as
+  // undefined, so the first removal materializes the explicit array).
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Sun', exact: true }).click();
+  });
+  await expect
+    .poll(async () => {
+      const c = (await savedVisibility(request))!.conditions[0];
+      return c.kind === 'time' ? c.daysOfWeek : null;
+    })
+    .toEqual([1, 2, 3, 4, 5, 6]);
 });
 
 test('switching to a group kind wraps the leaf and supports adding a nested child', async ({ page, request }) => {
@@ -162,10 +200,11 @@ test('condition type options exclude group kinds at max nesting depth', async ({
     locator.locator('option').evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value));
 
   // Root group (depth 0) still offers every kind.
-  expect(await optionValues(kindSelects.first())).toEqual(['state', 'numeric', 'and', 'or', 'not']);
+  expect(await optionValues(kindSelects.first())).toEqual(['state', 'numeric', 'time', 'and', 'or', 'not']);
 
-  // Innermost leaf (depth 4) drops the group kinds.
-  expect(await optionValues(kindSelects.last())).toEqual(['state', 'numeric']);
+  // Innermost leaf (depth 4) drops the group kinds but keeps every leaf kind
+  // (`time` is a leaf, always available).
+  expect(await optionValues(kindSelects.last())).toEqual(['state', 'numeric', 'time']);
 });
 
 test('verdicts stay neutral when the display has never reported', async ({ page, request }) => {
@@ -249,7 +288,7 @@ test('searching by friendly name picks a key and the value select stores the raw
 
   // Type a friendly-name fragment; the plugin's search answers with the door
   // descriptor (grouped under the plugin name + area header).
-  const keyInput = page.getByRole('combobox', { name: 'State key' });
+  const keyInput = page.getByRole('combobox', { name: 'What to check' });
   await keyInput.click();
   await keyInput.fill('door');
   const option = page.getByRole('option').filter({ hasText: 'Back Door Sensor' });
@@ -290,7 +329,7 @@ test('a query with no matches says so instead of an empty dropdown', async ({ pa
   await page.locator('[data-module-id="text-gated"]').click();
   await page.getByRole('button', { name: 'Conditions' }).click();
 
-  const keyInput = page.getByRole('combobox', { name: 'State key' });
+  const keyInput = page.getByRole('combobox', { name: 'What to check' });
   await keyInput.click();
   await keyInput.fill('zzz-no-such-entity');
   await expect(page.getByTestId('key-search-no-results')).toBeVisible();
@@ -350,9 +389,9 @@ test('the source-key suggestion dropdown commits a key via ArrowDown + Enter', a
   await page.locator('[data-module-id="text-gated"]').click();
   await page.getByRole('button', { name: 'Conditions' }).click();
 
-  // The input and the open dropdown <ul> share aria-label "State key", so target
+  // The input and the open dropdown <ul> share aria-label "What to check", so target
   // the input by its combobox role to stay unambiguous once the list is open.
-  const keyInput = page.getByRole('combobox', { name: 'State key' });
+  const keyInput = page.getByRole('combobox', { name: 'What to check' });
   await keyInput.click(); // focus opens the custom suggestion dropdown
   await expect(page.getByRole('option').filter({ hasText: FIXTURE_STATE_KEY })).toBeVisible();
 
@@ -412,6 +451,25 @@ test('the header calls out an unpublished key as the reason for the outcome', as
   await expect(page.locator('[data-condition-verdict="unknown"]')).toBeVisible({ timeout: 10_000 });
   const outcome = page.locator('[data-visibility-outcome="hidden"]');
   await expect(outcome).toContainText('waiting for plugin:e2e-fixture:never');
+});
+
+test('an unhealthy provider explains a waiting condition in the outcome line', async ({ page, request }) => {
+  // The key's owning plugin is reported down, so "waiting for <key>" gains the
+  // provider's verbatim message instead of a bare missing-key note.
+  await seedDisplaySharedState(
+    request,
+    { [LIVE_KEY]: 'sunny' },
+    LIVE_DISPLAY,
+    { 'not-installed': { message: 'Cannot reach the service', since: Date.now() - 30_000 } },
+  );
+
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:not-installed:mode', equals: 'on' }] },
+  });
+  await openConditions(page, request, mod, LIVE_DISPLAY);
+
+  const outcome = page.locator('[data-visibility-outcome="hidden"]');
+  await expect(outcome).toContainText('Cannot reach the service', { timeout: 10_000 });
 });
 
 // ── Canvas condition badges: the live met/unmet tint on gated modules ──────

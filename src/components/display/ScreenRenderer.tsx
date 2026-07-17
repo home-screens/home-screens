@@ -26,7 +26,10 @@ export const isModuleRenderable = (
   !mod.backgroundProvider &&
   isModuleEnabled(mod) &&
   isModuleVisible(mod.schedule, now) &&
-  evaluateVisibility(mod.visibility, states);
+  // `now` is the same timezone-shifted minute clock the schedule check uses, so
+  // a `time` visibility condition re-evaluates on the existing minute tick — no
+  // extra timer needed on the display's module path.
+  evaluateVisibility(mod.visibility, states, now);
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';

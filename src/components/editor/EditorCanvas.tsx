@@ -232,6 +232,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   settings={previewSettings}
                   now={now}
                   verdictStates={verdictStates}
+                  source={liveState.source}
                 />
               ))}
               {dragState && (() => {

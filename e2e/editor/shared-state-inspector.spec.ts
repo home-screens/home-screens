@@ -89,3 +89,26 @@ test('cross-references the snapshot against config references', async ({ page, r
   await expect(orphan).toHaveAttribute('data-state-status', 'unreferenced');
   await expect(orphan).toContainText('Nothing references this key.');
 });
+
+test('surfaces an unhealthy provider in a banner and on its missing key row', async ({ page, request }) => {
+  await putConfig(request, inspectorConfig('ssi-health'));
+  // The display reports its Home Assistant provider as down, riding the same
+  // heartbeat as the shared-state snapshot (recordProviderHealthReport).
+  await seedDisplaySharedState(
+    request,
+    { [PUBLISHED_KEY]: 'on' },
+    'ssi-health',
+    { 'not-installed': { message: 'Cannot reach the service', since: Date.now() - 60_000 } },
+  );
+  await page.goto('/editor/settings?section=defaults&page=shared-state&display=ssi-health');
+
+  // Banner at the top: one row per unhealthy plugin, message verbatim.
+  const banner = page.locator('[data-testid="provider-health-banner"] [data-provider-health="not-installed"]');
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+  await expect(banner).toContainText('Cannot reach the service');
+  await expect(banner).toContainText('since');
+
+  // The missing key owned by that plugin appends the same message to its detail.
+  const missing = page.locator(`[data-state-key="${MISSING_KEY}"]`);
+  await expect(missing).toContainText('Cannot reach the service');
+});

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { VisibilityCondition } from '@/types/config';
-import { convertConditionKind } from '../ConditionTreeEditor';
+import type { StateKeyDescriptor } from '@/types/plugins';
+import { convertConditionKind, carryValueList } from '../ConditionTreeEditor';
 
 describe('convertConditionKind', () => {
   it('returns the same object when the kind is unchanged', () => {
@@ -47,5 +48,28 @@ describe('convertConditionKind', () => {
     expect(convertConditionKind(c, 'numeric', 'fallback')).toEqual({
       kind: 'numeric', sourceKey: 'fallback',
     });
+  });
+});
+
+describe('carryValueList', () => {
+  const descriptor: Pick<StateKeyDescriptor, 'valueOptions'> = {
+    valueOptions: [{ value: 'living room, tv' }, { value: 'kitchen' }],
+  };
+
+  it('carries a vocabulary value containing a comma across the toggle intact', () => {
+    // The bug: toggling is/is-not comma-split 'living room, tv' into two values,
+    // producing a condition that could never match.
+    expect(carryValueList('living room, tv', descriptor)).toBe('living room, tv');
+  });
+
+  it('still splits genuine free-text lists into matches-any arrays', () => {
+    expect(carryValueList('on, off', descriptor)).toEqual(['on', 'off']);
+    expect(carryValueList('on, off', null)).toEqual(['on', 'off']);
+  });
+
+  it('leaves a single free-text value and an existing array unchanged', () => {
+    expect(carryValueList('kitchen', descriptor)).toBe('kitchen');
+    expect(carryValueList(['on', 'off'], descriptor)).toEqual(['on', 'off']);
+    expect(carryValueList(undefined, descriptor)).toBe('');
   });
 });

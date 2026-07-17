@@ -29,6 +29,7 @@
 import type { CacheStats } from './display-cache';
 import { isValidDisplayId } from './display-filter';
 import { SHARED_STATE_KEY_RE, type SharedStateEntry } from './shared-state-types';
+import type { ProviderHealthEntry } from './provider-health-store';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from './hardware-stats';
 
 export type DisplayCommandType =
@@ -277,6 +278,71 @@ export function hasSharedStateInterest(displayId?: string): boolean {
     return false;
   }
   return true;
+}
+
+/**
+ * Latest provider-health snapshot per display, posted alongside the status
+ * heartbeat (its own field, so a resolved outage clears even when the
+ * shared-state snapshot itself did not change). In-memory only, same as the
+ * shared-state report. Keyed by lowercased plugin id.
+ */
+interface ProviderHealthReport {
+  health: Record<string, ProviderHealthEntry>;
+  reportedAt: number;
+}
+/** Mirror the client store's caps (provider-health-store.ts). */
+const MAX_PROVIDER_HEALTH_ENTRIES = 64;
+const MAX_PROVIDER_HEALTH_MESSAGE_LENGTH = 200;
+/** Same charset as the client store / PLUGIN_ID_PATTERN. */
+const PLUGIN_ID_RE = /^[a-z0-9_-]+$/i;
+const providerHealthReports = new Map<string, ProviderHealthReport>();
+
+/**
+ * Store the provider-health snapshot posted with a display heartbeat. Unknown
+ * shapes, out-of-charset plugin ids, and malformed entries are skipped; an
+ * empty object is stored as-is (the display sends exactly one empty report
+ * after the last outage clears, mirroring the shared-state convention).
+ */
+export function recordProviderHealthReport(displayId: string | undefined, raw: unknown): void {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return;
+  if (
+    displayId
+    && knownDisplays.size >= MAX_KNOWN_DISPLAYS
+    && !knownDisplays.has(displayId)
+  ) {
+    return;
+  }
+  // A real display can never exceed the entry cap (its client store enforces
+  // it), so an oversized payload is malicious/broken — reject outright.
+  if (Object.keys(raw).length > MAX_PROVIDER_HEALTH_ENTRIES) return;
+
+  const health: Record<string, ProviderHealthEntry> = {};
+  for (const [pluginId, val] of Object.entries(raw)) {
+    if (!PLUGIN_ID_RE.test(pluginId)) continue;
+    if (!val || typeof val !== 'object') continue;
+    const { message, since } = val as { message?: unknown; since?: unknown };
+    if (typeof message !== 'string' || message.length > MAX_PROVIDER_HEALTH_MESSAGE_LENGTH) continue;
+    if (typeof since !== 'number' || !Number.isFinite(since)) continue;
+    health[pluginId.toLowerCase()] = { message, since };
+  }
+  providerHealthReports.set(displayId ?? DEFAULT_DISPLAY_KEY, {
+    health,
+    reportedAt: Date.now(),
+  });
+}
+
+/** Latest provider-health snapshot for a display, or null if none/stale. */
+export function getProviderHealthReport(displayId?: string): ProviderHealthReport | null {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return null;
+  const id = displayId ?? DEFAULT_DISPLAY_KEY;
+  const report = providerHealthReports.get(id);
+  if (!report) return null;
+  if (Date.now() - report.reportedAt > SHARED_STATE_REPORT_TTL_MS) {
+    providerHealthReports.delete(id);
+    return null;
+  }
+  return report;
 }
 
 /** Latest shared-state snapshot for a display, or null if none/stale. */
@@ -611,6 +677,7 @@ export function getUnadoptedDisplays(configDisplayIds: string[]): string[] {
     viewportReports.delete(id);
     commandQueues.delete(id);
     sharedStateReports.delete(id);
+    providerHealthReports.delete(id);
     sharedStateInterest.delete(id);
   }
 
@@ -641,5 +708,6 @@ export function __resetForTests(): void {
   viewportReports.clear();
   consoleLogMap.clear();
   sharedStateReports.clear();
+  providerHealthReports.clear();
   sharedStateInterest.clear();
 }

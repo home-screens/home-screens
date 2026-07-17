@@ -338,7 +338,7 @@ test('a manifest providesState key appears in the editor visibility-condition pi
   await page.getByRole('button', { name: 'Conditions' }).click();
   // Focusing the key input opens the custom suggestion dropdown, sourced from
   // collectProvidedStateKeys → the plugin's namespaced advertised key.
-  await page.getByLabel('State key').click();
+  await page.getByLabel('What to check').click();
   await expect(
     page.getByRole('option').filter({ hasText: `${FIXTURE_PLUGIN_TYPE}:flag` }),
   ).toBeVisible();

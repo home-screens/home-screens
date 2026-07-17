@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
     "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
     "conditionMetTitle": "Bedingungen erfüllt — wird auf dem Display angezeigt",
-    "conditionUnmetTitle": "Bedingungen nicht erfüllt — auf dem Display ausgeblendet"
+    "conditionUnmetTitle": "Bedingungen nicht erfüllt — auf dem Display ausgeblendet",
+    "conditionMetTitleEditor": "Bedingungen erfüllt, würde gerade angezeigt",
+    "conditionUnmetTitleEditor": "Bedingungen nicht erfüllt, würde gerade ausgeblendet"
   },
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
@@ -229,7 +231,7 @@
         "network": "Netzwerk",
         "profiles": "Profile",
         "rules": "Regeln",
-        "sharedState": "Geteilte Werte",
+        "sharedState": "Live-Werte",
         "security": "Sicherheit",
         "stats": "Statistik",
         "system": "System",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Aktion",
         "actionShowScreen": "Einen Bildschirm zeigen",
         "actionWake": "Display aufwecken",
+        "wakeSleepHint": "Wenn das Display nach Zeitplan schläft, weckt dies es und hält es 5 Minuten wach, danach schläft es wieder ein.",
         "screenLabel": "Bildschirm",
         "screenNoneOption": "Bildschirm wählen…",
         "screenDisabledSuffix": "(deaktiviert)",
@@ -1159,7 +1162,13 @@
         "modeFor": "Für eine feste Zeit",
         "secondsLabel": "Sekunden",
         "cooldownLabel": "Wartezeit (Sekunden)",
-        "cooldownHelp": "Nachdem die Regel ausgelöst hat, wartet sie so viele Sekunden, bevor sie erneut auslösen kann. Leer lassen für keine Wartezeit."
+        "cooldownHelp": "Nachdem die Regel ausgelöst hat, wartet sie so viele Sekunden, bevor sie erneut auslösen kann. Leer lassen für keine Wartezeit.",
+        "actionSleep": "Display in den Ruhezustand versetzen",
+        "sleepHint": "Schaltet den Bildschirm aus, genau wie die Ruhetaste. Eine Berührung oder der Weckplan schaltet ihn wieder ein.",
+        "copyToDisplayLabel": "Auf ein anderes Display kopieren",
+        "copyToDisplayPlaceholder": "Display auswählen…",
+        "copyToDisplayHelp": "Kopiert diese Regel auf ein anderes Display. Den dort gezeigten Bildschirm musst du noch auswählen.",
+        "copiedNotice": "Auf {name} kopiert."
       },
       "deleteDialog": {
         "title": "Regel löschen",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Genutzt von",
       "ruleRefLabel": "Regel: {name}",
       "builtInProducer": "Integriert",
-      "producerLabel": "Von {producer}"
+      "producerLabel": "Von {producer}",
+      "providerHealthSince": "seit {time}"
     },
     "securityPage": {
       "loading": "Anmeldungsstatus wird geprüft …",
@@ -3200,7 +3210,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Nur anzeigen, wenn Bedingungen zutreffen",
-    "enableHelp": "Dieses Modul anhand von Werten ein- oder ausblenden, die Hintergrundmodule veröffentlichen (z. B. ein Home-Assistant-Sensor).",
+    "enableHelp": "Dieses Modul anhand von Live-Werten aus verbundenen Diensten ein- oder ausblenden (z. B. ein Home-Assistant-Sensor).",
     "conditionsTitle": "Bedingungen",
     "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit das Modul angezeigt wird.",
     "addCondition": "Bedingung hinzufügen",
@@ -3211,12 +3221,13 @@
       "numeric": "Zahl liegt im Bereich",
       "and": "Alle von…",
       "or": "Beliebige von…",
-      "not": "Keine von…"
+      "not": "Keine von…",
+      "time": "Uhrzeit"
     },
-    "sourceKeyLabel": "Zustandsschlüssel",
-    "sourceKeyHint": "Suche nach dem Namen, um einen Schlüssel zu finden, oder tippe selbst einen ein. Eingetippte Schlüssel müssen exakt übereinstimmen, einschließlich des plugin:-Präfixes.",
+    "sourceKeyLabel": "Was geprüft wird",
+    "sourceKeyHint": "Selbst eingegebene Schlüssel müssen exakt passen, einschließlich des plugin:-Präfixes.",
     "sourceKeyUnknown": "Kein Modul auf diesem Display veröffentlicht diesen Schlüssel bisher. Bis dahin gilt diese Bedingung als unbekannt und das Modul folgt der Einstellung 'Bevor Daten eintreffen'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Sensoren, Lampen und mehr suchen…",
     "matchLabel": "Vergleich",
     "matchEquals": "Ist",
     "matchNotEquals": "Ist nicht",
@@ -3233,7 +3244,7 @@
     "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
     "whenUnknownHide": "Modul ausblenden",
     "whenUnknownShow": "Modul anzeigen",
-    "noProvidersHint": "Es sind noch keine Zustandsschlüssel zur Auswahl verfügbar. Schlüssel kommen von Plugins, die Werte teilen (zum Beispiel Home Assistant). Werte werden nur innerhalb des Browser-Tabs dieses Displays geteilt. Du kannst auch selbst einen Schlüssel eintippen.",
+    "noProvidersHint": "Es sind noch keine Zustandsschlüssel zur Auswahl verfügbar. Schlüssel kommen von Plugins, die Werte teilen (zum Beispiel Home Assistant). Du kannst auch selbst einen Schlüssel eintippen.",
     "noConditionsHint": "Noch keine Bedingungen. Das Modul wird immer angezeigt, bis eine hinzugefügt wird.",
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
@@ -3246,7 +3257,9 @@
       "unknown": "Wartet",
       "metTitle": "Diese Bedingung trifft auf dem Display gerade zu.",
       "unmetTitle": "Diese Bedingung trifft auf dem Display gerade nicht zu.",
-      "unknownTitle": "Ein Schlüssel dieser Bedingung wurde noch nicht veröffentlicht."
+      "unknownTitle": "Ein Schlüssel dieser Bedingung wurde noch nicht veröffentlicht.",
+      "metTitleEditor": "Diese Bedingung trifft gerade zu.",
+      "unmetTitleEditor": "Diese Bedingung trifft gerade nicht zu."
     },
     "outcome": {
       "noLiveData": "Das Display hat sich zuletzt nicht gemeldet, daher werden keine Live-Ergebnisse angezeigt.",
@@ -3257,7 +3270,15 @@
       "hiddenNowEditor": "Würde gerade ausgeblendet",
       "waitingForKeys": "wartet auf {keys}",
       "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
-      "conditionsNotMet": "die Bedingungen treffen nicht zu"
-    }
+      "conditionsNotMet": "die Bedingungen treffen nicht zu",
+      "seeLiveValues": "Alle Live-Werte findest du unter Einstellungen → Live-Werte."
+    },
+    "time": {
+      "daysLabel": "Tage",
+      "fromLabel": "Von",
+      "untilLabel": "Bis",
+      "hint": "Beide Zeiten leer lassen für den ganzen Tag. Ist das Ende früher als der Anfang, geht es über Mitternacht (z. B. 22:00 bis 06:00 Uhr)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

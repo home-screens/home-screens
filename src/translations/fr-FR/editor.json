@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
     "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran",
     "conditionMetTitle": "Conditions remplies — affiché sur l'écran en ce moment",
-    "conditionUnmetTitle": "Conditions non remplies — masqué sur l'écran en ce moment"
+    "conditionUnmetTitle": "Conditions non remplies — masqué sur l'écran en ce moment",
+    "conditionMetTitleEditor": "Conditions remplies, serait affiché en ce moment",
+    "conditionUnmetTitleEditor": "Conditions non remplies, serait masqué en ce moment"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -229,7 +231,7 @@
         "network": "Réseau",
         "profiles": "Profils",
         "rules": "Règles",
-        "sharedState": "État partagé",
+        "sharedState": "Valeurs en direct",
         "security": "Sécurité",
         "stats": "Statistiques",
         "system": "Système",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Action",
         "actionShowScreen": "Afficher un écran",
         "actionWake": "Réveiller l'affichage",
+        "wakeSleepHint": "Si l'affichage est en veille selon un horaire, cela le réveille et le garde allumé pendant 5 minutes, puis il se remet en veille.",
         "screenLabel": "Écran",
         "screenNoneOption": "Choisir un écran…",
         "screenDisabledSuffix": "(désactivé)",
@@ -1159,7 +1162,13 @@
         "modeFor": "Pendant une durée définie",
         "secondsLabel": "Secondes",
         "cooldownLabel": "Délai (secondes)",
-        "cooldownHelp": "Après son déclenchement, la règle attend ce nombre de secondes avant de pouvoir se déclencher à nouveau. Laissez vide pour aucun délai."
+        "cooldownHelp": "Après son déclenchement, la règle attend ce nombre de secondes avant de pouvoir se déclencher à nouveau. Laissez vide pour aucun délai.",
+        "actionSleep": "Mettre l'affichage en veille",
+        "sleepHint": "Éteint l'écran, comme le bouton de veille. Un appui ou l'horaire de réveil le rallume.",
+        "copyToDisplayLabel": "Copier vers un autre affichage",
+        "copyToDisplayPlaceholder": "Choisir un affichage…",
+        "copyToDisplayHelp": "Copie cette règle vers un autre affichage. Vous devrez y choisir l'écran qu'elle affiche.",
+        "copiedNotice": "Copié vers {name}."
       },
       "deleteDialog": {
         "title": "Supprimer la règle",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Utilisée par",
       "ruleRefLabel": "Règle : {name}",
       "builtInProducer": "Intégré",
-      "producerLabel": "De {producer}"
+      "producerLabel": "De {producer}",
+      "providerHealthSince": "depuis {time}"
     },
     "securityPage": {
       "loading": "Vérification de l'état d'authentification…",
@@ -3206,7 +3216,7 @@
   "visibilityConditions": {
     "statusTitle": "Statut",
     "enableLabel": "Afficher uniquement si les conditions correspondent",
-    "enableHelp": "Afficher ou masquer ce module selon les valeurs publiées par des modules en arrière-plan (par exemple un capteur Home Assistant).",
+    "enableHelp": "Afficher ou masquer ce module selon les valeurs en direct des services connectés (par exemple un capteur Home Assistant).",
     "conditionsTitle": "Conditions",
     "allMustMatchHint": "Toutes les conditions doivent correspondre pour que le module s'affiche.",
     "addCondition": "Ajouter une condition",
@@ -3217,12 +3227,13 @@
       "numeric": "Le nombre est dans la plage",
       "and": "Toutes…",
       "or": "N'importe laquelle…",
-      "not": "Aucune…"
+      "not": "Aucune…",
+      "time": "Heure de la journée"
     },
-    "sourceKeyLabel": "Clé d'état",
-    "sourceKeyHint": "Recherchez par nom pour trouver une clé, ou saisissez-en une vous-même. Les clés saisies à la main doivent correspondre exactement, y compris le préfixe plugin:.",
+    "sourceKeyLabel": "Ce qu'il faut vérifier",
+    "sourceKeyHint": "Les clés saisies doivent correspondre exactement, y compris le préfixe plugin:.",
     "sourceKeyUnknown": "Aucun module de cet écran ne publie cette clé pour l'instant. D'ici là, cette condition est considérée comme inconnue et le module suit le réglage 'Avant l'arrivée des données'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Rechercher capteurs, lumières et plus…",
     "matchLabel": "Correspondance",
     "matchEquals": "Est",
     "matchNotEquals": "N'est pas",
@@ -3239,7 +3250,7 @@
     "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
     "whenUnknownHide": "Masquer le module",
     "whenUnknownShow": "Afficher le module",
-    "noProvidersHint": "Aucune clé d'état n'est encore disponible. Les clés proviennent des plugins qui partagent des valeurs (comme Home Assistant). Les valeurs ne sont partagées qu'au sein de l'onglet de navigateur de cet écran. Vous pouvez aussi saisir une clé vous-même.",
+    "noProvidersHint": "Aucune clé d'état n'est encore disponible. Les clés proviennent des plugins qui partagent des valeurs (comme Home Assistant). Vous pouvez aussi saisir une clé vous-même.",
     "noConditionsHint": "Aucune condition pour l'instant. Le module reste affiché tant que vous n'en ajoutez pas.",
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
@@ -3252,7 +3263,9 @@
       "unknown": "En attente",
       "metTitle": "Cette condition correspond sur l'écran en ce moment.",
       "unmetTitle": "Cette condition ne correspond pas sur l'écran en ce moment.",
-      "unknownTitle": "Une clé utilisée par cette condition n'a pas encore été publiée."
+      "unknownTitle": "Une clé utilisée par cette condition n'a pas encore été publiée.",
+      "metTitleEditor": "Cette condition correspond en ce moment.",
+      "unmetTitleEditor": "Cette condition ne correspond pas en ce moment."
     },
     "outcome": {
       "noLiveData": "L'écran n'a pas envoyé de rapport récemment, les résultats en direct ne sont donc pas affichés.",
@@ -3263,7 +3276,15 @@
       "hiddenNowEditor": "Serait masqué en ce moment",
       "waitingForKeys": "en attente de {keys}",
       "keyNotPicked": "une condition n'a pas encore de clé choisie",
-      "conditionsNotMet": "les conditions ne correspondent pas"
-    }
+      "conditionsNotMet": "les conditions ne correspondent pas",
+      "seeLiveValues": "Vous pouvez voir toutes les valeurs en direct dans Réglages → Valeurs en direct."
+    },
+    "time": {
+      "daysLabel": "Jours",
+      "fromLabel": "De",
+      "untilLabel": "Jusqu'à",
+      "hint": "Laissez les deux heures vides pour toute la journée. Une fin plus tôt que le début passe après minuit (par exemple 22 h 00 à 6 h 00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

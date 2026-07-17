@@ -24,6 +24,7 @@ import { getTransitionConfig, getViewTransitionKeyframes } from '@/lib/transitio
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { useIdleCursor } from '@/hooks/useIdleCursor';
+import { RULE_WAKE_HOLD_MS } from '@/hooks/useSleepManager';
 import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
@@ -183,9 +184,16 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // where it left off when the takeover ends. The `wake` action routes to the
   // sleep manager through a ref because useDisplayControl (which owns the
   // sleep manager) is called further down with callbacks defined below.
-  const wakeRef = useRef<() => void>(() => {});
-  const onRuleWake = useCallback(() => { wakeRef.current(); }, []);
-  const { takeoverScreen, releaseActiveTakeover } = useDisplayRules(rules, allScreens, onRuleWake);
+  const wakeRef = useRef<(options?: { holdMs?: number }) => void>(() => {});
+  const sleepRef = useRef<() => void>(() => {});
+  // A rule-fired wake holds the display awake through a scheduled sleep window
+  // for RULE_WAKE_HOLD_MS, so an alert isn't blacked out ~10s later; touch and
+  // remote wakes (which call `wake` with no hold) stay re-slept by the schedule.
+  const onRuleWake = useCallback(() => { wakeRef.current({ holdMs: RULE_WAKE_HOLD_MS }); }, []);
+  // A rule-fired sleep is exactly the remote sleep command — any touch or the
+  // sleep schedule wakes it as usual. The engine already released the takeover.
+  const onRuleSleep = useCallback(() => { sleepRef.current(); }, []);
+  const { takeoverScreen, releaseActiveTakeover } = useDisplayRules(rules, allScreens, settings.timezone, onRuleWake, onRuleSleep);
   const renderedScreen = takeoverScreen ?? currentScreen;
 
   // Poll background rotation for the profile-visible screens plus, while a
@@ -252,7 +260,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // Status reports name the takeover screen when one is pinned, so the
   // editor's "currently showing" readout stays truthful during a rule firing.
-  const { displayState, dimOpacity, wake } = useDisplayControl({
+  const { displayState, dimOpacity, wake, forceSleep } = useDisplayControl({
     sleep: settings.sleep,
     timezone: settings.timezone,
     screenIndex: safeIndex,
@@ -267,10 +275,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     displayId,
   });
 
-  // Late-bind the sleep manager's wake for `wake`-action rules. The rules
-  // hook runs above useDisplayControl (it feeds renderedScreen into it), so
-  // it reaches wake through this ref instead of a direct dependency.
+  // Late-bind the sleep manager's wake/forceSleep for `wake`/`sleep`-action
+  // rules. The rules hook runs above useDisplayControl (it feeds renderedScreen
+  // into it), so it reaches them through refs instead of direct dependencies.
   useEffect(() => { wakeRef.current = wake; }, [wake]);
+  useEffect(() => { sleepRef.current = forceSleep; }, [forceSleep]);
 
   // Subscribe to plugin navigate events
   useEffect(() => {

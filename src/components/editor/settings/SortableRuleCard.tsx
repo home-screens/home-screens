@@ -5,8 +5,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { usePluginStore } from '@/stores/plugin-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { EditorSharedState } from '@/hooks/useEditorSharedState';
+import { useConditionClock } from '@/hooks/useConditionClock';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { conditionsVerdict } from '@/lib/condition-verdicts';
 import { validateDisplayRules } from '@/lib/display-filter';
@@ -83,10 +85,14 @@ interface RuleCardProps {
 export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpand, liveState, t }: RuleCardProps) {
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
+  const plugins = usePluginStore((s) => s.plugins);
   const updateRule = useEditorStore((s) => s.updateRule);
   const removeRule = useEditorStore((s) => s.removeRule);
+  const copyRuleToDisplay = useEditorStore((s) => s.copyRuleToDisplay);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  // Transient "copied to <name>" confirmation, cleared after a moment.
+  const [copiedTo, setCopiedTo] = useState<string | null>(null);
 
   const {
     attributes,
@@ -117,13 +123,17 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
     [rule, screens],
   );
 
+  // Ticking wall clock (display timezone) so a `time` condition's verdict
+  // stays live; only ticks when the rule has a time condition.
+  const now = useConditionClock(rule.when, config?.settings.timezone);
+
   // Live would-it-fire indicator: the same three-valued evaluation the rule
   // engine runs, over the display's last-reported snapshot. "Met" means the
   // conditions hold RIGHT NOW — the rule itself still fires only on a fresh
   // not-met → met transition. Null (no fresh report) hides the chip.
   const verdictStates = liveState.states;
   const verdict = rule.enabled !== false && rule.when.length > 0 && verdictStates
-    ? conditionsVerdict(rule.when, verdictStates)
+    ? conditionsVerdict(rule.when, verdictStates, now)
     : null;
 
   if (!config) return null;
@@ -145,9 +155,13 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
     setAction(
       kind === 'wake'
         ? { kind: 'wake' }
-        : { kind: 'showScreen', screenId: screens[0]?.id ?? '', mode: 'for', seconds: 60 },
+        : kind === 'sleep'
+          ? { kind: 'sleep' }
+          : { kind: 'showScreen', screenId: screens[0]?.id ?? '', mode: 'for', seconds: 60 },
     );
   };
+
+  const otherDisplays = (config.displays ?? []).filter((d) => d.id !== selectedDisplayId);
 
   return (
     <div
@@ -205,7 +219,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 {t('settings.rulesPage.card.offBadge')}
               </span>
             )}
-            {verdict && <ConditionVerdictChip verdict={verdict} t={t} />}
+            {verdict && <ConditionVerdictChip verdict={verdict} source={liveState.source} t={t} />}
           </button>
         )}
 
@@ -270,6 +284,8 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 onChange={setConditions}
                 options={providedKeys}
                 liveState={liveState}
+                plugins={plugins}
+                now={now}
                 t={t}
               />
               {rule.when.length > 1 && (
@@ -295,6 +311,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
               >
                 <option value="showScreen">{t('settings.rulesPage.card.actionShowScreen')}</option>
                 <option value="wake">{t('settings.rulesPage.card.actionWake')}</option>
+                <option value="sleep">{t('settings.rulesPage.card.actionSleep')}</option>
               </select>
             </label>
 
@@ -356,6 +373,18 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
               </>
             )}
 
+            {action.kind === 'wake' && (
+              <p className="text-[10px] text-hs-text-dim">
+                {t('settings.rulesPage.card.wakeSleepHint')}
+              </p>
+            )}
+
+            {action.kind === 'sleep' && (
+              <p className="text-[10px] text-hs-text-dim">
+                {t('settings.rulesPage.card.sleepHint')}
+              </p>
+            )}
+
             <SecondsField
               label={t('settings.rulesPage.card.cooldownLabel')}
               value={rule.cooldownSeconds}
@@ -366,6 +395,47 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
               {t('settings.rulesPage.card.cooldownHelp')}
             </p>
           </div>
+
+          {/* Copy this rule to another display. Shown only in multi-display
+              mode with somewhere else to copy to. The copy lands enabled with
+              a blank screen target (screens are per-display), so the user
+              re-picks the target screen on the other display. */}
+          {otherDisplays.length > 0 && (
+            <div className="border-t border-hs-border-strong pt-3 space-y-1">
+              <label className="flex flex-col gap-0.5">
+                <span className="text-xs text-hs-text-muted">
+                  {t('settings.rulesPage.card.copyToDisplayLabel')}
+                </span>
+                <select
+                  value=""
+                  aria-label={t('settings.rulesPage.card.copyToDisplayLabel')}
+                  onChange={(e) => {
+                    const targetId = e.target.value;
+                    if (!targetId) return;
+                    copyRuleToDisplay(rule.id, targetId);
+                    const target = otherDisplays.find((d) => d.id === targetId);
+                    setCopiedTo(target?.name ?? targetId);
+                    e.target.value = '';
+                    window.setTimeout(() => setCopiedTo(null), 4000);
+                  }}
+                  className={INPUT_CLASS}
+                >
+                  <option value="">{t('settings.rulesPage.card.copyToDisplayPlaceholder')}</option>
+                  {otherDisplays.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </label>
+              {copiedTo && (
+                <p className="text-[10px] text-hs-success" role="status">
+                  {t('settings.rulesPage.card.copiedNotice', { name: copiedTo })}
+                </p>
+              )}
+              <p className="text-[10px] text-hs-text-dim">
+                {t('settings.rulesPage.card.copyToDisplayHelp')}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

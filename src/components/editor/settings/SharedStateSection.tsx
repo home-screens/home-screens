@@ -6,6 +6,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { collectKeyReferences, type StateKeyReference } from '@/lib/state-demand';
+import { pluginDisplayName, pluginIdFromStateKey } from '@/lib/provider-health-hint';
 import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleType } from '@/types/config';
@@ -112,6 +113,10 @@ export default function SharedStateSection() {
   const isMultiDisplay = allDisplays.length > 0;
   const now = Date.now();
 
+  // Unhealthy providers reported by the current source — surfaced as a banner
+  // so a service outage reads as such instead of a wall of missing keys.
+  const unhealthy = Object.entries(liveState.providerHealth ?? {});
+
   return (
     <section>
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
@@ -162,6 +167,30 @@ export default function SharedStateSection() {
                 })
               : t('settings.sharedStatePage.noReportHint')}
       </p>
+
+      {unhealthy.length > 0 && (
+        <div className="mb-4 space-y-2" data-testid="provider-health-banner">
+          {unhealthy.map(([pluginId, entry]) => (
+            <div
+              key={pluginId}
+              data-provider-health={pluginId}
+              className="rounded-lg border border-amber-600/40 bg-amber-600/[0.08] px-3 py-2.5"
+            >
+              <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                <span className="text-xs font-medium text-amber-500">
+                  {pluginDisplayName(pluginId, plugins)}
+                </span>
+                <span className="text-[11px] text-hs-text-faint shrink-0">
+                  {t('settings.sharedStatePage.providerHealthSince', {
+                    time: formatRelativeTime(Math.min(entry.since, now), now, { locale: formattingLocale }),
+                  })}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-hs-text-muted">{entry.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <p className="text-xs text-hs-text-faint">{t('settings.sharedStatePage.emptyHint')}</p>
@@ -224,11 +253,24 @@ export default function SharedStateSection() {
                   </>
                 )}
               </div>
-              {row.status === 'missing' && (
-                <p className="mt-1.5 text-[11px] text-hs-text-dim">
-                  {t('settings.sharedStatePage.neverPublishedDetail')}
-                </p>
-              )}
+              {row.status === 'missing' && (() => {
+                const pid = pluginIdFromStateKey(row.key);
+                const health = pid ? liveState.providerHealth?.[pid] : undefined;
+                return (
+                  <p className="mt-1.5 text-[11px] text-hs-text-dim">
+                    {t('settings.sharedStatePage.neverPublishedDetail')}
+                    {health && (
+                      <>
+                        {' · '}
+                        {t('visibilityConditions.providerHealthNote', {
+                          plugin: pluginDisplayName(pid!, plugins),
+                          message: health.message,
+                        })}
+                      </>
+                    )}
+                  </p>
+                );
+              })()}
             </div>
           ))}
         </div>

@@ -455,7 +455,7 @@ export const MAX_CONDITION_DEPTH = 5;
 /** Max total conditions (leaves + groups) per module, to bound evaluation cost. */
 export const MAX_CONDITIONS_PER_MODULE = 32;
 
-const CONDITION_KINDS = new Set(['state', 'numeric', 'and', 'or', 'not']);
+const CONDITION_KINDS = new Set(['state', 'numeric', 'time', 'and', 'or', 'not']);
 
 function isStringOrStringArray(value: unknown): boolean {
   return typeof value === 'string'
@@ -512,6 +512,17 @@ export function validateModuleVisibility(
       return null;
     }
 
+    // A `time` condition has no shared-state key — it carries the same
+    // days/window fields as a ModuleSchedule, so reuse that validator (minus
+    // `invert`, which time conditions don't have) to keep the accepted shape
+    // identical to the schedule surface.
+    if (condition.kind === 'time') {
+      return validateModuleSchedule(
+        { daysOfWeek: condition.daysOfWeek, startTime: condition.startTime, endTime: condition.endTime },
+        context,
+      );
+    }
+
     // Empty sourceKey = an incomplete condition (the editor adds new
     // conditions blank while the user picks a key). It can never exist on
     // the bus, so the runtime evaluates it as unknown and the whenUnknown
@@ -551,7 +562,7 @@ export function validateModuleVisibility(
 /** Hard upper bound on rules per display — bounds per-tick evaluation cost. */
 export const MAX_RULES_PER_DISPLAY = 64;
 
-const RULE_ACTION_KINDS = new Set(['showScreen', 'wake']);
+const RULE_ACTION_KINDS = new Set(['showScreen', 'wake', 'sleep']);
 
 /**
  * Validate a display's rules list at the config-write boundary. Like

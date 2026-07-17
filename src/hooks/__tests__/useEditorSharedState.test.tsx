@@ -22,10 +22,10 @@ vi.mock('@/hooks/useDisplaySharedState', () => ({
 const { useDisplaySharedState } = await import('@/hooks/useDisplaySharedState');
 const mockDisplay = vi.mocked(useDisplaySharedState);
 
-const OFFLINE: DisplaySharedState = { entries: {}, reportedAt: null, states: null };
+const OFFLINE: DisplaySharedState = { entries: {}, reportedAt: null, states: null, providerHealth: {} };
 
 function freshDisplay(entries: Record<string, SharedStateEntry>): DisplaySharedState {
-  return { entries, reportedAt: Date.now(), states: new Map(Object.entries(entries)) };
+  return { entries, reportedAt: Date.now(), states: new Map(Object.entries(entries)), providerHealth: {} };
 }
 
 beforeEach(() => {

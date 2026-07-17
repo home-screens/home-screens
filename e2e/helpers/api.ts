@@ -136,6 +136,9 @@ export async function seedDisplaySharedState(
   request: APIRequestContext,
   entries: Record<string, string>,
   display?: string,
+  /** Optional provider-health snapshot, keyed by plugin id — rides the same
+   *  heartbeat field the real reporter uses (recordProviderHealthReport). */
+  providerHealth?: Record<string, { message: string; since: number }>,
 ): Promise<void> {
   const now = Date.now();
   const sharedState: Record<string, { value: string; updatedAt: number }> = {};
@@ -151,6 +154,7 @@ export async function seedDisplaySharedState(
       displayState: 'active',
       timestamp: now,
       sharedState,
+      ...(providerHealth ? { providerHealth } : {}),
     },
   });
   expect(res.ok()).toBe(true);

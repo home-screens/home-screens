@@ -226,7 +226,7 @@ test('a plugin exporting deriveProvidedKeys advertises its keys in the condition
 
     // Focusing the key input opens the custom suggestion dropdown, sourced from
     // collectProvidedStateKeys → the plugin's namespaced derived key.
-    await page.getByLabel('State key').click();
+    await page.getByLabel('What to check').click();
     await expect(
       page.getByRole('option').filter({ hasText: `${RICH_TYPE}:sensor` }),
     ).toBeVisible();

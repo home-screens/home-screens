@@ -250,6 +250,11 @@ export function buildBootstrapMain(config: ScreenConfiguration): DisplayNode {
     name: 'Main Display',
     screens: structuredClone(config.screens),
     profiles: structuredClone(config.profiles ?? []),
+    // structuredClone preserves screen ids, so the copied rules keep targeting
+    // valid screens. Legacy config.rules is left in place (mirrors config.screens).
+    ...(config.rules && config.rules.length > 0
+      ? { rules: structuredClone(config.rules) }
+      : {}),
     ...(config.settings.activeProfile
       ? { activeProfile: config.settings.activeProfile }
       : {}),
@@ -286,11 +291,17 @@ export function buildNewDisplay(
     ? structuredClone(config.screens)
     : display.screens ?? [];
 
+  const inheritedRules: DisplayRule[] | undefined =
+    inheritFromGlobal && config.rules && config.rules.length > 0
+      ? structuredClone(config.rules)
+      : undefined;
+
   return {
     id: display.id,
     name: display.name,
     screens,
     profiles: initialProfiles,
+    ...(inheritedRules ? { rules: inheritedRules } : {}),
     ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
     ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
     ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),

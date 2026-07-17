@@ -7,6 +7,7 @@ import { displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
 import { snapshotConsoleBuffer } from '@/lib/console-buffer';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { providerHealthStore } from '@/lib/provider-health-store';
 import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore } from '@/stores/alert-store';
 import type { AlertType } from '@/types/config';
@@ -87,10 +88,17 @@ let editorWatchingSharedState = false;
  */
 let lastReportedSharedStateEmpty = true;
 
+/**
+ * Same one-empty-report latch for provider health, so a resolved outage
+ * clears the hub's served value once instead of holding it until the TTL.
+ */
+let lastReportedProviderHealthEmpty = true;
+
 /** Test-only escape hatch; production code writes these from the poll/report. */
 export function __resetSharedStateReportingForTests(watching = false): void {
   editorWatchingSharedState = watching;
   lastReportedSharedStateEmpty = true;
+  lastReportedProviderHealthEmpty = true;
 }
 
 /**
@@ -265,7 +273,11 @@ export function useStatusReporter(
   useEffect(() => {
     let lastReport = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const unsubscribe = sharedStateStore.subscribe(() => {
+    // Both the bus and the provider-health store feed the same throttled
+    // re-report: a health transition is just as much a reason to refresh the
+    // editor's live view as a value change, and shares the throttle so a burst
+    // across both stores still collapses into one trailing POST.
+    const trigger = () => {
       if (!editorWatchingSharedState) return;
       const now = Date.now();
       const due = lastReport + SHARED_STATE_REPORT_THROTTLE_MS;
@@ -279,9 +291,12 @@ export function useStatusReporter(
           reportStatus(valuesRef.current);
         }, due - now);
       }
-    });
+    };
+    const unsubscribeBus = sharedStateStore.subscribe(trigger);
+    const unsubscribeHealth = providerHealthStore.subscribe(trigger);
     return () => {
-      unsubscribe();
+      unsubscribeBus();
+      unsubscribeHealth();
       if (timer) clearTimeout(timer);
     };
   }, []);
@@ -326,6 +341,16 @@ function reportStatus(s: {
   const includeSharedState = !sharedStateEmpty || !lastReportedSharedStateEmpty;
   lastReportedSharedStateEmpty = sharedStateEmpty;
 
+  // Provider-health snapshot (only unhealthy plugins) — same omit-while-empty
+  // convention as the bus snapshot, so a resolved outage clears exactly once.
+  const providerHealth: Record<string, { message: string; since: number }> = {};
+  for (const [pluginId, entry] of providerHealthStore.snapshot()) {
+    providerHealth[pluginId] = { message: entry.message, since: entry.since };
+  }
+  const providerHealthEmpty = Object.keys(providerHealth).length === 0;
+  const includeProviderHealth = !providerHealthEmpty || !lastReportedProviderHealthEmpty;
+  lastReportedProviderHealthEmpty = providerHealthEmpty;
+
   displayFetch('/api/display/status', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -343,6 +368,7 @@ function reportStatus(s: {
       clientId,
       browserStats: currentBrowserStats(),
       ...(includeSharedState ? { sharedState } : {}),
+      ...(includeProviderHealth ? { providerHealth } : {}),
       // Stripped server-side before storage; lets the hub key the report
       // under the right per-display slot in `statusMap`.
       ...(s.displayId ? { displayId: s.displayId } : {}),

@@ -45,6 +45,25 @@ describe('useDisplaySharedState', () => {
     expect(result.current.reportedAt).toBe(42);
   });
 
+  it('passes through providerHealth from the response and defaults it to empty', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({
+        entries: {},
+        reportedAt: 1,
+        providerHealth: { 'home-assistant': { message: "Can't reach HA", since: 5 } },
+      }))
+      .mockResolvedValueOnce(jsonResponse({ entries: {}, reportedAt: 2 }));
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(result.current.providerHealth['home-assistant']).toEqual({ message: "Can't reach HA", since: 5 });
+
+    // The next report omits the field (outage resolved) — it clears to empty.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(result.current.providerHealth).toEqual({});
+  });
+
   it('targets the legacy slot when displayId is null and encodes the id otherwise', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ entries: {}, reportedAt: null }),
@@ -243,6 +262,55 @@ describe('useDisplaySharedState', () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(65_000);
+    });
+    expect(result.current.states).toBeNull();
+    expect(result.current.entries.k?.value).toBe('a');
+  });
+
+  it('flips verdicts to null once the poll transport keeps rejecting past the cutoff', async () => {
+    vi.setSystemTime(1_000_000);
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    // One fresh report, then every poll rejects (network outage).
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 1_000_000 }),
+    );
+    fetchMock.mockRejectedValue(new Error('network down'));
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(result.current.states?.get('k')?.value).toBe('a');
+
+    // Within 60s of failures the last snapshot is still served as fresh.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(result.current.states?.get('k')?.value).toBe('a');
+
+    // Past the cutoff the failing polls re-run freshness and go neutral.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(35_000);
+    });
+    expect(result.current.states).toBeNull();
+    expect(result.current.entries.k?.value).toBe('a');
+  });
+
+  it('flips verdicts to null once the poll keeps returning non-OK past the cutoff', async () => {
+    vi.setSystemTime(1_000_000);
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ entries: { k: { value: 'a', updatedAt: 1 } }, reportedAt: 1_000_000 }),
+    );
+    fetchMock.mockResolvedValue(jsonResponse({ error: 'boom' }, 500));
+    const { result } = renderHook(() => useDisplaySharedState('kitchen'));
+    await flushPoll();
+    expect(result.current.states?.get('k')?.value).toBe('a');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(result.current.states?.get('k')?.value).toBe('a');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(35_000);
     });
     expect(result.current.states).toBeNull();
     expect(result.current.entries.k?.value).toBe('a');

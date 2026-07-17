@@ -22,6 +22,7 @@ import { displayFetch } from '@/lib/display-fetch';
 import { eventBus } from '@/lib/event-bus';
 import type { EventMap } from '@/lib/event-bus';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { providerHealthStore, type ProviderHealthStatus } from '@/lib/provider-health-store';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
 import { usePluginStore } from '@/stores/plugin-store';
 
@@ -152,6 +153,18 @@ export default function PluginGlobals() {
       clearState: (pluginId: string, key: string): void => {
         if (typeof pluginId !== 'string' || typeof key !== 'string') return;
         sharedStateStore.clearKey(pluginStateKey(pluginId, key));
+      },
+
+      // Provider health — a plugin whose upstream service is down reports it
+      // here so the editor can explain "the service is unreachable" next to
+      // conditions/keys that depend on the plugin (instead of a silent hide).
+      // Same open-write posture as publishState: pluginId is caller-supplied
+      // inside the shared JS realm, and the store sanitizes id/message/since
+      // and caps entries. `{ok:true}` clears; installed on the base SDK (like
+      // publishState/clearState) so display and editor plugins both reach it.
+      reportProviderHealth: (pluginId: string, status: ProviderHealthStatus): void => {
+        if (typeof pluginId !== 'string') return;
+        providerHealthStore.report(pluginId, status);
       },
 
       // Event bus — subscribe to host-published data events (weather, time)

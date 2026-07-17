@@ -40,10 +40,17 @@ export default function RulesSection() {
   const saveConfig = useEditorStore((s) => s.saveConfig);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
+  // Computed before the poll hook so its enabled flag can gate on it. Safe to
+  // read `config` conditionally here — the hook order below is unconditional.
+  const rules = config ? getActiveRules(config, selectedDisplayId) : [];
+
   // One poll for the whole section, threaded into every card — a per-card
   // hook would fire N identical /api/display/shared-state requests per tick
   // (same hoisting VisibilityConditionsSection does for its tree editor).
-  const liveState = useEditorSharedState(selectedDisplayId);
+  // Gated on having at least one rule (like EditorCanvas gates on
+  // anyConditionGated): the GET arms the display's fast re-reporting, so a
+  // display with zero rules shouldn't hold it open.
+  const liveState = useEditorSharedState(selectedDisplayId, rules.length > 0);
 
   const sensors = useSortableSensors();
 
@@ -58,8 +65,6 @@ export default function RulesSection() {
   });
 
   if (!config) return null;
-
-  const rules = getActiveRules(config, selectedDisplayId);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {

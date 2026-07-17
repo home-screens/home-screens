@@ -44,12 +44,17 @@ export function snapshotStates(
 
 export type ConditionVerdict = 'met' | 'unmet' | 'unknown';
 
-/** Three-valued verdict for a condition list (implicit AND), Kleene semantics. */
+/**
+ * Three-valued verdict for a condition list (implicit AND), Kleene semantics.
+ * `now` is the wall clock a `time` condition is evaluated against — callers in
+ * the editor pass a ticking, timezone-shifted clock so the chip stays live.
+ */
 export function conditionsVerdict(
   conditions: VisibilityCondition[],
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): ConditionVerdict {
-  const v = evaluateConditionsTri(conditions, states);
+  const v = evaluateConditionsTri(conditions, states, now);
   return v === undefined ? 'unknown' : v ? 'met' : 'unmet';
 }
 
@@ -57,8 +62,9 @@ export function conditionsVerdict(
 export function conditionVerdict(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): ConditionVerdict {
-  return conditionsVerdict([condition], states);
+  return conditionsVerdict([condition], states, now);
 }
 
 export interface VisibilityExplanation {
@@ -81,9 +87,10 @@ export interface VisibilityExplanation {
 export function explainVisibility(
   visibility: ModuleVisibility,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): VisibilityExplanation {
   const referenced = new Set<string>();
   collectSourceKeys(visibility.conditions, referenced);
   const unknownKeys = Array.from(referenced).filter((key) => !states.has(key)).sort();
-  return { visible: evaluateVisibility(visibility, states), unknownKeys };
+  return { visible: evaluateVisibility(visibility, states, now), unknownKeys };
 }

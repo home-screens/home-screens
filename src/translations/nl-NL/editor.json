@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
     "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond",
     "conditionMetTitle": "Voorwaarden voldaan — nu zichtbaar op het scherm",
-    "conditionUnmetTitle": "Voorwaarden niet voldaan — nu verborgen op het scherm"
+    "conditionUnmetTitle": "Voorwaarden niet voldaan — nu verborgen op het scherm",
+    "conditionMetTitleEditor": "Voorwaarden voldaan, zou nu zichtbaar zijn",
+    "conditionUnmetTitleEditor": "Voorwaarden niet voldaan, zou nu verborgen zijn"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -229,7 +231,7 @@
         "network": "Netwerk",
         "profiles": "Profielen",
         "rules": "Regels",
-        "sharedState": "Gedeelde waarden",
+        "sharedState": "Live waarden",
         "security": "Beveiliging",
         "stats": "Statistieken",
         "system": "Systeem",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Actie",
         "actionShowScreen": "Een scherm tonen",
         "actionWake": "Het display wekken",
+        "wakeSleepHint": "Als het display volgens een schema slaapt, wekt dit het en houdt het 5 minuten wakker, daarna gaat het weer slapen.",
         "screenLabel": "Scherm",
         "screenNoneOption": "Kies een scherm…",
         "screenDisabledSuffix": "(uitgeschakeld)",
@@ -1159,7 +1162,13 @@
         "modeFor": "Voor een vaste tijd",
         "secondsLabel": "Seconden",
         "cooldownLabel": "Wachttijd (seconden)",
-        "cooldownHelp": "Nadat de regel is afgegaan, wacht die zoveel seconden voordat hij opnieuw kan afgaan. Laat leeg voor geen wachttijd."
+        "cooldownHelp": "Nadat de regel is afgegaan, wacht die zoveel seconden voordat hij opnieuw kan afgaan. Laat leeg voor geen wachttijd.",
+        "actionSleep": "Het display in slaapstand zetten",
+        "sleepHint": "Zet het scherm uit, net als de slaapknop. Een tik of het wekschema zet het weer aan.",
+        "copyToDisplayLabel": "Naar een ander display kopiëren",
+        "copyToDisplayPlaceholder": "Kies een display…",
+        "copyToDisplayHelp": "Kopieert deze regel naar een ander display. Je moet daar nog het scherm kiezen dat het laat zien.",
+        "copiedNotice": "Gekopieerd naar {name}."
       },
       "deleteDialog": {
         "title": "Regel verwijderen",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Gebruikt door",
       "ruleRefLabel": "Regel: {name}",
       "builtInProducer": "Ingebouwd",
-      "producerLabel": "Van {producer}"
+      "producerLabel": "Van {producer}",
+      "providerHealthSince": "sinds {time}"
     },
     "securityPage": {
       "loading": "Authenticatiestatus controleren…",
@@ -3200,7 +3210,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Alleen tonen als voorwaarden overeenkomen",
-    "enableHelp": "Toon of verberg deze module op basis van waarden die achtergrondmodules publiceren (bijvoorbeeld een Home Assistant-sensor).",
+    "enableHelp": "Toon of verberg deze module op basis van live waarden van gekoppelde diensten (bijvoorbeeld een Home Assistant-sensor).",
     "conditionsTitle": "Voorwaarden",
     "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om de module te tonen.",
     "addCondition": "Voorwaarde toevoegen",
@@ -3211,12 +3221,13 @@
       "numeric": "Getal ligt in bereik",
       "and": "Alle…",
       "or": "Willekeurige…",
-      "not": "Geen van…"
+      "not": "Geen van…",
+      "time": "Tijd van de dag"
     },
-    "sourceKeyLabel": "Statussleutel",
-    "sourceKeyHint": "Zoek op naam om een sleutel te vinden, of typ er zelf een. Handmatig getypte sleutels moeten exact overeenkomen, inclusief het plugin:-voorvoegsel.",
+    "sourceKeyLabel": "Wat te controleren",
+    "sourceKeyHint": "Zelf getypte sleutels moeten exact kloppen, inclusief het plugin:-voorvoegsel.",
     "sourceKeyUnknown": "Geen enkele module op dit scherm publiceert deze sleutel nog. Tot die tijd telt deze voorwaarde als onbekend en volgt de module de instelling 'Voordat gegevens binnenkomen'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Zoek sensoren, lampen en meer…",
     "matchLabel": "Vergelijking",
     "matchEquals": "Is",
     "matchNotEquals": "Is niet",
@@ -3233,7 +3244,7 @@
     "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
     "whenUnknownHide": "Module verbergen",
     "whenUnknownShow": "Module tonen",
-    "noProvidersHint": "Er zijn nog geen statussleutels om uit te kiezen. Sleutels komen van plugins die waarden delen (zoals Home Assistant). Waarden worden alleen gedeeld binnen het browsertabblad van dit scherm. Je kunt ook zelf een sleutel typen.",
+    "noProvidersHint": "Er zijn nog geen statussleutels om uit te kiezen. Sleutels komen van plugins die waarden delen (zoals Home Assistant). Je kunt ook zelf een sleutel typen.",
     "noConditionsHint": "Nog geen voorwaarden. De module wordt altijd getoond totdat je er een toevoegt.",
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
@@ -3246,7 +3257,9 @@
       "unknown": "Wachten",
       "metTitle": "Deze voorwaarde klopt op dit moment op het scherm.",
       "unmetTitle": "Deze voorwaarde klopt op dit moment niet op het scherm.",
-      "unknownTitle": "Een sleutel van deze voorwaarde is nog niet gepubliceerd."
+      "unknownTitle": "Een sleutel van deze voorwaarde is nog niet gepubliceerd.",
+      "metTitleEditor": "Deze voorwaarde klopt op dit moment.",
+      "unmetTitleEditor": "Deze voorwaarde klopt op dit moment niet."
     },
     "outcome": {
       "noLiveData": "Het scherm heeft zich recent niet gemeld, dus live resultaten worden niet getoond.",
@@ -3257,7 +3270,15 @@
       "hiddenNowEditor": "Zou nu verborgen zijn",
       "waitingForKeys": "wacht op {keys}",
       "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
-      "conditionsNotMet": "de voorwaarden kloppen niet"
-    }
+      "conditionsNotMet": "de voorwaarden kloppen niet",
+      "seeLiveValues": "Je vindt alle live waarden onder Instellingen → Live waarden."
+    },
+    "time": {
+      "daysLabel": "Dagen",
+      "fromLabel": "Van",
+      "untilLabel": "Tot",
+      "hint": "Laat beide tijden leeg voor de hele dag. Als het einde vóór de start ligt, loopt het door na middernacht (zoals 22:00 tot 06:00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

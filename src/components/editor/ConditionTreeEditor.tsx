@@ -14,19 +14,29 @@
 // "Custom value…" escape hatch back to free text. Manually typed keys remain
 // fully supported: the combobox is still a free-text input.
 
-import { Fragment, useId, useMemo, useState } from 'react';
+import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
-import type { EditorSharedState } from '@/hooks/useEditorSharedState';
+import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
 import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
+import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
+import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
 import { SHARED_STATE_KEY_RE, type ProvidedStateKey, type SharedStateEntry } from '@/lib/shared-state-types';
-import type { StateKeyDescriptor } from '@/types/plugins';
+import type { LoadedPlugin, StateKeyDescriptor } from '@/types/plugins';
 import type { VisibilityCondition } from '@/types/config';
 
-const CONDITION_KINDS = ['state', 'numeric', 'and', 'or', 'not'] as const;
+/** Stable empty map so an absent `plugins` prop doesn't re-create one per render. */
+const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
+
+/** How long the "nothing publishes this key" warning stays suppressed after a
+ *  deliberate pick from search — a correct pick takes up to ~10s to appear on
+ *  the bus (autosave 800ms + config poll 3s + provider + report). */
+const PICK_GRACE_MS = 15_000;
+
+const CONDITION_KINDS = ['state', 'numeric', 'time', 'and', 'or', 'not'] as const;
 
 /**
  * New conditions start blank — an empty sourceKey is saveable (the validator
@@ -40,6 +50,10 @@ function defaultCondition(kind: VisibilityCondition['kind']): VisibilityConditio
       return { kind: 'state', sourceKey: '', equals: '' };
     case 'numeric':
       return { kind: 'numeric', sourceKey: '' };
+    case 'time':
+      // A useful default window rather than an all-empty (always-true) one:
+      // daytime every day, the doorbell-style fence most time conditions want.
+      return { kind: 'time', startTime: '07:00', endTime: '21:00' };
     default:
       return { kind, conditions: [defaultCondition('state')] };
   }
@@ -48,6 +62,7 @@ function defaultCondition(kind: VisibilityCondition['kind']): VisibilityConditio
 function firstLeafSourceKey(conditions: VisibilityCondition[]): string | undefined {
   for (const c of conditions) {
     if (c.kind === 'state' || c.kind === 'numeric') return c.sourceKey;
+    if (c.kind === 'time') continue; // no sourceKey to recover
     const nested = firstLeafSourceKey(c.conditions);
     if (nested !== undefined) return nested;
   }
@@ -66,13 +81,18 @@ export function convertConditionKind(
   defaultKey: string,
 ): VisibilityCondition {
   if (kind === prev.kind) return prev;
-  const prevIsLeaf = prev.kind === 'state' || prev.kind === 'numeric';
+  const prevIsLeaf = prev.kind === 'state' || prev.kind === 'numeric' || prev.kind === 'time';
   if (kind === 'and' || kind === 'or' || kind === 'not') {
     return { kind, conditions: prevIsLeaf ? [prev] : prev.conditions };
   }
-  const sourceKey = prevIsLeaf
+  // A `time` condition carries no sourceKey, so switching to/from it can't
+  // preserve one — start it (or the target leaf) fresh.
+  if (kind === 'time') return defaultCondition('time');
+  const sourceKey = prev.kind === 'state' || prev.kind === 'numeric'
     ? prev.sourceKey
-    : firstLeafSourceKey(prev.conditions) ?? defaultKey;
+    : prev.kind === 'time'
+      ? defaultKey
+      : firstLeafSourceKey(prev.conditions) ?? defaultKey;
   return kind === 'state'
     ? { kind: 'state', sourceKey, equals: '' }
     : { kind: 'numeric', sourceKey };
@@ -87,6 +107,22 @@ function parseValueList(raw: string): string | string[] {
 function formatValueList(value: string | string[] | undefined): string {
   if (value === undefined) return '';
   return Array.isArray(value) ? value.join(', ') : value;
+}
+
+/**
+ * Carry a `state` condition's value across an is/is-not toggle. A single string
+ * from the key's own vocabulary is one raw value even if it contains a comma —
+ * carry it intact, never comma-split it. Free text round-trips through
+ * format/parse so a typed list keeps its matches-any semantics. Exported for tests.
+ */
+export function carryValueList(
+  value: string | string[] | undefined,
+  descriptor: Pick<StateKeyDescriptor, 'valueOptions'> | null | undefined,
+): string | string[] {
+  if (typeof value === 'string' && descriptor?.valueOptions?.some((o) => o.value === value)) {
+    return value;
+  }
+  return parseValueList(formatValueList(value));
 }
 
 /** Non-finite parses (empty, `1e999`) become "no bound" instead of an unsaveable Infinity. */
@@ -194,17 +230,26 @@ export function SourceKeyInput({
   onChange,
   options,
   liveState,
+  plugins,
   t,
 }: {
   value: string;
   onChange: (key: string) => void;
   options: readonly ProvidedStateKey[];
   liveState?: EditorSharedState;
+  /** Loaded plugins, for naming an unhealthy provider in the unknown hint. */
+  plugins?: Map<string, LoadedPlugin>;
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
   const listboxId = useId();
   const { draft, commitNow, inputProps } = useCommitOnBlur(value, onChange);
+  // Keys picked from search recently — the "nothing publishes this" warning is
+  // suppressed for PICK_GRACE_MS after a pick, since the publish round-trip
+  // lags the pick. Hand-typed keys are never recorded, so they warn at once.
+  const pickedAtRef = useRef<Map<string, number>>(new Map());
+  // Bumped by a timer after the grace elapses so a still-unpublished key warns.
+  const [, forceGraceRecheck] = useState(0);
   // Custom suggestion dropdown instead of a native <datalist>: browsers only
   // open a datalist on arrow-down/double-click once the field has been
   // touched (and there is no API to force it), so the suggestions were
@@ -229,6 +274,16 @@ export function SourceKeyInput({
   // Live value straight from the display's last heartbeat — kills the
   // "which exact string do I match against?" guessing game.
   const liveEntry = liveState?.entries[draft];
+  // Suppress the unknown warning briefly after a deliberate pick (the publish
+  // hasn't had time to round-trip yet). Reappears once the grace elapses.
+  const pickedAt = pickedAtRef.current.get(draft);
+  const withinPickGrace = pickedAt !== undefined && Date.now() - pickedAt < PICK_GRACE_MS;
+  // An unhealthy owning plugin explains "waiting" as "the service is down".
+  const healthNote = unhealthyNoteForKeys(
+    [draft],
+    liveState?.providerHealth ?? {},
+    plugins ?? EMPTY_PLUGINS,
+  );
 
   const suggestions = useMemo(
     () => buildSuggestions(searched, options, draft, known),
@@ -247,6 +302,10 @@ export function SourceKeyInput({
     setHighlight(-1);
   };
   const pick = (key: string) => {
+    // Record the pick so the unknown warning holds off while the value makes
+    // its way onto the bus; re-check once the grace elapses.
+    pickedAtRef.current.set(key, Date.now());
+    setTimeout(() => forceGraceRecheck((n) => n + 1), PICK_GRACE_MS);
     commitNow(key);
     close();
   };
@@ -258,7 +317,6 @@ export function SourceKeyInput({
     // the input is named via aria-label instead.
     <div className="flex flex-col gap-0.5">
       <span className="text-xs text-hs-text-muted">{t('visibilityConditions.sourceKeyLabel')}</span>
-      <span className="text-[10px] text-hs-text-dim">{t('visibilityConditions.sourceKeyHint')}</span>
       <div className="relative">
         <input
           type="text"
@@ -366,6 +424,14 @@ export function SourceKeyInput({
                 {t('visibilityConditions.searchNoResults')}
               </li>
             )}
+            {/* Manual-typing guidance lives here, in the key-editing affordance,
+                rather than as permanent chrome above every collapsed condition. */}
+            <li
+              role="presentation"
+              className="mt-0.5 border-t border-hs-border-strong px-2 pb-0.5 pt-1 text-[10px] text-hs-text-dim"
+            >
+              {t('visibilityConditions.sourceKeyHint')}
+            </li>
           </ul>
         )}
       </div>
@@ -389,8 +455,19 @@ export function SourceKeyInput({
           )}
         </span>
       )}
-      {unknown && !liveEntry && (
-        <span className="text-[10px] text-hs-warning">{t('visibilityConditions.sourceKeyUnknown')}</span>
+      {unknown && !liveEntry && !withinPickGrace && (
+        <span className="text-[10px] text-hs-warning">
+          {t('visibilityConditions.sourceKeyUnknown')}
+          {healthNote && (
+            <span className="text-hs-text-dim">
+              {' · '}
+              {t('visibilityConditions.providerHealthNote', {
+                plugin: healthNote.pluginName,
+                message: healthNote.message,
+              })}
+            </span>
+          )}
+        </span>
       )}
     </div>
   );
@@ -550,9 +627,13 @@ export function isCaseOnlyMismatch(
  */
 export function ConditionVerdictChip({
   verdict,
+  source,
   t,
 }: {
   verdict: ConditionVerdict;
+  /** Where the live values came from — an 'editor' source drops the "on the
+   *  display" phrasing from the met/unmet tooltip (no display is showing it). */
+  source?: SharedStateSource | null;
   t: TranslateFn;
 }) {
   const className =
@@ -561,14 +642,98 @@ export function ConditionVerdictChip({
       : verdict === 'unmet'
         ? 'bg-amber-600/15 text-amber-500 border-amber-600/30'
         : 'bg-hs-hover text-hs-text-dim border-hs-border-strong';
+  // Only met/unmet carry the "on the display" claim; unknown is source-neutral.
+  const titleKey =
+    source === 'editor' && (verdict === 'met' || verdict === 'unmet')
+      ? `visibilityConditions.verdicts.${verdict}TitleEditor`
+      : `visibilityConditions.verdicts.${verdict}Title`;
   return (
     <span
       data-condition-verdict={verdict}
       className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${className}`}
-      title={t(`visibilityConditions.verdicts.${verdict}Title`)}
+      title={t(titleKey)}
     >
       {t(`visibilityConditions.verdicts.${verdict}`)}
     </span>
+  );
+}
+
+/**
+ * Editor for a `time` condition — day-of-week picker plus a start/end window,
+ * reusing the same input patterns as the module `ScheduleEditor`. Day labels
+ * follow the formatting locale. All-days is stored as `undefined` (not a full
+ * 0–6 array) so the config stays clean; deselecting the last day is ignored so
+ * a window always has at least one active day. Exported for tests.
+ */
+export function TimeConditionEditor({
+  condition,
+  onChange,
+  t,
+}: {
+  condition: Extract<VisibilityCondition, { kind: 'time' }>;
+  onChange: (next: VisibilityCondition) => void;
+  t: TranslateFn;
+}) {
+  const formattingLocale = useFormattingLocale();
+  const dayLabels = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
+  const days = condition.daysOfWeek;
+
+  const toggleDay = (i: number) => {
+    const current = days ?? [0, 1, 2, 3, 4, 5, 6];
+    const next = current.includes(i) ? current.filter((d) => d !== i) : [...current, i].sort((a, b) => a - b);
+    if (next.length === 0) return; // keep at least one day active
+    // A full week is "every day" — store undefined so both render identically.
+    onChange({ ...condition, daysOfWeek: next.length === 7 ? undefined : next });
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.daysLabel')}</span>
+        <div className="flex gap-1">
+          {dayLabels.map((label, i) => {
+            const active = !days || days.length === 0 || days.includes(i);
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => toggleDay(i)}
+                aria-label={label}
+                aria-pressed={active}
+                className={`flex-1 text-[10px] py-1 rounded transition-colors ${
+                  active ? 'bg-hs-accent text-white' : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="flex flex-col gap-0.5">
+          <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.fromLabel')}</span>
+          <input
+            type="time"
+            value={condition.startTime ?? ''}
+            aria-label={t('visibilityConditions.time.fromLabel')}
+            onChange={(e) => onChange({ ...condition, startTime: e.target.value || undefined })}
+            className={INPUT_CLASS}
+          />
+        </label>
+        <label className="flex flex-col gap-0.5">
+          <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.untilLabel')}</span>
+          <input
+            type="time"
+            value={condition.endTime ?? ''}
+            aria-label={t('visibilityConditions.time.untilLabel')}
+            onChange={(e) => onChange({ ...condition, endTime: e.target.value || undefined })}
+            className={INPUT_CLASS}
+          />
+        </label>
+      </div>
+      <p className="text-[10px] text-hs-text-dim">{t('visibilityConditions.time.hint')}</p>
+    </div>
   );
 }
 
@@ -578,7 +743,9 @@ function ConditionEditor({
   onRemove,
   options,
   liveState,
+  plugins,
   verdictStates,
+  now,
   depth,
   t,
 }: {
@@ -587,14 +754,19 @@ function ConditionEditor({
   onRemove: () => void;
   options: readonly ProvidedStateKey[];
   liveState?: EditorSharedState;
+  plugins?: Map<string, LoadedPlugin>;
   verdictStates: ReadonlyMap<string, SharedStateEntry> | null;
+  now: Date;
   depth: number;
   t: TranslateFn;
 }) {
   const isGroup = condition.kind === 'and' || condition.kind === 'or' || condition.kind === 'not';
   const allowGroups = depth < MAX_CONDITION_DEPTH - 1;
-  // Hook order: called for every kind (groups pass '', resolving to null).
-  const descriptor = useStateKeyDescriptor(isGroup ? '' : condition.sourceKey);
+  // Hook order: called for every kind (groups and `time` have no key, pass ''
+  // which resolves to null).
+  const keyForDescriptor =
+    condition.kind === 'state' || condition.kind === 'numeric' ? condition.sourceKey : '';
+  const descriptor = useStateKeyDescriptor(keyForDescriptor);
 
   return (
     <div className="rounded border border-hs-border-strong bg-hs-card p-2 space-y-2">
@@ -607,12 +779,16 @@ function ConditionEditor({
           className={`${INPUT_CLASS} flex-1`}
           aria-label={t('visibilityConditions.kindLabel')}
         >
-          {CONDITION_KINDS.filter((k) => allowGroups || k === 'state' || k === 'numeric').map((k) => (
+          {CONDITION_KINDS.filter((k) => allowGroups || k === 'state' || k === 'numeric' || k === 'time').map((k) => (
             <option key={k} value={k}>{t(`visibilityConditions.kinds.${k}`)}</option>
           ))}
         </select>
         {verdictStates && (
-          <ConditionVerdictChip verdict={conditionVerdict(condition, verdictStates)} t={t} />
+          <ConditionVerdictChip
+            verdict={conditionVerdict(condition, verdictStates, now)}
+            source={liveState?.source}
+            t={t}
+          />
         )}
         <button
           type="button"
@@ -631,6 +807,7 @@ function ConditionEditor({
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
             options={options}
             liveState={liveState}
+            plugins={plugins}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -639,11 +816,11 @@ function ConditionEditor({
               <select
                 value={condition.notEquals !== undefined ? 'notEquals' : 'equals'}
                 onChange={(e) => {
-                  const raw = formatValueList(condition.equals ?? condition.notEquals);
+                  const parsed = carryValueList(condition.equals ?? condition.notEquals, descriptor);
                   onChange(
                     e.target.value === 'equals'
-                      ? { kind: 'state', sourceKey: condition.sourceKey, equals: parseValueList(raw) }
-                      : { kind: 'state', sourceKey: condition.sourceKey, notEquals: parseValueList(raw) },
+                      ? { kind: 'state', sourceKey: condition.sourceKey, equals: parsed }
+                      : { kind: 'state', sourceKey: condition.sourceKey, notEquals: parsed },
                   );
                 }}
                 className={INPUT_CLASS}
@@ -694,6 +871,7 @@ function ConditionEditor({
             onChange={(sourceKey) => onChange({ ...condition, sourceKey })}
             options={options}
             liveState={liveState}
+            plugins={plugins}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -718,6 +896,10 @@ function ConditionEditor({
         </div>
       )}
 
+      {condition.kind === 'time' && (
+        <TimeConditionEditor condition={condition} onChange={onChange} t={t} />
+      )}
+
       {isGroup && (
         <div className="space-y-2 pl-2 border-l border-hs-border-strong">
           {condition.conditions.map((child, i) => (
@@ -727,7 +909,9 @@ function ConditionEditor({
               depth={depth + 1}
               options={options}
               liveState={liveState}
+              plugins={plugins}
               verdictStates={verdictStates}
+              now={now}
               t={t}
               onChange={(next) => {
                 const conditions = condition.conditions.slice();
@@ -765,18 +949,30 @@ export default function ConditionTreeEditor({
   onChange,
   options,
   liveState,
+  plugins,
+  now,
   t,
 }: {
   conditions: VisibilityCondition[];
   onChange: (next: VisibilityCondition[]) => void;
   options: readonly ProvidedStateKey[];
   liveState?: EditorSharedState;
+  /** Loaded plugins, threaded to the key input so an unhealthy provider can be
+   *  named in the "nothing publishes this key" hint. */
+  plugins?: Map<string, LoadedPlugin>;
+  /**
+   * Wall clock for `time`-condition verdicts. Callers pass a ticking,
+   * timezone-shifted `now` (via `useConditionClock`) so a time chip stays
+   * live; defaults to a fixed instant for callers with no time conditions.
+   */
+  now?: Date;
   t: TranslateFn;
 }) {
   // One states map per snapshot for the whole tree; null (no fresh report)
   // renders every node without a verdict chip. Freshness is owned by the
   // poll loop in useDisplaySharedState, which re-evaluates it every tick.
   const verdictStates = liveState?.states ?? null;
+  const nowDate = now ?? new Date();
   return (
     <>
       {conditions.map((condition, i) => (
@@ -786,7 +982,9 @@ export default function ConditionTreeEditor({
           depth={0}
           options={options}
           liveState={liveState}
+          plugins={plugins}
           verdictStates={verdictStates}
+          now={nowDate}
           t={t}
           onChange={(next) => {
             const updated = conditions.slice();

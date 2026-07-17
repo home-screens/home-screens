@@ -110,6 +110,38 @@ describe('sanitizeDescriptors', () => {
     const raw = Array.from({ length: 40 }, (_, i) => ({ key: `plugin:ha:sensor.s${i}`, label: `S${i}` }));
     expect(sanitizeDescriptors(raw, 10)).toHaveLength(10);
   });
+
+  it('drops an over-long enum option value and an over-long currentValue', () => {
+    const huge = 'x'.repeat(1025); // one past the 1024 bus value cap
+    const [d] = sanitizeDescriptors([
+      {
+        key: 'plugin:ha:sensor.x',
+        label: 'X',
+        valueType: 'enum',
+        valueOptions: [{ value: huge, label: 'Too big' }, { value: 'ok', label: 'Fine' }],
+        currentValue: huge,
+      },
+    ]);
+    // The oversized option is dropped; the well-formed one survives.
+    expect(d.valueOptions).toEqual([{ value: 'ok', label: 'Fine' }]);
+    // The oversized currentValue degrades to undefined rather than passing through.
+    expect(d.currentValue).toBeUndefined();
+  });
+
+  it('keeps a value/currentValue exactly at the 1024 cap', () => {
+    const atCap = 'y'.repeat(1024);
+    const [d] = sanitizeDescriptors([
+      {
+        key: 'plugin:ha:sensor.y',
+        label: 'Y',
+        valueType: 'enum',
+        valueOptions: [{ value: atCap }],
+        currentValue: atCap,
+      },
+    ]);
+    expect(d.valueOptions).toEqual([{ value: atCap, label: undefined }]);
+    expect(d.currentValue).toBe(atCap);
+  });
 });
 
 describe('pluginHasStateKeySearch', () => {

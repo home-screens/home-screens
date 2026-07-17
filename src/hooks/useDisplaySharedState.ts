@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { snapshotStates } from '@/lib/condition-verdicts';
 import { stableStringify } from '@/lib/stable-stringify';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
+import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 
 /**
  * Last shared-state snapshot a display reported to the hub — the editor's
@@ -27,11 +28,19 @@ export interface DisplaySharedState {
    * don't recompute on every poll.
    */
   states: ReadonlyMap<string, SharedStateEntry> | null;
+  /**
+   * Plugins whose upstream service the display last reported as unhealthy,
+   * keyed by lowercased plugin id. Empty when everything is healthy (or the
+   * display omitted the field). Rides the same GET; not gated by freshness
+   * here — the merge in `useEditorSharedState` decides when to trust it.
+   */
+  providerHealth: Record<string, ProviderHealthEntry>;
 }
 
 const POLL_MS = 5_000;
-const EMPTY: DisplaySharedState = { entries: {}, reportedAt: null, states: null };
+const EMPTY: DisplaySharedState = { entries: {}, reportedAt: null, states: null, providerHealth: {} };
 const EMPTY_ENTRIES_JSON = stableStringify(EMPTY.entries);
+const EMPTY_PROVIDER_HEALTH_JSON = stableStringify(EMPTY.providerHealth);
 
 /**
  * One poll loop per display, shared by every mounted consumer (canvas,
@@ -45,6 +54,18 @@ interface Slot {
   state: DisplaySharedState;
   /** Dedupe key for the last accepted entries payload. */
   entriesJson: string;
+  /** Dedupe key for the last accepted provider-health payload. */
+  providerHealthJson: string;
+  /**
+   * The last raw payload accepted from a poll, replayed against the current
+   * clock on a failed poll so freshness keeps advancing during an outage — a
+   * stale snapshot must flip to neutral, not freeze on its last green verdict.
+   */
+  lastPayload: {
+    entries: Record<string, SharedStateEntry>;
+    reportedAt: number | null;
+    providerHealth: Record<string, ProviderHealthEntry>;
+  } | null;
   listeners: Set<() => void>;
   timer: ReturnType<typeof setInterval>;
   inFlight: boolean;
@@ -59,21 +80,42 @@ const slots = new Map<string, Slot>();
  * heartbeat that only advanced `reportedAt` reuses the previous `entries` /
  * `states` references so downstream memos don't churn every 5 seconds.
  */
-function publish(slot: Slot, entries: Record<string, SharedStateEntry>, reportedAt: number | null): void {
+function publish(
+  slot: Slot,
+  entries: Record<string, SharedStateEntry>,
+  reportedAt: number | null,
+  providerHealth: Record<string, ProviderHealthEntry>,
+): void {
   const prev = slot.state;
   const entriesJson = stableStringify(entries);
   const entriesChanged = entriesJson !== slot.entriesJson;
+  const providerHealthJson = stableStringify(providerHealth);
+  const providerHealthChanged = providerHealthJson !== slot.providerHealthJson;
   const nextStates = snapshotStates({ entries, reportedAt }, Date.now());
   const freshChanged = (nextStates !== null) !== (prev.states !== null);
-  if (!entriesChanged && !freshChanged && reportedAt === prev.reportedAt) return;
+  if (!entriesChanged && !providerHealthChanged && !freshChanged && reportedAt === prev.reportedAt) return;
   slot.entriesJson = entriesJson;
+  slot.providerHealthJson = providerHealthJson;
   slot.state = {
     entries: entriesChanged ? entries : prev.entries,
     reportedAt,
     states:
       nextStates === null || entriesChanged || prev.states === null ? nextStates : prev.states,
+    providerHealth: providerHealthChanged ? providerHealth : prev.providerHealth,
   };
   for (const listener of slot.listeners) listener();
+}
+
+/**
+ * Re-run the freshness computation against the current clock using the last
+ * accepted payload, without a network round-trip. Called on a failed poll so
+ * the 60s cutoff still fires during an outage: `publish` is a no-op while the
+ * snapshot is still fresh and flips `states` to neutral once it goes stale.
+ */
+function refreshFreshness(slot: Slot): void {
+  if (slot.lastPayload) {
+    publish(slot, slot.lastPayload.entries, slot.lastPayload.reportedAt, slot.lastPayload.providerHealth);
+  }
 }
 
 async function pollSlot(key: string): Promise<void> {
@@ -85,19 +127,28 @@ async function pollSlot(key: string): Promise<void> {
       ? `/api/display/shared-state?display=${encodeURIComponent(key)}`
       : '/api/display/shared-state';
     const res = await editorFetch(url);
-    if (!res.ok) return;
-    const data = await res.json();
     // Slot torn down (last consumer left) while the request was in flight.
     if (slots.get(key) !== slot) return;
+    if (!res.ok) {
+      refreshFreshness(slot);
+      return;
+    }
+    const data = await res.json();
+    if (slots.get(key) !== slot) return;
     if (data && typeof data === 'object' && data.entries && typeof data.entries === 'object') {
-      publish(
-        slot,
-        data.entries as Record<string, SharedStateEntry>,
-        typeof data.reportedAt === 'number' ? data.reportedAt : null,
-      );
+      const entries = data.entries as Record<string, SharedStateEntry>;
+      const reportedAt = typeof data.reportedAt === 'number' ? data.reportedAt : null;
+      const providerHealth =
+        data.providerHealth && typeof data.providerHealth === 'object' && !Array.isArray(data.providerHealth)
+          ? (data.providerHealth as Record<string, ProviderHealthEntry>)
+          : {};
+      slot.lastPayload = { entries, reportedAt, providerHealth };
+      publish(slot, entries, reportedAt, providerHealth);
     }
   } catch {
-    // Best-effort hint — keep showing the last snapshot on a failed poll.
+    // Transport failed — keep the last entries but let freshness keep ticking,
+    // so an outage past the cutoff neutralizes verdicts instead of freezing them.
+    if (slots.get(key) === slot) refreshFreshness(slot);
   } finally {
     slot.inFlight = false;
   }
@@ -110,6 +161,8 @@ function acquireSlot(displayId: string | null, listener: () => void): () => void
     slot = {
       state: EMPTY,
       entriesJson: EMPTY_ENTRIES_JSON,
+      providerHealthJson: EMPTY_PROVIDER_HEALTH_JSON,
+      lastPayload: null,
       listeners: new Set(),
       timer: setInterval(() => void pollSlot(key), POLL_MS),
       inFlight: false,

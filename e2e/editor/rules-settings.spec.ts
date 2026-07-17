@@ -111,7 +111,7 @@ test('adding a condition through the tree editor persists into rule.when', async
 
   // Type a key manually (combobox is a free-text input) and a value; both
   // commit on blur.
-  const keyInput = page.getByPlaceholder('plugin:home-assistant:sensor…');
+  const keyInput = page.getByPlaceholder('Search sensors, lights, and more…');
   await autosaved(page, async () => {
     await keyInput.fill('plugin:ha:door');
     await keyInput.blur();
@@ -222,6 +222,65 @@ test('a rule made invalid outside the editor shows the inline invalid banner', a
   // The banner mirrors what the write gate will reject, with the reason.
   await expect(page.getByText("This rule can't be saved yet:")).toBeVisible();
   await expect(page.getByText(/references unknown screen/)).toBeVisible();
+});
+
+test('the sleep action option persists and shows its hint', async ({ page, request }) => {
+  await putConfig(request, twoScreenConfig([seededRule()]));
+  await page.goto('/editor/settings?section=defaults&page=rules');
+
+  await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
+  await autosaved(page, async () => {
+    await page.getByLabel('Action', { exact: true }).selectOption('sleep');
+  });
+  // Screen/mode controls disappear; the sleep hint appears.
+  await expect(page.getByLabel('Screen', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/Turns the screen off/)).toBeVisible();
+
+  const config = await getConfig(request);
+  expect(config.rules![0].action).toEqual({ kind: 'sleep' });
+});
+
+test('copy to display clones the rule onto another display', async ({ page, request }) => {
+  const config = baseConfig({
+    displays: [
+      {
+        id: 'main',
+        name: 'Main Display',
+        screens: [makeScreen('m1', 'M1', [textModule('M1', { id: 'm1-text' })])],
+        rules: [seededRule({ action: { kind: 'showScreen', screenId: 'm1', mode: 'for', seconds: 60 } })],
+      },
+      {
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [makeScreen('k1', 'K1', [textModule('K1', { id: 'k1-text' })])],
+      },
+    ],
+  });
+  await putConfig(request, config);
+  await page.goto('/editor/settings?section=defaults&page=rules');
+
+  // Select Main explicitly so the store's selectedDisplayId is set to it, then
+  // expand the rule and copy it to Kitchen.
+  await page.getByLabel('Editing rules for').selectOption('main');
+  await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
+  await autosaved(page, async () => {
+    await page.getByLabel('Copy to another display').selectOption('kitchen');
+  });
+  await expect(page.getByText(/Copied to Kitchen/)).toBeVisible();
+
+  const saved = await getConfig(request);
+  const kitchen = saved.displays!.find((d) => d.id === 'kitchen')!;
+  expect(kitchen.rules).toHaveLength(1);
+  expect(kitchen.rules![0].name).toBe('Doorbell');
+  expect(kitchen.rules![0].enabled).toBeUndefined();
+  // Screen target is blanked — screens are per-display, so it can't carry over.
+  expect((kitchen.rules![0].action as { screenId: string }).screenId).toBe('');
+  // Source display keeps its own rule.
+  expect(saved.displays!.find((d) => d.id === 'main')!.rules).toHaveLength(1);
+
+  // Switching to Kitchen shows the copied rule in that display's list.
+  await page.getByLabel('Editing rules for').selectOption('kitchen');
+  await expect(ruleCard(page, 'Doorbell')).toBeVisible();
 });
 
 test('rules edit the selected display in multi-display mode', async ({ page, request }) => {

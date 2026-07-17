@@ -29,11 +29,23 @@ export interface SearchedStateKey extends StateKeyDescriptor {
 const VALUE_TYPES = new Set(['enum', 'numeric', 'string']);
 const MAX_VALUE_OPTIONS = 50;
 const MAX_LABEL_LENGTH = 200;
+/** Bus value cap (shared-state-store `MAX_VALUE_LENGTH`); state values and
+ *  enum option values may not exceed what the bus itself would accept. */
+const MAX_VALUE_LENGTH = 1024;
 
 function asShortString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 && value.length <= MAX_LABEL_LENGTH
     ? value
     : undefined;
+}
+
+/**
+ * A string bounded to the bus value cap, dropping over-long values (same
+ * reject-not-truncate posture as asShortString). Empty strings are allowed —
+ * a key can legitimately hold '' — so only the upper bound is enforced.
+ */
+function asBoundedValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length <= MAX_VALUE_LENGTH ? value : undefined;
 }
 
 /**
@@ -63,8 +75,9 @@ export function sanitizeDescriptors(raw: unknown, limit: number = SEARCH_LIMIT):
         if (sanitized.length >= MAX_VALUE_OPTIONS) break;
         if (!o || typeof o !== 'object') continue;
         const option = o as Record<string, unknown>;
-        if (typeof option.value !== 'string') continue;
-        sanitized.push({ value: option.value, label: asShortString(option.label) });
+        const value = asBoundedValue(option.value);
+        if (value === undefined) continue;
+        sanitized.push({ value, label: asShortString(option.label) });
       }
       valueOptions = sanitized.length > 0 ? sanitized : undefined;
     }
@@ -77,7 +90,7 @@ export function sanitizeDescriptors(raw: unknown, limit: number = SEARCH_LIMIT):
       valueType: valueType === 'enum' && !valueOptions ? 'string' : valueType,
       valueOptions,
       unit: asShortString(candidate.unit),
-      currentValue: typeof candidate.currentValue === 'string' ? candidate.currentValue : undefined,
+      currentValue: asBoundedValue(candidate.currentValue),
     });
   }
   return out;

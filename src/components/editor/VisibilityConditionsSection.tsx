@@ -9,12 +9,19 @@ import ConditionTreeEditor from './ConditionTreeEditor';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import { useEditorSharedState, type SharedStateSource } from '@/hooks/useEditorSharedState';
+import { useConditionClock } from '@/hooks/useConditionClock';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { pluginHasStateKeySearch } from '@/lib/state-key-search';
 import { validateModuleVisibility } from '@/lib/display-filter';
 import { explainVisibility } from '@/lib/condition-verdicts';
+import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
+import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
+import type { LoadedPlugin } from '@/types/plugins';
 import type { ModuleInstance, ModuleVisibility, VisibilityCondition } from '@/types/config';
+
+/** Stable empty map so an absent `plugins` prop doesn't re-create one. */
+const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
 
 /**
  * The header-level answer to "why is this module shown/hidden right now?".
@@ -30,6 +37,9 @@ export function VisibilityOutcomeLine({
   states,
   reportedAt,
   source,
+  providerHealth,
+  plugins,
+  now,
   t,
 }: {
   visibility: ModuleVisibility;
@@ -40,6 +50,13 @@ export function VisibilityOutcomeLine({
   /** Where the live values came from — when 'editor' the values are real but
    *  no display is showing them, so the copy drops the "on the display" claim. */
   source?: SharedStateSource | null;
+  /** Unhealthy providers keyed by plugin id, to explain a missing key as an
+   *  outage instead of a bare "waiting". */
+  providerHealth?: Record<string, ProviderHealthEntry>;
+  /** Loaded plugins, for naming the unhealthy provider. */
+  plugins?: Map<string, LoadedPlugin>;
+  /** Wall clock for `time` conditions; defaults to now for time-free trees. */
+  now?: Date;
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
@@ -55,7 +72,7 @@ export function VisibilityOutcomeLine({
       </p>
     );
   }
-  const { visible, unknownKeys } = explainVisibility(visibility, states);
+  const { visible, unknownKeys } = explainVisibility(visibility, states, now ?? new Date());
   // '' is a condition still being authored (no key picked yet) — call that
   // out as its own cause instead of rendering an empty key name.
   const missing = unknownKeys.filter((k) => k !== '');
@@ -70,9 +87,17 @@ export function VisibilityOutcomeLine({
   if (unknownKeys.length > 0) {
     // A missing key can coexist with an unpicked one; the named keys are the
     // actionable half, so they win the single-cause slot.
-    cause = missing.length > 0
-      ? t('visibilityConditions.outcome.waitingForKeys', { keys: missing.join(', ') })
-      : t('visibilityConditions.outcome.keyNotPicked');
+    if (missing.length > 0) {
+      cause = t('visibilityConditions.outcome.waitingForKeys', { keys: missing.join(', ') });
+      // If a missing key's plugin is down, that's the real reason it's waiting;
+      // otherwise point the user at the inspector to see every live value.
+      const note = unhealthyNoteForKeys(missing, providerHealth ?? {}, plugins ?? EMPTY_PLUGINS);
+      cause += ' · ' + (note
+        ? t('visibilityConditions.providerHealthNote', { plugin: note.pluginName, message: note.message })
+        : t('visibilityConditions.outcome.seeLiveValues'));
+    } else {
+      cause = t('visibilityConditions.outcome.keyNotPicked');
+    }
   } else if (!visible) {
     cause = t('visibilityConditions.outcome.conditionsNotMet');
   }
@@ -114,6 +139,10 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
 
   const visibility = mod.visibility;
   const enabled = !!visibility;
+
+  // Ticking wall clock (display timezone) so a `time` condition's verdict and
+  // outcome line stay live; only ticks when the tree has a time condition.
+  const now = useConditionClock(visibility?.conditions ?? [], config?.settings.timezone);
 
   // Mirrors exactly what the config write gate will reject — a safety net on
   // top of the per-field checks, so nothing unsaveable goes unexplained.
@@ -158,6 +187,9 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                   states={outcomeStates}
                   reportedAt={liveState.reportedAt}
                   source={liveState.source}
+                  providerHealth={liveState.providerHealth}
+                  plugins={plugins}
+                  now={now}
                   t={t}
                 />
               )}
@@ -172,6 +204,8 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                 onChange={setConditions}
                 options={providedKeys}
                 liveState={liveState}
+                plugins={plugins}
+                now={now}
                 t={t}
               />
               {visibility.conditions.length > 1 && (

@@ -40,10 +40,18 @@ describe('validateDisplayRules', () => {
     expect(validateDisplayRules([makeRule({ id: 'r' })], SCREENS, 'config')).toBeNull();
   });
 
-  it('accepts a wake action and a while-mode action without seconds', () => {
+  it('accepts wake/sleep actions and a while-mode action without seconds', () => {
     expect(validateDisplayRules([makeRule({ id: 'r', action: { kind: 'wake' } })], SCREENS, 'config')).toBeNull();
+    expect(validateDisplayRules([makeRule({ id: 'r', action: { kind: 'sleep' } })], SCREENS, 'config')).toBeNull();
     expect(validateDisplayRules(
       [makeRule({ id: 'r', action: { kind: 'showScreen', screenId: 'home', mode: 'while' } })],
+      SCREENS, 'config',
+    )).toBeNull();
+  });
+
+  it('accepts a time condition in a rule tree', () => {
+    expect(validateDisplayRules(
+      [makeRule({ id: 'r', when: [{ kind: 'time', startTime: '07:00', endTime: '21:00' }] })],
       SCREENS, 'config',
     )).toBeNull();
   });

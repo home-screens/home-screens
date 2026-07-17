@@ -23,9 +23,24 @@ export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
  */
 export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date): boolean {
   if (!schedule) return true;
+  const inWindow = matchesTimeWindow(schedule.daysOfWeek, schedule.startTime, schedule.endTime, now);
+  return schedule.invert ? !inWindow : inWindow;
+}
 
-  const { daysOfWeek, startTime, endTime, invert } = schedule;
-
+/**
+ * Core day/time-window match shared by module schedules (`isModuleVisible`)
+ * and `time` visibility conditions, so the two can never disagree about
+ * overnight windows or which day a post-midnight instant belongs to. No
+ * `invert` — that is a schedule-only concept; the condition tree negates with
+ * a `not` group. `now` must already be shifted to the display's timezone
+ * (callers use `useTZClock` / `createTZDate`).
+ */
+export function matchesTimeWindow(
+  daysOfWeek: number[] | undefined,
+  startTime: string | undefined,
+  endTime: string | undefined,
+  now: Date,
+): boolean {
   const start = parseTime(startTime) ?? 0;
   const end = parseTime(endTime) ?? 24 * 60;
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -40,8 +55,7 @@ export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date)
   const dayMatch = !daysOfWeek || daysOfWeek.length === 0 || daysOfWeek.includes(relevantDay);
   const timeMatch = isInTimeWindow(start, end, nowMinutes);
 
-  const inWindow = dayMatch && timeMatch;
-  return invert ? !inWindow : inWindow;
+  return dayMatch && timeMatch;
 }
 
 /**
@@ -59,6 +73,7 @@ export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date)
 export function evaluateVisibility(
   visibility: ModuleVisibility | undefined,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): boolean {
   if (!visibility || visibility.conditions.length === 0) return true;
 
@@ -66,7 +81,7 @@ export function evaluateVisibility(
     return (visibility.whenUnknown ?? 'hide') === 'show';
   }
 
-  return visibility.conditions.every((c) => evaluateCondition(c, states));
+  return visibility.conditions.every((c) => evaluateCondition(c, states, now));
 }
 
 function hasUnknownKey(
@@ -76,6 +91,10 @@ function hasUnknownKey(
   for (const c of conditions) {
     if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') {
       if (hasUnknownKey(c.conditions, states)) return true;
+    } else if (c.kind === 'time') {
+      // A time condition has no shared-state key — it is always decidable
+      // from the clock, never unknown, so it can't trip whenUnknown.
+      continue;
     } else if (!states.has(c.sourceKey)) {
       return true;
     }
@@ -86,6 +105,7 @@ function hasUnknownKey(
 function evaluateCondition(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date,
 ): boolean {
   switch (condition.kind) {
     case 'state': {
@@ -103,13 +123,15 @@ function evaluateCondition(
       if (condition.below !== undefined && !(num < condition.below)) return false;
       return true;
     }
+    case 'time':
+      return matchesTimeWindow(condition.daysOfWeek, condition.startTime, condition.endTime, now);
     case 'and':
-      return condition.conditions.every((c) => evaluateCondition(c, states));
+      return condition.conditions.every((c) => evaluateCondition(c, states, now));
     case 'or':
-      return condition.conditions.some((c) => evaluateCondition(c, states));
+      return condition.conditions.some((c) => evaluateCondition(c, states, now));
     case 'not':
       // HA semantics: `not` is true when NONE of its conditions are met.
-      return !condition.conditions.some((c) => evaluateCondition(c, states));
+      return !condition.conditions.some((c) => evaluateCondition(c, states, now));
   }
 }
 
@@ -128,10 +150,11 @@ function evaluateCondition(
 export function evaluateConditionsTri(
   conditions: VisibilityCondition[],
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date = new Date(),
 ): boolean | undefined {
   let unknown = false;
   for (const c of conditions) {
-    const v = evaluateConditionTri(c, states);
+    const v = evaluateConditionTri(c, states, now);
     if (v === false) return false;
     if (v === undefined) unknown = true;
   }
@@ -141,6 +164,7 @@ export function evaluateConditionsTri(
 function evaluateConditionTri(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
+  now: Date,
 ): boolean | undefined {
   switch (condition.kind) {
     case 'state':
@@ -148,13 +172,16 @@ function evaluateConditionTri(
       // Unpublished (or still-blank) keys are unknown, never plain false —
       // `not`/`or` must not launder an unknown into a definite value.
       if (!states.has(condition.sourceKey)) return undefined;
-      return evaluateCondition(condition, states);
+      return evaluateCondition(condition, states, now);
+    case 'time':
+      // Always decidable from the clock — a definite boolean, never unknown.
+      return evaluateCondition(condition, states, now);
     case 'and':
-      return evaluateConditionsTri(condition.conditions, states);
+      return evaluateConditionsTri(condition.conditions, states, now);
     case 'or': {
       let unknown = false;
       for (const c of condition.conditions) {
-        const v = evaluateConditionTri(c, states);
+        const v = evaluateConditionTri(c, states, now);
         if (v === true) return true;
         if (v === undefined) unknown = true;
       }
@@ -165,7 +192,7 @@ function evaluateConditionTri(
       // one met → definitively false; any unknown → could be met → unknown.
       let unknown = false;
       for (const c of condition.conditions) {
-        const v = evaluateConditionTri(c, states);
+        const v = evaluateConditionTri(c, states, now);
         if (v === true) return false;
         if (v === undefined) unknown = true;
       }
@@ -184,8 +211,25 @@ function evaluateConditionTri(
 export function collectSourceKeys(conditions: VisibilityCondition[], into: Set<string>): void {
   for (const c of conditions) {
     if (c.kind === 'and' || c.kind === 'or' || c.kind === 'not') collectSourceKeys(c.conditions, into);
+    else if (c.kind === 'time') continue; // no shared-state key to demand
     else into.add(c.sourceKey);
   }
+}
+
+/**
+ * True when any condition in the tree is a `time` condition. Callers use this
+ * to arm a wall-clock re-evaluation tick (the display re-runs condition
+ * evaluation on shared-state changes only; a time boundary crossing has no
+ * state change behind it). Cheap enough to run per render.
+ */
+export function containsTimeCondition(conditions: VisibilityCondition[]): boolean {
+  for (const c of conditions) {
+    if (c.kind === 'time') return true;
+    if ((c.kind === 'and' || c.kind === 'or' || c.kind === 'not') && containsTimeCondition(c.conditions)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

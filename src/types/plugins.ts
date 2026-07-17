@@ -279,6 +279,13 @@ export interface StateKeyDescriptor {
  * fans out) and must tolerate being called with an empty query (return the
  * most useful `limit` keys). Errors/timeouts degrade to the static
  * suggestions path, so throwing is safe but wasteful.
+ *
+ * FULL-KEY RESOLUTION IS PART OF THE CONTRACT: the host also calls this with
+ * a complete prefixed bus key (`plugin:<id>:<rest>`) as the query to resolve
+ * a committed condition back to its descriptor (`useStateKeySearch`'s
+ * lookupDescriptor). Implementations must match on the bus key itself, not
+ * just friendly labels — a label-only fuzzy matcher silently costs users the
+ * enum value select and unit hints on every saved condition.
  */
 export type SearchStateKeys = (
   query: string,
@@ -291,6 +298,14 @@ export type SearchStateKeys = (
  * to `publishState`. See the `exports.stateProvider` typedoc for the full
  * contract: clear keys that drop out of `demandedKeys`, and stay idle (no
  * polling, no open connections) while the array is empty.
+ *
+ * BOUNDARY: a provider only receives plugin-level `settings`, never module
+ * instance config. Plugins whose keys can only be resolved from per-module
+ * config (each instance names its own endpoint or dataset) cannot implement
+ * this contract — that category should keep using `backgroundProvider`
+ * instances plus `deriveProvidedKeys(config)`, which remain fully supported.
+ * Do not contort the key grammar to smuggle per-module config through
+ * `demandedKeys`.
  */
 export interface StateProviderProps {
   /** Deduped, sorted, referentially stable across renders when unchanged.

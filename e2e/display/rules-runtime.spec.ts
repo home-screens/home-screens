@@ -214,6 +214,42 @@ test('a takeover surfaces on a sleeping display and sleep resumes when it releas
   await expect.poll(overlayOpacity, { timeout: 30_000, intervals: [500] }).toBeGreaterThan(0.98);
 });
 
+test('a sleep rule puts the display to sleep on a fresh edge (no schedule involved)', async ({ page, request }) => {
+  test.setTimeout(60_000);
+  const config = rulesConfig([
+    doorbellRule({ id: 'nightfall', name: 'Nightfall', action: { kind: 'sleep' } }),
+  ]);
+  // Sleep must be enabled for the overlay to render, but with no schedule and
+  // huge idle timeouts nothing sleeps the display except the rule itself.
+  config.settings.sleep = {
+    enabled: true,
+    dimAfterMinutes: 600,
+    sleepAfterMinutes: 600,
+    dimBrightness: 40,
+  };
+  await renderOnDisplay(page, request, config);
+  await expect(page.getByText('HOME ANCHOR')).toBeVisible();
+  await waitForSdk(page);
+
+  const overlayOpacity = async () => {
+    const layer = page.locator('div[style*="z-index: 9997"] > div').first();
+    if ((await layer.count()) === 0) return 0;
+    return Number.parseFloat(await layer.evaluate((el) => getComputedStyle(el).opacity));
+  };
+  // Awake to start — the overlay is transparent.
+  await expect.poll(overlayOpacity, { timeout: 5_000, intervals: [250] }).toBeLessThan(0.02);
+
+  // The edge fires the sleep rule: the display blacks out exactly like the
+  // remote sleep command (a `sleep` action creates no takeover).
+  await publishState(page, 'ring', 'off');
+  await publishState(page, 'ring', 'on');
+  await expect.poll(overlayOpacity, { timeout: 10_000, intervals: [250] }).toBeGreaterThan(0.98);
+
+  // The rotation screen is untouched underneath the opaque overlay — sleep did
+  // not pin a takeover, so home is still the rendered screen.
+  await expect(page.getByText('HOME ANCHOR')).toBeVisible();
+});
+
 test('the status heartbeat names the takeover screen while a rule is firing', async ({ page, request }) => {
   const config = baseConfig({
     displays: [{

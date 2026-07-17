@@ -13,6 +13,7 @@ import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/sche
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { resolveProvider } from '@/components/display/ScreenRenderer';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
+import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
 import { buildModuleShadow } from '@/lib/module-style';
 import type { PreviewData } from './usePreviewData';
@@ -107,6 +108,7 @@ export default function DraggableModule({
   settings,
   now,
   verdictStates,
+  source,
 }: {
   mod: ModuleInstance;
   scale: number;
@@ -119,6 +121,9 @@ export default function DraggableModule({
   /** Fresh shared-state snapshot from the selected display, or null when the
    *  display hasn't reported recently — the condition badge stays neutral. */
   verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
+  /** Where the live values came from — an 'editor' source drops the "on the
+   *  display" claim from the met/unmet badge tooltip. */
+  source?: SharedStateSource | null;
 }) {
   const t = useTranslate('editor');
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -177,9 +182,9 @@ export default function DraggableModule({
               : 'bg-slate-600/70 text-slate-200',
         title:
           verdict === 'met'
-            ? t('draggableModule.conditionMetTitle')
+            ? t(source === 'editor' ? 'draggableModule.conditionMetTitleEditor' : 'draggableModule.conditionMetTitle')
             : verdict === 'unmet'
-              ? t('draggableModule.conditionUnmetTitle')
+              ? t(source === 'editor' ? 'draggableModule.conditionUnmetTitleEditor' : 'draggableModule.conditionUnmetTitle')
               : t('draggableModule.conditionGatedTitle'),
         icon: verdict === 'unmet' ? EyeOff : Eye,
       });

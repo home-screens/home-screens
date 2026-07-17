@@ -1252,6 +1252,23 @@ describe('validateModuleVisibility', () => {
     expect(validateModuleVisibility({ conditions: leaves }, CTX)).toMatch(/too many/);
   });
 
+  it('accepts a well-formed time condition (no sourceKey needed)', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'time', startTime: '07:00', endTime: '21:00', daysOfWeek: [1, 2, 3, 4, 5] }],
+    }, CTX)).toBeNull();
+    // All fields absent = always true, still valid.
+    expect(validateModuleVisibility({ conditions: [{ kind: 'time' }] }, CTX)).toBeNull();
+  });
+
+  it('rejects a malformed time condition (bad HH:MM and out-of-range day)', () => {
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'time', startTime: '7am' } as unknown as VisibilityCondition],
+    }, CTX)).toMatch(/HH:MM/);
+    expect(validateModuleVisibility({
+      conditions: [{ kind: 'time', daysOfWeek: [9] } as unknown as VisibilityCondition],
+    }, CTX)).toMatch(/daysOfWeek/);
+  });
+
   it('is enforced by validateAllSchedules for both config surfaces', () => {
     const badVisibility = { conditions: [{ kind: 'state', sourceKey: '!!', equals: 'x' }] };
 

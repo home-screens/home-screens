@@ -86,7 +86,9 @@
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
     "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen",
     "conditionMetTitle": "Betingelser opfyldt — vises på skærmen nu",
-    "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu"
+    "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu",
+    "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
+    "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -229,7 +231,7 @@
         "network": "Network",
         "profiles": "Profiles",
         "rules": "Regler",
-        "sharedState": "Delte værdier",
+        "sharedState": "Live-værdier",
         "security": "Security",
         "stats": "Stats",
         "system": "System",
@@ -1150,6 +1152,7 @@
         "actionKindLabel": "Handling",
         "actionShowScreen": "Vis en skærm",
         "actionWake": "Væk displayet",
+        "wakeSleepHint": "Hvis displayet sover efter en tidsplan, vækker dette det og holder det vågent i 5 minutter, hvorefter det går i dvale igen.",
         "screenLabel": "Skærm",
         "screenNoneOption": "Vælg en skærm…",
         "screenDisabledSuffix": "(slået fra)",
@@ -1159,7 +1162,13 @@
         "modeFor": "I et fast tidsrum",
         "secondsLabel": "Sekunder",
         "cooldownLabel": "Ventetid (sekunder)",
-        "cooldownHelp": "Når reglen er udløst, venter den så mange sekunder, før den kan udløses igen. Lad feltet stå tomt for ingen ventetid."
+        "cooldownHelp": "Når reglen er udløst, venter den så mange sekunder, før den kan udløses igen. Lad feltet stå tomt for ingen ventetid.",
+        "actionSleep": "Sæt displayet i dvale",
+        "sleepHint": "Slukker skærmen, ligesom dvaleknappen. Et tryk eller vækkeplanen tænder den igen.",
+        "copyToDisplayLabel": "Kopiér til et andet display",
+        "copyToDisplayPlaceholder": "Vælg et display…",
+        "copyToDisplayHelp": "Kopierer denne regel til et andet display. Du skal vælge den skærm, den viser der.",
+        "copiedNotice": "Kopieret til {name}."
       },
       "deleteDialog": {
         "title": "Slet regel",
@@ -1185,7 +1194,8 @@
       "referencedByLabel": "Bruges af",
       "ruleRefLabel": "Regel: {name}",
       "builtInProducer": "Indbygget",
-      "producerLabel": "Fra {producer}"
+      "producerLabel": "Fra {producer}",
+      "providerHealthSince": "siden {time}"
     },
     "securityPage": {
       "loading": "Checking authentication status…",
@@ -3200,7 +3210,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Vis kun, når betingelserne passer",
-    "enableHelp": "Vis eller skjul dette modul baseret på værdier udgivet af baggrundsmoduler (f.eks. en Home Assistant-sensor).",
+    "enableHelp": "Vis eller skjul dette modul ud fra live-værdier fra forbundne tjenester (f.eks. en Home Assistant-sensor).",
     "conditionsTitle": "Betingelser",
     "allMustMatchHint": "Alle betingelser skal passe, for at modulet vises.",
     "addCondition": "Tilføj betingelse",
@@ -3211,12 +3221,13 @@
       "numeric": "Tal er i intervallet",
       "and": "Alle…",
       "or": "Enhver…",
-      "not": "Ingen af…"
+      "not": "Ingen af…",
+      "time": "Tidspunkt på dagen"
     },
-    "sourceKeyLabel": "Tilstandsnøgle",
-    "sourceKeyHint": "Søg på navnet for at finde en nøgle, eller indtast selv en. Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
+    "sourceKeyLabel": "Hvad der tjekkes",
+    "sourceKeyHint": "Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
     "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Søg sensorer, lys og mere…",
     "matchLabel": "Match",
     "matchEquals": "Er",
     "matchNotEquals": "Er ikke",
@@ -3233,7 +3244,7 @@
     "whenUnknownLabel": "Mens datakilden endnu ikke har rapporteret",
     "whenUnknownHide": "Skjul modulet",
     "whenUnknownShow": "Vis modulet",
-    "noProvidersHint": "Der er endnu ingen tilstandsnøgler at vælge imellem. Nøgler kommer fra plugins, der deler værdier (for eksempel Home Assistant). Værdier deles kun inden for denne skærms browserfane. Du kan også selv indtaste en nøgle.",
+    "noProvidersHint": "Der er endnu ingen tilstandsnøgler at vælge imellem. Nøgler kommer fra plugins, der deler værdier (for eksempel Home Assistant). Du kan også selv indtaste en nøgle.",
     "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
@@ -3246,7 +3257,9 @@
       "unknown": "Venter",
       "metTitle": "Denne betingelse passer på skærmen lige nu.",
       "unmetTitle": "Denne betingelse passer ikke på skærmen lige nu.",
-      "unknownTitle": "En nøgle i denne betingelse er endnu ikke udgivet."
+      "unknownTitle": "En nøgle i denne betingelse er endnu ikke udgivet.",
+      "metTitleEditor": "Denne betingelse passer lige nu.",
+      "unmetTitleEditor": "Denne betingelse passer ikke lige nu."
     },
     "outcome": {
       "noLiveData": "Skærmen har ikke rapporteret for nylig, så live-resultater vises ikke.",
@@ -3257,7 +3270,15 @@
       "hiddenNowEditor": "Ville blive skjult lige nu",
       "waitingForKeys": "venter på {keys}",
       "keyNotPicked": "en betingelse mangler stadig en nøgle",
-      "conditionsNotMet": "betingelserne passer ikke"
-    }
+      "conditionsNotMet": "betingelserne passer ikke",
+      "seeLiveValues": "Du kan se alle live-værdier under Indstillinger → Live-værdier."
+    },
+    "time": {
+      "daysLabel": "Dage",
+      "fromLabel": "Fra",
+      "untilLabel": "Til",
+      "hint": "Lad begge tider stå tomme for hele dagen. Er sluttidspunktet tidligere end starten, går det over midnat (fx 22:00 til 06:00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

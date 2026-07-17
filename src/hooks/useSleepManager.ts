@@ -7,6 +7,13 @@ import { createTZDate } from '@/lib/timezone';
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
 /**
+ * How long a rule-initiated wake holds the display awake against a scheduled
+ * sleep window before the schedule takes back over. Touch/remote wakes get no
+ * such hold — they are re-slept by the next 10s tick, unchanged.
+ */
+export const RULE_WAKE_HOLD_MS = 5 * 60_000;
+
+/**
  * Checks whether the current time falls within a schedule window.
  * Handles overnight windows (e.g., 23:00–06:00) correctly.
  *
@@ -35,7 +42,12 @@ export function isInScheduleWindow(
 interface UseSleepManagerResult {
   displayState: DisplayState;
   dimOpacity: number;
-  wake: () => void;
+  /**
+   * Wake the display. `holdMs` keeps it awake through a scheduled sleep window
+   * for that long before the schedule re-asserts — used only by the rule
+   * `wake` action; a plain `wake()` (touch/remote) sets no hold.
+   */
+  wake: (options?: { holdMs?: number }) => void;
   forceSleep: () => void;
   setRemoteBrightness: (value: number) => void;
 }
@@ -55,10 +67,16 @@ export function useSleepManager(
   const lastActivityRef = useRef(Date.now());
   const wasDimScheduleRef = useRef(false);
   const wasSleepScheduleRef = useRef(false);
+  // Absolute timestamp until which a rule-initiated wake holds the display
+  // awake against the sleep schedule. 0 means no hold (the default path).
+  const ruleWakeHoldUntilRef = useRef(0);
   const enabled = sleep?.enabled ?? false;
 
-  const wake = useCallback(() => {
+  const wake = useCallback((options?: { holdMs?: number }) => {
     lastActivityRef.current = Date.now();
+    if (options?.holdMs) {
+      ruleWakeHoldUntilRef.current = Date.now() + options.holdMs;
+    }
     setBrightnessOverride(null);
     setDisplayState('active');
   }, []);
@@ -138,6 +156,9 @@ export function useSleepManager(
       // Fixed sleep schedule takes highest priority — force asleep during window
       // Clear brightness override so remote brightness can't prevent full blackout
       if (inSleepWindow) {
+        // A rule-initiated wake holds the display awake through the window for
+        // RULE_WAKE_HOLD_MS; the schedule re-asserts once the hold expires.
+        if (Date.now() < ruleWakeHoldUntilRef.current) return;
         setBrightnessOverride(null);
         setDisplayState('asleep');
         return;

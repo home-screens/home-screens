@@ -88,6 +88,22 @@ export interface ModuleSchedule {
 export type VisibilityCondition =
   | { kind: 'state'; sourceKey: string; equals?: string | string[]; notEquals?: string | string[] }
   | { kind: 'numeric'; sourceKey: string; above?: number; below?: number }
+  | {
+      /**
+       * Local time-of-day / day-of-week gate — no shared-state key, so it fences
+       * a condition tree (or a rule) by the clock ("doorbell takeover only
+       * 07:00–21:00"). Fields mirror `ModuleSchedule` exactly (same HH:MM format,
+       * same 0=Sun day numbering, same overnight-window semantics where
+       * start > end wraps past midnight). Evaluated against the display's
+       * configured timezone, like every other schedule. All fields absent means
+       * "always true". Never evaluates to unknown, so it does not trip
+       * `whenUnknown`.
+       */
+      kind: 'time';
+      daysOfWeek?: number[];    // 0=Sun … 6=Sat (omit / empty = every day)
+      startTime?: string;       // "07:00" (omit = from midnight)
+      endTime?: string;         // "21:00" (omit = until midnight)
+    }
   | { kind: 'and'; conditions: VisibilityCondition[] }
   | { kind: 'or'; conditions: VisibilityCondition[] }
   | { kind: 'not'; conditions: VisibilityCondition[] };
@@ -317,7 +333,8 @@ export type RuleAction =
       /** Required when mode === 'for'. */
       seconds?: number;
     }
-  | { kind: 'wake' }; // wake from sleep; no-op if awake
+  | { kind: 'wake' } // wake from sleep; no-op if awake
+  | { kind: 'sleep' }; // put the display to sleep, exactly like the remote sleep command; ends any active takeover
 
 /**
  * A condition → action rule owned by a display. Rules reuse the visibility

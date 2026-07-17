@@ -8,6 +8,7 @@ import {
   createRuleEngineState,
   evaluateRuleCondition,
   releaseTakeover,
+  rulesContainTimeCondition,
   takeoverDeadline,
   type RuleEngineState,
 } from '@/lib/display-rules';
@@ -90,6 +91,29 @@ describe('evaluateRuleCondition', () => {
     expect(evaluateRuleCondition(notRule, states({}))).toBe('unknown');
     expect(evaluateRuleCondition(notRule, states({ [KEY]: 'on' }))).toBe(false);
     expect(evaluateRuleCondition(notRule, states({ [KEY]: 'off' }))).toBe(true);
+  });
+});
+
+describe('a hand-edited rule missing `when`', () => {
+  // A config.json edited by hand can drop `when` entirely. Every engine
+  // function that reads it must treat a missing tree as the empty tree
+  // rather than dereferencing undefined and black-screening the kiosk.
+  const noWhen = { id: 'broken', name: 'broken', action: { kind: 'wake' } } as unknown as DisplayRule;
+
+  it('evaluates as false (never fires) instead of throwing', () => {
+    expect(evaluateRuleCondition(noWhen, states({ [KEY]: 'on' }))).toBe(false);
+  });
+
+  it('contributes no source keys and no time condition', () => {
+    expect(collectRuleSourceKeys([noWhen])).toEqual([]);
+    expect(rulesContainTimeCondition([noWhen])).toBe(false);
+  });
+
+  it('advances the engine without throwing and never fires', () => {
+    const booted = boot([noWhen], { [KEY]: 'on' });
+    const next = step(booted, [noWhen], { [KEY]: 'on' }, 1_000);
+    expect(next.wake).toBe(false);
+    expect(next.next.takeover).toBeNull();
   });
 });
 
@@ -425,6 +449,95 @@ describe('advanceRuleEngine — wake action', () => {
   });
 });
 
+describe('advanceRuleEngine — sleep action', () => {
+  it('signals sleep on a fresh edge and respects its own cooldown', () => {
+    const sleepRule = makeRule({ id: 'sleep', action: { kind: 'sleep' }, cooldownSeconds: 300 });
+    let state = boot([sleepRule], { [KEY]: 'off' });
+    const fired = step(state, [sleepRule], { [KEY]: 'on' }, 1_000);
+    expect(fired.sleep).toBe(true);
+    expect(fired.wake).toBe(false);
+    state = fired.next;
+
+    // Re-edge inside the cooldown is swallowed.
+    state = step(state, [sleepRule], { [KEY]: 'off' }, 10_000).next;
+    const again = step(state, [sleepRule], { [KEY]: 'on' }, 20_000);
+    expect(again.sleep).toBe(false);
+  });
+
+  it('ends an active takeover when a sleep rule fires (sleep wins)', () => {
+    const show = makeRule({ id: 'show' }); // for-mode 60s on KEY
+    const sleepRule = makeRule({
+      id: 'sleep',
+      when: [{ kind: 'state', sourceKey: KEY2, equals: 'on' }],
+      action: { kind: 'sleep' },
+    });
+    let state = boot([show, sleepRule], { [KEY]: 'off', [KEY2]: 'off' });
+    // showScreen takes over first.
+    state = step(state, [show, sleepRule], { [KEY]: 'on', [KEY2]: 'off' }, 1_000).next;
+    expect(state.takeover?.ruleId).toBe('show');
+
+    // Sleep edge lands mid-takeover — the takeover is released so the display
+    // genuinely blacks out, never a sleep overlay over a live takeover render.
+    const result = step(state, [show, sleepRule], { [KEY]: 'on', [KEY2]: 'on' }, 10_000);
+    expect(result.sleep).toBe(true);
+    expect(result.next.takeover).toBeNull();
+  });
+
+  it('wins regardless of rule order, even when a showScreen edges in the same advance', () => {
+    // sleep rule listed AFTER the showScreen rule; both edge true this advance.
+    const show = makeRule({
+      id: 'show',
+      when: [{ kind: 'state', sourceKey: KEY, equals: 'on' }],
+      action: { kind: 'showScreen', screenId: 'cameras', mode: 'while' },
+    });
+    const sleepRule = makeRule({
+      id: 'sleep',
+      when: [{ kind: 'state', sourceKey: KEY2, equals: 'on' }],
+      action: { kind: 'sleep' },
+    });
+    const state = boot([show, sleepRule], { [KEY]: 'off', [KEY2]: 'off' });
+    const result = step(state, [show, sleepRule], { [KEY]: 'on', [KEY2]: 'on' }, 1_000);
+    expect(result.sleep).toBe(true);
+    expect(result.next.takeover).toBeNull();
+  });
+});
+
+describe('advanceRuleEngine — time conditions', () => {
+  const at = (day: number, h: number, m = 0) => new Date(2026, 2, 8 + day, h, m);
+
+  it('fences a rule by the wall clock via the nowDate argument', () => {
+    // Fires only when both the state edge AND the time window hold.
+    const rule = makeRule({
+      id: 'daytime',
+      when: [
+        { kind: 'state', sourceKey: KEY, equals: 'on' },
+        { kind: 'time', startTime: '07:00', endTime: '21:00' },
+      ],
+      action: { kind: 'showScreen', screenId: 'cameras', mode: 'for', seconds: 5 },
+    });
+    // Boot at night with the state off.
+    let state = advanceRuleEngine(
+      createRuleEngineState(), [rule], states({ [KEY]: 'off' }), SCREENS, 0, at(1, 2)).next;
+
+    // Edge to on, but still night → the time condition blocks the fire.
+    const night = advanceRuleEngine(state, [rule], states({ [KEY]: 'on' }), SCREENS, 1_000, at(1, 2));
+    expect(night.next.takeover).toBeNull();
+    state = night.next;
+
+    // Same on-state, now daytime (a pure clock tick, no state change) → fires.
+    const day = advanceRuleEngine(state, [rule], states({ [KEY]: 'on' }), SCREENS, 60_000, at(1, 12));
+    expect(day.next.takeover?.ruleId).toBe('daytime');
+  });
+
+  it('rulesContainTimeCondition detects time conditions in enabled rules only', () => {
+    const timeRule = makeRule({ id: 't', when: [{ kind: 'time', startTime: '07:00' }] });
+    const stateRule = makeRule({ id: 's' });
+    expect(rulesContainTimeCondition([stateRule])).toBe(false);
+    expect(rulesContainTimeCondition([timeRule])).toBe(true);
+    expect(rulesContainTimeCondition([{ ...timeRule, enabled: false }])).toBe(false);
+  });
+});
+
 describe('takeover lifecycle — deletion and manual release', () => {
   it('releases immediately when the target screen disappears mid-takeover', () => {
     const rule = makeRule({ id: 'r', action: { kind: 'showScreen', screenId: 'cameras', mode: 'while' } });
@@ -497,6 +610,85 @@ describe('takeover lifecycle — deletion and manual release', () => {
     state = step(state, [rule], { [KEY]: 'off' }, 61_000).next;
     state = step(state, [rule], { [KEY]: 'on' }, 62_000).next;
     expect(state.takeover).not.toBeNull();
+  });
+
+  it('manual release disarms a second rule waiting behind the takeover', () => {
+    const doorbell = makeRule({ id: 'doorbell', action: { kind: 'showScreen', screenId: 'cameras', mode: 'while' } });
+    const smoke = makeRule({
+      id: 'smoke',
+      when: [{ kind: 'state', sourceKey: KEY2, equals: 'on' }],
+      action: { kind: 'showScreen', screenId: 'security', mode: 'while' },
+    });
+    let state = boot([doorbell, smoke], { [KEY]: 'off', [KEY2]: 'off' });
+    // Doorbell fires and holds.
+    state = step(state, [doorbell, smoke], { [KEY]: 'on', [KEY2]: 'off' }, 1_000).next;
+    expect(state.takeover?.ruleId).toBe('doorbell');
+    // Smoke edges true mid-takeover — armed but blocked.
+    state = step(state, [doorbell, smoke], { [KEY]: 'on', [KEY2]: 'on' }, 2_000).next;
+    expect(state.takeover?.ruleId).toBe('doorbell');
+    expect(state.armed.has('smoke')).toBe(true);
+
+    // Human navigates: manual release clears the takeover AND the armed smoke,
+    // so the display doesn't reassert against the person on the next advance.
+    state = releaseTakeover(state);
+    expect(state.takeover).toBeNull();
+    expect(state.armed.has('smoke')).toBe(false);
+
+    // Smoke still true → does NOT re-take the display.
+    state = step(state, [doorbell, smoke], { [KEY]: 'on', [KEY2]: 'on' }, 3_000).next;
+    expect(state.takeover).toBeNull();
+
+    // A genuinely new event (smoke goes false then true) re-fires on its own edge.
+    state = step(state, [doorbell, smoke], { [KEY]: 'on', [KEY2]: 'off' }, 4_000).next;
+    state = step(state, [doorbell, smoke], { [KEY]: 'on', [KEY2]: 'on' }, 5_000).next;
+    expect(state.takeover?.ruleId).toBe('smoke');
+  });
+});
+
+describe('advanceRuleEngine — condition content edits', () => {
+  it('does not fire when a blank rule\'s condition is edited into an already-true state', () => {
+    const blank = makeRule({ id: 'r', when: [] });
+    // Baseline: empty when evaluates false, even though the key is already on.
+    let state = boot([blank], { [KEY]: 'on' });
+    // The user picks a key+value the entity is currently in; autosave streams
+    // the edited rule to the display. The content changed, so this is a
+    // re-baseline, not a false->true edge.
+    const edited = makeRule({ id: 'r', when: [{ kind: 'state', sourceKey: KEY, equals: 'on' }] });
+    state = step(state, [edited], { [KEY]: 'on' }, 1_000).next;
+    expect(state.takeover).toBeNull();
+  });
+
+  it('fires a genuine false->true edge after the condition was edited into a true state', () => {
+    const blank = makeRule({ id: 'r', when: [] });
+    let state = boot([blank], { [KEY]: 'on' });
+    const edited = makeRule({ id: 'r', when: [{ kind: 'state', sourceKey: KEY, equals: 'on' }] });
+    state = step(state, [edited], { [KEY]: 'on' }, 1_000).next; // re-baseline
+    expect(state.takeover).toBeNull();
+
+    // With the condition now settled, a real edge on the same (unchanged) rule fires.
+    state = step(state, [edited], { [KEY]: 'off' }, 2_000).next;
+    state = step(state, [edited], { [KEY]: 'on' }, 3_000).next;
+    expect(state.takeover).not.toBeNull();
+  });
+
+  it('does not fire when a rule\'s condition is edited from one true state to another', () => {
+    const original = makeRule({ id: 'r', when: [{ kind: 'state', sourceKey: KEY, equals: 'on' }] });
+    let state = boot([original], { [KEY]: 'on' }); // true baseline
+    // Edit the match to a different value the key is currently in — still true.
+    const edited = makeRule({ id: 'r', when: [{ kind: 'state', sourceKey: KEY, equals: 'active' }] });
+    state = step(state, [edited], { [KEY]: 'active' }, 1_000).next;
+    expect(state.takeover).toBeNull();
+  });
+
+  it('re-baselines a rule whose condition edit lands on an unknown->true (edited key never published)', () => {
+    // The edited condition references a key that is not in the snapshot: the
+    // tree is unknown at the edit advance, then the key publishes true. Because
+    // the content changed, the edit advance re-baselines rather than arming.
+    const blank = makeRule({ id: 'r', when: [] });
+    let state = boot([blank], {});
+    const edited = makeRule({ id: 'r', when: [{ kind: 'state', sourceKey: KEY2, equals: 'on' }] });
+    state = step(state, [edited], { [KEY2]: 'on' }, 1_000).next;
+    expect(state.takeover).toBeNull();
   });
 });
 
