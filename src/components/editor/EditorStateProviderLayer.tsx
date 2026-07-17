@@ -1,9 +1,44 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useEditorStore, getActiveScreens, getActiveRules } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import PluginServiceLayer from '@/components/display/PluginServiceLayer';
+
+/** How long the tab must stay hidden before providers are unmounted. */
+const HIDDEN_GRACE_MS = 60_000;
+
+/**
+ * True once the document has been hidden for HIDDEN_GRACE_MS straight.
+ * Provider poll loops share the per-plugin proxy rate budget with real
+ * displays (240/min for localNetwork plugins), so a forgotten background
+ * editor tab must not spend it forever — but a quick tab switch shouldn't
+ * cold-start every provider either, hence the grace window. Values cleared
+ * during the hidden stretch sit behind the tombstone grace and repopulate
+ * within a poll cycle of the tab becoming visible again.
+ */
+function useHiddenLongEnough(): boolean {
+  const [hiddenLongEnough, setHiddenLongEnough] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onChange = () => {
+      if (document.hidden) {
+        timer ??= setTimeout(() => setHiddenLongEnough(true), HIDDEN_GRACE_MS);
+      } else {
+        if (timer) clearTimeout(timer);
+        timer = undefined;
+        setHiddenLongEnough(false);
+      }
+    };
+    onChange();
+    document.addEventListener('visibilitychange', onChange);
+    return () => {
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onChange);
+    };
+  }, []);
+  return hiddenLongEnough;
+}
 
 /**
  * Mounts every plugin's `stateProvider` in the editor tab, fed by the DRAFT
@@ -47,6 +82,8 @@ export default function EditorStateProviderLayer() {
     [config, selectedDisplayId],
   );
 
-  if (!screens) return null;
+  const suspended = useHiddenLongEnough();
+
+  if (!screens || suspended) return null;
   return <PluginServiceLayer screens={screens} rules={rules} />;
 }

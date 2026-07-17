@@ -6,7 +6,7 @@
  * selected display, and render nothing until the config loads.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, act } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
@@ -153,5 +153,75 @@ describe('EditorStateProviderLayer', () => {
       });
     });
     expect(calls.at(-1)?.demandedKeys).toEqual(['sensor.temp']);
+  });
+});
+
+describe('EditorStateProviderLayer hidden-tab suspension', () => {
+  function setHidden(hidden: boolean) {
+    Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+  }
+
+  afterEach(() => {
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+  });
+
+  it('unmounts providers after the tab stays hidden past the grace window, remounts on return', () => {
+    vi.useFakeTimers();
+    try {
+      const calls = registerProviderPlugin('ha');
+      useEditorStore.setState({
+        config: makeConfig({
+          screens: [makeScreen('s1', [conditionedModule('plugin:ha:light.tv')])],
+        }),
+        selectedDisplayId: null,
+      });
+      const { container } = render(<EditorStateProviderLayer />);
+      expect(calls.length).toBeGreaterThan(0);
+
+      setHidden(true);
+      act(() => {
+        vi.advanceTimersByTime(59_000);
+      });
+      expect(container.innerHTML).not.toBe(''); // still within the grace window
+
+      act(() => {
+        vi.advanceTimersByTime(2_000);
+      });
+      expect(container.innerHTML).toBe(''); // providers unmounted
+
+      const before = calls.length;
+      setHidden(false);
+      expect(calls.length).toBeGreaterThan(before); // remounted immediately
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a quick tab switch inside the grace window never unmounts providers', () => {
+    vi.useFakeTimers();
+    try {
+      registerProviderPlugin('ha');
+      useEditorStore.setState({
+        config: makeConfig({
+          screens: [makeScreen('s1', [conditionedModule('plugin:ha:light.tv')])],
+        }),
+        selectedDisplayId: null,
+      });
+      const { container } = render(<EditorStateProviderLayer />);
+      setHidden(true);
+      act(() => {
+        vi.advanceTimersByTime(30_000);
+      });
+      setHidden(false);
+      act(() => {
+        vi.advanceTimersByTime(120_000);
+      });
+      expect(container.innerHTML).not.toBe('');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
