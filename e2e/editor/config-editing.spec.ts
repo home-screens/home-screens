@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { getConfig, putConfig } from '../helpers/api';
+import { getConfig, putConfig, seedDisplaySharedState } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
@@ -711,6 +711,30 @@ test('text: a {state} token with no producer warns and persists the content', as
 
   expect((await moduleConfig(request, 'text')).content).toBe('{plugin:foo:bar}');
   await expect(page.getByText('Nothing on this display publishes')).toBeVisible();
+});
+
+test('text: the token live preview resolves values (with filters) from the display snapshot', async ({ page, request }) => {
+  // The preview runs the display's reported bus snapshot through the same
+  // resolver as the Text module: round applies to the live value, default
+  // fills unpublished keys. The filter hint appears once tokens exist.
+  // Seeds a per-purpose display slot: the hub's in-memory shared-state slots
+  // have no reset seam, so seeding the legacy default slot would leak into
+  // later specs on this worker's shared server.
+  const DISPLAY = 'ce-token-preview';
+  const mod = buildModuleInstance('text', {
+    content: '{plugin:foo:temp|round:1} · {plugin:foo:gone|default:n/a}',
+  });
+  const config = baseConfig({ screens: [] });
+  config.displays = [{ id: DISPLAY, name: 'Preview', screens: [makeScreen('s1', 'S1', [mod])] }];
+  await putConfig(request, config);
+  await seedDisplaySharedState(request, { 'plugin:foo:temp': '72.53333' }, DISPLAY);
+
+  await page.goto(`/editor?display=${DISPLAY}`);
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator(`[data-module-id="${mod.id}"]`).click();
+
+  await expect(page.getByText('Add |round:1 to round numbers')).toBeVisible();
+  await expect(page.getByTestId('text-token-preview')).toContainText('72.5 · n/a', { timeout: 10_000 });
 });
 
 // ---- chore-chart ----

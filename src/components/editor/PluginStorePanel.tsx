@@ -5,6 +5,7 @@ import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, 
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
 import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
+import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -385,12 +386,18 @@ function InstalledTab({
     <div className="space-y-2">
       {installed.map((plugin) => {
         const error = errors.get(plugin.id);
-        // Plugin-level settings need the loaded manifest (settingsSchema is
-        // not in installed.json) — absent for disabled/broken plugins, which
-        // simply hides the settings affordance.
-        const settingsSchema = plugin.enabled
-          ? [...loadedPlugins.values()].find((lp) => lp.manifest.id === plugin.id)?.manifest.settingsSchema
+        // Plugin-level settings and secret declarations need the loaded
+        // manifest (neither is in installed.json) — absent for disabled or
+        // broken plugins, which simply hides the settings affordance.
+        const manifest = plugin.enabled
+          ? [...loadedPlugins.values()].find((lp) => lp.manifest.id === plugin.id)?.manifest
           : undefined;
+        const settingsSchema = manifest?.settingsSchema;
+        // Settings and secrets render as ONE block: to the user they are a
+        // single thing ("connect this plugin"), even though storage differs
+        // (installed.json vs plugin-secrets).
+        const declaredSecrets = manifest?.secrets ?? [];
+        const hasSettings = Boolean(settingsSchema) || declaredSecrets.length > 0;
         const settingsOpen = settingsOpenFor === plugin.id;
         return (
           <div key={plugin.id} className="rounded-lg border border-hs-border-strong bg-hs-hover">
@@ -412,7 +419,7 @@ function InstalledTab({
                 </div>
               )}
             </div>
-            {settingsSchema && (
+            {hasSettings && (
               <button
                 type="button"
                 onClick={() => setSettingsOpenFor(settingsOpen ? null : plugin.id)}
@@ -465,9 +472,14 @@ function InstalledTab({
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
-          {settingsSchema && settingsOpen && (
-            <div className="px-3 pb-3 pt-1 border-t border-hs-border-strong/50">
-              <PluginSettingsSection pluginId={plugin.id} schema={settingsSchema} />
+          {hasSettings && settingsOpen && (
+            <div className="px-3 pb-3 pt-1 border-t border-hs-border-strong/50 space-y-4">
+              {settingsSchema && (
+                <PluginSettingsSection pluginId={plugin.id} schema={settingsSchema} />
+              )}
+              {declaredSecrets.length > 0 && (
+                <PluginSecretsSection pluginId={plugin.id} secrets={declaredSecrets} />
+              )}
             </div>
           )}
           </div>

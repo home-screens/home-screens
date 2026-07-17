@@ -7,8 +7,8 @@ import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
 import ConditionTreeEditor from './ConditionTreeEditor';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
-import { useTranslate, type TranslateFn } from '@/i18n';
-import { useDisplaySharedState } from '@/hooks/useDisplaySharedState';
+import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
+import { useEditorSharedState, type SharedStateSource } from '@/hooks/useEditorSharedState';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { pluginHasStateKeySearch } from '@/lib/state-key-search';
 import { validateModuleVisibility } from '@/lib/display-filter';
@@ -28,16 +28,30 @@ import type { ModuleInstance, ModuleVisibility, VisibilityCondition } from '@/ty
 export function VisibilityOutcomeLine({
   visibility,
   states,
+  reportedAt,
+  source,
   t,
 }: {
   visibility: ModuleVisibility;
   states: ReadonlyMap<string, SharedStateEntry> | null;
+  /** When the display last reported — distinguishes "went offline" (say
+   *  since when) from "never reported at all" in the neutral line. */
+  reportedAt?: number | null;
+  /** Where the live values came from — when 'editor' the values are real but
+   *  no display is showing them, so the copy drops the "on the display" claim. */
+  source?: SharedStateSource | null;
   t: TranslateFn;
 }) {
+  const formattingLocale = useFormattingLocale();
   if (!states) {
+    const now = Date.now();
     return (
       <p className="text-[10px] text-hs-text-dim" data-visibility-outcome="offline">
-        {t('visibilityConditions.outcome.noLiveData')}
+        {typeof reportedAt === 'number'
+          ? t('visibilityConditions.outcome.offlineSince', {
+              time: formatRelativeTime(Math.min(reportedAt, now), now, { locale: formattingLocale }),
+            })
+          : t('visibilityConditions.outcome.noLiveData')}
       </p>
     );
   }
@@ -45,9 +59,13 @@ export function VisibilityOutcomeLine({
   // '' is a condition still being authored (no key picked yet) — call that
   // out as its own cause instead of rendering an empty key name.
   const missing = unknownKeys.filter((k) => k !== '');
-  const outcome = visible
-    ? t('visibilityConditions.outcome.shownNow')
-    : t('visibilityConditions.outcome.hiddenNow');
+  const outcome = source === 'editor'
+    ? t(visible
+        ? 'visibilityConditions.outcome.shownNowEditor'
+        : 'visibilityConditions.outcome.hiddenNowEditor')
+    : t(visible
+        ? 'visibilityConditions.outcome.shownNow'
+        : 'visibilityConditions.outcome.hiddenNow');
   let cause: string | null = null;
   if (unknownKeys.length > 0) {
     // A missing key can coexist with an unpicked one; the named keys are the
@@ -76,7 +94,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
   const updateModule = useEditorStore((s) => s.updateModule);
   // Live values from the selected display's last heartbeat, for the
   // current-value hint and case-mismatch warning on condition inputs.
-  const liveState = useDisplaySharedState(selectedDisplayId);
+  const liveState = useEditorSharedState(selectedDisplayId);
   // States map for the outcome line; null when the display hasn't reported
   // recently, which renders neutral copy instead of a stale verdict.
   const outcomeStates = liveState.states;
@@ -135,7 +153,13 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                 <p className="text-xs text-hs-text-dim">{t('visibilityConditions.noConditionsHint')}</p>
               )}
               {visibility.conditions.length > 0 && (
-                <VisibilityOutcomeLine visibility={visibility} states={outcomeStates} t={t} />
+                <VisibilityOutcomeLine
+                  visibility={visibility}
+                  states={outcomeStates}
+                  reportedAt={liveState.reportedAt}
+                  source={liveState.source}
+                  t={t}
+                />
               )}
               {validationError && (
                 <div className="rounded border border-hs-danger/40 bg-hs-danger/10 p-2 space-y-1">

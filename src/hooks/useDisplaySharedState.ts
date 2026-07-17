@@ -7,10 +7,12 @@ import { stableStringify } from '@/lib/stable-stringify';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 
 /**
- * Last shared-state snapshot a display reported to the hub. Producers run on
- * the display client, so the editor tab's own sharedStateStore is always
- * empty — this is the editor's only window into live values. Best-effort:
- * values lag the display by up to the heartbeat throttle (~5s).
+ * Last shared-state snapshot a display reported to the hub — the editor's
+ * window into what the real display sees. Best-effort: values lag the
+ * display by up to the heartbeat throttle (~5s). Editor surfaces should
+ * usually consume `useEditorSharedState` instead, which falls back to the
+ * editor tab's own bus (fed by EditorStateProviderLayer) when no display
+ * has reported recently.
  */
 export interface DisplaySharedState {
   entries: Record<string, SharedStateEntry>;

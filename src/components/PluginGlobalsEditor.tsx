@@ -3,6 +3,8 @@
 import { useLayoutEffect } from 'react';
 import AccordionSection from '@/components/editor/AccordionSection';
 import { useEditorStore } from '@/stores/editor-store';
+import { usePluginStore } from '@/stores/plugin-store';
+import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
@@ -75,12 +77,31 @@ export default function PluginGlobalsEditor() {
       if (typeof pluginId !== 'string') return;
       window.dispatchEvent(new CustomEvent('hs-plugin-start-auth', { detail: { pluginId } }));
     };
+    // Editor-only settings writer, so a plugin's ConfigSection can offer the
+    // plugin-level connection form inline (drag module → connect right there)
+    // instead of sending the user to the plugin manager. MERGE semantics over
+    // the store's current values: a ConfigSection saving one field (haUrl)
+    // must not clobber its siblings (fastUpdates, debugLogging). The store
+    // push inside savePluginSettings means getPluginSettings reads the new
+    // values immediately after the promise resolves.
+    window.__HS_SDK__.setPluginSettings = async (
+      pluginId: string,
+      updates: Record<string, unknown>,
+    ): Promise<{ ok: boolean; error?: string }> => {
+      if (typeof pluginId !== 'string' || !updates || typeof updates !== 'object' || Array.isArray(updates)) {
+        return { ok: false, error: 'invalid arguments' };
+      }
+      const current = usePluginStore.getState().pluginSettings.get(pluginId.toLowerCase()) ?? {};
+      const result = await savePluginSettings(pluginId, { ...current, ...updates });
+      return result.ok ? { ok: true } : { ok: false, error: result.error };
+    };
 
     return () => {
       if (!window.__HS_SDK__) return;
       delete window.__HS_SDK__.AccordionSection;
       delete window.__HS_SDK__.useModuleConfig;
       delete window.__HS_SDK__.startAuth;
+      delete window.__HS_SDK__.setPluginSettings;
     };
   }, []);
 

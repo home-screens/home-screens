@@ -33,8 +33,11 @@ export interface PluginManifest {
    * plugin's `installed.json` record rather than any module's config. The
    * editor renders it in the plugin manager with the same widget renderer as
    * `configSchema`; values reach plugin code via `__HS_SDK__.getPluginSettings`
-   * and are passed to the `stateProvider` component as a prop. Secrets never
-   * go here — they stay in the manifest `secrets` declarations.
+   * and are passed to the `stateProvider` component as a prop. A plugin's
+   * ConfigSection can also write them inline (editor-only
+   * `__HS_SDK__.setPluginSettings`, merge semantics) so connection setup can
+   * live in the module panel without per-module storage. Secrets never go
+   * here — they stay in the manifest `secrets` declarations.
    */
   settingsSchema?: PluginConfigSchema;
   exports: {

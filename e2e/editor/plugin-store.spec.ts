@@ -423,6 +423,42 @@ test('the plugin settings section round-trips plugin-level settings from the Ins
   await expect(dialog.getByTestId(`plugin-settings-${FIXTURE_PLUGIN_ID}`).getByLabel('Publish value')).toHaveValue('after');
 });
 
+test('the installed card shows settings and secrets as one block', async ({ page, request, sandboxDir }) => {
+  // Both declared: the expandable section must render the schema form AND
+  // the secret input together — to the user they are one thing ("connect
+  // this plugin"), even though storage differs (installed.json vs
+  // plugin-secrets). Before this block existed on the card, secrets were
+  // only reachable from a placed module's PropertyPanel.
+  seedFixturePlugin(sandboxDir, {
+    settingsSchema: { type: 'object', properties: { haUrl: { type: 'string', title: 'Server address' } } },
+    secrets: [{ key: 'api_token', label: 'API Token', required: true }],
+  });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [])] }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  await stubRegistry(page);
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: 'Installed' }).click();
+  await dialog.getByRole('button', { name: `Plugin settings for ${FIXTURE_PLUGIN_ID}` }).click();
+
+  // Settings form and secret field are siblings in the same expanded block.
+  await expect(dialog.getByTestId(`plugin-settings-${FIXTURE_PLUGIN_ID}`).getByLabel('Server address')).toBeVisible();
+  const secretInput = dialog.getByPlaceholder('Enter api token');
+  await expect(secretInput).toBeVisible();
+  await expect(secretInput).toHaveAttribute('type', 'password');
+
+  // Saving the secret from the card hits the same secrets endpoint the
+  // PropertyPanel path uses.
+  const savePut = page.waitForResponse(
+    (r) => r.url().includes(`/api/plugins/secrets/${FIXTURE_PLUGIN_ID}`) && r.request().method() === 'PUT' && r.ok(),
+  );
+  await secretInput.fill('tok-123');
+  await secretInput.locator('..').getByRole('button', { name: 'Save' }).click();
+  await savePut;
+  await expect(secretInput).toHaveValue('');
+});
+
 // ---------------------------------------------------------------------------
 // Updates tab + ExternalUpdateModal
 // ---------------------------------------------------------------------------

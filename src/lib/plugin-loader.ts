@@ -363,9 +363,15 @@ export async function loadAllPlugins(): Promise<void> {
     new Map(plugins.map((p) => [p.id.toLowerCase(), p.settings ?? {}])),
   );
 
-  // Skip installed plugins that have a dev override — dev plugins load from
-  // the dev server and don't need a bundle on disk
+  // Dev overrides live in localStorage, which is shared across every tab of
+  // the origin — including unauthenticated display tabs. Only the editor
+  // actually loads the dev bundle (see the isEditor gate below), so only the
+  // editor may skip an installed copy in favor of its override. On a display
+  // page the installed copy must still load, otherwise a plugin with a dev
+  // override registered in this browser would load nowhere and its modules
+  // (and stateProvider) would vanish from the display.
   const devPluginIds = new Set(getDevPlugins().keys());
+  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
 
   // Now that the new plugin set is known, purge shared-state keys only for
   // plugins that are gone from it (uninstalled or disabled). A re-registered
@@ -379,9 +385,11 @@ export async function loadAllPlugins(): Promise<void> {
     }
   }
 
-  // Load installed plugins in parallel, collect pending migrations
+  // Load installed plugins in parallel, collect pending migrations. On the
+  // editor, skip any plugin whose dev override will load from the dev server;
+  // on a display page the override never loads, so keep the installed copy.
   const pendingMigrations: PendingMigration[] = [];
-  const installedOnly = plugins.filter((p) => !devPluginIds.has(p.id));
+  const installedOnly = plugins.filter((p) => (isEditor ? !devPluginIds.has(p.id) : true));
 
   if (installedOnly.length > 0) {
     await Promise.allSettled(
@@ -391,7 +399,6 @@ export async function loadAllPlugins(): Promise<void> {
 
   // Migrations and dev plugins only run in the editor (authenticated context).
   // The display page is unauthenticated — PUT /api/config would fail with 401.
-  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
   if (!isEditor) return;
 
   // Load dev plugins from localStorage (these override installed versions).

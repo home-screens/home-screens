@@ -16,9 +16,15 @@ import type { DisplayNode, ScreenConfiguration } from '@/types/config';
  * slots have no reset seam.
  */
 
-const PUBLISHED_KEY = 'plugin:e2e-fixture:door';
-const MISSING_KEY = 'plugin:e2e-fixture:never';
-const UNREFERENCED_KEY = 'plugin:e2e-fixture:orphan';
+// Namespaced to a plugin that is NEVER installed: the editor mounts state
+// providers against its own bus (EditorStateProviderLayer), so fixture-owned
+// keys would publish in-tab whenever another spec leaves the provider bundle
+// installed on this worker — flipping "never published" rows to active. An
+// unowned namespace keeps these deterministic; the hub-seeded test is
+// unaffected because a fresh display snapshot outranks the local bus.
+const PUBLISHED_KEY = 'plugin:not-installed:door';
+const MISSING_KEY = 'plugin:not-installed:never';
+const UNREFERENCED_KEY = 'plugin:not-installed:orphan';
 
 /**
  * A single-display registry whose display references PUBLISHED_KEY (module

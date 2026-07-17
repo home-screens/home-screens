@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Letzte Meldung des Displays: {time}",
       "noReportHint": "Dieses Display hat noch keine Werte gemeldet. Werte erscheinen hier, sobald das Display läuft und etwas veröffentlicht.",
-      "emptyHint": "Auf diesem Display veröffentlicht oder referenziert noch nichts einen Wert.",
+      "editorValuesHint": "Live-Werte aus diesem Editor. Schalte das Display ein, um zu sehen, was es tatsächlich meldet.",
+      "offlineSinceHint": "Das Display hat sich seit {time} nicht gemeldet. Die Zeilen zeigen die zuletzt gesendeten Werte.",
+      "emptyHint": "Noch nichts hier. Werte erscheinen von selbst, sobald etwas sie nutzt, etwa eine Bedingung an einem Widget oder ein Live-Wert in einem Text-Widget. Es muss nichts im Voraus eingerichtet werden.",
       "neverPublished": "Nie veröffentlicht",
       "neverPublishedDetail": "Nichts auf dem Display veröffentlicht diesen Schlüssel; alles, was ihn nutzt, folgt der Einstellung 'Bevor Daten ankommen'.",
       "unreferencedLabel": "Nichts referenziert diesen Schlüssel.",
@@ -2936,7 +2938,9 @@
         "down": "Unten"
       },
       "stateTokensHint": "Füge {example} ein, um einen Live-Wert eines Hintergrundmoduls anzuzeigen.",
-      "stateTokenUnknown": "Kein Modul auf diesem Display veröffentlicht {keys} bisher. Diese Platzhalter zeigen '–', bis ein Modul sie veröffentlicht."
+      "stateTokenUnknown": "Kein Modul auf diesem Display veröffentlicht {keys} bisher. Diese Platzhalter zeigen '–', bis ein Modul sie veröffentlicht.",
+      "stateTokenFiltersHint": "Füge |round:1 hinzu, um Zahlen zu runden, oder |default:Text, um festzulegen, was vor dem ersten Wert angezeigt wird.",
+      "stateTokenPreview": "Live-Vorschau"
     },
     "todo": {
       "title": "Titel",
@@ -3220,6 +3224,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Mehrere Werte mit Kommas trennen, um einen beliebigen davon zu treffen.",
     "searchingHint": "Suche läuft…",
+    "searchNoResults": "Keine Treffer. Wenn du hier Ergebnisse erwartet hast, prüfe die Verbindung des Plugins in der Plugin-Verwaltung.",
     "customValueOption": "Eigener Wert…",
     "currentValueHint": "Aktueller Wert: {value}",
     "aboveLabel": "Über",
@@ -3233,6 +3238,7 @@
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
     "liveValueLabel": "Aktuell auf dem Display:",
+    "liveValueLabelEditor": "Aktueller Wert:",
     "caseMismatchWarning": "Das Display veröffentlicht '{value}'. Der Vergleich unterscheidet Groß-/Kleinschreibung – der Wert muss exakt übereinstimmen.",
     "verdicts": {
       "met": "Erfüllt",
@@ -3244,8 +3250,11 @@
     },
     "outcome": {
       "noLiveData": "Das Display hat sich zuletzt nicht gemeldet, daher werden keine Live-Ergebnisse angezeigt.",
+      "offlineSince": "Das Display hat seit {time} nichts gemeldet, daher werden keine Live-Ergebnisse angezeigt.",
       "shownNow": "Wird auf dem Display gerade angezeigt",
       "hiddenNow": "Auf dem Display gerade ausgeblendet",
+      "shownNowEditor": "Würde gerade angezeigt",
+      "hiddenNowEditor": "Würde gerade ausgeblendet",
       "waitingForKeys": "wartet auf {keys}",
       "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
       "conditionsNotMet": "die Bedingungen treffen nicht zu"

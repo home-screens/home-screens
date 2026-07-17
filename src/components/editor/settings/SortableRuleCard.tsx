@@ -6,7 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
-import type { DisplaySharedState } from '@/hooks/useDisplaySharedState';
+import type { EditorSharedState } from '@/hooks/useEditorSharedState';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { conditionsVerdict } from '@/lib/condition-verdicts';
 import { validateDisplayRules } from '@/lib/display-filter';
@@ -74,8 +74,9 @@ interface RuleCardProps {
   index: number;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  /** Selected display's last-reported shared state, polled once by RulesSection. */
-  liveState: DisplaySharedState;
+  /** Selected display's last-reported shared state (or the editor tab's own
+   *  bus when no display is fresh), polled once by RulesSection. */
+  liveState: EditorSharedState;
   t: TranslateFn;
 }
 

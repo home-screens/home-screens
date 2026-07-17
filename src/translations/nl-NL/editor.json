@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Laatste melding van het scherm: {time}",
       "noReportHint": "Dit scherm heeft nog geen waarden gemeld. Waarden verschijnen hier zodra het scherm aanstaat en iets publiceert.",
-      "emptyHint": "Niets publiceert of gebruikt nog waarden op dit scherm.",
+      "editorValuesHint": "Live waarden uit deze editor. Zet het scherm aan om te zien wat het werkelijk meldt.",
+      "offlineSinceHint": "Het scherm heeft sinds {time} niets gemeld. De rijen tonen de laatst ontvangen waarden.",
+      "emptyHint": "Nog niets hier. Waarden verschijnen vanzelf zodra iets ze gebruikt, zoals een voorwaarde op een widget of een live-waarde in een Tekst-widget. Er is niets vooraf in te stellen.",
       "neverPublished": "Nooit gepubliceerd",
       "neverPublishedDetail": "Niets op het scherm publiceert deze sleutel; alles wat hem gebruikt volgt de instelling 'Voordat gegevens aankomen'.",
       "unreferencedLabel": "Niets gebruikt deze sleutel.",
@@ -2936,7 +2938,9 @@
         "down": "Omlaag"
       },
       "stateTokensHint": "Voeg {example} in om een live waarde van een achtergrondmodule te tonen.",
-      "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die tokens tonen '–' totdat een module ze publiceert."
+      "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die tokens tonen '–' totdat een module ze publiceert.",
+      "stateTokenFiltersHint": "Voeg |round:1 toe om getallen af te ronden, of |default:tekst om te kiezen wat er staat voordat een waarde binnenkomt.",
+      "stateTokenPreview": "Live voorbeeld"
     },
     "todo": {
       "title": "Titel",
@@ -3220,6 +3224,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Scheid meerdere waarden met komma's om met een ervan overeen te komen.",
     "searchingHint": "Zoeken…",
+    "searchNoResults": "Geen resultaten. Verwachtte je hier wel iets? Controleer dan de verbinding van de plugin in het pluginbeheer.",
     "customValueOption": "Eigen waarde…",
     "currentValueHint": "Huidige waarde: {value}",
     "aboveLabel": "Boven",
@@ -3233,6 +3238,7 @@
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
     "liveValueLabel": "Nu op het display:",
+    "liveValueLabelEditor": "Waarde nu:",
     "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen.",
     "verdicts": {
       "met": "Voldaan",
@@ -3244,8 +3250,11 @@
     },
     "outcome": {
       "noLiveData": "Het scherm heeft zich recent niet gemeld, dus live resultaten worden niet getoond.",
+      "offlineSince": "Het scherm heeft sinds {time} niets gemeld, dus live resultaten worden niet getoond.",
       "shownNow": "Nu zichtbaar op het scherm",
       "hiddenNow": "Nu verborgen op het scherm",
+      "shownNowEditor": "Zou nu zichtbaar zijn",
+      "hiddenNowEditor": "Zou nu verborgen zijn",
       "waitingForKeys": "wacht op {keys}",
       "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
       "conditionsNotMet": "de voorwaarden kloppen niet"

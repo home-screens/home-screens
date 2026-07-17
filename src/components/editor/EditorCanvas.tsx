@@ -6,7 +6,7 @@ import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
-import { useDisplaySharedState } from '@/hooks/useDisplaySharedState';
+import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale } from '@/hooks/useCanvasBaseScale';
@@ -151,7 +151,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const anyConditionGated = activeScreens.some((s) =>
     s.modules.some((m) => (m.visibility?.conditions?.length ?? 0) > 0),
   );
-  const liveState = useDisplaySharedState(selectedDisplayId, anyConditionGated);
+  const liveState = useEditorSharedState(selectedDisplayId, anyConditionGated);
   const verdictStates = liveState.states;
 
   // Poll the server-side background cache so the editor shows the same

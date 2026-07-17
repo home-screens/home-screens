@@ -12,7 +12,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useEditorStore, getActiveRules } from '@/stores/editor-store';
-import { useDisplaySharedState } from '@/hooks/useDisplaySharedState';
+import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import { useSortableSensors } from '@/hooks/useDndSensors';
@@ -43,7 +43,7 @@ export default function RulesSection() {
   // One poll for the whole section, threaded into every card — a per-card
   // hook would fire N identical /api/display/shared-state requests per tick
   // (same hoisting VisibilityConditionsSection does for its tree editor).
-  const liveState = useDisplaySharedState(selectedDisplayId);
+  const liveState = useEditorSharedState(selectedDisplayId);
 
   const sensors = useSortableSensors();
 

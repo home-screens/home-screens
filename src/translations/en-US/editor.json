@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Last report from the display: {time}",
       "noReportHint": "This display hasn't reported any values yet. Values appear here once the display is on and something publishes them.",
-      "emptyHint": "Nothing publishes or references any values on this display yet.",
+      "editorValuesHint": "Live values from this editor. Turn on the display to see what it actually reports.",
+      "offlineSinceHint": "The display hasn't reported since {time}. Rows show the last values it sent.",
+      "emptyHint": "Nothing here yet. Values show up on their own when something uses them, like a condition on a widget or a live value in a Text widget. There's nothing to set up ahead of time.",
       "neverPublished": "Never published",
       "neverPublishedDetail": "Nothing on the display publishes this key, so anything using it follows its 'Before data arrives' setting.",
       "unreferencedLabel": "Nothing references this key.",
@@ -2936,7 +2938,9 @@
         "down": "Down"
       },
       "stateTokensHint": "Insert {example} to show a live value published by a background module.",
-      "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those tokens show '–' until a module publishes them."
+      "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those tokens show '–' until a module publishes them.",
+      "stateTokenFiltersHint": "Add |round:1 to round numbers, or |default:text to choose what shows before a value arrives.",
+      "stateTokenPreview": "Live preview"
     },
     "todo": {
       "title": "Title",
@@ -3220,6 +3224,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Separate several values with commas to match any of them.",
     "searchingHint": "Searching…",
+    "searchNoResults": "No matches. If you expected results here, check the plugin's connection in the plugin manager.",
     "customValueOption": "Custom value…",
     "currentValueHint": "Current value: {value}",
     "aboveLabel": "Above",
@@ -3233,6 +3238,7 @@
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
     "liveValueLabel": "On the display now:",
+    "liveValueLabelEditor": "Value right now:",
     "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly.",
     "verdicts": {
       "met": "Met",
@@ -3244,8 +3250,11 @@
     },
     "outcome": {
       "noLiveData": "The display hasn't reported recently, so live results aren't shown.",
+      "offlineSince": "The display hasn't reported since {time}, so live results aren't shown.",
       "shownNow": "Shown on the display right now",
       "hiddenNow": "Hidden on the display right now",
+      "shownNowEditor": "Would be shown right now",
+      "hiddenNowEditor": "Would be hidden right now",
       "waitingForKeys": "waiting for {keys}",
       "keyNotPicked": "a condition doesn't have a key picked yet",
       "conditionsNotMet": "the conditions don't match"

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import { usePluginStore } from '@/stores/plugin-store';
+import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { PluginSchemaFields } from './PluginConfigRenderer';
 import type { PluginConfigSchema } from '@/types/plugins';
 import { useTranslate } from '@/i18n';
@@ -56,37 +56,22 @@ export default function PluginSettingsSection({
     if (!values) return;
     setSaveStatus('saving');
     setErrorMsg('');
-    try {
-      const res = await editorFetch(`/api/plugins/settings/${encodeURIComponent(pluginId)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: values }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSaveStatus('error');
-        setErrorMsg(data.error ?? t('common.saveError'));
-        return;
-      }
-      // Reflect what the server actually stored — the sanitizer drops keys
-      // the on-disk schema doesn't declare (dev-override mismatches), and a
-      // silent drop must be visible in the form, not on the next reopen.
-      const stored: Record<string, unknown> = data.settings ?? {};
-      setValues(stored);
-      setSaveStatus('saved');
-      // Push the values into the plugin store directly — providers get the
-      // new settings as a prop; no bundle reload, so this section (and every
-      // plugin module on every display) stays mounted.
-      const store = usePluginStore.getState();
-      const next = new Map(store.pluginSettings);
-      next.set(pluginId.toLowerCase(), stored);
-      store.setPluginSettingsMap(next);
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-      savedTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch {
+    // savePluginSettings PUTs and pushes the stored values into the plugin
+    // store — providers get the new settings as a prop; no bundle reload, so
+    // this section (and every plugin module on every display) stays mounted.
+    const result = await savePluginSettings(pluginId, values);
+    if (!result.ok) {
       setSaveStatus('error');
-      setErrorMsg(t('common.networkError'));
+      setErrorMsg(result.error === 'network' ? t('common.networkError') : result.error || t('common.saveError'));
+      return;
     }
+    // Reflect what the server actually stored — the sanitizer drops keys
+    // the on-disk schema doesn't declare (dev-override mismatches), and a
+    // silent drop must be visible in the form, not on the next reopen.
+    setValues(result.settings);
+    setSaveStatus('saved');
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000);
   }
 
   if (loadFailed) {

@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Último relatório da tela: {time}",
       "noReportHint": "Esta tela ainda não informou nenhum valor. Os valores aparecem aqui quando a tela estiver ligada e algo os publicar.",
-      "emptyHint": "Nada publica ou referencia valores nesta tela ainda.",
+      "editorValuesHint": "Valores ao vivo deste editor. Ligue a tela para ver o que ela realmente informa.",
+      "offlineSinceHint": "A tela não informa desde {time}. As linhas mostram os últimos valores enviados.",
+      "emptyHint": "Nada aqui ainda. Os valores aparecem sozinhos quando algo os usa, como uma condição em um widget ou um valor ao vivo em um widget de Texto. Não há nada para configurar com antecedência.",
       "neverPublished": "Nunca publicada",
       "neverPublishedDetail": "Nada na tela publica esta chave, então tudo que a usa segue a configuração 'Antes dos dados chegarem'.",
       "unreferencedLabel": "Nada referencia esta chave.",
@@ -2941,7 +2943,9 @@
         "down": "Baixo"
       },
       "stateTokensHint": "Insira {example} para mostrar um valor ao vivo publicado por um módulo em segundo plano.",
-      "stateTokenUnknown": "Nenhum módulo deste display publica {keys} ainda. Esses marcadores mostram '–' até que um módulo os publique."
+      "stateTokenUnknown": "Nenhum módulo deste display publica {keys} ainda. Esses marcadores mostram '–' até que um módulo os publique.",
+      "stateTokenFiltersHint": "Adicione |round:1 para arredondar números, ou |default:texto para escolher o que aparece antes de um valor chegar.",
+      "stateTokenPreview": "Prévia ao vivo"
     },
     "todo": {
       "title": "Título",
@@ -3226,6 +3230,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Separe vários valores com vírgulas para corresponder a qualquer um deles.",
     "searchingHint": "Pesquisando…",
+    "searchNoResults": "Nenhum resultado. Se você esperava resultados aqui, verifique a conexão do plugin no gerenciador de plugins.",
     "customValueOption": "Valor personalizado…",
     "currentValueHint": "Valor atual: {value}",
     "aboveLabel": "Acima de",
@@ -3239,6 +3244,7 @@
     "sourceKeyInvalid": "Digite uma chave de estado apenas com letras minúsculas, números e _ : . -",
     "invalidHint": "Estas condições ainda não podem ser salvas. Corrija os campos destacados.",
     "liveValueLabel": "No display agora:",
+    "liveValueLabelEditor": "Valor agora:",
     "caseMismatchWarning": "O display publica '{value}'. A comparação diferencia maiúsculas de minúsculas — o valor deve corresponder exatamente.",
     "verdicts": {
       "met": "Atendida",
@@ -3250,8 +3256,11 @@
     },
     "outcome": {
       "noLiveData": "A tela não enviou relatórios recentemente, então os resultados ao vivo não são exibidos.",
+      "offlineSince": "A tela não informa desde {time}, então os resultados ao vivo não são mostrados.",
       "shownNow": "Visível na tela agora mesmo",
       "hiddenNow": "Oculto na tela agora mesmo",
+      "shownNowEditor": "Seria exibido agora mesmo",
+      "hiddenNowEditor": "Seria ocultado agora mesmo",
       "waitingForKeys": "aguardando {keys}",
       "keyNotPicked": "uma condição ainda não tem chave escolhida",
       "conditionsNotMet": "as condições não correspondem"

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useEditorStore, getActiveScreens, getActiveRules } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
-import { useDisplaySharedState } from '@/hooks/useDisplaySharedState';
+import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { collectKeyReferences, type StateKeyReference } from '@/lib/state-demand';
 import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
@@ -91,7 +91,7 @@ export default function SharedStateSection() {
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const setSelectedDisplay = useEditorStore((s) => s.setSelectedDisplay);
   const plugins = usePluginStore((s) => s.plugins);
-  const liveState = useDisplaySharedState(selectedDisplayId);
+  const liveState = useEditorSharedState(selectedDisplayId);
 
   const references = useMemo(
     () =>
@@ -142,14 +142,25 @@ export default function SharedStateSection() {
         </div>
       )}
 
-      <p className="text-[11px] text-hs-text-faint mb-4">
-        {liveState.reportedAt !== null
-          ? t('settings.sharedStatePage.lastReportLabel', {
-              time: formatRelativeTime(Math.min(liveState.reportedAt, now), now, {
-                locale: formattingLocale,
-              }),
-            })
-          : t('settings.sharedStatePage.noReportHint')}
+      {/* Four states, most-alive first: values from the editor's own bus; a
+          fresh display report; a display that reported once but went quiet
+          (rows keep its last values, so say since when); never reported. */}
+      <p className="text-[11px] text-hs-text-faint mb-4" data-state-source={liveState.source ?? 'none'}>
+        {liveState.source === 'editor'
+          ? t('settings.sharedStatePage.editorValuesHint')
+          : liveState.source === 'display' && liveState.reportedAt !== null
+            ? t('settings.sharedStatePage.lastReportLabel', {
+                time: formatRelativeTime(Math.min(liveState.reportedAt, now), now, {
+                  locale: formattingLocale,
+                }),
+              })
+            : liveState.reportedAt !== null
+              ? t('settings.sharedStatePage.offlineSinceHint', {
+                  time: formatRelativeTime(Math.min(liveState.reportedAt, now), now, {
+                    locale: formattingLocale,
+                  }),
+                })
+              : t('settings.sharedStatePage.noReportHint')}
       </p>
 
       {rows.length === 0 ? (

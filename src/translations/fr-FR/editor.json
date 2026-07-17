@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Dernier rapport de l'écran : {time}",
       "noReportHint": "Cet écran n'a pas encore envoyé de valeurs. Elles apparaîtront ici dès que l'écran sera allumé et que quelque chose publiera.",
-      "emptyHint": "Rien ne publie ni ne référence de valeur sur cet écran pour l'instant.",
+      "editorValuesHint": "Valeurs en direct de cet éditeur. Allumez l'écran pour voir ce qu'il envoie réellement.",
+      "offlineSinceHint": "L'écran n'a rien envoyé depuis {time}. Les lignes montrent les dernières valeurs reçues.",
+      "emptyHint": "Rien ici pour l'instant. Les valeurs apparaissent d'elles-mêmes dès que quelque chose les utilise, comme une condition sur un widget ou une valeur en direct dans un widget Texte. Il n'y a rien à configurer à l'avance.",
       "neverPublished": "Jamais publiée",
       "neverPublishedDetail": "Rien sur l'écran ne publie cette clé ; tout ce qui l'utilise suit son réglage « Avant l'arrivée des données ».",
       "unreferencedLabel": "Rien ne référence cette clé.",
@@ -2941,7 +2943,9 @@
         "down": "Bas"
       },
       "stateTokensHint": "Insérez {example} pour afficher une valeur en direct publiée par un module en arrière-plan.",
-      "stateTokenUnknown": "Aucun module de cet écran ne publie {keys} pour l'instant. Ces jetons affichent '–' jusqu'à ce qu'un module les publie."
+      "stateTokenUnknown": "Aucun module de cet écran ne publie {keys} pour l'instant. Ces jetons affichent '–' jusqu'à ce qu'un module les publie.",
+      "stateTokenFiltersHint": "Ajoutez |round:1 pour arrondir les nombres, ou |default:texte pour choisir ce qui s'affiche avant l'arrivée d'une valeur.",
+      "stateTokenPreview": "Aperçu en direct"
     },
     "todo": {
       "title": "Titre",
@@ -3226,6 +3230,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Séparez plusieurs valeurs par des virgules pour correspondre à l'une d'elles.",
     "searchingHint": "Recherche…",
+    "searchNoResults": "Aucun résultat. Si vous en attendiez ici, vérifiez la connexion du plugin dans le gestionnaire de plugins.",
     "customValueOption": "Valeur personnalisée…",
     "currentValueHint": "Valeur actuelle : {value}",
     "aboveLabel": "Au-dessus de",
@@ -3239,6 +3244,7 @@
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
     "liveValueLabel": "Sur l'écran actuellement :",
+    "liveValueLabelEditor": "Valeur actuelle :",
     "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement.",
     "verdicts": {
       "met": "Remplie",
@@ -3250,8 +3256,11 @@
     },
     "outcome": {
       "noLiveData": "L'écran n'a pas envoyé de rapport récemment, les résultats en direct ne sont donc pas affichés.",
+      "offlineSince": "L'écran n'a rien envoyé depuis {time}, les résultats en direct ne sont donc pas affichés.",
       "shownNow": "Affiché sur l'écran en ce moment",
       "hiddenNow": "Masqué sur l'écran en ce moment",
+      "shownNowEditor": "Serait affiché en ce moment",
+      "hiddenNowEditor": "Serait masqué en ce moment",
       "waitingForKeys": "en attente de {keys}",
       "keyNotPicked": "une condition n'a pas encore de clé choisie",
       "conditionsNotMet": "les conditions ne correspondent pas"

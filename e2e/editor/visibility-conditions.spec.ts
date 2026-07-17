@@ -172,8 +172,12 @@ test('verdicts stay neutral when the display has never reported', async ({ page,
   // 'vc-fresh' is never seeded anywhere: no chip and no verdict may render —
   // only the neutral no-live-data line, never a stale or default-false
   // verdict. The canvas condition badge stays neutral for the same reason.
+  // The key's namespace must belong to NO installed plugin: the editor now
+  // mounts state providers against its own bus (EditorStateProviderLayer),
+  // so a fixture-owned key would legitimately publish in-tab and show a live
+  // verdict if another spec left the provider bundle installed.
   const mod = textModule('GATED', {
-    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:e2e-fixture:mode', equals: 'sunny' }] },
+    visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:not-installed:mode', equals: 'sunny' }] },
   });
   await openConditions(page, request, mod, 'vc-fresh');
 
@@ -268,6 +272,29 @@ test('searching by friendly name picks a key and the value select stores the raw
   await expect
     .poll(async () => (await savedVisibility(request))!.conditions[0])
     .toMatchObject({ kind: 'state', sourceKey: 'plugin:e2e-fixture:door', equals: 'on' });
+});
+
+test('a query with no matches says so instead of an empty dropdown', async ({ page, request, sandboxDir }) => {
+  // The failure this guards: a search-capable plugin that is unconfigured
+  // (or a genuine miss) returns [] and the dropdown used to render nothing —
+  // indistinguishable from "search is broken". The hint row names the next
+  // step (check the plugin's connection).
+  seedFixturePlugin(sandboxDir, { search: true });
+
+  const gated = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'state', sourceKey: '', equals: '' }] },
+  });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [gated])] }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator('[data-module-id="text-gated"]').click();
+  await page.getByRole('button', { name: 'Conditions' }).click();
+
+  const keyInput = page.getByRole('combobox', { name: 'State key' });
+  await keyInput.click();
+  await keyInput.fill('zzz-no-such-entity');
+  await expect(page.getByTestId('key-search-no-results')).toBeVisible();
+  await expect(page.getByTestId('key-search-no-results')).toContainText('No matches');
 });
 
 test('a stored numeric condition on a searchable key shows its current value and unit', async ({ page, request, sandboxDir }) => {

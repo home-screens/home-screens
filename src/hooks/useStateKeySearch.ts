@@ -35,7 +35,7 @@ const NO_RESULTS: SearchedStateKey[] = [];
 export function useStateKeySearch(
   query: string,
   enabled: boolean,
-): { results: SearchedStateKey[]; searching: boolean } {
+): { results: SearchedStateKey[]; searching: boolean; searchable: boolean } {
   const [results, setResults] = useState<SearchedStateKey[]>([]);
   const [searching, setSearching] = useState(false);
   const genRef = useRef(0);
@@ -73,7 +73,11 @@ export function useStateKeySearch(
     return () => clearTimeout(timer);
   }, [query, enabled, searchable]);
 
-  return { results: enabled && searchable ? results : NO_RESULTS, searching };
+  // `searchable` is exposed so the combobox can tell "no plugin implements
+  // search" (stay silent — the static-suggestions hint covers it) apart from
+  // "search ran and found nothing" (say so — an unconfigured plugin returns
+  // [] indistinguishably from a genuine miss otherwise).
+  return { results: enabled && searchable ? results : NO_RESULTS, searching, searchable };
 }
 
 // ── Committed-key descriptor lookup ─────────────────────────────────────────

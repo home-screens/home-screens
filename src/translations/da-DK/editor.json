@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Seneste rapport fra skærmen: {time}",
       "noReportHint": "Denne skærm har endnu ikke rapporteret nogen værdier. Værdier vises her, når skærmen er tændt, og noget udgiver dem.",
-      "emptyHint": "Intet udgiver eller refererer værdier på denne skærm endnu.",
+      "editorValuesHint": "Live-værdier fra denne editor. Tænd skærmen for at se, hvad den faktisk rapporterer.",
+      "offlineSinceHint": "Skærmen har ikke rapporteret siden {time}. Rækkerne viser de senest sendte værdier.",
+      "emptyHint": "Ingenting her endnu. Værdier dukker op af sig selv, når noget bruger dem, som en betingelse på en widget eller en live-værdi i en Tekst-widget. Der er ikke noget at sætte op på forhånd.",
       "neverPublished": "Aldrig udgivet",
       "neverPublishedDetail": "Intet på skærmen udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
       "unreferencedLabel": "Intet refererer denne nøgle.",
@@ -2936,7 +2938,9 @@
         "down": "Down"
       },
       "stateTokensHint": "Indsæt {example} for at vise en live-værdi udgivet af et baggrundsmodul.",
-      "stateTokenUnknown": "Intet modul på denne skærm udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem."
+      "stateTokenUnknown": "Intet modul på denne skærm udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem.",
+      "stateTokenFiltersHint": "Tilføj |round:1 for at afrunde tal, eller |default:tekst for at vælge, hvad der vises, før en værdi kommer.",
+      "stateTokenPreview": "Live-forhåndsvisning"
     },
     "todo": {
       "title": "Title",
@@ -3220,6 +3224,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Adskil flere værdier med kommaer for at matche en hvilken som helst af dem.",
     "searchingHint": "Søger…",
+    "searchNoResults": "Ingen resultater. Hvis du forventede resultater her, så tjek pluginets forbindelse i plugin-oversigten.",
     "customValueOption": "Egen værdi…",
     "currentValueHint": "Aktuel værdi: {value}",
     "aboveLabel": "Over",
@@ -3233,6 +3238,7 @@
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
     "liveValueLabel": "På skærmen lige nu:",
+    "liveValueLabelEditor": "Værdi lige nu:",
     "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist.",
     "verdicts": {
       "met": "Opfyldt",
@@ -3244,8 +3250,11 @@
     },
     "outcome": {
       "noLiveData": "Skærmen har ikke rapporteret for nylig, så live-resultater vises ikke.",
+      "offlineSince": "Skærmen har ikke rapporteret siden {time}, så live-resultater vises ikke.",
       "shownNow": "Vises på skærmen lige nu",
       "hiddenNow": "Skjult på skærmen lige nu",
+      "shownNowEditor": "Ville blive vist lige nu",
+      "hiddenNowEditor": "Ville blive skjult lige nu",
       "waitingForKeys": "venter på {keys}",
       "keyNotPicked": "en betingelse mangler stadig en nøgle",
       "conditionsNotMet": "betingelserne passer ikke"

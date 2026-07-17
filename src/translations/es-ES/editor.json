@@ -1176,7 +1176,9 @@
       },
       "lastReportLabel": "Último informe de la pantalla: {time}",
       "noReportHint": "Esta pantalla aún no ha informado de ningún valor. Los valores aparecerán aquí cuando la pantalla esté encendida y algo los publique.",
-      "emptyHint": "Nada publica ni referencia valores en esta pantalla todavía.",
+      "editorValuesHint": "Valores en vivo de este editor. Enciende la pantalla para ver lo que realmente informa.",
+      "offlineSinceHint": "La pantalla no informa desde {time}. Las filas muestran los últimos valores que envió.",
+      "emptyHint": "Aún no hay nada aquí. Los valores aparecen solos cuando algo los usa, como una condición en un widget o un valor en vivo en un widget de Texto. No hay nada que configurar de antemano.",
       "neverPublished": "Nunca publicada",
       "neverPublishedDetail": "Nada en la pantalla publica esta clave, así que todo lo que la usa sigue su ajuste 'Antes de que lleguen los datos'.",
       "unreferencedLabel": "Nada referencia esta clave.",
@@ -2941,7 +2943,9 @@
         "down": "Abajo"
       },
       "stateTokensHint": "Inserta {example} para mostrar un valor en vivo publicado por un módulo en segundo plano.",
-      "stateTokenUnknown": "Ningún módulo de esta pantalla publica {keys} todavía. Esos marcadores muestran '–' hasta que un módulo los publique."
+      "stateTokenUnknown": "Ningún módulo de esta pantalla publica {keys} todavía. Esos marcadores muestran '–' hasta que un módulo los publique.",
+      "stateTokenFiltersHint": "Añade |round:1 para redondear números, o |default:texto para elegir qué se muestra antes de que llegue un valor.",
+      "stateTokenPreview": "Vista previa en vivo"
     },
     "todo": {
       "title": "Título",
@@ -3226,6 +3230,7 @@
     "valuePlaceholder": "on",
     "valueListHint": "Separa varios valores con comas para coincidir con cualquiera de ellos.",
     "searchingHint": "Buscando…",
+    "searchNoResults": "Sin coincidencias. Si esperabas resultados aquí, revisa la conexión del plugin en el gestor de plugins.",
     "customValueOption": "Valor personalizado…",
     "currentValueHint": "Valor actual: {value}",
     "aboveLabel": "Por encima de",
@@ -3239,6 +3244,7 @@
     "sourceKeyInvalid": "Escribe una clave de estado solo con letras minúsculas, números y _ : . -",
     "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados.",
     "liveValueLabel": "En la pantalla ahora:",
+    "liveValueLabelEditor": "Valor ahora mismo:",
     "caseMismatchWarning": "La pantalla publica '{value}'. La comparación distingue mayúsculas y minúsculas: el valor debe coincidir exactamente.",
     "verdicts": {
       "met": "Se cumple",
@@ -3250,8 +3256,11 @@
     },
     "outcome": {
       "noLiveData": "La pantalla no ha informado recientemente, así que no se muestran resultados en vivo.",
+      "offlineSince": "La pantalla no informa desde {time}, así que no se muestran resultados en vivo.",
       "shownNow": "Visible en la pantalla ahora mismo",
       "hiddenNow": "Oculto en la pantalla ahora mismo",
+      "shownNowEditor": "Se mostraría ahora mismo",
+      "hiddenNowEditor": "Se ocultaría ahora mismo",
       "waitingForKeys": "esperando {keys}",
       "keyNotPicked": "una condición aún no tiene clave elegida",
       "conditionsNotMet": "las condiciones no coinciden"

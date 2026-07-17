@@ -18,7 +18,7 @@ import { Fragment, useId, useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
-import type { DisplaySharedState } from '@/hooks/useDisplaySharedState';
+import type { EditorSharedState } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
 import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
@@ -199,7 +199,7 @@ export function SourceKeyInput({
   value: string;
   onChange: (key: string) => void;
   options: readonly ProvidedStateKey[];
-  liveState?: DisplaySharedState;
+  liveState?: EditorSharedState;
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
@@ -214,7 +214,7 @@ export function SourceKeyInput({
 
   // Async friendly-name search across plugins exporting searchStateKeys,
   // debounced, active only while the dropdown is open.
-  const { results: searched, searching } = useStateKeySearch(draft, open);
+  const { results: searched, searching, searchable } = useStateKeySearch(draft, open);
 
   // Empty is not invalid — it's an incomplete condition still being authored
   // (evaluates as unknown; whenUnknown governs until a key is picked).
@@ -234,7 +234,13 @@ export function SourceKeyInput({
     () => buildSuggestions(searched, options, draft, known),
     [searched, options, draft, known],
   );
-  const listOpen = open && (suggestions.length > 0 || searching);
+  // An empty result from a search-capable plugin must SAY so: an
+  // unconfigured plugin returns [] exactly like a genuine miss, and a silent
+  // dropdown reads as "the feature is broken" rather than "check the
+  // plugin's connection". Only when search exists — the static-suggestions
+  // path has its own no-providers hint.
+  const noMatches = !searching && searchable && suggestions.length === 0;
+  const listOpen = open && (suggestions.length > 0 || searching || noMatches);
 
   const close = () => {
     setOpen(false);
@@ -351,6 +357,15 @@ export function SourceKeyInput({
                 {t('visibilityConditions.searchingHint')}
               </li>
             )}
+            {noMatches && (
+              <li
+                role="presentation"
+                data-testid="key-search-no-results"
+                className="px-2 py-1 text-[10px] text-hs-text-dim"
+              >
+                {t('visibilityConditions.searchNoResults')}
+              </li>
+            )}
           </ul>
         )}
       </div>
@@ -359,7 +374,9 @@ export function SourceKeyInput({
       )}
       {liveEntry && (
         <span className="text-[10px] text-hs-text-dim">
-          {t('visibilityConditions.liveValueLabel')}{' '}
+          {t(liveState?.source === 'editor'
+            ? 'visibilityConditions.liveValueLabelEditor'
+            : 'visibilityConditions.liveValueLabel')}{' '}
           <code className="rounded bg-hs-hover px-1 font-mono text-hs-text-muted">
             {liveEntry.value === '' ? '""' : liveEntry.value}
           </code>
@@ -569,7 +586,7 @@ function ConditionEditor({
   onChange: (next: VisibilityCondition) => void;
   onRemove: () => void;
   options: readonly ProvidedStateKey[];
-  liveState?: DisplaySharedState;
+  liveState?: EditorSharedState;
   verdictStates: ReadonlyMap<string, SharedStateEntry> | null;
   depth: number;
   t: TranslateFn;
@@ -753,7 +770,7 @@ export default function ConditionTreeEditor({
   conditions: VisibilityCondition[];
   onChange: (next: VisibilityCondition[]) => void;
   options: readonly ProvidedStateKey[];
-  liveState?: DisplaySharedState;
+  liveState?: EditorSharedState;
   t: TranslateFn;
 }) {
   // One states map per snapshot for the whole tree; null (no fresh report)

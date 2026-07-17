@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import PluginGlobals from '@/components/PluginGlobals';
 import PluginGlobalsEditor from '@/components/PluginGlobalsEditor';
+import EditorStateProviderLayer from '@/components/editor/EditorStateProviderLayer';
 import BackupReminderToast from '@/components/editor/BackupReminderToast';
 import UpdateAvailableToast from '@/components/editor/UpdateAvailableToast';
 import { readConfig } from '@/lib/config';
@@ -63,6 +64,9 @@ export default async function EditorLayout({ children }: { children: React.React
             tree order). */}
         <PluginGlobals />
         <PluginGlobalsEditor />
+        {/* Demand-driven state providers run in the editor too, publishing to
+            this tab's bus so condition verdicts work with no display open. */}
+        <EditorStateProviderLayer />
         {children}
         <ConfirmModal />
         <BackupReminderToast />

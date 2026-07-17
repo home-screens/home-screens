@@ -288,10 +288,12 @@ test('a background-provider module publishes state and keeps running across scre
   await expect(page.getByText('SCREEN A GATED')).toBeVisible();
 });
 
-test('the Text module resolves state tokens and template variables, en-dash for unknown keys', async ({ page, request }) => {
+test('the Text module resolves state tokens, filters, and template variables, en-dash for unknown keys', async ({ page, request }) => {
   const withVars = tokenText(
     'tokens',
-    `flag=[{${FIXTURE_STATE_KEY}}] time=[{{time}}] missing=[{plugin:e2e-fixture:missing}]`,
+    `flag=[{${FIXTURE_STATE_KEY}}] time=[{{time}}] missing=[{plugin:e2e-fixture:missing}] `
+      + 'rounded=[{plugin:e2e-fixture:num|round:1}] fb=[{plugin:e2e-fixture:missing|default:none}] '
+      + 'typo=[{plugin:e2e-fixture:missing|oops}]',
     true,
   );
   // templateVariables OFF: `{{time}}` must stay literal (the token matcher's
@@ -309,12 +311,23 @@ test('the Text module resolves state tokens and template variables, en-dash for 
   await expect(tokens).toContainText(/time=\[\d{2}:\d{2}\]/);
   await expect(tokens).toContainText(`missing=[${UNKNOWN_VALUE_PLACEHOLDER}]`);
 
+  // Filters: an unpublished key with default: renders the fallback text; an
+  // unrecognized filter renders the whole token literally (visible typo);
+  // round on an unpublished key still falls back to the placeholder.
+  await expect(tokens).toContainText('fb=[none]');
+  await expect(tokens).toContainText('typo=[{plugin:e2e-fixture:missing|oops}]');
+  await expect(tokens).toContainText(`rounded=[${UNKNOWN_VALUE_PLACEHOLDER}]`);
+
   // A double-brace variable with templateVariables off is passed through untouched.
   await expect(page.locator('[data-module-id="literal"]')).toContainText('literal=[{{time}}]');
 
   // The token tracks live producer updates.
   await publishState(page, 'flag', 'off');
   await expect(tokens).toContainText('flag=[off]');
+
+  // round:1 rounds a live numeric value once it publishes.
+  await publishState(page, 'num', '72.53333');
+  await expect(tokens).toContainText('rounded=[72.5]');
 });
 
 /**
