@@ -243,7 +243,7 @@
       "resetToDefault": "Terugzetten op standaard",
       "overriddenForDisplay": "Overschreven voor {name}. Standaard: ",
       "overriddenWithoutDisplay": "Overschreven. Standaard: ",
-      "overriddenSuffix": " — bewerken via ",
+      "overriddenSuffix": ". Bewerken via ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Gebruikt de standaard. ",
       "usingDefaultPart2": " gebruikt ",
@@ -433,7 +433,7 @@
         },
         "weatherApi": {
           "tagline": "Gratis tier · geen creditcard",
-          "keyHint": "Gratis op weatherapi.com — geen creditcard nodig.",
+          "keyHint": "Gratis op weatherapi.com; geen creditcard nodig.",
           "placeholder": "Plak je WeatherAPI-sleutel"
         },
         "openWeatherMap": {
@@ -443,7 +443,7 @@
         },
         "pirateWeather": {
           "tagline": "Dark Sky-vervanger",
-          "keyHint": "Gratis op pirateweather.net — directe Dark Sky-vervanger.",
+          "keyHint": "Gratis op pirateweather.net, directe Dark Sky-vervanger.",
           "placeholder": "Plak je Pirate Weather API-sleutel"
         },
         "noaa": {
@@ -452,11 +452,11 @@
         },
         "yr": {
           "tagline": "Gratis · wereldwijd · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door het Noors Meteorologisch Instituut met wereldwijde dekking. Gebruik om te testen een Scandinavische lat/lon — bijv. Oslo (59.9139, 10.7522) — voor de dichtste dekking."
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Noors Meteorologisch Instituut met wereldwijde dekking. Gebruik om te testen een Scandinavische lat/lon, bijv. Oslo (59.9139, 10.7522), voor de dichtste dekking."
         },
         "smhi": {
           "tagline": "Gratis · alleen Scandinavië · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door het Zweeds Meteorologisch en Hydrologisch Instituut. Alleen Scandinavische dekking — gebruik om te testen een Scandinavische lat/lon (bijv. Stockholm: 59.3293, 18.0686). Geeft geen gegevens terug buiten Scandinavië."
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Zweeds Meteorologisch en Hydrologisch Instituut. Alleen Scandinavische dekking; gebruik om te testen een Scandinavische lat/lon (bijv. Stockholm: 59.3293, 18.0686). Geeft geen gegevens terug buiten Scandinavië."
         },
         "metOffice": {
           "tagline": "Freemium · focus VK · sleutel vereist",
@@ -465,7 +465,7 @@
         },
         "envCanada": {
           "tagline": "Gratis · alleen Canada · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada — de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
+          "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada, de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
         }
       }
     },
@@ -477,7 +477,7 @@
       "descriptionPart2": " overschrijft, neemt de nieuwe waarde over.",
       "multiDisplayNotePart1": "Resolutie, oriëntatie en spiegeling zijn ",
       "multiDisplayNotePerDisplay": "per display",
-      "multiDisplayNotePart2": " — bewerk ze op de eigen pagina van elk display onder ",
+      "multiDisplayNotePart2": ". Bewerk ze op de eigen pagina van elk display onder ",
       "multiDisplayNotePerDisplaySection": "Per display",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -606,7 +606,7 @@
       },
       "profile": {
         "activeProfileLabel": "Actief profiel",
-        "noneOption": "— Geen —",
+        "noneOption": "Geen",
         "helpPart1": "Welk profiel {name} momenteel toont. Profieldefinities staan op ",
         "helpLink": "Standaardwaarden → Profielen",
         "helpPart2": "."
@@ -621,7 +621,7 @@
         "bannerPart4": " bij een veld om het alleen voor {name} te wijzigen.",
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
-        "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie — die wordt niet gedeeld.",
+        "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie; die wordt niet gedeeld.",
         "rotationOptionNormal": "Normaal (liggend)",
         "rotationOption90": "90° met de klok mee (staand)",
         "rotationOption180": "180° (omgekeerd)",
@@ -643,7 +643,7 @@
       "sleep": {
         "label": "Slaapschema",
         "defaultsLabel": "Standaardwaarden → Slapen",
-        "infoPart1": "Slapen wordt als één blok overschreven — je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
+        "infoPart1": "Slapen wordt als één blok overschreven; je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
         "infoPart2": "."
       },
       "alerts": {
@@ -727,7 +727,7 @@
         "clientSecretHelp": "Het client secret van dezelfde OAuth-credential hierboven.",
         "mapsKeyLabel": "Maps API-sleutel",
         "mapsKeyPlaceholder": "Plak je Google Maps API-sleutel",
-        "mapsKeyHelp": "Optioneel — voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
+        "mapsKeyHelp": "Optioneel, voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
       },
       "immich": {
         "name": "Immich",
@@ -743,13 +743,13 @@
         "description": "HD-foto-achtergronden per categorie",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Plak je Unsplash access key",
-        "accessKeyHelp": "Gratis op unsplash.com/developers — 50 verzoeken/uur op het gratis tier."
+        "accessKeyHelp": "Gratis op unsplash.com/developers; 50 verzoeken/uur op het gratis tier."
       },
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
         "apiKeyPlaceholder": "Plak je NASA API-sleutel",
-        "apiKeyHelp": "Gratis op api.nasa.gov — 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
+        "apiKeyHelp": "Gratis op api.nasa.gov; 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
       },
       "todoist": {
         "name": "Todoist",
@@ -762,7 +762,7 @@
         "name": "TomTom",
         "description": "Verkeer & reistijden",
         "keyPlaceholder": "Plak je TomTom API-sleutel",
-        "keyHelp": "Gratis op developer.tomtom.com — Routing API vereist. Alternatief voor Google Maps."
+        "keyHelp": "Gratis op developer.tomtom.com; Routing API vereist. Alternatief voor Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -948,7 +948,7 @@
       "intro": {
         "part1": "Gedeelde maaltijdplanner-instellingen. Deze verschijnen ook in het ",
         "remoteLinkLabel": "remote",
-        "part2": "-instellingenpaneel — bewerkingen vanuit beide kanten blijven gesynchroniseerd."
+        "part2": "-instellingenpaneel. Bewerkingen vanuit beide kanten blijven gesynchroniseerd."
       },
       "status": {
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
@@ -1111,7 +1111,7 @@
         "screensHeading": "Schermen",
         "availableHeading": "Beschikbaar",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Geen schermen geselecteerd — alle schermen worden als terugval getoond.",
+        "noScreensWarning": "Geen schermen geselecteerd; alle schermen worden als terugval getoond.",
         "dragHelp": "Sleep om de rotatievolgorde binnen dit profiel te bepalen.",
         "scheduleToggleLabel": "Automatisch activeren op schema",
         "fromLabel": "Van",
@@ -1126,7 +1126,7 @@
     },
     "rulesPage": {
       "heading": "Regels",
-      "description": "Met regels reageert het scherm op wat er thuis gebeurt. Als de voorwaarden van een regel waar worden, kan die naar een scherm wisselen of het display wekken — bijvoorbeeld het camerascherm tonen als er wordt aangebeld.",
+      "description": "Met regels reageert het scherm op wat er thuis gebeurt. Als de voorwaarden van een regel waar worden, kan die naar een scherm wisselen of het display wekken, bijvoorbeeld het camerascherm tonen als er wordt aangebeld.",
       "displayPicker": {
         "label": "Regels bewerken voor",
         "optionLabel": "{name} ({id})",
@@ -1146,7 +1146,7 @@
         "enabledLabel": "Regel staat aan",
         "whenHeading": "Als",
         "thenHeading": "Dan",
-        "noConditionsHint": "Nog geen voorwaarden — deze regel gaat pas af als je er een toevoegt.",
+        "noConditionsHint": "Nog geen voorwaarden; deze regel gaat pas af als je er een toevoegt.",
         "invalidHint": "Deze regel kan nog niet worden opgeslagen:",
         "allMustMatchHint": "Alle voorwaarden moeten kloppen om de regel af te laten gaan.",
         "actionKindLabel": "Actie",
@@ -1178,7 +1178,7 @@
     },
     "sharedStatePage": {
       "heading": "Gedeelde waarden",
-      "description": "Alle waarden die dit scherm publiceert voor voorwaarden, regels en teksttokens — plus alles wat wordt gebruikt maar nooit aankomt.",
+      "description": "Alle waarden die dit scherm publiceert voor voorwaarden, regels en teksttokens, plus alles wat wordt gebruikt maar nooit aankomt.",
       "displayPicker": {
         "label": "Scherm",
         "optionLabel": "{name} ({id})"
@@ -1235,7 +1235,7 @@
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Het display moet herladen om de nieuwe token op te pikken.",
         "errorRegenerate": "Token opnieuw genereren mislukt",
-        "errorCopy": "Kopiëren mislukt — selecteer en kopieer handmatig",
+        "errorCopy": "Kopiëren mislukt; selecteer en kopieer handmatig",
         "phoneHintPart1": "Voor bladwijzers op je telefoon: voeg ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " toe aan command-URL's."
@@ -1278,7 +1278,7 @@
           "loopback": "::1",
           "or": " of ",
           "linkLocal": "fe80::…",
-          "part2": " rapporteren) komen niet overeen met enige allowlist-vermelding en worden geblokkeerd als beperking is ingeschakeld. Controleer \"Jouw IP\" hierboven — als het met een dubbele punt begint, blokkeert deze functie je."
+          "part2": " rapporteren) komen niet overeen met enige allowlist-vermelding en worden geblokkeerd als beperking is ingeschakeld. Controleer \"Jouw IP\" hierboven; als het met een dubbele punt begint, blokkeert deze functie je."
         },
         "trustedNetworksWarning": {
           "strong": "Alleen vertrouwde netwerken.",
@@ -1532,9 +1532,9 @@
         "unloadAriaLabel": "{name} ontladen",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen — ze blijven niet bewaard tussen browsers",
+          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers",
           "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2s gepolld)",
-          "sourcemapsPart1": "Source maps worden ondersteund — voeg ",
+          "sourcemapsPart1": "Source maps worden ondersteund; voeg ",
           "sourcemapsPart2": " toe aan je Vite-config",
           "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype"
         }
@@ -1655,7 +1655,7 @@
         "one": "{count} scherm in dit huis",
         "other": "{count} schermen in dit huis"
       },
-      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi — een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer — elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub en bedient ze allemaal; extra schermen kunnen goedkope Pi Zeros zijn die ",
+      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi (een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer), elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub en bedient ze allemaal; extra schermen kunnen goedkope Pi Zeros zijn die ",
       "emptyDescriptionSuffix": " draaien.",
       "populatedDescriptionPrefix": "Klik op een scherm om zijn eigen instellingen te bewerken. Al het andere gebruikt de gedeelde ",
       "populatedDescriptionSuffix": ".",
@@ -1663,11 +1663,11 @@
       "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
       "addDisplay": "Scherm toevoegen",
       "emptyTitle": "Deze installatie draait in enkel-scherm-modus",
-      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd — ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
+      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd; ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
       "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik hierboven op ",
-      "emptyBullet1Suffix": " om een nieuw scherm te registreren — geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
+      "emptyBullet1Suffix": " om een nieuw scherm te registreren. Geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
       "emptyBullet2Prefix": "Of flash een andere Pi met ",
       "emptyBullet2Middle": ". Zodra hij start, verschijnt hij hieronder als een ",
       "emptyBullet2Suffix": " die met één klik kan worden geadopteerd.",
@@ -1684,7 +1684,7 @@
       "reportedDimensions": "{width}×{height} gerapporteerd",
       "reportedFrom": "vanaf {address}",
       "multipleClientsHeading": "{count} clients melden zich met dit ID",
-      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert — meestal een dubbele ",
+      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert; meestal een dubbele ",
       "multipleClientsParagraphSuffix": " installatie, een verdwaalde Chromium-tab, of een hub-kiosk die naar de verkeerde URL wijst.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inactief · {time}",
@@ -2067,7 +2067,7 @@
       "build": "Applicatie bouwen"
     },
     "warning": {
-      "installing": "Update installeren — sluit het apparaat niet af",
+      "installing": "Update installeren. Sluit het apparaat niet af",
       "inProgress": "Sluit deze pagina niet en zet het apparaat niet uit"
     },
     "successDefault": "Upgrade voltooid!",
@@ -2124,7 +2124,7 @@
     "applyVisualLabel": "Visuele instellingen toepassen",
     "visualSummary": "Rotatie: {seconds}s",
     "visualSummaryWithTransition": "Rotatie: {seconds}s, overgang: {transition}",
-    "saveError": "Opslaan mislukt — controleer je verbinding en probeer opnieuw.",
+    "saveError": "Opslaan mislukt. Controleer je verbinding en probeer opnieuw.",
     "importButton": "Importeren"
   },
   "installFromUrlModal": {
@@ -3240,6 +3240,7 @@
     "currentValueHint": "Huidige waarde: {value}",
     "aboveLabel": "Boven",
     "belowLabel": "Onder",
+    "orEqualLabel": "Of gelijk aan",
     "whenUnknownTitle": "Voordat gegevens binnenkomen",
     "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
     "whenUnknownHide": "Module verbergen",

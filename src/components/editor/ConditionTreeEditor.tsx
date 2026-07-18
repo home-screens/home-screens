@@ -875,16 +875,36 @@ function ConditionEditor({
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
-            <ConditionBoundInput
-              label={t('visibilityConditions.aboveLabel')}
-              value={condition.above}
-              onCommit={(above) => onChange({ ...condition, above })}
-            />
-            <ConditionBoundInput
-              label={t('visibilityConditions.belowLabel')}
-              value={condition.below}
-              onCommit={(below) => onChange({ ...condition, below })}
-            />
+            <div className="flex flex-col gap-1">
+              <ConditionBoundInput
+                label={t('visibilityConditions.aboveLabel')}
+                value={condition.above}
+                onCommit={(above) => onChange({ ...condition, above })}
+              />
+              <label className="flex items-center gap-1 text-[10px] text-hs-text-dim">
+                <input
+                  type="checkbox"
+                  checked={condition.aboveInclusive ?? false}
+                  onChange={(e) => onChange({ ...condition, aboveInclusive: e.target.checked })}
+                />
+                {t('visibilityConditions.orEqualLabel')}
+              </label>
+            </div>
+            <div className="flex flex-col gap-1">
+              <ConditionBoundInput
+                label={t('visibilityConditions.belowLabel')}
+                value={condition.below}
+                onCommit={(below) => onChange({ ...condition, below })}
+              />
+              <label className="flex items-center gap-1 text-[10px] text-hs-text-dim">
+                <input
+                  type="checkbox"
+                  checked={condition.belowInclusive ?? false}
+                  onChange={(e) => onChange({ ...condition, belowInclusive: e.target.checked })}
+                />
+                {t('visibilityConditions.orEqualLabel')}
+              </label>
+            </div>
           </div>
           {descriptor?.currentValue !== undefined && (
             <p className="text-[10px] text-hs-text-dim">

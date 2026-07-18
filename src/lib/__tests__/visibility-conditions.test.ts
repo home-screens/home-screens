@@ -71,6 +71,24 @@ describe('evaluateVisibility', () => {
       expect(evaluateVisibility(v, states({ temp: 'unavailable' }))).toBe(false);
       expect(evaluateVisibility(v, states({ temp: '' }))).toBe(false);
     });
+
+    it('supports inclusive bounds independently per side', () => {
+      const v = vis({
+        conditions: [
+          { kind: 'numeric', sourceKey: 'temp', above: 60, aboveInclusive: true, below: 80, belowInclusive: true },
+        ],
+      });
+      expect(evaluateVisibility(v, states({ temp: '60' }))).toBe(true); // >= boundary
+      expect(evaluateVisibility(v, states({ temp: '80' }))).toBe(true); // <= boundary
+      expect(evaluateVisibility(v, states({ temp: '59' }))).toBe(false);
+      expect(evaluateVisibility(v, states({ temp: '81' }))).toBe(false);
+
+      const mixed = vis({
+        conditions: [{ kind: 'numeric', sourceKey: 'temp', above: 60, below: 80, belowInclusive: true }],
+      });
+      expect(evaluateVisibility(mixed, states({ temp: '60' }))).toBe(false); // above stays strict
+      expect(evaluateVisibility(mixed, states({ temp: '80' }))).toBe(true); // below is inclusive
+    });
   });
 
   describe('boolean combinators', () => {

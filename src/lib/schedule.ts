@@ -119,8 +119,14 @@ function evaluateCondition(
       const num = raw.trim() === '' ? NaN : Number(raw);
       // A published value that doesn't parse as a number fails the condition.
       if (!Number.isFinite(num)) return false;
-      if (condition.above !== undefined && !(num > condition.above)) return false;
-      if (condition.below !== undefined && !(num < condition.below)) return false;
+      if (condition.above !== undefined) {
+        const met = condition.aboveInclusive ? num >= condition.above : num > condition.above;
+        if (!met) return false;
+      }
+      if (condition.below !== undefined) {
+        const met = condition.belowInclusive ? num <= condition.below : num < condition.below;
+        if (!met) return false;
+      }
       return true;
     }
     case 'time':

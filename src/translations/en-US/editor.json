@@ -243,7 +243,7 @@
       "resetToDefault": "Reset to default",
       "overriddenForDisplay": "Overridden for {name}. Default: ",
       "overriddenWithoutDisplay": "Overridden. Default: ",
-      "overriddenSuffix": " — edit on ",
+      "overriddenSuffix": ". Edit on ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Using the default. ",
       "usingDefaultPart2": " uses ",
@@ -433,7 +433,7 @@
         },
         "weatherApi": {
           "tagline": "Free tier · no credit card",
-          "keyHint": "Free at weatherapi.com — no credit card required.",
+          "keyHint": "Free at weatherapi.com; no credit card required.",
           "placeholder": "Paste your WeatherAPI key"
         },
         "openWeatherMap": {
@@ -443,7 +443,7 @@
         },
         "pirateWeather": {
           "tagline": "Dark Sky replacement",
-          "keyHint": "Free at pirateweather.net — drop-in Dark Sky replacement.",
+          "keyHint": "Free at pirateweather.net, a drop-in Dark Sky replacement.",
           "placeholder": "Paste your Pirate Weather API key"
         },
         "noaa": {
@@ -452,11 +452,11 @@
         },
         "yr": {
           "tagline": "Free · global · no key",
-          "helperText": "No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon — e.g. Oslo (59.9139, 10.7522) — for the densest coverage."
+          "helperText": "No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon, e.g. Oslo (59.9139, 10.7522), for the densest coverage."
         },
         "smhi": {
           "tagline": "Free · Nordic only · no key",
-          "helperText": "No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only — to test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region."
+          "helperText": "No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only. To test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region."
         },
         "metOffice": {
           "tagline": "Freemium · UK focus · requires key",
@@ -465,7 +465,7 @@
         },
         "envCanada": {
           "tagline": "Free · Canada only · no key",
-          "helperText": "No API key required. Provided by Environment and Climate Change Canada — the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207)."
+          "helperText": "No API key required. Provided by Environment and Climate Change Canada, the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207)."
         }
       }
     },
@@ -477,7 +477,7 @@
       "descriptionPart2": " overriding that field picks up the new value.",
       "multiDisplayNotePart1": "Resolution, orientation, and flip are ",
       "multiDisplayNotePerDisplay": "per display",
-      "multiDisplayNotePart2": " — edit them on each display's own page under ",
+      "multiDisplayNotePart2": ". Edit them on each display's own page under ",
       "multiDisplayNotePerDisplaySection": "Per display",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -606,7 +606,7 @@
       },
       "profile": {
         "activeProfileLabel": "Active profile",
-        "noneOption": "— None —",
+        "noneOption": "None",
         "helpPart1": "Which profile {name} is currently displaying. Profile definitions live on ",
         "helpLink": "Defaults → Profiles",
         "helpPart2": "."
@@ -621,7 +621,7 @@
         "bannerPart4": " on any field to change it just for {name}.",
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
-        "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution — it isn't shared.",
+        "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution; it isn't shared.",
         "rotationOptionNormal": "Normal (landscape)",
         "rotationOption90": "90° clockwise (portrait)",
         "rotationOption180": "180° (inverted)",
@@ -643,7 +643,7 @@
       "sleep": {
         "label": "Sleep schedule",
         "defaultsLabel": "Defaults → Sleep",
-        "infoPart1": "Sleep is overridden as a whole block — you can't fork individual fields like dim time. The default lives on ",
+        "infoPart1": "Sleep is overridden as a whole block; you can't fork individual fields like dim time. The default lives on ",
         "infoPart2": "."
       },
       "alerts": {
@@ -727,7 +727,7 @@
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
         "mapsKeyLabel": "Maps API Key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
-        "mapsKeyHelp": "Optional — for traffic/commute widget. Enable the Routes API in the same Cloud Console project."
+        "mapsKeyHelp": "Optional, for the traffic/commute widget. Enable the Routes API in the same Cloud Console project."
       },
       "immich": {
         "name": "Immich",
@@ -743,13 +743,13 @@
         "description": "HD photo backgrounds by category",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Paste your Unsplash access key",
-        "accessKeyHelp": "Free at unsplash.com/developers — 50 requests/hour on free tier."
+        "accessKeyHelp": "Free at unsplash.com/developers; 50 requests/hour on free tier."
       },
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
         "apiKeyPlaceholder": "Paste your NASA API key",
-        "apiKeyHelp": "Free at api.nasa.gov — 1,000 requests/hour. Image Library search works without a key."
+        "apiKeyHelp": "Free at api.nasa.gov; 1,000 requests/hour. Image Library search works without a key."
       },
       "todoist": {
         "name": "Todoist",
@@ -948,7 +948,7 @@
       "intro": {
         "part1": "Shared meal-planner settings. These also appear in the ",
         "remoteLinkLabel": "remote",
-        "part2": " settings drawer — edits from either surface stay in sync."
+        "part2": " settings drawer. Edits from either surface stay in sync."
       },
       "status": {
         "loadFailed": "Failed to load meal settings.",
@@ -1111,7 +1111,7 @@
         "screensHeading": "Screens",
         "availableHeading": "Available",
         "addScreenSymbol": "+",
-        "noScreensWarning": "No screens selected — all screens will be shown as fallback.",
+        "noScreensWarning": "No screens selected; all screens will be shown as fallback.",
         "dragHelp": "Drag to set rotation order within this profile.",
         "scheduleToggleLabel": "Auto-activate on schedule",
         "fromLabel": "From",
@@ -1126,7 +1126,7 @@
     },
     "rulesPage": {
       "heading": "Rules",
-      "description": "Rules make the display react to what's happening at home. When a rule's conditions become true, it can switch to a screen or wake the display — like showing the camera screen when the doorbell rings.",
+      "description": "Rules make the display react to what's happening at home. When a rule's conditions become true, it can switch to a screen or wake the display, like showing the camera screen when the doorbell rings.",
       "displayPicker": {
         "label": "Editing rules for",
         "optionLabel": "{name} ({id})",
@@ -1146,7 +1146,7 @@
         "enabledLabel": "Rule is on",
         "whenHeading": "When",
         "thenHeading": "Then",
-        "noConditionsHint": "No conditions yet — this rule won't trigger until you add one.",
+        "noConditionsHint": "No conditions yet; this rule won't trigger until you add one.",
         "invalidHint": "This rule can't be saved yet:",
         "allMustMatchHint": "All conditions must match for the rule to trigger.",
         "actionKindLabel": "Action",
@@ -1178,7 +1178,7 @@
     },
     "sharedStatePage": {
       "heading": "Shared state",
-      "description": "Every value this display publishes for conditions, rules, and text tokens — plus anything referenced that never arrives.",
+      "description": "Every value this display publishes for conditions, rules, and text tokens, plus anything referenced that never arrives.",
       "displayPicker": {
         "label": "Display",
         "optionLabel": "{name} ({id})"
@@ -1235,7 +1235,7 @@
         "regenerateCancel": "Cancel",
         "regenerateWarning": "The display will need to reload to pick up the new token.",
         "errorRegenerate": "Failed to regenerate token",
-        "errorCopy": "Copy failed — select and copy manually",
+        "errorCopy": "Copy failed; select and copy manually",
         "phoneHintPart1": "For phone bookmarks, append ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " to command URLs."
@@ -1278,7 +1278,7 @@
           "loopback": "::1",
           "or": " or ",
           "linkLocal": "fe80::…",
-          "part2": ") do not match any allowlist entry and will be blocked when restriction is enabled. Check \"Your IP\" above — if it starts with a colon, this feature will block you."
+          "part2": ") do not match any allowlist entry and will be blocked when restriction is enabled. Check \"Your IP\" above; if it starts with a colon, this feature will block you."
         },
         "trustedNetworksWarning": {
           "strong": "Trusted networks only.",
@@ -1532,9 +1532,9 @@
         "unloadAriaLabel": "Unload {name}",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev plugins are stored in localStorage only — they won't persist across browsers",
+          "localStorage": "Dev plugins are stored in localStorage only; they won't persist across browsers",
           "autoReload": "The plugin auto-reloads when the bundle changes (polled every 2s)",
-          "sourcemapsPart1": "Source maps are supported — add ",
+          "sourcemapsPart1": "Source maps are supported; add ",
           "sourcemapsPart2": " to your Vite config",
           "devOverrides": "Dev plugins override installed versions with the same module type"
         }
@@ -1655,7 +1655,7 @@
         "one": "{count} display in this home",
         "other": "{count} displays in this home"
       },
-      "emptyDescriptionPrefix": "Drive more than one screen from this Pi — a kitchen touchscreen, a bedroom monitor, a living-room TV — each with its own layout, resolution, and rotation. This Pi becomes the hub and serves all of them; secondary displays can be cheap Pi Zeros running ",
+      "emptyDescriptionPrefix": "Drive more than one screen from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub and serves all of them; secondary displays can be cheap Pi Zeros running ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Click a display to edit its own settings. Everything else uses the shared ",
       "populatedDescriptionSuffix": ".",
@@ -1663,11 +1663,11 @@
       "refreshHeartbeatsTitle": "Refresh heartbeats",
       "addDisplay": "Add display",
       "emptyTitle": "This install is running in single-display mode",
-      "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet — multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
+      "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Click ",
-      "emptyBullet1Suffix": " above to register a new screen — give it a name, resolution, and rotation, then design its own layout in the editor.",
+      "emptyBullet1Suffix": " above to register a new screen. Give it a name, resolution, and rotation, then design its own layout in the editor.",
       "emptyBullet2Prefix": "Or flash another Pi with ",
       "emptyBullet2Middle": ". Once it boots, it will appear below as an ",
       "emptyBullet2Suffix": " waiting to be adopted with one click.",
@@ -1684,7 +1684,7 @@
       "reportedDimensions": "{width}×{height} reported",
       "reportedFrom": "from {address}",
       "multipleClientsHeading": "{count} clients reporting with this ID",
-      "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting — most often a duplicate ",
+      "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting; most often a duplicate ",
       "multipleClientsParagraphSuffix": " install, a stray chromium tab, or a hub kiosk pointed at the wrong URL.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Idle · {time}",
@@ -2067,7 +2067,7 @@
       "build": "Build application"
     },
     "warning": {
-      "installing": "Installing update — do not close or power off the device",
+      "installing": "Installing update. Do not close or power off the device",
       "inProgress": "Do not close this page or power off the device"
     },
     "successDefault": "Upgrade complete!",
@@ -2124,7 +2124,7 @@
     "applyVisualLabel": "Apply visual settings",
     "visualSummary": "Rotation: {seconds}s",
     "visualSummaryWithTransition": "Rotation: {seconds}s, transition: {transition}",
-    "saveError": "Failed to save — check your connection and try again.",
+    "saveError": "Failed to save. Check your connection and try again.",
     "importButton": "Import"
   },
   "installFromUrlModal": {
@@ -3240,6 +3240,7 @@
     "currentValueHint": "Current value: {value}",
     "aboveLabel": "Above",
     "belowLabel": "Below",
+    "orEqualLabel": "Or equal to",
     "whenUnknownTitle": "Before data arrives",
     "whenUnknownLabel": "While the data source hasn't reported yet",
     "whenUnknownHide": "Hide the module",

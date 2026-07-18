@@ -241,7 +241,7 @@ export default function LocationSection({ values, onChange }: Props) {
           </p>
           {(lat && lon) && (
             <p className="text-xs text-hs-text-faint">
-              {locationName ? `${locationName} — ` : ''}
+              {locationName ? `${locationName}: ` : ''}
               {lat}, {lon}
             </p>
           )}

@@ -243,7 +243,7 @@
       "resetToDefault": "Auf Standard zurücksetzen",
       "overriddenForDisplay": "Überschrieben für {name}. Standard: ",
       "overriddenWithoutDisplay": "Überschrieben. Standard: ",
-      "overriddenSuffix": " — bearbeiten unter ",
+      "overriddenSuffix": ". Bearbeiten unter ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Verwendet den Standard. ",
       "usingDefaultPart2": " verwendet ",
@@ -433,7 +433,7 @@
         },
         "weatherApi": {
           "tagline": "Kostenloses Kontingent · keine Kreditkarte",
-          "keyHint": "Kostenlos auf weatherapi.com — keine Kreditkarte erforderlich.",
+          "keyHint": "Kostenlos auf weatherapi.com; keine Kreditkarte erforderlich.",
           "placeholder": "Füge deinen WeatherAPI-Schlüssel ein"
         },
         "openWeatherMap": {
@@ -443,7 +443,7 @@
         },
         "pirateWeather": {
           "tagline": "Dark-Sky-Ersatz",
-          "keyHint": "Kostenlos auf pirateweather.net — direkter Dark-Sky-Ersatz.",
+          "keyHint": "Kostenlos auf pirateweather.net, direkter Dark-Sky-Ersatz.",
           "placeholder": "Füge deinen Pirate-Weather-API-Schlüssel ein"
         },
         "noaa": {
@@ -452,11 +452,11 @@
         },
         "yr": {
           "tagline": "Kostenlos · weltweit · kein Schlüssel",
-          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Norwegischen Meteorologischen Institut mit weltweiter Abdeckung. Zum Testen eine nordische Lat/Lon verwenden — z. B. Oslo (59.9139, 10.7522) — dort ist die Abdeckung am dichtesten."
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Norwegischen Meteorologischen Institut mit weltweiter Abdeckung. Zum Testen eine nordische Lat/Lon verwenden, z. B. Oslo (59.9139, 10.7522); dort ist die Abdeckung am dichtesten."
         },
         "smhi": {
           "tagline": "Kostenlos · nur Nordeuropa · kein Schlüssel",
-          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Schwedischen Meteorologischen und Hydrologischen Institut. Nur nordeuropäische Abdeckung — zum Testen eine nordische Lat/Lon verwenden (z. B. Stockholm: 59.3293, 18.0686). Außerhalb Nordeuropas werden keine Daten zurückgegeben."
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt vom Schwedischen Meteorologischen und Hydrologischen Institut. Nur nordeuropäische Abdeckung; zum Testen eine nordische Lat/Lon verwenden (z. B. Stockholm: 59.3293, 18.0686). Außerhalb Nordeuropas werden keine Daten zurückgegeben."
         },
         "metOffice": {
           "tagline": "Freemium · Fokus UK · erfordert Schlüssel",
@@ -465,7 +465,7 @@
         },
         "envCanada": {
           "tagline": "Kostenlos · nur Kanada · kein Schlüssel",
-          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt von Environment and Climate Change Canada — die maßgebliche Vorhersagequelle in Kanada. Home Screens wählt die nächstgelegene von rund 844 kanadischen Stadtstationen anhand deiner Breite/Länge; Standorte mehr als 200 km von einer kanadischen Stadt entfernt werden abgelehnt. Zum Testen z. B. Toronto (43.6532, -79.3832) oder Vancouver (49.2827, -123.1207)."
+          "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt von Environment and Climate Change Canada, der maßgeblichen Vorhersagequelle in Kanada. Home Screens wählt die nächstgelegene von rund 844 kanadischen Stadtstationen anhand deiner Breite/Länge; Standorte mehr als 200 km von einer kanadischen Stadt entfernt werden abgelehnt. Zum Testen z. B. Toronto (43.6532, -79.3832) oder Vancouver (49.2827, -123.1207)."
         }
       }
     },
@@ -477,7 +477,7 @@
       "descriptionPart2": " überschreibt, den neuen Wert.",
       "multiDisplayNotePart1": "Auflösung, Ausrichtung und Spiegelung sind ",
       "multiDisplayNotePerDisplay": "pro Display",
-      "multiDisplayNotePart2": " — bearbeite sie auf der eigenen Seite jedes Displays unter ",
+      "multiDisplayNotePart2": ". Bearbeite sie auf der eigenen Seite jedes Displays unter ",
       "multiDisplayNotePerDisplaySection": "Pro Display",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -606,7 +606,7 @@
       },
       "profile": {
         "activeProfileLabel": "Aktives Profil",
-        "noneOption": "— Keines —",
+        "noneOption": "Keines",
         "helpPart1": "Welches Profil auf {name} aktuell angezeigt wird. Profildefinitionen leben unter ",
         "helpLink": "Standardwerte → Profile",
         "helpPart2": "."
@@ -621,7 +621,7 @@
         "bannerPart4": " bei einem Feld, um es nur für {name} zu ändern.",
         "canvasHeading": "Anzeigefläche",
         "perDisplayBadge": "Pro Display",
-        "resolutionHelp": "Module werden gegen diese Anzeigefläche ausgelegt. Jedes Display hat seine eigene Auflösung — sie wird nicht geteilt.",
+        "resolutionHelp": "Module werden gegen diese Anzeigefläche ausgelegt. Jedes Display hat seine eigene Auflösung; sie wird nicht geteilt.",
         "rotationOptionNormal": "Normal (Querformat)",
         "rotationOption90": "90° im Uhrzeigersinn (Hochformat)",
         "rotationOption180": "180° (umgekehrt)",
@@ -643,7 +643,7 @@
       "sleep": {
         "label": "Schlafzeitplan",
         "defaultsLabel": "Standardwerte → Schlaf",
-        "infoPart1": "Schlaf wird als ganzer Block überschrieben — einzelne Felder wie die Dimmzeit lassen sich nicht separat überschreiben. Der Standard liegt unter ",
+        "infoPart1": "Schlaf wird als ganzer Block überschrieben; einzelne Felder wie die Dimmzeit lassen sich nicht separat überschreiben. Der Standard liegt unter ",
         "infoPart2": "."
       },
       "alerts": {
@@ -727,7 +727,7 @@
         "clientSecretHelp": "Das Client-Secret derselben OAuth-Anmeldedaten von oben.",
         "mapsKeyLabel": "Maps-API-Schlüssel",
         "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
-        "mapsKeyHelp": "Optional — für das Verkehrs-/Pendel-Widget. Aktiviere die Routes API im selben Cloud-Console-Projekt."
+        "mapsKeyHelp": "Optional, für das Verkehrs-/Pendel-Widget. Aktiviere die Routes API im selben Cloud-Console-Projekt."
       },
       "immich": {
         "name": "Immich",
@@ -743,13 +743,13 @@
         "description": "HD-Fotohintergründe nach Kategorie",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Füge deinen Unsplash Access Key ein",
-        "accessKeyHelp": "Kostenlos unter unsplash.com/developers — 50 Anfragen/Stunde im kostenlosen Tarif."
+        "accessKeyHelp": "Kostenlos unter unsplash.com/developers; 50 Anfragen/Stunde im kostenlosen Tarif."
       },
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
         "apiKeyPlaceholder": "Füge deinen NASA-API-Schlüssel ein",
-        "apiKeyHelp": "Kostenlos unter api.nasa.gov — 1.000 Anfragen/Stunde. Die Suche in der Image Library funktioniert ohne Schlüssel."
+        "apiKeyHelp": "Kostenlos unter api.nasa.gov; 1.000 Anfragen/Stunde. Die Suche in der Image Library funktioniert ohne Schlüssel."
       },
       "todoist": {
         "name": "Todoist",
@@ -762,7 +762,7 @@
         "name": "TomTom",
         "description": "Verkehr & Pendelzeiten",
         "keyPlaceholder": "Füge deinen TomTom-API-Schlüssel ein",
-        "keyHelp": "Kostenlos unter developer.tomtom.com — Routing API erforderlich. Alternative zu Google Maps."
+        "keyHelp": "Kostenlos unter developer.tomtom.com; Routing API erforderlich. Alternative zu Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -948,7 +948,7 @@
       "intro": {
         "part1": "Gemeinsame Einstellungen für den Essensplaner. Sie erscheinen auch in der Einstellungs-Schublade der ",
         "remoteLinkLabel": "Fernsteuerung",
-        "part2": " — Bearbeitungen auf einer der Seiten bleiben überall synchron."
+        "part2": ". Bearbeitungen auf einer der Seiten bleiben überall synchron."
       },
       "status": {
         "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
@@ -1111,7 +1111,7 @@
         "screensHeading": "Bildschirme",
         "availableHeading": "Verfügbar",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Keine Bildschirme ausgewählt — als Fallback werden alle Bildschirme angezeigt.",
+        "noScreensWarning": "Keine Bildschirme ausgewählt; als Fallback werden alle Bildschirme angezeigt.",
         "dragHelp": "Ziehe, um die Rotationsreihenfolge in diesem Profil festzulegen.",
         "scheduleToggleLabel": "Automatisch nach Zeitplan aktivieren",
         "fromLabel": "Von",
@@ -1126,7 +1126,7 @@
     },
     "rulesPage": {
       "heading": "Regeln",
-      "description": "Mit Regeln reagiert das Display auf das, was zu Hause passiert. Wenn die Bedingungen einer Regel zutreffen, kann sie zu einem Bildschirm wechseln oder das Display aufwecken — zum Beispiel den Kamera-Bildschirm zeigen, wenn es an der Tür klingelt.",
+      "description": "Mit Regeln reagiert das Display auf das, was zu Hause passiert. Wenn die Bedingungen einer Regel zutreffen, kann sie zu einem Bildschirm wechseln oder das Display aufwecken, zum Beispiel den Kamera-Bildschirm zeigen, wenn es an der Tür klingelt.",
       "displayPicker": {
         "label": "Regeln bearbeiten für",
         "optionLabel": "{name} ({id})",
@@ -1146,7 +1146,7 @@
         "enabledLabel": "Regel ist aktiv",
         "whenHeading": "Wenn",
         "thenHeading": "Dann",
-        "noConditionsHint": "Noch keine Bedingungen — diese Regel löst erst aus, wenn du eine hinzufügst.",
+        "noConditionsHint": "Noch keine Bedingungen; diese Regel löst erst aus, wenn du eine hinzufügst.",
         "invalidHint": "Diese Regel kann noch nicht gespeichert werden:",
         "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit die Regel auslöst.",
         "actionKindLabel": "Aktion",
@@ -1178,7 +1178,7 @@
     },
     "sharedStatePage": {
       "heading": "Geteilte Werte",
-      "description": "Alle Werte, die dieses Display für Bedingungen, Regeln und Text-Platzhalter veröffentlicht — und alles, was referenziert wird, aber nie ankommt.",
+      "description": "Alle Werte, die dieses Display für Bedingungen, Regeln und Text-Platzhalter veröffentlicht, sowie alles, was referenziert wird, aber nie ankommt.",
       "displayPicker": {
         "label": "Display",
         "optionLabel": "{name} ({id})"
@@ -1215,7 +1215,7 @@
       },
       "revokeSessions": {
         "button": "Alle Sitzungen widerrufen",
-        "warning": "Alle Sitzungen werden ungültig — auch diese.",
+        "warning": "Alle Sitzungen werden ungültig, auch diese.",
         "confirmButton": "Bestätigen",
         "revoking": "Wird widerrufen …",
         "cancel": "Abbrechen",
@@ -1235,7 +1235,7 @@
         "regenerateCancel": "Abbrechen",
         "regenerateWarning": "Das Display muss neu geladen werden, um den neuen Token zu übernehmen.",
         "errorRegenerate": "Token konnte nicht neu erzeugt werden",
-        "errorCopy": "Kopieren fehlgeschlagen — bitte manuell auswählen und kopieren",
+        "errorCopy": "Kopieren fehlgeschlagen; bitte manuell auswählen und kopieren",
         "phoneHintPart1": "Für Lesezeichen am Telefon hänge ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " an die Befehls-URLs an."
@@ -1278,7 +1278,7 @@
           "loopback": "::1",
           "or": " oder ",
           "linkLocal": "fe80::…",
-          "part2": " melden) entsprechen keinem Listeneintrag und werden bei aktiver Beschränkung blockiert. Prüfe „Deine IP“ oben — wenn sie mit einem Doppelpunkt beginnt, sperrt dich diese Funktion aus."
+          "part2": " melden) entsprechen keinem Listeneintrag und werden bei aktiver Beschränkung blockiert. Prüfe „Deine IP“ oben; wenn sie mit einem Doppelpunkt beginnt, sperrt dich diese Funktion aus."
         },
         "trustedNetworksWarning": {
           "strong": "Nur vertrauenswürdige Netzwerke.",
@@ -1655,7 +1655,7 @@
         "one": "{count} Anzeige in diesem Zuhause",
         "other": "{count} Anzeigen in diesem Zuhause"
       },
-      "emptyDescriptionPrefix": "Steuern Sie mehrere Bildschirme von diesem Pi aus — ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV — jeder mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub und liefert sie alle aus; zusätzliche Anzeigen können günstige Pi Zeros mit ",
+      "emptyDescriptionPrefix": "Steuern Sie mehrere Bildschirme von diesem Pi aus (ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV), jeder mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub und liefert sie alle aus; zusätzliche Anzeigen können günstige Pi Zeros mit ",
       "emptyDescriptionSuffix": " sein.",
       "populatedDescriptionPrefix": "Klicken Sie auf eine Anzeige, um ihre eigenen Einstellungen zu bearbeiten. Alles andere verwendet die gemeinsamen ",
       "populatedDescriptionSuffix": ".",
@@ -1663,11 +1663,11 @@
       "refreshHeartbeatsTitle": "Heartbeats aktualisieren",
       "addDisplay": "Anzeige hinzufügen",
       "emptyTitle": "Diese Installation läuft im Einzelanzeige-Modus",
-      "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht registriert — Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
+      "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht registriert; Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
       "emptyParagraphPart2": " und läuft genauso weiter wie heute.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klicken Sie oben auf ",
-      "emptyBullet1Suffix": ", um einen neuen Bildschirm zu registrieren — geben Sie ihm einen Namen, eine Auflösung und Drehung, und gestalten Sie sein Layout im Editor.",
+      "emptyBullet1Suffix": ", um einen neuen Bildschirm zu registrieren. Geben Sie ihm einen Namen, eine Auflösung und Drehung, und gestalten Sie sein Layout im Editor.",
       "emptyBullet2Prefix": "Oder flashen Sie einen weiteren Pi mit ",
       "emptyBullet2Middle": ". Sobald er bootet, erscheint er unten als ",
       "emptyBullet2Suffix": ", die mit einem Klick adoptiert werden kann.",
@@ -1684,7 +1684,7 @@
       "reportedDimensions": "{width}×{height} gemeldet",
       "reportedFrom": "von {address}",
       "multipleClientsHeading": "{count} Clients melden sich mit dieser ID",
-      "multipleClientsParagraphPrefix": "Zwei oder mehr Clients senden POSTs mit dieser Anzeige-ID. Überprüfen Sie die Quell-IPs oben, um herauszufinden, welches Gerät tatsächlich meldet — meistens eine doppelte ",
+      "multipleClientsParagraphPrefix": "Zwei oder mehr Clients senden POSTs mit dieser Anzeige-ID. Überprüfen Sie die Quell-IPs oben, um herauszufinden, welches Gerät tatsächlich meldet; meistens eine doppelte ",
       "multipleClientsParagraphSuffix": "-Installation, ein verirrter Chromium-Tab oder ein Hub-Kiosk, der auf die falsche URL zeigt.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
@@ -3240,6 +3240,7 @@
     "currentValueHint": "Aktueller Wert: {value}",
     "aboveLabel": "Über",
     "belowLabel": "Unter",
+    "orEqualLabel": "Oder gleich",
     "whenUnknownTitle": "Bevor Daten eintreffen",
     "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
     "whenUnknownHide": "Modul ausblenden",

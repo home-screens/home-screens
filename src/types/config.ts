@@ -87,7 +87,16 @@ export interface ModuleSchedule {
  */
 export type VisibilityCondition =
   | { kind: 'state'; sourceKey: string; equals?: string | string[]; notEquals?: string | string[] }
-  | { kind: 'numeric'; sourceKey: string; above?: number; below?: number }
+  | {
+      kind: 'numeric';
+      sourceKey: string;
+      above?: number;
+      /** When true, `above` is an inclusive bound (>=) instead of strict (>). */
+      aboveInclusive?: boolean;
+      below?: number;
+      /** When true, `below` is an inclusive bound (<=) instead of strict (<). */
+      belowInclusive?: boolean;
+    }
   | {
       /**
        * Local time-of-day / day-of-week gate — no shared-state key, so it fences

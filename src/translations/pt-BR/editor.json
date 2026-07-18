@@ -243,7 +243,7 @@
       "resetToDefault": "Redefinir para padrão",
       "overriddenForDisplay": "Substituído para {name}. Padrão: ",
       "overriddenWithoutDisplay": "Substituído. Padrão: ",
-      "overriddenSuffix": " — editar em ",
+      "overriddenSuffix": ". Editar em ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Usando o padrão. ",
       "usingDefaultPart2": " usa ",
@@ -433,7 +433,7 @@
         },
         "weatherApi": {
           "tagline": "Camada gratuita · sem cartão de crédito",
-          "keyHint": "Gratuito em weatherapi.com — sem cartão de crédito.",
+          "keyHint": "Gratuito em weatherapi.com; sem cartão de crédito.",
           "placeholder": "Cole sua chave da WeatherAPI"
         },
         "openWeatherMap": {
@@ -443,7 +443,7 @@
         },
         "pirateWeather": {
           "tagline": "Substituto do Dark Sky",
-          "keyHint": "Gratuito em pirateweather.net — substituto direto do Dark Sky.",
+          "keyHint": "Gratuito em pirateweather.net, substituto direto do Dark Sky.",
           "placeholder": "Cole sua chave de API do Pirate Weather"
         },
         "noaa": {
@@ -452,11 +452,11 @@
         },
         "yr": {
           "tagline": "Grátis · global · sem chave",
-          "helperText": "Não requer chave de API. Fornecido pelo Instituto Meteorológico Norueguês com cobertura global. Para testar, use uma latitude/longitude nórdica — ex: Oslo (59.9139, 10.7522) — onde a cobertura é mais densa."
+          "helperText": "Não requer chave de API. Fornecido pelo Instituto Meteorológico Norueguês com cobertura global. Para testar, use uma latitude/longitude nórdica, ex: Oslo (59.9139, 10.7522), onde a cobertura é mais densa."
         },
         "smhi": {
           "tagline": "Grátis · só países nórdicos · sem chave",
-          "helperText": "Não requer chave de API. Fornecido pelo Instituto Meteorológico e Hidrológico Sueco. Cobertura apenas nórdica — para testar, use uma latitude/longitude nórdica (ex: Estocolmo: 59.3293, 18.0686). Não retorna dados fora da região nórdica."
+          "helperText": "Não requer chave de API. Fornecido pelo Instituto Meteorológico e Hidrológico Sueco. Cobertura apenas nórdica; para testar, use uma latitude/longitude nórdica (ex: Estocolmo: 59.3293, 18.0686). Não retorna dados fora da região nórdica."
         },
         "metOffice": {
           "tagline": "Freemium · foco no Reino Unido · requer chave",
@@ -465,7 +465,7 @@
         },
         "envCanada": {
           "tagline": "Grátis · só Canadá · sem chave",
-          "helperText": "Não requer chave de API. Fornecido pela Environment and Climate Change Canada — a fonte oficial de previsão dentro do Canadá. O Home Screens escolhe a estação canadense mais próxima entre cerca de 844 cidades com base na sua latitude/longitude; locais a mais de 200 km de qualquer cidade canadense são rejeitados. Para testar, tente Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
+          "helperText": "Não requer chave de API. Fornecido pela Environment and Climate Change Canada, a fonte oficial de previsão dentro do Canadá. O Home Screens escolhe a estação canadense mais próxima entre cerca de 844 cidades com base na sua latitude/longitude; locais a mais de 200 km de qualquer cidade canadense são rejeitados. Para testar, tente Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
         }
       }
     },
@@ -477,7 +477,7 @@
       "descriptionPart2": " estão substituindo aquele campo passam a usar o novo valor.",
       "multiDisplayNotePart1": "Resolução, orientação e espelhamento são ",
       "multiDisplayNotePerDisplay": "por tela",
-      "multiDisplayNotePart2": " — edite-os na página de cada tela em ",
+      "multiDisplayNotePart2": ". Edite-os na página de cada tela em ",
       "multiDisplayNotePerDisplaySection": "Por tela",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -606,7 +606,7 @@
       },
       "profile": {
         "activeProfileLabel": "Perfil ativo",
-        "noneOption": "— Nenhum —",
+        "noneOption": "Nenhum",
         "helpPart1": "Qual perfil {name} está exibindo no momento. As definições de perfil ficam em ",
         "helpLink": "Padrões → Perfis",
         "helpPart2": "."
@@ -621,7 +621,7 @@
         "bannerPart4": " em qualquer campo para alterá-lo apenas para {name}.",
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Por tela",
-        "resolutionHelp": "Os módulos são posicionados sobre este canvas. Cada tela tem sua própria resolução — não é compartilhada.",
+        "resolutionHelp": "Os módulos são posicionados sobre este canvas. Cada tela tem sua própria resolução; não é compartilhada.",
         "rotationOptionNormal": "Normal (paisagem)",
         "rotationOption90": "90° horário (retrato)",
         "rotationOption180": "180° (invertida)",
@@ -643,7 +643,7 @@
       "sleep": {
         "label": "Agenda de suspensão",
         "defaultsLabel": "Padrões → Suspensão",
-        "infoPart1": "A suspensão é substituída como bloco inteiro — não dá para substituir campos individuais como o tempo de escurecimento. O padrão fica em ",
+        "infoPart1": "A suspensão é substituída como bloco inteiro; não dá para substituir campos individuais como o tempo de escurecimento. O padrão fica em ",
         "infoPart2": "."
       },
       "alerts": {
@@ -727,7 +727,7 @@
         "clientSecretHelp": "O client secret da mesma credencial OAuth acima.",
         "mapsKeyLabel": "Chave de API do Maps",
         "mapsKeyPlaceholder": "Cole sua chave de API do Google Maps",
-        "mapsKeyHelp": "Opcional — para o widget de trânsito/trajeto. Ative a Routes API no mesmo projeto do Cloud Console."
+        "mapsKeyHelp": "Opcional, para o widget de trânsito/trajeto. Ative a Routes API no mesmo projeto do Cloud Console."
       },
       "immich": {
         "name": "Immich",
@@ -743,13 +743,13 @@
         "description": "Planos de fundo HD por categoria",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Cole sua access key do Unsplash",
-        "accessKeyHelp": "Gratuita em unsplash.com/developers — 50 requisições/hora na camada gratuita."
+        "accessKeyHelp": "Gratuita em unsplash.com/developers; 50 requisições/hora na camada gratuita."
       },
       "nasa": {
         "name": "NASA",
         "description": "Foto astronômica do dia",
         "apiKeyPlaceholder": "Cole sua chave de API da NASA",
-        "apiKeyHelp": "Gratuita em api.nasa.gov — 1.000 requisições/hora. A pesquisa na Image Library funciona sem chave."
+        "apiKeyHelp": "Gratuita em api.nasa.gov; 1.000 requisições/hora. A pesquisa na Image Library funciona sem chave."
       },
       "todoist": {
         "name": "Todoist",
@@ -762,7 +762,7 @@
         "name": "TomTom",
         "description": "Trânsito e tempos de trajeto",
         "keyPlaceholder": "Cole sua chave de API da TomTom",
-        "keyHelp": "Gratuita em developer.tomtom.com — Routing API necessária. Alternativa ao Google Maps."
+        "keyHelp": "Gratuita em developer.tomtom.com; Routing API necessária. Alternativa ao Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -948,7 +948,7 @@
       "intro": {
         "part1": "Configurações compartilhadas do planejador de refeições. Também aparecem na gaveta de configurações do ",
         "remoteLinkLabel": "controle remoto",
-        "part2": " — edições de qualquer um dos lados ficam sincronizadas."
+        "part2": ". Edições de qualquer um dos lados ficam sincronizadas."
       },
       "status": {
         "loadFailed": "Falha ao carregar as configurações de refeições.",
@@ -1111,7 +1111,7 @@
         "screensHeading": "Telas",
         "availableHeading": "Disponíveis",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Nenhuma tela selecionada — todas as telas serão mostradas como fallback.",
+        "noScreensWarning": "Nenhuma tela selecionada; todas as telas serão mostradas como fallback.",
         "dragHelp": "Arraste para definir a ordem de rotação dentro deste perfil.",
         "scheduleToggleLabel": "Ativar automaticamente conforme agenda",
         "fromLabel": "De",
@@ -1126,7 +1126,7 @@
     },
     "rulesPage": {
       "heading": "Regras",
-      "description": "As regras fazem a tela reagir ao que acontece em casa. Quando as condições de uma regra ficam verdadeiras, ela pode trocar para uma tela ou acordar o display — como mostrar a tela das câmeras quando a campainha toca.",
+      "description": "As regras fazem a tela reagir ao que acontece em casa. Quando as condições de uma regra ficam verdadeiras, ela pode trocar para uma tela ou acordar o display, como mostrar a tela das câmeras quando a campainha toca.",
       "displayPicker": {
         "label": "Editando regras de",
         "optionLabel": "{name} ({id})",
@@ -1146,7 +1146,7 @@
         "enabledLabel": "Regra ligada",
         "whenHeading": "Quando",
         "thenHeading": "Então",
-        "noConditionsHint": "Nenhuma condição ainda — esta regra só dispara depois que você adicionar uma.",
+        "noConditionsHint": "Nenhuma condição ainda; esta regra só dispara depois que você adicionar uma.",
         "invalidHint": "Esta regra ainda não pode ser salva:",
         "allMustMatchHint": "Todas as condições precisam bater para a regra disparar.",
         "actionKindLabel": "Ação",
@@ -1178,7 +1178,7 @@
     },
     "sharedStatePage": {
       "heading": "Estado compartilhado",
-      "description": "Todos os valores que esta tela publica para condições, regras e tokens de texto — e tudo o que é referenciado mas nunca chega.",
+      "description": "Todos os valores que esta tela publica para condições, regras e tokens de texto, e tudo o que é referenciado mas nunca chega.",
       "displayPicker": {
         "label": "Tela",
         "optionLabel": "{name} ({id})"
@@ -1235,7 +1235,7 @@
         "regenerateCancel": "Cancelar",
         "regenerateWarning": "A tela precisará recarregar para usar o novo token.",
         "errorRegenerate": "Falha ao regenerar o token",
-        "errorCopy": "Falha ao copiar — selecione e copie manualmente",
+        "errorCopy": "Falha ao copiar; selecione e copie manualmente",
         "phoneHintPart1": "Para favoritos no celular, anexe ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " às URLs de comando."
@@ -1278,7 +1278,7 @@
           "loopback": "::1",
           "or": " ou ",
           "linkLocal": "fe80::…",
-          "part2": ") não correspondem a nenhuma entrada da lista e serão bloqueados quando a restrição estiver ativa. Verifique \"Seu IP\" acima — se começar com dois-pontos, este recurso vai te bloquear."
+          "part2": ") não correspondem a nenhuma entrada da lista e serão bloqueados quando a restrição estiver ativa. Verifique \"Seu IP\" acima; se começar com dois-pontos, este recurso vai te bloquear."
         },
         "trustedNetworksWarning": {
           "strong": "Apenas redes confiáveis.",
@@ -1532,9 +1532,9 @@
         "unloadAriaLabel": "Descarregar {name}",
         "tipsHeading": "Dicas",
         "tips": {
-          "localStorage": "Plugins de dev ficam apenas no localStorage — não persistem entre navegadores",
+          "localStorage": "Plugins de dev ficam apenas no localStorage; não persistem entre navegadores",
           "autoReload": "O plugin recarrega automaticamente quando o bundle muda (verificado a cada 2s)",
-          "sourcemapsPart1": "Source maps são suportados — adicione ",
+          "sourcemapsPart1": "Source maps são suportados; adicione ",
           "sourcemapsPart2": " na sua config do Vite",
           "devOverrides": "Plugins de dev substituem versões instaladas com o mesmo tipo de módulo"
         }
@@ -1657,7 +1657,7 @@
         "other": "{count} displays nesta casa",
         "many": "{count} displays nesta casa"
       },
-      "emptyDescriptionPrefix": "Controle mais de uma tela com este Pi — uma tela touch na cozinha, um monitor no quarto, uma TV na sala — cada uma com layout, resolução e rotação próprios. Este Pi se torna o hub e serve todas elas; displays secundários podem ser Pi Zeros baratos rodando ",
+      "emptyDescriptionPrefix": "Controle mais de uma tela com este Pi (uma tela touch na cozinha, um monitor no quarto, uma TV na sala), cada uma com layout, resolução e rotação próprios. Este Pi se torna o hub e serve todas elas; displays secundários podem ser Pi Zeros baratos rodando ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Clique em um display para editar suas próprias configurações. Todo o resto usa os ",
       "populatedDescriptionSuffix": " compartilhados.",
@@ -1665,11 +1665,11 @@
       "refreshHeartbeatsTitle": "Atualizar heartbeats",
       "addDisplay": "Adicionar display",
       "emptyTitle": "Esta instalação está rodando em modo de display único",
-      "emptyParagraphPart1": "Sua configuração atual conta como um display, mas ainda não está registrada aqui — o suporte a múltiplos displays é opcional para que instalações existentes permaneçam inalteradas até você adicionar explicitamente uma segunda tela. No momento em que você adicionar o primeiro display, o layout atual deste Pi vira um display chamado ",
+      "emptyParagraphPart1": "Sua configuração atual conta como um display, mas ainda não está registrada aqui; o suporte a múltiplos displays é opcional para que instalações existentes permaneçam inalteradas até você adicionar explicitamente uma segunda tela. No momento em que você adicionar o primeiro display, o layout atual deste Pi vira um display chamado ",
       "emptyParagraphPart2": " e continua funcionando exatamente como hoje.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Clique em ",
-      "emptyBullet1Suffix": " acima para registrar uma nova tela — dê um nome, resolução e rotação, e depois desenhe o layout dela no editor.",
+      "emptyBullet1Suffix": " acima para registrar uma nova tela. Dê um nome, resolução e rotação, e depois desenhe o layout dela no editor.",
       "emptyBullet2Prefix": "Ou grave outro Pi com ",
       "emptyBullet2Middle": ". Quando ele iniciar, aparecerá abaixo como um ",
       "emptyBullet2Suffix": " aguardando para ser adotado com um clique.",
@@ -1687,7 +1687,7 @@
       "reportedDimensions": "{width}×{height} relatado",
       "reportedFrom": "de {address}",
       "multipleClientsHeading": "{count} clientes relatando com este ID",
-      "multipleClientsParagraphPrefix": "Dois ou mais clientes estão enviando POSTs com este ID de display. Verifique os IPs de origem acima para descobrir qual dispositivo está realmente relatando — geralmente uma instalação ",
+      "multipleClientsParagraphPrefix": "Dois ou mais clientes estão enviando POSTs com este ID de display. Verifique os IPs de origem acima para descobrir qual dispositivo está realmente relatando; geralmente uma instalação ",
       "multipleClientsParagraphSuffix": " duplicada, uma aba Chromium esquecida ou um quiosque hub apontando para a URL errada.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inativo · {time}",
@@ -2071,7 +2071,7 @@
       "build": "Compilar aplicação"
     },
     "warning": {
-      "installing": "Instalando atualização — não feche nem desligue o dispositivo",
+      "installing": "Instalando atualização. Não feche nem desligue o dispositivo",
       "inProgress": "Não feche esta página nem desligue o dispositivo"
     },
     "successDefault": "Atualização concluída!",
@@ -2128,7 +2128,7 @@
     "applyVisualLabel": "Aplicar configurações visuais",
     "visualSummary": "Rotação: {seconds}s",
     "visualSummaryWithTransition": "Rotação: {seconds}s, transição: {transition}",
-    "saveError": "Falha ao salvar — verifique sua conexão e tente novamente.",
+    "saveError": "Falha ao salvar. Verifique sua conexão e tente novamente.",
     "importButton": "Importar"
   },
   "installFromUrlModal": {
@@ -3246,6 +3246,7 @@
     "currentValueHint": "Valor atual: {value}",
     "aboveLabel": "Acima de",
     "belowLabel": "Abaixo de",
+    "orEqualLabel": "Ou igual a",
     "whenUnknownTitle": "Antes de os dados chegarem",
     "whenUnknownLabel": "Enquanto a fonte de dados ainda não informou",
     "whenUnknownHide": "Ocultar o módulo",

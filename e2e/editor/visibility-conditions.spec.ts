@@ -106,6 +106,25 @@ test('switching condition kind to numeric preserves the source key and exposes A
     .toMatchObject({ above: 10 });
 });
 
+test('checking "or equal to" persists an inclusive bound independently per side', async ({ page, request }) => {
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'numeric', sourceKey: 'plugin:e2e-fixture:temp', above: 60, below: 80 }] },
+  });
+  await openConditions(page, request, mod);
+
+  const orEqualCheckboxes = page.getByRole('checkbox', { name: 'Or equal to' });
+  await expect(orEqualCheckboxes).toHaveCount(2);
+
+  await autosaved(page, async () => {
+    await orEqualCheckboxes.first().check();
+  });
+
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toMatchObject({ above: 60, aboveInclusive: true, below: 80 });
+  expect((await savedVisibility(request))!.conditions[0]).not.toHaveProperty('belowInclusive', true);
+});
+
 test('authoring a time condition persists a window and a day toggle', async ({ page, request }) => {
   const mod = textModule('GATED', {
     visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:e2e-fixture:flag', equals: 'on' }] },

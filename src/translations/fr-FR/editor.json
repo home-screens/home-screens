@@ -243,7 +243,7 @@
       "resetToDefault": "Rétablir la valeur par défaut",
       "overriddenForDisplay": "Remplacé pour {name}. Par défaut : ",
       "overriddenWithoutDisplay": "Remplacé. Par défaut : ",
-      "overriddenSuffix": " — modifier dans ",
+      "overriddenSuffix": ". Modifier dans ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Utilise la valeur par défaut. ",
       "usingDefaultPart2": " utilise ",
@@ -433,7 +433,7 @@
         },
         "weatherApi": {
           "tagline": "Niveau gratuit · sans carte bancaire",
-          "keyHint": "Gratuit sur weatherapi.com — sans carte bancaire.",
+          "keyHint": "Gratuit sur weatherapi.com, sans carte bancaire.",
           "placeholder": "Colle ta clé WeatherAPI"
         },
         "openWeatherMap": {
@@ -443,7 +443,7 @@
         },
         "pirateWeather": {
           "tagline": "Remplacement de Dark Sky",
-          "keyHint": "Gratuit sur pirateweather.net — remplacement direct de Dark Sky.",
+          "keyHint": "Gratuit sur pirateweather.net, remplacement direct de Dark Sky.",
           "placeholder": "Colle ta clé API Pirate Weather"
         },
         "noaa": {
@@ -452,11 +452,11 @@
         },
         "yr": {
           "tagline": "Gratuit · mondial · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par l'Institut météorologique norvégien avec une couverture mondiale. Pour tester, utilise une lat/lon nordique — ex. Oslo (59.9139, 10.7522) — pour la couverture la plus dense."
+          "helperText": "Aucune clé API requise. Fourni par l'Institut météorologique norvégien avec une couverture mondiale. Pour tester, utilise une lat/lon nordique, ex. Oslo (59.9139, 10.7522), pour la couverture la plus dense."
         },
         "smhi": {
           "tagline": "Gratuit · pays nordiques uniquement · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par l'Institut suédois de météorologie et d'hydrologie. Couverture nordique uniquement — pour tester, utilise une lat/lon nordique (ex. Stockholm : 59.3293, 18.0686). Ne renvoie aucune donnée hors région nordique."
+          "helperText": "Aucune clé API requise. Fourni par l'Institut suédois de météorologie et d'hydrologie. Couverture nordique uniquement ; pour tester, utilise une lat/lon nordique (ex. Stockholm : 59.3293, 18.0686). Ne renvoie aucune donnée hors région nordique."
         },
         "metOffice": {
           "tagline": "Freemium · axé sur le Royaume-Uni · clé requise",
@@ -465,7 +465,7 @@
         },
         "envCanada": {
           "tagline": "Gratuit · Canada uniquement · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par Environnement et Changement climatique Canada — la source de prévisions de référence au Canada. Home Screens choisit le site le plus proche parmi environ 844 villes selon ta latitude/longitude ; les lieux à plus de 200 km de toute ville canadienne sont rejetés. Pour tester, essaie Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
+          "helperText": "Aucune clé API requise. Fourni par Environnement et Changement climatique Canada, la source de prévisions de référence au Canada. Home Screens choisit le site le plus proche parmi environ 844 villes selon ta latitude/longitude ; les lieux à plus de 200 km de toute ville canadienne sont rejetés. Pour tester, essaie Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
         }
       }
     },
@@ -477,7 +477,7 @@
       "descriptionPart2": " remplacent pas ce champ adoptent la nouvelle valeur.",
       "multiDisplayNotePart1": "La résolution, l'orientation et le retournement sont ",
       "multiDisplayNotePerDisplay": "par affichage",
-      "multiDisplayNotePart2": " — modifie-les sur la page propre à chaque affichage dans ",
+      "multiDisplayNotePart2": ". Modifie-les sur la page propre à chaque affichage dans ",
       "multiDisplayNotePerDisplaySection": "Par affichage",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -606,7 +606,7 @@
       },
       "profile": {
         "activeProfileLabel": "Profil actif",
-        "noneOption": "— Aucun —",
+        "noneOption": "Aucun",
         "helpPart1": "Quel profil {name} affiche actuellement. Les définitions de profil se trouvent dans ",
         "helpLink": "Valeurs par défaut → Profils",
         "helpPart2": "."
@@ -621,7 +621,7 @@
         "bannerPart4": " sur n'importe quel champ pour le modifier uniquement pour {name}.",
         "canvasHeading": "Canevas",
         "perDisplayBadge": "Par affichage",
-        "resolutionHelp": "Les modules sont disposés selon ce canevas. Chaque affichage a sa propre résolution — elle n'est pas partagée.",
+        "resolutionHelp": "Les modules sont disposés selon ce canevas. Chaque affichage a sa propre résolution ; elle n'est pas partagée.",
         "rotationOptionNormal": "Normale (paysage)",
         "rotationOption90": "90° horaire (portrait)",
         "rotationOption180": "180° (inversée)",
@@ -643,7 +643,7 @@
       "sleep": {
         "label": "Calendrier de veille",
         "defaultsLabel": "Valeurs par défaut → Veille",
-        "infoPart1": "La veille est remplacée comme un bloc entier — tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
+        "infoPart1": "La veille est remplacée comme un bloc entier ; tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
       "alerts": {
@@ -727,7 +727,7 @@
         "clientSecretHelp": "Le client secret du même identifiant OAuth ci-dessus.",
         "mapsKeyLabel": "Clé API Maps",
         "mapsKeyPlaceholder": "Colle ta clé API Google Maps",
-        "mapsKeyHelp": "Facultatif — pour le widget trafic/trajet. Active la Routes API dans le même projet de la console Cloud."
+        "mapsKeyHelp": "Facultatif, pour le widget trafic/trajet. Active la Routes API dans le même projet de la console Cloud."
       },
       "immich": {
         "name": "Immich",
@@ -743,13 +743,13 @@
         "description": "Arrière-plans photo HD par catégorie",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Colle ta clé Unsplash",
-        "accessKeyHelp": "Gratuit sur unsplash.com/developers — 50 requêtes/heure en niveau gratuit."
+        "accessKeyHelp": "Gratuit sur unsplash.com/developers ; 50 requêtes/heure en niveau gratuit."
       },
       "nasa": {
         "name": "NASA",
         "description": "Image astronomique du jour",
         "apiKeyPlaceholder": "Colle ta clé API NASA",
-        "apiKeyHelp": "Gratuit sur api.nasa.gov — 1 000 requêtes/heure. La recherche dans la bibliothèque d'images fonctionne sans clé."
+        "apiKeyHelp": "Gratuit sur api.nasa.gov ; 1 000 requêtes/heure. La recherche dans la bibliothèque d'images fonctionne sans clé."
       },
       "todoist": {
         "name": "Todoist",
@@ -762,7 +762,7 @@
         "name": "TomTom",
         "description": "Trafic et temps de trajet",
         "keyPlaceholder": "Colle ta clé API TomTom",
-        "keyHelp": "Gratuit sur developer.tomtom.com — Routing API requise. Alternative à Google Maps."
+        "keyHelp": "Gratuit sur developer.tomtom.com ; Routing API requise. Alternative à Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -948,7 +948,7 @@
       "intro": {
         "part1": "Paramètres partagés du planificateur de repas. Ils apparaissent aussi dans le tiroir des paramètres de la ",
         "remoteLinkLabel": "télécommande",
-        "part2": " — les modifications depuis l'une ou l'autre surface restent synchronisées."
+        "part2": ". Les modifications depuis l'une ou l'autre surface restent synchronisées."
       },
       "status": {
         "loadFailed": "Échec du chargement des paramètres des repas.",
@@ -1111,7 +1111,7 @@
         "screensHeading": "Écrans",
         "availableHeading": "Disponibles",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Aucun écran sélectionné — tous les écrans seront affichés en repli.",
+        "noScreensWarning": "Aucun écran sélectionné ; tous les écrans seront affichés en repli.",
         "dragHelp": "Glisse pour définir l'ordre de rotation dans ce profil.",
         "scheduleToggleLabel": "Activation automatique selon planning",
         "fromLabel": "De",
@@ -1126,7 +1126,7 @@
     },
     "rulesPage": {
       "heading": "Règles",
-      "description": "Les règles permettent à l'écran de réagir à ce qui se passe à la maison. Quand les conditions d'une règle deviennent vraies, elle peut afficher un écran ou réveiller l'affichage — par exemple montrer l'écran des caméras quand on sonne à la porte.",
+      "description": "Les règles permettent à l'écran de réagir à ce qui se passe à la maison. Quand les conditions d'une règle deviennent vraies, elle peut afficher un écran ou réveiller l'affichage, par exemple montrer l'écran des caméras quand on sonne à la porte.",
       "displayPicker": {
         "label": "Modifier les règles de",
         "optionLabel": "{name} ({id})",
@@ -1146,7 +1146,7 @@
         "enabledLabel": "Règle active",
         "whenHeading": "Quand",
         "thenHeading": "Alors",
-        "noConditionsHint": "Pas encore de conditions — cette règle ne se déclenchera pas tant que vous n'en ajoutez pas une.",
+        "noConditionsHint": "Pas encore de conditions ; cette règle ne se déclenchera pas tant que vous n'en ajoutez pas une.",
         "invalidHint": "Cette règle ne peut pas encore être enregistrée :",
         "allMustMatchHint": "Toutes les conditions doivent correspondre pour que la règle se déclenche.",
         "actionKindLabel": "Action",
@@ -1178,7 +1178,7 @@
     },
     "sharedStatePage": {
       "heading": "État partagé",
-      "description": "Toutes les valeurs que cet écran publie pour les conditions, les règles et les jetons de texte — ainsi que tout ce qui est référencé mais n'arrive jamais.",
+      "description": "Toutes les valeurs que cet écran publie pour les conditions, les règles et les jetons de texte, ainsi que tout ce qui est référencé mais n'arrive jamais.",
       "displayPicker": {
         "label": "Écran",
         "optionLabel": "{name} ({id})"
@@ -1235,7 +1235,7 @@
         "regenerateCancel": "Annuler",
         "regenerateWarning": "L'affichage devra être rechargé pour récupérer le nouveau token.",
         "errorRegenerate": "Échec de la régénération du token",
-        "errorCopy": "Échec de la copie — sélectionne et copie manuellement",
+        "errorCopy": "Échec de la copie ; sélectionne et copie manuellement",
         "phoneHintPart1": "Pour les favoris du téléphone, ajoute ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " aux URL de commande."
@@ -1278,7 +1278,7 @@
           "loopback": "::1",
           "or": " ou ",
           "linkLocal": "fe80::…",
-          "part2": ") ne correspondent à aucune entrée de la liste blanche et seront bloqués quand la restriction est activée. Vérifie « Ton IP » ci-dessus — si elle commence par deux points, cette fonction te bloquera."
+          "part2": ") ne correspondent à aucune entrée de la liste blanche et seront bloqués quand la restriction est activée. Vérifie « Ton IP » ci-dessus ; si elle commence par deux points, cette fonction te bloquera."
         },
         "trustedNetworksWarning": {
           "strong": "Réseaux de confiance uniquement.",
@@ -1532,9 +1532,9 @@
         "unloadAriaLabel": "Décharger {name}",
         "tipsHeading": "Astuces",
         "tips": {
-          "localStorage": "Les plugins de dev sont stockés dans le localStorage uniquement — ils ne persistent pas entre navigateurs",
+          "localStorage": "Les plugins de dev sont stockés dans le localStorage uniquement ; ils ne persistent pas entre navigateurs",
           "autoReload": "Le plugin se recharge automatiquement quand le bundle change (interrogé toutes les 2 s)",
-          "sourcemapsPart1": "Les source maps sont prises en charge — ajoute ",
+          "sourcemapsPart1": "Les source maps sont prises en charge ; ajoute ",
           "sourcemapsPart2": " à ta config Vite",
           "devOverrides": "Les plugins de dev remplacent les versions installées du même type de module"
         }
@@ -1657,7 +1657,7 @@
         "other": "{count} écrans dans ce foyer",
         "many": "{count} écrans dans ce foyer"
       },
-      "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi — un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon — chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
+      "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi (un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon), chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Cliquez sur un écran pour modifier ses propres paramètres. Tout le reste utilise les ",
       "populatedDescriptionSuffix": " partagés.",
@@ -1665,11 +1665,11 @@
       "refreshHeartbeatsTitle": "Actualiser les battements",
       "addDisplay": "Ajouter un écran",
       "emptyTitle": "Cette installation fonctionne en mode écran unique",
-      "emptyParagraphPart1": "Votre configuration actuelle compte comme un écran mais n’est pas encore enregistrée ici — la prise en charge multi-écran est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second écran. Dès que vous ajoutez votre premier écran, la disposition actuelle de ce Pi devient un écran appelé ",
+      "emptyParagraphPart1": "Votre configuration actuelle compte comme un écran mais n’est pas encore enregistrée ici ; la prise en charge multi-écran est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second écran. Dès que vous ajoutez votre premier écran, la disposition actuelle de ce Pi devient un écran appelé ",
       "emptyParagraphPart2": " et continue de fonctionner exactement comme aujourd’hui.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Cliquez sur ",
-      "emptyBullet1Suffix": " ci-dessus pour enregistrer un nouvel écran — donnez-lui un nom, une résolution et une rotation, puis concevez sa propre disposition dans l’éditeur.",
+      "emptyBullet1Suffix": " ci-dessus pour enregistrer un nouvel écran. Donnez-lui un nom, une résolution et une rotation, puis concevez sa propre disposition dans l’éditeur.",
       "emptyBullet2Prefix": "Ou flashez un autre Pi avec ",
       "emptyBullet2Middle": ". Une fois démarré, il apparaîtra ci-dessous comme un ",
       "emptyBullet2Suffix": " en attente d’adoption en un clic.",
@@ -1687,7 +1687,7 @@
       "reportedDimensions": "{width}×{height} signalé",
       "reportedFrom": "depuis {address}",
       "multipleClientsHeading": "{count} clients utilisent cet ID",
-      "multipleClientsParagraphPrefix": "Deux clients ou plus envoient des POST avec cet ID d’écran. Vérifiez les IP sources ci-dessus pour identifier l’appareil concerné — souvent une installation ",
+      "multipleClientsParagraphPrefix": "Deux clients ou plus envoient des POST avec cet ID d’écran. Vérifiez les IP sources ci-dessus pour identifier l’appareil concerné ; souvent une installation ",
       "multipleClientsParagraphSuffix": " dupliquée, un onglet Chromium oublié, ou un kiosque hub pointant vers la mauvaise URL.",
       "statusOnline": "En ligne · {time}",
       "statusIdle": "Inactif · {time}",
@@ -2071,7 +2071,7 @@
       "build": "Compiler l'application"
     },
     "warning": {
-      "installing": "Installation de la mise à jour — ne ferme pas la page et n'éteins pas l'appareil",
+      "installing": "Installation de la mise à jour. Ne ferme pas la page et n'éteins pas l'appareil",
       "inProgress": "Ne ferme pas cette page et n'éteins pas l'appareil"
     },
     "successDefault": "Mise à niveau terminée !",
@@ -2128,7 +2128,7 @@
     "applyVisualLabel": "Appliquer les paramètres visuels",
     "visualSummary": "Rotation : {seconds} s",
     "visualSummaryWithTransition": "Rotation : {seconds} s, transition : {transition}",
-    "saveError": "Échec de l'enregistrement — vérifie ta connexion et réessaie.",
+    "saveError": "Échec de l'enregistrement. Vérifie ta connexion et réessaie.",
     "importButton": "Importer"
   },
   "installFromUrlModal": {
@@ -3246,6 +3246,7 @@
     "currentValueHint": "Valeur actuelle : {value}",
     "aboveLabel": "Au-dessus de",
     "belowLabel": "En dessous de",
+    "orEqualLabel": "Ou égal à",
     "whenUnknownTitle": "Avant l'arrivée des données",
     "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
     "whenUnknownHide": "Masquer le module",
