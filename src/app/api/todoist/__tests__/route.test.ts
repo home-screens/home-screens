@@ -489,6 +489,89 @@ describe('GET /api/todoist', () => {
     expect(task.commentCount).toBe(3);
   });
 
+  it('follows next_cursor and merges tasks across pages', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/tasks')) {
+        if (url.includes('cursor=page2')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ results: [makeTodoistTask({ id: '2', content: 'Second page' })], next_cursor: null }),
+            text: async () => '',
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ results: [makeTodoistTask({ id: '1', content: 'First page' })], next_cursor: 'page2' }),
+          text: async () => '',
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => [], text: async () => '' });
+    });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.tasks).toHaveLength(2);
+    expect(json.tasks.map((t: { content: string }) => t.content)).toEqual(['First page', 'Second page']);
+
+    // Both page requests carried the max page size; the second carried the cursor.
+    const taskUrls = vi.mocked(global.fetch).mock.calls
+      .map((c) => String(c[0]))
+      .filter((u) => u.includes('/tasks'));
+    expect(taskUrls).toHaveLength(2);
+    expect(taskUrls[0]).toContain('limit=200');
+    expect(taskUrls[1]).toContain('cursor=page2');
+  });
+
+  it('still returns tasks when the projects fetch fails', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/projects')) {
+        return Promise.resolve({ ok: false, status: 502, text: async () => 'Bad Gateway' });
+      }
+      if (url.includes('/tasks')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ results: [makeTodoistTask()] }),
+          text: async () => '',
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => [], text: async () => '' });
+    });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.tasks).toHaveLength(1);
+    // Enrichment degrades instead of failing the route.
+    expect(json.tasks[0].projectName).toBe('Unknown');
+    expect(json.projects).toEqual([]);
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('projects'),
+      expect.anything(),
+    );
+  });
+
+  it('fails the route when the tasks fetch fails, even if enrichment succeeds', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/tasks')) {
+        return Promise.resolve({ ok: false, status: 502, text: async () => 'Bad Gateway' });
+      }
+      return Promise.resolve({ ok: true, json: async () => [], text: async () => '' });
+    });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBe('Failed to fetch Todoist data');
+  });
+
   it('network error returns 500', async () => {
     vi.mocked(getSecret).mockResolvedValue('test-token');
     global.fetch = vi.fn().mockRejectedValue(new Error('Connection refused'));
@@ -539,6 +622,21 @@ describe('PUT /api/todoist', () => {
 
     expect(res.status).toBe(401);
     expect(json.error).toBe('Unauthorized');
+  });
+
+  it('returns 400 on a malformed JSON body', async () => {
+    vi.mocked(requireSession).mockResolvedValue(undefined);
+
+    const req = new NextRequest('http://localhost/api/todoist', {
+      method: 'PUT',
+      body: 'not json{',
+    });
+
+    const res = await PUT(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toMatch(/Invalid JSON body/);
   });
 
   it('returns 400 when no token in body', async () => {
