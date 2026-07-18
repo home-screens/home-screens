@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
@@ -84,64 +84,17 @@ function arr(obj: Record<string, unknown>, ...keys: string[]): string[] {
   return [];
 }
 
-// ─── Resilient fetch helpers ───
+// ─── Paginated fetch ───
 
-const MAX_RETRIES = 2; // total attempts = MAX_RETRIES + 1
-const RETRY_DELAY_MS = 500;
+const PAGE_LIMIT = 200; // Todoist's max page size — fewer round trips per full fetch
 const MAX_PAGES = 20; // sanity ceiling so a misbehaving cursor can't loop forever
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Fetch a single page from a Todoist endpoint, retrying once or twice on
- * transient server errors (5xx) or network failures. 4xx errors (bad token,
- * bad request) fail fast without retrying, since retrying won't help.
- */
-async function fetchTodoistPage(
-  url: string,
-  token: string,
-): Promise<Record<string, unknown>> {
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const res = await fetchWithTimeout(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        return await res.json();
-      }
-
-      const text = await res.text().catch(() => '');
-
-      // Don't retry client errors (bad token, malformed request, etc.) —
-      // a retry will just fail the same way.
-      if (res.status >= 400 && res.status < 500) {
-        throw new Error(`Todoist API ${url} returned ${res.status}: ${text}`);
-      }
-
-      // 5xx — likely transient, worth a retry.
-      lastError = new Error(`Todoist API ${url} returned ${res.status}: ${text}`);
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-    }
-
-    if (attempt < MAX_RETRIES) {
-      await sleep(RETRY_DELAY_MS * (attempt + 1)); // simple backoff
-    }
-  }
-
-  throw lastError ?? new Error(`Todoist API ${url} failed with no further detail`);
-}
 
 /**
  * Fetch a full (paginated) list endpoint, following `next_cursor` until
  * Todoist reports there's nothing left. Handles both a bare array response
  * and the `{ results: [...] }` / `{ items: [...] }` wrapper shapes, and
  * tolerates either snake_case or camelCase cursor field names.
+ * Transient-failure retries come from fetchWithTimeout, per attempt.
  */
 async function fetchTodoistList(endpoint: string, token: string): Promise<Record<string, unknown>[]> {
   const results: Record<string, unknown>[] = [];
@@ -150,9 +103,17 @@ async function fetchTodoistList(endpoint: string, token: string): Promise<Record
 
   do {
     const url = new URL(`${TODOIST_API}${endpoint}`);
+    url.searchParams.set('limit', String(PAGE_LIMIT));
     if (cursor) url.searchParams.set('cursor', cursor);
 
-    const json = await fetchTodoistPage(url.toString(), token);
+    const res = await fetchWithTimeout(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Todoist API ${endpoint} returned ${res.status}: ${text}`);
+    }
+    const json = await res.json();
 
     if (Array.isArray(json)) {
       // Bare array response — no pagination wrapper, so nothing more to fetch.
@@ -173,13 +134,18 @@ async function fetchTodoistList(endpoint: string, token: string): Promise<Record
     pageCount++;
   } while (cursor && pageCount < MAX_PAGES);
 
+  if (cursor) {
+    console.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages — returning a truncated list`);
+  }
+
   return results;
 }
 
 // ─── PUT: Save token server-side ───
 
 export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await request.json();
+  const body = await parseJsonBody<{ token?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
   const token = typeof body.token === 'string' ? body.token.trim() : '';
 
   if (!token) {
@@ -207,17 +173,19 @@ const { GET, cache } = cachedProxyRoute<unknown>({
     const token = await requireSecret('todoist_token', 'Todoist');
     if (token instanceof NextResponse) return token;
 
-    // Tasks are the critical resource — if this fails, the whole route
-    // should fail. Projects/sections/labels are enrichment only, so a
-    // failure there (e.g. a transient 502 on /projects) shouldn't take
-    // down tasks too — we fall back to empty maps instead.
-    const rawTasks = await fetchTodoistList('/tasks', token);
-
-    const [projectsResult, sectionsResult, labelsResult] = await Promise.allSettled([
+    // Tasks are the critical resource — if that fetch fails, the whole route
+    // fails. Projects/sections/labels are enrichment only, so a failure
+    // there (e.g. a transient 502 on /projects) shouldn't take down tasks
+    // too — we fall back to empty maps instead.
+    const [tasksResult, projectsResult, sectionsResult, labelsResult] = await Promise.allSettled([
+      fetchTodoistList('/tasks', token),
       fetchTodoistList('/projects', token),
       fetchTodoistList('/sections', token),
       fetchTodoistList('/labels', token),
     ]);
+
+    if (tasksResult.status === 'rejected') throw tasksResult.reason;
+    const rawTasks = tasksResult.value;
 
     const rawProjects = projectsResult.status === 'fulfilled' ? projectsResult.value : [];
     const rawSections = sectionsResult.status === 'fulfilled' ? sectionsResult.value : [];
