@@ -1,15 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { buildRows, producerLabel, referenceLabel } from '../SharedStateSection';
+import { buildRows, referenceLabel } from '../SharedStateSection';
 import type { StateKeyReference } from '@/lib/state-demand';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { TranslateFn } from '@/i18n';
-import type { LoadedPlugin } from '@/types/plugins';
 
 /**
  * The inspector's pure helpers: row cross-referencing/ordering and the
- * producer/consumer labels. The E2E spec covers the rendered page against a
- * live hub; these pin the branches it can't reach cheaply (ordering across
- * all three statuses, plugin-name resolution, plugin-module fallbacks).
+ * consumer labels. The E2E spec covers the rendered page against a live hub;
+ * these pin the branches it can't reach cheaply (ordering across all three
+ * statuses, plugin-module fallbacks). The browse/grouping logic behind the
+ * "Available" tab lives in src/lib/state-key-suggestions.ts with its own
+ * test file.
  */
 
 /** Echo translator: key plus interpolations, so assertions see both. */
@@ -55,26 +56,6 @@ describe('buildRows', () => {
     );
 
     expect(rows.map((r) => r.key)).toEqual(['y', 'z', 'a', 'b', 'c', 'd']);
-  });
-});
-
-describe('producerLabel', () => {
-  const plugins = new Map<string, LoadedPlugin>([
-    ['ha', { manifest: { id: 'HA', name: 'Home Assistant' } } as LoadedPlugin],
-  ]);
-
-  it('resolves a loaded plugin to its manifest name (id matched lowercased)', () => {
-    expect(producerLabel('plugin:ha:door', plugins, t)).toBe('Home Assistant');
-  });
-
-  it('falls back to the raw plugin id when the plugin is not loaded', () => {
-    expect(producerLabel('plugin:garmin:steps', plugins, t)).toBe('garmin');
-  });
-
-  it('labels non-plugin keys as built-in', () => {
-    expect(producerLabel('house:mode', plugins, t)).toBe(
-      'settings.sharedStatePage.builtInProducer',
-    );
   });
 });
 

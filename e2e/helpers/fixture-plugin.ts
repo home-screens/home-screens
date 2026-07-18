@@ -212,6 +212,13 @@ export const PROVIDER_BUNDLE = `(function () {
  * and key: an enum door sensor (friendly value vocabulary + grouping) and a
  * numeric temperature (unit + current value). The visible component is
  * unchanged from {@link BUNDLE}.
+ *
+ * When `settings.bulkCount` is set, it also emits that many synthetic
+ * descriptors all sharing one `group` ("Sensors") — used to drive the
+ * Available tab's per-category "show more" preview and to prove the browse
+ * tab requests more than the combobox's 30-result cap. It also honors the
+ * `opts.limit` the host passes, capping its own output, so a bulk count above
+ * the request limit still can't overflow the response.
  */
 export const SEARCH_BUNDLE = `(function () {
   var React = window.React;
@@ -239,11 +246,24 @@ export const SEARCH_BUNDLE = `(function () {
       currentValue: '72.5',
     },
   ];
-  function searchStateKeys(query) {
+  function searchStateKeys(query, opts) {
     var q = String(query || '').toLowerCase();
-    return Promise.resolve(DESCRIPTORS.filter(function (d) {
+    var settings = (opts && opts.settings) || {};
+    var limit = (opts && typeof opts.limit === 'number') ? opts.limit : Infinity;
+    var all = DESCRIPTORS.slice();
+    var bulk = Number(settings.bulkCount) || 0;
+    for (var i = 0; i < bulk; i++) {
+      all.push({
+        key: '${FIXTURE_PLUGIN_TYPE}:bulk_' + i,
+        label: 'Bulk Sensor ' + i,
+        group: 'Sensors',
+        valueType: 'string',
+      });
+    }
+    var matched = all.filter(function (d) {
       return q === '' || d.label.toLowerCase().indexOf(q) >= 0 || d.key.toLowerCase().indexOf(q) >= 0;
-    }));
+    });
+    return Promise.resolve(matched.slice(0, limit));
   }
   window.__HS_PLUGIN__ = { default: Component, searchStateKeys: searchStateKeys };
 })();`;

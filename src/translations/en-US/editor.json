@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "How this works",
         "body1": "Displays can react to what's happening around your home. Add-ons (like Home Assistant) share small named values here, such as whether a door is open or who is home.",
-        "body2": "Screens and rules can watch these values and react, like showing the camera screen when the doorbell rings. This list shows everything this display is sharing or watching, so you can check that the right information is arriving."
+        "body2": "The Watching tab shows what this display is actually using right now, so you can check the right information is arriving. The Available tab lists everything your add-ons can share, so you can see what you could react to."
+      },
+      "tabs": {
+        "watching": "Watching",
+        "available": "Available"
+      },
+      "available": {
+        "description": "Everything your add-ons can share with this display, whether or not anything uses it yet. Browse by add-on, or search to narrow.",
+        "searchPlaceholder": "Search available values…",
+        "summary": {
+          "one": "{count} value available from your add-ons",
+          "other": "{count} values available from your add-ons"
+        },
+        "truncationNote": "Showing the first {count} — search to find more",
+        "collapseGroup": "Collapse {producer}",
+        "expandGroup": "Expand {producer}",
+        "noProviders": "Nothing is available to share yet. Values come from add-ons that share them (like Home Assistant). Once an add-on is set up, its values show up here.",
+        "noMatches": "No matches. If you expected something here, check the add-on's connection in the add-on manager.",
+        "showMore": "Show {count} more",
+        "showLess": "Show less"
       },
       "displayPicker": {
         "label": "Display",

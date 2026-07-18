@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "Como funciona",
         "body1": "As telas podem reagir ao que acontece na sua casa. Complementos (como o Home Assistant) compartilham aqui pequenos valores nomeados, por exemplo se uma porta está aberta ou quem está em casa.",
-        "body2": "Telas e regras podem observar esses valores e reagir, como mostrar a tela da câmera quando a campainha toca. Esta lista mostra tudo o que esta tela compartilha ou observa, para conferir se a informação certa está chegando."
+        "body2": "A aba «Observando» mostra o que esta tela está usando agora, para conferir se a informação certa está chegando. A aba «Disponível» lista tudo o que seus complementos podem compartilhar, para você ver a que poderia reagir."
+      },
+      "tabs": {
+        "watching": "Observando",
+        "available": "Disponível"
+      },
+      "available": {
+        "description": "Tudo o que seus complementos podem compartilhar com esta tela, esteja em uso ou não. Navegue por complemento ou pesquise para filtrar.",
+        "searchPlaceholder": "Pesquisar valores disponíveis…",
+        "summary": {
+          "one": "{count} valor disponível dos seus complementos",
+          "other": "{count} valores disponíveis dos seus complementos"
+        },
+        "truncationNote": "Mostrando os primeiros {count} — pesquise para encontrar mais",
+        "collapseGroup": "Recolher {producer}",
+        "expandGroup": "Expandir {producer}",
+        "noProviders": "Ainda não há nada para compartilhar. Os valores vêm de complementos que os compartilham (como o Home Assistant). Assim que um complemento for configurado, os valores aparecem aqui.",
+        "noMatches": "Nenhum resultado. Se você esperava algo aqui, confira a conexão do complemento no gerenciador de complementos.",
+        "showMore": "Mostrar mais {count}",
+        "showLess": "Mostrar menos"
       },
       "displayPicker": {
         "label": "Tela",

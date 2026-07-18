@@ -1178,9 +1178,28 @@
       "heading": "Delte værdier",
       "description": "Alle værdier denne skærm udgiver til betingelser, regler og teksttokens, samt alt der refereres, men aldrig ankommer.",
       "intro": {
-        "heading": "How this works",
-        "body1": "Displays can react to what's happening around your home. Add-ons (like Home Assistant) share small named values here, such as whether a door is open or who is home.",
-        "body2": "Screens and rules can watch these values and react, like showing the camera screen when the doorbell rings. This list shows everything this display is sharing or watching, so you can check that the right information is arriving."
+        "heading": "Sådan fungerer det",
+        "body1": "Skærme kan reagere på, hvad der sker i dit hjem. Udvidelser (som Home Assistant) deler små navngivne værdier her, for eksempel om en dør er åben, eller hvem der er hjemme.",
+        "body2": "Fanen »Overvåger« viser, hvad denne skærm faktisk bruger lige nu, så du kan tjekke, at de rigtige oplysninger ankommer. Fanen »Tilgængelig« viser alt, hvad dine udvidelser kan dele, så du kan se, hvad du kan reagere på."
+      },
+      "tabs": {
+        "watching": "Overvåger",
+        "available": "Tilgængelig"
+      },
+      "available": {
+        "description": "Alt, hvad dine udvidelser kan dele med denne skærm, uanset om det bruges endnu. Gennemse efter udvidelse, eller søg for at indsnævre.",
+        "searchPlaceholder": "Søg efter tilgængelige værdier…",
+        "summary": {
+          "one": "{count} værdi tilgængelig fra dine udvidelser",
+          "other": "{count} værdier tilgængelige fra dine udvidelser"
+        },
+        "truncationNote": "Viser kun de første {count} — søg for at finde flere",
+        "collapseGroup": "Skjul {producer}",
+        "expandGroup": "Udvid {producer}",
+        "noProviders": "Der er endnu ikke noget at dele. Værdier kommer fra udvidelser, der deler dem (som Home Assistant). Når en udvidelse er sat op, vises dens værdier her.",
+        "noMatches": "Ingen match. Hvis du forventede noget her, så tjek udvidelsens forbindelse i udvidelsesadministratoren.",
+        "showMore": "Vis {count} mere",
+        "showLess": "Vis mindre"
       },
       "displayPicker": {
         "label": "Skærm",

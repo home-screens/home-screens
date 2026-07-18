@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "Zo werkt het",
         "body1": "Displays kunnen reageren op wat er thuis gebeurt. Uitbreidingen (zoals Home Assistant) delen hier kleine benoemde waarden, bijvoorbeeld of een deur open is of wie er thuis is.",
-        "body2": "Schermen en regels kunnen deze waarden in de gaten houden en reageren, bijvoorbeeld het camerascherm tonen als er wordt aangebeld. Deze lijst toont alles wat dit display deelt of volgt, zodat je kunt controleren of de juiste informatie binnenkomt."
+        "body2": "Het tabblad 'Bekeken' toont wat dit scherm nu echt gebruikt, zodat je kunt controleren of de juiste informatie binnenkomt. Het tabblad 'Beschikbaar' toont alles wat je uitbreidingen kunnen delen, zodat je ziet waarop je kunt reageren."
+      },
+      "tabs": {
+        "watching": "Bekeken",
+        "available": "Beschikbaar"
+      },
+      "available": {
+        "description": "Alles wat je uitbreidingen met dit scherm kunnen delen, of het nu al gebruikt wordt of niet. Blader per uitbreiding of zoek om te beperken.",
+        "searchPlaceholder": "Beschikbare waarden zoeken…",
+        "summary": {
+          "one": "{count} waarde beschikbaar uit je uitbreidingen",
+          "other": "{count} waarden beschikbaar uit je uitbreidingen"
+        },
+        "truncationNote": "Alleen de eerste {count} worden getoond — zoek om meer te vinden",
+        "collapseGroup": "{producer} inklappen",
+        "expandGroup": "{producer} uitklappen",
+        "noProviders": "Er is nog niets om te delen. Waarden komen van uitbreidingen die ze delen (zoals Home Assistant). Zodra een uitbreiding is ingesteld, verschijnen de waarden hier.",
+        "noMatches": "Geen resultaten. Als je hier iets verwachtte, controleer de verbinding van de uitbreiding in het uitbreidingsbeheer.",
+        "showMore": "Toon {count} meer",
+        "showLess": "Toon minder"
       },
       "displayPicker": {
         "label": "Scherm",

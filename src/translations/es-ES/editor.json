@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "Cómo funciona",
         "body1": "Las pantallas pueden reaccionar a lo que pasa en tu casa. Los complementos (como Home Assistant) comparten aquí pequeños valores con nombre, por ejemplo si una puerta está abierta o quién está en casa.",
-        "body2": "Las pantallas y las reglas pueden vigilar estos valores y reaccionar, por ejemplo mostrar la pantalla de la cámara cuando suena el timbre. Esta lista muestra todo lo que esta pantalla comparte o vigila, para comprobar que llega la información correcta."
+        "body2": "La pestaña «Vigilando» muestra lo que esta pantalla usa ahora mismo, para comprobar que llega la información correcta. La pestaña «Disponible» enumera todo lo que tus complementos pueden compartir, para ver a qué podrías reaccionar."
+      },
+      "tabs": {
+        "watching": "Vigilando",
+        "available": "Disponible"
+      },
+      "available": {
+        "description": "Todo lo que tus complementos pueden compartir con esta pantalla, se use ya o no. Explora por complemento o busca para acotar.",
+        "searchPlaceholder": "Buscar valores disponibles…",
+        "summary": {
+          "one": "{count} valor disponible de tus complementos",
+          "other": "{count} valores disponibles de tus complementos"
+        },
+        "truncationNote": "Mostrando los primeros {count} — busca para encontrar más",
+        "collapseGroup": "Contraer {producer}",
+        "expandGroup": "Expandir {producer}",
+        "noProviders": "Aún no hay nada para compartir. Los valores vienen de complementos que los comparten (como Home Assistant). En cuanto configures un complemento, sus valores aparecerán aquí.",
+        "noMatches": "Sin resultados. Si esperabas ver algo aquí, revisa la conexión del complemento en el gestor de complementos.",
+        "showMore": "Mostrar {count} más",
+        "showLess": "Mostrar menos"
       },
       "displayPicker": {
         "label": "Pantalla",

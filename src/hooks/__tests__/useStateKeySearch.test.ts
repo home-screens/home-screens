@@ -112,6 +112,43 @@ describe('useStateKeySearch', () => {
     expect(result.current.searching).toBe(false);
   });
 
+  it('threads a limit override into the fan-out (the browse tab asks for a bigger pool)', async () => {
+    vi.useFakeTimers();
+    registerSearchable('ha');
+    mockSearch.mockResolvedValue([DOOR]);
+
+    renderHook(() => useStateKeySearch('door', true, { limit: 200 }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(mockSearch).toHaveBeenCalledExactlyOnceWith('door', { limit: 200 });
+  });
+
+  it('a fresh opts object with the same limit does not re-fire the fan-out', async () => {
+    // The browse tab passes an inline `{ limit }` literal, so every render
+    // hands the hook a new object. The effect must depend on the scalar limit,
+    // not the object identity — regressing that reintroduces a search per
+    // render and still passes every other test here.
+    vi.useFakeTimers();
+    registerSearchable('ha');
+    mockSearch.mockResolvedValue([DOOR]);
+
+    const { rerender } = renderHook(
+      ({ opts }: { opts: { limit: number } }) => useStateKeySearch('door', true, opts),
+      { initialProps: { opts: { limit: 200 } } },
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(mockSearch).toHaveBeenCalledTimes(1);
+
+    rerender({ opts: { limit: 200 } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(mockSearch).toHaveBeenCalledTimes(1);
+  });
+
   it('a slow older query never overwrites a newer answer', async () => {
     vi.useFakeTimers();
     registerSearchable('ha');

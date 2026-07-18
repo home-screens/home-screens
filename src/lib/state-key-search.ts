@@ -17,8 +17,19 @@ const log = logger('state-key-search');
  *  results — the panel must never wait on a dead upstream. */
 const SEARCH_TIMEOUT_MS = 3_000;
 
-/** Per-plugin result cap passed as `opts.limit` and re-enforced after. */
+/** Per-plugin result cap passed as `opts.limit` and re-enforced after.
+ *  Right for the narrowing-while-typing combobox; the Available browse tab
+ *  wants the whole catalogue (see {@link BROWSE_SEARCH_LIMIT}). */
 const SEARCH_LIMIT = 30;
+
+/** Per-plugin cap for the Available browse tab. The tab's own per-category
+ *  preview (10 rows, "show more" behind it) is what keeps the page readable,
+ *  so this constant no longer needs to ration what gets fetched — it should
+ *  read as "fetch everything a real integration has," not a meaningful
+ *  narrowing limit. Set high enough that no realistic integration is ever
+ *  starved, kept finite only as a defensive ceiling against a pathological
+ *  plugin returning an unbounded array. */
+export const BROWSE_SEARCH_LIMIT = 5_000;
 
 /** A sanitized descriptor tagged with the plugin it came from, for the
  *  combobox's plugin-then-group section headers. */

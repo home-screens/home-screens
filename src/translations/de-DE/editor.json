@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "So funktioniert es",
         "body1": "Displays können auf das reagieren, was zu Hause passiert. Erweiterungen (wie Home Assistant) teilen hier kleine benannte Werte, etwa ob eine Tür offen ist oder wer zu Hause ist.",
-        "body2": "Screens und Regeln können diese Werte beobachten und darauf reagieren, zum Beispiel den Kamera-Screen zeigen, wenn es an der Tür klingelt. Diese Liste zeigt alles, was dieses Display teilt oder beobachtet, damit du prüfen kannst, ob die richtigen Informationen ankommen."
+        "body2": "Der Tab „Beobachtet“ zeigt, was dieses Display gerade tatsächlich verwendet, damit du prüfen kannst, ob die richtigen Informationen ankommen. Der Tab „Verfügbar“ listet alles auf, was deine Erweiterungen teilen können, damit du siehst, worauf du reagieren könntest."
+      },
+      "tabs": {
+        "watching": "Beobachtet",
+        "available": "Verfügbar"
+      },
+      "available": {
+        "description": "Alles, was deine Erweiterungen mit diesem Display teilen können, egal ob es schon genutzt wird. Stöbere nach Erweiterung oder suche, um einzugrenzen.",
+        "searchPlaceholder": "Verfügbare Werte suchen…",
+        "summary": {
+          "one": "{count} Wert von deinen Erweiterungen verfügbar",
+          "other": "{count} Werte von deinen Erweiterungen verfügbar"
+        },
+        "truncationNote": "Nur die ersten {count} werden angezeigt — suche, um mehr zu finden",
+        "collapseGroup": "{producer} einklappen",
+        "expandGroup": "{producer} ausklappen",
+        "noProviders": "Noch nichts zum Teilen verfügbar. Werte kommen von Erweiterungen, die sie teilen (wie Home Assistant). Sobald eine Erweiterung eingerichtet ist, erscheinen ihre Werte hier.",
+        "noMatches": "Keine Treffer. Wenn du hier etwas erwartet hast, prüfe die Verbindung der Erweiterung im Erweiterungs-Manager.",
+        "showMore": "Weitere {count} anzeigen",
+        "showLess": "Weniger anzeigen"
       },
       "displayPicker": {
         "label": "Display",

@@ -1180,7 +1180,26 @@
       "intro": {
         "heading": "Comment ça marche",
         "body1": "Les affichages peuvent réagir à ce qui se passe chez vous. Les extensions (comme Home Assistant) partagent ici de petites valeurs nommées, par exemple si une porte est ouverte ou qui est à la maison.",
-        "body2": "Les écrans et les règles peuvent surveiller ces valeurs et réagir, par exemple afficher l'écran de la caméra quand on sonne à la porte. Cette liste montre tout ce que cet affichage partage ou surveille, pour vérifier que les bonnes informations arrivent."
+        "body2": "L'onglet « Surveillé » montre ce que cet écran utilise réellement en ce moment, pour vérifier que les bonnes informations arrivent. L'onglet « Disponible » liste tout ce que vos extensions peuvent partager, pour voir à quoi vous pourriez réagir."
+      },
+      "tabs": {
+        "watching": "Surveillé",
+        "available": "Disponible"
+      },
+      "available": {
+        "description": "Tout ce que vos extensions peuvent partager avec cet écran, qu'il soit déjà utilisé ou non. Parcourez par extension ou recherchez pour affiner.",
+        "searchPlaceholder": "Rechercher des valeurs disponibles…",
+        "summary": {
+          "one": "{count} valeur disponible depuis vos extensions",
+          "other": "{count} valeurs disponibles depuis vos extensions"
+        },
+        "truncationNote": "Affichage des {count} premiers — recherchez pour en trouver plus",
+        "collapseGroup": "Réduire {producer}",
+        "expandGroup": "Développer {producer}",
+        "noProviders": "Rien à partager pour l'instant. Les valeurs viennent des extensions qui les partagent (comme Home Assistant). Une fois une extension configurée, ses valeurs apparaissent ici.",
+        "noMatches": "Aucun résultat. Si vous attendiez quelque chose ici, vérifiez la connexion de l'extension dans le gestionnaire d'extensions.",
+        "showMore": "Afficher {count} de plus",
+        "showLess": "Afficher moins"
       },
       "displayPicker": {
         "label": "Écran",

@@ -35,10 +35,14 @@ const NO_RESULTS: SearchedStateKey[] = [];
 export function useStateKeySearch(
   query: string,
   enabled: boolean,
+  opts?: { limit?: number },
 ): { results: SearchedStateKey[]; searching: boolean; searchable: boolean } {
   const [results, setResults] = useState<SearchedStateKey[]>([]);
   const [searching, setSearching] = useState(false);
   const genRef = useRef(0);
+  // Pulled out of `opts` so a fresh options object each render can't retrigger
+  // the effect; only the numeric limit is a real dependency.
+  const limit = opts?.limit;
 
   // Subscribe to the plugin map (not a snapshot) so search capability
   // appears as soon as plugin loading finishes after editor boot.
@@ -58,7 +62,11 @@ export function useStateKeySearch(
     setSearching(true);
     const timer = setTimeout(async () => {
       try {
-        const found = await searchStateKeysAcrossPlugins(query);
+        // Pass opts only when a limit override is set so existing callers (the
+        // combobox) keep their exact single-arg call and default limit.
+        const found = limit != null
+          ? await searchStateKeysAcrossPlugins(query, { limit })
+          : await searchStateKeysAcrossPlugins(query);
         if (genRef.current !== gen) return; // a newer query superseded this one
         setResults(found);
       } catch {
@@ -71,7 +79,7 @@ export function useStateKeySearch(
       }
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [query, enabled, searchable]);
+  }, [query, enabled, searchable, limit]);
 
   // `searchable` is exposed so the combobox can tell "no plugin implements
   // search" (stay silent — the static-suggestions hint covers it) apart from

@@ -20,6 +20,7 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
+import { buildSuggestions } from '@/lib/state-key-suggestions';
 import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
 import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
@@ -168,60 +169,6 @@ function useCommitOnBlur(value: string, commit: (next: string) => void) {
       },
     },
   };
-}
-
-/** One row in the merged suggestion list. `section` renders as a group
- *  header ("Home Assistant · Kitchen") above the first row that carries it. */
-interface KeySuggestion {
-  key: string;
-  /** Friendly first line: label, with the live value appended when known. */
-  primary: string;
-  /** Mono second line: the exact bus key. */
-  secondary: string;
-  section?: string;
-}
-
-/** Exported for tests. */
-export function buildSuggestions(
-  searched: readonly (StateKeyDescriptor & { pluginName: string })[],
-  options: readonly ProvidedStateKey[],
-  draft: string,
-  known: boolean,
-): KeySuggestion[] {
-  const query = draft.trim().toLowerCase();
-  const out: KeySuggestion[] = [];
-  const seen = new Set<string>();
-  // Search results first: the plugin already filtered them by the query and
-  // ordered them by relevance; they carry friendly names and grouping.
-  for (const d of searched) {
-    if (seen.has(d.key)) continue;
-    seen.add(d.key);
-    const live = d.currentValue !== undefined
-      ? ` — ${d.currentValue}${d.unit ? ` ${d.unit}` : ''}`
-      : '';
-    out.push({
-      key: d.key,
-      primary: `${d.label}${live}`,
-      secondary: d.key,
-      section: d.group ? `${d.pluginName} · ${d.group}` : d.pluginName,
-    });
-  }
-  // Static suggestions (manifest providesState / deriveProvidedKeys), locally
-  // filtered as before. A draft that exactly matches a known key shows the
-  // full list so the user can still switch.
-  for (const o of options) {
-    if (seen.has(o.key)) continue;
-    const matches = query === '' || known
-      || o.key.toLowerCase().includes(query) || o.label.toLowerCase().includes(query);
-    if (!matches) continue;
-    seen.add(o.key);
-    out.push({
-      key: o.key,
-      primary: o.sampleValues?.length ? `${o.label} (${o.sampleValues.join(', ')})` : o.label,
-      secondary: o.key,
-    });
-  }
-  return out;
 }
 
 /** Exported for tests. */
