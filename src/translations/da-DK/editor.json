@@ -224,22 +224,25 @@
         "calendar": "Calendar",
         "weather": "Weather",
         "location": "Location & language",
-        "sleep": "Sleep",
-        "alerts": "Alerts",
-        "display": "Display",
-        "data": "Data",
-        "docs": "Docs",
-        "integrations": "Integrations",
+        "data": "Backups & data",
+        "integrations": "API keys",
         "meals": "Meals",
         "network": "Network",
-        "profiles": "Profiles",
-        "rules": "Regler",
-        "sharedState": "Live-værdier",
         "security": "Security",
-        "stats": "Stats",
+        "stats": "Status",
         "system": "System",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Screen",
+        "automation": "Automation"
+      },
+      "groups": {
+        "screen": "Screen",
+        "content": "Content",
+        "automation": "Automation",
+        "admin": "Maintenance"
+      },
+      "docsTitle": "Documentation",
+      "docsAriaLabel": "View documentation"
     },
     "overrideRow": {
       "override": "Override",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " currently override fields on {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Defaults → Alerts",
-      "heading": "Default alert settings",
       "description": "Default position, size, and duration for the alert overlay on every display. A specific display can override the whole alerts block from its own page."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Defaults → Sleep",
-      "heading": "Default sleep settings",
       "description": "Default dim / sleep schedule and screensaver applied to every display. A specific display can override the whole block from its own page."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Remind after",
         "lastBackup": "Last backup: {date}",
         "noBackups": "No backups recorded yet"
+      },
+      "configBackups": {
+        "heading": "Config Backups",
+        "description": "Settings snapshots saved automatically before each update. Restore one to undo settings changes; to go back to an older version of the app itself, use the System page.",
+        "empty": "No backups yet. Backups are created automatically before each upgrade.",
+        "sizeKb": "{size}KB",
+        "download": "Download",
+        "restore": "Restore",
+        "restoreDialog": {
+          "title": "Restore Backup",
+          "message": "Restore configuration from {name}? Current config will be overwritten.",
+          "confirm": "Restore"
+        },
+        "restoreStatus": {
+          "restoring": "Restoring…",
+          "restored": "Restored! Reload the editor to see changes.",
+          "error": "Error: {error}",
+          "failed": "Failed to restore backup"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Defaults → Display",
-      "heading": "Default display settings",
       "descriptionPart1": "These values are used by every display until a specific one overrides them. Change anything here and every display that's ",
       "descriptionEmphasisNot": "not",
       "descriptionPart2": " overriding that field picks up the new value.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "overview",
-          "display": "display",
-          "sleep": "sleep",
-          "alerts": "alerts",
-          "profile": "profile",
-          "identity": "identity"
+          "overrides": "overrides"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "Defaults",
         "withOverridesPart2": " for everything except:",
         "noOverridesPart1": "{name} uses the ",
-        "noOverridesPart2": " for every field. Override one from the Display, Sleep, or Alerts subtab.",
+        "noOverridesPart2": " for every field. Override one from the Overrides subtab.",
         "chipBlockOverridden": "{label} overridden",
         "chipFieldWithDefault": "{label}: {value} (default: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -611,11 +623,11 @@
         "activeProfileLabel": "Active profile",
         "noneOption": "None",
         "helpPart1": "Which profile {name} is currently displaying. Profile definitions live on ",
-        "helpLink": "Defaults → Profiles",
+        "helpLink": "Defaults → Automation",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Defaults → Display",
+        "defaultsLabel": "Defaults → Screen",
         "bannerPart1": "Fields here show the ",
         "bannerEmphasisDefault": "default",
         "bannerPart2": " value from ",
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Sleep schedule",
-        "defaultsLabel": "Defaults → Sleep",
+        "defaultsLabel": "Defaults → Screen",
         "infoPart1": "Sleep is overridden as a whole block; you can't fork individual fields like dim time. The default lives on ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Alert overlay",
-        "defaultsLabel": "Defaults → Alerts",
+        "defaultsLabel": "Defaults → Screen",
         "infoPart1": "Alerts is overridden as a whole block. The default lives on ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Version History",
         "currentBadge": "current",
-        "rollback": "Rollback"
-      },
-      "backups": {
-        "heading": "Config Backups",
-        "empty": "No backups yet. Backups are created automatically before each upgrade.",
-        "sizeKb": "{size}KB",
-        "download": "Download",
-        "restore": "Restore"
-      },
-      "restoreStatus": {
-        "restoring": "Restoring…",
-        "restored": "Restored! Reload the editor to see changes.",
-        "error": "Error: {error}",
-        "failed": "Failed to restore backup"
-      },
-      "restoreDialog": {
-        "title": "Restore Backup",
-        "message": "Restore configuration from {name}? Current config will be overwritten.",
-        "confirm": "Restore"
+        "rollback": "Rollback",
+        "help": "Goes back to an older version of the app. To undo settings changes instead, restore a snapshot from the Backups & data page."
       },
       "upgradeDialog": {
         "title": "Upgrade",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "Delte værdier",
       "description": "Alle værdier denne skærm udgiver til betingelser, regler og teksttokens, samt alt der refereres, men aldrig ankommer.",
+      "intro": {
+        "heading": "How this works",
+        "body1": "Displays can react to what's happening around your home. Add-ons (like Home Assistant) share small named values here, such as whether a door is open or who is home.",
+        "body2": "Screens and rules can watch these values and react, like showing the camera screen when the doorbell rings. This list shows everything this display is sharing or watching, so you can check that the right information is arriving."
+      },
       "displayPicker": {
         "label": "Skærm",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "Password set! Authentication is now enabled.",
         "passwordChanged": "Password changed. All other sessions have been invalidated.",
         "authDisabled": "Authentication disabled."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "Full documentation is available at ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Guides cover everything from initial setup to plugin development."
-      },
-      "sections": {
-        "introduction": "Introduction",
-        "guides": "Guides",
-        "reference": "Reference"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Getting Started",
-          "description": "Overview of Home Screens and core concepts"
-        },
-        "installation": {
-          "title": "Installation",
-          "description": "Set up on Raspberry Pi or run locally"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Kiosk deployment, service management, SD card tips"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Visual editor walkthrough and canvas tools"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "All 38 modules and their configuration options"
-        },
-        "backgrounds": {
-          "title": "Backgrounds",
-          "description": "Uploads, Unsplash, NASA APOD, and rotation"
-        },
-        "profiles": {
-          "title": "Profiles & Scheduling",
-          "description": "Automation and time-based screen layouts"
-        },
-        "configuration": {
-          "title": "Configuration",
-          "description": "JSON schema and config file reference"
-        },
-        "remoteControl": {
-          "title": "Remote Control",
-          "description": "Control your display from a phone or another device"
-        },
-        "multiDisplay": {
-          "title": "Multi-display",
-          "description": "Hub-and-spoke setup for running multiple Pis from one server"
-        },
-        "networking": {
-          "title": "Networking",
-          "description": "Reverse proxy and remote access from outside your LAN"
-        },
-        "troubleshooting": {
-          "title": "Troubleshooting",
-          "description": "Common issues and fixes"
-        },
-        "api": {
-          "title": "API",
-          "description": "All API endpoints and their parameters"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Build custom modules with the plugin SDK"
-        },
-        "development": {
-          "title": "Development",
-          "description": "Architecture overview and contributing guide"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Frequently asked questions"
-        }
       }
     },
     "shared": {
@@ -1712,7 +1634,7 @@
       "formReportedViewport": "(reported by display: {width} × {height})",
       "formWidth": "Width",
       "formHeight": "Height",
-      "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display’s screens.",
+      "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display's screens.",
       "formRotationNormal": "Normal (landscape)",
       "formRotation90": "90° clockwise (portrait)",
       "formRotation180": "180° (inverted)",
@@ -1735,6 +1657,23 @@
         "light": "Lys",
         "system": "System",
         "titleFormat": "Tema: {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Defaults → Screen",
+      "heading": "Screen defaults",
+      "rotationAppearanceHeading": "Rotation & appearance",
+      "sleepHeading": "Sleep & dimming",
+      "alertsHeading": "Alerts"
+    },
+    "automationPage": {
+      "breadcrumb": "Defaults → Automation",
+      "heading": "Automation",
+      "description": "Profiles, rules, and live values for each display.",
+      "displayPicker": {
+        "label": "Editing automation for",
+        "optionLabel": "{name} ({id})",
+        "help": "Profiles and rules are per-display because they reference each display's own screens. Switching here changes which display the editor canvas is also working on."
       }
     }
   },

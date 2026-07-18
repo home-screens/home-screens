@@ -1091,7 +1091,7 @@ test('Defaults › Display: changing the transition effect persists to the share
   // transition <select> isn't label-associated, so target it by an option only
   // it carries ("Crossfade (overlap)"), mirroring standingsSelectByOption above.
   await putConfig(request, baseConfig()); // settings.transitionEffect defaults to 'fade'
-  await page.goto('/editor/settings?section=defaults&page=display');
+  await page.goto('/editor/settings?section=defaults&page=screen');
 
   const transitionSelect = page
     .locator('select')

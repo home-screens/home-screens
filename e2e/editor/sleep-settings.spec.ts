@@ -28,8 +28,8 @@ async function displaySettings(
 
 test('Defaults › Sleep: editing schedule, dim level, and screensaver persists to the shared config', async ({ page, request }) => {
   await putConfig(request, baseConfig()); // no sleep block → form hydrates with defaults (sleep disabled)
-  await page.goto('/editor/settings?section=defaults&page=sleep');
-  await expect(page.getByRole('heading', { name: 'Default sleep settings' })).toBeVisible();
+  await page.goto('/editor/settings?section=defaults&page=screen&panel=sleep');
+  await expect(page.getByRole('heading', { name: 'Screen defaults' })).toBeVisible();
 
   // Sleep must be enabled before the dim / schedule / screensaver fields mount.
   await page.locator('label', { hasText: 'Enable display sleep' }).getByRole('switch').click();
@@ -82,10 +82,13 @@ test.describe('per-display sleep override', () => {
 
   test('Override forks the sleep block, an edit persists to the node, and Reset clears it', async ({ page, request }) => {
     await putConfig(request, multiDisplayConfig());
-    await page.goto('/editor/settings?section=display&id=kitchen&subtab=sleep');
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
 
-    // Not forked yet: the card offers "Override for Kitchen".
-    const forkButton = page.getByRole('button', { name: 'Override for Kitchen' });
+    // Not forked yet: the sleep card offers "Override for Kitchen". The merged
+    // Overrides subtab renders an identical button on the alerts card, so
+    // scope through the sleep card's test id.
+    const sleepCard = page.getByTestId('sleep-override-card');
+    const forkButton = sleepCard.getByRole('button', { name: 'Override for Kitchen' });
     await expect(forkButton).toBeVisible();
     await forkButton.click();
 
@@ -95,11 +98,11 @@ test.describe('per-display sleep override', () => {
       .toBe(true);
 
     // The Defaults › Sleep backlink banner now lists the kitchen display.
-    await page.goto('/editor/settings?section=defaults&page=sleep');
+    await page.goto('/editor/settings?section=defaults&page=screen');
     await expect(page.locator('a[href*="section=display&id=kitchen"]')).toBeVisible();
 
     // Back on the subtab, the form is now editable: change the screensaver mode.
-    await page.goto('/editor/settings?section=display&id=kitchen&subtab=sleep');
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
     await page.locator('label', { hasText: 'Screensaver' }).locator('select').selectOption('off');
 
     await expect
@@ -107,7 +110,9 @@ test.describe('per-display sleep override', () => {
       .toBe('off');
 
     // Reset to default drops the whole fork (both keys deleted from the node).
-    await page.getByRole('button', { name: 'Reset to default' }).click();
+    // Scoped to the sleep card — per-field OverrideRows and the alerts card
+    // render the same button label on this subtab.
+    await page.getByTestId('sleep-override-card').getByRole('button', { name: 'Reset to default' }).click();
 
     await expect
       .poll(async () => (await displaySettings(request, 'kitchen')).sleep)
@@ -127,7 +132,7 @@ test.describe('per-display sleep override', () => {
     };
     await putConfig(request, config);
 
-    await page.goto('/editor/settings?section=defaults&page=sleep');
+    await page.goto('/editor/settings?section=defaults&page=screen');
 
     // The banner renders the overriding display's name and a link back to it.
     const banner = page.getByText('Kitchen', { exact: false });

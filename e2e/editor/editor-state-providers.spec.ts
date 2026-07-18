@@ -84,7 +84,7 @@ test('the bus inspector shows editor-published values and says where they come f
     visibility: { conditions: [{ kind: 'state', sourceKey: KEY, equals: 'on' }] },
   });
   await putConfig(request, displayConfig('esp-inspect', [gated]));
-  await page.goto('/editor/settings?section=defaults&page=shared-state&display=esp-inspect');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=esp-inspect');
 
   // The referenced key is published by the in-tab provider: an active row
   // with the live value, not a "Never published" warning.

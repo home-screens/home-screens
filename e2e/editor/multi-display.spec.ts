@@ -179,7 +179,7 @@ test.describe('display adoption', () => {
 test.describe('display removal', () => {
   test('removing a non-main display through the confirm flow deletes it from config', async ({ page, request }) => {
     await putConfig(request, twoDisplayConfig());
-    await page.goto('/editor/settings?section=display&id=kitchen&subtab=identity');
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
 
     const removeButton = page.getByRole('button', { name: 'Remove Kitchen' });
     await expect(removeButton).toBeEnabled();
@@ -208,7 +208,7 @@ test.describe('orientation change scaling', () => {
         textModule('SCALE ME', { id: 'scale-target', position: { x: 100, y: 1500 }, size: { w: 800, h: 200 } }),
       ])],
     }));
-    await page.goto('/editor/settings?section=defaults&page=display');
+    await page.goto('/editor/settings?section=defaults&page=screen');
 
     // Flip portrait → landscape. Height shrinks, so the low module goes
     // off-canvas and the orientation modal appears.

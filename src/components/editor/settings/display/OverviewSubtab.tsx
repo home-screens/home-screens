@@ -11,6 +11,8 @@ import {
 import { orientDimensions } from '@/stores/editor-store';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import ProfileSubtab from './ProfileSubtab';
+import IdentitySubtab from './IdentitySubtab';
 
 interface DisplayApiEntry {
   id: string;
@@ -24,9 +26,15 @@ interface OverviewSubtabProps {
 }
 
 /**
- * Display detail "Overview" — three at-a-glance KV cards plus a quick
+ * Display detail "Overview" — three at-a-glance KV cards, a quick
  * summary of which fields the user has currently overridden on this
- * display. The summary uses the same `findDisplaysOverridingFields`
+ * display, the active-profile picker, and the identity block (name /
+ * id / remove). The profile and identity pieces were standalone subtabs
+ * until the 6→2 subtab collapse — a single dropdown and a name field
+ * didn't justify their own tabs, so they render here as cards below the
+ * overrides panel (the former subtab components are composed unrouted).
+ *
+ * The overrides summary uses the same `findDisplaysOverridingFields`
  * helper that powers the Defaults backlink banner; it just queries the
  * union of every override-able field and filters down to this one
  * display, so the display detail page and the defaults pages can never
@@ -93,7 +101,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             <div className="text-sm text-hs-text-muted mb-3">
               {t('settings.perDisplayPage.overview.withOverridesPart1', { name: display.name })}
               <Link
-                href="?section=defaults&page=display"
+                href="?section=defaults&page=screen"
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
                 {t('settings.perDisplayPage.overview.defaultsLink')}
@@ -116,7 +124,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
           <div className="text-sm text-hs-text-faint">
             {t('settings.perDisplayPage.overview.noOverridesPart1', { name: display.name })}
             <Link
-              href="?section=defaults&page=display"
+              href="?section=defaults&page=screen"
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               {t('settings.perDisplayPage.overview.defaultsLink')}
@@ -124,6 +132,14 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             {t('settings.perDisplayPage.overview.noOverridesPart2')}
           </div>
         )}
+      </div>
+
+      <div className="mt-5">
+        <ProfileSubtab config={config} display={display} />
+      </div>
+
+      <div className="mt-5">
+        <IdentitySubtab display={display} />
       </div>
     </>
   );
@@ -225,14 +241,14 @@ function formatCursorHide(seconds: number): string {
 
 function formatFullscreenTheme(themeId: string): string {
   // Theme names ("Linen", "Charcoal", …) are kept verbatim — product names
-  // that don't translate, matching DefaultDisplaySection's policy.
+  // that don't translate, matching ScreenSection's policy.
   return FULLSCREEN_THEMES.find((t) => t.id === themeId)?.name ?? themeId;
 }
 
 /**
  * Pretty label shown before the colon in each chip — falls back to the raw
  * field key for any future override field that lacks a registered label,
- * mirroring how DefaultDisplaySection handles plugin transitions.
+ * mirroring how ScreenSection handles plugin transitions.
  */
 function fieldLabel(field: string, t: TranslateFn): string {
   return tOrFallback(t, `settings.perDisplayPage.overview.fieldLabels.${field}`, field);

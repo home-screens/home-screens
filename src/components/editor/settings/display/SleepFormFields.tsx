@@ -25,7 +25,7 @@ interface SleepFormFieldsProps {
    * When true the entire form goes opacity-60 + pointer-events-none, signaling
    * that the field values are inherited and the user must explicitly fork
    * the block before editing. The two consumers wire this differently:
-   *   - `DefaultSleepSection` always passes `false` (defaults are always editable)
+   *   - `ScreenSection` always passes `false` (defaults are always editable)
    *   - `SleepSubtab` passes `!isForked` so the form dims until the user
    *     clicks "Override for {display}"
    */
@@ -36,7 +36,7 @@ interface SleepFormFieldsProps {
  * The shared form body for sleep / dim schedule / screensaver settings.
  *
  * Extracted from the legacy `SleepSection` into its two consumers
- * (`DefaultSleepSection` for the defaults page, `SleepSubtab` for the
+ * (`ScreenSection` for the defaults page, `SleepSubtab` for the
  * per-display drill-down). Both consumers want exactly the same field
  * rows but render different chrome around them — Defaults shows just
  * the form, SleepSubtab wraps it in a rounded card with an Override

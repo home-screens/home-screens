@@ -61,7 +61,7 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
           <p className="text-[11px] text-hs-text-faint mt-1.5">
             {t('settings.perDisplayPage.profile.helpPart1', { name: display.name })}
             <Link
-              href="?section=defaults&page=profiles"
+              href="?section=defaults&page=automation"
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               {t('settings.perDisplayPage.profile.helpLink')}

@@ -30,7 +30,14 @@ const log = logger('rules');
  * display the editor is working on and shows an explicit display picker.
  * Single-display installs edit `config.rules` with no picker.
  */
-export default function RulesSection() {
+interface RulesSectionProps {
+  /** When rendered as an Automation-page tab, the parent owns the shared
+   *  display picker and the active tab already names the section — suppress
+   *  this section's own picker and heading (the description still renders). */
+  embedded?: boolean;
+}
+
+export default function RulesSection({ embedded = false }: RulesSectionProps) {
   const t = useTranslate('editor');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
@@ -94,14 +101,16 @@ export default function RulesSection() {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('settings.rulesPage.heading')}
-      </h3>
+      {!embedded && (
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.rulesPage.heading')}
+        </h3>
+      )}
       <p className="text-xs text-hs-text-faint mb-4">
         {t('settings.rulesPage.description')}
       </p>
 
-      {isMultiDisplay && (
+      {isMultiDisplay && !embedded && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
           <label className="block">
             <span className="text-[11px] uppercase tracking-wider text-hs-accent-hover font-medium">

@@ -3,6 +3,8 @@ import {
   parseSettingsRoute,
   resolveSettingsRoute,
   LEGACY_TAB_REDIRECTS,
+  LEGACY_PAGE_REDIRECTS,
+  LEGACY_SUBTAB_REDIRECTS,
   DEFAULT_PAGE_IDS,
   PER_DISPLAY_SUBTABS,
 } from '@/lib/settings-route';
@@ -17,10 +19,10 @@ import {
  */
 
 describe('parseSettingsRoute', () => {
-  it('falls back to defaults/display when no params are present', () => {
+  it('falls back to defaults/screen when no params are present', () => {
     expect(parseSettingsRoute(new URLSearchParams(''))).toEqual({
       kind: 'defaults',
-      page: 'display',
+      page: 'screen',
     });
   });
 
@@ -31,10 +33,18 @@ describe('parseSettingsRoute', () => {
     }
   });
 
-  it('rejects an unknown ?section=defaults&page= value and falls back to display', () => {
+  it('rejects an unknown ?section=defaults&page= value and falls back to screen', () => {
     const params = new URLSearchParams('section=defaults&page=banana');
-    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'display' });
+    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
   });
+
+  it.each(Object.entries(LEGACY_PAGE_REDIRECTS))(
+    'maps the retired ?section=defaults&page=%s to its absorbing page',
+    (oldId, newId) => {
+      const params = new URLSearchParams(`section=defaults&page=${oldId}`);
+      expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: newId });
+    },
+  );
 
   it('parses ?section=displays as the all-displays index', () => {
     expect(parseSettingsRoute(new URLSearchParams('section=displays'))).toEqual({
@@ -52,6 +62,18 @@ describe('parseSettingsRoute', () => {
       });
     }
   });
+
+  it.each(Object.entries(LEGACY_SUBTAB_REDIRECTS))(
+    'maps the retired ?subtab=%s to its absorbing subtab',
+    (oldId, newId) => {
+      const params = new URLSearchParams(`section=display&id=kitchen&subtab=${oldId}`);
+      expect(parseSettingsRoute(params)).toEqual({
+        kind: 'display',
+        displayId: 'kitchen',
+        subtab: newId,
+      });
+    },
+  );
 
   it('defaults the subtab to overview when omitted', () => {
     const params = new URLSearchParams('section=display&id=kitchen');
@@ -71,9 +93,9 @@ describe('parseSettingsRoute', () => {
     });
   });
 
-  it('falls back to defaults/display when section=display has no id', () => {
-    const params = new URLSearchParams('section=display&subtab=display');
-    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'display' });
+  it('falls back to defaults/screen when section=display has no id', () => {
+    const params = new URLSearchParams('section=display&subtab=overrides');
+    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
   });
 
   it('honors a legacy ?tab=X mapping over a present section param', () => {
@@ -82,7 +104,7 @@ describe('parseSettingsRoute', () => {
     // effect drops the `tab` key on the next render, but the parser
     // must still resolve the right page on the first one.)
     const params = new URLSearchParams('tab=sleep&section=displays');
-    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'sleep' });
+    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
   });
 
   it('honors a legacy ?tab=X mapping even when section=defaults&page=Y co-exists', () => {
@@ -90,8 +112,8 @@ describe('parseSettingsRoute', () => {
     // would only realistically co-occur if a stale ?tab= was glued onto
     // a freshly-shared link from the new sidebar. The legacy mapping
     // wins so the user lands on the page their bookmark intended.
-    const params = new URLSearchParams('tab=sleep&section=defaults&page=display');
-    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'sleep' });
+    const params = new URLSearchParams('tab=weather&section=defaults&page=screen');
+    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'weather' });
   });
 
   it.each(Object.keys(LEGACY_TAB_REDIRECTS))(
@@ -110,8 +132,8 @@ describe('parseSettingsRoute', () => {
 
 describe('resolveSettingsRoute', () => {
   it('returns no redirectedQuery when no legacy ?tab= is present', () => {
-    expect(resolveSettingsRoute('section=defaults&page=display')).toEqual({
-      route: { kind: 'defaults', page: 'display' },
+    expect(resolveSettingsRoute('section=defaults&page=screen')).toEqual({
+      route: { kind: 'defaults', page: 'screen' },
     });
   });
 
@@ -123,12 +145,43 @@ describe('resolveSettingsRoute', () => {
 
   it('returns the canonical query string when a legacy ?tab=X is present', () => {
     const result = resolveSettingsRoute('tab=display');
-    expect(result.route).toEqual({ kind: 'defaults', page: 'display' });
+    expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
     expect(result.redirectedQuery).toBeDefined();
     const next = new URLSearchParams(result.redirectedQuery!);
     expect(next.get('tab')).toBeNull();
     expect(next.get('section')).toBe('defaults');
-    expect(next.get('page')).toBe('display');
+    expect(next.get('page')).toBe('screen');
+  });
+
+  it('returns the canonical query string when a retired page id is present', () => {
+    const result = resolveSettingsRoute('section=defaults&page=rules');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'automation' });
+    expect(result.redirectedQuery).toBeDefined();
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('page')).toBe('automation');
+  });
+
+  it('returns the canonical query string when a retired subtab id is present', () => {
+    const result = resolveSettingsRoute('section=display&id=kitchen&subtab=sleep');
+    expect(result.route).toEqual({
+      kind: 'display',
+      displayId: 'kitchen',
+      subtab: 'overrides',
+    });
+    expect(result.redirectedQuery).toBeDefined();
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('subtab')).toBe('overrides');
+    expect(next.get('id')).toBe('kitchen');
+  });
+
+  it('does not rewrite an unknown subtab (parser already falls back to overview)', () => {
+    const result = resolveSettingsRoute('section=display&id=kitchen&subtab=banana');
+    expect(result.route).toEqual({
+      kind: 'display',
+      displayId: 'kitchen',
+      subtab: 'overview',
+    });
+    expect(result.redirectedQuery).toBeUndefined();
   });
 
   it('redirects ?tab=displays to ?section=displays without leaking a page param', () => {
@@ -150,18 +203,18 @@ describe('resolveSettingsRoute', () => {
     const next = new URLSearchParams(result.redirectedQuery!);
     expect(next.get('utm_source')).toBe('email');
     expect(next.get('section')).toBe('defaults');
-    expect(next.get('page')).toBe('sleep');
+    expect(next.get('page')).toBe('screen');
   });
 
   it('does not set redirectedQuery for an unknown legacy ?tab= value', () => {
     const result = resolveSettingsRoute('tab=banana');
-    expect(result.route).toEqual({ kind: 'defaults', page: 'display' });
+    expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
     expect(result.redirectedQuery).toBeUndefined();
   });
 });
 
-describe('LEGACY_TAB_REDIRECTS', () => {
-  it('only maps to known DEFAULT_PAGE_IDS or to the displays section', () => {
+describe('legacy redirect tables', () => {
+  it('LEGACY_TAB_REDIRECTS only maps to known DEFAULT_PAGE_IDS or to the displays section', () => {
     // Guards against a future contributor adding a legacy redirect that
     // points at a page id that no longer exists in DEFAULT_PAGE_IDS,
     // which would silently land users on the fallback page.
@@ -172,6 +225,22 @@ describe('LEGACY_TAB_REDIRECTS', () => {
       } else {
         expect(route.kind).toBe('displays');
       }
+    }
+  });
+
+  it('LEGACY_PAGE_REDIRECTS never maps a live page id and only targets live ids', () => {
+    const knownPages = new Set<string>(DEFAULT_PAGE_IDS);
+    for (const [oldId, newId] of Object.entries(LEGACY_PAGE_REDIRECTS)) {
+      expect(knownPages.has(oldId)).toBe(false);
+      expect(knownPages.has(newId)).toBe(true);
+    }
+  });
+
+  it('LEGACY_SUBTAB_REDIRECTS never maps a live subtab id and only targets live ids', () => {
+    const knownSubtabs = new Set<string>(PER_DISPLAY_SUBTABS);
+    for (const [oldId, newId] of Object.entries(LEGACY_SUBTAB_REDIRECTS)) {
+      expect(knownSubtabs.has(oldId)).toBe(false);
+      expect(knownSubtabs.has(newId)).toBe(true);
     }
   });
 });

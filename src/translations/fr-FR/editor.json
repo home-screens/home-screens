@@ -224,22 +224,25 @@
         "calendar": "Calendrier",
         "weather": "Météo",
         "location": "Lieu et langue",
-        "sleep": "Veille",
-        "alerts": "Alertes",
-        "display": "Affichage",
-        "data": "Données",
-        "docs": "Documentation",
-        "integrations": "Intégrations",
+        "data": "Sauvegardes et données",
+        "integrations": "Clés API",
         "meals": "Repas",
         "network": "Réseau",
-        "profiles": "Profils",
-        "rules": "Règles",
-        "sharedState": "Valeurs en direct",
         "security": "Sécurité",
-        "stats": "Statistiques",
+        "stats": "État",
         "system": "Système",
-        "displays": "Affichages"
-      }
+        "displays": "Affichages",
+        "screen": "Écran",
+        "automation": "Automatisation"
+      },
+      "groups": {
+        "screen": "Écran",
+        "content": "Contenu",
+        "automation": "Automatisation",
+        "admin": "Maintenance"
+      },
+      "docsTitle": "Documentation",
+      "docsAriaLabel": "Voir la documentation"
     },
     "overrideRow": {
       "override": "Remplacer",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " remplacent actuellement des champs sur {pageLabel} : "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Valeurs par défaut → Alertes",
-      "heading": "Paramètres d'alerte par défaut",
       "description": "Position, taille et durée par défaut de la superposition d'alerte sur tous les affichages. Un affichage spécifique peut remplacer tout le bloc d'alertes depuis sa propre page."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Valeurs par défaut → Veille",
-      "heading": "Paramètres de veille par défaut",
       "description": "Calendrier d'atténuation / mise en veille et économiseur d'écran appliqués à tous les affichages. Un affichage spécifique peut remplacer l'ensemble du bloc depuis sa propre page."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Rappeler après",
         "lastBackup": "Dernière sauvegarde : {date}",
         "noBackups": "Aucune sauvegarde enregistrée pour l'instant"
+      },
+      "configBackups": {
+        "heading": "Sauvegardes de configuration",
+        "description": "Instantanés des réglages enregistrés automatiquement avant chaque mise à jour. Restaurez-en un pour annuler des changements de réglages ; pour revenir à une ancienne version de l'application, utilisez la page Système.",
+        "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
+        "sizeKb": "{size} Ko",
+        "download": "Télécharger",
+        "restore": "Restaurer",
+        "restoreDialog": {
+          "title": "Restaurer la sauvegarde",
+          "message": "Restaurer la configuration depuis {name} ? La configuration actuelle sera écrasée.",
+          "confirm": "Restaurer"
+        },
+        "restoreStatus": {
+          "restoring": "Restauration…",
+          "restored": "Restauré ! Recharge l'éditeur pour voir les changements.",
+          "error": "Erreur : {error}",
+          "failed": "Échec de la restauration de la sauvegarde"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Valeurs par défaut → Affichage",
-      "heading": "Paramètres d'affichage par défaut",
       "descriptionPart1": "Ces valeurs sont utilisées par tous les affichages tant qu'aucun ne les remplace. Modifie une valeur ici et tous les affichages qui ",
       "descriptionEmphasisNot": "ne",
       "descriptionPart2": " remplacent pas ce champ adoptent la nouvelle valeur.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "vue d'ensemble",
-          "display": "affichage",
-          "sleep": "veille",
-          "alerts": "alertes",
-          "profile": "profil",
-          "identity": "identité"
+          "overrides": "surcharges"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "valeurs par défaut",
         "withOverridesPart2": " pour tout, sauf :",
         "noOverridesPart1": "{name} utilise les ",
-        "noOverridesPart2": " pour chaque champ. Remplaces-en un depuis l'onglet Affichage, Veille ou Alertes.",
+        "noOverridesPart2": " pour chaque champ. Remplaces-en un depuis l'onglet Surcharges.",
         "chipBlockOverridden": "{label} remplacé",
         "chipFieldWithDefault": "{label} : {value} (par défaut : {defaultValue})",
         "chipFieldNoDefault": "{label} : {value}",
@@ -611,11 +623,11 @@
         "activeProfileLabel": "Profil actif",
         "noneOption": "Aucun",
         "helpPart1": "Quel profil {name} affiche actuellement. Les définitions de profil se trouvent dans ",
-        "helpLink": "Valeurs par défaut → Profils",
+        "helpLink": "Valeurs par défaut → Automatisation",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Valeurs par défaut → Affichage",
+        "defaultsLabel": "Valeurs par défaut → Écran",
         "bannerPart1": "Les champs ici affichent la valeur ",
         "bannerEmphasisDefault": "par défaut",
         "bannerPart2": " de ",
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Calendrier de veille",
-        "defaultsLabel": "Valeurs par défaut → Veille",
+        "defaultsLabel": "Valeurs par défaut → Écran",
         "infoPart1": "La veille est remplacée comme un bloc entier ; tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposition d'alerte",
-        "defaultsLabel": "Valeurs par défaut → Alertes",
+        "defaultsLabel": "Valeurs par défaut → Écran",
         "infoPart1": "Les alertes sont remplacées comme un bloc entier. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Historique des versions",
         "currentBadge": "actuelle",
-        "rollback": "Revenir en arrière"
-      },
-      "backups": {
-        "heading": "Sauvegardes de configuration",
-        "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
-        "sizeKb": "{size} Ko",
-        "download": "Télécharger",
-        "restore": "Restaurer"
-      },
-      "restoreStatus": {
-        "restoring": "Restauration…",
-        "restored": "Restauré ! Recharge l'éditeur pour voir les changements.",
-        "error": "Erreur : {error}",
-        "failed": "Échec de la restauration de la sauvegarde"
-      },
-      "restoreDialog": {
-        "title": "Restaurer la sauvegarde",
-        "message": "Restaurer la configuration depuis {name} ? La configuration actuelle sera écrasée.",
-        "confirm": "Restaurer"
+        "rollback": "Revenir en arrière",
+        "help": "Revient à une ancienne version de l'application. Pour annuler des changements de réglages, restaurez plutôt un instantané depuis la page Sauvegardes et données."
       },
       "upgradeDialog": {
         "title": "Mettre à niveau",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "État partagé",
       "description": "Toutes les valeurs que cet écran publie pour les conditions, les règles et les jetons de texte, ainsi que tout ce qui est référencé mais n'arrive jamais.",
+      "intro": {
+        "heading": "Comment ça marche",
+        "body1": "Les affichages peuvent réagir à ce qui se passe chez vous. Les extensions (comme Home Assistant) partagent ici de petites valeurs nommées, par exemple si une porte est ouverte ou qui est à la maison.",
+        "body2": "Les écrans et les règles peuvent surveiller ces valeurs et réagir, par exemple afficher l'écran de la caméra quand on sonne à la porte. Cette liste montre tout ce que cet affichage partage ou surveille, pour vérifier que les bonnes informations arrivent."
+      },
       "displayPicker": {
         "label": "Écran",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "Mot de passe défini ! L'authentification est maintenant activée.",
         "passwordChanged": "Mot de passe changé. Toutes les autres sessions ont été invalidées.",
         "authDisabled": "Authentification désactivée."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "La documentation complète est disponible sur ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Les guides couvrent tout, de la configuration initiale au développement de plugin."
-      },
-      "sections": {
-        "introduction": "Introduction",
-        "guides": "Guides",
-        "reference": "Référence"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Premiers pas",
-          "description": "Aperçu de Home Screens et concepts de base"
-        },
-        "installation": {
-          "title": "Installation",
-          "description": "Configurer sur Raspberry Pi ou exécuter en local"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Déploiement en kiosk, gestion du service, astuces carte SD"
-        },
-        "editor": {
-          "title": "Éditeur",
-          "description": "Visite guidée de l'éditeur visuel et des outils du canevas"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "Les 38 modules et leurs options de configuration"
-        },
-        "backgrounds": {
-          "title": "Arrière-plans",
-          "description": "Téléversements, Unsplash, NASA APOD et rotation"
-        },
-        "profiles": {
-          "title": "Profils et planification",
-          "description": "Automatisation et mises en page d'écran selon l'heure"
-        },
-        "configuration": {
-          "title": "Configuration",
-          "description": "Schéma JSON et référence du fichier de configuration"
-        },
-        "remoteControl": {
-          "title": "Contrôle à distance",
-          "description": "Contrôle ton affichage depuis un téléphone ou un autre appareil"
-        },
-        "multiDisplay": {
-          "title": "Multi-affichage",
-          "description": "Configuration en étoile pour piloter plusieurs Pi depuis un serveur"
-        },
-        "networking": {
-          "title": "Réseau",
-          "description": "Reverse proxy et accès distant hors de ton LAN"
-        },
-        "troubleshooting": {
-          "title": "Dépannage",
-          "description": "Problèmes courants et solutions"
-        },
-        "api": {
-          "title": "API",
-          "description": "Tous les endpoints API et leurs paramètres"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Crée des modules personnalisés avec le SDK plugin"
-        },
-        "development": {
-          "title": "Développement",
-          "description": "Aperçu de l'architecture et guide de contribution"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Questions fréquentes"
-        }
       }
     },
     "shared": {
@@ -1739,6 +1661,23 @@
         "light": "Clair",
         "system": "Système",
         "titleFormat": "Thème : {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Valeurs par défaut → Écran",
+      "heading": "Réglages d'écran par défaut",
+      "rotationAppearanceHeading": "Rotation et apparence",
+      "sleepHeading": "Veille et atténuation",
+      "alertsHeading": "Alertes"
+    },
+    "automationPage": {
+      "breadcrumb": "Valeurs par défaut → Automatisation",
+      "heading": "Automatisation",
+      "description": "Profils, règles et valeurs en direct pour chaque affichage.",
+      "displayPicker": {
+        "label": "Modifier l'automatisation pour",
+        "optionLabel": "{name} ({id})",
+        "help": "Les profils et les règles sont propres à chaque affichage, car ils référencent ses écrans. Changer ici change aussi l'affichage sur lequel travaille l'éditeur."
       }
     }
   },

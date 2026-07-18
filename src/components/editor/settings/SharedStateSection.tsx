@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Info } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveRules } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
@@ -85,7 +86,14 @@ export function referenceLabel(ref: StateKeyReference, t: TranslateFn): string {
   return `${moduleLabel} · ${ref.screenName}`;
 }
 
-export default function SharedStateSection() {
+interface SharedStateSectionProps {
+  /** When rendered as an Automation-page tab, the parent owns the shared
+   *  display picker and the active tab already names the section — suppress
+   *  this section's own picker and heading (the description still renders). */
+  embedded?: boolean;
+}
+
+export default function SharedStateSection({ embedded = false }: SharedStateSectionProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const config = useEditorStore((s) => s.config);
@@ -119,14 +127,30 @@ export default function SharedStateSection() {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('settings.sharedStatePage.heading')}
-      </h3>
+      {!embedded && (
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.sharedStatePage.heading')}
+        </h3>
+      )}
+      {/* Plain-language explainer — this is the most jargon-prone surface in
+          settings, so lead with what shared state IS before the terse
+          inspector summary and rows (which assume the reader already knows). */}
+      <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-4 py-3 flex items-start gap-3">
+        <Info className="w-4 h-4 text-hs-accent-hover shrink-0 mt-0.5" />
+        <div className="text-xs leading-relaxed space-y-1.5">
+          <p className="font-medium text-hs-text-primary">
+            {t('settings.sharedStatePage.intro.heading')}
+          </p>
+          <p className="text-hs-accent-hover">{t('settings.sharedStatePage.intro.body1')}</p>
+          <p className="text-hs-accent-hover">{t('settings.sharedStatePage.intro.body2')}</p>
+        </div>
+      </div>
+
       <p className="text-xs text-hs-text-faint mb-4">
         {t('settings.sharedStatePage.description')}
       </p>
 
-      {isMultiDisplay && (
+      {isMultiDisplay && !embedded && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
           <label className="block">
             <span className="text-[11px] uppercase tracking-wider text-hs-accent-hover font-medium">

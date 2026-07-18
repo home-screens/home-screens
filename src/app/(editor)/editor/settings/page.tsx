@@ -9,9 +9,7 @@ import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
-import DefaultDisplaySection from '@/components/editor/settings/DefaultDisplaySection';
-import DefaultSleepSection from '@/components/editor/settings/DefaultSleepSection';
-import DefaultAlertsSection from '@/components/editor/settings/DefaultAlertsSection';
+import ScreenSection from '@/components/editor/settings/ScreenSection';
 import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
 import { resolveSettingsRoute } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
@@ -21,15 +19,12 @@ import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
-import ProfilesSection from '@/components/editor/settings/ProfilesSection';
-import RulesSection from '@/components/editor/settings/RulesSection';
-import SharedStateSection from '@/components/editor/settings/SharedStateSection';
+import AutomationSection from '@/components/editor/settings/AutomationSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
 import DataSection from '@/components/editor/settings/DataSection';
-import DocsSection from '@/components/editor/settings/DocsSection';
 import OrientationChangeModal from '@/components/editor/settings/OrientationChangeModal';
 import UpgradeModal from '@/components/editor/UpgradeModal';
 import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
@@ -57,13 +52,9 @@ import { useSettingsAutosave } from '@/hooks/useSettingsAutosave';
  * Defaults page.
  */
 type TabId =
-  | 'display'
+  | 'screen'
   | 'displays'
-  | 'profiles'
-  | 'rules'
-  | 'shared-state'
-  | 'sleep'
-  | 'alerts'
+  | 'automation'
   | 'location'
   | 'weather'
   | 'calendar'
@@ -73,8 +64,7 @@ type TabId =
   | 'data'
   | 'stats'
   | 'system'
-  | 'network'
-  | 'docs';
+  | 'network';
 
 /* ─── Page ────────────────────────────────────────── */
 
@@ -404,40 +394,20 @@ function SettingsPageContent() {
                 ? 'max-w-4xl'
                 : 'max-w-2xl'
           }`}>
-            {activeTab === 'display' && config && (
-              <DefaultDisplaySection
+            {activeTab === 'screen' && config && (
+              <ScreenSection
                 config={config}
-                values={state.display}
-                onChange={handleDisplayChange}
+                displayValues={state.display}
+                sleepValues={state.sleep}
+                alertValues={state.alerts}
+                onDisplayChange={handleDisplayChange}
+                onSleepChange={(updates) => updateGroup('sleep', updates)}
+                onAlertsChange={(updates) => updateGroup('alerts', updates)}
               />
             )}
 
-            {activeTab === 'profiles' && (
-              <ProfilesSection />
-            )}
-
-            {activeTab === 'rules' && (
-              <RulesSection />
-            )}
-
-            {activeTab === 'shared-state' && (
-              <SharedStateSection />
-            )}
-
-            {activeTab === 'sleep' && config && (
-              <DefaultSleepSection
-                config={config}
-                values={state.sleep}
-                onChange={(updates) => updateGroup('sleep', updates)}
-              />
-            )}
-
-            {activeTab === 'alerts' && config && (
-              <DefaultAlertsSection
-                config={config}
-                values={state.alerts}
-                onChange={(updates) => updateGroup('alerts', updates)}
-              />
+            {activeTab === 'automation' && (
+              <AutomationSection />
             )}
 
             {activeTab === 'location' && (
@@ -526,10 +496,6 @@ function SettingsPageContent() {
 
             {activeTab === 'network' && (
               <NetworkSection />
-            )}
-
-            {activeTab === 'docs' && (
-              <DocsSection />
             )}
 
           </div>

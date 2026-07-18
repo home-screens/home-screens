@@ -28,7 +28,7 @@ function profileCard(page: import('@playwright/test').Page, name: string) {
 
 test('adding a profile persists and appears in the active-profile select', async ({ page, request }) => {
   await putConfig(request, baseConfig());
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
   await expect(page.getByRole('button', { name: 'Add Profile' })).toBeVisible();
 
   await autosaved(page, async () => {
@@ -46,7 +46,7 @@ test('adding a profile persists and appears in the active-profile select', async
 
 test('picking an active profile persists settings.activeProfile', async ({ page, request }) => {
   await putConfig(request, configWithProfiles([{ id: 'p1', name: 'Evening', screenIds: [] }]));
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   await autosaved(page, async () => {
     await page.getByLabel('Active Profile').selectOption('p1');
@@ -60,7 +60,7 @@ test('reordering profiles via drag persists the new order', async ({ page, reque
     { id: 'p1', name: 'First', screenIds: [] },
     { id: 'p2', name: 'Second', screenIds: [] },
   ]));
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   const first = profileCard(page, 'First');
   const second = profileCard(page, 'Second');
@@ -90,17 +90,18 @@ test('reordering profiles via drag persists the new order', async ({ page, reque
 
 test('renaming a profile commits and persists the new name', async ({ page, request }) => {
   await putConfig(request, configWithProfiles([{ id: 'p1', name: 'Evening', screenIds: [] }]));
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   const card = profileCard(page, 'Evening');
   await expect(card).toBeVisible();
 
   // The Pencil button swaps the name span for an inline input (renamingId set).
   // That removes the "Evening" text node, so the profileCard-by-text locator no
-  // longer resolves — address the autofocused rename input at the page level
-  // (it's the only textbox on the profiles page).
+  // longer resolves — address the autofocused rename input via the content
+  // <section> instead. Scoping matters: the sidebar's "Search settings…" box
+  // is also a textbox, so a page-level getByRole('textbox') is ambiguous.
   await card.locator('button[title="Rename"]').click();
-  const input = page.getByRole('textbox');
+  const input = page.locator('section').getByRole('textbox');
   await input.fill('Morning');
   // Enter → commitRename → updateProfile → the section's 500ms debounced PUT.
   await autosaved(page, async () => { await input.press('Enter'); });
@@ -114,7 +115,7 @@ test('deleting a profile removes it after confirming the dialog', async ({ page,
     { id: 'p1', name: 'Alpha Profile', screenIds: [] },
     { id: 'p2', name: 'Bravo Profile', screenIds: [] },
   ]));
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   await profileCard(page, 'Alpha Profile').locator('button[title="Delete profile"]').click();
 
@@ -136,7 +137,7 @@ test('assigning then removing a screen updates the profile screen set', async ({
   });
   config.profiles = [{ id: 'p1', name: 'My Profile', screenIds: [] }];
   await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   const card = profileCard(page, 'My Profile');
   await expect(card).toBeVisible();
@@ -169,7 +170,7 @@ test('enabling a profile schedule for today auto-activates it at display runtime
   });
   config.profiles = [{ id: 'p1', name: 'Evening', screenIds: ['profile-screen'] }];
   await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=profiles');
+  await page.goto('/editor/settings?section=defaults&page=automation');
 
   const card = profileCard(page, 'Evening');
   await card.getByRole('button', { name: 'Evening' }).click(); // expand

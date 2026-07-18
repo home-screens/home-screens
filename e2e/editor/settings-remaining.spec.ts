@@ -4,16 +4,16 @@ import { baseConfig } from '../helpers/config-fixtures';
 import { autosaved } from '../helpers/editor';
 
 /**
- * Task 18 — the lighter-weight slice of the Defaults settings pages:
- * Calendar (one real field edit), Integrations / Stats / Docs (smoke render),
- * and Data (backup responds). These sections are rarely touched relative to
- * Security / Profiles / Alerts / Location / Meals, so each gets one meaningful
- * assertion rather than the fuller treatment in settings.spec.ts.
+ * The lighter-weight slice of the Defaults settings pages: Calendar (one
+ * real field edit), Integrations / Stats (smoke render), Data (backup
+ * responds), and the sidebar's docs footer link. These sections are rarely
+ * touched relative to Security / Automation / Screen / Location / Meals, so
+ * each gets one meaningful assertion rather than the fuller treatment in
+ * settings.spec.ts.
  *
  * Selectors here were confirmed against the real section components
- * (ICalFeedManager, IntegrationsSection, DataSection, StatsSection,
- * DocsSection) rather than the plan's guessed strings — see the per-test
- * notes where behavior diverged from the plan.
+ * (ICalFeedManager, IntegrationsSection, DataSection, StatsSection) rather
+ * than guessed strings — see the per-test notes where behavior diverged.
  */
 
 test('Defaults › Calendar: adding an iCal feed persists', async ({ page, request }) => {
@@ -78,10 +78,11 @@ test('Defaults › Stats renders without error', async ({ page, request }) => {
   await expect(page.locator('h3').first()).toBeVisible();
 });
 
-test('Defaults › Docs renders without error', async ({ page, request }) => {
+test('sidebar footer links to the documentation site', async ({ page, request }) => {
+  // The Docs settings page was retired in the settings reorganization — the
+  // docs entry point is now a footer icon in the sidebar on every settings page.
   await putConfig(request, baseConfig());
-  await page.goto('/editor/settings?section=defaults&page=docs');
+  await page.goto('/editor/settings?section=defaults&page=data');
 
-  // Every doc link points at https://homescreens.dev.
-  await expect(page.locator('a[href*="homescreens.dev"]').first()).toBeVisible();
+  await expect(page.locator('a[href="https://homescreens.dev/docs"]')).toBeVisible();
 });

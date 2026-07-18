@@ -224,22 +224,25 @@
         "calendar": "Calendario",
         "weather": "Tiempo",
         "location": "Ubicación e idioma",
-        "sleep": "Suspensión",
-        "alerts": "Avisos",
-        "display": "Pantalla",
-        "data": "Datos",
-        "docs": "Documentación",
-        "integrations": "Integraciones",
+        "data": "Copias y datos",
+        "integrations": "Claves de API",
         "meals": "Comidas",
         "network": "Red",
-        "profiles": "Perfiles",
-        "rules": "Reglas",
-        "sharedState": "Valores en vivo",
         "security": "Seguridad",
-        "stats": "Estadísticas",
+        "stats": "Estado",
         "system": "Sistema",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Pantalla",
+        "automation": "Automatización"
+      },
+      "groups": {
+        "screen": "Pantalla",
+        "content": "Contenido",
+        "automation": "Automatización",
+        "admin": "Mantenimiento"
+      },
+      "docsTitle": "Documentación",
+      "docsAriaLabel": "Ver la documentación"
     },
     "overrideRow": {
       "override": "Anular",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " anulan actualmente campos en {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Valores predeterminados → Avisos",
-      "heading": "Ajustes predeterminados de avisos",
       "description": "Posición, tamaño y duración predeterminados de la superposición de avisos en cada display. Un display concreto puede anular todo el bloque de avisos desde su propia página."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Valores predeterminados → Suspensión",
-      "heading": "Ajustes predeterminados de suspensión",
       "description": "Programación predeterminada de atenuación / suspensión y salvapantallas que se aplica a cada display. Un display concreto puede anular todo el bloque desde su propia página."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Recordar tras",
         "lastBackup": "Última copia: {date}",
         "noBackups": "Aún no hay copias registradas"
+      },
+      "configBackups": {
+        "heading": "Copias de configuración",
+        "description": "Instantáneas de los ajustes guardadas automáticamente antes de cada actualización. Restaura una para deshacer cambios de ajustes; para volver a una versión anterior de la aplicación, usa la página Sistema.",
+        "empty": "Aún no hay copias. Las copias se crean automáticamente antes de cada actualización.",
+        "sizeKb": "{size} KB",
+        "download": "Descargar",
+        "restore": "Restaurar",
+        "restoreDialog": {
+          "title": "Restaurar copia",
+          "message": "¿Restaurar la configuración desde {name}? La configuración actual se sobrescribirá.",
+          "confirm": "Restaurar"
+        },
+        "restoreStatus": {
+          "restoring": "Restaurando…",
+          "restored": "¡Restaurada! Recarga el editor para ver los cambios.",
+          "error": "Error: {error}",
+          "failed": "No se pudo restaurar la copia"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Valores predeterminados → Pantalla",
-      "heading": "Ajustes predeterminados de pantalla",
       "descriptionPart1": "Estos valores los usa cada display hasta que uno los anule. Cambia algo aquí y todos los displays que ",
       "descriptionEmphasisNot": "no",
       "descriptionPart2": " anulen ese campo recogerán el nuevo valor.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "resumen",
-          "display": "pantalla",
-          "sleep": "suspensión",
-          "alerts": "avisos",
-          "profile": "perfil",
-          "identity": "identidad"
+          "overrides": "anulaciones"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "Valores predeterminados",
         "withOverridesPart2": " para todo excepto:",
         "noOverridesPart1": "{name} usa los ",
-        "noOverridesPart2": " para todos los campos. Anula uno desde la subpestaña Pantalla, Suspensión o Avisos.",
+        "noOverridesPart2": " para todos los campos. Anula uno desde la subpestaña Anulaciones.",
         "chipBlockOverridden": "{label} anulado",
         "chipFieldWithDefault": "{label}: {value} (predet.: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -611,7 +623,7 @@
         "activeProfileLabel": "Perfil activo",
         "noneOption": "Ninguno",
         "helpPart1": "Qué perfil muestra {name} actualmente. Las definiciones de los perfiles viven en ",
-        "helpLink": "Valores predeterminados → Perfiles",
+        "helpLink": "Valores predeterminados → Automatización",
         "helpPart2": "."
       },
       "display": {
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Programa de suspensión",
-        "defaultsLabel": "Valores predeterminados → Suspensión",
+        "defaultsLabel": "Valores predeterminados → Pantalla",
         "infoPart1": "La suspensión se anula como bloque entero; no puedes bifurcar campos individuales como la hora de atenuación. El valor predeterminado vive en ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposición de avisos",
-        "defaultsLabel": "Valores predeterminados → Avisos",
+        "defaultsLabel": "Valores predeterminados → Pantalla",
         "infoPart1": "Los avisos se anulan como bloque entero. El valor predeterminado vive en ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Historial de versiones",
         "currentBadge": "actual",
-        "rollback": "Rollback"
-      },
-      "backups": {
-        "heading": "Copias de configuración",
-        "empty": "Aún no hay copias. Las copias se crean automáticamente antes de cada actualización.",
-        "sizeKb": "{size} KB",
-        "download": "Descargar",
-        "restore": "Restaurar"
-      },
-      "restoreStatus": {
-        "restoring": "Restaurando…",
-        "restored": "¡Restaurada! Recarga el editor para ver los cambios.",
-        "error": "Error: {error}",
-        "failed": "No se pudo restaurar la copia"
-      },
-      "restoreDialog": {
-        "title": "Restaurar copia",
-        "message": "¿Restaurar la configuración desde {name}? La configuración actual se sobrescribirá.",
-        "confirm": "Restaurar"
+        "rollback": "Rollback",
+        "help": "Vuelve a una versión anterior de la aplicación. Para deshacer cambios de ajustes, restaura una instantánea desde la página Copias y datos."
       },
       "upgradeDialog": {
         "title": "Actualizar",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "Estado compartido",
       "description": "Todos los valores que esta pantalla publica para condiciones, reglas y variables de texto, y todo lo referenciado que nunca llega.",
+      "intro": {
+        "heading": "Cómo funciona",
+        "body1": "Las pantallas pueden reaccionar a lo que pasa en tu casa. Los complementos (como Home Assistant) comparten aquí pequeños valores con nombre, por ejemplo si una puerta está abierta o quién está en casa.",
+        "body2": "Las pantallas y las reglas pueden vigilar estos valores y reaccionar, por ejemplo mostrar la pantalla de la cámara cuando suena el timbre. Esta lista muestra todo lo que esta pantalla comparte o vigila, para comprobar que llega la información correcta."
+      },
       "displayPicker": {
         "label": "Pantalla",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "¡Contraseña definida! La autenticación está ahora activada.",
         "passwordChanged": "Contraseña cambiada. Las demás sesiones han sido invalidadas.",
         "authDisabled": "Autenticación desactivada."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "La documentación completa está disponible en ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Las guías cubren todo, desde la configuración inicial hasta el desarrollo de plugins."
-      },
-      "sections": {
-        "introduction": "Introducción",
-        "guides": "Guías",
-        "reference": "Referencia"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Primeros pasos",
-          "description": "Visión general de Home Screens y conceptos clave"
-        },
-        "installation": {
-          "title": "Instalación",
-          "description": "Configura en Raspberry Pi o ejecútalo en local"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Despliegue en kiosk, gestión del servicio y consejos para la SD"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Recorrido por el editor visual y las herramientas del lienzo"
-        },
-        "modules": {
-          "title": "Módulos",
-          "description": "Los 38 módulos y sus opciones de configuración"
-        },
-        "backgrounds": {
-          "title": "Fondos",
-          "description": "Subidas, Unsplash, NASA APOD y rotación"
-        },
-        "profiles": {
-          "title": "Perfiles y programación",
-          "description": "Automatización y diseños de pantalla por horario"
-        },
-        "configuration": {
-          "title": "Configuración",
-          "description": "Esquema JSON y referencia del archivo de configuración"
-        },
-        "remoteControl": {
-          "title": "Mando remoto",
-          "description": "Controla tu display desde el teléfono u otro dispositivo"
-        },
-        "multiDisplay": {
-          "title": "Multi-display",
-          "description": "Configuración hub-and-spoke para gestionar varios Pis desde un servidor"
-        },
-        "networking": {
-          "title": "Red",
-          "description": "Proxy inverso y acceso remoto desde fuera de tu LAN"
-        },
-        "troubleshooting": {
-          "title": "Solución de problemas",
-          "description": "Problemas comunes y soluciones"
-        },
-        "api": {
-          "title": "API",
-          "description": "Todos los endpoints de la API y sus parámetros"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Crea módulos personalizados con el SDK de plugins"
-        },
-        "development": {
-          "title": "Desarrollo",
-          "description": "Visión general de la arquitectura y guía para contribuir"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Preguntas frecuentes"
-        }
       }
     },
     "shared": {
@@ -1739,6 +1661,23 @@
         "light": "Claro",
         "system": "Sistema",
         "titleFormat": "Tema: {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Valores predeterminados → Pantalla",
+      "heading": "Ajustes de pantalla predeterminados",
+      "rotationAppearanceHeading": "Rotación y apariencia",
+      "sleepHeading": "Suspensión y atenuación",
+      "alertsHeading": "Avisos"
+    },
+    "automationPage": {
+      "breadcrumb": "Valores predeterminados → Automatización",
+      "heading": "Automatización",
+      "description": "Perfiles, reglas y valores en vivo para cada pantalla.",
+      "displayPicker": {
+        "label": "Editando automatización para",
+        "optionLabel": "{name} ({id})",
+        "help": "Los perfiles y las reglas son por pantalla porque hacen referencia a las pantallas de cada una. Cambiar aquí también cambia la pantalla en la que trabaja el editor."
       }
     }
   },

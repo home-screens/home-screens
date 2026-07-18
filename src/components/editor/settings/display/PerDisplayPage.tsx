@@ -11,11 +11,7 @@ import { formatClientAddress, collapseReports } from '@/components/editor/settin
 import { PER_DISPLAY_SUBTABS, type PerDisplaySubtab } from '@/lib/settings-route';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import OverviewSubtab from './OverviewSubtab';
-import DisplaySubtab from './DisplaySubtab';
-import SleepSubtab from './SleepSubtab';
-import AlertsSubtab from './AlertsSubtab';
-import ProfileSubtab from './ProfileSubtab';
-import IdentitySubtab from './IdentitySubtab';
+import OverridesSubtab from './OverridesSubtab';
 
 /**
  * Top-level "drill-down" page for one display.
@@ -309,11 +305,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
 
       {/* Active sub-tab body */}
       {subtab === 'overview' && <OverviewSubtab config={config} display={display} heartbeat={heartbeat ?? null} />}
-      {subtab === 'display' && <DisplaySubtab config={config} display={display} />}
-      {subtab === 'sleep' && <SleepSubtab config={config} display={display} />}
-      {subtab === 'alerts' && <AlertsSubtab config={config} display={display} />}
-      {subtab === 'profile' && <ProfileSubtab config={config} display={display} />}
-      {subtab === 'identity' && <IdentitySubtab display={display} />}
+      {subtab === 'overrides' && <OverridesSubtab config={config} display={display} />}
     </div>
   );
 }

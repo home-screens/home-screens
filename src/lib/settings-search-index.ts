@@ -10,10 +10,17 @@ import type { DefaultPageId } from '@/lib/settings-route';
  * provider brand names) render a literal, untranslated string instead of
  * an i18n key — those use `label` instead of `labelKey`. Exactly one of
  * the two must be set.
+ *
+ * `panel` names the owning tab on tabbed pages (Screen, Automation). The
+ * sidebar puts it in the result link as `?panel=…` so the page opens the
+ * right tab AND stays on it — without it, the tab is only inferred from
+ * `?highlight=`, and when the settings page strips that param after the
+ * pulse the page snaps back to its first tab. Fields on untabbed pages
+ * omit it.
  */
 export type SettingsFieldEntry =
-  | { pageId: DefaultPageId; fieldId: string; labelKey: string; label?: undefined }
-  | { pageId: DefaultPageId; fieldId: string; labelKey?: undefined; label: string };
+  | { pageId: DefaultPageId; fieldId: string; labelKey: string; label?: undefined; panel?: string }
+  | { pageId: DefaultPageId; fieldId: string; labelKey?: undefined; label: string; panel?: string };
 
 /** Resolves an entry's visible label — translated if `labelKey` is set, verbatim if `label` is set. */
 export function resolveSettingsFieldLabel(entry: SettingsFieldEntry, t: (key: string) => string): string {
@@ -21,33 +28,33 @@ export function resolveSettingsFieldLabel(entry: SettingsFieldEntry, t: (key: st
 }
 
 export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
-  { pageId: 'display', fieldId: 'display.canvasOrientation', labelKey: 'common.orientation' },
-  { pageId: 'display', fieldId: 'display.canvasResolution', labelKey: 'common.resolution' },
-  { pageId: 'display', fieldId: 'display.canvasFlip', labelKey: 'settings.defaultDisplayPage.canvas.flipLabel' },
-  { pageId: 'display', fieldId: 'display.rotationInterval', labelKey: 'settings.defaultDisplayPage.fields.rotationIntervalLabel' },
-  { pageId: 'display', fieldId: 'display.pauseEnabled', labelKey: 'settings.defaultDisplayPage.fields.pauseEnabledLabel' },
-  { pageId: 'display', fieldId: 'display.transitionEffect', labelKey: 'settings.defaultDisplayPage.fields.transitionEffectLabel' },
-  { pageId: 'display', fieldId: 'display.transitionDuration', labelKey: 'settings.defaultDisplayPage.fields.transitionDurationLabel' },
-  { pageId: 'display', fieldId: 'display.cursorHideSeconds', labelKey: 'settings.defaultDisplayPage.fields.cursorHideLabel' },
-  { pageId: 'display', fieldId: 'display.fullscreenTheme', labelKey: 'settings.defaultDisplayPage.fields.fullscreenThemeLabel' },
+  { pageId: 'screen', fieldId: 'display.canvasOrientation', labelKey: 'common.orientation', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.canvasResolution', labelKey: 'common.resolution', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.canvasFlip', labelKey: 'settings.defaultDisplayPage.canvas.flipLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.rotationInterval', labelKey: 'settings.defaultDisplayPage.fields.rotationIntervalLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.pauseEnabled', labelKey: 'settings.defaultDisplayPage.fields.pauseEnabledLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.transitionEffect', labelKey: 'settings.defaultDisplayPage.fields.transitionEffectLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.transitionDuration', labelKey: 'settings.defaultDisplayPage.fields.transitionDurationLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.cursorHideSeconds', labelKey: 'settings.defaultDisplayPage.fields.cursorHideLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.fullscreenTheme', labelKey: 'settings.defaultDisplayPage.fields.fullscreenThemeLabel', panel: 'appearance' },
 
-  { pageId: 'sleep', fieldId: 'sleep.sleepEnabled', labelKey: 'settings.sleepFormFields.enableLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.dimAfterMinutes', labelKey: 'settings.sleepFormFields.dimAfterLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.sleepAfterMinutes', labelKey: 'settings.sleepFormFields.sleepAfterLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.dimBrightness', labelKey: 'settings.sleepFormFields.dimBrightnessLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.screensaverMode', labelKey: 'settings.sleepFormFields.screensaverLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.dimScheduleEnabled', labelKey: 'settings.sleepFormFields.dimScheduleLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.dimStartTime', labelKey: 'settings.sleepFormFields.dimAtLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.dimEndTime', labelKey: 'settings.sleepFormFields.brightenAtLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.sleepScheduleEnabled', labelKey: 'settings.sleepFormFields.sleepScheduleLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.sleepStartTime', labelKey: 'settings.sleepFormFields.sleepAtLabel' },
-  { pageId: 'sleep', fieldId: 'sleep.sleepEndTime', labelKey: 'settings.sleepFormFields.wakeAtLabel' },
+  { pageId: 'screen', fieldId: 'sleep.sleepEnabled', labelKey: 'settings.sleepFormFields.enableLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.dimAfterMinutes', labelKey: 'settings.sleepFormFields.dimAfterLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.sleepAfterMinutes', labelKey: 'settings.sleepFormFields.sleepAfterLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.dimBrightness', labelKey: 'settings.sleepFormFields.dimBrightnessLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.screensaverMode', labelKey: 'settings.sleepFormFields.screensaverLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.dimScheduleEnabled', labelKey: 'settings.sleepFormFields.dimScheduleLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.dimStartTime', labelKey: 'settings.sleepFormFields.dimAtLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.dimEndTime', labelKey: 'settings.sleepFormFields.brightenAtLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.sleepScheduleEnabled', labelKey: 'settings.sleepFormFields.sleepScheduleLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.sleepStartTime', labelKey: 'settings.sleepFormFields.sleepAtLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.sleepEndTime', labelKey: 'settings.sleepFormFields.wakeAtLabel', panel: 'sleep' },
 
-  { pageId: 'alerts', fieldId: 'alerts.enabled', labelKey: 'settings.alertFormFields.enableLabel' },
-  { pageId: 'alerts', fieldId: 'alerts.position', labelKey: 'settings.alertFormFields.positionLabel' },
-  { pageId: 'alerts', fieldId: 'alerts.maxVisible', labelKey: 'settings.alertFormFields.maxVisibleLabel' },
-  { pageId: 'alerts', fieldId: 'alerts.defaultDuration', labelKey: 'settings.alertFormFields.defaultDurationLabel' },
-  { pageId: 'alerts', fieldId: 'alerts.scale', labelKey: 'settings.alertFormFields.alertSizeLabel' },
+  { pageId: 'screen', fieldId: 'alerts.enabled', labelKey: 'settings.alertFormFields.enableLabel', panel: 'alerts' },
+  { pageId: 'screen', fieldId: 'alerts.position', labelKey: 'settings.alertFormFields.positionLabel', panel: 'alerts' },
+  { pageId: 'screen', fieldId: 'alerts.maxVisible', labelKey: 'settings.alertFormFields.maxVisibleLabel', panel: 'alerts' },
+  { pageId: 'screen', fieldId: 'alerts.defaultDuration', labelKey: 'settings.alertFormFields.defaultDurationLabel', panel: 'alerts' },
+  { pageId: 'screen', fieldId: 'alerts.scale', labelKey: 'settings.alertFormFields.alertSizeLabel', panel: 'alerts' },
 
   { pageId: 'location', fieldId: 'location.timezone', labelKey: 'settings.locationPage.timezoneLabel' },
   { pageId: 'location', fieldId: 'location.latitude', labelKey: 'settings.locationPage.latitudeLabel' },
@@ -75,7 +82,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading' },
   { pageId: 'meals', fieldId: 'meals.defaultSlotTimes', labelKey: 'settings.mealsPage.defaultTimes.heading' },
 
-  { pageId: 'profiles', fieldId: 'profiles.activeProfile', labelKey: 'settings.profilesPage.active.label' },
+  { pageId: 'automation', fieldId: 'profiles.activeProfile', labelKey: 'settings.profilesPage.active.label', panel: 'profiles' },
 
   { pageId: 'integrations', fieldId: 'integrations.google', labelKey: 'settings.integrationsPage.google.name' },
   { pageId: 'integrations', fieldId: 'integrations.immich', labelKey: 'settings.integrationsPage.immich.name' },
@@ -93,6 +100,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'data', fieldId: 'data.templatesBrowse', labelKey: 'settings.dataPage.templates.browseButton' },
   { pageId: 'data', fieldId: 'data.fullBackupExport', labelKey: 'settings.dataPage.fullBackup.backupButton' },
   { pageId: 'data', fieldId: 'data.fullBackupRestore', labelKey: 'settings.dataPage.fullBackup.restoreButton' },
+  { pageId: 'data', fieldId: 'data.configBackups', labelKey: 'settings.dataPage.configBackups.heading' },
   { pageId: 'data', fieldId: 'data.backupReminderEnabled', labelKey: 'settings.dataPage.backupReminder.enableLabel' },
   { pageId: 'data', fieldId: 'data.backupReminderInterval', labelKey: 'settings.dataPage.backupReminder.remindAfterLabel' },
 
@@ -103,7 +111,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'system', fieldId: 'system.updateNotification', labelKey: 'settings.systemPage.updateNotification.enableLabel' },
   { pageId: 'system', fieldId: 'system.changelog', labelKey: 'settings.systemPage.changelog.heading' },
   { pageId: 'system', fieldId: 'system.rollback', labelKey: 'settings.systemPage.history.heading' },
-  { pageId: 'system', fieldId: 'system.backups', labelKey: 'settings.systemPage.backups.heading' },
+  
   { pageId: 'system', fieldId: 'system.restartService', labelKey: 'settings.systemPage.actions.restartService' },
   { pageId: 'system', fieldId: 'system.rebootSystem', labelKey: 'settings.systemPage.actions.rebootSystem' },
 

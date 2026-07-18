@@ -47,7 +47,7 @@ interface AlertFormFieldsProps {
  * API usage docs.
  *
  * Extracted from the legacy `AlertSection` into its two consumers
- * (`DefaultAlertsSection` for the defaults page, `AlertsSubtab` for the
+ * (`ScreenSection` for the defaults page, `AlertsSubtab` for the
  * per-display drill-down). Both consumers want the same field rows but
  * render different chrome around them — Defaults shows just the form,
  * AlertsSubtab wraps it in a card with an Override CTA. This component

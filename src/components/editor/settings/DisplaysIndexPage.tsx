@@ -511,10 +511,10 @@ export default function DisplaysIndexPage() {
             <p className="text-sm text-hs-text-faint mt-1">
               {t('settings.displaysIndex.populatedDescriptionPrefix')}
               <a
-                href="?section=defaults&page=display"
+                href="?section=defaults&page=screen"
                 onClick={(e) => {
                   e.preventDefault();
-                  router.push('?section=defaults&page=display');
+                  router.push('?section=defaults&page=screen');
                 }}
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >

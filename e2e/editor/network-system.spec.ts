@@ -510,7 +510,7 @@ test.describe('Defaults › Network', () => {
 /* ─── System page ──────────────────────────────────────────────────────── */
 
 test.describe('Defaults › System', () => {
-  test('renders version, backups, and system-action buttons', async ({ page, request }) => {
+  test('renders version and system-action buttons', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     const stubs = await setupSystemStubs(page);
 
@@ -522,15 +522,28 @@ test.describe('Defaults › System', () => {
     await expect(page.getByText("You're on the latest version")).toBeVisible();
     await expect(page.getByRole('button', { name: 'Check for Updates' })).toBeVisible();
 
-    // Backups section lists the stubbed backup with Restore/Download actions.
-    await expect(page.getByRole('heading', { name: 'Config Backups' })).toBeVisible();
-    await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Restore' })).toBeVisible();
-
     // System Actions render but are NOT clicked here.
     await expect(page.getByRole('button', { name: 'Restart Service' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reboot System' })).toBeVisible();
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('Backups & data lists the config backups with Restore/Download actions', async ({ page, request }) => {
+    // The Config Backups section moved from the System page to Backups & data
+    // in the settings reorganization; the data source (/api/system/backups)
+    // is unchanged, so the same stubs cover it.
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=data');
+
+    await expect(page.getByRole('heading', { name: 'Config Backups' })).toBeVisible();
+    await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
+    // exact — the Full Backup section's "Restore Backup" button lives on the
+    // same page now, and role-name matching is substring by default.
+    await expect(page.getByRole('button', { name: 'Restore', exact: true })).toBeVisible();
 
     assertNoRealSystemCall(stubs);
   });
@@ -549,13 +562,15 @@ test.describe('Defaults › System', () => {
     assertNoRealSystemCall(stubs);
   });
 
-  test('restoring a backup confirms, POSTs to the stub, and reports success', async ({ page, request }) => {
+  test('restoring a config backup confirms, POSTs to the stub, and reports success', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     const stubs = await setupSystemStubs(page);
 
-    await page.goto('/editor/settings?section=defaults&page=system');
+    // Config backup restore lives on the Backups & data page post-reorg.
+    await page.goto('/editor/settings?section=defaults&page=data');
 
-    await page.getByRole('button', { name: 'Restore' }).click();
+    // exact — avoids the Full Backup section's "Restore Backup" button.
+    await page.getByRole('button', { name: 'Restore', exact: true }).click();
 
     // Confirm dialog (ConfirmModal, mounted in the editor layout).
     const dialog = page.getByRole('dialog');

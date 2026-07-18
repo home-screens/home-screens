@@ -56,7 +56,7 @@ test('shows the no-report hint before the display ever reports', async ({ page, 
   // 'ssi-fresh' is never seeded anywhere, so this holds regardless of what
   // other tests or files ran before it on this worker.
   await putConfig(request, inspectorConfig('ssi-fresh'));
-  await page.goto('/editor/settings?section=defaults&page=shared-state&display=ssi-fresh');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-fresh');
 
   await expect(page.getByText("This display hasn't reported any values yet", { exact: false })).toBeVisible();
   // Referenced keys still render (as never-published) even with no snapshot.
@@ -69,7 +69,7 @@ test('cross-references the snapshot against config references', async ({ page, r
     [PUBLISHED_KEY]: 'on',
     [UNREFERENCED_KEY]: '42',
   }, 'ssi-seeded');
-  await page.goto('/editor/settings?section=defaults&page=shared-state&display=ssi-seeded');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-seeded');
 
   // Published + referenced: value chip and both consumers listed (module by
   // registry label + screen name, rule by name).
@@ -100,7 +100,7 @@ test('surfaces an unhealthy provider in a banner and on its missing key row', as
     'ssi-health',
     { 'not-installed': { message: 'Cannot reach the service', since: Date.now() - 60_000 } },
   );
-  await page.goto('/editor/settings?section=defaults&page=shared-state&display=ssi-health');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-health');
 
   // Banner at the top: one row per unhealthy plugin, message verbatim.
   const banner = page.locator('[data-testid="provider-health-banner"] [data-provider-health="not-installed"]');

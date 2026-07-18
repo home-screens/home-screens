@@ -224,22 +224,25 @@
         "calendar": "Kalender",
         "weather": "Weer",
         "location": "Locatie & taal",
-        "sleep": "Slapen",
-        "alerts": "Meldingen",
-        "display": "Display",
-        "data": "Gegevens",
-        "docs": "Documentatie",
-        "integrations": "Integraties",
+        "data": "Back-ups & gegevens",
+        "integrations": "API-sleutels",
         "meals": "Maaltijden",
         "network": "Netwerk",
-        "profiles": "Profielen",
-        "rules": "Regels",
-        "sharedState": "Live waarden",
         "security": "Beveiliging",
-        "stats": "Statistieken",
+        "stats": "Status",
         "system": "Systeem",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Scherm",
+        "automation": "Automatisering"
+      },
+      "groups": {
+        "screen": "Scherm",
+        "content": "Inhoud",
+        "automation": "Automatisering",
+        "admin": "Onderhoud"
+      },
+      "docsTitle": "Documentatie",
+      "docsAriaLabel": "Documentatie bekijken"
     },
     "overrideRow": {
       "override": "Overschrijven",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " overschrijven momenteel velden op {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Standaardwaarden → Meldingen",
-      "heading": "Standaard meldingsinstellingen",
       "description": "Standaardpositie, -grootte en -duur voor de meldingsoverlay op elk display. Een specifiek display kan het hele meldingenblok overschrijven via zijn eigen pagina."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Standaardwaarden → Slapen",
-      "heading": "Standaard slaapinstellingen",
       "description": "Standaard dim/slaap-schema en screensaver voor elk display. Een specifiek display kan het hele blok overschrijven via zijn eigen pagina."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Herinnering na",
         "lastBackup": "Laatste back-up: {date}",
         "noBackups": "Nog geen back-ups vastgelegd"
+      },
+      "configBackups": {
+        "heading": "Configuratie-back-ups",
+        "description": "Momentopnamen van instellingen die vóór elke update automatisch worden opgeslagen. Herstel er een om instellingswijzigingen ongedaan te maken; ga naar de pagina Systeem om terug te gaan naar een oudere versie van de app.",
+        "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
+        "sizeKb": "{size}KB",
+        "download": "Downloaden",
+        "restore": "Terugzetten",
+        "restoreDialog": {
+          "title": "Back-up terugzetten",
+          "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
+          "confirm": "Terugzetten"
+        },
+        "restoreStatus": {
+          "restoring": "Terugzetten…",
+          "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
+          "error": "Fout: {error}",
+          "failed": "Back-up terugzetten mislukt"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Standaardwaarden → Display",
-      "heading": "Standaard display-instellingen",
       "descriptionPart1": "Deze waarden worden door elk display gebruikt totdat een specifiek display ze overschrijft. Verander hier iets en elk display dat dat veld ",
       "descriptionEmphasisNot": "niet",
       "descriptionPart2": " overschrijft, neemt de nieuwe waarde over.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "overzicht",
-          "display": "display",
-          "sleep": "slapen",
-          "alerts": "meldingen",
-          "profile": "profiel",
-          "identity": "identiteit"
+          "overrides": "overrides"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "Standaardwaarden",
         "withOverridesPart2": " voor alles behalve:",
         "noOverridesPart1": "{name} gebruikt de ",
-        "noOverridesPart2": " voor elk veld. Overschrijf er een via de subtab Display, Slapen of Meldingen.",
+        "noOverridesPart2": " voor elk veld. Overschrijf er een via de subtab Overrides.",
         "chipBlockOverridden": "{label} overschreven",
         "chipFieldWithDefault": "{label}: {value} (standaard: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -611,11 +623,11 @@
         "activeProfileLabel": "Actief profiel",
         "noneOption": "Geen",
         "helpPart1": "Welk profiel {name} momenteel toont. Profieldefinities staan op ",
-        "helpLink": "Standaardwaarden → Profielen",
+        "helpLink": "Standaardwaarden → Automatisering",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Standaardwaarden → Display",
+        "defaultsLabel": "Standaardwaarden → Scherm",
         "bannerPart1": "Velden hier tonen de ",
         "bannerEmphasisDefault": "standaard",
         "bannerPart2": "-waarde van ",
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Slaapschema",
-        "defaultsLabel": "Standaardwaarden → Slapen",
+        "defaultsLabel": "Standaardwaarden → Scherm",
         "infoPart1": "Slapen wordt als één blok overschreven; je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Meldingsoverlay",
-        "defaultsLabel": "Standaardwaarden → Meldingen",
+        "defaultsLabel": "Standaardwaarden → Scherm",
         "infoPart1": "Meldingen worden als één blok overschreven. De standaard staat op ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Versiegeschiedenis",
         "currentBadge": "huidig",
-        "rollback": "Terugdraaien"
-      },
-      "backups": {
-        "heading": "Configuratie-back-ups",
-        "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
-        "sizeKb": "{size}KB",
-        "download": "Downloaden",
-        "restore": "Terugzetten"
-      },
-      "restoreStatus": {
-        "restoring": "Terugzetten…",
-        "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
-        "error": "Fout: {error}",
-        "failed": "Back-up terugzetten mislukt"
-      },
-      "restoreDialog": {
-        "title": "Back-up terugzetten",
-        "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
-        "confirm": "Terugzetten"
+        "rollback": "Terugdraaien",
+        "help": "Gaat terug naar een oudere versie van de app. Herstel in plaats daarvan een momentopname via de pagina Back-ups & gegevens om instellingswijzigingen ongedaan te maken."
       },
       "upgradeDialog": {
         "title": "Upgrade",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "Gedeelde waarden",
       "description": "Alle waarden die dit scherm publiceert voor voorwaarden, regels en teksttokens, plus alles wat wordt gebruikt maar nooit aankomt.",
+      "intro": {
+        "heading": "Zo werkt het",
+        "body1": "Displays kunnen reageren op wat er thuis gebeurt. Uitbreidingen (zoals Home Assistant) delen hier kleine benoemde waarden, bijvoorbeeld of een deur open is of wie er thuis is.",
+        "body2": "Schermen en regels kunnen deze waarden in de gaten houden en reageren, bijvoorbeeld het camerascherm tonen als er wordt aangebeld. Deze lijst toont alles wat dit display deelt of volgt, zodat je kunt controleren of de juiste informatie binnenkomt."
+      },
       "displayPicker": {
         "label": "Scherm",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
         "passwordChanged": "Wachtwoord gewijzigd. Alle andere sessies zijn ongeldig gemaakt.",
         "authDisabled": "Authenticatie uitgeschakeld."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "Volledige documentatie staat op ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Gidsen behandelen alles van eerste installatie tot pluginontwikkeling."
-      },
-      "sections": {
-        "introduction": "Introductie",
-        "guides": "Gidsen",
-        "reference": "Referentie"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Aan de slag",
-          "description": "Overzicht van Home Screens en kernconcepten"
-        },
-        "installation": {
-          "title": "Installatie",
-          "description": "Opzetten op Raspberry Pi of lokaal draaien"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Kioskimplementatie, servicebeheer, SD-kaarttips"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Rondleiding door de visuele editor en canvasgereedschappen"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "Alle 38 modules en hun configuratieopties"
-        },
-        "backgrounds": {
-          "title": "Achtergronden",
-          "description": "Uploads, Unsplash, NASA APOD en rotatie"
-        },
-        "profiles": {
-          "title": "Profielen & planning",
-          "description": "Automatisering en tijdgebaseerde schermlay-outs"
-        },
-        "configuration": {
-          "title": "Configuratie",
-          "description": "JSON-schema en configuratiebestand-referentie"
-        },
-        "remoteControl": {
-          "title": "Afstandsbediening",
-          "description": "Bedien je display vanaf een telefoon of ander apparaat"
-        },
-        "multiDisplay": {
-          "title": "Meerdere displays",
-          "description": "Hub-and-spoke-opzet om meerdere Pi's vanaf één server te draaien"
-        },
-        "networking": {
-          "title": "Netwerken",
-          "description": "Reverse proxy en toegang van buiten je LAN"
-        },
-        "troubleshooting": {
-          "title": "Problemen oplossen",
-          "description": "Veelvoorkomende problemen en oplossingen"
-        },
-        "api": {
-          "title": "API",
-          "description": "Alle API-eindpunten en hun parameters"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Bouw eigen modules met de plugin-SDK"
-        },
-        "development": {
-          "title": "Ontwikkeling",
-          "description": "Architectuuroverzicht en bijdragehandleiding"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Veelgestelde vragen"
-        }
       }
     },
     "shared": {
@@ -1735,6 +1657,23 @@
         "light": "Licht",
         "system": "Systeem",
         "titleFormat": "Thema: {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Standaardwaarden → Scherm",
+      "heading": "Standaard scherminstellingen",
+      "rotationAppearanceHeading": "Rotatie & weergave",
+      "sleepHeading": "Slaapstand & dimmen",
+      "alertsHeading": "Meldingen"
+    },
+    "automationPage": {
+      "breadcrumb": "Standaardwaarden → Automatisering",
+      "heading": "Automatisering",
+      "description": "Profielen, regels en live waarden per display.",
+      "displayPicker": {
+        "label": "Automatisering bewerken voor",
+        "optionLabel": "{name} ({id})",
+        "help": "Profielen en regels gelden per display, omdat ze verwijzen naar de schermen van dat display. Hier wisselen verandert ook aan welk display de editor werkt."
       }
     }
   },

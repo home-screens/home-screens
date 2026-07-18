@@ -5,19 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import {
   Activity,
-  Bell,
   BookOpen,
   Calendar,
   CloudSun,
   Database,
-  Layers,
+  KeyRound,
   LayoutGrid,
   MapPin,
   Monitor,
-  Moon,
-  Plug,
   Plus,
-  Radio,
   Search,
   Server,
   Shield,
@@ -29,12 +25,14 @@ import {
 
 const REPO_URL = 'https://github.com/home-screens/home-screens';
 const WEBSITE_URL = 'https://homescreens.dev';
+const DOCS_URL = 'https://homescreens.dev/docs';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import {
   DEFAULT_PAGE_IDS,
   parseSettingsRoute,
   type DefaultPageId,
+  type SettingsRoute,
 } from '@/lib/settings-route';
 import { SETTINGS_FIELD_INDEX, resolveSettingsFieldLabel, type SettingsFieldEntry } from '@/lib/settings-search-index';
 import type { DisplayNode } from '@/types/config';
@@ -87,35 +85,38 @@ interface DisplaysApiResponse {
 }
 
 /**
- * Icon + nav-label key metadata for every Defaults page id. Typed as a
- * `Record<DefaultPageId, ...>` so adding a new page to
+ * Icon + nav-label key + group metadata for every Defaults page id. Typed
+ * as a `Record<DefaultPageId, ...>` so adding a new page to
  * `DEFAULT_PAGE_IDS` in `lib/settings-route` without adding an entry
  * here is a compile error — and vice versa. That replaces the old
  * dual-maintenance risk where the sidebar array and the route parser's
  * canonical list could silently drift out of sync.
  *
- * The `labelKey` is a key under `editor.settings.sidebar.navLabels`. The
- * actual visible string is resolved per render via `useTranslate('editor')`
- * so a locale change re-flows the sidebar without remounting.
+ * The `labelKey` is a key under `editor.settings.sidebar.navLabels`; the
+ * `group` names a key under `editor.settings.sidebar.groups`. Both are
+ * resolved per render via `useTranslate('editor')` so a locale change
+ * re-flows the sidebar without remounting. Grouping is display-only —
+ * the flat `DEFAULT_PAGE_IDS` order (which already lists group members
+ * consecutively) stays the routing source of truth.
  */
-const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon }> = {
-  display: { labelKey: 'display', icon: Monitor },
-  sleep: { labelKey: 'sleep', icon: Moon },
-  alerts: { labelKey: 'alerts', icon: Bell },
-  location: { labelKey: 'location', icon: MapPin },
-  weather: { labelKey: 'weather', icon: CloudSun },
-  calendar: { labelKey: 'calendar', icon: Calendar },
-  meals: { labelKey: 'meals', icon: UtensilsCrossed },
-  profiles: { labelKey: 'profiles', icon: Layers },
-  rules: { labelKey: 'rules', icon: Zap },
-  'shared-state': { labelKey: 'sharedState', icon: Radio },
-  integrations: { labelKey: 'integrations', icon: Plug },
-  security: { labelKey: 'security', icon: Shield },
-  data: { labelKey: 'data', icon: Database },
-  stats: { labelKey: 'stats', icon: Activity },
-  system: { labelKey: 'system', icon: Server },
-  network: { labelKey: 'network', icon: Wifi },
-  docs: { labelKey: 'docs', icon: BookOpen },
+type SidebarGroup = 'screen' | 'content' | 'automation' | 'admin';
+
+const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; group: SidebarGroup }> = {
+  screen: { labelKey: 'screen', icon: Monitor, group: 'screen' },
+  location: { labelKey: 'location', icon: MapPin, group: 'screen' },
+  weather: { labelKey: 'weather', icon: CloudSun, group: 'content' },
+  calendar: { labelKey: 'calendar', icon: Calendar, group: 'content' },
+  meals: { labelKey: 'meals', icon: UtensilsCrossed, group: 'content' },
+  // API keys sit with Content, not Maintenance — the keys exist to unlock
+  // content sources (photos, todo lists, traffic), so users hunting for
+  // "why is my photo module empty" find them next to the feature pages.
+  integrations: { labelKey: 'integrations', icon: KeyRound, group: 'content' },
+  automation: { labelKey: 'automation', icon: Zap, group: 'automation' },
+  security: { labelKey: 'security', icon: Shield, group: 'admin' },
+  network: { labelKey: 'network', icon: Wifi, group: 'admin' },
+  system: { labelKey: 'system', icon: Server, group: 'admin' },
+  data: { labelKey: 'data', icon: Database, group: 'admin' },
+  stats: { labelKey: 'stats', icon: Activity, group: 'admin' },
 };
 
 /**
@@ -126,12 +127,31 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon }> =
  */
 function buildDefaultPages(
   t: TranslateFn,
-): { id: DefaultPageId; label: string; icon: LucideIcon }[] {
+): { id: DefaultPageId; label: string; icon: LucideIcon; group: SidebarGroup }[] {
   return DEFAULT_PAGE_IDS.map((id) => ({
     id,
     label: t(`settings.sidebar.navLabels.${PAGE_META[id].labelKey}`),
     icon: PAGE_META[id].icon,
+    group: PAGE_META[id].group,
   }));
+}
+
+/**
+ * Bucket the (possibly search-filtered) page list into its render groups,
+ * preserving `DEFAULT_PAGE_IDS` order within and across groups. Groups
+ * whose every page was filtered out disappear entirely — the group header
+ * carries no information without members under it.
+ */
+function groupPages(
+  pages: ReturnType<typeof buildDefaultPages>,
+): { group: SidebarGroup; pages: ReturnType<typeof buildDefaultPages> }[] {
+  const out: { group: SidebarGroup; pages: ReturnType<typeof buildDefaultPages> }[] = [];
+  for (const page of pages) {
+    const last = out[out.length - 1];
+    if (last && last.group === page.group) last.pages.push(page);
+    else out.push({ group: page.group, pages: [page] });
+  }
+  return out;
 }
 
 /**
@@ -289,15 +309,13 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
             <p className="px-3.5 py-4 text-xs text-hs-text-faint text-center">{t('settings.sidebar.noResults')}</p>
           ) : (
             <>
-              {filteredDefaultPages.map((p) => (
-                <SidebarItem
-                  key={p.id}
-                  icon={p.icon}
-                  label={p.label}
-                  active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-                  onClick={() => navigate(`?section=defaults&page=${p.id}`)}
-                />
-              ))}
+              <GroupedPageList
+                pages={filteredDefaultPages}
+                grouped={query.length === 0}
+                activeRoute={activeRoute}
+                navigate={navigate}
+                t={t}
+              />
               {filteredDefaultPages.length > 0 && displaysEntryMatches && (
                 <div className="mx-3.5 my-2 border-t border-hs-border" />
               )}
@@ -344,19 +362,13 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           <div className="px-3.5 pb-1.5 text-[10px] text-hs-text-faint italic leading-tight">
             {t('settings.sidebar.defaultsHelp')}
           </div>
-          {filteredDefaultPages.map((p) => (
-            <SidebarItem
-              key={p.id}
-              icon={p.icon}
-              label={p.label}
-              // The `parseSettingsRoute` fallback is `{ kind: 'defaults',
-              // page: 'display' }` for any URL that doesn't match another
-              // shape — so no params at all naturally highlights `display`
-              // here without a special case.
-              active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-              onClick={() => navigate(`?section=defaults&page=${p.id}`)}
-            />
-          ))}
+          <GroupedPageList
+            pages={filteredDefaultPages}
+            grouped={query.length === 0}
+            activeRoute={activeRoute}
+            navigate={navigate}
+            t={t}
+          />
         </>
       )}
 
@@ -423,6 +435,57 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
 }
 
 /**
+ * The Defaults page list, bucketed under small group headers (Screen /
+ * Content / Automation / Admin) when `grouped` is true. While a search
+ * filter is active the caller passes `grouped: false` and the matches
+ * render as one flat list — a header over a partial group would suggest
+ * the group only contains the matching rows.
+ */
+function GroupedPageList({
+  pages,
+  grouped,
+  activeRoute,
+  navigate,
+  t,
+}: {
+  pages: ReturnType<typeof buildDefaultPages>;
+  grouped: boolean;
+  activeRoute: SettingsRoute;
+  navigate: (href: string) => void;
+  t: TranslateFn;
+}) {
+  const renderItems = (items: ReturnType<typeof buildDefaultPages>) =>
+    items.map((p) => (
+      <SidebarItem
+        key={p.id}
+        icon={p.icon}
+        label={p.label}
+        // The `parseSettingsRoute` fallback is `{ kind: 'defaults',
+        // page: 'screen' }` for any URL that doesn't match another
+        // shape — so no params at all naturally highlights `screen`
+        // here without a special case.
+        active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
+        onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+      />
+    ));
+
+  if (!grouped) return <>{renderItems(pages)}</>;
+
+  return (
+    <>
+      {groupPages(pages).map(({ group, pages: groupMembers }) => (
+        <div key={group}>
+          <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint/70 font-semibold">
+            {t(`settings.sidebar.groups.${group}`)}
+          </div>
+          {renderItems(groupMembers)}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/**
  * Pinned footer row rendered at the bottom of the sidebar in both
  * legacy and multi-display modes. The parent `<nav>` is a flex column
  * with a `flex-1 overflow-y-auto` body above this, so the footer stays
@@ -432,6 +495,16 @@ function SidebarFooter() {
   const t = useTranslate('editor');
   return (
     <div className="flex items-center justify-end gap-3 border-t border-hs-border px-3.5 py-2">
+      <a
+        href={DOCS_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
+        title={t('settings.sidebar.docsTitle')}
+        aria-label={t('settings.sidebar.docsAriaLabel')}
+      >
+        <BookOpen className="w-4 h-4" aria-hidden="true" />
+      </a>
       <a
         href={WEBSITE_URL}
         target="_blank"
@@ -527,7 +600,15 @@ function MatchingFieldsSection({
         <button
           key={f.fieldId}
           type="button"
-          onClick={() => navigate(`?section=defaults&page=${f.pageId}&highlight=${encodeURIComponent(f.fieldId)}`)}
+          // `panel` (present on tabbed-page entries) rides along so the page
+          // opens the owning tab AND stays there after `highlight` is
+          // stripped post-pulse — highlight-only URLs snap back to the
+          // first tab once the param disappears.
+          onClick={() =>
+            navigate(
+              `?section=defaults&page=${f.pageId}${f.panel ? `&panel=${f.panel}` : ''}&highlight=${encodeURIComponent(f.fieldId)}`,
+            )
+          }
           className="w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 border-transparent text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover"
         >
           <span className="flex-1 min-w-0 truncate text-left">{resolveSettingsFieldLabel(f, t)}</span>

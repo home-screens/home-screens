@@ -1,18 +1,62 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScreenConfiguration, TransitionEffect } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
-import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
+import {
+  ALERT_OVERRIDE_FIELDS,
+  DISPLAY_OVERRIDE_FIELDS,
+  SLEEP_OVERRIDE_FIELDS,
+} from '@/lib/display-override-fields';
 import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
+import SleepFormFields, {
+  type SleepFormValues,
+} from '@/components/editor/settings/display/SleepFormFields';
+import AlertFormFields, {
+  type AlertFormValues,
+} from '@/components/editor/settings/display/AlertFormFields';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { RESOLUTION_PRESETS, deriveDisplayTransform } from '@/lib/constants';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
-import { useTranslate } from '@/i18n';
+import { useTranslate, type TranslateFn } from '@/i18n';
 
-interface DefaultDisplayValues {
+/**
+ * The Screen page's tab set, mirroring AutomationSection's URL-driven
+ * `?panel=` pattern so the two tabbed Defaults pages behave identically.
+ * Canvas controls (single-display only) live at the top of `appearance`
+ * since they're display geometry.
+ */
+const SCREEN_PANELS = ['appearance', 'sleep', 'alerts'] as const;
+type ScreenPanel = (typeof SCREEN_PANELS)[number];
+
+function panelLabel(panel: ScreenPanel, t: TranslateFn): string {
+  switch (panel) {
+    case 'appearance':
+      return t('settings.screenPage.rotationAppearanceHeading');
+    case 'sleep':
+      return t('settings.screenPage.sleepHeading');
+    case 'alerts':
+      return t('settings.screenPage.alertsHeading');
+  }
+}
+
+/**
+ * When a sidebar field-search result deep-links here with `?highlight=`,
+ * the target field only mounts on its owning tab — so with no explicit
+ * `?panel=`, pick the tab from the highlight's field-id prefix instead of
+ * always landing on `appearance` (where the highlight would silently
+ * time out for sleep/alert fields).
+ */
+function panelForHighlight(highlight: string | null): ScreenPanel {
+  if (highlight?.startsWith('sleep.')) return 'sleep';
+  if (highlight?.startsWith('alerts.')) return 'alerts';
+  return 'appearance';
+}
+
+export interface ScreenDisplayValues {
   displayWidth: number;
   displayHeight: number;
   displayTransform: string;
@@ -25,11 +69,15 @@ interface DefaultDisplayValues {
   pauseTimeoutSeconds: number;
 }
 
-interface DefaultDisplaySectionProps {
+interface ScreenSectionProps {
   /** The full config — needed for the backlink banner scan and to decide whether canvas controls render. */
   config: ScreenConfiguration;
-  values: DefaultDisplayValues;
-  onChange: (updates: Partial<DefaultDisplayValues>) => void;
+  displayValues: ScreenDisplayValues;
+  sleepValues: SleepFormValues;
+  alertValues: AlertFormValues;
+  onDisplayChange: (updates: Partial<ScreenDisplayValues>) => void;
+  onSleepChange: (updates: Partial<SleepFormValues>) => void;
+  onAlertsChange: (updates: Partial<AlertFormValues>) => void;
 }
 
 function resolvePreset(width: number, height: number) {
@@ -39,32 +87,72 @@ function resolvePreset(width: number, height: number) {
 }
 
 /**
- * The "Defaults → Display" page — the source-of-truth for shared display
- * values like rotation interval, transition effect, fullscreen theme, etc.
+ * The "Defaults → Screen" page — the source-of-truth for every shared
+ * screen-behavior value: rotation interval, transitions, theme, sleep /
+ * dimming, and the alert overlay. Merged from the former Display, Sleep,
+ * and Alerts pages: all three were inheritable-defaults pages sharing
+ * `DefaultsPageShell`, and Sleep/Alerts were a single form block each,
+ * so they render here as cards under one backlink banner.
  *
- * Every per-display override (rendered via `OverrideRow` on a `PerDisplayPage`)
- * links its help text back here, and this page in turn renders a
+ * Every per-display override (rendered on the per-display Overrides
+ * subtab) links its help text back here, and this page in turn renders a
  * `DefaultsBacklinkBanner` listing which displays currently override its
- * fields. That bidirectional linkage is the load-bearing UX move: the
- * previous chip pattern broke down because the shared value had no visible
- * home.
+ * fields — the union of the display, sleep, and alert field lists, so
+ * one banner covers all three cards.
  *
  * Canvas controls (orientation/resolution/flip) only render in
  * single-display installs because that's the only mode where the global
  * `config.settings.displayWidth/Height/Transform` is actually read by a
  * display. In multi-display mode every `DisplayNode` owns its own copy on
- * the node itself (edited from `Per display → <X> → Display`) — so the
+ * the node itself (edited from `Per display → <X> → Overrides`) — so the
  * global fields become vestigial and exposing them here would let users
  * edit values nothing reads.
  */
-export default function DefaultDisplaySection({ config, values, onChange }: DefaultDisplaySectionProps) {
+export default function ScreenSection({
+  config,
+  displayValues,
+  sleepValues,
+  alertValues,
+  onDisplayChange,
+  onSleepChange,
+  onAlertsChange,
+}: ScreenSectionProps) {
   const t = useTranslate('editor');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const rawPanel = searchParams?.get('panel');
+  const panel: ScreenPanel =
+    rawPanel && (SCREEN_PANELS as readonly string[]).includes(rawPanel)
+      ? (rawPanel as ScreenPanel)
+      : panelForHighlight(searchParams?.get('highlight') ?? null);
+
+  const navigateToPanel = useCallback(
+    (next: ScreenPanel) => {
+      // Push (not replace) so the back button walks tabs, matching
+      // AutomationSection and PerDisplayPage.
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.set('section', 'defaults');
+      params.set('page', 'screen');
+      params.set('panel', next);
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
+
   // Scan displays for overrides only when `config` changes. Without the
   // memo this runs on every keystroke into the form (which updates
-  // `values`/`onChange` identities), and for a ≤64-display install with
-  // ≤7 fields that's cheap but wasteful — the scan is pure over config.
+  // the values/onChange identities), and for a ≤64-display install
+  // that's cheap but wasteful — the scan is pure over config. The three
+  // field lists are unioned so the banner reports overrides from any of
+  // the cards below.
   const overrides = useMemo(
-    () => findDisplaysOverridingFields(config, DISPLAY_OVERRIDE_FIELDS),
+    () =>
+      findDisplaysOverridingFields(config, [
+        ...DISPLAY_OVERRIDE_FIELDS,
+        ...SLEEP_OVERRIDE_FIELDS,
+        ...ALERT_OVERRIDE_FIELDS,
+      ]),
     [config],
   );
   const isMultiDisplay = (config.displays?.length ?? 0) > 0;
@@ -80,7 +168,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
     fullscreenTheme,
     pauseEnabled,
     pauseTimeoutSeconds,
-  } = values;
+  } = displayValues;
 
   // TRANSITION_OPTIONS / FULLSCREEN_THEMES are exported and consumed by
   // multiple call sites (DisplaySubtab, FullscreenPhotoConfigSection, …),
@@ -149,7 +237,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
   ) => {
     const w = orient === 'portrait' ? short : long;
     const h = orient === 'portrait' ? long : short;
-    onChange({
+    onDisplayChange({
       displayWidth: w,
       displayHeight: h,
       displayTransform: deriveDisplayTransform(orient, flip),
@@ -158,7 +246,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
 
   const setOrientation = (next: 'portrait' | 'landscape') => {
     if (next === orientation) return;
-    onChange({
+    onDisplayChange({
       displayWidth: displayHeight,
       displayHeight: displayWidth,
       displayTransform: deriveDisplayTransform(next, flipped),
@@ -167,13 +255,13 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
   };
 
   const setFlipped = (next: boolean) => {
-    onChange({ displayTransform: deriveDisplayTransform(orientation, next) });
+    onDisplayChange({ displayTransform: deriveDisplayTransform(orientation, next) });
   };
 
   return (
     <DefaultsPageShell
-      breadcrumb={t('settings.defaultDisplayPage.breadcrumb')}
-      heading={t('settings.defaultDisplayPage.heading')}
+      breadcrumb={t('settings.screenPage.breadcrumb')}
+      heading={t('settings.screenPage.heading')}
       description={
         <>
           <p className="text-sm text-hs-text-faint mt-1">
@@ -197,11 +285,32 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
       overrides={overrides}
     >
 
+      {/* Tab bar — same visual pattern as AutomationSection and
+          PerDisplayPage. The backlink banner above stays visible on every
+          tab since it reports the union of all three field groups. */}
+      <div className="flex items-center border-b border-hs-border mb-5">
+        {SCREEN_PANELS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            data-testid={`screen-tab-${p}`}
+            onClick={() => navigateToPanel(p)}
+            className={`px-1 py-2.5 mr-6 text-sm transition-colors border-b-2 ${
+              panel === p
+                ? 'text-hs-text-primary border-hs-accent'
+                : 'text-hs-text-faint border-transparent hover:text-hs-text-secondary'
+            }`}
+          >
+            {panelLabel(p, t)}
+          </button>
+        ))}
+      </div>
+
       {/* Canvas controls — single-display installs only. In multi-display
           mode the global dims are vestigial (every DisplayNode owns its
           own resolution/rotation), so we hide them rather than letting
           the user edit values nothing reads. */}
-      {!isMultiDisplay && (
+      {panel === 'appearance' && !isMultiDisplay && (
         <div className="mb-5">
           <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-2">
             {t('settings.defaultDisplayPage.canvas.heading')}
@@ -267,7 +376,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                     max={7680}
                     onChange={(e) => {
                       const w = parseInt(e.target.value, 10);
-                      if (w > 0) onChange({ displayWidth: w });
+                      if (w > 0) onDisplayChange({ displayWidth: w });
                     }}
                     className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
                     placeholder={t('settings.defaultDisplayPage.canvas.resolutionWidthPlaceholder')}
@@ -280,7 +389,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                     max={7680}
                     onChange={(e) => {
                       const h = parseInt(e.target.value, 10);
-                      if (h > 0) onChange({ displayHeight: h });
+                      if (h > 0) onDisplayChange({ displayHeight: h });
                     }}
                     className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent tabular-nums"
                     placeholder={t('settings.defaultDisplayPage.canvas.resolutionHeightPlaceholder')}
@@ -307,10 +416,12 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
         </div>
       )}
 
-      {/* Inheritable defaults — these are what every per-display
-          OverrideRow links back to. Mockup-aligned: single rounded
-          container with border-b separated rows, no <h3>/<hr> dividers. */}
-      <div className="rounded-lg border border-hs-border bg-hs-panel/40">
+      {/* Rotation & appearance — the inheritable display defaults that every
+          per-display OverrideRow links back to. Mockup-aligned: single
+          rounded container with border-b separated rows. */}
+      {panel === 'appearance' && (
+      <div className="mb-5">
+        <div className="rounded-lg border border-hs-border bg-hs-panel/40">
         <FieldRow fieldId="display.rotationInterval">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}</FieldLabel>
           <Slider
@@ -319,7 +430,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             min={5}
             max={120}
             step={5}
-            onChange={(v) => onChange({ rotationInterval: v })}
+            onChange={(v) => onDisplayChange({ rotationInterval: v })}
           />
           <FieldHelp>
             {t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
@@ -331,7 +442,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           <Toggle
             label={t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
             checked={pauseEnabled}
-            onChange={(v) => onChange({ pauseEnabled: v })}
+            onChange={(v) => onDisplayChange({ pauseEnabled: v })}
           />
           <FieldHelp>
             {t('settings.defaultDisplayPage.fields.pauseEnabledHelp')}
@@ -351,7 +462,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
                         seconds: pauseTimeoutSeconds,
                       })
                 }
-                onChange={(v) => onChange({ pauseTimeoutSeconds: v })}
+                onChange={(v) => onDisplayChange({ pauseTimeoutSeconds: v })}
               />
               <FieldHelp>
                 {t('settings.defaultDisplayPage.fields.pauseTimeoutHelp')}
@@ -364,7 +475,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           <FieldLabel>{t('settings.defaultDisplayPage.fields.transitionEffectLabel')}</FieldLabel>
           <select
             value={transitionEffect}
-            onChange={(e) => onChange({ transitionEffect: e.target.value })}
+            onChange={(e) => onDisplayChange({ transitionEffect: e.target.value })}
             className="block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
           >
             {transitionOptions.map((opt) => (
@@ -390,7 +501,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               displayValue={t('settings.defaultDisplayPage.fields.transitionDurationValue', {
                 seconds: transitionDuration.toFixed(1),
               })}
-              onChange={(v) => onChange({ transitionDuration: v })}
+              onChange={(v) => onDisplayChange({ transitionDuration: v })}
             />
             <FieldHelp>{t('settings.defaultDisplayPage.fields.transitionDurationHelp')}</FieldHelp>
           </FieldRow>
@@ -407,7 +518,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', {
               seconds: cursorHideSeconds,
             })}
-            onChange={(v) => onChange({ cursorHideSeconds: v })}
+            onChange={(v) => onDisplayChange({ cursorHideSeconds: v })}
           />
           <FieldHelp>
             {t('settings.defaultDisplayPage.fields.cursorHideHelp')}
@@ -424,7 +535,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               <button
                 key={theme.id}
                 type="button"
-                onClick={() => onChange({ fullscreenTheme: theme.id })}
+                onClick={() => onDisplayChange({ fullscreenTheme: theme.id })}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-colors ${
                   fullscreenTheme === theme.id
                     ? 'border-hs-accent bg-hs-accent-soft'
@@ -452,7 +563,38 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             ))}
           </div>
         </FieldRow>
+        </div>
       </div>
+      )}
+
+      {/* Sleep & dimming — formerly the Defaults → Sleep page. Whole-block
+          overridable per display, so the backlink banner above already
+          covers it via SLEEP_OVERRIDE_FIELDS. */}
+      {panel === 'sleep' && (
+        <div>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.defaultSleepPage.description')}
+          </p>
+          <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
+            <SleepFormFields values={sleepValues} onChange={onSleepChange} />
+          </div>
+        </div>
+      )}
+
+      {/* Alerts — formerly the Defaults → Alerts page. The `displayId`
+          prop is intentionally not passed so the inlined "Clear all
+          alerts" affordance stays off the shared defaults page — clearing
+          is a per-display operation on the Overrides subtab. */}
+      {panel === 'alerts' && (
+        <div>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.defaultAlertsPage.description')}
+          </p>
+          <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
+            <AlertFormFields values={alertValues} onChange={onAlertsChange} />
+          </div>
+        </div>
+      )}
     </DefaultsPageShell>
   );
 }

@@ -45,7 +45,7 @@ function ruleCard(page: import('@playwright/test').Page, name: string) {
 
 test('adding a rule persists with a valid default action targeting the first screen', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig());
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
   await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
 
   await autosaved(page, async () => {
@@ -62,7 +62,7 @@ test('adding a rule persists with a valid default action targeting the first scr
 
 test('editing the action (screen, mode, cooldown) persists', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig([seededRule()]));
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   // Expand the card.
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
@@ -102,7 +102,7 @@ test('editing the action (screen, mode, cooldown) persists', async ({ page, requ
 
 test('adding a condition through the tree editor persists into rule.when', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig([seededRule({ when: [] })]));
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
   await autosaved(page, async () => {
@@ -128,7 +128,7 @@ test('adding a condition through the tree editor persists into rule.when', async
 
 test('the enabled toggle and delete both persist', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig([seededRule()]));
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
   await autosaved(page, async () => {
@@ -153,7 +153,7 @@ test('reordering rules via drag persists the new priority order', async ({ page,
     seededRule({ id: 'rule-1', name: 'First' }),
     seededRule({ id: 'rule-2', name: 'Second' }),
   ]));
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   const first = ruleCard(page, 'First');
   const second = ruleCard(page, 'Second');
@@ -183,7 +183,7 @@ test('reordering rules via drag persists the new priority order', async ({ page,
 
 test('the seconds field reverts invalid input on blur instead of saving it', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig([seededRule()])); // for-mode, seconds 60
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
   const seconds = page.getByLabel('Seconds', { exact: true });
@@ -216,7 +216,7 @@ test('a rule made invalid outside the editor shows the inline invalid banner', a
   ]);
   writeFileSync(path.join(sandboxDir, 'data', 'config.json'), JSON.stringify(config, null, 2));
 
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
 
   // The banner mirrors what the write gate will reject, with the reason.
@@ -226,7 +226,7 @@ test('a rule made invalid outside the editor shows the inline invalid banner', a
 
 test('the sleep action option persists and shows its hint', async ({ page, request }) => {
   await putConfig(request, twoScreenConfig([seededRule()]));
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
   await autosaved(page, async () => {
@@ -257,11 +257,11 @@ test('copy to display clones the rule onto another display', async ({ page, requ
     ],
   });
   await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   // Select Main explicitly so the store's selectedDisplayId is set to it, then
   // expand the rule and copy it to Kitchen.
-  await page.getByLabel('Editing rules for').selectOption('main');
+  await page.getByLabel('Editing automation for').selectOption('main');
   await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
   await autosaved(page, async () => {
     await page.getByLabel('Copy to another display').selectOption('kitchen');
@@ -279,7 +279,7 @@ test('copy to display clones the rule onto another display', async ({ page, requ
   expect(saved.displays!.find((d) => d.id === 'main')!.rules).toHaveLength(1);
 
   // Switching to Kitchen shows the copied rule in that display's list.
-  await page.getByLabel('Editing rules for').selectOption('kitchen');
+  await page.getByLabel('Editing automation for').selectOption('kitchen');
   await expect(ruleCard(page, 'Doorbell')).toBeVisible();
 });
 
@@ -299,10 +299,10 @@ test('rules edit the selected display in multi-display mode', async ({ page, req
     ],
   });
   await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=rules');
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
 
   // The display picker appears; switch to Kitchen and add a rule there.
-  await page.getByLabel('Editing rules for').selectOption('kitchen');
+  await page.getByLabel('Editing automation for').selectOption('kitchen');
   await autosaved(page, async () => {
     await page.getByRole('button', { name: 'Add Rule' }).click();
   });

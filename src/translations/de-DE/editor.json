@@ -224,22 +224,25 @@
         "calendar": "Kalender",
         "weather": "Wetter",
         "location": "Standort & Sprache",
-        "sleep": "Schlaf",
-        "alerts": "Hinweise",
-        "display": "Anzeige",
-        "data": "Daten",
-        "docs": "Dokumentation",
-        "integrations": "Integrationen",
+        "data": "Backups & Daten",
+        "integrations": "API-Schlüssel",
         "meals": "Mahlzeiten",
         "network": "Netzwerk",
-        "profiles": "Profile",
-        "rules": "Regeln",
-        "sharedState": "Live-Werte",
         "security": "Sicherheit",
-        "stats": "Statistik",
+        "stats": "Status",
         "system": "System",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Bildschirm",
+        "automation": "Automatisierung"
+      },
+      "groups": {
+        "screen": "Bildschirm",
+        "content": "Inhalte",
+        "automation": "Automatisierung",
+        "admin": "Wartung"
+      },
+      "docsTitle": "Dokumentation",
+      "docsAriaLabel": "Dokumentation ansehen"
     },
     "overrideRow": {
       "override": "Überschreiben",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " überschreiben aktuell Felder auf {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Standardwerte → Hinweise",
-      "heading": "Standard-Hinweiseinstellungen",
       "description": "Standard-Position, -Größe und -Dauer für das Hinweis-Overlay auf jedem Display. Ein bestimmtes Display kann den gesamten Hinweisblock von seiner eigenen Seite aus überschreiben."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Standardwerte → Schlaf",
-      "heading": "Standard-Schlafeinstellungen",
       "description": "Standard-Dimm-/Schlafzeitplan und Bildschirmschoner für jedes Display. Ein bestimmtes Display kann den gesamten Block von seiner eigenen Seite aus überschreiben."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Erinnern nach",
         "lastBackup": "Letztes Backup: {date}",
         "noBackups": "Noch keine Backups erfasst"
+      },
+      "configBackups": {
+        "heading": "Konfigurations-Backups",
+        "description": "Einstellungs-Schnappschüsse, die vor jedem Update automatisch gespeichert werden. Stelle einen wieder her, um Änderungen an den Einstellungen rückgängig zu machen; um zu einer älteren Version der App zurückzukehren, nutze die Seite System.",
+        "empty": "Noch keine Backups. Backups werden automatisch vor jeder Aktualisierung erstellt.",
+        "sizeKb": "{size} KB",
+        "download": "Herunterladen",
+        "restore": "Wiederherstellen",
+        "restoreDialog": {
+          "title": "Backup wiederherstellen",
+          "message": "Konfiguration aus {name} wiederherstellen? Die aktuelle Konfiguration wird überschrieben.",
+          "confirm": "Wiederherstellen"
+        },
+        "restoreStatus": {
+          "restoring": "Wird wiederhergestellt …",
+          "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
+          "error": "Fehler: {error}",
+          "failed": "Backup konnte nicht wiederhergestellt werden"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Standardwerte → Anzeige",
-      "heading": "Standard-Anzeigeeinstellungen",
       "descriptionPart1": "Diese Werte werden von jedem Display verwendet, bis ein bestimmtes Display sie überschreibt. Wenn du hier etwas änderst, übernimmt jedes Display, das dieses Feld ",
       "descriptionEmphasisNot": "nicht",
       "descriptionPart2": " überschreibt, den neuen Wert.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": " registriert.",
         "subtabs": {
           "overview": "Übersicht",
-          "display": "Anzeige",
-          "sleep": "Schlaf",
-          "alerts": "Hinweise",
-          "profile": "Profil",
-          "identity": "Identität"
+          "overrides": "Überschreibungen"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "Standardwerte",
         "withOverridesPart2": " für alles außer:",
         "noOverridesPart1": "{name} verwendet die ",
-        "noOverridesPart2": " für jedes Feld. Überschreibe eines im Tab Anzeige, Schlaf oder Hinweise.",
+        "noOverridesPart2": " für jedes Feld. Überschreibe eines im Tab Überschreibungen.",
         "chipBlockOverridden": "{label} überschrieben",
         "chipFieldWithDefault": "{label}: {value} (Standard: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -611,11 +623,11 @@
         "activeProfileLabel": "Aktives Profil",
         "noneOption": "Keines",
         "helpPart1": "Welches Profil auf {name} aktuell angezeigt wird. Profildefinitionen leben unter ",
-        "helpLink": "Standardwerte → Profile",
+        "helpLink": "Standardwerte → Automatisierung",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Standardwerte → Anzeige",
+        "defaultsLabel": "Standardwerte → Bildschirm",
         "bannerPart1": "Felder hier zeigen den ",
         "bannerEmphasisDefault": "Standardwert",
         "bannerPart2": " von ",
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Schlafzeitplan",
-        "defaultsLabel": "Standardwerte → Schlaf",
+        "defaultsLabel": "Standardwerte → Bildschirm",
         "infoPart1": "Schlaf wird als ganzer Block überschrieben; einzelne Felder wie die Dimmzeit lassen sich nicht separat überschreiben. Der Standard liegt unter ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Hinweis-Overlay",
-        "defaultsLabel": "Standardwerte → Hinweise",
+        "defaultsLabel": "Standardwerte → Bildschirm",
         "infoPart1": "Hinweise werden als ganzer Block überschrieben. Der Standard liegt unter ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Versionsverlauf",
         "currentBadge": "aktuell",
-        "rollback": "Zurücksetzen"
-      },
-      "backups": {
-        "heading": "Konfigurations-Backups",
-        "empty": "Noch keine Backups. Backups werden automatisch vor jeder Aktualisierung erstellt.",
-        "sizeKb": "{size} KB",
-        "download": "Herunterladen",
-        "restore": "Wiederherstellen"
-      },
-      "restoreStatus": {
-        "restoring": "Wird wiederhergestellt …",
-        "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
-        "error": "Fehler: {error}",
-        "failed": "Backup konnte nicht wiederhergestellt werden"
-      },
-      "restoreDialog": {
-        "title": "Backup wiederherstellen",
-        "message": "Konfiguration aus {name} wiederherstellen? Die aktuelle Konfiguration wird überschrieben.",
-        "confirm": "Wiederherstellen"
+        "rollback": "Zurücksetzen",
+        "help": "Kehrt zu einer älteren Version der App zurück. Um stattdessen Einstellungsänderungen rückgängig zu machen, stelle einen Schnappschuss auf der Seite Backups & Daten wieder her."
       },
       "upgradeDialog": {
         "title": "Aktualisieren",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "Geteilte Werte",
       "description": "Alle Werte, die dieses Display für Bedingungen, Regeln und Text-Platzhalter veröffentlicht, sowie alles, was referenziert wird, aber nie ankommt.",
+      "intro": {
+        "heading": "So funktioniert es",
+        "body1": "Displays können auf das reagieren, was zu Hause passiert. Erweiterungen (wie Home Assistant) teilen hier kleine benannte Werte, etwa ob eine Tür offen ist oder wer zu Hause ist.",
+        "body2": "Screens und Regeln können diese Werte beobachten und darauf reagieren, zum Beispiel den Kamera-Screen zeigen, wenn es an der Tür klingelt. Diese Liste zeigt alles, was dieses Display teilt oder beobachtet, damit du prüfen kannst, ob die richtigen Informationen ankommen."
+      },
       "displayPicker": {
         "label": "Display",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "Passwort festgelegt! Die Anmeldung ist jetzt aktiviert.",
         "passwordChanged": "Passwort geändert. Alle anderen Sitzungen wurden ungültig.",
         "authDisabled": "Anmeldung deaktiviert."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "Die vollständige Dokumentation findest du unter ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Die Anleitungen decken alles ab – von der ersten Einrichtung bis zur Plugin-Entwicklung."
-      },
-      "sections": {
-        "introduction": "Einführung",
-        "guides": "Anleitungen",
-        "reference": "Referenz"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Erste Schritte",
-          "description": "Überblick über Home Screens und die Kernkonzepte"
-        },
-        "installation": {
-          "title": "Installation",
-          "description": "Auf einem Raspberry Pi einrichten oder lokal ausführen"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Kiosk-Bereitstellung, Dienstverwaltung, Tipps zur SD-Karte"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Anleitung zum visuellen Editor und den Canvas-Werkzeugen"
-        },
-        "modules": {
-          "title": "Module",
-          "description": "Alle 38 Module und ihre Konfigurationsoptionen"
-        },
-        "backgrounds": {
-          "title": "Hintergründe",
-          "description": "Uploads, Unsplash, NASA APOD und Rotation"
-        },
-        "profiles": {
-          "title": "Profile & Zeitpläne",
-          "description": "Automatisierung und zeitbasierte Bildschirmlayouts"
-        },
-        "configuration": {
-          "title": "Konfiguration",
-          "description": "JSON-Schema und Referenz der Konfigurationsdatei"
-        },
-        "remoteControl": {
-          "title": "Fernsteuerung",
-          "description": "Steuere dein Display vom Telefon oder einem anderen Gerät aus"
-        },
-        "multiDisplay": {
-          "title": "Mehrere Displays",
-          "description": "Hub-and-Spoke-Aufbau, um mehrere Pis von einem Server aus zu betreiben"
-        },
-        "networking": {
-          "title": "Netzwerk",
-          "description": "Reverse Proxy und Fernzugriff von außerhalb deines LANs"
-        },
-        "troubleshooting": {
-          "title": "Fehlerbehebung",
-          "description": "Häufige Probleme und Lösungen"
-        },
-        "api": {
-          "title": "API",
-          "description": "Alle API-Endpunkte und ihre Parameter"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Eigene Module mit dem Plugin-SDK erstellen"
-        },
-        "development": {
-          "title": "Entwicklung",
-          "description": "Architekturüberblick und Anleitung zum Mitwirken"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Häufig gestellte Fragen"
-        }
       }
     },
     "shared": {
@@ -1735,6 +1657,23 @@
         "light": "Hell",
         "system": "System",
         "titleFormat": "Design: {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Standardwerte → Bildschirm",
+      "heading": "Standard-Bildschirmeinstellungen",
+      "rotationAppearanceHeading": "Rotation & Darstellung",
+      "sleepHeading": "Ruhezustand & Dimmen",
+      "alertsHeading": "Hinweise"
+    },
+    "automationPage": {
+      "breadcrumb": "Standardwerte → Automatisierung",
+      "heading": "Automatisierung",
+      "description": "Profile, Regeln und Live-Werte je Display.",
+      "displayPicker": {
+        "label": "Automatisierung bearbeiten für",
+        "optionLabel": "{name} ({id})",
+        "help": "Profile und Regeln gelten je Display, weil sie die Screens des jeweiligen Displays referenzieren. Ein Wechsel hier ändert auch, an welchem Display der Editor arbeitet."
       }
     }
   },

@@ -224,22 +224,25 @@
         "calendar": "Calendário",
         "weather": "Tempo",
         "location": "Localização e idioma",
-        "sleep": "Suspensão",
-        "alerts": "Avisos",
-        "display": "Tela",
-        "data": "Dados",
-        "docs": "Documentação",
-        "integrations": "Integrações",
+        "data": "Backups e dados",
+        "integrations": "Chaves de API",
         "meals": "Refeições",
         "network": "Rede",
-        "profiles": "Perfis",
-        "rules": "Regras",
-        "sharedState": "Valores ao vivo",
         "security": "Segurança",
-        "stats": "Estatísticas",
+        "stats": "Status",
         "system": "Sistema",
-        "displays": "Telas"
-      }
+        "displays": "Telas",
+        "screen": "Tela",
+        "automation": "Automação"
+      },
+      "groups": {
+        "screen": "Tela",
+        "content": "Conteúdo",
+        "automation": "Automação",
+        "admin": "Manutenção"
+      },
+      "docsTitle": "Documentação",
+      "docsAriaLabel": "Ver documentação"
     },
     "overrideRow": {
       "override": "Substituir",
@@ -264,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " atualmente substituem campos em {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Padrões → Avisos",
-      "heading": "Configurações padrão de avisos",
       "description": "Posição, tamanho e duração padrão para a sobreposição de avisos em cada tela. Uma tela específica pode substituir todo o bloco de avisos a partir da sua própria página."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Padrões → Suspensão",
-      "heading": "Configurações padrão de suspensão",
       "description": "Agenda de escurecimento/suspensão e protetor de tela padrão aplicados a todas as telas. Uma tela específica pode substituir todo o bloco a partir da sua própria página."
     },
     "locationAndLanguagePage": {
@@ -396,6 +395,25 @@
         "remindAfterLabel": "Lembrar após",
         "lastBackup": "Último backup: {date}",
         "noBackups": "Nenhum backup registrado ainda"
+      },
+      "configBackups": {
+        "heading": "Backups da configuração",
+        "description": "Instantâneos das configurações salvos automaticamente antes de cada atualização. Restaure um para desfazer mudanças nas configurações; para voltar a uma versão anterior do app, use a página Sistema.",
+        "empty": "Nenhum backup ainda. Backups são criados automaticamente antes de cada atualização.",
+        "sizeKb": "{size}KB",
+        "download": "Baixar",
+        "restore": "Restaurar",
+        "restoreDialog": {
+          "title": "Restaurar backup",
+          "message": "Restaurar a configuração de {name}? A configuração atual será substituída.",
+          "confirm": "Restaurar"
+        },
+        "restoreStatus": {
+          "restoring": "Restaurando…",
+          "restored": "Restaurado! Recarregue o editor para ver as mudanças.",
+          "error": "Erro: {error}",
+          "failed": "Falha ao restaurar o backup"
+        }
       }
     },
     "weatherPage": {
@@ -473,8 +491,6 @@
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Padrões → Tela",
-      "heading": "Configurações padrão da tela",
       "descriptionPart1": "Esses valores são usados por todas as telas até que uma específica os substitua. Mudando algo aqui, todas as telas que ",
       "descriptionEmphasisNot": "não",
       "descriptionPart2": " estão substituindo aquele campo passam a usar o novo valor.",
@@ -547,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "visão geral",
-          "display": "tela",
-          "sleep": "suspensão",
-          "alerts": "avisos",
-          "profile": "perfil",
-          "identity": "identidade"
+          "overrides": "substituições"
         }
       },
       "overview": {
@@ -563,7 +575,7 @@
         "defaultsLink": "Padrões",
         "withOverridesPart2": " para tudo, exceto:",
         "noOverridesPart1": "{name} usa os ",
-        "noOverridesPart2": " para todos os campos. Substitua um na subaba Tela, Suspensão ou Avisos.",
+        "noOverridesPart2": " para todos os campos. Substitua um na subaba Substituições.",
         "chipBlockOverridden": "{label} substituído",
         "chipFieldWithDefault": "{label}: {value} (padrão: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -611,7 +623,7 @@
         "activeProfileLabel": "Perfil ativo",
         "noneOption": "Nenhum",
         "helpPart1": "Qual perfil {name} está exibindo no momento. As definições de perfil ficam em ",
-        "helpLink": "Padrões → Perfis",
+        "helpLink": "Padrões → Automação",
         "helpPart2": "."
       },
       "display": {
@@ -645,13 +657,13 @@
       },
       "sleep": {
         "label": "Agenda de suspensão",
-        "defaultsLabel": "Padrões → Suspensão",
+        "defaultsLabel": "Padrões → Tela",
         "infoPart1": "A suspensão é substituída como bloco inteiro; não dá para substituir campos individuais como o tempo de escurecimento. O padrão fica em ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Sobreposição de avisos",
-        "defaultsLabel": "Padrões → Avisos",
+        "defaultsLabel": "Padrões → Tela",
         "infoPart1": "Os avisos são substituídos como bloco inteiro. O padrão fica em ",
         "infoPart2": "."
       },
@@ -1029,25 +1041,8 @@
       "history": {
         "heading": "Histórico de versões",
         "currentBadge": "atual",
-        "rollback": "Reverter"
-      },
-      "backups": {
-        "heading": "Backups da configuração",
-        "empty": "Nenhum backup ainda. Backups são criados automaticamente antes de cada atualização.",
-        "sizeKb": "{size}KB",
-        "download": "Baixar",
-        "restore": "Restaurar"
-      },
-      "restoreStatus": {
-        "restoring": "Restaurando…",
-        "restored": "Restaurado! Recarregue o editor para ver as mudanças.",
-        "error": "Erro: {error}",
-        "failed": "Falha ao restaurar o backup"
-      },
-      "restoreDialog": {
-        "title": "Restaurar backup",
-        "message": "Restaurar a configuração de {name}? A configuração atual será substituída.",
-        "confirm": "Restaurar"
+        "rollback": "Reverter",
+        "help": "Volta para uma versão anterior do app. Para desfazer mudanças nas configurações, restaure um instantâneo na página Backups e dados."
       },
       "upgradeDialog": {
         "title": "Atualizar",
@@ -1182,6 +1177,11 @@
     "sharedStatePage": {
       "heading": "Estado compartilhado",
       "description": "Todos os valores que esta tela publica para condições, regras e tokens de texto, e tudo o que é referenciado mas nunca chega.",
+      "intro": {
+        "heading": "Como funciona",
+        "body1": "As telas podem reagir ao que acontece na sua casa. Complementos (como o Home Assistant) compartilham aqui pequenos valores nomeados, por exemplo se uma porta está aberta ou quem está em casa.",
+        "body2": "Telas e regras podem observar esses valores e reagir, como mostrar a tela da câmera quando a campainha toca. Esta lista mostra tudo o que esta tela compartilha ou observa, para conferir se a informação certa está chegando."
+      },
       "displayPicker": {
         "label": "Tela",
         "optionLabel": "{name} ({id})"
@@ -1319,84 +1319,6 @@
         "passwordSet": "Senha definida! A autenticação agora está ativada.",
         "passwordChanged": "Senha alterada. Todas as outras sessões foram invalidadas.",
         "authDisabled": "Autenticação desativada."
-      }
-    },
-    "docsPage": {
-      "intro": {
-        "part1": "A documentação completa está disponível em ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Os guias cobrem tudo, desde a configuração inicial até o desenvolvimento de plugins."
-      },
-      "sections": {
-        "introduction": "Introdução",
-        "guides": "Guias",
-        "reference": "Referência"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Primeiros passos",
-          "description": "Visão geral do Home Screens e dos conceitos principais"
-        },
-        "installation": {
-          "title": "Instalação",
-          "description": "Configurar no Raspberry Pi ou rodar localmente"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Implantação em modo kiosk, gerenciamento de serviço, dicas de cartão SD"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Tour pelo editor visual e ferramentas do canvas"
-        },
-        "modules": {
-          "title": "Módulos",
-          "description": "Todos os 38 módulos e suas opções de configuração"
-        },
-        "backgrounds": {
-          "title": "Planos de fundo",
-          "description": "Uploads, Unsplash, NASA APOD e rotação"
-        },
-        "profiles": {
-          "title": "Perfis e agendamento",
-          "description": "Automação e layouts de tela baseados em horário"
-        },
-        "configuration": {
-          "title": "Configuração",
-          "description": "Referência do schema JSON e do arquivo de config"
-        },
-        "remoteControl": {
-          "title": "Controle remoto",
-          "description": "Controle sua tela pelo celular ou outro dispositivo"
-        },
-        "multiDisplay": {
-          "title": "Multi-tela",
-          "description": "Configuração hub-and-spoke para rodar vários Pis a partir de um servidor"
-        },
-        "networking": {
-          "title": "Rede",
-          "description": "Proxy reverso e acesso remoto fora da sua LAN"
-        },
-        "troubleshooting": {
-          "title": "Solução de problemas",
-          "description": "Problemas comuns e correções"
-        },
-        "api": {
-          "title": "API",
-          "description": "Todos os endpoints da API e seus parâmetros"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Crie módulos personalizados com o SDK de plugins"
-        },
-        "development": {
-          "title": "Desenvolvimento",
-          "description": "Visão geral da arquitetura e guia de contribuição"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Perguntas frequentes"
-        }
       }
     },
     "shared": {
@@ -1739,6 +1661,23 @@
         "light": "Claro",
         "system": "Sistema",
         "titleFormat": "Tema: {label}"
+      }
+    },
+    "screenPage": {
+      "breadcrumb": "Padrões → Tela",
+      "heading": "Padrões de tela",
+      "rotationAppearanceHeading": "Rotação e aparência",
+      "sleepHeading": "Suspensão e escurecimento",
+      "alertsHeading": "Avisos"
+    },
+    "automationPage": {
+      "breadcrumb": "Padrões → Automação",
+      "heading": "Automação",
+      "description": "Perfis, regras e valores ao vivo para cada tela.",
+      "displayPicker": {
+        "label": "Editando automação para",
+        "optionLabel": "{name} ({id})",
+        "help": "Perfis e regras são por tela porque referenciam as telas de cada uma. Trocar aqui também muda em qual tela o editor está trabalhando."
       }
     }
   },
