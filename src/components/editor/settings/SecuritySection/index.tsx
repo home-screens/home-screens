@@ -115,7 +115,12 @@ export default function SecuritySection() {
         {status?.authEnabled && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="secondary" size="sm" onClick={() => setModal('change')}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setModal('change')}
+                data-field-id="security.changePassword"
+              >
                 {t('settings.securityPage.actions.changePassword')}
               </Button>
               <Button variant="danger" size="sm" onClick={() => setModal('disable')}>

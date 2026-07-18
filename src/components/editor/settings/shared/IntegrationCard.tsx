@@ -11,6 +11,8 @@ interface Props {
   statusLabel: string;
   statusType: 'connected' | 'partial' | 'none';
   defaultOpen?: boolean;
+  /** Optional settings-search anchor, rendered as `data-field-id` on the card's outer wrapper. */
+  fieldId?: string;
   children: React.ReactNode;
 }
 
@@ -22,6 +24,7 @@ export default function IntegrationCard({
   statusLabel,
   statusType,
   defaultOpen,
+  fieldId,
   children,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen ?? false);
@@ -41,7 +44,10 @@ export default function IntegrationCard({
         : 'bg-hs-success';
 
   return (
-    <div className="mb-2.5 border border-hs-border-strong/80 rounded-[10px] bg-hs-card/60 overflow-hidden hover:border-hs-text-faint transition-colors">
+    <div
+      className="mb-2.5 border border-hs-border-strong/80 rounded-[10px] bg-hs-card/60 overflow-hidden hover:border-hs-text-faint transition-colors"
+      data-field-id={fieldId}
+    >
       <button
         type="button"
         onClick={() => setOpen(!open)}

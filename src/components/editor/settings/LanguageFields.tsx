@@ -106,7 +106,7 @@ export default function LanguageFields() {
       </h3>
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4 space-y-4">
         {/* Language */}
-        <div>
+        <div data-field-id="location.language">
           <label
             htmlFor="hs-language-select"
             className="block text-sm font-medium text-hs-text-primary mb-1"
@@ -147,7 +147,7 @@ export default function LanguageFields() {
           </button>
 
           {advancedOpen && (
-            <div className="mt-3">
+            <div className="mt-3" data-field-id="location.formattingLocale">
               <label
                 htmlFor="hs-formatting-locale-select"
                 className="block text-sm font-medium text-hs-text-primary mb-1"

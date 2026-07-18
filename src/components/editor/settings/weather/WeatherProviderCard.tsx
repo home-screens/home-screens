@@ -152,6 +152,7 @@ export default function WeatherProviderCard({
       statusLabel={label}
       statusType={cardStatusType}
       defaultOpen={isDefault}
+      fieldId={`weather.provider.${provider.id}`}
     >
       {provider.secretKey === null ? (
         provider.helperTextKey && (

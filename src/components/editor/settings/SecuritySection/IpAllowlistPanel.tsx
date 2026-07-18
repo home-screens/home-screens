@@ -136,7 +136,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
 
       <div className="space-y-4">
         {/* Toggles */}
-        <div>
+        <div data-field-id="security.ipAllowlistBypassAuth">
           <Toggle
             label={t('settings.securityPage.ipAllowlist.bypassAuth.label')}
             checked={ipBypassAuth}
@@ -148,7 +148,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
           </p>
         </div>
 
-        <div>
+        <div data-field-id="security.ipAllowlistRestrictAccess">
           <Toggle
             label={t('settings.securityPage.ipAllowlist.restrictAccess.label')}
             checked={ipRestrictAccess}
@@ -186,7 +186,7 @@ export default function IpAllowlistPanel({ initial }: IpAllowlistPanelProps) {
         </div>
 
         {/* Add entry */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-field-id="security.ipAllowlistAddEntry">
           <input
             type="text"
             value={ipNewEntry}

@@ -250,7 +250,7 @@ export default function MealsSection() {
       </div>
 
       {/* ── Meal Slots ── */}
-      <section>
+      <section data-field-id="meals.enabledSlots">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.mealsPage.slots.heading')}
         </h3>
@@ -296,7 +296,7 @@ export default function MealsSection() {
       </section>
 
       {/* ── Week Start ── */}
-      <section>
+      <section data-field-id="meals.weekStartDay">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.mealsPage.weekStart.heading')}
         </h3>
@@ -324,7 +324,7 @@ export default function MealsSection() {
       </section>
 
       {/* ── Time Format ── */}
-      <section>
+      <section data-field-id="meals.timeFormat">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.mealsPage.timeFormat.heading')}
         </h3>
@@ -361,7 +361,7 @@ export default function MealsSection() {
       </section>
 
       {/* ── Default Serving Times ── */}
-      <section>
+      <section data-field-id="meals.defaultSlotTimes">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.mealsPage.defaultTimes.heading')}
         </h3>

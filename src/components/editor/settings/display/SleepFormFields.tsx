@@ -61,47 +61,55 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
-      <Toggle
-        label={t('settings.sleepFormFields.enableLabel')}
-        checked={sleepEnabled}
-        disabled={disabled}
-        onChange={(v) => onChange({ sleepEnabled: v })}
-      />
+      <div data-field-id="sleep.sleepEnabled">
+        <Toggle
+          label={t('settings.sleepFormFields.enableLabel')}
+          checked={sleepEnabled}
+          disabled={disabled}
+          onChange={(v) => onChange({ sleepEnabled: v })}
+        />
+      </div>
       <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.enableHelp')}</p>
 
       {sleepEnabled && (
         <>
-          <Slider
-            label={t('settings.sleepFormFields.dimAfterLabel')}
-            value={dimAfterMinutes}
-            min={1}
-            max={60}
-            onChange={(v) => onChange({ dimAfterMinutes: v })}
-            disabled={disabled}
-          />
-          <Slider
-            label={t('settings.sleepFormFields.sleepAfterLabel')}
-            value={sleepAfterMinutes}
-            min={0}
-            max={120}
-            displayValue={sleepAfterMinutes === 0 ? t('settings.sleepFormFields.sleepAfterOff') : String(sleepAfterMinutes)}
-            onChange={(v) => onChange({ sleepAfterMinutes: v })}
-            disabled={disabled}
-          />
+          <div data-field-id="sleep.dimAfterMinutes">
+            <Slider
+              label={t('settings.sleepFormFields.dimAfterLabel')}
+              value={dimAfterMinutes}
+              min={1}
+              max={60}
+              onChange={(v) => onChange({ dimAfterMinutes: v })}
+              disabled={disabled}
+            />
+          </div>
+          <div data-field-id="sleep.sleepAfterMinutes">
+            <Slider
+              label={t('settings.sleepFormFields.sleepAfterLabel')}
+              value={sleepAfterMinutes}
+              min={0}
+              max={120}
+              displayValue={sleepAfterMinutes === 0 ? t('settings.sleepFormFields.sleepAfterOff') : String(sleepAfterMinutes)}
+              onChange={(v) => onChange({ sleepAfterMinutes: v })}
+              disabled={disabled}
+            />
+          </div>
           {sleepAfterMinutes === 0 && (
             <p className="text-xs text-hs-text-faint -mt-1">{t('settings.sleepFormFields.sleepAfterHelp')}</p>
           )}
-          <Slider
-            label={t('settings.sleepFormFields.dimBrightnessLabel')}
-            value={dimBrightness}
-            min={5}
-            max={80}
-            step={5}
-            onChange={(v) => onChange({ dimBrightness: v })}
-            disabled={disabled}
-          />
+          <div data-field-id="sleep.dimBrightness">
+            <Slider
+              label={t('settings.sleepFormFields.dimBrightnessLabel')}
+              value={dimBrightness}
+              min={5}
+              max={80}
+              step={5}
+              onChange={(v) => onChange({ dimBrightness: v })}
+              disabled={disabled}
+            />
+          </div>
 
-          <label className="block">
+          <label className="block" data-field-id="sleep.screensaverMode">
             <span className="text-xs text-hs-text-muted">{t('settings.sleepFormFields.screensaverLabel')}</span>
             <select
               value={screensaverMode}
@@ -116,7 +124,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
             <p className="text-xs text-hs-text-faint mt-1">{t('settings.sleepFormFields.screensaverHelp')}</p>
           </label>
 
-          <div className="mt-2">
+          <div className="mt-2" data-field-id="sleep.dimScheduleEnabled">
             <Toggle
               label={t('settings.sleepFormFields.dimScheduleLabel')}
               checked={dimScheduleEnabled}
@@ -127,7 +135,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
           {dimScheduleEnabled && (
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
+              <label className="block" data-field-id="sleep.dimStartTime">
                 <span className="text-xs text-hs-text-muted">{t('settings.sleepFormFields.dimAtLabel')}</span>
                 <input
                   type="time"
@@ -137,7 +145,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                   className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                 />
               </label>
-              <label className="block">
+              <label className="block" data-field-id="sleep.dimEndTime">
                 <span className="text-xs text-hs-text-muted">{t('settings.sleepFormFields.brightenAtLabel')}</span>
                 <input
                   type="time"
@@ -153,7 +161,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
             </div>
           )}
 
-          <div className="mt-2">
+          <div className="mt-2" data-field-id="sleep.sleepScheduleEnabled">
             <Toggle
               label={t('settings.sleepFormFields.sleepScheduleLabel')}
               checked={sleepScheduleEnabled}
@@ -164,7 +172,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
 
           {sleepScheduleEnabled && (
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
+              <label className="block" data-field-id="sleep.sleepStartTime">
                 <span className="text-xs text-hs-text-muted">{t('settings.sleepFormFields.sleepAtLabel')}</span>
                 <input
                   type="time"
@@ -174,7 +182,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                   className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
                 />
               </label>
-              <label className="block">
+              <label className="block" data-field-id="sleep.sleepEndTime">
                 <span className="text-xs text-hs-text-muted">{t('settings.sleepFormFields.wakeAtLabel')}</span>
                 <input
                   type="time"

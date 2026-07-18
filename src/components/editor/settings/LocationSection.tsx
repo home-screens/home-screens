@@ -186,7 +186,7 @@ export default function LocationSection({ values, onChange }: Props) {
           </div>
         </div>
 
-        <label className="block">
+        <label className="block" data-field-id="location.timezone">
           <span className="text-xs text-hs-text-muted">{t('settings.locationPage.timezoneLabel')}</span>
           <select
             value={timezone}
@@ -252,7 +252,7 @@ export default function LocationSection({ values, onChange }: Props) {
             {t('settings.locationPage.editCoordinates')}
           </summary>
           <div className="grid grid-cols-2 gap-3 mt-2">
-            <label className="block">
+            <label className="block" data-field-id="location.latitude">
               <span className="text-xs text-hs-text-muted">{t('settings.locationPage.latitudeLabel')}</span>
               <input
                 type="text"
@@ -262,7 +262,7 @@ export default function LocationSection({ values, onChange }: Props) {
                 className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
               />
             </label>
-            <label className="block">
+            <label className="block" data-field-id="location.longitude">
               <span className="text-xs text-hs-text-muted">{t('settings.locationPage.longitudeLabel')}</span>
               <input
                 type="text"

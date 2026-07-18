@@ -207,7 +207,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
             {t('settings.defaultDisplayPage.canvas.heading')}
           </div>
           <div className="rounded-lg border border-hs-border bg-hs-panel/40">
-            <FieldRow>
+            <FieldRow fieldId="display.canvasOrientation">
               <FieldLabel>{t('common.orientation')}</FieldLabel>
               <div className="flex rounded-md overflow-hidden border border-hs-border-strong">
                 {(['portrait', 'landscape'] as const).map((o) => (
@@ -229,7 +229,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               </div>
             </FieldRow>
 
-            <FieldRow>
+            <FieldRow fieldId="display.canvasResolution">
               <FieldLabel>{t('common.resolution')}</FieldLabel>
               <select
                 value={isCustom ? 'custom' : presetValue}
@@ -292,7 +292,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
               </FieldHelp>
             </FieldRow>
 
-            <FieldRow>
+            <FieldRow fieldId="display.canvasFlip">
               <FieldLabel>{t('settings.defaultDisplayPage.canvas.flipLabel')}</FieldLabel>
               <Toggle
                 label={t('settings.defaultDisplayPage.canvas.flipToggle')}
@@ -311,7 +311,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           OverrideRow links back to. Mockup-aligned: single rounded
           container with border-b separated rows, no <h3>/<hr> dividers. */}
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
-        <FieldRow>
+        <FieldRow fieldId="display.rotationInterval">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}</FieldLabel>
           <Slider
             label=""
@@ -326,7 +326,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           </FieldHelp>
         </FieldRow>
 
-        <FieldRow>
+        <FieldRow fieldId="display.pauseEnabled">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.pauseEnabledLabel')}</FieldLabel>
           <Toggle
             label={t('settings.defaultDisplayPage.fields.pauseEnabledToggle')}
@@ -360,7 +360,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           )}
         </FieldRow>
 
-        <FieldRow>
+        <FieldRow fieldId="display.transitionEffect">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.transitionEffectLabel')}</FieldLabel>
           <select
             value={transitionEffect}
@@ -379,7 +379,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
         </FieldRow>
 
         {transitionEffect !== 'none' && (
-          <FieldRow>
+          <FieldRow fieldId="display.transitionDuration">
             <FieldLabel>{t('settings.defaultDisplayPage.fields.transitionDurationLabel')}</FieldLabel>
             <Slider
               label=""
@@ -396,7 +396,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           </FieldRow>
         )}
 
-        <FieldRow>
+        <FieldRow fieldId="display.cursorHideSeconds">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.cursorHideLabel')}</FieldLabel>
           <Slider
             label=""
@@ -414,7 +414,7 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
           </FieldHelp>
         </FieldRow>
 
-        <FieldRow>
+        <FieldRow fieldId="display.fullscreenTheme">
           <FieldLabel>{t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}</FieldLabel>
           <FieldHelp>
             {t('settings.defaultDisplayPage.fields.fullscreenThemeHelp')}
@@ -467,9 +467,9 @@ export default function DefaultDisplaySection({ config, values, onChange }: Defa
  * border-b separated rows," so the bottom border is added by `FieldRow`
  * itself rather than by the parent container styling each child.
  */
-function FieldRow({ children }: { children: React.ReactNode }) {
+function FieldRow({ fieldId, children }: { fieldId?: string; children: React.ReactNode }) {
   return (
-    <div className="px-4 py-3.5 border-b border-hs-border last:border-b-0">{children}</div>
+    <div data-field-id={fieldId} className="px-4 py-3.5 border-b border-hs-border last:border-b-0">{children}</div>
   );
 }
 

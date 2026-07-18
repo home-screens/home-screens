@@ -293,7 +293,7 @@ export default function CalendarSection({ values, onChange }: Props) {
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.calendarPage.holidays.heading')}
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-2" data-field-id="calendar.holidayCountry">
           <select
             value={holidayCountry ?? ''}
             onChange={(e) => onChange({ holidayCountry: e.target.value || undefined })}
@@ -315,7 +315,7 @@ export default function CalendarSection({ values, onChange }: Props) {
       {/* Shared settings */}
       <section>
         <div className="grid grid-cols-2 gap-3">
-          <div>
+          <div data-field-id="calendar.maxEvents">
             <Slider
               label={t('settings.calendarPage.shared.maxEventsLabel')}
               value={maxEvents}
@@ -324,7 +324,7 @@ export default function CalendarSection({ values, onChange }: Props) {
               onChange={(v) => onChange({ maxEvents: v })}
             />
           </div>
-          <div>
+          <div data-field-id="calendar.daysAhead">
             <Slider
               label={t('settings.calendarPage.shared.daysAheadLabel')}
               value={daysAhead}

@@ -18,6 +18,7 @@ import {
   Plug,
   Plus,
   Radio,
+  Search,
   Server,
   Shield,
   UtensilsCrossed,
@@ -35,6 +36,7 @@ import {
   parseSettingsRoute,
   type DefaultPageId,
 } from '@/lib/settings-route';
+import { SETTINGS_FIELD_INDEX, resolveSettingsFieldLabel, type SettingsFieldEntry } from '@/lib/settings-search-index';
 import type { DisplayNode } from '@/types/config';
 
 /**
@@ -147,7 +149,7 @@ function statusDotClass(lastSeen: number | null): string {
 
 export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) {
   const { config } = useEditorStore();
-  const displays = config?.displays ?? [];
+  const displays = useMemo(() => config?.displays ?? [], [config?.displays]);
   const isMultiDisplay = displays.length > 0;
 
   const t = useTranslate('editor');
@@ -157,6 +159,36 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   const searchParams = useSearchParams();
 
   const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
+
+  // Client-only filter state, not reflected in the URL — mirrors
+  // ModulePalette's search box (no debounce; these lists are small
+  // enough that a plain `.includes()` on every keystroke is cheap).
+  const [search, setSearch] = useState('');
+  const query = search.trim().toLowerCase();
+
+  const filteredDefaultPages = useMemo(
+    () => (query ? defaultPages.filter((p) => p.label.toLowerCase().includes(query)) : defaultPages),
+    [defaultPages, query],
+  );
+  const filteredDisplays = useMemo(
+    () => (query ? displays.filter((d) => d.name.toLowerCase().includes(query)) : displays),
+    [displays, query],
+  );
+  const allDisplaysMatches = !query || t('settings.sidebar.allDisplays').toLowerCase().includes(query);
+  const displaysEntryMatches = !query || t('settings.sidebar.displays').toLowerCase().includes(query);
+
+  // Field-level matches — searches inside each Defaults page's content, not
+  // just its nav label. A hit navigates to the owning page with `?highlight=`
+  // set, which `settings/page.tsx` reads to scroll to and pulse the field
+  // (matched via `data-field-id` on the field's wrapper element).
+  const pageLabelById = useMemo(
+    () => Object.fromEntries(defaultPages.map((p) => [p.id, p.label])) as Record<DefaultPageId, string>,
+    [defaultPages],
+  );
+  const filteredFields = useMemo(
+    () => (query ? SETTINGS_FIELD_INDEX.filter((f) => resolveSettingsFieldLabel(f, t).toLowerCase().includes(query)) : []),
+    [query, t],
+  );
 
   // Live heartbeat polling — only when in multi-display mode and the
   // tab is visible, every 5s. Reuses /api/displays which has a 1.5s
@@ -244,54 +276,89 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     // page. Highlighting it on both `?section=displays` and `?section=display`
     // means if someone deep-links to a specific display's detail page the
     // sidebar still shows the right active row.
+    const noResults =
+      query.length > 0 && filteredDefaultPages.length === 0 && !displaysEntryMatches && filteredFields.length === 0;
+
     return (
       <nav className="w-52 shrink-0 border-r border-hs-border bg-hs-panel/40 flex flex-col">
-        <div className="flex-1 overflow-y-auto py-3">
-          {defaultPages.map((p) => (
-            <SidebarItem
-              key={p.id}
-              icon={p.icon}
-              label={p.label}
-              active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-              onClick={() => navigate(`?section=defaults&page=${p.id}`)}
-            />
-          ))}
-          <div className="mx-3.5 my-2 border-t border-hs-border" />
-          <SidebarItem
-            icon={LayoutGrid}
-            label={t('settings.sidebar.displays')}
-            active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
-            onClick={() => navigate('?section=displays')}
-          />
+        <div className="px-3.5 pt-3 pb-2">
+          <SidebarSearchBox value={search} onChange={setSearch} placeholder={t('settings.sidebar.searchPlaceholder')} />
+        </div>
+        <div className="flex-1 overflow-y-auto pb-3">
+          {noResults ? (
+            <p className="px-3.5 py-4 text-xs text-hs-text-faint text-center">{t('settings.sidebar.noResults')}</p>
+          ) : (
+            <>
+              {filteredDefaultPages.map((p) => (
+                <SidebarItem
+                  key={p.id}
+                  icon={p.icon}
+                  label={p.label}
+                  active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
+                  onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+                />
+              ))}
+              {filteredDefaultPages.length > 0 && displaysEntryMatches && (
+                <div className="mx-3.5 my-2 border-t border-hs-border" />
+              )}
+              {displaysEntryMatches && (
+                <SidebarItem
+                  icon={LayoutGrid}
+                  label={t('settings.sidebar.displays')}
+                  active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
+                  onClick={() => navigate('?section=displays')}
+                />
+              )}
+              <MatchingFieldsSection fields={filteredFields} pageLabelById={pageLabelById} navigate={navigate} t={t} />
+            </>
+          )}
         </div>
         <SidebarFooter />
       </nav>
     );
   }
 
+  const noResults =
+    query.length > 0 &&
+    filteredDefaultPages.length === 0 &&
+    !allDisplaysMatches &&
+    filteredDisplays.length === 0 &&
+    filteredFields.length === 0;
+
   return (
     <nav className="w-60 shrink-0 border-r border-hs-border bg-hs-panel/40 flex flex-col">
-      <div className="flex-1 overflow-y-auto py-3">
+      <div className="px-3.5 pt-3 pb-2">
+        <SidebarSearchBox value={search} onChange={setSearch} placeholder={t('settings.sidebar.searchPlaceholder')} />
+      </div>
+      <div className="flex-1 overflow-y-auto pb-3">
+      {noResults ? (
+        <p className="px-3.5 py-4 text-xs text-hs-text-faint text-center">{t('settings.sidebar.noResults')}</p>
+      ) : (
+        <>
       {/* DEFAULTS group */}
-      <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
-        {t('settings.sidebar.defaults')}
-      </div>
-      <div className="px-3.5 pb-1.5 text-[10px] text-hs-text-faint italic leading-tight">
-        {t('settings.sidebar.defaultsHelp')}
-      </div>
-      {defaultPages.map((p) => (
-        <SidebarItem
-          key={p.id}
-          icon={p.icon}
-          label={p.label}
-          // The `parseSettingsRoute` fallback is `{ kind: 'defaults',
-          // page: 'display' }` for any URL that doesn't match another
-          // shape — so no params at all naturally highlights `display`
-          // here without a special case.
-          active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-          onClick={() => navigate(`?section=defaults&page=${p.id}`)}
-        />
-      ))}
+      {filteredDefaultPages.length > 0 && (
+        <>
+          <div className="px-3.5 pt-1 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
+            {t('settings.sidebar.defaults')}
+          </div>
+          <div className="px-3.5 pb-1.5 text-[10px] text-hs-text-faint italic leading-tight">
+            {t('settings.sidebar.defaultsHelp')}
+          </div>
+          {filteredDefaultPages.map((p) => (
+            <SidebarItem
+              key={p.id}
+              icon={p.icon}
+              label={p.label}
+              // The `parseSettingsRoute` fallback is `{ kind: 'defaults',
+              // page: 'display' }` for any URL that doesn't match another
+              // shape — so no params at all naturally highlights `display`
+              // here without a special case.
+              active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
+              onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+            />
+          ))}
+        </>
+      )}
 
       {/* PER DISPLAY group */}
       <div className="flex items-center justify-between px-3.5 pt-4 pb-1 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
@@ -306,15 +373,17 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
         </button>
       </div>
 
-      <SidebarItem
-        icon={LayoutGrid}
-        label={t('settings.sidebar.allDisplays')}
-        active={activeRoute.kind === 'displays'}
-        onClick={() => navigate('?section=displays')}
-        badge={String(displays.length)}
-      />
+      {allDisplaysMatches && (
+        <SidebarItem
+          icon={LayoutGrid}
+          label={t('settings.sidebar.allDisplays')}
+          active={activeRoute.kind === 'displays'}
+          onClick={() => navigate('?section=displays')}
+          badge={String(displays.length)}
+        />
+      )}
 
-      {displays.map((display: DisplayNode) => {
+      {filteredDisplays.map((display: DisplayNode) => {
         const lastSeen = heartbeats.get(display.id)?.lastSeen ?? null;
         const oriented =
           display.displayWidth && display.displayHeight
@@ -343,6 +412,10 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           </button>
         );
       })}
+
+      <MatchingFieldsSection fields={filteredFields} pageLabelById={pageLabelById} navigate={navigate} t={t} />
+        </>
+      )}
       </div>
       <SidebarFooter />
     </nav>
@@ -393,6 +466,75 @@ function SidebarFooter() {
         <i className="fa-brands fa-github text-base leading-none" aria-hidden="true" />
       </a>
     </div>
+  );
+}
+
+/**
+ * Live-filter search box pinned above the scrollable nav list. Mirrors
+ * ModulePalette's search input (same icon placement, sizing, and border
+ * classes) so the two "filter a list of labeled items" affordances in the
+ * editor look and behave identically.
+ */
+function SidebarSearchBox({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-8 pr-3 py-1.5 text-sm bg-hs-card border border-hs-border-strong rounded-lg text-hs-text-body placeholder:text-hs-text-faint focus:outline-none focus:border-hs-accent"
+      />
+    </div>
+  );
+}
+
+/**
+ * Field-level search results — matches from `SETTINGS_FIELD_INDEX`, shown
+ * below the page/display matches so broad results surface first. Shared
+ * between the legacy and multi-display branches since the field index is
+ * orthogonal to display mode. Clicking a row navigates to the owning page
+ * with `?highlight=<fieldId>`, which `settings/page.tsx` reads to scroll to
+ * and pulse the field.
+ */
+function MatchingFieldsSection({
+  fields,
+  pageLabelById,
+  navigate,
+  t,
+}: {
+  fields: SettingsFieldEntry[];
+  pageLabelById: Record<DefaultPageId, string>;
+  navigate: (href: string) => void;
+  t: TranslateFn;
+}) {
+  if (fields.length === 0) return null;
+  return (
+    <>
+      <div className="px-3.5 pt-4 pb-1 text-[10px] uppercase tracking-wider text-hs-text-faint font-semibold">
+        {t('settings.sidebar.matchingFields')}
+      </div>
+      {fields.map((f) => (
+        <button
+          key={f.fieldId}
+          type="button"
+          onClick={() => navigate(`?section=defaults&page=${f.pageId}&highlight=${encodeURIComponent(f.fieldId)}`)}
+          className="w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 border-transparent text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover"
+        >
+          <span className="flex-1 min-w-0 truncate text-left">{resolveSettingsFieldLabel(f, t)}</span>
+          <span className="text-[10px] text-hs-text-faint truncate max-w-[72px]">{pageLabelById[f.pageId]}</span>
+        </button>
+      ))}
+    </>
   );
 }
 

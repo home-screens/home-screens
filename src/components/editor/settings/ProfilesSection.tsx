@@ -150,7 +150,7 @@ export default function ProfilesSection() {
 
       {/* Active profile selector */}
       {profiles.length > 0 && (
-        <label className="block mb-4">
+        <label className="block mb-4" data-field-id="profiles.activeProfile">
           <span className="text-xs text-hs-text-muted">
             {t('settings.profilesPage.active.label')}
           </span>

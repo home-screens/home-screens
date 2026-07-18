@@ -50,7 +50,12 @@ export default function SessionRevocation() {
   return (
     <div>
       {!revokeConfirm ? (
-        <Button variant="secondary" size="sm" onClick={() => setRevokeConfirm(true)}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setRevokeConfirm(true)}
+          data-field-id="security.revokeSessions"
+        >
           {t('settings.securityPage.revokeSessions.button')}
         </Button>
       ) : (

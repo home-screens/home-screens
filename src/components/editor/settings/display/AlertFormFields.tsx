@@ -80,17 +80,19 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
 
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
-      <Toggle
-        label={t('settings.alertFormFields.enableLabel')}
-        checked={alertsEnabled}
-        disabled={disabled}
-        onChange={(v) => onChange({ alertsEnabled: v })}
-      />
+      <div data-field-id="alerts.enabled">
+        <Toggle
+          label={t('settings.alertFormFields.enableLabel')}
+          checked={alertsEnabled}
+          disabled={disabled}
+          onChange={(v) => onChange({ alertsEnabled: v })}
+        />
+      </div>
       <p className="text-xs text-hs-text-faint">{t('settings.alertFormFields.enableHelp')}</p>
 
       {alertsEnabled && (
         <>
-          <label className="block">
+          <label className="block" data-field-id="alerts.position">
             <span className="text-xs text-hs-text-muted">{t('settings.alertFormFields.positionLabel')}</span>
             <select
               value={alertsPosition}
@@ -103,41 +105,47 @@ export default function AlertFormFields({ values, onChange, disabled = false, di
             </select>
           </label>
 
-          <Slider
-            label={t('settings.alertFormFields.maxVisibleLabel')}
-            value={alertsMaxVisible}
-            min={1}
-            max={10}
-            onChange={(v) => onChange({ alertsMaxVisible: v })}
-            disabled={disabled}
-          />
+          <div data-field-id="alerts.maxVisible">
+            <Slider
+              label={t('settings.alertFormFields.maxVisibleLabel')}
+              value={alertsMaxVisible}
+              min={1}
+              max={10}
+              onChange={(v) => onChange({ alertsMaxVisible: v })}
+              disabled={disabled}
+            />
+          </div>
 
-          <Slider
-            label={t('settings.alertFormFields.defaultDurationLabel')}
-            value={alertsDefaultDuration}
-            min={0}
-            max={120}
-            step={5}
-            displayValue={alertsDefaultDuration === 0 ? t('settings.alertFormFields.defaultDurationPerType') : String(alertsDefaultDuration)}
-            onChange={(v) => onChange({ alertsDefaultDuration: v })}
-            disabled={disabled}
-          />
+          <div data-field-id="alerts.defaultDuration">
+            <Slider
+              label={t('settings.alertFormFields.defaultDurationLabel')}
+              value={alertsDefaultDuration}
+              min={0}
+              max={120}
+              step={5}
+              displayValue={alertsDefaultDuration === 0 ? t('settings.alertFormFields.defaultDurationPerType') : String(alertsDefaultDuration)}
+              onChange={(v) => onChange({ alertsDefaultDuration: v })}
+              disabled={disabled}
+            />
+          </div>
           {alertsDefaultDuration === 0 && (
             <p className="text-xs text-hs-text-faint -mt-1">
               {t('settings.alertFormFields.defaultDurationHelp')}
             </p>
           )}
 
-          <Slider
-            label={t('settings.alertFormFields.alertSizeLabel')}
-            value={alertsScale * 100}
-            min={75}
-            max={200}
-            step={25}
-            displayValue={`${alertsScale * 100}%`}
-            onChange={(v) => onChange({ alertsScale: v / 100 })}
-            disabled={disabled}
-          />
+          <div data-field-id="alerts.scale">
+            <Slider
+              label={t('settings.alertFormFields.alertSizeLabel')}
+              value={alertsScale * 100}
+              min={75}
+              max={200}
+              step={25}
+              displayValue={`${alertsScale * 100}%`}
+              onChange={(v) => onChange({ alertsScale: v / 100 })}
+              disabled={disabled}
+            />
+          </div>
 
           <div className="mt-4 pt-4 border-t border-hs-border-strong">
             <h4 className="text-xs font-medium text-hs-text-muted mb-2 uppercase tracking-wider">

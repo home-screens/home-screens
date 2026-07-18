@@ -85,6 +85,7 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
           variant="secondary"
           size="sm"
           onClick={() => setTokenRevealed(!tokenRevealed)}
+          data-field-id="security.displayTokenReveal"
         >
           {tokenRevealed
             ? t('settings.securityPage.displayToken.hide')
@@ -102,6 +103,7 @@ export default function DisplayTokenPanel({ token, onTokenChange }: DisplayToken
             variant="danger"
             size="sm"
             onClick={() => setTokenConfirmRegen(true)}
+            data-field-id="security.displayTokenRegenerate"
           >
             {t('settings.securityPage.displayToken.regenerateButton')}
           </Button>

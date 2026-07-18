@@ -170,10 +170,18 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             {t('settings.dataPage.shareLayout.description')}
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="primary" onClick={() => setShowExportModal(true)}>
+            <Button
+              variant="primary"
+              onClick={() => setShowExportModal(true)}
+              data-field-id="data.shareLayoutExport"
+            >
               {t('settings.dataPage.shareLayout.exportButton')}
             </Button>
-            <Button variant="secondary" onClick={() => layoutInputRef.current?.click()}>
+            <Button
+              variant="secondary"
+              onClick={() => layoutInputRef.current?.click()}
+              data-field-id="data.shareLayoutImport"
+            >
               {t('settings.dataPage.shareLayout.importButton')}
             </Button>
           </div>
@@ -187,7 +195,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           <p className="text-xs text-hs-text-faint mb-3">
             {t('settings.dataPage.templates.description')}
           </p>
-          <Button variant="secondary" onClick={() => setShowTemplatePicker(true)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowTemplatePicker(true)}
+            data-field-id="data.templatesBrowse"
+          >
             {t('settings.dataPage.templates.browseButton')}
           </Button>
         </section>
@@ -201,10 +213,20 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             {t('settings.dataPage.fullBackup.description')}
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={handleBackupExport} disabled={backupBusy}>
+            <Button
+              variant="secondary"
+              onClick={handleBackupExport}
+              disabled={backupBusy}
+              data-field-id="data.fullBackupExport"
+            >
               {backupBusy ? t('settings.dataPage.fullBackup.working') : t('settings.dataPage.fullBackup.backupButton')}
             </Button>
-            <Button variant="secondary" onClick={() => backupInputRef.current?.click()} disabled={backupBusy}>
+            <Button
+              variant="secondary"
+              onClick={() => backupInputRef.current?.click()}
+              disabled={backupBusy}
+              data-field-id="data.fullBackupRestore"
+            >
               {t('settings.dataPage.fullBackup.restoreButton')}
             </Button>
           </div>
@@ -218,14 +240,14 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           <p className="text-xs text-hs-text-faint mb-3">
             {t('settings.dataPage.backupReminder.description')}
           </p>
-          <div className="space-y-3">
+          <div className="space-y-3" data-field-id="data.backupReminderEnabled">
             <Toggle
               label={t('settings.dataPage.backupReminder.enableLabel')}
               checked={reminder?.enabled ?? false}
               onChange={(enabled) => handleReminderChange({ enabled })}
             />
             {reminder?.enabled && (
-              <label className="flex items-center justify-between gap-2">
+              <label className="flex items-center justify-between gap-2" data-field-id="data.backupReminderInterval">
                 <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
                 <select
                   value={reminder.intervalDays ?? 7}

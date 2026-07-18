@@ -333,6 +333,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             role="switch"
             aria-checked={advancedMode}
             onClick={handleToggleAdvanced}
+            data-field-id="system.advancedMode"
             className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
             }`}
@@ -347,7 +348,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Current Version */}
-      <section>
+      <section data-field-id="system.version">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.version.heading')}
         </h3>
@@ -368,6 +369,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   {' · '}
                   <button
                     onClick={handleToggleChannel}
+                    data-field-id="system.updateChannel"
                     className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
                     {channel === 'stable'
@@ -383,6 +385,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={handleCheckUpdates}
             disabled={checking}
+            data-field-id="system.checkForUpdates"
           >
             {checking
               ? t('settings.systemPage.version.checking')
@@ -455,7 +458,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Update Notification */}
-      <section>
+      <section data-field-id="system.updateNotification">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.updateNotification.heading')}
         </h3>
@@ -475,7 +478,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Changelog */}
-      <section>
+      <section data-field-id="system.changelog">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             {t('settings.systemPage.changelog.heading')}
@@ -521,7 +524,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
       {/* Version History / Rollback */}
       {versionInfo.tags.length > 0 && (
-        <section>
+        <section data-field-id="system.rollback">
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             {t('settings.systemPage.history.heading')}
           </h3>
@@ -557,7 +560,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       )}
 
       {/* Config Backups */}
-      <section>
+      <section data-field-id="system.backups">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.backups.heading')}
         </h3>
@@ -625,6 +628,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={() => handlePowerAction('restart-service')}
             disabled={powerState.status !== 'idle'}
+            data-field-id="system.restartService"
           >
             {t('settings.systemPage.actions.restartService')}
           </Button>
@@ -633,6 +637,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={() => handlePowerAction('reboot')}
             disabled={powerState.status !== 'idle'}
+            data-field-id="system.rebootSystem"
           >
             {t('settings.systemPage.actions.rebootSystem')}
           </Button>
