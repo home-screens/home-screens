@@ -59,6 +59,7 @@ chromium \
   --no-first-run \
   --disable-session-crashed-bubble \
   --disable-translate \
+  --autoplay-policy=no-user-gesture-required \
   --remote-debugging-port=9222 \
   --ignore-gpu-blocklist \
   --enable-zero-copy \

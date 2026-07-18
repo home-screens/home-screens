@@ -32,7 +32,28 @@
   "timezone": "browser",
   "editable": true,
   "schemaVersion": 39,
+  "version": 1,
   "refresh": "",
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "weekStart": "",
+  "links": [],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
   "time": {
     "from": "now-90d",
     "to": "now"
@@ -48,6 +69,8 @@
           "text": "",
           "value": ""
         },
+        "options": [],
+        "skipUrlSync": false,
         "hide": 0
       },
       {
@@ -55,6 +78,12 @@
         "label": "D1 database ID",
         "type": "constant",
         "query": "8508ecf2-74e8-4c55-bc39-cf5f89f587ab",
+        "current": {
+          "text": "8508ecf2-74e8-4c55-bc39-cf5f89f587ab",
+          "value": "8508ecf2-74e8-4c55-bc39-cf5f89f587ab"
+        },
+        "options": [],
+        "skipUrlSync": false,
         "hide": 2
       }
     ]
@@ -983,6 +1012,148 @@
               "selector": "last_seen_at",
               "text": "last_seen_at",
               "type": "string"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 14,
+      "type": "barchart",
+      "title": "Plugin popularity (installs with each plugin, top 20; side-loaded plugins report as 'external')",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 43
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT json_extract(je.value,'$.id') AS plugin, COUNT(*) AS installs FROM beacons, json_each(COALESCE(beacons.plugins,'[]')) AS je GROUP BY plugin ORDER BY installs DESC LIMIT 20\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "plugin",
+              "text": "plugin",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelSpacing": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 90,
+            "axisGridShow": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Plugin versions (v4+ beacons only; pre-v4 installs are unknown, not zero)",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_TELEMETRY}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 43
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_TELEMETRY}"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"sql\":\"SELECT json_extract(je.value,'$.id') AS plugin, json_extract(je.value,'$.version') AS version, COUNT(*) AS installs, SUM(CASE WHEN json_extract(je.value,'$.enabled') THEN 1 ELSE 0 END) AS enabled FROM beacons, json_each(COALESCE(beacons.plugins,'[]')) AS je GROUP BY plugin, version ORDER BY plugin, installs DESC\"}"
+          },
+          "root_selector": "result[0].results",
+          "columns": [
+            {
+              "selector": "plugin",
+              "text": "plugin",
+              "type": "string"
+            },
+            {
+              "selector": "version",
+              "text": "version",
+              "type": "string"
+            },
+            {
+              "selector": "installs",
+              "text": "installs",
+              "type": "number"
+            },
+            {
+              "selector": "enabled",
+              "text": "enabled",
+              "type": "number"
             }
           ]
         }

@@ -381,6 +381,7 @@ exec chromium \
   --no-first-run \
   --disable-session-crashed-bubble \
   --disable-translate \
+  --autoplay-policy=no-user-gesture-required \
   --check-for-update-interval=31536000 \
   --password-store=basic \
   --ozone-platform=wayland \

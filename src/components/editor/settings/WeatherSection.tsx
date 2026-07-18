@@ -60,7 +60,7 @@ export default function WeatherSection({ values, onChange }: Props) {
       </div>
 
       {/* Units — top of the section */}
-      <div className="mb-6">
+      <div className="mb-6" data-field-id="weather.units">
         <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
           {t('settings.weatherPage.unitsLabel')}
         </div>

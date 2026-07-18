@@ -5,6 +5,7 @@ import { Hero } from '@/components/Hero';
 import { FeaturesBento } from '@/components/FeaturesBento';
 import { ModuleShowcase } from '@/components/ModuleShowcase';
 import { FeaturedPlugin } from '@/components/FeaturedPlugin';
+import { FitnessPlugins } from '@/components/FitnessPlugins';
 import { EditorExperience } from '@/components/EditorExperience';
 import { RemoteShowcase } from '@/components/RemoteShowcase';
 import { TemplatesGallery } from '@/components/TemplatesGallery';
@@ -36,6 +37,7 @@ export default function Home() {
         <FeaturesBento />
         <ModuleShowcase />
         <FeaturedPlugin />
+        <FitnessPlugins />
         <EditorExperience />
         <RemoteShowcase />
         <TemplatesGallery />

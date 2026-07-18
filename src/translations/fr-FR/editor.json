@@ -35,7 +35,12 @@
       "2x-large": "2X Grand",
       "3x-large": "3X Grand",
       "4x-large": "4X Grand"
-    }
+    },
+    "mediaTypes": "Afficher",
+    "mediaTypesPhotos": "Photos uniquement",
+    "mediaTypesVideos": "Vidéos uniquement",
+    "mediaTypesBoth": "Photos + vidéos",
+    "maxVideoDurationSeconds": "Durée maximale par vidéo (secondes)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -79,7 +84,11 @@
     "scheduledInactiveTitle": "Planifié — actuellement inactif",
     "disabledTitle": "Désactivé — non affiché sur l'écran",
     "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
-    "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran"
+    "backgroundProviderTitle": "S'exécute masqué en arrière-plan — jamais affiché sur l'écran",
+    "conditionMetTitle": "Conditions remplies — affiché sur l'écran en ce moment",
+    "conditionUnmetTitle": "Conditions non remplies — masqué sur l'écran en ce moment",
+    "conditionMetTitleEditor": "Conditions remplies, serait affiché en ce moment",
+    "conditionUnmetTitleEditor": "Conditions non remplies, serait masqué en ce moment"
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
@@ -147,6 +156,7 @@
       "newsAndFinance": "Actualités et finance",
       "knowledgeAndFun": "Savoir et divertissement",
       "personal": "Personnel",
+      "healthAndFitness": "Santé et fitness",
       "mediaAndDisplay": "Médias et affichage",
       "travel": "Voyage"
     },
@@ -185,6 +195,7 @@
       "chore-chart": "Tableau de tâches",
       "text": "Texte",
       "image": "Image",
+      "video": "Vidéo",
       "photo-slideshow": "Diaporama photo",
       "qr-code": "Code QR",
       "iframe": "Intégration web",
@@ -202,6 +213,9 @@
       "allDisplays": "Tous les affichages",
       "addDisplay": "Ajouter un affichage",
       "displays": "Affichages",
+      "searchPlaceholder": "Rechercher des paramètres…",
+      "noResults": "Aucun paramètre trouvé",
+      "matchingFields": "Champs correspondants",
       "websiteAriaLabel": "Visiter homescreens.dev",
       "websiteTitle": "homescreens.dev",
       "githubAriaLabel": "Voir sur GitHub",
@@ -210,27 +224,32 @@
         "calendar": "Calendrier",
         "weather": "Météo",
         "location": "Lieu et langue",
-        "sleep": "Veille",
-        "alerts": "Alertes",
-        "display": "Affichage",
-        "data": "Données",
-        "docs": "Documentation",
-        "integrations": "Intégrations",
+        "data": "Sauvegardes et données",
+        "integrations": "Clés API",
         "meals": "Repas",
         "network": "Réseau",
-        "profiles": "Profils",
         "security": "Sécurité",
-        "stats": "Statistiques",
+        "stats": "État",
         "system": "Système",
-        "displays": "Affichages"
-      }
+        "displays": "Affichages",
+        "screen": "Écran",
+        "automation": "Automatisation"
+      },
+      "groups": {
+        "screen": "Écran",
+        "content": "Contenu",
+        "automation": "Automatisation",
+        "admin": "Maintenance"
+      },
+      "docsTitle": "Documentation",
+      "docsAriaLabel": "Voir la documentation"
     },
     "overrideRow": {
       "override": "Remplacer",
       "resetToDefault": "Rétablir la valeur par défaut",
       "overriddenForDisplay": "Remplacé pour {name}. Par défaut : ",
       "overriddenWithoutDisplay": "Remplacé. Par défaut : ",
-      "overriddenSuffix": " — modifier dans ",
+      "overriddenSuffix": ". Modifier dans ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Utilise la valeur par défaut. ",
       "usingDefaultPart2": " utilise ",
@@ -248,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " remplacent actuellement des champs sur {pageLabel} : "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Valeurs par défaut → Alertes",
-      "heading": "Paramètres d'alerte par défaut",
       "description": "Position, taille et durée par défaut de la superposition d'alerte sur tous les affichages. Un affichage spécifique peut remplacer tout le bloc d'alertes depuis sa propre page."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Valeurs par défaut → Veille",
-      "heading": "Paramètres de veille par défaut",
       "description": "Calendrier d'atténuation / mise en veille et économiseur d'écran appliqués à tous les affichages. Un affichage spécifique peut remplacer l'ensemble du bloc depuis sa propre page."
     },
     "locationAndLanguagePage": {
@@ -315,6 +330,23 @@
         "copyCode": "Copier le code",
         "codeCopied": "Copié !"
       },
+      "icloud": {
+        "heading": "Calendrier iCloud",
+        "checkingAccounts": "Vérification des comptes…",
+        "disconnect": "Déconnecter",
+        "disconnectFailed": "Impossible de déconnecter ce compte. Vérifiez votre connexion Internet et réessayez.",
+        "loadingCalendars": "Chargement des calendriers…",
+        "calendarsError": "Impossible de charger les calendriers de ce compte. Déconnectez-le puis reconnectez-vous.",
+        "noCalendars": "Aucun calendrier trouvé.",
+        "selectCalendars": "Sélectionnez les calendriers à afficher",
+        "birthdays": "Anniversaires",
+        "appleIdPlaceholder": "E-mail de l'identifiant Apple",
+        "connect": "Connecter",
+        "connecting": "Connexion…",
+        "connectFailed": "Impossible de se connecter à iCloud. Vérifiez votre connexion Internet et réessayez.",
+        "addAccount": "Ajouter un compte iCloud",
+        "helpText": "Connectez-vous avec un mot de passe d'application, pas votre mot de passe Apple habituel. Créez-en un sur account.apple.com dans Connexion et sécurité → Mots de passe d'application."
+      },
       "holidays": {
         "heading": "Jours fériés",
         "none": "Aucun",
@@ -363,6 +395,25 @@
         "remindAfterLabel": "Rappeler après",
         "lastBackup": "Dernière sauvegarde : {date}",
         "noBackups": "Aucune sauvegarde enregistrée pour l'instant"
+      },
+      "configBackups": {
+        "heading": "Sauvegardes de configuration",
+        "description": "Instantanés des réglages enregistrés automatiquement avant chaque mise à jour. Restaurez-en un pour annuler des changements de réglages ; pour revenir à une ancienne version de l'application, utilisez la page Système.",
+        "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
+        "sizeKb": "{size} Ko",
+        "download": "Télécharger",
+        "restore": "Restaurer",
+        "restoreDialog": {
+          "title": "Restaurer la sauvegarde",
+          "message": "Restaurer la configuration depuis {name} ? La configuration actuelle sera écrasée.",
+          "confirm": "Restaurer"
+        },
+        "restoreStatus": {
+          "restoring": "Restauration…",
+          "restored": "Restauré ! Recharge l'éditeur pour voir les changements.",
+          "error": "Erreur : {error}",
+          "failed": "Échec de la restauration de la sauvegarde"
+        }
       }
     },
     "weatherPage": {
@@ -403,7 +454,7 @@
         },
         "weatherApi": {
           "tagline": "Niveau gratuit · sans carte bancaire",
-          "keyHint": "Gratuit sur weatherapi.com — sans carte bancaire.",
+          "keyHint": "Gratuit sur weatherapi.com, sans carte bancaire.",
           "placeholder": "Colle ta clé WeatherAPI"
         },
         "openWeatherMap": {
@@ -413,7 +464,7 @@
         },
         "pirateWeather": {
           "tagline": "Remplacement de Dark Sky",
-          "keyHint": "Gratuit sur pirateweather.net — remplacement direct de Dark Sky.",
+          "keyHint": "Gratuit sur pirateweather.net, remplacement direct de Dark Sky.",
           "placeholder": "Colle ta clé API Pirate Weather"
         },
         "noaa": {
@@ -422,11 +473,11 @@
         },
         "yr": {
           "tagline": "Gratuit · mondial · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par l'Institut météorologique norvégien avec une couverture mondiale. Pour tester, utilise une lat/lon nordique — ex. Oslo (59.9139, 10.7522) — pour la couverture la plus dense."
+          "helperText": "Aucune clé API requise. Fourni par l'Institut météorologique norvégien avec une couverture mondiale. Pour tester, utilise une lat/lon nordique, ex. Oslo (59.9139, 10.7522), pour la couverture la plus dense."
         },
         "smhi": {
           "tagline": "Gratuit · pays nordiques uniquement · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par l'Institut suédois de météorologie et d'hydrologie. Couverture nordique uniquement — pour tester, utilise une lat/lon nordique (ex. Stockholm : 59.3293, 18.0686). Ne renvoie aucune donnée hors région nordique."
+          "helperText": "Aucune clé API requise. Fourni par l'Institut suédois de météorologie et d'hydrologie. Couverture nordique uniquement ; pour tester, utilise une lat/lon nordique (ex. Stockholm : 59.3293, 18.0686). Ne renvoie aucune donnée hors région nordique."
         },
         "metOffice": {
           "tagline": "Freemium · axé sur le Royaume-Uni · clé requise",
@@ -435,19 +486,17 @@
         },
         "envCanada": {
           "tagline": "Gratuit · Canada uniquement · sans clé",
-          "helperText": "Aucune clé API requise. Fourni par Environnement et Changement climatique Canada — la source de prévisions de référence au Canada. Home Screens choisit le site le plus proche parmi environ 844 villes selon ta latitude/longitude ; les lieux à plus de 200 km de toute ville canadienne sont rejetés. Pour tester, essaie Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
+          "helperText": "Aucune clé API requise. Fourni par Environnement et Changement climatique Canada, la source de prévisions de référence au Canada. Home Screens choisit le site le plus proche parmi environ 844 villes selon ta latitude/longitude ; les lieux à plus de 200 km de toute ville canadienne sont rejetés. Pour tester, essaie Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
         }
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Valeurs par défaut → Affichage",
-      "heading": "Paramètres d'affichage par défaut",
       "descriptionPart1": "Ces valeurs sont utilisées par tous les affichages tant qu'aucun ne les remplace. Modifie une valeur ici et tous les affichages qui ",
       "descriptionEmphasisNot": "ne",
       "descriptionPart2": " remplacent pas ce champ adoptent la nouvelle valeur.",
       "multiDisplayNotePart1": "La résolution, l'orientation et le retournement sont ",
       "multiDisplayNotePerDisplay": "par affichage",
-      "multiDisplayNotePart2": " — modifie-les sur la page propre à chaque affichage dans ",
+      "multiDisplayNotePart2": ". Modifie-les sur la page propre à chaque affichage dans ",
       "multiDisplayNotePerDisplaySection": "Par affichage",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -514,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "vue d'ensemble",
-          "display": "affichage",
-          "sleep": "veille",
-          "alerts": "alertes",
-          "profile": "profil",
-          "identity": "identité"
+          "overrides": "surcharges"
         }
       },
       "overview": {
@@ -530,7 +575,7 @@
         "defaultsLink": "valeurs par défaut",
         "withOverridesPart2": " pour tout, sauf :",
         "noOverridesPart1": "{name} utilise les ",
-        "noOverridesPart2": " pour chaque champ. Remplaces-en un depuis l'onglet Affichage, Veille ou Alertes.",
+        "noOverridesPart2": " pour chaque champ. Remplaces-en un depuis l'onglet Surcharges.",
         "chipBlockOverridden": "{label} remplacé",
         "chipFieldWithDefault": "{label} : {value} (par défaut : {defaultValue})",
         "chipFieldNoDefault": "{label} : {value}",
@@ -576,13 +621,13 @@
       },
       "profile": {
         "activeProfileLabel": "Profil actif",
-        "noneOption": "— Aucun —",
+        "noneOption": "Aucun",
         "helpPart1": "Quel profil {name} affiche actuellement. Les définitions de profil se trouvent dans ",
-        "helpLink": "Valeurs par défaut → Profils",
+        "helpLink": "Valeurs par défaut → Automatisation",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Valeurs par défaut → Affichage",
+        "defaultsLabel": "Valeurs par défaut → Écran",
         "bannerPart1": "Les champs ici affichent la valeur ",
         "bannerEmphasisDefault": "par défaut",
         "bannerPart2": " de ",
@@ -591,7 +636,7 @@
         "bannerPart4": " sur n'importe quel champ pour le modifier uniquement pour {name}.",
         "canvasHeading": "Canevas",
         "perDisplayBadge": "Par affichage",
-        "resolutionHelp": "Les modules sont disposés selon ce canevas. Chaque affichage a sa propre résolution — elle n'est pas partagée.",
+        "resolutionHelp": "Les modules sont disposés selon ce canevas. Chaque affichage a sa propre résolution ; elle n'est pas partagée.",
         "rotationOptionNormal": "Normale (paysage)",
         "rotationOption90": "90° horaire (portrait)",
         "rotationOption180": "180° (inversée)",
@@ -612,13 +657,13 @@
       },
       "sleep": {
         "label": "Calendrier de veille",
-        "defaultsLabel": "Valeurs par défaut → Veille",
-        "infoPart1": "La veille est remplacée comme un bloc entier — tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
+        "defaultsLabel": "Valeurs par défaut → Écran",
+        "infoPart1": "La veille est remplacée comme un bloc entier ; tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposition d'alerte",
-        "defaultsLabel": "Valeurs par défaut → Alertes",
+        "defaultsLabel": "Valeurs par défaut → Écran",
         "infoPart1": "Les alertes sont remplacées comme un bloc entier. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
@@ -697,7 +742,7 @@
         "clientSecretHelp": "Le client secret du même identifiant OAuth ci-dessus.",
         "mapsKeyLabel": "Clé API Maps",
         "mapsKeyPlaceholder": "Colle ta clé API Google Maps",
-        "mapsKeyHelp": "Facultatif — pour le widget trafic/trajet. Active la Routes API dans le même projet de la console Cloud."
+        "mapsKeyHelp": "Facultatif, pour le widget trafic/trajet. Active la Routes API dans le même projet de la console Cloud."
       },
       "immich": {
         "name": "Immich",
@@ -713,13 +758,13 @@
         "description": "Arrière-plans photo HD par catégorie",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Colle ta clé Unsplash",
-        "accessKeyHelp": "Gratuit sur unsplash.com/developers — 50 requêtes/heure en niveau gratuit."
+        "accessKeyHelp": "Gratuit sur unsplash.com/developers ; 50 requêtes/heure en niveau gratuit."
       },
       "nasa": {
         "name": "NASA",
         "description": "Image astronomique du jour",
         "apiKeyPlaceholder": "Colle ta clé API NASA",
-        "apiKeyHelp": "Gratuit sur api.nasa.gov — 1 000 requêtes/heure. La recherche dans la bibliothèque d'images fonctionne sans clé."
+        "apiKeyHelp": "Gratuit sur api.nasa.gov ; 1 000 requêtes/heure. La recherche dans la bibliothèque d'images fonctionne sans clé."
       },
       "todoist": {
         "name": "Todoist",
@@ -732,7 +777,7 @@
         "name": "TomTom",
         "description": "Trafic et temps de trajet",
         "keyPlaceholder": "Colle ta clé API TomTom",
-        "keyHelp": "Gratuit sur developer.tomtom.com — Routing API requise. Alternative à Google Maps."
+        "keyHelp": "Gratuit sur developer.tomtom.com ; Routing API requise. Alternative à Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -918,7 +963,7 @@
       "intro": {
         "part1": "Paramètres partagés du planificateur de repas. Ils apparaissent aussi dans le tiroir des paramètres de la ",
         "remoteLinkLabel": "télécommande",
-        "part2": " — les modifications depuis l'une ou l'autre surface restent synchronisées."
+        "part2": ". Les modifications depuis l'une ou l'autre surface restent synchronisées."
       },
       "status": {
         "loadFailed": "Échec du chargement des paramètres des repas.",
@@ -996,25 +1041,8 @@
       "history": {
         "heading": "Historique des versions",
         "currentBadge": "actuelle",
-        "rollback": "Revenir en arrière"
-      },
-      "backups": {
-        "heading": "Sauvegardes de configuration",
-        "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
-        "sizeKb": "{size} Ko",
-        "download": "Télécharger",
-        "restore": "Restaurer"
-      },
-      "restoreStatus": {
-        "restoring": "Restauration…",
-        "restored": "Restauré ! Recharge l'éditeur pour voir les changements.",
-        "error": "Erreur : {error}",
-        "failed": "Échec de la restauration de la sauvegarde"
-      },
-      "restoreDialog": {
-        "title": "Restaurer la sauvegarde",
-        "message": "Restaurer la configuration depuis {name} ? La configuration actuelle sera écrasée.",
-        "confirm": "Restaurer"
+        "rollback": "Revenir en arrière",
+        "help": "Revient à une ancienne version de l'application. Pour annuler des changements de réglages, restaurez plutôt un instantané depuis la page Sauvegardes et données."
       },
       "upgradeDialog": {
         "title": "Mettre à niveau",
@@ -1081,7 +1109,7 @@
         "screensHeading": "Écrans",
         "availableHeading": "Disponibles",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Aucun écran sélectionné — tous les écrans seront affichés en repli.",
+        "noScreensWarning": "Aucun écran sélectionné ; tous les écrans seront affichés en repli.",
         "dragHelp": "Glisse pour définir l'ordre de rotation dans ce profil.",
         "scheduleToggleLabel": "Activation automatique selon planning",
         "fromLabel": "De",
@@ -1093,6 +1121,103 @@
         "message": "Supprimer « {name} » ?",
         "confirm": "Supprimer"
       }
+    },
+    "rulesPage": {
+      "heading": "Règles",
+      "description": "Les règles permettent à l'écran de réagir à ce qui se passe à la maison. Quand les conditions d'une règle deviennent vraies, elle peut afficher un écran ou réveiller l'affichage, par exemple montrer l'écran des caméras quand on sonne à la porte.",
+      "displayPicker": {
+        "label": "Modifier les règles de",
+        "optionLabel": "{name} ({id})",
+        "help": "Les règles sont propres à chaque affichage, car elles pointent vers ses propres écrans. Changer ici change aussi l'affichage sur lequel l'éditeur travaille."
+      },
+      "emptyHint": "Aucune règle pour l'instant. Ajoutez-en une pour que l'affichage réagisse quand quelque chose se produit.",
+      "priority": {
+        "labelPrefix": "Ordre de priorité :",
+        "helpSuffix": " Quand plusieurs règles se déclenchent en même temps, la première de la liste gagne. Faites glisser pour réorganiser."
+      },
+      "addButton": "Ajouter une règle",
+      "newRuleName": "Règle {number}",
+      "card": {
+        "offBadge": "Inactive",
+        "renameTitle": "Renommer",
+        "deleteTitle": "Supprimer la règle",
+        "enabledLabel": "Règle active",
+        "whenHeading": "Quand",
+        "thenHeading": "Alors",
+        "noConditionsHint": "Pas encore de conditions ; cette règle ne se déclenchera pas tant que vous n'en ajoutez pas une.",
+        "invalidHint": "Cette règle ne peut pas encore être enregistrée :",
+        "allMustMatchHint": "Toutes les conditions doivent correspondre pour que la règle se déclenche.",
+        "actionKindLabel": "Action",
+        "actionShowScreen": "Afficher un écran",
+        "actionWake": "Réveiller l'affichage",
+        "wakeSleepHint": "Si l'affichage est en veille selon un horaire, cela le réveille et le garde allumé pendant 5 minutes, puis il se remet en veille.",
+        "screenLabel": "Écran",
+        "screenNoneOption": "Choisir un écran…",
+        "screenDisabledSuffix": "(désactivé)",
+        "screenMissingWarning": "Choisissez un écran que cette règle doit afficher.",
+        "modeLabel": "Durée",
+        "modeWhile": "Tant que les conditions sont vraies",
+        "modeFor": "Pendant une durée définie",
+        "secondsLabel": "Secondes",
+        "cooldownLabel": "Délai (secondes)",
+        "cooldownHelp": "Après son déclenchement, la règle attend ce nombre de secondes avant de pouvoir se déclencher à nouveau. Laissez vide pour aucun délai.",
+        "actionSleep": "Mettre l'affichage en veille",
+        "sleepHint": "Éteint l'écran, comme le bouton de veille. Un appui ou l'horaire de réveil le rallume.",
+        "copyToDisplayLabel": "Copier vers un autre affichage",
+        "copyToDisplayPlaceholder": "Choisir un affichage…",
+        "copyToDisplayHelp": "Copie cette règle vers un autre affichage. Vous devrez y choisir l'écran qu'elle affiche.",
+        "copiedNotice": "Copié vers {name}."
+      },
+      "deleteDialog": {
+        "title": "Supprimer la règle",
+        "message": "Supprimer « {name} » ?",
+        "confirm": "Supprimer"
+      }
+    },
+    "sharedStatePage": {
+      "heading": "État partagé",
+      "description": "Toutes les valeurs que cet écran publie pour les conditions, les règles et les jetons de texte, ainsi que tout ce qui est référencé mais n'arrive jamais.",
+      "intro": {
+        "heading": "Comment ça marche",
+        "body1": "Les affichages peuvent réagir à ce qui se passe chez vous. Les extensions (comme Home Assistant) partagent ici de petites valeurs nommées, par exemple si une porte est ouverte ou qui est à la maison.",
+        "body2": "L'onglet « Surveillé » montre ce que cet écran utilise réellement en ce moment, pour vérifier que les bonnes informations arrivent. L'onglet « Disponible » liste tout ce que vos extensions peuvent partager, pour voir à quoi vous pourriez réagir."
+      },
+      "tabs": {
+        "watching": "Surveillé",
+        "available": "Disponible"
+      },
+      "available": {
+        "description": "Tout ce que vos extensions peuvent partager avec cet écran, qu'il soit déjà utilisé ou non. Parcourez par extension ou recherchez pour affiner.",
+        "searchPlaceholder": "Rechercher des valeurs disponibles…",
+        "summary": {
+          "one": "{count} valeur disponible depuis vos extensions",
+          "other": "{count} valeurs disponibles depuis vos extensions"
+        },
+        "truncationNote": "Affichage des {count} premiers — recherchez pour en trouver plus",
+        "collapseGroup": "Réduire {producer}",
+        "expandGroup": "Développer {producer}",
+        "noProviders": "Rien à partager pour l'instant. Les valeurs viennent des extensions qui les partagent (comme Home Assistant). Une fois une extension configurée, ses valeurs apparaissent ici.",
+        "noMatches": "Aucun résultat. Si vous attendiez quelque chose ici, vérifiez la connexion de l'extension dans le gestionnaire d'extensions.",
+        "showMore": "Afficher {count} de plus",
+        "showLess": "Afficher moins"
+      },
+      "displayPicker": {
+        "label": "Écran",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Dernier rapport de l'écran : {time}",
+      "noReportHint": "Cet écran n'a pas encore envoyé de valeurs. Elles apparaîtront ici dès que l'écran sera allumé et que quelque chose publiera.",
+      "editorValuesHint": "Valeurs en direct de cet éditeur. Allumez l'écran pour voir ce qu'il envoie réellement.",
+      "offlineSinceHint": "L'écran n'a rien envoyé depuis {time}. Les lignes montrent les dernières valeurs reçues.",
+      "emptyHint": "Rien ici pour l'instant. Les valeurs apparaissent d'elles-mêmes dès que quelque chose les utilise, comme une condition sur un widget ou une valeur en direct dans un widget Texte. Il n'y a rien à configurer à l'avance.",
+      "neverPublished": "Jamais publiée",
+      "neverPublishedDetail": "Rien sur l'écran ne publie cette clé ; tout ce qui l'utilise suit son réglage « Avant l'arrivée des données ».",
+      "unreferencedLabel": "Rien ne référence cette clé.",
+      "referencedByLabel": "Utilisée par",
+      "ruleRefLabel": "Règle : {name}",
+      "builtInProducer": "Intégré",
+      "producerLabel": "De {producer}",
+      "providerHealthSince": "depuis {time}"
     },
     "securityPage": {
       "loading": "Vérification de l'état d'authentification…",
@@ -1132,7 +1257,7 @@
         "regenerateCancel": "Annuler",
         "regenerateWarning": "L'affichage devra être rechargé pour récupérer le nouveau token.",
         "errorRegenerate": "Échec de la régénération du token",
-        "errorCopy": "Échec de la copie — sélectionne et copie manuellement",
+        "errorCopy": "Échec de la copie ; sélectionne et copie manuellement",
         "phoneHintPart1": "Pour les favoris du téléphone, ajoute ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " aux URL de commande."
@@ -1175,7 +1300,7 @@
           "loopback": "::1",
           "or": " ou ",
           "linkLocal": "fe80::…",
-          "part2": ") ne correspondent à aucune entrée de la liste blanche et seront bloqués quand la restriction est activée. Vérifie « Ton IP » ci-dessus — si elle commence par deux points, cette fonction te bloquera."
+          "part2": ") ne correspondent à aucune entrée de la liste blanche et seront bloqués quand la restriction est activée. Vérifie « Ton IP » ci-dessus ; si elle commence par deux points, cette fonction te bloquera."
         },
         "trustedNetworksWarning": {
           "strong": "Réseaux de confiance uniquement.",
@@ -1215,84 +1340,6 @@
         "authDisabled": "Authentification désactivée."
       }
     },
-    "docsPage": {
-      "intro": {
-        "part1": "La documentation complète est disponible sur ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Les guides couvrent tout, de la configuration initiale au développement de plugin."
-      },
-      "sections": {
-        "introduction": "Introduction",
-        "guides": "Guides",
-        "reference": "Référence"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Premiers pas",
-          "description": "Aperçu de Home Screens et concepts de base"
-        },
-        "installation": {
-          "title": "Installation",
-          "description": "Configurer sur Raspberry Pi ou exécuter en local"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Déploiement en kiosk, gestion du service, astuces carte SD"
-        },
-        "editor": {
-          "title": "Éditeur",
-          "description": "Visite guidée de l'éditeur visuel et des outils du canevas"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "Les 38 modules et leurs options de configuration"
-        },
-        "backgrounds": {
-          "title": "Arrière-plans",
-          "description": "Téléversements, Unsplash, NASA APOD et rotation"
-        },
-        "profiles": {
-          "title": "Profils et planification",
-          "description": "Automatisation et mises en page d'écran selon l'heure"
-        },
-        "configuration": {
-          "title": "Configuration",
-          "description": "Schéma JSON et référence du fichier de configuration"
-        },
-        "remoteControl": {
-          "title": "Contrôle à distance",
-          "description": "Contrôle ton affichage depuis un téléphone ou un autre appareil"
-        },
-        "multiDisplay": {
-          "title": "Multi-affichage",
-          "description": "Configuration en étoile pour piloter plusieurs Pi depuis un serveur"
-        },
-        "networking": {
-          "title": "Réseau",
-          "description": "Reverse proxy et accès distant hors de ton LAN"
-        },
-        "troubleshooting": {
-          "title": "Dépannage",
-          "description": "Problèmes courants et solutions"
-        },
-        "api": {
-          "title": "API",
-          "description": "Tous les endpoints API et leurs paramètres"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Crée des modules personnalisés avec le SDK plugin"
-        },
-        "development": {
-          "title": "Développement",
-          "description": "Aperçu de l'architecture et guide de contribution"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Questions fréquentes"
-        }
-      }
-    },
     "shared": {
       "secretField": {
         "removeButton": "Supprimer",
@@ -1329,13 +1376,15 @@
         "secrets": "Stockage de secrets",
         "events": "Événements de l'hôte",
         "storage": "Stockage local",
-        "localNetwork": "Réseau local (LAN)"
+        "localNetwork": "Réseau local (LAN)",
+        "oauth": "Connexion au compte (OAuth)"
       },
       "secretsHeading": "Clés API requises",
       "secretRequired": "(requis)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copier",
-      "sha256CopyAriaLabel": "Copier le SHA-256"
+      "sha256CopyAriaLabel": "Copier le SHA-256",
+      "connectionRequired": "Ce plugin nécessite de connecter un compte après l'installation."
     },
     "pluginSecrets": {
       "loading": "Chargement de l'état des secrets…",
@@ -1345,6 +1394,37 @@
       "savingButton": "…",
       "saveButton": "Enregistrer",
       "savedSuccess": "Enregistré avec succès"
+    },
+    "pluginSettings": {
+      "loading": "Chargement des réglages…",
+      "loadFailed": "Impossible de charger ces réglages. Fermez et rouvrez pour réessayer.",
+      "saveButton": "Enregistrer",
+      "savingButton": "…",
+      "savedSuccess": "Enregistré avec succès",
+      "toggleTitle": "Réglages du plugin",
+      "toggleAriaLabel": "Réglages du plugin {id}"
+    },
+    "pluginAuth": {
+      "loading": "Vérification de la connexion…",
+      "connectedLabel": "Connecté",
+      "disconnectButton": "Déconnecter",
+      "autoRenewNote": "Votre connexion reste active automatiquement.",
+      "connectButton": "Connecter",
+      "connecting": "Connexion…",
+      "redirectUriLabel": "Ajoutez cette URL de redirection lors de la configuration de la connexion :",
+      "deviceCodeIntro": "Ouvrez ce lien et saisissez le code :",
+      "devicePolling": "En attente de votre approbation…",
+      "errorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
+      "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les fenêtres pop-up pour ce site, puis réessayez.",
+      "garmin": {
+        "intro": "Connectez-vous avec votre compte Garmin Connect.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Mot de passe",
+        "signInButton": "Se connecter",
+        "mfaSent": "Saisissez le code que Garmin vient de vous envoyer.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Vérifier"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1396,9 +1476,9 @@
         "unloadAriaLabel": "Décharger {name}",
         "tipsHeading": "Astuces",
         "tips": {
-          "localStorage": "Les plugins de dev sont stockés dans le localStorage uniquement — ils ne persistent pas entre navigateurs",
+          "localStorage": "Les plugins de dev sont stockés dans le localStorage uniquement ; ils ne persistent pas entre navigateurs",
           "autoReload": "Le plugin se recharge automatiquement quand le bundle change (interrogé toutes les 2 s)",
-          "sourcemapsPart1": "Les source maps sont prises en charge — ajoute ",
+          "sourcemapsPart1": "Les source maps sont prises en charge ; ajoute ",
           "sourcemapsPart2": " à ta config Vite",
           "devOverrides": "Les plugins de dev remplacent les versions installées du même type de module"
         }
@@ -1484,7 +1564,7 @@
       "telemetryItem6": "Fournisseur météo et effet de transition",
       "telemetryItem7": "Si la mise en veille, les alertes et l’authentification sont activées",
       "telemetryItem8": "Si les intégrations de calendrier sont configurées",
-      "telemetryItem9": "Nombre de plugins installés",
+      "telemetryItem9": "Plugins installés (noms et versions du marketplace ; les plugins hors marketplace sont comptés mais jamais nommés)",
       "telemetryDisclaimer": "Nous ne collectons jamais : adresses IP, localisation, événements de calendrier, clés d’API, contenu de modules, noms d’hôte ni aucune information personnellement identifiable. Tout le code est Open Source et peut être vérifié.",
       "dataDirTitle": "Données Home Screens",
       "totalAppData": "Données totales de l’application",
@@ -1521,7 +1601,7 @@
         "other": "{count} écrans dans ce foyer",
         "many": "{count} écrans dans ce foyer"
       },
-      "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi — un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon — chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
+      "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi (un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon), chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Cliquez sur un écran pour modifier ses propres paramètres. Tout le reste utilise les ",
       "populatedDescriptionSuffix": " partagés.",
@@ -1529,11 +1609,11 @@
       "refreshHeartbeatsTitle": "Actualiser les battements",
       "addDisplay": "Ajouter un écran",
       "emptyTitle": "Cette installation fonctionne en mode écran unique",
-      "emptyParagraphPart1": "Votre configuration actuelle compte comme un écran mais n’est pas encore enregistrée ici — la prise en charge multi-écran est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second écran. Dès que vous ajoutez votre premier écran, la disposition actuelle de ce Pi devient un écran appelé ",
+      "emptyParagraphPart1": "Votre configuration actuelle compte comme un écran mais n’est pas encore enregistrée ici ; la prise en charge multi-écran est facultative pour que les installations existantes restent inchangées jusqu’à l’ajout explicite d’un second écran. Dès que vous ajoutez votre premier écran, la disposition actuelle de ce Pi devient un écran appelé ",
       "emptyParagraphPart2": " et continue de fonctionner exactement comme aujourd’hui.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Cliquez sur ",
-      "emptyBullet1Suffix": " ci-dessus pour enregistrer un nouvel écran — donnez-lui un nom, une résolution et une rotation, puis concevez sa propre disposition dans l’éditeur.",
+      "emptyBullet1Suffix": " ci-dessus pour enregistrer un nouvel écran. Donnez-lui un nom, une résolution et une rotation, puis concevez sa propre disposition dans l’éditeur.",
       "emptyBullet2Prefix": "Ou flashez un autre Pi avec ",
       "emptyBullet2Middle": ". Une fois démarré, il apparaîtra ci-dessous comme un ",
       "emptyBullet2Suffix": " en attente d’adoption en un clic.",
@@ -1551,7 +1631,7 @@
       "reportedDimensions": "{width}×{height} signalé",
       "reportedFrom": "depuis {address}",
       "multipleClientsHeading": "{count} clients utilisent cet ID",
-      "multipleClientsParagraphPrefix": "Deux clients ou plus envoient des POST avec cet ID d’écran. Vérifiez les IP sources ci-dessus pour identifier l’appareil concerné — souvent une installation ",
+      "multipleClientsParagraphPrefix": "Deux clients ou plus envoient des POST avec cet ID d’écran. Vérifiez les IP sources ci-dessus pour identifier l’appareil concerné ; souvent une installation ",
       "multipleClientsParagraphSuffix": " dupliquée, un onglet Chromium oublié, ou un kiosque hub pointant vers la mauvaise URL.",
       "statusOnline": "En ligne · {time}",
       "statusIdle": "Inactif · {time}",
@@ -1601,6 +1681,23 @@
         "system": "Système",
         "titleFormat": "Thème : {label}"
       }
+    },
+    "screenPage": {
+      "breadcrumb": "Valeurs par défaut → Écran",
+      "heading": "Réglages d'écran par défaut",
+      "rotationAppearanceHeading": "Rotation et apparence",
+      "sleepHeading": "Veille et atténuation",
+      "alertsHeading": "Alertes"
+    },
+    "automationPage": {
+      "breadcrumb": "Valeurs par défaut → Automatisation",
+      "heading": "Automatisation",
+      "description": "Profils, règles et valeurs en direct pour chaque affichage.",
+      "displayPicker": {
+        "label": "Modifier l'automatisation pour",
+        "optionLabel": "{name} ({id})",
+        "help": "Les profils et les règles sont propres à chaque affichage, car ils référencent ses écrans. Changer ici change aussi l'affichage sur lequel travaille l'éditeur."
+      }
     }
   },
   "backgroundPicker": {
@@ -1613,7 +1710,8 @@
     "rotateEveryLabel": "Tourner toutes les",
     "nasaInfo": "La NASA publie une nouvelle image astronomique par jour. L'affichage vérifiera les mises à jour à l'intervalle choisi.",
     "sources": {
-      "nasaApod": "Image du jour NASA"
+      "nasaApod": "Image du jour NASA",
+      "icloud": "Album partagé iCloud"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1631,6 +1729,10 @@
       "personLabel": "Personne",
       "anyone": "N'importe qui",
       "favoritesOnly": "Favoris uniquement"
+    },
+    "icloud": {
+      "albumLabel": "Lien de l'album",
+      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici."
     }
   },
   "imageBrowserModal": {
@@ -1666,6 +1768,33 @@
     },
     "errors": {
       "searchUnsplash": "Échec de la recherche Unsplash"
+    },
+    "confirmSelectVideo": "Sélectionner la vidéo",
+    "videoCountSingular": "{count} vidéo",
+    "videoCountPlural": "{count} vidéos",
+    "titleVideos": "Bibliothèque de vidéos",
+    "uploadVideosButton": "Téléverser des vidéos",
+    "allVideos": "Toutes les vidéos",
+    "titleMedia": "Bibliothèque multimédia",
+    "allMedia": "Toutes les photos et vidéos",
+    "uploadMediaButton": "Téléverser"
+  },
+  "icloudImport": {
+    "toggle": "Importer depuis un lien iCloud",
+    "placeholder": "Collez un lien d'album ou de photos iCloud",
+    "start": "Importer",
+    "importing": "Importation…",
+    "progress": "Téléchargement de {done} sur {total}…",
+    "summary": "{done} nouveaux éléments ajoutés. {skipped} étaient déjà là.",
+    "summaryFailed": "{failed} n'ont pas pu être téléchargés.",
+    "help": "Fonctionne avec les liens d'albums partagés (icloud.com/sharedalbum/#…) et les liens « Copier le lien iCloud » (share.icloud.com). Tout le contenu du lien est enregistré dans le dossier actuel.",
+    "albumTip": "Astuce : les albums partagés peuvent aussi être affichés en direct, sans téléchargement. Choisissez « Album partagé iCloud » comme source de photos dans les réglages d'un diaporama.",
+    "errors": {
+      "invalid": "Cela ne ressemble pas à un lien iCloud. Copiez le lien à nouveau et réessayez.",
+      "expired": "Ce lien ne fonctionne plus. Les liens photos iCloud expirent après environ un mois ; demandez un nouveau lien et réessayez.",
+      "busy": "Un autre import est déjà en cours. Attendez qu'il se termine.",
+      "tooMany": "Ce lien contient trop de photos pour tout enregistrer d'un coup. Essayez avec un album ou un lien plus petit.",
+      "lost": "Impossible de suivre cet import. Vérifiez le dossier pour voir ce qui a été ajouté."
     }
   },
   "choreChartModal": {
@@ -1853,7 +1982,9 @@
       "credentials": "Identifiants",
       "schedule": "Planification",
       "visibility": "Visibilité",
-      "conditions": "Conditions"
+      "conditions": "Conditions",
+      "connection": "Connexion",
+      "connectionSetup": "Configuration de la connexion"
     },
     "fields": {
       "x": "X",
@@ -1879,7 +2010,8 @@
       "enabledLabel": "Afficher sur l'écran",
       "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver.",
       "backgroundProviderLabel": "Exécuter masqué en arrière-plan",
-      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage."
+      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage.",
+      "backgroundProviderObsoleteHint": "Ce plugin partage désormais ses données automatiquement. Cette copie masquée n’est plus nécessaire et peut être supprimée."
     }
   },
   "upgradeModal": {
@@ -1900,11 +2032,20 @@
       "build": "Compiler l'application"
     },
     "warning": {
-      "installing": "Installation de la mise à jour — ne ferme pas la page et n'éteins pas l'appareil",
+      "installing": "Installation de la mise à jour. Ne ferme pas la page et n'éteins pas l'appareil",
       "inProgress": "Ne ferme pas cette page et n'éteins pas l'appareil"
     },
     "successDefault": "Mise à niveau terminée !",
-    "doneButton": "Terminé"
+    "doneButton": "Terminé",
+    "status": {
+      "inProgress": "En cours",
+      "complete": "Terminé",
+      "failed": "Échec"
+    },
+    "console": {
+      "live": "En direct",
+      "waiting": "En attente de sortie..."
+    }
   },
   "holidayPickerModal": {
     "title": "Ajouter des jours fériés",
@@ -1948,7 +2089,7 @@
     "applyVisualLabel": "Appliquer les paramètres visuels",
     "visualSummary": "Rotation : {seconds} s",
     "visualSummaryWithTransition": "Rotation : {seconds} s, transition : {transition}",
-    "saveError": "Échec de l'enregistrement — vérifie ta connexion et réessaie.",
+    "saveError": "Échec de l'enregistrement. Vérifie ta connexion et réessaie.",
     "importButton": "Importer"
   },
   "installFromUrlModal": {
@@ -2282,6 +2423,7 @@
       "photoSource": "Source des photos",
       "sourceLocal": "Photos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Album partagé iCloud",
       "mode": "Mode",
       "modeSlideshow": "Diaporama",
       "modeSingle": "Photo unique",
@@ -2394,6 +2536,27 @@
       "preview": "Aperçu",
       "altText": "Texte alternatif"
     },
+    "video": {
+      "videoSource": "Source vidéo",
+      "tabLibrary": "Bibliothèque",
+      "tabUrl": "URL",
+      "videoUrl": "URL de la vidéo",
+      "chooseVideo": "Vidéo",
+      "chooseVideoPlaceholder": "Choisir une vidéo…",
+      "noVideosYet": "Aucune vidéo dans votre bibliothèque pour le moment. Téléversez-en une pour commencer.",
+      "uploadVideo": "Téléverser une vidéo",
+      "movHint": "Les vidéos iPhone (.mov) ne se lisent pas toujours sur les écrans Raspberry Pi. Les vidéos MP4 (H.264) fonctionnent le mieux.",
+      "playSound": "Jouer le son",
+      "soundHint": "Le son nécessite une configuration unique de l'écran (voir le guide vidéo). D'ici là, les vidéos sont lues en silence.",
+      "loop": "Lire en boucle",
+      "maxDurationSeconds": "Arrêter après (secondes, 0 = continuer)",
+      "uploading": "Téléversement…",
+      "uploadFailed": "Échec du téléversement",
+      "browseLibrary": "Parcourir la bibliothèque…",
+      "urlHint": "Vous pouvez coller un lien YouTube ou un lien direct vers un fichier vidéo (MP4/WebM).",
+      "icloudLinkDetected": "Ceci est un lien de photos iCloud, il ne peut pas être lu directement. Enregistrez ses vidéos dans votre bibliothèque et utilisez-les depuis là.",
+      "icloudNoVideos": "Ce lien ne contient aucune vidéo."
+    },
     "immichSource": {
       "connecting": "Connexion…",
       "connected": "Connecté",
@@ -2409,6 +2572,14 @@
       "photosPerRefresh": "Photos par actualisation",
       "photoInAlbumSingular": "{count} photo dans l'album",
       "photoInAlbumPlural": "{count} photos dans l'album"
+    },
+    "icloudSource": {
+      "albumLink": "Lien de l'album",
+      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici.",
+      "noItemsFound": "Rien trouvé pour l'instant. Vérifiez le lien et assurez-vous que « Site web public » est activé pour l'album.",
+      "photoLinkDetected": "Ceci est un lien de photos, pas un lien d'album partagé. Les liens photos expirent après environ un mois ; nous enregistrons donc des copies dans votre bibliothèque et les affichons à la place.",
+      "photoLinkAction": "Enregistrer dans la bibliothèque",
+      "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement."
     },
     "meal-planner": {
       "viewWeek": "Grille hebdomadaire",
@@ -2465,6 +2636,7 @@
     "photo-slideshow": {
       "sourceLocal": "Photos locales",
       "sourceImmich": "Immich",
+      "sourceICloud": "Album partagé iCloud",
       "transitionFade": "Fondu",
       "transitionNone": "Aucune",
       "photoSource": "Source des photos",
@@ -2742,7 +2914,9 @@
         "down": "Bas"
       },
       "stateTokensHint": "Insérez {example} pour afficher une valeur en direct publiée par un module en arrière-plan.",
-      "stateTokenUnknown": "Aucun module de cet écran ne publie {keys} pour l'instant. Ces jetons affichent '–' jusqu'à ce qu'un module les publie."
+      "stateTokenUnknown": "Aucun module de cet écran ne publie {keys} pour l'instant. Ces jetons affichent '–' jusqu'à ce qu'un module les publie.",
+      "stateTokenFiltersHint": "Ajoutez |round:1 pour arrondir les nombres, ou |default:texte pour choisir ce qui s'affiche avant l'arrivée d'une valeur.",
+      "stateTokenPreview": "Aperçu en direct"
     },
     "todo": {
       "title": "Titre",
@@ -3003,7 +3177,7 @@
   "visibilityConditions": {
     "statusTitle": "Statut",
     "enableLabel": "Afficher uniquement si les conditions correspondent",
-    "enableHelp": "Afficher ou masquer ce module selon les valeurs publiées par des modules en arrière-plan (par exemple un capteur Home Assistant).",
+    "enableHelp": "Afficher ou masquer ce module selon les valeurs en direct des services connectés (par exemple un capteur Home Assistant).",
     "conditionsTitle": "Conditions",
     "allMustMatchHint": "Toutes les conditions doivent correspondre pour que le module s'affiche.",
     "addCondition": "Ajouter une condition",
@@ -3014,29 +3188,65 @@
       "numeric": "Le nombre est dans la plage",
       "and": "Toutes…",
       "or": "N'importe laquelle…",
-      "not": "Aucune…"
+      "not": "Aucune…",
+      "time": "Heure de la journée"
     },
-    "sourceKeyLabel": "Clé d'état",
-    "sourceKeyHint": "Les suggestions proviennent des modules qui publient des états. Configurez d'abord le module qui publie, puis choisissez sa clé ici. Les clés saisies à la main doivent correspondre exactement, y compris le préfixe plugin:.",
+    "sourceKeyLabel": "Ce qu'il faut vérifier",
+    "sourceKeyHint": "Les clés saisies doivent correspondre exactement, y compris le préfixe plugin:.",
     "sourceKeyUnknown": "Aucun module de cet écran ne publie cette clé pour l'instant. D'ici là, cette condition est considérée comme inconnue et le module suit le réglage 'Avant l'arrivée des données'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Rechercher capteurs, lumières et plus…",
     "matchLabel": "Correspondance",
     "matchEquals": "Est",
     "matchNotEquals": "N'est pas",
     "valueLabel": "Valeur",
     "valuePlaceholder": "on",
     "valueListHint": "Séparez plusieurs valeurs par des virgules pour correspondre à l'une d'elles.",
+    "searchingHint": "Recherche…",
+    "searchNoResults": "Aucun résultat. Si vous en attendiez ici, vérifiez la connexion du plugin dans le gestionnaire de plugins.",
+    "customValueOption": "Valeur personnalisée…",
+    "currentValueHint": "Valeur actuelle : {value}",
     "aboveLabel": "Au-dessus de",
     "belowLabel": "En dessous de",
+    "orEqualLabel": "Ou égal à",
     "whenUnknownTitle": "Avant l'arrivée des données",
     "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
     "whenUnknownHide": "Masquer le module",
     "whenUnknownShow": "Afficher le module",
-    "noProvidersHint": "Aucun module de cet écran ne publie encore d'état. Les clés d'état proviennent généralement de plugins qui publient des valeurs en arrière-plan. Les valeurs ne sont partagées qu'au sein de l'onglet de navigateur de cet écran. Vous pouvez aussi saisir une clé manuellement. Les clés d'état apparaissent ici dès qu'un module avec l'option 'Exécuter masqué en arrière-plan' activée les annonce.",
+    "noProvidersHint": "Aucune clé d'état n'est encore disponible. Les clés proviennent des plugins qui partagent des valeurs (comme Home Assistant). Vous pouvez aussi saisir une clé vous-même.",
     "noConditionsHint": "Aucune condition pour l'instant. Le module reste affiché tant que vous n'en ajoutez pas.",
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
     "liveValueLabel": "Sur l'écran actuellement :",
-    "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement."
+    "liveValueLabelEditor": "Valeur actuelle :",
+    "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement.",
+    "verdicts": {
+      "met": "Remplie",
+      "unmet": "Non remplie",
+      "unknown": "En attente",
+      "metTitle": "Cette condition correspond sur l'écran en ce moment.",
+      "unmetTitle": "Cette condition ne correspond pas sur l'écran en ce moment.",
+      "unknownTitle": "Une clé utilisée par cette condition n'a pas encore été publiée.",
+      "metTitleEditor": "Cette condition correspond en ce moment.",
+      "unmetTitleEditor": "Cette condition ne correspond pas en ce moment."
+    },
+    "outcome": {
+      "noLiveData": "L'écran n'a pas envoyé de rapport récemment, les résultats en direct ne sont donc pas affichés.",
+      "offlineSince": "L'écran n'a rien envoyé depuis {time}, les résultats en direct ne sont donc pas affichés.",
+      "shownNow": "Affiché sur l'écran en ce moment",
+      "hiddenNow": "Masqué sur l'écran en ce moment",
+      "shownNowEditor": "Serait affiché en ce moment",
+      "hiddenNowEditor": "Serait masqué en ce moment",
+      "waitingForKeys": "en attente de {keys}",
+      "keyNotPicked": "une condition n'a pas encore de clé choisie",
+      "conditionsNotMet": "les conditions ne correspondent pas",
+      "seeLiveValues": "Vous pouvez voir toutes les valeurs en direct dans Réglages → Valeurs en direct."
+    },
+    "time": {
+      "daysLabel": "Jours",
+      "fromLabel": "De",
+      "untilLabel": "Jusqu'à",
+      "hint": "Laissez les deux heures vides pour toute la journée. Une fin plus tôt que le début passe après minuit (par exemple 22 h 00 à 6 h 00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

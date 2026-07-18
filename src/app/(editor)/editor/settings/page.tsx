@@ -9,9 +9,7 @@ import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
-import DefaultDisplaySection from '@/components/editor/settings/DefaultDisplaySection';
-import DefaultSleepSection from '@/components/editor/settings/DefaultSleepSection';
-import DefaultAlertsSection from '@/components/editor/settings/DefaultAlertsSection';
+import ScreenSection from '@/components/editor/settings/ScreenSection';
 import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
 import { resolveSettingsRoute } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
@@ -21,13 +19,12 @@ import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
-import ProfilesSection from '@/components/editor/settings/ProfilesSection';
+import AutomationSection from '@/components/editor/settings/AutomationSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
 import DataSection from '@/components/editor/settings/DataSection';
-import DocsSection from '@/components/editor/settings/DocsSection';
 import OrientationChangeModal from '@/components/editor/settings/OrientationChangeModal';
 import UpgradeModal from '@/components/editor/UpgradeModal';
 import { countOffCanvasModules, totalModuleCount } from '@/lib/module-utils';
@@ -55,11 +52,9 @@ import { useSettingsAutosave } from '@/hooks/useSettingsAutosave';
  * Defaults page.
  */
 type TabId =
-  | 'display'
+  | 'screen'
   | 'displays'
-  | 'profiles'
-  | 'sleep'
-  | 'alerts'
+  | 'automation'
   | 'location'
   | 'weather'
   | 'calendar'
@@ -69,8 +64,7 @@ type TabId =
   | 'data'
   | 'stats'
   | 'system'
-  | 'network'
-  | 'docs';
+  | 'network';
 
 /* ─── Page ────────────────────────────────────────── */
 
@@ -153,6 +147,54 @@ function SettingsPageContent() {
     if (!config) loadConfig();
   }, [config, loadConfig]);
 
+  // Scroll to and briefly pulse the field named by `?highlight=` — the
+  // destination of a field-level sidebar search result. Several Defaults
+  // pages (System, Data, ...) fetch their own data and render a loading
+  // placeholder before the real field markup mounts, so the target's
+  // `data-field-id` element isn't necessarily in the DOM on the first
+  // paint after `router.push` — this polls briefly rather than checking
+  // once. Stripped back out of the URL once the pulse finishes so
+  // revisiting the page later, or hitting back/forward, doesn't replay it.
+  const highlightFieldId = searchParams?.get('highlight') ?? null;
+  useEffect(() => {
+    if (!highlightFieldId) return;
+    let cancelled = false;
+    let classTimer: ReturnType<typeof setTimeout> | null = null;
+    let stripTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const selector = `[data-field-id="${CSS.escape(highlightFieldId)}"]`;
+    const tryHighlight = () => {
+      const el = document.querySelector(selector);
+      if (!el) return false;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('animate-settings-highlight');
+      classTimer = setTimeout(() => el.classList.remove('animate-settings-highlight'), 1800);
+      stripTimer = setTimeout(() => {
+        const params = new URLSearchParams(searchParams?.toString() ?? '');
+        params.delete('highlight');
+        router.replace(`?${params.toString()}`);
+      }, 1800);
+      return true;
+    };
+
+    let pollId: ReturnType<typeof setInterval> | null = null;
+    if (!tryHighlight()) {
+      const deadline = Date.now() + 3000;
+      pollId = setInterval(() => {
+        if (cancelled || tryHighlight() || Date.now() > deadline) {
+          if (pollId) clearInterval(pollId);
+        }
+      }, 100);
+    }
+
+    return () => {
+      cancelled = true;
+      if (pollId) clearInterval(pollId);
+      if (classTimer) clearTimeout(classTimer);
+      if (stripTimer) clearTimeout(stripTimer);
+    };
+  }, [highlightFieldId, searchParams, router]);
+
   // Local form state + debounced auto-save state machine for Defaults
   // pages. Extracted into a hook so the timing semantics (one-time
   // hydration, dirty tracking, 500ms debounce, coalesced "Saved" toast)
@@ -169,6 +211,7 @@ function SettingsPageContent() {
   // Upgrade/rollback modal state
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [rollbackTarget, setRollbackTarget] = useState<string | null>(null);
+  const [upgradeFromVersion, setUpgradeFromVersion] = useState<string | null>(null);
 
   // Orientation change modal state
   const [orientationModal, setOrientationModal] = useState<{
@@ -247,6 +290,7 @@ function SettingsPageContent() {
       <UpgradeModal
         targetTag={activeTarget}
         isRollback={!!rollbackTarget}
+        currentVersion={upgradeFromVersion}
         onComplete={handleUpgradeComplete}
         onClose={() => { setUpgradeTarget(null); setRollbackTarget(null); }}
       />
@@ -350,32 +394,20 @@ function SettingsPageContent() {
                 ? 'max-w-4xl'
                 : 'max-w-2xl'
           }`}>
-            {activeTab === 'display' && config && (
-              <DefaultDisplaySection
+            {activeTab === 'screen' && config && (
+              <ScreenSection
                 config={config}
-                values={state.display}
-                onChange={handleDisplayChange}
+                displayValues={state.display}
+                sleepValues={state.sleep}
+                alertValues={state.alerts}
+                onDisplayChange={handleDisplayChange}
+                onSleepChange={(updates) => updateGroup('sleep', updates)}
+                onAlertsChange={(updates) => updateGroup('alerts', updates)}
               />
             )}
 
-            {activeTab === 'profiles' && (
-              <ProfilesSection />
-            )}
-
-            {activeTab === 'sleep' && config && (
-              <DefaultSleepSection
-                config={config}
-                values={state.sleep}
-                onChange={(updates) => updateGroup('sleep', updates)}
-              />
-            )}
-
-            {activeTab === 'alerts' && config && (
-              <DefaultAlertsSection
-                config={config}
-                values={state.alerts}
-                onChange={(updates) => updateGroup('alerts', updates)}
-              />
+            {activeTab === 'automation' && (
+              <AutomationSection />
             )}
 
             {activeTab === 'location' && (
@@ -457,17 +489,13 @@ function SettingsPageContent() {
 
             {activeTab === 'system' && (
               <SystemSection
-                onUpgrade={(tag) => setUpgradeTarget(tag)}
-                onRollback={(tag) => setRollbackTarget(tag)}
+                onUpgrade={(tag, from) => { setUpgradeFromVersion(from); setUpgradeTarget(tag); }}
+                onRollback={(tag, from) => { setUpgradeFromVersion(from); setRollbackTarget(tag); }}
               />
             )}
 
             {activeTab === 'network' && (
               <NetworkSection />
-            )}
-
-            {activeTab === 'docs' && (
-              <DocsSection />
             )}
 
           </div>

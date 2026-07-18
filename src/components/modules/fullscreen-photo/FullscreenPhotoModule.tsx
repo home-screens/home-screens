@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import type { FullscreenPhotoConfig, ModuleStyle } from '@/types/config';
+import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { useMediaRotation } from '@/hooks/useRotatingIndex';
 import { useAuthImage } from '@/components/display/useAuthImage';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import VideoLayer from '../shared/VideoLayer';
+
+const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
+const NO_ITEMS: MediaListItem[] = [];
 
 // ── Ken Burns keyframes (injected once) ──────
 
@@ -148,55 +153,6 @@ function ClockOverlay({ textColor, textMuted, timezone }: { textColor: string; t
   );
 }
 
-// ── Shuffled index hook ──────────────────────
-
-function shuffleArray(arr: number[]): number[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function useShuffledRotatingIndex(count: number, intervalMs: number, shuffle: boolean): number {
-  const [index, setIndex] = useState(0);
-  const [order, setOrder] = useState<number[]>([]);
-
-  // Build or rebuild the order whenever count or shuffle changes
-  useEffect(() => {
-    if (count <= 0) {
-      setOrder([]);
-      setIndex(0);
-      return;
-    }
-    const arr = Array.from({ length: count }, (_, i) => i);
-    setOrder(shuffle ? shuffleArray(arr) : arr);
-    setIndex(0);
-  }, [count, shuffle]);
-
-  useEffect(() => {
-    if (count <= 1) return;
-    const id = setInterval(() => {
-      setIndex((prev) => {
-        const next = prev + 1;
-        if (next >= count) {
-          // Reshuffle for next cycle
-          if (shuffle) {
-            setOrder((prevOrder) => shuffleArray(prevOrder));
-          }
-          return 0;
-        }
-        return next;
-      });
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, [count, intervalMs, shuffle]);
-
-  if (count <= 0 || order.length === 0) return 0;
-  return order[index % order.length] ?? 0;
-}
-
 // ── Main component ───────────────────────────
 
 interface FullscreenPhotoModuleProps {
@@ -204,45 +160,54 @@ interface FullscreenPhotoModuleProps {
   style: ModuleStyle;
   timezone?: string;
   fullscreenTheme?: string;
+  // Threaded by ScreenRenderer on real displays only; the editor preview gets
+  // neither, so video slides show posters and rotate on the photo timer there.
+  screenId?: string;
+  moduleId?: string;
 }
 
-export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme }: FullscreenPhotoModuleProps) {
+export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, screenId, moduleId }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isSinglePhoto = config.file !== undefined;
+  const playVideos = !!(screenId && moduleId);
 
-  // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo
-  const [data] = useFetchData<string[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
-  const files = data ?? [];
+  // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo.
+  // Photo-only configs receive the legacy string[] response; normalize both
+  // shapes into MediaListItem so the render path below is uniform.
+  const [data] = useFetchData<string[] | MediaListItem[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
+  const items = useMemo<MediaListItem[]>(
+    () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
+    [data],
+  );
+  const files = items;
 
   const intervalMs = config.intervalMs ?? 30000;
-  const photoIndex = useShuffledRotatingIndex(
-    isSinglePhoto ? 0 : files.length,
-    intervalMs,
-    config.shuffle ?? false,
-  );
+  // Per-item rotation: photos advance on the timer, videos on onEnded —
+  // an all-photo list degenerates to the plain fixed-interval rotation.
+  const [photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos);
 
   // Dual-layer crossfade state
   const [activeLayer, setActiveLayer] = useState(0);
-  const [sources, setSources] = useState<[string, string]>(['', '']);
+  const [sources, setSources] = useState<[MediaListItem | null, MediaListItem | null]>([null, null]);
   const prevIndexRef = useRef(photoIndex);
 
   useEffect(() => {
     if (isSinglePhoto || files.length === 0) return;
-    const src = files[photoIndex];
+    const item = files[photoIndex];
 
     if (prevIndexRef.current !== photoIndex) {
       const nextLayer = activeLayer === 0 ? 1 : 0;
       setSources((prev) => {
-        const updated: [string, string] = [...prev] as [string, string];
-        updated[nextLayer] = src;
+        const updated: [MediaListItem | null, MediaListItem | null] = [...prev] as [MediaListItem | null, MediaListItem | null];
+        updated[nextLayer] = item;
         return updated;
       });
       setActiveLayer(nextLayer);
       prevIndexRef.current = photoIndex;
     } else {
-      setSources([src, src]);
+      setSources([item, item]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
   }, [photoIndex, files, isSinglePhoto]);
@@ -305,7 +270,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
           </svg>
           <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
           <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-            {t('fullscreen-photo.noPhotosYetHint')}
+            {/* An empty iCloud album usually means a bad link or the album's
+                public website being off — say that instead of upload advice. */}
+            {t(config.source === 'icloud' ? 'fullscreen-photo.noPhotosYetHintICloud' : 'fullscreen-photo.noPhotosYetHint')}
           </p>
         </div>
       </div>
@@ -325,32 +292,51 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     );
   }
 
+  // Cut (never animate) when either neighbor of the transition is a video —
+  // a transition would run two decoders at once, which Pi hardware can't
+  // afford; Ken Burns (a CSS transform on a decoding surface) is skipped too.
+  const videoAdjacent = sources.some((s) => s?.type === 'video');
+  const transition = videoAdjacent ? 'none' : config.transition;
+
+  const renderLayer = (layer: 0 | 1) => {
+    const item = sources[layer];
+    if (!item) return null;
+    const active = activeLayer === layer;
+    if (item.type === 'video') {
+      return (
+        <VideoLayer
+          src={item.url}
+          posterSrc={item.posterUrl}
+          active={active}
+          autoPlay={playVideos}
+          objectFit={config.objectFit}
+          muted
+          loop={files.length === 1}
+          maxDurationMs={config.maxVideoDurationMs ?? DEFAULT_MAX_VIDEO_DURATION_MS}
+          onEnded={advance}
+        />
+      );
+    }
+    return (
+      <SlideLayer
+        src={item.url}
+        active={active}
+        objectFit={config.objectFit}
+        transition={transition}
+        kenBurns={(config.kenBurns ?? false) && !videoAdjacent}
+        layerIndex={layer}
+      />
+    );
+  };
+
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ backgroundColor: '#000' }}>
       <style>{KEN_BURNS_CSS}</style>
 
       {/* Layer 0 */}
-      {sources[0] && (
-        <SlideLayer
-          src={sources[0]}
-          active={activeLayer === 0}
-          objectFit={config.objectFit}
-          transition={config.transition}
-          kenBurns={config.kenBurns ?? false}
-          layerIndex={0}
-        />
-      )}
+      {renderLayer(0)}
       {/* Layer 1 */}
-      {sources[1] && (
-        <SlideLayer
-          src={sources[1]}
-          active={activeLayer === 1}
-          objectFit={config.objectFit}
-          transition={config.transition}
-          kenBurns={config.kenBurns ?? false}
-          layerIndex={1}
-        />
-      )}
+      {renderLayer(1)}
 
       {/* Clock overlay */}
       {config.showClock && (

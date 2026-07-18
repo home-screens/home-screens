@@ -67,7 +67,7 @@ test.describe('Defaults › Location', () => {
 
 test('Defaults › Alerts: editing the shared duration persists', async ({ page, request }) => {
   await putConfig(request, baseConfig()); // no alerts block → form hydrates enabled, duration 0
-  await page.goto('/editor/settings?section=defaults&page=alerts');
+  await page.goto('/editor/settings?section=defaults&page=screen&panel=alerts');
 
   // "Default duration (seconds)" is a range Slider — drive it by keyboard
   // (step = 5, so Home → 0, then 9× ArrowRight → 45s). It persists to
@@ -122,7 +122,7 @@ test.describe('per-display overrides', () => {
 
   test('overriding a display field writes to the node, shows the backlink banner, and resets', async ({ page, request }) => {
     await putConfig(request, multiDisplayConfig());
-    await page.goto('/editor/settings?section=display&id=kitchen&subtab=display');
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
 
     const row = overrideRow(page, 'Transition effect');
     await expect(row).toBeVisible();
@@ -136,11 +136,11 @@ test.describe('per-display overrides', () => {
       .toBe('crossfade');
 
     // The Defaults › Display page's backlink banner now lists the kitchen display.
-    await page.goto('/editor/settings?section=defaults&page=display');
+    await page.goto('/editor/settings?section=defaults&page=screen');
     await expect(page.locator('a[href*="section=display&id=kitchen"]')).toBeVisible();
 
     // Reset clears the override.
-    await page.goto('/editor/settings?section=display&id=kitchen&subtab=display');
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
     const forkedRow = overrideRow(page, 'Transition effect');
     await forkedRow.getByRole('button', { name: 'Reset to default', exact: true }).click();
 

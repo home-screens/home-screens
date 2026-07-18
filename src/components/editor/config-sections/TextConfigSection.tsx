@@ -13,7 +13,9 @@ import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import { useTranslate } from '@/i18n';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
-import { extractSharedStateKeys } from '@/lib/shared-state-template';
+import { extractSharedStateKeys, resolveSharedStateTokens } from '@/lib/shared-state-template';
+import { useEditorSharedState } from '@/hooks/useEditorSharedState';
+import { useFormattingLocale } from '@/i18n';
 import type {
   ModuleInstance,
   TextConfig,
@@ -42,6 +44,18 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     const known = new Set(providedKeys.map((k) => k.key));
     return referencedKeys.filter((k) => !known.has(k));
   }, [providedKeys, referencedKeys]);
+
+  // Live token preview: the display's reported bus snapshot run through the
+  // same resolver the Text module uses, so the editor shows real values
+  // (with filters applied) instead of placeholders. Polling is gated on the
+  // content actually referencing tokens; `states` is null while the display
+  // is offline or the snapshot is stale, and the preview hides with it.
+  const liveState = useEditorSharedState(selectedDisplayId, referencedKeys.length > 0);
+  const formattingLocale = useFormattingLocale();
+  const livePreview = useMemo(() => {
+    if (referencedKeys.length === 0 || !liveState.states) return null;
+    return resolveSharedStateTokens(content, liveState.states, { locale: formattingLocale });
+  }, [referencedKeys, liveState.states, content, formattingLocale]);
 
   const ORIENTATION_OPTIONS: { value: 'horizontal' | 'vertical' | 'sideways'; label: string }[] = [
     { value: 'horizontal', label: t('configSections.text.orientationOptions.horizontal') },
@@ -138,6 +152,11 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           <p className="text-[10px] text-hs-text-dim">
             {t('configSections.text.stateTokensHint', { example: `{${providedKeys[0]?.key ?? 'plugin:id:key'}}` })}
           </p>
+          {referencedKeys.length > 0 && (
+            <p className="text-[10px] text-hs-text-faint">
+              {t('configSections.text.stateTokenFiltersHint')}
+            </p>
+          )}
           {providedKeys.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {providedKeys.map((k) => (
@@ -156,6 +175,12 @@ export function TextConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           {unknownKeys.length > 0 && (
             <p className="text-[10px] text-hs-warning">
               {t('configSections.text.stateTokenUnknown', { keys: unknownKeys.join(', ') })}
+            </p>
+          )}
+          {livePreview !== null && (
+            <p className="text-[10px] text-hs-text-dim" data-testid="text-token-preview">
+              <span className="text-hs-text-faint">{t('configSections.text.stateTokenPreview')}: </span>
+              <span className="line-clamp-3 inline whitespace-pre-wrap break-words">{livePreview}</span>
             </p>
           )}
         </div>

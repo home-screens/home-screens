@@ -25,6 +25,15 @@ async function drainTypes(request: APIRequestContext, display?: string): Promise
   return ((await res.json()).commands as Array<{ type: string }>).map((c) => c.type);
 }
 
+/** Drain a display's queue and return the full envelope (including `sharedStateWatched`). */
+async function drainEnvelope(
+  request: APIRequestContext,
+  display: string,
+): Promise<{ commands: Array<{ type: string }>; sharedStateWatched: boolean }> {
+  const res = await request.get(`/api/display/commands?display=${display}`);
+  return res.json();
+}
+
 test('the display picker lists every registered display plus All', async ({ page, request }) => {
   await putConfig(request, multiDisplayConfig());
   await page.goto('/remote');
@@ -61,6 +70,11 @@ test('broadcasting with All fans a command out to every display', async ({ page,
 
   await expect.poll(() => drainTypes(request, 'main'), { timeout: 5000 }).toContain('sleep');
   await expect.poll(() => drainTypes(request, 'kitchen'), { timeout: 5000 }).toContain('sleep');
+  // A broadcast ('all') also enqueues to the legacy __default__ queue
+  // (enqueueCommand fans out to every known display PLUS __default__). Drain it
+  // so the sleep doesn't linger for a later same-worker test whose real kiosk
+  // polls __default__, consumes the stale sleep, and heartbeats back asleep.
+  await drainTypes(request);
 });
 
 test('screen nav reflects the targeted display heartbeat and dispatches to it', async ({ page, request }) => {
@@ -79,4 +93,37 @@ test('screen nav reflects the targeted display heartbeat and dispatches to it', 
   await next.click();
 
   await expect.poll(() => drainTypes(request, 'kitchen'), { timeout: 5000 }).toContain('next-screen');
+});
+
+test('the commands drain reports sharedStateWatched=false until an editor polls shared-state', async ({ request }) => {
+  await putConfig(request, multiDisplayConfig());
+  // A dedicated slug so an earlier test's editor-interest marker can't leak in.
+  const slug = 'watched-a';
+
+  // Before any editor interest, the drain envelope carries the flag as false.
+  expect((await drainEnvelope(request, slug)).sharedStateWatched).toBe(false);
+
+  // The editor polling a display's shared-state marks interest (15s TTL).
+  const poll = await request.get(`/api/display/shared-state?display=${slug}`);
+  expect(poll.ok()).toBe(true);
+
+  // The very next command drain now advertises that an editor is watching, so
+  // the display arms its fast bus-change re-reporting.
+  await expect
+    .poll(async () => (await drainEnvelope(request, slug)).sharedStateWatched, { timeout: 5000 })
+    .toBe(true);
+});
+
+test('shared-state interest is scoped to the polled display, not its siblings', async ({ request }) => {
+  await putConfig(request, multiDisplayConfig());
+  const watched = 'watched-b';
+  const other = 'watched-c';
+
+  await request.get(`/api/display/shared-state?display=${watched}`);
+
+  await expect
+    .poll(async () => (await drainEnvelope(request, watched)).sharedStateWatched, { timeout: 5000 })
+    .toBe(true);
+  // A different display the editor never polled stays unwatched.
+  expect((await drainEnvelope(request, other)).sharedStateWatched).toBe(false);
 });

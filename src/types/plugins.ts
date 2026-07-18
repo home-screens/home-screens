@@ -27,13 +27,60 @@ export interface PluginManifest {
   defaultSize: { w: number; h: number };
   defaultStyle?: Partial<ModuleStyle>;
   configSchema?: PluginConfigSchema;
+  /**
+   * Declarative schema for plugin-level settings (connection URLs, poll
+   * cadence) — values shared by every instance of the plugin, stored on the
+   * plugin's `installed.json` record rather than any module's config. The
+   * editor renders it in the plugin manager with the same widget renderer as
+   * `configSchema`; values reach plugin code via `__HS_SDK__.getPluginSettings`
+   * and are passed to the `stateProvider` component as a prop. A plugin's
+   * ConfigSection can also write them inline (editor-only
+   * `__HS_SDK__.setPluginSettings`, merge semantics) so connection setup can
+   * live in the module panel without per-module storage. Secrets never go
+   * here — they stay in the manifest `secrets` declarations.
+   */
+  settingsSchema?: PluginConfigSchema;
   exports: {
     component: string; // typically "default"
     configSection?: string; // optional named export
+    /**
+     * Optional headless state-provider component. The host mounts one
+     * instance per plugin (in `PluginServiceLayer`, alive across screen
+     * rotation) and hands it the demand-driven key set — every shared-state
+     * key of this plugin's namespace referenced by any visibility condition
+     * or Text-module token on the display. The component publishes exactly
+     * those keys via `publishState` and renders null. Plugins that export
+     * this no longer need `backgroundProvider` module instances.
+     *
+     * Contract obligations beyond "publish the demanded keys":
+     *
+     * - **Clear on shrink.** When a key drops out of `demandedKeys` (the
+     *   user deleted or re-pointed the referencing condition), the provider
+     *   must `clearState` it so conditions elsewhere fall back to their
+     *   `whenUnknown` behavior instead of holding a stale value forever.
+     *   Diff the previous key set against the new prop and clear the
+     *   difference.
+     *
+     * - **Idle when empty.** The provider stays mounted even while
+     *   `demandedKeys` is empty — the host cannot unmount it on demand
+     *   shrinking to zero without skipping the clear pass above. Open
+     *   connections and start polling only when `demandedKeys` is
+     *   non-empty, and tear them down when it empties; a provider that
+     *   polls unconditionally from a mount effect will hit its upstream
+     *   forever on every install with zero conditions.
+     */
+    stateProvider?: string;
   };
   dataRequirements?: PluginDataRequirement[];
   prefetchUrl?: string | null;
   secrets?: PluginSecretDeclaration[];
+  /**
+   * Server-side auth adapter for APIs that need more than a static key:
+   * OAuth2 flows or a named proprietary adapter (e.g. Garmin SSO). The host
+   * runs the flow, stores tokens out-of-tree at `data/plugin-tokens/`, and
+   * transparently injects/refreshes the access token on proxy requests.
+   */
+  auth?: PluginAuth;
   allowedDomains?: string[];  // e.g. ["api.spotify.com", "*.openweathermap.org"]
   permissions?: PluginPermission[];
   /** Maps fromVersion → { renames, defaults } for config migration on update */
@@ -71,11 +118,60 @@ export interface PluginManifest {
 export type PluginDataRequirement = 'location' | 'weather' | 'calendar';
 
 /** Declared plugin capabilities.
- *  Most are transparency-only ('network', 'secrets', 'events', 'storage').
+ *  Most are transparency-only ('network', 'secrets', 'events', 'storage', 'oauth').
  *  'localNetwork' is RUNTIME-ENFORCED: without it, the proxy rejects URLs
  *  that resolve to RFC1918 / mDNS / link-local addresses. With it, the
  *  relaxed check is applied — still blocks loopback and cloud-metadata IPs. */
-export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage' | 'localNetwork';
+export type PluginPermission = 'network' | 'secrets' | 'events' | 'storage' | 'localNetwork' | 'oauth';
+
+/**
+ * Server-side auth adapter declaration. The host implements every flow —
+ * plugins never run server-side code; they declare which flow they need and
+ * the host injects the resulting token into proxy requests.
+ */
+export type PluginAuth = OAuth2Auth | GarminAuth;
+
+/**
+ * Named proprietary adapter for Garmin Connect's mobile SSO flow
+ * (email/password + optional MFA → DI bearer tokens). No URLs, scopes, or
+ * client credentials — the flow is fixed and implemented by the host
+ * (`src/lib/plugin-auth-garmin.ts`). Tokens are injected as an
+ * `Authorization: Bearer` header on proxy requests to the plugin's
+ * garmin.com allowedDomains entries.
+ */
+export interface GarminAuth {
+  type: 'garmin';
+}
+
+/** Declarative OAuth2 configuration covering the three standard grant flows. */
+export interface OAuth2Auth {
+  type: 'oauth2';
+  flow: 'authorization_code' | 'device_code' | 'client_credentials';
+  authorizationUrl?: string;       // required for authorization_code and device_code
+  tokenUrl: string;
+  revokeUrl?: string;
+  revokeTokenType?: 'access_token' | 'refresh_token'; // default 'access_token'
+  scopes: string[];
+  scopeSeparator?: string;         // default ' '
+  pkce?: boolean;                  // default true for authorization_code
+  clientAuthentication?: 'body' | 'header' | 'none'; // default 'body'
+  tokenPlacement: 'header' | 'query';
+  tokenParamName?: string;         // required for query placement
+  tokenTargetDomains: string[];    // required, non-empty subset of allowedDomains that receive the token
+  extraAuthParams?: Record<string, string>;
+  extraTokenParams?: Record<string, string>;
+  /** Handle non-standard token responses (dot paths into the response JSON). */
+  tokenResponseTransform?: {
+    accessTokenPath?: string;      // default "access_token"
+    refreshTokenPath?: string;     // default "refresh_token"
+    expiresInPath?: string;        // default "expires_in"
+    expiresInUnit?: 'seconds' | 'milliseconds'; // default 'seconds'
+  };
+  secrets: {
+    clientId: string;              // key name in plugin secrets[]
+    clientSecret?: string;         // optional for public PKCE clients
+  };
+}
 
 /** JSON Schema with UI widget annotations for declarative config rendering */
 export interface PluginConfigSchema {
@@ -123,6 +219,12 @@ export interface InstalledPlugin {
   source?: 'marketplace' | 'external';
   /** For source === 'external': the URL the tarball was downloaded from (with {version} intact). */
   externalUrl?: string;
+  /**
+   * Plugin-level settings, shaped by the manifest's `settingsSchema`.
+   * Stored here (not in config.json) so they survive plugin upgrades and
+   * ride the existing `/api/plugins/installed` payload to the display.
+   */
+  settings?: Record<string, unknown>;
 }
 
 export interface InstalledPluginsFile {
@@ -135,6 +237,82 @@ export interface LoadedPlugin {
   component: ComponentType<Record<string, unknown>>;
   manifest: PluginManifest;
   configSection?: ComponentType<PluginConfigSectionProps>;
+  stateProvider?: ComponentType<StateProviderProps>;
+  searchStateKeys?: SearchStateKeys;
+}
+
+/** One selectable raw value for an enum-like state key. `label` carries the
+ *  friendly vocabulary ("Alert"); `value` is the raw string conditions must
+ *  store ("on"). The editor renders "Alert (on)" and stores "on". */
+export interface StateKeyValueOption {
+  value: string;
+  label?: string;
+}
+
+/**
+ * A state key described by a plugin's `searchStateKeys` export, rich enough
+ * for the editor's condition builder to offer selection instead of
+ * transcription: friendly label, grouping, and the raw value vocabulary.
+ */
+export interface StateKeyDescriptor {
+  /** FULL bus key, prefixed (`plugin:<id>:<rest>`). */
+  key: string;
+  /** Friendly name: "Back Door Sensor". */
+  label: string;
+  /** Grouping header inside the plugin's results: an area or domain. */
+  group?: string;
+  valueType: 'enum' | 'numeric' | 'string';
+  /** For `enum`: the selectable raw values (with optional friendly labels). */
+  valueOptions?: StateKeyValueOption[];
+  /** For `numeric`: unit hint, e.g. "°F". */
+  unit?: string;
+  /** Live raw value if cheaply known (shown as a hint, never stored). */
+  currentValue?: string;
+}
+
+/**
+ * Optional plugin export (conventional named export, resolved from the IIFE
+ * bundle like `deriveProvidedKeys`): search everything the plugin can publish,
+ * in friendly terms, for the editor's condition-builder combobox. Editor-only
+ * — never called on the display path. Implementations should serve results
+ * from a short-TTL cache (the editor debounces but a keystroke burst still
+ * fans out) and must tolerate being called with an empty query (return the
+ * most useful `limit` keys). Errors/timeouts degrade to the static
+ * suggestions path, so throwing is safe but wasteful.
+ *
+ * FULL-KEY RESOLUTION IS PART OF THE CONTRACT: the host also calls this with
+ * a complete prefixed bus key (`plugin:<id>:<rest>`) as the query to resolve
+ * a committed condition back to its descriptor (`useStateKeySearch`'s
+ * lookupDescriptor). Implementations must match on the bus key itself, not
+ * just friendly labels — a label-only fuzzy matcher silently costs users the
+ * enum value select and unit hints on every saved condition.
+ */
+export type SearchStateKeys = (
+  query: string,
+  opts: { limit: number; settings: Record<string, unknown> },
+) => Promise<StateKeyDescriptor[]>;
+
+/**
+ * Props the host passes to a plugin's `stateProvider` component. Keys arrive
+ * UNPREFIXED (the part after `plugin:<id>:`), matching what the plugin passes
+ * to `publishState`. See the `exports.stateProvider` typedoc for the full
+ * contract: clear keys that drop out of `demandedKeys`, and stay idle (no
+ * polling, no open connections) while the array is empty.
+ *
+ * BOUNDARY: a provider only receives plugin-level `settings`, never module
+ * instance config. Plugins whose keys can only be resolved from per-module
+ * config (each instance names its own endpoint or dataset) cannot implement
+ * this contract — that category should keep using `backgroundProvider`
+ * instances plus `deriveProvidedKeys(config)`, which remain fully supported.
+ * Do not contort the key grammar to smuggle per-module config through
+ * `demandedKeys`.
+ */
+export interface StateProviderProps {
+  /** Deduped, sorted, referentially stable across renders when unchanged.
+   *  May be empty — the provider stays mounted and must idle, not poll. */
+  demandedKeys: string[];
+  /** Plugin-level settings (manifest `settingsSchema` values). */
+  settings: Record<string, unknown>;
 }
 
 /** Error state for a plugin that failed to load */

@@ -26,7 +26,7 @@ Home Screens ships with **anonymous telemetry on by default**. It sends one beac
 - App version and update channel
 - Platform (e.g. "linux-arm64")
 - How many displays, screens, and modules you have (counts only, no content)
-- Which module types and plugins are installed (names, no settings)
+- Which module types and plugins are installed (marketplace plugin names and versions only, no settings; plugins installed from outside the marketplace are counted but never named)
 
 It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Stats > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
 
@@ -178,7 +178,7 @@ The most common cause is a missing or invalid API key. Check the following:
 
 1. Open the editor and go to **Settings > Integrations**
 2. Verify that the relevant API key is entered and correct
-3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth, confirm the sign-in flow has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for the two options.
+3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth or an iCloud account, confirm the sign-in has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for all the options.
 4. Check the browser console or server logs for error messages
 
 Some modules also have a refresh interval --- data won't update more frequently than the configured interval.
@@ -203,14 +203,15 @@ Regional free providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are 
 
 ### What photo sources are supported?
 
-Home Screens supports two photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
+Home Screens supports three photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
 
 - **Local** — photos uploaded to `public/backgrounds/` or a subdirectory, managed through the editor or API
 - **[Immich](https://immich.app)** — a self-hosted Google Photos alternative; browse and display photos from your Immich library with album, person (face recognition), and favorites filtering
+- **iCloud shared album** — paste a public shared album link from Apple Photos; no account or API key needed
 
-For **background rotation**, three sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), and **Immich**.
+For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
 
-To use Immich, enter your server URL and API key in **Settings > Integrations**. The API key is generated from Immich's Account Settings → API Keys page.
+To use Immich, enter your server URL and API key in **Settings > Integrations**. The API key is generated from Immich's Account Settings → API Keys page. iCloud shared albums need no setup — just a shared album link with the public website option enabled.
 
 ---
 
@@ -228,7 +229,7 @@ Several built-in features help prevent burn-in:
 - **Sleep schedule** --- configure hours when the display is fully blanked (e.g., overnight) at **Settings > Sleep**
 - **Dim schedule** --- reduce brightness during certain hours without fully blanking the screen
 - **Screensaver** --- during sleep, a minimal clock can be shown that moves position to avoid static pixels
-- **Background rotation** --- automatically cycle background images from Unsplash, NASA, or Immich to vary what's on screen
+- **Background rotation** --- automatically cycle background images from Unsplash, NASA, Immich, or an iCloud shared album to vary what's on screen
 
 ### Can I control the display remotely?
 

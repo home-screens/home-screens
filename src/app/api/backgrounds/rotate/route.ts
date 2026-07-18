@@ -7,6 +7,8 @@ import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
 import { immichFetch } from '@/lib/immich';
+import { fetchICloudMedia } from '@/lib/icloud-media';
+import { writeLibraryFile, MAX_IMPORT_IMAGE_BYTES } from '@/lib/library-files';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { findScreenById } from '@/lib/display-filter';
 import type { BackgroundRotation } from '@/types/config';
@@ -24,6 +26,7 @@ interface CacheEntry {
   fetchedAt: number;
   intervalMinutes: number;
   immichFilters?: string;
+  icloudAlbum?: string;
 }
 
 type BackgroundCache = Record<string, CacheEntry>;
@@ -40,6 +43,57 @@ async function readCache(): Promise<BackgroundCache> {
 async function writeCache(cache: BackgroundCache): Promise<void> {
   await fs.mkdir(path.dirname(CACHE_FILE), { recursive: true });
   await fs.writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), 'utf-8');
+}
+
+/** Only files the rotation savers below wrote themselves — user uploads and
+ *  iCloud imports never carry this prefix, so pruning can't touch them. */
+const ROTATION_FILE_RE = /^rotation-/;
+
+/** Unreferenced rotation files kept as a grace buffer, newest first, so a
+ *  display still showing the previous background doesn't lose it mid-swap. */
+const PRUNE_KEEP_RECENT = 8;
+
+function cacheFileName(servePath: string): string | null {
+  try {
+    return new URL(servePath, 'http://local').searchParams.get('file');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rotation files accumulate forever otherwise — an iCloud album alone can
+ * leave thousands of one-time backgrounds on a Pi SD card over a few weeks.
+ * Deletes rotation-cache files that no screen's cache entry references,
+ * keeping the newest few as a grace buffer. Best-effort: any error just
+ * leaves files for the next rotation to prune.
+ */
+async function pruneRotationFiles(cache: BackgroundCache): Promise<void> {
+  const referenced = new Set<string>();
+  for (const entry of Object.values(cache)) {
+    const name = cacheFileName(entry.path);
+    if (name) referenced.add(name);
+  }
+
+  let entries;
+  try {
+    entries = await fs.readdir(BGS, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  const candidates: Array<{ name: string; mtimeMs: number }> = [];
+  for (const dirent of entries) {
+    if (!dirent.isFile() || !ROTATION_FILE_RE.test(dirent.name) || referenced.has(dirent.name)) continue;
+    try {
+      candidates.push({ name: dirent.name, mtimeMs: (await fs.stat(path.join(BGS, dirent.name))).mtimeMs });
+    } catch { /* raced deletion */ }
+  }
+
+  candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  for (const { name } of candidates.slice(PRUNE_KEEP_RECENT)) {
+    await fs.unlink(path.join(BGS, name)).catch(() => { /* best effort */ });
+  }
 }
 
 async function fetchAndSavePhoto(query: string, accessKey: string): Promise<string | null> {
@@ -67,7 +121,7 @@ async function fetchAndSavePhoto(query: string, accessKey: string): Promise<stri
 
   const buffer = Buffer.from(await imgRes.arrayBuffer());
   const ext = 'jpg';
-  const filename = `unsplash-${photoId}.${ext}`;
+  const filename = `rotation-unsplash-${photoId}.${ext}`;
   const filePath = path.join(BGS, filename);
 
   await fs.mkdir(BGS, { recursive: true });
@@ -95,7 +149,7 @@ async function fetchAndSaveApod(): Promise<string | null> {
   const apodContentType = imgRes.headers.get('content-type') ?? '';
   const apodExt = apodContentType.includes('png') ? '.png' : apodContentType.includes('webp') ? '.webp' : '.jpg';
   const dateStr = (apod.date as string || '').replace(/-/g, '');
-  const filename = `nasa-apod-${dateStr}${apodExt}`;
+  const filename = `rotation-nasa-apod-${dateStr}${apodExt}`;
   const filePath = path.join(BGS, filename);
 
   await fs.mkdir(BGS, { recursive: true });
@@ -130,11 +184,37 @@ async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<st
   const buffer = Buffer.from(await imgRes.arrayBuffer());
   const contentType = imgRes.headers.get('content-type') ?? '';
   const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
-  const filename = `immich-${assetId}${ext}`;
+  const filename = `rotation-immich-${assetId}${ext}`;
   const filePath = path.join(BGS, filename);
 
   await fs.mkdir(BGS, { recursive: true });
   await fs.writeFile(filePath, buffer);
+
+  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+}
+
+async function fetchAndSaveICloudPhoto(rotation: BackgroundRotation): Promise<string | null> {
+  // Backgrounds are photos only — a video can't be a CSS background image.
+  const images = (await fetchICloudMedia(rotation.icloudAlbumUrl || '')).filter((item) => item.type === 'image');
+  if (images.length === 0) return null;
+  const pick = images[Math.floor(Math.random() * images.length)];
+
+  const imgRes = await fetchWithTimeout(pick.url, { timeout: 30_000 });
+  if (!imgRes.ok) return null;
+
+  const contentType = imgRes.headers.get('content-type') ?? '';
+  const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
+  // Keyed by the photo's stable GUID (like rotation-immich-<assetId>): the
+  // serve path must change between rotations or useBackgroundRotation never
+  // swaps it. The rotation- prefix keeps these prunable without ever touching
+  // user-imported icloud-<guid> files living in the same root.
+  const filename = `rotation-icloud-${pick.guid.replace(/[^A-Za-z0-9-]/g, '')}${ext}`;
+  const filePath = path.join(BGS, filename);
+
+  await fs.mkdir(BGS, { recursive: true });
+  // Stream to disk like the import path — an Apple original can be tens of
+  // MB, too much to buffer whole on a Pi hub, and the cap applies mid-stream.
+  await writeLibraryFile(filePath, imgRes.body, MAX_IMPORT_IMAGE_BYTES);
 
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
 }
@@ -165,7 +245,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
 
   const rotation = screen.backgroundRotation;
   const source = rotation?.source || 'unsplash';
-  if (!rotation?.enabled || (source === 'unsplash' && !rotation.query) || (source !== 'unsplash' && source !== 'nasa-apod' && source !== 'immich')) {
+  if (!rotation?.enabled || (source === 'unsplash' && !rotation.query) || (source !== 'unsplash' && source !== 'nasa-apod' && source !== 'immich' && source !== 'icloud')) {
     return NextResponse.json({ path: screen.backgroundImage || null });
   }
 
@@ -176,6 +256,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const immichFilters = source === 'immich'
     ? JSON.stringify({ a: rotation.immichAlbumId, p: rotation.immichPersonId, f: rotation.immichFavoritesOnly })
     : undefined;
+  const icloudAlbum = source === 'icloud' ? (rotation.icloudAlbumUrl || '') : undefined;
 
   // Check if cached entry is still fresh
   if (
@@ -184,6 +265,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     entry.query === rotation.query &&
     entry.intervalMinutes === (rotation.intervalMinutes || 60) &&
     entry.immichFilters === immichFilters &&
+    entry.icloudAlbum === icloudAlbum &&
     now - entry.fetchedAt < intervalMs
   ) {
     return NextResponse.json({ path: entry.path, fresh: false });
@@ -195,6 +277,8 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
 
     if (source === 'immich') {
       newPath = await fetchAndSaveImmichPhoto(rotation);
+    } else if (source === 'icloud') {
+      newPath = await fetchAndSaveICloudPhoto(rotation);
     } else if (source === 'nasa-apod') {
       newPath = await fetchAndSaveApod();
     } else {
@@ -213,8 +297,10 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         fetchedAt: now,
         intervalMinutes: rotation.intervalMinutes || 60,
         immichFilters,
+        icloudAlbum,
       };
       await writeCache(cache);
+      await pruneRotationFiles(cache);
       return NextResponse.json({ path: newPath, fresh: true });
     }
   } catch {

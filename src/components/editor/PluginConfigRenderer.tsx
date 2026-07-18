@@ -27,6 +27,24 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
     });
   };
 
+  return <PluginSchemaFields schema={schema} values={config} onFieldChange={setConfig} />;
+}
+
+/**
+ * The schema→widgets renderer behind PluginConfigRenderer, decoupled from the
+ * editor store so other value stores can reuse it — PluginSettingsSection
+ * renders a manifest `settingsSchema` against plugin-level settings with the
+ * exact same widgets and grouping.
+ */
+export function PluginSchemaFields({
+  schema,
+  values,
+  onFieldChange,
+}: {
+  schema: PluginConfigSchema;
+  values: Record<string, unknown>;
+  onFieldChange: (key: string, value: unknown) => void;
+}) {
   if (!schema?.properties) return null;
 
   // Group fields by ui:group
@@ -48,35 +66,54 @@ export default function PluginConfigRenderer({ mod, screenId, schema }: PluginCo
     <div className="space-y-3">
       {/* Ungrouped fields first */}
       {ungrouped.map(([key, prop]) => (
-        <ConditionalField key={key} prop={prop} config={config} schemaProperties={schema.properties}>
+        <ConditionalField key={key} prop={prop} config={values} schemaProperties={schema.properties}>
           <ConfigField
             fieldKey={key}
             prop={prop}
-            value={config[key]}
-            onChange={(v) => setConfig(key, v)}
+            value={values[key]}
+            onChange={(v) => onFieldChange(key, v)}
           />
         </ConditionalField>
       ))}
-      {/* Grouped fields with section headers */}
-      {[...groups.entries()].map(([groupName, fields]) => (
-        <div key={groupName} className="space-y-3">
-          <div className="text-[10px] font-semibold text-hs-text-faint uppercase tracking-wider pt-2 border-t border-hs-border-strong/50">
-            {groupName}
-          </div>
-          {fields.map(([key, prop]) => (
-            <ConditionalField key={key} prop={prop} config={config} schemaProperties={schema.properties}>
+      {/* Grouped fields with section headers. A group whose fields are all
+          hidden by ui:showWhen renders nothing — no orphaned header. */}
+      {[...groups.entries()].map(([groupName, fields]) => {
+        const visible = fields.filter(([, prop]) =>
+          isFieldVisible(prop, values, schema.properties),
+        );
+        if (visible.length === 0) return null;
+        return (
+          <div key={groupName} className="space-y-3">
+            <div className="text-[10px] font-semibold text-hs-text-faint uppercase tracking-wider pt-2 border-t border-hs-border-strong/50">
+              {groupName}
+            </div>
+            {visible.map(([key, prop]) => (
               <ConfigField
+                key={key}
                 fieldKey={key}
                 prop={prop}
-                value={config[key]}
-                onChange={(v) => setConfig(key, v)}
+                value={values[key]}
+                onChange={(v) => onFieldChange(key, v)}
               />
-            </ConditionalField>
-          ))}
-        </div>
-      ))}
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
+}
+
+/** ui:showWhen predicate: unset conditions are visible; the controlling
+ *  field's schema default stands in until the user touches it. */
+export function isFieldVisible(
+  prop: PluginConfigProperty,
+  config: Record<string, unknown>,
+  schemaProperties?: Record<string, PluginConfigProperty>,
+): boolean {
+  const condition = prop['ui:showWhen'];
+  if (!condition) return true;
+  const effectiveValue = config[condition.field] ?? schemaProperties?.[condition.field]?.default;
+  return effectiveValue === condition.equals;
 }
 
 /** Wraps a field with ui:showWhen conditional visibility. */
@@ -91,11 +128,7 @@ function ConditionalField({
   schemaProperties?: Record<string, PluginConfigProperty>;
   children: React.ReactNode;
 }) {
-  const condition = prop['ui:showWhen'];
-  if (condition) {
-    const effectiveValue = config[condition.field] ?? schemaProperties?.[condition.field]?.default;
-    if (effectiveValue !== condition.equals) return null;
-  }
+  if (!isFieldVisible(prop, config, schemaProperties)) return null;
   return <>{children}</>;
 }
 

@@ -73,6 +73,15 @@ const containsText = (needle: string) => async (mod: Locator): Promise<void> => 
   await expect(mod).toContainText(needle);
 };
 
+/**
+ * Module textContent matches the regex (polls so async content can settle).
+ * textContent, not innerText, so CSS text-transform can't defeat the match.
+ */
+const matchesText = (re: RegExp) => async (mod: Locator): Promise<void> => {
+  await expect(mod).toBeVisible();
+  await expect.poll(async () => re.test((await mod.evaluate((el) => el.textContent)) || '')).toBe(true);
+};
+
 /** The module renders a matching descendant element (for text-less modules). */
 const hasChild = (selector: string) => async (mod: Locator): Promise<void> => {
   await expect(mod.locator(selector).first()).toBeVisible();
@@ -85,22 +94,58 @@ const hasSize = async (mod: Locator): Promise<void> => {
   expect(box && box.width > 0 && box.height > 0).toBeTruthy();
 };
 
+/**
+ * The module rendered a descendant `<img>` whose src matches `pattern`. Used
+ * for image modules where the meaningful proof is that the src resolved to the
+ * stubbed source (not merely that some `<img>` exists). `toBeAttached` rather
+ * than `toBeVisible` because the stub aborts the external/remote load, so the
+ * element carries the correct src attribute but never paints a bitmap.
+ */
+const hasImgSrc = (pattern: RegExp) => async (mod: Locator): Promise<void> => {
+  await expect(mod).toBeVisible();
+  await expect(mod.locator('img').first()).toHaveAttribute('src', pattern);
+};
+
+/** The stubbed backgrounds.json entry — a 1x1 transparent GIF as a data: URL. */
+const STUB_BACKGROUND_SRC = /^data:image\/gif;base64,R0lGOD/;
+
 // --- The registry ----------------------------------------------------------
 
 export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   // ---- Network-free ----
   text: { type: 'text', kind: 'network-free', config: { content: 'E2E TEXT MODULE' }, expect: containsText('E2E TEXT MODULE') },
-  clock: { type: 'clock', kind: 'network-free', expect: rendersText },
-  date: { type: 'date', kind: 'network-free', expect: rendersText },
+  clock: { type: 'clock', kind: 'network-free', expect: matchesText(/\d{1,2}:\d{2}/) },
+  // defaultConfig: view 'full', dateFormat 'MMMM d', showDayName true — assert
+  // today's actual day name and month (content-shaped, not just "some text").
+  date: {
+    type: 'date', kind: 'network-free',
+    expect: async (mod) => {
+      const now = new Date();
+      await containsText(now.toLocaleString('en-US', { weekday: 'long' }))(mod);
+      await containsText(now.toLocaleString('en-US', { month: 'long' }))(mod);
+    },
+  },
   countdown: {
     type: 'countdown', kind: 'network-free',
     config: { events: [{ id: 'e1', name: 'E2E LAUNCH', date: '2099-12-31' }], view: 'all' },
     expect: containsText('E2E LAUNCH'),
   },
-  'year-progress': { type: 'year-progress', kind: 'network-free', expect: rendersText },
-  'multi-month': { type: 'multi-month', kind: 'network-free', expect: rendersText },
+  // showYear + showPercentage default on — assert the live year and a percent.
+  'year-progress': {
+    type: 'year-progress', kind: 'network-free',
+    expect: async (mod) => {
+      await containsText(String(new Date().getFullYear()))(mod);
+      await matchesText(/%/)(mod);
+    },
+  },
+  'multi-month': {
+    type: 'multi-month', kind: 'network-free',
+    expect: async (mod) => { await containsText(new Date().toLocaleString('en-US', { month: 'long' }))(mod); },
+  },
   shape: { type: 'shape', kind: 'network-free', expect: hasSize },
-  icon: { type: 'icon', kind: 'network-free', expect: hasChild('i') },
+  // defaultConfig is iconName 'star' + style 'solid' — assert the exact FA
+  // classes so a wrong icon can't pass as "some <i> rendered".
+  icon: { type: 'icon', kind: 'network-free', expect: hasChild('i.fa-solid.fa-star') },
   'qr-code': {
     type: 'qr-code', kind: 'network-free',
     config: { mode: 'custom', data: 'https://example.com/e2e', label: 'E2E QR' },
@@ -116,15 +161,32 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     type: 'image', kind: 'network-free',
     // data: URL bypasses useAuthImage's /api fetch and renders verbatim.
     config: { src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', alt: 'e2e' },
-    expect: hasChild('img'),
+    // Assert the src actually resolved to the configured source (matching
+    // photo-slideshow's rigor), not merely that some <img> exists.
+    expect: hasImgSrc(/^data:image\/gif;base64,R0lGOD/),
   },
   'sticky-note': { type: 'sticky-note', kind: 'network-free', config: { content: 'E2E STICKY' }, expect: containsText('E2E STICKY') },
   greeting: { type: 'greeting', kind: 'network-free', config: { name: 'E2E PERSON' }, expect: containsText('E2E PERSON') },
-  'moon-phase': { type: 'moon-phase', kind: 'network-free', expect: rendersText },
-  'sunrise-sunset': { type: 'sunrise-sunset', kind: 'network-free', expect: rendersText },
-  'garbage-day': { type: 'garbage-day', kind: 'network-free', expect: rendersText },
-  'display-control': { type: 'display-control', kind: 'network-free', expect: hasChild('button') },
-  'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: rendersText },
+  'moon-phase': {
+    type: 'moon-phase', kind: 'network-free',
+    expect: matchesText(/New Moon|Waxing|Waning|Full Moon|First Quarter|Last Quarter/),
+  },
+  'sunrise-sunset': {
+    type: 'sunrise-sunset', kind: 'network-free',
+    expect: async (mod) => { await containsText('Sunrise')(mod); await matchesText(/\d{1,2}:\d{2}/)(mod); },
+  },
+  // defaultConfig has trashDay: 1 (weekly) — the Trash stream label renders.
+  'garbage-day': { type: 'garbage-day', kind: 'network-free', expect: containsText('Trash') },
+  // Default panel layout — assert the actual command buttons, not "a button".
+  'display-control': {
+    type: 'display-control', kind: 'network-free',
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label="Previous screen"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label="Next screen"]')).toBeVisible();
+    },
+  },
+  // Word + italic part-of-speech line (the module's two-part layout).
+  'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: matchesText(/noun|verb|adjective|adverb/) },
   affirmations: { type: 'affirmations', kind: 'network-free', expect: rendersText },
   // Non-interactive todo carries its items inline in config — no fetch.
   todo: {
@@ -135,8 +197,19 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
 
   // ---- Networked ----
   weather: { type: 'weather', kind: 'networked', stubKey: 'weather', expect: containsText('72°') },
-  'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: async (mod) => { await expect(mod).toBeVisible(); await expect(mod).toContainText('2'); } },
-  'rain-map': { type: 'rain-map', kind: 'networked', stubKey: 'rain-map', expect: hasSize },
+  // aqi 2 in air-quality.json maps to the 'fair' label ("Fair"), so assert the
+  // derived category rather than the bare index digit.
+  'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: containsText('Fair') },
+  // Radar tiles build their src from the fetched RainViewer host (rain-map.json:
+  // "https://tilecache.rainviewer.com"), so a tile carrying that host proves the
+  // payload rendered onto the map — not merely that the wrapper has size.
+  'rain-map': {
+    type: 'rain-map', kind: 'networked', stubKey: 'rain-map',
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect(mod.locator('img[src*="tilecache.rainviewer.com"]').first()).toBeAttached();
+    },
+  },
   news: { type: 'news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },
   'stock-ticker': { type: 'stock-ticker', kind: 'networked', stubKey: 'stocks', expect: containsText('AAPL') },
   crypto: { type: 'crypto', kind: 'networked', stubKey: 'crypto', expect: containsText('Bitcoin') },
@@ -160,8 +233,18 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     config: { view: 'agenda' },
     expect: containsText('Dentist Appointment'),
   },
-  'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasChild('img') },
-  'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasChild('img') },
+  'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
+  'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
+  // The stub aborts the media load itself, so assert the <video> resolved its
+  // src from the typed list (mirroring hasImgSrc's toBeAttached rationale).
+  video: {
+    type: 'video', kind: 'networked', stubKey: 'backgrounds-videos',
+    config: { source: 'file', file: 'e2e-clip.mp4' },
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect(mod.locator('video').first()).toHaveAttribute('src', /e2e-clip\.mp4/);
+    },
+  },
 
   // ---- Local-data ----
   'chore-chart': { type: 'chore-chart', kind: 'local-data', seed: 'chores', config: { view: 'today' }, expect: containsText('Feed the dog') },

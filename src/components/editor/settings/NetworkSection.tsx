@@ -288,7 +288,7 @@ export default function NetworkSection() {
 
         {/* Hidden network connect */}
         {hasWifi && (
-          <section>
+          <section data-field-id="network.hiddenNetworkConnect">
             <button
               type="button"
               onClick={handleHiddenNetworkOpen}

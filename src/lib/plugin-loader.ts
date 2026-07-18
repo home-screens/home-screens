@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { PluginManifest, InstalledPlugin, PluginConfigSectionProps } from '@/types/plugins';
+import type { PluginManifest, InstalledPlugin, PluginConfigSectionProps, StateProviderProps, SearchStateKeys } from '@/types/plugins';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import { usePluginStore } from '@/stores/plugin-store';
 import { registerPluginModule } from '@/lib/module-registry';
@@ -77,7 +77,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   await loadPluginTranslations(manifest, base);
 
   // 3. Execute bundle
-  const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
+  const { component, configSection, stateProvider, deriveProvidedKeys, searchStateKeys } = executeBundle(bundleText, manifest);
 
   // 4. Migrate configs if dev plugin version changed
   const devPlugins = getDevPlugins();
@@ -98,7 +98,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
 
   // 6. Register client-side
   registerPluginModule(manifest, { deriveProvidedKeys });
-  store.registerPlugin(moduleType, component, manifest, configSection);
+  store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
   // 7. Persist dev mapping in localStorage
   devPlugins.set(manifest.id, { url: base, manifest });
@@ -356,9 +356,22 @@ export async function loadAllPlugins(): Promise<void> {
     return;
   }
 
-  // Skip installed plugins that have a dev override — dev plugins load from
-  // the dev server and don't need a bundle on disk
+  // Refresh plugin-level settings wholesale from the installed payload —
+  // covers dev-overridden plugins too (their installed.json record is the
+  // settings source even when the bundle loads from the dev server).
+  store.setPluginSettingsMap(
+    new Map(plugins.map((p) => [p.id.toLowerCase(), p.settings ?? {}])),
+  );
+
+  // Dev overrides live in localStorage, which is shared across every tab of
+  // the origin — including unauthenticated display tabs. Only the editor
+  // actually loads the dev bundle (see the isEditor gate below), so only the
+  // editor may skip an installed copy in favor of its override. On a display
+  // page the installed copy must still load, otherwise a plugin with a dev
+  // override registered in this browser would load nowhere and its modules
+  // (and stateProvider) would vanish from the display.
   const devPluginIds = new Set(getDevPlugins().keys());
+  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
 
   // Now that the new plugin set is known, purge shared-state keys only for
   // plugins that are gone from it (uninstalled or disabled). A re-registered
@@ -372,9 +385,11 @@ export async function loadAllPlugins(): Promise<void> {
     }
   }
 
-  // Load installed plugins in parallel, collect pending migrations
+  // Load installed plugins in parallel, collect pending migrations. On the
+  // editor, skip any plugin whose dev override will load from the dev server;
+  // on a display page the override never loads, so keep the installed copy.
   const pendingMigrations: PendingMigration[] = [];
-  const installedOnly = plugins.filter((p) => !devPluginIds.has(p.id));
+  const installedOnly = plugins.filter((p) => (isEditor ? !devPluginIds.has(p.id) : true));
 
   if (installedOnly.length > 0) {
     await Promise.allSettled(
@@ -384,8 +399,45 @@ export async function loadAllPlugins(): Promise<void> {
 
   // Migrations and dev plugins only run in the editor (authenticated context).
   // The display page is unauthenticated — PUT /api/config would fail with 401.
-  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
   if (!isEditor) return;
+
+  // Load dev plugins from localStorage (these override installed versions).
+  // Runs before the migration loop: a failed override falls back to
+  // loadSinglePlugin, which can queue a migration the loop must still process.
+  const devPlugins = getDevPlugins();
+  for (const [pluginId, dev] of devPlugins) {
+    try {
+      await loadDevPlugin(dev.url);
+      startDevPolling(pluginId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.warn(`Dev plugin ${pluginId} failed to load from ${dev.url}:`, message);
+
+      // A dead dev server must not take the module off the palette: fall
+      // back to the installed copy that was skipped in favor of the override.
+      const installed = plugins.find((p) => p.id === pluginId);
+      if (!installed) {
+        store.setError(pluginId, {
+          message: `Could not load the dev version from ${dev.url} — ${message}`,
+          phase: 'load',
+        });
+        continue;
+      }
+      await loadSinglePlugin(installed, store, pendingMigrations);
+
+      // loadSinglePlugin clears the error on success; only replace it with
+      // the informational notice if the fallback actually registered (a
+      // fresh getState() — `store` predates the await and holds the old map).
+      const registered = usePluginStore.getState()
+        .plugins.has(`plugin:${installed.moduleType}`);
+      if (registered) {
+        store.setError(pluginId, {
+          message: `Dev version at ${dev.url} isn't responding — using installed v${installed.version} instead. Remove it from the Developer tab if you're done developing.`,
+          phase: 'load',
+        });
+      }
+    }
+  }
 
   // Run config migrations sequentially to avoid concurrent read-modify-write
   for (const { manifest, oldVersion, pluginId } of pendingMigrations) {
@@ -397,19 +449,6 @@ export async function loadAllPlugins(): Promise<void> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pluginId, clearPrevVersion: true }),
       }).catch(() => {}); // fire-and-forget
-    }
-  }
-
-  // Load dev plugins from localStorage (these override installed versions)
-  const devPlugins = getDevPlugins();
-  for (const [pluginId, dev] of devPlugins) {
-    try {
-      await loadDevPlugin(dev.url);
-      startDevPolling(pluginId);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      log.warn(`Dev plugin ${pluginId} failed to load:`, message);
-      store.setError(pluginId, { message, phase: 'load' });
     }
   }
 }
@@ -451,7 +490,7 @@ async function loadSinglePlugin(
     await loadPluginTranslations(manifest);
 
     // 4. Execute IIFE bundle
-    const { component, configSection, deriveProvidedKeys } = executeBundle(bundleText, manifest);
+    const { component, configSection, stateProvider, deriveProvidedKeys, searchStateKeys } = executeBundle(bundleText, manifest);
 
     // 5. Queue migration if server reports a version change
     if (plugin.previousVersion && plugin.previousVersion !== manifest.version) {
@@ -464,7 +503,7 @@ async function loadSinglePlugin(
 
     // 6. Register into module registry and Zustand store
     registerPluginModule(manifest, { deriveProvidedKeys });
-    store.registerPlugin(moduleType, component, manifest, configSection);
+    store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
     // 7. Wire prefetchUrl into the fetch key registry if declared
     if (manifest.prefetchUrl) {
@@ -491,7 +530,9 @@ function executeBundle(
 ): {
   component: ComponentType<Record<string, unknown>>;
   configSection?: ComponentType<PluginConfigSectionProps>;
+  stateProvider?: ComponentType<StateProviderProps>;
   deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
+  searchStateKeys?: SearchStateKeys;
 } {
   // Clean up any previous plugin global
   window.__HS_PLUGIN__ = undefined;
@@ -528,6 +569,15 @@ function executeBundle(
         | undefined;
     }
 
+    // Resolve optional headless state provider (manifest-declared export,
+    // mounted by PluginServiceLayer with the demand-driven key set).
+    let stateProvider: ComponentType<StateProviderProps> | undefined;
+    if (manifest.exports?.stateProvider) {
+      stateProvider = pluginExports[manifest.exports.stateProvider] as
+        | ComponentType<StateProviderProps>
+        | undefined;
+    }
+
     // Optional config-driven state-key deriver. Lives on the runtime
     // registration object (not the manifest) because the manifest is static
     // JSON and this must be a function. Conventional export name.
@@ -538,7 +588,14 @@ function executeBundle(
           ) => ProvidedStateKey[])
         : undefined;
 
-    return { component, configSection, deriveProvidedKeys };
+    // Optional editor-only key search. Conventional named export like
+    // deriveProvidedKeys — a function can't live in the JSON manifest.
+    const searchStateKeys =
+      typeof pluginExports.searchStateKeys === 'function'
+        ? (pluginExports.searchStateKeys as SearchStateKeys)
+        : undefined;
+
+    return { component, configSection, stateProvider, deriveProvidedKeys, searchStateKeys };
   } catch (err) {
     throw new Error(`Bundle execution failed: ${err instanceof Error ? err.message : String(err)}`);
   } finally {

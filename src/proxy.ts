@@ -126,6 +126,10 @@ const PUBLIC_AUTH_ROUTES = [
   '/api/auth/logout',
   '/api/auth/status',
   '/api/auth/google/callback',
+  // Shared OAuth2 redirect target for plugins. The provider redirects the
+  // user's browser here with no session cookie; the route only acts on a
+  // validly HMAC-signed `state` (see the route file for the full rationale).
+  '/api/plugins/auth/callback',
 ];
 
 /**

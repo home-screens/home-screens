@@ -8,6 +8,7 @@ import { useTypewriter } from '@/hooks/useTypewriter';
 import { resolveTemplateVariables, parseMarkdown, splitRotationContent } from '@/lib/text-utils';
 import { extractSharedStateKeys, resolveSharedStateTokens } from '@/lib/shared-state-template';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
+import { useFormattingLocale } from '@/i18n';
 import { resolveFontStack } from '@/lib/font-registry';
 import { useAutoFit } from './text/useAutoFit';
 import MarqueeLayout from './text/MarqueeLayout';
@@ -97,9 +98,13 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   // referenced key's entry changes, and zero tokens means no subscription.
   const stateKeys = useMemo(() => extractSharedStateKeys(templateResolved), [templateResolved]);
   const sharedStates = useSharedStateKeys(stateKeys);
+  const formattingLocale = useFormattingLocale();
   const resolvedContent = useMemo(
-    () => (stateKeys.length > 0 ? resolveSharedStateTokens(templateResolved, sharedStates) : templateResolved),
-    [templateResolved, stateKeys, sharedStates],
+    () =>
+      stateKeys.length > 0
+        ? resolveSharedStateTokens(templateResolved, sharedStates, { locale: formattingLocale })
+        : templateResolved,
+    [templateResolved, stateKeys, sharedStates, formattingLocale],
   );
 
   // --- 3. Typewriter ---

@@ -131,7 +131,7 @@ describe('buildBeaconPayload', () => {
     // Identity
     expect(payload.installId).toBe('payload-test-uuid');
     expect(payload.appVersion).toMatch(/^\d+\.\d+\.\d+/);
-    expect(payload.beaconVersion).toBe(3);
+    expect(payload.beaconVersion).toBe(4);
     expect(payload.sentAt).toBeTruthy();
 
     // Platform
@@ -157,6 +157,7 @@ describe('buildBeaconPayload', () => {
     expect(typeof payload.hasGoogleCalendar).toBe('boolean');
     expect(typeof payload.hasIcalSources).toBe('boolean');
     expect(typeof payload.pluginCount).toBe('number');
+    expect(Array.isArray(payload.plugins)).toBe(true);
   });
 
   it('counts modules across multiple screens', async () => {
@@ -288,7 +289,7 @@ describe('buildBeaconPayload', () => {
     expect(payload.displayCount).toBe(0);
     expect(payload.displays).toEqual([]);
     expect(payload.hasOwnedProfiles).toBe(false);
-    expect(payload.beaconVersion).toBe(3);
+    expect(payload.beaconVersion).toBe(4);
     // Legacy screen/module counts still read from config.screens
     expect(payload.screenCount).toBe(1);
     expect(payload.moduleCount).toBe(2);
@@ -723,6 +724,110 @@ describe('buildBeaconPayload', () => {
     expect(payload.displays[0].h).toBe(2160);
   });
 
+});
+
+describe('buildBeaconPayload plugins[] (beacon v4)', () => {
+  // Seeds data/plugins/installed.json inside the per-test tmp cwd — the same
+  // lazy-cwd json-store mechanism the telemetry file itself relies on. The
+  // mtime cache in plugins.ts self-invalidates because each test's file is
+  // brand new.
+  async function seedInstalledPlugins(plugins: unknown[]) {
+    const installedPath = path.join(tmpDir, 'data', 'plugins', 'installed.json');
+    await fs.mkdir(path.dirname(installedPath), { recursive: true });
+    await fs.writeFile(
+      installedPath,
+      JSON.stringify({ schemaVersion: 1, plugins }),
+      'utf-8',
+    );
+  }
+
+  const telemetryData = { installId: 'plugins-v4', firstSeenAt: '', lastBeaconAt: null };
+
+  it('is an empty array when no plugins are installed', async () => {
+    const { buildBeaconPayload } = await import('../telemetry');
+    const payload = await buildBeaconPayload(makeConfig(), telemetryData);
+    expect(payload.plugins).toEqual([]);
+    expect(payload.pluginCount).toBe(0);
+  });
+
+  it('reports marketplace plugin ids and versions, treating missing source as marketplace', async () => {
+    await seedInstalledPlugins([
+      {
+        id: 'standings',
+        version: '1.2.0',
+        installedAt: '2026-01-01T00:00:00.000Z',
+        enabled: true,
+        moduleType: 'standings',
+        source: 'marketplace',
+      },
+      {
+        // Legacy entry — source undefined means marketplace
+        id: 'aqi-badge',
+        version: '0.4.1',
+        installedAt: '2026-01-01T00:00:00.000Z',
+        enabled: false,
+        moduleType: 'aqi-badge',
+      },
+    ]);
+
+    const { buildBeaconPayload } = await import('../telemetry');
+    const payload = await buildBeaconPayload(makeConfig(), telemetryData);
+    expect(payload.plugins).toEqual([
+      { id: 'standings', version: '1.2.0', enabled: true },
+      { id: 'aqi-badge', version: '0.4.1', enabled: false },
+    ]);
+    expect(payload.pluginCount).toBe(2);
+  });
+
+  it('anonymizes external plugins to id "external" and never sends manifest id or tarball URL', async () => {
+    await seedInstalledPlugins([
+      {
+        id: 'my-private-widget',
+        version: '2.0.0',
+        installedAt: '2026-01-01T00:00:00.000Z',
+        enabled: true,
+        moduleType: 'private-widget',
+        source: 'external',
+        externalUrl: 'https://internal.example.lan/plugins/my-private-widget-{version}.tgz',
+      },
+      {
+        id: 'standings',
+        version: '1.2.0',
+        installedAt: '2026-01-01T00:00:00.000Z',
+        enabled: true,
+        moduleType: 'standings',
+        source: 'marketplace',
+      },
+    ]);
+
+    const { buildBeaconPayload } = await import('../telemetry');
+    const payload = await buildBeaconPayload(makeConfig(), telemetryData);
+    expect(payload.plugins).toEqual([
+      { id: 'external', version: '2.0.0', enabled: true },
+      { id: 'standings', version: '1.2.0', enabled: true },
+    ]);
+    // User-authored identifier and URL must never leave the host
+    const payloadStr = JSON.stringify(payload);
+    expect(payloadStr).not.toContain('my-private-widget');
+    expect(payloadStr).not.toContain('internal.example.lan');
+  });
+
+  it('caps plugins[] at 100 entries while pluginCount reports the true total', async () => {
+    const many = Array.from({ length: 120 }, (_, i) => ({
+      id: `plugin-${i}`,
+      version: '1.0.0',
+      installedAt: '2026-01-01T00:00:00.000Z',
+      enabled: true,
+      moduleType: `type-${i}`,
+      source: 'marketplace',
+    }));
+    await seedInstalledPlugins(many);
+
+    const { buildBeaconPayload } = await import('../telemetry');
+    const payload = await buildBeaconPayload(makeConfig(), telemetryData);
+    expect(payload.plugins).toHaveLength(100);
+    expect(payload.pluginCount).toBe(120);
+  });
 });
 
 describe('maybeSendBeacon', () => {

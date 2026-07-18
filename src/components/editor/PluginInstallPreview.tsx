@@ -10,6 +10,7 @@ const PERMISSION_KEYS: Record<PluginPermission, string> = {
   events: 'settings.pluginInstallPreview.permissions.events',
   storage: 'settings.pluginInstallPreview.permissions.storage',
   localNetwork: 'settings.pluginInstallPreview.permissions.localNetwork',
+  oauth: 'settings.pluginInstallPreview.permissions.oauth',
 };
 
 function permissionLabel(perm: PluginPermission, t: TranslateFn): string {
@@ -29,6 +30,9 @@ export interface PluginInstallPreviewProps {
   verified?: boolean;
   permissions?: PluginPermission[];
   secrets?: PluginSecretDeclaration[];
+  /** When true, the plugin declares a server-side auth adapter — show that the
+   *  user will need to connect an account after installing. */
+  requiresConnection?: boolean;
   /** When true, render an "External source" amber warning banner. */
   external?: boolean;
   /** SHA-256 hash of the downloaded tarball (shown for external installs only). */
@@ -44,6 +48,7 @@ export default function PluginInstallPreview({
   verified,
   permissions,
   secrets,
+  requiresConnection,
   external,
   sha256,
 }: PluginInstallPreviewProps) {
@@ -135,6 +140,15 @@ export default function PluginInstallPreview({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {requiresConnection && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
+          <Shield className="w-3.5 h-3.5 text-hs-text-muted shrink-0" />
+          <span className="text-xs text-hs-text-secondary">
+            {t('settings.pluginInstallPreview.connectionRequired')}
+          </span>
         </div>
       )}
 

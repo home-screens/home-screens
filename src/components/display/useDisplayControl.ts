@@ -76,5 +76,9 @@ export function useDisplayControl({
     displayId,
   );
 
-  return { displayState, dimOpacity };
+  // `wake`/`forceSleep` are exposed for display rules with the `wake`/`sleep`
+  // actions — the same handlers the remote command path uses, so a rule sleeps
+  // or wakes the display identically to the remote button (a scheduled sleep
+  // window re-asserts itself within 10s either way).
+  return { displayState, dimOpacity, wake, forceSleep };
 }

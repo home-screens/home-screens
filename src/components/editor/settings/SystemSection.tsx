@@ -36,28 +36,15 @@ interface Release {
   published: string | null;
 }
 
-interface BackupFile {
-  name: string;
-  size: number;
-  modified: string;
-}
-
 type PowerState =
   | { status: 'idle' }
   | { status: 'pending'; action: string }
   | { status: 'ok'; action: string }
   | { status: 'error'; message: string };
 
-// kind drives styling/role explicitly — don't sniff English prefixes from message.
-type RestoreStatusKind = 'progress' | 'success' | 'error';
-interface RestoreStatus {
-  message: string;
-  kind: RestoreStatusKind;
-}
-
 interface Props {
-  onUpgrade: (tag: string) => void;
-  onRollback: (tag: string) => void;
+  onUpgrade: (tag: string, currentVersion: string | null) => void;
+  onRollback: (tag: string, currentVersion: string | null) => void;
 }
 
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
@@ -66,10 +53,8 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const { updateSettings, saveConfig } = useEditorStore();
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [releases, setReleases] = useState<Release[]>([]);
-  const [backups, setBackups] = useState<BackupFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
-  const [restoreStatus, setRestoreStatus] = useState<RestoreStatus | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
   const [updateNotifSaveError, setUpdateNotifSaveError] = useState(false);
@@ -86,18 +71,11 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       if (forceCheck) params.set('check', 'true');
       if (channel === 'dev') params.set('channel', 'dev');
       const query = params.toString();
-      const [vRes, bRes] = await Promise.all([
-        editorFetch(`/api/system/version${query ? `?${query}` : ''}`),
-        editorFetch('/api/system/backups'),
-      ]);
+      const vRes = await editorFetch(`/api/system/version${query ? `?${query}` : ''}`);
 
       if (vRes.ok) {
         const data = await vRes.json();
         setVersionInfo(data);
-      }
-      if (bRes.ok) {
-        const data = await bRes.json();
-        setBackups(data.backups ?? []);
       }
     } catch (err) {
       log.debug('Failed to fetch system info:', err);
@@ -173,46 +151,6 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     await action();
   }
 
-  async function handleRestoreBackup(name: string) {
-    await confirmAndRun(
-      {
-        title: t('settings.systemPage.restoreDialog.title'),
-        message: t('settings.systemPage.restoreDialog.message', { name }),
-        confirmLabel: t('settings.systemPage.restoreDialog.confirm'),
-      },
-      async () => {
-        setRestoreStatus({
-          message: t('settings.systemPage.restoreStatus.restoring'),
-          kind: 'progress',
-        });
-        try {
-          const res = await editorFetch('/api/system/backups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name }),
-          });
-          if (res.ok) {
-            setRestoreStatus({
-              message: t('settings.systemPage.restoreStatus.restored'),
-              kind: 'success',
-            });
-          } else {
-            const data = await res.json();
-            setRestoreStatus({
-              message: t('settings.systemPage.restoreStatus.error', { error: data.error }),
-              kind: 'error',
-            });
-          }
-        } catch {
-          setRestoreStatus({
-            message: t('settings.systemPage.restoreStatus.failed'),
-            kind: 'error',
-          });
-        }
-      },
-    );
-  }
-
   async function handleUpgrade(tag: string) {
     await confirmAndRun(
       {
@@ -221,7 +159,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         confirmLabel: t('settings.systemPage.upgradeDialog.confirm'),
         variant: 'primary',
       },
-      async () => { onUpgrade(tag); },
+      async () => { onUpgrade(tag, versionInfo?.current ?? null); },
     );
   }
 
@@ -232,7 +170,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         message: t('settings.systemPage.rollbackDialog.message', { tag }),
         confirmLabel: t('settings.systemPage.rollbackDialog.confirm'),
       },
-      async () => { onRollback(tag); },
+      async () => { onRollback(tag, versionInfo?.current ?? null); },
     );
   }
 
@@ -333,6 +271,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             role="switch"
             aria-checked={advancedMode}
             onClick={handleToggleAdvanced}
+            data-field-id="system.advancedMode"
             className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
             }`}
@@ -347,7 +286,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Current Version */}
-      <section>
+      <section data-field-id="system.version">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.version.heading')}
         </h3>
@@ -368,6 +307,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   {' · '}
                   <button
                     onClick={handleToggleChannel}
+                    data-field-id="system.updateChannel"
                     className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
                   >
                     {channel === 'stable'
@@ -383,6 +323,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={handleCheckUpdates}
             disabled={checking}
+            data-field-id="system.checkForUpdates"
           >
             {checking
               ? t('settings.systemPage.version.checking')
@@ -455,7 +396,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Update Notification */}
-      <section>
+      <section data-field-id="system.updateNotification">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.updateNotification.heading')}
         </h3>
@@ -475,7 +416,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
       </section>
 
       {/* Changelog */}
-      <section>
+      <section data-field-id="system.changelog">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">
             {t('settings.systemPage.changelog.heading')}
@@ -521,10 +462,13 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
       {/* Version History / Rollback */}
       {versionInfo.tags.length > 0 && (
-        <section>
+        <section data-field-id="system.rollback">
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             {t('settings.systemPage.history.heading')}
           </h3>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.systemPage.history.help')}
+          </p>
           <div className="space-y-1 max-h-40 overflow-y-auto">
             {versionInfo.tags.map((tagInfo) => {
               const isCurrent = tagInfo.version === versionInfo.current;
@@ -556,64 +500,6 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         </section>
       )}
 
-      {/* Config Backups */}
-      <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          {t('settings.systemPage.backups.heading')}
-        </h3>
-        {backups.length === 0 ? (
-          <p className="text-xs text-hs-text-faint">
-            {t('settings.systemPage.backups.empty')}
-          </p>
-        ) : (
-          <div className="space-y-1 max-h-40 overflow-y-auto">
-            {backups.map((b) => (
-              <div
-                key={b.name}
-                className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
-              >
-                <div>
-                  <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
-                  <span className="text-xs text-hs-text-faint ml-2">
-                    {t('settings.systemPage.backups.sizeKb', { size: (b.size / 1024).toFixed(1) })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
-                    download={b.name}
-                    className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                  >
-                    {t('settings.systemPage.backups.download')}
-                  </a>
-                  <button
-                    onClick={() => handleRestoreBackup(b.name)}
-                    className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                  >
-                    {t('settings.systemPage.backups.restore')}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {restoreStatus && (
-          <p
-            className={`text-xs mt-2 ${
-              restoreStatus.kind === 'error'
-                ? 'text-hs-danger'
-                : restoreStatus.kind === 'progress'
-                  ? 'text-hs-text-faint'
-                  : 'text-hs-success'
-            }`}
-            aria-live="polite"
-            role={restoreStatus.kind === 'error' ? 'alert' : undefined}
-          >
-            {restoreStatus.message}
-          </p>
-        )}
-      </section>
-
       {/* System Actions */}
       <section>
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
@@ -625,6 +511,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={() => handlePowerAction('restart-service')}
             disabled={powerState.status !== 'idle'}
+            data-field-id="system.restartService"
           >
             {t('settings.systemPage.actions.restartService')}
           </Button>
@@ -633,6 +520,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             size="sm"
             onClick={() => handlePowerAction('reboot')}
             disabled={powerState.status !== 'idle'}
+            data-field-id="system.rebootSystem"
           >
             {t('settings.systemPage.actions.rebootSystem')}
           </Button>

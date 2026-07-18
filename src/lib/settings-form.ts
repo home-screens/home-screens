@@ -1,4 +1,4 @@
-import type { GlobalSettings, ICalSource } from '@/types/config';
+import type { GlobalSettings, ICalSource, ICloudSource } from '@/types/config';
 
 /**
  * Form state ↔ GlobalSettings transforms for the Defaults settings page.
@@ -39,6 +39,7 @@ export interface WeatherState {
 export interface CalendarState {
   selectedCalendarIds: string[];
   icalSources: ICalSource[];
+  icloudSources: ICloudSource[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry: string;
@@ -90,7 +91,7 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
-  calendar: { selectedCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '' },
+  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '' },
   sleep: {
     sleepEnabled: false,
     dimAfterMinutes: 10,
@@ -135,6 +136,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
     calendar: {
       selectedCalendarIds: s.calendar.googleCalendarIds ?? (s.calendar.googleCalendarId ? [s.calendar.googleCalendarId] : []),
       icalSources: s.calendar.icalSources ?? [],
+      icloudSources: s.calendar.icloudSources ?? [],
       maxEvents: s.calendar.maxEvents ?? FORM_DEFAULTS.calendar.maxEvents,
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
@@ -192,6 +194,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       googleCalendarId: calendar.selectedCalendarIds[0] ?? '',
       googleCalendarIds: calendar.selectedCalendarIds,
       icalSources: calendar.icalSources,
+      icloudSources: calendar.icloudSources,
       maxEvents: calendar.maxEvents,
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),

@@ -206,6 +206,7 @@ The following integrations can be configured through the editor:
 |---|---|---|
 | iCal feeds | Subscribe to any iCal/ICS URL (Google, Apple, Outlook, Fastmail, etc.) | For calendar module (simplest path) |
 | Google Calendar OAuth | OAuth client ID and secret for the calendar picker + native color-coding | Optional — only if you want OAuth instead of an iCal URL |
+| iCloud Calendar | Apple ID + app-specific password for the iCloud calendar picker and contact birthdays | Optional — only for iCloud calendars without public sharing links |
 | OpenWeatherMap | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
 | WeatherAPI | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
 | Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
@@ -228,7 +229,7 @@ The editor includes a system management panel under **Settings > System** for up
 
 ## Calendar setup
 
-The calendar module has **one input — iCal feeds — and two ways to use it with Google Calendar**. Apple iCloud, Outlook, Fastmail, and most other services are just iCal URLs. Google Calendar works the same way (via its [private iCal address](https://support.google.com/calendar/answer/37648?hl=en)) **or** via OAuth if you want multi-calendar selection with native color-coding.
+The calendar module has three ways to get events in. **iCal feeds** are the universal path — Outlook, Fastmail, and most other services are just iCal URLs, and Google Calendar works that way too (via its [private iCal address](https://support.google.com/calendar/answer/37648?hl=en)). If you want more, there are two account sign-ins: **Google OAuth** for multi-calendar selection with native color-coding, and **iCloud** for Apple calendars (plus contact birthdays) without making anything public.
 
 ### Which Google option should I pick?
 
@@ -242,7 +243,7 @@ The calendar module has **one input — iCal feeds — and two ways to use it wi
 | Works for shared / family calendars | Yes, if owner exposes the URL | Yes, after grant |
 | Write access (future) | Never | Possible |
 
-**Rule of thumb:** start with iCal. Only move to OAuth if you want the Google color-coding or the multi-calendar picker.
+**Rule of thumb:** start with iCal. Only move to OAuth if you want the Google color-coding or the multi-calendar picker. For Apple calendars, the iCloud sign-in (Option 3) is usually nicer than public iCal links.
 
 ### Option 1 — iCal feeds (works for Google Calendar, Apple, Outlook, Fastmail, …)
 
@@ -267,6 +268,15 @@ OAuth uses Google's **Device Flow**, so you can authorize from any phone or lapt
 6. Enable the **Google Calendar API** at APIs & Services > Library
 7. In the editor, go to **Settings > Calendar > Sign in with Google**
 8. You'll see a code and a link to `google.com/device` — enter the code on your phone or computer and grant access
+
+### Option 3 — iCloud calendars (app-specific password)
+
+Sign in to iCloud with an **app-specific password** — a password you create just for Home Screens, so your real Apple ID password is never stored. Your calendars stay private; nothing has to be shared publicly.
+
+1. Go to [account.apple.com](https://account.apple.com) > **Sign-In and Security > App-Specific Passwords** and create one (name it anything, e.g. "Home Screens")
+2. In the editor, go to **Settings > Calendar > iCloud Accounts** and add your Apple ID email and the app-specific password — you can add more than one account
+3. Pick which calendars to display — Apple's calendar colors carry over automatically
+4. Optionally turn on the **Birthdays** calendar, built from the birthdays saved in your contacts
 
 ### Zero-config defaults
 

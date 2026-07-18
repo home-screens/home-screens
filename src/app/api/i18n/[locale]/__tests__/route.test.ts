@@ -100,8 +100,30 @@ describe('GET /api/i18n/[locale]', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual({ core: { hello: 'Hello', today: 'Today' } });
-    expect(res.headers.get('X-Locale')).toBe('en-US');
+    // X-Locale names the tag whose chain was walked, not the file served.
+    expect(res.headers.get('X-Locale')).toBe('xx-YY');
     expect(res.headers.get('X-Locale-Registered')).toBe('false');
+  });
+
+  it('unregistered regional tag (de-AT) serves its registered sibling, matching SSR', async () => {
+    // buildLocaleBlob walks de-AT → de-DE for server rendering; the API
+    // route must resolve identically or a de-AT display would SSR German
+    // and then hydrate English from this endpoint.
+    const { request, ctx } = makeRequest('de-AT', 'ns=core');
+    const res = await GET(request, ctx);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ core: { hello: 'Hallo', today: 'Heute' } });
+    expect(res.headers.get('X-Locale')).toBe('de-AT');
+    expect(res.headers.get('X-Locale-Registered')).toBe('false');
+  });
+
+  it('a locale segment that is not BCP-47-shaped is treated as the fallback', async () => {
+    const { request, ctx } = makeRequest('..%2Fnot-a-locale', 'ns=core');
+    const res = await GET(request, ctx);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ core: { hello: 'Hello', today: 'Today' } });
+    expect(res.headers.get('X-Locale')).toBe('en-US');
   });
 
   it('rejects path-traversal namespace with HTTP 400', async () => {

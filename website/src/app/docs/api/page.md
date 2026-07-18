@@ -82,7 +82,7 @@ The `minutely` and `alerts` fields are included when the provider supports them 
 
 ### GET /api/calendar
 
-Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars **and** iCal/ICS feeds — plus optional public holidays. Returns 400 if no source is configured.
+Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source) — plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -939,13 +939,13 @@ Lists all uploaded background images.
 
 ### POST /api/backgrounds
 
-Uploads a new background image.
+Uploads a new background image or video.
 
 **Body:** `multipart/form-data` with `file` field
 
 **Constraints:**
-- Max size: 10 MB
-- Accepted types: JPEG, PNG, WebP, GIF
+- Max size: 10 MB per image, 200 MB per video
+- Accepted types: JPEG, PNG, WebP, GIF, AVIF, MP4, WebM, MOV
 
 **Response:** `{ success: true, filename: "uploaded-name.jpg" }`
 
@@ -1083,6 +1083,100 @@ Proxies an Immich image through the server. Validates the asset ID format and ca
 | `type` | string | `"asset"` | Asset type: `asset` (photo) or `person` (face thumbnail) |
 
 **Response:** The image binary with appropriate `Content-Type` header and a 24-hour browser cache (`Cache-Control: public, max-age=86400, immutable`).
+
+### GET /api/immich/video
+
+Streams a video asset from Immich. The incoming `Range` header is forwarded and the response body is piped straight through — never buffered or cached — so seeking works and large files can't exhaust the server's memory.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `assetId` | string | *(required)* | UUID of the Immich video asset |
+| `mt` | string | — | Media token bound to this asset, for `<video src>` playback where a Bearer header can't be sent |
+
+**Response:** The video stream with `Content-Type`, `Content-Range`, `Content-Length`, and `Accept-Ranges` passed through from Immich.
+
+---
+
+## iCloud
+
+There are two iCloud integrations. **Shared albums** (photos) work without an Apple account or API key — the album's public share link is all that's needed, and asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN. **Calendar sync** signs in to an iCloud account with an app-specific password; credentials live in `data/icloud-accounts.json` (never in the config file) and are never returned by the API.
+
+### GET /api/icloud/photos
+
+Lists media from an iCloud shared album. Album contents are cached for 5 minutes per token; results are shuffled per request. A missing or malformed album link returns an empty list rather than an error.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `album` | string | *(required)* | Shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token |
+| `media` | string | — | Filter: `photos`, `videos`, or `both`. Omitted = photos only, returned as a plain URL array |
+| `count` | number | `50` | Number of items to return (1–200) |
+
+**Response (with `media`):**
+```json
+[
+  { "url": "https://cvws.icloud-content.com/...", "type": "image" },
+  { "url": "https://cvws.icloud-content.com/...", "type": "video" }
+]
+```
+
+### POST /api/icloud/import
+
+Starts downloading everything an Apple link (Shared Album or "Copy iCloud Link") contains into the local media library. Requires a valid editor session. Returns `202` with a job descriptor, `409` if another import is already running.
+
+**Request body:**
+```json
+{ "url": "https://www.icloud.com/sharedalbum/#B0abc...", "folder": "family" }
+```
+
+### GET /api/icloud/import?jobId=...
+
+Polls a running import job's progress: `state` (`running`, `done`, or `error`) plus `total`, `done`, `skipped` (already in the library), and `failed` counts.
+
+### GET /api/icloud/accounts
+
+Lists connected iCloud accounts as credential-free `{ id, appleId }` pairs. Requires a valid editor session.
+
+**Response:**
+```json
+[
+  { "id": "a1b2c3...", "appleId": "user@icloud.com" }
+]
+```
+
+### POST /api/icloud/accounts
+
+Connects an iCloud account. The credentials are verified against iCloud before saving — a failed sign-in returns `400` with a friendly message (not `401`, which the editor would treat as an expired session). Re-adding an existing Apple ID replaces its stored password instead of duplicating the account. Requires a valid editor session.
+
+**Request body:**
+```json
+{ "appleId": "user@icloud.com", "appPassword": "abcd-efgh-ijkl-mnop" }
+```
+
+**Response:** the new account's `{ id, appleId }` — the password is never echoed back.
+
+### DELETE /api/icloud/accounts
+
+Removes a connected account by `id` (request body: `{ "id": "a1b2c3..." }`). Requires a valid editor session.
+
+### GET /api/icloud/calendars
+
+Lists one account's calendars for the editor picker, plus whether a contact-birthdays calendar is available. Requires a valid editor session.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `account` | string | *(required)* | Account `id` from `/api/icloud/accounts` |
+
+**Response:**
+```json
+{
+  "calendars": [
+    { "url": "https://caldav.icloud.com/...", "name": "Family", "color": "#ff2d55" }
+  ],
+  "birthdaysAvailable": true
+}
+```
+
+Returns `404` if the account has been removed.
 
 ---
 
@@ -1396,6 +1490,40 @@ Deletes a secret for a plugin. Requires a valid session.
 **Body:** `{ "key": "api_key" }`
 
 **Response:** `{ "ok": true }`
+
+### POST /api/plugins/auth/:pluginId/start
+
+Begins the sign-in flow for a plugin that declares a [server-side auth adapter](/docs/plugins#server-side-auth). Requires a valid session. Returns 404 if the plugin isn't installed and enabled, 400 if its manifest declares no `auth` field.
+
+**Body:** none for OAuth2 flows; `{ "email": "...", "password": "..." }` for the Garmin adapter.
+
+**Response** (by flow):
+```json
+{ "authUrl": "https://...", "redirectUri": "https://..." }   // authorization_code
+{ "userCode": "...", "verificationUrl": "...", "expiresIn": 600, "interval": 5 }   // device_code
+{ "status": "connected" }                                     // client_credentials
+{ "status": "mfa_required" }                                  // garmin, when a one-time code is needed
+```
+
+### GET /api/plugins/auth/callback
+
+Shared OAuth redirect target for every plugin's `authorization_code` flow. The plugin ID travels inside an HMAC-signed `state` parameter, so a provider only ever needs this one callback URL registered.
+
+### PUT /api/plugins/auth/:pluginId/poll
+
+Advances a pending flow. Requires a valid session. For `device_code`, polls the provider for approval and returns `{ "status": "pending" | "connected", ... }`. For the Garmin adapter, submits the one-time code as `{ "mfaCode": "..." }`; returns 409 if the sign-in attempt has expired.
+
+### GET /api/plugins/auth/:pluginId/status
+
+Returns the connection state for a plugin's auth adapter. Accepts display requests as well as editor sessions (backs the SDK's `getAuthStatus`). Never returns token values.
+
+**Response:** `{ "connected": true, "expiresAt": 1760000000000 }`
+
+### DELETE /api/plugins/auth/:pluginId/disconnect
+
+Revokes (best-effort, when the adapter declares a `revokeUrl`) and deletes the plugin's stored tokens and any pending sign-in state. Requires a valid session.
+
+**Response:** `{ "connected": false }`
 
 ### POST /api/plugins/dev
 

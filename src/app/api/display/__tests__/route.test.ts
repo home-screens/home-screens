@@ -16,6 +16,8 @@ vi.mock('@/lib/display-commands', () => {
     }),
     getSharedStateReport: vi.fn(() => null),
     recordSharedStateReport: vi.fn(),
+    getProviderHealthReport: vi.fn(() => null),
+    recordProviderHealthReport: vi.fn(),
     recordViewportReport: vi.fn(),
     markSharedStateInterest: vi.fn(),
     hasSharedStateInterest: vi.fn(() => false),
@@ -52,6 +54,7 @@ import {
   getDisplayStatus,
   setDisplayStatus,
   getSharedStateReport,
+  getProviderHealthReport,
   markSharedStateInterest,
   hasSharedStateInterest,
 } from '@/lib/display-commands';
@@ -140,6 +143,33 @@ describe('GET /api/display/shared-state', () => {
     const res = await GET(req, makeParams('shared-state'));
     expect(res.status).toBe(400);
     expect(markSharedStateInterest).not.toHaveBeenCalled();
+  });
+
+  it('includes providerHealth when unhealthy plugins are reported', async () => {
+    vi.mocked(getSharedStateReport).mockReturnValue({
+      entries: {},
+      reportedAt: 99,
+    });
+    vi.mocked(getProviderHealthReport).mockReturnValue({
+      health: { 'home-assistant': { message: "Can't reach Home Assistant", since: 42 } },
+      reportedAt: 99,
+    });
+
+    const res = await GET(makeRequest(), makeParams('shared-state'));
+    const json = await res.json();
+
+    expect(json.providerHealth['home-assistant']).toEqual({ message: "Can't reach Home Assistant", since: 42 });
+    expect(json.reportedAt).toBe(99);
+  });
+
+  it('omits providerHealth entirely when no plugin is unhealthy', async () => {
+    vi.mocked(getSharedStateReport).mockReturnValue({ entries: {}, reportedAt: 99 });
+    vi.mocked(getProviderHealthReport).mockReturnValue({ health: {}, reportedAt: 99 });
+
+    const res = await GET(makeRequest(), makeParams('shared-state'));
+    const json = await res.json();
+
+    expect('providerHealth' in json).toBe(false);
   });
 });
 

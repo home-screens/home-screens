@@ -8,8 +8,6 @@ import Toggle from '@/components/ui/Toggle';
 import OverrideRow from '@/components/editor/settings/OverrideRow';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
-import { DISPLAY_OVERRIDE_FIELDS } from '@/lib/display-override-fields';
-import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import { MAX_DISPLAY_DIMENSION, orientDimensions } from '@/lib/display-filter';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import { useTranslate } from '@/i18n';
@@ -24,7 +22,7 @@ interface DisplaySubtabProps {
   display: DisplayNode;
 }
 
-const DEFAULTS_HREF = '?section=defaults&page=display';
+const DEFAULTS_HREF = '?section=defaults&page=screen';
 
 /**
  * Display detail "Display" — the per-display equivalent of the
@@ -144,20 +142,6 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
     value: NonNullable<typeof overrides>[K] | undefined,
   ) => {
     updateDisplaySettings(display.id, { [key]: value });
-    await saveConfig();
-  };
-
-  // Counts for the bulk-actions footer. We reuse `findDisplaysOverridingFields`
-  // so the count comes from the same source as the Defaults page banner.
-  const overrideSummary = findDisplaysOverridingFields(config, DISPLAY_OVERRIDE_FIELDS).find(
-    (s) => s.displayId === display.id,
-  );
-  const overrideCount = overrideSummary?.overriddenFields.length ?? 0;
-
-  const handleClearAll = async () => {
-    const updates: Record<string, undefined> = {};
-    for (const field of DISPLAY_OVERRIDE_FIELDS) updates[field] = undefined;
-    updateDisplaySettings(display.id, updates);
     await saveConfig();
   };
 
@@ -497,32 +481,6 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
         </div>
       </div>
 
-      {/* Bulk actions footer — count + clear. Scoped to display-category
-          fields only (the ones rendered above), NOT a catch-all clear
-          across every subtab. A user who has also forked Sleep or Alerts
-          needs to visit those subtabs to reset them — we don't want a
-          button here to silently wipe out the other two whole-block
-          overrides on an unrelated page. */}
-      <div className="mt-6 flex items-center justify-between border-t border-hs-border pt-4">
-        <div className="text-xs text-hs-text-faint">
-          <span className="text-hs-text-secondary">
-            {overrideCount === 1
-              ? t('settings.perDisplayPage.display.footer.overrideCountSingular', { count: overrideCount })
-              : t('settings.perDisplayPage.display.footer.overrideCountPlural', { count: overrideCount })}
-          </span>
-          {t('settings.perDisplayPage.display.footer.activeForDisplay', { name: display.name })}
-        </div>
-        {overrideCount > 0 && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="text-xs text-hs-danger hover:text-hs-danger transition-colors"
-            title={t('settings.perDisplayPage.display.footer.clearAllTitle')}
-          >
-            {t('settings.perDisplayPage.display.footer.clearAllButton')}
-          </button>
-        )}
-      </div>
     </>
   );
 }

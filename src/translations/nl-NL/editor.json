@@ -35,7 +35,12 @@
       "2x-large": "2X Groot",
       "3x-large": "3X Groot",
       "4x-large": "4X Groot"
-    }
+    },
+    "mediaTypes": "Tonen",
+    "mediaTypesPhotos": "Alleen foto's",
+    "mediaTypesVideos": "Alleen video's",
+    "mediaTypesBoth": "Foto's + video's",
+    "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)"
   },
   "fields": {
     "rotation": "Rotatie",
@@ -79,7 +84,11 @@
     "scheduledInactiveTitle": "Gepland — momenteel inactief",
     "disabledTitle": "Uitgeschakeld — niet getoond op display",
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
-    "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond"
+    "backgroundProviderTitle": "Draait verborgen op de achtergrond — wordt nooit op het display getoond",
+    "conditionMetTitle": "Voorwaarden voldaan — nu zichtbaar op het scherm",
+    "conditionUnmetTitle": "Voorwaarden niet voldaan — nu verborgen op het scherm",
+    "conditionMetTitleEditor": "Voorwaarden voldaan, zou nu zichtbaar zijn",
+    "conditionUnmetTitleEditor": "Voorwaarden niet voldaan, zou nu verborgen zijn"
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
@@ -147,6 +156,7 @@
       "newsAndFinance": "Nieuws & financiën",
       "knowledgeAndFun": "Kennis & plezier",
       "personal": "Persoonlijk",
+      "healthAndFitness": "Gezondheid & fitness",
       "mediaAndDisplay": "Media & weergave",
       "travel": "Reizen"
     },
@@ -185,6 +195,7 @@
       "chore-chart": "Klusjeskaart",
       "text": "Tekst",
       "image": "Afbeelding",
+      "video": "Video",
       "photo-slideshow": "Fotodiavoorstelling",
       "qr-code": "QR-code",
       "iframe": "Webinsluiting",
@@ -202,6 +213,9 @@
       "allDisplays": "Alle displays",
       "addDisplay": "Display toevoegen",
       "displays": "Displays",
+      "searchPlaceholder": "Instellingen zoeken…",
+      "noResults": "Geen instellingen gevonden",
+      "matchingFields": "Overeenkomende velden",
       "websiteAriaLabel": "Bezoek homescreens.dev",
       "websiteTitle": "homescreens.dev",
       "githubAriaLabel": "Bekijk op GitHub",
@@ -210,27 +224,32 @@
         "calendar": "Kalender",
         "weather": "Weer",
         "location": "Locatie & taal",
-        "sleep": "Slapen",
-        "alerts": "Meldingen",
-        "display": "Display",
-        "data": "Gegevens",
-        "docs": "Documentatie",
-        "integrations": "Integraties",
+        "data": "Back-ups & gegevens",
+        "integrations": "API-sleutels",
         "meals": "Maaltijden",
         "network": "Netwerk",
-        "profiles": "Profielen",
         "security": "Beveiliging",
-        "stats": "Statistieken",
+        "stats": "Status",
         "system": "Systeem",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Scherm",
+        "automation": "Automatisering"
+      },
+      "groups": {
+        "screen": "Scherm",
+        "content": "Inhoud",
+        "automation": "Automatisering",
+        "admin": "Onderhoud"
+      },
+      "docsTitle": "Documentatie",
+      "docsAriaLabel": "Documentatie bekijken"
     },
     "overrideRow": {
       "override": "Overschrijven",
       "resetToDefault": "Terugzetten op standaard",
       "overriddenForDisplay": "Overschreven voor {name}. Standaard: ",
       "overriddenWithoutDisplay": "Overschreven. Standaard: ",
-      "overriddenSuffix": " — bewerken via ",
+      "overriddenSuffix": ". Bewerken via ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Gebruikt de standaard. ",
       "usingDefaultPart2": " gebruikt ",
@@ -248,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " overschrijven momenteel velden op {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Standaardwaarden → Meldingen",
-      "heading": "Standaard meldingsinstellingen",
       "description": "Standaardpositie, -grootte en -duur voor de meldingsoverlay op elk display. Een specifiek display kan het hele meldingenblok overschrijven via zijn eigen pagina."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Standaardwaarden → Slapen",
-      "heading": "Standaard slaapinstellingen",
       "description": "Standaard dim/slaap-schema en screensaver voor elk display. Een specifiek display kan het hele blok overschrijven via zijn eigen pagina."
     },
     "locationAndLanguagePage": {
@@ -315,6 +330,23 @@
         "copyCode": "Code kopiëren",
         "codeCopied": "Gekopieerd!"
       },
+      "icloud": {
+        "heading": "iCloud-agenda",
+        "checkingAccounts": "Accounts controleren…",
+        "disconnect": "Loskoppelen",
+        "disconnectFailed": "Kon dit account niet loskoppelen. Controleer je internetverbinding en probeer het opnieuw.",
+        "loadingCalendars": "Agenda's laden…",
+        "calendarsError": "De agenda's van dit account konden niet worden geladen. Koppel het account los en verbind opnieuw.",
+        "noCalendars": "Geen agenda's gevonden.",
+        "selectCalendars": "Kies welke agenda's je wilt tonen",
+        "birthdays": "Verjaardagen",
+        "appleIdPlaceholder": "E-mail van Apple ID",
+        "connect": "Verbinden",
+        "connecting": "Verbinden…",
+        "connectFailed": "Kon geen verbinding maken met iCloud. Controleer je internetverbinding en probeer het opnieuw.",
+        "addAccount": "iCloud-account toevoegen",
+        "helpText": "Log in met een app-wachtwoord, niet met je gewone Apple-wachtwoord. Maak er een aan op account.apple.com onder Inloggen en beveiliging → App-specifieke wachtwoorden."
+      },
       "holidays": {
         "heading": "Officiële feestdagen",
         "none": "Geen",
@@ -363,6 +395,25 @@
         "remindAfterLabel": "Herinnering na",
         "lastBackup": "Laatste back-up: {date}",
         "noBackups": "Nog geen back-ups vastgelegd"
+      },
+      "configBackups": {
+        "heading": "Configuratie-back-ups",
+        "description": "Momentopnamen van instellingen die vóór elke update automatisch worden opgeslagen. Herstel er een om instellingswijzigingen ongedaan te maken; ga naar de pagina Systeem om terug te gaan naar een oudere versie van de app.",
+        "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
+        "sizeKb": "{size}KB",
+        "download": "Downloaden",
+        "restore": "Terugzetten",
+        "restoreDialog": {
+          "title": "Back-up terugzetten",
+          "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
+          "confirm": "Terugzetten"
+        },
+        "restoreStatus": {
+          "restoring": "Terugzetten…",
+          "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
+          "error": "Fout: {error}",
+          "failed": "Back-up terugzetten mislukt"
+        }
       }
     },
     "weatherPage": {
@@ -403,7 +454,7 @@
         },
         "weatherApi": {
           "tagline": "Gratis tier · geen creditcard",
-          "keyHint": "Gratis op weatherapi.com — geen creditcard nodig.",
+          "keyHint": "Gratis op weatherapi.com; geen creditcard nodig.",
           "placeholder": "Plak je WeatherAPI-sleutel"
         },
         "openWeatherMap": {
@@ -413,7 +464,7 @@
         },
         "pirateWeather": {
           "tagline": "Dark Sky-vervanger",
-          "keyHint": "Gratis op pirateweather.net — directe Dark Sky-vervanger.",
+          "keyHint": "Gratis op pirateweather.net, directe Dark Sky-vervanger.",
           "placeholder": "Plak je Pirate Weather API-sleutel"
         },
         "noaa": {
@@ -422,11 +473,11 @@
         },
         "yr": {
           "tagline": "Gratis · wereldwijd · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door het Noors Meteorologisch Instituut met wereldwijde dekking. Gebruik om te testen een Scandinavische lat/lon — bijv. Oslo (59.9139, 10.7522) — voor de dichtste dekking."
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Noors Meteorologisch Instituut met wereldwijde dekking. Gebruik om te testen een Scandinavische lat/lon, bijv. Oslo (59.9139, 10.7522), voor de dichtste dekking."
         },
         "smhi": {
           "tagline": "Gratis · alleen Scandinavië · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door het Zweeds Meteorologisch en Hydrologisch Instituut. Alleen Scandinavische dekking — gebruik om te testen een Scandinavische lat/lon (bijv. Stockholm: 59.3293, 18.0686). Geeft geen gegevens terug buiten Scandinavië."
+          "helperText": "Geen API-sleutel vereist. Geleverd door het Zweeds Meteorologisch en Hydrologisch Instituut. Alleen Scandinavische dekking; gebruik om te testen een Scandinavische lat/lon (bijv. Stockholm: 59.3293, 18.0686). Geeft geen gegevens terug buiten Scandinavië."
         },
         "metOffice": {
           "tagline": "Freemium · focus VK · sleutel vereist",
@@ -435,19 +486,17 @@
         },
         "envCanada": {
           "tagline": "Gratis · alleen Canada · geen sleutel",
-          "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada — de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
+          "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada, de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
         }
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Standaardwaarden → Display",
-      "heading": "Standaard display-instellingen",
       "descriptionPart1": "Deze waarden worden door elk display gebruikt totdat een specifiek display ze overschrijft. Verander hier iets en elk display dat dat veld ",
       "descriptionEmphasisNot": "niet",
       "descriptionPart2": " overschrijft, neemt de nieuwe waarde over.",
       "multiDisplayNotePart1": "Resolutie, oriëntatie en spiegeling zijn ",
       "multiDisplayNotePerDisplay": "per display",
-      "multiDisplayNotePart2": " — bewerk ze op de eigen pagina van elk display onder ",
+      "multiDisplayNotePart2": ". Bewerk ze op de eigen pagina van elk display onder ",
       "multiDisplayNotePerDisplaySection": "Per display",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -514,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "overzicht",
-          "display": "display",
-          "sleep": "slapen",
-          "alerts": "meldingen",
-          "profile": "profiel",
-          "identity": "identiteit"
+          "overrides": "overrides"
         }
       },
       "overview": {
@@ -530,7 +575,7 @@
         "defaultsLink": "Standaardwaarden",
         "withOverridesPart2": " voor alles behalve:",
         "noOverridesPart1": "{name} gebruikt de ",
-        "noOverridesPart2": " voor elk veld. Overschrijf er een via de subtab Display, Slapen of Meldingen.",
+        "noOverridesPart2": " voor elk veld. Overschrijf er een via de subtab Overrides.",
         "chipBlockOverridden": "{label} overschreven",
         "chipFieldWithDefault": "{label}: {value} (standaard: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -576,13 +621,13 @@
       },
       "profile": {
         "activeProfileLabel": "Actief profiel",
-        "noneOption": "— Geen —",
+        "noneOption": "Geen",
         "helpPart1": "Welk profiel {name} momenteel toont. Profieldefinities staan op ",
-        "helpLink": "Standaardwaarden → Profielen",
+        "helpLink": "Standaardwaarden → Automatisering",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Standaardwaarden → Display",
+        "defaultsLabel": "Standaardwaarden → Scherm",
         "bannerPart1": "Velden hier tonen de ",
         "bannerEmphasisDefault": "standaard",
         "bannerPart2": "-waarde van ",
@@ -591,7 +636,7 @@
         "bannerPart4": " bij een veld om het alleen voor {name} te wijzigen.",
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
-        "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie — die wordt niet gedeeld.",
+        "resolutionHelp": "Modules worden binnen dit canvas geplaatst. Elk display heeft zijn eigen resolutie; die wordt niet gedeeld.",
         "rotationOptionNormal": "Normaal (liggend)",
         "rotationOption90": "90° met de klok mee (staand)",
         "rotationOption180": "180° (omgekeerd)",
@@ -612,13 +657,13 @@
       },
       "sleep": {
         "label": "Slaapschema",
-        "defaultsLabel": "Standaardwaarden → Slapen",
-        "infoPart1": "Slapen wordt als één blok overschreven — je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
+        "defaultsLabel": "Standaardwaarden → Scherm",
+        "infoPart1": "Slapen wordt als één blok overschreven; je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Meldingsoverlay",
-        "defaultsLabel": "Standaardwaarden → Meldingen",
+        "defaultsLabel": "Standaardwaarden → Scherm",
         "infoPart1": "Meldingen worden als één blok overschreven. De standaard staat op ",
         "infoPart2": "."
       },
@@ -697,7 +742,7 @@
         "clientSecretHelp": "Het client secret van dezelfde OAuth-credential hierboven.",
         "mapsKeyLabel": "Maps API-sleutel",
         "mapsKeyPlaceholder": "Plak je Google Maps API-sleutel",
-        "mapsKeyHelp": "Optioneel — voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
+        "mapsKeyHelp": "Optioneel, voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
       },
       "immich": {
         "name": "Immich",
@@ -713,13 +758,13 @@
         "description": "HD-foto-achtergronden per categorie",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Plak je Unsplash access key",
-        "accessKeyHelp": "Gratis op unsplash.com/developers — 50 verzoeken/uur op het gratis tier."
+        "accessKeyHelp": "Gratis op unsplash.com/developers; 50 verzoeken/uur op het gratis tier."
       },
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
         "apiKeyPlaceholder": "Plak je NASA API-sleutel",
-        "apiKeyHelp": "Gratis op api.nasa.gov — 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
+        "apiKeyHelp": "Gratis op api.nasa.gov; 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
       },
       "todoist": {
         "name": "Todoist",
@@ -732,7 +777,7 @@
         "name": "TomTom",
         "description": "Verkeer & reistijden",
         "keyPlaceholder": "Plak je TomTom API-sleutel",
-        "keyHelp": "Gratis op developer.tomtom.com — Routing API vereist. Alternatief voor Google Maps."
+        "keyHelp": "Gratis op developer.tomtom.com; Routing API vereist. Alternatief voor Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -918,7 +963,7 @@
       "intro": {
         "part1": "Gedeelde maaltijdplanner-instellingen. Deze verschijnen ook in het ",
         "remoteLinkLabel": "remote",
-        "part2": "-instellingenpaneel — bewerkingen vanuit beide kanten blijven gesynchroniseerd."
+        "part2": "-instellingenpaneel. Bewerkingen vanuit beide kanten blijven gesynchroniseerd."
       },
       "status": {
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
@@ -996,25 +1041,8 @@
       "history": {
         "heading": "Versiegeschiedenis",
         "currentBadge": "huidig",
-        "rollback": "Terugdraaien"
-      },
-      "backups": {
-        "heading": "Configuratie-back-ups",
-        "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
-        "sizeKb": "{size}KB",
-        "download": "Downloaden",
-        "restore": "Terugzetten"
-      },
-      "restoreStatus": {
-        "restoring": "Terugzetten…",
-        "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
-        "error": "Fout: {error}",
-        "failed": "Back-up terugzetten mislukt"
-      },
-      "restoreDialog": {
-        "title": "Back-up terugzetten",
-        "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
-        "confirm": "Terugzetten"
+        "rollback": "Terugdraaien",
+        "help": "Gaat terug naar een oudere versie van de app. Herstel in plaats daarvan een momentopname via de pagina Back-ups & gegevens om instellingswijzigingen ongedaan te maken."
       },
       "upgradeDialog": {
         "title": "Upgrade",
@@ -1081,7 +1109,7 @@
         "screensHeading": "Schermen",
         "availableHeading": "Beschikbaar",
         "addScreenSymbol": "+",
-        "noScreensWarning": "Geen schermen geselecteerd — alle schermen worden als terugval getoond.",
+        "noScreensWarning": "Geen schermen geselecteerd; alle schermen worden als terugval getoond.",
         "dragHelp": "Sleep om de rotatievolgorde binnen dit profiel te bepalen.",
         "scheduleToggleLabel": "Automatisch activeren op schema",
         "fromLabel": "Van",
@@ -1093,6 +1121,103 @@
         "message": "\"{name}\" verwijderen?",
         "confirm": "Verwijderen"
       }
+    },
+    "rulesPage": {
+      "heading": "Regels",
+      "description": "Met regels reageert het scherm op wat er thuis gebeurt. Als de voorwaarden van een regel waar worden, kan die naar een scherm wisselen of het display wekken, bijvoorbeeld het camerascherm tonen als er wordt aangebeld.",
+      "displayPicker": {
+        "label": "Regels bewerken voor",
+        "optionLabel": "{name} ({id})",
+        "help": "Regels zijn per display, omdat ze verwijzen naar de eigen schermen van elk display. Hier wisselen verandert ook aan welk display de editor werkt."
+      },
+      "emptyHint": "Nog geen regels. Voeg er een toe zodat het display reageert als er iets gebeurt.",
+      "priority": {
+        "labelPrefix": "Prioriteitsvolgorde:",
+        "helpSuffix": " Als meerdere regels tegelijk afgaan, wint de regel die het eerst in de lijst staat. Sleep om te herschikken."
+      },
+      "addButton": "Regel toevoegen",
+      "newRuleName": "Regel {number}",
+      "card": {
+        "offBadge": "Uit",
+        "renameTitle": "Hernoemen",
+        "deleteTitle": "Regel verwijderen",
+        "enabledLabel": "Regel staat aan",
+        "whenHeading": "Als",
+        "thenHeading": "Dan",
+        "noConditionsHint": "Nog geen voorwaarden; deze regel gaat pas af als je er een toevoegt.",
+        "invalidHint": "Deze regel kan nog niet worden opgeslagen:",
+        "allMustMatchHint": "Alle voorwaarden moeten kloppen om de regel af te laten gaan.",
+        "actionKindLabel": "Actie",
+        "actionShowScreen": "Een scherm tonen",
+        "actionWake": "Het display wekken",
+        "wakeSleepHint": "Als het display volgens een schema slaapt, wekt dit het en houdt het 5 minuten wakker, daarna gaat het weer slapen.",
+        "screenLabel": "Scherm",
+        "screenNoneOption": "Kies een scherm…",
+        "screenDisabledSuffix": "(uitgeschakeld)",
+        "screenMissingWarning": "Kies een scherm dat deze regel moet tonen.",
+        "modeLabel": "Hoe lang",
+        "modeWhile": "Zolang de voorwaarden waar zijn",
+        "modeFor": "Voor een vaste tijd",
+        "secondsLabel": "Seconden",
+        "cooldownLabel": "Wachttijd (seconden)",
+        "cooldownHelp": "Nadat de regel is afgegaan, wacht die zoveel seconden voordat hij opnieuw kan afgaan. Laat leeg voor geen wachttijd.",
+        "actionSleep": "Het display in slaapstand zetten",
+        "sleepHint": "Zet het scherm uit, net als de slaapknop. Een tik of het wekschema zet het weer aan.",
+        "copyToDisplayLabel": "Naar een ander display kopiëren",
+        "copyToDisplayPlaceholder": "Kies een display…",
+        "copyToDisplayHelp": "Kopieert deze regel naar een ander display. Je moet daar nog het scherm kiezen dat het laat zien.",
+        "copiedNotice": "Gekopieerd naar {name}."
+      },
+      "deleteDialog": {
+        "title": "Regel verwijderen",
+        "message": "“{name}” verwijderen?",
+        "confirm": "Verwijderen"
+      }
+    },
+    "sharedStatePage": {
+      "heading": "Gedeelde waarden",
+      "description": "Alle waarden die dit scherm publiceert voor voorwaarden, regels en teksttokens, plus alles wat wordt gebruikt maar nooit aankomt.",
+      "intro": {
+        "heading": "Zo werkt het",
+        "body1": "Displays kunnen reageren op wat er thuis gebeurt. Uitbreidingen (zoals Home Assistant) delen hier kleine benoemde waarden, bijvoorbeeld of een deur open is of wie er thuis is.",
+        "body2": "Het tabblad 'Bekeken' toont wat dit scherm nu echt gebruikt, zodat je kunt controleren of de juiste informatie binnenkomt. Het tabblad 'Beschikbaar' toont alles wat je uitbreidingen kunnen delen, zodat je ziet waarop je kunt reageren."
+      },
+      "tabs": {
+        "watching": "Bekeken",
+        "available": "Beschikbaar"
+      },
+      "available": {
+        "description": "Alles wat je uitbreidingen met dit scherm kunnen delen, of het nu al gebruikt wordt of niet. Blader per uitbreiding of zoek om te beperken.",
+        "searchPlaceholder": "Beschikbare waarden zoeken…",
+        "summary": {
+          "one": "{count} waarde beschikbaar uit je uitbreidingen",
+          "other": "{count} waarden beschikbaar uit je uitbreidingen"
+        },
+        "truncationNote": "Alleen de eerste {count} worden getoond — zoek om meer te vinden",
+        "collapseGroup": "{producer} inklappen",
+        "expandGroup": "{producer} uitklappen",
+        "noProviders": "Er is nog niets om te delen. Waarden komen van uitbreidingen die ze delen (zoals Home Assistant). Zodra een uitbreiding is ingesteld, verschijnen de waarden hier.",
+        "noMatches": "Geen resultaten. Als je hier iets verwachtte, controleer de verbinding van de uitbreiding in het uitbreidingsbeheer.",
+        "showMore": "Toon {count} meer",
+        "showLess": "Toon minder"
+      },
+      "displayPicker": {
+        "label": "Scherm",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Laatste melding van het scherm: {time}",
+      "noReportHint": "Dit scherm heeft nog geen waarden gemeld. Waarden verschijnen hier zodra het scherm aanstaat en iets publiceert.",
+      "editorValuesHint": "Live waarden uit deze editor. Zet het scherm aan om te zien wat het werkelijk meldt.",
+      "offlineSinceHint": "Het scherm heeft sinds {time} niets gemeld. De rijen tonen de laatst ontvangen waarden.",
+      "emptyHint": "Nog niets hier. Waarden verschijnen vanzelf zodra iets ze gebruikt, zoals een voorwaarde op een widget of een live-waarde in een Tekst-widget. Er is niets vooraf in te stellen.",
+      "neverPublished": "Nooit gepubliceerd",
+      "neverPublishedDetail": "Niets op het scherm publiceert deze sleutel; alles wat hem gebruikt volgt de instelling 'Voordat gegevens aankomen'.",
+      "unreferencedLabel": "Niets gebruikt deze sleutel.",
+      "referencedByLabel": "Gebruikt door",
+      "ruleRefLabel": "Regel: {name}",
+      "builtInProducer": "Ingebouwd",
+      "producerLabel": "Van {producer}",
+      "providerHealthSince": "sinds {time}"
     },
     "securityPage": {
       "loading": "Authenticatiestatus controleren…",
@@ -1132,7 +1257,7 @@
         "regenerateCancel": "Annuleren",
         "regenerateWarning": "Het display moet herladen om de nieuwe token op te pikken.",
         "errorRegenerate": "Token opnieuw genereren mislukt",
-        "errorCopy": "Kopiëren mislukt — selecteer en kopieer handmatig",
+        "errorCopy": "Kopiëren mislukt; selecteer en kopieer handmatig",
         "phoneHintPart1": "Voor bladwijzers op je telefoon: voeg ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " toe aan command-URL's."
@@ -1175,7 +1300,7 @@
           "loopback": "::1",
           "or": " of ",
           "linkLocal": "fe80::…",
-          "part2": " rapporteren) komen niet overeen met enige allowlist-vermelding en worden geblokkeerd als beperking is ingeschakeld. Controleer \"Jouw IP\" hierboven — als het met een dubbele punt begint, blokkeert deze functie je."
+          "part2": " rapporteren) komen niet overeen met enige allowlist-vermelding en worden geblokkeerd als beperking is ingeschakeld. Controleer \"Jouw IP\" hierboven; als het met een dubbele punt begint, blokkeert deze functie je."
         },
         "trustedNetworksWarning": {
           "strong": "Alleen vertrouwde netwerken.",
@@ -1215,84 +1340,6 @@
         "authDisabled": "Authenticatie uitgeschakeld."
       }
     },
-    "docsPage": {
-      "intro": {
-        "part1": "Volledige documentatie staat op ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Gidsen behandelen alles van eerste installatie tot pluginontwikkeling."
-      },
-      "sections": {
-        "introduction": "Introductie",
-        "guides": "Gidsen",
-        "reference": "Referentie"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Aan de slag",
-          "description": "Overzicht van Home Screens en kernconcepten"
-        },
-        "installation": {
-          "title": "Installatie",
-          "description": "Opzetten op Raspberry Pi of lokaal draaien"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Kioskimplementatie, servicebeheer, SD-kaarttips"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Rondleiding door de visuele editor en canvasgereedschappen"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "Alle 38 modules en hun configuratieopties"
-        },
-        "backgrounds": {
-          "title": "Achtergronden",
-          "description": "Uploads, Unsplash, NASA APOD en rotatie"
-        },
-        "profiles": {
-          "title": "Profielen & planning",
-          "description": "Automatisering en tijdgebaseerde schermlay-outs"
-        },
-        "configuration": {
-          "title": "Configuratie",
-          "description": "JSON-schema en configuratiebestand-referentie"
-        },
-        "remoteControl": {
-          "title": "Afstandsbediening",
-          "description": "Bedien je display vanaf een telefoon of ander apparaat"
-        },
-        "multiDisplay": {
-          "title": "Meerdere displays",
-          "description": "Hub-and-spoke-opzet om meerdere Pi's vanaf één server te draaien"
-        },
-        "networking": {
-          "title": "Netwerken",
-          "description": "Reverse proxy en toegang van buiten je LAN"
-        },
-        "troubleshooting": {
-          "title": "Problemen oplossen",
-          "description": "Veelvoorkomende problemen en oplossingen"
-        },
-        "api": {
-          "title": "API",
-          "description": "Alle API-eindpunten en hun parameters"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Bouw eigen modules met de plugin-SDK"
-        },
-        "development": {
-          "title": "Ontwikkeling",
-          "description": "Architectuuroverzicht en bijdragehandleiding"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Veelgestelde vragen"
-        }
-      }
-    },
     "shared": {
       "secretField": {
         "removeButton": "Verwijderen",
@@ -1329,13 +1376,15 @@
         "secrets": "Geheimopslag",
         "events": "Host-events",
         "storage": "Lokale opslag",
-        "localNetwork": "Lokaal netwerk (LAN)"
+        "localNetwork": "Lokaal netwerk (LAN)",
+        "oauth": "Accountaanmelding (OAuth)"
       },
       "secretsHeading": "Vereiste API-sleutels",
       "secretRequired": "(vereist)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Kopiëren",
-      "sha256CopyAriaLabel": "SHA-256 kopiëren"
+      "sha256CopyAriaLabel": "SHA-256 kopiëren",
+      "connectionRequired": "Deze plug-in vereist dat je na de installatie een account koppelt."
     },
     "pluginSecrets": {
       "loading": "Status van geheimen laden…",
@@ -1345,6 +1394,37 @@
       "savingButton": "…",
       "saveButton": "Opslaan",
       "savedSuccess": "Succesvol opgeslagen"
+    },
+    "pluginSettings": {
+      "loading": "Instellingen laden…",
+      "loadFailed": "Kon deze instellingen niet laden. Sluit en open opnieuw om het nog eens te proberen.",
+      "saveButton": "Opslaan",
+      "savingButton": "…",
+      "savedSuccess": "Succesvol opgeslagen",
+      "toggleTitle": "Plugin-instellingen",
+      "toggleAriaLabel": "Plugin-instellingen voor {id}"
+    },
+    "pluginAuth": {
+      "loading": "Verbinding controleren…",
+      "connectedLabel": "Verbonden",
+      "disconnectButton": "Verbinding verbreken",
+      "autoRenewNote": "Je verbinding blijft automatisch aangemeld.",
+      "connectButton": "Verbinden",
+      "connecting": "Verbinden…",
+      "redirectUriLabel": "Voeg deze omleidings-URL toe bij het instellen van de verbinding:",
+      "deviceCodeIntro": "Open deze link en voer de code in:",
+      "devicePolling": "Wachten op je goedkeuring…",
+      "errorGeneric": "Er ging iets mis. Probeer het opnieuw.",
+      "popupBlocked": "Je browser heeft het aanmeldvenster geblokkeerd. Sta pop-ups voor deze site toe en probeer het opnieuw.",
+      "garmin": {
+        "intro": "Meld je aan met je Garmin Connect-account.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Wachtwoord",
+        "signInButton": "Aanmelden",
+        "mfaSent": "Voer de code in die Garmin je zojuist heeft gestuurd.",
+        "mfaPlaceholder": "Code",
+        "mfaButton": "Verifiëren"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1396,9 +1476,9 @@
         "unloadAriaLabel": "{name} ontladen",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen — ze blijven niet bewaard tussen browsers",
+          "localStorage": "Dev-plugins worden alleen in localStorage opgeslagen; ze blijven niet bewaard tussen browsers",
           "autoReload": "De plugin laadt automatisch opnieuw wanneer de bundle verandert (elke 2s gepolld)",
-          "sourcemapsPart1": "Source maps worden ondersteund — voeg ",
+          "sourcemapsPart1": "Source maps worden ondersteund; voeg ",
           "sourcemapsPart2": " toe aan je Vite-config",
           "devOverrides": "Dev-plugins overschrijven geïnstalleerde versies met hetzelfde moduletype"
         }
@@ -1483,7 +1563,7 @@
       "telemetryItem6": "Weerprovider en overgangseffect",
       "telemetryItem7": "Of slaapstand, meldingen en authenticatie zijn ingeschakeld",
       "telemetryItem8": "Of agenda-integraties zijn geconfigureerd",
-      "telemetryItem9": "Aantal geïnstalleerde plug-ins",
+      "telemetryItem9": "Geïnstalleerde plug-ins (marketplace-namen en versies; plug-ins van buiten de marketplace worden geteld maar nooit benoemd)",
       "telemetryDisclaimer": "We verzamelen nooit: IP-adressen, locatie, agenda-items, API-sleutels, module-inhoud, hostnamen of andere persoonlijk identificeerbare informatie. Alle code is open source en kan worden geverifieerd.",
       "dataDirTitle": "Home Screens-gegevens",
       "totalAppData": "Totale appgegevens",
@@ -1519,7 +1599,7 @@
         "one": "{count} scherm in dit huis",
         "other": "{count} schermen in dit huis"
       },
-      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi — een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer — elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub en bedient ze allemaal; extra schermen kunnen goedkope Pi Zeros zijn die ",
+      "emptyDescriptionPrefix": "Stuur meer dan één scherm aan vanaf deze Pi (een aanraakscherm in de keuken, een monitor in de slaapkamer, een tv in de woonkamer), elk met een eigen lay-out, resolutie en rotatie. Deze Pi wordt de hub en bedient ze allemaal; extra schermen kunnen goedkope Pi Zeros zijn die ",
       "emptyDescriptionSuffix": " draaien.",
       "populatedDescriptionPrefix": "Klik op een scherm om zijn eigen instellingen te bewerken. Al het andere gebruikt de gedeelde ",
       "populatedDescriptionSuffix": ".",
@@ -1527,11 +1607,11 @@
       "refreshHeartbeatsTitle": "Heartbeats vernieuwen",
       "addDisplay": "Scherm toevoegen",
       "emptyTitle": "Deze installatie draait in enkel-scherm-modus",
-      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd — ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
+      "emptyParagraphPart1": "Je huidige opstelling telt als één scherm maar is hier nog niet geregistreerd; ondersteuning voor meerdere schermen is opt-in zodat bestaande installaties ongewijzigd blijven tot je expliciet een tweede scherm toevoegt. Op het moment dat je je eerste scherm toevoegt, wordt de huidige lay-out van deze Pi een scherm genaamd ",
       "emptyParagraphPart2": " en blijft alles precies werken zoals nu.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik hierboven op ",
-      "emptyBullet1Suffix": " om een nieuw scherm te registreren — geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
+      "emptyBullet1Suffix": " om een nieuw scherm te registreren. Geef het een naam, resolutie en rotatie, en ontwerp dan zijn eigen lay-out in de editor.",
       "emptyBullet2Prefix": "Of flash een andere Pi met ",
       "emptyBullet2Middle": ". Zodra hij start, verschijnt hij hieronder als een ",
       "emptyBullet2Suffix": " die met één klik kan worden geadopteerd.",
@@ -1548,7 +1628,7 @@
       "reportedDimensions": "{width}×{height} gerapporteerd",
       "reportedFrom": "vanaf {address}",
       "multipleClientsHeading": "{count} clients melden zich met dit ID",
-      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert — meestal een dubbele ",
+      "multipleClientsParagraphPrefix": "Twee of meer clients POSTen met dit scherm-ID. Controleer de bron-IP’s hierboven om te zien welk apparaat daadwerkelijk rapporteert; meestal een dubbele ",
       "multipleClientsParagraphSuffix": " installatie, een verdwaalde Chromium-tab, of een hub-kiosk die naar de verkeerde URL wijst.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inactief · {time}",
@@ -1597,6 +1677,23 @@
         "system": "Systeem",
         "titleFormat": "Thema: {label}"
       }
+    },
+    "screenPage": {
+      "breadcrumb": "Standaardwaarden → Scherm",
+      "heading": "Standaard scherminstellingen",
+      "rotationAppearanceHeading": "Rotatie & weergave",
+      "sleepHeading": "Slaapstand & dimmen",
+      "alertsHeading": "Meldingen"
+    },
+    "automationPage": {
+      "breadcrumb": "Standaardwaarden → Automatisering",
+      "heading": "Automatisering",
+      "description": "Profielen, regels en live waarden per display.",
+      "displayPicker": {
+        "label": "Automatisering bewerken voor",
+        "optionLabel": "{name} ({id})",
+        "help": "Profielen en regels gelden per display, omdat ze verwijzen naar de schermen van dat display. Hier wisselen verandert ook aan welk display de editor werkt."
+      }
     }
   },
   "backgroundPicker": {
@@ -1609,7 +1706,8 @@
     "rotateEveryLabel": "Wisselen elke",
     "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day"
+      "nasaApod": "NASA Picture of the Day",
+      "icloud": "Gedeeld iCloud-album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1627,6 +1725,10 @@
       "personLabel": "Persoon",
       "anyone": "Iedereen",
       "favoritesOnly": "Alleen favorieten"
+    },
+    "icloud": {
+      "albumLabel": "Albumlink",
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier."
     }
   },
   "imageBrowserModal": {
@@ -1662,6 +1764,33 @@
     },
     "errors": {
       "searchUnsplash": "Zoeken op Unsplash mislukt"
+    },
+    "confirmSelectVideo": "Video selecteren",
+    "videoCountSingular": "{count} video",
+    "videoCountPlural": "{count} video's",
+    "titleVideos": "Videobibliotheek",
+    "uploadVideosButton": "Video's uploaden",
+    "allVideos": "Alle video's",
+    "titleMedia": "Mediabibliotheek",
+    "allMedia": "Alle foto's en video's",
+    "uploadMediaButton": "Uploaden"
+  },
+  "icloudImport": {
+    "toggle": "Importeren via een iCloud-link",
+    "placeholder": "Plak een iCloud-album- of fotolink",
+    "start": "Importeren",
+    "importing": "Bezig met importeren…",
+    "progress": "Bezig met downloaden: {done} van {total}…",
+    "summary": "{done} nieuwe items toegevoegd. {skipped} waren er al.",
+    "summaryFailed": "{failed} konden niet worden gedownload.",
+    "help": "Werkt met links van gedeelde albums (icloud.com/sharedalbum/#…) en 'Kopieer iCloud-link'-links (share.icloud.com). Alles uit de link wordt opgeslagen in de huidige map.",
+    "albumTip": "Tip: gedeelde albums kunnen ook live worden getoond, zonder downloaden. Kies 'Gedeeld iCloud-album' als fotobron in de instellingen van een diavoorstelling.",
+    "errors": {
+      "invalid": "Dit lijkt geen iCloud-link te zijn. Kopieer de link opnieuw en probeer het nog eens.",
+      "expired": "Deze link werkt niet meer. iCloud-fotolinks stoppen na ongeveer een maand; vraag een nieuwe link en probeer het opnieuw.",
+      "busy": "Er loopt al een import. Wacht even tot die klaar is.",
+      "tooMany": "Deze link bevat te veel foto's om in één keer op te slaan. Probeer een kleiner album of een kleinere link.",
+      "lost": "Deze import is uit beeld geraakt. Kijk in de map wat er is toegevoegd."
     }
   },
   "choreChartModal": {
@@ -1849,7 +1978,9 @@
       "credentials": "Inloggegevens",
       "schedule": "Schema",
       "visibility": "Zichtbaarheid",
-      "conditions": "Voorwaarden"
+      "conditions": "Voorwaarden",
+      "connection": "Verbinding",
+      "connectionSetup": "Verbinding instellen"
     },
     "fields": {
       "x": "X",
@@ -1875,7 +2006,8 @@
       "enabledLabel": "Tonen op display",
       "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen.",
       "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
-      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen."
+      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen.",
+      "backgroundProviderObsoleteHint": "Deze plugin deelt zijn gegevens nu automatisch. Deze verborgen kopie is niet meer nodig en kan worden verwijderd."
     }
   },
   "upgradeModal": {
@@ -1896,11 +2028,20 @@
       "build": "Applicatie bouwen"
     },
     "warning": {
-      "installing": "Update installeren — sluit het apparaat niet af",
+      "installing": "Update installeren. Sluit het apparaat niet af",
       "inProgress": "Sluit deze pagina niet en zet het apparaat niet uit"
     },
     "successDefault": "Upgrade voltooid!",
-    "doneButton": "Klaar"
+    "doneButton": "Klaar",
+    "status": {
+      "inProgress": "Bezig",
+      "complete": "Voltooid",
+      "failed": "Mislukt"
+    },
+    "console": {
+      "live": "Live",
+      "waiting": "Wachten op uitvoer..."
+    }
   },
   "holidayPickerModal": {
     "title": "Feestdagen toevoegen",
@@ -1944,7 +2085,7 @@
     "applyVisualLabel": "Visuele instellingen toepassen",
     "visualSummary": "Rotatie: {seconds}s",
     "visualSummaryWithTransition": "Rotatie: {seconds}s, overgang: {transition}",
-    "saveError": "Opslaan mislukt — controleer je verbinding en probeer opnieuw.",
+    "saveError": "Opslaan mislukt. Controleer je verbinding en probeer opnieuw.",
     "importButton": "Importeren"
   },
   "installFromUrlModal": {
@@ -2277,6 +2418,7 @@
       "photoSource": "Fotobron",
       "sourceLocal": "Lokale foto's",
       "sourceImmich": "Immich",
+      "sourceICloud": "Gedeeld iCloud-album",
       "mode": "Modus",
       "modeSlideshow": "Diavoorstelling",
       "modeSingle": "Enkele foto",
@@ -2389,6 +2531,27 @@
       "preview": "Voorbeeld",
       "altText": "Alt-tekst"
     },
+    "video": {
+      "videoSource": "Videobron",
+      "tabLibrary": "Bibliotheek",
+      "tabUrl": "URL",
+      "videoUrl": "Video-URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Kies een video…",
+      "noVideosYet": "Nog geen video's in je bibliotheek. Upload er een om te beginnen.",
+      "uploadVideo": "Video uploaden",
+      "movHint": "iPhone-video's (.mov) spelen niet altijd af op Raspberry Pi-schermen. MP4-video's (H.264) werken het best.",
+      "playSound": "Geluid afspelen",
+      "soundHint": "Geluid vereist een eenmalige instelling op het scherm (zie de videogids). Tot die tijd spelen video's zonder geluid af.",
+      "loop": "Herhaald afspelen",
+      "maxDurationSeconds": "Stoppen na (seconden, 0 = blijven spelen)",
+      "uploading": "Uploaden...",
+      "uploadFailed": "Uploaden mislukt",
+      "browseLibrary": "Bibliotheek doorzoeken...",
+      "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken.",
+      "icloudLinkDetected": "Dit is een iCloud-fotolink en kan niet direct worden afgespeeld. Bewaar de video's in je bibliotheek en gebruik ze van daaruit.",
+      "icloudNoVideos": "Deze link bevat geen video's."
+    },
     "immichSource": {
       "connecting": "Verbinden...",
       "connected": "Verbonden",
@@ -2404,6 +2567,14 @@
       "photosPerRefresh": "Foto's per vernieuwing",
       "photoInAlbumSingular": "{count} foto in album",
       "photoInAlbumPlural": "{count} foto's in album"
+    },
+    "icloudSource": {
+      "albumLink": "Albumlink",
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier.",
+      "noItemsFound": "Nog niets gevonden. Controleer de link en zorg dat 'Openbare website' aanstaat voor het album.",
+      "photoLinkDetected": "Dit is een fotolink, geen link van een gedeeld album. Fotolinks stoppen na ongeveer een maand, dus we bewaren kopieën in je bibliotheek en tonen die.",
+      "photoLinkAction": "Opslaan in bibliotheek",
+      "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen."
     },
     "meal-planner": {
       "viewWeek": "Weekraster",
@@ -2460,6 +2631,7 @@
     "photo-slideshow": {
       "sourceLocal": "Lokale foto's",
       "sourceImmich": "Immich",
+      "sourceICloud": "Gedeeld iCloud-album",
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
       "photoSource": "Fotobron",
@@ -2737,7 +2909,9 @@
         "down": "Omlaag"
       },
       "stateTokensHint": "Voeg {example} in om een live waarde van een achtergrondmodule te tonen.",
-      "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die tokens tonen '–' totdat een module ze publiceert."
+      "stateTokenUnknown": "Geen enkele module op dit display publiceert {keys} nog. Die tokens tonen '–' totdat een module ze publiceert.",
+      "stateTokenFiltersHint": "Voeg |round:1 toe om getallen af te ronden, of |default:tekst om te kiezen wat er staat voordat een waarde binnenkomt.",
+      "stateTokenPreview": "Live voorbeeld"
     },
     "todo": {
       "title": "Titel",
@@ -2997,7 +3171,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Alleen tonen als voorwaarden overeenkomen",
-    "enableHelp": "Toon of verberg deze module op basis van waarden die achtergrondmodules publiceren (bijvoorbeeld een Home Assistant-sensor).",
+    "enableHelp": "Toon of verberg deze module op basis van live waarden van gekoppelde diensten (bijvoorbeeld een Home Assistant-sensor).",
     "conditionsTitle": "Voorwaarden",
     "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om de module te tonen.",
     "addCondition": "Voorwaarde toevoegen",
@@ -3008,29 +3182,65 @@
       "numeric": "Getal ligt in bereik",
       "and": "Alle…",
       "or": "Willekeurige…",
-      "not": "Geen van…"
+      "not": "Geen van…",
+      "time": "Tijd van de dag"
     },
-    "sourceKeyLabel": "Statussleutel",
-    "sourceKeyHint": "Suggesties komen van modules die status publiceren. Stel eerst de publicerende module in en kies daarna hier de sleutel. Handmatig getypte sleutels moeten exact overeenkomen, inclusief het plugin:-voorvoegsel.",
+    "sourceKeyLabel": "Wat te controleren",
+    "sourceKeyHint": "Zelf getypte sleutels moeten exact kloppen, inclusief het plugin:-voorvoegsel.",
     "sourceKeyUnknown": "Geen enkele module op dit scherm publiceert deze sleutel nog. Tot die tijd telt deze voorwaarde als onbekend en volgt de module de instelling 'Voordat gegevens binnenkomen'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Zoek sensoren, lampen en meer…",
     "matchLabel": "Vergelijking",
     "matchEquals": "Is",
     "matchNotEquals": "Is niet",
     "valueLabel": "Waarde",
     "valuePlaceholder": "on",
     "valueListHint": "Scheid meerdere waarden met komma's om met een ervan overeen te komen.",
+    "searchingHint": "Zoeken…",
+    "searchNoResults": "Geen resultaten. Verwachtte je hier wel iets? Controleer dan de verbinding van de plugin in het pluginbeheer.",
+    "customValueOption": "Eigen waarde…",
+    "currentValueHint": "Huidige waarde: {value}",
     "aboveLabel": "Boven",
     "belowLabel": "Onder",
+    "orEqualLabel": "Of gelijk aan",
     "whenUnknownTitle": "Voordat gegevens binnenkomen",
     "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
     "whenUnknownHide": "Module verbergen",
     "whenUnknownShow": "Module tonen",
-    "noProvidersHint": "Nog geen modules op dit scherm publiceren status. Statussleutels komen meestal van plugins die waarden op de achtergrond publiceren. Waarden worden alleen gedeeld binnen het browsertabblad van dit scherm. Je kunt ook handmatig een sleutel typen. Statussleutels verschijnen hier zodra een module met 'Verborgen op de achtergrond uitvoeren' ingeschakeld ze aanbiedt.",
+    "noProvidersHint": "Er zijn nog geen statussleutels om uit te kiezen. Sleutels komen van plugins die waarden delen (zoals Home Assistant). Je kunt ook zelf een sleutel typen.",
     "noConditionsHint": "Nog geen voorwaarden. De module wordt altijd getoond totdat je er een toevoegt.",
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
     "liveValueLabel": "Nu op het display:",
-    "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen."
+    "liveValueLabelEditor": "Waarde nu:",
+    "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen.",
+    "verdicts": {
+      "met": "Voldaan",
+      "unmet": "Niet voldaan",
+      "unknown": "Wachten",
+      "metTitle": "Deze voorwaarde klopt op dit moment op het scherm.",
+      "unmetTitle": "Deze voorwaarde klopt op dit moment niet op het scherm.",
+      "unknownTitle": "Een sleutel van deze voorwaarde is nog niet gepubliceerd.",
+      "metTitleEditor": "Deze voorwaarde klopt op dit moment.",
+      "unmetTitleEditor": "Deze voorwaarde klopt op dit moment niet."
+    },
+    "outcome": {
+      "noLiveData": "Het scherm heeft zich recent niet gemeld, dus live resultaten worden niet getoond.",
+      "offlineSince": "Het scherm heeft sinds {time} niets gemeld, dus live resultaten worden niet getoond.",
+      "shownNow": "Nu zichtbaar op het scherm",
+      "hiddenNow": "Nu verborgen op het scherm",
+      "shownNowEditor": "Zou nu zichtbaar zijn",
+      "hiddenNowEditor": "Zou nu verborgen zijn",
+      "waitingForKeys": "wacht op {keys}",
+      "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
+      "conditionsNotMet": "de voorwaarden kloppen niet",
+      "seeLiveValues": "Je vindt alle live waarden onder Instellingen → Live waarden."
+    },
+    "time": {
+      "daysLabel": "Dagen",
+      "fromLabel": "Van",
+      "untilLabel": "Tot",
+      "hint": "Laat beide tijden leeg voor de hele dag. Als het einde vóór de start ligt, loopt het door na middernacht (zoals 22:00 tot 06:00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

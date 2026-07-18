@@ -2,9 +2,9 @@
  * Pure URL parser + redirect helper for the settings page.
  *
  * The sidebar URL shape:
- *   - `?section=defaults&page=display`             — a Defaults source-of-truth page
- *   - `?section=display&id=kitchen&subtab=display` — a per-display drill-down page
- *   - `?section=displays`                          — the all-displays card grid
+ *   - `?section=defaults&page=screen`                — a Defaults source-of-truth page
+ *   - `?section=display&id=kitchen&subtab=overrides` — a per-display drill-down page
+ *   - `?section=displays`                            — the all-displays card grid
  *
  * Extracted from `app/(editor)/editor/settings/page.tsx` so the legacy
  * `?tab=X` redirect can be unit-tested without a `window`. The existing test
@@ -15,27 +15,31 @@
  */
 
 /**
- * Canonical list of every Defaults page id. Mirrors `DEFAULT_PAGES` in
- * `SettingsSidebar.tsx` but lives here so the route parser can validate
- * against it without importing client components. New defaults pages
- * must be added in BOTH places — sidebar for rendering, here for routing.
+ * Canonical list of every Defaults page id, in sidebar render order.
+ * Mirrors `PAGE_META` in `SettingsSidebar.tsx` but lives here so the route
+ * parser can validate against it without importing client components. New
+ * defaults pages must be added in BOTH places — sidebar for rendering,
+ * here for routing.
+ *
+ * The 2026-07 settings reorganization merged pages:
+ *   - display + sleep + alerts            → `screen`
+ *   - profiles + rules + shared-state     → `automation`
+ *   - docs left the sidebar (footer link)
+ * Old page ids stay routable via `LEGACY_PAGE_REDIRECTS` below.
  */
 export const DEFAULT_PAGE_IDS = [
-  'display',
-  'sleep',
-  'alerts',
+  'screen',
   'location',
   'weather',
   'calendar',
   'meals',
-  'profiles',
   'integrations',
+  'automation',
   'security',
+  'network',
+  'system',
   'data',
   'stats',
-  'system',
-  'network',
-  'docs',
 ] as const;
 
 export type DefaultPageId = (typeof DEFAULT_PAGE_IDS)[number];
@@ -45,15 +49,14 @@ export type DefaultPageId = (typeof DEFAULT_PAGE_IDS)[number];
  * in `display/PerDisplayPage.tsx` — kept here so the route parser can
  * validate the `subtab` param without dragging a client component into
  * the lib graph.
+ *
+ * The reorganization collapsed six subtabs into two: `overview` absorbed
+ * the old `profile` and `identity` subtabs, and `overrides` merged the
+ * old `display`, `sleep`, and `alerts` subtabs (mirroring the merged
+ * Defaults → Screen page). Old subtab ids map via
+ * `LEGACY_SUBTAB_REDIRECTS`.
  */
-export const PER_DISPLAY_SUBTABS = [
-  'overview',
-  'display',
-  'sleep',
-  'alerts',
-  'profile',
-  'identity',
-] as const;
+export const PER_DISPLAY_SUBTABS = ['overview', 'overrides'] as const;
 
 export type PerDisplaySubtab = (typeof PER_DISPLAY_SUBTABS)[number];
 
@@ -69,15 +72,46 @@ export type SettingsRoute =
   | { kind: 'displays' };
 
 /**
+ * Map a retired `?section=defaults&page=X` value onto the page that
+ * absorbed it. These were canonical URLs between the Phase-4 settings
+ * split and the page-merge reorganization, so bookmarks and stale links
+ * from that window must keep landing on real content. `docs` maps to
+ * `screen` (the landing page) because the docs list moved out of the
+ * settings content area entirely — it's a footer link now.
+ */
+export const LEGACY_PAGE_REDIRECTS: Record<string, DefaultPageId> = {
+  display: 'screen',
+  sleep: 'screen',
+  alerts: 'screen',
+  profiles: 'automation',
+  rules: 'automation',
+  'shared-state': 'automation',
+  docs: 'screen',
+};
+
+/**
+ * Map a retired `?subtab=X` value onto the subtab that absorbed it.
+ * Unknown values (not listed here, not in `PER_DISPLAY_SUBTABS`) still
+ * fall back to `overview`.
+ */
+export const LEGACY_SUBTAB_REDIRECTS: Record<string, PerDisplaySubtab> = {
+  display: 'overrides',
+  sleep: 'overrides',
+  alerts: 'overrides',
+  profile: 'overview',
+  identity: 'overview',
+};
+
+/**
  * Map a legacy `?tab=X` value (from the old flat sidebar) onto the new
  * section/page shape. Bookmarks survive: anyone visiting an old URL
  * lands on the right content on the first render and the page rewrites
  * the URL bar to the canonical form.
  */
 export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
-  display: { kind: 'defaults', page: 'display' },
-  sleep: { kind: 'defaults', page: 'sleep' },
-  alerts: { kind: 'defaults', page: 'alerts' },
+  display: { kind: 'defaults', page: 'screen' },
+  sleep: { kind: 'defaults', page: 'screen' },
+  alerts: { kind: 'defaults', page: 'screen' },
   location: { kind: 'defaults', page: 'location' },
   // Language was merged into the Location page on 2026-05-17 — the
   // standalone "Language & region" tab no longer exists. Legacy
@@ -87,20 +121,21 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   weather: { kind: 'defaults', page: 'weather' },
   calendar: { kind: 'defaults', page: 'calendar' },
   meals: { kind: 'defaults', page: 'meals' },
-  profiles: { kind: 'defaults', page: 'profiles' },
+  profiles: { kind: 'defaults', page: 'automation' },
+  rules: { kind: 'defaults', page: 'automation' },
   integrations: { kind: 'defaults', page: 'integrations' },
   security: { kind: 'defaults', page: 'security' },
   data: { kind: 'defaults', page: 'data' },
   stats: { kind: 'defaults', page: 'stats' },
   system: { kind: 'defaults', page: 'system' },
   network: { kind: 'defaults', page: 'network' },
-  docs: { kind: 'defaults', page: 'docs' },
+  docs: { kind: 'defaults', page: 'screen' },
   displays: { kind: 'displays' },
   // Hidden routes that briefly existed — bookmarks of those collapse to
   // the proper Defaults pages.
-  'default-display': { kind: 'defaults', page: 'display' },
-  'default-sleep': { kind: 'defaults', page: 'sleep' },
-  'default-alerts': { kind: 'defaults', page: 'alerts' },
+  'default-display': { kind: 'defaults', page: 'screen' },
+  'default-sleep': { kind: 'defaults', page: 'screen' },
+  'default-alerts': { kind: 'defaults', page: 'screen' },
 };
 
 const DEFAULT_PAGE_ID_SET: Set<string> = new Set(DEFAULT_PAGE_IDS);
@@ -115,11 +150,13 @@ const PER_DISPLAY_SUBTAB_SET: Set<string> = new Set(PER_DISPLAY_SUBTABS);
  *   1. Legacy `?tab=X` wins so old bookmarks land on the right page
  *      before the canonicalization rewrite fires.
  *   2. `?section=display` requires a non-empty `id` to dispatch to
- *      a per-display page; an unrecognized `subtab` falls back to
- *      `overview`.
+ *      a per-display page; a retired `subtab` maps through
+ *      `LEGACY_SUBTAB_REDIRECTS` and an unrecognized one falls back
+ *      to `overview`.
  *   3. `?section=displays` is the all-displays index.
- *   4. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
- *   5. Unknown / missing params land on `defaults/display`, the
+ *   4. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`,
+ *      mapping retired page ids through `LEGACY_PAGE_REDIRECTS`.
+ *   5. Unknown / missing params land on `defaults/screen`, the
  *      first-visit landing page.
  */
 export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
@@ -135,7 +172,7 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
       const rawSubtab = params.get('subtab') ?? 'overview';
       const subtab: PerDisplaySubtab = PER_DISPLAY_SUBTAB_SET.has(rawSubtab)
         ? (rawSubtab as PerDisplaySubtab)
-        : 'overview';
+        : LEGACY_SUBTAB_REDIRECTS[rawSubtab] ?? 'overview';
       return { kind: 'display', displayId: id, subtab };
     }
   }
@@ -143,19 +180,22 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
     return { kind: 'displays' };
   }
   if (section === 'defaults') {
-    const rawPage = params.get('page') ?? 'display';
+    const rawPage = params.get('page') ?? 'screen';
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
       return { kind: 'defaults', page: rawPage as DefaultPageId };
     }
+    if (LEGACY_PAGE_REDIRECTS[rawPage]) {
+      return { kind: 'defaults', page: LEGACY_PAGE_REDIRECTS[rawPage] };
+    }
   }
-  return { kind: 'defaults', page: 'display' };
+  return { kind: 'defaults', page: 'screen' };
 }
 
 /**
  * Resolve a query string to its parsed route AND, if a legacy `?tab=X`
- * key was present, the canonical query string the page should rewrite
- * the URL bar to. Returns `redirectedQuery: undefined` when no rewrite
- * is needed.
+ * key, a retired `page` id, or a retired `subtab` id was present, the
+ * canonical query string the page should rewrite the URL bar to.
+ * Returns `redirectedQuery: undefined` when no rewrite is needed.
  *
  * The page component uses this from a `useEffect` that calls
  * `router.replace(redirectedQuery)` when defined — but the resolution
@@ -175,7 +215,24 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
   const route = parseSettingsRoute(params);
 
   const legacyTab = params.get('tab');
-  if (!legacyTab || !LEGACY_TAB_REDIRECTS[legacyTab]) {
+  const hasLegacyTab = !!legacyTab && !!LEGACY_TAB_REDIRECTS[legacyTab];
+  // A retired `page` / `subtab` value only counts as legacy when the parser
+  // actually consumed it — e.g. `?section=defaults&page=sleep` needs a
+  // rewrite, but a stray `page=sleep` on a `?section=displays` URL doesn't
+  // change what renders and isn't worth a history rewrite.
+  const hasLegacyPage =
+    route.kind === 'defaults' &&
+    params.get('section') === 'defaults' &&
+    !!params.get('page') &&
+    !DEFAULT_PAGE_ID_SET.has(params.get('page')!) &&
+    !!LEGACY_PAGE_REDIRECTS[params.get('page')!];
+  const hasLegacySubtab =
+    route.kind === 'display' &&
+    !!params.get('subtab') &&
+    !PER_DISPLAY_SUBTAB_SET.has(params.get('subtab')!) &&
+    !!LEGACY_SUBTAB_REDIRECTS[params.get('subtab')!];
+
+  if (!hasLegacyTab && !hasLegacyPage && !hasLegacySubtab) {
     return { route };
   }
 
@@ -191,9 +248,6 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
     next.set('section', 'displays');
     next.delete('page');
   } else if (route.kind === 'display') {
-    // Defensive — currently no legacy `?tab=X` maps to a per-display
-    // route, but if a future redirect adds one we want the canonical
-    // query string to carry the id and subtab too.
     next.set('section', 'display');
     next.set('id', route.displayId);
     next.set('subtab', route.subtab);

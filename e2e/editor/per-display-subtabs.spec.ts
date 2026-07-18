@@ -29,7 +29,7 @@ function kitchenDisplay(config: ScreenConfiguration): DisplayNode | undefined {
 
 test('Identity subtab: renaming a display persists', async ({ page, request }) => {
   await putConfig(request, twoDisplayConfig());
-  await page.goto('/editor/settings?section=display&id=kitchen&subtab=identity');
+  await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
 
   const nameField = page.getByLabel('Display name');
   await expect(nameField).toHaveValue('Kitchen');
@@ -51,10 +51,10 @@ test('Identity subtab: main display cannot be removed, others can', async ({ pag
 
   // "main" is the hub kiosk — removeDisplay hard-blocks it, so the button
   // renders visible-but-disabled.
-  await page.goto('/editor/settings?section=display&id=main&subtab=identity');
+  await page.goto('/editor/settings?section=display&id=main&subtab=overview');
   await expect(page.getByRole('button', { name: /^Remove/ })).toBeDisabled();
 
-  await page.goto('/editor/settings?section=display&id=kitchen&subtab=identity');
+  await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
   await expect(page.getByRole('button', { name: /^Remove/ })).toBeEnabled();
 });
 
@@ -62,7 +62,7 @@ test('Profile subtab: setting the active profile persists per-display', async ({
   const config = twoDisplayConfig();
   config.profiles = [{ id: 'p1', name: 'Evening', screenIds: [] }];
   await putConfig(request, config);
-  await page.goto('/editor/settings?section=display&id=kitchen&subtab=profile');
+  await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
 
   const saved = page.waitForResponse(
     (r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok(),
@@ -75,14 +75,17 @@ test('Profile subtab: setting the active profile persists per-display', async ({
     .toBe('p1');
 });
 
-test('Alerts subtab: forking and resetting the per-display override', async ({ page, request }) => {
+test('Alerts card on the Overrides subtab: forking and resetting the per-display override', async ({ page, request }) => {
   await putConfig(request, twoDisplayConfig());
-  await page.goto('/editor/settings?section=display&id=kitchen&subtab=alerts');
+  await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
 
   // Inheriting by default — the fork button is labelled per-display, and the
-  // form is dimmed (disabled) until forked.
-  const forkButton = page.getByRole('button', { name: 'Override for Kitchen', exact: true });
-  const positionSelect = page.getByLabel('Position');
+  // form is dimmed (disabled) until forked. The merged Overrides subtab
+  // renders an identical button on the sleep card, so scope to the alerts
+  // card's test id.
+  const alertsCard = page.getByTestId('alerts-override-card');
+  const forkButton = alertsCard.getByRole('button', { name: 'Override for Kitchen', exact: true });
+  const positionSelect = alertsCard.getByLabel('Position');
   await expect(positionSelect).toBeDisabled();
 
   await forkButton.click();
@@ -95,7 +98,7 @@ test('Alerts subtab: forking and resetting the per-display override', async ({ p
     .poll(async () => kitchenDisplay(await getConfig(request))?.settings?.alerts?.position)
     .toBe('bottom');
 
-  await page.getByRole('button', { name: 'Reset to default', exact: true }).click();
+  await alertsCard.getByRole('button', { name: 'Reset to default', exact: true }).click();
 
   await expect
     .poll(async () => kitchenDisplay(await getConfig(request))?.settings?.alerts)

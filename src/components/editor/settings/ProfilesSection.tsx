@@ -24,7 +24,14 @@ const log = logger('profiles');
 
 /* ─── Main section ───────────────────────────── */
 
-export default function ProfilesSection() {
+interface ProfilesSectionProps {
+  /** When rendered as an Automation-page tab, the parent owns the shared
+   *  display picker and the active tab already names the section — suppress
+   *  this section's own picker and heading (the description still renders). */
+  embedded?: boolean;
+}
+
+export default function ProfilesSection({ embedded = false }: ProfilesSectionProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale (date-fns conventions),
@@ -117,14 +124,16 @@ export default function ProfilesSection() {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('settings.profilesPage.heading')}
-      </h3>
+      {!embedded && (
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.profilesPage.heading')}
+        </h3>
+      )}
       <p className="text-xs text-hs-text-faint mb-4">
         {t('settings.profilesPage.description')}
       </p>
 
-      {isMultiDisplay && (
+      {isMultiDisplay && !embedded && (
         <div className="mb-4 rounded-lg border border-hs-accent/20 bg-hs-accent/[0.07] px-3 py-2.5">
           <label className="block">
             <span className="text-[11px] uppercase tracking-wider text-hs-accent-hover font-medium">
@@ -150,7 +159,7 @@ export default function ProfilesSection() {
 
       {/* Active profile selector */}
       {profiles.length > 0 && (
-        <label className="block mb-4">
+        <label className="block mb-4" data-field-id="profiles.activeProfile">
           <span className="text-xs text-hs-text-muted">
             {t('settings.profilesPage.active.label')}
           </span>

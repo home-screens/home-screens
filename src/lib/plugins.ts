@@ -5,10 +5,13 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
+import { deletePluginTokens, deletePendingAuth } from '@/lib/plugin-auth';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
+import { isVersionCompatible } from '@/lib/plugin-versions';
+import { getPackageVersion } from '@/lib/version';
 
 const execFileAsync = promisify(execFile);
 
@@ -46,7 +49,7 @@ export async function getInstalledPlugins(): Promise<InstalledPluginsFile> {
  *  on-disk state (prior queued writes have landed) and must return a NEW
  *  object to persist changes, or its input unchanged to skip the write. */
 function updateInstalled(
-  mutator: (current: InstalledPluginsFile) => InstalledPluginsFile,
+  mutator: (current: InstalledPluginsFile) => InstalledPluginsFile | Promise<InstalledPluginsFile>,
 ): Promise<InstalledPluginsFile> {
   return installedStore.updateAtomic(mutator).then((result) => {
     // mtime-based cache invalidation is implicit, but sub-ms writes can
@@ -112,6 +115,15 @@ async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> 
   } catch {
     throw new Error(
       'Plugin bundle is missing at dist/bundle.js — the tarball must contain a dist/ directory with bundle.js',
+    );
+  }
+  // Enforce the manifest's own minAppVersion here so every tarball install
+  // path (registry, external URL, update swaps) is covered. Fail open when
+  // the app version can't be read, matching the registry install route.
+  const appVersion = await getPackageVersion().catch(() => undefined);
+  if (!isVersionCompatible(manifest, appVersion)) {
+    throw new Error(
+      `This plugin needs Home Screens ${manifest.minAppVersion} or newer. Update Home Screens first.`,
     );
   }
   return manifest;
@@ -193,6 +205,10 @@ export async function installPlugin(
         if (oldVersion !== version) {
           entry.previousVersion = oldVersion;
         }
+        // Settings survive upgrades (the documented InstalledPlugin contract).
+        if (plugins[existing].settings) {
+          entry.settings = plugins[existing].settings;
+        }
         plugins[existing] = entry;
       } else {
         plugins.push(entry);
@@ -273,6 +289,10 @@ export async function installExternalPlugin(
           if (plugins[idx].version !== manifest.version) {
             entry.previousVersion = plugins[idx].version;
           }
+          // Settings survive upgrades (the documented InstalledPlugin contract).
+          if (plugins[idx].settings) {
+            entry.settings = plugins[idx].settings;
+          }
           plugins[idx] = entry;
         } else {
           plugins.push(entry);
@@ -294,10 +314,13 @@ export async function installExternalPlugin(
 }
 
 export async function uninstallPlugin(pluginId: string): Promise<void> {
-  // Secrets live outside the plugin directory, but we still clear them
-  // explicitly so an uninstall doesn't leave per-plugin credentials behind.
+  // Secrets and auth tokens live outside the plugin directory (upgrades wipe
+  // that dir wholesale), but we still clear them explicitly so an uninstall
+  // doesn't leave per-plugin credentials behind.
   // (Also removes any leftover legacy in-plugin-dir secrets.json.)
   await deleteAllPluginSecrets(pluginId);
+  await deletePluginTokens(pluginId);
+  await deletePendingAuth(pluginId);
 
   const dir = pluginDir(pluginId);
   await fs.rm(dir, { recursive: true, force: true });
@@ -334,6 +357,69 @@ export async function setPluginEnabled(pluginId: string, enabled: boolean): Prom
   });
 }
 
+// --- Plugin-level settings (manifest settingsSchema values) ---
+
+const MAX_SETTINGS_JSON_BYTES = 32 * 1024;
+
+/** Read a plugin's stored settings ({} when unset or plugin unknown). */
+export async function getPluginSettings(pluginId: string): Promise<Record<string, unknown>> {
+  const installed = await getInstalledPlugins();
+  const plugin = installed.plugins.find((p) => p.id === pluginId);
+  return plugin?.settings ?? {};
+}
+
+/**
+ * Validate + persist plugin-level settings. Unknown keys (not declared in the
+ * manifest's `settingsSchema`) are dropped; declared keys are type-checked
+ * against the schema property type. Returns the sanitized object that was
+ * stored. Throws when the plugin isn't installed or declares no settings.
+ */
+export async function setPluginSettings(
+  pluginId: string,
+  settings: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  // Manifest read + validation run INSIDE the queued mutator so a concurrent
+  // plugin upgrade can't land between validation and persistence — the schema
+  // we validate against is the one on disk at write time.
+  let sanitized: Record<string, unknown> = {};
+  await updateInstalled(async (installed) => {
+    const plugin = installed.plugins.find((p) => p.id === pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+
+    const manifest = await getPluginManifest(pluginId);
+    if (!manifest) throw new Error(`Plugin ${pluginId} not found`);
+    const schema = manifest.settingsSchema;
+    if (!schema?.properties) {
+      throw new Error(`Plugin ${pluginId} does not declare settings`);
+    }
+
+    sanitized = {};
+    for (const [key, prop] of Object.entries(schema.properties)) {
+      if (!(key in settings)) continue;
+      const value = settings[key];
+      const ok =
+        (prop.type === 'string' && typeof value === 'string')
+        || (prop.type === 'number' && typeof value === 'number' && Number.isFinite(value))
+        || (prop.type === 'boolean' && typeof value === 'boolean')
+        || (prop.type === 'array' && Array.isArray(value))
+        || (prop.type === 'object' && typeof value === 'object' && value !== null && !Array.isArray(value));
+      if (!ok) throw new Error(`Setting "${key}" must be a ${prop.type}`);
+      sanitized[key] = value;
+    }
+    if (JSON.stringify(sanitized).length > MAX_SETTINGS_JSON_BYTES) {
+      throw new Error('Settings payload too large');
+    }
+
+    return {
+      ...installed,
+      plugins: installed.plugins.map((p) =>
+        p.id === pluginId ? { ...p, settings: sanitized } : p,
+      ),
+    };
+  });
+  return sanitized;
+}
+
 // --- Dev plugin registration ---
 
 /**
@@ -364,6 +450,11 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
     const plugins = [...installed.plugins];
     const existing = plugins.findIndex((p) => p.id === manifest.id);
     if (existing >= 0) {
+      // Settings survive re-registration — a dev iteration must not wipe the
+      // values the developer just saved through the plugin manager.
+      if (plugins[existing].settings) {
+        entry.settings = plugins[existing].settings;
+      }
       plugins[existing] = entry;
     } else {
       plugins.push(entry);
@@ -376,6 +467,11 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
 
 export async function getPluginHash(): Promise<string> {
   const installed = await getInstalledPlugins();
+  // Deliberately excludes settings: a settings save must NOT trigger the full
+  // bundle-reload path (which remounts every plugin on every display and
+  // cold-starts every provider's fetch loop). Settings ride the same
+  // /api/plugins/installed payload and are diffed separately by useLiveConfig,
+  // which pushes them into the plugin store without a reload.
   const content = installed.plugins
     .map((p) => `${p.id}:${p.version}:${p.enabled}`)
     .sort()
@@ -384,6 +480,65 @@ export async function getPluginHash(): Promise<string> {
 }
 
 // --- Manifest validation ---
+
+const OAUTH2_FLOWS = new Set(['authorization_code', 'device_code', 'client_credentials']);
+
+function isGarminDomain(domain: string): boolean {
+  return domain === 'garmin.com' || domain.endsWith('.garmin.com');
+}
+
+/** Validate the optional `auth` field. `m` is the whole manifest (auth rules
+ *  cross-reference `secrets` and `allowedDomains`). */
+function validateAuthConfig(m: Record<string, unknown>): boolean {
+  const auth = m.auth as Record<string, unknown>;
+  if (!auth || typeof auth !== 'object') return false;
+  const allowedDomains = Array.isArray(m.allowedDomains) ? (m.allowedDomains as string[]) : [];
+
+  if (auth.type === 'garmin') {
+    // The flow is fixed and host-implemented — extra fields signal a
+    // misauthored manifest, so reject rather than silently ignore.
+    if (Object.keys(auth).length !== 1) return false;
+    // Token injection only fires on garmin.com hosts; a manifest without one
+    // declared could never receive the token it asked for.
+    return allowedDomains.some(isGarminDomain);
+  }
+
+  if (auth.type !== 'oauth2') return false;
+  if (typeof auth.flow !== 'string' || !OAUTH2_FLOWS.has(auth.flow)) return false;
+  if (typeof auth.tokenUrl !== 'string' || !auth.tokenUrl) return false;
+  if (auth.flow !== 'client_credentials' && (typeof auth.authorizationUrl !== 'string' || !auth.authorizationUrl)) {
+    return false;
+  }
+  if (!Array.isArray(auth.scopes) || auth.scopes.length === 0
+    || !auth.scopes.every((s: unknown) => typeof s === 'string')) return false;
+  if (auth.tokenPlacement !== 'header' && auth.tokenPlacement !== 'query') return false;
+  if (auth.tokenPlacement === 'query' && (typeof auth.tokenParamName !== 'string' || !auth.tokenParamName)) {
+    return false;
+  }
+
+  // Client credentials must reference keys the plugin actually declares —
+  // otherwise the editor has no input to collect them with.
+  const secretKeys = new Set(
+    Array.isArray(m.secrets) ? (m.secrets as Array<{ key?: unknown }>).map((s) => s?.key) : [],
+  );
+  const authSecrets = auth.secrets as Record<string, unknown> | undefined;
+  if (!authSecrets || typeof authSecrets !== 'object') return false;
+  if (typeof authSecrets.clientId !== 'string' || !secretKeys.has(authSecrets.clientId)) return false;
+  if (authSecrets.clientSecret !== undefined
+    && (typeof authSecrets.clientSecret !== 'string' || !secretKeys.has(authSecrets.clientSecret))) {
+    return false;
+  }
+
+  // tokenTargetDomains is REQUIRED and must be a non-empty subset of
+  // allowedDomains: the plugin author names exactly which hosts receive the
+  // bearer, so it never fans out to an unrelated allowed host (e.g. a CDN),
+  // and a missing declaration is caught here rather than silently injecting
+  // nothing at runtime.
+  if (!Array.isArray(auth.tokenTargetDomains) || auth.tokenTargetDomains.length === 0) return false;
+  const declared = new Set(allowedDomains);
+  if (!auth.tokenTargetDomains.every((d: unknown) => typeof d === 'string' && declared.has(d))) return false;
+  return true;
+}
 
 export function validateManifest(manifest: unknown): manifest is PluginManifest {
   if (!manifest || typeof manifest !== 'object') return false;
@@ -411,6 +566,17 @@ export function validateManifest(manifest: unknown): manifest is PluginManifest 
   if (m.allowedDomains !== undefined) {
     if (!Array.isArray(m.allowedDomains)) return false;
     if (!m.allowedDomains.every((d: unknown) => typeof d === 'string')) return false;
+  }
+  // Validate optional auth adapter declaration
+  if (m.auth !== undefined && !validateAuthConfig(m)) return false;
+  // Validate optional settingsSchema — same declarative shape as configSchema.
+  // Light structural check only; the PUT settings path type-checks values.
+  if (m.settingsSchema !== undefined) {
+    const s = m.settingsSchema as Record<string, unknown> | null;
+    if (!s || typeof s !== 'object' || s.type !== 'object'
+      || !s.properties || typeof s.properties !== 'object' || Array.isArray(s.properties)) {
+      return false;
+    }
   }
   // Validate optional providesState array. Keys are declared un-prefixed;
   // registration prefixes them with `plugin:<id>:`, so check the charset

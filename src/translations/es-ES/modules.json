@@ -534,7 +534,8 @@
     "noPhotoSelected": "No hay foto seleccionada",
     "noPhotoSelectedHint": "Elige una foto en el panel del editor.",
     "noPhotosYet": "Aún no hay fotos",
-    "noPhotosYetHint": "Sube fotos desde tu teléfono usando la pestaña Fotos en /remote, o elige una carpeta en el editor."
+    "noPhotosYetHint": "Sube fotos desde tu teléfono usando la pestaña Fotos en /remote, o elige una carpeta en el editor.",
+    "noPhotosYetHintICloud": "Revisa el enlace del álbum en el editor y asegúrate de que el \"Sitio web público\" del álbum esté activado."
   },
   "dad-joke": {
     "loading": "Cargando chiste…"
@@ -651,7 +652,13 @@
   },
   "photo-slideshow": {
     "loading": "Cargando fotos…",
-    "empty": "No se encontraron fotos"
+    "empty": "No se encontraron fotos",
+    "emptyICloud": "Aún no hay fotos. Revisa el enlace del álbum y asegúrate de que el \"Sitio web público\" esté activado."
+  },
+  "video": {
+    "loading": "Cargando vídeo…",
+    "empty": "Elige un vídeo para reproducir",
+    "unavailable": "Este vídeo ya no está disponible"
   },
   "icon": {
     "empty": "Ningún icono seleccionado"

@@ -23,6 +23,12 @@ const nextConfig = {
   experimental: {
     workerThreads: false,
     cpus: 2,
+    // The proxy (src/proxy.ts) buffers request bodies with a 10MB default cap
+    // and silently TRUNCATES anything larger, which made >10MB video uploads
+    // die in formData() parsing with a 500. Sized above the 200MB per-video
+    // upload limit (plus multipart overhead) so /api/backgrounds' own friendly
+    // 413 is the only size gate a user ever hits.
+    proxyClientMaxBodySize: '205mb',
   },
   outputFileTracingIncludes: {
     '/api/calendar': ['./node_modules/temporal-polyfill/**/*'],
@@ -46,6 +52,11 @@ const nextConfig = {
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' blob: https: http: data:",
+              // Mirrors img-src: slideshow video plays straight from remote CDNs
+              // (iCloud shared albums serve raw Apple-signed URLs, no proxy).
+              // Without this, <video> falls back to default-src 'self' and every
+              // cross-origin clip is blocked.
+              "media-src 'self' blob: https: http: data:",
               "connect-src 'self' https: http://localhost:*",
               "frame-src 'self' https: http:",
               "font-src 'self' data:",

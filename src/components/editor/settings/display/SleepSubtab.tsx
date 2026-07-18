@@ -21,8 +21,8 @@ interface SleepSubtabProps {
 }
 
 /**
- * Display detail "Sleep" — whole-block override of the shared
- * `Defaults → Sleep` settings.
+ * Sleep card on the per-display Overrides subtab — whole-block override
+ * of the shared sleep settings from `Defaults → Screen`.
  *
  * Sleep is overridden as a single full-replacement unit because the
  * shallow merge in `display-filter.ts` says nested objects (sleep,
@@ -33,7 +33,7 @@ interface SleepSubtabProps {
  *
  * The legacy `SleepSection` wrapper was inlined. The form body now
  * lives in the shared `SleepFormFields` component which both this
- * subtab and `DefaultSleepSection` compose. The fork affordance moved
+ * subtab and `ScreenSection` compose. The fork affordance moved
  * to a header row inside the rounded card here, matching the mockup's
  * "single rounded card with override button at the top" CTA layout.
  */
@@ -78,13 +78,13 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.sleep.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=sleep"
+      defaultsHref="?section=defaults&page=screen"
       defaultsLabel={t('settings.perDisplayPage.sleep.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.sleep.infoPart1')}
           <Link
-            href="?section=defaults&page=sleep"
+            href="?section=defaults&page=screen"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.sleep.defaultsLabel')}
@@ -95,6 +95,7 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
       isForked={isForked}
       onFork={handleFork}
       onReset={handleReset}
+      testId="sleep-override-card"
     >
       <SleepFormFields values={values} onChange={handleChange} disabled={!isForked} />
     </WholeBlockOverrideCard>

@@ -97,11 +97,22 @@ interface SystemStubHandle {
   unstubbed: string[];
   /** POST bodies captured per path, so a test can assert what the UI sent. */
   posted: Record<string, unknown[]>;
+  /**
+   * Count of GET /api/system/network/confirm calls. The RollbackOverlay is
+   * dismissed by its parent the instant it resolves (its confirmed/reverted
+   * screens never stay mounted long enough to assert on), so a test proves the
+   * overlay ran by observing that it polled this endpoint.
+   */
+  confirmPolls: number;
 }
 
 type Overrides = {
   network?: unknown;
   version?: unknown;
+  /** Response body for PUT /api/system/network/ip — a test returns a rollbackId here to drive the RollbackOverlay. */
+  ip?: unknown;
+  /** GET /api/system/network/confirm `pending` flag; `false` reports no pending rollback, driving the auto-revert branch. */
+  confirmPending?: boolean;
 };
 
 /**
@@ -110,11 +121,11 @@ type Overrides = {
  * ran and to check what the UI POSTed.
  */
 async function setupSystemStubs(page: Page, overrides: Overrides = {}): Promise<SystemStubHandle> {
-  const handle: SystemStubHandle = { unstubbed: [], posted: {} };
+  const handle: SystemStubHandle = { unstubbed: [], posted: {}, confirmPolls: 0 };
 
   const record = (route: Route) => {
     const req = route.request();
-    if (req.method() === 'POST' || req.method() === 'DELETE') {
+    if (req.method() === 'POST' || req.method() === 'DELETE' || req.method() === 'PUT') {
       const path = new URL(req.url()).pathname;
       let body: unknown = null;
       try {
@@ -166,6 +177,37 @@ async function setupSystemStubs(page: Page, overrides: Overrides = {}): Promise<
     route.fulfill({ json: DIAGNOSTICS }),
   );
 
+  // Hostname change (PUT)
+  await page.route('**/api/system/network/hostname', (route) => {
+    record(route);
+    return route.fulfill({ json: { ok: true } });
+  });
+
+  // Static-IP apply (PUT). The response is test-configurable so a test can
+  // return a rollbackId and drive the RollbackOverlay confirm/revert flow.
+  await page.route('**/api/system/network/ip', (route) => {
+    record(route);
+    return route.fulfill({ json: overrides.ip ?? { ok: true } });
+  });
+
+  // Rollback verification endpoint: GET reports the pending state the overlay
+  // polls, POST confirms the change. `confirmPending: false` makes the GET
+  // report no pending rollback — which is exactly how the real server signals
+  // that connectivity was lost and the change was auto-reverted, so the revert
+  // branch is driven deterministically through the same mechanism, no fake
+  // timers required.
+  await page.route('**/api/system/network/confirm', (route) => {
+    record(route);
+    if (route.request().method() === 'POST') {
+      return route.fulfill({ json: { ok: true } });
+    }
+    handle.confirmPolls += 1;
+    if (overrides.confirmPending === false) {
+      return route.fulfill({ json: { pending: false } });
+    }
+    return route.fulfill({ json: { pending: true, rollbackId: 'rb-e2e', remainingMs: 45_000 } });
+  });
+
   // System page routes
   await page.route('**/api/system/version**', (route) =>
     route.fulfill({ json: overrides.version ?? VERSION_UP_TO_DATE }),
@@ -183,6 +225,24 @@ async function setupSystemStubs(page: Page, overrides: Overrides = {}): Promise<
     record(route);
     return route.fulfill({ json: { ok: true, message: 'Service restart scheduled' } });
   });
+
+  // Version rollback trigger (POST) — the UpgradeModal fires this after the
+  // Version History confirm dialog. A real trigger would checkout an old tag
+  // and restart; the stub records the tag and returns ok.
+  await page.route('**/api/system/rollback', (route) => {
+    record(route);
+    return route.fulfill({ json: { ok: true } });
+  });
+  // SSE progress stream the UpgradeModal opens via EventSource. Fulfilled
+  // locally (never the real server) with an inert idle event. The modal
+  // renders its header synchronously — which is all the rollback test asserts —
+  // so we don't need to script a full progress sequence.
+  await page.route('**/api/system/status', (route) =>
+    route.fulfill({
+      contentType: 'text/event-stream',
+      body: 'event: progress\ndata: {"step":"idle","progress":0,"message":""}\n\n',
+    }),
+  );
 
   return handle;
 }
@@ -324,12 +384,133 @@ test.describe('Defaults › Network', () => {
 
     assertNoRealSystemCall(stubs);
   });
+
+  test('saving a new hostname PUTs the value and shows the success message', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=network');
+
+    // Scope to the Hostname section — the field's placeholder ("home-screens")
+    // matches its own value, so target the input by its section instead.
+    const hostnameSection = page.locator('section').filter({
+      has: page.getByRole('heading', { name: 'Hostname' }),
+    });
+    await hostnameSection.getByRole('textbox').fill('living-room-pi');
+    await hostnameSection.getByRole('button', { name: 'Save' }).click();
+
+    await expect(page.getByText('Hostname updated')).toBeVisible({ timeout: 15_000 });
+
+    assertNoRealSystemCall(stubs);
+    const posted = stubs.posted['/api/system/network/hostname'] as Array<{ hostname: string }>;
+    expect(posted?.[0]?.hostname).toBe('living-room-pi');
+  });
+
+  test('Disconnect posts the active connection id', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=network');
+
+    await page.getByRole('button', { name: 'Disconnect' }).click();
+
+    await expect
+      .poll(() => stubs.posted['/api/system/network/wifi/disconnect']?.length ?? 0, { timeout: 15_000 })
+      .toBeGreaterThan(0);
+
+    assertNoRealSystemCall(stubs);
+    const posted = stubs.posted['/api/system/network/wifi/disconnect'] as Array<{ connectionId: string }>;
+    expect(posted?.[0]?.connectionId).toBe('uuid-wlan0');
+  });
+
+  test('applying a static IP confirms connectivity through the rollback overlay', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    // The apply returns a rollbackId → the overlay mounts and verifies.
+    const stubs = await setupSystemStubs(page, { ip: { ok: true, rollbackId: 'rb-e2e' } });
+
+    await page.goto('/editor/settings?section=defaults&page=network');
+
+    // Open the IP panel for wlan0, switch to a static address, and apply.
+    await page.getByRole('button', { name: 'IP Settings' }).click();
+    await expect(page.getByRole('heading', { name: 'IP Settings (wlan0)' })).toBeVisible();
+    await page.getByRole('radio', { name: 'Static (manual)' }).check();
+    await page.getByPlaceholder('192.168.1.50').fill('192.168.1.99');
+    await page.getByRole('button', { name: 'Apply' }).click();
+
+    // The apply returned a rollbackId → the overlay mounts, polls confirm
+    // (pending), then POSTs to confirm and cancel the auto-revert. The parent
+    // dismisses the overlay the instant it resolves, so we assert on the calls
+    // it made rather than its transient "confirmed" screen.
+    const confirmPosts = () => (stubs.posted['/api/system/network/confirm'] as Array<{ rollbackId: string }>) ?? [];
+    await expect.poll(() => confirmPosts().length, { timeout: 15_000 }).toBeGreaterThan(0);
+
+    assertNoRealSystemCall(stubs);
+    expect(stubs.confirmPolls).toBeGreaterThan(0);
+    const ipPost = stubs.posted['/api/system/network/ip'] as Array<{ method: string; address: string }>;
+    expect(ipPost?.[0]?.method).toBe('manual');
+    expect(ipPost?.[0]?.address).toBe('192.168.1.99');
+    expect(confirmPosts()[0]?.rollbackId).toBe('rb-e2e');
+  });
+
+  test('a static IP that loses connectivity reverts through the rollback overlay', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    // confirmPending:false → the GET reports no pending rollback, exactly how the
+    // server signals it already auto-reverted after connectivity was lost.
+    const stubs = await setupSystemStubs(page, {
+      ip: { ok: true, rollbackId: 'rb-e2e' },
+      confirmPending: false,
+    });
+
+    await page.goto('/editor/settings?section=defaults&page=network');
+
+    await page.getByRole('button', { name: 'IP Settings' }).click();
+    await expect(page.getByRole('heading', { name: 'IP Settings (wlan0)' })).toBeVisible();
+    await page.getByRole('radio', { name: 'Static (manual)' }).check();
+    await page.getByPlaceholder('192.168.1.50').fill('192.168.1.99');
+    await page.getByRole('button', { name: 'Apply' }).click();
+
+    // The overlay's first poll sees pending:false — the server's signal that
+    // the change already auto-reverted — so it takes the revert path and never
+    // POSTs a confirm. Wait for the overlay to have polled, then assert it did
+    // not confirm.
+    await expect.poll(() => stubs.confirmPolls, { timeout: 15_000 }).toBeGreaterThan(0);
+    // Give any (erroneous) confirm POST a beat to have fired before asserting absence.
+    await expect
+      .poll(() => (stubs.posted['/api/system/network/ip'] as unknown[])?.length ?? 0, { timeout: 15_000 })
+      .toBeGreaterThan(0);
+
+    assertNoRealSystemCall(stubs);
+    const ipPost = stubs.posted['/api/system/network/ip'] as Array<{ method: string }>;
+    expect(ipPost?.[0]?.method).toBe('manual');
+    // The revert path must NOT have confirmed the change.
+    expect(stubs.posted['/api/system/network/confirm']).toBeUndefined();
+  });
+
+  test('Forget removes a saved network after confirming', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=network');
+
+    await expect(page.getByText('Cafe', { exact: true })).toBeVisible();
+    // SAVED_NETWORKS lists HomeNet then Cafe → Cafe owns the second Forget button.
+    await page.getByRole('button', { name: 'Forget' }).nth(1).click();
+    // Inline confirmation ("Forget?" with Yes/No).
+    await page.getByRole('button', { name: 'Yes' }).click();
+
+    // The DELETE resolved ok → Cafe drops out of the list.
+    await expect(page.getByText('Cafe', { exact: true })).toBeHidden({ timeout: 15_000 });
+
+    assertNoRealSystemCall(stubs);
+    const posted = stubs.posted['/api/system/network/wifi/saved'] as Array<{ connectionId: string }>;
+    expect(posted?.[0]?.connectionId).toBe('uuid-cafe');
+  });
 });
 
 /* ─── System page ──────────────────────────────────────────────────────── */
 
 test.describe('Defaults › System', () => {
-  test('renders version, backups, and system-action buttons', async ({ page, request }) => {
+  test('renders version and system-action buttons', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     const stubs = await setupSystemStubs(page);
 
@@ -341,15 +522,28 @@ test.describe('Defaults › System', () => {
     await expect(page.getByText("You're on the latest version")).toBeVisible();
     await expect(page.getByRole('button', { name: 'Check for Updates' })).toBeVisible();
 
-    // Backups section lists the stubbed backup with Restore/Download actions.
-    await expect(page.getByRole('heading', { name: 'Config Backups' })).toBeVisible();
-    await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Restore' })).toBeVisible();
-
     // System Actions render but are NOT clicked here.
     await expect(page.getByRole('button', { name: 'Restart Service' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reboot System' })).toBeVisible();
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('Backups & data lists the config backups with Restore/Download actions', async ({ page, request }) => {
+    // The Config Backups section moved from the System page to Backups & data
+    // in the settings reorganization; the data source (/api/system/backups)
+    // is unchanged, so the same stubs cover it.
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=data');
+
+    await expect(page.getByRole('heading', { name: 'Config Backups' })).toBeVisible();
+    await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
+    // exact — the Full Backup section's "Restore Backup" button lives on the
+    // same page now, and role-name matching is substring by default.
+    await expect(page.getByRole('button', { name: 'Restore', exact: true })).toBeVisible();
 
     assertNoRealSystemCall(stubs);
   });
@@ -368,13 +562,15 @@ test.describe('Defaults › System', () => {
     assertNoRealSystemCall(stubs);
   });
 
-  test('restoring a backup confirms, POSTs to the stub, and reports success', async ({ page, request }) => {
+  test('restoring a config backup confirms, POSTs to the stub, and reports success', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     const stubs = await setupSystemStubs(page);
 
-    await page.goto('/editor/settings?section=defaults&page=system');
+    // Config backup restore lives on the Backups & data page post-reorg.
+    await page.goto('/editor/settings?section=defaults&page=data');
 
-    await page.getByRole('button', { name: 'Restore' }).click();
+    // exact — avoids the Full Backup section's "Restore Backup" button.
+    await page.getByRole('button', { name: 'Restore', exact: true }).click();
 
     // Confirm dialog (ConfirmModal, mounted in the editor layout).
     const dialog = page.getByRole('dialog');
@@ -412,5 +608,33 @@ test.describe('Defaults › System', () => {
     assertNoRealSystemCall(stubs);
     const posted = stubs.posted['/api/system/power'] as Array<{ action: string }>;
     expect(posted?.[0]?.action).toBe('restart-service');
+  });
+
+  test('rolling back to an older version confirms and fires the rollback trigger', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    // Version History lists v1.2.2 (not current) with a Rollback action.
+    await expect(page.getByRole('heading', { name: 'Version History' })).toBeVisible();
+    await page.getByRole('button', { name: 'Rollback' }).click();
+
+    // Confirm dialog (ConfirmModal).
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Roll Back' }).click();
+
+    // The UpgradeModal replaces the settings page and renders its header.
+    await expect(page.getByRole('heading', { name: 'Rolling back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
+    await expect
+      .poll(() => stubs.posted['/api/system/rollback']?.length ?? 0, { timeout: 15_000 })
+      .toBeGreaterThan(0);
+
+    // The real checkout+restart never ran — the trigger was intercepted, and its
+    // body carried the target tag.
+    assertNoRealSystemCall(stubs);
+    const posted = stubs.posted['/api/system/rollback'] as Array<{ tag: string }>;
+    expect(posted?.[0]?.tag).toBe('v1.2.2');
   });
 });

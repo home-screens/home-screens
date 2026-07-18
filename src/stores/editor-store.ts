@@ -12,6 +12,7 @@ import type {
   Profile,
   DisplayNode,
   DisplayNodeSettings,
+  DisplayRule,
 } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -34,9 +35,11 @@ import {
   getActiveScreens,
   withActiveScreens,
   getActiveDimensions,
+  getActiveRules,
   resolveProfileTarget,
   withProfiles,
   withActiveProfile,
+  withRules,
   updateModuleInConfig,
   buildBootstrapMain,
   buildNewDisplay,
@@ -76,7 +79,7 @@ function syncEditorUrl({ screen, display }: { screen?: string | null; display?: 
 
 // Re-export pure multi-display helpers so existing consumers that import
 // them from `@/stores/editor-store` keep working after the split.
-export { getActiveScreens, getActiveDimensions } from '@/lib/editor-multi-display';
+export { getActiveScreens, getActiveDimensions, getActiveRules } from '@/lib/editor-multi-display';
 
 // `orientDimensions` now lives in `@/lib/display-filter` so the server-side
 // per-display filter can share it. Re-exported here for existing callers.
@@ -133,6 +136,13 @@ interface EditorState {
   updateProfile: (id: string, updates: Partial<Profile>) => void;
   reorderProfiles: (fromIndex: number, toIndex: number) => void;
   setActiveProfile: (id: string | undefined) => void;
+  addRule: (name: string) => void;
+  removeRule: (id: string) => void;
+  updateRule: (id: string, updates: Partial<DisplayRule>) => void;
+  reorderRules: (fromIndex: number, toIndex: number) => void;
+  /** Copy a rule from the active display to another display, with a fresh id
+   *  and (for showScreen actions) a blanked screen target. Multi-display only. */
+  copyRuleToDisplay: (ruleId: string, targetDisplayId: string) => void;
   addDisplay: (display: Omit<DisplayNode, 'screens'> & { screens?: Screen[] }) => void;
   updateDisplay: (id: string, updates: Partial<DisplayNode>) => void;
   removeDisplay: (id: string) => void;
@@ -614,6 +624,78 @@ export const useEditorStore = create<EditorState>((set, get) => {
     );
   },
 
+  addRule: (name: string) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => {
+      // Default the action to the first screen so a new rule saves valid;
+      // 'for' 60s is the doorbell-style shape most rules start from.
+      const firstScreenId = getActiveScreens(config, selectedDisplayId)[0]?.id ?? '';
+      const newRule: DisplayRule = {
+        id: uuidv4(),
+        name,
+        when: [],
+        action: { kind: 'showScreen', screenId: firstScreenId, mode: 'for', seconds: 60 },
+      };
+      return {
+        config: withRules(config, selectedDisplayId, (rules) => [...rules, newRule]),
+      };
+    });
+  },
+
+  removeRule: (id: string) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) => rules.filter((r) => r.id !== id)),
+    }));
+  },
+
+  updateRule: (id: string, updates: Partial<DisplayRule>) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) =>
+        rules.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+      ),
+    }), { coalesce: `rule:${id}` });
+  },
+
+  reorderRules: (fromIndex: number, toIndex: number) => {
+    const { selectedDisplayId } = get();
+    mutateConfig((config) => ({
+      config: withRules(config, selectedDisplayId, (rules) => {
+        if (rules.length < 2) return rules;
+        const next = [...rules];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        return next;
+      }),
+    }), { coalesce: 'reorderRules' });
+  },
+
+  copyRuleToDisplay: (ruleId: string, targetDisplayId: string) => {
+    const { config, selectedDisplayId } = get();
+    // Multi-display only — legacy single-display installs have nowhere to copy.
+    if (!config?.displays) return;
+    const source = getActiveRules(config, selectedDisplayId).find((r) => r.id === ruleId);
+    if (!source || !config.displays.some((d) => d.id === targetDisplayId)) return;
+
+    mutateConfig((cfg) => {
+      const displays = cfg.displays;
+      if (!displays) return {};
+      const idx = displays.findIndex((d) => d.id === targetDisplayId);
+      if (idx === -1) return {};
+      // Fresh id; blank a showScreen target since screens are per-display and
+      // the source screen id won't exist on the target (empty screenId is the
+      // established saveable-incomplete posture). enabled: undefined lands it on.
+      const clone: DisplayRule = { ...structuredClone(source), id: uuidv4(), enabled: undefined };
+      if (clone.action.kind === 'showScreen') {
+        clone.action = { ...clone.action, screenId: '' };
+      }
+      const nextDisplays = [...displays];
+      nextDisplays[idx] = { ...nextDisplays[idx], rules: [...(nextDisplays[idx].rules ?? []), clone] };
+      return { config: { ...cfg, displays: nextDisplays } };
+    });
+  },
+
   addDisplay: (display) => {
     // Multi-display bootstrap has two paths, both handled below via
     // `buildBootstrapMain` / `buildNewDisplay`:
@@ -872,10 +954,27 @@ export const useEditorStore = create<EditorState>((set, get) => {
       }
 
       const existingIds = new Set(activeScreens.map((s) => s.id));
+
+      // Replace mode swaps the screen list wholesale but leaves the display's
+      // rules untouched, so any `showScreen` rule still points at a now-gone
+      // screen id — which `validateDisplayRules` rejects, making the config
+      // unsaveable. Blank those targets the same way a screen deletion does,
+      // reusing `pruneDanglingScreenRefs` per removed id (add mode removes
+      // nothing, so it's skipped entirely).
+      let pruned = merged;
+      if (options.mode === 'replace') {
+        const newIds = new Set(updated.screens.map((s) => s.id));
+        for (const removedId of existingIds) {
+          if (!newIds.has(removedId)) {
+            pruned = pruneDanglingScreenRefs(pruned, removedId, selectedDisplayId);
+          }
+        }
+      }
+
       firstNewId = updated.screens.find((s) => !existingIds.has(s.id))?.id
         ?? updated.screens[0]?.id ?? null;
       return {
-        config: merged,
+        config: pruned,
         selectedScreenId: firstNewId,
         selectedModuleId: null,
       };

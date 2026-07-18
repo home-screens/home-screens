@@ -146,3 +146,70 @@ describe('migration v2: flag-status → plugin:flag-status', () => {
     expect(result.screens[0].modules[0].type).toBe('clock');
   });
 });
+
+describe('migration edge cases: legacy + multi-display registry', () => {
+  it('migrates a v1 legacy single-display config through the full chain to latest', () => {
+    const config = makeConfig(1);
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(result.version).toBe(getLatestSchemaVersion());
+    expect(result.version).toBe(5);
+    // v2, v3, v4, v5 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(4);
+    // Legacy single-display shape is preserved untouched: v2 leaves non-flag
+    // modules alone and v3/v4/v5 are pure version bumps. No display registry
+    // is injected — single-display mode stays single-display.
+    expect(result.screens).toEqual(config.screens);
+    expect(result.settings).toEqual(config.settings);
+    expect(result.displays).toBeUndefined();
+  });
+
+  it('carries a displays registry with no `main` node through untouched (migrations never seed main)', () => {
+    const config: ScreenConfiguration = {
+      ...makeConfig(3),
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screens: [], displayWidth: 1080, displayHeight: 1920 },
+        { id: 'living-room', name: 'Living Room', screens: [], displayWidth: 1920, displayHeight: 1080 },
+      ],
+    };
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(result.version).toBe(5);
+    // Only v4 and v5 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(2);
+    // The registry is passed through verbatim. Seeding a sibling `main` is the
+    // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
+    // never a migration's — so a registry without `main` must stay that way.
+    expect(result.displays).toEqual(config.displays);
+    expect(result.displays?.some((d) => d.id === 'main')).toBe(false);
+  });
+
+  it('re-migrating an already-current config is a no-op (idempotent)', () => {
+    const config = makeConfig(getLatestSchemaVersion());
+    const before = structuredClone(config);
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(migrationsRun).toHaveLength(0);
+    expect(result.version).toBe(getLatestSchemaVersion());
+    expect(result).toEqual(before);
+  });
+
+  it('re-migrating an already-current config that owns a displays registry is a no-op', () => {
+    const config: ScreenConfiguration = {
+      ...makeConfig(getLatestSchemaVersion()),
+      displays: [
+        { id: 'main', name: 'Main', screens: [], displayWidth: 1080, displayHeight: 1920 },
+        { id: 'kitchen', name: 'Kitchen', screens: [], displayWidth: 1080, displayHeight: 1920 },
+      ],
+    };
+    const before = structuredClone(config);
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(migrationsRun).toHaveLength(0);
+    expect(result).toEqual(before);
+    expect(result.displays).toEqual(before.displays);
+  });
+});

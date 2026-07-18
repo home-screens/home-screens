@@ -58,6 +58,12 @@ describe('buildRotationKey', () => {
     expect(a).not.toBe(b);
   });
 
+  it('changes when icloudAlbumUrl changes', () => {
+    const a = buildRotationKey([screen('s1', { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#AAA111' })]);
+    const b = buildRotationKey([screen('s1', { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#BBB222' })]);
+    expect(a).not.toBe(b);
+  });
+
   it('treats undefined Immich fields consistently (does not collapse to same key as set values)', () => {
     const blank = buildRotationKey([screen('s1', { immichAlbumId: undefined })]);
     const setVal = buildRotationKey([screen('s1', { immichAlbumId: 'real' })]);

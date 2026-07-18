@@ -101,6 +101,26 @@ install_node() {
   info "Node $(node -v) / npm $(npm -v)"
 }
 
+ensure_pinned_npm() {
+  # Match npm to the exact engines.npm pin in package.json. The repo ships
+  # engine-strict=true in .npmrc, so a mismatched npm makes any npm install
+  # a hard failure instead of a warning.
+  # Usage: ensure_pinned_npm <app_dir>
+  local app_dir="${1:?ensure_pinned_npm: app dir required}"
+  local pinned current
+  pinned=$( (cd "${app_dir}" && node -p "require('./package.json').engines.npm") 2>/dev/null || true)
+  if [ -z "${pinned}" ] || [ "${pinned}" = "undefined" ]; then
+    return 0
+  fi
+  current=$(npm --version 2>/dev/null || true)
+  if [ "${current}" = "${pinned}" ]; then
+    return 0
+  fi
+  info "Updating npm ${current:-not found} -> ${pinned} (pinned in package.json)..."
+  sudo npm install -g "npm@${pinned}"
+  info "npm $(npm --version) installed."
+}
+
 # --- Kiosk block management ---
 
 write_kiosk_block() {

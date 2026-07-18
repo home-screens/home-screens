@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ComponentType } from 'react';
-import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps } from '@/types/plugins';
+import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps, StateProviderProps, SearchStateKeys } from '@/types/plugins';
 import { unregisterModule } from '@/lib/module-registry';
 import { deregisterFetchKey } from '@/lib/fetch-keys';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -17,6 +17,15 @@ interface PluginState {
   plugins: Map<string, LoadedPlugin>;
   /** Load failures keyed by pluginId */
   errors: Map<string, PluginError>;
+  /**
+   * Plugin-level settings keyed by lowercased pluginId. Refreshed wholesale
+   * on every loadAllPlugins pass from the `/api/plugins/installed` payload,
+   * and replaced WITHOUT a reload on settings-only changes (editor save in
+   * PluginSettingsSection, display poll diff in useLiveConfig) — settings
+   * are deliberately excluded from the pluginHash so a save never remounts
+   * plugins. Read by `__HS_SDK__.getPluginSettings` and PluginServiceLayer.
+   */
+  pluginSettings: Map<string, Record<string, unknown>>;
 
   /** Fetch installed plugins → load bundles → register in module registry */
   loadPlugins: () => Promise<void>;
@@ -26,7 +35,11 @@ interface PluginState {
     component: ComponentType<Record<string, unknown>>,
     manifest: PluginManifest,
     configSection?: ComponentType<PluginConfigSectionProps>,
+    stateProvider?: ComponentType<StateProviderProps>,
+    searchStateKeys?: SearchStateKeys,
   ) => void;
+  /** Replace the plugin-settings map (loadAllPlugins pass or settings-only update) */
+  setPluginSettingsMap: (settings: Map<string, Record<string, unknown>>) => void;
   /** Remove a plugin from reactive state and module registry */
   unregisterPlugin: (moduleType: string) => void;
   /**
@@ -49,6 +62,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
   loading: true,
   plugins: new Map(),
   errors: new Map(),
+  pluginSettings: new Map(),
 
   loadPlugins: async () => {
     // If already loading, mark a reload pending and return the existing promise
@@ -76,15 +90,19 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     return loadPromise;
   },
 
-  registerPlugin: (moduleType, component, manifest, configSection) => {
+  registerPlugin: (moduleType, component, manifest, configSection, stateProvider, searchStateKeys) => {
     set((state) => {
       const plugins = new Map(state.plugins);
-      plugins.set(moduleType, { component, manifest, configSection });
+      plugins.set(moduleType, { component, manifest, configSection, stateProvider, searchStateKeys });
       // Clear any prior error for this plugin
       const errors = new Map(state.errors);
       errors.delete(manifest.id);
       return { plugins, errors };
     });
+  },
+
+  setPluginSettingsMap: (settings) => {
+    set({ pluginSettings: settings });
   },
 
   unregisterPlugin: (moduleType) => {

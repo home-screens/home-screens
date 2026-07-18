@@ -7,6 +7,8 @@ import { getPluginSecret } from '@/lib/plugin-secrets';
 import { audit } from '@/lib/audit';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { isAllowedDomain, followRedirectsWithValidation } from '@/lib/plugin-proxy';
+import { getValidAccessToken, loadPluginTokens, tokenInjectionSpec } from '@/lib/plugin-auth';
+import type { TokenInjectionSpec } from '@/lib/plugin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,6 +111,33 @@ interface ProxyRequestBody {
     query?: Record<string, string>;
   };
   cacheTtlMs?: number;
+  /** Opt out of auth-adapter token injection (for public endpoints on the
+   *  same allowed domain that would reject a stale/wrong Authorization). */
+  skipAuth?: boolean;
+}
+
+// --- Auth token injection ---
+//
+// The proxy is provider-agnostic: it asks the auth engine for a placement
+// spec (which domains, header vs query) and applies it. Provider specifics
+// (Garmin's hosts, an OAuth2 client's declared placement) live in
+// `plugin-auth`, never here.
+
+/** Apply a bearer token to a request per the injection spec.
+ *  Returns the (possibly rewritten) URL; header injection mutates `headers`. */
+function injectToken(
+  spec: TokenInjectionSpec,
+  url: string,
+  headers: Record<string, string>,
+  token: string,
+): string {
+  if (spec.placement === 'header') {
+    headers.Authorization = `Bearer ${token}`;
+    return url;
+  }
+  const rewritten = new URL(url);
+  rewritten.searchParams.set(spec.paramName ?? 'access_token', token);
+  return rewritten.toString();
 }
 
 type RouteContext = { params: Promise<{ pluginId: string }> };
@@ -229,17 +258,68 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     }
   }
 
+  // Auth-adapter token injection. The cache key was computed above from the
+  // pre-auth URL + headers, so rotating tokens never fragment the cache (a GET
+  // to the same resource returns the same data regardless of which valid token
+  // authorized it). Injection targets only the adapter's token domains.
+  //
+  // Trust model: the proxy is keyed by pluginId, not bound to a calling
+  // plugin identity — all plugin bundles share the display page, so any
+  // installed plugin can call any other's proxy route and receive its
+  // authenticated response. This is an accepted property of the install
+  // trust boundary (the user vets each plugin before installing it; the same
+  // sharing already applied to secretInjections). Do NOT treat installed
+  // plugins as mutually isolated principals.
+  const auth = manifest.auth;
+  const injectSpec = auth ? tokenInjectionSpec(auth, allowedDomains) : null;
+  const injectAuth = Boolean(
+    injectSpec && !body.skipAuth && isAllowedDomain(upstreamUrl, injectSpec.targetDomains, allowLan),
+  );
+
+  // Resolve the token once for the whole request (this hits the token store +
+  // refresh path, so a second resolution would be redundant I/O on the hottest
+  // route). The single 401-retry re-resolves with force to bypass the expiry
+  // check, since that is the only case where a fresh read matters.
+  let accessToken = injectAuth ? await getValidAccessToken(safeId) : null;
+  if (injectAuth && !accessToken) {
+    // Distinguish "never connected" (proceed unauthenticated — plugin may be
+    // hitting a public endpoint) from "connected but refresh failed" (surface
+    // a reconnect prompt instead of a confusing upstream 401).
+    const stored = await loadPluginTokens(safeId);
+    if (stored) {
+      return NextResponse.json(
+        { error: 'auth_expired', message: 'Plugin authentication expired. Reconnect in the module settings.' },
+        { status: 401 },
+      );
+    }
+  }
+
   // Make the upstream request, following redirects with per-hop SSRF
   // re-validation (see followRedirectsWithValidation for the full rationale).
-  const followed = await followRedirectsWithValidation({
-    url: upstreamUrl,
-    method,
-    payload: body.payload,
-    headers: upstreamHeaders,
-    allowedDomains,
-    allowLan,
-    safeCheck,
-  });
+  // On a 401 with an injected token, force-refresh once and retry — a token
+  // can go stale between our expiry check and the upstream's clock.
+  const payload = body.payload;
+  async function makeRequest(force: boolean) {
+    const headers = { ...upstreamHeaders };
+    let url = upstreamUrl;
+    let injected = false;
+    if (injectAuth && injectSpec) {
+      if (force) accessToken = await getValidAccessToken(safeId, { force: true });
+      if (accessToken) {
+        url = injectToken(injectSpec, url, headers, accessToken);
+        injected = true;
+      }
+    }
+    const followed = await followRedirectsWithValidation({
+      url, method, payload, headers, allowedDomains, allowLan, safeCheck,
+    });
+    return { followed, injected };
+  }
+
+  let { followed } = await makeRequest(false);
+  if (followed.ok && followed.response.status === 401 && injectAuth) {
+    ({ followed } = await makeRequest(true));
+  }
   if (!followed.ok) return followed.error;
   const upstreamRes = followed.response;
 

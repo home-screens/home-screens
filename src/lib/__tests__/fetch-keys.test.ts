@@ -13,6 +13,7 @@ import {
   quoteUrl,
   dadJokeUrl,
   photoSlideshowUrl,
+  videoModuleUrl,
   choresUrl,
   choresDataUrl,
   mealsDataUrl,
@@ -153,6 +154,71 @@ describe('photoSlideshowUrl', () => {
     expect(url).toContain('favorites=true');
     expect(url).toContain('count=100');
   });
+
+  it('adds media=both to the local endpoint', () => {
+    expect(photoSlideshowUrl({ mediaTypes: 'both' })).toBe('/api/backgrounds?media=both');
+  });
+
+  it('adds media=videos alongside a directory', () => {
+    expect(photoSlideshowUrl({ directory: 'clips', mediaTypes: 'videos' }))
+      .toBe('/api/backgrounds?directory=clips&media=videos');
+  });
+
+  it('omits media= for photo-only configs (legacy string[] back-compat)', () => {
+    expect(photoSlideshowUrl({ mediaTypes: 'photos' })).toBe('/api/backgrounds');
+    expect(photoSlideshowUrl({})).toBe('/api/backgrounds');
+  });
+
+  it('adds media= for immich sources', () => {
+    expect(photoSlideshowUrl({ source: 'immich', mediaTypes: 'videos' }))
+      .toBe('/api/immich/photos?media=videos');
+    expect(photoSlideshowUrl({ source: 'immich', immichAlbumId: 'a1', mediaTypes: 'both' }))
+      .toBe('/api/immich/photos?albumId=a1&media=both');
+  });
+
+  it('omits media= for photo-only immich configs (legacy string[] back-compat)', () => {
+    expect(photoSlideshowUrl({ source: 'immich', mediaTypes: 'photos' }))
+      .toBe('/api/immich/photos?');
+  });
+
+  it('returns icloud endpoint with the album link when source is icloud', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC' }))
+      .toBe(`/api/icloud/photos?album=${encodeURIComponent('https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC')}`);
+  });
+
+  it('adds media= for icloud sources', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'both' }))
+      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC&media=both');
+  });
+
+  it('omits media= for photo-only icloud configs (legacy string[] back-compat)', () => {
+    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'photos' }))
+      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC');
+  });
+
+  it('omits album= when the icloud link is unset', () => {
+    expect(photoSlideshowUrl({ source: 'icloud' })).toBe('/api/icloud/photos?');
+  });
+});
+
+describe('videoModuleUrl', () => {
+  it('returns null for URL-sourced videos (no fetch needed)', () => {
+    expect(videoModuleUrl({ source: 'url', url: 'https://example.com/a.mp4' })).toBeNull();
+  });
+
+  it('returns null when no file is selected yet', () => {
+    expect(videoModuleUrl({ source: 'file' })).toBeNull();
+  });
+
+  it('builds a point lookup for a root file', () => {
+    expect(videoModuleUrl({ source: 'file', file: 'family.mp4' }))
+      .toBe('/api/backgrounds?media=videos&file=family.mp4');
+  });
+
+  it('URL-encodes a nested file path', () => {
+    expect(videoModuleUrl({ source: 'file', file: 'clips/family.mp4' }))
+      .toBe('/api/backgrounds?media=videos&file=clips%2Ffamily.mp4');
+  });
 });
 
 // ── Static URL builders ─────────────────────────────────────────
@@ -210,6 +276,8 @@ describe('FETCH_KEY_REGISTRY', () => {
     expect(FETCH_KEY_REGISTRY.quote.buildUrl).toBe(quoteUrl);
     expect(FETCH_KEY_REGISTRY['dad-joke'].buildUrl).toBe(dadJokeUrl);
     expect(FETCH_KEY_REGISTRY['photo-slideshow'].buildUrl).toBe(photoSlideshowUrl);
+    expect(FETCH_KEY_REGISTRY['fullscreen-photo'].buildUrl).toBe(photoSlideshowUrl);
+    expect(FETCH_KEY_REGISTRY.video.buildUrl).toBe(videoModuleUrl);
     expect(FETCH_KEY_REGISTRY['chore-chart'].buildUrl).toBe(choresUrl);
     expect(FETCH_KEY_REGISTRY['fullscreen-chore-chart'].buildUrl).toBe(choresUrl);
     expect(FETCH_KEY_REGISTRY['fullscreen-meal-planner'].buildUrl).toBe(mealsDataUrl);

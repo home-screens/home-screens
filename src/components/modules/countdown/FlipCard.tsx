@@ -17,6 +17,9 @@ export function FlipCard({ value, label }: { value: string; label: string }) {
         <span
           className="font-bold tabular-nums leading-none"
           style={{ fontSize: '1.3em', letterSpacing: '-0.02em' }}
+          // The value ticks every second, so server HTML and client hydration
+          // can legitimately straddle a tick (same pattern as the date views).
+          suppressHydrationWarning
         >
           {value}
         </span>

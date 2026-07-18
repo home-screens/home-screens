@@ -25,8 +25,11 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/chores.json` | Chore definitions, members, completion records | `/api/chores/data` |
 | `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
+| `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
+| `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
+| `data/plugin-tokens/` | Per-plugin account tokens from server-side auth adapters | `/api/plugins/auth/*` |
 
 The main config is read via `GET /api/config` and written via `PUT /api/config`.
 
@@ -166,6 +169,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   googleCalendarId: string         // Primary calendar ID (legacy)
   googleCalendarIds: string[]      // Multiple calendar IDs
   icalSources: ICalSource[]        // iCal/ICS feed sources
+  icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
   maxEvents: number                // Max events to display
   daysAhead: number                // Days to look ahead
   holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
@@ -185,6 +189,22 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
 }
 ```
 
+### ICloudSource
+
+```typescript
+{
+  id: string
+  accountId: string                // ICloudAccount.id in data/icloud-accounts.json
+  kind: 'calendar' | 'birthdays'   // A CalDAV calendar, or contact birthdays via CardDAV
+  url: string                      // CalDAV calendar URL; empty for kind 'birthdays'
+  name: string
+  color: string                    // Apple's calendar color, preserved from iCloud
+  enabled: boolean
+}
+```
+
+Account credentials (Apple ID + app-specific password) are **not** stored in the config file — they live in `data/icloud-accounts.json` and are referenced by `accountId`.
+
 ### TransitionEffect
 
 ```typescript
@@ -203,12 +223,13 @@ type TransitionEffect =
   backgroundImage: string       // Path to background image
   backgroundRotation?: {        // Optional background rotation
     enabled: boolean
-    source?: 'unsplash' | 'nasa-apod' | 'immich'  // Image source
+    source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud'  // Image source
     query: string               // Unsplash search query (ignored for other sources)
     intervalMinutes: number
     immichAlbumId?: string      // Immich album filter
     immichPersonId?: string     // Immich person (face) filter
     immichFavoritesOnly?: boolean  // Only use Immich favorites
+    icloudAlbumUrl?: string     // iCloud shared album link or bare token (icloud source)
   }
   modules: ModuleInstance[]     // Modules on this screen
   rotationDurationMs?: number   // Per-screen override of settings.rotationIntervalMs.
@@ -368,6 +389,7 @@ type BuiltinModuleType =
   | 'dad-joke'
   | 'text'
   | 'image'
+  | 'video'
   | 'quote'
   | 'todo'
   | 'sticky-note'
@@ -625,6 +647,22 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 }
 ```
 
+### VideoConfig
+
+Plays a video clip from the media library, a direct URL, or a YouTube link. Videos are muted by default; sound additionally requires the display's autoplay setting.
+
+```typescript
+{
+  source: 'file' | 'url'
+  file?: string                  // Media library path (file source)
+  url?: string                   // Direct MP4/WebM URL or any YouTube link (url source)
+  objectFit: 'cover' | 'contain' | 'fill'
+  muted: boolean                 // Default true
+  loop: boolean                  // Restart when the clip ends
+  maxDurationMs?: number         // Force-advance a stalled clip; 0/undefined = uncapped
+}
+```
+
 ### QuoteConfig
 
 ```typescript
@@ -756,11 +794,14 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
   transition: 'fade' | 'none'
   objectFit: 'cover' | 'contain' | 'fill'
   refreshIntervalMs: number
-  source?: 'local' | 'immich'          // Photo source (default: local)
+  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
   immichAlbumId?: string               // Immich album filter
   immichPersonId?: string              // Immich person (face) filter
   immichFavoritesOnly?: boolean        // Only use Immich favorites
   immichCount?: number                 // Photos per refresh (10–200, default 50)
+  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
+  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
+  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
 }
 ```
 
@@ -974,6 +1015,8 @@ Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlight
   showPrepTime: boolean
   showTags: boolean
   accentColor: string
+  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
+                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
 }
 ```
 
@@ -1078,6 +1121,52 @@ Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size
   density: 'cozy' | 'snug'
   typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
   accentColor: string
+}
+```
+
+### FullscreenMealPlannerConfig
+
+Fullscreen ambient meal planner with 4 views. Uses the `fillsCanvas` flag to auto-size to display dimensions. Reads meal data from shared `data/meals.json` like the standard meal planner module.
+
+```typescript
+{
+  view: 'week' | 'today' | 'menu-board' | 'next-meal'
+  density: 'cozy' | 'snug'
+  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
+  accentColor: string
+  showPrepTime: boolean
+  showTags: boolean
+  showEmoji: boolean
+  showDifficulty: boolean
+  theme?: string                             // Color theme preset
+  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
+                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
+}
+```
+
+### FullscreenPhotoConfig
+
+Fullscreen photo frame with slideshow and single-photo modes. Uses the `fillsCanvas` flag to auto-size to display dimensions. When `file` is set, the viewer shows that one photo statically and ignores the rotation fields.
+
+```typescript
+{
+  directory: string
+  file?: string                        // Single pinned photo (overrides slideshow fields)
+  intervalMs: number
+  transition: 'fade' | 'slide' | 'zoom' | 'none'
+  objectFit: 'cover' | 'contain' | 'fill'
+  shuffle: boolean
+  showClock: boolean
+  kenBurns: boolean                    // Slow pan/zoom effect
+  theme?: string                       // Color theme preset (empty states + clock overlay)
+  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
+  immichAlbumId?: string               // Immich album filter
+  immichPersonId?: string              // Immich person (face) filter
+  immichFavoritesOnly?: boolean        // Only use Immich favorites
+  immichCount?: number                 // Photos per refresh (10–200, default 50)
+  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
+  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
+  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
 }
 ```
 

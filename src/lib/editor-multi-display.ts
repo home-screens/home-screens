@@ -4,6 +4,7 @@ import type {
   Screen,
   Profile,
   DisplayNode,
+  DisplayRule,
 } from '@/types/config';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import {
@@ -184,6 +185,43 @@ export function withActiveProfile(
   return { ...config, settings: { ...config.settings, activeProfile } };
 }
 
+/**
+ * Returns the rules the editor is currently operating on. Rules follow the
+ * screens ownership pattern exactly — a selected display owns `display.rules`,
+ * legacy single-display mode uses `config.rules` — with no shared pool or
+ * fallback in between (unlike profiles, there is no owned-vs-pool split).
+ */
+export function getActiveRules(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+): DisplayRule[] {
+  if (!selectedDisplayId) return config.rules ?? [];
+  const display = config.displays?.find((d) => d.id === selectedDisplayId);
+  if (!display) return config.rules ?? [];
+  return display.rules ?? [];
+}
+
+/**
+ * Apply a transform to the rule list the editor is currently targeting and
+ * return a new config with it written back. Mirrors `withActiveScreens` —
+ * sibling displays and the legacy global list are untouched.
+ */
+export function withRules(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  mutate: (rules: DisplayRule[]) => DisplayRule[],
+): ScreenConfiguration {
+  if (selectedDisplayId && config.displays) {
+    const idx = config.displays.findIndex((d) => d.id === selectedDisplayId);
+    if (idx !== -1) {
+      const nextDisplays = [...config.displays];
+      nextDisplays[idx] = { ...nextDisplays[idx], rules: mutate(nextDisplays[idx].rules ?? []) };
+      return { ...config, displays: nextDisplays };
+    }
+  }
+  return { ...config, rules: mutate(config.rules ?? []) };
+}
+
 export function updateModuleInConfig(
   config: ScreenConfiguration,
   selectedDisplayId: string | null,
@@ -212,6 +250,11 @@ export function buildBootstrapMain(config: ScreenConfiguration): DisplayNode {
     name: 'Main Display',
     screens: structuredClone(config.screens),
     profiles: structuredClone(config.profiles ?? []),
+    // structuredClone preserves screen ids, so the copied rules keep targeting
+    // valid screens. Legacy config.rules is left in place (mirrors config.screens).
+    ...(config.rules && config.rules.length > 0
+      ? { rules: structuredClone(config.rules) }
+      : {}),
     ...(config.settings.activeProfile
       ? { activeProfile: config.settings.activeProfile }
       : {}),
@@ -248,11 +291,17 @@ export function buildNewDisplay(
     ? structuredClone(config.screens)
     : display.screens ?? [];
 
+  const inheritedRules: DisplayRule[] | undefined =
+    inheritFromGlobal && config.rules && config.rules.length > 0
+      ? structuredClone(config.rules)
+      : undefined;
+
   return {
     id: display.id,
     name: display.name,
     screens,
     profiles: initialProfiles,
+    ...(inheritedRules ? { rules: inheritedRules } : {}),
     ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),
     ...(display.displayHeight != null ? { displayHeight: display.displayHeight } : {}),
     ...(display.displayTransform ? { displayTransform: display.displayTransform } : {}),

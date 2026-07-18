@@ -35,7 +35,12 @@
       "2x-large": "2X Stor",
       "3x-large": "3X Stor",
       "4x-large": "4X Stor"
-    }
+    },
+    "mediaTypes": "Vis",
+    "mediaTypesPhotos": "Kun fotos",
+    "mediaTypesVideos": "Kun videoer",
+    "mediaTypesBoth": "Fotos + videoer",
+    "maxVideoDurationSeconds": "Maksimal afspilningstid pr. video (sekunder)"
   },
   "fields": {
     "rotation": "Rotation",
@@ -79,7 +84,11 @@
     "scheduledInactiveTitle": "Scheduled — currently inactive",
     "disabledTitle": "Disabled — not shown on display",
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
-    "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen"
+    "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen",
+    "conditionMetTitle": "Betingelser opfyldt — vises på skærmen nu",
+    "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu",
+    "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
+    "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu"
   },
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
@@ -147,6 +156,7 @@
       "newsAndFinance": "News & Finance",
       "knowledgeAndFun": "Knowledge & Fun",
       "personal": "Personal",
+      "healthAndFitness": "Health & Fitness",
       "mediaAndDisplay": "Media & Display",
       "travel": "Travel"
     },
@@ -185,6 +195,7 @@
       "chore-chart": "Chore Chart",
       "text": "Text",
       "image": "Image",
+      "video": "Video",
       "photo-slideshow": "Photo Slideshow",
       "qr-code": "QR Code",
       "iframe": "Web Embed",
@@ -202,6 +213,9 @@
       "allDisplays": "All displays",
       "addDisplay": "Add display",
       "displays": "Displays",
+      "searchPlaceholder": "Search settings…",
+      "noResults": "No settings found",
+      "matchingFields": "Matching fields",
       "websiteAriaLabel": "Visit homescreens.dev",
       "websiteTitle": "homescreens.dev",
       "githubAriaLabel": "View on GitHub",
@@ -210,27 +224,32 @@
         "calendar": "Calendar",
         "weather": "Weather",
         "location": "Location & language",
-        "sleep": "Sleep",
-        "alerts": "Alerts",
-        "display": "Display",
-        "data": "Data",
-        "docs": "Docs",
-        "integrations": "Integrations",
+        "data": "Backups & data",
+        "integrations": "API keys",
         "meals": "Meals",
         "network": "Network",
-        "profiles": "Profiles",
         "security": "Security",
-        "stats": "Stats",
+        "stats": "Status",
         "system": "System",
-        "displays": "Displays"
-      }
+        "displays": "Displays",
+        "screen": "Screen",
+        "automation": "Automation"
+      },
+      "groups": {
+        "screen": "Screen",
+        "content": "Content",
+        "automation": "Automation",
+        "admin": "Maintenance"
+      },
+      "docsTitle": "Documentation",
+      "docsAriaLabel": "View documentation"
     },
     "overrideRow": {
       "override": "Override",
       "resetToDefault": "Reset to default",
       "overriddenForDisplay": "Overridden for {name}. Default: ",
       "overriddenWithoutDisplay": "Overridden. Default: ",
-      "overriddenSuffix": " — edit on ",
+      "overriddenSuffix": ". Edit on ",
       "overriddenSuffixEnd": ".",
       "usingDefault": "Using the default. ",
       "usingDefaultPart2": " uses ",
@@ -248,13 +267,9 @@
       "multiDisplayCurrentlyOverride": " currently override fields on {pageLabel}: "
     },
     "defaultAlertsPage": {
-      "breadcrumb": "Defaults → Alerts",
-      "heading": "Default alert settings",
       "description": "Default position, size, and duration for the alert overlay on every display. A specific display can override the whole alerts block from its own page."
     },
     "defaultSleepPage": {
-      "breadcrumb": "Defaults → Sleep",
-      "heading": "Default sleep settings",
       "description": "Default dim / sleep schedule and screensaver applied to every display. A specific display can override the whole block from its own page."
     },
     "locationAndLanguagePage": {
@@ -315,6 +330,23 @@
         "copyCode": "Copy code",
         "codeCopied": "Copied!"
       },
+      "icloud": {
+        "heading": "iCloud-kalender",
+        "checkingAccounts": "Tjekker konti…",
+        "disconnect": "Afbryd",
+        "disconnectFailed": "Kontoen kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen.",
+        "loadingCalendars": "Indlæser kalendere…",
+        "calendarsError": "Kunne ikke indlæse kontoens kalendere. Afbryd kontoen, og forbind igen.",
+        "noCalendars": "Ingen kalendere fundet.",
+        "selectCalendars": "Vælg kalendere, der skal vises",
+        "birthdays": "Fødselsdage",
+        "appleIdPlaceholder": "Apple-id-mail",
+        "connect": "Forbind",
+        "connecting": "Forbinder…",
+        "connectFailed": "Kunne ikke forbinde til iCloud. Tjek din internetforbindelse, og prøv igen.",
+        "addAccount": "Tilføj iCloud-konto",
+        "helpText": "Log ind med en app-adgangskode, ikke din almindelige Apple-adgangskode. Opret en på account.apple.com under Log ind og sikkerhed → App-specifikke adgangskoder."
+      },
       "holidays": {
         "heading": "Public Holidays",
         "none": "None",
@@ -363,6 +395,25 @@
         "remindAfterLabel": "Remind after",
         "lastBackup": "Last backup: {date}",
         "noBackups": "No backups recorded yet"
+      },
+      "configBackups": {
+        "heading": "Config Backups",
+        "description": "Settings snapshots saved automatically before each update. Restore one to undo settings changes; to go back to an older version of the app itself, use the System page.",
+        "empty": "No backups yet. Backups are created automatically before each upgrade.",
+        "sizeKb": "{size}KB",
+        "download": "Download",
+        "restore": "Restore",
+        "restoreDialog": {
+          "title": "Restore Backup",
+          "message": "Restore configuration from {name}? Current config will be overwritten.",
+          "confirm": "Restore"
+        },
+        "restoreStatus": {
+          "restoring": "Restoring…",
+          "restored": "Restored! Reload the editor to see changes.",
+          "error": "Error: {error}",
+          "failed": "Failed to restore backup"
+        }
       }
     },
     "weatherPage": {
@@ -403,7 +454,7 @@
         },
         "weatherApi": {
           "tagline": "Free tier · no credit card",
-          "keyHint": "Free at weatherapi.com — no credit card required.",
+          "keyHint": "Free at weatherapi.com; no credit card required.",
           "placeholder": "Paste your WeatherAPI key"
         },
         "openWeatherMap": {
@@ -413,7 +464,7 @@
         },
         "pirateWeather": {
           "tagline": "Dark Sky replacement",
-          "keyHint": "Free at pirateweather.net — drop-in Dark Sky replacement.",
+          "keyHint": "Free at pirateweather.net, a drop-in Dark Sky replacement.",
           "placeholder": "Paste your Pirate Weather API key"
         },
         "noaa": {
@@ -422,11 +473,11 @@
         },
         "yr": {
           "tagline": "Free · global · no key",
-          "helperText": "No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon — e.g. Oslo (59.9139, 10.7522) — for the densest coverage."
+          "helperText": "No API key required. Provided by the Norwegian Meteorological Institute with global coverage. To test, use a Nordic lat/lon, e.g. Oslo (59.9139, 10.7522), for the densest coverage."
         },
         "smhi": {
           "tagline": "Free · Nordic only · no key",
-          "helperText": "No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only — to test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region."
+          "helperText": "No API key required. Provided by the Swedish Meteorological and Hydrological Institute. Nordic coverage only. To test, use a Nordic lat/lon (e.g. Stockholm: 59.3293, 18.0686). Returns no data outside the Nordic region."
         },
         "metOffice": {
           "tagline": "Freemium · UK focus · requires key",
@@ -435,19 +486,17 @@
         },
         "envCanada": {
           "tagline": "Free · Canada only · no key",
-          "helperText": "No API key required. Provided by Environment and Climate Change Canada — the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207)."
+          "helperText": "No API key required. Provided by Environment and Climate Change Canada, the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207)."
         }
       }
     },
     "defaultDisplayPage": {
-      "breadcrumb": "Defaults → Display",
-      "heading": "Default display settings",
       "descriptionPart1": "These values are used by every display until a specific one overrides them. Change anything here and every display that's ",
       "descriptionEmphasisNot": "not",
       "descriptionPart2": " overriding that field picks up the new value.",
       "multiDisplayNotePart1": "Resolution, orientation, and flip are ",
       "multiDisplayNotePerDisplay": "per display",
-      "multiDisplayNotePart2": " — edit them on each display's own page under ",
+      "multiDisplayNotePart2": ". Edit them on each display's own page under ",
       "multiDisplayNotePerDisplaySection": "Per display",
       "multiDisplayNotePart3": ".",
       "canvas": {
@@ -514,11 +563,7 @@
         "notFoundDescPart2": ".",
         "subtabs": {
           "overview": "overview",
-          "display": "display",
-          "sleep": "sleep",
-          "alerts": "alerts",
-          "profile": "profile",
-          "identity": "identity"
+          "overrides": "overrides"
         }
       },
       "overview": {
@@ -530,7 +575,7 @@
         "defaultsLink": "Defaults",
         "withOverridesPart2": " for everything except:",
         "noOverridesPart1": "{name} uses the ",
-        "noOverridesPart2": " for every field. Override one from the Display, Sleep, or Alerts subtab.",
+        "noOverridesPart2": " for every field. Override one from the Overrides subtab.",
         "chipBlockOverridden": "{label} overridden",
         "chipFieldWithDefault": "{label}: {value} (default: {defaultValue})",
         "chipFieldNoDefault": "{label}: {value}",
@@ -576,13 +621,13 @@
       },
       "profile": {
         "activeProfileLabel": "Active profile",
-        "noneOption": "— None —",
+        "noneOption": "None",
         "helpPart1": "Which profile {name} is currently displaying. Profile definitions live on ",
-        "helpLink": "Defaults → Profiles",
+        "helpLink": "Defaults → Automation",
         "helpPart2": "."
       },
       "display": {
-        "defaultsLabel": "Defaults → Display",
+        "defaultsLabel": "Defaults → Screen",
         "bannerPart1": "Fields here show the ",
         "bannerEmphasisDefault": "default",
         "bannerPart2": " value from ",
@@ -591,7 +636,7 @@
         "bannerPart4": " on any field to change it just for {name}.",
         "canvasHeading": "Canvas",
         "perDisplayBadge": "Per display",
-        "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution — it isn't shared.",
+        "resolutionHelp": "Modules are laid out against this canvas. Every display carries its own resolution; it isn't shared.",
         "rotationOptionNormal": "Normal (landscape)",
         "rotationOption90": "90° clockwise (portrait)",
         "rotationOption180": "180° (inverted)",
@@ -612,13 +657,13 @@
       },
       "sleep": {
         "label": "Sleep schedule",
-        "defaultsLabel": "Defaults → Sleep",
-        "infoPart1": "Sleep is overridden as a whole block — you can't fork individual fields like dim time. The default lives on ",
+        "defaultsLabel": "Defaults → Screen",
+        "infoPart1": "Sleep is overridden as a whole block; you can't fork individual fields like dim time. The default lives on ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Alert overlay",
-        "defaultsLabel": "Defaults → Alerts",
+        "defaultsLabel": "Defaults → Screen",
         "infoPart1": "Alerts is overridden as a whole block. The default lives on ",
         "infoPart2": "."
       },
@@ -697,7 +742,7 @@
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
         "mapsKeyLabel": "Maps API Key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
-        "mapsKeyHelp": "Optional — for traffic/commute widget. Enable the Routes API in the same Cloud Console project."
+        "mapsKeyHelp": "Optional, for the traffic/commute widget. Enable the Routes API in the same Cloud Console project."
       },
       "immich": {
         "name": "Immich",
@@ -713,13 +758,13 @@
         "description": "HD photo backgrounds by category",
         "accessKeyLabel": "Access Key",
         "accessKeyPlaceholder": "Paste your Unsplash access key",
-        "accessKeyHelp": "Free at unsplash.com/developers — 50 requests/hour on free tier."
+        "accessKeyHelp": "Free at unsplash.com/developers; 50 requests/hour on free tier."
       },
       "nasa": {
         "name": "NASA",
         "description": "Astronomy Picture of the Day",
         "apiKeyPlaceholder": "Paste your NASA API key",
-        "apiKeyHelp": "Free at api.nasa.gov — 1,000 requests/hour. Image Library search works without a key."
+        "apiKeyHelp": "Free at api.nasa.gov; 1,000 requests/hour. Image Library search works without a key."
       },
       "todoist": {
         "name": "Todoist",
@@ -732,7 +777,7 @@
         "name": "TomTom",
         "description": "Traffic & commute times",
         "keyPlaceholder": "Paste your TomTom API key",
-        "keyHelp": "Free at developer.tomtom.com — Routing API required. Alternative to Google Maps."
+        "keyHelp": "Free at developer.tomtom.com; Routing API required. Alternative to Google Maps."
       },
       "github": {
         "name": "GitHub",
@@ -918,7 +963,7 @@
       "intro": {
         "part1": "Shared meal-planner settings. These also appear in the ",
         "remoteLinkLabel": "remote",
-        "part2": " settings drawer — edits from either surface stay in sync."
+        "part2": " settings drawer. Edits from either surface stay in sync."
       },
       "status": {
         "loadFailed": "Failed to load meal settings.",
@@ -996,25 +1041,8 @@
       "history": {
         "heading": "Version History",
         "currentBadge": "current",
-        "rollback": "Rollback"
-      },
-      "backups": {
-        "heading": "Config Backups",
-        "empty": "No backups yet. Backups are created automatically before each upgrade.",
-        "sizeKb": "{size}KB",
-        "download": "Download",
-        "restore": "Restore"
-      },
-      "restoreStatus": {
-        "restoring": "Restoring…",
-        "restored": "Restored! Reload the editor to see changes.",
-        "error": "Error: {error}",
-        "failed": "Failed to restore backup"
-      },
-      "restoreDialog": {
-        "title": "Restore Backup",
-        "message": "Restore configuration from {name}? Current config will be overwritten.",
-        "confirm": "Restore"
+        "rollback": "Rollback",
+        "help": "Goes back to an older version of the app. To undo settings changes instead, restore a snapshot from the Backups & data page."
       },
       "upgradeDialog": {
         "title": "Upgrade",
@@ -1081,7 +1109,7 @@
         "screensHeading": "Screens",
         "availableHeading": "Available",
         "addScreenSymbol": "+",
-        "noScreensWarning": "No screens selected — all screens will be shown as fallback.",
+        "noScreensWarning": "No screens selected; all screens will be shown as fallback.",
         "dragHelp": "Drag to set rotation order within this profile.",
         "scheduleToggleLabel": "Auto-activate on schedule",
         "fromLabel": "From",
@@ -1093,6 +1121,103 @@
         "message": "Delete \"{name}\"?",
         "confirm": "Delete"
       }
+    },
+    "rulesPage": {
+      "heading": "Regler",
+      "description": "Regler får skærmen til at reagere på, hvad der sker derhjemme. Når en regels betingelser bliver sande, kan den skifte til en skærm eller vække displayet, fx vise kameraskærmen, når det ringer på døren.",
+      "displayPicker": {
+        "label": "Redigerer regler for",
+        "optionLabel": "{name} ({id})",
+        "help": "Regler er pr. display, fordi de peger på hvert displays egne skærme. Skifter du her, skifter du også, hvilket display editoren arbejder på."
+      },
+      "emptyHint": "Ingen regler endnu. Tilføj en, så displayet reagerer, når der sker noget.",
+      "priority": {
+        "labelPrefix": "Prioritetsrækkefølge:",
+        "helpSuffix": " Når flere regler udløses samtidig, vinder den regel, der står først. Træk for at ændre rækkefølgen."
+      },
+      "addButton": "Tilføj regel",
+      "newRuleName": "Regel {number}",
+      "card": {
+        "offBadge": "Slukket",
+        "renameTitle": "Omdøb",
+        "deleteTitle": "Slet regel",
+        "enabledLabel": "Reglen er slået til",
+        "whenHeading": "Når",
+        "thenHeading": "Så",
+        "noConditionsHint": "Ingen betingelser endnu; reglen udløses først, når du tilføjer en.",
+        "invalidHint": "Denne regel kan ikke gemmes endnu:",
+        "allMustMatchHint": "Alle betingelser skal passe, før reglen udløses.",
+        "actionKindLabel": "Handling",
+        "actionShowScreen": "Vis en skærm",
+        "actionWake": "Væk displayet",
+        "wakeSleepHint": "Hvis displayet sover efter en tidsplan, vækker dette det og holder det vågent i 5 minutter, hvorefter det går i dvale igen.",
+        "screenLabel": "Skærm",
+        "screenNoneOption": "Vælg en skærm…",
+        "screenDisabledSuffix": "(slået fra)",
+        "screenMissingWarning": "Vælg den skærm, reglen skal vise.",
+        "modeLabel": "Hvor længe",
+        "modeWhile": "Så længe betingelserne er sande",
+        "modeFor": "I et fast tidsrum",
+        "secondsLabel": "Sekunder",
+        "cooldownLabel": "Ventetid (sekunder)",
+        "cooldownHelp": "Når reglen er udløst, venter den så mange sekunder, før den kan udløses igen. Lad feltet stå tomt for ingen ventetid.",
+        "actionSleep": "Sæt displayet i dvale",
+        "sleepHint": "Slukker skærmen, ligesom dvaleknappen. Et tryk eller vækkeplanen tænder den igen.",
+        "copyToDisplayLabel": "Kopiér til et andet display",
+        "copyToDisplayPlaceholder": "Vælg et display…",
+        "copyToDisplayHelp": "Kopierer denne regel til et andet display. Du skal vælge den skærm, den viser der.",
+        "copiedNotice": "Kopieret til {name}."
+      },
+      "deleteDialog": {
+        "title": "Slet regel",
+        "message": "Slet \"{name}\"?",
+        "confirm": "Slet"
+      }
+    },
+    "sharedStatePage": {
+      "heading": "Delte værdier",
+      "description": "Alle værdier denne skærm udgiver til betingelser, regler og teksttokens, samt alt der refereres, men aldrig ankommer.",
+      "intro": {
+        "heading": "Sådan fungerer det",
+        "body1": "Skærme kan reagere på, hvad der sker i dit hjem. Udvidelser (som Home Assistant) deler små navngivne værdier her, for eksempel om en dør er åben, eller hvem der er hjemme.",
+        "body2": "Fanen »Overvåger« viser, hvad denne skærm faktisk bruger lige nu, så du kan tjekke, at de rigtige oplysninger ankommer. Fanen »Tilgængelig« viser alt, hvad dine udvidelser kan dele, så du kan se, hvad du kan reagere på."
+      },
+      "tabs": {
+        "watching": "Overvåger",
+        "available": "Tilgængelig"
+      },
+      "available": {
+        "description": "Alt, hvad dine udvidelser kan dele med denne skærm, uanset om det bruges endnu. Gennemse efter udvidelse, eller søg for at indsnævre.",
+        "searchPlaceholder": "Søg efter tilgængelige værdier…",
+        "summary": {
+          "one": "{count} værdi tilgængelig fra dine udvidelser",
+          "other": "{count} værdier tilgængelige fra dine udvidelser"
+        },
+        "truncationNote": "Viser kun de første {count} — søg for at finde flere",
+        "collapseGroup": "Skjul {producer}",
+        "expandGroup": "Udvid {producer}",
+        "noProviders": "Der er endnu ikke noget at dele. Værdier kommer fra udvidelser, der deler dem (som Home Assistant). Når en udvidelse er sat op, vises dens værdier her.",
+        "noMatches": "Ingen match. Hvis du forventede noget her, så tjek udvidelsens forbindelse i udvidelsesadministratoren.",
+        "showMore": "Vis {count} mere",
+        "showLess": "Vis mindre"
+      },
+      "displayPicker": {
+        "label": "Skærm",
+        "optionLabel": "{name} ({id})"
+      },
+      "lastReportLabel": "Seneste rapport fra skærmen: {time}",
+      "noReportHint": "Denne skærm har endnu ikke rapporteret nogen værdier. Værdier vises her, når skærmen er tændt, og noget udgiver dem.",
+      "editorValuesHint": "Live-værdier fra denne editor. Tænd skærmen for at se, hvad den faktisk rapporterer.",
+      "offlineSinceHint": "Skærmen har ikke rapporteret siden {time}. Rækkerne viser de senest sendte værdier.",
+      "emptyHint": "Ingenting her endnu. Værdier dukker op af sig selv, når noget bruger dem, som en betingelse på en widget eller en live-værdi i en Tekst-widget. Der er ikke noget at sætte op på forhånd.",
+      "neverPublished": "Aldrig udgivet",
+      "neverPublishedDetail": "Intet på skærmen udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
+      "unreferencedLabel": "Intet refererer denne nøgle.",
+      "referencedByLabel": "Bruges af",
+      "ruleRefLabel": "Regel: {name}",
+      "builtInProducer": "Indbygget",
+      "producerLabel": "Fra {producer}",
+      "providerHealthSince": "siden {time}"
     },
     "securityPage": {
       "loading": "Checking authentication status…",
@@ -1132,7 +1257,7 @@
         "regenerateCancel": "Cancel",
         "regenerateWarning": "The display will need to reload to pick up the new token.",
         "errorRegenerate": "Failed to regenerate token",
-        "errorCopy": "Copy failed — select and copy manually",
+        "errorCopy": "Copy failed; select and copy manually",
         "phoneHintPart1": "For phone bookmarks, append ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " to command URLs."
@@ -1175,7 +1300,7 @@
           "loopback": "::1",
           "or": " or ",
           "linkLocal": "fe80::…",
-          "part2": ") do not match any allowlist entry and will be blocked when restriction is enabled. Check \"Your IP\" above — if it starts with a colon, this feature will block you."
+          "part2": ") do not match any allowlist entry and will be blocked when restriction is enabled. Check \"Your IP\" above; if it starts with a colon, this feature will block you."
         },
         "trustedNetworksWarning": {
           "strong": "Trusted networks only.",
@@ -1215,84 +1340,6 @@
         "authDisabled": "Authentication disabled."
       }
     },
-    "docsPage": {
-      "intro": {
-        "part1": "Full documentation is available at ",
-        "linkLabel": "homescreens.dev/docs",
-        "part2": ". Guides cover everything from initial setup to plugin development."
-      },
-      "sections": {
-        "introduction": "Introduction",
-        "guides": "Guides",
-        "reference": "Reference"
-      },
-      "links": {
-        "gettingStarted": {
-          "title": "Getting Started",
-          "description": "Overview of Home Screens and core concepts"
-        },
-        "installation": {
-          "title": "Installation",
-          "description": "Set up on Raspberry Pi or run locally"
-        },
-        "raspberryPi": {
-          "title": "Raspberry Pi",
-          "description": "Kiosk deployment, service management, SD card tips"
-        },
-        "editor": {
-          "title": "Editor",
-          "description": "Visual editor walkthrough and canvas tools"
-        },
-        "modules": {
-          "title": "Modules",
-          "description": "All 38 modules and their configuration options"
-        },
-        "backgrounds": {
-          "title": "Backgrounds",
-          "description": "Uploads, Unsplash, NASA APOD, and rotation"
-        },
-        "profiles": {
-          "title": "Profiles & Scheduling",
-          "description": "Automation and time-based screen layouts"
-        },
-        "configuration": {
-          "title": "Configuration",
-          "description": "JSON schema and config file reference"
-        },
-        "remoteControl": {
-          "title": "Remote Control",
-          "description": "Control your display from a phone or another device"
-        },
-        "multiDisplay": {
-          "title": "Multi-display",
-          "description": "Hub-and-spoke setup for running multiple Pis from one server"
-        },
-        "networking": {
-          "title": "Networking",
-          "description": "Reverse proxy and remote access from outside your LAN"
-        },
-        "troubleshooting": {
-          "title": "Troubleshooting",
-          "description": "Common issues and fixes"
-        },
-        "api": {
-          "title": "API",
-          "description": "All API endpoints and their parameters"
-        },
-        "plugins": {
-          "title": "Plugins",
-          "description": "Build custom modules with the plugin SDK"
-        },
-        "development": {
-          "title": "Development",
-          "description": "Architecture overview and contributing guide"
-        },
-        "faq": {
-          "title": "FAQ",
-          "description": "Frequently asked questions"
-        }
-      }
-    },
     "shared": {
       "secretField": {
         "removeButton": "Remove",
@@ -1329,13 +1376,15 @@
         "secrets": "Secret storage",
         "events": "Host events",
         "storage": "Local storage",
-        "localNetwork": "Local network (LAN)"
+        "localNetwork": "Local network (LAN)",
+        "oauth": "Kontologin (OAuth)"
       },
       "secretsHeading": "API keys required",
       "secretRequired": "(required)",
       "sha256Heading": "SHA-256",
       "sha256CopyButton": "Copy",
-      "sha256CopyAriaLabel": "Copy SHA-256"
+      "sha256CopyAriaLabel": "Copy SHA-256",
+      "connectionRequired": "Dette plugin kræver, at du forbinder en konto efter installationen."
     },
     "pluginSecrets": {
       "loading": "Loading secrets status…",
@@ -1345,6 +1394,37 @@
       "savingButton": "…",
       "saveButton": "Save",
       "savedSuccess": "Saved successfully"
+    },
+    "pluginSettings": {
+      "loading": "Indlæser indstillinger…",
+      "loadFailed": "Kunne ikke indlæse disse indstillinger. Luk og åbn igen for at prøve en gang til.",
+      "saveButton": "Gem",
+      "savingButton": "…",
+      "savedSuccess": "Gemt",
+      "toggleTitle": "Plugin-indstillinger",
+      "toggleAriaLabel": "Plugin-indstillinger for {id}"
+    },
+    "pluginAuth": {
+      "loading": "Kontrollerer forbindelse…",
+      "connectedLabel": "Forbundet",
+      "disconnectButton": "Afbryd",
+      "autoRenewNote": "Din forbindelse forbliver logget ind automatisk.",
+      "connectButton": "Forbind",
+      "connecting": "Forbinder…",
+      "redirectUriLabel": "Tilføj denne omdirigerings-URL, når du opsætter forbindelsen:",
+      "deviceCodeIntro": "Åbn dette link, og indtast koden:",
+      "devicePolling": "Venter på din godkendelse…",
+      "errorGeneric": "Noget gik galt. Prøv igen.",
+      "popupBlocked": "Din browser blokerede login-vinduet. Tillad pop op-vinduer for dette websted, og prøv igen.",
+      "garmin": {
+        "intro": "Log ind med din Garmin Connect-konto.",
+        "emailPlaceholder": "E-mail",
+        "passwordPlaceholder": "Adgangskode",
+        "signInButton": "Log ind",
+        "mfaSent": "Indtast den kode, Garmin lige har sendt dig.",
+        "mfaPlaceholder": "Kode",
+        "mfaButton": "Bekræft"
+      }
     },
     "pluginStorePanel": {
       "title": "Plugins",
@@ -1396,9 +1476,9 @@
         "unloadAriaLabel": "Unload {name}",
         "tipsHeading": "Tips",
         "tips": {
-          "localStorage": "Dev plugins are stored in localStorage only — they won't persist across browsers",
+          "localStorage": "Dev plugins are stored in localStorage only; they won't persist across browsers",
           "autoReload": "The plugin auto-reloads when the bundle changes (polled every 2s)",
-          "sourcemapsPart1": "Source maps are supported — add ",
+          "sourcemapsPart1": "Source maps are supported; add ",
           "sourcemapsPart2": " to your Vite config",
           "devOverrides": "Dev plugins override installed versions with the same module type"
         }
@@ -1483,7 +1563,7 @@
       "telemetryItem6": "Weather provider and transition effect",
       "telemetryItem7": "Whether sleep, alerts, and auth are enabled",
       "telemetryItem8": "Whether calendar integrations are configured",
-      "telemetryItem9": "Number of installed plugins",
+      "telemetryItem9": "Installed plugins (marketplace names and versions; plugins from outside the marketplace are counted but never named)",
       "telemetryDisclaimer": "We never collect: IP addresses, location, calendar events, API keys, module content, hostnames, or any personally identifiable information. All of the code is Open Source and can be verified.",
       "dataDirTitle": "Home Screens Data",
       "totalAppData": "Total app data",
@@ -1519,7 +1599,7 @@
         "one": "{count} display in this home",
         "other": "{count} displays in this home"
       },
-      "emptyDescriptionPrefix": "Drive more than one screen from this Pi — a kitchen touchscreen, a bedroom monitor, a living-room TV — each with its own layout, resolution, and rotation. This Pi becomes the hub and serves all of them; secondary displays can be cheap Pi Zeros running ",
+      "emptyDescriptionPrefix": "Drive more than one screen from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub and serves all of them; secondary displays can be cheap Pi Zeros running ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Click a display to edit its own settings. Everything else uses the shared ",
       "populatedDescriptionSuffix": ".",
@@ -1527,11 +1607,11 @@
       "refreshHeartbeatsTitle": "Refresh heartbeats",
       "addDisplay": "Add display",
       "emptyTitle": "This install is running in single-display mode",
-      "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet — multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
+      "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Click ",
-      "emptyBullet1Suffix": " above to register a new screen — give it a name, resolution, and rotation, then design its own layout in the editor.",
+      "emptyBullet1Suffix": " above to register a new screen. Give it a name, resolution, and rotation, then design its own layout in the editor.",
       "emptyBullet2Prefix": "Or flash another Pi with ",
       "emptyBullet2Middle": ". Once it boots, it will appear below as an ",
       "emptyBullet2Suffix": " waiting to be adopted with one click.",
@@ -1548,7 +1628,7 @@
       "reportedDimensions": "{width}×{height} reported",
       "reportedFrom": "from {address}",
       "multipleClientsHeading": "{count} clients reporting with this ID",
-      "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting — most often a duplicate ",
+      "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting; most often a duplicate ",
       "multipleClientsParagraphSuffix": " install, a stray chromium tab, or a hub kiosk pointed at the wrong URL.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Idle · {time}",
@@ -1573,7 +1653,7 @@
       "formReportedViewport": "(reported by display: {width} × {height})",
       "formWidth": "Width",
       "formHeight": "Height",
-      "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display’s screens.",
+      "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display's screens.",
       "formRotationNormal": "Normal (landscape)",
       "formRotation90": "90° clockwise (portrait)",
       "formRotation180": "180° (inverted)",
@@ -1597,6 +1677,23 @@
         "system": "System",
         "titleFormat": "Tema: {label}"
       }
+    },
+    "screenPage": {
+      "breadcrumb": "Defaults → Screen",
+      "heading": "Screen defaults",
+      "rotationAppearanceHeading": "Rotation & appearance",
+      "sleepHeading": "Sleep & dimming",
+      "alertsHeading": "Alerts"
+    },
+    "automationPage": {
+      "breadcrumb": "Defaults → Automation",
+      "heading": "Automation",
+      "description": "Profiles, rules, and live values for each display.",
+      "displayPicker": {
+        "label": "Editing automation for",
+        "optionLabel": "{name} ({id})",
+        "help": "Profiles and rules are per-display because they reference each display's own screens. Switching here changes which display the editor canvas is also working on."
+      }
     }
   },
   "backgroundPicker": {
@@ -1609,7 +1706,8 @@
     "rotateEveryLabel": "Rotate every",
     "nasaInfo": "NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day"
+      "nasaApod": "NASA Picture of the Day",
+      "icloud": "Delt iCloud-album"
     },
     "tabs": {
       "nasa": "NASA",
@@ -1627,6 +1725,10 @@
       "personLabel": "Person",
       "anyone": "Anyone",
       "favoritesOnly": "Favorites only"
+    },
+    "icloud": {
+      "albumLabel": "Albumlink",
+      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her."
     }
   },
   "imageBrowserModal": {
@@ -1662,6 +1764,33 @@
     },
     "errors": {
       "searchUnsplash": "Kunne ikke søge i Unsplash"
+    },
+    "confirmSelectVideo": "Vælg video",
+    "videoCountSingular": "{count} video",
+    "videoCountPlural": "{count} videoer",
+    "titleVideos": "Videobibliotek",
+    "uploadVideosButton": "Upload videoer",
+    "allVideos": "Alle videoer",
+    "titleMedia": "Mediebibliotek",
+    "allMedia": "Alle fotos og videoer",
+    "uploadMediaButton": "Upload"
+  },
+  "icloudImport": {
+    "toggle": "Importér fra et iCloud-link",
+    "placeholder": "Indsæt et iCloud-album- eller fotolink",
+    "start": "Importér",
+    "importing": "Importerer…",
+    "progress": "Henter {done} af {total}…",
+    "summary": "{done} nye elementer tilføjet. {skipped} var her allerede.",
+    "summaryFailed": "{failed} kunne ikke hentes.",
+    "help": "Virker med links til delte album (icloud.com/sharedalbum/#…) og 'Kopiér iCloud-link'-links (share.icloud.com). Alt i linket gemmes i den aktuelle mappe.",
+    "albumTip": "Tip: Delte album kan også vises live uden at blive hentet. Vælg 'Delt iCloud-album' som fotokilde i et diasshows indstillinger.",
+    "errors": {
+      "invalid": "Det ligner ikke et iCloud-link. Kopiér linket igen, og prøv en gang til.",
+      "expired": "Dette link virker ikke længere. iCloud-fotolinks holder op med at virke efter cirka en måned; bed om et nyt link, og prøv igen.",
+      "busy": "En anden import kører allerede. Vent, til den er færdig.",
+      "tooMany": "Dette link har for mange billeder til at gemme på én gang. Prøv et mindre album eller link.",
+      "lost": "Vi mistede overblikket over denne import. Tjek mappen for at se, hvad der blev tilføjet."
     }
   },
   "choreChartModal": {
@@ -1849,7 +1978,9 @@
       "credentials": "Credentials",
       "schedule": "Schedule",
       "visibility": "Visibility",
-      "conditions": "Betingelser"
+      "conditions": "Betingelser",
+      "connection": "Forbindelse",
+      "connectionSetup": "Opsætning af forbindelse"
     },
     "fields": {
       "x": "X",
@@ -1875,7 +2006,8 @@
       "enabledLabel": "Show on display",
       "enabledHelp": "When off, this module is excluded from the live display and prefetch but stays in the editor so you can re-enable it.",
       "backgroundProviderLabel": "Kør skjult i baggrunden",
-      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten."
+      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten.",
+      "backgroundProviderObsoleteHint": "Dette plugin deler nu sine data automatisk. Denne skjulte kopi er ikke længere nødvendig og kan slettes."
     }
   },
   "upgradeModal": {
@@ -1896,11 +2028,20 @@
       "build": "Build application"
     },
     "warning": {
-      "installing": "Installing update — do not close or power off the device",
+      "installing": "Installing update. Do not close or power off the device",
       "inProgress": "Do not close this page or power off the device"
     },
     "successDefault": "Upgrade complete!",
-    "doneButton": "Done"
+    "doneButton": "Done",
+    "status": {
+      "inProgress": "I gang",
+      "complete": "Fuldført",
+      "failed": "Mislykkedes"
+    },
+    "console": {
+      "live": "Live",
+      "waiting": "Venter på output..."
+    }
   },
   "holidayPickerModal": {
     "title": "Add Holidays",
@@ -1944,7 +2085,7 @@
     "applyVisualLabel": "Apply visual settings",
     "visualSummary": "Rotation: {seconds}s",
     "visualSummaryWithTransition": "Rotation: {seconds}s, transition: {transition}",
-    "saveError": "Failed to save — check your connection and try again.",
+    "saveError": "Failed to save. Check your connection and try again.",
     "importButton": "Import"
   },
   "installFromUrlModal": {
@@ -2277,6 +2418,7 @@
       "photoSource": "Photo Source",
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Delt iCloud-album",
       "mode": "Mode",
       "modeSlideshow": "Slideshow",
       "modeSingle": "Single Photo",
@@ -2389,6 +2531,27 @@
       "preview": "Preview",
       "altText": "Alt Text"
     },
+    "video": {
+      "videoSource": "Videokilde",
+      "tabLibrary": "Bibliotek",
+      "tabUrl": "URL",
+      "videoUrl": "Video-URL",
+      "chooseVideo": "Video",
+      "chooseVideoPlaceholder": "Vælg en video…",
+      "noVideosYet": "Ingen videoer i dit bibliotek endnu. Upload en for at komme i gang.",
+      "uploadVideo": "Upload video",
+      "movHint": "iPhone-videoer (.mov) afspilles ikke altid på Raspberry Pi-skærme. MP4-videoer (H.264) fungerer bedst.",
+      "playSound": "Afspil lyd",
+      "soundHint": "Lyd kræver en engangsopsætning på skærmen (se videoguiden). Indtil da afspilles videoer uden lyd.",
+      "loop": "Afspil gentagne gange",
+      "maxDurationSeconds": "Stop efter (sekunder, 0 = fortsæt)",
+      "uploading": "Uploading...",
+      "uploadFailed": "Upload failed",
+      "browseLibrary": "Browse Library...",
+      "urlHint": "Du kan indsætte et YouTube-link eller et direkte videolink (MP4/WebM).",
+      "icloudLinkDetected": "Dette er et iCloud-fotolink og kan ikke afspilles direkte. Gem videoerne i dit bibliotek, og brug dem derfra.",
+      "icloudNoVideos": "Dette link indeholder ingen videoer."
+    },
     "immichSource": {
       "connecting": "Connecting...",
       "connected": "Connected",
@@ -2404,6 +2567,14 @@
       "photosPerRefresh": "Photos per Refresh",
       "photoInAlbumSingular": "{count} photo in album",
       "photoInAlbumPlural": "{count} photos in album"
+    },
+    "icloudSource": {
+      "albumLink": "Albumlink",
+      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her.",
+      "noItemsFound": "Intet fundet endnu. Tjek linket, og sørg for, at 'Offentligt websted' er slået til for albummet.",
+      "photoLinkDetected": "Dette er et fotolink, ikke et link til et delt album. Fotolinks holder op med at virke efter cirka en måned, så vi gemmer kopier i dit bibliotek og viser dem i stedet.",
+      "photoLinkAction": "Gem i biblioteket",
+      "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over."
     },
     "meal-planner": {
       "viewWeek": "Week Grid",
@@ -2460,6 +2631,7 @@
     "photo-slideshow": {
       "sourceLocal": "Local Photos",
       "sourceImmich": "Immich",
+      "sourceICloud": "Delt iCloud-album",
       "transitionFade": "Fade",
       "transitionNone": "None",
       "photoSource": "Photo Source",
@@ -2737,7 +2909,9 @@
         "down": "Down"
       },
       "stateTokensHint": "Indsæt {example} for at vise en live-værdi udgivet af et baggrundsmodul.",
-      "stateTokenUnknown": "Intet modul på denne skærm udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem."
+      "stateTokenUnknown": "Intet modul på denne skærm udgiver {keys} endnu. Disse pladsholdere viser '–', indtil et modul udgiver dem.",
+      "stateTokenFiltersHint": "Tilføj |round:1 for at afrunde tal, eller |default:tekst for at vælge, hvad der vises, før en værdi kommer.",
+      "stateTokenPreview": "Live-forhåndsvisning"
     },
     "todo": {
       "title": "Title",
@@ -2997,7 +3171,7 @@
   "visibilityConditions": {
     "statusTitle": "Status",
     "enableLabel": "Vis kun, når betingelserne passer",
-    "enableHelp": "Vis eller skjul dette modul baseret på værdier udgivet af baggrundsmoduler (f.eks. en Home Assistant-sensor).",
+    "enableHelp": "Vis eller skjul dette modul ud fra live-værdier fra forbundne tjenester (f.eks. en Home Assistant-sensor).",
     "conditionsTitle": "Betingelser",
     "allMustMatchHint": "Alle betingelser skal passe, for at modulet vises.",
     "addCondition": "Tilføj betingelse",
@@ -3008,29 +3182,65 @@
       "numeric": "Tal er i intervallet",
       "and": "Alle…",
       "or": "Enhver…",
-      "not": "Ingen af…"
+      "not": "Ingen af…",
+      "time": "Tidspunkt på dagen"
     },
-    "sourceKeyLabel": "Tilstandsnøgle",
-    "sourceKeyHint": "Forslag kommer fra moduler, der udgiver tilstand. Opsæt først det modul, der udgiver, og vælg derefter dets nøgle her. Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
+    "sourceKeyLabel": "Hvad der tjekkes",
+    "sourceKeyHint": "Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
     "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
-    "sourceKeyPlaceholder": "plugin:home-assistant:sensor…",
+    "sourceKeyPlaceholder": "Søg sensorer, lys og mere…",
     "matchLabel": "Match",
     "matchEquals": "Er",
     "matchNotEquals": "Er ikke",
     "valueLabel": "Værdi",
     "valuePlaceholder": "on",
     "valueListHint": "Adskil flere værdier med kommaer for at matche en hvilken som helst af dem.",
+    "searchingHint": "Søger…",
+    "searchNoResults": "Ingen resultater. Hvis du forventede resultater her, så tjek pluginets forbindelse i plugin-oversigten.",
+    "customValueOption": "Egen værdi…",
+    "currentValueHint": "Aktuel værdi: {value}",
     "aboveLabel": "Over",
     "belowLabel": "Under",
+    "orEqualLabel": "Eller lig med",
     "whenUnknownTitle": "Før data ankommer",
     "whenUnknownLabel": "Mens datakilden endnu ikke har rapporteret",
     "whenUnknownHide": "Skjul modulet",
     "whenUnknownShow": "Vis modulet",
-    "noProvidersHint": "Ingen moduler på denne skærm udgiver tilstande endnu. Tilstandsnøgler kommer typisk fra plugins, der udgiver værdier i baggrunden. Værdier deles kun inden for denne skærms browserfane. Du kan også skrive en nøgle manuelt. Tilstandsnøgler vises her, når et modul med 'Kør skjult i baggrunden' slået til annoncerer dem.",
+    "noProvidersHint": "Der er endnu ingen tilstandsnøgler at vælge imellem. Nøgler kommer fra plugins, der deler værdier (for eksempel Home Assistant). Du kan også selv indtaste en nøgle.",
     "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
     "liveValueLabel": "På skærmen lige nu:",
-    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist."
+    "liveValueLabelEditor": "Værdi lige nu:",
+    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist.",
+    "verdicts": {
+      "met": "Opfyldt",
+      "unmet": "Ikke opfyldt",
+      "unknown": "Venter",
+      "metTitle": "Denne betingelse passer på skærmen lige nu.",
+      "unmetTitle": "Denne betingelse passer ikke på skærmen lige nu.",
+      "unknownTitle": "En nøgle i denne betingelse er endnu ikke udgivet.",
+      "metTitleEditor": "Denne betingelse passer lige nu.",
+      "unmetTitleEditor": "Denne betingelse passer ikke lige nu."
+    },
+    "outcome": {
+      "noLiveData": "Skærmen har ikke rapporteret for nylig, så live-resultater vises ikke.",
+      "offlineSince": "Skærmen har ikke rapporteret siden {time}, så live-resultater vises ikke.",
+      "shownNow": "Vises på skærmen lige nu",
+      "hiddenNow": "Skjult på skærmen lige nu",
+      "shownNowEditor": "Ville blive vist lige nu",
+      "hiddenNowEditor": "Ville blive skjult lige nu",
+      "waitingForKeys": "venter på {keys}",
+      "keyNotPicked": "en betingelse mangler stadig en nøgle",
+      "conditionsNotMet": "betingelserne passer ikke",
+      "seeLiveValues": "Du kan se alle live-værdier under Indstillinger → Live-værdier."
+    },
+    "time": {
+      "daysLabel": "Dage",
+      "fromLabel": "Fra",
+      "untilLabel": "Til",
+      "hint": "Lad begge tider stå tomme for hele dagen. Er sluttidspunktet tidligere end starten, går det over midnat (fx 22:00 til 06:00)."
+    },
+    "providerHealthNote": "{plugin}: {message}"
   }
 }

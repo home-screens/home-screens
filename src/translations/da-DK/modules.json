@@ -534,7 +534,8 @@
     "noPhotoSelected": "No photo selected",
     "noPhotoSelectedHint": "Choose a photo in the editor panel.",
     "noPhotosYet": "No photos yet",
-    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor."
+    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.",
+    "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet."
   },
   "dad-joke": {
     "loading": "Loading joke…"
@@ -647,7 +648,13 @@
   },
   "photo-slideshow": {
     "loading": "Loading photos…",
-    "empty": "No photos found"
+    "empty": "No photos found",
+    "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til."
+  },
+  "video": {
+    "loading": "Indlæser video…",
+    "empty": "Vælg en video at afspille",
+    "unavailable": "Denne video er ikke længere tilgængelig"
   },
   "icon": {
     "empty": "No icon selected"

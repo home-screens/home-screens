@@ -23,6 +23,65 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** The slice of a source the ICS parser needs to label events (shared with the CalDAV path). */
+export interface EventSourceMeta {
+  id: string;
+  name: string;
+  color: string;
+}
+
+/**
+ * Parse one ICS document into CalendarEvents within [from, to).
+ * Handles recurring events (expanded locally with overrides/exdates)
+ * and all-day events. Throws on malformed ICS — callers decide how a
+ * bad document degrades (skip the feed, skip the object, …).
+ */
+export function parseICSEvents(
+  icsText: string,
+  source: EventSourceMeta,
+  from: Date,
+  to: Date,
+): CalendarEvent[] {
+  const components = ical.sync.parseICS(icsText);
+  const events: CalendarEvent[] = [];
+
+  for (const component of Object.values(components)) {
+    if (!component || component.type !== 'VEVENT') continue;
+    const vevent = component as VEvent;
+
+    if (vevent.rrule) {
+      // Expand recurring event within the time window
+      const instances = ical.expandRecurringEvent(vevent, {
+        from,
+        to,
+        includeOverrides: true,
+        excludeExdates: true,
+        expandOngoing: true,
+      });
+
+      for (const instance of instances) {
+        const ev = instanceToCalendarEvent(instance.event, instance.start, instance.end, instance.isFullDay, source);
+        if (ev) events.push(ev);
+      }
+    } else {
+      // Non-recurring event — check if it overlaps the time window
+      if (!vevent.start) continue;
+
+      const isAllDay = vevent.datetype === 'date';
+      const evStart = vevent.start;
+      const evEnd = vevent.end ?? computeFallbackEnd(evStart, isAllDay);
+
+      // Overlap check: event.end > timeMin && event.start < timeMax
+      if (evEnd > from && evStart < to) {
+        const ev = instanceToCalendarEvent(vevent, evStart, evEnd, isAllDay, source);
+        if (ev) events.push(ev);
+      }
+    }
+  }
+
+  return events;
+}
+
 /**
  * Fetch and parse ICS/iCal feeds, returning events in the same CalendarEvent
  * format as Google Calendar. Handles recurring events, all-day events,
@@ -66,46 +125,9 @@ export async function fetchICalEvents(
       const icsText = await res.text();
 
       // Parse and process ICS — wrapped in try/catch so a malformed feed
-      // is logged and treated as a rejected promise by Promise.allSettled
+      // is logged and treated as an empty source
       try {
-        const parsed_events = ical.sync.parseICS(icsText);
-        const events: CalendarEvent[] = [];
-
-        for (const component of Object.values(parsed_events)) {
-          if (!component || component.type !== 'VEVENT') continue;
-          const vevent = component as VEvent;
-
-          if (vevent.rrule) {
-            // Expand recurring event within the time window
-            const instances = ical.expandRecurringEvent(vevent, {
-              from,
-              to,
-              includeOverrides: true,
-              excludeExdates: true,
-              expandOngoing: true,
-            });
-
-            for (const instance of instances) {
-              const ev = instanceToCalendarEvent(instance.event, instance.start, instance.end, instance.isFullDay, source);
-              if (ev) events.push(ev);
-            }
-          } else {
-            // Non-recurring event — check if it overlaps the time window
-            if (!vevent.start) continue;
-
-            const isAllDay = vevent.datetype === 'date';
-            const evStart = vevent.start;
-            const evEnd = vevent.end ?? computeFallbackEnd(evStart, isAllDay);
-
-            // Overlap check: event.end > timeMin && event.start < timeMax
-            if (evEnd > from && evStart < to) {
-              const ev = instanceToCalendarEvent(vevent, evStart, evEnd, isAllDay, source);
-              if (ev) events.push(ev);
-            }
-          }
-        }
-
-        return events;
+        return parseICSEvents(icsText, source, from, to);
       } catch (err) {
         log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
         return [];
@@ -145,7 +167,7 @@ function instanceToCalendarEvent(
   start: Date,
   end: Date,
   isAllDay: boolean,
-  source: ICalSource,
+  source: EventSourceMeta,
 ): CalendarEvent | null {
   const uid = vevent.uid ?? '';
   const occurrenceKey = isAllDay ? toDateString(start) : start.toISOString();

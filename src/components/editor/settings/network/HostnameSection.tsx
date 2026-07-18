@@ -64,7 +64,7 @@ export default function HostnameSection({
   };
 
   return (
-    <section>
+    <section data-field-id="network.hostname">
       <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
         {t('settings.networkPage.hostname.heading')}
       </h3>

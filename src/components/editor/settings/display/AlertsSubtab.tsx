@@ -15,8 +15,9 @@ interface AlertsSubtabProps {
 }
 
 /**
- * Display detail "Alerts" — whole-block override of the shared
- * `Defaults → Alerts` settings, mirroring the `SleepSubtab` pattern.
+ * Alerts card on the per-display Overrides subtab — whole-block override
+ * of the shared alert settings from `Defaults → Screen`, mirroring the
+ * `SleepSubtab` pattern.
  *
  * Rendering matches `SleepSubtab` exactly: single rounded card with a
  * header row ("Alert overlay" label + Override/Reset button) and the
@@ -67,13 +68,13 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.alerts.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=alerts"
+      defaultsHref="?section=defaults&page=screen"
       defaultsLabel={t('settings.perDisplayPage.alerts.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.alerts.infoPart1')}
           <Link
-            href="?section=defaults&page=alerts"
+            href="?section=defaults&page=screen"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.alerts.defaultsLabel')}
@@ -84,6 +85,7 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
       isForked={isForked}
       onFork={handleFork}
       onReset={handleReset}
+      testId="alerts-override-card"
     >
       <AlertFormFields
         values={values}

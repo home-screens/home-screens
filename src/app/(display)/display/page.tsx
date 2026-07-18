@@ -38,6 +38,7 @@ export default async function DisplayPage() {
           screens={filtered.screens}
           settings={filtered.settings}
           profiles={filtered.profiles}
+          rules={filtered.rules}
           displayToken={displayToken}
           displayId={target.id}
           initialDisplays={availableDisplays}
@@ -52,6 +53,7 @@ export default async function DisplayPage() {
         screens={config.screens}
         settings={config.settings}
         profiles={config.profiles}
+        rules={config.rules}
         displayToken={displayToken}
         initialDisplays={availableDisplays}
       />

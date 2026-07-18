@@ -4,11 +4,15 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Mock auth to be a no-op for all tests
+// Mock auth to be a no-op for all tests. `mediaSecret` lets media-list tests
+// flip token minting on (auth enabled) without real auth state.
+const authState = vi.hoisted(() => ({ mediaSecret: null as string | null }));
+
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
   requireDisplayAuth: vi.fn(),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
+  getMediaTokenSecret: vi.fn(async () => authState.mediaSecret),
 }));
 
 let tmpDir: string;
@@ -16,6 +20,7 @@ let origCwd: () => string;
 let bgsDir: string;
 
 beforeEach(async () => {
+  authState.mediaSecret = null;
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'bg-route-test-'));
   origCwd = process.cwd;
   process.cwd = () => tmpDir;
@@ -317,6 +322,165 @@ describe('GET /api/backgrounds', () => {
   });
 });
 
+// ─── GET endpoint: media= typed lists ───────────────────────────
+
+describe('GET /api/backgrounds with media parameter', () => {
+  beforeEach(async () => {
+    await fs.writeFile(path.join(bgsDir, 'photo.jpg'), 'img');
+    await fs.writeFile(path.join(bgsDir, 'clip.mp4'), 'vid');
+    await fs.writeFile(path.join(bgsDir, 'movie.webm'), 'vid');
+    await fs.writeFile(path.join(bgsDir, 'iphone.mov'), 'vid');
+    await fs.writeFile(path.join(bgsDir, 'readme.txt'), 'text');
+  });
+
+  it('without media= stays a plain string[] of image URLs (back-compat)', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest());
+    const json = await res.json();
+    expect(json).toHaveLength(1);
+    expect(typeof json[0]).toBe('string');
+    expect(json[0]).toContain('photo.jpg');
+  });
+
+  it('media=photos returns typed image entries only', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'photos' }));
+    const json = await res.json();
+    expect(json).toEqual([
+      { url: `/api/backgrounds/serve?file=${encodeURIComponent('photo.jpg')}`, type: 'image' },
+    ]);
+  });
+
+  it('media=videos returns typed video entries only', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos' }));
+    const json = await res.json();
+    expect(json).toHaveLength(3);
+    for (const item of json) {
+      expect(item.type).toBe('video');
+      expect(item.url).toMatch(/^\/api\/backgrounds\/serve\?file=/);
+    }
+  });
+
+  it('media=both returns images and videos together', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'both' }));
+    const json = await res.json();
+    expect(json).toHaveLength(4);
+    expect(json.filter((i: { type: string }) => i.type === 'image')).toHaveLength(1);
+    expect(json.filter((i: { type: string }) => i.type === 'video')).toHaveLength(3);
+  });
+
+  it('omits mt tokens when auth is disabled', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos' }));
+    const json = await res.json();
+    for (const item of json) {
+      expect(item.url).not.toContain('mt=');
+    }
+  });
+
+  it('appends mt tokens to video URLs when auth is enabled', async () => {
+    authState.mediaSecret = 's'.repeat(64);
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos' }));
+    const json = await res.json();
+    for (const item of json) {
+      expect(item.url).toContain('&mt=');
+    }
+  });
+
+  it('does not append mt tokens to image entries even with auth enabled', async () => {
+    authState.mediaSecret = 's'.repeat(64);
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'both' }));
+    const json = await res.json();
+    const image = json.find((i: { type: string }) => i.type === 'image');
+    expect(image.url).not.toContain('mt=');
+  });
+
+  it('includes the directory in video file paths', async () => {
+    const { GET } = await getHandlers();
+    const subDir = path.join(bgsDir, 'clips');
+    await fs.mkdir(subDir);
+    await fs.writeFile(path.join(subDir, 'family.mp4'), 'vid');
+    const res = await GET(makeGetRequest({ media: 'videos', directory: 'clips' }));
+    const json = await res.json();
+    expect(json).toHaveLength(1);
+    expect(json[0].url).toContain(encodeURIComponent('clips/family.mp4'));
+  });
+
+  it('rejects an unknown media value', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'audio' }));
+    expect(res.status).toBe(400);
+  });
+});
+
+// ─── GET endpoint: file= point lookup ───────────────────────────
+
+describe('GET /api/backgrounds with file parameter', () => {
+  beforeEach(async () => {
+    await fs.writeFile(path.join(bgsDir, 'photo.jpg'), 'img');
+    await fs.writeFile(path.join(bgsDir, 'clip.mp4'), 'vid');
+    const subDir = path.join(bgsDir, 'clips');
+    await fs.mkdir(subDir);
+    await fs.writeFile(path.join(subDir, 'family.mp4'), 'vid');
+  });
+
+  it('returns a single typed video entry for a root file', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos', file: 'clip.mp4' }));
+    const json = await res.json();
+    expect(json).toEqual([
+      { url: `/api/backgrounds/serve?file=${encodeURIComponent('clip.mp4')}`, type: 'video' },
+    ]);
+  });
+
+  it('resolves a nested file without touching its siblings', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos', file: 'clips/family.mp4' }));
+    const json = await res.json();
+    expect(json).toHaveLength(1);
+    expect(json[0].url).toContain(encodeURIComponent('clips/family.mp4'));
+  });
+
+  it('binds an mt token to the file path when auth is enabled', async () => {
+    authState.mediaSecret = 's'.repeat(64);
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos', file: 'clips/family.mp4' }));
+    const json = await res.json();
+    expect(json[0].url).toContain('&mt=');
+  });
+
+  it('returns [] for a missing file', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos', file: 'gone.mp4' }));
+    expect(await res.json()).toEqual([]);
+  });
+
+  it('returns [] when the file does not match the media filter', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ media: 'videos', file: 'photo.jpg' }));
+    expect(await res.json()).toEqual([]);
+  });
+
+  it('returns a typed image entry without a media filter', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ file: 'photo.jpg' }));
+    const json = await res.json();
+    expect(json).toEqual([
+      { url: `/api/backgrounds/serve?file=${encodeURIComponent('photo.jpg')}`, type: 'image' },
+    ]);
+  });
+
+  it('rejects traversal in the file parameter', async () => {
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ file: '../../etc/passwd' }));
+    expect(res.status).toBe(400);
+  });
+});
+
 // ─── POST endpoint ──────────────────────────────────────────────
 
 describe('POST /api/backgrounds', () => {
@@ -479,6 +643,31 @@ describe('POST /api/backgrounds', () => {
       );
       expect(res.status).toBe(201);
     }
+  });
+
+  it('accepts video MIME types (mp4, webm, quicktime)', async () => {
+    const { POST } = await getHandlers();
+    const videos = [
+      { name: 'clip.mp4', type: 'video/mp4' },
+      { name: 'clip.webm', type: 'video/webm' },
+      { name: 'clip.mov', type: 'video/quicktime' },
+    ];
+    for (const v of videos) {
+      const res = await POST(
+        makePostRequest([{ name: v.name, type: v.type, content: Buffer.from('vid') }]),
+      );
+      expect(res.status).toBe(201);
+    }
+  });
+
+  it('allows videos past the 10 MB image cap', async () => {
+    const { POST } = await getHandlers();
+    const res = await POST(
+      makePostRequest([
+        { name: 'big.mp4', type: 'video/mp4', content: Buffer.alloc(11 * 1024 * 1024) },
+      ]),
+    );
+    expect(res.status).toBe(201);
   });
 
   it('uploads to a subdirectory when directory parameter is given', async () => {

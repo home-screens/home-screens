@@ -349,6 +349,18 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
 }
 
 /**
+ * Secret for signing media tokens (see `lib/media-token.ts`). Reuses the
+ * session cookieSecret — present whenever auth is enabled. Returns null when
+ * auth is disabled, which callers treat as "no gating": mint no tokens,
+ * verify nothing, matching `requireDisplayAuth`'s early return.
+ */
+export async function getMediaTokenSecret(): Promise<string | null> {
+  const state = await getCachedAuthState();
+  if (!state.passwordHash || !state.cookieSecret) return null;
+  return state.cookieSecret;
+}
+
+/**
  * Build Set-Cookie header value for the session cookie.
  */
 export function buildSessionCookie(

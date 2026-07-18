@@ -24,6 +24,10 @@ interface WholeBlockOverrideCardProps {
   onReset: () => void;
   /** Form body — dimmed via `disabled` when not forked. */
   children: ReactNode;
+  /** Stable hook for E2E specs — the sleep and alerts cards render identical
+   *  "Override for {X}" / "Reset to default" buttons on the same Overrides
+   *  subtab, so specs need a container to scope those clicks to. */
+  testId?: string;
 }
 
 /**
@@ -48,6 +52,7 @@ export default function WholeBlockOverrideCard({
   onFork,
   onReset,
   children,
+  testId,
 }: WholeBlockOverrideCardProps) {
   const t = useTranslate('editor');
   return (
@@ -57,7 +62,7 @@ export default function WholeBlockOverrideCard({
         <div className="text-xs text-hs-accent-hover leading-relaxed">{infoCopy}</div>
       </div>
 
-      <div className="rounded-lg border border-hs-border bg-hs-panel/40">
+      <div className="rounded-lg border border-hs-border bg-hs-panel/40" data-testid={testId}>
         <div className="px-4 py-3.5">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-medium text-hs-text-body">{label}</div>

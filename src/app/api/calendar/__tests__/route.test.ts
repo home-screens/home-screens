@@ -20,16 +20,28 @@ vi.mock('@/lib/ical-calendar', () => ({
   fetchICalEvents: vi.fn(),
 }));
 
+vi.mock('@/lib/caldav-calendar', () => ({
+  fetchICloudEvents: vi.fn(),
+}));
+
+vi.mock('@/lib/icloud-accounts', () => ({
+  listICloudAccounts: vi.fn(),
+}));
+
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
 }));
 
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { fetchICalEvents } from '@/lib/ical-calendar';
+import { fetchICloudEvents } from '@/lib/caldav-calendar';
+import { listICloudAccounts } from '@/lib/icloud-accounts';
 import { readConfig } from '@/lib/config';
 
 const mockFetchGoogle = vi.mocked(fetchCalendarEvents);
 const mockFetchICal = vi.mocked(fetchICalEvents);
+const mockFetchICloud = vi.mocked(fetchICloudEvents);
+const mockListICloudAccounts = vi.mocked(listICloudAccounts);
 const mockReadConfig = vi.mocked(readConfig);
 
 // Lazily import GET so mocks are in place before module evaluation
@@ -88,6 +100,9 @@ beforeEach(() => {
   vi.restoreAllMocks();
   mockFetchGoogle.mockReset();
   mockFetchICal.mockReset();
+  mockFetchICloud.mockReset();
+  mockListICloudAccounts.mockReset();
+  mockListICloudAccounts.mockResolvedValue([]);
   mockReadConfig.mockReset();
   cache.clear();
 });
@@ -485,6 +500,115 @@ describe('ICS + Google Calendar merging', () => {
       expect.any(String),
       expect.any(String),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// iCloud merging
+// ---------------------------------------------------------------------------
+describe('iCloud merging', () => {
+  const icloudSource = (overrides: Partial<{ id: string; enabled: boolean }> = {}) => ({
+    id: 'ic-1',
+    accountId: 'acct-1',
+    kind: 'calendar' as const,
+    url: 'https://caldav.icloud.com/123/calendars/home/',
+    name: 'Home',
+    color: '#ef4444',
+    enabled: true,
+    ...overrides,
+  });
+  const account = { id: 'acct-1', appleId: 'a@icloud.com', appPassword: 'aaaa-bbbb-cccc-dddd' };
+
+  it('merges iCloud events into the combined, sorted output', async () => {
+    mockReadConfig.mockResolvedValue(
+      makeConfig({ googleCalendarIds: ['primary'], icloudSources: [icloudSource()] }),
+    );
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T12:00:00Z', 'Google Noon')]);
+    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z', 'iCloud Morning')]);
+
+    const res = await GET(makeRequest());
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.map((e: CalendarEvent) => e.title)).toEqual(['iCloud Morning', 'Google Noon']);
+  });
+
+  it('passes the stored accounts and only enabled sources to fetchICloudEvents', async () => {
+    mockReadConfig.mockResolvedValue(
+      makeConfig({
+        icloudSources: [icloudSource(), icloudSource({ id: 'ic-2', enabled: false })],
+      }),
+    );
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchICloud.mockResolvedValue([]);
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200);
+    expect(mockFetchICloud).toHaveBeenCalledWith(
+      [expect.objectContaining({ id: 'ic-1' })],
+      [account],
+      expect.any(String),
+      expect.any(String),
+    );
+  });
+
+  it('counts iCloud sources toward the "no calendars configured" check', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource()] }));
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z')]);
+
+    const res = await GET(makeRequest());
+
+    expect(res.status).toBe(200); // not the 400 an empty config produces
+    expect(mockFetchGoogle).not.toHaveBeenCalled();
+    expect(mockFetchICal).not.toHaveBeenCalled();
+  });
+
+  it('returns Google events when iCloud fails (partial success)', async () => {
+    mockReadConfig.mockResolvedValue(
+      makeConfig({ googleCalendarIds: ['primary'], icloudSources: [icloudSource()] }),
+    );
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T10:00:00Z', 'Google Only')]);
+    mockFetchICloud.mockRejectedValue(new Error('iCloud down'));
+
+    const res = await GET(makeRequest());
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.map((e: CalendarEvent) => e.title)).toEqual(['Google Only']);
+  });
+
+  it('returns an error instead of an empty 200 when iCloud is the only source and it fails', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource()] }));
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchICloud.mockRejectedValue(new Error('iCloud down'));
+
+    const res = await GET(makeRequest());
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBeTruthy();
+  });
+
+  it('cache key includes iCloud sources — a source change causes a miss', async () => {
+    const params = { timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-20T00:00:00Z' };
+    mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource()] }));
+    mockListICloudAccounts.mockResolvedValue([account]);
+    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z', 'Home Cal')]);
+
+    await GET(makeRequest(params));
+
+    mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource({ id: 'ic-9' })] }));
+    mockFetchICloud.mockResolvedValue([makeEvent('ic2', '2026-03-13T09:00:00Z', 'Other Cal')]);
+
+    const res2 = await GET(makeRequest(params));
+    const json2 = await res2.json();
+
+    expect(json2[0].title).toBe('Other Cal');
+    expect(mockFetchICloud).toHaveBeenCalledTimes(2);
   });
 });
 

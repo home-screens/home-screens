@@ -36,6 +36,17 @@ const STUBS: Record<string, { glob: string; file: string }> = {
   'dad-joke':   { glob: '**/api/jokes*',        file: 'dad-joke' },
   'air-quality':{ glob: '**/api/air-quality*',  file: 'air-quality' },
   backgrounds:  { glob: '**/api/backgrounds*',  file: 'backgrounds' },
+  // Typed video list for the video module. Registered after `backgrounds` so
+  // this more specific glob wins for the media=videos query (page.route
+  // matches most-recently-added handlers first).
+  'backgrounds-videos': { glob: '**/api/backgrounds?media=videos*', file: 'backgrounds-videos' },
+  // Immich photo listing (photo modules with source 'immich'); serves the same
+  // bare-array-of-URLs shape as the local backgrounds route.
+  immich:       { glob: '**/api/immich/photos*', file: 'backgrounds' },
+  // iCloud Shared Album listing (photo modules with source 'icloud'); same
+  // legacy bare-array shape — real responses carry absolute Apple CDN URLs,
+  // but data: URLs keep the render fully offline under blockExternal.
+  icloud:       { glob: '**/api/icloud/photos*', file: 'backgrounds' },
 };
 
 type Override =

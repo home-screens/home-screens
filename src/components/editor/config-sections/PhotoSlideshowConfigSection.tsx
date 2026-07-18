@@ -10,14 +10,12 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
+import { MediaTypesFields } from './MediaTypesFields';
 import type { ModuleInstance } from '@/types/config';
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const PHOTO_SOURCES = [
-    { value: 'local', label: t('configSections.photo-slideshow.sourceLocal') },
-    { value: 'immich', label: t('configSections.photo-slideshow.sourceImmich') },
-  ] as const;
 
   const TRANSITIONS = [
     { value: 'fade', label: t('configSections.photo-slideshow.transitionFade') },
@@ -36,6 +34,14 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   const [photoCount, setPhotoCount] = useState(0);
   const { data: secrets } = useEditorData<Record<string, boolean>>('/api/secrets');
   const hasImmichKey = !!secrets?.immich_api_key && !!secrets?.immich_url;
+
+  // iCloud needs no key, so the source select is always shown; Immich joins
+  // the list only once its server + API key are configured.
+  const PHOTO_SOURCES = [
+    { value: 'local', label: t('configSections.photo-slideshow.sourceLocal') },
+    ...(hasImmichKey ? [{ value: 'immich', label: t('configSections.photo-slideshow.sourceImmich') }] : []),
+    { value: 'icloud', label: t('configSections.photo-slideshow.sourceICloud') },
+  ];
 
   const source = (c.source as string) || 'local';
   const directory = (c.directory as string) || '';
@@ -65,18 +71,17 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
 
   return (
     <>
-      {/* Source selector — only show if Immich is configured */}
-      {hasImmichKey && (
-        <LabeledSelect
-          label={t('configSections.photo-slideshow.photoSource')}
-          value={source}
-          onChange={(v) => set({ source: v })}
-          options={PHOTO_SOURCES}
-        />
-      )}
+      <LabeledSelect
+        label={t('configSections.photo-slideshow.photoSource')}
+        value={source}
+        onChange={(v) => set({ source: v })}
+        options={PHOTO_SOURCES}
+      />
 
       {source === 'immich' ? (
         <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
+      ) : source === 'icloud' ? (
+        <ICloudAlbumSourceSection config={c as Record<string, unknown>} set={set} />
       ) : (
         <>
           {/* Folder picker */}
@@ -117,6 +122,8 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
           </div>
         </>
       )}
+
+      <MediaTypesFields config={c as Record<string, unknown>} set={set} />
 
       <Slider
         label={t('configSections.photo-slideshow.slideInterval')}

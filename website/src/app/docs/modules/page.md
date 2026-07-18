@@ -3,7 +3,7 @@ title: Modules
 nextjs:
   metadata:
     title: Modules
-    description: Overview of the Home Screens module system — how modules work, the 8 categories of built-in modules, and how to add them to your display.
+    description: Overview of the Home Screens module system — how modules work, the 9 categories of built-in modules, and how to add them to your display.
     alternates:
       canonical: /docs/modules
 ---
@@ -38,12 +38,12 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Fullscreen Calendar** — five views (schedule, week-list, month-grid, day-timeline, agenda), Skylight-inspired
 - **Fullscreen Chore Chart** — kid-friendly ambient chore surface
 - **Fullscreen Meal Planner** — four views for the weekly meal plan
-- **Fullscreen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich support, and a single-photo "static wallpaper" mode
+- **Fullscreen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
 ### Time & Date
 
 - **Clock** — {% $stats.clockViewCount %} different visual styles (analog, digital, flip, word, etc.)
-- **Calendar** — compact Google/iCal event list
+- **Calendar** — compact event list from Google, iCloud, or iCal feeds
 - **Countdown** — days until a birthday, trip, or deadline
 - **Date** — 5 layouts
 - **Year Progress** — how much of the year is left as a bar
@@ -70,10 +70,14 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Affirmations** — 4 views
 - **Meal Planner** (5 views) · **Chore Chart** (5 views, rewards, rotation schedules)
 
+### Health & Fitness
+
+- Home to activity and wellness widgets from [plugins](/docs/plugins), like the Strava plugin's dashboards, route art, and training views. No built-in modules live here yet — the section appears in the palette once you install a plugin that uses it.
+
 ### Media & Display
 
 - **Text** — rich formatting, gradients, marquee
-- **Image** · **Photo Slideshow** · **QR Code** (custom or WiFi)
+- **Image** · **Video** (library file, direct URL, or YouTube link; loop, optional sound) · **Photo Slideshow** (photos, videos, or both) · **QR Code** (custom or WiFi)
 - **iFrame** — embed any web page (Home Assistant, Grafana, Google Sheets, etc.)
 - **Icon** — a single Font Awesome 7 glyph with color, rotation, flip, and animation (spin, beat, bounce, shake)
 - **Shape & Divider** — {% $stats.shapeViewCount %} views (dividers, waves, dots, geometric shapes, frames, glow, gradients) for layout polish

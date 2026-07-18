@@ -4,26 +4,9 @@ import { memo, useMemo } from 'react';
 import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
+import { usePluginStore } from '@/stores/plugin-store';
+import { stableStringify } from '@/lib/stable-stringify';
 import { buildModuleProps, type SharedDisplayData } from './ScreenRenderer';
-
-/**
- * JSON.stringify is key-order-sensitive, so two semantically identical
- * configs authored in different key orders would defeat dedupe and
- * double-mount a provider's fetch loop. Sort plain-object keys recursively;
- * arrays keep their order (order is meaningful there).
- */
-function stableConfigKey(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(stableConfigKey).join(',')}]`;
-  }
-  if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([k, v]) => `${JSON.stringify(k)}:${stableConfigKey(v)}`);
-    return `{${entries.join(',')}}`;
-  }
-  return JSON.stringify(value) ?? 'undefined';
-}
 
 interface BackgroundProviderLayerProps {
   /** ALL configured screens (pre-profile-filter) — a producer must run even
@@ -52,15 +35,27 @@ interface BackgroundProviderLayerProps {
  *
  * Memoized: ScreenRotator re-renders at least once a minute (clock tick), so
  * this layer must not churn its providers' fetch loops on every parent render.
+ * The memo blocks parent-driven re-renders, but plugin bundles register
+ * asynchronously after first render without changing any of the memoized props,
+ * so we subscribe to the plugin store's registration count directly — that
+ * subscription re-renders this component when a plugin registers, letting a
+ * plugin-only background provider finally resolve its component and mount.
  */
 function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundProviderLayerProps) {
+  // Re-render when a plugin registers so a plugin-only provider picks up its
+  // now-available component (memoized props don't change on registration).
+  usePluginStore((s) => s.plugins.size);
+
   const providers = useMemo(() => {
     const seen = new Set<string>();
     const result: ModuleInstance[] = [];
     for (const screen of screens) {
       for (const mod of screen.modules) {
         if (!mod.backgroundProvider || mod.enabled === false) continue;
-        const key = `${mod.type}:${stableConfigKey(mod.config)}`;
+        // JSON.stringify is key-order-sensitive, so two semantically identical
+        // configs authored in different key orders would defeat dedupe and
+        // double-mount a provider's fetch loop.
+        const key = `${mod.type}:${stableStringify(mod.config)}`;
         if (seen.has(key)) continue;
         seen.add(key);
         result.push(mod);
@@ -85,8 +80,9 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
     >
       {providers.map((mod) => {
         const Component = getModuleComponent(mod.type);
-        // Plugin not (yet) loaded — nothing to run; the plugin store re-renders
-        // this layer when the bundle registers.
+        // Plugin not yet loaded — nothing to run. The plugins.size subscription
+        // above re-renders this layer once the bundle registers, at which point
+        // getModuleComponent resolves and the provider mounts.
         if (!Component) return null;
         const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
         return (

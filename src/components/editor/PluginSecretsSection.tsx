@@ -123,13 +123,21 @@ function PluginSecretField({
 export default function PluginSecretsSection({
   pluginId,
   secrets,
+  keyFilter,
 }: {
   pluginId: string;
   secrets: PluginSecretDeclaration[];
+  /** When provided, render only the declarations whose key is in this list.
+   *  Used to split OAuth client credentials (shown under Connection) from the
+   *  plugin's other secrets. */
+  keyFilter?: string[];
 }) {
   const t = useTranslate('editor');
   const [status, setStatus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const visibleSecrets = keyFilter
+    ? secrets.filter((decl) => keyFilter.includes(decl.key))
+    : secrets;
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -153,9 +161,11 @@ export default function PluginSecretsSection({
     return <p className="text-xs text-hs-text-faint">{t('settings.pluginSecrets.loading')}</p>;
   }
 
+  if (visibleSecrets.length === 0) return null;
+
   return (
     <div className="space-y-4">
-      {secrets.map((decl) => (
+      {visibleSecrets.map((decl) => (
         <PluginSecretField
           key={decl.key}
           decl={decl}

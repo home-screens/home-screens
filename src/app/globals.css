@@ -175,8 +175,36 @@ body {
   100% { transform: translateX(-50%); }
 }
 
+/* Highlight sweep across the upgrade modal's progress bar while running */
+@keyframes hs-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
 .animate-ticker-scroll {
   animation: ticker-scroll linear infinite;
+}
+
+/* Pulse a settings field after a search-result click scrolls it into view.
+   Mixed directly off --hs-accent rather than the --hs-accent-soft/-ring
+   tokens: those are tuned for subtle persistent states (focus rings,
+   selected cards) and read as nearly invisible for a one-shot attention
+   flash in dark mode, where -soft is only 10% opacity. */
+@keyframes hs-settings-highlight {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--hs-accent) 60%, transparent);
+    background-color: color-mix(in srgb, var(--hs-accent) 25%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+    background-color: color-mix(in srgb, var(--hs-accent) 25%, transparent);
+  }
+  100% { box-shadow: 0 0 0 0 transparent; background-color: transparent; }
+}
+
+.animate-settings-highlight {
+  animation: hs-settings-highlight 1.8s ease-out;
+  border-radius: 0.5rem;
 }
 
 /* ============================================================================

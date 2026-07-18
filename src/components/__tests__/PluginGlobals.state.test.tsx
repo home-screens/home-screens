@@ -14,11 +14,13 @@ import React from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import { __resetLoaderForTests } from '@/i18n/loader';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { providerHealthStore, type ProviderHealthStatus } from '@/lib/provider-health-store';
 import PluginGlobals from '@/components/PluginGlobals';
 
 type StateSDK = {
   publishState: (pluginId: string, key: string, value: string) => void;
   clearState: (pluginId: string, key: string) => void;
+  reportProviderHealth: (pluginId: string, status: ProviderHealthStatus) => void;
 };
 
 function getSDK(): StateSDK {
@@ -41,6 +43,7 @@ describe('__HS_SDK__ shared-state surface', () => {
   beforeEach(() => {
     __resetLoaderForTests();
     sharedStateStore.__resetForTests();
+    providerHealthStore.__resetForTests();
     vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ core: {} }), { status: 200 }),
     );
@@ -92,6 +95,21 @@ describe('__HS_SDK__ shared-state surface', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('reportProviderHealth records and clears through the provider-health store', async () => {
+    await mountSdk();
+    getSDK().reportProviderHealth('ha', { ok: false, message: 'down', since: 10 });
+    expect(providerHealthStore.snapshot().get('ha')).toEqual({ message: 'down', since: 10 });
+    getSDK().reportProviderHealth('ha', { ok: true });
+    expect(providerHealthStore.snapshot().has('ha')).toBe(false);
+  });
+
+  it('reportProviderHealth ignores a non-string pluginId', async () => {
+    await mountSdk();
+    (getSDK() as unknown as { reportProviderHealth: (a: unknown, b: unknown) => void })
+      .reportProviderHealth(42, { ok: false, message: 'x', since: 1 });
+    expect(providerHealthStore.snapshot().size).toBe(0);
   });
 
   it('non-string arguments are no-ops', async () => {

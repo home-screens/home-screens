@@ -13,12 +13,21 @@ export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ locale: string }> };
 
+// Loose BCP-47 shape. This is not a registration check — it keeps garbage
+// out of the X-Locale response header and documents what a locale segment
+// may look like. Path safety does not depend on it: readNamespaceWithFallback
+// only ever reads registered tags (plus the fallback) from disk.
+const LOCALE_SHAPE = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i;
+
 /**
  * GET /api/i18n/{locale}?ns=core[,modules,weather]
  *
- * Returns `{ <namespace>: <dictionary>, ... }`. Unknown locales fall back
- * to en-US silently. Per-namespace fallback walks the same chain so a
- * partially-translated locale stays usable.
+ * Returns `{ <namespace>: <dictionary>, ... }`. Unregistered locales walk
+ * the same fallback chain as SSR's `buildLocaleBlob` — `de-AT` serves the
+ * registered sibling `de-DE`, an unknown language serves en-US — so a
+ * client-side dictionary fetch always agrees with what the server rendered.
+ * Per-namespace fallback walks the same chain so a partially-translated
+ * locale stays usable.
  *
  * Disk reads delegate to `readNamespaceWithFallback` from
  * `@/i18n/file-reader` — that helper is shared with the SSR
@@ -27,11 +36,7 @@ type RouteContext = { params: Promise<{ locale: string }> };
  */
 export async function GET(request: NextRequest, ctx: RouteContext): Promise<NextResponse> {
   const { locale: rawLocale } = await ctx.params;
-  // Normalise: if the locale isn't registered, serve the fallback. The
-  // resolveLocaleChain helper still walks language siblings, so a request
-  // for an unregistered tag like `de-AT` retains its language fallback
-  // when `de-DE` is in `LOCALES`.
-  const locale = isRegisteredLocale(rawLocale) ? rawLocale : FALLBACK_LOCALE;
+  const locale = LOCALE_SHAPE.test(rawLocale) ? rawLocale : FALLBACK_LOCALE;
 
   const nsParam = request.nextUrl.searchParams.get('ns') ?? 'core';
   const namespaces = nsParam
@@ -70,6 +75,9 @@ export async function GET(request: NextRequest, ctx: RouteContext): Promise<Next
       // Browser + shared caches key by full URL (including `?ns=` query),
       // so different namespace combinations are cached independently.
       'Cache-Control': cacheControl,
+      // The tag whose fallback chain was walked (an unregistered tag keeps
+      // its own name here; X-Locale-Registered says whether it resolved
+      // directly or via the chain).
       'X-Locale': locale,
       'X-Locale-Registered': String(isRegisteredLocale(rawLocale)),
       'X-Available-Locales': Object.keys(LOCALES).join(','),

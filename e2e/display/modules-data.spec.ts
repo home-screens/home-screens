@@ -58,6 +58,9 @@ const RESILIENCE = [
   { type: 'history', empty: { events: [] }, happy: 'Apollo 11 lands on the Moon.' },
   { type: 'quote', empty: {}, happy: 'The only way to do great work' },
   { type: 'dad-joke', empty: {}, happy: 'skeletons' },
+  // An empty {} yields aqi undefined -> the "Unknown" label, and a 500 gates to
+  // the error state, so the happy-path "Fair" category is absent in both.
+  { type: 'air-quality', stubKey: 'air-quality', empty: {}, happy: 'Fair' },
   // The calendar route returns a bare array of events, not a wrapped object.
   { type: 'calendar', empty: [], happy: 'Dentist Appointment' },
   {
@@ -104,6 +107,40 @@ for (const r of RESILIENCE) {
 }
 
 /**
+ * Weather renders a per-view empty branch (WeatherEmptyState) — the base
+ * RESILIENCE row above exercises only the default view. Loop every view with
+ * its own empty gate and assert the actual placeholder copy renders, so a
+ * view-specific empty branch can't silently break. daily/table use the
+ * forecast-specific message; the rest use the generic one. (precipitation and
+ * alerts have distinct semantics: precipitation charts hourly data and the
+ * alerts view's empty behavior is covered by the hide-when-no-alerts variant
+ * row.)
+ */
+const WEATHER_EMPTY_VIEWS: Array<{ view: string; copy: string }> = [
+  { view: 'current', copy: 'No weather data' },
+  { view: 'hourly', copy: 'No weather data' },
+  { view: 'combined', copy: 'No weather data' },
+  { view: 'compact', copy: 'No weather data' },
+  { view: 'daily', copy: 'No forecast data' },
+  { view: 'table', copy: 'No forecast data' },
+];
+
+for (const { view, copy } of WEATHER_EMPTY_VIEWS) {
+  test(`weather ${view} view renders its empty state on an empty payload`, async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { weather: { hourly: [], forecast: [] } } });
+    const cfg = baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance('weather', { view })])],
+      settings: matrixSettings(),
+    });
+    const display = await renderOnDisplay(page, request, cfg);
+    const mod = display.module('weather');
+    await expect(mod).toBeVisible();
+    await expect(mod).toContainText(copy);
+    await expect(mod).not.toContainText('72°');
+  });
+}
+
+/**
  * Text-less data modules have no reliable happy-path substring to assert the
  * ABSENCE of (their fixtures use hasSize / hasChild('img') / a weak numeric
  * match), so resilience for them is a stricter shape: the module wrapper stays
@@ -111,7 +148,6 @@ for (const r of RESILIENCE) {
  */
 const RESILIENCE_NO_CRASH = [
   { type: 'rain-map', stubKey: 'rain-map', empty: {} },
-  { type: 'air-quality', stubKey: 'air-quality', empty: {} },
   // The backgrounds route returns a bare array of image URLs.
   { type: 'photo-slideshow', stubKey: 'backgrounds', empty: [] },
   { type: 'fullscreen-photo', stubKey: 'backgrounds', empty: [] },

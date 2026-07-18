@@ -71,6 +71,66 @@ describe('resolveSharedStateTokens', () => {
   });
 
   it('accepts a custom placeholder', () => {
-    expect(resolveSharedStateTokens('{gone}', states({}), '?')).toBe('?');
+    expect(resolveSharedStateTokens('{gone}', states({}), { placeholder: '?' })).toBe('?');
+  });
+});
+
+describe('token filters', () => {
+  it('extracts keys with filters stripped', () => {
+    expect(extractSharedStateKeys('{plugin:ha:sensor.temp|round:1} {plugin:ha:door|default:closed}'))
+      .toEqual(['plugin:ha:door', 'plugin:ha:sensor.temp']);
+  });
+
+  it('round:N rounds numeric values', () => {
+    const s = states({ 'plugin:ha:sensor.temp': '72.53333' });
+    expect(resolveSharedStateTokens('{plugin:ha:sensor.temp|round:1} °F', s)).toBe('72.5 °F');
+    expect(resolveSharedStateTokens('{plugin:ha:sensor.temp|round:0} °F', s)).toBe('73 °F');
+  });
+
+  it('round:N honors the formatting locale', () => {
+    const s = states({ 'plugin:ha:sensor.temp': '72.53333' });
+    expect(resolveSharedStateTokens('{plugin:ha:sensor.temp|round:1}', s, { locale: 'de-DE' }))
+      .toBe('72,5');
+  });
+
+  it('round passes non-numeric and empty values through unchanged', () => {
+    expect(resolveSharedStateTokens('{k|round:1}', states({ k: 'on' }))).toBe('on');
+    expect(resolveSharedStateTokens('{k|round:1}', states({ k: '' }))).toBe('');
+  });
+
+  it('round on an unpublished key falls through to the placeholder', () => {
+    expect(resolveSharedStateTokens('{k|round:1}', states({}))).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+  });
+
+  it('default: replaces the placeholder for unpublished keys only', () => {
+    expect(resolveSharedStateTokens('{k|default:unknown}', states({}))).toBe('unknown');
+    expect(resolveSharedStateTokens('{k|default:unknown}', states({ k: 'on' }))).toBe('on');
+    // Empty published value is a value, not "unpublished".
+    expect(resolveSharedStateTokens('[{k|default:x}]', states({ k: '' }))).toBe('[]');
+  });
+
+  it('default: with empty text renders empty', () => {
+    expect(resolveSharedStateTokens('[{k|default:}]', states({}))).toBe('[]');
+  });
+
+  it('filters chain left to right', () => {
+    expect(resolveSharedStateTokens('{k|round:0|default:n/a}', states({ k: '19.6' }))).toBe('20');
+    expect(resolveSharedStateTokens('{k|round:0|default:n/a}', states({}))).toBe('n/a');
+  });
+
+  it('unrecognized or malformed filters render the token literally', () => {
+    const s = states({ k: '5' });
+    expect(resolveSharedStateTokens('{k|upper}', s)).toBe('{k|upper}');
+    expect(resolveSharedStateTokens('{k|round}', s)).toBe('{k|round}');
+    expect(resolveSharedStateTokens('{k|round:x}', s)).toBe('{k|round:x}');
+    expect(resolveSharedStateTokens('{k|round:99}', s)).toBe('{k|round:99}');
+    expect(resolveSharedStateTokens('{k|}', s)).toBe('{k|}');
+    // One bad segment poisons the whole token, even alongside a good one.
+    expect(resolveSharedStateTokens('{k|round:1|nope}', s)).toBe('{k|round:1|nope}');
+  });
+
+  it('a filtered token still ignores double-brace template variables', () => {
+    expect(resolveSharedStateTokens('{{time}} {k|round:0}', states({ k: '1.4' }))).toBe('{{time}} 1');
+    expect(extractSharedStateKeys('{{time}}')).toEqual([]);
   });
 });

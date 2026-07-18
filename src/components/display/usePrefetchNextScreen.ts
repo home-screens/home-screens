@@ -28,6 +28,13 @@ export function usePrefetchNextScreen(
    * skip ones that will.
    */
   timezone?: string,
+  /**
+   * True while a rule takeover is pinning the render. Rotation is suspended,
+   * so an armed prefetch would fire for an advance that will not happen — and
+   * because this is an effect dependency, the release re-arms a fresh prefetch
+   * aligned with the full dwell the rotation timer restarts with.
+   */
+  suspended?: boolean,
 ) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const screensRef = useRef(screens);
@@ -37,6 +44,7 @@ export function usePrefetchNextScreen(
   }, [screens]);
 
   useEffect(() => {
+    if (suspended) return;
     if (displayState === 'asleep' || screensRef.current.length <= 1) return;
     if (currentDurationMs <= 0) return; // sticky — no upcoming advance
 
@@ -50,5 +58,5 @@ export function usePrefetchNextScreen(
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [screenKey, currentIndex, currentDurationMs, displayState, timezone]);
+  }, [screenKey, currentIndex, currentDurationMs, displayState, timezone, suspended]);
 }

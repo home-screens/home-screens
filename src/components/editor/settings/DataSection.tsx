@@ -18,6 +18,19 @@ interface DataSectionProps {
   onSettingsImported: () => void;
 }
 
+interface ConfigBackupFile {
+  name: string;
+  size: number;
+  modified: string;
+}
+
+// kind drives styling/role explicitly — don't sniff English prefixes from message.
+type RestoreStatusKind = 'progress' | 'success' | 'error';
+interface RestoreStatus {
+  message: string;
+  kind: RestoreStatusKind;
+}
+
 export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const t = useTranslate('editor');
   const { importConfig, config, updateSettings, saveConfig } = useEditorStore();
@@ -43,6 +56,13 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const reminder = config?.settings?.backupReminder;
   const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
 
+  // Automatic config snapshots (taken by the upgrade pipeline before each
+  // update). Moved here from the System page so every backup surface lives
+  // on one page — System keeps version rollback, which changes the app
+  // version rather than the settings.
+  const [configBackups, setConfigBackups] = useState<ConfigBackupFile[]>([]);
+  const [restoreStatus, setRestoreStatus] = useState<RestoreStatus | null>(null);
+
   useEffect(() => {
     editorFetch('/api/backup/reminder')
       .then(async (res) => {
@@ -52,7 +72,52 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         }
       })
       .catch(() => {});
+    editorFetch('/api/system/backups')
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          setConfigBackups(data.backups ?? []);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const handleRestoreConfigBackup = useCallback(async (name: string) => {
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('settings.dataPage.configBackups.restoreDialog.title'),
+      message: t('settings.dataPage.configBackups.restoreDialog.message', { name }),
+      confirmLabel: t('settings.dataPage.configBackups.restoreDialog.confirm'),
+    });
+    if (!ok) return;
+    setRestoreStatus({
+      message: t('settings.dataPage.configBackups.restoreStatus.restoring'),
+      kind: 'progress',
+    });
+    try {
+      const res = await editorFetch('/api/system/backups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        setRestoreStatus({
+          message: t('settings.dataPage.configBackups.restoreStatus.restored'),
+          kind: 'success',
+        });
+      } else {
+        const data = await res.json();
+        setRestoreStatus({
+          message: t('settings.dataPage.configBackups.restoreStatus.error', { error: data.error }),
+          kind: 'error',
+        });
+      }
+    } catch {
+      setRestoreStatus({
+        message: t('settings.dataPage.configBackups.restoreStatus.failed'),
+        kind: 'error',
+      });
+    }
+  }, [t]);
 
   const handleReminderChange = useCallback((updates: Partial<BackupReminderSettings>) => {
     const current: BackupReminderSettings = {
@@ -170,10 +235,18 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             {t('settings.dataPage.shareLayout.description')}
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="primary" onClick={() => setShowExportModal(true)}>
+            <Button
+              variant="primary"
+              onClick={() => setShowExportModal(true)}
+              data-field-id="data.shareLayoutExport"
+            >
               {t('settings.dataPage.shareLayout.exportButton')}
             </Button>
-            <Button variant="secondary" onClick={() => layoutInputRef.current?.click()}>
+            <Button
+              variant="secondary"
+              onClick={() => layoutInputRef.current?.click()}
+              data-field-id="data.shareLayoutImport"
+            >
               {t('settings.dataPage.shareLayout.importButton')}
             </Button>
           </div>
@@ -187,7 +260,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           <p className="text-xs text-hs-text-faint mb-3">
             {t('settings.dataPage.templates.description')}
           </p>
-          <Button variant="secondary" onClick={() => setShowTemplatePicker(true)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowTemplatePicker(true)}
+            data-field-id="data.templatesBrowse"
+          >
             {t('settings.dataPage.templates.browseButton')}
           </Button>
         </section>
@@ -201,13 +278,84 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             {t('settings.dataPage.fullBackup.description')}
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={handleBackupExport} disabled={backupBusy}>
+            <Button
+              variant="secondary"
+              onClick={handleBackupExport}
+              disabled={backupBusy}
+              data-field-id="data.fullBackupExport"
+            >
               {backupBusy ? t('settings.dataPage.fullBackup.working') : t('settings.dataPage.fullBackup.backupButton')}
             </Button>
-            <Button variant="secondary" onClick={() => backupInputRef.current?.click()} disabled={backupBusy}>
+            <Button
+              variant="secondary"
+              onClick={() => backupInputRef.current?.click()}
+              disabled={backupBusy}
+              data-field-id="data.fullBackupRestore"
+            >
               {t('settings.dataPage.fullBackup.restoreButton')}
             </Button>
           </div>
+        </section>
+
+        {/* Config Backups — automatic snapshots from the upgrade pipeline */}
+        <section data-field-id="data.configBackups">
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+            {t('settings.dataPage.configBackups.heading')}
+          </h3>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.dataPage.configBackups.description')}
+          </p>
+          {configBackups.length === 0 ? (
+            <p className="text-xs text-hs-text-faint">
+              {t('settings.dataPage.configBackups.empty')}
+            </p>
+          ) : (
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {configBackups.map((b) => (
+                <div
+                  key={b.name}
+                  className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
+                >
+                  <div>
+                    <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
+                    <span className="text-xs text-hs-text-faint ml-2">
+                      {t('settings.dataPage.configBackups.sizeKb', { size: (b.size / 1024).toFixed(1) })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
+                      download={b.name}
+                      className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                    >
+                      {t('settings.dataPage.configBackups.download')}
+                    </a>
+                    <button
+                      onClick={() => handleRestoreConfigBackup(b.name)}
+                      className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                    >
+                      {t('settings.dataPage.configBackups.restore')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {restoreStatus && (
+            <p
+              className={`text-xs mt-2 ${
+                restoreStatus.kind === 'error'
+                  ? 'text-hs-danger'
+                  : restoreStatus.kind === 'progress'
+                    ? 'text-hs-text-faint'
+                    : 'text-hs-success'
+              }`}
+              aria-live="polite"
+              role={restoreStatus.kind === 'error' ? 'alert' : undefined}
+            >
+              {restoreStatus.message}
+            </p>
+          )}
         </section>
 
         {/* Backup Reminder */}
@@ -218,14 +366,14 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           <p className="text-xs text-hs-text-faint mb-3">
             {t('settings.dataPage.backupReminder.description')}
           </p>
-          <div className="space-y-3">
+          <div className="space-y-3" data-field-id="data.backupReminderEnabled">
             <Toggle
               label={t('settings.dataPage.backupReminder.enableLabel')}
               checked={reminder?.enabled ?? false}
               onChange={(enabled) => handleReminderChange({ enabled })}
             />
             {reminder?.enabled && (
-              <label className="flex items-center justify-between gap-2">
+              <label className="flex items-center justify-between gap-2" data-field-id="data.backupReminderInterval">
                 <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
                 <select
                   value={reminder.intervalDays ?? 7}

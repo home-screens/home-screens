@@ -26,10 +26,34 @@ const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const sandbox = mkdtempSync(path.join(os.tmpdir(), 'hs-vitest-'));
 for (const entry of readdirSync(repoRoot)) {
-  if (entry === 'data') continue;
+  if (entry === 'data' || entry === 'public') continue;
   symlinkSync(path.join(repoRoot, entry), path.join(sandbox, entry));
 }
 mkdirSync(path.join(sandbox, 'data'));
+sandboxPublicDir(repoRoot, sandbox);
+
+/**
+ * `public/` gets the same protection as `data/`: user-uploaded media lives in
+ * public/backgrounds, so a symlinked public/ lets any test write to — or
+ * delete — the REAL library (2026-07-09 incident: a test's beforeEach
+ * fs.rm(public/backgrounds) followed the symlink and wiped it, mirroring the
+ * 2026-07-07 config.json wipe that created this sandbox). Static assets stay
+ * readable through per-child symlinks; `backgrounds` is a real, empty,
+ * sandbox-local directory with only its git-tracked children linked in.
+ */
+function sandboxPublicDir(root: string, box: string): void {
+  mkdirSync(path.join(box, 'public'));
+  for (const entry of readdirSync(path.join(root, 'public'))) {
+    if (entry === 'backgrounds') continue;
+    symlinkSync(path.join(root, 'public', entry), path.join(box, 'public', entry));
+  }
+  mkdirSync(path.join(box, 'public', 'backgrounds'));
+  for (const entry of ['default.svg', 'themes']) {
+    try {
+      symlinkSync(path.join(root, 'public', 'backgrounds', entry), path.join(box, 'public', 'backgrounds', entry));
+    } catch { /* asset absent in this checkout — tests that need it will say so */ }
+  }
+}
 
 try {
   process.chdir(sandbox);

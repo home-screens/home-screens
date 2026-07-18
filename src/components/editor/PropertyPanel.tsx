@@ -18,6 +18,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import PluginSecretsSection from './PluginSecretsSection';
+import PluginAuthSection from './PluginAuthSection';
 import { MousePointerClick } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
@@ -30,6 +31,7 @@ import {
   DadJokeConfigSection,
   TextConfigSection,
   ImageConfigSection,
+  VideoConfigSection,
   QuoteConfigSection,
   TodoConfigSection,
   StickyNoteConfigSection,
@@ -178,6 +180,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
   'dad-joke': DadJokeConfigSection,
   text: TextConfigSection,
   image: ImageConfigSection,
+  video: VideoConfigSection,
   quote: QuoteConfigSection,
   todo: TodoConfigSection,
   'sticky-note': StickyNoteConfigSection,
@@ -317,18 +320,58 @@ export default function PropertyPanel() {
           </AccordionSection>
         )}
 
-        {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (
-          <AccordionSection title={t('propertyPanel.sections.secrets')} defaultOpen={false}>
-            <PropertyGroup title={t('propertyPanel.sections.credentials')} accent={2}>
-              <div className="space-y-3">
-                <PluginSecretsSection
-                  pluginId={loadedPlugin.manifest.id}
-                  secrets={loadedPlugin.manifest.secrets}
-                />
-              </div>
-            </PropertyGroup>
-          </AccordionSection>
-        )}
+        {isPlugin && loadedPlugin?.manifest.auth && (() => {
+          const auth = loadedPlugin.manifest.auth;
+          // OAuth client credentials belong with the connect button, not the
+          // general secrets list. Garmin has no such secrets.
+          const authSecretKeys = auth.type === 'oauth2'
+            ? [auth.secrets.clientId, auth.secrets.clientSecret].filter((k): k is string => Boolean(k))
+            : [];
+          const declaredSecrets = loadedPlugin.manifest.secrets ?? [];
+          return (
+            <AccordionSection title={t('propertyPanel.sections.connection')} defaultOpen>
+              {authSecretKeys.length > 0 && (
+                <PropertyGroup title={t('propertyPanel.sections.connectionSetup')} accent={2}>
+                  <div className="space-y-3">
+                    <PluginSecretsSection
+                      pluginId={loadedPlugin.manifest.id}
+                      secrets={declaredSecrets}
+                      keyFilter={authSecretKeys}
+                    />
+                  </div>
+                </PropertyGroup>
+              )}
+              <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
+                <PluginAuthSection pluginId={loadedPlugin.manifest.id} auth={auth} />
+              </PropertyGroup>
+            </AccordionSection>
+          );
+        })()}
+
+        {isPlugin && loadedPlugin?.manifest.secrets && loadedPlugin.manifest.secrets.length > 0 && (() => {
+          // Exclude OAuth client credentials — they render under Connection.
+          const auth = loadedPlugin.manifest.auth;
+          const authSecretKeys = auth?.type === 'oauth2'
+            ? [auth.secrets.clientId, auth.secrets.clientSecret].filter((k): k is string => Boolean(k))
+            : [];
+          const otherKeys = loadedPlugin.manifest.secrets
+            .map((s) => s.key)
+            .filter((k) => !authSecretKeys.includes(k));
+          if (otherKeys.length === 0) return null;
+          return (
+            <AccordionSection title={t('propertyPanel.sections.secrets')} defaultOpen={false}>
+              <PropertyGroup title={t('propertyPanel.sections.credentials')} accent={2}>
+                <div className="space-y-3">
+                  <PluginSecretsSection
+                    pluginId={loadedPlugin.manifest.id}
+                    secrets={loadedPlugin.manifest.secrets}
+                    keyFilter={otherKeys}
+                  />
+                </div>
+              </PropertyGroup>
+            </AccordionSection>
+          );
+        })()}
 
         <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={false}>
           <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>
@@ -351,29 +394,45 @@ export default function PropertyPanel() {
             <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
               {t('propertyPanel.visibility.enabledHelp')}
             </p>
-            {isStateProducerType(selectedModule.type) && (
-              <>
-                <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
-                  <input
-                    id={`module-bg-provider-toggle-${selectedModule.id}`}
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={selectedModule.backgroundProvider === true}
-                    aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
-                    onChange={(e) =>
-                      updateModule(selectedScreenId, selectedModule.id, {
-                        // Omit the field entirely when off so configs stay clean.
-                        backgroundProvider: e.target.checked ? true : undefined,
-                      })
-                    }
-                  />
-                  <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
-                </label>
-                <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
-                  {t('propertyPanel.visibility.backgroundProviderHelp')}
-                </p>
-              </>
-            )}
+            {(() => {
+              // Plugins that export a stateProvider publish automatically —
+              // the background flag is meaningless for them, so hide the
+              // toggle. Instances still flagged (from before the plugin
+              // adopted stateProvider) get a hint that they can be deleted,
+              // plus the toggle so the flag can be switched off.
+              const hasStateProvider = Boolean(loadedPlugin?.manifest.exports?.stateProvider);
+              const isFlagged = selectedModule.backgroundProvider === true;
+              if (hasStateProvider && !isFlagged) return null;
+              if (!hasStateProvider && !isStateProducerType(selectedModule.type)) return null;
+              return (
+                <>
+                  <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
+                    <input
+                      id={`module-bg-provider-toggle-${selectedModule.id}`}
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={isFlagged}
+                      aria-describedby={`module-bg-provider-help-${selectedModule.id}`}
+                      onChange={(e) =>
+                        updateModule(selectedScreenId, selectedModule.id, {
+                          // Omit the field entirely when off so configs stay clean.
+                          backgroundProvider: e.target.checked ? true : undefined,
+                        })
+                      }
+                    />
+                    <span className="block">{t('propertyPanel.visibility.backgroundProviderLabel')}</span>
+                  </label>
+                  <p id={`module-bg-provider-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
+                    {t('propertyPanel.visibility.backgroundProviderHelp')}
+                  </p>
+                  {hasStateProvider && isFlagged && (
+                    <p className="text-xs text-hs-warning mt-1 ml-6">
+                      {t('propertyPanel.visibility.backgroundProviderObsoleteHint')}
+                    </p>
+                  )}
+                </>
+              );
+            })()}
           </PropertyGroup>
         </AccordionSection>
 

@@ -26,7 +26,10 @@ export const isModuleRenderable = (
   !mod.backgroundProvider &&
   isModuleEnabled(mod) &&
   isModuleVisible(mod.schedule, now) &&
-  evaluateVisibility(mod.visibility, states);
+  // `now` is the same timezone-shifted minute clock the schedule check uses, so
+  // a `time` visibility condition re-evaluates on the existing minute tick — no
+  // extra timer needed on the display's module path.
+  evaluateVisibility(mod.visibility, states, now);
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';
@@ -261,8 +264,11 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         // todo module needs it to locate itself in the config tree when
         // POSTing a toggle; the meal planners use its presence as the "on a
         // real display" signal for tap-to-open-recipe (the editor preview
-        // threads nothing and falls back to opening links in a new tab).
-        if (mod.type === 'todo' || mod.type === 'meal-planner' || mod.type === 'fullscreen-meal-planner') {
+        // threads nothing and falls back to opening links in a new tab);
+        // the video module and slideshows use it the same way to autoplay
+        // video only on real displays (the editor shows poster frames).
+        if (mod.type === 'todo' || mod.type === 'meal-planner' || mod.type === 'fullscreen-meal-planner'
+          || mod.type === 'video' || mod.type === 'photo-slideshow' || mod.type === 'fullscreen-photo') {
           (extraProps as Record<string, unknown>).displayId = displayId;
           (extraProps as Record<string, unknown>).screenId = screen.id;
           (extraProps as Record<string, unknown>).moduleId = mod.id;

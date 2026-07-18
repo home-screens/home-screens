@@ -8,6 +8,7 @@ export type BuiltinModuleType =
   | 'dad-joke'
   | 'text'
   | 'image'
+  | 'video'
   | 'quote'
   | 'todo'
   | 'sticky-note'
@@ -86,7 +87,32 @@ export interface ModuleSchedule {
  */
 export type VisibilityCondition =
   | { kind: 'state'; sourceKey: string; equals?: string | string[]; notEquals?: string | string[] }
-  | { kind: 'numeric'; sourceKey: string; above?: number; below?: number }
+  | {
+      kind: 'numeric';
+      sourceKey: string;
+      above?: number;
+      /** When true, `above` is an inclusive bound (>=) instead of strict (>). */
+      aboveInclusive?: boolean;
+      below?: number;
+      /** When true, `below` is an inclusive bound (<=) instead of strict (<). */
+      belowInclusive?: boolean;
+    }
+  | {
+      /**
+       * Local time-of-day / day-of-week gate — no shared-state key, so it fences
+       * a condition tree (or a rule) by the clock ("doorbell takeover only
+       * 07:00–21:00"). Fields mirror `ModuleSchedule` exactly (same HH:MM format,
+       * same 0=Sun day numbering, same overnight-window semantics where
+       * start > end wraps past midnight). Evaluated against the display's
+       * configured timezone, like every other schedule. All fields absent means
+       * "always true". Never evaluates to unknown, so it does not trip
+       * `whenUnknown`.
+       */
+      kind: 'time';
+      daysOfWeek?: number[];    // 0=Sun … 6=Sat (omit / empty = every day)
+      startTime?: string;       // "07:00" (omit = from midnight)
+      endTime?: string;         // "21:00" (omit = until midnight)
+    }
   | { kind: 'and'; conditions: VisibilityCondition[] }
   | { kind: 'or'; conditions: VisibilityCondition[] }
   | { kind: 'not'; conditions: VisibilityCondition[] };
@@ -132,12 +158,14 @@ export interface ModuleInstance {
 
 export interface BackgroundRotation {
   enabled: boolean;
-  source?: 'unsplash' | 'nasa-apod' | 'immich';
+  source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud';
   query: string;
   intervalMinutes: number;
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
 }
 
 export interface Screen {
@@ -187,10 +215,24 @@ export interface ICalSource {
   enabled: boolean;
 }
 
+export interface ICloudSource {
+  id: string;
+  /** ICloudAccount.id in data/icloud-accounts.json (credentials never live in config) */
+  accountId: string;
+  /** 'calendar' = a CalDAV calendar; 'birthdays' = contact birthdays via CardDAV */
+  kind: 'calendar' | 'birthdays';
+  /** CalDAV calendar URL; empty for kind 'birthdays' */
+  url: string;
+  name: string;
+  color: string;
+  enabled: boolean;
+}
+
 export interface CalendarSettings {
   googleCalendarId: string;
   googleCalendarIds: string[];
   icalSources: ICalSource[];
+  icloudSources?: ICloudSource[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')
@@ -280,6 +322,49 @@ export interface Profile {
 }
 
 /**
+ * What a display rule does when its conditions become true.
+ * A closed, serializable union for the same reasons `VisibilityCondition`
+ * is one: actions stay visually editable, validatable, and safe to evaluate.
+ * Deliberately NOT in v1: webhooks, service calls, sounds, module-level
+ * actions, else-branches.
+ */
+export type RuleAction =
+  | {
+      kind: 'showScreen';
+      /** Target screen id, resolved against the owning display's full screen list. */
+      screenId: string;
+      /**
+       * 'while': pinned while the condition holds (min hold 5s to ride out
+       * flaps; the shared-state tombstone grace already smooths producer
+       * restarts). 'for': shown for `seconds`, then rotation resumes.
+       */
+      mode: 'while' | 'for';
+      /** Required when mode === 'for'. */
+      seconds?: number;
+    }
+  | { kind: 'wake' } // wake from sleep; no-op if awake
+  | { kind: 'sleep' }; // put the display to sleep, exactly like the remote sleep command; ends any active takeover
+
+/**
+ * A condition → action rule owned by a display. Rules reuse the visibility
+ * condition tree and evaluator unchanged; they are edge-triggered (fire on
+ * the false→true transition only, so a reboot never slams the display onto
+ * an alert screen for a condition that has been true for days).
+ */
+export interface DisplayRule {
+  id: string;
+  /** "Doorbell → front camera" */
+  name: string;
+  /** Default true, mirrors ModuleInstance.enabled. */
+  enabled?: boolean;
+  /** Implicit AND, same tree + evaluator as ModuleVisibility. */
+  when: VisibilityCondition[];
+  action: RuleAction;
+  /** Seconds after a firing during which the rule will not re-fire. Default 0. */
+  cooldownSeconds?: number;
+}
+
+/**
  * Per-display settings overrides. Any field omitted falls back to GlobalSettings.
  * Nested objects (sleep, screensaver, alerts) are full-replacement, NOT deep-merged —
  * partial overrides would create surprising fallback chains. Override the whole
@@ -352,6 +437,11 @@ export interface DisplayNode {
   activeProfile?: string;
   /** Per-display setting overrides (rotation interval, sleep, etc.) */
   settings?: DisplayNodeSettings;
+  /**
+   * Condition → action rules owned by this display. Owned like `screens` —
+   * there is no shared pool or global fallback in multi-display mode.
+   */
+  rules?: DisplayRule[];
 }
 
 export interface ScreenConfiguration {
@@ -359,6 +449,8 @@ export interface ScreenConfiguration {
   settings: GlobalSettings;
   screens: Screen[];
   profiles?: Profile[];
+  /** Display rules for legacy single-display mode (multi-display rules live on each DisplayNode). */
+  rules?: DisplayRule[];
   /** Multi-display registry. Omitted = single-display mode (backward compat). */
   displays?: DisplayNode[];
 }
@@ -741,17 +833,41 @@ export interface SunriseSunsetConfig {
 }
 
 // Photo slideshow module config
+/**
+ * One entry in a typed media list. `/api/backgrounds` and `/api/immich/photos`
+ * return plain `string[]` URL lists unless a `media=` query param is present
+ * (set only when a slideshow's `mediaTypes` is not 'photos'), in which case
+ * they return this shape — so pre-video configs keep their old responses.
+ */
+export interface MediaListItem {
+  url: string;
+  type: 'image' | 'video';
+  /** Thumbnail for video entries (shown while the decoder spins up, and in the editor). */
+  posterUrl?: string;
+  /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
+  durationMs?: number;
+}
+
+/** Which media kinds a slideshow should pull from its source. */
+export type SlideshowMediaTypes = 'photos' | 'videos' | 'both';
+
 export interface PhotoSlideshowConfig {
   directory: string;
   intervalMs: number;
   transition: 'fade' | 'none';
   objectFit: 'cover' | 'contain' | 'fill';
   refreshIntervalMs: number;
-  source?: 'local' | 'immich';
+  source?: 'local' | 'immich' | 'icloud';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
+  /** Default 'photos' — existing photo-only behavior. */
+  mediaTypes?: SlideshowMediaTypes;
+  /** Force-advance cap for video slides. Default 60000. */
+  maxVideoDurationMs?: number;
 }
 
 // QR code module config
@@ -1283,10 +1399,31 @@ export interface FullscreenPhotoConfig {
   showClock: boolean;
   kenBurns: boolean;
   theme?: string;
-  source?: 'local' | 'immich';
+  source?: 'local' | 'immich' | 'icloud';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
+  /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
+  icloudAlbumUrl?: string;
+  /** Default 'photos' — existing photo-only behavior. */
+  mediaTypes?: SlideshowMediaTypes;
+  /** Force-advance cap for video slides. Default 60000. */
+  maxVideoDurationMs?: number;
+}
+
+// Video module config
+export interface VideoConfig {
+  source: 'file' | 'url';
+  /** Relative path under data backgrounds (same store as photo slideshows). */
+  file?: string;
+  /** Direct https mp4/webm URL. HLS is deliberately not supported yet. */
+  url?: string;
+  objectFit: 'cover' | 'contain' | 'fill';
+  /** Default true. Sound additionally requires the kiosk autoplay launcher flag. */
+  muted: boolean;
+  loop: boolean;
+  /** Safety cap that force-advances a stalled clip; 0/undefined = uncapped (loop covers it). */
+  maxDurationMs?: number;
 }
 

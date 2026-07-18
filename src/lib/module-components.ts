@@ -16,6 +16,7 @@ const builtinComponentEntries = {
   'dad-joke': dynamic(() => import('@/components/modules/DadJokeModule')),
   text: dynamic(() => import('@/components/modules/TextModule')),
   image: dynamic(() => import('@/components/modules/ImageModule')),
+  video: dynamic(() => import('@/components/modules/VideoModule')),
   quote: dynamic(() => import('@/components/modules/QuoteModule')),
   todo: dynamic(() => import('@/components/modules/TodoModule')),
   'sticky-note': dynamic(() => import('@/components/modules/StickyNoteModule')),

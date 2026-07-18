@@ -172,6 +172,7 @@ export default function IntegrationsSection() {
           {t('settings.integrationsPage.groups.googleEcosystem')}
         </div>
         <IntegrationCard
+          fieldId="integrations.google"
           icon={<GoogleIcon />}
           iconBg="linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%)"
           name={t('settings.integrationsPage.google.name')}
@@ -218,6 +219,7 @@ export default function IntegrationsSection() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <IntegrationCard
+            fieldId="integrations.immich"
             icon={<Camera className="w-[18px] h-[18px] text-white" />}
             iconBg="#4250af"
             name={t('settings.integrationsPage.immich.name')}
@@ -246,6 +248,7 @@ export default function IntegrationsSection() {
           </IntegrationCard>
 
           <IntegrationCard
+            fieldId="integrations.unsplash"
             icon={<UnsplashIcon />}
             iconBg="#111111"
             name={t('settings.integrationsPage.unsplash.name')}
@@ -264,6 +267,7 @@ export default function IntegrationsSection() {
           </IntegrationCard>
 
           <IntegrationCard
+            fieldId="integrations.nasa"
             icon={<Globe className="w-[18px] h-[18px] text-white" />}
             iconBg="#0b3d91"
             name={t('settings.integrationsPage.nasa.name')}
@@ -290,6 +294,7 @@ export default function IntegrationsSection() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
           <IntegrationCard
+            fieldId="integrations.todoist"
             icon={<CheckCircle2 className="w-[18px] h-[18px] text-white" />}
             iconBg="#e44332"
             name={t('settings.integrationsPage.todoist.name')}
@@ -308,6 +313,7 @@ export default function IntegrationsSection() {
           </IntegrationCard>
 
           <IntegrationCard
+            fieldId="integrations.tomtom"
             icon={<Send className="w-[18px] h-[18px] text-white" />}
             iconBg="#333333"
             name={t('settings.integrationsPage.tomtom.name')}
@@ -327,6 +333,7 @@ export default function IntegrationsSection() {
 
           {advancedMode && (
             <IntegrationCard
+              fieldId="integrations.github"
               icon={<GitHubIcon />}
               iconBg="#24292e"
               name={t('settings.integrationsPage.github.name')}

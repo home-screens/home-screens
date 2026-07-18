@@ -84,8 +84,16 @@ interface RestoreBundle {
 //     (json-store), but there's no cross-file transaction — without rollback
 //     a mid-bundle failure leaves mixed old/new data across config, chores,
 //     meals, rewards.
+// A backup bundle is pure JSON (config + chores + meals + rewards) — this app
+// stores no user-uploaded media — so even a very large family's export is a
+// few MB at most. Cap the restore upload well above that but firmly bounded so
+// the endpoint can't be used to exhaust memory with an oversized body.
+const MAX_RESTORE_BYTES = 25 * 1024 * 1024; // 25 MB
+
 export const POST = withAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<RestoreBundle>(request);
+  const body = await parseJsonBody<RestoreBundle>(request, {
+    maxBytes: MAX_RESTORE_BYTES,
+  });
   if (body instanceof NextResponse) return body;
 
   // New bundle format

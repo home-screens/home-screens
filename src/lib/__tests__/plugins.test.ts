@@ -4,8 +4,18 @@ import path from 'path';
 import os from 'os';
 import { execFileSync } from 'child_process';
 import { afterEach, beforeEach } from 'vitest';
+import crypto from 'crypto';
 import { sanitizePluginId } from '@/lib/plugin-utils';
-import { validateManifest, installExternalPlugin, getInstalledPlugins } from '@/lib/plugins';
+import {
+  validateManifest,
+  installExternalPlugin,
+  installPlugin,
+  registerDevPlugin,
+  setPluginSettings,
+  getPluginSettings,
+  getInstalledPlugins,
+} from '@/lib/plugins';
+import type { RegistryPlugin, PluginManifest } from '@/types/plugins';
 
 describe('sanitizePluginId', () => {
   it('allows valid characters', () => {
@@ -127,6 +137,121 @@ describe('validateManifest', () => {
     expect(validateManifest({ ...validManifest, category: 'Smart Home' })).toBe(true);
     expect(validateManifest({ ...validManifest, category: 'My Custom Category' })).toBe(true);
   });
+
+  describe('auth config', () => {
+    const oauthManifest = {
+      ...validManifest,
+      secrets: [
+        { key: 'client_id', label: 'Client ID', required: true },
+        { key: 'client_secret', label: 'Client Secret', required: true },
+      ],
+      allowedDomains: ['api.spotify.com'],
+      auth: {
+        type: 'oauth2',
+        flow: 'authorization_code',
+        authorizationUrl: 'https://accounts.spotify.com/authorize',
+        tokenUrl: 'https://accounts.spotify.com/api/token',
+        scopes: ['user-read-playback-state'],
+        tokenPlacement: 'header',
+        tokenTargetDomains: ['api.spotify.com'],
+        secrets: { clientId: 'client_id', clientSecret: 'client_secret' },
+      },
+    };
+
+    it('accepts a valid oauth2 authorization_code manifest', () => {
+      expect(validateManifest(oauthManifest)).toBe(true);
+    });
+
+    it('rejects oauth2 with no tokenTargetDomains declared', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: undefined } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects oauth2 with an empty tokenTargetDomains', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: [] } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('accepts oauth2 client_credentials without an authorizationUrl', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'client_credentials', authorizationUrl: undefined } };
+      expect(validateManifest(m)).toBe(true);
+    });
+
+    it('rejects authorization_code / device_code missing an authorizationUrl', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, authorizationUrl: undefined } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects oauth2 with an unknown flow', () => {
+      expect(validateManifest({ ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'implicit' } })).toBe(false);
+    });
+
+    it('rejects oauth2 whose clientId does not reference a declared secret', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, secrets: { clientId: 'nope' } } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects query token placement without a tokenParamName', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenPlacement: 'query' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects tokenTargetDomains outside allowedDomains', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: ['evil.example.com'] } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('accepts a garmin manifest that declares a garmin.com domain', () => {
+      const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin' } };
+      expect(validateManifest(m)).toBe(true);
+    });
+
+    it('rejects a garmin manifest with no garmin.com domain', () => {
+      const m = { ...validManifest, allowedDomains: ['api.example.com'], auth: { type: 'garmin' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects a garmin manifest carrying extra fields', () => {
+      const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin', tokenUrl: 'x' } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects an unknown auth type', () => {
+      expect(validateManifest({ ...validManifest, auth: { type: 'saml' } })).toBe(false);
+    });
+  });
+
+  describe('settingsSchema', () => {
+    it('accepts a well-formed settingsSchema', () => {
+      const m = {
+        ...validManifest,
+        settingsSchema: { type: 'object', properties: { haUrl: { type: 'string', title: 'Server' } } },
+      };
+      expect(validateManifest(m)).toBe(true);
+    });
+
+    it('rejects null', () => {
+      expect(validateManifest({ ...validManifest, settingsSchema: null })).toBe(false);
+    });
+
+    it('rejects a non-object', () => {
+      expect(validateManifest({ ...validManifest, settingsSchema: 'nope' })).toBe(false);
+    });
+
+    it('rejects type other than "object"', () => {
+      const m = { ...validManifest, settingsSchema: { type: 'array', properties: {} } };
+      expect(validateManifest(m)).toBe(false);
+    });
+
+    it('rejects missing properties', () => {
+      expect(validateManifest({ ...validManifest, settingsSchema: { type: 'object' } })).toBe(false);
+    });
+
+    it('rejects properties given as an array', () => {
+      const m = { ...validManifest, settingsSchema: { type: 'object', properties: [] } };
+      expect(validateManifest(m)).toBe(false);
+    });
+  });
 });
 
 /** Build a minimal valid plugin tarball in a temp dir, return its buffer. */
@@ -228,6 +353,28 @@ describe('installExternalPlugin', () => {
     ).rejects.toThrow(/manifest is invalid/i);
   });
 
+  it('rejects a manifest whose minAppVersion exceeds the app version', async () => {
+    await fs.writeFile(path.join(tmpCwd, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: '999.0.0' });
+    await expect(
+      installExternalPlugin('https://example.com/p.tar.gz', buf),
+    ).rejects.toThrow(/needs Home Screens 999\.0\.0/);
+  });
+
+  it('installs when the app version cannot be read (fail open)', async () => {
+    // The sandboxed cwd has no package.json, so getPackageVersion() rejects.
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: '999.0.0' });
+    await installExternalPlugin('https://example.com/p.tar.gz', buf);
+    expect((await getInstalledPlugins()).plugins).toHaveLength(1);
+  });
+
+  it('installs when minAppVersion is unparsable (no constraint)', async () => {
+    await fs.writeFile(path.join(tmpCwd, 'package.json'), JSON.stringify({ version: '1.7.1' }));
+    const buf = await makePluginTarball({ ...baseManifest, minAppVersion: 'v999.0.0' });
+    await installExternalPlugin('https://example.com/p.tar.gz', buf);
+    expect((await getInstalledPlugins()).plugins).toHaveLength(1);
+  });
+
   // Security regression: a manifest ID like "foo/bar" must NOT silently install
   // over a legitimate "foobar" plugin's directory. Before the fix, validateManifest
   // accepted any non-empty string ID, the early collision check used the raw ID
@@ -272,5 +419,139 @@ describe('installExternalPlugin', () => {
     await expect(
       installExternalPlugin('https://example.com/p.tar.gz', buf),
     ).rejects.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Settings carry-forward across install/register + the 32KB settings cap.
+// Each test runs in an isolated tmp cwd (fresh installed.json mtime busts the
+// module-level installedCache), mirroring the installExternalPlugin block.
+// ---------------------------------------------------------------------------
+
+const settingsBaseManifest = {
+  id: 'foo',
+  name: 'Foo',
+  version: '1.0.0',
+  description: 'x',
+  author: 'x',
+  license: 'MIT',
+  minAppVersion: '0.0.0',
+  moduleType: 'foo',
+  category: 'Personal',
+  icon: 'Package',
+  defaultConfig: {},
+  defaultSize: { w: 100, h: 100 },
+  exports: { component: 'default' },
+};
+
+const sha256 = (buf: Buffer) => crypto.createHash('sha256').update(buf).digest('hex');
+
+async function seedInstalledFile(cwd: string, plugins: unknown[]): Promise<void> {
+  await fs.writeFile(
+    path.join(cwd, 'data', 'plugins', 'installed.json'),
+    JSON.stringify({ schemaVersion: 1, plugins }),
+  );
+}
+
+describe('plugin settings persistence', () => {
+  const origCwd = process.cwd();
+  let tmpCwd: string;
+
+  beforeEach(async () => {
+    tmpCwd = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-settings-cwd-'));
+    await fs.mkdir(path.join(tmpCwd, 'data', 'plugins'), { recursive: true });
+    process.chdir(tmpCwd);
+  });
+
+  afterEach(async () => {
+    process.chdir(origCwd);
+    await fs.rm(tmpCwd, { recursive: true, force: true });
+  });
+
+  it('installPlugin carries settings forward and records previousVersion', async () => {
+    await seedInstalledFile(tmpCwd, [{
+      id: 'foo', version: '1.0.0', installedAt: '2026-01-01',
+      enabled: true, moduleType: 'foo', settings: { apiKey: 'secret' },
+    }]);
+
+    const buf = await makePluginTarball(settingsBaseManifest);
+    await installPlugin({ id: 'foo' } as unknown as RegistryPlugin, '2.0.0', buf, sha256(buf));
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.settings).toEqual({ apiKey: 'secret' });
+    expect(record.previousVersion).toBe('1.0.0');
+    expect(record.version).toBe('2.0.0');
+  });
+
+  it('installExternalPlugin carries settings forward and records previousVersion', async () => {
+    await seedInstalledFile(tmpCwd, [{
+      id: 'foo', version: '1.0.0', installedAt: '2026-01-01',
+      enabled: true, moduleType: 'foo', source: 'external',
+      externalUrl: 'https://example.com/v1.0.0/p.tar.gz',
+      settings: { token: 'abc' },
+    }]);
+
+    const buf = await makePluginTarball({ ...settingsBaseManifest, version: '2.0.0' });
+    await installExternalPlugin('https://example.com/v2.0.0/p.tar.gz', buf);
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.settings).toEqual({ token: 'abc' });
+    expect(record.previousVersion).toBe('1.0.0');
+    expect(record.version).toBe('2.0.0');
+  });
+
+  it('registerDevPlugin carries settings forward and never sets previousVersion', async () => {
+    await seedInstalledFile(tmpCwd, [{
+      id: 'foo', version: '1.0.0', installedAt: '2026-01-01',
+      enabled: true, moduleType: 'foo', settings: { apiKey: 'secret' },
+    }]);
+
+    await registerDevPlugin({ ...settingsBaseManifest, version: '2.0.0' } as unknown as PluginManifest);
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.settings).toEqual({ apiKey: 'secret' });
+    expect(record.version).toBe('2.0.0');
+    expect(record.previousVersion).toBeUndefined();
+  });
+
+  it('fresh install has no settings', async () => {
+    const buf = await makePluginTarball(settingsBaseManifest);
+    await installPlugin({ id: 'foo' } as unknown as RegistryPlugin, '1.0.0', buf, sha256(buf));
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.settings).toBeUndefined();
+    expect(record.previousVersion).toBeUndefined();
+  });
+});
+
+describe('setPluginSettings — 32KB cap', () => {
+  const origCwd = process.cwd();
+  let tmpCwd: string;
+
+  beforeEach(async () => {
+    tmpCwd = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-settings-cap-cwd-'));
+    await fs.mkdir(path.join(tmpCwd, 'data', 'plugins'), { recursive: true });
+    process.chdir(tmpCwd);
+  });
+
+  afterEach(async () => {
+    process.chdir(origCwd);
+    await fs.rm(tmpCwd, { recursive: true, force: true });
+  });
+
+  it('rejects an oversized payload and writes nothing', async () => {
+    // registerDevPlugin writes both the on-disk manifest.json (with the
+    // settingsSchema the mutator reads) and the installed.json entry.
+    await registerDevPlugin({
+      ...settingsBaseManifest,
+      settingsSchema: { type: 'object', properties: { blob: { type: 'string' } } },
+    } as unknown as PluginManifest);
+
+    await expect(
+      setPluginSettings('foo', { blob: 'x'.repeat(40 * 1024) }),
+    ).rejects.toThrow(/Settings payload too large/);
+
+    // Nothing was persisted.
+    expect(await getPluginSettings('foo')).toEqual({});
   });
 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readConfig } from '@/lib/config';
-import { requireSession, requireDisplayAuth } from '@/lib/auth';
+import { requireSession, requireDisplayAuth, getMediaTokenSecret } from '@/lib/auth';
+import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
@@ -256,6 +257,48 @@ export function createTTLCache<T>(ttlMs: number) {
 }
 
 /**
+ * Key-scoped resolver cache: positive results cache for ttlMs; a null result
+ * (the resolver saying "gone/private", distinct from an outage, which throws
+ * and stays uncached) is remembered for negativeTtlMs so always-on pollers
+ * back off a broken key briefly instead of re-hitting the upstream forever.
+ * Concurrent cold fetches for one key collapse into a single upstream call.
+ */
+export function createResolverCache<T>(
+  ttlMs: number,
+  negativeTtlMs: number,
+  resolve: (key: string) => Promise<T | null>,
+) {
+  const positive = createTTLCache<T>(ttlMs);
+  const negative = createTTLCache<true>(negativeTtlMs);
+  const inflight = new Map<string, Promise<T | null>>();
+  return {
+    async fetch(key: string): Promise<T | null> {
+      const cached = positive.get(key);
+      if (cached) return cached;
+      if (negative.get(key)) return null;
+
+      const existing = inflight.get(key);
+      if (existing) return existing;
+
+      const promise = resolve(key)
+        .then((result) => {
+          if (result) positive.set(key, result);
+          else negative.set(key, true);
+          return result;
+        })
+        .finally(() => inflight.delete(key));
+      inflight.set(key, promise);
+      return promise;
+    },
+    clear() {
+      positive.clear();
+      negative.clear();
+      inflight.clear();
+    },
+  };
+}
+
+/**
  * Validates a Todoist API token by making a lightweight request to the
  * Todoist projects endpoint. Returns `true` if the token is valid, or an
  * object with the HTTP status code if it is not.
@@ -374,6 +417,40 @@ export function withDisplayAuth<C = unknown>(
   };
 }
 
+/**
+ * Like `withDisplayAuth`, but additionally accepts a signed media token in
+ * the `mt` query param (see `lib/media-token.ts`). Only for media-serving
+ * routes whose URLs land in bare `<video src>` attributes, which cannot send
+ * a Bearer header. `resourceFromRequest` returns the string the token must be
+ * bound to (e.g. the `file` or `assetId` query param), so a leaked URL cannot
+ * be replayed for other assets.
+ */
+export function withMediaTokenAuth<C = unknown>(
+  handler: (request: NextRequest, context: C) => Promise<Response>,
+  errorMsg: string,
+  resourceFromRequest: (request: NextRequest) => string | null,
+) {
+  return async (request: NextRequest, context?: C): Promise<Response> => {
+    try {
+      try {
+        await requireDisplayAuth(request, getClientIP(request));
+      } catch (authError) {
+        if (!(authError instanceof Response)) throw authError;
+        const token = request.nextUrl.searchParams.get('mt');
+        const resource = resourceFromRequest(request);
+        const secret = await getMediaTokenSecret();
+        if (!token || !resource || !secret || !verifyMediaToken(secret, resource, token)) {
+          throw authError;
+        }
+      }
+      return await handler(request, context as C);
+    } catch (error) {
+      if (error instanceof Response) return error;
+      return errorResponse(error, errorMsg);
+    }
+  };
+}
+
 interface CachedProxyRouteBase {
   ttlMs: number;
   errorMessage: string;
@@ -433,12 +510,34 @@ export function cachedProxyRoute<T, P>(config: CachedProxyRoutePreparedOptions<T
 export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T, P>) {
   const cache = createTTLCache<T>(config.ttlMs);
 
+  // Single-flight: when the TTL lapses, every display polling the endpoint
+  // misses at once — coalesce concurrent misses on one key into a single
+  // upstream call instead of firing one per caller. A NextResponse outcome
+  // (error paths) goes to the initiating request as-is; joiners get clones of
+  // a never-consumed copy, since a Response body can only be read once.
+  const inflight = new Map<string, Promise<{ data: T } | { response: NextResponse; copy: Response }>>();
+
+  const runShared = async (key: string, execute: () => Promise<T | NextResponse>): Promise<NextResponse> => {
+    const existing = inflight.get(key);
+    if (existing) {
+      const settled = await existing;
+      return 'data' in settled ? NextResponse.json(settled.data) : (settled.copy.clone() as NextResponse);
+    }
+    const run = (async () => {
+      const result = await execute();
+      if (result instanceof NextResponse) return { response: result, copy: result.clone() };
+      cache.set(key, result);
+      return { data: result };
+    })().finally(() => inflight.delete(key));
+    inflight.set(key, run);
+    const settled = await run;
+    return 'data' in settled ? NextResponse.json(settled.data) : settled.response;
+  };
+
   const GET = async (request: NextRequest) => {
     try {
       if (config.auth === 'display') await requireDisplayAuth(request, getClientIP(request));
       else if (config.auth === 'session') await requireSession(request);
-
-      let result: T | NextResponse;
 
       if (isPreparedConfig(config)) {
         const prepared = await config.prepare(request);
@@ -446,10 +545,7 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
         const cached = cache.get(key);
         if (cached) return NextResponse.json(cached);
 
-        result = await config.execute(prepared, request);
-        if (result instanceof NextResponse) return result;
-        cache.set(key, result);
-        return NextResponse.json(result);
+        return await runShared(key, () => config.execute(prepared, request));
       }
 
       const keyFn = config.cacheKey ?? (() => '_');
@@ -458,20 +554,18 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
       if (cached) return NextResponse.json(cached);
 
       if (isCustomConfig(config)) {
-        result = await config.execute(request);
-      } else {
+        return await runShared(key, () => config.execute(request));
+      }
+
+      return await runShared(key, async () => {
         const resolvedUrl = typeof config.url === 'function' ? config.url(request) : config.url;
         const res = await fetchWithTimeout(resolvedUrl, config.fetchInit);
         if (!res.ok) {
           return NextResponse.json({ error: config.errorMessage }, { status: 502 });
         }
         const data = await res.json();
-        result = config.transform(data, request);
-      }
-
-      if (result instanceof NextResponse) return result;
-      cache.set(key, result);
-      return NextResponse.json(result);
+        return config.transform(data, request);
+      });
     } catch (error) {
       if (error instanceof Response) return error;
       return errorResponse(error, config.errorMessage);
@@ -570,9 +664,23 @@ export function parseCommaList(param: string | null): string[] {
   return param.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+export interface ParseJsonBodyOptions {
+  /**
+   * Maximum accepted body size in bytes. When set, an oversized request is
+   * rejected with a 413 before its JSON is parsed — via both a fast-path
+   * Content-Length check and a streaming byte cap that also catches an absent
+   * or dishonest Content-Length. Omit to accept any size (the default, so all
+   * existing callers keep their current behavior).
+   */
+  maxBytes?: number;
+}
+
 /**
  * Parse a JSON request body, returning a 400 NextResponse on malformed JSON.
  * Only guards JSON syntax — callers still validate the parsed shape.
+ *
+ * Pass `{ maxBytes }` to bound the body size (returns 413 when exceeded) for
+ * routes that accept untrusted uploads; without it the body is unbounded.
  *
  * Usage:
  *   const body = await parseJsonBody<ConnectRequest>(request);
@@ -580,12 +688,68 @@ export function parseCommaList(param: string | null): string[] {
  */
 export async function parseJsonBody<T>(
   request: NextRequest,
+  options?: ParseJsonBodyOptions,
 ): Promise<T | NextResponse> {
+  const maxBytes = options?.maxBytes;
+  if (maxBytes === undefined) {
+    try {
+      return await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+  }
+
+  // Fast-path: reject an honest, oversized Content-Length without reading the body.
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+  }
+
+  // Bounded read: stream the body and abort past the cap, so an absent or
+  // dishonest Content-Length can't force us to buffer an unbounded body.
+  const text = await readBodyCapped(request, maxBytes);
+  if (text instanceof NextResponse) return text;
   try {
-    return await request.json();
+    return JSON.parse(text) as T;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
+}
+
+/**
+ * Read a request body as text while enforcing a byte cap. Streams the body and
+ * cancels once `maxBytes` is exceeded (returning a 413) so a large or
+ * unbounded body is never fully buffered in memory.
+ */
+async function readBodyCapped(
+  request: NextRequest,
+  maxBytes: number,
+): Promise<string | NextResponse> {
+  const reader = request.body?.getReader();
+  if (!reader) {
+    // No readable stream (already-buffered body) — fall back to a measured read.
+    const text = await request.text();
+    if (Buffer.byteLength(text) > maxBytes) {
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+    }
+    return text;
+  }
+
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      // Cancel the body so the socket is released instead of read to completion.
+      try { await reader.cancel(); } catch { /* ignore */ }
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString('utf-8');
 }
 
 /**

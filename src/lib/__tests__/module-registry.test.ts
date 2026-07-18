@@ -13,7 +13,7 @@ import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
 const ALL_MODULE_TYPES: ModuleType[] = [
   'clock', 'calendar', 'weather',
-  'countdown', 'dad-joke', 'text', 'image', 'quote', 'todo',
+  'countdown', 'dad-joke', 'text', 'image', 'video', 'quote', 'todo',
   'sticky-note', 'greeting', 'news', 'stock-ticker', 'crypto',
   'word-of-day', 'history', 'moon-phase', 'sunrise-sunset',
   'photo-slideshow', 'qr-code', 'year-progress', 'traffic',
@@ -25,7 +25,7 @@ const ALL_MODULE_TYPES: ModuleType[] = [
 ];
 
 describe('MODULE_CATEGORIES', () => {
-  it('contains exactly the 8 expected categories in order', () => {
+  it('contains exactly the 9 expected categories in order', () => {
     expect(MODULE_CATEGORIES).toEqual([
       'Full Screen',
       'Time & Date',
@@ -33,6 +33,7 @@ describe('MODULE_CATEGORIES', () => {
       'News & Finance',
       'Knowledge & Fun',
       'Personal',
+      'Health & Fitness',
       'Media & Display',
       'Travel',
     ]);
@@ -40,7 +41,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 41 module types', () => {
+  it('registers all 42 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -166,8 +167,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 41', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(41);
+  it('returns an array of length 42', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(42);
   });
 
   it('all items have required fields', () => {
@@ -196,9 +197,9 @@ describe('getAllModuleDefinitions', () => {
 });
 
 describe('getModulesByCategory', () => {
-  it('returns a Map with exactly 8 categories', () => {
+  it('returns a Map with exactly 9 categories', () => {
     const grouped = getModulesByCategory();
-    expect(grouped.size).toBe(8);
+    expect(grouped.size).toBe(9);
   });
 
   it('the Map keys match MODULE_CATEGORIES exactly', () => {
@@ -207,9 +208,16 @@ describe('getModulesByCategory', () => {
     expect(keys).toEqual(MODULE_CATEGORIES);
   });
 
-  it('every category has at least 1 module', () => {
+  it('every category has at least 1 built-in module, except plugin-reserved ones', () => {
+    // Health & Fitness ships empty on purpose: it exists for plugins (Strava,
+    // Garmin) and the palette hides empty categories.
+    const PLUGIN_RESERVED = new Set(['Health & Fitness']);
     const grouped = getModulesByCategory();
     for (const [cat, modules] of grouped) {
+      if (PLUGIN_RESERVED.has(cat)) {
+        expect(modules.length, `Category "${cat}" is plugin-reserved`).toBe(0);
+        continue;
+      }
       expect(modules.length, `Category "${cat}" is empty`).toBeGreaterThanOrEqual(1);
     }
   });
@@ -285,7 +293,7 @@ describe('getModulesByCategory', () => {
     expect(types).toHaveLength(1);
   });
 
-  it('total modules across all categories equals 41 (no duplicates, no missing)', () => {
+  it('total modules across all categories equals 42 (no duplicates, no missing)', () => {
     const grouped = getModulesByCategory();
     let total = 0;
     const allTypes = new Set<string>();
@@ -295,8 +303,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(41);
-    expect(allTypes.size).toBe(41);
+    expect(total).toBe(42);
+    expect(allTypes.size).toBe(42);
   });
 });
 

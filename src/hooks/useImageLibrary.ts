@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { displayCache } from '@/lib/display-cache';
 import { logger } from '@/lib/logger';
+import type { MediaListItem } from '@/types/config';
 
 const log = logger('useImageLibrary');
 
@@ -24,8 +26,8 @@ interface UseImageLibraryReturn {
   setSelectedDir: (dir: string) => void;
   loadingDirs: boolean;
 
-  // Image state
-  images: string[];
+  // Media state (images + videos; consumers filter by type per picker mode)
+  items: MediaListItem[];
   selectedImage: string | null;
   setSelectedImage: (img: string | null) => void;
   loadingImages: boolean;
@@ -52,6 +54,9 @@ interface UseImageLibraryReturn {
   handleDeleteImage: (imageUrl: string) => Promise<void>;
   handleCreateFolder: () => Promise<void>;
   handleDeleteFolder: () => Promise<void>;
+  /** Re-fetch the current directory's media and the folder tree (e.g. after
+   *  a server-side import added files outside the upload flow). */
+  refresh: () => void;
 
   // Refs
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -62,7 +67,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
   const t = useTranslate('core');
   const [directories, setDirectories] = useState<DirectoryInfo[]>([]);
   const [selectedDir, setSelectedDir] = useState(initialDirectory);
-  const [images, setImages] = useState<string[]>([]);
+  const [items, setItems] = useState<MediaListItem[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loadingDirs, setLoadingDirs] = useState(true);
   const [loadingImages, setLoadingImages] = useState(false);
@@ -97,21 +102,21 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     setLoadingImages(true);
     if (!preserveError) setError(null);
     try {
-      const url = dir
-        ? `/api/backgrounds?directory=${encodeURIComponent(dir)}`
-        : '/api/backgrounds';
-      const res = await editorFetch(url);
+      // media=both → typed entries, so the library can manage videos too
+      const params = new URLSearchParams({ media: 'both' });
+      if (dir) params.set('directory', dir);
+      const res = await editorFetch(`/api/backgrounds?${params}`);
       if (id !== fetchIdRef.current) return; // stale, discard
       if (res.ok) {
         const data = await res.json();
-        setImages(Array.isArray(data) ? data : []);
+        setItems(Array.isArray(data) ? data : []);
       } else {
-        setImages([]);
+        setItems([]);
         if (!preserveError) setError(t('errors.loadImagesFailed'));
       }
     } catch {
       if (id !== fetchIdRef.current) return;
-      setImages([]);
+      setItems([]);
       if (!preserveError) setError(t('errors.loadImagesFailed'));
     }
     if (id === fetchIdRef.current) setLoadingImages(false);
@@ -173,6 +178,9 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     if (hadSuccess) {
       fetchImages(selectedDir, hadError);  // preserve error if some uploads failed
       fetchDirectories();
+      // Canvas module previews cache their backgrounds lists — without this
+      // they'd show the pre-upload library for up to a full TTL.
+      displayCache.invalidateByPrefix('/api/backgrounds');
     }
   }, [selectedDir, fetchImages, fetchDirectories, t]);
 
@@ -195,9 +203,10 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         body: JSON.stringify({ file: basename, directory: directory || undefined }),
       });
       if (res.ok) {
-        setImages((prev) => prev.filter((img) => img !== imageUrl));
+        setItems((prev) => prev.filter((item) => item.url !== imageUrl));
         setSelectedImage((prev) => prev === imageUrl ? null : prev);
         fetchDirectories();
+        displayCache.invalidateByPrefix('/api/backgrounds');
       }
     } catch (err) {
       log.debug('deleteImage failed:', err);
@@ -232,6 +241,11 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     }
   }, [newFolderName, selectedDir, fetchDirectories, t]);
 
+  const refresh = useCallback(() => {
+    fetchImages(selectedDir);
+    fetchDirectories();
+  }, [fetchImages, fetchDirectories, selectedDir]);
+
   const handleDeleteFolder = useCallback(async () => {
     if (!selectedDir) return;
     try {
@@ -243,6 +257,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       if (res.ok) {
         setSelectedDir('');
         fetchDirectories();
+        displayCache.invalidateByPrefix('/api/backgrounds');
       } else {
         const data = await res.json();
         setError(data.error || t('errors.deleteFolderFailed'));
@@ -257,7 +272,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     selectedDir,
     setSelectedDir,
     loadingDirs,
-    images,
+    items,
     selectedImage,
     setSelectedImage,
     loadingImages,
@@ -274,6 +289,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     handleDeleteImage,
     handleCreateFolder,
     handleDeleteFolder,
+    refresh,
     fileInputRef,
     newFolderInputRef,
   };

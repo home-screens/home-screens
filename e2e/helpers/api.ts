@@ -119,3 +119,43 @@ export async function postHeartbeat(
   });
   expect(res.ok()).toBe(true);
 }
+
+/**
+ * Seed a display shared-state snapshot into the hub the way a Pi kiosk does: a
+ * status heartbeat carrying a `sharedState` field. recordSharedStateReport
+ * replaces the whole slot, so each call is the latest snapshot.
+ * requireDisplayAuth is a no-op while auth is disabled.
+ *
+ * ALWAYS pass a per-file-unique `display` id (with a matching entry in
+ * `config.displays` and a `?display=<id>` editor URL): the worker's server is
+ * shared by every spec file the worker runs, and the hub's snapshot slots
+ * have no reset seam — a seed into the legacy `__default__` slot would leak
+ * into any later file whose test expects "never reported" there.
+ */
+export async function seedDisplaySharedState(
+  request: APIRequestContext,
+  entries: Record<string, string>,
+  display?: string,
+  /** Optional provider-health snapshot, keyed by plugin id — rides the same
+   *  heartbeat field the real reporter uses (recordProviderHealthReport). */
+  providerHealth?: Record<string, { message: string; since: number }>,
+): Promise<void> {
+  const now = Date.now();
+  const sharedState: Record<string, { value: string; updatedAt: number }> = {};
+  for (const [key, value] of Object.entries(entries)) sharedState[key] = { value, updatedAt: now };
+  const url = display
+    ? `/api/display/status?display=${encodeURIComponent(display)}`
+    : '/api/display/status';
+  const res = await request.post(url, {
+    data: {
+      ...(display ? { displayId: display } : {}),
+      currentScreen: { index: 0, id: 's1', name: 'S1' },
+      screenCount: 1,
+      displayState: 'active',
+      timestamp: now,
+      sharedState,
+      ...(providerHealth ? { providerHealth } : {}),
+    },
+  });
+  expect(res.ok()).toBe(true);
+}

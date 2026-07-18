@@ -22,7 +22,9 @@ import { displayFetch } from '@/lib/display-fetch';
 import { eventBus } from '@/lib/event-bus';
 import type { EventMap } from '@/lib/event-bus';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { providerHealthStore, type ProviderHealthStatus } from '@/lib/provider-health-store';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
+import { usePluginStore } from '@/stores/plugin-store';
 
 // i18n — exposed read-only to plugins via window.__HS_SDK__.
 import {
@@ -83,9 +85,10 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
  * the display bundle.
  */
 export default function PluginGlobals() {
-  // Pull the active locale from the provider when one is mounted; falls
-  // back to the default if PluginGlobals renders outside an I18nProvider
-  // (still true today on /editor and /remote until later tasks wire it up).
+  // Pull the active locale from the provider. PluginGlobals mounts inside
+  // the display and editor layouts' <I18nProvider> — mounting it outside
+  // (as the root layout once did) makes `useLocale()` return the default,
+  // so SDK.translate would resolve en-US regardless of `settings.locale`.
   const locale = useLocale();
   const formattingLocale = useFormattingLocale();
 
@@ -117,6 +120,19 @@ export default function PluginGlobals() {
       // Host settings — read-only snapshot of display configuration
       getHostSettings,
 
+      // Plugin-level settings — read-only snapshot of the values saved in
+      // the plugin manager against the manifest's `settingsSchema`. Module
+      // instances use this to fall back to plugin-wide values (e.g. a
+      // connection URL) so new instances need zero per-module setup.
+      getPluginSettings: (pluginId: string): Record<string, unknown> => {
+        if (typeof pluginId !== 'string') return {};
+        const settings = usePluginStore.getState().pluginSettings.get(pluginId.toLowerCase());
+        // Deep copy: settings may hold arrays/objects, and a plugin mutating
+        // a shallow copy's nested value would corrupt the store-held object
+        // every other reader (including the stateProvider prop) sees.
+        return structuredClone(settings ?? {});
+      },
+
       // Event emitter — plugin → host communication
       emit: pluginEventBus.emit,
 
@@ -137,6 +153,18 @@ export default function PluginGlobals() {
       clearState: (pluginId: string, key: string): void => {
         if (typeof pluginId !== 'string' || typeof key !== 'string') return;
         sharedStateStore.clearKey(pluginStateKey(pluginId, key));
+      },
+
+      // Provider health — a plugin whose upstream service is down reports it
+      // here so the editor can explain "the service is unreachable" next to
+      // conditions/keys that depend on the plugin (instead of a silent hide).
+      // Same open-write posture as publishState: pluginId is caller-supplied
+      // inside the shared JS realm, and the store sanitizes id/message/since
+      // and caps entries. `{ok:true}` clears; installed on the base SDK (like
+      // publishState/clearState) so display and editor plugins both reach it.
+      reportProviderHealth: (pluginId: string, status: ProviderHealthStatus): void => {
+        if (typeof pluginId !== 'string') return;
+        providerHealthStore.report(pluginId, status);
       },
 
       // Event bus — subscribe to host-published data events (weather, time)
@@ -161,6 +189,7 @@ export default function PluginGlobals() {
             query?: Record<string, string>;
           };
           cacheTtlMs?: number;
+          skipAuth?: boolean;
         },
       ): Promise<Response> => {
         return displayFetch(`/api/plugins/proxy/${encodeURIComponent(pluginId)}`, {
@@ -168,6 +197,23 @@ export default function PluginGlobals() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(options),
         });
+      },
+
+      // Auth adapter status — lets a plugin component show connection-dependent
+      // UI (e.g. "Connect your account to see playback"). Read-only; the connect
+      // flow itself is editor-only (see __HS_SDK__.startAuth).
+      getAuthStatus: async (
+        pluginId: string,
+      ): Promise<{ connected: boolean; expiresAt?: number }> => {
+        try {
+          const res = await displayFetch(
+            `/api/plugins/auth/${encodeURIComponent(pluginId)}/status`,
+          );
+          if (!res.ok) return { connected: false };
+          return await res.json();
+        } catch {
+          return { connected: false };
+        }
       },
 
       // ── i18n surface ────────────────────────────────────────────────

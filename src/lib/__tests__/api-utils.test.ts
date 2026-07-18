@@ -884,6 +884,82 @@ describe('cachedProxyRoute', () => {
     await GET(request);
     expect(execute).toHaveBeenCalledTimes(2);
   });
+
+  it('coalesces concurrent misses on one key into a single execute call', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const execute = vi.fn().mockImplementation(async () => {
+      await gate;
+      return { n: 1 };
+    });
+
+    const { GET } = cachedProxyRoute({ ttlMs: 60_000, execute, errorMessage: 'Failed' });
+
+    const p1 = GET(new NextRequest('http://localhost/api/test'));
+    const p2 = GET(new NextRequest('http://localhost/api/test'));
+    release();
+    const [r1, r2] = await Promise.all([p1, p2]);
+
+    expect(execute).toHaveBeenCalledOnce();
+    expect(await r1.json()).toEqual({ n: 1 });
+    expect(await r2.json()).toEqual({ n: 1 });
+  });
+
+  it('does not coalesce misses on different keys', async () => {
+    const execute = vi.fn().mockResolvedValue({ ok: true });
+    const { GET } = cachedProxyRoute({
+      ttlMs: 60_000,
+      execute,
+      cacheKey: (req) => req.nextUrl.searchParams.get('id') ?? '_',
+      errorMessage: 'Failed',
+    });
+
+    await Promise.all([
+      GET(new NextRequest('http://localhost/api/test?id=a')),
+      GET(new NextRequest('http://localhost/api/test?id=b')),
+    ]);
+
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives every coalesced caller a readable copy of an error response', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const execute = vi.fn().mockImplementation(async () => {
+      await gate;
+      return NextResponse.json({ error: 'bad' }, { status: 400 });
+    });
+
+    const { GET } = cachedProxyRoute({ ttlMs: 60_000, execute, errorMessage: 'Failed' });
+
+    const p1 = GET(new NextRequest('http://localhost/api/test'));
+    const p2 = GET(new NextRequest('http://localhost/api/test'));
+    release();
+    const [r1, r2] = await Promise.all([p1, p2]);
+
+    expect(execute).toHaveBeenCalledOnce();
+    expect(r1.status).toBe(400);
+    expect(r2.status).toBe(400);
+    // Both bodies are independently readable — a shared body would throw here
+    expect(await r1.json()).toEqual({ error: 'bad' });
+    expect(await r2.json()).toEqual({ error: 'bad' });
+  });
+
+  it('lets a new request execute again after an in-flight call settles', async () => {
+    const execute = vi.fn()
+      .mockResolvedValueOnce(NextResponse.json({ error: 'bad' }, { status: 500 }))
+      .mockResolvedValueOnce({ ok: true });
+
+    const { GET } = cachedProxyRoute({ ttlMs: 60_000, execute, errorMessage: 'Failed' });
+
+    const r1 = await GET(new NextRequest('http://localhost/api/test'));
+    expect(r1.status).toBe(500);
+
+    // Error responses are neither cached nor left in the in-flight map
+    const r2 = await GET(new NextRequest('http://localhost/api/test'));
+    expect(await r2.json()).toEqual({ ok: true });
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('withDisplayAuth', () => {

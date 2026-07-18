@@ -70,16 +70,44 @@ export function dadJokeUrl(): string {
 }
 
 export function photoSlideshowUrl(config: AnyConfig): string {
+  // `media=` flips the response to the typed shape; omitted for photo-only
+  // configs so they keep receiving the legacy string[] responses.
+  const media = config.mediaTypes as string | undefined;
+  const wantsMedia = media === 'videos' || media === 'both';
   if (config.source === 'immich') {
     const params = new URLSearchParams();
     if (config.immichAlbumId) params.set('albumId', config.immichAlbumId as string);
     if (config.immichPersonId) params.set('personId', config.immichPersonId as string);
     if (config.immichFavoritesOnly) params.set('favorites', 'true');
     if (config.immichCount) params.set('count', String(config.immichCount));
+    if (wantsMedia) params.set('media', media!);
     return `/api/immich/photos?${params}`;
   }
+  if (config.source === 'icloud') {
+    const params = new URLSearchParams();
+    if (config.icloudAlbumUrl) params.set('album', config.icloudAlbumUrl as string);
+    if (wantsMedia) params.set('media', media!);
+    return `/api/icloud/photos?${params}`;
+  }
   const dir = config.directory as string | undefined;
-  return dir ? `/api/backgrounds?directory=${encodeURIComponent(dir)}` : '/api/backgrounds';
+  const params = new URLSearchParams();
+  if (dir) params.set('directory', dir);
+  if (wantsMedia) params.set('media', media!);
+  const query = params.toString();
+  return query ? `/api/backgrounds?${query}` : '/api/backgrounds';
+}
+
+/**
+ * The standalone video module resolves its library file through the media
+ * API's `file=` point lookup (not a direct serve URL) because that's where
+ * `mt` auth tokens are minted — a bare <video src> cannot send the display
+ * Bearer header. URL-sourced videos need no fetch.
+ */
+export function videoModuleUrl(config: AnyConfig): string | null {
+  if (config.source === 'url') return null;
+  const file = config.file as string | undefined;
+  if (!file) return null;
+  return `/api/backgrounds?media=videos&file=${encodeURIComponent(file)}`;
 }
 
 export function choresUrl(): string {
@@ -125,6 +153,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
   'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
+  video:              { buildUrl: videoModuleUrl, ttlMs: 600_000 },    // media-token refresh cadence
   // 5s poll (instead of 30s) so cross-device toggles — e.g. a kid checks off a
   // chore on their phone's /chores page — surface on the wall dashboard within
   // ~5s instead of 30s. The same-device case is already instant because

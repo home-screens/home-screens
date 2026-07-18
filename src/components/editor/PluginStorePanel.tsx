@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download } from 'lucide-react';
+import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
+import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
+import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
+import { latestVersion, hasUpdate } from '@/lib/plugin-versions';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -16,6 +19,10 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
 
 const log = logger('plugin-store');
+
+// Inlined from package.json at build time (next.config.mjs) — the running app version,
+// used to hide registry versions that need a newer Home Screens.
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 
 interface PluginStorePanelProps {
   onClose: () => void;
@@ -129,9 +136,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
   const updatable = installed.filter((inst) => {
     const reg = registry.find((r) => r.id === inst.id);
-    if (!reg) return false;
-    const latest = reg.versions[0];
-    return latest && latest.version !== inst.version;
+    return !!reg && hasUpdate(reg, inst.version, APP_VERSION);
   });
 
   const trapRef = useFocusTrap<HTMLDivElement>();
@@ -307,7 +312,7 @@ function BrowseTab({
         </div>
       ) : (
         plugins.map((plugin) => {
-          const latest = plugin.versions[0];
+          const latest = latestVersion(plugin, APP_VERSION);
           const isInstalled = installedIds.has(plugin.id);
           return (
             <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
@@ -371,6 +376,8 @@ function InstalledTab({
   onUpdateExternal: (plugin: InstalledPlugin) => void;
 }) {
   const t = useTranslate('editor');
+  const loadedPlugins = usePluginStore((s) => s.plugins);
+  const [settingsOpenFor, setSettingsOpenFor] = useState<string | null>(null);
   if (installed.length === 0) {
     return <p className="text-sm text-hs-text-faint text-center py-8">{t('settings.pluginStorePanel.installed.empty')}</p>;
   }
@@ -379,8 +386,22 @@ function InstalledTab({
     <div className="space-y-2">
       {installed.map((plugin) => {
         const error = errors.get(plugin.id);
+        // Plugin-level settings and secret declarations need the loaded
+        // manifest (neither is in installed.json) — absent for disabled or
+        // broken plugins, which simply hides the settings affordance.
+        const manifest = plugin.enabled
+          ? [...loadedPlugins.values()].find((lp) => lp.manifest.id === plugin.id)?.manifest
+          : undefined;
+        const settingsSchema = manifest?.settingsSchema;
+        // Settings and secrets render as ONE block: to the user they are a
+        // single thing ("connect this plugin"), even though storage differs
+        // (installed.json vs plugin-secrets).
+        const declaredSecrets = manifest?.secrets ?? [];
+        const hasSettings = Boolean(settingsSchema) || declaredSecrets.length > 0;
+        const settingsOpen = settingsOpenFor === plugin.id;
         return (
-          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
+          <div key={plugin.id} className="rounded-lg border border-hs-border-strong bg-hs-hover">
+          <div className="flex items-center gap-3 p-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
@@ -398,6 +419,18 @@ function InstalledTab({
                 </div>
               )}
             </div>
+            {hasSettings && (
+              <button
+                type="button"
+                onClick={() => setSettingsOpenFor(settingsOpen ? null : plugin.id)}
+                className={`p-1 ${settingsOpen ? 'text-hs-accent-hover' : 'text-hs-text-muted hover:text-hs-text-body'}`}
+                title={t('settings.pluginSettings.toggleTitle')}
+                aria-label={t('settings.pluginSettings.toggleAriaLabel', { id: plugin.id })}
+                aria-expanded={settingsOpen}
+              >
+                <Settings2 className="w-4 h-4" />
+              </button>
+            )}
             {plugin.source === 'external' && (
               <button
                 type="button"
@@ -439,6 +472,17 @@ function InstalledTab({
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
+          {hasSettings && settingsOpen && (
+            <div className="px-3 pb-3 pt-1 border-t border-hs-border-strong/50 space-y-4">
+              {settingsSchema && (
+                <PluginSettingsSection pluginId={plugin.id} schema={settingsSchema} />
+              )}
+              {declaredSecrets.length > 0 && (
+                <PluginSecretsSection pluginId={plugin.id} secrets={declaredSecrets} />
+              )}
+            </div>
+          )}
+          </div>
         );
       })}
     </div>
@@ -469,7 +513,7 @@ function UpdatesTab({
     <div className="space-y-2">
       {updatable.map((plugin) => {
         const reg = registry.find((r) => r.id === plugin.id);
-        const latest = reg?.versions[0];
+        const latest = reg ? latestVersion(reg, APP_VERSION) : null;
         return (
           <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
             <div className="flex-1 min-w-0">
@@ -653,9 +697,10 @@ function InstallConfirmModal({
 }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const latest = plugin.versions[0];
+  const latest = latestVersion(plugin, APP_VERSION);
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
   const [manifestSecrets, setManifestSecrets] = useState<PluginSecretDeclaration[]>([]);
+  const [requiresConnection, setRequiresConnection] = useState(false);
 
   // Fetch the actual manifest to get secrets declarations (not available in registry metadata)
   useEffect(() => {
@@ -669,6 +714,7 @@ function InstallConfirmModal({
         if (cancelled) return;
         if (manifest.permissions?.length) setManifestPermissions(manifest.permissions);
         if (manifest.secrets?.length) setManifestSecrets(manifest.secrets);
+        if (manifest.auth) setRequiresConnection(true);
       } catch {
         // Plugin not installed yet — registry permissions are the best we have
       }
@@ -695,6 +741,7 @@ function InstallConfirmModal({
           verified={plugin.verified}
           permissions={manifestPermissions}
           secrets={manifestSecrets}
+          requiresConnection={requiresConnection}
         />
 
         {/* Actions */}
