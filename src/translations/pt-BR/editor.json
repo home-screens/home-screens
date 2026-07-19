@@ -1463,7 +1463,14 @@
       "updates": {
         "allUpToDate": "Todos os plugins estão atualizados",
         "updateButton": "Atualizar",
-        "updatingButton": "Atualizando…"
+        "updatingButton": "Atualizando…",
+        "tryBetaButton": "Testar beta v{version}",
+        "tryingBetaButton": "Instalando a beta…"
+      },
+      "beta": {
+        "showToggleLabel": "Mostrar plugins beta",
+        "badge": "Beta",
+        "installWarning": "As versões beta ainda estão em teste e podem apresentar problemas."
       },
       "developer": {
         "loadFromUrlLabel": "Carregar de URL",

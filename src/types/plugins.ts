@@ -217,6 +217,15 @@ export interface InstalledPlugin {
   previousVersion?: string;
   /** Where the plugin came from. Undefined ⇒ 'marketplace' (legacy entries). */
   source?: 'marketplace' | 'external';
+  /**
+   * User opted into beta versions of this plugin (set when installing a beta
+   * version, cleared when installing a stable one). Absent = stable channel.
+   * Deliberately narrower than RegistryPlugin.channel / RegistryPluginVersion.channel
+   * (both `'stable' | 'beta'`) — an install record only ever needs to say
+   * "currently opted into beta" or not; there's no separate persisted 'stable'
+   * state to represent.
+   */
+  channel?: 'beta';
   /** For source === 'external': the URL the tarball was downloaded from (with {version} intact). */
   externalUrl?: string;
   /**
@@ -341,6 +350,11 @@ export interface RegistryPlugin {
   tags: string[];
   icon: string;
   verified: boolean;
+  /**
+   * Registry-level channel; 'beta' hides this plugin from Browse unless the
+   * user opts in. Absent = stable.
+   */
+  channel?: 'stable' | 'beta';
   permissions?: PluginPermission[];
   versions: RegistryPluginVersion[];
 }
@@ -349,6 +363,11 @@ export interface RegistryPluginVersion {
   version: string;
   minAppVersion: string;
   maxAppVersion?: string;
+  /**
+   * Per-version channel; lets a stable plugin ship a beta build (e.g.
+   * '1.2.0-beta.1') without changing the plugin's own channel. Absent = stable.
+   */
+  channel?: 'stable' | 'beta';
   releaseDate: string;
   downloadUrl: string;
   sha256: string;

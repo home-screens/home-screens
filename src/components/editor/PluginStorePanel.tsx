@@ -9,7 +9,7 @@ import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
-import { latestVersion, hasUpdate } from '@/lib/plugin-versions';
+import { latestVersion, hasUpdate, resolveChannel, isBetaHiddenEntry, isBetaOnlyForNonOptedUser } from '@/lib/plugin-versions';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -29,6 +29,17 @@ interface PluginStorePanelProps {
 }
 
 type Tab = 'browse' | 'installed' | 'updates' | 'developer';
+
+const SHOW_BETA_KEY = 'hs-plugin-show-beta';
+
+// Small "Beta" pill, kept visually identical across Browse / Installed / InstallConfirm.
+function BetaBadge({ label }: { label: string }) {
+  return (
+    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-hs-accent/20 text-hs-accent-hover rounded">
+      {label}
+    </span>
+  );
+}
 
 function tabLabel(tab: Tab, t: TranslateFn): string {
   switch (tab) {
@@ -52,8 +63,13 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const [confirmPlugin, setConfirmPlugin] = useState<RegistryPlugin | null>(null);
   const [installFromUrlOpen, setInstallFromUrlOpen] = useState(false);
   const [updatingExternal, setUpdatingExternal] = useState<InstalledPlugin | null>(null);
+  const [showBeta, setShowBeta] = useState(() => localStorage.getItem(SHOW_BETA_KEY) === 'true');
   const pluginErrors = usePluginStore((s) => s.errors);
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
+
+  useEffect(() => {
+    localStorage.setItem(SHOW_BETA_KEY, String(showBeta));
+  }, [showBeta]);
 
   // If advanced mode is turned off while the Developer tab is active, snap back to Browse.
   useEffect(() => {
@@ -127,6 +143,9 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
     runAction(pluginId, 'PATCH', { pluginId, enabled });
 
   const filteredRegistry = registry.filter((p) => {
+    if (isBetaHiddenEntry(p, showBeta) || isBetaOnlyForNonOptedUser(p, APP_VERSION, showBeta)) {
+      return false;
+    }
     if (!search) return true;
     const s = search.toLowerCase();
     return p.name.toLowerCase().includes(s)
@@ -136,8 +155,23 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
   const updatable = installed.filter((inst) => {
     const reg = registry.find((r) => r.id === inst.id);
-    return !!reg && hasUpdate(reg, inst.version, APP_VERSION);
+    return !!reg && hasUpdate(reg, inst.version, APP_VERSION, { includeBeta: inst.channel === 'beta' });
   });
+
+  // Gated by the global toggle only for STABLE installs deciding whether to
+  // surface a beta offer at all. A plugin already opted into its own beta
+  // channel (inst.channel === 'beta') keeps seeing its updates via `updatable`
+  // above regardless of this toggle — the per-plugin opt-in persists
+  // independently of the store-wide "show me beta options" preference.
+  const betaUpgradable = showBeta
+    ? installed.filter((inst) => {
+        if (inst.channel === 'beta') return false;
+        const reg = registry.find((r) => r.id === inst.id);
+        if (!reg) return false;
+        if (hasUpdate(reg, inst.version, APP_VERSION, { includeBeta: false })) return false;
+        return hasUpdate(reg, inst.version, APP_VERSION, { includeBeta: true });
+      })
+    : [];
 
   const trapRef = useFocusTrap<HTMLDivElement>();
 
@@ -206,10 +240,13 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onInstall={handleInstallRequest}
               onInstallFromUrl={() => setInstallFromUrlOpen(true)}
               actionInProgress={actionInProgress}
+              showBeta={showBeta}
+              onShowBetaChange={setShowBeta}
             />
           ) : tab === 'installed' ? (
             <InstalledTab
               installed={installed}
+              registry={registry}
               errors={pluginErrors}
               onUninstall={handleUninstall}
               onToggle={handleToggle}
@@ -220,6 +257,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
             <UpdatesTab
               registry={registry}
               updatable={updatable}
+              betaUpgradable={betaUpgradable}
               onInstall={(id, version) => runAction(id, 'POST', { pluginId: id, version })}
               actionInProgress={actionInProgress}
             />
@@ -236,6 +274,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           onConfirm={handleInstallConfirm}
           onCancel={() => setConfirmPlugin(null)}
           actionInProgress={actionInProgress}
+          includeBeta={showBeta}
         />
       )}
 
@@ -277,6 +316,8 @@ function BrowseTab({
   onInstall,
   onInstallFromUrl,
   actionInProgress,
+  showBeta,
+  onShowBetaChange,
 }: {
   plugins: RegistryPlugin[];
   installedIds: Set<string>;
@@ -285,6 +326,8 @@ function BrowseTab({
   onInstall: (plugin: RegistryPlugin) => void;
   onInstallFromUrl: () => void;
   actionInProgress: string | null;
+  showBeta: boolean;
+  onShowBetaChange: (v: boolean) => void;
 }) {
   const t = useTranslate('editor');
   return (
@@ -301,6 +344,15 @@ function BrowseTab({
           {t('settings.pluginStorePanel.browse.installFromUrlButton')}
         </Button>
       </div>
+      <label className="flex items-center gap-2 text-xs text-hs-text-muted cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={showBeta}
+          onChange={(e) => onShowBetaChange(e.target.checked)}
+          className="accent-hs-accent"
+        />
+        {t('settings.pluginStorePanel.beta.showToggleLabel')}
+      </label>
       {plugins.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-10 text-hs-text-faint">
           <PackageSearch size={32} strokeWidth={1.5} className="opacity-30" />
@@ -312,7 +364,8 @@ function BrowseTab({
         </div>
       ) : (
         plugins.map((plugin) => {
-          const latest = latestVersion(plugin, APP_VERSION);
+          const latest = latestVersion(plugin, APP_VERSION, { includeBeta: showBeta });
+          const isBeta = resolveChannel(plugin, latest) === 'beta';
           const isInstalled = installedIds.has(plugin.id);
           return (
             <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
@@ -324,6 +377,7 @@ function BrowseTab({
                       <CheckCircle className="w-3.5 h-3.5 text-hs-accent-hover" />
                     </span>
                   )}
+                  {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
                   <span className="text-xs text-hs-text-faint">{latest?.version}</span>
                 </div>
                 <p className="text-xs text-hs-text-muted mt-0.5">{plugin.description}</p>
@@ -362,6 +416,7 @@ function BrowseTab({
 
 function InstalledTab({
   installed,
+  registry,
   errors,
   onUninstall,
   onToggle,
@@ -369,6 +424,7 @@ function InstalledTab({
   onUpdateExternal,
 }: {
   installed: InstalledPlugin[];
+  registry: RegistryPlugin[];
   errors: Map<string, { message: string }>;
   onUninstall: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
@@ -399,6 +455,13 @@ function InstalledTab({
         const declaredSecrets = manifest?.secrets ?? [];
         const hasSettings = Boolean(settingsSchema) || declaredSecrets.length > 0;
         const settingsOpen = settingsOpenFor === plugin.id;
+        // Covers installs that predate this field or came in through a path
+        // that doesn't set it (e.g. a record written before the beta channel
+        // existed): fall back to resolving the matching registry entry/version.
+        const matchingRegistryEntry = registry.find((r) => r.id === plugin.id);
+        const matchingVersion = matchingRegistryEntry?.versions.find((v) => v.version === plugin.version);
+        const isBeta = plugin.channel === 'beta'
+          || (!!matchingRegistryEntry && resolveChannel(matchingRegistryEntry, matchingVersion) === 'beta');
         return (
           <div key={plugin.id} className="rounded-lg border border-hs-border-strong bg-hs-hover">
           <div className="flex items-center gap-3 p-3">
@@ -410,6 +473,9 @@ function InstalledTab({
                   <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-800/60 text-hs-warning rounded">
                     {t('settings.pluginStorePanel.installed.externalBadge')}
                   </span>
+                )}
+                {isBeta && (
+                  <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
                 )}
               </div>
               {error && (
@@ -496,16 +562,18 @@ function InstalledTab({
 function UpdatesTab({
   registry,
   updatable,
+  betaUpgradable,
   onInstall,
   actionInProgress,
 }: {
   registry: RegistryPlugin[];
   updatable: InstalledPlugin[];
+  betaUpgradable: InstalledPlugin[];
   onInstall: (id: string, version: string) => void;
   actionInProgress: string | null;
 }) {
   const t = useTranslate('editor');
-  if (updatable.length === 0) {
+  if (updatable.length === 0 && betaUpgradable.length === 0) {
     return <p className="text-sm text-hs-text-faint text-center py-8">{t('settings.pluginStorePanel.updates.allUpToDate')}</p>;
   }
 
@@ -513,12 +581,14 @@ function UpdatesTab({
     <div className="space-y-2">
       {updatable.map((plugin) => {
         const reg = registry.find((r) => r.id === plugin.id);
-        const latest = reg ? latestVersion(reg, APP_VERSION) : null;
+        const latest = reg ? latestVersion(reg, APP_VERSION, { includeBeta: plugin.channel === 'beta' }) : null;
+        const isBeta = !!reg && resolveChannel(reg, latest) === 'beta';
         return (
           <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+                {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
                 <span className="text-xs text-hs-text-faint">
                   v{plugin.version} → v{latest?.version}
                 </span>
@@ -536,6 +606,36 @@ function UpdatesTab({
               {actionInProgress === plugin.id
                 ? t('settings.pluginStorePanel.updates.updatingButton')
                 : t('settings.pluginStorePanel.updates.updateButton')}
+            </Button>
+          </div>
+        );
+      })}
+      {betaUpgradable.map((plugin) => {
+        const reg = registry.find((r) => r.id === plugin.id);
+        const latest = reg ? latestVersion(reg, APP_VERSION, { includeBeta: true }) : null;
+        return (
+          <div key={`beta-${plugin.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+                <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
+                <span className="text-xs text-hs-text-faint">
+                  v{plugin.version} → v{latest?.version}
+                </span>
+              </div>
+              {latest?.changelog && (
+                <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
+              )}
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!latest || actionInProgress === plugin.id}
+              onClick={() => latest && onInstall(plugin.id, latest.version)}
+            >
+              {actionInProgress === plugin.id
+                ? t('settings.pluginStorePanel.updates.tryingBetaButton')
+                : t('settings.pluginStorePanel.updates.tryBetaButton', { version: latest?.version ?? '' })}
             </Button>
           </div>
         );
@@ -689,15 +789,18 @@ function InstallConfirmModal({
   onConfirm,
   onCancel,
   actionInProgress,
+  includeBeta,
 }: {
   plugin: RegistryPlugin;
   onConfirm: (id: string, version: string) => void;
   onCancel: () => void;
   actionInProgress: string | null;
+  includeBeta: boolean;
 }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const latest = latestVersion(plugin, APP_VERSION);
+  const latest = latestVersion(plugin, APP_VERSION, { includeBeta });
+  const isBeta = resolveChannel(plugin, latest) === 'beta';
   const [manifestPermissions, setManifestPermissions] = useState<PluginPermission[]>(plugin.permissions ?? []);
   const [manifestSecrets, setManifestSecrets] = useState<PluginSecretDeclaration[]>([]);
   const [requiresConnection, setRequiresConnection] = useState(false);
@@ -728,8 +831,9 @@ function InstallConfirmModal({
   return (
     <div className="fixed inset-0 z-nested flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl p-5">
-        <h3 className="text-base font-semibold text-hs-text-primary mb-3">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-hs-text-primary mb-3">
           {t('settings.pluginStorePanel.installConfirm.heading')}
+          {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
         </h3>
 
         <PluginInstallPreview
@@ -743,6 +847,13 @@ function InstallConfirmModal({
           secrets={manifestSecrets}
           requiresConnection={requiresConnection}
         />
+
+        {isBeta && (
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-hs-warning">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            {t('settings.pluginStorePanel.beta.installWarning')}
+          </p>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-4">

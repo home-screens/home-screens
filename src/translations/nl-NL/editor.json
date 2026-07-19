@@ -1463,7 +1463,14 @@
       "updates": {
         "allUpToDate": "Alle plugins zijn bijgewerkt",
         "updateButton": "Bijwerken",
-        "updatingButton": "Bijwerken…"
+        "updatingButton": "Bijwerken…",
+        "tryBetaButton": "Bèta v{version} proberen",
+        "tryingBetaButton": "Bèta installeren…"
+      },
+      "beta": {
+        "showToggleLabel": "Bètaplugins tonen",
+        "badge": "Bèta",
+        "installWarning": "Bètaversies worden nog getest en kunnen problemen hebben."
       },
       "developer": {
         "loadFromUrlLabel": "Laden vanuit URL",

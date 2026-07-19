@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { latestVersion, hasUpdate, isVersionCompatible } from '@/lib/plugin-versions';
+import {
+  latestVersion,
+  hasUpdate,
+  isVersionCompatible,
+  resolveChannel,
+  isBetaHiddenEntry,
+  isBetaOnlyForNonOptedUser,
+} from '@/lib/plugin-versions';
 import type { RegistryPluginVersion } from '@/types/plugins';
 
 function entry(version: string, minAppVersion = '0.0.0'): RegistryPluginVersion {
@@ -10,6 +17,10 @@ function entry(version: string, minAppVersion = '0.0.0'): RegistryPluginVersion 
     downloadUrl: `https://example.com/${version}.tgz`,
     sha256: 'a'.repeat(64),
   };
+}
+
+function betaEntry(version: string, minAppVersion = '0.0.0'): RegistryPluginVersion {
+  return { ...entry(version, minAppVersion), channel: 'beta' };
 }
 
 describe('latestVersion', () => {
@@ -48,6 +59,44 @@ describe('latestVersion', () => {
   it('returns null for an empty versions array', () => {
     expect(latestVersion({ versions: [] })).toBeNull();
   });
+
+  it('ignores channel entirely for an all-stable array with no opts (regression guard)', () => {
+    const plugin = { versions: [entry('1.1.0'), entry('1.2.0')] };
+    expect(latestVersion(plugin)?.version).toBe('1.2.0');
+    expect(latestVersion(plugin, undefined, {})?.version).toBe('1.2.0');
+    expect(latestVersion(plugin, undefined, { includeBeta: false })?.version).toBe('1.2.0');
+  });
+
+  it('excludes a semver-highest beta when includeBeta is omitted/false, next stable wins', () => {
+    const plugin = { versions: [entry('1.2.0'), betaEntry('1.3.0')] };
+    expect(latestVersion(plugin)?.version).toBe('1.2.0');
+    expect(latestVersion(plugin, undefined, { includeBeta: false })?.version).toBe('1.2.0');
+  });
+
+  it('lets the semver-highest beta win when includeBeta is true', () => {
+    const plugin = { versions: [entry('1.2.0'), betaEntry('1.3.0')] };
+    const winner = latestVersion(plugin, undefined, { includeBeta: true });
+    expect(winner?.version).toBe('1.3.0');
+    expect(winner?.channel).toBe('beta');
+  });
+
+  it('returns null when the only version is beta and includeBeta is false', () => {
+    const plugin = { versions: [betaEntry('1.0.0')] };
+    expect(latestVersion(plugin)).toBeNull();
+    expect(latestVersion(plugin, undefined, { includeBeta: false })).toBeNull();
+    expect(latestVersion(plugin, undefined, { includeBeta: true })?.version).toBe('1.0.0');
+  });
+
+  it('ranks a graduated stable release above its own prerelease regardless of order (graduation is free)', () => {
+    // Stable prepended above the beta — array order must not decide the winner.
+    const plugin = { versions: [entry('1.3.0'), betaEntry('1.3.0-beta.2')] };
+    expect(latestVersion(plugin, undefined, { includeBeta: true })?.version).toBe('1.3.0');
+    // Same array, reversed order.
+    const reversed = { versions: [betaEntry('1.3.0-beta.2'), entry('1.3.0')] };
+    expect(latestVersion(reversed, undefined, { includeBeta: true })?.version).toBe('1.3.0');
+    // And with betas excluded, the stable release still wins.
+    expect(latestVersion(plugin, undefined, { includeBeta: false })?.version).toBe('1.3.0');
+  });
 });
 
 describe('hasUpdate', () => {
@@ -73,6 +122,13 @@ describe('hasUpdate', () => {
 
   it('returns false for an empty versions array', () => {
     expect(hasUpdate({ versions: [] }, '1.0.0')).toBe(false);
+  });
+
+  it('sees a newer beta as an update only when includeBeta is passed through', () => {
+    const plugin = { versions: [betaEntry('1.2.0-beta.1'), betaEntry('1.2.0-beta.2')] };
+    expect(hasUpdate(plugin, '1.2.0-beta.1', undefined, { includeBeta: true })).toBe(true);
+    expect(hasUpdate(plugin, '1.2.0-beta.1')).toBe(false);
+    expect(hasUpdate(plugin, '1.2.0-beta.1', undefined, { includeBeta: false })).toBe(false);
   });
 });
 
@@ -101,5 +157,62 @@ describe('isVersionCompatible', () => {
 
   it('treats an unparsable appVersion as no constraint', () => {
     expect(isVersionCompatible(entry('1.0.0', '2.0.0'), 'dev')).toBe(true);
+  });
+});
+
+describe('resolveChannel', () => {
+  it('is stable when neither the plugin nor the version declares a channel', () => {
+    expect(resolveChannel({}, entry('1.0.0'))).toBe('stable');
+    expect(resolveChannel({}, null)).toBe('stable');
+    expect(resolveChannel(undefined, undefined)).toBe('stable');
+  });
+
+  it('is beta when the plugin-level channel is beta, even if the version has none', () => {
+    expect(resolveChannel({ channel: 'beta' }, entry('1.0.0'))).toBe('beta');
+  });
+
+  it('is beta when only the version-level channel is beta', () => {
+    expect(resolveChannel({}, betaEntry('1.0.0'))).toBe('beta');
+  });
+
+  it('is beta when both the plugin and version declare beta', () => {
+    expect(resolveChannel({ channel: 'beta' }, betaEntry('1.0.0'))).toBe('beta');
+  });
+});
+
+describe('isBetaHiddenEntry', () => {
+  it('hides a beta-channel plugin from non-opted users', () => {
+    expect(isBetaHiddenEntry({ channel: 'beta' }, false)).toBe(true);
+  });
+
+  it('shows a beta-channel plugin to opted-in users', () => {
+    expect(isBetaHiddenEntry({ channel: 'beta' }, true)).toBe(false);
+  });
+
+  it('never hides a stable-channel plugin', () => {
+    expect(isBetaHiddenEntry({}, false)).toBe(false);
+    expect(isBetaHiddenEntry({}, true)).toBe(false);
+  });
+});
+
+describe('isBetaOnlyForNonOptedUser', () => {
+  it('hides a stable plugin whose only offered version is beta, when not opted in', () => {
+    const plugin = { versions: [betaEntry('2.0.0-beta.1')] };
+    expect(isBetaOnlyForNonOptedUser(plugin, undefined, false)).toBe(true);
+  });
+
+  it('shows it once opted in', () => {
+    const plugin = { versions: [betaEntry('2.0.0-beta.1')] };
+    expect(isBetaOnlyForNonOptedUser(plugin, undefined, true)).toBe(false);
+  });
+
+  it('never hides a plugin that has a stable version on offer', () => {
+    const plugin = { versions: [entry('1.0.0'), betaEntry('2.0.0-beta.1')] };
+    expect(isBetaOnlyForNonOptedUser(plugin, undefined, false)).toBe(false);
+  });
+
+  it('does not treat a minAppVersion-incompatible entry as beta-only (stays visible, disabled)', () => {
+    const plugin = { versions: [entry('1.0.0', '99.0.0')] };
+    expect(isBetaOnlyForNonOptedUser(plugin, '1.7.1', false)).toBe(false);
   });
 });

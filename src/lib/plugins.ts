@@ -10,7 +10,7 @@ import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_P
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
-import { isVersionCompatible } from '@/lib/plugin-versions';
+import { isVersionCompatible, resolveChannel } from '@/lib/plugin-versions';
 import { getPackageVersion } from '@/lib/version';
 
 const execFileAsync = promisify(execFile);
@@ -197,6 +197,15 @@ export async function installPlugin(
         enabled: true,
         moduleType: manifest.moduleType,
       };
+      // Installing a beta version opts the plugin into its beta channel —
+      // whether that's the registry's plugin-level channel or just this one
+      // version's channel (a stable plugin's single beta build). Installing a
+      // stable version leaves this unset, which (since entry is freshly built
+      // each call) clears any prior beta opt-in.
+      const versionRow = registryEntry.versions?.find((v) => v.version === version);
+      if (resolveChannel(registryEntry, versionRow) === 'beta') {
+        entry.channel = 'beta';
+      }
       const plugins = [...installed.plugins];
       const existing = plugins.findIndex((p) => p.id === registryEntry.id);
       if (existing >= 0) {

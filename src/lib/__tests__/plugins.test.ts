@@ -522,6 +522,70 @@ describe('plugin settings persistence', () => {
     expect(record.settings).toBeUndefined();
     expect(record.previousVersion).toBeUndefined();
   });
+
+  it('installing a beta version records channel: beta', async () => {
+    const buf = await makePluginTarball({ ...settingsBaseManifest, version: '2.0.0' });
+    const registryEntry = {
+      id: 'foo',
+      versions: [{
+        version: '2.0.0',
+        channel: 'beta',
+        minAppVersion: '0.0.0',
+        releaseDate: '2026-01-01',
+        downloadUrl: 'https://example.com/v2.0.0/p.tar.gz',
+        sha256: sha256(buf),
+      }],
+    } as unknown as RegistryPlugin;
+
+    await installPlugin(registryEntry, '2.0.0', buf, sha256(buf));
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.channel).toBe('beta');
+  });
+
+  it('installing records channel: beta from the plugin-level registry channel even when the version row has none', async () => {
+    const buf = await makePluginTarball({ ...settingsBaseManifest, version: '2.0.0' });
+    const registryEntry = {
+      id: 'foo',
+      channel: 'beta',
+      versions: [{
+        version: '2.0.0',
+        minAppVersion: '0.0.0',
+        releaseDate: '2026-01-01',
+        downloadUrl: 'https://example.com/v2.0.0/p.tar.gz',
+        sha256: sha256(buf),
+      }],
+    } as unknown as RegistryPlugin;
+
+    await installPlugin(registryEntry, '2.0.0', buf, sha256(buf));
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.channel).toBe('beta');
+  });
+
+  it('installing a stable version clears a prior beta channel opt-in', async () => {
+    await seedInstalledFile(tmpCwd, [{
+      id: 'foo', version: '1.0.0', installedAt: '2026-01-01',
+      enabled: true, moduleType: 'foo', channel: 'beta',
+    }]);
+
+    const buf = await makePluginTarball({ ...settingsBaseManifest, version: '2.0.0' });
+    const registryEntry = {
+      id: 'foo',
+      versions: [{
+        version: '2.0.0',
+        minAppVersion: '0.0.0',
+        releaseDate: '2026-01-01',
+        downloadUrl: 'https://example.com/v2.0.0/p.tar.gz',
+        sha256: sha256(buf),
+      }],
+    } as unknown as RegistryPlugin;
+
+    await installPlugin(registryEntry, '2.0.0', buf, sha256(buf));
+
+    const record = (await getInstalledPlugins()).plugins.find((p) => p.id === 'foo')!;
+    expect(record.channel).toBeUndefined();
+  });
 });
 
 describe('setPluginSettings — 32KB cap', () => {

@@ -74,6 +74,7 @@ function registryEntry(o: {
   permissions?: RegistryPlugin['permissions'];
   changelog?: string;
   verified?: boolean;
+  channel?: RegistryPlugin['channel'];
 }): RegistryPlugin {
   return {
     id: o.id,
@@ -86,6 +87,7 @@ function registryEntry(o: {
     tags: [o.id],
     icon: 'Star',
     verified: o.verified ?? false,
+    channel: o.channel,
     permissions: o.permissions,
     versions: [{
       version: o.version,
@@ -577,6 +579,237 @@ test('the external update modal swaps an external plugin to a newer bundle versi
   } finally {
     await server.close();
   }
+});
+
+// ---------------------------------------------------------------------------
+// Beta channel — opt-in visibility, beta-only updates, and graduation
+// ---------------------------------------------------------------------------
+
+test('a beta registry entry is hidden until the show-beta toggle is on, then carries a Beta badge', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  await stubRegistry(page, [
+    registryEntry({
+      id: 'beta-only-plugin',
+      name: 'Beta Only Plugin',
+      description: 'Only ships a beta build',
+      author: 'e2e',
+      version: '2.0.0-beta.1',
+      channel: 'beta',
+    }),
+  ]);
+
+  const dialog = await openPanel(page); // opens on Browse tab
+
+  // Off by default: the beta entry is filtered out of the Browse catalog.
+  await expect(dialog.getByText('Beta Only Plugin')).toBeHidden();
+
+  await dialog.getByLabel('Show beta plugins').check();
+
+  // Now visible, with a Beta badge scoped to its own row (bare "Beta" text could
+  // otherwise clash with the toggle label / other rows under strict mode).
+  const row = dialog.locator('div').filter({ hasText: 'Beta Only Plugin' }).last();
+  await expect(dialog.getByText('Beta Only Plugin')).toBeVisible();
+  await expect(row.getByText('Beta', { exact: true })).toBeVisible();
+});
+
+test('a stable plugin whose only offered version is beta is hidden from Browse until opted in', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // No plugin-level channel — the entry is stable, but its ONLY version is a
+  // beta build. This is isBetaOnlyForNonOptedUser's branch, distinct from
+  // isBetaHiddenEntry (which fires on a beta plugin-level channel instead).
+  const entry = registryEntry({
+    id: 'beta-version-only-plugin',
+    name: 'Beta Version Only Plugin',
+    description: 'Stable plugin, beta-only build',
+    author: 'e2e',
+    version: '2.0.0-beta.1',
+  });
+  entry.versions[0].channel = 'beta';
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page); // opens on Browse tab
+
+  // Off by default: hidden even though nothing is plugin-level beta.
+  await expect(dialog.getByText('Beta Version Only Plugin')).toBeHidden();
+
+  await dialog.getByLabel('Show beta plugins').check();
+
+  const row = dialog.locator('div').filter({ hasText: 'Beta Version Only Plugin' }).last();
+  await expect(dialog.getByText('Beta Version Only Plugin')).toBeVisible();
+  await expect(row.getByText('Beta', { exact: true })).toBeVisible();
+});
+
+test('the install confirmation modal badges and warns for a beta version', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  await stubRegistry(page, [
+    registryEntry({
+      id: 'beta-confirm-plugin',
+      name: 'Beta Confirm Plugin',
+      description: 'Only ships a beta build',
+      author: 'e2e',
+      version: '2.0.0-beta.1',
+      channel: 'beta',
+    }),
+  ]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByLabel('Show beta plugins').check();
+  await dialog.getByRole('button', { name: 'Install', exact: true }).click();
+
+  const heading = page.getByRole('heading', { name: 'Install Plugin' });
+  await expect(heading).toBeVisible();
+  // Badge sits inside the modal heading; scope to it so it can't match a
+  // leftover Beta badge on a Browse row underneath.
+  await expect(heading.getByText('Beta', { exact: true })).toBeVisible();
+  await expect(page.getByText('Beta versions are still being tested and may have problems.')).toBeVisible();
+});
+
+test('a stable install with only a beta-newer version offers "Try beta" only when opted in', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir); // installed at v1.0.0, stable (no channel)
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // Registry offers the exact installed 1.0.0 as the only stable row (so no
+  // stable update exists) plus a newer beta build.
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'beta build available',
+    author: 'e2e',
+    version: '1.0.0',
+  });
+  entry.versions.push({
+    version: '2.0.0-beta.1',
+    minAppVersion: '1.0.0',
+    releaseDate: '2026-01-01',
+    downloadUrl: 'https://plugin.invalid/beta.tar.gz',
+    sha256: '0'.repeat(64),
+    channel: 'beta',
+  });
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: /Updates/ }).click();
+
+  // Toggle off: no stable update and betaUpgradable is suppressed → up to date.
+  await expect(dialog.getByText('All plugins are up to date')).toBeVisible();
+  await expect(dialog.getByText(/Try beta/)).toBeHidden();
+
+  // Opt in on the Browse tab, then return to Updates.
+  await dialog.getByRole('button', { name: /Browse/ }).click();
+  await dialog.getByLabel('Show beta plugins').check();
+  await dialog.getByRole('button', { name: /Updates/ }).click();
+
+  // The beta build is now surfaced under its own "Try beta v…" affordance.
+  // Not clicked: the marketplace install POST re-fetches the real registry
+  // server-side and 404s (see the file header) — presence is the coverage.
+  await expect(dialog.getByText('All plugins are up to date')).toBeHidden();
+  await expect(dialog.getByRole('button', { name: 'Try beta v2.0.0-beta.1' })).toBeVisible();
+});
+
+test('a beta-channel install shows the Beta badge and graduates via the normal Update path', async ({ page, request, sandboxDir }) => {
+  // Hand-seed an installed record pinned to a beta version/channel — seedFixturePlugin
+  // can't override version/channel, so follow the local seedConfigPlugin pattern.
+  writeSandboxFile(sandboxDir, 'plugins/installed.json', {
+    schemaVersion: 1,
+    plugins: [{
+      id: FIXTURE_PLUGIN_ID,
+      version: '1.2.0-beta.1',
+      installedAt: '2026-01-01T00:00:00.000Z',
+      enabled: true,
+      moduleType: FIXTURE_PLUGIN_TYPE,
+      channel: 'beta',
+    }],
+  });
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, { ...MANIFEST, version: '1.2.0-beta.1' });
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, BUNDLE);
+
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // Registry: the currently-installed beta row plus a newer STABLE graduation build.
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'graduated to stable',
+    author: 'e2e',
+    version: '1.2.0-beta.1',
+    changelog: 'Graduation release',
+  });
+  entry.versions[0].channel = 'beta';
+  entry.versions.unshift({
+    version: '1.3.0',
+    minAppVersion: '1.0.0',
+    releaseDate: '2026-02-01',
+    downloadUrl: 'https://plugin.invalid/1.3.0.tar.gz',
+    sha256: '0'.repeat(64),
+    changelog: 'Graduation release',
+  });
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: 'Installed' }).click();
+
+  // The installed beta record renders a Beta badge next to its id.
+  const installedRow = dialog.locator('div').filter({ hasText: FIXTURE_PLUGIN_ID }).last();
+  await expect(installedRow.getByText('Beta', { exact: true })).toBeVisible();
+
+  await dialog.getByRole('button', { name: /Updates/ }).click();
+
+  // The stable 1.3.0 is offered through the ordinary Update button (not "Try
+  // beta"), proving a beta install graduates once a stable release exists.
+  await expect(dialog.getByText('v1.2.0-beta.1 → v1.3.0')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Update', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /Try beta/ })).toBeHidden();
+});
+
+test('the installed tab falls back to the registry version channel for a record predating the channel field', async ({ page, request, sandboxDir }) => {
+  // No `channel` field at all on the install record — as if it were written
+  // before the beta channel existed. The Installed tab must still recognize
+  // it as beta by matching the installed version against the registry.
+  writeSandboxFile(sandboxDir, 'plugins/installed.json', {
+    schemaVersion: 1,
+    plugins: [{
+      id: FIXTURE_PLUGIN_ID,
+      version: '1.2.0-beta.1',
+      installedAt: '2026-01-01T00:00:00.000Z',
+      enabled: true,
+      moduleType: FIXTURE_PLUGIN_TYPE,
+    }],
+  });
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, { ...MANIFEST, version: '1.2.0-beta.1' });
+  writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/dist/bundle.js`, BUNDLE);
+
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'legacy beta install',
+    author: 'e2e',
+    version: '1.2.0-beta.1',
+  });
+  entry.versions[0].channel = 'beta';
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: 'Installed' }).click();
+
+  const installedRow = dialog.locator('div').filter({ hasText: FIXTURE_PLUGIN_ID }).last();
+  await expect(installedRow.getByText('Beta', { exact: true })).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
