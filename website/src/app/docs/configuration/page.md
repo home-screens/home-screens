@@ -72,6 +72,7 @@ The configuration has the following structure:
   settings: GlobalSettings    // System-wide settings
   screens: Screen[]           // Array of display screens (used in single-display mode)
   profiles?: Profile[]        // Named screen groups with optional schedules
+  rules?: DisplayRule[]       // Display rules for single-display mode (multi-display rules live on each DisplayNode)
   displays?: DisplayNode[]    // Multi-display registry (omitted = single-display mode)
 }
 ```
@@ -294,13 +295,25 @@ Shows or hides a module based on values published to the shared state bus (by pl
 ```typescript
 type VisibilityCondition =
   | { kind: 'state';   sourceKey: string, equals?: string | string[], notEquals?: string | string[] }
-  | { kind: 'numeric'; sourceKey: string, above?: number, below?: number }
+  | {
+      kind: 'numeric'; sourceKey: string
+      above?: number, aboveInclusive?: boolean   // aboveInclusive: >= instead of >
+      below?: number, belowInclusive?: boolean   // belowInclusive: <= instead of <
+    }
+  | {
+      // Local time-of-day / day-of-week gate — no shared-state key, so it
+      // fences a condition tree (or a rule) by the clock. daysOfWeek/startTime/
+      // endTime use the same format as ModuleSchedule (no `invert` here — wrap
+      // in a `not` condition to invert instead). All fields absent means
+      // "always true"; this kind never evaluates to unknown.
+      kind: 'time'; daysOfWeek?: number[], startTime?: string, endTime?: string
+    }
   | { kind: 'and';     conditions: VisibilityCondition[] }
   | { kind: 'or';      conditions: VisibilityCondition[] }
   | { kind: 'not';     conditions: VisibilityCondition[] }
 ```
 
-`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
+`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
 
 ### Profile
 
@@ -317,6 +330,39 @@ Named groups of screens that can be activated manually or on a schedule.
 
 Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles have overlapping schedules, the first matching profile wins. Manual activation via `settings.activeProfile` overrides scheduled profiles.
 
+### DisplayRule
+
+A condition → action rule owned by a display. Rules reuse the `VisibilityCondition` tree and evaluator unchanged, but are edge-triggered: a rule fires only on the false→true transition of its conditions, never while they merely stay true, so a reboot or a restarting state producer never slams the display onto an alert screen for a condition that has been true for hours. Rules live under **Settings > Automation > Rules** and are per-display in multi-display setups.
+
+```typescript
+{
+  id: string                      // Unique ID (UUID)
+  name: string                    // e.g. "Doorbell → front camera"
+  enabled?: boolean                // Default true
+  when: VisibilityCondition[]     // Implicit AND, same tree as ModuleVisibility
+  action: RuleAction
+  cooldownSeconds?: number        // Seconds after a firing before it can re-fire. Default 0.
+}
+```
+
+When multiple rules could fire at once, the first one in list order wins; reorder rules by dragging their cards. In multi-display setups, a rule can be copied to another display — since screens are per-display, a copied `showScreen` action arrives with its target screen cleared, ready to point at a screen on the new display.
+
+### RuleAction
+
+```typescript
+type RuleAction =
+  | {
+      kind: 'showScreen'
+      screenId: string             // Resolved against the owning display's screens
+      mode: 'while' | 'for'        // 'while': pinned as long as the condition holds
+                                    // (minimum 5s hold, to smooth out flapping sensors)
+                                    // 'for': shown for `seconds`, then rotation resumes
+      seconds?: number              // Required when mode is 'for'
+    }
+  | { kind: 'wake' }                // Wake from sleep; no-op if already awake
+  | { kind: 'sleep' }               // Sleep, exactly like the remote sleep command; ends any active takeover
+```
+
 ### DisplayNode (multi-display)
 
 A named display device. Each display owns its own list of screens, designed at its own resolution and orientation. Used in hub-and-spoke deployments where one server drives multiple Pi displays. See the [Multi-display guide](/docs/multi-display) for the install and adoption flow.
@@ -332,6 +378,7 @@ A named display device. Each display owns its own list of screens, designed at i
   profiles?: Profile[]             // Owned profiles for this display
   activeProfile?: string           // Per-display active profile (falls back to settings.activeProfile)
   settings?: DisplayNodeSettings   // Per-display setting overrides
+  rules?: DisplayRule[]            // Owned rules for this display (see DisplayRule above)
 }
 ```
 

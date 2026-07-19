@@ -196,14 +196,19 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 ## Global Settings
 
-Open the **Settings Panel** to configure system-wide options. In a **single-display install**, the sidebar is a single flat list of pages:
+Open the **Settings Panel** to configure system-wide options. Pages are grouped under four headers:
 
-**Display** · **Sleep** · **Alerts** · **Location** · **Weather** · **Calendar** · **Meals** · **Profiles** · **Integrations** · **Security** · **Data** · **Stats** · **System** · **Network** · **Docs**
+- **Screen** — Screen (display, sleep, and alert settings) and Location
+- **Content** — Weather, Calendar, Meals, and Integrations
+- **Automation** — Profiles, Rules, and Shared state
+- **Maintenance** — Security, Network, System, Data, and Stats
+
+The search box at the top of the sidebar matches individual setting names as well as page titles — search "brightness" or "timezone" and it jumps straight to that field and briefly highlights it, even if you don't know which page it lives on. The full documentation is always one click away via the **Docs** link in the sidebar footer.
 
 When you add a second display, the sidebar automatically splits into two groups:
 
 - **Defaults** — the same set of pages above, holding the shared source-of-truth values that apply to *every* display until a specific one overrides them. Each Defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
-- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has six sub-tabs: **Overview**, **Display**, **Sleep**, **Alerts**, **Profile**, **Identity**. Every inheritable field on a sub-tab is rendered as an **OverrideRow** with explicit **Override** / **Reset to default** actions, so the provenance of each value is visible instead of inferred. Resolution, rotation, and flip live directly on the `DisplayNode` and render as plain inputs on the Display sub-tab — they have no shared default to inherit from.
+- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has two sub-tabs: **Overview** (profile, identity, and adoption info) and **Overrides** (display, sleep, and alert settings for this display). Every inheritable field on the Overrides sub-tab is rendered as an **OverrideRow** with explicit **Override** / **Reset to default** actions, so the provenance of each value is visible instead of inferred. Resolution, rotation, and flip live directly on the `DisplayNode` and render as plain inputs on the Overrides sub-tab — they have no shared default to inherit from.
 
 See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
@@ -224,14 +229,26 @@ The **All displays** landing page under **Per display** manages the hub-and-spok
 
 - **Adopt** — register an unadopted spoke. Give it a friendly name and confirm the dimensions/rotation (pre-filled from the spoke's reported viewport). The display ID cannot be changed at adoption time because the spoke continues using its original ID.
 - **Edit screens** — switch the editor's selected display to this one and drop the canvas onto its screens.
-- **Open display** — jump into the display's drill-down page (Overview / Display / Sleep / Alerts / Profile / Identity sub-tabs) to edit its friendly name, dimensions, rotation, per-display overrides, and active profile. The `main` display is edited the same way — it's a regular display node that owns its own dimensions.
+- **Open display** — jump into the display's drill-down page (Overview / Overrides sub-tabs) to edit its friendly name, dimensions, rotation, per-display overrides, and active profile. The `main` display is edited the same way — it's a regular display node that owns its own dimensions.
 - **Delete** — remove a display. Spokes still pointed at the deleted URL show a 60-second countdown and auto-navigate to the current default display.
 
 Multi-display features (the Defaults / Per display sidebar split, the All displays landing page, the Display Switcher pill, the remote's Display Picker) are hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full setup, including the spoke install command.
 
+### Automation
+
+The Automation page holds three tabs: **Profiles**, **Rules**, and **Shared state**.
+
 ### Profiles
 
 Profiles let you define named groups of screens that activate based on a schedule or manually. See the [Profiles](#profiles-1) section below for details.
+
+### Rules
+
+Rules make a display react to live conditions instead of just the clock — for example, jumping to a camera screen when a doorbell sensor fires. See the [Display Rules guide](/docs/profiles#display-rules) for the full walkthrough.
+
+### Shared state
+
+Shows the values your installed add-ons are publishing, in two tabs: **Watching** lists what this display is actively using, and **Available** is a searchable, browsable catalogue of everything your add-ons could share, grouped by add-on, whether or not anything on your display uses it yet.
 
 ### Sleep
 
@@ -363,7 +380,7 @@ The Stats tab provides a live dashboard of system health and application state:
 
 ### Docs
 
-Links to the full documentation at [homescreens.dev/docs](https://homescreens.dev/docs), organized by section (Introduction, Guides, Reference). Each link opens in a new tab.
+A persistent link in the sidebar footer (not a settings page) to the full documentation at [homescreens.dev/docs](https://homescreens.dev/docs), organized by section (Introduction, Guides, Reference). Opens in a new tab.
 
 ## Profiles
 

@@ -308,6 +308,34 @@ User activity (wake)      -->  any input restores full brightness
 
 ---
 
+## Display Rules
+
+Rules make a display react to what's happening, not just to the clock. When a rule's conditions become true, it can jump to a screen or wake the display -- for example, showing a doorbell camera screen when the bell rings, or waking up when someone unlocks the front door. Add and edit rules in **Settings > Automation > Rules**.
+
+{% callout type="note" %}
+Rules need a source of live data to react to -- a plugin (like a Home Assistant integration) publishing values your display can read. See the [Plugins guide](/docs/plugins) for what's available.
+{% /callout %}
+
+### Conditions
+
+Rules use the same condition types as [module visibility conditions](/docs/configuration#modulevisibility): a value published by an add-on, a numeric threshold, or a time-of-day/day-of-week window, combined with AND/OR/NOT groups. A rule only fires the moment its conditions become true, not on every check while they stay true -- so a reboot or a restarting add-on won't slam the display onto an alert screen for something that's been true for hours. Each condition row shows a live met/not-met indicator, so you can see exactly why a rule has or hasn't fired.
+
+### Actions
+
+A rule can:
+
+- **Show a screen** -- either for as long as the conditions stay true (with a 5-second minimum hold, so a flickering sensor can't rapid-fire the display), or for a fixed number of seconds before normal rotation resumes
+- **Wake the display** -- holds it awake for 5 minutes, then it goes back to its normal sleep schedule
+- **Put the display to sleep**
+
+### Priority, cooldown, and copying rules
+
+When more than one rule could fire at once, the one listed first wins -- drag rule cards to reorder them. Set a cooldown (in seconds) so a rule won't fire again immediately after it triggers.
+
+In multi-display setups, each display owns its own rules, since a rule's "show a screen" action points at that display's own screens. Use **Copy to another display** on a rule card to duplicate a rule elsewhere -- the copy arrives with its target screen cleared, ready for you to pick a screen on the new display.
+
+---
+
 ## Real-world examples
 
 ### Morning dashboard vs. evening display

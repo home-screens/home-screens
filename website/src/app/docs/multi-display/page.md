@@ -130,7 +130,7 @@ Second and later displays start with an empty screen list and an empty owned pro
 The settings sidebar splits into two groups in multi-display mode:
 
 - **Defaults** — every shared value (display, sleep, alerts, location, weather, calendar, profiles, integrations, security, etc.). These apply to *every* display until a specific one overrides them. Each defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
-- **Per display** — one drill-down page per registered display, plus an "All displays" landing page (the card grid where you adopt new displays). Each drill-down has six sub-tabs: Overview, Display, Sleep, Alerts, Profile, Identity.
+- **Per display** — one drill-down page per registered display, plus an "All displays" landing page (the card grid where you adopt new displays). Each drill-down has two sub-tabs: Overview (profile, identity, adoption info) and Overrides (display, sleep, and alert settings for this display).
 
 On a per-display page, every inheritable field is rendered as an **OverrideRow** that starts in the *default* state (dimmed control, "Override" button) and flips to *overridden* when you click Override (full-opacity blue-tinted row, "Reset to default" button). The help text under each field always links back to the source defaults page, so you can navigate from a per-display field to its global default and back.
 

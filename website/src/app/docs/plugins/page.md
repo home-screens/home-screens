@@ -165,6 +165,28 @@ The `configSchema` field uses a JSON Schema dialect with UI widget annotations. 
 
 **Nested types:** Properties with `type: "array"` use an `items` sub-schema; properties with `type: "object"` use nested `properties`.
 
+### Settings Schema
+
+`configSchema` describes per-instance config — each module instance on the canvas gets its own values. `settingsSchema` is for the opposite case: values shared by every instance of the plugin, like a connection URL or a poll interval, stored once on the plugin's `installed.json` record instead of per module. It uses the same JSON Schema dialect and widget set as `configSchema` above, and the editor renders it in the plugin manager rather than the module's config panel.
+
+```json
+{
+  "settingsSchema": {
+    "type": "object",
+    "properties": {
+      "serverUrl": {
+        "type": "string",
+        "title": "Server URL",
+        "ui:widget": "text",
+        "ui:placeholder": "http://homeassistant.local:8123"
+      }
+    }
+  }
+}
+```
+
+Values reach your plugin code via `__HS_SDK__.getPluginSettings()`, and are also passed as a prop to your `stateProvider` component if you export one. A `ConfigSection` can write them inline with the editor-only `__HS_SDK__.setPluginSettings()` (merge semantics), so connection setup can live right in the module panel instead of a separate settings screen. Secrets never belong here — declare those with the manifest `secrets` field instead (see [Plugin Secrets](#plugin-secrets)). If a plugin declares `settingsSchema`, a **Plugin settings** button appears on its card in the Installed tab.
+
 ---
 
 ## Installing Plugins
@@ -187,6 +209,10 @@ Behind the scenes, the install process:
 4. Extracts the tarball to `data/plugins/<pluginId>/`
 5. Validates the extracted `manifest.json`
 6. Records the installation in `data/plugins/installed.json`
+
+### Beta Versions
+
+Some plugins offer a beta channel — pre-release builds you can try before they become the stable release. Turn on **Show beta plugins** in the plugin browser's Browse tab to see them; beta plugins and versions are marked with a **Beta** badge in Browse, Installed, and Updates. Installing a beta build shows a short warning that it's still being tested. A plugin you've already installed from the beta channel keeps getting beta updates regardless of the toggle — turning it off just stops beta plugins from showing up while you're browsing for new ones.
 
 ### From a URL
 
@@ -408,7 +434,10 @@ window.__HS_PLUGIN__ = {
 };
 ```
 
-For a value to stay fresh while the display rotates through screens, the publishing module instance must keep running: users mark an instance "Run hidden in the background" in the editor, which mounts it in a persistent background layer independent of screen rotation.
+For a value to stay fresh while the display rotates through screens, the publishing module instance must keep running. There are two ways to do that:
+
+- **`backgroundProvider` instance** — users mark an instance "Run hidden in the background" in the editor, which mounts it in a persistent background layer independent of screen rotation. Simple, but the plugin still needs a module instance on the canvas to act as the publisher.
+- **`stateProvider` export** (recommended) — a headless component the host mounts once per plugin, with no module instance required. It's fed a demand-driven `demandedKeys` list — every shared-state key of your plugin's namespace that's actually referenced by a visibility condition or a Text-module token anywhere on the display — and should publish only those, clearing a key when it drops out of the list. Because it's demand-driven, it also runs live in the editor tab (fed from the draft config), so condition verdicts update as you build them without needing an actual display open. See the manifest's `exports.stateProvider` field for the full contract.
 
 ### Dev Mode
 
@@ -852,6 +881,7 @@ The plugin registry is a JSON file hosted on GitHub. It lists all available plug
       "icon": "sparkles",
       "verified": true,
       "permissions": ["network", "secrets"],
+      "channel": "stable",
       "versions": [
         {
           "version": "1.0.0",
@@ -878,8 +908,9 @@ The plugin registry is a JSON file hosted on GitHub. It lists all available plug
 | `downloadUrl` | string | yes | URL to the `.tar.gz` archive |
 | `sha256` | string | yes | SHA-256 hash of the archive for integrity verification |
 | `changelog` | string | no | Human-readable changelog for this version |
+| `channel` | string | no | `"stable"` (default) or `"beta"`. Lets a stable plugin ship one beta build (e.g. `1.2.0-beta.1`) without changing the plugin's own channel. |
 
-The `verified` flag on a registry plugin indicates it has been reviewed. The registry is cached server-side for 5 minutes.
+The `verified` flag on a registry plugin indicates it has been reviewed. A `channel` on the plugin entry itself (not just a version) marks the whole plugin as beta — it's hidden from Browse unless the user opts in, regardless of which version is newest. The registry is cached server-side for 5 minutes.
 
 ---
 
