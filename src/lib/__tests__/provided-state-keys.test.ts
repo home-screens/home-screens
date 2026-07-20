@@ -11,6 +11,7 @@ const { defs } = vi.hoisted(() => ({
 
 vi.mock('@/lib/module-registry', () => ({
   getModuleDefinition: (type: string) => defs.get(type),
+  getAllModuleDefinitions: () => Array.from(defs.values()),
 }));
 
 let nextId = 0;
@@ -100,6 +101,43 @@ describe('collectProvidedStateKeys', () => {
   it('skips unregistered module types', () => {
     const keys = collectProvidedStateKeys(screensWith(makeModule({ type: 'plugin:missing' })));
     expect(keys).toEqual([]);
+  });
+
+  it('surfaces a demand-driven plugin\'s keys with zero on-screen instances', () => {
+    defs.set('plugin:strava', {
+      hasStateProvider: true,
+      providesState: [{ key: 'plugin:strava:current_streak', label: 'Current streak' }],
+    });
+    const keys = collectProvidedStateKeys([]);
+    expect(keys).toEqual([{ key: 'plugin:strava:current_streak', label: 'Current streak' }]);
+  });
+
+  it('does not surface a non-demand-driven plugin with no on-screen instance', () => {
+    defs.set('plugin:ha', { providesState: [{ key: 'plugin:ha:door', label: 'Door' }] });
+    const keys = collectProvidedStateKeys([]);
+    expect(keys).toEqual([]);
+  });
+
+  it('demand-driven keys win dedup over an on-screen instance of the same plugin', () => {
+    defs.set('plugin:strava', {
+      hasStateProvider: true,
+      providesState: [{ key: 'plugin:strava:current_streak', label: 'Current streak (provider)' }],
+    });
+    const keys = collectProvidedStateKeys(screensWith(makeModule({ type: 'plugin:strava' })));
+    expect(keys).toEqual([{ key: 'plugin:strava:current_streak', label: 'Current streak (provider)' }]);
+  });
+
+  it('merges demand-driven and on-screen sources without duplicates', () => {
+    defs.set('plugin:strava', {
+      hasStateProvider: true,
+      providesState: [{ key: 'plugin:strava:current_streak', label: 'Current streak' }],
+    });
+    defs.set('plugin:ha', { providesState: [{ key: 'plugin:ha:door', label: 'Door' }] });
+    const keys = collectProvidedStateKeys(screensWith(makeModule({ type: 'plugin:ha' })));
+    expect(keys).toEqual([
+      { key: 'plugin:strava:current_streak', label: 'Current streak' },
+      { key: 'plugin:ha:door', label: 'Door' },
+    ]);
   });
 });
 

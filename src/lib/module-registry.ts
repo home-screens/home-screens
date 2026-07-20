@@ -83,6 +83,13 @@ export interface ModuleDefinition {
   providesState?: ProvidedStateKey[];
   /** For producers whose keys depend on instance config (e.g. an entity list). */
   deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
+  /**
+   * True when the plugin exports a `stateProvider` (manifest `exports.stateProvider`):
+   * the host mounts one instance per plugin, keyed on demand, independent of any
+   * on-screen module instance. These `providesState` keys must stay discoverable
+   * even with zero instances placed — see `collectStateProviderKeys`.
+   */
+  hasStateProvider?: boolean;
   // Plugin-specific fields
   configSchema?: import('@/types/plugins').PluginConfigSchema;
   /**
@@ -119,7 +126,7 @@ function registerModule(definition: ModuleDefinition): void {
  */
 export function registerPluginModule(
   manifest: import('@/types/plugins').PluginManifest,
-  runtime?: { deriveProvidedKeys?: ModuleDefinition['deriveProvidedKeys'] },
+  runtime?: { deriveProvidedKeys?: ModuleDefinition['deriveProvidedKeys']; hasStateProvider?: boolean },
 ): void {
   const moduleType: ModuleType = `plugin:${manifest.moduleType}`;
   const icon = resolveLucideIcon(manifest.icon);
@@ -153,6 +160,7 @@ export function registerPluginModule(
     defaultStyle: manifest.defaultStyle,
     providesState,
     deriveProvidedKeys,
+    hasStateProvider: Boolean(runtime?.hasStateProvider),
     configSchema: manifest.configSchema,
     dataRequirements: manifest.dataRequirements,
   });

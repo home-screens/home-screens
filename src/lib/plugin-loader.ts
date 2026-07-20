@@ -97,7 +97,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   });
 
   // 6. Register client-side
-  registerPluginModule(manifest, { deriveProvidedKeys });
+  registerPluginModule(manifest, { deriveProvidedKeys, hasStateProvider: Boolean(stateProvider) });
   store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
   // 7. Persist dev mapping in localStorage
@@ -502,7 +502,7 @@ async function loadSinglePlugin(
     }
 
     // 6. Register into module registry and Zustand store
-    registerPluginModule(manifest, { deriveProvidedKeys });
+    registerPluginModule(manifest, { deriveProvidedKeys, hasStateProvider: Boolean(stateProvider) });
     store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
     // 7. Wire prefetchUrl into the fetch key registry if declared

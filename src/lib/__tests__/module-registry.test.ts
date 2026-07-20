@@ -548,6 +548,16 @@ describe('registerPluginModule — providesState namespacing', () => {
     expect(getModuleDefinition('plugin:my-widget' as ModuleType)!.providesState).toBeUndefined();
   });
 
+  it('records hasStateProvider true only when the runtime flag is passed', () => {
+    registerPluginModule(baseManifest, { hasStateProvider: true });
+    expect(getModuleDefinition('plugin:my-widget' as ModuleType)!.hasStateProvider).toBe(true);
+  });
+
+  it('defaults hasStateProvider to false when omitted', () => {
+    registerPluginModule(baseManifest);
+    expect(getModuleDefinition('plugin:my-widget' as ModuleType)!.hasStateProvider).toBe(false);
+  });
+
   it('wraps deriveProvidedKeys to prefix and sanitize results', () => {
     registerPluginModule(baseManifest, {
       deriveProvidedKeys: (config) => [

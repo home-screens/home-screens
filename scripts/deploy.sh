@@ -82,6 +82,7 @@ rsync -azP --delete \
   --exclude 'node_modules' \
   --exclude '.next' \
   --exclude '.git' \
+  --exclude '.worktrees' \
   --exclude '*.tsbuildinfo' \
   --exclude '.env*' \
   --include 'data/secrets.example.json' \
