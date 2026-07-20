@@ -142,6 +142,16 @@ describe('isVersionCompatible', () => {
     expect(isVersionCompatible(entry('1.0.0', '2.0.0'), '1.7.1')).toBe(false);
   });
 
+  it('accepts a prerelease app build against a minAppVersion equal to its own release line', () => {
+    // Per semver, "1.8.0-rc.0" < "1.8.0" — but an RC of 1.8.0 should satisfy a
+    // plugin requiring 1.8.0, not be treated as an older, incompatible build.
+    expect(isVersionCompatible(entry('1.0.0', '1.8.0'), '1.8.0-rc.0')).toBe(true);
+  });
+
+  it('still rejects a prerelease app build older than minAppVersion', () => {
+    expect(isVersionCompatible(entry('1.0.0', '1.8.0'), '1.7.0-rc.0')).toBe(false);
+  });
+
   it('accepts when appVersion or minAppVersion is missing/empty', () => {
     expect(isVersionCompatible(entry('1.0.0', '2.0.0'))).toBe(true);
     expect(isVersionCompatible(entry('1.0.0', '2.0.0'), '')).toBe(true);

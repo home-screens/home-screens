@@ -10,7 +10,12 @@ export function isVersionCompatible(
   appVersion?: string,
 ): boolean {
   if (!appVersion || !entry.minAppVersion) return true;
-  const cmp = compareSemver(appVersion, entry.minAppVersion);
+  // Compare on the app's release line only, ignoring its own prerelease tag:
+  // per semver, "1.8.0-rc.0" < "1.8.0", so an RC build would otherwise be
+  // treated as older than the very release it's a candidate for, hiding any
+  // plugin version gated on minAppVersion === that release.
+  const appCore = appVersion.split('-')[0];
+  const cmp = compareSemver(appCore, entry.minAppVersion);
   // compareSemver yields NaN for unparsable segments (e.g. "v2.0.0"), and
   // NaN >= 0 is false — which would silently fail closed. Treat an
   // unparsable constraint as no constraint instead of blocking installs.
