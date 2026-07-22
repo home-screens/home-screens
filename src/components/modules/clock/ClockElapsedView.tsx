@@ -50,6 +50,10 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
   const displayValue =
     isExpected || Math.abs(diffMs) >= 1000 ? elapsed : formatElapsed(0, elapsedFormat, elapsedPrecision, formattingLocale);
 
+  // Word formats render prose, where proportional figures read better; the
+  // numeric formats keep tabular-nums so ticking digits don't jitter.
+  const isWords = elapsedFormat === 'words' || elapsedFormat === 'wordsTitle';
+
   return (
     <div
       ref={containerRef}
@@ -57,7 +61,7 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
     >
       {/* Elapsed time */}
       <div
-        className={`font-light tracking-wide ${elapsedFormat === 'words' ? '' : 'tabular-nums'}`}
+        className={`font-light tracking-wide ${isWords ? '' : 'tabular-nums'}`}
         style={{
           fontSize: scaledFontSize * 2.8,
           lineHeight: 1.1,

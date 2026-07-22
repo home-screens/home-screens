@@ -154,10 +154,16 @@ describe('formatElapsed — wordsTitle format', () => {
     expect(f(diff, 'wordsTitle', 'daysHoursMinutes')).toBe('50 Days, 20 Hours, 13 Minutes');
   });
 
-  it.skipIf(!hasDurationFormat)('capitalizes unit words for a non-English locale while preserving its connector word (de-DE "und")', () => {
+  it.skipIf(!hasDurationFormat)('passes non-English connectors/punctuation through untouched (de-DE)', () => {
+    // German unit words are nouns and arrive from ICU already capitalized, so
+    // title-casing must be a byte-level no-op against the plain 'words'
+    // output — any difference means a connector or punctuation part was
+    // mangled. Comparing the two outputs (same ICU on both sides) keeps this
+    // green across ICU data updates, unlike pinning the exact string.
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
     const result = f(diff, 'wordsTitle', 'daysHoursMinutes', 'de-DE');
-    expect(result).toBe('50 Tage, 20 Stunden und 13 Minuten');
+    expect(result).toContain('Tage');
+    expect(result).toBe(f(diff, 'words', 'daysHoursMinutes', 'de-DE'));
   });
 
   it('falls back to capitalized English words when Intl.DurationFormat is unavailable', () => {
