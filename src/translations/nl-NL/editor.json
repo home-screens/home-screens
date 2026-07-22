@@ -1445,6 +1445,7 @@
         "noMatches": "Geen plugins komen overeen met je zoekopdracht",
         "empty": "Geen plugins beschikbaar in de registry",
         "installedBadge": "Geïnstalleerd",
+        "installedBadgeVersion": "Geïnstalleerd (v{version})",
         "installButton": "Installeren",
         "installingButton": "Installeren…"
       },

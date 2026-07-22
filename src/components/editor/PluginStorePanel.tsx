@@ -100,7 +100,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const installedIds = new Set(installed.map((p) => p.id));
+  const installedVersions = new Map(installed.map((p) => [p.id, p.version]));
 
   const runAction = async (pluginId: string, method: string, body: Record<string, unknown>) => {
     setActionInProgress(pluginId);
@@ -234,7 +234,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           ) : tab === 'browse' ? (
             <BrowseTab
               plugins={filteredRegistry}
-              installedIds={installedIds}
+              installedVersions={installedVersions}
               search={search}
               onSearchChange={setSearch}
               onInstall={handleInstallRequest}
@@ -310,7 +310,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
 
 function BrowseTab({
   plugins,
-  installedIds,
+  installedVersions,
   search,
   onSearchChange,
   onInstall,
@@ -320,7 +320,7 @@ function BrowseTab({
   onShowBetaChange,
 }: {
   plugins: RegistryPlugin[];
-  installedIds: Set<string>;
+  installedVersions: Map<string, string>;
   search: string;
   onSearchChange: (s: string) => void;
   onInstall: (plugin: RegistryPlugin) => void;
@@ -366,7 +366,14 @@ function BrowseTab({
         plugins.map((plugin) => {
           const latest = latestVersion(plugin, APP_VERSION, { includeBeta: showBeta });
           const isBeta = resolveChannel(plugin, latest) === 'beta';
-          const isInstalled = installedIds.has(plugin.id);
+          const installedVersion = installedVersions.get(plugin.id);
+          const isInstalled = installedVersion !== undefined;
+          // The beta toggle can change which version `latest` resolves to
+          // independently of what's actually on disk (e.g. a beta is
+          // installed, then the toggle is turned off and `latest` becomes
+          // the stable release) — name the real installed version so the
+          // badge never implies the displayed version is what's installed.
+          const installedVersionMismatch = isInstalled && installedVersion !== latest?.version;
           return (
             <div key={plugin.id} className="flex items-start gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
               <div className="flex-1 min-w-0">
@@ -388,7 +395,11 @@ function BrowseTab({
               </div>
               <div className="shrink-0">
                 {isInstalled ? (
-                  <span className="text-xs text-hs-success">{t('settings.pluginStorePanel.browse.installedBadge')}</span>
+                  <span className="text-xs text-hs-success">
+                    {installedVersionMismatch
+                      ? t('settings.pluginStorePanel.browse.installedBadgeVersion', { version: installedVersion ?? '' })
+                      : t('settings.pluginStorePanel.browse.installedBadge')}
+                  </span>
                 ) : (
                   <Button
                     variant="secondary"

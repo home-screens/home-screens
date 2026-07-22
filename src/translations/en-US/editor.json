@@ -1445,6 +1445,7 @@
         "noMatches": "No plugins match your search",
         "empty": "No plugins available in the registry",
         "installedBadge": "Installed",
+        "installedBadgeVersion": "Installed (v{version})",
         "installButton": "Install",
         "installingButton": "Installing…"
       },
