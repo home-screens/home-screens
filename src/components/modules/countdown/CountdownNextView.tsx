@@ -2,11 +2,10 @@
 
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
-import { FlipCard, FlipSeparator } from './FlipCard';
-import { pad } from './countdown-utils';
+import CountdownTimer from './CountdownTimer';
 import type { CountdownViewProps } from './types';
 
-export default function CountdownNextView({ events, scale, basePx }: CountdownViewProps) {
+export default function CountdownNextView({ events, config, scale, basePx }: CountdownViewProps) {
   const t = useTranslate('modules');
   const event = events[0];
 
@@ -35,19 +34,7 @@ export default function CountdownNextView({ events, scale, basePx }: CountdownVi
             {t('countdown.todayBang')}
           </p>
         ) : (
-          <div className="flex items-start justify-center" style={{ fontSize: `${nextBasePx}px`, gap: '0.15em' }}>
-            {event.time.days > 0 && (
-              <>
-                <FlipCard value={String(event.time.days)} label={t('countdown.unitDays')} />
-                <FlipSeparator />
-              </>
-            )}
-            <FlipCard value={pad(event.time.hours)} label={t('countdown.unitHours')} />
-            <FlipSeparator />
-            <FlipCard value={pad(event.time.minutes)} label={t('countdown.unitMinutes')} />
-            <FlipSeparator />
-            <FlipCard value={pad(event.time.seconds)} label={t('countdown.unitSeconds')} />
-          </div>
+          <CountdownTimer time={event.time} config={config} fontSizePx={nextBasePx} />
         )}
       </div>
     </div>

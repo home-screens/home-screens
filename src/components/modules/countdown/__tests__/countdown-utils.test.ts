@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getTimeRemaining, pad, resolveEventDate, processEvents } from '../countdown-utils';
+import { getTimeRemaining, pad, resolveEventDate, processEvents, selectCountdownUnits } from '../countdown-utils';
+import type { TimeRemaining } from '../types';
 import type { CountdownEvent } from '@/types/config';
+
+function makeTime(partial: Partial<TimeRemaining>): TimeRemaining {
+  return { days: 0, hours: 0, minutes: 0, seconds: 0, past: false, totalMs: 0, ...partial };
+}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -249,5 +254,79 @@ describe('processEvents', () => {
 
     const result = processEvents(events, false, undefined, true);
     expect(result[0].stayingForToday).toBe(false);
+  });
+});
+
+describe('selectCountdownUnits', () => {
+  describe('auto', () => {
+    it('includes all four units, days first, when days > 0', () => {
+      const time = makeTime({ days: 2, hours: 5, minutes: 30, seconds: 15 });
+      expect(selectCountdownUnits(time, 'auto')).toEqual([
+        { unit: 'days', value: 2 },
+        { unit: 'hours', value: 5 },
+        { unit: 'minutes', value: 30 },
+        { unit: 'seconds', value: 15 },
+      ]);
+    });
+
+    it('omits days when days = 0 but keeps hours/minutes/seconds even when hours is 0', () => {
+      const time = makeTime({ days: 0, hours: 0, minutes: 45, seconds: 10 });
+      expect(selectCountdownUnits(time, 'auto')).toEqual([
+        { unit: 'hours', value: 0 },
+        { unit: 'minutes', value: 45 },
+        { unit: 'seconds', value: 10 },
+      ]);
+    });
+
+    it('keeps hours (value 0) and seconds for a duration under an hour, unlike Elapsed auto', () => {
+      const time = makeTime({ days: 0, hours: 0, minutes: 12, seconds: 34 });
+      expect(selectCountdownUnits(time, 'auto')).toEqual([
+        { unit: 'hours', value: 0 },
+        { unit: 'minutes', value: 12 },
+        { unit: 'seconds', value: 34 },
+      ]);
+    });
+
+    it('includes all four units at the exact-1-day boundary with zero hours/minutes/seconds', () => {
+      const time = makeTime({ days: 1, hours: 0, minutes: 0, seconds: 0 });
+      expect(selectCountdownUnits(time, 'auto')).toEqual([
+        { unit: 'days', value: 1 },
+        { unit: 'hours', value: 0 },
+        { unit: 'minutes', value: 0 },
+        { unit: 'seconds', value: 0 },
+      ]);
+    });
+  });
+
+  describe('fixed precisions', () => {
+    const time = makeTime({ days: 3, hours: 0, minutes: 7, seconds: 0 });
+
+    it('days shows only days', () => {
+      expect(selectCountdownUnits(time, 'days')).toEqual([{ unit: 'days', value: 3 }]);
+    });
+
+    it('daysHours shows days and hours, zero included', () => {
+      expect(selectCountdownUnits(time, 'daysHours')).toEqual([
+        { unit: 'days', value: 3 },
+        { unit: 'hours', value: 0 },
+      ]);
+    });
+
+    it('daysHoursMinutes shows days, hours, minutes, zero included', () => {
+      expect(selectCountdownUnits(time, 'daysHoursMinutes')).toEqual([
+        { unit: 'days', value: 3 },
+        { unit: 'hours', value: 0 },
+        { unit: 'minutes', value: 7 },
+      ]);
+    });
+
+    it('daysHoursMinutesSeconds shows all four units, zeros included', () => {
+      expect(selectCountdownUnits(time, 'daysHoursMinutesSeconds')).toEqual([
+        { unit: 'days', value: 3 },
+        { unit: 'hours', value: 0 },
+        { unit: 'minutes', value: 7 },
+        { unit: 'seconds', value: 0 },
+      ]);
+    });
   });
 });

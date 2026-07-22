@@ -590,6 +590,8 @@ test('every module config field has a variant row or an explicit decision', () =
 const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; members?: string[] }> = [
   { type: 'clock', key: 'elapsedFormat', union: 'ElapsedFormat' },
   { type: 'clock', key: 'elapsedPrecision', union: 'ElapsedPrecision' },
+  { type: 'countdown', key: 'format', union: 'CountdownFormat' },
+  { type: 'countdown', key: 'precision', union: 'CountdownPrecision' },
   { type: 'text', key: 'effect', union: 'TextEffect' },
   { type: 'text', key: 'orientation', members: ['horizontal', 'vertical', 'sideways'] },
   { type: 'icon', key: 'animation', union: 'IconAnimation' },

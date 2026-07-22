@@ -281,6 +281,98 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('CD TODAY')(mod); await has('Today!')(mod); },
   },
 
+  // --- Countdown format axis (shared with Clock's elapsed formatter,
+  // src/lib/duration-format.ts). Each row is a single far-future event
+  // (days > 0), so countdown's 'auto' precision shows days/hours/minutes/
+  // seconds and every text format renders all four units. 'flip' is the
+  // registry default and rides the static matrix, so only the six text
+  // formats get rows here (see EXTRA_DISCRIMINATORS in coverage.spec.ts).
+  {
+    // format 'units' replaces the flip cards with the "Nd Nh Nm Ns" unit-letter
+    // text (countdown auto includes seconds, unlike clock's elapsed auto).
+    type: 'countdown', name: 'format-units', kind: 'network-free',
+    config: { view: 'all', format: 'units', events: [{ id: 'cd-fmt-units', name: 'CD FMT UNITS', date: '2099-06-01' }] },
+    expect: matches(/\d+d \d+h \d+m \d+s/),
+  },
+  {
+    // format 'unitsUpper' is the same shape with capitalized unit letters — the
+    // absence of a lowercase "Nd" proves the uppercasing reached the DOM.
+    type: 'countdown', name: 'format-units-upper', kind: 'network-free',
+    config: { view: 'all', format: 'unitsUpper', events: [{ id: 'cd-fmt-upper', name: 'CD FMT UPPER', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+D \d+H \d+M \d+S/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // format 'unitsShort' swaps single letters for abbreviated words with no
+    // space between number and word (Nday Nhr Nmin Nsec).
+    type: 'countdown', name: 'format-units-short', kind: 'network-free',
+    config: { view: 'all', format: 'unitsShort', events: [{ id: 'cd-fmt-short', name: 'CD FMT SHORT', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+day \d+hr \d+min \d+sec/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // format 'colon' renders colon-joined digits (first segment unpadded, the
+    // rest 2-padded) instead of the unit-letter style.
+    type: 'countdown', name: 'format-colon', kind: 'network-free',
+    config: { view: 'all', format: 'colon', events: [{ id: 'cd-fmt-colon', name: 'CD FMT COLON', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+:\d{2}:\d{2}:\d{2}/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // format 'words' renders localized long-form unit words via
+    // Intl.DurationFormat (falls back to space-joined English words when the
+    // API is unavailable; the [\s\S]* gaps match either separator style).
+    type: 'countdown', name: 'format-words', kind: 'network-free',
+    config: { view: 'all', format: 'words', events: [{ id: 'cd-fmt-words', name: 'CD FMT WORDS', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+ days?[\s\S]*\d+ hours?[\s\S]*\d+ minutes?[\s\S]*\d+ seconds?/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // format 'wordsTitle' is the same localized rendering with each unit word
+    // capitalized (the "50 Days" example).
+    type: 'countdown', name: 'format-words-title', kind: 'network-free',
+    config: { view: 'all', format: 'wordsTitle', events: [{ id: 'cd-fmt-title', name: 'CD FMT TITLE', date: '2099-06-01' }] },
+    expect: matches(/\d+ Days?[\s\S]*\d+ Hours?[\s\S]*\d+ Minutes?[\s\S]*\d+ Seconds?/),
+  },
+
+  // --- Countdown precision axis. Members are fixed unit sets shown
+  // unconditionally; 'auto' is the registry default (static matrix), so the
+  // four named precisions get rows here.
+  {
+    // precision 'days' with the default flip format proves precision reshapes
+    // the FLIP look, not just the text formats: only the days card renders, so
+    // the hrs/min/sec unit labels are all absent (the far-future event has
+    // days > 0). Labels come from countdown.unit* in the modules dictionary
+    // (days/hrs/min/sec); the digit-free event name can't false-match them.
+    type: 'countdown', name: 'precision-days-flip', kind: 'network-free',
+    config: { view: 'all', precision: 'days', events: [{ id: 'cd-prec-days', name: 'CD PREC FLIP', date: '2099-06-01' }] },
+    expect: async (mod) => {
+      await has('days')(mod);
+      await expect(mod).not.toContainText('hrs');
+      await expect(mod).not.toContainText('min');
+      await expect(mod).not.toContainText('sec');
+    },
+  },
+  {
+    // precision 'daysHours' + format 'units' shows exactly two units, no
+    // minutes segment.
+    type: 'countdown', name: 'precision-days-hours', kind: 'network-free',
+    config: { view: 'all', format: 'units', precision: 'daysHours', events: [{ id: 'cd-prec-dh', name: 'CD PREC DH', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+d \d+h/)(mod); await notMatches(/\d+m/)(mod); },
+  },
+  {
+    // precision 'daysHoursMinutes' + format 'units' shows three units and drops
+    // seconds. The value div is the last child (nothing follows to concatenate
+    // against), and the event name is digit-free, so `\d+s` can't false-match.
+    type: 'countdown', name: 'precision-days-hours-minutes', kind: 'network-free',
+    config: { view: 'all', format: 'units', precision: 'daysHoursMinutes', events: [{ id: 'cd-prec-dhm', name: 'CD PREC DHM', date: '2099-06-01' }] },
+    expect: async (mod) => { await matches(/\d+d \d+h \d+m/)(mod); await notMatches(/\d+s/)(mod); },
+  },
+  {
+    // precision 'daysHoursMinutesSeconds' + format 'units' shows all four units.
+    // Identical output to 'auto' only when days = 0; this row's job is member
+    // coverage, so a far-future event is fine.
+    type: 'countdown', name: 'precision-all-units', kind: 'network-free',
+    config: { view: 'all', format: 'units', precision: 'daysHoursMinutesSeconds', events: [{ id: 'cd-prec-dhms', name: 'CD PREC DHMS', date: '2099-06-01' }] },
+    expect: matches(/\d+d \d+h \d+m \d+s/),
+  },
+
   // ================= CALENDAR (networked · stubKey 'calendar') =================
 
   {

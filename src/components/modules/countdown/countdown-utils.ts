@@ -1,5 +1,6 @@
 import { parseDateInTZ } from '@/lib/timezone';
-import type { CountdownEvent } from '@/types/config';
+import { PRECISION_UNITS, type Unit, type UnitValue } from '@/lib/duration-format';
+import type { CountdownEvent, CountdownPrecision } from '@/types/config';
 import type { TimeRemaining, ProcessedEvent } from './types';
 
 export function getTimeRemaining(targetDate: string, timezone?: string): TimeRemaining {
@@ -17,6 +18,35 @@ export function getTimeRemaining(targetDate: string, timezone?: string): TimeRem
 
 export function pad(n: number) {
   return String(n).padStart(2, '0');
+}
+
+/**
+ * Pick which units a countdown shows, for the text-format views.
+ *
+ * `'auto'` is Countdown's own rule, not Elapsed's: days appear only when
+ * there's at least a full day left, but hours/minutes/seconds are always
+ * shown (a countdown keeps ticking seconds no matter how far off the event
+ * is). The four fixed precisions map their unit set unconditionally, zero
+ * values included.
+ */
+export function selectCountdownUnits(time: TimeRemaining, precision: CountdownPrecision): UnitValue[] {
+  const values: Record<Unit, number> = {
+    days: time.days,
+    hours: time.hours,
+    minutes: time.minutes,
+    seconds: time.seconds,
+  };
+
+  if (precision !== 'auto') {
+    return PRECISION_UNITS[precision].map((unit) => ({ unit, value: values[unit] }));
+  }
+
+  const included: UnitValue[] = [];
+  if (time.days > 0) included.push({ unit: 'days', value: time.days });
+  included.push({ unit: 'hours', value: time.hours });
+  included.push({ unit: 'minutes', value: time.minutes });
+  included.push({ unit: 'seconds', value: time.seconds });
+  return included;
 }
 
 /**

@@ -8,14 +8,18 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import { useTranslate } from '@/i18n';
-import type { ModuleInstance, CountdownEvent, CountdownView, CountdownConfig } from '@/types/config';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import type { ModuleInstance, CountdownEvent, CountdownView, CountdownConfig, CountdownFormat, CountdownPrecision } from '@/types/config';
+import { selectCountdownUnits } from '@/components/modules/countdown/countdown-utils';
+import type { TimeRemaining } from '@/components/modules/countdown/types';
+import { formatDuration } from '@/lib/duration-format';
 import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
+  const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<CountdownConfig>(mod, screenId);
   const events = c.events ?? [];
   const view = c.view ?? 'all';
@@ -24,6 +28,35 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
     { value: 'all', label: t('configSections.countdown.viewAll') },
     { value: 'next', label: t('configSections.countdown.viewNext') },
   ];
+
+  const FORMATS: { value: CountdownFormat; label: string }[] = [
+    { value: 'flip', label: t('configSections.countdown.formatFlip') },
+    { value: 'units', label: t('configSections.countdown.formatUnits') },
+    { value: 'unitsUpper', label: t('configSections.countdown.formatUnitsUpper') },
+    { value: 'unitsShort', label: t('configSections.countdown.formatUnitsShort') },
+    { value: 'colon', label: t('configSections.countdown.formatColon') },
+    { value: 'words', label: t('configSections.countdown.formatWords') },
+    { value: 'wordsTitle', label: t('configSections.countdown.formatWordsTitle') },
+  ];
+
+  const PRECISIONS: { value: CountdownPrecision; label: string }[] = [
+    { value: 'auto', label: t('configSections.countdown.precisionAuto') },
+    { value: 'days', label: t('configSections.countdown.precisionDays') },
+    { value: 'daysHours', label: t('configSections.countdown.precisionDaysHours') },
+    { value: 'daysHoursMinutes', label: t('configSections.countdown.precisionDaysHoursMinutes') },
+    { value: 'daysHoursMinutesSeconds', label: t('configSections.countdown.precisionDaysHoursMinutesSeconds') },
+  ];
+
+  const formatVal = c.format ?? 'flip';
+  const precisionVal = c.precision ?? 'auto';
+
+  // Live preview from a fixed sample duration (5d 3h 12m) run through the real
+  // countdown pipeline. Flip cards have no text rendering, so skip the preview.
+  const sample: TimeRemaining = { days: 5, hours: 3, minutes: 12, seconds: 0, past: false, totalMs: 0 };
+  const formatPreview =
+    formatVal === 'flip'
+      ? null
+      : formatDuration(selectCountdownUnits(sample, precisionVal), formatVal, formattingLocale);
 
   const { add: addEvent, remove: removeEvent, update: updateEvent } = useListEditor<CountdownEvent>(
     events,
@@ -88,6 +121,35 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
           className="w-full accent-hs-accent"
         />
       </LabeledField>
+
+      {/* Format + precision (shared with Clock's elapsed view; applies to all views) */}
+      <div className="flex flex-col gap-1">
+        <LabeledField label={t('configSections.countdown.format')}>
+          <select
+            value={formatVal}
+            onChange={(e) => set({ format: e.target.value as CountdownFormat })}
+            className={NESTED_INPUT_CLASS}
+          >
+            {FORMATS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </LabeledField>
+        <LabeledField label={t('configSections.countdown.precision')}>
+          <select
+            value={precisionVal}
+            onChange={(e) => set({ precision: e.target.value as CountdownPrecision })}
+            className={NESTED_INPUT_CLASS}
+          >
+            {PRECISIONS.map((p) => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
+          </select>
+        </LabeledField>
+        {formatPreview !== null && (
+          <span className="text-xs text-hs-text-faint">{formatPreview}</span>
+        )}
+      </div>
 
       {/* Events header with Add + Browse Holidays */}
       <div className="flex items-center justify-between">

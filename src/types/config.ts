@@ -604,6 +604,14 @@ export interface WeatherConfig {
 // Countdown config
 export type CountdownView = 'all' | 'next';
 
+// Two curated dropdowns, mirroring the Clock elapsed view (`CountdownFormat`
+// shares its unit styles with `formatDuration`). `'flip'` is the classic
+// flip-card look and the default; the rest render as text. Countdown's
+// `'auto'` keeps seconds ticking regardless of how far off the event is,
+// unlike clock's elapsed `'auto'` which drops seconds past an hour.
+export type CountdownFormat = 'flip' | 'units' | 'unitsUpper' | 'unitsShort' | 'colon' | 'words' | 'wordsTitle';
+export type CountdownPrecision = 'auto' | 'days' | 'daysHours' | 'daysHoursMinutes' | 'daysHoursMinutesSeconds';
+
 export interface CountdownEvent {
   id: string;
   name: string;
@@ -620,6 +628,8 @@ export interface CountdownConfig {
   scale: number; // 0.5 – 4, default 1
   view: CountdownView;
   holidayCountry?: string;
+  format: CountdownFormat;    // how units render: flip cards (default) or a text style shared with Clock's elapsed view
+  precision: CountdownPrecision; // which units are shown; 'auto' = days only when > 0, hours/minutes/seconds always
 }
 
 // Dad joke config

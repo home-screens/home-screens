@@ -375,6 +375,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showPastEvents: false,
       scale: 1,
       view: 'all',
+      format: 'flip',
+      precision: 'auto',
     },
     defaultSize: { w: 500, h: 500 },
   },
