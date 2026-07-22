@@ -2254,7 +2254,20 @@
       "referenceTime": "Reference Time",
       "referenceLabel": "Label",
       "referenceLabelPlaceholder": "e.g. market open",
-      "countUp": "Count Up (elapsed)"
+      "countUp": "Count Up (elapsed)",
+      "elapsedFormat": "Format",
+      "formatUnits": "Enheder (50d 20h 13m)",
+      "formatUnitsUpper": "Enheder, store bogstaver (50D 20H 13M)",
+      "formatUnitsShort": "Enheder, korte ord (50day 20hr 13min)",
+      "formatColon": "Kolon (50:20:13)",
+      "formatWords": "Ord (50 dage og 20 timer)",
+      "formatWordsTitle": "Ord, store bogstaver (50 Dage og 20 Timer)",
+      "elapsedPrecision": "Præcision",
+      "precisionAuto": "Auto",
+      "precisionDays": "Kun dage",
+      "precisionDaysHours": "Dage + timer",
+      "precisionDaysHoursMinutes": "Dage + timer + minutter",
+      "precisionDaysHoursMinutesSeconds": "Dage + timer + minutter + sekunder"
     },
     "countdown": {
       "viewAll": "All Events (Stacked)",

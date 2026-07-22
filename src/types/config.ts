@@ -471,6 +471,14 @@ export const DEFAULT_MODULE_STYLE: ModuleStyle = {
 };
 
 // Clock module config
+// Two curated dropdowns, not free-form pickers: `elapsedFormat` covers the
+// issue's "50d 20h 13m" / "50:20:13" / "50 days" / "50D" shapes, and
+// `elapsedPrecision` covers "how much detail" — a fixed unit set shown
+// unconditionally, deliberately not an open unit checklist, since most
+// combinations (e.g. hours+seconds only) are not something anyone would pick.
+export type ElapsedFormat = 'units' | 'unitsUpper' | 'unitsShort' | 'colon' | 'words' | 'wordsTitle';
+export type ElapsedPrecision = 'auto' | 'days' | 'daysHours' | 'daysHoursMinutes' | 'daysHoursMinutesSeconds';
+
 export type ClockView =
   | 'classic' | 'digital' | 'analog' | 'minimal' | 'flip'
   | 'word' | 'binary' | 'vertical' | 'split' | 'progress'
@@ -498,6 +506,8 @@ export interface ClockConfig {
   referenceTime: string;        // elapsed: ISO timestamp or time string
   referenceLabel: string;       // elapsed: label ("market open", "shift start")
   countUp: boolean;             // elapsed: count up (true) or down (false)
+  elapsedFormat: ElapsedFormat;         // elapsed: how units are rendered
+  elapsedPrecision: ElapsedPrecision;   // elapsed: which units are shown
 }
 
 // Fullscreen calendar module config (Skylight-inspired ambient display)

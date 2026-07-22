@@ -2254,7 +2254,20 @@
       "referenceTime": "Referentietijd",
       "referenceLabel": "Label",
       "referenceLabelPlaceholder": "bv. opening beurs",
-      "countUp": "Optellen (verstreken)"
+      "countUp": "Optellen (verstreken)",
+      "elapsedFormat": "Opmaak",
+      "formatUnits": "Eenheden (50d 20h 13m)",
+      "formatUnitsUpper": "Eenheden, hoofdletters (50D 20H 13M)",
+      "formatUnitsShort": "Eenheden, korte woorden (50day 20hr 13min)",
+      "formatColon": "Dubbele punt (50:20:13)",
+      "formatWords": "Woorden (50 dagen en 20 uur)",
+      "formatWordsTitle": "Woorden, hoofdletters (50 Dagen en 20 Uur)",
+      "elapsedPrecision": "Precisie",
+      "precisionAuto": "Automatisch",
+      "precisionDays": "Alleen dagen",
+      "precisionDaysHours": "Dagen + uren",
+      "precisionDaysHoursMinutes": "Dagen + uren + minuten",
+      "precisionDaysHoursMinutesSeconds": "Dagen + uren + minuten + seconden"
     },
     "countdown": {
       "viewAll": "Alle evenementen (gestapeld)",

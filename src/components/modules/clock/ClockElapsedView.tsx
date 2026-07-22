@@ -1,33 +1,14 @@
 'use client';
 
 import { parseDateInTZ } from '@/lib/timezone';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { formatElapsed } from './elapsed-format';
 import type { ClockViewProps } from './types';
-
-function formatElapsed(diffMs: number): string {
-  const totalSeconds = Math.floor(Math.abs(diffMs) / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const mins = Math.floor((totalSeconds % 3600) / 60);
-  const secs = totalSeconds % 60;
-
-  const parts: string[] = [];
-
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0 || days > 0) parts.push(`${hours}h`);
-  parts.push(`${mins}m`);
-
-  // Show seconds only when diff is under 1 hour for precision
-  if (totalSeconds < 3600) {
-    parts.push(`${secs}s`);
-  }
-
-  return parts.join(' ');
-}
 
 export default function ClockElapsedView({ config, now, scaledFontSize, containerRef, timezone }: ClockViewProps) {
   const t = useTranslate('modules');
+  const formattingLocale = useFormattingLocale();
   const accentColor = config.accentColor || '#ffffff';
 
   const refDate = config.referenceTime ? parseDateInTZ(config.referenceTime, timezone) : null;
@@ -55,7 +36,9 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
   // countUp=true: show time since reference (positive diff = time elapsed, negative diff = hasn't started)
   // countUp=false: show time until reference (negative diff = time remaining, positive diff = already passed)
   const isExpected = countUp ? diffMs >= 0 : diffMs <= 0;
-  const elapsed = formatElapsed(diffMs);
+  const elapsedFormat = config.elapsedFormat ?? 'units';
+  const elapsedPrecision = config.elapsedPrecision ?? 'auto';
+  const elapsed = formatElapsed(diffMs, elapsedFormat, elapsedPrecision, formattingLocale);
 
   const label = config.referenceLabel || '';
   const descriptor = isExpected
@@ -64,7 +47,8 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
       ? t('clock.elapsed.until', { label }).trim()
       : t('clock.elapsed.since', { label }).trim();
 
-  const displayValue = isExpected ? elapsed : !isExpected && Math.abs(diffMs) < 1000 ? '0s' : elapsed;
+  const displayValue =
+    isExpected || Math.abs(diffMs) >= 1000 ? elapsed : formatElapsed(0, elapsedFormat, elapsedPrecision, formattingLocale);
 
   return (
     <div
@@ -73,7 +57,7 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
     >
       {/* Elapsed time */}
       <div
-        className="tabular-nums font-light tracking-wide"
+        className={`font-light tracking-wide ${elapsedFormat === 'words' ? '' : 'tabular-nums'}`}
         style={{
           fontSize: scaledFontSize * 2.8,
           lineHeight: 1.1,

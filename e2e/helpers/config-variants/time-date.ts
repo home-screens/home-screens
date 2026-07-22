@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, matches, child, count, redBackground, redStyle } from './shared';
+import { has, lacks, matches, notMatches, child, count, redBackground, redStyle } from './shared';
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 
@@ -77,6 +77,74 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'clock', name: 'elapsed-countdown', kind: 'network-free',
     config: { view: 'elapsed', referenceTime: '2099-01-01T00:00', referenceLabel: 'E2E COUNTDOWN', countUp: false },
     expect: async (mod) => { await has('until E2E COUNTDOWN')(mod); await matches(/\d+d/)(mod); },
+  },
+  {
+    // elapsedFormat 'unitsUpper' is the same shape as the default 'units'
+    // but with capitalized unit letters — the "50D" example from the issue.
+    type: 'clock', name: 'elapsed-format-units-upper', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E UPPER', elapsedFormat: 'unitsUpper', elapsedPrecision: 'daysHoursMinutes' },
+    expect: async (mod) => { await matches(/\d+D \d+H \d+M/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // elapsedFormat 'unitsShort' is the same shape as 'units' but with
+    // abbreviated-word suffixes instead of single letters, and no space
+    // between the number and the word (matches the 'units'/'unitsUpper'
+    // convention rather than the spaced 'words' convention).
+    type: 'clock', name: 'elapsed-format-units-short', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E SHORT', elapsedFormat: 'unitsShort', elapsedPrecision: 'daysHoursMinutes' },
+    expect: async (mod) => { await matches(/\d+day \d+hr \d+min/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // elapsedFormat 'colon' renders colon-joined zero-padded digits instead
+    // of the default "Nd Nh Nm" unit-letter style. A fixed years-old
+    // referenceTime guarantees days/hours/minutes are all non-zero (and thus
+    // all three colon segments render) regardless of wall-clock time.
+    type: 'clock', name: 'elapsed-format-colon', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E COLON', elapsedFormat: 'colon' },
+    expect: async (mod) => { await matches(/\d+:\d{2}:\d{2}/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // elapsedFormat 'words' renders localized long-form unit words via
+    // Intl.DurationFormat — a distinct render path from the unit-letter
+    // styles and 'colon', so it gets its own discriminator row (see
+    // EXTRA_DISCRIMINATORS below).
+    type: 'clock', name: 'elapsed-format-words', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E WORDS', elapsedFormat: 'words' },
+    expect: async (mod) => { await matches(/\d+ days?[\s\S]*\d+ hours?[\s\S]*\d+ minutes?/)(mod); await notMatches(/\d+d\b/)(mod); },
+  },
+  {
+    // elapsedFormat 'wordsTitle' is the same localized rendering as 'words'
+    // but with each unit word capitalized (the "50 Days" example) — proves
+    // the formatToParts-based capitalization actually reaches the DOM.
+    type: 'clock', name: 'elapsed-format-words-title', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E TITLE', elapsedFormat: 'wordsTitle' },
+    expect: matches(/\d+ Days?[\s\S]*\d+ Hours?[\s\S]*\d+ Minutes?/),
+  },
+  {
+    // elapsedPrecision 'days' truncates to a bare day count with no smaller
+    // units — proves the precision axis works independent of format. The
+    // same years-old referenceTime would otherwise force hours into the
+    // default 'auto' output, so the absence of an "Nh" segment is the proof.
+    type: 'clock', name: 'elapsed-precision-days', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E DAYS', elapsedPrecision: 'days' },
+    // No trailing `\b` after the unit letter — textContent concatenates the
+    // value div directly against the adjacent "since/until" label div with
+    // no separating whitespace, so e.g. "2393d" butts against "since..."
+    // with no word boundary between the two word characters ('d', 's').
+    expect: async (mod) => { await matches(/\d+d/)(mod); await notMatches(/\d+h/)(mod); },
+  },
+  {
+    // Remaining ElapsedPrecision members: 'daysHours' shows exactly two
+    // units (no minutes)...
+    type: 'clock', name: 'elapsed-precision-days-hours', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E DAYS HOURS', elapsedPrecision: 'daysHours' },
+    expect: async (mod) => { await matches(/\d+d \d+h/)(mod); await notMatches(/\d+m/)(mod); },
+  },
+  {
+    // ...and 'daysHoursMinutesSeconds' shows all four.
+    type: 'clock', name: 'elapsed-precision-all-units', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E ALL UNITS', elapsedPrecision: 'daysHoursMinutesSeconds' },
+    expect: matches(/\d+d \d+h \d+m \d+s/),
   },
 
   // ================= DATE (network-free) =================

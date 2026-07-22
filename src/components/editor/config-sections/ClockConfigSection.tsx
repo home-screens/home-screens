@@ -10,8 +10,17 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
-import { useTranslate } from '@/i18n';
-import type { ModuleInstance, ClockView, WorldClockZone } from '@/types/config';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { formatElapsed } from '@/components/modules/clock/elapsed-format';
+import type { ModuleInstance, ClockView, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
+
+// 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
+// preview the elapsed format/precision combo the admin has selected.
+const SAMPLE_ELAPSED_MS =
+  50 * 24 * 60 * 60 * 1000 + // days
+  20 * 60 * 60 * 1000 + // hours
+  13 * 60 * 1000 + // minutes
+  42 * 1000; // seconds
 
 // Shared across every timezone picker in the app — see `src/lib/timezone.ts`.
 
@@ -34,7 +43,7 @@ const VIEW_FIELDS: Record<ClockView, Set<string>> = {
   arc:         new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'accentColor']),
   neon:        new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
   bar:         new Set(['format24h', 'showSeconds', 'accentColor']),
-  elapsed:     new Set(['referenceTime', 'referenceLabel', 'countUp', 'accentColor']),
+  elapsed:     new Set(['referenceTime', 'referenceLabel', 'countUp', 'accentColor', 'elapsedFormat', 'elapsedPrecision']),
 };
 
 type ClockConfigType = {
@@ -52,10 +61,13 @@ type ClockConfigType = {
   referenceTime?: string;
   referenceLabel?: string;
   countUp?: boolean;
+  elapsedFormat?: ElapsedFormat;
+  elapsedPrecision?: ElapsedPrecision;
 };
 
 export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<ClockConfigType>(mod, screenId);
 
   const VIEWS: { value: ClockView; label: string }[] = [
@@ -90,6 +102,23 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     { label: t('configSections.clock.datePresetWeekday'), value: 'EEEE' },
   ];
 
+  const ELAPSED_FORMATS: { value: ElapsedFormat; label: string }[] = [
+    { value: 'units', label: t('configSections.clock.formatUnits') },
+    { value: 'unitsUpper', label: t('configSections.clock.formatUnitsUpper') },
+    { value: 'unitsShort', label: t('configSections.clock.formatUnitsShort') },
+    { value: 'colon', label: t('configSections.clock.formatColon') },
+    { value: 'words', label: t('configSections.clock.formatWords') },
+    { value: 'wordsTitle', label: t('configSections.clock.formatWordsTitle') },
+  ];
+
+  const ELAPSED_PRECISIONS: { value: ElapsedPrecision; label: string }[] = [
+    { value: 'auto', label: t('configSections.clock.precisionAuto') },
+    { value: 'days', label: t('configSections.clock.precisionDays') },
+    { value: 'daysHours', label: t('configSections.clock.precisionDaysHours') },
+    { value: 'daysHoursMinutes', label: t('configSections.clock.precisionDaysHoursMinutes') },
+    { value: 'daysHoursMinutesSeconds', label: t('configSections.clock.precisionDaysHoursMinutesSeconds') },
+  ];
+
   const view = c.view ?? 'classic';
   const fields = VIEW_FIELDS[view] ?? new Set<string>();
   const dateFormatVal = c.dateFormat ?? 'EEEE, MMMM d';
@@ -107,6 +136,10 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   }
 
   const has = (field: string) => fields.has(field);
+
+  const elapsedFormatVal = c.elapsedFormat ?? 'units';
+  const elapsedPrecisionVal = c.elapsedPrecision ?? 'auto';
+  const elapsedPreview = formatElapsed(SAMPLE_ELAPSED_MS, elapsedFormatVal, elapsedPrecisionVal, formattingLocale);
 
   // Filter out already-selected timezones from the dropdown
   const availableZones = useMemo(
@@ -263,6 +296,35 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             onChange={(v) => set({ countUp: v })}
           />
         </>
+      )}
+
+      {/* Elapsed: format + precision */}
+      {has('elapsedFormat') && (
+        <div className="flex flex-col gap-1">
+          <LabeledField label={t('configSections.clock.elapsedFormat')}>
+            <select
+              value={elapsedFormatVal}
+              onChange={(e) => set({ elapsedFormat: e.target.value as ElapsedFormat })}
+              className={INPUT_CLASS}
+            >
+              {ELAPSED_FORMATS.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
+            </select>
+          </LabeledField>
+          <LabeledField label={t('configSections.clock.elapsedPrecision')}>
+            <select
+              value={elapsedPrecisionVal}
+              onChange={(e) => set({ elapsedPrecision: e.target.value as ElapsedPrecision })}
+              className={INPUT_CLASS}
+            >
+              {ELAPSED_PRECISIONS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </LabeledField>
+          <span className="text-xs text-hs-text-faint">{elapsedPreview}</span>
+        </div>
       )}
     </>
   );

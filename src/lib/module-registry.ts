@@ -342,6 +342,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       referenceTime: '',
       referenceLabel: '',
       countUp: true,
+      elapsedFormat: 'units',
+      elapsedPrecision: 'auto',
     },
     defaultSize: { w: 400, h: 200 },
   },
