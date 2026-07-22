@@ -14,6 +14,15 @@ const f = (
   locale = 'en-US',
 ) => formatElapsed(diffMs, format, precision, locale);
 
+// Intl.DurationFormat landed in Node before it landed in every LTS release
+// still in CI's support matrix — on a runtime that lacks it, formatElapsed
+// correctly falls through to the English fallback path (see the dedicated
+// fallback tests below, which force that path via vi.stubGlobal regardless
+// of the runtime). Assertions on the real localized/capitalized output only
+// make sense on a runtime that actually has the feature; skip them instead
+// of asserting the fallback string, so this file works on any Node version.
+const hasDurationFormat = typeof Intl.DurationFormat === 'function';
+
 describe('formatElapsed — units/auto regression (must match the pre-existing formatter byte-for-byte)', () => {
   it('renders days/hours/minutes for a duration over 1h, omitting seconds', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE + 42 * SECOND;
@@ -115,20 +124,20 @@ describe('formatElapsed — words format', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses Intl.DurationFormat for English long-form output', () => {
+  it.skipIf(!hasDurationFormat)('uses Intl.DurationFormat for English long-form output', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
     expect(f(diff, 'words', 'daysHoursMinutes')).toBe('50 days, 20 hours, 13 minutes');
   });
 
-  it('shows the "0 hours" quirk under auto precision once days is active, matching units/auto', () => {
+  it.skipIf(!hasDurationFormat)('shows the "0 hours" quirk under auto precision once days is active, matching units/auto', () => {
     expect(f(DAY, 'words')).toBe('1 day, 0 hours, 0 minutes');
   });
 
-  it('renders a single days-only value', () => {
+  it.skipIf(!hasDurationFormat)('renders a single days-only value', () => {
     expect(f(50 * DAY + HOUR, 'words', 'days')).toBe('50 days');
   });
 
-  it('localizes unit words for a non-English locale (de-DE)', () => {
+  it.skipIf(!hasDurationFormat)('localizes unit words for a non-English locale (de-DE)', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
     const result = f(diff, 'words', 'daysHoursMinutes', 'de-DE');
     expect(result).toContain('Tage');
@@ -140,12 +149,12 @@ describe('formatElapsed — wordsTitle format', () => {
     vi.unstubAllGlobals();
   });
 
-  it('capitalizes only the unit words, keeping locale punctuation and connectors untouched', () => {
+  it.skipIf(!hasDurationFormat)('capitalizes only the unit words, keeping locale punctuation and connectors untouched', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
     expect(f(diff, 'wordsTitle', 'daysHoursMinutes')).toBe('50 Days, 20 Hours, 13 Minutes');
   });
 
-  it('capitalizes unit words for a non-English locale while preserving its connector word (de-DE "und")', () => {
+  it.skipIf(!hasDurationFormat)('capitalizes unit words for a non-English locale while preserving its connector word (de-DE "und")', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
     const result = f(diff, 'wordsTitle', 'daysHoursMinutes', 'de-DE');
     expect(result).toBe('50 Tage, 20 Stunden und 13 Minuten');
@@ -163,7 +172,7 @@ describe('formatElapsed — wordsTitle format', () => {
     expect(f(diff, 'words', 'daysHoursMinutes')).toBe('50 days 20 hours 13 minutes');
   });
 
-  it('renders zeroed units for a diff of exactly 0, never an empty string', () => {
+  it.skipIf(!hasDurationFormat)('renders zeroed units for a diff of exactly 0, never an empty string', () => {
     expect(f(0, 'words')).toBe('0 minutes, 0 seconds');
   });
 });
