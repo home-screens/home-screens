@@ -7,6 +7,7 @@ import {
   LEGACY_SUBTAB_REDIRECTS,
   DEFAULT_PAGE_IDS,
   PER_DISPLAY_SUBTABS,
+  validPanelFor,
 } from '@/lib/settings-route';
 
 /**
@@ -39,10 +40,14 @@ describe('parseSettingsRoute', () => {
   });
 
   it.each(Object.entries(LEGACY_PAGE_REDIRECTS))(
-    'maps the retired ?section=defaults&page=%s to its absorbing page',
-    (oldId, newId) => {
+    'maps the retired ?section=defaults&page=%s to its absorbing page and tab',
+    (oldId, target) => {
       const params = new URLSearchParams(`section=defaults&page=${oldId}`);
-      expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: newId });
+      expect(parseSettingsRoute(params)).toEqual(
+        target.panel
+          ? { kind: 'defaults', page: target.page, panel: target.panel }
+          : { kind: 'defaults', page: target.page },
+      );
     },
   );
 
@@ -104,7 +109,11 @@ describe('parseSettingsRoute', () => {
     // effect drops the `tab` key on the next render, but the parser
     // must still resolve the right page on the first one.)
     const params = new URLSearchParams('tab=sleep&section=displays');
-    expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
+    expect(parseSettingsRoute(params)).toEqual({
+      kind: 'defaults',
+      page: 'screen',
+      panel: 'sleep',
+    });
   });
 
   it('honors a legacy ?tab=X mapping even when section=defaults&page=Y co-exists', () => {
@@ -145,20 +154,39 @@ describe('resolveSettingsRoute', () => {
 
   it('returns the canonical query string when a legacy ?tab=X is present', () => {
     const result = resolveSettingsRoute('tab=display');
-    expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
+    expect(result.route).toEqual({ kind: 'defaults', page: 'screen', panel: 'appearance' });
     expect(result.redirectedQuery).toBeDefined();
     const next = new URLSearchParams(result.redirectedQuery!);
     expect(next.get('tab')).toBeNull();
     expect(next.get('section')).toBe('defaults');
     expect(next.get('page')).toBe('screen');
+    expect(next.get('panel')).toBe('appearance');
   });
 
   it('returns the canonical query string when a retired page id is present', () => {
     const result = resolveSettingsRoute('section=defaults&page=rules');
-    expect(result.route).toEqual({ kind: 'defaults', page: 'automation' });
+    expect(result.route).toEqual({ kind: 'defaults', page: 'automation', panel: 'rules' });
     expect(result.redirectedQuery).toBeDefined();
     const next = new URLSearchParams(result.redirectedQuery!);
     expect(next.get('page')).toBe('automation');
+    // The whole point: the retired standalone Rules page must land on the
+    // Rules tab, not on Automation's default (Profiles) tab.
+    expect(next.get('panel')).toBe('rules');
+  });
+
+  it('drops a ?panel= that the destination page does not own', () => {
+    // A hand-edited or stale URL must not leave the bar advertising a tab that
+    // is not what renders.
+    const result = resolveSettingsRoute('section=defaults&page=weather&panel=rules');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'weather' });
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('panel')).toBeNull();
+  });
+
+  it('passes a valid ?panel= through untouched with no rewrite', () => {
+    const result = resolveSettingsRoute('section=defaults&page=screen&panel=alerts');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'screen', panel: 'alerts' });
+    expect(result.redirectedQuery).toBeUndefined();
   });
 
   it('returns the canonical query string when a retired subtab id is present', () => {
@@ -230,9 +258,15 @@ describe('legacy redirect tables', () => {
 
   it('LEGACY_PAGE_REDIRECTS never maps a live page id and only targets live ids', () => {
     const knownPages = new Set<string>(DEFAULT_PAGE_IDS);
-    for (const [oldId, newId] of Object.entries(LEGACY_PAGE_REDIRECTS)) {
+    for (const [oldId, target] of Object.entries(LEGACY_PAGE_REDIRECTS)) {
       expect(knownPages.has(oldId)).toBe(false);
-      expect(knownPages.has(newId)).toBe(true);
+      expect(knownPages.has(target.page)).toBe(true);
+      // A declared panel must be one the destination page actually renders,
+      // otherwise the redirect lands on the default tab anyway and the URL bar
+      // advertises a tab that does not exist.
+      if (target.panel) {
+        expect(validPanelFor(target.page, target.panel)).toBe(target.panel);
+      }
     }
   });
 
@@ -241,6 +275,91 @@ describe('legacy redirect tables', () => {
     for (const [oldId, newId] of Object.entries(LEGACY_SUBTAB_REDIRECTS)) {
       expect(knownSubtabs.has(oldId)).toBe(false);
       expect(knownSubtabs.has(newId)).toBe(true);
+    }
+  });
+});
+
+/**
+ * The redirect-table tests above all iterate `Object.entries(LEGACY_*)` — the
+ * very tables under test. That shape can only check the entries that exist, so
+ * a retired id someone forgot to ADD to the table is never asserted: a
+ * test-that-cannot-fail.
+ *
+ * These pin the real historical id lists as literals instead. They are
+ * deliberately hard-coded rather than read from git: the point is that the
+ * expectation cannot move when the source does.
+ *
+ * When a future reorg retires more ids, append the shipped list here as a new
+ * frozen release row.
+ */
+describe('every id that was ever routable still resolves', () => {
+  // From `git show v1.7.1:src/lib/settings-route.ts`.
+  const V1_7_1_PAGE_IDS = [
+    'display', 'sleep', 'alerts', 'location', 'weather', 'calendar', 'meals',
+    'profiles', 'integrations', 'security', 'data', 'stats', 'system',
+    'network', 'docs',
+  ] as const;
+
+  const V1_7_1_SUBTABS = [
+    'overview', 'display', 'sleep', 'alerts', 'profile', 'identity',
+  ] as const;
+
+  it.each(V1_7_1_PAGE_IDS)(
+    'a v1.7.1 bookmark to ?section=defaults&page=%s lands on a live page',
+    (oldId) => {
+      const route = parseSettingsRoute(new URLSearchParams(`section=defaults&page=${oldId}`));
+      expect(route.kind).toBe('defaults');
+      // Not merely "does not crash": an id missing from the table silently
+      // falls through to the `screen` default, so assert it either survived as
+      // a live id or has a real entry pointing somewhere.
+      const isLivePageId = (DEFAULT_PAGE_IDS as readonly string[]).includes(oldId);
+      expect(isLivePageId || !!LEGACY_PAGE_REDIRECTS[oldId]).toBe(true);
+    },
+  );
+
+  it.each(V1_7_1_SUBTABS)(
+    'a v1.7.1 bookmark to ?subtab=%s lands on a live subtab',
+    (oldId) => {
+      const route = parseSettingsRoute(
+        new URLSearchParams(`section=display&id=kitchen&subtab=${oldId}`),
+      );
+      expect(route.kind).toBe('display');
+      const isLiveSubtab = (PER_DISPLAY_SUBTABS as readonly string[]).includes(oldId);
+      expect(isLiveSubtab || !!LEGACY_SUBTAB_REDIRECTS[oldId]).toBe(true);
+    },
+  );
+
+  it('every retired v1.7.1 page that became a tab redirects to that tab, not the default', () => {
+    // The concrete regression: `?page=sleep` resolving to `{page:'screen'}`
+    // with no panel opened the Appearance tab, and the canonicalizer then
+    // rewrote the URL bar to that, destroying the bookmark's intent.
+    const expected: Record<string, string> = {
+      display: 'appearance',
+      sleep: 'sleep',
+      alerts: 'alerts',
+      profiles: 'profiles',
+    };
+    for (const [oldId, panel] of Object.entries(expected)) {
+      const { route, redirectedQuery } = resolveSettingsRoute(
+        `section=defaults&page=${oldId}`,
+      );
+      expect(route).toMatchObject({ kind: 'defaults', panel });
+      expect(redirectedQuery).toContain(`panel=${panel}`);
+    }
+  });
+
+  it('every retired v1.7.1 ?tab= that became a tab redirects to that tab', () => {
+    const expected: Record<string, string> = {
+      sleep: 'sleep',
+      alerts: 'alerts',
+      rules: 'rules',
+      'default-sleep': 'sleep',
+      'default-alerts': 'alerts',
+    };
+    for (const [tab, panel] of Object.entries(expected)) {
+      const { route, redirectedQuery } = resolveSettingsRoute(`tab=${tab}`);
+      expect(route).toMatchObject({ kind: 'defaults', panel });
+      expect(redirectedQuery).toContain(`panel=${panel}`);
     }
   });
 });

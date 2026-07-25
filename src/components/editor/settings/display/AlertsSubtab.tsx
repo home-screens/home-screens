@@ -68,13 +68,13 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.alerts.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=screen"
+      defaultsHref="?section=defaults&page=screen&panel=alerts"
       defaultsLabel={t('settings.perDisplayPage.alerts.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.alerts.infoPart1')}
           <Link
-            href="?section=defaults&page=screen"
+            href="?section=defaults&page=screen&panel=alerts"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.alerts.defaultsLabel')}

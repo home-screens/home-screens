@@ -316,3 +316,45 @@ test('rules edit the selected display in multi-display mode', async ({ page, req
   expect(main.rules ?? []).toHaveLength(0);
   expect(saved.rules ?? []).toHaveLength(0);
 });
+
+/**
+ * Switching `?panel=` tabs unmounts the section. Without `flushOnUnmount`, the
+ * pending debounced PUT was cancelled and the edit vanished silently.
+ *
+ * Deliberately NOT wrapped in `autosaved` — that helper blocks on the
+ * `/api/config` PUT before continuing, so it navigates outside the 500ms
+ * debounce window and can never reproduce this. Every other write in this file
+ * uses it, which is exactly why the suite was blind to the bug.
+ */
+test('a rule edit survives an immediate switch to the Profiles tab', async ({ page, request }) => {
+  await putConfig(request, twoScreenConfig([seededRule()]));
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
+
+  await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
+  await page.getByText('Rule is on').click();
+
+  // Immediately, inside the debounce window.
+  await page.getByTestId('automation-tab-profiles').click();
+  await expect(page.getByRole('button', { name: 'Add Profile' })).toBeVisible();
+
+  await expect.poll(async () => {
+    const config = await getConfig(request);
+    return config.rules?.[0]?.enabled;
+  }).toBe(false);
+});
+
+test('a profile edit survives an immediate switch to the Rules tab', async ({ page, request }) => {
+  const config = twoScreenConfig();
+  config.profiles = [{ id: 'p1', name: 'Evening', screenIds: ['home'] }];
+  await putConfig(request, config);
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=profiles');
+
+  await page.getByRole('button', { name: 'Add Profile' }).click();
+  await page.getByTestId('automation-tab-rules').click();
+  await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
+
+  await expect.poll(async () => {
+    const saved = await getConfig(request);
+    return saved.profiles?.length;
+  }).toBe(2);
+});

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { SCREEN_PANEL_IDS } from '@/lib/settings-route';
 import type { ScreenConfiguration, TransitionEffect } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import {
@@ -29,8 +30,14 @@ import { useTranslate, type TranslateFn } from '@/i18n';
  * Canvas controls (single-display only) live at the top of `appearance`
  * since they're display geometry.
  */
-const SCREEN_PANELS = ['appearance', 'sleep', 'alerts'] as const;
+// Sourced from settings-route so the route parser and this tab bar cannot
+// disagree about which panel ids exist.
+const SCREEN_PANELS = SCREEN_PANEL_IDS;
 type ScreenPanel = (typeof SCREEN_PANELS)[number];
+
+function isScreenPanel(value: string | undefined): value is ScreenPanel {
+  return !!value && (SCREEN_PANELS as readonly string[]).includes(value);
+}
 
 function panelLabel(panel: ScreenPanel, t: TranslateFn): string {
   switch (panel) {
@@ -72,6 +79,8 @@ export interface ScreenDisplayValues {
 interface ScreenSectionProps {
   /** The full config — needed for the backlink banner scan and to decide whether canvas controls render. */
   config: ScreenConfiguration;
+  /** Active tab, from the resolved settings route. Undefined means "no tab named". */
+  panel?: string;
   displayValues: ScreenDisplayValues;
   sleepValues: SleepFormValues;
   alertValues: AlertFormValues;
@@ -110,6 +119,7 @@ function resolvePreset(width: number, height: number) {
  */
 export default function ScreenSection({
   config,
+  panel: routePanel,
   displayValues,
   sleepValues,
   alertValues,
@@ -121,11 +131,15 @@ export default function ScreenSection({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const rawPanel = searchParams?.get('panel');
-  const panel: ScreenPanel =
-    rawPanel && (SCREEN_PANELS as readonly string[]).includes(rawPanel)
-      ? (rawPanel as ScreenPanel)
-      : panelForHighlight(searchParams?.get('highlight') ?? null);
+  // The active tab comes from the resolved route, not from a second, private
+  // read of `?panel=`. That parse could not see a legacy id's intended tab
+  // (`?tab=sleep` carries no panel at all), so the page flashed Appearance
+  // until the canonicalizing replace landed — and the two parsers were free to
+  // drift. `?highlight=` still selects a tab when the route names none, so a
+  // field-search result can jump straight to the tab that renders it.
+  const panel: ScreenPanel = isScreenPanel(routePanel)
+    ? routePanel
+    : panelForHighlight(searchParams?.get('highlight') ?? null);
 
   const navigateToPanel = useCallback(
     (next: ScreenPanel) => {

@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AUTOMATION_PANEL_IDS } from '@/lib/settings-route';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import ProfilesSection from './ProfilesSection';
@@ -27,7 +28,9 @@ import SharedStateSection from './SharedStateSection';
  * looking.
  */
 
-const AUTOMATION_PANELS = ['profiles', 'rules', 'live'] as const;
+// Sourced from settings-route so the route parser and this tab bar cannot
+// disagree about which panel ids exist.
+const AUTOMATION_PANELS = AUTOMATION_PANEL_IDS;
 type AutomationPanel = (typeof AUTOMATION_PANELS)[number];
 
 function panelLabel(panel: AutomationPanel, t: TranslateFn): string {
@@ -41,7 +44,7 @@ function panelLabel(panel: AutomationPanel, t: TranslateFn): string {
   }
 }
 
-export default function AutomationSection() {
+export default function AutomationSection({ panel: routePanel }: { panel?: string } = {}) {
   const t = useTranslate('editor');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,9 +52,11 @@ export default function AutomationSection() {
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const setSelectedDisplay = useEditorStore((s) => s.setSelectedDisplay);
 
-  const rawPanel = searchParams?.get('panel') ?? 'profiles';
-  const panel: AutomationPanel = (AUTOMATION_PANELS as readonly string[]).includes(rawPanel)
-    ? (rawPanel as AutomationPanel)
+  // From the resolved route rather than a private second read of `?panel=`;
+  // see the matching note in ScreenSection. A legacy `?page=rules` bookmark now
+  // opens the Rules tab on the first render instead of Profiles.
+  const panel: AutomationPanel = (AUTOMATION_PANELS as readonly string[]).includes(routePanel ?? '')
+    ? (routePanel as AutomationPanel)
     : 'profiles';
 
   const navigateToPanel = useCallback(

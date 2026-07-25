@@ -112,7 +112,24 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   const router = useRouter();
   const searchParams = useSearchParams();
   const { config, setSelectedDisplay } = useEditorStore();
+  const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
+
+  // Keep the store's notion of "current display" in step with the URL's.
+  //
+  // Per-display settings pages route by `?section=display&id=`, while
+  // Automation (profiles, rules, shared state) and the canvas read the store's
+  // `selectedDisplayId`. This used to sync only from the "Edit screens" button,
+  // so drilling into Kitchen and then clicking Automation showed main's rules.
+  //
+  // Guarded on inequality because setSelectedDisplay also resets
+  // selectedScreenId / selectedModuleId and rewrites the canvas URL — running
+  // it on every render would fight the user's canvas selection.
+  useEffect(() => {
+    if (displayId && displayId !== selectedDisplayId) {
+      setSelectedDisplay(displayId);
+    }
+  }, [displayId, selectedDisplayId, setSelectedDisplay]);
 
   // Heartbeat poll. The 5s cadence matches DisplaysSection so two open
   // tabs hammer /api/displays at the same rate the route's tiny readConfig

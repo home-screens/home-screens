@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslate } from '@/i18n';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
@@ -11,7 +11,7 @@ import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import ScreenSection from '@/components/editor/settings/ScreenSection';
 import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
-import { resolveSettingsRoute } from '@/lib/settings-route';
+import { resolveSettingsRoute, type DefaultPageId } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import LocationSection from '@/components/editor/settings/LocationSection';
 import LanguageFields from '@/components/editor/settings/LanguageFields';
@@ -142,6 +142,11 @@ function SettingsPageContent() {
   // surgical — only the sidebar and the URL parser need to know about
   // the new shape.
   const activeTab: TabId | null = sectionRoute.kind === 'defaults' ? sectionRoute.page : null;
+  // The route now carries the intra-page tab, so the sections no longer parse
+  // `?panel=` themselves. That is what makes a legacy id like `?tab=sleep`
+  // land on the Sleep tab on the FIRST render, instead of flashing the default
+  // tab until the canonicalizing router.replace lands.
+  const activePanel = sectionRoute.kind === 'defaults' ? sectionRoute.panel : undefined;
   // Load config on mount (handles hard refresh / direct URL visit)
   useEffect(() => {
     if (!config) loadConfig();
@@ -335,6 +340,108 @@ function SettingsPageContent() {
     </span>
   ) : null;
 
+  /**
+   * Content for every Defaults page, keyed by page id.
+   *
+   * Typed as a total `Record<DefaultPageId, ReactNode>` on purpose: adding an
+   * id to `DEFAULT_PAGE_IDS` without adding content here is now a build
+   * failure rather than a page that renders an empty pane with no clue why.
+   */
+  const DEFAULTS_PAGE_CONTENT: Record<DefaultPageId, ReactNode> = {
+    screen: config ? (
+      <ScreenSection
+        config={config}
+        panel={activePanel}
+        displayValues={state.display}
+        sleepValues={state.sleep}
+        alertValues={state.alerts}
+        onDisplayChange={handleDisplayChange}
+        onSleepChange={(updates) => updateGroup('sleep', updates)}
+        onAlertsChange={(updates) => updateGroup('alerts', updates)}
+      />
+    ) : null,
+
+    automation: <AutomationSection panel={activePanel} />,
+
+    location: (
+      <>
+        <div className="mb-5">
+          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
+            {t('settings.locationAndLanguagePage.breadcrumb')}
+          </div>
+          <h1 className="text-xl font-semibold text-hs-text-primary">
+            {t('settings.locationAndLanguagePage.title')}
+          </h1>
+          <p className="text-sm text-hs-text-faint mt-1">
+            {t('settings.locationAndLanguagePage.description')}
+          </p>
+        </div>
+        <LanguageFields />
+        <div className="mt-6">
+          <LocationSection
+            values={state.location}
+            onChange={(updates) => updateGroup('location', updates)}
+          />
+        </div>
+      </>
+    ),
+
+    weather: (
+      <WeatherSection
+        values={{
+          ...state.weather,
+          lat: state.location.lat,
+          lon: state.location.lon,
+        }}
+        onChange={(updates) => {
+          const { lat, lon, ...weatherUpdates } = updates as Partial<WeatherState & { lat: string; lon: string }>;
+          if (lat !== undefined || lon !== undefined) {
+            updateGroup('location', { ...(lat !== undefined && { lat }), ...(lon !== undefined && { lon }) });
+          }
+          if (Object.keys(weatherUpdates).length > 0) {
+            updateGroup('weather', weatherUpdates);
+          }
+        }}
+      />
+    ),
+
+    calendar: (
+      <CalendarSection
+        values={{
+          ...state.calendar,
+          holidayCountry: state.calendar.holidayCountry || undefined,
+        }}
+        onChange={(updates) => updateGroup('calendar', updates)}
+      />
+    ),
+
+    meals: <MealsSection />,
+
+    integrations: <IntegrationsSection />,
+
+    security: <SecuritySection />,
+
+    data: (
+      <DataSection
+        onSettingsImported={() => {
+          const imported = useEditorStore.getState().config?.settings;
+          setState(toFormState(imported));
+        }}
+      />
+    ),
+
+    stats: <StatsSection />,
+
+    system: (
+      <SystemSection
+        onUpgrade={(tag, from) => { setUpgradeFromVersion(from); setUpgradeTarget(tag); }}
+        onRollback={(tag, from) => { setUpgradeFromVersion(from); setRollbackTarget(tag); }}
+      />
+    ),
+
+    network: <NetworkSection />,
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -394,110 +501,12 @@ function SettingsPageContent() {
                 ? 'max-w-4xl'
                 : 'max-w-2xl'
           }`}>
-            {activeTab === 'screen' && config && (
-              <ScreenSection
-                config={config}
-                displayValues={state.display}
-                sleepValues={state.sleep}
-                alertValues={state.alerts}
-                onDisplayChange={handleDisplayChange}
-                onSleepChange={(updates) => updateGroup('sleep', updates)}
-                onAlertsChange={(updates) => updateGroup('alerts', updates)}
-              />
-            )}
-
-            {activeTab === 'automation' && (
-              <AutomationSection />
-            )}
-
-            {activeTab === 'location' && (
-              <>
-                <div className="mb-5">
-                  <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-                    {t('settings.locationAndLanguagePage.breadcrumb')}
-                  </div>
-                  <h1 className="text-xl font-semibold text-hs-text-primary">
-                    {t('settings.locationAndLanguagePage.title')}
-                  </h1>
-                  <p className="text-sm text-hs-text-faint mt-1">
-                    {t('settings.locationAndLanguagePage.description')}
-                  </p>
-                </div>
-                <LanguageFields />
-                <div className="mt-6">
-                  <LocationSection
-                    values={state.location}
-                    onChange={(updates) => updateGroup('location', updates)}
-                  />
-                </div>
-              </>
-            )}
-
-            {activeTab === 'weather' && (
-              <WeatherSection
-                values={{
-                  ...state.weather,
-                  lat: state.location.lat,
-                  lon: state.location.lon,
-                }}
-                onChange={(updates) => {
-                  const { lat, lon, ...weatherUpdates } = updates as Partial<WeatherState & { lat: string; lon: string }>;
-                  if (lat !== undefined || lon !== undefined) {
-                    updateGroup('location', { ...(lat !== undefined && { lat }), ...(lon !== undefined && { lon }) });
-                  }
-                  if (Object.keys(weatherUpdates).length > 0) {
-                    updateGroup('weather', weatherUpdates);
-                  }
-                }}
-              />
-            )}
-
-            {activeTab === 'calendar' && (
-              <CalendarSection
-                values={{
-                  ...state.calendar,
-                  holidayCountry: state.calendar.holidayCountry || undefined,
-                }}
-                onChange={(updates) => updateGroup('calendar', updates)}
-              />
-            )}
-
-            {activeTab === 'meals' && (
-              <MealsSection />
-            )}
-
-            {activeTab === 'integrations' && (
-              <IntegrationsSection />
-            )}
-
-            {activeTab === 'security' && (
-              <SecuritySection />
-            )}
-
-            {activeTab === 'data' && (
-              <DataSection
-                onSettingsImported={() => {
-                  const imported = useEditorStore.getState().config?.settings;
-                  setState(toFormState(imported));
-                }}
-              />
-            )}
-
-            {activeTab === 'stats' && (
-              <StatsSection />
-            )}
-
-            {activeTab === 'system' && (
-              <SystemSection
-                onUpgrade={(tag, from) => { setUpgradeFromVersion(from); setUpgradeTarget(tag); }}
-                onRollback={(tag, from) => { setUpgradeFromVersion(from); setRollbackTarget(tag); }}
-              />
-            )}
-
-            {activeTab === 'network' && (
-              <NetworkSection />
-            )}
-
+            {/* Keyed off a Record<DefaultPageId, ReactNode> rather than a chain
+                of `activeTab === 'x' &&` branches. A live page id with no
+                content branch used to render a silently empty pane; now a
+                missing entry is a compile error, which matters because this
+                list churned twice during the settings reorg. */}
+            {DEFAULTS_PAGE_CONTENT[activeTab as DefaultPageId] ?? null}
           </div>
           )}
         </div>

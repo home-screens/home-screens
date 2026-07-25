@@ -34,7 +34,15 @@ import {
   type DefaultPageId,
   type SettingsRoute,
 } from '@/lib/settings-route';
-import { SETTINGS_FIELD_INDEX, resolveSettingsFieldLabel, type SettingsFieldEntry } from '@/lib/settings-search-index';
+import { FORM_DEFAULTS } from '@/lib/settings-form';
+import { getDisplayProfiles } from '@/lib/display-filter';
+import {
+  SETTINGS_FIELD_INDEX,
+  resolveSettingsFieldLabel,
+  isSettingsFieldReachable,
+  type SettingsFieldEntry,
+  type SettingsFieldVisibilityContext,
+} from '@/lib/settings-search-index';
 import type { DisplayNode } from '@/types/config';
 
 /**
@@ -205,9 +213,53 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     () => Object.fromEntries(defaultPages.map((p) => [p.id, p.label])) as Record<DefaultPageId, string>,
     [defaultPages],
   );
+  // Conditionally-rendered fields are filtered OUT of the results rather than
+  // offered and then silently failing to highlight. Advanced-mode and
+  // multi-display fields are the important ones: there is nothing the user can
+  // do on the destination page to make them appear, so a dead result there
+  // reads as "the search is broken".
+  const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
+  const profilesForSelectedDisplay = useMemo(() => {
+    const activeDisplay = selectedDisplayId
+      ? config?.displays?.find((d) => d.id === selectedDisplayId) ?? null
+      : null;
+    return activeDisplay
+      ? getDisplayProfiles(activeDisplay, config?.profiles)
+      : config?.profiles ?? [];
+  }, [config?.displays, config?.profiles, selectedDisplayId]);
+
+  const fieldVisibility: SettingsFieldVisibilityContext = useMemo(
+    () => ({
+      advancedMode: config?.settings?.advancedMode ?? false,
+      isMultiDisplay,
+      // Resolved per selected display, mirroring ProfilesSection exactly.
+      // `addDisplay` snapshots the pool onto each display and every later
+      // add/delete goes only to `display.profiles`, so the global pool freezes
+      // at bootstrap and divergence is the steady state, not an edge case.
+      // Counting the pool broke in both directions: a display owning `[]` beside
+      // a non-empty pool still offered a dead search result, and a display
+      // owning profiles beside an empty pool hid a field that was on screen.
+      profileCount: profilesForSelectedDisplay.length,
+      // Must resolve undefined the SAME way the page does. `toFormState`
+      // (settings-form.ts) falls back to FORM_DEFAULTS, so a config with no
+      // `transitionEffect` renders the duration field; defaulting to 'none'
+      // here would hide it from search while it sits visible on the page —
+      // the same dead end this gating exists to prevent, inverted.
+      transitionEffect:
+        config?.settings?.transitionEffect ?? FORM_DEFAULTS.display.transitionEffect,
+    }),
+    [config?.settings?.advancedMode, config?.settings?.transitionEffect, profilesForSelectedDisplay, isMultiDisplay],
+  );
   const filteredFields = useMemo(
-    () => (query ? SETTINGS_FIELD_INDEX.filter((f) => resolveSettingsFieldLabel(f, t).toLowerCase().includes(query)) : []),
-    [query, t],
+    () =>
+      query
+        ? SETTINGS_FIELD_INDEX.filter(
+            (f) =>
+              resolveSettingsFieldLabel(f, t).toLowerCase().includes(query)
+              && isSettingsFieldReachable(f, fieldVisibility),
+          )
+        : [],
+    [query, t, fieldVisibility],
   );
 
   // Live heartbeat polling — only when in multi-display mode and the

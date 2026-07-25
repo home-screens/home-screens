@@ -18,23 +18,66 @@ import type { DefaultPageId } from '@/lib/settings-route';
  * pulse the page snaps back to its first tab. Fields on untabbed pages
  * omit it.
  */
+/**
+ * What the destination page needs to be true for a conditionally-rendered
+ * field to actually exist in the DOM.
+ *
+ * Without this, a search hit for a hidden field navigated to its page, polled
+ * for `[data-field-id=...]` for three seconds, and then gave up silently — no
+ * highlight, no message, no explanation. Worst for the advanced-mode and
+ * multi-display cases, where there is nothing the user can do ON the
+ * destination page to make the field appear.
+ */
+export interface SettingsFieldVisibilityContext {
+  advancedMode: boolean;
+  isMultiDisplay: boolean;
+  profileCount: number;
+  transitionEffect: string;
+}
+
+interface SettingsFieldEntryBase {
+  pageId: DefaultPageId;
+  fieldId: string;
+  panel?: string;
+  /**
+   * Omitted for the ~90% of fields that always render. When set, the field is
+   * only offered as a search result while the predicate holds.
+   */
+  visibleWhen?: (ctx: SettingsFieldVisibilityContext) => boolean;
+}
+
 export type SettingsFieldEntry =
-  | { pageId: DefaultPageId; fieldId: string; labelKey: string; label?: undefined; panel?: string }
-  | { pageId: DefaultPageId; fieldId: string; labelKey?: undefined; label: string; panel?: string };
+  | (SettingsFieldEntryBase & { labelKey: string; label?: undefined })
+  | (SettingsFieldEntryBase & { labelKey?: undefined; label: string });
 
 /** Resolves an entry's visible label — translated if `labelKey` is set, verbatim if `label` is set. */
 export function resolveSettingsFieldLabel(entry: SettingsFieldEntry, t: (key: string) => string): string {
   return entry.label ?? t(entry.labelKey);
 }
 
+/** True when the field will actually be rendered on its destination page. */
+export function isSettingsFieldReachable(
+  entry: SettingsFieldEntry,
+  ctx: SettingsFieldVisibilityContext,
+): boolean {
+  return entry.visibleWhen ? entry.visibleWhen(ctx) : true;
+}
+
+// Named predicates so the intent reads at each use site and the conditions
+// stay in one place if a guard changes.
+const singleDisplayOnly = (ctx: SettingsFieldVisibilityContext) => !ctx.isMultiDisplay;
+const advancedOnly = (ctx: SettingsFieldVisibilityContext) => ctx.advancedMode;
+const hasProfiles = (ctx: SettingsFieldVisibilityContext) => ctx.profileCount > 0;
+const hasTransition = (ctx: SettingsFieldVisibilityContext) => ctx.transitionEffect !== 'none';
+
 export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
-  { pageId: 'screen', fieldId: 'display.canvasOrientation', labelKey: 'common.orientation', panel: 'appearance' },
-  { pageId: 'screen', fieldId: 'display.canvasResolution', labelKey: 'common.resolution', panel: 'appearance' },
-  { pageId: 'screen', fieldId: 'display.canvasFlip', labelKey: 'settings.defaultDisplayPage.canvas.flipLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.canvasOrientation', labelKey: 'common.orientation', panel: 'appearance', visibleWhen: singleDisplayOnly },
+  { pageId: 'screen', fieldId: 'display.canvasResolution', labelKey: 'common.resolution', panel: 'appearance', visibleWhen: singleDisplayOnly },
+  { pageId: 'screen', fieldId: 'display.canvasFlip', labelKey: 'settings.defaultDisplayPage.canvas.flipLabel', panel: 'appearance', visibleWhen: singleDisplayOnly },
   { pageId: 'screen', fieldId: 'display.rotationInterval', labelKey: 'settings.defaultDisplayPage.fields.rotationIntervalLabel', panel: 'appearance' },
   { pageId: 'screen', fieldId: 'display.pauseEnabled', labelKey: 'settings.defaultDisplayPage.fields.pauseEnabledLabel', panel: 'appearance' },
   { pageId: 'screen', fieldId: 'display.transitionEffect', labelKey: 'settings.defaultDisplayPage.fields.transitionEffectLabel', panel: 'appearance' },
-  { pageId: 'screen', fieldId: 'display.transitionDuration', labelKey: 'settings.defaultDisplayPage.fields.transitionDurationLabel', panel: 'appearance' },
+  { pageId: 'screen', fieldId: 'display.transitionDuration', labelKey: 'settings.defaultDisplayPage.fields.transitionDurationLabel', panel: 'appearance', visibleWhen: hasTransition },
   { pageId: 'screen', fieldId: 'display.cursorHideSeconds', labelKey: 'settings.defaultDisplayPage.fields.cursorHideLabel', panel: 'appearance' },
   { pageId: 'screen', fieldId: 'display.fullscreenTheme', labelKey: 'settings.defaultDisplayPage.fields.fullscreenThemeLabel', panel: 'appearance' },
 
@@ -82,7 +125,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading' },
   { pageId: 'meals', fieldId: 'meals.defaultSlotTimes', labelKey: 'settings.mealsPage.defaultTimes.heading' },
 
-  { pageId: 'automation', fieldId: 'profiles.activeProfile', labelKey: 'settings.profilesPage.active.label', panel: 'profiles' },
+  { pageId: 'automation', fieldId: 'profiles.activeProfile', labelKey: 'settings.profilesPage.active.label', panel: 'profiles', visibleWhen: hasProfiles },
 
   { pageId: 'integrations', fieldId: 'integrations.google', labelKey: 'settings.integrationsPage.google.name' },
   { pageId: 'integrations', fieldId: 'integrations.immich', labelKey: 'settings.integrationsPage.immich.name' },
@@ -90,7 +133,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'integrations', fieldId: 'integrations.nasa', labelKey: 'settings.integrationsPage.nasa.name' },
   { pageId: 'integrations', fieldId: 'integrations.todoist', labelKey: 'settings.integrationsPage.todoist.name' },
   { pageId: 'integrations', fieldId: 'integrations.tomtom', labelKey: 'settings.integrationsPage.tomtom.name' },
-  { pageId: 'integrations', fieldId: 'integrations.github', labelKey: 'settings.integrationsPage.github.name' },
+  { pageId: 'integrations', fieldId: 'integrations.github', labelKey: 'settings.integrationsPage.github.name', visibleWhen: advancedOnly },
 
   { pageId: 'network', fieldId: 'network.hiddenNetworkConnect', labelKey: 'settings.networkPage.hiddenNetwork.connectButton' },
   { pageId: 'network', fieldId: 'network.hostname', labelKey: 'settings.networkPage.hostname.heading' },
@@ -107,7 +150,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'system', fieldId: 'system.advancedMode', labelKey: 'settings.systemPage.advanced.toggleLabel' },
   { pageId: 'system', fieldId: 'system.version', labelKey: 'settings.systemPage.version.heading' },
   { pageId: 'system', fieldId: 'system.checkForUpdates', labelKey: 'settings.systemPage.version.checkButton' },
-  { pageId: 'system', fieldId: 'system.updateChannel', labelKey: 'settings.systemPage.version.stableChannel' },
+  { pageId: 'system', fieldId: 'system.updateChannel', labelKey: 'settings.systemPage.version.stableChannel', visibleWhen: advancedOnly },
   { pageId: 'system', fieldId: 'system.updateNotification', labelKey: 'settings.systemPage.updateNotification.enableLabel' },
   { pageId: 'system', fieldId: 'system.changelog', labelKey: 'settings.systemPage.changelog.heading' },
   { pageId: 'system', fieldId: 'system.rollback', labelKey: 'settings.systemPage.history.heading' },

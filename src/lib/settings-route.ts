@@ -66,8 +66,39 @@ export type PerDisplaySubtab = (typeof PER_DISPLAY_SUBTABS)[number];
  *   - `display`  — render a per-display drill-down page
  *   - `displays` — render the all-displays index
  */
+/**
+ * Panel ids for the Defaults pages that have an intra-page tab bar. Mirrors
+ * `SCREEN_PANELS` in `ScreenSection.tsx` and `AUTOMATION_PANELS` in
+ * `AutomationSection.tsx`; kept here so the route type can carry a panel
+ * without pulling client components into the lib graph.
+ *
+ * Pages with no tab bar simply never set `panel`.
+ */
+export const SCREEN_PANEL_IDS = ['appearance', 'sleep', 'alerts'] as const;
+export const AUTOMATION_PANEL_IDS = ['profiles', 'rules', 'live'] as const;
+
+export type SettingsPanelId =
+  | (typeof SCREEN_PANEL_IDS)[number]
+  | (typeof AUTOMATION_PANEL_IDS)[number];
+
 export type SettingsRoute =
-  | { kind: 'defaults'; page: DefaultPageId }
+  | {
+      kind: 'defaults';
+      page: DefaultPageId;
+      /**
+       * Active intra-page tab, when the page has one.
+       *
+       * Without this the route type was strictly less expressive than the URL
+       * it canonicalizes: every retired id that used to be its own page
+       * (`sleep`, `alerts`, `rules`, `shared-state`, ...) resolved to just
+       * `{page: 'screen'}` / `{page: 'automation'}`, the canonicalizer emitted
+       * no `panel`, and the section fell through to its default tab. A
+       * bookmark to the old "Sleep & dimming" page opened on rotation and
+       * theme settings, and the URL bar was rewritten to that, destroying the
+       * original intent. Every future page absorption would repeat it.
+       */
+      panel?: SettingsPanelId;
+    }
   | { kind: 'display'; displayId: string; subtab: PerDisplaySubtab }
   | { kind: 'displays' };
 
@@ -79,14 +110,19 @@ export type SettingsRoute =
  * `screen` (the landing page) because the docs list moved out of the
  * settings content area entirely — it's a footer link now.
  */
-export const LEGACY_PAGE_REDIRECTS: Record<string, DefaultPageId> = {
-  display: 'screen',
-  sleep: 'screen',
-  alerts: 'screen',
-  profiles: 'automation',
-  rules: 'automation',
-  'shared-state': 'automation',
-  docs: 'screen',
+export const LEGACY_PAGE_REDIRECTS: Record<
+  string,
+  { page: DefaultPageId; panel?: SettingsPanelId }
+> = {
+  display: { page: 'screen', panel: 'appearance' },
+  sleep: { page: 'screen', panel: 'sleep' },
+  alerts: { page: 'screen', panel: 'alerts' },
+  profiles: { page: 'automation', panel: 'profiles' },
+  rules: { page: 'automation', panel: 'rules' },
+  'shared-state': { page: 'automation', panel: 'live' },
+  // No panel: the docs list left the settings content area entirely, so there
+  // is no tab that corresponds to it. Lands on the Screen page's default tab.
+  docs: { page: 'screen' },
 };
 
 /**
@@ -109,9 +145,9 @@ export const LEGACY_SUBTAB_REDIRECTS: Record<string, PerDisplaySubtab> = {
  * the URL bar to the canonical form.
  */
 export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
-  display: { kind: 'defaults', page: 'screen' },
-  sleep: { kind: 'defaults', page: 'screen' },
-  alerts: { kind: 'defaults', page: 'screen' },
+  display: { kind: 'defaults', page: 'screen', panel: 'appearance' },
+  sleep: { kind: 'defaults', page: 'screen', panel: 'sleep' },
+  alerts: { kind: 'defaults', page: 'screen', panel: 'alerts' },
   location: { kind: 'defaults', page: 'location' },
   // Language was merged into the Location page on 2026-05-17 — the
   // standalone "Language & region" tab no longer exists. Legacy
@@ -121,8 +157,8 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   weather: { kind: 'defaults', page: 'weather' },
   calendar: { kind: 'defaults', page: 'calendar' },
   meals: { kind: 'defaults', page: 'meals' },
-  profiles: { kind: 'defaults', page: 'automation' },
-  rules: { kind: 'defaults', page: 'automation' },
+  profiles: { kind: 'defaults', page: 'automation', panel: 'profiles' },
+  rules: { kind: 'defaults', page: 'automation', panel: 'rules' },
   integrations: { kind: 'defaults', page: 'integrations' },
   security: { kind: 'defaults', page: 'security' },
   data: { kind: 'defaults', page: 'data' },
@@ -133,13 +169,35 @@ export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
   displays: { kind: 'displays' },
   // Hidden routes that briefly existed — bookmarks of those collapse to
   // the proper Defaults pages.
-  'default-display': { kind: 'defaults', page: 'screen' },
-  'default-sleep': { kind: 'defaults', page: 'screen' },
-  'default-alerts': { kind: 'defaults', page: 'screen' },
+  'default-display': { kind: 'defaults', page: 'screen', panel: 'appearance' },
+  'default-sleep': { kind: 'defaults', page: 'screen', panel: 'sleep' },
+  'default-alerts': { kind: 'defaults', page: 'screen', panel: 'alerts' },
 };
 
 const DEFAULT_PAGE_ID_SET: Set<string> = new Set(DEFAULT_PAGE_IDS);
 const PER_DISPLAY_SUBTAB_SET: Set<string> = new Set(PER_DISPLAY_SUBTABS);
+
+/**
+ * Which panel ids are legal on which page. A page absent from this map has no
+ * intra-page tab bar, so any `?panel=` on it is ignored.
+ */
+const PANELS_BY_PAGE: Partial<Record<DefaultPageId, readonly SettingsPanelId[]>> = {
+  screen: SCREEN_PANEL_IDS,
+  automation: AUTOMATION_PANEL_IDS,
+};
+
+/** The panel if it is valid for that page, otherwise undefined. */
+export function validPanelFor(
+  page: DefaultPageId,
+  panel: string | null | undefined,
+): SettingsPanelId | undefined {
+  if (!panel) return undefined;
+  const allowed = PANELS_BY_PAGE[page];
+  if (!allowed) return undefined;
+  return (allowed as readonly string[]).includes(panel)
+    ? (panel as SettingsPanelId)
+    : undefined;
+}
 
 /**
  * Pure URL parser. Takes a `URLSearchParams` and returns the resolved
@@ -182,10 +240,17 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   if (section === 'defaults') {
     const rawPage = params.get('page') ?? 'screen';
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
-      return { kind: 'defaults', page: rawPage as DefaultPageId };
+      const page = rawPage as DefaultPageId;
+      // An explicit `?panel=` on a current page id passes through, validated
+      // against that page's own panel set so a stray value can't stick.
+      const panel = validPanelFor(page, params.get('panel'));
+      return panel ? { kind: 'defaults', page, panel } : { kind: 'defaults', page };
     }
-    if (LEGACY_PAGE_REDIRECTS[rawPage]) {
-      return { kind: 'defaults', page: LEGACY_PAGE_REDIRECTS[rawPage] };
+    const legacy = LEGACY_PAGE_REDIRECTS[rawPage];
+    if (legacy) {
+      return legacy.panel
+        ? { kind: 'defaults', page: legacy.page, panel: legacy.panel }
+        : { kind: 'defaults', page: legacy.page };
     }
   }
   return { kind: 'defaults', page: 'screen' };
@@ -226,13 +291,21 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
     !!params.get('page') &&
     !DEFAULT_PAGE_ID_SET.has(params.get('page')!) &&
     !!LEGACY_PAGE_REDIRECTS[params.get('page')!];
+  // A current page id carrying a `?panel=` its page doesn't own (e.g. a
+  // hand-edited `page=screen&panel=rules`) also needs a rewrite, otherwise the
+  // URL bar keeps advertising a tab that isn't the one being rendered.
+  const hasStalePanel =
+    route.kind === 'defaults' &&
+    params.get('section') === 'defaults' &&
+    !!params.get('panel') &&
+    route.panel !== params.get('panel');
   const hasLegacySubtab =
     route.kind === 'display' &&
     !!params.get('subtab') &&
     !PER_DISPLAY_SUBTAB_SET.has(params.get('subtab')!) &&
     !!LEGACY_SUBTAB_REDIRECTS[params.get('subtab')!];
 
-  if (!hasLegacyTab && !hasLegacyPage && !hasLegacySubtab) {
+  if (!hasLegacyTab && !hasLegacyPage && !hasLegacySubtab && !hasStalePanel) {
     return { route };
   }
 
@@ -244,6 +317,10 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
   if (route.kind === 'defaults') {
     next.set('section', 'defaults');
     next.set('page', route.page);
+    // Emit the panel so a retired page id lands on the tab it actually became,
+    // rather than the destination page's default tab.
+    if (route.panel) next.set('panel', route.panel);
+    else next.delete('panel');
   } else if (route.kind === 'displays') {
     next.set('section', 'displays');
     next.delete('page');

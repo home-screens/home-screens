@@ -78,13 +78,13 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.sleep.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=screen"
+      defaultsHref="?section=defaults&page=screen&panel=sleep"
       defaultsLabel={t('settings.perDisplayPage.sleep.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.sleep.infoPart1')}
           <Link
-            href="?section=defaults&page=screen"
+            href="?section=defaults&page=screen&panel=sleep"
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.sleep.defaultsLabel')}

@@ -59,6 +59,10 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
   useDebouncedSave({
     values: [config?.profiles, config?.displays, config?.settings.activeProfile],
     debounceMs: 500,
+    // See the matching note in RulesSection: switching `?panel=` tabs unmounts
+    // this section, and without a flush an edit inside the debounce window is
+    // cancelled rather than saved.
+    flushOnUnmount: true,
     save: () => saveConfig(),
     onError: (err) => log.error('Profile auto-save failed:', err),
   });
