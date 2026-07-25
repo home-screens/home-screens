@@ -607,8 +607,8 @@
     "loading": "Loading tasks…",
     "empty": "No tasks to show",
     "taskCount": {
-      "one": "{count} task",
-      "other": "{count} tasks"
+      "one": "{count} opgave",
+      "other": "{count} opgaver"
     },
     "recurringTooltip": "Recurring",
     "completeAriaLabel": "Complete: {content}",
@@ -644,6 +644,10 @@
         "one": "task remaining",
         "other": "tasks remaining"
       }
+    },
+    "taskCountAtLeast": {
+      "one": "{count}+ opgave",
+      "other": "{count}+ opgaver"
     }
   },
   "photo-slideshow": {

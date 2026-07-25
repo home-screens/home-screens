@@ -648,6 +648,11 @@
         "other": "tarefas restantes",
         "many": "tarefas restantes"
       }
+    },
+    "taskCountAtLeast": {
+      "one": "{count}+ tarefa",
+      "other": "{count}+ tarefas",
+      "many": "{count}+ tarefas"
     }
   },
   "photo-slideshow": {

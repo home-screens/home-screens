@@ -29,6 +29,12 @@ export interface TodoistTask {
 export interface TodoistData {
   tasks: TodoistTask[];
   projects: { id: string; name: string; color: string; order: number }[];
+  /**
+   * Set when the task fetch hit the route's page ceiling (20 × 200 = 4000
+   * items), so `tasks` is a partial list. Consumers must not present a count
+   * derived from it as authoritative.
+   */
+  truncated?: boolean;
 }
 
 /**

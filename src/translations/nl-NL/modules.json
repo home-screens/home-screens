@@ -644,6 +644,10 @@
         "one": "taak over",
         "other": "taken over"
       }
+    },
+    "taskCountAtLeast": {
+      "one": "{count}+ taak",
+      "other": "{count}+ taken"
     }
   },
   "photo-slideshow": {

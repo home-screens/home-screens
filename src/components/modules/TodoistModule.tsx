@@ -121,7 +121,13 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
             {title}
           </h2>
           <MetadataText size="xs">
-            {t('todoist.taskCount', { count: totalCount })}
+            {/* A truncated fetch (past the route's 4000-item ceiling) makes
+                totalCount an undercount, so show it as a floor rather than an
+                exact figure. Almost nobody hits this, but a silently short
+                list presented as complete is the worst version of the bug. */}
+            {data?.truncated
+              ? t('todoist.taskCountAtLeast', { count: totalCount })
+              : t('todoist.taskCount', { count: totalCount })}
           </MetadataText>
         </div>
 

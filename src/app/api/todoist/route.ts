@@ -95,8 +95,14 @@ const MAX_PAGES = 20; // sanity ceiling so a misbehaving cursor can't loop forev
  * and the `{ results: [...] }` / `{ items: [...] }` wrapper shapes, and
  * tolerates either snake_case or camelCase cursor field names.
  * Transient-failure retries come from fetchWithTimeout, per attempt.
+ *
+ * Returns `truncated: true` when the MAX_PAGES ceiling cut the walk short, so
+ * callers can say the list is partial instead of presenting it as complete.
  */
-async function fetchTodoistList(endpoint: string, token: string): Promise<Record<string, unknown>[]> {
+async function fetchTodoistList(
+  endpoint: string,
+  token: string,
+): Promise<{ items: Record<string, unknown>[]; truncated: boolean }> {
   const results: Record<string, unknown>[] = [];
   let cursor: string | null = null;
   let pageCount = 0;
@@ -138,7 +144,7 @@ async function fetchTodoistList(endpoint: string, token: string): Promise<Record
     console.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages — returning a truncated list`);
   }
 
-  return results;
+  return { items: results, truncated: cursor !== null };
 }
 
 // ─── PUT: Save token server-side ───
@@ -185,11 +191,15 @@ const { GET, cache } = cachedProxyRoute<unknown>({
     ]);
 
     if (tasksResult.status === 'rejected') throw tasksResult.reason;
-    const rawTasks = tasksResult.value;
+    const rawTasks = tasksResult.value.items;
+    // Only the task list matters here: a truncated projects/labels fetch just
+    // degrades enrichment, but truncated tasks means the module is showing a
+    // partial list and would otherwise report a confidently wrong "N more".
+    const tasksTruncated = tasksResult.value.truncated;
 
-    const rawProjects = projectsResult.status === 'fulfilled' ? projectsResult.value : [];
-    const rawSections = sectionsResult.status === 'fulfilled' ? sectionsResult.value : [];
-    const rawLabels = labelsResult.status === 'fulfilled' ? labelsResult.value : [];
+    const rawProjects = projectsResult.status === 'fulfilled' ? projectsResult.value.items : [];
+    const rawSections = sectionsResult.status === 'fulfilled' ? sectionsResult.value.items : [];
+    const rawLabels = labelsResult.status === 'fulfilled' ? labelsResult.value.items : [];
 
     if (projectsResult.status === 'rejected') {
       console.error('Failed to fetch Todoist projects (continuing without them):', projectsResult.reason);
@@ -263,7 +273,11 @@ const { GET, cache } = cachedProxyRoute<unknown>({
       order: num(p, 'child_order', 'childOrder', 'order'),
     }));
 
-    return { tasks: enrichedTasks, projects: enrichedProjects };
+    return {
+      tasks: enrichedTasks,
+      projects: enrichedProjects,
+      ...(tasksTruncated ? { truncated: true } : {}),
+    };
   },
   errorMessage: 'Failed to fetch Todoist data',
 });

@@ -644,6 +644,10 @@
         "one": "Aufgabe übrig",
         "other": "Aufgaben übrig"
       }
+    },
+    "taskCountAtLeast": {
+      "one": "{count}+ Aufgabe",
+      "other": "{count}+ Aufgaben"
     }
   },
   "photo-slideshow": {
