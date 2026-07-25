@@ -74,6 +74,54 @@ function renderWordsFallback(units: UnitValue[], titleCase: boolean): string {
   return units.map(({ unit, value }) => `${value} ${titleCase ? capitalize(ENGLISH_UNIT_WORD[unit]) : ENGLISH_UNIT_WORD[unit]}`).join(' ');
 }
 
+/**
+ * Memoized `Intl.DurationFormat` instances, keyed by locale + which units are
+ * displayed.
+ *
+ * Construction is not a cheap allocation — it canonicalizes the locale and
+ * builds internal NumberFormat/ListFormat objects per displayed unit — and both
+ * callers tick at 1Hz forever on a kiosk that never reloads. One Clock in the
+ * `elapsed` view was ~86k constructions/day; a Countdown `all` view with five
+ * events, five times that.
+ *
+ * The key space is closed and tiny: 7 locales × the handful of unit
+ * combinations `auto`/fixed precision can produce, well under 100 entries, so
+ * this never needs eviction. A null value memoizes "construction threw here",
+ * so a bad locale doesn't retry-and-throw every single tick.
+ */
+const formatterCache = new Map<string, Intl.DurationFormat | null>();
+
+function getDurationFormatter(
+  locale: string,
+  options: Intl.DurationFormatOptions,
+): Intl.DurationFormat | null {
+  // Every slot delimited. Concatenating them bare collided on unit-set SIZE:
+  // each value is 'always' or '', so ['hours','minutes'], ['minutes','seconds']
+  // and ['days','hours'] all produced "en-US|alwaysalways". The first formatter
+  // constructed then served all three, applying `Display: 'always'` to units the
+  // caller never asked for and leaving the caller's real units on the default
+  // `auto` — which zero-suppresses, the exact thing renderWords must prevent.
+  // A Clock crossing the 1h boundary visibly gained units: 45s rendered as
+  // "0 hours, 0 minutes, 45 seconds".
+  const key = [
+    locale,
+    options.daysDisplay ?? '',
+    options.hoursDisplay ?? '',
+    options.minutesDisplay ?? '',
+    options.secondsDisplay ?? '',
+  ].join('|');
+  const cached = formatterCache.get(key);
+  if (cached !== undefined) return cached;
+  let formatter: Intl.DurationFormat | null;
+  try {
+    formatter = new Intl.DurationFormat(locale, options);
+  } catch {
+    formatter = null;
+  }
+  formatterCache.set(key, formatter);
+  return formatter;
+}
+
 // Every unit Intl.DurationFormat is asked to render must be explicitly
 // marked `Display: 'always'` — its default hides ANY zero-valued unit
 // (verified: `{days:1,hours:0,minutes:0}` renders as just "1 day" with no
@@ -95,7 +143,8 @@ function renderWords(units: UnitValue[], locale: string, titleCase: boolean): st
   }
 
   try {
-    const formatter = new Intl.DurationFormat(locale, options);
+    const formatter = getDurationFormatter(locale, options);
+    if (!formatter) return renderWordsFallback(units, titleCase);
     if (!titleCase) return formatter.format(duration);
     // Capitalize only the actual unit-word parts (type 'unit') — numbers and
     // locale punctuation/connectors (", ", " and ", "y ", "und "...) pass

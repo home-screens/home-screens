@@ -532,7 +532,7 @@ type ElapsedFormat =
   | 'units'       // 50d 20h 13m   (default)
   | 'unitsUpper'  // 50D 20H 13M
   | 'unitsShort'  // 50day 20hr 13min
-  | 'colon'       // 50:20:13
+  | 'colon'       // 50:20:13:00
   | 'words'       // 50 days, 20 hours, 13 minutes (localized)
   | 'wordsTitle'  // 50 Days, 20 Hours, 13 Minutes (localized, unit words capitalized)
 
@@ -549,7 +549,7 @@ interface WorldClockZone {
 }
 ```
 
-The `words` and `wordsTitle` formats are localized through `Intl.DurationFormat`, so they follow the active [formatting locale](#globalsettings) including its connectors ("and", ", "). Every named precision shows its full unit set unconditionally, zeros included. Only `'auto'` is adaptive, and each module defines its own rule — for the clock's elapsed view: days and hours are dropped while zero, hours come back once days are showing, minutes are always shown, and seconds appear only when the total is under an hour.
+The `words` and `wordsTitle` formats are localized through `Intl.DurationFormat`, so they follow the active [formatting locale](#globalsettings) including its connectors ("and", ", "). Every named precision shows its full unit set unconditionally, zeros included. Only `'auto'` is adaptive, and each module defines its own rule — for the clock's elapsed view: days and hours are dropped while zero, hours come back once days are showing, minutes are always shown, and seconds appear only when the total is under an hour. The `colon` format keeps its seconds segment at every magnitude, so its rightmost column always means seconds.
 
 ### CalendarConfig
 

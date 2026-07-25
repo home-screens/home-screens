@@ -160,8 +160,8 @@ Displays the current time with optional date information. Supports {% $stats.clo
 | `referenceTime` | string | `""` | ISO timestamp or time string for elapsed view |
 | `referenceLabel` | string | `""` | Label for elapsed view (e.g. "market open", "shift start") |
 | `countUp` | boolean | `true` | Count up (true) or down (false) from reference time (elapsed view) |
-| `elapsedFormat` | string | `"units"` | How the elapsed view renders units: `units` (50d 20h 13m), `unitsUpper` (50D 20H 13M), `unitsShort` (50day 20hr 13min), `colon` (50:20:13), `words` (50 days, 20 hours), or `wordsTitle` (50 Days, 20 Hours). The two word styles are localized. |
-| `elapsedPrecision` | string | `"auto"` | Which units the elapsed view shows: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. Named precisions always show their full set including zeros; `auto` hides days and hours while they are zero and shows seconds only under an hour. |
+| `elapsedFormat` | string | `"units"` | How the elapsed view renders units: `units` (50d 20h 13m), `unitsUpper` (50D 20H 13M), `unitsShort` (50day 20hr 13min), `colon` (50:20:13:00), `words` (50 days, 20 hours), or `wordsTitle` (50 Days, 20 Hours). The two word styles are localized. |
+| `elapsedPrecision` | string | `"auto"` | Which units the elapsed view shows: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. Named precisions always show their full set including zeros; `auto` hides days and hours while they are zero and shows seconds only under an hour. The `colon` format is the exception: it always keeps a seconds segment, so its rightmost column always means seconds and the counter never appears to reset at the hour or day mark. |
 
 ### Calendar
 

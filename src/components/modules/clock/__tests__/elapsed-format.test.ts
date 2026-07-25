@@ -72,7 +72,9 @@ describe('formatElapsed — unitsShort format', () => {
 describe('formatElapsed — colon format', () => {
   it('zero-pads all segments after the first', () => {
     const diff = 50 * DAY + 20 * HOUR + 13 * MINUTE;
-    expect(f(diff, 'colon')).toBe('50:20:13');
+    // Seconds are kept at `auto` for `colon` specifically (see the monotonic
+    // test below), so the trailing :00 is expected here.
+    expect(f(diff, 'colon')).toBe('50:20:13:00');
   });
 
   it('pads a single-digit leading minute value under an hour', () => {
@@ -85,7 +87,39 @@ describe('formatElapsed — colon format', () => {
 
   it('drops a leading zero days segment', () => {
     const diff = 20 * HOUR + 13 * MINUTE;
-    expect(f(diff, 'colon')).toBe('20:13');
+    expect(f(diff, 'colon')).toBe('20:13:00');
+  });
+
+  it('never lets the rightmost segment change meaning at the 1h mark', () => {
+    // The bug: `auto` drops seconds past 1h. With unit letters that reads fine
+    // ("59m 59s" → "1h 0m"), but `colon` has no letters, so the same two-segment
+    // shape silently switched from m:s to h:m and the counter appeared to reset
+    // from 59:59 to 1:00 one second later.
+    expect(f(3599 * SECOND, 'colon')).toBe('59:59');
+    expect(f(HOUR, 'colon')).toBe('1:00:00');
+
+    // The unit-letter formats are self-describing, so they keep the terser
+    // legacy output — this fix is scoped to `colon`.
+    expect(f(3599 * SECOND, 'units')).toBe('59m 59s');
+    expect(f(HOUR, 'units')).toBe('1h 0m');
+  });
+
+  it('never lets the rightmost segment change meaning at the 1-DAY mark either', () => {
+    // The day transition runs through the separate `daysIncluded` branch, so
+    // the 1h test above does not cover it. Without this, narrowing the
+    // keep-seconds rule to `totalSeconds >= 86400` would leave every other
+    // test green and reintroduce the reset one boundary up: "23:59" (h:m)
+    // followed by "1:00:00" (d:h:m) reads as the counter falling from 23 to 1.
+    expect(f(DAY - SECOND, 'colon')).toBe('23:59:59');
+    expect(f(DAY, 'colon')).toBe('1:00:00:00');
+  });
+
+  it('stays monotonic across the boundary as a string comparison of segments', () => {
+    const before = f(3599 * SECOND, 'colon').split(':').length;
+    const after = f(HOUR, 'colon').split(':').length;
+    // Gaining a segment is fine; what must never happen is keeping the same
+    // segment count while the units shift underneath.
+    expect(after).toBeGreaterThan(before);
   });
 });
 
