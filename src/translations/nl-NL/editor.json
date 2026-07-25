@@ -1467,7 +1467,9 @@
         "updateButton": "Bijwerken",
         "updatingButton": "Bijwerken…",
         "tryBetaButton": "Bèta v{version} proberen",
-        "tryingBetaButton": "Bèta installeren…"
+        "tryingBetaButton": "Bèta installeren…",
+        "backToStableButton": "Terug naar stabiele versie v{version}",
+        "backToStableHint": "Je gebruikt een testversie. Je kunt terugschakelen naar de gewone versie."
       },
       "beta": {
         "showToggleLabel": "Bètaplugins tonen",

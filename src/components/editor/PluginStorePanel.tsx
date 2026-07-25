@@ -10,6 +10,7 @@ import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
 import ExternalUpdateModal from '@/components/editor/ExternalUpdateModal';
 import { editorFetch } from '@/lib/editor-fetch';
 import { latestVersion, hasUpdate, resolveChannel, isBetaHiddenEntry, isBetaOnlyForNonOptedUser } from '@/lib/plugin-versions';
+import { compareSemver } from '@/lib/semver';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
@@ -173,6 +174,21 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
       })
     : [];
 
+  // A beta install whose newest *stable* release is older than what's installed.
+  // `updatable` only ever offers something strictly newer, so once a user is on
+  // 2.0.0-beta.1 and hits a bug, nothing in the UI offered them 1.9.0 — the only
+  // way back was uninstall (which also drops secrets and auth tokens) and
+  // reinstall. Not gated on `showBeta`: the user unchecking that toggle is
+  // exactly the person who needs this row. Disappears on graduation, when the
+  // stable release out-ranks the beta and `updatable` takes over.
+  const betaDowngradable = installed.filter((inst) => {
+    if (inst.channel !== 'beta') return false;
+    const reg = registry.find((r) => r.id === inst.id);
+    if (!reg) return false;
+    const stable = latestVersion(reg, APP_VERSION, { includeBeta: false });
+    return !!stable && compareSemver(stable.version, inst.version) < 0;
+  });
+
   const trapRef = useFocusTrap<HTMLDivElement>();
 
   return (
@@ -258,6 +274,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               registry={registry}
               updatable={updatable}
               betaUpgradable={betaUpgradable}
+              betaDowngradable={betaDowngradable}
               onInstall={(id, version) => runAction(id, 'POST', { pluginId: id, version })}
               actionInProgress={actionInProgress}
             />
@@ -574,17 +591,19 @@ function UpdatesTab({
   registry,
   updatable,
   betaUpgradable,
+  betaDowngradable,
   onInstall,
   actionInProgress,
 }: {
   registry: RegistryPlugin[];
   updatable: InstalledPlugin[];
   betaUpgradable: InstalledPlugin[];
+  betaDowngradable: InstalledPlugin[];
   onInstall: (id: string, version: string) => void;
   actionInProgress: string | null;
 }) {
   const t = useTranslate('editor');
-  if (updatable.length === 0 && betaUpgradable.length === 0) {
+  if (updatable.length === 0 && betaUpgradable.length === 0 && betaDowngradable.length === 0) {
     return <p className="text-sm text-hs-text-faint text-center py-8">{t('settings.pluginStorePanel.updates.allUpToDate')}</p>;
   }
 
@@ -647,6 +666,36 @@ function UpdatesTab({
               {actionInProgress === plugin.id
                 ? t('settings.pluginStorePanel.updates.tryingBetaButton')
                 : t('settings.pluginStorePanel.updates.tryBetaButton', { version: latest?.version ?? '' })}
+            </Button>
+          </div>
+        );
+      })}
+      {betaDowngradable.map((plugin) => {
+        const reg = registry.find((r) => r.id === plugin.id);
+        const stable = reg ? latestVersion(reg, APP_VERSION, { includeBeta: false }) : null;
+        return (
+          <div key={`stable-${plugin.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+                <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
+                <span className="text-xs text-hs-text-faint">
+                  v{plugin.version} → v{stable?.version}
+                </span>
+              </div>
+              <p className="text-xs text-hs-text-muted mt-0.5">
+                {t('settings.pluginStorePanel.updates.backToStableHint')}
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!stable || actionInProgress === plugin.id}
+              onClick={() => stable && onInstall(plugin.id, stable.version)}
+            >
+              {actionInProgress === plugin.id
+                ? t('settings.pluginStorePanel.updates.updatingButton')
+                : t('settings.pluginStorePanel.updates.backToStableButton', { version: stable?.version ?? '' })}
             </Button>
           </div>
         );

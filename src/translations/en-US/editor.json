@@ -1467,7 +1467,9 @@
         "updateButton": "Update",
         "updatingButton": "Updating…",
         "tryBetaButton": "Try beta v{version}",
-        "tryingBetaButton": "Installing beta…"
+        "tryingBetaButton": "Installing beta…",
+        "backToStableButton": "Go back to stable v{version}",
+        "backToStableHint": "You are on a test version. You can switch back to the regular version."
       },
       "beta": {
         "showToggleLabel": "Show beta plugins",

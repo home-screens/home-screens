@@ -1467,7 +1467,9 @@
         "updateButton": "Update",
         "updatingButton": "Updating…",
         "tryBetaButton": "Prøv beta v{version}",
-        "tryingBetaButton": "Installerer beta…"
+        "tryingBetaButton": "Installerer beta…",
+        "backToStableButton": "Tilbage til stabil version v{version}",
+        "backToStableHint": "Du bruger en testversion. Du kan skifte tilbage til den almindelige version."
       },
       "beta": {
         "showToggleLabel": "Vis betaplugins",

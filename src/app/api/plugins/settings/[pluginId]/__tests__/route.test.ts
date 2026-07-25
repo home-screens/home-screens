@@ -100,7 +100,56 @@ describe('PUT /api/plugins/settings/[pluginId]', () => {
     const { PUT } = await import('../route');
     const res = await PUT(putReq('p1', { settings: { haUrl: 'x', sneaky: 'value' } }), ctx('p1'));
     expect(res.status).toBe(200);
-    expect((await res.json()).settings).toEqual({ haUrl: 'x' });
+    const { settings } = await res.json();
+    expect(settings.sneaky).toBeUndefined();
+    expect(settings.haUrl).toBe('x');
+    // fastUpdates was absent from the payload but declares a default, so it is
+    // seeded rather than dropped (see the default-seeding tests below).
+    expect(settings.fastUpdates).toBe(true);
+  });
+
+  it('seeds schema defaults for keys absent from the payload', async () => {
+    await seedPlugin('p1');
+    const { PUT } = await import('../route');
+
+    // The exact "user opens the form and clicks Save without touching it" case.
+    // The form renders `value ?? prop.default`, so the default is on screen and
+    // the user has no reason to interact with it — and the PUT body is empty.
+    const res = await PUT(putReq('p1', { settings: {} }), ctx('p1'));
+
+    expect(res.status).toBe(200);
+    // Stored `{}` before the fix: the form said "Saved", and the plugin's
+    // stateProvider then read undefined for every defaulted setting.
+    expect((await res.json()).settings).toEqual({ fastUpdates: true });
+  });
+
+  it('does not invent values for keys with no declared default', async () => {
+    await seedPlugin('p1');
+    const { PUT } = await import('../route');
+    const res = await PUT(putReq('p1', { settings: {} }), ctx('p1'));
+    // haUrl declares no default, so it stays absent rather than becoming '' or null.
+    expect((await res.json()).settings).not.toHaveProperty('haUrl');
+  });
+
+  it('lets an explicit value win over the default', async () => {
+    await seedPlugin('p1');
+    const { PUT } = await import('../route');
+    const res = await PUT(putReq('p1', { settings: { fastUpdates: false } }), ctx('p1'));
+    expect((await res.json()).settings).toEqual({ fastUpdates: false });
+  });
+
+  it('seeds a default of `false` rather than treating it as absent', async () => {
+    await seedPlugin('p1', {
+      settingsSchema: {
+        type: 'object',
+        properties: { debugLogging: { type: 'boolean', default: false } },
+      },
+    });
+    const { PUT } = await import('../route');
+    const res = await PUT(putReq('p1', { settings: {} }), ctx('p1'));
+    // Guards the seeding condition against a truthiness check: `false`, `0` and
+    // `''` are all legitimate defaults and must survive.
+    expect((await res.json()).settings).toEqual({ debugLogging: false });
   });
 
   it('400s on a type mismatch against the schema', async () => {
@@ -141,5 +190,36 @@ describe('PUT /api/plugins/settings/[pluginId]', () => {
     await PUT(putReq('p1', { settings: { haUrl: 'http://ha.local' } }), ctx('p1'));
     const after = await getPluginHash();
     expect(after).toBe(before);
+  });
+});
+
+describe('PUT /api/plugins/settings/[pluginId] — manifest default validation', () => {
+  it('skips a default whose type contradicts its own schema', async () => {
+    // A manifest is third-party input. Seeding this unchecked would persist a
+    // number where the schema promises a string, which every reader then trusts.
+    await seedPlugin('p1', {
+      settingsSchema: {
+        type: 'object',
+        properties: {
+          haUrl: { type: 'string', default: 0 },
+          pollSeconds: { type: 'number', default: 60 },
+        },
+      },
+    });
+    const { PUT } = await import('../route');
+    const res = await PUT(putReq('p1', { settings: {} }), ctx('p1'));
+
+    // The plugin author's mistake must not fail the user's save — the bad
+    // default is dropped and the good one still lands.
+    expect(res.status).toBe(200);
+    expect((await res.json()).settings).toEqual({ pollSeconds: 60 });
+  });
+
+  it('still rejects a user-supplied value of the wrong type', async () => {
+    await seedPlugin('p1');
+    const { PUT } = await import('../route');
+    const res = await PUT(putReq('p1', { settings: { fastUpdates: 'yes' } }), ctx('p1'));
+    // Unchanged behavior: a bad value from the form is an error, not a skip.
+    expect(res.status).toBe(400);
   });
 });

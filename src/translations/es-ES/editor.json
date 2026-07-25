@@ -1467,7 +1467,9 @@
         "updateButton": "Actualizar",
         "updatingButton": "Actualizando…",
         "tryBetaButton": "Probar beta v{version}",
-        "tryingBetaButton": "Instalando la beta…"
+        "tryingBetaButton": "Instalando la beta…",
+        "backToStableButton": "Volver a la versión estable v{version}",
+        "backToStableHint": "Estás usando una versión de prueba. Puedes volver a la versión normal."
       },
       "beta": {
         "showToggleLabel": "Mostrar plugins beta",

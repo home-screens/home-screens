@@ -413,6 +413,13 @@ export async function loadAllPlugins(): Promise<void> {
       const message = err instanceof Error ? err.message : String(err);
       log.warn(`Dev plugin ${pluginId} failed to load from ${dev.url}:`, message);
 
+      // Poll on the failure path too. The tick re-reads localStorage and calls
+      // loadDevPlugin on an ETag change, so a dev server that comes back a few
+      // seconds later is picked up automatically. Arming only on success meant
+      // one failed override pinned the editor to the installed bundle until the
+      // developer reloaded or re-added the URL by hand.
+      startDevPolling(pluginId);
+
       // A dead dev server must not take the module off the palette: fall
       // back to the installed copy that was skipped in favor of the override.
       const installed = plugins.find((p) => p.id === pluginId);

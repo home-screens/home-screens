@@ -383,6 +383,24 @@ export async function getPluginSettings(pluginId: string): Promise<Record<string
  * against the schema property type. Returns the sanitized object that was
  * stored. Throws when the plugin isn't installed or declares no settings.
  */
+/**
+ * Does a value satisfy a `settingsSchema` property type?
+ *
+ * Shared by the supplied-value check and the manifest-default seeding so the
+ * two cannot diverge — a seeded default that skipped this check would write a
+ * value the schema forbids straight into installed.json.
+ */
+function matchesSchemaType(type: string, value: unknown): boolean {
+  switch (type) {
+    case 'string': return typeof value === 'string';
+    case 'number': return typeof value === 'number' && Number.isFinite(value);
+    case 'boolean': return typeof value === 'boolean';
+    case 'array': return Array.isArray(value);
+    case 'object': return typeof value === 'object' && value !== null && !Array.isArray(value);
+    default: return false;
+  }
+}
+
 export async function setPluginSettings(
   pluginId: string,
   settings: Record<string, unknown>,
@@ -404,15 +422,30 @@ export async function setPluginSettings(
 
     sanitized = {};
     for (const [key, prop] of Object.entries(schema.properties)) {
-      if (!(key in settings)) continue;
+      if (!(key in settings)) {
+        // Seed the manifest default rather than dropping the key. The settings
+        // form renders `value ?? prop.default`, so a user sees the default
+        // filled in and saves without touching it — and the payload then has no
+        // such key. Skipping it stored nothing for that field, while the form
+        // reported "Saved", so the plugin read `undefined` for every setting it
+        // had declared a default for. Only defaulted fields are affected; a
+        // field with no declared default stays absent, as before.
+        // Done here rather than in the form so the SDK writer is covered too.
+        //
+        // Type-checked like any supplied value: a manifest is third-party input,
+        // and `{type:'string', default: 0}` would otherwise persist a number
+        // into installed.json where the schema promises a string. A bad default
+        // is the plugin author's mistake, not the user's, so it is skipped
+        // rather than thrown — the save still succeeds without it.
+        if (prop.default !== undefined && matchesSchemaType(prop.type, prop.default)) {
+          sanitized[key] = prop.default;
+        }
+        continue;
+      }
       const value = settings[key];
-      const ok =
-        (prop.type === 'string' && typeof value === 'string')
-        || (prop.type === 'number' && typeof value === 'number' && Number.isFinite(value))
-        || (prop.type === 'boolean' && typeof value === 'boolean')
-        || (prop.type === 'array' && Array.isArray(value))
-        || (prop.type === 'object' && typeof value === 'object' && value !== null && !Array.isArray(value));
-      if (!ok) throw new Error(`Setting "${key}" must be a ${prop.type}`);
+      if (!matchesSchemaType(prop.type, value)) {
+        throw new Error(`Setting "${key}" must be a ${prop.type}`);
+      }
       sanitized[key] = value;
     }
     if (JSON.stringify(sanitized).length > MAX_SETTINGS_JSON_BYTES) {
