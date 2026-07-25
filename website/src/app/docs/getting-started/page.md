@@ -198,7 +198,7 @@ Then visit:
 
 ## Configuration
 
-All API keys and credentials are configured through the editor UI at **Settings > Integrations**. There is no need to manually edit environment files.
+All API keys and credentials are configured through the editor UI at **Settings > API keys**. There is no need to manually edit environment files.
 
 The following integrations can be configured through the editor:
 
@@ -225,7 +225,7 @@ The editor supports optional password protection. Set a password in **Settings >
 
 ## System Management
 
-The editor includes a system management panel under **Settings > System** for upgrade, rollback, backups, and power control -- particularly useful when running on a Raspberry Pi.
+The editor includes a system management panel under **Settings > System & updates** for upgrade, rollback, backups, and power control -- particularly useful when running on a Raspberry Pi.
 
 ## Calendar setup
 
@@ -264,7 +264,7 @@ OAuth uses Google's **Device Flow**, so you can authorize from any phone or lapt
 2. Click **Create Credentials > OAuth Client ID**
 3. Application type: **TVs and Limited Input devices**
 4. Name it anything (e.g. "Home Screen Display")
-5. Copy the **Client ID** and **Client Secret** into **Settings > Integrations** in the editor
+5. Copy the **Client ID** and **Client Secret** into **Settings > API keys** in the editor
 6. Enable the **Google Calendar API** at APIs & Services > Library
 7. In the editor, go to **Settings > Calendar > Sign in with Google**
 8. You'll see a code and a link to `google.com/device` — enter the code on your phone or computer and grant access
@@ -286,7 +286,7 @@ Out of the box, **weather works worldwide with no setup** (Open-Meteo). You only
 
 By default, Home Screens uses the **Stable** channel for updates, which only includes tested releases.
 
-You can switch to the **Dev** channel in **Settings > System** to get pre-release builds for testing new features before they are officially released. Dev builds may contain breaking changes or incomplete functionality. If you encounter issues, switch back to the Stable channel to return to the latest stable release.
+You can switch to the **Dev** channel in **Settings > System & updates** to get pre-release builds for testing new features before they are officially released. Dev builds may contain breaking changes or incomplete functionality. If you encounter issues, switch back to the Stable channel to return to the latest stable release.
 
 ## Next Steps
 

@@ -43,7 +43,7 @@ Total: **~$90** plus a display. Budget tip: a repurposed old monitor or a small 
 
 - **All your data stays on your Pi.** No cloud accounts, no database, no required servers.
 - **The pre-built image has a default username and SSH password** (`hs` / `screens`). Change it with `passwd` on first login, or leave SSH disabled if you don't need shell access.
-- **You can always roll back.** Every upgrade keeps the previous version on disk for instant rollback from Settings > System.
+- **You can always roll back.** Every upgrade keeps the previous version on disk for instant rollback from Settings > System & updates.
 
 ---
 

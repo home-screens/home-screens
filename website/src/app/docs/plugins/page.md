@@ -72,7 +72,7 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `description` | string | Short description of the plugin. |
 | `author` | string | Plugin author name. |
 | `license` | string | SPDX license identifier (e.g., `"MIT"`). |
-| `minAppVersion` | string | Minimum Home Screens version required. |
+| `minAppVersion` | string | Minimum Home Screens version required. Compared against the app's release line only, so a pre-release build like `1.8.0-rc.0` satisfies a `minAppVersion` of `1.8.0` rather than being treated as older than it. |
 | `moduleType` | string | The module type name. Registered as `plugin:<moduleType>` in the app. |
 | `category` | string | Module palette category (e.g., `"Weather & Environment"`, `"Personal"`, or any custom string). |
 | `icon` | string | Lucide icon name (e.g., `"sparkles"`, `"cloud-rain"`). |

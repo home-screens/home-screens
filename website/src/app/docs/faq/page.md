@@ -28,7 +28,7 @@ Home Screens ships with **anonymous telemetry on by default**. It sends one beac
 - How many displays, screens, and modules you have (counts only, no content)
 - Which module types and plugins are installed (marketplace plugin names and versions only, no settings; plugins installed from outside the marketplace are counted but never named)
 
-It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Stats > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
+It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Status > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
 
 ### How do I give my kids access to check off chores?
 
@@ -48,7 +48,7 @@ Yes. Home Screens runs on any machine with **Node.js 22+**. You can run it on a 
 
 ### What display orientation is supported?
 
-The default is **portrait at 1080x1920**, which works well for wall-mounted displays. During installation, you can choose from portrait, landscape, inverted, or counter-clockwise portrait. The resolution is also configurable --- you can set any custom resolution through the editor at **Settings > Display**.
+The default is **portrait at 1080x1920**, which works well for wall-mounted displays. During installation, you can choose from portrait, landscape, inverted, or counter-clockwise portrait. The resolution is also configurable --- you can set any custom resolution through the editor at **Settings > Screen**.
 
 ---
 
@@ -56,7 +56,7 @@ The default is **portrait at 1080x1920**, which works well for wall-mounted disp
 
 ### How do I update to the latest version?
 
-Go to **Settings > System > Check for Updates** in the editor and click **Upgrade**. The upgrade downloads a pre-built release from GitHub, swaps the application directory, and restarts the service. No build step is needed on the Pi.
+Go to **Settings > System & updates > Check for Updates** in the editor and click **Upgrade**. The upgrade downloads a pre-built release from GitHub, swaps the application directory, and restarts the service. No build step is needed on the Pi.
 
 {% callout type="note" %}
 From the command line: `curl -X POST http://localhost:3000/api/system/upgrade`.
@@ -66,7 +66,7 @@ From the command line: `curl -X POST http://localhost:3000/api/system/upgrade`.
 
 If something goes wrong after an upgrade:
 
-1. **From the editor** --- go to **Settings > System > Rollback** to revert to the previous version.
+1. **From the editor** --- go to **Settings > System & updates > Rollback** to revert to the previous version.
 2. **From the command line**:
    ```bash
    curl -X POST http://localhost:3000/api/system/rollback
@@ -76,15 +76,15 @@ Home Screens keeps the previous version on disk so rollbacks are instant.
 
 ### How do I backup my configuration?
 
-Go to **Settings > Data > Full Backup** in the editor and click **Export**. This downloads a JSON file containing your entire configuration --- screens, modules, settings, location, calendars, and device preferences. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
+Go to **Settings > Backups & data > Full Backup** in the editor and click **Export**. This downloads a JSON file containing your entire configuration --- screens, modules, settings, location, calendars, and device preferences. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
 
-A configurable backup reminder will notify you when you haven't backed up recently (configurable in Settings > Data).
+A configurable backup reminder will notify you when you haven't backed up recently (configurable in Settings > Backups & data).
 
 You can also use the **Share Layout** option to export just the visual layout (screens and modules) without personal data like API keys or location, which is safe to share with others.
 
 ### How do I restore a backup?
 
-Go to **Settings > Data > Full Backup** in the editor and click **Import**. Select a previously exported JSON backup file. Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
+Go to **Settings > Backups & data > Full Backup** in the editor and click **Import**. Select a previously exported JSON backup file. Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
 
 ### How do I reset to factory defaults?
 
@@ -144,7 +144,7 @@ If mDNS doesn't resolve at all (some ISP routers disable it), check your router'
 
 ### The screen is rotated the wrong way
 
-Go to **Settings > Display > Rotation** in the editor, or see [Troubleshooting > Screen rotation issues](/docs/troubleshooting#screen-rotation-issues) for the command-line fix.
+Go to **Settings > Screen > Rotation & appearance** in the editor, or see [Troubleshooting > Screen rotation issues](/docs/troubleshooting#screen-rotation-issues) for the command-line fix.
 
 ---
 
@@ -176,7 +176,7 @@ Yes. Home Screens uses a module registry pattern. To add a new module, you creat
 
 The most common cause is a missing or invalid API key. Check the following:
 
-1. Open the editor and go to **Settings > Integrations**
+1. Open the editor and go to **Settings > API keys**
 2. Verify that the relevant API key is entered and correct
 3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth or an iCloud account, confirm the sign-in has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for all the options.
 4. Check the browser console or server logs for error messages
@@ -211,7 +211,7 @@ Home Screens supports three photo sources for the **Photo Slideshow** and **Full
 
 For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
 
-To use Immich, enter your server URL and API key in **Settings > Integrations**. The API key is generated from Immich's Account Settings → API Keys page. iCloud shared albums need no setup — just a shared album link with the public website option enabled.
+To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings → API Keys page. iCloud shared albums need no setup — just a shared album link with the public website option enabled.
 
 ---
 
@@ -219,14 +219,14 @@ To use Immich, enter your server URL and API key in **Settings > Integrations**.
 
 ### How do I hide the mouse cursor?
 
-The cursor hides automatically. Home Screens has a **Cursor Auto-Hide** feature (configurable in **Settings > Display**) that hides the cursor after a few seconds of inactivity. Move the mouse to bring it back. This works in both kiosk mode and regular browser windows.
+The cursor hides automatically. Home Screens has a **Cursor Auto-Hide** feature (configurable in **Settings > Screen**) that hides the cursor after a few seconds of inactivity. Move the mouse to bring it back. This works in both kiosk mode and regular browser windows.
 
 ### How do I prevent screen burn-in?
 
 Several built-in features help prevent burn-in:
 
 - **Screen rotation** --- cycle through multiple screens at a set interval so no single layout stays on screen indefinitely
-- **Sleep schedule** --- configure hours when the display is fully blanked (e.g., overnight) at **Settings > Sleep**
+- **Sleep schedule** --- configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule** --- reduce brightness during certain hours without fully blanking the screen
 - **Screensaver** --- during sleep, a minimal clock can be shown that moves position to avoid static pixels
 - **Background rotation** --- automatically cycle background images from Unsplash, NASA, Immich, or an iCloud shared album to vary what's on screen
@@ -247,7 +247,7 @@ See the [API Reference](/docs/api) for full endpoint documentation.
 
 Profiles let you show different sets of screens based on a schedule:
 
-1. Go to **Settings > Profiles** and click **Add Profile**
+1. Go to **Settings > Automation > Profiles** and click **Add Profile**
 2. Give it a name (e.g., "Morning", "Work Hours", "Evening")
 3. Select which screens to include
 4. Set the days of the week and a time window (e.g., Monday--Friday, 6:00--9:00)

@@ -24,7 +24,7 @@ If your display shows nothing or a white screen:
    ```bash
    journalctl -u home-screens -n 50 --no-pager
    ```
-3. **Check the sleep schedule** — If you have a sleep schedule configured, the display may be in sleep mode. Visit the editor and check Settings > Display > Sleep Schedule.
+3. **Check the sleep schedule** — If you have a sleep schedule configured, the display may be in sleep mode. Visit the editor and check Settings > Screen > Sleep & dimming.
 4. **Open the browser console** — If you can access the display directly, press `F12` to open dev tools and check the Console tab for JavaScript errors.
 5. **Verify the URL** — Make sure the browser is pointing to `http://localhost:3000/display` (or your configured host and port).
 
@@ -34,7 +34,7 @@ If your display shows nothing or a white screen:
 
 If modules appear stale or show old data:
 
-1. **Check API keys** — Many modules require API keys (weather, stocks, news). Open the editor and go to Settings > Integrations to verify your keys are set.
+1. **Check API keys** — Many modules require API keys (weather, stocks, news). Open the editor and go to Settings > API keys to verify your keys are set.
 2. **Check refresh intervals** — Each module has a configurable refresh interval. Very long intervals mean data updates infrequently. Check the module settings in the editor.
 3. **Check network connectivity** — API-backed modules need internet access. Test from the Pi:
    ```bash
@@ -104,7 +104,7 @@ A 400 with "No calendars configured" means nothing is set up. A 200 with events 
 
 ### Google Calendar OAuth issues
 
-1. **Re-authenticate** — the OAuth device flow token may have expired. Go to **Settings > Integrations > Google Calendar** and re-run the device flow.
+1. **Re-authenticate** — the OAuth device flow token may have expired. Go to **Settings > Calendar > Sign in with Google** and re-run the device flow.
 2. **Check token expiry** — tokens expire after a period of inactivity. If the refresh token is revoked, you must re-authenticate.
 3. **Verify the API is enabled** — in the [Google Cloud Console](https://console.cloud.google.com/), ensure the Google Calendar API is enabled for your project.
 4. **Check selected calendars** — in the editor, make sure you've selected which calendars to display. The module only shows events from calendars you've explicitly chosen.
@@ -115,13 +115,13 @@ A 400 with "No calendars configured" means nothing is set up. A 200 with events 
 
 If the weather module shows an error or no data:
 
-1. **Verify your API key** — Open the editor, go to Settings > Integrations, and confirm your weather API key is entered correctly.
+1. **Verify your API key** — Open the editor, go to Settings > API keys, and confirm your weather API key is entered correctly.
 2. **Check provider availability** — Some providers have rate limits or outages. Try switching to a different provider temporarily:
    - **Open-Meteo** requires no API key and is a good fallback for testing.
    - **NOAA** is free but US-only.
 3. **Check your location** — Ensure latitude and longitude are set correctly in the module or global settings.
 4. **Test the endpoint** — Visit `http://localhost:3000/api/weather` to see the raw response and any error messages.
-5. **Try a different provider** — Home Screens supports {% $stats.weatherProviderCount %} weather providers. If one is not working, switch to another in Settings > Integrations.
+5. **Try a different provider** — Home Screens supports {% $stats.weatherProviderCount %} weather providers. If one is not working, switch to another in Settings > API keys.
 
 ---
 
@@ -258,7 +258,7 @@ Adopted displays report hardware stats (CPU, temperature, memory, uptime) to the
 
 For hard-to-reproduce issues, Home Screens can export a redacted diagnostics bundle you can attach to a GitHub issue:
 
-1. In the editor, go to **Settings > System > Diagnostics** and click **Download bundle**.
+1. In the editor, go to **Settings > Status** and click **Download bundle** in the Server card.
 2. Or from a shell: `curl -O http://home-screens.local:3000/api/system/diagnostics-bundle`
 
 The bundle includes recent service logs, system info, module counts, and error traces. API keys, OAuth tokens, session secrets, your config URL, and other secrets are redacted before the archive is built — it's safe to attach to a public issue. If you're unsure, unzip it and check before uploading.
@@ -282,7 +282,7 @@ It reports schema violations with a dot-path to each problem (for example `scree
 
 If an upgrade through the UI or CLI did not complete successfully:
 
-1. **Rollback to the previous version** — Home Screens keeps backups of previous versions. Use the system API or the editor UI (Settings > System > Rollback) to revert.
+1. **Rollback to the previous version** — Home Screens keeps backups of previous versions. Use the system API or the editor UI (Settings > System & updates > Rollback) to revert.
 2. **Check disk space** — Upgrades need free disk space for downloading and extracting. Check available space:
    ```bash
    df -h /

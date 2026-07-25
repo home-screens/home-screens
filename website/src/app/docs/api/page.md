@@ -8,7 +8,7 @@ nextjs:
       canonical: /docs/api
 ---
 
-All API routes are served under `/api/`. They act as server-side proxies to protect API keys and avoid CORS issues. API keys and credentials are managed through the editor UI (Settings > Integrations) and stored server-side; no `.env.local` file is needed.
+All API routes are served under `/api/`. They act as server-side proxies to protect API keys and avoid CORS issues. API keys and credentials are managed through the editor UI (Settings > API keys) and stored server-side; no `.env.local` file is needed.
 
 All external API calls include **automatic retry with exponential backoff**. Transient failures (5xx errors, 429 rate limits, network errors, and timeouts) are retried up to 2 times with increasing delays (500ms base, capped at 5s). The `Retry-After` header is respected when present. Client errors (4xx) and caller-initiated aborts are not retried. Individual routes can opt out of retry when the request is non-idempotent (e.g. traffic route POST calls).
 
@@ -604,7 +604,7 @@ Atomically flips one To-Do item's completion state. The addressed module must ex
 
 ### GET /api/todoist
 
-Fetches all tasks, projects, sections, and labels from the Todoist API. Enriches tasks with project names, colors, section names, and label colors. Requires a Todoist API token to be configured in Settings > Integrations.
+Fetches all tasks, projects, sections, and labels from the Todoist API. Enriches tasks with project names, colors, section names, and label colors. Requires a Todoist API token to be configured in Settings > API keys.
 
 **Response:**
 ```json
@@ -1010,7 +1010,7 @@ Deletes an empty subdirectory. Refuses to delete directories that still contain 
 
 ## Immich
 
-Immich is a self-hosted Google Photos alternative. These endpoints proxy requests to your Immich server so the display can fetch photos without exposing credentials. Requires `immich_url` and `immich_api_key` configured in Settings > Integrations.
+Immich is a self-hosted Google Photos alternative. These endpoints proxy requests to your Immich server so the display can fetch photos without exposing credentials. Requires `immich_url` and `immich_api_key` configured in Settings > API keys.
 
 ### GET /api/immich/validate
 
@@ -1491,6 +1491,34 @@ Deletes a secret for a plugin. Requires a valid session.
 
 **Response:** `{ "ok": true }`
 
+### GET /api/plugins/settings/:pluginId
+
+Returns a plugin's stored plugin-level settings — the non-secret values shared by every instance of the plugin, shaped by its manifest [`settingsSchema`](/docs/plugins#settings-schema). Requires a valid session. Returns 404 if the plugin isn't installed.
+
+Unlike secrets, these values are returned in full; secrets belong in the `secrets` endpoints above.
+
+**Response:**
+```json
+{
+  "settings": {
+    "baseUrl": "http://192.168.1.50:8123",
+    "pollIntervalMs": 15000
+  }
+}
+```
+
+### PUT /api/plugins/settings/:pluginId
+
+Replaces a plugin's settings object, validated against the manifest's `settingsSchema`. Requires a valid session. Returns 404 if the plugin isn't installed, and 400 if the plugin declares no `settingsSchema` or the body fails validation.
+
+**Body:** `{ "settings": { "baseUrl": "http://192.168.1.50:8123" } }`
+
+**Response:** `{ "ok": true, "settings": { ... } }` — the stored object after validation.
+
+### GET /api/plugins/asset/:pluginId/\*
+
+Serves a static file from an installed plugin's directory (icons, images, translation files). Path traversal outside the plugin's own directory is rejected. Authenticated with display credentials, so the kiosk can fetch plugin assets without an editor session.
+
 ### POST /api/plugins/auth/:pluginId/start
 
 Begins the sign-in flow for a plugin that declares a [server-side auth adapter](/docs/plugins#server-side-auth). Requires a valid session. Returns 404 if the plugin isn't installed and enabled, 400 if its manifest declares no `auth` field.
@@ -1684,7 +1712,7 @@ Before composing the bundle, the hub broadcasts `dump-console-log` to every adop
 
 Full household backup bundle — exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker. POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
-Secrets in `data/secrets.json` are **not** included; you'll re-enter API keys after restore. This is what **Settings > Data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
+Secrets in `data/secrets.json` are **not** included; you'll re-enter API keys after restore. This is what **Settings > Backups & data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
 ### GET /api/system/backups
 

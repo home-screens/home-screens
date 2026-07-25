@@ -51,11 +51,11 @@ Profiles are defined in your configuration alongside screens:
 
 ## Creating and managing profiles
 
-Profiles are managed in the editor under **Settings > Profiles**.
+Profiles are managed in the editor under **Settings > Automation > Profiles**.
 
 ### Adding a profile
 
-1. Open **Settings > Profiles**
+1. Open **Settings > Automation > Profiles**
 2. Click **Add Profile** -- a new profile is created with all screens selected
 3. Give it a descriptive name (e.g. "Morning", "Weekend", "Office Hours")
 
@@ -86,7 +86,7 @@ Each profile can have an optional schedule that activates it automatically based
 
 ### Enabling a schedule
 
-1. Expand a profile card in **Settings > Profiles**
+1. Expand a profile card in **Settings > Automation > Profiles**
 2. Toggle **Auto-activate on schedule**
 3. Select which **days** the profile should be active (click day buttons to toggle)
 4. Set the **From** and **Until** times to define the active window
@@ -236,7 +236,7 @@ When a profile (or the default view) includes multiple screens, the display auto
 
 ### Rotation interval
 
-Set the global rotation interval in **Settings > Display > Screen Rotation**. The slider ranges from 5 to 120 seconds (default: 30 seconds). Each screen is shown for this duration before cycling to the next.
+Set the global rotation interval in **Settings > Screen > Rotation & appearance**. The slider ranges from 5 to 120 seconds (default: 30 seconds). Each screen is shown for this duration before cycling to the next.
 
 Rotation pauses automatically when the display is asleep -- no point cycling through screens nobody can see.
 
@@ -246,7 +246,7 @@ Any individual screen can override the global rotation interval — useful for d
 
 ### Transition effects
 
-Configure the animation between screens in **Settings > Display > Transition Effect**:
+Configure the animation between screens in **Settings > Screen > Rotation & appearance**:
 
 | Effect | Description |
 |---|---|
@@ -263,13 +263,13 @@ Transition duration is configurable from 0.3 to 2.0 seconds. All effects except 
 
 ### Manual navigation
 
-The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. **Double-tap the active (highlighted) dot** to pause screen rotation — double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Display) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
+The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. **Double-tap the active (highlighted) dot** to pause screen rotation — double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Screen) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
 
 ---
 
 ## Sleep schedule
 
-The sleep system controls when the display dims or turns off entirely. It is configured in **Settings > Sleep & Screensaver**.
+The sleep system controls when the display dims or turns off entirely. It is configured in **Settings > Screen > Sleep & dimming**.
 
 ### Idle-based sleep
 

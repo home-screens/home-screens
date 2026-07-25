@@ -123,7 +123,7 @@ Tap the gear icon to open the Settings sheet, which includes:
 - **Backup All Data** — downloads a full backup of your configuration as a JSON file
 - **Restore Backup** — upload a previously exported backup file (tap-to-confirm before applying)
 
-A **backup reminder banner** appears on the Control tab when you haven't backed up recently. The reminder interval is configurable in the editor under Settings > Data.
+A **backup reminder banner** appears on the Control tab when you haven't backed up recently. The reminder interval is configurable in the editor under Settings > Backups & data.
 
 Settings **requires authentication**. The data is fetched on demand when you open the sheet, not continuously polled.
 

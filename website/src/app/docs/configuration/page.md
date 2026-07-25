@@ -35,7 +35,7 @@ The main config is read via `GET /api/config` and written via `PUT /api/config`.
 
 ## API Keys & Credentials
 
-API keys and credentials are managed through the editor UI under **Settings > Integrations** and stored server-side in `data/secrets.json` via the `/api/secrets` endpoint. They are **not** stored in `.env.local` or in the config file.
+API keys and credentials are managed through the editor UI under **Settings > API keys** and stored server-side in `data/secrets.json` via the `/api/secrets` endpoint. They are **not** stored in `.env.local` or in the config file.
 
 Supported secret keys:
 
@@ -517,6 +517,8 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   referenceTime: string        // elapsed: ISO timestamp or time string
   referenceLabel: string       // elapsed: label ("market open", "shift start")
   countUp: boolean             // elapsed: count up (true) or down (false)
+  elapsedFormat: ElapsedFormat        // elapsed: how the units are rendered
+  elapsedPrecision: ElapsedPrecision  // elapsed: which units are shown
 }
 
 type ClockView =
@@ -525,11 +527,29 @@ type ClockView =
   | 'fuzzy'   | 'world'   | 'dot-matrix' | 'radial' | 'arc'
   | 'neon'    | 'bar'     | 'elapsed'
 
+// Two independent axes, both single-select. Shared with CountdownConfig.
+type ElapsedFormat =
+  | 'units'       // 50d 20h 13m   (default)
+  | 'unitsUpper'  // 50D 20H 13M
+  | 'unitsShort'  // 50day 20hr 13min
+  | 'colon'       // 50:20:13
+  | 'words'       // 50 days, 20 hours, 13 minutes (localized)
+  | 'wordsTitle'  // 50 Days, 20 Hours, 13 Minutes (localized, unit words capitalized)
+
+type ElapsedPrecision =
+  | 'auto'        // default; see the auto rule below
+  | 'days'
+  | 'daysHours'
+  | 'daysHoursMinutes'
+  | 'daysHoursMinutesSeconds'
+
 interface WorldClockZone {
   label: string
   timezone: string             // IANA zone, e.g. "America/Los_Angeles"
 }
 ```
+
+The `words` and `wordsTitle` formats are localized through `Intl.DurationFormat`, so they follow the active [formatting locale](#globalsettings) including its connectors ("and", ", "). Every named precision shows its full unit set unconditionally, zeros included. Only `'auto'` is adaptive, and each module defines its own rule — for the clock's elapsed view: days and hours are dropped while zero, hours come back once days are showing, minutes are always shown, and seconds appear only when the total is under an hour.
 
 ### CalendarConfig
 
@@ -627,11 +647,20 @@ Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to
 {
   events: CountdownEvent[]
   showPastEvents: boolean
+  stayUntilEndOfDay?: boolean // keep an event that has hit zero visible until
+                              // the end of that calendar day in the configured timezone
   scale: number               // 0.5 – 4, default 1
   view: 'all' | 'next'
   holidayCountry?: string
+  format: CountdownFormat     // how units render, default 'flip'
+  precision: CountdownPrecision // which units are shown, default 'auto'
 }
+
+type CountdownFormat = 'flip' | 'units' | 'unitsUpper' | 'unitsShort' | 'colon' | 'words' | 'wordsTitle'
+type CountdownPrecision = 'auto' | 'days' | 'daysHours' | 'daysHoursMinutes' | 'daysHoursMinutesSeconds'
 ```
+
+`'flip'` is the countdown's own style — the animated flip cards — and is the default. The other six values are the same text styles the clock's elapsed view uses; see [ClockConfig](#clockconfig) for what each one renders. Precision works the same way too, except for the `'auto'` rule: the countdown shows days only when there is at least one, and always shows hours, minutes, and seconds.
 
 ### CountdownEvent
 
@@ -918,7 +947,7 @@ Plays a video clip from the media library, a direct URL, or a YouTube link. Vide
 
 ### TodoistConfig
 
-Connects to the Todoist API (requires a Todoist API token configured in Settings > Integrations).
+Connects to the Todoist API (requires a Todoist API token configured in Settings > API keys).
 
 ```typescript
 {
@@ -1247,7 +1276,7 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 - **Export** from the editor's Data section or the remote's Settings sheet downloads a full backup as JSON
 - **Import** replaces the current config with an uploaded JSON file (available in both the editor and the remote)
-- A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Data)
+- A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
 - Manual backups: copy `data/config.json` to a safe location
 
 ## Example

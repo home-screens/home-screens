@@ -147,7 +147,7 @@ Right-click a screen tab and choose **Delete** from the context menu. You must h
 
 ### Screen Rotation
 
-The global rotation interval lives in **Settings → Display** (or the property panel's **Screen** section when no module is selected — see [Property Panel](#property-panel) below). Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
+The global rotation interval lives in **Settings > Screen > Rotation & appearance** (or the property panel's **Screen Settings** section when no module is selected — see [Property Panel](#property-panel) below). Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
 
 Any individual screen can **override** the global interval via its `rotationDurationMs` field. Click an empty area of the canvas to deselect any module, then use the property panel's **Screen Settings** section to set a custom duration for the current screen, or clear it to inherit the global default. When a screen has a custom value, a small **duration pill** appears on its tab (e.g. `10s`) so you can see the override at a glance.
 
@@ -168,7 +168,7 @@ Screen transitions control the visual effect when cycling between screens. There
 - **crossfade** — overlapping crossfade
 - **none** — instant switch with no animation
 
-The transition effect and duration are configurable in **Settings > Display**. The default duration is 0.6 seconds.
+The transition effect and duration are configurable in **Settings > Screen**. The default duration is 0.6 seconds.
 
 ## Backgrounds
 
@@ -198,21 +198,25 @@ Each screen can have its own background image. Select a screen tab, then choose 
 
 Open the **Settings Panel** to configure system-wide options. Pages are grouped under four headers:
 
-- **Screen** — Screen (display, sleep, and alert settings) and Location
-- **Content** — Weather, Calendar, Meals, and Integrations
-- **Automation** — Profiles, Rules, and Shared state
-- **Maintenance** — Security, Network, System, Data, and Stats
+- **Screen** — Screen (rotation, appearance, sleep, and alerts) and Location & language
+- **Content** — Weather, Calendar, Meals, and API keys
+- **Automation** — Profiles, Rules, and Shared state (three tabs on one page)
+- **Maintenance** — Security, Network, System & updates, Backups & data, and Status
 
 The search box at the top of the sidebar matches individual setting names as well as page titles — search "brightness" or "timezone" and it jumps straight to that field and briefly highlights it, even if you don't know which page it lives on. The full documentation is always one click away via the **Docs** link in the sidebar footer.
 
 When you add a second display, the sidebar automatically splits into two groups:
 
 - **Defaults** — the same set of pages above, holding the shared source-of-truth values that apply to *every* display until a specific one overrides them. Each Defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
-- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has two sub-tabs: **Overview** (profile, identity, and adoption info) and **Overrides** (display, sleep, and alert settings for this display). Every inheritable field on the Overrides sub-tab is rendered as an **OverrideRow** with explicit **Override** / **Reset to default** actions, so the provenance of each value is visible instead of inferred. Resolution, rotation, and flip live directly on the `DisplayNode` and render as plain inputs on the Overrides sub-tab — they have no shared default to inherit from.
+- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has two sub-tabs: **Overview** (profile, identity, and adoption info) and **Overrides** (screen, sleep, and alert settings for this display). Every field that can inherit shows an **Override** button, and once overridden a **Reset to default** button, so you can always see at a glance whether a value is this display's own or borrowed from Defaults. Resolution, rotation, and flip are the exception: every display has its own screen, so those are plain inputs with nothing to inherit.
 
 See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
-### Display
+### Screen
+
+Everything about how the screen looks and when it turns itself down, across three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**.
+
+#### Rotation & appearance
 
 - **Orientation** — toggle between portrait and landscape mode (swaps width and height)
 - **Resolution Preset** — choose from standard resolutions (720p, 1080p, 1440p, 4K) or set a custom resolution (320–7680px)
@@ -222,6 +226,24 @@ See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke se
 - **Transition Duration** — how long the transition takes (0.3–2 seconds, default 0.6)
 - **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
 - **Touchscreen Pause** — when enabled (default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) resumes rotation after a period of inactivity
+
+#### Sleep & dimming
+
+- **Enable/Disable** — master toggle for display sleep
+- **Dim After** — minutes of inactivity before dimming (1–60, default 10)
+- **Sleep After Dimming** — minutes after dimming before fully blanking (0–120, 0 = never)
+- **Dim Brightness** — how much to dim (5–80%, default 20%)
+- **Screensaver** — what to show during the dimmed state: drifting clock, blank, or off (skip to sleep)
+- **Dim Schedule** — automatically dim during set hours (supports overnight spans like 23:00–06:00)
+- **Sleep Schedule** — fully blank the screen during set hours (ignores activity, supports overnight spans)
+
+#### Alerts
+
+- **Enable/Disable** — toggle the alert notification overlay
+- **Position** — display alerts at the top or bottom of the screen
+- **Max Visible** — limit how many alerts show simultaneously (1–10, default 3)
+- **Default Duration** — how long alerts remain visible before auto-dismissing (0 = per-type defaults)
+- **Alert Size** — scale alert dimensions from 75% to 200% (default 100%); affects text, padding, border radius, and icons proportionally
 
 ### Per display (All displays)
 
@@ -250,25 +272,7 @@ Rules make a display react to live conditions instead of just the clock — for 
 
 Shows the values your installed add-ons are publishing, in two tabs: **Watching** lists what this display is actively using, and **Available** is a searchable, browsable catalogue of everything your add-ons could share, grouped by add-on, whether or not anything on your display uses it yet.
 
-### Sleep
-
-- **Enable/Disable** — master toggle for display sleep
-- **Dim After** — minutes of inactivity before dimming (1–60, default 10)
-- **Sleep After Dimming** — minutes after dimming before fully blanking (0–120, 0 = never)
-- **Dim Brightness** — how much to dim (5–80%, default 20%)
-- **Screensaver** — what to show during the dimmed state: drifting clock, blank, or off (skip to sleep)
-- **Dim Schedule** — automatically dim during set hours (supports overnight spans like 23:00–06:00)
-- **Sleep Schedule** — fully blank the screen during set hours (ignores activity, supports overnight spans)
-
-### Alerts
-
-- **Enable/Disable** — toggle the alert notification overlay
-- **Position** — display alerts at the top or bottom of the screen
-- **Max Visible** — limit how many alerts show simultaneously (1–10, default 3)
-- **Default Duration** — how long alerts remain visible before auto-dismissing (0 = per-type defaults)
-- **Alert Size** — scale alert dimensions from 75% to 200% (default 100%); affects text, padding, border radius, and icons proportionally
-
-### Location
+### Location & language
 
 - **Location Lookup** — search by zip code or city name to auto-fill coordinates
 - **Detect** — auto-detect location via browser geolocation or IP-based fallback
@@ -298,16 +302,16 @@ Shows the values your installed add-ons are publishing, in two tabs: **Watching*
 ### Calendar
 
 - **iCal / ICS Feeds** — add calendar feeds by URL. Works with Google Calendar's [private iCal address](https://support.google.com/calendar/answer/37648?hl=en), Apple iCloud, Outlook, Fastmail, and anything else that publishes ICS. Simplest path — no credentials needed.
-- **Google Calendar (OAuth)** — optional advanced path: sign in with Google via OAuth device flow to get native multi-calendar selection and Google's own color-coding. Requires OAuth credentials in Integrations first.
+- **Google Calendar (OAuth)** — optional advanced path: sign in with Google via OAuth device flow to get native multi-calendar selection and Google's own color-coding. Requires OAuth credentials on the API keys page first.
 - **Calendar Selection** — after OAuth sign-in, choose which Google calendars to display (multi-select with color indicators)
 - **iCloud Accounts** — sign in with your Apple ID and an [app-specific password](https://account.apple.com) to sync iCloud calendars directly (multiple accounts supported). Pick which calendars to show — Apple's colors carry over — and optionally add a **Birthdays** calendar built from your contacts. Your password is checked against iCloud before saving and never leaves the server.
 - **Public Holidays** — select a country to show public holidays on calendar modules (data from Nager.Date)
 - **Max Events** — limit the number of events shown (1–100, default 10)
 - **Days Ahead** — how far ahead to look for events (1–90, default 7)
 
-### Integrations
+### API keys
 
-The **Integrations** tab is where you configure all API keys and external service connections. Keys are stored separately in `data/secrets.json` — no `.env.local` needed. Each key shows a status indicator (configured/not configured) and can be saved or removed individually.
+The **API keys** page is where you configure all API keys and external service connections. Keys are stored separately in `data/secrets.json` — no `.env.local` needed. Each key shows a status indicator (configured/not configured) and can be saved or removed individually.
 
 - **Google OAuth Client ID** — required for Google Calendar (create at Google Cloud Console, type: TVs and Limited Input devices)
 - **Google OAuth Client Secret** — the client secret from the same OAuth credential
@@ -318,7 +322,7 @@ The **Integrations** tab is where you configure all API keys and external servic
 - **Immich Server URL** — your Immich server address (e.g. `http://192.168.1.50:2283`) for self-hosted photo library integration
 - **Immich API Key** — generated from your Immich account settings (Account Settings → API Keys); enables Immich as a photo source for slideshows, fullscreen photo, and background rotation
 - **TomTom API Key** — alternative to Google Maps for traffic data (free at developer.tomtom.com)
-- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour. Only shown when **Advanced Mode** is enabled in System settings.
+- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour. Only shown when **Advanced Mode** is enabled on the System & updates page.
 
 ### Security
 
@@ -345,27 +349,28 @@ Two things to know before enabling restriction:
 1. IP matching is **IPv4-only**. If your server sees your client as an IPv6 address (`::1`, `fe80::...`), add an IPv4 entry that would match your actual address and make sure the client is reaching the server over IPv4. The panel shows a warning in this case.
 2. The feature trusts the `x-forwarded-for` header. If Home Screens sits behind a reverse proxy that does not strip client-supplied XFF headers, a clever attacker can spoof an allowlisted IP. Either run without a proxy or configure the proxy to overwrite XFF.
 
-### Data
+### Backups & data
 
 - **Share Layout** — export your screen layout (screens, modules, visual settings) without personal data; safe to share with others
 - **Import Layout** — import a previously exported layout file
 - **Templates** — start from a pre-built template while preserving your existing settings
 - **Full Backup** — export or restore the entire configuration including all settings, location, calendars, and device preferences
 - **Backup Reminder** — a configurable reminder that shows a toast when you haven't backed up in a while; set the interval or disable it entirely
+- **Config Backups** — the snapshots taken automatically before each upgrade, with download and restore options. These live here alongside your manual backups so every backup is in one place.
 
-### Stats
+### Status
 
-The Stats tab provides a live dashboard of system health and application state:
+The Status page is a live dashboard of system health and application state:
 
 - **Display Status** — connection state (active, dimmed, sleeping), current screen, and active profile
 - **Data Cache** — cache entries, hit rate, fresh/stale counts, and a detail table showing individual cached API responses
 - **Disk Usage** — filesystem usage and a breakdown of Home Screens data (backgrounds, backups, config)
 - **Configuration** — screen count, module count, profiles, and a breakdown of module types in use
 - **Integrations** — which API keys are configured at a glance
-- **Server** — hostname, platform, Node.js version, uptime, and memory usage
+- **Server** — hostname, platform, Node.js version, uptime, and memory usage, plus a **Download bundle** button that exports a redacted diagnostics archive for bug reports
 - **Anonymous Telemetry** — on by default, with an opt-out toggle for anonymous usage statistics; expandable "What we collect" section lists exactly what's sent (install ID, app version, platform, display counts, module-type histogram, plugin list). No PII, one beacon per 24 hours.
 
-### System
+### System & updates
 
 - **Version** — current app version with commit hash and installation method (git or release)
 - **Update Channel** — switch between Stable and Pre-release (dev) channels. Only shown when **Advanced Mode** is enabled.
@@ -373,9 +378,8 @@ The Stats tab provides a live dashboard of system health and application state:
 - **Update Notification** — opt-in toggle (off by default). When enabled, the editor shows a dismissible toast and `/remote` shows a banner whenever a newer release is available on GitHub. Dismissals are tracked per release tag so the same upgrade won't re-surface; a new release will surface a new prompt.
 - **Upgrade** — download and install a newer version (with confirmation dialog)
 - **Changelog** — expandable view of recent release notes
-- **Version History** — list of installed versions with rollback option for each
-- **Config Backups** — auto-created before each upgrade, with download and restore options
-- **Advanced Mode** — toggle that exposes developer surfaces. When on, you'll see the Update Channel switcher (above), the GitHub Personal Access Token card in Integrations, and the Developer tab in the Plugins panel. Off by default — turn it on if you're contributing plugins, testing pre-release builds, or want a higher GitHub rate limit for version checks.
+- **Version History** — list of installed versions with rollback option for each. The config snapshot taken before each upgrade lives on the **Backups & data** page.
+- **Advanced Mode** — toggle that exposes developer surfaces. When on, you'll see the Update Channel switcher (above), the GitHub Personal Access Token card in API keys, and the Developer tab in the Plugins panel. Off by default — turn it on if you're contributing plugins, testing pre-release builds, or want a higher GitHub rate limit for version checks.
 - **Power** — restart the Home Screens service, or reboot the entire Raspberry Pi
 
 ### Docs
@@ -388,7 +392,7 @@ Profiles let you define named groups of screens that activate based on a schedul
 
 ### Creating a Profile
 
-1. Open **Settings > Profiles**
+1. Open **Settings > Automation > Profiles**
 2. Click **Add Profile** and give it a name (e.g. "Morning", "Evening")
 3. Select which screens to include and drag to set their display order
 

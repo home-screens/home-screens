@@ -81,7 +81,7 @@ After reboot, the display should automatically show the fullscreen view. To conf
 
 ### Configuring API Keys
 
-API keys are configured through the editor UI, not environment files. Open the editor and go to **Settings > Integrations** to enter your API keys for weather providers, Unsplash, Todoist, TomTom, and other services.
+API keys are configured through the editor UI, not environment files. Open the editor and go to **Settings > API keys** to enter your API keys for weather providers, Unsplash, Todoist, TomTom, and other services.
 
 ## Display Orientation
 
@@ -97,7 +97,7 @@ How is your display oriented?
 
 It also asks for your display resolution, or auto-detects the native resolution from the connected display if you leave it blank.
 
-To change the orientation after installation, use the display transform setting in the editor (**Settings > Display**).
+To change the orientation after installation, use the display transform setting in the editor (**Settings > Screen**).
 
 ## Upgrading
 

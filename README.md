@@ -83,7 +83,7 @@ Then visit:
 
 ## Configuration
 
-All API keys and credentials are managed through the editor UI at **Settings > Integrations**. No `.env.local` file needed. Configuration is stored as a single JSON file (`data/config.json`) — no database.
+All API keys and credentials are managed through the editor UI at **Settings > API keys**. No `.env.local` file needed. Configuration is stored as a single JSON file (`data/config.json`) — no database.
 
 ### Google Calendar
 
@@ -91,7 +91,7 @@ Uses **OAuth 2.0 Device Flow** — authorize from any device, no redirect URI re
 
 1. [Google Cloud Console](https://console.cloud.google.com) > **APIs & Services > Credentials** > Create OAuth Client ID
 2. Application type: **TVs and Limited Input devices**
-3. Enter Client ID and Secret in **Settings > Integrations**
+3. Enter Client ID and Secret in **Settings > API keys**
 4. Enable the **Google Calendar API** in APIs & Services > Library
 5. **Settings > Calendar > Sign in with Google** — enter the code at `google.com/device`
 
@@ -187,7 +187,7 @@ Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
 | `telemetry.json` · `audit.log` | Anonymous telemetry state and editor audit trail |
 | `kiosk.conf` · `port.conf` | Display resolution/rotation and server port overrides |
 
-The editor has built-in backups at **Settings > Data**, but for a full backup:
+The editor has built-in backups at **Settings > Backups & data**, but for a full backup:
 
 ```bash
 # Copy off the Pi
@@ -207,7 +207,7 @@ sudo reboot
 
 ### Display Resolution
 
-From the editor: **Settings > Display** — adjust width, height, and rotation.
+From the editor: **Settings > Screen** — adjust width, height, and rotation.
 
 From SSH:
 

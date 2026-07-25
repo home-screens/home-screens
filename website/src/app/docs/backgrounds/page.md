@@ -125,7 +125,7 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 
 1. Create a free account at [unsplash.com/developers](https://unsplash.com/developers)
 2. Create a new application to get an **Access Key**
-3. In the editor, go to **Settings > Integrations** and enter the key as **Unsplash Access Key**
+3. In the editor, go to **Settings > API keys** and enter the key as **Unsplash Access Key**
 
 ### Browsing and selecting
 
@@ -147,7 +147,7 @@ NASA offers two image sources, both accessible from the **NASA** tab in the back
 ### Setup
 
 1. Get a free API key at [api.nasa.gov](https://api.nasa.gov)
-2. In the editor, go to **Settings > Integrations** and enter it as **NASA API Key**
+2. In the editor, go to **Settings > API keys** and enter it as **NASA API Key**
 
 The NASA Image Library (search) works without an API key. The Astronomy Picture of the Day (APOD) feature requires one.
 
@@ -175,7 +175,7 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 
 1. Install and configure an Immich server on your network
 2. In Immich, go to **Account Settings → API Keys** and generate a new key
-3. In the editor, go to **Settings > Integrations** and enter the **Immich Server URL** (e.g. `http://192.168.1.50:2283`) and the **Immich API Key**
+3. In the editor, go to **Settings > API keys** and enter the **Immich Server URL** (e.g. `http://192.168.1.50:2283`) and the **Immich API Key**
 
 ### Browsing and selecting
 

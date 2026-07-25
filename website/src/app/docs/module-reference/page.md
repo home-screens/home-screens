@@ -123,7 +123,7 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `shuffle` | boolean | `false` | Randomize photo order |
 | `showClock` | boolean | `true` | Show clock overlay on photos |
 | `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > Integrations), or `icloud` (a public shared album — no keys needed) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
@@ -133,7 +133,7 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 {% callout type="note" title="Immich source" %}
-The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > Integrations. Album and person filters are mutually exclusive — selecting one clears the other.
+The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive — selecting one clears the other.
 {% /callout %}
 
 ---
@@ -160,6 +160,8 @@ Displays the current time with optional date information. Supports {% $stats.clo
 | `referenceTime` | string | `""` | ISO timestamp or time string for elapsed view |
 | `referenceLabel` | string | `""` | Label for elapsed view (e.g. "market open", "shift start") |
 | `countUp` | boolean | `true` | Count up (true) or down (false) from reference time (elapsed view) |
+| `elapsedFormat` | string | `"units"` | How the elapsed view renders units: `units` (50d 20h 13m), `unitsUpper` (50D 20H 13M), `unitsShort` (50day 20hr 13min), `colon` (50:20:13), `words` (50 days, 20 hours), or `wordsTitle` (50 Days, 20 Hours). The two word styles are localized. |
+| `elapsedPrecision` | string | `"auto"` | Which units the elapsed view shows: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. Named precisions always show their full set including zeros; `auto` hides days and hours while they are zero and shows seconds only under an hour. |
 
 ### Calendar
 
@@ -186,8 +188,11 @@ Counts down to one or more future events with visual progress rings.
 | `view` | string | `"all"` | Display mode: `all` (show all events) or `next` (show only the next upcoming event) |
 | `events` | array | `[]` | List of events, each with `id`, `name`, `date`, optional `recurring` (`"yearly"`), and optional `source` (`"custom"` or `"holiday"`) |
 | `showPastEvents` | boolean | `false` | Continue showing events after they pass |
+| `stayUntilEndOfDay` | boolean | `false` | Keep an event that has reached zero on screen until the end of that day, so a birthday or anniversary stays up all day instead of vanishing at midnight |
 | `scale` | number | `1` | Visual scale factor (0.5–4) |
 | `holidayCountry` | string | — | ISO country code to auto-populate holiday countdowns (e.g. `"US"`) |
+| `format` | string | `"flip"` | How the numbers render: `flip` (animated flip cards), or one of the Clock elapsed text styles: `units`, `unitsUpper`, `unitsShort`, `colon`, `words`, `wordsTitle` |
+| `precision` | string | `"auto"` | Which units are shown: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. `auto` shows days only when there is at least one, and always shows hours, minutes, and seconds. |
 
 ### Year Progress
 
@@ -706,7 +711,7 @@ Rotates through images from a local directory, an Immich photo library, or an iC
 | `transition` | string | `"fade"` | Transition effect: `fade` or `none` |
 | `objectFit` | string | `"cover"` | Image fit mode |
 | `refreshIntervalMs` | number | `600000` | How often to re-scan the directory for new images (10 min) |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > Integrations), or `icloud` (a public shared album — no keys needed) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
