@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type { ModuleStyle } from '@/types/config';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 
@@ -328,6 +328,109 @@ export interface StateProviderProps {
 export interface PluginError {
   message: string;
   phase: 'load' | 'execute' | 'register';
+}
+
+/**
+ * The `window.__HS_SDK__` contract.
+ *
+ * Two components install into one object: `PluginGlobals` (mounted in both the
+ * display and editor layouts) installs everything below except the two members
+ * marked editor-only, which `PluginGlobalsEditor` adds on top in the editor
+ * layout so the editor store stays out of the display bundle.
+ *
+ * That split used to live only in prose, with the object typed as
+ * `Record<string, unknown>` — so nothing caught a member added to one surface
+ * only, renamed, or given a different signature, and the failure surfaced as a
+ * TypeError inside a third-party bundle at runtime. Declaring it here makes the
+ * display/editor split a property of the type instead.
+ *
+ * Members are declared as `typeof import(...)` wherever they forward a host
+ * function unchanged, so a signature change on the host side is a compile error
+ * here rather than a silent contract break for plugin authors. The `import
+ * type` form is fully erased, so this stays a types-only module.
+ *
+ * `startAuth` and `setPluginSettings` are NOT optional: the display installs
+ * rejecting stubs so presence is invariant across surfaces and only behavior
+ * differs. A plugin calling them on a kiosk gets a resolved rejection, not a
+ * TypeError that would take the whole display tree down.
+ */
+export interface HsSdk {
+  // ── CSS class strings for consistent editor form styling ──────────
+  INPUT_CLASS: string;
+  NESTED_INPUT_CLASS: string;
+
+  // ── UI components (the same ones built-in modules use) ────────────
+  Slider: typeof import('@/components/ui/Slider').default;
+  ColorPicker: typeof import('@/components/ui/ColorPicker').default;
+  Toggle: typeof import('@/components/ui/Toggle').default;
+  SectionHeading: typeof import('@/components/ui/SectionHeading').default;
+  ModuleLoadingState: (props: {
+    loading?: boolean;
+    error?: string;
+    children: ReactNode;
+  }) => ReactNode;
+
+  // ── Hooks ─────────────────────────────────────────────────────────
+  useFetchData: typeof import('@/hooks/useFetchData').useFetchData;
+
+  // ── Utilities ─────────────────────────────────────────────────────
+  displayCache: {
+    get: typeof import('@/lib/display-cache').displayCache['get'];
+    set: typeof import('@/lib/display-cache').displayCache['set'];
+    prefetch: typeof import('@/lib/display-cache').displayCache['prefetch'];
+  };
+  getHostSettings: typeof import('@/lib/plugin-host-settings').getHostSettings;
+  getPluginSettings: (pluginId: string) => Record<string, unknown>;
+  emit: typeof import('@/lib/plugin-events').pluginEventBus.emit;
+  on: (channel: string, handler: (data: unknown) => void) => () => void;
+
+  // ── Shared-state bus ──────────────────────────────────────────────
+  publishState: (pluginId: string, key: string, value: string) => void;
+  clearState: (pluginId: string, key: string) => void;
+  reportProviderHealth: (
+    pluginId: string,
+    status: import('@/lib/provider-health-store').ProviderHealthStatus,
+  ) => void;
+
+  // ── Server-side proxy + auth ──────────────────────────────────────
+  pluginFetch: (
+    pluginId: string,
+    options: {
+      url: string;
+      method?: string;
+      headers?: Record<string, string>;
+      payload?: string;
+      secretInjections?: {
+        header?: Record<string, string>;
+        query?: Record<string, string>;
+      };
+      cacheTtlMs?: number;
+      skipAuth?: boolean;
+    },
+  ) => Promise<Response>;
+  getAuthStatus: (pluginId: string) => Promise<{ connected: boolean; expiresAt?: number }>;
+  /** Editor-only behavior. On the display this resolves to a no-op. */
+  startAuth: (pluginId: string) => void;
+  /** Editor-only behavior. On the display this rejects with `ok: false`. */
+  setPluginSettings: (
+    pluginId: string,
+    updates: Record<string, unknown>,
+  ) => Promise<{ ok: boolean; error?: string }>;
+
+  // ── i18n ──────────────────────────────────────────────────────────
+  locale: string;
+  translate: (key: string, vars?: Record<string, string | number>) => string;
+  formatDate: (date: Date | number, pattern: string) => string;
+  formatNumber: (n: number, opts?: Intl.NumberFormatOptions) => string;
+
+  // ── Editor-only: absent entirely on the display ───────────────────
+  /** Installed by PluginGlobalsEditor. Undefined on a kiosk. */
+  AccordionSection?: typeof import('@/components/editor/AccordionSection').default;
+  /** Installed by PluginGlobalsEditor. Undefined on a kiosk. */
+  useModuleConfig?: <T = Record<string, unknown>>(
+    moduleId: string,
+    screenId: string,
+  ) => { config: T; set: (updates: Partial<T>) => void };
 }
 
 /** Props injected into a plugin's custom ConfigSection component */

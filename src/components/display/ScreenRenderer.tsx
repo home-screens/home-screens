@@ -3,11 +3,13 @@
 import { useMemo, useEffect } from 'react';
 import type { Screen, GlobalSettings, ModuleType, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
+import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys } from '@/lib/schedule';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { useTZClock } from '@/hooks/useTZClock';
+import { useTranslate } from '@/i18n';
 
 /**
  * Single source of truth for the renderer's module-visibility predicate.
@@ -152,6 +154,9 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
 
 function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [], displayId }: ScreenRendererProps) {
   const { overrideBackground } = usePageBackground();
+  // The `modules` namespace is preloaded by the display layout's I18nProvider,
+  // which wraps this component — same path PluginPlaceholder already uses.
+  const tModules = useTranslate('modules');
 
   // Minute-resolution timezone-aware clock for module scheduling
   const now = useTZClock(settings.timezone);
@@ -288,7 +293,9 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
               zIndex: mod.zIndex,
             }}
           >
-            <Component config={mod.config} style={mod.style} {...extraProps} />
+            <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+              <Component config={mod.config} style={mod.style} {...extraProps} />
+            </ModuleErrorBoundary>
           </div>
         );
       })}

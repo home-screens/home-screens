@@ -2,10 +2,11 @@
 
 import { useLayoutEffect } from 'react';
 import AccordionSection from '@/components/editor/AccordionSection';
-import { useEditorStore } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { setHostSettings } from '@/lib/plugin-host-settings';
+import { DISPLAY_SDK_STUBS } from '@/lib/plugin-sdk-display-stubs';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { logger } from '@/lib/logger';
@@ -25,8 +26,14 @@ const log = logger('plugin');
  * @param screenId - The screen ID (from ConfigSection props)
  */
 function useModuleConfig<T = Record<string, unknown>>(moduleId: string, screenId: string): { config: T; set: (updates: Partial<T>) => void } {
+  // Both lookups go through getActiveScreens, matching how `updateModule`
+  // writes. Reading the legacy `config.screens` pool while writing display-aware
+  // meant that on a multi-display install this helper either found nothing (and
+  // silently dropped the user's edit) or merged a stale sibling display's config
+  // back over the live module.
   const mod = useEditorStore((s) => {
-    const screen = s.config?.screens.find((sc) => sc.id === screenId);
+    if (!s.config) return undefined;
+    const screen = getActiveScreens(s.config, s.selectedDisplayId).find((sc) => sc.id === screenId);
     return screen?.modules.find((m) => m.id === moduleId);
   });
   const updateModule = useEditorStore((s) => s.updateModule);
@@ -37,7 +44,9 @@ function useModuleConfig<T = Record<string, unknown>>(moduleId: string, screenId
   // when set() is called multiple times in the same tick.
   const set = (updates: Partial<T>) => {
     const state = useEditorStore.getState();
-    const screen = state.config?.screens.find((sc) => sc.id === screenId);
+    const screen = state.config
+      ? getActiveScreens(state.config, state.selectedDisplayId).find((sc) => sc.id === screenId)
+      : undefined;
     const currentMod = screen?.modules.find((m) => m.id === moduleId);
     if (!currentMod) {
       log.warn('useModuleConfig: module not found — is this running outside the editor?');
@@ -98,10 +107,14 @@ export default function PluginGlobalsEditor() {
 
     return () => {
       if (!window.__HS_SDK__) return;
+      // AccordionSection and useModuleConfig are genuinely editor-only and are
+      // typed optional, so they go away entirely.
       delete window.__HS_SDK__.AccordionSection;
       delete window.__HS_SDK__.useModuleConfig;
-      delete window.__HS_SDK__.startAuth;
-      delete window.__HS_SDK__.setPluginSettings;
+      // startAuth and setPluginSettings must stay *present* on every surface —
+      // restore the display no-ops rather than leaving holes a plugin would hit
+      // as a TypeError. See DISPLAY_SDK_STUBS.
+      Object.assign(window.__HS_SDK__, DISPLAY_SDK_STUBS);
     };
   }, []);
 

@@ -1973,6 +1973,7 @@
     "emptyState": "Selecteer een module om te bewerken",
     "moduleHeading": "{name}-module",
     "pluginNotLoaded": "Plugin niet geïnstalleerd of laden mislukt",
+    "pluginConfigFailed": "Deze instellingen konden niet worden getoond.",
     "sections": {
       "position": "Positie",
       "size": "Grootte",

@@ -1973,6 +1973,7 @@
     "emptyState": "Wähle ein Modul zum Bearbeiten",
     "moduleHeading": "{name}-Modul",
     "pluginNotLoaded": "Plugin nicht installiert oder konnte nicht geladen werden",
+    "pluginConfigFailed": "Diese Einstellungen konnten nicht angezeigt werden.",
     "sections": {
       "position": "Position",
       "size": "Größe",

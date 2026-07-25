@@ -1977,6 +1977,7 @@
     "emptyState": "Selecione um módulo para editar",
     "moduleHeading": "Módulo {name}",
     "pluginNotLoaded": "Plugin não instalado ou falhou ao carregar",
+    "pluginConfigFailed": "Não foi possível mostrar estas configurações.",
     "sections": {
       "position": "Posição",
       "size": "Tamanho",

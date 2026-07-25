@@ -8,6 +8,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
+import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { useTranslate } from '@/i18n';
 import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
@@ -32,6 +33,9 @@ export interface PreviewSettings {
 // tick — none of which may reset module-internal state.
 const ModulePreview = memo(function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
   const displays = useEditorStore((s) => s.config?.displays);
+  // `modules`, not `editor`: the crash fallback is the same string the display
+  // shows, and it belongs beside `common.pluginNotAvailable`.
+  const tModules = useTranslate('modules');
   // Plugin components resolve through the reactive store, not the static
   // getModuleComponent lookup: the memo pins this render, so a plugin reload
   // swapping the registration under the same type must trigger it directly.
@@ -95,7 +99,13 @@ const ModulePreview = memo(function ModulePreview({ mod, previewData, settings }
     extraProps.availableDisplays = displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
   }
 
-  return <Component config={mod.config} style={mod.style} {...extraProps} />;
+  // A plugin that throws while rendering must not take the editor down with it
+  // and discard unsaved config edits.
+  return (
+    <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+      <Component config={mod.config} style={mod.style} {...extraProps} />
+    </ModuleErrorBoundary>
+  );
 });
 
 export default function DraggableModule({

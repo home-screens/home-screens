@@ -17,6 +17,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
+import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import PluginSecretsSection from './PluginSecretsSection';
 import PluginAuthSection from './PluginAuthSection';
 import { MousePointerClick } from 'lucide-react';
@@ -295,16 +296,31 @@ export default function PropertyPanel() {
             <AccordionSection title={t('propertyPanel.sections.config')}>
               <PropertyGroup title={t('propertyPanel.sections.settings')} accent={1}>
                 <div className="space-y-3">
-                  <PluginConfig
-                    config={selectedModule.config}
-                    onChange={(updates: Record<string, unknown>) =>
-                      updateModule(selectedScreenId, selectedModule.id, {
-                        config: { ...selectedModule.config, ...updates },
-                      })
-                    }
-                    moduleId={selectedModule.id}
-                    screenId={selectedScreenId}
-                  />
+                  {/* A plugin ConfigSection is third-party render code running
+                      inside the editor tree. Unbounded, a throw here unmounts
+                      the whole editor and discards unsaved config edits. */}
+                  {/* Keyed on the module id. Without it React preserves the
+                      boundary instance across module selections (same element
+                      position, same type), so `failed` stays true and every
+                      OTHER plugin's settings render the fallback too — clearing
+                      only on deselect or a switch to a built-in, which makes it
+                      look intermittent and inexplicable. */}
+                  <ModuleErrorBoundary
+                    key={selectedModule.id}
+                    moduleType={selectedModule.type}
+                    fallbackText={t('propertyPanel.pluginConfigFailed')}
+                  >
+                    <PluginConfig
+                      config={selectedModule.config}
+                      onChange={(updates: Record<string, unknown>) =>
+                        updateModule(selectedScreenId, selectedModule.id, {
+                          config: { ...selectedModule.config, ...updates },
+                        })
+                      }
+                      moduleId={selectedModule.id}
+                      screenId={selectedScreenId}
+                    />
+                  </ModuleErrorBoundary>
                 </div>
               </PropertyGroup>
             </AccordionSection>

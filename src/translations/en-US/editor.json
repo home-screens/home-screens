@@ -1973,6 +1973,7 @@
     "emptyState": "Select a module to edit",
     "moduleHeading": "{name} Module",
     "pluginNotLoaded": "Plugin not installed or failed to load",
+    "pluginConfigFailed": "These settings could not be shown.",
     "sections": {
       "position": "Position",
       "size": "Size",

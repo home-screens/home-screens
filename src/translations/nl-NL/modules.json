@@ -683,6 +683,7 @@
   },
   "common": {
     "locationNotConfigured": "Locatie niet ingesteld",
-    "pluginNotAvailable": "Plug-in niet beschikbaar: {name}"
+    "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
+    "moduleFailed": "Dit onderdeel kon niet worden getoond."
   }
 }

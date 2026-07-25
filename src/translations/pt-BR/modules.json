@@ -687,6 +687,7 @@
   },
   "common": {
     "locationNotConfigured": "Local não configurado",
-    "pluginNotAvailable": "Plug-in indisponível: {name}"
+    "pluginNotAvailable": "Plug-in indisponível: {name}",
+    "moduleFailed": "Não foi possível mostrar este item."
   }
 }

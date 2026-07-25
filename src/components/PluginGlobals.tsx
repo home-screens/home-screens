@@ -1,8 +1,9 @@
 'use client';
 
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import type { HsSdk } from '@/types/plugins';
 
 // UI Components — display-safe (already in both bundles)
 import Slider from '@/components/ui/Slider';
@@ -25,6 +26,7 @@ import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore, type ProviderHealthStatus } from '@/lib/provider-health-store';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
 import { usePluginStore } from '@/stores/plugin-store';
+import { DISPLAY_SDK_STUBS } from '@/lib/plugin-sdk-display-stubs';
 
 // i18n — exposed read-only to plugins via window.__HS_SDK__.
 import {
@@ -92,10 +94,33 @@ export default function PluginGlobals() {
   const locale = useLocale();
   const formattingLocale = useFormattingLocale();
 
+  // Locale is read through refs rather than closed over, so the SDK object can
+  // be built exactly once (see the install effect's empty dep array).
+  //
+  // It used to rebuild on every locale change, which silently wiped the
+  // editor-only members PluginGlobalsEditor bolts on with `[]` deps: changing
+  // the language calls `router.refresh()` (deliberately, so the editor doesn't
+  // remount), the base effect re-ran and replaced the object, and the next
+  // plugin ConfigSection to render got `undefined` for AccordionSection. With
+  // no error boundary in the tree, that took the whole editor down.
+  const localeRef = useRef(locale);
+  const formattingLocaleRef = useRef(formattingLocale);
+
+  // Declared BEFORE the install effect so it runs first on mount; effects fire
+  // in declaration order. On later renders this is the only one that runs.
+  useLayoutEffect(() => {
+    localeRef.current = locale;
+    formattingLocaleRef.current = formattingLocale;
+    // `locale` is a plain data property, so it needs an explicit push. Every
+    // other locale-dependent member reads the ref at call time.
+    if (window.__HS_SDK__) window.__HS_SDK__.locale = locale ?? DEFAULT_LOCALE;
+  }, [locale, formattingLocale]);
+
   useLayoutEffect(() => {
     window.React = React;
     window.ReactDOM = ReactDOM;
-    window.__HS_SDK__ = {
+
+    const base: HsSdk = {
       // CSS class strings for consistent editor form styling
       INPUT_CLASS,
       NESTED_INPUT_CLASS,
@@ -228,7 +253,7 @@ export default function PluginGlobals() {
       // The fallback chain (resolveLocaleChain) is walked per lookup. On a
       // miss the raw key is returned so missing translations are visible
       // rather than silently empty.
-      locale: locale ?? DEFAULT_LOCALE,
+      locale: localeRef.current ?? DEFAULT_LOCALE,
       /**
        * Look up a translation by dotted key.
        *
@@ -243,7 +268,7 @@ export default function PluginGlobals() {
        * raw key on any miss along the locale fallback chain.
        */
       translate: (key: string, vars?: Record<string, string | number>): string => {
-        const tag = locale ?? DEFAULT_LOCALE;
+        const tag = localeRef.current ?? DEFAULT_LOCALE;
         const chain = resolveLocaleChain(tag, FALLBACK_LOCALE);
 
         // Identify the namespace from the first dotted segment. Plugin
@@ -281,16 +306,47 @@ export default function PluginGlobals() {
         return key;
       },
       formatDate: (date: Date | number, pattern: string): string => {
-        return formatDateSync(date, pattern, { locale: formattingLocale ?? DEFAULT_LOCALE });
+        return formatDateSync(date, pattern, {
+          locale: formattingLocaleRef.current ?? DEFAULT_LOCALE,
+        });
       },
       formatNumber: (n: number, opts?: Intl.NumberFormatOptions): string => {
         return i18nFormatNumber(n, {
-          locale: formattingLocale ?? DEFAULT_LOCALE,
+          locale: formattingLocaleRef.current ?? DEFAULT_LOCALE,
           ...(opts ?? {}),
         });
       },
+
+      // Editor-only behavior, but present on both surfaces so a plugin can call
+      // them unconditionally. PluginGlobalsEditor overwrites both with the real
+      // implementations in the editor layout and restores these on unmount.
+      ...DISPLAY_SDK_STUBS,
     };
-  }, [locale, formattingLocale]);
+
+    // Merge, never replace. Belt-and-braces alongside the `[]` deps: if this
+    // effect ever runs again (StrictMode remount, a future dep), the editor's
+    // members must survive.
+    //
+    // A plain `{...existing, ...base}` is not enough. It preserves the keys
+    // `base` does not own — AccordionSection, useModuleConfig — but `base` DOES
+    // own startAuth and setPluginSettings via DISPLAY_SDK_STUBS, so a re-run
+    // while the editor is mounted would quietly swap the editor's real
+    // implementations back to display no-ops, with no path back (the editor's
+    // installer is `[]`-dep'd and never re-runs). startAuth would stop opening
+    // the Connection panel and nothing would say why. So the stub keys yield to
+    // an existing implementation instead of overwriting it.
+    const existing = window.__HS_SDK__;
+    const merged: HsSdk = { ...existing, ...base };
+    if (existing) {
+      for (const k of Object.keys(DISPLAY_SDK_STUBS) as (keyof typeof DISPLAY_SDK_STUBS)[]) {
+        // Only a value the editor installed differs from the stub identity.
+        if (existing[k] && existing[k] !== DISPLAY_SDK_STUBS[k]) {
+          (merged[k] as unknown) = existing[k];
+        }
+      }
+    }
+    window.__HS_SDK__ = merged;
+  }, []);
 
   return null;
 }

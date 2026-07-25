@@ -683,6 +683,7 @@
   },
   "common": {
     "locationNotConfigured": "Location not configured",
-    "pluginNotAvailable": "Plugin not available: {name}"
+    "pluginNotAvailable": "Plugin not available: {name}",
+    "moduleFailed": "Dette element kunne ikke vises."
   }
 }
